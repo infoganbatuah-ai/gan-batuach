@@ -10,6 +10,7 @@ import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-ob
 import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
+const repositoryRoot = resolve(new URL("../..", import.meta.url).pathname);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
 const DVR_ASSIGNED_CHANNELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10, 11]);
 const unavailableArgument = String(args.get("dvr-upstream-unavailable") ?? "2,8").trim();
@@ -203,8 +204,9 @@ async function deepProbe(sourceList) {
     // inference path with the dedicated read-only local qualification instead
     // of weakening ingress to expose the Product event-manifest route.
     try {
-      const { stdout } = await exec(process.execPath, ["scripts/qa/measure-real-home-ai-routing.mjs"],
-        { cwd: process.cwd(), timeout: 120_000, maxBuffer: 4 * 1024 * 1024 });
+      const { stdout } = await exec(process.execPath, [join(repositoryRoot,
+        "scripts/qa/measure-real-home-ai-routing.mjs")],
+        { cwd: repositoryRoot, timeout: 120_000, maxBuffer: 4 * 1024 * 1024 });
       const proof = JSON.parse(stdout);
       const passed = proof.status === "PASS" && proof.mode === "READ_ONLY_REAL_CAMERA_ROUTING" &&
         proof.result?.job_id && proof.result?.model && proof.result?.runtime;

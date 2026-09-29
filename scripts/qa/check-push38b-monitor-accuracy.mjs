@@ -108,5 +108,22 @@ assert.match(durableLauncher, /execution_owner: "MACOS_LAUNCHD_USER_DOMAIN"/);
 assert.match(durableLauncher, /terminal_session_independent: true/);
 assert.match(durableLauncher, /auto_restart: false/,
   "a failed Product qualification must never be hidden by automatic restarts");
+assert.match(durableLauncher, /"Library", "LaunchAgents"/,
+  "launchd must load the active plist from the canonical per-user LaunchAgents directory");
+assert.match(durableLauncher, /evidence_plist_path: evidencePlistPath/,
+  "the restricted evidence directory must retain an auditable plist copy");
+assert.match(durableLauncher, /"Application Support", "Digital Observer",[\s\S]*"push38-qualification"/,
+  "launchd runtime state and logs must stay on the local protected disk");
+assert.match(durableLauncher, /syncEvidence\(\)/,
+  "local durable evidence must be copied to the canonical restricted export");
+assert.match(durableLauncher, /observer-durable-qualification-runtime-bundle-v1/,
+  "the launchd job must execute a checksum-recorded local runtime bundle");
+assert.match(durableLauncher, /join\(runtimeRoot, "scripts\/qa\/run-real-home-soak\.mjs"\)/,
+  "the launchd job must not execute qualification code from a removable volume");
+const aiRoutingProof = readFileSync("scripts/qa/measure-real-home-ai-routing.mjs", "utf8");
+assert.match(aiRoutingProof, /\/opt\/homebrew\/bin\/ffmpeg/,
+  "the launchd AI proof must resolve the installed ffmpeg without an interactive PATH");
+assert.doesNotMatch(aiRoutingProof, /spawnSync\("ffmpeg"/,
+  "the launchd AI proof must not depend on the shell PATH");
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");
