@@ -19,6 +19,7 @@ import { buildPush38GatewayHeartbeatLoginManifest } from "../../services/video-g
 import { buildPush38GatewayIdleHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-idle-handoff.mjs";
 import { buildPush38GatewayBufferedOutputManifest } from "../../services/video-gateway/push38-home-qa-gateway-buffered-output.mjs";
 import { buildPush38GatewayOutputRescueManifest } from "../../services/video-gateway/push38-home-qa-gateway-output-rescue.mjs";
+import { buildPush38GatewayConfirmedHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-confirmed-handoff.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -96,11 +97,14 @@ async function uploadMultipart({ client, bucket, key, path, size, sha256, releas
 export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, evidencePath,
   supervisorRecovery = false, stableHandoff = false, mediaCadence = false,
   maintenanceIsolation = false, sessionSweep = false, heartbeatLogin = false,
-  idleHandoff = false, bufferedOutput = false, outputRescue = false }) {
+  idleHandoff = false, bufferedOutput = false, outputRescue = false,
+  confirmedHandoff = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
-    heartbeatLogin, idleHandoff, bufferedOutput, outputRescue].filter(Boolean).length > 1)
+    heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff]
+    .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = outputRescue ? buildPush38GatewayOutputRescueManifest :
+  const builder = confirmedHandoff ? buildPush38GatewayConfirmedHandoffManifest :
+    outputRescue ? buildPush38GatewayOutputRescueManifest :
     bufferedOutput ? buildPush38GatewayBufferedOutputManifest :
     idleHandoff ? buildPush38GatewayIdleHandoffManifest :
     heartbeatLogin ? buildPush38GatewayHeartbeatLoginManifest :
@@ -157,7 +161,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: outputRescue ?
+    const result = { protocol: confirmedHandoff ?
+      "observer-push38-gateway-confirmed-handoff-r2-publication-v1" : outputRescue ?
       "observer-push38-gateway-output-rescue-r2-publication-v1" : bufferedOutput ?
       "observer-push38-gateway-buffered-output-r2-publication-v1" : idleHandoff ?
       "observer-push38-gateway-idle-handoff-r2-publication-v1" : heartbeatLogin ?
@@ -188,17 +193,19 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const idleHandoff = process.argv.includes("--idle-handoff");
     const bufferedOutput = process.argv.includes("--buffered-output");
     const outputRescue = process.argv.includes("--output-rescue");
+    const confirmedHandoff = process.argv.includes("--confirmed-handoff");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
-        "--idle-handoff", "--buffered-output", "--output-rescue"].includes(value));
+        "--idle-handoff", "--buffered-output", "--output-rescue", "--confirmed-handoff"]
+        .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
       fail("P38_GATEWAY_FINITE_HANDOFF_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publishPush38GatewayFiniteStreamHandoff({
       artifactPath: artifact, evidencePath: resolve(evidence), supervisorRecovery, stableHandoff,
       mediaCadence, maintenanceIsolation, sessionSweep, heartbeatLogin, idleHandoff,
-      bufferedOutput, outputRescue }) }));
+      bufferedOutput, outputRescue, confirmedHandoff }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");

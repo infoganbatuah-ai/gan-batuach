@@ -36,6 +36,8 @@ import { PUSH38_GATEWAY_BUFFERED_OUTPUT
 } from "../../services/video-gateway/push38-home-qa-gateway-buffered-output.mjs";
 import { PUSH38_GATEWAY_OUTPUT_RESCUE
 } from "../../services/video-gateway/push38-home-qa-gateway-output-rescue.mjs";
+import { PUSH38_GATEWAY_CONFIRMED_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-confirmed-handoff.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -65,10 +67,13 @@ const heartbeatLogin = process.argv.includes("--heartbeat-login");
 const idleHandoff = process.argv.includes("--idle-handoff");
 const bufferedOutput = process.argv.includes("--buffered-output");
 const outputRescue = process.argv.includes("--output-rescue");
+const confirmedHandoff = process.argv.includes("--confirmed-handoff");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
-  heartbeatLogin, idleHandoff, bufferedOutput, outputRescue].filter(Boolean).length > 1)
+  heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff]
+  .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = outputRescue ? PUSH38_GATEWAY_OUTPUT_RESCUE :
+const item = confirmedHandoff ? PUSH38_GATEWAY_CONFIRMED_HANDOFF :
+  outputRescue ? PUSH38_GATEWAY_OUTPUT_RESCUE :
   bufferedOutput ? PUSH38_GATEWAY_BUFFERED_OUTPUT :
   idleHandoff ? PUSH38_GATEWAY_IDLE_HANDOFF :
   heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
@@ -78,17 +83,19 @@ const item = outputRescue ? PUSH38_GATEWAY_OUTPUT_RESCUE :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = outputRescue ? connectorOutputRescueItem :
+const connectorItem = (outputRescue || confirmedHandoff) ? connectorOutputRescueItem :
   bufferedOutput ? connectorFinalStabilityItem :
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = outputRescue
+const artifact = confirmedHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-confirmed-handoff-ab855c89/gateway-runtime.tar.gz"
+  : outputRescue
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-output-rescue-9658853d/gateway-runtime.tar.gz"
   : bufferedOutput
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-buffered-output-fcd1ee80/gateway-runtime.tar.gz"
@@ -109,7 +116,9 @@ const artifact = outputRescue
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = outputRescue
+const publication = confirmedHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-confirmed-handoff-ab855c89/r2-publication.json"
+  : outputRescue
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-output-rescue-9658853d/r2-publication.json"
   : bufferedOutput
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-buffered-output-fcd1ee80/r2-publication.json"
@@ -204,7 +213,7 @@ async function healthSample(port, label) {
 }
 
 function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
-  expectedRelease = null, expectedChannel = 1 } = {}) {
+  confirmedWarmHandoff = false, expectedRelease = null, expectedChannel = 1 } = {}) {
   const value = JSON.parse(protectedFile(path));
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
   const endedAt = Date.parse(value.ended_at || "");
@@ -223,7 +232,9 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
     !Number.isFinite(endedAt) || (recent && (endedAt > Date.now() || Date.now() - endedAt > 10 * 60_000)) ||
     !streamProof || (warmHandoff &&
       (checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffs < 1 ||
-        checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffFailures !== 0)))
+        checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffFailures !== 0)) ||
+    (confirmedWarmHandoff &&
+      checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffConfirmationFailures !== 0))
     throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_INVALID");
   return { sha256: sha(protectedFile(path)), ended_at: value.ended_at,
     duration_ms: value.duration_ms, checkpoints: checkpoints.length };
@@ -238,14 +249,15 @@ if (config.profile !== item.profile || config.deviceId !== item.deviceId || conf
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue)
+const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff)
   ? item.agentPredecessorReleaseId : item.releaseId;
-const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue)
+const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff)
   ? item.priorManagementArtifactSha256 : item.digest;
 if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_sha256 !== expectedAgentDigest)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  confirmedHandoff ? "gateway_remediation_confirmed_handoff.json" :
   outputRescue ? "gateway_remediation_output_rescue.json" :
   bufferedOutput ? "gateway_remediation_buffered_output.json" :
   idleHandoff ? "gateway_remediation_idle_handoff.json" :
@@ -328,7 +340,7 @@ const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_statu
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
-if (rollout.devices !== 2 || rollout.releases !== (outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+if (rollout.devices !== 2 || rollout.releases !== (confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
   (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
@@ -372,6 +384,13 @@ const bufferedOutputTargetTruth = bufferedOutput && gatewaySamples.every(sample 
 const outputRescueTargetTruth = outputRescue && gatewaySamples.every(sample =>
   (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
   sample.connected === 9 && sample.failed === 1 && sample.empty === 6 &&
+  Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
+  Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
+  sample.rotations === 0);
+const confirmedHandoffTargetTruth = confirmedHandoff && gatewaySamples.every(sample =>
+  (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
+  Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
+  Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
@@ -450,12 +469,40 @@ if (idleHandoff) {
     recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
     socket_error_delta: result.gateway.socket_error_delta, live_recovery_required: true };
 }
-if (bufferedOutput || outputRescue) {
+if (confirmedHandoff) {
+  const bytes = protectedFile(failedCanaryEvidencePath);
+  const result = JSON.parse(bytes);
+  const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
+    name.startsWith("dvr-") && camera.qualification_denominator === true && camera.availability < 1);
+  if (result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "CANARY" || result.status !== "NOT_DONE" ||
+    result.dvr_source_available !== 8 ||
+    JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([2, 8]) ||
+    result.gateway?.unavailable_checkpoints !== 1 || result.gateway?.relay_start_delta < 100 ||
+    result.gateway?.stale_input_delta < 1 || result.gateway?.socket_error_delta !== 0 ||
+    result.gateway?.recorder_session_failure_delta !== 0 ||
+    result.gateway?.recorder_auth_rejection_delta !== 0 || result.playback?.failures !== 0 ||
+    result.ai?.failures !== 0 || result.release?.gateway?.software_version !== item.supersedesVersion ||
+    result.release?.gateway?.build_sha !== "9658853d9b75c86674aa4955527a50618c294b5d" ||
+    affected.length !== 1 || affected[0][0] !== "dvr-7" ||
+    affected[0][1].input_idle_ms?.max < 20_000)
+    throw new Error("P38_GATEWAY_CONFIRMED_HANDOFF_FAILED_CANARY_EVIDENCE_INVALID");
+  failedCanaryEvidence = { sha256: sha(bytes), checkpoints: result.checkpoints,
+    unavailable_checkpoints: result.gateway.unavailable_checkpoints,
+    affected_channels: affected.map(([name]) => name), relay_start_delta: result.gateway.relay_start_delta,
+    stale_input_delta: result.gateway.stale_input_delta,
+    recorder_session_failure_delta: result.gateway.recorder_session_failure_delta,
+    recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
+    socket_error_delta: result.gateway.socket_error_delta, playback_failures: result.playback.failures,
+    ai_failures: result.ai.failures, live_recovery_required: true };
+}
+if (bufferedOutput || outputRescue || confirmedHandoff) {
   if (!shadowEvidencePath)
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
-      warmHandoff: true, expectedRelease: item, expectedChannel: 1 });
+      warmHandoff: true, confirmedWarmHandoff: confirmedHandoff,
+      expectedRelease: item, expectedChannel: 1 });
   } catch {
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   }
@@ -472,7 +519,8 @@ if (finiteCommonCauseTruth) {
   warmHandoffEvidence = verifiedShadowEvidence(warmHandoffEvidencePath, { warmHandoff: true });
 }
 if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth &&
-  !idleHandoffTargetTruth && !bufferedOutputTargetTruth && !outputRescueTargetTruth))
+  !idleHandoffTargetTruth && !bufferedOutputTargetTruth && !outputRescueTargetTruth &&
+  !confirmedHandoffTargetTruth))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_TRUTH_INVALID");
 if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok ||
   sample.assigned !== 1 || sample.progressing !== 1 || sample.stalled !== 0) ||
@@ -488,7 +536,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: outputRescue ? "observer-push38-gateway-output-rescue-activation-v1" :
+const plan = { protocol: confirmedHandoff ? "observer-push38-gateway-confirmed-handoff-activation-v1" :
+  outputRescue ? "observer-push38-gateway-output-rescue-activation-v1" :
   bufferedOutput ? "observer-push38-gateway-buffered-output-activation-v1" :
   idleHandoff ? "observer-push38-gateway-idle-handoff-activation-v1" :
   heartbeatLogin ? "observer-push38-gateway-heartbeat-login-activation-v1" :
@@ -504,6 +553,7 @@ const plan = { protocol: outputRescue ? "observer-push38-gateway-output-rescue-a
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
+    confirmedHandoffTargetTruth ? "FAILED_CANARY_CONFIRMED_HANDOFF_SHADOW_QUALIFIED" :
     outputRescueTargetTruth ? "KNOWN_OUTPUT_STALLS_QUALIFIED_FOR_SIGNED_REMEDIATION" :
     bufferedOutputTargetTruth ? "KNOWN_BUFFERED_OUTPUT_GAPS_QUALIFIED_FOR_SIGNED_REMEDIATION" :
     idleHandoffTargetTruth ? "KNOWN_PER_CHANNEL_IDLE_GAP_QUALIFIED_FOR_SIGNED_REMEDIATION" :
@@ -520,14 +570,15 @@ const plan = { protocol: outputRescue ? "observer-push38-gateway-output-rescue-a
     empty: gatewaySamples.at(-1).empty,
     service_pid_stable: gatewayPidStable
   } } : {}),
-  dvr_truth: { expected: 10, source_available: expectsNineSources ? 9 : 8,
-    upstream_unavailable: expectsNineSources ? 1 : 2, empty: 6 },
+  dvr_truth: { expected: 10, source_available: confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
+    upstream_unavailable: confirmedHandoff ? 2 : expectsNineSources ? 1 : 2, empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: outputRescue ? "GATEWAY_OUTPUT_RESCUE_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: confirmedHandoff ? "GATEWAY_CONFIRMED_HANDOFF_PREFLIGHT_PASS" :
+    outputRescue ? "GATEWAY_OUTPUT_RESCUE_PREFLIGHT_PASS" :
     bufferedOutput ? "GATEWAY_BUFFERED_OUTPUT_PREFLIGHT_PASS" :
     idleHandoff ? "GATEWAY_IDLE_HANDOFF_PREFLIGHT_PASS" :
     heartbeatLogin ? "GATEWAY_HEARTBEAT_LOGIN_PREFLIGHT_PASS" :
@@ -574,7 +625,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: outputRescue ? "EXACT_GATEWAY_OUTPUT_RESCUE_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: confirmedHandoff ? "EXACT_GATEWAY_CONFIRMED_HANDOFF_ROLLOUT_ACTIVE" :
+  outputRescue ? "EXACT_GATEWAY_OUTPUT_RESCUE_ROLLOUT_ACTIVE" :
   bufferedOutput ? "EXACT_GATEWAY_BUFFERED_OUTPUT_ROLLOUT_ACTIVE" :
   idleHandoff ? "EXACT_GATEWAY_IDLE_HANDOFF_ROLLOUT_ACTIVE" :
   heartbeatLogin ? "EXACT_GATEWAY_HEARTBEAT_LOGIN_ROLLOUT_ACTIVE" :
