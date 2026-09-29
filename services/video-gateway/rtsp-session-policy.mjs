@@ -5,9 +5,15 @@
 // before that shortest boundary; the old relay remains authoritative if the
 // warm peer does not produce current HLS media.
 export const DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS = 8 * 60 * 1000;
+export const DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 4_000;
+export const DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 
 export function shouldProactivelyHandoffDirectRtspRelay(relay, now = Date.now()) {
-  return Boolean(relay?.progressing && relay?.recoveryStable && !relay?.warming
-    && Number.isFinite(relay.startedAt)
-    && now - relay.startedAt >= DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS);
+  if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return false;
+  const ageMs = now - relay.startedAt;
+  const outputRescue = ageMs >= DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS
+    && Number.isFinite(relay.lastOutputAt)
+    && now - relay.lastOutputAt >= DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+  return Boolean(outputRescue || relay.recoveryStable
+    && ageMs >= DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS);
 }

@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { buildPush38ConnectorRtspSessionRecoveryManifest,
   PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-rtsp-session.mjs";
-import { DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS,
+import { DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
+  DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS,
   shouldProactivelyHandoffDirectRtspRelay } from "../../services/video-gateway/rtsp-session-policy.mjs";
 
 const manifest = buildPush38ConnectorRtspSessionRecoveryManifest({ signingKeyId: "fixture-release-key",
@@ -32,9 +34,18 @@ assert.equal(shouldProactivelyHandoffDirectRtspRelay(eligible, now), true);
 assert.equal(shouldProactivelyHandoffDirectRtspRelay({ ...eligible,
   startedAt: eligible.startedAt + 1 }, now), false);
 assert.equal(shouldProactivelyHandoffDirectRtspRelay({ ...eligible,
+  recoveryStable: false,
+  startedAt: now - DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  lastOutputAt: now - DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true);
+assert.equal(shouldProactivelyHandoffDirectRtspRelay({ ...eligible,
+  recoveryStable: false,
+  startedAt: now - DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  lastOutputAt: now - DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS + 1 }, now), false);
+assert.equal(shouldProactivelyHandoffDirectRtspRelay({ ...eligible,
   progressing: false }, now), false);
 assert.equal(shouldProactivelyHandoffDirectRtspRelay({ ...eligible,
-  recoveryStable: false }, now), false);
+  recoveryStable: false, startedAt: now,
+  lastOutputAt: now - DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false);
 assert.equal(shouldProactivelyHandoffDirectRtspRelay({ ...eligible,
   warming: true }, now), false);
 assert.match(source, /async function maintainDirectRtspRelayHandoffs/);

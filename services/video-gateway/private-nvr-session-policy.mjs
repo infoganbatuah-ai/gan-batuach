@@ -17,11 +17,13 @@ export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 4 * 60 * 1000;
 export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // Real Home evidence shows the recorder can pause HTTP input while FFmpeg is
 // still producing current HLS output from already-buffered media. Input idle
-// alone is therefore not a handoff signal. Start a bounded warm replacement
-// only after both the recorder input and rendered HLS output are idle, leaving
-// enough margin before the twenty-second output-stale boundary.
-export const PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS = 12_000;
-export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 8_000;
+// alone is therefore not a handoff signal. Conversely, current input with a
+// frozen rendered playlist is an output-path failure and must not wait for the
+// twenty-second hard-stale boundary. Start a bounded warm replacement after a
+// short output-only warning window; the old relay stays authoritative until
+// the replacement has produced current HLS media.
+export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 4_000;
+export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
 // replacement, but drive the independent handoff scheduler quickly enough to
@@ -40,13 +42,13 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
 }
 
 export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
-  return Boolean(relay?.progressing && relay?.recoveryStable && !relay?.warming
-    && Number.isFinite(relay.startedAt)
-    && (now - relay.startedAt >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS
-      || Number.isFinite(relay.lastInputAt)
-        && Number.isFinite(relay.lastOutputAt)
-        && now - relay.lastInputAt >= PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS
-        && now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS));
+  if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return false;
+  const ageMs = now - relay.startedAt;
+  const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
+    && Number.isFinite(relay.lastOutputAt)
+    && now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+  return Boolean(outputRescue || relay.recoveryStable
+    && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS);
 }
 
 // Login/Heartbeat is the recorder's supported session-maintenance contract.

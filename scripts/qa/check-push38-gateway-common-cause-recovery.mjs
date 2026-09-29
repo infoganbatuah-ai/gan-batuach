@@ -8,7 +8,8 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
-  PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
@@ -121,25 +122,26 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), true);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
-  assert.equal(PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS, 12_000);
-  assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 8_000);
+  assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 4_000);
+  assert.equal(PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS, 10_000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
-    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
-    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
-    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
-    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS + 1 }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
-    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
-    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastOutputAt: now }, now), false,
   "bursty recorder input must not replace a relay while HLS output is current");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     progressing: false }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
-    recoveryStable: false }, now), false);
+    recoveryStable: false, startedAt: now,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     warming: true }, now), false);
   assert.match(gateway,
@@ -171,8 +173,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
     "a slow media sweep must not block heartbeat or login renewal");
   assert.match(gateway,
-    /!relayIsProgressing\(previous\)[\s\S]*!relayRecoveryIsStable\(previous\)/,
-    "a newly recovered relay must become stable before another warm handoff");
+    /!relayIsProgressing\(previous\)[\s\S]*!relayEligibleForHandoff\(streamId, previous\)/,
+    "a warm handoff must satisfy the shared stability or output-rescue gate");
   assert.match(gateway, /startRelay\(streamId, \{ warming: true, previousRelay: previous \}\)/);
   assert.match(gateway, /relayLifecycle\.warmHandoffs/);
   assert.match(gateway, /previousDirectories/);
@@ -182,7 +184,10 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /Private DVR HTTP responses are bursty:[\s\S]*if \(!progressing \|\| directRtsp && inputStale\)/);
   assert.match(gateway,
     /function relayEligibleForHandoff\(streamId, relay\)[\s\S]*!relayRecovery\.has\(streamId\) \|\| relayRecoveryIsStable\(relay\)/,
-  "only an actual recovery history may impose the sixty-second handoff stability window");
+  "normal handoff remains subject to the sixty-second recovery stability window");
+  assert.match(gateway,
+    /function relayEligibleForHandoff\(streamId, relay\)[\s\S]*Date\.now\(\) - outputAt >= outputIdleMs/,
+  "a frozen HLS output may use the bounded rescue exception before hard stale");
   assert.match(gateway, /"-start_number", String\(firstEvidenceSequence\)/);
   assert.match(gateway, /function readEvidenceSegment[\s\S]*relay\.previousDirectories/);
 });

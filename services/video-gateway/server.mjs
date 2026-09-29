@@ -12,12 +12,16 @@ import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
+  PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyHandoffPrivateNvrRelay, shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
   "./private-nvr-session-policy.mjs";
-import { shouldProactivelyHandoffDirectRtspRelay } from "./rtsp-session-policy.mjs";
+import { DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
+  shouldProactivelyHandoffDirectRtspRelay } from "./rtsp-session-policy.mjs";
 import { classifyRelayExit, safeInputCode } from "./relay-failure-reason.mjs";
 import { parseEventClipPlaylist } from "./event-clip-window.mjs";
 import { decodeAnchoredFrame } from "./anchored-frame-decoder.mjs";
@@ -142,6 +146,7 @@ async function maintainDirectRtspRelayHandoffs() {
     if (source?.kind !== "rtsp") continue;
     if (shouldProactivelyHandoffDirectRtspRelay({
       startedAt: relay.startedAt,
+      lastOutputAt: relayPlaylistMtime(relay),
       progressing: relayIsProgressing(relay),
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
@@ -1337,10 +1342,23 @@ function relayPlaylistMtime(relay) {
 }
 
 function relayEligibleForHandoff(streamId, relay) {
-  // The stability window protects a relay that just recovered from a real
-  // failure. A first healthy relay has no failure history and must be allowed
-  // to hand off before a finite recorder response reaches its output boundary.
-  return !relayRecovery.has(streamId) || relayRecoveryIsStable(relay);
+  // Normal age-based rotation waits for the full recovery-stability window.
+  // Output rescue is different: a relay can still satisfy the twenty-second
+  // `progressing` contract while its playlist has already stopped advancing.
+  // Permit only that evidence-bound rescue after a minimum relay age; warm
+  // replacement still preserves the old relay until new HLS output exists.
+  if (!relayRecovery.has(streamId) || relayRecoveryIsStable(relay)) return true;
+  const outputAt = relayPlaylistMtime(relay);
+  if (!Number.isFinite(outputAt)) return false;
+  const source = streamSources.get(streamId);
+  const minimumAgeMs = source?.kind === "rtsp"
+    ? DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS
+    : PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS;
+  const outputIdleMs = source?.kind === "rtsp"
+    ? DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS
+    : PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+  return Date.now() - relay.startedAt >= minimumAgeMs
+    && Date.now() - outputAt >= outputIdleMs;
 }
 
 function observeLocalResources() {
@@ -1397,7 +1415,7 @@ async function warmReplaceRelay(streamId, previous) {
   // non-exclusive renewal, so defer its warm handoff until it has completed
   // the same stability window that clears recovery history.
   if (!previous || !relayIsProgressing(previous) ||
-    !relayRecoveryIsStable(previous) || relayWarmups.has(streamId)) return false;
+    !relayEligibleForHandoff(streamId, previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
     const replacement = await startRelay(streamId, { warming: true, previousRelay: previous });
     if (!replacement) return false;

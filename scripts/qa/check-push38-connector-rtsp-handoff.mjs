@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { buildPush38ConnectorRtspHandoffManifest as build,
   PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY as item
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-handoff.mjs";
-import { DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS,
+import { DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
+  DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS,
   shouldProactivelyHandoffDirectRtspRelay } from "../../services/video-gateway/rtsp-session-policy.mjs";
 
 const manifest = build({ signingKeyId: "observer-kms-release-v1",
@@ -22,6 +23,7 @@ assert.equal(manifest.compatibility.maximum_current_version, "0.2.20-p38-health"
 assert.equal(item.rollbackReleaseId, "qa-p38-health-connector-liveness-continuity-6efc70f798aa");
 assert.equal(item.supersedesReleaseId, "qa-p38-health-connector-rtsp-handoff-448381dc3792");
 assert.equal(DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS, 8 * 60 * 1000);
+assert.equal(DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 4_000);
 const now = Date.now();
 const eligible = { progressing: true, recoveryStable: true, warming: false,
   startedAt: now - DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS };
