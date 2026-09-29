@@ -14,7 +14,8 @@ for (const token of [
   "authorizeQuarantinedReleaseRetry",
   "connectorSamples",
   "gatewaySamples",
-  "0.2.21-p38-health",
+  "0.2.22-p38-health",
+  "qa-p38-health-gateway-buffered-output-f3ca7f4971fa",
   "cohort_percent=0",
   "explicit_device_ids",
   "runtime_writes: 0"

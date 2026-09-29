@@ -149,7 +149,7 @@ if (qa.devices !== 2 || qa.release_state !== "PUBLISHED" || !["ACTIVE", "PAUSED"
   JSON.stringify(qa.target_filters) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   qa.artifact_sha256 !== item.digest || qa.signing_key_id !== manifest.signing_key_id ||
   qa.fresh_proof !== 1 ||
-  qa.gateway_active !== "qa-p38-health-gateway-idle-handoff-5a63b02f8a16" || qa.broad_active !== 0)
+  qa.gateway_active !== "qa-p38-health-gateway-buffered-output-f3ca7f4971fa" || qa.broad_active !== 0)
   throw new Error("P38_CONNECTOR_RTSP_CADENCE_RETRY_HOME_QA_INVALID");
 
 const connectorSamples = [], gatewaySamples = [];
@@ -167,7 +167,7 @@ if (connectorSamples.some(sample => !sample.running || !sample.pid || sample.ver
   !Number.isFinite(sample.event_loop_p99_ms) || sample.event_loop_p99_ms > 2_000) ||
   new Set(connectorSamples.map(sample => sample.pid)).size !== 1)
   throw new Error("P38_CONNECTOR_RTSP_CADENCE_RETRY_CONNECTOR_UNSTABLE");
-if (gatewaySamples.some(sample => !sample.running || !sample.pid || sample.version !== "0.2.21-p38-health" ||
+if (gatewaySamples.some(sample => !sample.running || !sample.pid || sample.version !== "0.2.22-p38-health" ||
   sample.status !== "degraded" || sample.assigned !== 10 || sample.connected !== 9 || sample.failed !== 1 ||
   sample.empty !== 6 || sample.progressing !== 9 || sample.stalled !== 0 || sample.latency_ms > 2_000) ||
   new Set(gatewaySamples.map(sample => sample.pid)).size !== 1)
