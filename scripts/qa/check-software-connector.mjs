@@ -200,6 +200,13 @@ test("generic RTSP discovery registers a relay source instead of probe-only read
   assert.match(gateway, /child\.stdin\.end\(content\)/);
   assert.match(gateway, /activeCandidate && relayIsProgressing\(currentRelay\)/);
   assert.match(gateway, /reason: "active_relay_verified"/);
+  const genericStream = gateway.indexOf('template: "generic_stream"');
+  const genericChannel = gateway.indexOf('template: "generic_channel_quality"');
+  assert.ok(genericStream >= 0 && genericStream < genericChannel,
+    "generic RTSP must try /streamN before alternate generic layouts");
+  assert.match(gateway,
+    /vendor === "generic"[\s\S]*?all\.filter\(\(item\) => item\.vendor === "generic"\)/,
+    "an explicitly generic/Tapo source must not consume sessions on DVR-vendor probes");
   assert.doesNotMatch(gateway, /"-i", source\.url/);
   assert.match(gateway, /controller\?\.abort\(\)/);
   assert.match(gateway, /relay\.process\.stdin\?\.writableNeedDrain/);

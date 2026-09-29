@@ -641,13 +641,20 @@ function candidateUrls(input, channel) {
     { vendor: "private_nvr", template: "private_nvr_streaming_channels", url: `rtsp://${auth}${host}:${port}/Streaming/Channels/${channelSuffix(channel, quality)}` },
     { vendor: "private_nvr", template: "private_nvr_realmonitor", url: `rtsp://${auth}${host}:${port}/cam/realmonitor?channel=${channel}&subtype=${subtype}` },
     { vendor: "private_nvr", template: "private_nvr_channel_stream_type", url: `rtsp://${auth}${host}:${port}/chID=${channel}&streamType=${quality === "main" ? "main" : "sub"}` },
-    { vendor: "generic", template: "generic_channel_quality", url: `rtsp://${auth}${host}:${port}/ch${channel}/${quality}` },
-    { vendor: "generic", template: "generic_stream", url: `rtsp://${auth}${host}:${port}/stream${channel}` }
+    // Single-camera RTSP appliances such as the Tapo C211 expose /stream1.
+    // Try that bounded generic contract before alternate generic layouts so a
+    // camera with a small concurrent-session limit is not exhausted by DVR-
+    // vendor probes that can never succeed for an explicitly generic source.
+    { vendor: "generic", template: "generic_stream", url: `rtsp://${auth}${host}:${port}/stream${channel}` },
+    { vendor: "generic", template: "generic_channel_quality", url: `rtsp://${auth}${host}:${port}/ch${channel}/${quality}` }
   ];
   if (vendor.includes("hikvision")) return all.filter((item) => item.vendor === "hikvision");
   if (vendor.includes("dahua")) return all.filter((item) => item.vendor === "dahua");
   if (vendor.includes("uniview")) return all.filter((item) => item.vendor === "uniview");
   if (vendor.includes("private") || vendor.includes("xm")) return all.filter((item) => item.vendor === "private_nvr");
+  if (vendor === "generic" || vendor === "rtsp" || vendor.includes("tapo") || vendor.includes("tp-link")) {
+    return all.filter((item) => item.vendor === "generic");
+  }
   return all;
 }
 
