@@ -74,12 +74,17 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
   if (local.sha256 !== document.artifact_sha256 || local.size !== document.artifact_size)
     fail("P38_PIDFIX_R2_LOCAL_ARTIFACT_HASH_MISMATCH");
   const key = edgeReleaseObjectPath(document), keychain = join(homedir(), "Library/Keychains/login.keychain-db");
+  const readerService = process.env.OBSERVER_R2_READER_SERVICE ||
+    "digital-observer-r2-home-qa-reader-20260922";
+  if (!["digital-observer-r2-home-qa-reader-20260922",
+    "digital-observer-r2-home-qa-publisher-20260922-v2"].includes(readerService))
+    fail("P38_PIDFIX_R2_READER_SERVICE_INVALID");
   const clientOptions = { region: "auto", endpoint: origin, forcePathStyle: true,
     maxAttempts: 1, requestChecksumCalculation: "WHEN_REQUIRED", responseChecksumValidation: "WHEN_REQUIRED" };
   const publisher = new S3Client({ ...clientOptions,
     credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-publisher-20260922-v2", keychain }) });
   const reader = new S3Client({ ...clientOptions,
-    credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-reader-20260922", keychain }) });
+    credentials: readR2KeychainCredentials({ service: readerService, keychain }) });
   try {
     let existed = false;
     try {
