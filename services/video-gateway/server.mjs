@@ -209,7 +209,8 @@ const relayRecovery = new Map();
 const relayDiagnostics = new Map();
 const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
-  warmHandoffs: 0, warmHandoffFailures: 0, staleInput: 0,
+  warmHandoffs: 0, warmHandoffFailures: 0,
+  warmHandoffConfirmationFailures: 0, staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0 };
 const edgeSupervisor = createEdgeSupervisor({ adapters: {
@@ -1420,12 +1421,28 @@ async function warmReplaceRelay(streamId, previous) {
     const replacement = await startRelay(streamId, { warming: true, previousRelay: previous });
     if (!replacement) return false;
     const deadline = Date.now() + 12_000;
-    while (Date.now() < deadline && relayIsRunning(replacement)
-      && !relayIsProgressing(replacement)) {
+    let firstOutputAt = null;
+    let outputConfirmed = false;
+    while (Date.now() < deadline && relayIsRunning(replacement)) {
+      if (relayIsProgressing(replacement)) {
+        const outputAt = relayPlaylistMtime(replacement);
+        if (Number.isFinite(outputAt)) {
+          if (firstOutputAt === null) firstOutputAt = outputAt;
+          else if (outputAt > firstOutputAt) {
+            outputConfirmed = true;
+            break;
+          }
+        }
+      }
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    if (!relayIsProgressing(replacement) || relays.get(streamId) !== previous) {
+    // A single initial playlist write is not sustained media. The failed Home
+    // canary promoted one such replacement and it stalled for twenty seconds.
+    // Require a subsequent HLS update while the old relay remains authoritative.
+    if (!outputConfirmed || !relayIsProgressing(replacement)
+      || relays.get(streamId) !== previous) {
       relayLifecycle.warmHandoffFailures += 1;
+      if (!outputConfirmed) relayLifecycle.warmHandoffConfirmationFailures += 1;
       stopRelay(streamId, replacement, "WARM_HANDOFF_ABORTED");
       return false;
     }
@@ -1978,7 +1995,18 @@ async function handle(request, response) {
         activeRelays: relays.size,
         progressingRelays,
         stalledRelays,
-        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, progressing: relayIsProgressing(relay), input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
+        inputs: [...relays.entries()].map(([streamId, relay]) => {
+          const observedAt = Date.now();
+          const outputAt = relayPlaylistMtime(relay);
+          return { channel: streamSources.get(streamId)?.channel,
+            progressing: relayIsProgressing(relay),
+            input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown",
+            encoder: relay.encoder, ...relay.inputMetrics.snapshot(),
+            relay_age_ms: Math.max(0, observedAt - relay.startedAt),
+            output_idle_ms: Number.isFinite(outputAt) ? Math.max(0, observedAt - outputAt) : null,
+            stdin_backpressure: relay.process.stdin?.writableNeedDrain === true,
+            stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 };
+        }),
         lifecycle: relayLifecycle,
         recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state })),
         source_diagnostics: [...streamSources.entries()].map(([streamId, source]) => ({ channel: source.channel, source_kind: source.kind,

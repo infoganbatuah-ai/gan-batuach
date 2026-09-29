@@ -19,10 +19,12 @@ export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // still producing current HLS output from already-buffered media. Input idle
 // alone is therefore not a handoff signal. Conversely, current input with a
 // frozen rendered playlist is an output-path failure and must not wait for the
-// twenty-second hard-stale boundary. Start a bounded warm replacement after a
-// short output-only warning window; the old relay stays authoritative until
-// the replacement has produced current HLS media.
-export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 4_000;
+// twenty-second hard-stale boundary. Live Home canary evidence showed that a
+// four-second warning window was shorter than normal recorder/HLS cadence: it
+// caused 197 relay starts in fifteen minutes and one qualified-channel outage.
+// Require twelve continuous output-idle seconds, leaving eight seconds before
+// the hard-stale boundary for the bounded warm replacement to become current.
+export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay

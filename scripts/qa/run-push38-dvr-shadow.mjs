@@ -173,7 +173,10 @@ async function health(url) {
         channel: input.channel,
         bytes: input.bytes ?? input.input_bytes,
         chunks: input.chunks ?? input.input_chunks,
-        progressing: input.progressing
+        progressing: input.progressing,
+        input_idle_ms: input.input_idle_ms ?? null,
+        relay_age_ms: input.relay_age_ms ?? null,
+        output_idle_ms: input.output_idle_ms ?? null
       })) : []
     } : null,
     recorder_session: body.recorderSessionLifecycle ? {

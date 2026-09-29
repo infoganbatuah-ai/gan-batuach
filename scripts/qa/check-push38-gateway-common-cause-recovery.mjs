@@ -122,7 +122,7 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), true);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
-  assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 4_000);
+  assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
   assert.equal(PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS, 10_000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
@@ -176,6 +176,12 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /!relayIsProgressing\(previous\)[\s\S]*!relayEligibleForHandoff\(streamId, previous\)/,
     "a warm handoff must satisfy the shared stability or output-rescue gate");
   assert.match(gateway, /startRelay\(streamId, \{ warming: true, previousRelay: previous \}\)/);
+  assert.match(gateway,
+    /let firstOutputAt = null;[\s\S]*outputAt > firstOutputAt[\s\S]*outputConfirmed = true/,
+  "a warm replacement must advance HLS after its first playlist write before promotion");
+  assert.match(gateway,
+    /if \(!outputConfirmed \|\| !relayIsProgressing\(replacement\)[\s\S]*WARM_HANDOFF_ABORTED/,
+  "an unconfirmed warm replacement must be rejected while the old relay remains authoritative");
   assert.match(gateway, /relayLifecycle\.warmHandoffs/);
   assert.match(gateway, /previousDirectories/);
   assert.match(gateway, /const liveRelays = new Set\(\)/);
@@ -188,6 +194,9 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /function relayEligibleForHandoff\(streamId, relay\)[\s\S]*Date\.now\(\) - outputAt >= outputIdleMs/,
   "a frozen HLS output may use the bounded rescue exception before hard stale");
+  assert.match(gateway,
+    /relay_age_ms:[\s\S]*output_idle_ms:/,
+  "health evidence must expose bounded relay age and rendered-output idle time");
   assert.match(gateway, /"-start_number", String\(firstEvidenceSequence\)/);
   assert.match(gateway, /function readEvidenceSegment[\s\S]*relay\.previousDirectories/);
 });
