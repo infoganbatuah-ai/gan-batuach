@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 
 const start = Date.parse("2026-09-12T00:00:00.000Z");
 const channels = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
@@ -83,5 +84,29 @@ assert.match(liveMonitor, /services\/video-gateway\/server\.mjs/,
   "the real media HTTP child must be reported as runtime_pid");
 assert.doesNotMatch(liveMonitor, /const runtime = supervisor;/,
   "the supervisor PID must not hide a media-child restart");
+assert.match(liveMonitor, /lifecycle\.requestStop\("SIGTERM"\)/,
+  "an external SIGTERM must be preserved as explicit evidence");
+const lifecycle = createQualificationMonitorLifecycle({
+  now: () => start,
+  pid: 44,
+  parentPid: 11
+});
+const waiting = lifecycle.wait(60_000);
+const termination = lifecycle.requestStop("SIGTERM");
+assert.equal(await waiting, false, "a stop signal must wake the monitor immediately");
+assert.deepEqual(termination, {
+  contract: "observer-qualification-monitor-termination-v1",
+  kind: "EXTERNAL_SIGNAL",
+  signal: "SIGTERM",
+  received_at: "2026-09-12T00:00:00.000Z",
+  pid: 44,
+  parent_pid: 11
+});
+
+const durableLauncher = readFileSync("scripts/qa/manage-real-home-soak-launchd.mjs", "utf8");
+assert.match(durableLauncher, /execution_owner: "MACOS_LAUNCHD_USER_DOMAIN"/);
+assert.match(durableLauncher, /terminal_session_independent: true/);
+assert.match(durableLauncher, /auto_restart: false/,
+  "a failed Product qualification must never be hidden by automatic restarts");
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");

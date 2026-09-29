@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
@@ -37,7 +38,6 @@ const runId = String(args.get("run-id") || `push38-${new Date().toISOString().re
 const outputRoot = resolve(String(args.get("output-dir") || join(process.cwd(), "qa-evidence", "push-38", runId)));
 mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
 const checkpointsPath = join(outputRoot, "checkpoints.ndjson"), statePath = join(outputRoot, "state.json"), resultPath = join(outputRoot, "result.json");
-const sleep = ms => new Promise(resolveSleep => setTimeout(resolveSleep, ms));
 const gatewayService = "com.ganbatuach.video-gateway.runtime";
 const connectorSecrets = process.env.OBSERVER_CONNECTOR_SECRET_DIR || join(homedir(), "Library", "Application Support", "Digital Observer", "Tapo Connector", "secrets");
 const dataRoots = {
@@ -246,15 +246,33 @@ async function deepProbe(sourceList) {
 }
 
 const prior = existsSync(statePath) && args.get("resume") ? JSON.parse(readFileSync(statePath, "utf8")) : null;
-const startedAt = prior?.started_at_ms || Date.now(); let sequence = prior?.checkpoint_count || 0, nextDeepProbeAt = prior?.next_deep_probe_at || startedAt, stopping = false;
+const startedAt = prior?.started_at_ms || Date.now(); let sequence = prior?.checkpoint_count || 0, nextDeepProbeAt = prior?.next_deep_probe_at || startedAt;
 let deepProbeInFlight = false, completedDeepProbe = null;
-process.on("SIGTERM", () => { stopping = true; }); process.on("SIGINT", () => { stopping = true; });
+if (!existsSync(checkpointsPath)) writeFileSync(checkpointsPath, "", { mode: 0o600 });
+const lifecycle = createQualificationMonitorLifecycle({
+  onStop: termination => atomicJson(statePath, {
+    ...(existsSync(statePath) ? JSON.parse(readFileSync(statePath, "utf8")) : {}),
+    contract: "observer-reliability-soak-state-v1",
+    run_id: runId,
+    status: "STOP_REQUESTED",
+    termination
+  })
+});
+process.once("SIGTERM", () => lifecycle.requestStop("SIGTERM"));
+process.once("SIGINT", () => lifecycle.requestStop("SIGINT"));
+atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: runId, status: "RUNNING",
+  started_at: new Date(startedAt).toISOString(), started_at_ms: startedAt,
+  target_ended_at: new Date(startedAt + durationMs).toISOString(), duration_ms: durationMs,
+  interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence,
+  last_checkpoint_at: prior?.last_checkpoint_at ?? null, next_deep_probe_at: nextDeepProbeAt,
+  output_root: outputRoot,
+  monitor_process: { pid: process.pid, parent_pid: process.ppid, started_at: new Date().toISOString() } });
 const sourceList = await sources();
-while (!stopping && Date.now() - startedAt < durationMs) {
+while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
   // Cadence is anchored to the run start, not to the completion of the prior
   // sample. A slow deep probe must never consume the next minute's checkpoint.
-  await sleep(Math.max(0, startedAt + sequence * intervalMs - Date.now()));
-  if (stopping || Date.now() - startedAt >= durationMs) break;
+  await lifecycle.wait(Math.max(0, startedAt + sequence * intervalMs - Date.now()));
+  if (lifecycle.stopped() || Date.now() - startedAt >= durationMs) break;
   const scheduledAt = startedAt + sequence * intervalMs;
   const sampledAt = Date.now();
   const [gateway, connector, gatewayResource, connectorResource] = await Promise.all([probeLocalHealth(18082), probeLocalHealth(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
@@ -292,6 +310,8 @@ const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now
   requiredDurationMs, dvrSourceAvailable: DVR_SOURCE_AVAILABLE,
   dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
 const stagedResult = { ...result, qualification_stage: stage };
-atomicJson(resultPath, stagedResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: stagedResult.status, ended_at: stagedResult.ended_at, result_path: resultPath, gate_failures: stagedResult.gate_failures });
-assertQualificationStageResult(stagedResult, stage);
-console.log(JSON.stringify(stagedResult));
+const termination = lifecycle.termination();
+const durableResult = termination ? { ...stagedResult, termination } : stagedResult;
+atomicJson(resultPath, durableResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: durableResult.status, ended_at: durableResult.ended_at, result_path: resultPath, gate_failures: durableResult.gate_failures, ...(termination ? { termination } : {}) });
+assertQualificationStageResult(durableResult, stage);
+console.log(JSON.stringify(durableResult));
