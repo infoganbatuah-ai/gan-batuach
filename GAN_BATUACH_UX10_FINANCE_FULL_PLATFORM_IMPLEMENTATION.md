@@ -141,9 +141,13 @@ All QA identities remain present. Visual seeding snapshots and restores the shar
 
 ## Integration closure
 
-- Product commit: pending exact feature commit
-- Pull request: pending
-- Required checks: pending exact-head CI
-- Development merge: pending
-- Final Development head: pending
+- Product commit: `44558b02fa33c395fa63f029cdb300520693f615`
+- Security lock refresh: `646e3655159c71458831480e3a9a4177eb712768`
+- Pull request: [#154](https://github.com/infoganbatuah-ai/gan-batuach/pull/154)
+- Required checks: all eight exact-head checks PASS; Snyk status PASS; npm audit reports zero vulnerabilities
+- Product merge commit: `cec5d491340f8ce73662b47ceab42a9bd5300faf`
+- Development drift: `244/244 PASS`
+- Post-merge health: HTTP 200, local Supabase OK
+- Post-merge Finance role/concurrency E2E: `19 checks PASS`
+- Post-merge role dashboard browser QA: `8/8 PASS`
 - Production and `main`: unchanged

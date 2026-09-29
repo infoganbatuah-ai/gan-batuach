@@ -547,3 +547,18 @@ disabled and is presented as unavailable/evidence-only because it is not both
 Production-verified and Inspector-policy permitted. No migration, paid provider,
 Production, `main`, customer data or Digital Observer core change occurred.
 UX-IMPLEMENT-10 has not started.
+
+UX-IMPLEMENT-10 Development closure (2026-09-29): product PR #154 passed
+all eight required exact-head checks plus Snyk at
+`646e3655159c71458831480e3a9a4177eb712768` and merged by ancestry into
+`integration/development` as `cec5d491340f8ce73662b47ceab42a9bd5300faf`.
+The canonical Parent tuition ledger and Garden platform subscription remain
+separate, with truthful partial/manual/credit/reconciliation and provider-
+unavailable states. Fourteen Finance concepts produced 28 fresh Desktop/Mobile
+captures, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN
+results. The required dependency audit was restored to zero vulnerabilities by
+refreshing the locked `firebase-admin` transitive chain after a new `fast-uri`
+advisory. Post-merge focused Finance contracts, 19-check tuition role/concurrency
+E2E, 244/244 Development drift, local health/Supabase and role dashboard browser
+QA 8/8 passed. No migration, paid provider, Production, `main`, customer data or
+Digital Observer core change occurred. UX-IMPLEMENT-11 has not started.
