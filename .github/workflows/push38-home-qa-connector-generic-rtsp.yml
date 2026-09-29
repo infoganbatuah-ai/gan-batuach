@@ -7,6 +7,7 @@ on:
       - .github/workflows/push38-home-qa-connector-generic-rtsp.yml
 
 permissions: {}
+# One protected, exact-device release; no runtime activation occurs here.
 concurrency:
   group: push38-home-qa-connector-generic-rtsp-manifest
   cancel-in-progress: false
