@@ -22,13 +22,14 @@ const root = join(homedir(), "Library/Application Support/Digital Observer/obser
 const bundle = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-cadence-13800362-retry1/signed-manifest.zip";
 const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const connectorLog = join(homedir(), "Library/Logs/com.ganbatuach.software-connector.tapo.err.log");
-const buildId = resolve(".next/BUILD_ID");
 const mode = process.argv.includes("--preflight") ? "PREFLIGHT" :
   process.argv.includes("--apply") ? "APPLY" : "";
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
 const planSha256 = option("plan-sha256");
+const buildEvidencePath = option("build-evidence") ? resolve(option("build-evidence")) : "";
+const buildEvidenceSha256 = option("build-evidence-sha256");
 if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
   throw new Error("P38_CONNECTOR_RTSP_CADENCE_RETRY_MODE_OR_OUTPUT_INVALID");
 
@@ -112,7 +113,12 @@ manager.verifySlot(current);
 manager.verifySlot({ version: item.version, slot, release_id: item.releaseId,
   artifact_sha256: item.digest });
 
-const buildMtime = statSync(buildId).mtimeMs, crashTime = Date.parse(crashAt);
+const buildEvidenceBytes = protectedFile(buildEvidencePath);
+if (!/^[a-f0-9]{64}$/.test(buildEvidenceSha256 || "") || sha(buildEvidenceBytes) !== buildEvidenceSha256)
+  throw new Error("P38_CONNECTOR_RTSP_CADENCE_RETRY_BUILD_EVIDENCE_PIN_MISMATCH");
+const preservedBuildEvidence = JSON.parse(buildEvidenceBytes);
+const buildIsolation = preservedBuildEvidence.build_isolation_evidence;
+const buildMtime = Date.parse(buildIsolation?.build_id_mtime || ""), crashTime = Date.parse(crashAt);
 const logText = readFileSync(connectorLog, "utf8");
 const sustained = [...logText.matchAll(/SUSTAINED_DOWN[^\n]*down_duration_ms[\": ]+(\d+)/g)]
   .map(match => Number(match[1])).slice(-3);
@@ -122,7 +128,11 @@ try {
     { stdio: "ignore", timeout: 3_000 });
   buildActive = true;
 } catch {}
-if (!Number.isFinite(buildMtime) || !Number.isFinite(crashTime) ||
+if (preservedBuildEvidence.protocol !== "observer-push38-connector-rtsp-cadence-build-isolation-retry-v1" ||
+  preservedBuildEvidence.release_id !== item.releaseId || preservedBuildEvidence.artifact_sha256 !== item.digest ||
+  preservedBuildEvidence.observed_failure_context !== "QUALIFICATION_BUILD_LIVENESS_STARVATION" ||
+  buildIsolation?.crash_at !== crashAt || buildIsolation?.build_active !== false ||
+  !Number.isFinite(buildMtime) || !Number.isFinite(crashTime) ||
   Math.abs(crashTime - buildMtime) > 5 * 60_000 || sustained.length !== 3 ||
   sustained.some(duration => duration < 45_000) || buildActive)
   throw new Error("P38_CONNECTOR_RTSP_CADENCE_RETRY_BUILD_ISOLATION_EVIDENCE_INVALID");
@@ -187,8 +197,8 @@ const plan = { protocol: "observer-push38-connector-rtsp-cadence-build-isolation
   exact_device_id: item.deviceId, cohort_percent: 0, signed_manifest: "PASS", live_trust: "PASS",
   managed_device_auth: "PASS", connector_runtime_samples: connectorSamples,
   gateway_runtime_samples: gatewaySamples, host_pressure: host,
-  build_isolation_evidence: { build_id_mtime: new Date(buildMtime).toISOString(), crash_at: crashAt,
-    delta_ms: crashTime - buildMtime, sustained_down_ms: sustained, build_active: false },
+  build_isolation_evidence: { ...buildIsolation, sustained_down_ms: sustained, build_active: false,
+    preserved_evidence_sha256: buildEvidenceSha256 },
   observed_failure_context: "QUALIFICATION_BUILD_LIVENESS_STARVATION",
   ota_agent_owns_install: true, runtime_writes: 0 };
 if (mode === "PREFLIGHT") {

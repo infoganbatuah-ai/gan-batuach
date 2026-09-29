@@ -9,6 +9,8 @@ assert.equal(item.version, "0.2.26-p38-health");
 assert.equal(item.rollbackVersion, "0.2.25-p38-health");
 for (const token of [
   "QUALIFICATION_BUILD_LIVENESS_STARVATION",
+  "build-evidence-sha256",
+  "P38_CONNECTOR_RTSP_CADENCE_RETRY_BUILD_EVIDENCE_PIN_MISMATCH",
   "EDGE_UPDATE_CRASH_LOOP",
   "SUSTAINED_DOWN",
   "authorizeQuarantinedReleaseRetry",
@@ -20,6 +22,7 @@ for (const token of [
   "explicit_device_ids",
   "runtime_writes: 0"
 ]) assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+assert.doesNotMatch(source, /\.next\/BUILD_ID/);
 assert.doesNotMatch(source, /quarantined-releases\.json[^\n]*writeFileSync/);
 assert.doesNotMatch(source, /CURRENT[^\n]*writeFileSync/);
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
