@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
@@ -50,6 +50,7 @@ try {
   execFileSync(process.execPath, ["--check", join(runtime, "services/video-gateway/server.mjs")]);
   const packagePath = join(out, "gateway-runtime.tar.gz");
   execFileSync("tar", ["-czf", packagePath, "-C", runtime, "."]);
+  chmodSync(packagePath, 0o600);
   const packageBytes = readFileSync(packagePath), sha = createHash("sha256").update(packageBytes).digest("hex");
   writeFileSync(join(out, "package-status.json"), `${JSON.stringify({ classification: "QA_ONLY", ...metadata,
     artifact_sha256: sha, artifact_size: packageBytes.length }, null, 2)}\n`, { mode: 0o600 });
