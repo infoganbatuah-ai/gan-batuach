@@ -86,7 +86,14 @@ for (const binary of binaries.reverse()) run("/usr/bin/codesign", ["--force", "-
 run(join(resources, "bin/node"), ["--version"]);
 run(join(resources, "bin/ffmpeg"), ["-version"]);
 run(join(resources, "bin/ffprobe"), ["-version"]);
-execFileSync(join(resources, "bin/node"), ["--input-type=module", "-e", "import * as ort from 'onnxruntime-node'; await ort.InferenceSession.create(process.argv[1]);" , join(resources, "models/ssd_mobilenet_v1_10.onnx")], { cwd: join(resources, "runtime"), stdio: "pipe", timeout: 60000 });
+// Some reviewed ONNX Runtime builds can fault during native process teardown
+// after the model has already loaded successfully. Validate the actual model
+// contract, then exit explicitly so packaging is not made dependent on native
+// destructor order while still failing closed on load or model-I/O errors.
+execFileSync(join(resources, "bin/node"), ["--input-type=module", "-e",
+  "import * as ort from 'onnxruntime-node'; const session=await ort.InferenceSession.create(process.argv[1]); if(!session.inputNames.length||!session.outputNames.length) throw new Error('ORT_MODEL_IO_INVALID'); process.exit(0);",
+  join(resources, "models/ssd_mobilenet_v1_10.onnx")],
+{ cwd: join(resources, "runtime"), stdio: "pipe", timeout: 60000 });
 execFileSync(join(resources, "bin/node"), ["--input-type=module", "-e", "await import('./services/video-gateway/http-runtime.mjs');"],
   { cwd: join(resources, "runtime"), stdio: "pipe", timeout: 15000 });
 // ONNX Runtime may emit an optimized-session cache named ':memory:.ses'. It is

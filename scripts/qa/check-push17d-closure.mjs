@@ -37,6 +37,9 @@ test("macOS builder emits a sealed graphical DMG with bundled dependencies", () 
   for (const expected of ["Digital Observer Connector.dmg", "hdiutil", "codesign", "onnxruntime-node", "ffmpeg", "THIRD_PARTY_NOTICES"])
     assert.match(build, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.ok(build.indexOf("InferenceSession.create") < build.lastIndexOf("codesign"));
+  assert.match(build, /session\.inputNames\.length/);
+  assert.match(build, /session\.outputNames\.length/);
+  assert.match(build, /process\.exit\(0\)/);
   for (const expected of ["RunAtLoad", "KeepAlive", "ensureInstalledAndRunning", "openFile", "--service", "--document"])
     assert.match(host, new RegExp(expected));
   assert.doesNotMatch(host, /\/bin\/sh|Terminal\.app/);
