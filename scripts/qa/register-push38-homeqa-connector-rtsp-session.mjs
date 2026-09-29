@@ -29,6 +29,8 @@ import { PUSH38_CONNECTOR_FINAL_STABILITY
 } from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
 import { PUSH38_CONNECTOR_RTSP_CADENCE
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
+import { PUSH38_CONNECTOR_OUTPUT_RESCUE
+} from "../../services/video-gateway/push38-home-qa-connector-output-rescue.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
@@ -40,11 +42,13 @@ const rtspHandoff = process.argv.includes("--rtsp-handoff");
 const healthObservation = process.argv.includes("--health-observation");
 const finalStability = process.argv.includes("--final-stability");
 const rtspCadence = process.argv.includes("--rtsp-cadence");
+const outputRescue = process.argv.includes("--output-rescue");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
-  healthObservation, finalStability, rtspCadence]
+  healthObservation, finalStability, rtspCadence, outputRescue]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
+const item = outputRescue ? PUSH38_CONNECTOR_OUTPUT_RESCUE :
+  rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
   finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
   healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
   rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
@@ -58,7 +62,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = rtspCadence
+const artifact = outputRescue
+  ? `${restrictedRoot}/push38-connector-output-rescue-9658853d/connector-remediation.tar.gz`
+  : rtspCadence
   ? `${restrictedRoot}/push38-connector-rtsp-cadence-13800362-retry1/connector-remediation.tar.gz`
   : finalStability
   ? `${restrictedRoot}/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz`
@@ -77,7 +83,9 @@ const artifact = rtspCadence
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = rtspCadence
+const publication = outputRescue
+  ? `${restrictedRoot}/push38-connector-output-rescue-9658853d/r2-publication.json`
+  : rtspCadence
   ? `${restrictedRoot}/push38-connector-rtsp-cadence-13800362-retry1/r2-publication.json`
   : finalStability
   ? `${restrictedRoot}/push38-connector-final-stability-acbcfe8e/r2-publication.json`
@@ -96,8 +104,9 @@ const publication = rtspCadence
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = rtspCadence ? "connector_remediation_rtsp_cadence.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = outputRescue ? "connector_remediation_output_rescue.json" :
+  rtspCadence ? "connector_remediation_rtsp_cadence.json" :
   finalStability ? "connector_remediation_final_stability.json" :
   healthObservation ? "connector_remediation_health_observation.json" :
   rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
@@ -107,8 +116,8 @@ const bundleName = rtspCadence ? "connector_remediation_rtsp_cadence.json" :
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -205,7 +214,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: "RTSP_SESSION_RECOVERY_REGISTERED_DRAFT",
+console.log(JSON.stringify({ status: outputRescue ? "CONNECTOR_OUTPUT_RESCUE_REGISTERED_DRAFT" :
+  "RTSP_SESSION_RECOVERY_REGISTERED_DRAFT",
   release_id: item.releaseId, predecessor_release: "PAUSED", exact_device: true,
   broad_cohort: "DISABLED", r2_round_trip: "PASS", live_trust: "PASS",
   production_writes: 0, runtime_writes: 0 }));

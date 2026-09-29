@@ -34,6 +34,8 @@ import { PUSH38_CONNECTOR_FINAL_STABILITY
 } from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
 import { PUSH38_CONNECTOR_RTSP_CADENCE
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
+import { PUSH38_CONNECTOR_OUTPUT_RESCUE
+} from "../../services/video-gateway/push38-home-qa-connector-output-rescue.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const configPath = join(root, "agent-config.json");
@@ -49,11 +51,13 @@ const rtspHandoff = process.argv.includes("--rtsp-handoff");
 const healthObservation = process.argv.includes("--health-observation");
 const finalStability = process.argv.includes("--final-stability");
 const rtspCadence = process.argv.includes("--rtsp-cadence");
+const outputRescue = process.argv.includes("--output-rescue");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
-  healthObservation, finalStability, rtspCadence]
+  healthObservation, finalStability, rtspCadence, outputRescue]
   .filter(Boolean).length > 1)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_MODE_INVALID");
-const item = rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
+const item = outputRescue ? PUSH38_CONNECTOR_OUTPUT_RESCUE :
+  rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
   finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
   healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
   rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
@@ -66,7 +70,9 @@ const item = rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_CONNECTOR_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = rtspCadence
+const artifact = outputRescue
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-output-rescue-9658853d/connector-remediation.tar.gz"
+  : rtspCadence
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-cadence-13800362-retry1/connector-remediation.tar.gz"
   : finalStability
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz"
@@ -85,7 +91,9 @@ const artifact = rtspCadence
   : hostContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-38671545/connector-remediation.tar.gz";
-const publication = rtspCadence
+const publication = outputRescue
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-output-rescue-9658853d/r2-publication.json"
+  : rtspCadence
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-cadence-13800362-retry1/r2-publication.json"
   : finalStability
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-final-stability-acbcfe8e/r2-publication.json"
@@ -177,13 +185,16 @@ if (config.profile !== "SOFTWARE_CONNECTOR" || config.deviceId !== item.deviceId
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-if ((!finalStability && !rtspCadence && agentRelease.release_id !== item.releaseId) ||
+if ((!finalStability && !rtspCadence && !outputRescue && agentRelease.release_id !== item.releaseId) ||
   (finalStability && agentRelease.release_id !== item.supersedesReleaseId) ||
   (rtspCadence && agentRelease.release_id !== item.agentPredecessorReleaseId) ||
-  agentRelease.artifact_sha256 !== (rtspCadence ? item.predecessorDigest : item.digest))
+  (outputRescue && agentRelease.release_id !== item.agentPredecessorReleaseId) ||
+  agentRelease.artifact_sha256 !== (outputRescue ? item.priorManagementArtifactSha256 :
+    rtspCadence ? item.predecessorDigest : item.digest))
   throw new Error("P38_CONNECTOR_RTSP_SESSION_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  outputRescue ? "connector_remediation_output_rescue.json" :
   rtspCadence ? "connector_remediation_rtsp_cadence.json" :
   finalStability ? "connector_remediation_final_stability.json" :
     healthObservation ? "connector_remediation_health_observation.json" :
@@ -199,7 +210,7 @@ const trusted = loadPinnedEdgeReleaseKeys({
   registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const publicationProof = JSON.parse(readFileSync(publication, "utf8"));
 const expectedObject = `home-qa/${item.releaseId}/${item.digest}.tar.gz`;
-const predecessorReleaseId = (restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const predecessorReleaseId = (restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue) ? item.supersedesReleaseId : item.rollbackReleaseId;
 if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== item.releaseId ||
   manifest.version !== item.version || manifest.build_sha !== item.buildSha ||
   manifest.artifact_sha256 !== item.digest || manifest.artifact_size !== item.size ||
@@ -247,8 +258,8 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
 const predecessorReady = rollout.prior_status === "PAUSED" ||
-  (rtspCadence && rollout.prior_status === "ACTIVE");
-if (rollout.devices !== 2 || rollout.releases !== (rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
+  ((rtspCadence || outputRescue) && rollout.prior_status === "ACTIVE");
+if (rollout.devices !== 2 || rollout.releases !== (outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
   rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
@@ -282,7 +293,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_INGRESS_INVALID");
 
-const plan = { protocol: rtspCadence ? "observer-push38-connector-rtsp-cadence-activation-v1" :
+const plan = { protocol: outputRescue ? "observer-push38-connector-output-rescue-activation-v1" :
+    rtspCadence ? "observer-push38-connector-rtsp-cadence-activation-v1" :
     finalStability ? "observer-push38-connector-final-stability-activation-v1" :
     healthObservation ? "observer-push38-connector-health-observation-activation-v1" :
     rtspHandoff ? "observer-push38-connector-rtsp-handoff-activation-v1" :
@@ -306,7 +318,8 @@ const plan = { protocol: rtspCadence ? "observer-push38-connector-rtsp-cadence-a
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: "RTSP_SESSION_PREFLIGHT_PASS", evidence_sha256: evidenceSha,
+  console.log(JSON.stringify({ status: outputRescue ? "CONNECTOR_OUTPUT_RESCUE_PREFLIGHT_PASS" :
+    "RTSP_SESSION_PREFLIGHT_PASS", evidence_sha256: evidenceSha,
     release_id: item.releaseId, exact_device: true, broad_cohort: false,
     tapo_progressing: samples.at(-1).progressing, runtime_writes: 0 }));
   process.exit(0);
@@ -344,6 +357,7 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: "EXACT_RTSP_SESSION_ROLLOUT_ACTIVE",
+console.log(JSON.stringify({ status: outputRescue ? "EXACT_CONNECTOR_OUTPUT_RESCUE_ROLLOUT_ACTIVE" :
+  "EXACT_RTSP_SESSION_ROLLOUT_ACTIVE",
   evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,
   broad_cohort: false, ota_agent_owns_install: true, runtime_writes: 0 }));

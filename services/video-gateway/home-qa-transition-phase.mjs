@@ -22,6 +22,7 @@ const connectorRtspHandoffRecovery = "qa-p38-health-connector-rtsp-handoff-kg20-
 const connectorHealthObservationRecovery = "qa-p38-health-connector-observed-health-3a211a8ef1c2";
 const connectorFinalStability = "qa-p38-health-connector-final-stability-3a211a8ef1c2";
 const connectorRtspCadence = "qa-p38-health-connector-rtsp-cadence-559bb01f78a2";
+const connectorOutputRescue = "qa-p38-health-connector-output-rescue-b0b6ef01b6e1";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
@@ -36,6 +37,7 @@ const gatewaySessionDrain = "qa-p38-health-gateway-session-drain-5165c94df699";
 const gatewayHeartbeatLogin = "qa-p38-health-gateway-heartbeat-login-0a956d9891db";
 const gatewayIdleHandoff = "qa-p38-health-gateway-idle-handoff-5a63b02f8a16";
 const gatewayBufferedOutput = "qa-p38-health-gateway-buffered-output-f3ca7f4971fa";
+const gatewayOutputRescue = "qa-p38-health-gateway-output-rescue-9934c36fe0a2";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -58,7 +60,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       connectorLivenessRecovery, connectorParentExitRecovery, connectorRtspSessionRecovery,
       connectorHostContinuityRecovery, connectorDeviceSessionRecovery, connectorLivenessContinuity,
       connectorRelayBackoffRecovery, connectorRestartGraceRecovery, connectorRtspHandoffRecovery,
-      connectorHealthObservationRecovery, connectorFinalStability, connectorRtspCadence]
+      connectorHealthObservationRecovery, connectorFinalStability, connectorRtspCadence,
+      connectorOutputRescue]
       .includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")
@@ -66,7 +69,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayCommonCauseRecovery, gatewayFiniteStreamHandoff, gatewaySupervisorRecovery,
       gatewayStableHandoff, gatewayMediaCadence, gatewayMaintenanceIsolation,
       gatewaySessionSweep, gatewaySessionDrain, gatewayHeartbeatLogin,
-      gatewayIdleHandoff, gatewayBufferedOutput].includes(manifest.release_id) &&
+      gatewayIdleHandoff, gatewayBufferedOutput, gatewayOutputRescue].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
