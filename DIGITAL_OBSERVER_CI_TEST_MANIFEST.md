@@ -71,7 +71,13 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `investigation`: `node --test scripts/qa/check-digital-observer-investigation.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
+- `gateway-supervisor-recovery`: `node scripts/qa/check-push38-gateway-supervisor-recovery.mjs`
+- `gateway-stable-handoff`: `node scripts/qa/check-push38-gateway-stable-handoff.mjs`
+- `gateway-media-cadence`: `node scripts/qa/check-push38-gateway-media-cadence.mjs`
 - `gateway-session-stability`: `node scripts/qa/check-push38-gateway-session-stability.mjs`
+- `gateway-routine-provisional`: `node scripts/qa/check-push38-gateway-routine-provisional.mjs`
+- `relay-backoff-ordering`: `node scripts/qa/check-push38b-relay-recovery.mjs`
+- `connector-relay-backoff-release`: `node scripts/qa/check-push38-connector-relay-backoff.mjs`
 - `connector-rtsp-session-recovery`: `node scripts/qa/check-push38-connector-rtsp-session-recovery.mjs`
 - `connector-parent-exit-recovery`: `node scripts/qa/check-push38-connector-parent-exit-recovery.mjs`
 - `edge-parent-shutdown`: `node scripts/qa/check-edge-parent-shutdown.mjs`
@@ -88,7 +94,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **273** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **328** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -112,6 +118,7 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/bind-push38l-live-transition.mjs` | node scripts/qa/bind-push38l-live-transition.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/build-ci-test-manifest.mjs` | node scripts/qa/build-ci-test-manifest.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/build-digital-observer-reference-comparisons.mjs` | node scripts/qa/build-digital-observer-reference-comparisons.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
+| `scripts/qa/build-push38-gateway-management-recovery.mjs` | node scripts/qa/build-push38-gateway-management-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/build-push38g-gateway-package.mjs` | node scripts/qa/build-push38g-gateway-package.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/camera-gateway-contract.test.mjs` | node scripts/qa/camera-gateway-contract.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/camera-queue-production-preflight.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
@@ -185,6 +192,7 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/check-live-kms-custody.mjs` | node scripts/qa/check-live-kms-custody.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-local-playback-grant.mjs` | node scripts/qa/check-local-playback-grant.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-managed-device-identity.mjs` | node scripts/qa/check-managed-device-identity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-managed-device-runtime-session.mjs` | node scripts/qa/check-managed-device-runtime-session.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-atomic-onboarding.mjs` | node scripts/qa/check-management-atomic-onboarding.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-canonical-family-linking.mjs` | node scripts/qa/check-management-canonical-family-linking.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-contact-verification.mjs` | node scripts/qa/check-management-contact-verification.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | VERIFICATION | SUPPORTING | none known |
@@ -212,13 +220,47 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push17d-closure.mjs` | npm run qa:digital-observer-push17d | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push18b-gateway-runtime.mjs` | node scripts/qa/check-push18b-gateway-runtime.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-crash-retry.mjs` | node scripts/qa/check-push38-connector-crash-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-device-session-pidfix-retry.mjs` | node scripts/qa/check-push38-connector-device-session-pidfix-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-device-session.mjs` | node scripts/qa/check-push38-connector-device-session.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-final-stability.mjs` | node scripts/qa/check-push38-connector-final-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-guard-retry.mjs` | node scripts/qa/check-push38-connector-guard-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-health-observation.mjs` | node scripts/qa/check-push38-connector-health-observation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-host-continuity.mjs` | node scripts/qa/check-push38-connector-host-continuity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-known-good-restart.mjs` | node scripts/qa/check-push38-connector-known-good-restart.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-liveness-continuity.mjs` | node scripts/qa/check-push38-connector-liveness-continuity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-observed-health-retry.mjs` | node scripts/qa/check-push38-connector-observed-health-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-output-rescue-retry.mjs` | node scripts/qa/check-push38-connector-output-rescue-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-output-rescue.mjs` | node scripts/qa/check-push38-connector-output-rescue.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-parent-exit-recovery.mjs` | node scripts/qa/check-push38-connector-parent-exit-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-connector-relay-backoff.mjs` | node scripts/qa/check-push38-connector-relay-backoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-connector-restart-grace-retry.mjs` | node scripts/qa/check-push38-connector-restart-grace-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-restart-grace.mjs` | node scripts/qa/check-push38-connector-restart-grace.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-rtsp-cadence-retry.mjs` | node scripts/qa/check-push38-connector-rtsp-cadence-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-rtsp-cadence.mjs` | node scripts/qa/check-push38-connector-rtsp-cadence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-rtsp-handoff.mjs` | node scripts/qa/check-push38-connector-rtsp-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-rtsp-host-pressure-retry.mjs` | node scripts/qa/check-push38-connector-rtsp-host-pressure-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-rtsp-session-recovery.mjs` | node scripts/qa/check-push38-connector-rtsp-session-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-connector-runtime-pid.mjs` | node scripts/qa/check-push38-connector-runtime-pid.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-dvr-shadow-mode.mjs` | node scripts/qa/check-push38-dvr-shadow-mode.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-auth-recovery.mjs` | node scripts/qa/check-push38-gateway-auth-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-buffered-output.mjs` | node scripts/qa/check-push38-gateway-buffered-output.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-common-cause-recovery.mjs` | node scripts/qa/check-push38-gateway-common-cause-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-gateway-confirmed-handoff.mjs` | node scripts/qa/check-push38-gateway-confirmed-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-continuous-handoff.mjs` | node scripts/qa/check-push38-gateway-continuous-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-finite-retry.mjs` | node scripts/qa/check-push38-gateway-finite-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-handoff-probation.mjs` | node scripts/qa/check-push38-gateway-handoff-probation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-heartbeat-login.mjs` | node scripts/qa/check-push38-gateway-heartbeat-login.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-idle-handoff.mjs` | node scripts/qa/check-push38-gateway-idle-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-maintenance-isolation.mjs` | node scripts/qa/check-push38-gateway-maintenance-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-media-cadence.mjs` | node scripts/qa/check-push38-gateway-media-cadence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-gateway-output-rescue.mjs` | node scripts/qa/check-push38-gateway-output-rescue.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-retained-fallback.mjs` | node scripts/qa/check-push38-gateway-retained-fallback.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-routine-provisional.mjs` | node scripts/qa/check-push38-gateway-routine-provisional.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-session-stability.mjs` | node scripts/qa/check-push38-gateway-session-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-gateway-session-sweep.mjs` | node scripts/qa/check-push38-gateway-session-sweep.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-stable-handoff.mjs` | node scripts/qa/check-push38-gateway-stable-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-gateway-startup-window.mjs` | node scripts/qa/check-push38-gateway-startup-window.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-supervisor-recovery.mjs` | node scripts/qa/check-push38-gateway-supervisor-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-home-identity-rotation-bridge.mjs` | node scripts/qa/check-push38-home-identity-rotation-bridge.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-home-qa-issuance.mjs` | node scripts/qa/check-push38-home-qa-issuance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-home-qa-legacy-proof.mjs` | node scripts/qa/check-push38-home-qa-legacy-proof.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -234,7 +276,7 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-quarantined-release-retry.mjs` | node scripts/qa/check-push38-quarantined-release-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-tapo-endpoint-reconciliation.mjs` | node scripts/qa/check-push38-tapo-endpoint-reconciliation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38b-monitor-accuracy.mjs` | node scripts/qa/check-push38b-monitor-accuracy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
-| `scripts/qa/check-push38b-relay-recovery.mjs` | node scripts/qa/check-push38b-relay-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push38b-relay-recovery.mjs` | node scripts/qa/check-push38b-relay-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38c-health-probe.mjs` | node scripts/qa/check-push38c-health-probe.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38c-relay-reasons.mjs` | node scripts/qa/check-push38c-relay-reasons.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38c-session-policy.mjs` | node scripts/qa/check-push38c-session-policy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -287,6 +329,10 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/digital-guard-skeleton-journal.test.mjs` | node scripts/qa/digital-guard-skeleton-journal.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVENT / JOURNAL | SUPPORTING | none known |
 | `scripts/qa/digital-guard-tenant-boundary.test.mjs` | node scripts/qa/digital-guard-tenant-boundary.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/digital-guard-test-loader.mjs` | node scripts/qa/digital-guard-test-loader.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/drive-push38-gateway-install-health.mjs` | node scripts/qa/drive-push38-gateway-install-health.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/drive-push38-gateway-maintenance-isolation-health.mjs` | node scripts/qa/drive-push38-gateway-maintenance-isolation-health.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/drive-push38-gateway-media-cadence-health.mjs` | node scripts/qa/drive-push38-gateway-media-cadence-health.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/drive-push38-gateway-stable-handoff-health.mjs` | node scripts/qa/drive-push38-gateway-stable-handoff-health.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/enroll-push38t-devices.mjs` | node scripts/qa/enroll-push38t-devices.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/gateway-device-refresh.test.mjs` | node scripts/qa/gateway-device-refresh.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/inspect-event-camera-sources.mjs` | node scripts/qa/inspect-event-camera-sources.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
@@ -299,6 +345,7 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/install-event-runtime-stability-fix.mjs` | node scripts/qa/install-event-runtime-stability-fix.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/install-event-spatial-rules-fix.mjs` | node scripts/qa/install-event-spatial-rules-fix.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | TRACKING / ZONES | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/install-push38-homeqa-ota-agent.mjs` | node scripts/qa/install-push38-homeqa-ota-agent.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/manage-real-home-soak-launchd.mjs` | node scripts/qa/manage-real-home-soak-launchd.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/managed-device-identity-postgres.test.mjs` | node scripts/qa/managed-device-identity-postgres.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | SUPPORTING | none known |
 | `scripts/qa/measure-real-home-adaptive-sampling.mjs` | npm run qa:digital-observer-adaptive-sampling-real | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/measure-real-home-ai-job-queue.mjs` | npm run qa:digital-observer-ai-job-queue-real | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -309,14 +356,17 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/monitor-real-risk-window.mjs` | node scripts/qa/monitor-real-risk-window.mjs | TIER 4 — PRODUCTION SMOKE | NO | YES / ENV-DEPENDENT | NO | YES | NO | RISK / DECISION | PRODUCTION SMOKE | none known |
 | `scripts/qa/normalize-local-qa-env.mjs` | npm run qa:normalize-demo-credentials | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/observe-live-gateway-dvr-truth.mjs` | node scripts/qa/observe-live-gateway-dvr-truth.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/observe-private-nvr-heartbeat-contract.mjs` | node scripts/qa/observe-private-nvr-heartbeat-contract.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/observe-push38-host-dvr.mjs` | node scripts/qa/observe-push38-host-dvr.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/plan-push38-homeqa-live.mjs` | node scripts/qa/plan-push38-homeqa-live.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/preflight-push38-homeqa-connector-liveness-agent.mjs` | node scripts/qa/preflight-push38-homeqa-connector-liveness-agent.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/prepare-journal-source-release.mjs` | node scripts/qa/prepare-journal-source-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | EVENT / JOURNAL | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/private-nvr-lighting-pulse.test.mjs` | node scripts/qa/private-nvr-lighting-pulse.test.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/probe-admin-dashboard-schema.mjs` | node scripts/qa/probe-admin-dashboard-schema.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | DATABASE / MIGRATIONS | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/probe-push38-dvr-transport.mjs` | node scripts/qa/probe-push38-dvr-transport.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/production-release-snapshot-core.mjs` | node scripts/qa/production-release-snapshot-core.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | PRODUCTION RELEASE | SUPPORTING | none known |
 | `scripts/qa/prove-push38-homeqa-legacy-download.mjs` | node scripts/qa/prove-push38-homeqa-legacy-download.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
+| `scripts/qa/push38-qualification-runtime.test.mjs` | node scripts/qa/push38-qualification-runtime.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/reconcile-live-gateway-dvr-endpoint.mjs` | node scripts/qa/reconcile-live-gateway-dvr-endpoint.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/reconcile-live-tapo-endpoint.mjs` | node scripts/qa/reconcile-live-tapo-endpoint.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/reconcile-push38-home-identity.mjs` | node scripts/qa/reconcile-push38-home-identity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -333,10 +383,21 @@ Inventory count: **273** files. Classifications are conservative; environment-de
 | `scripts/qa/register-push38-homeqa-legacy-devices.mjs` | node scripts/qa/register-push38-homeqa-legacy-devices.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
 | `scripts/qa/register-push38-homeqa-releases.mjs` | node scripts/qa/register-push38-homeqa-releases.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/renew-push38-homeqa-legacy-proofs.mjs` | node scripts/qa/renew-push38-homeqa-legacy-proofs.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
+| `scripts/qa/renew-push38t-loopback-tls.mjs` | node scripts/qa/renew-push38t-loopback-tls.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/report-demo-role-assignments.mjs` | npm run qa:report-demo-role-assignments | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | MOCK / SHADOW ISOLATION | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/restart-push38-homeqa-connector-known-good.mjs` | node scripts/qa/restart-push38-homeqa-connector-known-good.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-after-crash-recovery.mjs` | node scripts/qa/retry-push38-homeqa-connector-after-crash-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-after-endpoint-reconciliation.mjs` | node scripts/qa/retry-push38-homeqa-connector-after-endpoint-reconciliation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-device-session-after-runtime-pid-fix.mjs` | node scripts/qa/retry-push38-homeqa-connector-device-session-after-runtime-pid-fix.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-final-stability-after-build-isolation.mjs` | node scripts/qa/retry-push38-homeqa-connector-final-stability-after-build-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-health-observation-after-build-isolation.mjs` | node scripts/qa/retry-push38-homeqa-connector-health-observation-after-build-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-output-rescue.mjs` | node scripts/qa/retry-push38-homeqa-connector-output-rescue.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-restart-grace-after-source-recovery.mjs` | node scripts/qa/retry-push38-homeqa-connector-restart-grace-after-source-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-rtsp-cadence-after-build-isolation.mjs` | node scripts/qa/retry-push38-homeqa-connector-rtsp-cadence-after-build-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-rtsp-session-after-host-pressure.mjs` | node scripts/qa/retry-push38-homeqa-connector-rtsp-session-after-host-pressure.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-gateway-finite-handoff.mjs` | node scripts/qa/retry-push38-homeqa-gateway-finite-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-gateway-maintenance-isolation.mjs` | node scripts/qa/retry-push38-homeqa-gateway-maintenance-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-gateway-session-drain-bridge.mjs` | node scripts/qa/retry-push38-homeqa-gateway-session-drain-bridge.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/run-clean-environment-proof.mjs` | npm run qa:digital-observer-clean-environment | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-completion-role-boundary-probes.mjs` | npm run qa:probe-role-boundaries | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-guard-preview-learning.mjs` | node scripts/qa/run-guard-preview-learning.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CONTEXT / BASELINE | INTEGRATION / SUPPORT | none known |

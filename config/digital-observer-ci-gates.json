@@ -95,6 +95,7 @@
     { "name": "gateway-stable-handoff", "args": ["scripts/qa/check-push38-gateway-stable-handoff.mjs"] },
     { "name": "gateway-media-cadence", "args": ["scripts/qa/check-push38-gateway-media-cadence.mjs"] },
     { "name": "gateway-session-stability", "args": ["scripts/qa/check-push38-gateway-session-stability.mjs"] },
+    { "name": "gateway-routine-provisional", "args": ["scripts/qa/check-push38-gateway-routine-provisional.mjs"] },
     { "name": "relay-backoff-ordering", "args": ["scripts/qa/check-push38b-relay-recovery.mjs"] },
     { "name": "connector-relay-backoff-release", "args": ["scripts/qa/check-push38-connector-relay-backoff.mjs"] },
     { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
