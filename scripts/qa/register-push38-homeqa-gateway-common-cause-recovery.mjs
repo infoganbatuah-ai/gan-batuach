@@ -87,7 +87,7 @@ const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.s
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = routineProvisional
-  ? `${restrictedRoot}/push38-gateway-routine-provisional-167ad231/gateway-runtime.tar.gz`
+  ? `${restrictedRoot}/push38-gateway-routine-rebased-167ad231/gateway-runtime.tar.gz`
   : continuousHandoff
   ? `${restrictedRoot}/push38-gateway-continuous-handoff-4a63f881/gateway-runtime.tar.gz`
   : retainedFallback
@@ -120,7 +120,7 @@ const artifact = routineProvisional
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = routineProvisional
-  ? `${restrictedRoot}/push38-gateway-routine-provisional-167ad231/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-routine-rebased-167ad231/r2-publication.json`
   : continuousHandoff
   ? `${restrictedRoot}/push38-gateway-continuous-handoff-4a63f881/r2-publication.json`
   : retainedFallback
@@ -169,7 +169,7 @@ const bundleName = routineProvisional ? "gateway_remediation_routine_provisional
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = routineProvisional ? 39 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional)
   ? item.supersedesReleaseId : item.rollbackReleaseId;

@@ -12,12 +12,12 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const built = buildPush38GatewayRoutineProvisionalManifest({ signingKeyId: "observer-kms-release-v1",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(built.release_id, item.releaseId);
-assert.equal(built.version, "0.2.29-p38-health");
+assert.equal(built.version, "0.2.30-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
-assert.equal(built.compatibility.minimum_current_version, "0.2.25-p38-health");
-assert.equal(built.compatibility.maximum_current_version, "0.2.25-p38-health");
+assert.equal(built.compatibility.minimum_current_version, "0.2.23-p38-health");
+assert.equal(built.compatibility.maximum_current_version, "0.2.23-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 
@@ -43,8 +43,8 @@ try {
     /routineProvisional[\s\S]*verifyPlaybackRenewals: continuousHandoff \|\| routineProvisional[\s\S]*boundedWarmupFailure: continuousHandoff/,
   "routine provisional requires real HLS renewals without tolerating a failed handoff");
   assert.match(activation,
-    /routineProvisional[\s\S]*expectedAgentReleaseId[\s\S]*item\.releaseId/,
-  "routine provisional preflight requires the exact upgraded management agent");
+    /confirmedHandoff \|\| routineProvisional[\s\S]*item\.agentPredecessorReleaseId/,
+  "rebased runtime preflight requires the exact already-installed 0.2.29 management agent");
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,

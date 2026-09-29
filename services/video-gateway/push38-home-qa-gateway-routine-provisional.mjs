@@ -2,25 +2,28 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Immutable successor to 0.2.28. Routine finite-response handoffs may serve an
-// advancing replacement provisionally while retaining the old relay as the
-// bounded fallback for the complete confirmation window. The fallback is not
-// retired until the normal full confirmation contract succeeds.
+// Immutable successor to the first 0.2.29 metadata issuance. The artifact
+// bytes are unchanged, but the release identity was re-issued after the live
+// 0.2.25 runtime failed late and the signed manager restored CURRENT to the
+// exact 0.2.23 KNOWN_GOOD. Compatibility and rollback therefore bind the real
+// live predecessor instead of pretending the quarantined 0.2.25 is current.
+// Routine finite-response handoffs may serve an advancing replacement
+// provisionally while retaining the old relay for the confirmation window.
 export const PUSH38_GATEWAY_ROUTINE_PROVISIONAL = Object.freeze({
-  role: "GATEWAY_ROUTINE_PROVISIONAL",
+  role: "GATEWAY_ROUTINE_REBASED",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
-  version: "0.2.29-p38-health",
+  releaseId: "qa-p38-health-gateway-routine-rebased-6045266c007a",
+  version: "0.2.30-p38-health",
   buildSha: "167ad231183ebc8487a3636e8689b5acaf92faf5",
   digest: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72",
   size: 135816118,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-startup-window-a47982f4139f",
-  rollbackVersion: "0.2.25-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-continuous-handoff-0337991da88c",
-  supersedesVersion: "0.2.28-p38-health",
-  agentPredecessorReleaseId: "qa-p38-health-gateway-continuous-handoff-0337991da88c",
-  priorManagementArtifactSha256: "0337991da88ce2646518ad4e9c24ef6b535b674abdad0d77ae45a9334747ad1c"
+  rollbackReleaseId: "qa-p38-health-gateway-output-rescue-9934c36fe0a2",
+  rollbackVersion: "0.2.23-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
+  supersedesVersion: "0.2.29-p38-health",
+  agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
+  priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
 
 export function buildPush38GatewayRoutineProvisionalManifest({ signingKeyId,
