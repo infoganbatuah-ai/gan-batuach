@@ -16,6 +16,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+  PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrRelayHandoffMode, privateNvrRoutineHandoffConfirmed,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
@@ -1297,12 +1298,32 @@ async function privateNvrRelayResponse(source, reportFailure = () => {}) {
 }
 
 async function ensureRelay(streamId) {
-  const existing = relays.get(streamId);
+  let existing = relays.get(streamId);
   const source = streamSources.get(streamId);
   if (existing && relayIsRunning(existing) && relayBelongsToCurrentSession(existing, source)
     && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) {
     if (relayIsProgressing(existing) && relayRecoveryIsStable(existing)) relayRecovery.delete(streamId);
     return existing;
+  }
+  // Output-rescue handoffs are deliberately started before the hard-stale
+  // boundary. If a request arrives at that boundary, let the already-running
+  // replacement finish instead of destroying the current generation and
+  // returning a synthetic 503 gap. The wait is bounded and never starts a
+  // second recovery path.
+  const handoff = relayWarmups.get(streamId);
+  if (existing && handoff) {
+    await Promise.race([
+      handoff.catch(() => false),
+      new Promise(resolve => setTimeout(resolve,
+        PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS))
+    ]);
+    const promoted = relays.get(streamId);
+    if (promoted && relayIsRunning(promoted) &&
+      relayBelongsToCurrentSession(promoted, source) && relayIsProgressing(promoted)) {
+      if (relayRecoveryIsStable(promoted)) relayRecovery.delete(streamId);
+      return promoted;
+    }
+    existing = promoted;
   }
   // Requests, including HLS and AI sampling, may not bypass the bounded
   // recovery delay set by the child-exit path. Report temporary unavailability.
@@ -1385,9 +1406,60 @@ function stopRelay(streamId, relay, reason = "REQUESTED_STOP") {
   relay.stopReason ||= reason;
   relay.monitor && clearInterval(relay.monitor);
   relay.drainTimer && clearTimeout(relay.drainTimer);
+  if (relay.handoffProbationTimer) clearTimeout(relay.handoffProbationTimer);
+  relay.handoffProbationTimer = null;
+  const retainedFallback = relay.retainedFallback;
+  relay.retainedFallback = null;
+  if (retainedFallback) {
+    retainedFallback.probationFallback = false;
+    stopRelay(streamId, retainedFallback, "RETAINED_FALLBACK_RETIRED");
+  }
   relay.controller?.abort();
   if (relay.process?.exitCode === null && !relay.process.killed) relay.process.kill("SIGKILL");
   if (relays.get(streamId) === relay) relays.delete(streamId);
+}
+
+function retireRetainedFallback(streamId, relay, reason = "WARM_HANDOFF") {
+  const fallback = relay?.retainedFallback;
+  if (!fallback) return false;
+  if (relay.handoffProbationTimer) clearTimeout(relay.handoffProbationTimer);
+  relay.handoffProbationTimer = null;
+  relay.retainedFallback = null;
+  fallback.probationFallback = false;
+  stopRelay(streamId, fallback, reason);
+  relayLifecycle.warmHandoffs += 1;
+  cleanupRelayDirectories(streamId, relay, relay.previousDirectories || []);
+  return true;
+}
+
+function restoreRetainedFallback(streamId, relay) {
+  const fallback = relay?.retainedFallback;
+  if (!fallback || relays.get(streamId) !== relay || !relayIsProgressing(fallback)) return null;
+  if (relay.handoffProbationTimer) clearTimeout(relay.handoffProbationTimer);
+  relay.handoffProbationTimer = null;
+  relay.retainedFallback = null;
+  fallback.probationFallback = false;
+  relays.set(streamId, fallback);
+  relayLifecycle.warmHandoffRollbacks += 1;
+  return fallback;
+}
+
+function scheduleOutputRescueProbation(streamId, replacement, previous,
+  minimumConfirmationMs) {
+  replacement.retainedFallback = previous;
+  replacement.handoffProbationTimer = setTimeout(() => {
+    replacement.handoffProbationTimer = null;
+    if (replacement.retainedFallback !== previous) return;
+    if (relays.get(streamId) === replacement && relayIsProgressing(replacement)) {
+      retireRetainedFallback(streamId, replacement);
+      return;
+    }
+    relayLifecycle.warmHandoffFailures += 1;
+    relayLifecycle.warmHandoffConfirmationFailures += 1;
+    const restored = restoreRetainedFallback(streamId, replacement);
+    if (restored) stopRelay(streamId, replacement, "WARM_HANDOFF_PROBATION_ROLLBACK");
+  }, minimumConfirmationMs);
+  replacement.handoffProbationTimer.unref();
 }
 
 function cleanupRelayDirectories(streamId, replacement, directories) {
@@ -1426,6 +1498,11 @@ async function warmReplaceRelay(streamId, previous, {
   if (!previous || !relayIsProgressing(previous) ||
     !relayEligibleForHandoff(streamId, previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
+    // A prior provisional replacement may itself need renewal before its
+    // twenty-second probation expires. Retire its older fallback first so the
+    // recorder never sees more than the already-qualified two streams for one
+    // channel, then let this successor prove output normally.
+    retireRetainedFallback(streamId, previous, "WARM_HANDOFF_CHAIN_ADVANCED");
     const replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
     if (!replacement) return false;
@@ -1456,6 +1533,13 @@ async function warmReplaceRelay(streamId, previous, {
               relays.set(streamId, replacement);
               relayLifecycle.warmHandoffProbations += 1;
               provisionalPromotion = true;
+              scheduleOutputRescueProbation(streamId, replacement, previous,
+                minimumConfirmationMs);
+              // The probation runs independently. Releasing the one-at-a-time
+              // warmup slot here allows the next bounded output rescue to
+              // start if this recorder response reaches its finite boundary
+              // before probation ends.
+              return true;
             }
             const confirmed = minimumConfirmationMs === 0
               ? true
@@ -1638,6 +1722,12 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // failure for that source kind. Direct RTSP retains the stricter signal
     // because lastInputAt follows playlist progress there.
     if (!progressing || directRtsp && inputStale) {
+      const outputAt = relayPlaylistMtime(relay);
+      const awaitingWarmReplacement = !directRtsp && relayWarmups.has(streamId)
+        && Number.isFinite(outputAt)
+        && Date.now() - outputAt < RELAY_STALE_MS
+          + PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS;
+      if (awaitingWarmReplacement) return;
       if (hardwareVideo && (!progressing && !inputStale || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
       relayLifecycle[inputStale && !progressing ? "staleInput" : "stalePlaylist"] += 1;
       if (!relay.warming && relays.get(streamId) === relay) armRelayRecovery(streamId, relay);
@@ -1667,10 +1757,11 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // The next start validates HTTP authentication. A decoder error alone
     // must never rotate the recorder session shared by unrelated cameras.
     const wasCurrent = relays.get(streamId) === relay;
-    if (wasCurrent) relays.delete(streamId);
+    const restoredFallback = wasCurrent ? restoreRetainedFallback(streamId, relay) : null;
+    if (wasCurrent && !restoredFallback) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
-    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF") armRelayRecovery(streamId, relay);
+    if (wasCurrent && !restoredFallback && relay.stopReason !== "WARM_HANDOFF") armRelayRecovery(streamId, relay);
   });
   return relay;
 }

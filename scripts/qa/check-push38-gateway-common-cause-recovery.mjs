@@ -14,6 +14,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+  PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrRelayHandoffMode, privateNvrRoutineHandoffConfirmed,
   relayMaySurvivePrivateNvrRenewal,
   shouldProactivelyHandoffPrivateNvrRelay,
@@ -129,6 +130,7 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 20_000);
+  assert.equal(PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS, 8_000);
   assert.equal(PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS, 10_000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
@@ -224,6 +226,15 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /previous\.probationFallback = true;[\s\S]*relays\.set\(streamId, replacement\)[\s\S]*warmHandoffProbations/,
   "output rescue may serve only an advancing provisional replacement while retaining the old fallback");
+  assert.match(gateway,
+    /scheduleOutputRescueProbation\(streamId, replacement, previous,[\s\S]*return true;/,
+  "output-rescue probation must not monopolize the warmup slot until the hard-stale boundary");
+  assert.match(gateway,
+    /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
+  "a playback request must await an in-flight bounded replacement before tearing down its relay");
+  assert.match(gateway,
+    /awaitingWarmReplacement[\s\S]*RELAY_STALE_MS[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return;/,
+  "the stale monitor must allow the same bounded replacement grace");
   assert.match(gateway,
     /relays\.set\(streamId, previous\)[\s\S]*warmHandoffRollbacks/,
   "a failed output-rescue probation must restore the retained previous relay");

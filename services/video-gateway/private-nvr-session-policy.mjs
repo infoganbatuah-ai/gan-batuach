@@ -33,6 +33,12 @@ export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // This avoids both the no-rescue regression caused by an input-freshness gate
 // and the earlier false promotion after only two playlist writes.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 20_000;
+// Output rescue begins after twelve seconds without rendered HLS progress,
+// leaving eight seconds before the ordinary twenty-second stale boundary.
+// If an already-running warm replacement has not promoted by that boundary,
+// a playback request may wait through one additional bounded eight-second
+// interval instead of tearing down the only relay while its successor starts.
+export const PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS = 8_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
 // replacement, but drive the independent handoff scheduler quickly enough to
