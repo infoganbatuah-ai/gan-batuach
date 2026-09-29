@@ -38,6 +38,8 @@ import { PUSH38_GATEWAY_OUTPUT_RESCUE
 } from "../../services/video-gateway/push38-home-qa-gateway-output-rescue.mjs";
 import { PUSH38_GATEWAY_CONFIRMED_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-confirmed-handoff.mjs";
+import { PUSH38_GATEWAY_STARTUP_WINDOW
+} from "../../services/video-gateway/push38-home-qa-gateway-startup-window.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -68,11 +70,13 @@ const idleHandoff = process.argv.includes("--idle-handoff");
 const bufferedOutput = process.argv.includes("--buffered-output");
 const outputRescue = process.argv.includes("--output-rescue");
 const confirmedHandoff = process.argv.includes("--confirmed-handoff");
+const startupWindow = process.argv.includes("--startup-window");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
-  heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff]
+  heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = confirmedHandoff ? PUSH38_GATEWAY_CONFIRMED_HANDOFF :
+const item = startupWindow ? PUSH38_GATEWAY_STARTUP_WINDOW :
+  confirmedHandoff ? PUSH38_GATEWAY_CONFIRMED_HANDOFF :
   outputRescue ? PUSH38_GATEWAY_OUTPUT_RESCUE :
   bufferedOutput ? PUSH38_GATEWAY_BUFFERED_OUTPUT :
   idleHandoff ? PUSH38_GATEWAY_IDLE_HANDOFF :
@@ -83,17 +87,19 @@ const item = confirmedHandoff ? PUSH38_GATEWAY_CONFIRMED_HANDOFF :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = (outputRescue || confirmedHandoff) ? connectorOutputRescueItem :
+const connectorItem = (outputRescue || confirmedHandoff || startupWindow) ? connectorOutputRescueItem :
   bufferedOutput ? connectorFinalStabilityItem :
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = confirmedHandoff
+const artifact = startupWindow
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-startup-window-4a3d3e39/gateway-runtime.tar.gz"
+  : confirmedHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-confirmed-handoff-ab855c89/gateway-runtime.tar.gz"
   : outputRescue
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-output-rescue-9658853d/gateway-runtime.tar.gz"
@@ -116,7 +122,9 @@ const artifact = confirmedHandoff
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = confirmedHandoff
+const publication = startupWindow
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-startup-window-4a3d3e39/r2-publication.json"
+  : confirmedHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-confirmed-handoff-ab855c89/r2-publication.json"
   : outputRescue
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-output-rescue-9658853d/r2-publication.json"
@@ -257,6 +265,7 @@ if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  startupWindow ? "gateway_remediation_startup_window.json" :
   confirmedHandoff ? "gateway_remediation_confirmed_handoff.json" :
   outputRescue ? "gateway_remediation_output_rescue.json" :
   bufferedOutput ? "gateway_remediation_buffered_output.json" :
@@ -340,7 +349,7 @@ const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_statu
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
-if (rollout.devices !== 2 || rollout.releases !== (confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+if (rollout.devices !== 2 || rollout.releases !== (startupWindow ? 36 : confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
   (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
@@ -388,6 +397,13 @@ const outputRescueTargetTruth = outputRescue && gatewaySamples.every(sample =>
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
 const confirmedHandoffTargetTruth = confirmedHandoff && gatewaySamples.every(sample =>
+  (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
+  Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
+  Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
+  Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
+  Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
+  sample.rotations === 0);
+const startupWindowTargetTruth = startupWindow && gatewaySamples.every(sample =>
   (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
   Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
   Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
@@ -496,12 +512,12 @@ if (confirmedHandoff) {
     socket_error_delta: result.gateway.socket_error_delta, playback_failures: result.playback.failures,
     ai_failures: result.ai.failures, live_recovery_required: true };
 }
-if (bufferedOutput || outputRescue || confirmedHandoff) {
+if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow) {
   if (!shadowEvidencePath)
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
-      warmHandoff: true, confirmedWarmHandoff: confirmedHandoff,
+      warmHandoff: true, confirmedWarmHandoff: confirmedHandoff || startupWindow,
       expectedRelease: item, expectedChannel: 1 });
   } catch {
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
@@ -520,7 +536,7 @@ if (finiteCommonCauseTruth) {
 }
 if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth &&
   !idleHandoffTargetTruth && !bufferedOutputTargetTruth && !outputRescueTargetTruth &&
-  !confirmedHandoffTargetTruth))
+  !confirmedHandoffTargetTruth && !startupWindowTargetTruth))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_TRUTH_INVALID");
 if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok ||
   sample.assigned !== 1 || sample.progressing !== 1 || sample.stalled !== 0) ||
@@ -536,7 +552,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: confirmedHandoff ? "observer-push38-gateway-confirmed-handoff-activation-v1" :
+const plan = { protocol: startupWindow ? "observer-push38-gateway-startup-window-activation-v1" :
+  confirmedHandoff ? "observer-push38-gateway-confirmed-handoff-activation-v1" :
   outputRescue ? "observer-push38-gateway-output-rescue-activation-v1" :
   bufferedOutput ? "observer-push38-gateway-buffered-output-activation-v1" :
   idleHandoff ? "observer-push38-gateway-idle-handoff-activation-v1" :
@@ -553,6 +570,7 @@ const plan = { protocol: confirmedHandoff ? "observer-push38-gateway-confirmed-h
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
+    startupWindowTargetTruth ? "FAILED_STARTUP_WINDOW_CONFIRMED_HANDOFF_SHADOW_QUALIFIED" :
     confirmedHandoffTargetTruth ? "FAILED_CANARY_CONFIRMED_HANDOFF_SHADOW_QUALIFIED" :
     outputRescueTargetTruth ? "KNOWN_OUTPUT_STALLS_QUALIFIED_FOR_SIGNED_REMEDIATION" :
     bufferedOutputTargetTruth ? "KNOWN_BUFFERED_OUTPUT_GAPS_QUALIFIED_FOR_SIGNED_REMEDIATION" :
@@ -570,14 +588,17 @@ const plan = { protocol: confirmedHandoff ? "observer-push38-gateway-confirmed-h
     empty: gatewaySamples.at(-1).empty,
     service_pid_stable: gatewayPidStable
   } } : {}),
-  dvr_truth: { expected: 10, source_available: confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
-    upstream_unavailable: confirmedHandoff ? 2 : expectsNineSources ? 1 : 2, empty: 6 },
+  dvr_truth: { expected: 10,
+    source_available: startupWindow ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
+    upstream_unavailable: startupWindow ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
+    empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: confirmedHandoff ? "GATEWAY_CONFIRMED_HANDOFF_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: startupWindow ? "GATEWAY_STARTUP_WINDOW_PREFLIGHT_PASS" :
+    confirmedHandoff ? "GATEWAY_CONFIRMED_HANDOFF_PREFLIGHT_PASS" :
     outputRescue ? "GATEWAY_OUTPUT_RESCUE_PREFLIGHT_PASS" :
     bufferedOutput ? "GATEWAY_BUFFERED_OUTPUT_PREFLIGHT_PASS" :
     idleHandoff ? "GATEWAY_IDLE_HANDOFF_PREFLIGHT_PASS" :
@@ -625,7 +646,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: confirmedHandoff ? "EXACT_GATEWAY_CONFIRMED_HANDOFF_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: startupWindow ? "EXACT_GATEWAY_STARTUP_WINDOW_ROLLOUT_ACTIVE" :
+  confirmedHandoff ? "EXACT_GATEWAY_CONFIRMED_HANDOFF_ROLLOUT_ACTIVE" :
   outputRescue ? "EXACT_GATEWAY_OUTPUT_RESCUE_ROLLOUT_ACTIVE" :
   bufferedOutput ? "EXACT_GATEWAY_BUFFERED_OUTPUT_ROLLOUT_ACTIVE" :
   idleHandoff ? "EXACT_GATEWAY_IDLE_HANDOFF_ROLLOUT_ACTIVE" :

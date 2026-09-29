@@ -41,11 +41,12 @@ const gatewayMediaCadenceUpgrade = process.argv.includes("--gateway-media-cadenc
 const gatewayMaintenanceIsolationUpgrade = process.argv.includes("--gateway-maintenance-isolation-upgrade");
 const gatewaySessionSweepUpgrade = process.argv.includes("--gateway-session-sweep-upgrade");
 const gatewayHeartbeatLoginUpgrade = process.argv.includes("--gateway-heartbeat-login-upgrade");
+const gatewayStartupWindowUpgrade = process.argv.includes("--gateway-startup-window-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
   gatewayStableHandoffUpgrade, gatewayMediaCadenceUpgrade, gatewayMaintenanceIsolationUpgrade,
-  gatewaySessionSweepUpgrade, gatewayHeartbeatLoginUpgrade,
+  gatewaySessionSweepUpgrade, gatewayHeartbeatLoginUpgrade, gatewayStartupWindowUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
@@ -57,7 +58,8 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade ||
   gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade ||
   gatewayStableHandoffUpgrade || gatewayMediaCadenceUpgrade || gatewayMaintenanceIsolationUpgrade ||
-  gatewaySessionSweepUpgrade || gatewayHeartbeatLoginUpgrade || connectorHostContinuityUpgrade ||
+  gatewaySessionSweepUpgrade || gatewayHeartbeatLoginUpgrade || gatewayStartupWindowUpgrade ||
+  connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
   connectorRtspHandoffUpgrade || connectorHealthObservationUpgrade;
@@ -67,12 +69,12 @@ if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayAuthRecoveryUpgrade && !gatewaySessionStabilityUpgrade && !gatewayCommonCauseRecoveryUpgrade &&
   !gatewayFiniteStreamHandoffUpgrade && !gatewaySupervisorRecoveryUpgrade && !gatewayStableHandoffUpgrade &&
   !gatewayMediaCadenceUpgrade && !gatewayMaintenanceIsolationUpgrade && !gatewaySessionSweepUpgrade &&
-  !gatewayHeartbeatLoginUpgrade)
+  !gatewayHeartbeatLoginUpgrade && !gatewayStartupWindowUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
   gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade ||
   gatewayMediaCadenceUpgrade || gatewayMaintenanceIsolationUpgrade || gatewaySessionSweepUpgrade ||
-  gatewayHeartbeatLoginUpgrade) &&
+  gatewayHeartbeatLoginUpgrade || gatewayStartupWindowUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -157,7 +159,8 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayHeartbeatLoginUpgrade ? "qa-p38-health-gateway-heartbeat-login-0a956d9891db" :
+  remediationRelease: gatewayStartupWindowUpgrade ? "qa-p38-health-gateway-startup-window-a47982f4139f" :
+    gatewayHeartbeatLoginUpgrade ? "qa-p38-health-gateway-heartbeat-login-0a956d9891db" :
     gatewaySessionSweepUpgrade ? "qa-p38-health-gateway-session-drain-5165c94df699" :
     gatewayMaintenanceIsolationUpgrade ? "qa-p38-health-gateway-maintenance-isolation-995d6f822468" :
     gatewayMediaCadenceUpgrade ? "qa-p38-health-gateway-media-cadence-2abe984fa273" :
@@ -168,7 +171,8 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayHeartbeatLoginUpgrade ? "gateway_remediation_heartbeat_login.json" :
+  bundleName: gatewayStartupWindowUpgrade ? "gateway_remediation_startup_window.json" :
+    gatewayHeartbeatLoginUpgrade ? "gateway_remediation_heartbeat_login.json" :
     gatewaySessionSweepUpgrade ? "gateway_remediation_session_sweep.json" :
     gatewayMaintenanceIsolationUpgrade ? "gateway_remediation_maintenance_isolation.json" :
     gatewayMediaCadenceUpgrade ? "gateway_remediation_media_cadence.json" :
@@ -178,7 +182,10 @@ const spec = connector ? {
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayHeartbeatLoginUpgrade ? {
+  priorManagement: gatewayStartupWindowUpgrade ? {
+    release_id: "qa-p38-health-gateway-heartbeat-login-0a956d9891db",
+    artifact_sha256: "0a956d9891db2f16195c8843a033af23d33467f2e43d3f9ce58344c1ad58a05d" } :
+    gatewayHeartbeatLoginUpgrade ? {
     release_id: "qa-p38-health-gateway-session-drain-5165c94df699",
     artifact_sha256: "5165c94df6992ff89074fe74ee0e08fefecff6e28b7c364bd488f9b2bf696801" } :
     gatewaySessionSweepUpgrade ? {
@@ -210,7 +217,7 @@ const spec = connector ? {
   rootName: "observer-gateway", label: "com.ganbatuach.video-gateway", port: 18082,
   installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"),
   expected: gatewayStableHandoffUpgrade || gatewayMediaCadenceUpgrade || gatewayMaintenanceIsolationUpgrade ||
-    gatewaySessionSweepUpgrade || gatewayHeartbeatLoginUpgrade ? 9 : 8, configured: 10
+    gatewaySessionSweepUpgrade || gatewayHeartbeatLoginUpgrade || gatewayStartupWindowUpgrade ? 9 : 8, configured: 10
 };
 const root = join(homedir(), "Library/Application Support/Digital Observer", spec.rootName, "ota");
 const secrets = join(root, "home-qa-device-secrets");
@@ -265,6 +272,8 @@ const bundle = resolve(bundleOverride || (connectorHealthObservationUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewayStartupWindowUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-startup-window-4a3d3e39/push38-homeqa-gateway-startup-window.zip"
   : gatewayHeartbeatLoginUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-heartbeat-login-6d515326/push38-homeqa-gateway-heartbeat-login.zip"
   : gatewaySessionSweepUpgrade
