@@ -40,6 +40,7 @@ test("macOS builder emits a sealed graphical DMG with bundled dependencies", () 
   assert.match(build, /session\.inputNames\.length/);
   assert.match(build, /session\.outputNames\.length/);
   assert.match(build, /process\.exit\(0\)/);
+  assert.match(build, /chmodSync\(archive, 0o600\)/);
   for (const expected of ["RunAtLoad", "KeepAlive", "ensureInstalledAndRunning", "openFile", "--service", "--document"])
     assert.match(host, new RegExp(expected));
   assert.doesNotMatch(host, /\/bin\/sh|Terminal\.app/);

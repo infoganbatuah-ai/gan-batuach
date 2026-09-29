@@ -1,7 +1,7 @@
 // Build engineering: never installs, enrolls, starts a service or contacts a camera.
 // Inputs must be reviewed redistributable binaries. Ad-hoc QA output is NOT a
 // signed/notarized commercial release and must never be offered for download.
-import { cpSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
@@ -107,6 +107,7 @@ run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]);
 if (otaOnly) {
   const archive = join(out, "connector-remediation.tar.gz");
   run("tar", ["-czf", archive, "-C", out, "Digital Observer.app"]);
+  chmodSync(archive, 0o600);
   const unpack = mkdtempSync(join(tmpdir(), "digital-observer-ota-seal-"));
   try {
     run("tar", ["-xzf", archive, "-C", unpack]);
