@@ -42,6 +42,7 @@ const gatewayConfirmedHandoff = "qa-p38-health-gateway-confirmed-handoff-47fed29
 const gatewayStartupWindow = "qa-p38-health-gateway-startup-window-a47982f4139f";
 const gatewayHandoffProbation = "qa-p38-health-gateway-handoff-probation-60ace0737b23";
 const gatewayRetainedFallback = "qa-p38-health-gateway-retained-fallback-8c94935aceab";
+const gatewayContinuousHandoff = "qa-p38-health-gateway-continuous-handoff-0337991da88c";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -75,7 +76,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewaySessionSweep, gatewaySessionDrain, gatewayHeartbeatLogin,
       gatewayIdleHandoff, gatewayBufferedOutput, gatewayOutputRescue,
       gatewayConfirmedHandoff, gatewayStartupWindow, gatewayHandoffProbation,
-      gatewayRetainedFallback].includes(manifest.release_id) &&
+      gatewayRetainedFallback, gatewayContinuousHandoff].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }

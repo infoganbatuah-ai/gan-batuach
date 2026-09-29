@@ -23,6 +23,7 @@ import { buildPush38GatewayConfirmedHandoffManifest } from "../../services/video
 import { buildPush38GatewayStartupWindowManifest } from "../../services/video-gateway/push38-home-qa-gateway-startup-window.mjs";
 import { buildPush38GatewayHandoffProbationManifest } from "../../services/video-gateway/push38-home-qa-gateway-handoff-probation.mjs";
 import { buildPush38GatewayRetainedFallbackManifest } from "../../services/video-gateway/push38-home-qa-gateway-retained-fallback.mjs";
+import { buildPush38GatewayContinuousHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-continuous-handoff.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -102,13 +103,14 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
   maintenanceIsolation = false, sessionSweep = false, heartbeatLogin = false,
   idleHandoff = false, bufferedOutput = false, outputRescue = false,
   confirmedHandoff = false, startupWindow = false, handoffProbation = false,
-  retainedFallback = false }) {
+  retainedFallback = false, continuousHandoff = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
     heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
-    handoffProbation, retainedFallback]
+    handoffProbation, retainedFallback, continuousHandoff]
     .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = retainedFallback ? buildPush38GatewayRetainedFallbackManifest :
+  const builder = continuousHandoff ? buildPush38GatewayContinuousHandoffManifest :
+    retainedFallback ? buildPush38GatewayRetainedFallbackManifest :
     handoffProbation ? buildPush38GatewayHandoffProbationManifest :
     startupWindow ? buildPush38GatewayStartupWindowManifest :
     confirmedHandoff ? buildPush38GatewayConfirmedHandoffManifest :
@@ -169,7 +171,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: retainedFallback ?
+    const result = { protocol: continuousHandoff ?
+      "observer-push38-gateway-continuous-handoff-r2-publication-v1" : retainedFallback ?
       "observer-push38-gateway-retained-fallback-r2-publication-v1" : handoffProbation ?
       "observer-push38-gateway-handoff-probation-r2-publication-v1" : startupWindow ?
       "observer-push38-gateway-startup-window-r2-publication-v1" : confirmedHandoff ?
@@ -208,11 +211,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const startupWindow = process.argv.includes("--startup-window");
     const handoffProbation = process.argv.includes("--handoff-probation");
     const retainedFallback = process.argv.includes("--retained-fallback");
+    const continuousHandoff = process.argv.includes("--continuous-handoff");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
         "--idle-handoff", "--buffered-output", "--output-rescue", "--confirmed-handoff",
-        "--startup-window", "--handoff-probation", "--retained-fallback"]
+        "--startup-window", "--handoff-probation", "--retained-fallback", "--continuous-handoff"]
         .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
@@ -221,7 +225,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       artifactPath: artifact, evidencePath: resolve(evidence), supervisorRecovery, stableHandoff,
       mediaCadence, maintenanceIsolation, sessionSweep, heartbeatLogin, idleHandoff,
       bufferedOutput, outputRescue, confirmedHandoff, startupWindow, handoffProbation,
-      retainedFallback }) }));
+      retainedFallback, continuousHandoff }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");
