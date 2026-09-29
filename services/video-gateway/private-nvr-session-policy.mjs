@@ -26,13 +26,12 @@ export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // the hard-stale boundary for the bounded warm replacement to become current.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
-// Output rescue is justified only while recorder bytes are still arriving but
-// rendered HLS has stopped. Treating a recorder-wide burst pause as an output
-// failure caused unnecessary relay churn in the first live canary.
-export const PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS = 4_000;
-// A routine finite-response handoff keeps the old relay authoritative until
-// the replacement survives the same interval that defines a hard stale relay.
-// Two early playlist writes were not sufficient in live Home evidence.
+// A private-recorder response can stop delivering bytes even though the login
+// remains valid.  A replacement response is therefore allowed to probe that
+// condition before the hard-stale boundary.  The replacement is promoted only
+// provisionally and the old relay remains available throughout probation.
+// This avoids both the no-rescue regression caused by an input-freshness gate
+// and the earlier false promotion after only two playlist writes.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 20_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
@@ -58,8 +57,6 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
     return "ROUTINE_FINITE_RESPONSE";
   }
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
-    && Number.isFinite(relay.lastInputAt)
-    && now - relay.lastInputAt <= PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS
     && Number.isFinite(relay.lastOutputAt)
     && now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
   return outputRescue ? "OUTPUT_RESCUE" : null;
