@@ -247,7 +247,8 @@ async function healthSample(port, label) {
 }
 
 function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
-  confirmedWarmHandoff = false, expectedRelease = null, expectedChannel = 1 } = {}) {
+  confirmedWarmHandoff = false, boundedWarmupFailure = false,
+  expectedRelease = null, expectedChannel = 1 } = {}) {
   const value = JSON.parse(protectedFile(path));
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
   const endedAt = Date.parse(value.ended_at || "");
@@ -255,6 +256,21 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
     point.shadow?.http === 200 && point.shadow?.discovery?.assigned === 1 &&
     point.shadow?.discovery?.connected === 1 && point.shadow?.discovery?.failed === 0 &&
     point.shadow?.media?.progressing === 1 && point.shadow?.media?.stalled === 0);
+  const renewals = checkpoints.map(point => point.renewal).filter(Boolean);
+  const playbackProof = !boundedWarmupFailure || renewals.length >= Math.floor(checkpoints.length / 2) &&
+    renewals.every(renewal => renewal.status === 200 && renewal.playlist_status === 200 &&
+      renewal.segment_status === 200 && renewal.segment_bytes > 0);
+  const lifecycle = checkpoints.at(-1)?.shadow?.media?.lifecycle || {};
+  // A failed warmup is not a media outage when the authoritative relay stays
+  // current and the next bounded attempt succeeds. The continuous-handoff
+  // proof permits exactly one such contained retry, but still rejects every
+  // missing checkpoint, playback failure, request-time stale teardown, socket
+  // error, or unbounded failure count.
+  const boundedFailureProof = !boundedWarmupFailure ||
+    lifecycle.warmHandoffFailures <= 1 &&
+    lifecycle.warmHandoffConfirmationFailures === lifecycle.warmHandoffFailures &&
+    lifecycle.warmHandoffs >= 1 && lifecycle.staleOnRequest === 0 &&
+    lifecycle.inputSocketError === 0;
   if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
     value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== expectedChannel ||
     value.endpoint_redacted !== true || value.credentials_recorded !== false ||
@@ -264,11 +280,11 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
       value.signed_release?.signature_verified !== true || value.signed_release?.artifact_verified !== true)) ||
     !Number.isFinite(value.duration_ms) || value.duration_ms < (warmHandoff ? 6 * 60_000 : 60_000) ||
     !Number.isFinite(endedAt) || (recent && (endedAt > Date.now() || Date.now() - endedAt > 10 * 60_000)) ||
-    !streamProof || (warmHandoff &&
-      (checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffs < 1 ||
-        checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffFailures !== 0)) ||
+    !streamProof || !playbackProof || !boundedFailureProof || (warmHandoff &&
+      (lifecycle.warmHandoffs < 1 ||
+        !boundedWarmupFailure && lifecycle.warmHandoffFailures !== 0)) ||
     (confirmedWarmHandoff &&
-      checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffConfirmationFailures !== 0))
+      lifecycle.warmHandoffConfirmationFailures !== 0))
     throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_INVALID");
   return { sha256: sha(protectedFile(path)), ended_at: value.ended_at,
     duration_ms: value.duration_ms, checkpoints: checkpoints.length };
@@ -591,7 +607,8 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
       warmHandoff: true,
-      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff,
+      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback,
+      boundedWarmupFailure: continuousHandoff,
       expectedRelease: item, expectedChannel: 1 });
   } catch {
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");

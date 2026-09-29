@@ -39,6 +39,13 @@ try {
     /gateway-continuous-handoff-upgrade/);
   assert.match(readFileSync("scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8"),
     /--continuous-handoff/);
+  const activation = readFileSync("scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
+  assert.match(activation,
+    /boundedWarmupFailure[\s\S]*warmHandoffFailures <= 1[\s\S]*staleOnRequest === 0[\s\S]*inputSocketError === 0/,
+  "a contained warmup retry may pass only when media, request and socket continuity remain intact");
+  assert.match(activation,
+    /renewals\.every\(renewal => renewal\.status === 200[\s\S]*renewal\.segment_bytes > 0/,
+  "continuous handoff evidence must include successful real HLS playlist and segment renewals");
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
