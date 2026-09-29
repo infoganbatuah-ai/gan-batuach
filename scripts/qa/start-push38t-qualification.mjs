@@ -15,7 +15,11 @@ const run = (command, args) => execFileSync(command, args, { cwd: root, env: bas
 const enableLegacyDelivery = process.argv.includes("--enable-legacy-delivery");
 const serveBuild = process.argv.includes("--serve-build");
 function r2Credentials() {
-  const service = "digital-observer-r2-home-qa-reader-20260922";
+  const service = process.env.OBSERVER_R2_READER_SERVICE ||
+    "digital-observer-r2-home-qa-reader-20260922";
+  if (!["digital-observer-r2-home-qa-reader-20260922",
+    "digital-observer-r2-home-qa-publisher-20260922-v2"].includes(service))
+    throw new Error("P38_QA_R2_READER_SERVICE_INVALID");
   const keychain = join(homedir(), "Library/Keychains/login.keychain-db");
   const opts = { encoding: "utf8", timeout: 45_000, maxBuffer: 16_384,
     stdio: ["ignore", "pipe", "ignore"] };
