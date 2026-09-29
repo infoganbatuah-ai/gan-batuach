@@ -7,10 +7,10 @@ import { promisify } from "node:util";
 import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
+import { measureRealHomeAiRouting } from "./measure-real-home-ai-routing.mjs";
 import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
-const repositoryRoot = resolve(new URL("../..", import.meta.url).pathname);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
 const DVR_ASSIGNED_CHANNELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10, 11]);
 const unavailableArgument = String(args.get("dvr-upstream-unavailable") ?? "2,8").trim();
@@ -154,6 +154,8 @@ async function sources() {
   const profile = JSON.parse(await keychain("dvr_profile_json")); const host = new URL(profile.endpoint.includes("://") ? profile.endpoint : `http://${profile.endpoint}`).hostname;
   const namespace = String(profile.metadata?.stream_namespace || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
   const gatewaySecret = await keychain("gateway_signing_secret");
+  const gatewayAiIdentity = { gatewaySecret, deviceId: await keychain("device_gateway_id"),
+    siteId: await keychain("device_observer_site_id"), profile };
   const dvr = DVR_ASSIGNED_CHANNELS.map(channel => ({ id: `dvr_${createHash("sha256").update([profile.connection_type || "dvr", host, channel, namespace].join(":")).digest("hex").slice(0,18)}_${channel}`,
     channel, port: 18082, secret: gatewaySecret, source_available: DVR_AVAILABLE_CHANNELS.includes(channel),
     upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE.includes(channel) }));
@@ -170,8 +172,9 @@ async function sources() {
   const connectorLocalStreamId = `dvr_${createHash("sha256").update([
     connectorProfile.connection_type || "dvr", connectorHost, 1, connectorNamespace
   ].join(":")).digest("hex").slice(0,18)}_1`;
-  return [...dvr, { id: connectorLocalStreamId, camera_source_id: connectorSecret("connector_camera_source_id"),
-    channel: 1, port: 18083, secret: connectorSecret("gateway_signing_secret"), tapo: true }];
+  return { sourceList: [...dvr, { id: connectorLocalStreamId,
+    camera_source_id: connectorSecret("connector_camera_source_id"), channel: 1, port: 18083,
+    secret: connectorSecret("gateway_signing_secret"), tapo: true }], gatewayAiIdentity };
 }
 async function decodeFrame(url) { try { await exec(ffmpegCommand, ["-hide_banner", "-loglevel", "error", "-i", url, "-frames:v", "1", "-f", "null", "-"], { timeout: 20_000, maxBuffer: 1024 * 1024 }); return true; } catch { return false; } }
 async function aiPolicy(sourceList) {
@@ -191,7 +194,7 @@ async function aiPolicy(sourceList) {
   }
   return { eligible, excluded, failures };
 }
-async function deepProbe(sourceList) {
+async function deepProbe(sourceList, gatewayAiIdentity) {
   sourceList = sourceList.filter(source => source.tapo || source.source_available !== false);
   let verified = 0; const failures = [], successes = [];
   for (const source of sourceList) { const name = source.tapo ? "tapo" : `dvr-${source.channel}`; try { const response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/playback`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(10_000) }); const body = await response.json(); const url = body.playback?.hls_url; if (!response.ok || !url || !["127.0.0.1", "localhost"].includes(new URL(url).hostname) || !await decodeFrame(url)) throw new Error("PLAYBACK_FRAME_UNAVAILABLE"); verified++; successes.push(name); } catch { failures.push(name); } }
@@ -204,10 +207,7 @@ async function deepProbe(sourceList) {
     // inference path with the dedicated read-only local qualification instead
     // of weakening ingress to expose the Product event-manifest route.
     try {
-      const { stdout } = await exec(process.execPath, [join(repositoryRoot,
-        "scripts/qa/measure-real-home-ai-routing.mjs")],
-        { cwd: repositoryRoot, timeout: 120_000, maxBuffer: 4 * 1024 * 1024 });
-      const proof = JSON.parse(stdout);
+      const proof = await measureRealHomeAiRouting(gatewayAiIdentity);
       const passed = proof.status === "PASS" && proof.mode === "READ_ONLY_REAL_CAMERA_ROUTING" &&
         proof.result?.job_id && proof.result?.model && proof.result?.runtime;
       ai = { ok: Boolean(passed), expected: 1, verified: passed ? 1 : 0, failed: passed ? 0 : 1,
@@ -215,10 +215,11 @@ async function deepProbe(sourceList) {
         qualification_path: proof.path ?? null, event_fabricated: proof.event_fabricated === true,
         latency_ms: Date.now() - aiStarted, per_source_latency_ms: [proof.result?.total_ms].filter(Number.isFinite),
         models: proof.result?.model ? [proof.result.model] : [] };
-    } catch {
+    } catch (error) {
       ai = { ok: false, expected: 1, verified: 0, failed: 1, failures: ["real-camera-routing"],
         policy_excluded: [], manifest_failures: policy.failures, latency_ms: Date.now() - aiStarted,
-        per_source_latency_ms: [], models: [] };
+        per_source_latency_ms: [], models: [],
+        qualification_error: String(error?.code || error?.name || "AI_ROUTING_FAILED") };
     }
   } else {
     const aiSources = sourceList.filter(source => policy.eligible.has(source.id));
@@ -269,7 +270,7 @@ atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: 
   last_checkpoint_at: prior?.last_checkpoint_at ?? null, next_deep_probe_at: nextDeepProbeAt,
   output_root: outputRoot,
   monitor_process: { pid: process.pid, parent_pid: process.ppid, started_at: new Date().toISOString() } });
-const sourceList = await sources();
+const { sourceList, gatewayAiIdentity } = await sources();
 while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
   // Cadence is anchored to the run start, not to the completion of the prior
   // sample. A slow deep probe must never consume the next minute's checkpoint.
@@ -300,7 +301,7 @@ while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
   if (sampledAt >= nextDeepProbeAt && !deepProbeInFlight) {
     deepProbeInFlight = true;
     nextDeepProbeAt = sampledAt + deepProbeMs;
-    void deepProbe(sourceList).then(result => { completedDeepProbe = result; }).catch(error => {
+    void deepProbe(sourceList, gatewayAiIdentity).then(result => { completedDeepProbe = result; }).catch(error => {
       completedDeepProbe = { deep_probe_error: String(error?.code || error?.name || "DEEP_PROBE_FAILED") };
     }).finally(() => { deepProbeInFlight = false; });
   }

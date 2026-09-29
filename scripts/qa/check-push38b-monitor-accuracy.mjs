@@ -125,5 +125,10 @@ assert.match(aiRoutingProof, /\/opt\/homebrew\/bin\/ffmpeg/,
   "the launchd AI proof must resolve the installed ffmpeg without an interactive PATH");
 assert.doesNotMatch(aiRoutingProof, /spawnSync\("ffmpeg"/,
   "the launchd AI proof must not depend on the shell PATH");
+assert.match(aiRoutingProof, /export async function measureRealHomeAiRouting\(injectedIdentity = null\)/,
+  "the durable monitor must be able to reuse its already-authorized in-memory Gateway identity");
+const realHomeSoak = readFileSync("scripts/qa/run-real-home-soak.mjs", "utf8");
+assert.match(realHomeSoak, /await measureRealHomeAiRouting\(gatewayAiIdentity\)/,
+  "the monitor must not create a second macOS Keychain authorization boundary for deep AI probes");
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");

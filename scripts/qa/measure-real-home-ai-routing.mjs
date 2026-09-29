@@ -4,7 +4,8 @@ import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createAiJob } from "../../services/video-gateway/ai-job-contract.mjs";
 import { createDurableAiJobQueue } from "../../services/video-gateway/durable-ai-job-queue.mjs";
 import { createPortableInferenceWorker } from "../../services/video-gateway/portable-inference-worker.mjs";
@@ -12,25 +13,267 @@ import { createExecutionTarget, createHybridAiRouter } from "../../services/vide
 import { createObjectInferenceClient } from "../../services/video-gateway/object-inference-client.mjs";
 import { createPreprocessingEngine } from "../../services/video-gateway/preprocessing-policy.mjs";
 
-const ffmpegCommand=[process.env.FFMPEG_PATH,"/opt/homebrew/bin/ffmpeg","/usr/local/bin/ffmpeg","/usr/bin/ffmpeg"]
-  .find(value=>value&&existsSync(value));
-if(!ffmpegCommand)throw new Error("ffmpeg_runtime_unavailable");
+const ffmpegCommand = [
+  process.env.FFMPEG_PATH, "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"
+].find(value => value && existsSync(value));
+if (!ffmpegCommand) throw new Error("ffmpeg_runtime_unavailable");
 
-const root=mkdtempSync(join(tmpdir(),"observer-real-ai-routing-"));
-let inferenceClient;
-try{
-  const service="com.ganbatuach.video-gateway.runtime";const keychain=account=>execFileSync("/usr/bin/security",["find-generic-password","-s",service,"-a",account,"-w"],{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();
-  const gatewaySecret=keychain("gateway_signing_secret");const deviceId=keychain("device_gateway_id");const siteId=keychain("device_observer_site_id");const profile=JSON.parse(keychain("dvr_profile_json"));const host=new URL(profile.endpoint.includes("://")?profile.endpoint:`http://${profile.endpoint}`).hostname;const namespace=String(profile.metadata?.stream_namespace||"").trim().replace(/[^a-zA-Z0-9._:-]/g,"").slice(0,80);const dvrStreams=[1,2,3,4,5,6,7,8,10,11].map(channel=>`dvr_${createHash("sha256").update([profile.connection_type||"dvr",host,channel,namespace].join(":")).digest("hex").slice(0,18)}_${channel}`);const streamId=dvrStreams[0];const sourceId=streamId;
-  const readHealth=async(url,label)=>{try{const response=await fetch(url,{signal:AbortSignal.timeout(15_000)});if(!response.ok)throw new Error(`${label}_health_http_${response.status}`);return response.json();}catch(error){throw new Error(`${label}_health_unavailable`,{cause:error});}};
-  const health=async()=>Promise.all([readHealth("http://127.0.0.1:18082/health","dvr_gateway"),readHealth("http://127.0.0.1:18083/health","tapo_connector")]);const before=await health();
-  const scheduler=createPreprocessingEngine();const schedule=scheduler.evaluate({camera:{camera_id:sourceId,site_id:siteId,channel_assignment:"ASSIGNED",physical_camera_attached:true},policy:"ALWAYS_ANALYZE",health:{source:"ONLINE",frame_fresh:true},observed_at:new Date().toISOString()});assert.equal(schedule.request_ai,true);assert.equal(schedule.decision,"ANALYZE");
-  const otaRoot=join(homedir(),"Library","Application Support","Digital Observer","observer-gateway","ota");const current=JSON.parse(readFileSync(join(otaRoot,"current.json"),"utf8"));assert.equal(current.slot,join(otaRoot,"slots",current.version));const installedWorker=join(current.slot,"runtime","services","video-gateway","onnx-object-worker.mjs");inferenceClient=createObjectInferenceClient({workerPath:installedWorker});assert.equal(await inferenceClient.start(),true,JSON.stringify(inferenceClient.status()));
-  const runtimeCapability=Symbol("real-routing-worker");const queue=createDurableAiJobQueue({databasePath:join(root,"routing.sqlite"),workerAuthorizer:value=>value.identity?.local_capability===runtimeCapability});const router=createHybridAiRouter();const targetId=`${deviceId}:edge-local`;
-  const now=Date.now();const jobs=[];for(const dvrStream of dvrStreams)jobs.push(queue.enqueue(createAiJob({tenant_id:siteId,site_id:siteId,source_id:dvrStream,observation_timestamp:new Date(now).toISOString(),priority:"NORMAL",purpose:"REALTIME_DETECTION",requested_capability:"OBJECT_DETECTION",model_class:"GENERAL_OBJECT_DETECTION",input_ref:{kind:"GATEWAY_SOURCE_SAMPLE",reference:`stream:${dvrStream}`,locality:"MANAGED_COMPONENT_ONLY"},expires_at:new Date(now+90_000).toISOString(),scheduler_reason:"READ_ONLY_REAL_HOME_ROUTING_EMISSION",scheduler_version:"observer-adaptive-sampling-v1",privacy_constraints:{execution_policy:"EDGE_ONLY",tenant_scoped_input:true,raw_media_telemetry:false}})).job);
-  const selected=queue.enqueue(createAiJob({tenant_id:siteId,site_id:siteId,source_id:sourceId,observation_timestamp:new Date(now).toISOString(),priority:"CRITICAL",purpose:"REALTIME_DETECTION",requested_capability:"OBJECT_DETECTION",model_class:"GENERAL_OBJECT_DETECTION",input_ref:{kind:"GATEWAY_SOURCE_SAMPLE",reference:`stream:${streamId}`,locality:"MANAGED_COMPONENT_ONLY"},expires_at:new Date(now+90_000).toISOString(),scheduler_reason:"READ_ONLY_REAL_CAMERA_ROUTING_PROOF",scheduler_version:"observer-adaptive-sampling-v1",privacy_constraints:{execution_policy:"EDGE_ONLY",tenant_scoped_input:true,raw_media_telemetry:false}})).job;jobs.push(selected);
-  const target=createExecutionTarget({target_id:targetId,target_class:"EDGE_LOCAL",environment:"EDGE_LOCAL",supported_capabilities:["OBJECT_DETECTION"],supported_model_classes:["GENERAL_OBJECT_DETECTION"],supported_input_kinds:["GATEWAY_SOURCE_SAMPLE"],health:"HEALTHY",available:true,capacity:{max_concurrency:1,in_flight:0,queue_depth:jobs.length},tenant_eligibility:{mode:"ALLOWLIST",tenant_ids:[siteId]},privacy_eligibility:["EDGE_ONLY","LOCAL_ALLOWED"],input_access:{locality:["MANAGED_COMPONENT_ONLY"],source_ids:["*"]},latency:{expected_ms:1_000,sample_count:0},cost_hook:{measured:false,compute_class:"LOCAL_CPU",bandwidth_class:"NONE"}});
-  const worker=createPortableInferenceWorker({workerId:targetId,environment:"EDGE_LOCAL",identity:{authenticated:true,revoked:false,device_id:deviceId,tenant_ids:[siteId],site_ids:[siteId],local_capability:runtimeCapability},capabilities:["OBJECT_DETECTION"],infer:async job=>{const response=await fetch(`http://127.0.0.1:18082/camera/${encodeURIComponent(job.input_ref.reference.slice(7))}/playback`,{headers:{"x-video-gateway-secret":gatewaySecret},signal:AbortSignal.timeout(15_000)});const body=await response.json();const playbackUrl=body.playback?.hls_url;assert(response.ok&&playbackUrl);assert(["127.0.0.1","localhost"].includes(new URL(playbackUrl).hostname));const frame=spawnSync(ffmpegCommand,["-hide_banner","-loglevel","error","-threads","1","-filter_threads","1","-i",playbackUrl,"-frames:v","1","-vf","scale=300:300,format=rgb24","-f","rawvideo","pipe:1"],{maxBuffer:512_000,timeout:20_000});assert.equal(frame.status,0);assert.equal(frame.stdout.length,270_000);const detections=await inferenceClient.predict(frame.stdout);frame.stdout.fill(0);assert.notEqual(detections,null,JSON.stringify(inferenceClient.status()));return{detections,source_anchor:null,observation_timestamp:new Date().toISOString(),model_provenance:inferenceClient.status().provenance};}});
-  const routed=await router.execute({job:selected,queue,targets:[target],workers:new Map([[targetId,worker]])});assert.equal(routed.status,"COMPLETED",JSON.stringify(routed.decision?.rejected_targets??[]));const result=queue.result(selected.job_id,{consume:true});assert(result);assert.equal(result.route_decision_id,routed.decision.decision_id);assert.equal(result.execution_target_class,"EDGE_LOCAL");assert.equal(routed.decision.reason,"EDGE_LOCAL — privacy policy");
-  const after=await health();const snapshot=queue.snapshot();queue.close();
-  console.log(JSON.stringify({status:"PASS",mode:"READ_ONLY_REAL_CAMERA_ROUTING",physical_device:"Home DVR channel 1",path:"authorized real DVR HLS frame → preprocessing scheduler → observer-ai-job-v1 → durable queue → routing decision → EDGE_LOCAL ONNX → canonical result",preprocessing:{decision:schedule.decision,reason:schedule.reason,request_ai:schedule.request_ai},decision:{id:routed.decision.decision_id,policy:routed.decision.policy_version,reason:routed.decision.reason,target_id:routed.decision.selected_target_id,target_class:routed.decision.selected_target_class},result:{job_id:result.job_id,model:result.model,runtime:result.runtime,detections:result.detections.length,queue_wait_ms:result.queue_wait_ms,inference_ms:result.inference_ms,total_ms:result.queue_wait_ms+result.inference_ms,route_decision_id:result.route_decision_id},canonical_events_naturally_emitted:0,event_fabricated:false,home:{dvr_physical_sources:dvrStreams.length,tapo_sources:1,total_physical:11,empty_dvr_slots:6,empty_slot_jobs:0,dvr_progressing_before:before[0].mediaHeartbeat?.progressingRelays??null,dvr_progressing_after:after[0].mediaHeartbeat?.progressingRelays??null,dvr_stalled_after:after[0].mediaHeartbeat?.stalledRelays??null,tapo_progressing_before:before[1].mediaHeartbeat?.progressingRelays??null,tapo_progressing_after:after[1].mediaHeartbeat?.progressingRelays??null,tapo_stalled_after:after[1].mediaHeartbeat?.stalledRelays??null},isolated_pending_dvr_jobs_discarded_with_qa_database:snapshot.queue_depth,source_configuration_changed:false,raw_media_logged:false},null,2));
-}finally{inferenceClient?.close();rmSync(root,{recursive:true,force:true});}
+function readGatewayIdentity() {
+  const service = "com.ganbatuach.video-gateway.runtime";
+  const keychain = account => execFileSync("/usr/bin/security",
+    ["find-generic-password", "-s", service, "-a", account, "-w"],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  return {
+    gatewaySecret: keychain("gateway_signing_secret"),
+    deviceId: keychain("device_gateway_id"),
+    siteId: keychain("device_observer_site_id"),
+    profile: JSON.parse(keychain("dvr_profile_json"))
+  };
+}
+
+function assertIdentity(identity) {
+  assert(identity && typeof identity === "object");
+  assert.equal(typeof identity.gatewaySecret, "string");
+  assert(identity.gatewaySecret.length > 0);
+  assert.equal(typeof identity.deviceId, "string");
+  assert(identity.deviceId.length > 0);
+  assert.equal(typeof identity.siteId, "string");
+  assert(identity.siteId.length > 0);
+  assert(identity.profile && typeof identity.profile === "object");
+  assert.equal(typeof identity.profile.endpoint, "string");
+  return identity;
+}
+
+export async function measureRealHomeAiRouting(injectedIdentity = null) {
+  // The durable monitor has already opened the Gateway credential boundary to
+  // collect its camera inventory. Reuse that in-memory context instead of
+  // spawning a second process that may not inherit the macOS Keychain grant.
+  // Standalone use still reads the same canonical Keychain records directly.
+  const { gatewaySecret, deviceId, siteId, profile } =
+    assertIdentity(injectedIdentity ?? readGatewayIdentity());
+  const root = mkdtempSync(join(tmpdir(), "observer-real-ai-routing-"));
+  let inferenceClient;
+  try {
+    const host = new URL(profile.endpoint.includes("://")
+      ? profile.endpoint : `http://${profile.endpoint}`).hostname;
+    const namespace = String(profile.metadata?.stream_namespace || "")
+      .trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
+    const dvrStreams = [1,2,3,4,5,6,7,8,10,11].map(channel =>
+      `dvr_${createHash("sha256").update([
+        profile.connection_type || "dvr", host, channel, namespace
+      ].join(":")).digest("hex").slice(0,18)}_${channel}`);
+    const streamId = dvrStreams[0];
+    const sourceId = streamId;
+    const readHealth = async (url, label) => {
+      try {
+        const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+        if (!response.ok) throw new Error(`${label}_health_http_${response.status}`);
+        return response.json();
+      } catch (error) {
+        throw new Error(`${label}_health_unavailable`, { cause: error });
+      }
+    };
+    const health = async () => Promise.all([
+      readHealth("http://127.0.0.1:18082/health", "dvr_gateway"),
+      readHealth("http://127.0.0.1:18083/health", "tapo_connector")
+    ]);
+    const before = await health();
+    const scheduler = createPreprocessingEngine();
+    const schedule = scheduler.evaluate({
+      camera: {
+        camera_id: sourceId, site_id: siteId,
+        channel_assignment: "ASSIGNED", physical_camera_attached: true
+      },
+      policy: "ALWAYS_ANALYZE",
+      health: { source: "ONLINE", frame_fresh: true },
+      observed_at: new Date().toISOString()
+    });
+    assert.equal(schedule.request_ai, true);
+    assert.equal(schedule.decision, "ANALYZE");
+
+    const otaRoot = join(homedir(), "Library", "Application Support",
+      "Digital Observer", "observer-gateway", "ota");
+    const current = JSON.parse(readFileSync(join(otaRoot, "current.json"), "utf8"));
+    assert.equal(current.slot, join(otaRoot, "slots", current.version));
+    const installedWorker = join(current.slot, "runtime", "services",
+      "video-gateway", "onnx-object-worker.mjs");
+    inferenceClient = createObjectInferenceClient({ workerPath: installedWorker });
+    assert.equal(await inferenceClient.start(), true, JSON.stringify(inferenceClient.status()));
+
+    const runtimeCapability = Symbol("real-routing-worker");
+    const queue = createDurableAiJobQueue({
+      databasePath: join(root, "routing.sqlite"),
+      workerAuthorizer: value => value.identity?.local_capability === runtimeCapability
+    });
+    const router = createHybridAiRouter();
+    const targetId = `${deviceId}:edge-local`;
+    const now = Date.now();
+    const jobs = [];
+    for (const dvrStream of dvrStreams) jobs.push(queue.enqueue(createAiJob({
+      tenant_id: siteId,
+      site_id: siteId,
+      source_id: dvrStream,
+      observation_timestamp: new Date(now).toISOString(),
+      priority: "NORMAL",
+      purpose: "REALTIME_DETECTION",
+      requested_capability: "OBJECT_DETECTION",
+      model_class: "GENERAL_OBJECT_DETECTION",
+      input_ref: {
+        kind: "GATEWAY_SOURCE_SAMPLE",
+        reference: `stream:${dvrStream}`,
+        locality: "MANAGED_COMPONENT_ONLY"
+      },
+      expires_at: new Date(now + 90_000).toISOString(),
+      scheduler_reason: "READ_ONLY_REAL_HOME_ROUTING_EMISSION",
+      scheduler_version: "observer-adaptive-sampling-v1",
+      privacy_constraints: {
+        execution_policy: "EDGE_ONLY", tenant_scoped_input: true, raw_media_telemetry: false
+      }
+    })).job);
+    const selected = queue.enqueue(createAiJob({
+      tenant_id: siteId,
+      site_id: siteId,
+      source_id: sourceId,
+      observation_timestamp: new Date(now).toISOString(),
+      priority: "CRITICAL",
+      purpose: "REALTIME_DETECTION",
+      requested_capability: "OBJECT_DETECTION",
+      model_class: "GENERAL_OBJECT_DETECTION",
+      input_ref: {
+        kind: "GATEWAY_SOURCE_SAMPLE",
+        reference: `stream:${streamId}`,
+        locality: "MANAGED_COMPONENT_ONLY"
+      },
+      expires_at: new Date(now + 90_000).toISOString(),
+      scheduler_reason: "READ_ONLY_REAL_CAMERA_ROUTING_PROOF",
+      scheduler_version: "observer-adaptive-sampling-v1",
+      privacy_constraints: {
+        execution_policy: "EDGE_ONLY", tenant_scoped_input: true, raw_media_telemetry: false
+      }
+    })).job;
+    jobs.push(selected);
+    const target = createExecutionTarget({
+      target_id: targetId,
+      target_class: "EDGE_LOCAL",
+      environment: "EDGE_LOCAL",
+      supported_capabilities: ["OBJECT_DETECTION"],
+      supported_model_classes: ["GENERAL_OBJECT_DETECTION"],
+      supported_input_kinds: ["GATEWAY_SOURCE_SAMPLE"],
+      health: "HEALTHY",
+      available: true,
+      capacity: { max_concurrency: 1, in_flight: 0, queue_depth: jobs.length },
+      tenant_eligibility: { mode: "ALLOWLIST", tenant_ids: [siteId] },
+      privacy_eligibility: ["EDGE_ONLY", "LOCAL_ALLOWED"],
+      input_access: { locality: ["MANAGED_COMPONENT_ONLY"], source_ids: ["*"] },
+      latency: { expected_ms: 1_000, sample_count: 0 },
+      cost_hook: { measured: false, compute_class: "LOCAL_CPU", bandwidth_class: "NONE" }
+    });
+    const worker = createPortableInferenceWorker({
+      workerId: targetId,
+      environment: "EDGE_LOCAL",
+      identity: {
+        authenticated: true,
+        revoked: false,
+        device_id: deviceId,
+        tenant_ids: [siteId],
+        site_ids: [siteId],
+        local_capability: runtimeCapability
+      },
+      capabilities: ["OBJECT_DETECTION"],
+      infer: async job => {
+        const response = await fetch(
+          `http://127.0.0.1:18082/camera/${encodeURIComponent(
+            job.input_ref.reference.slice(7))}/playback`,
+          {
+            headers: { "x-video-gateway-secret": gatewaySecret },
+            signal: AbortSignal.timeout(15_000)
+          }
+        );
+        const body = await response.json();
+        const playbackUrl = body.playback?.hls_url;
+        assert(response.ok && playbackUrl);
+        assert(["127.0.0.1", "localhost"].includes(new URL(playbackUrl).hostname));
+        const frame = spawnSync(ffmpegCommand, [
+          "-hide_banner", "-loglevel", "error", "-threads", "1", "-filter_threads", "1",
+          "-i", playbackUrl, "-frames:v", "1", "-vf", "scale=300:300,format=rgb24",
+          "-f", "rawvideo", "pipe:1"
+        ], { maxBuffer: 512_000, timeout: 20_000 });
+        assert.equal(frame.status, 0);
+        assert.equal(frame.stdout.length, 270_000);
+        const detections = await inferenceClient.predict(frame.stdout);
+        frame.stdout.fill(0);
+        assert.notEqual(detections, null, JSON.stringify(inferenceClient.status()));
+        return {
+          detections,
+          source_anchor: null,
+          observation_timestamp: new Date().toISOString(),
+          model_provenance: inferenceClient.status().provenance
+        };
+      }
+    });
+    const routed = await router.execute({
+      job: selected, queue, targets: [target], workers: new Map([[targetId, worker]])
+    });
+    assert.equal(routed.status, "COMPLETED",
+      JSON.stringify(routed.decision?.rejected_targets ?? []));
+    const result = queue.result(selected.job_id, { consume: true });
+    assert(result);
+    assert.equal(result.route_decision_id, routed.decision.decision_id);
+    assert.equal(result.execution_target_class, "EDGE_LOCAL");
+    assert.equal(routed.decision.reason, "EDGE_LOCAL — privacy policy");
+    const after = await health();
+    const snapshot = queue.snapshot();
+    queue.close();
+    return {
+      status: "PASS",
+      mode: "READ_ONLY_REAL_CAMERA_ROUTING",
+      physical_device: "Home DVR channel 1",
+      path: "authorized real DVR HLS frame → preprocessing scheduler → observer-ai-job-v1 → durable queue → routing decision → EDGE_LOCAL ONNX → canonical result",
+      preprocessing: {
+        decision: schedule.decision, reason: schedule.reason, request_ai: schedule.request_ai
+      },
+      decision: {
+        id: routed.decision.decision_id,
+        policy: routed.decision.policy_version,
+        reason: routed.decision.reason,
+        target_id: routed.decision.selected_target_id,
+        target_class: routed.decision.selected_target_class
+      },
+      result: {
+        job_id: result.job_id,
+        model: result.model,
+        runtime: result.runtime,
+        detections: result.detections.length,
+        queue_wait_ms: result.queue_wait_ms,
+        inference_ms: result.inference_ms,
+        total_ms: result.queue_wait_ms + result.inference_ms,
+        route_decision_id: result.route_decision_id
+      },
+      canonical_events_naturally_emitted: 0,
+      event_fabricated: false,
+      home: {
+        dvr_physical_sources: dvrStreams.length,
+        tapo_sources: 1,
+        total_physical: 11,
+        empty_dvr_slots: 6,
+        empty_slot_jobs: 0,
+        dvr_progressing_before: before[0].mediaHeartbeat?.progressingRelays ?? null,
+        dvr_progressing_after: after[0].mediaHeartbeat?.progressingRelays ?? null,
+        dvr_stalled_after: after[0].mediaHeartbeat?.stalledRelays ?? null,
+        tapo_progressing_before: before[1].mediaHeartbeat?.progressingRelays ?? null,
+        tapo_progressing_after: after[1].mediaHeartbeat?.progressingRelays ?? null,
+        tapo_stalled_after: after[1].mediaHeartbeat?.stalledRelays ?? null
+      },
+      isolated_pending_dvr_jobs_discarded_with_qa_database: snapshot.queue_depth,
+      source_configuration_changed: false,
+      raw_media_logged: false
+    };
+  } finally {
+    inferenceClient?.close();
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
+  console.log(JSON.stringify(await measureRealHomeAiRouting(), null, 2));
+}
