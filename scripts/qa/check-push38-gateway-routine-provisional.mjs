@@ -45,6 +45,9 @@ try {
   assert.match(activation,
     /confirmedHandoff \|\| routineProvisional[\s\S]*item\.agentPredecessorReleaseId/,
   "rebased runtime preflight requires the exact already-installed 0.2.29 management agent");
+  assert.match(activation,
+    /const connectorItem = routineProvisional \? connectorRtspCadenceItem/,
+  "rebased Gateway preflight requires the live signed Connector 0.2.26 known-good");
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,

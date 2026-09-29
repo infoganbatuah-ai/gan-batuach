@@ -104,7 +104,8 @@ const item = routineProvisional ? PUSH38_GATEWAY_ROUTINE_PROVISIONAL :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = (outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional)
+const connectorItem = routineProvisional ? connectorRtspCadenceItem :
+  (outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff)
   ? connectorOutputRescueItem :
   bufferedOutput ? connectorFinalStabilityItem :
   idleHandoff ? connectorRtspCadenceItem :
