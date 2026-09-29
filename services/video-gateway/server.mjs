@@ -1520,12 +1520,17 @@ async function warmReplaceRelay(streamId, previous, {
             firstOutputAt = outputAt;
             confirmationStartedAt = Date.now();
           } else if (outputAt > firstOutputAt) {
-            if (!provisionalPromotion && handoffMode === "OUTPUT_RESCUE" &&
+            const retainsFallbackDuringConfirmation =
+              ["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"].includes(handoffMode);
+            if (!provisionalPromotion && retainsFallbackDuringConfirmation &&
               minimumConfirmationMs > 0 && relays.get(streamId) === previous) {
-              // Output rescue starts only after the authoritative playlist is
-              // already idle.  Serve the advancing replacement immediately,
-              // but keep the old process and its monitor alive as a bounded
-              // fallback until the replacement completes probation.
+              // Serve an advancing replacement immediately, but keep the old
+              // process and its monitor alive as a bounded fallback until the
+              // replacement completes probation. This applies to the routine
+              // finite-response handoff too: Home evidence showed its old
+              // response can reach the hard-stale boundary during the full
+              // twenty-second confirmation window. The replacement remains
+              // provisional; two early writes still cannot retire fallback.
               previous.probationFallback = true;
               replacement.previousDirectories = [...new Set([previous.directory,
                 ...(previous.previousDirectories || [])].filter(Boolean))];

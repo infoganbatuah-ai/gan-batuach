@@ -224,11 +224,11 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"\]\.includes\(handoffMode\)[\s\S]*minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS[\s\S]*maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS/,
   "routine and output-rescue replacements must survive the hard-stale confirmation window");
   assert.match(gateway,
-    /previous\.probationFallback = true;[\s\S]*relays\.set\(streamId, replacement\)[\s\S]*warmHandoffProbations/,
-  "output rescue may serve only an advancing provisional replacement while retaining the old fallback");
+    /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"\]\.includes\(handoffMode\)[\s\S]*previous\.probationFallback = true;[\s\S]*relays\.set\(streamId, replacement\)[\s\S]*warmHandoffProbations/,
+  "routine and output-rescue handoffs may serve only an advancing provisional replacement while retaining the old fallback");
   assert.match(gateway,
     /scheduleOutputRescueProbation\(streamId, replacement, previous,[\s\S]*return true;/,
-  "output-rescue probation must not monopolize the warmup slot until the hard-stale boundary");
+  "retained-fallback probation must not monopolize the warmup slot until the hard-stale boundary");
   assert.match(gateway,
     /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
   "a playback request must await an in-flight bounded replacement before tearing down its relay");
