@@ -35,6 +35,8 @@ import { PUSH38_GATEWAY_CONFIRMED_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-confirmed-handoff.mjs";
 import { PUSH38_GATEWAY_STARTUP_WINDOW
 } from "../../services/video-gateway/push38-home-qa-gateway-startup-window.mjs";
+import { PUSH38_GATEWAY_HANDOFF_PROBATION
+} from "../../services/video-gateway/push38-home-qa-gateway-handoff-probation.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -49,11 +51,14 @@ const bufferedOutput = process.argv.includes("--buffered-output");
 const outputRescue = process.argv.includes("--output-rescue");
 const confirmedHandoff = process.argv.includes("--confirmed-handoff");
 const startupWindow = process.argv.includes("--startup-window");
+const handoffProbation = process.argv.includes("--handoff-probation");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
-  heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow]
+  heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
+  handoffProbation]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = startupWindow ? PUSH38_GATEWAY_STARTUP_WINDOW :
+const item = handoffProbation ? PUSH38_GATEWAY_HANDOFF_PROBATION :
+  startupWindow ? PUSH38_GATEWAY_STARTUP_WINDOW :
   confirmedHandoff ? PUSH38_GATEWAY_CONFIRMED_HANDOFF :
   outputRescue ? PUSH38_GATEWAY_OUTPUT_RESCUE :
   bufferedOutput ? PUSH38_GATEWAY_BUFFERED_OUTPUT :
@@ -69,7 +74,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = startupWindow
+const artifact = handoffProbation
+  ? `${restrictedRoot}/push38-gateway-handoff-probation-06038e9a/gateway-runtime.tar.gz`
+  : startupWindow
   ? `${restrictedRoot}/push38-gateway-startup-window-4a3d3e39/gateway-runtime.tar.gz`
   : confirmedHandoff
   ? `${restrictedRoot}/push38-gateway-confirmed-handoff-ab855c89/gateway-runtime.tar.gz`
@@ -94,7 +101,9 @@ const artifact = startupWindow
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = startupWindow
+const publication = handoffProbation
+  ? `${restrictedRoot}/push38-gateway-handoff-probation-06038e9a/r2-publication.json`
+  : startupWindow
   ? `${restrictedRoot}/push38-gateway-startup-window-4a3d3e39/r2-publication.json`
   : confirmedHandoff
   ? `${restrictedRoot}/push38-gateway-confirmed-handoff-ab855c89/r2-publication.json`
@@ -119,7 +128,8 @@ const publication = startupWindow
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = startupWindow ? "gateway_remediation_startup_window.json"
+const bundleName = handoffProbation ? "gateway_remediation_handoff_probation.json"
+  : startupWindow ? "gateway_remediation_startup_window.json"
   : confirmedHandoff ? "gateway_remediation_confirmed_handoff.json"
   : outputRescue ? "gateway_remediation_output_rescue.json"
   : bufferedOutput ? "gateway_remediation_buffered_output.json"
@@ -132,9 +142,9 @@ const bundleName = startupWindow ? "gateway_remediation_startup_window.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -231,7 +241,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: startupWindow ? "GATEWAY_STARTUP_WINDOW_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: handoffProbation ? "GATEWAY_HANDOFF_PROBATION_REGISTERED_DRAFT" :
+  startupWindow ? "GATEWAY_STARTUP_WINDOW_REGISTERED_DRAFT" :
   confirmedHandoff ? "GATEWAY_CONFIRMED_HANDOFF_REGISTERED_DRAFT" :
   outputRescue ? "GATEWAY_OUTPUT_RESCUE_REGISTERED_DRAFT" :
   bufferedOutput ? "GATEWAY_BUFFERED_OUTPUT_REGISTERED_DRAFT" :
