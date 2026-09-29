@@ -90,14 +90,24 @@ function classifyCheckpoint(probe, resource, expected) {
 }
 function classifyGatewayCheckpoint(probe, resource) {
   const discovery = probe.body?.lastDiscovery || {}, progressing = Number(probe.body?.mediaHeartbeat?.progressingRelays ?? 0);
-  const expectedStatus = DVR_UPSTREAM_UNAVAILABLE.length ? "degraded" : "healthy";
+  const inputs = new Map((probe.body?.mediaHeartbeat?.inputs ?? [])
+    .map(input => [Number(input.channel), input]));
+  const requiredChannelsProgressing = DVR_AVAILABLE_CHANNELS.every(channel =>
+    inputs.get(channel)?.progressing === true);
+  const currentFailures = Number(discovery.failedAssignedCount ?? 0);
+  const expectedStatus = currentFailures > 0 ? "degraded" : "healthy";
   const expectedHealthPayload = probe.http_status === 200 &&
     probe.body?.contract === "observer-edge-health-v1" && probe.body?.status === expectedStatus;
   if (resource?.inspection_ok === false && (probe.ok || expectedHealthPayload)) return "MONITOR_FAILURE";
   if ((!probe.ok && !expectedHealthPayload) || !resource?.runtime_pid) return "PRODUCT_FAILURE";
-  if (discovery.assignedCount !== 10 || discovery.connectedCount !== DVR_SOURCE_AVAILABLE ||
-    discovery.failedAssignedCount !== DVR_UPSTREAM_UNAVAILABLE.length || discovery.unassignedCount !== 6 ||
-    progressing !== DVR_SOURCE_AVAILABLE || probe.body?.status !== expectedStatus) return "PRODUCT_FAILURE";
+  // The owner-verified physical exception is a conservative denominator. A
+  // previously unavailable source may recover during qualification, but that
+  // extra stream must never substitute for a failed qualified channel.
+  if (discovery.assignedCount !== 10 || discovery.unassignedCount !== 6 ||
+    Number(discovery.connectedCount) < DVR_SOURCE_AVAILABLE ||
+    Number(discovery.connectedCount) + currentFailures !== 10 ||
+    currentFailures > DVR_UPSTREAM_UNAVAILABLE.length || progressing < DVR_SOURCE_AVAILABLE ||
+    !requiredChannelsProgressing || probe.body?.status !== expectedStatus) return "PRODUCT_FAILURE";
   return "PASS";
 }
 async function processRow(pid) {

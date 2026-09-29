@@ -61,6 +61,14 @@ assert.equal(knownUpstream.gateway.unavailable_checkpoints, 0);
 assert.ok(!knownUpstream.gate_failures.includes("COMPONENT_HEALTH_CHECK_FAILED"));
 assert.equal(knownUpstream.per_camera["dvr-2"].upstream_unavailable, true);
 assert.equal(knownUpstream.per_camera["dvr-2"].qualification_denominator, false);
+const substitutedChannel = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {
+  ...upstreamPoint(0).dvr, progressing: 8,
+  inputs: [...available.filter(channel => channel !== 1).map(channel => ({ channel, progressing: true })),
+    { channel: 2, progressing: true }, { channel: 1, progressing: false }] } }, upstreamPoint(1)], {
+  startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.ok(substitutedChannel.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"),
+  "a recovered excluded channel must not hide failure of a qualified channel");
 const hiddenUpstream = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {
   ...upstreamPoint(0).dvr, component_status: "healthy" } }, upstreamPoint(1)], {
   startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
