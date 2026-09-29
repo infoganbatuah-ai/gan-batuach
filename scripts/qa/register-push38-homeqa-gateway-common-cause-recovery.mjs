@@ -43,6 +43,8 @@ import { PUSH38_GATEWAY_CONTINUOUS_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-continuous-handoff.mjs";
 import { PUSH38_GATEWAY_ROUTINE_PROVISIONAL
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-provisional.mjs";
+import { PUSH38_GATEWAY_PROBATION_BUDGET
+} from "../../services/video-gateway/push38-home-qa-gateway-probation-budget.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -61,12 +63,14 @@ const handoffProbation = process.argv.includes("--handoff-probation");
 const retainedFallback = process.argv.includes("--retained-fallback");
 const continuousHandoff = process.argv.includes("--continuous-handoff");
 const routineProvisional = process.argv.includes("--routine-provisional");
+const probationBudget = process.argv.includes("--probation-budget");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
-  handoffProbation, retainedFallback, continuousHandoff, routineProvisional]
+  handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = routineProvisional ? PUSH38_GATEWAY_ROUTINE_PROVISIONAL :
+const item = probationBudget ? PUSH38_GATEWAY_PROBATION_BUDGET :
+  routineProvisional ? PUSH38_GATEWAY_ROUTINE_PROVISIONAL :
   continuousHandoff ? PUSH38_GATEWAY_CONTINUOUS_HANDOFF :
   retainedFallback ? PUSH38_GATEWAY_RETAINED_FALLBACK :
   handoffProbation ? PUSH38_GATEWAY_HANDOFF_PROBATION :
@@ -86,7 +90,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = routineProvisional
+const artifact = probationBudget
+  ? `${restrictedRoot}/push38-gateway-probation-budget-0028df7f/gateway-runtime.tar.gz`
+  : routineProvisional
   ? `${restrictedRoot}/push38-gateway-routine-rebased-167ad231/gateway-runtime.tar.gz`
   : continuousHandoff
   ? `${restrictedRoot}/push38-gateway-continuous-handoff-4a63f881/gateway-runtime.tar.gz`
@@ -119,7 +125,9 @@ const artifact = routineProvisional
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = routineProvisional
+const publication = probationBudget
+  ? `${restrictedRoot}/push38-gateway-probation-budget-0028df7f/r2-publication.json`
+  : routineProvisional
   ? `${restrictedRoot}/push38-gateway-routine-rebased-167ad231/r2-publication.json`
   : continuousHandoff
   ? `${restrictedRoot}/push38-gateway-continuous-handoff-4a63f881/r2-publication.json`
@@ -152,7 +160,8 @@ const publication = routineProvisional
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = routineProvisional ? "gateway_remediation_routine_provisional.json"
+const bundleName = probationBudget ? "gateway_remediation_probation_budget.json"
+  : routineProvisional ? "gateway_remediation_routine_provisional.json"
   : continuousHandoff ? "gateway_remediation_continuous_handoff.json"
   : retainedFallback ? "gateway_remediation_retained_fallback.json"
   : handoffProbation ? "gateway_remediation_handoff_probation.json"
@@ -169,9 +178,9 @@ const bundleName = routineProvisional ? "gateway_remediation_routine_provisional
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = probationBudget ? 42 : routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -268,7 +277,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: routineProvisional ? "GATEWAY_ROUTINE_PROVISIONAL_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: probationBudget ? "GATEWAY_PROBATION_BUDGET_REGISTERED_DRAFT" :
+  routineProvisional ? "GATEWAY_ROUTINE_PROVISIONAL_REGISTERED_DRAFT" :
   continuousHandoff ? "GATEWAY_CONTINUOUS_HANDOFF_REGISTERED_DRAFT" :
   retainedFallback ? "GATEWAY_RETAINED_FALLBACK_REGISTERED_DRAFT" :
   handoffProbation ? "GATEWAY_HANDOFF_PROBATION_REGISTERED_DRAFT" :
