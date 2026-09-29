@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, RefreshCw, Save } from "lucide-react";
+import { RefreshCw, Save, ShieldAlert } from "lucide-react";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
 const statusLabels: Record<string, string> = {
@@ -32,19 +32,30 @@ const creatablePlanTypes = ["annual", "trial", "enterprise"];
 
 async function postJson(url: string, payload: Record<string, unknown>) {
   const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const body = await response.json();
+  const body = await response.json() as { error?: string; data?: { message?: string } };
   if (!response.ok) throw new Error(body.error || "הפעולה נכשלה");
-  return body.data;
+  return body.data ?? {};
 }
 
-export function SubscriptionAdminManager({ plans, subscriptions, gardens, payments }: { plans: any[]; subscriptions: any[]; gardens: any[]; payments: any[] }) {
+export type SubscriptionPlanSummary = { id: string; name: string; plan_type: string; active?: boolean; version?: number | null };
+export type SubscriptionGardenSummary = { id: string; name: string; city?: string | null };
+export type SubscriptionSummary = {
+  id: string;
+  status: string;
+  plan_type?: string | null;
+  renewal_date?: string | null;
+  admin_override?: boolean | null;
+  suspension_reason?: string | null;
+  gardens?: { name?: string | null } | null;
+  subscription_plans?: { name?: string | null } | null;
+};
+export type SubscriptionPaymentSummary = { billing_status?: string | null };
+
+export function SubscriptionAdminManager({ plans, subscriptions, gardens, payments }: { plans: SubscriptionPlanSummary[]; subscriptions: SubscriptionSummary[]; gardens: SubscriptionGardenSummary[]; payments: SubscriptionPaymentSummary[] }) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const activeCount = subscriptions.filter((item) => item.status === "active").length;
-  const trialCount = subscriptions.filter((item) => ["trial", "demo_active"].includes(item.status)).length;
-  const failedCount = payments.filter((item) => item.billing_status === "failed").length;
-  const expiredCount = subscriptions.filter((item) => ["expired", "suspended", "frozen", "payment_failed"].includes(item.status)).length;
+  const failedPaymentCount = payments.filter((payment) => payment.billing_status === "failed").length;
 
   async function savePlan(event: FormEvent<HTMLFormElement>, close: () => void) {
     event.preventDefault();
@@ -108,13 +119,6 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
     <>
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
-      <section className="grid cols-4 dashboard-panels">
-        <article className="card metric-card"><span>מנויים משלמים פעילים</span><strong>{activeCount}</strong></article>
-        <article className="card metric-card"><span>ניסיון / דמו</span><strong>{trialCount}</strong></article>
-        <article className="card metric-card"><span>מוקפאים/כשלים</span><strong>{expiredCount}</strong></article>
-        <article className="card metric-card"><span>תשלומים שנכשלו</span><strong>{failedCount}</strong></article>
-      </section>
-
       <CollapsibleActionPanel title="יצירת תוכנית מנוי" buttonLabel="תוכנית חדשה" description="מודל Gan Batuach הוא מנוי שנתי לגן. Enterprise מיועד לרשתות גדולות בעתיד.">
         {({ close }) => (
           <form className="card form wizard-form" onSubmit={(event) => savePlan(event, close)}>
@@ -159,30 +163,28 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
         )}
       </CollapsibleActionPanel>
 
-      <section className="dashboard-section">
+      <section className="finance-section">
         <div className="section-heading"><h2>מנויים פעילים</h2><p>ניהול מנוי שנתי של Gan Batuach, כולל ניטור בטיחות כחלק מהמערכת.</p></div>
-        <div className="card-list">
-          {subscriptions.length === 0 ? <div className="empty-state"><strong>אין עדיין מנויים</strong><span>צרו מנוי ראשון לגן כדי להתחיל מעקב.</span></div> : subscriptions.map((subscription) => (
-            <article className="card action-panel" key={subscription.id}>
+        <div className="finance-history">
+          {subscriptions.length === 0 ? <div className="finance-empty"><strong>אין עדיין מנויים</strong><span>צרו מנוי ראשון לגן כדי להתחיל מעקב.</span></div> : subscriptions.map((subscription) => (
+            <article className="finance-history-row" key={subscription.id}>
+              <span><ShieldAlert size={21} /></span>
               <div className="section-heading">
                 <div><h3>{subscription.gardens?.name ?? "גן"}</h3><p>{subscription.subscription_plans?.name ?? subscription.plan_type} · חידוש {subscription.renewal_date ?? "-"}</p></div>
                 <span className={["active", "trial", "demo_active"].includes(subscription.status) ? "pill good" : ["pending_payment", "approved_pending_subscription", "approved_pending_onboarding", "pending_admin_approval"].includes(subscription.status) ? "pill warn" : "pill bad"}>{statusLabels[subscription.status] ?? "סטטוס לא מוכר"}</span>
               </div>
-              <p>{subscription.admin_override ? "Override אדמין פעיל" : subscription.suspension_reason ?? "אין הערת חסימה"}</p>
+              <small>{subscription.admin_override ? "Override אדמין פעיל" : subscription.suspension_reason ?? "אין הערת חסימה"}</small>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="dashboard-section">
-        <div className="section-heading"><h2>ספקי תשלום עתידיים</h2><p>המערכת מוכנה ל-adapters: Credit Card, Tranzila, Meshulam, Pelecard, Grow, Stripe.</p></div>
-        <div className="grid cols-3 dashboard-panels">{["Credit Card", "Tranzila", "Meshulam", "Pelecard", "Grow", "Stripe"].map((provider) => <article className="card action-panel" key={provider}><CreditCard /><h3>{provider}</h3><p>Adapter עתידי. כרגע חיוב ידני בלבד.</p></article>)}</div>
-      </section>
+      <div className="finance-provider-state"><span><ShieldAlert size={20} />ספק סליקה אינו מאומת</span><p>המערכת אינה מציגה רשימת ספקים כיכולת זמינה. הפעלה תתאפשר רק לאחר הגדרה, אימות ייצור, webhook מאומת וכוונת חיוב מפורשת.{failedPaymentCount > 0 ? ` ${failedPaymentCount} תשלומים דורשים בדיקה.` : ""}</p></div>
     </>
   );
 }
 
-export function GardenSubscriptionActions({ plans }: { plans: any[] }) {
+export function GardenSubscriptionActions({ plans }: { plans: SubscriptionPlanSummary[] }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   async function request(action: "request_upgrade" | "request_renewal" | "request_cancellation", planId?: string) {

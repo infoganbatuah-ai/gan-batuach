@@ -1,361 +1,94 @@
 import Link from "next/link";
+import { BarChart3, CheckCircle2, CircleDollarSign, Clock3, CreditCard, Landmark, ReceiptText, RefreshCcw, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { GardenPayoutConfigurationForm } from "@/components/garden-payout-configuration-form";
-import { requireRole } from "@/lib/auth";
-import {
-  loadGardenFinanceData,
-  type FinanceQueryDiagnostic,
-  type FinanceSearchParams
-} from "@/lib/domain/garden-finance-loader";
+import { FinanceFrame } from "@/components/finance-platform-frame";
+import { FinanceEmpty, FinanceHero, FinanceMetric, FinanceMetrics, FinanceQuickActions, FinanceSection, FinanceStatus, FinanceTruthBanner, dateText, money, periodText } from "@/components/finance-platform-ui";
+import { loadGardenSubscriptionData } from "@/lib/domain/billing";
+import { projectTuitionPeriod, type TuitionPeriod } from "@/lib/domain/tuition-ledger";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
-import { AlertTriangle, CheckCircle2, CreditCard, Landmark, WalletCards } from "lucide-react";
-import {
-  TeacherAiInsight,
-  TeacherAppFrame,
-  TeacherCompactItem,
-  TeacherCompactList,
-  TeacherFilterPills,
-  TeacherPageTitle,
-  TeacherSection,
-  TeacherStatCard,
-  TeacherStatsGrid
-} from "@/components/teacher-app-ui";
 
 export const dynamic = "force-dynamic";
+type Search = { status?: string; period?: string };
+type Enrollment = { id: string; child_id: string; children?: { full_name?: string | null; photo_url?: string | null } | null };
+type LedgerEntry = { id: string; period_id: string; entry_kind: string; amount: number; method?: string | null; reason?: string | null; created_at: string };
 
-const financeFilterLabels: Record<string, string> = {
-  failed: "תשלומים שלא עברו",
-  overdue: "תשלומים באיחור",
-  due: "תשלומים שדורשים טיפול",
-  partial: "תשלומים חלקיים",
-  paused: "תשלומים שנעצרו",
-  not_transferred: "תשלום לא הועבר"
-};
+export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<Search> }) {
+  const access = await getManagementGardenContext();
+  if (!access.allowed) return <main className="card">אין הרשאה לצפות במרכז הכספים.</main>;
+  const params = await searchParams;
+  const role = access.session.profile.role === "owner" ? "owner" : "manager";
+  const supabase = await createClient();
+  const [periodsRes, enrollmentsRes, entriesRes, gardenRes, subscription] = await Promise.all([
+    supabase.from("tuition_billing_periods" as never).select("id,garden_id,enrollment_id,child_id,period_start,period_end,due_at,base_amount,adjustment_total,settled_total,unapplied_credit_total,status,reconciliation_reason" as never).eq("garden_id", access.gardenId).order("period_start", { ascending: false }).limit(200),
+    supabase.from("child_kindergarten_enrollments" as never).select("id,child_id,children(full_name,photo_url)" as never).eq("garden_id", access.gardenId).eq("status", "active").limit(200),
+    supabase.from("tuition_ledger_entries" as never).select("id,period_id,entry_kind,amount,method,reason,created_at" as never).eq("garden_id", access.gardenId).order("created_at", { ascending: false }).limit(12),
+    supabase.from("gardens" as never).select("name" as never).eq("id", access.gardenId).maybeSingle(),
+    loadGardenSubscriptionData(supabase as never, access.gardenId)
+  ]);
+  const sourceError = periodsRes.error || enrollmentsRes.error || entriesRes.error || gardenRes.error;
+  const tuitionUnavailable = Boolean(sourceError);
+  const subscriptionUnavailable = subscription.errors.length > 0;
+  const enrollments = (enrollmentsRes.data ?? []) as unknown as Enrollment[];
+  const enrollmentById = new Map(enrollments.map((item) => [item.id, item]));
+  const allPeriods = ((periodsRes.data ?? []) as unknown as TuitionPeriod[]).map((item) => projectTuitionPeriod(item));
+  const periods = allPeriods.filter((item) => (!params.status || item.status === params.status) && (!params.period || item.period_start.startsWith(params.period)));
+  const entries = (entriesRes.data ?? []) as unknown as LedgerEntry[];
+  const periodById = new Map(allPeriods.map((item) => [item.id, item]));
+  const expected = allPeriods.reduce((sum, item) => sum + item.amount_due, 0);
+  const collected = allPeriods.reduce((sum, item) => sum + item.amount_settled, 0);
+  const outstanding = allPeriods.reduce((sum, item) => sum + item.outstanding, 0);
+  const overdue = allPeriods.filter((item) => item.status === "overdue");
+  const reconciliation = allPeriods.filter((item) => item.status === "reconciliation_required");
+  const partial = allPeriods.filter((item) => item.status === "partially_paid");
+  const collectionRate = expected ? Math.min(100, Math.round((collected / expected) * 100)) : 0;
+  const currentSubscription = subscription.subscription as Record<string, unknown> | null;
+  const gardenName = String((gardenRes.data as { name?: string } | null)?.name ?? "הגן הפעיל");
 
-const financeFilters = [
-  { key: "failed", label: "תשלום לא עבר" },
-  { key: "overdue", label: "באיחור" },
-  { key: "due", label: "דורש טיפול" },
-  { key: "partial", label: "חלקי" },
-  { key: "paused", label: "נעצר" },
-  { key: "not_transferred", label: "לא הועבר" }
-];
+  return <DashboardShell role={role} title="מרכז כספים" appHome>
+    <FinanceFrame role={role} name={access.session.profile.full_name} avatarUrl={(access.session.profile as { profile_image_url?: string | null }).profile_image_url} activeHref="/dashboard/garden/finance">
+      <FinanceHero eyebrow={gardenName} title="מרכז הכספים של הגן" text="גביית שכר לימוד, מעקב יתרות והתאמות — לצד מנוי גן בטוח במסלול נפרד וברור." action={<><Link className="button primary" href="/dashboard/garden/tuition-ledger"><WalletCards size={18} /> פתיחת ספר שכר לימוד</Link><Link className="button secondary" href="/dashboard/garden/reports"><BarChart3 size={18} /> דוחות</Link></>} />
+      {sourceError ? <FinanceTruthBanner kind="warning" title="חלק מנתוני הכספים אינם זמינים" text="המסך אינו מחליף מקור נתונים שנכשל בסכום אפס. נסו לרענן או חזרו מאוחר יותר." /> : null}
+      <FinanceMetrics>
+        <FinanceMetric label="צפוי בתקופות המוצגות" value={tuitionUnavailable ? "לא זמין" : money(expected)} hint={tuitionUnavailable ? "מקור הנתונים לא נטען" : `${allPeriods.length} תקופות חיוב`} icon={CircleDollarSign} tone="blue" />
+        <FinanceMetric label="נרשם כשולם" value={tuitionUnavailable ? "לא זמין" : money(collected)} hint={tuitionUnavailable ? "לא מוצג סכום חלופי" : `${collectionRate}% מהחיוב`} icon={CheckCircle2} tone={tuitionUnavailable ? "neutral" : "green"} />
+        <FinanceMetric label="יתרה פתוחה" value={tuitionUnavailable ? "לא זמין" : money(outstanding)} hint={tuitionUnavailable ? "נדרש רענון" : `${allPeriods.filter((item) => item.outstanding > 0).length} ילדים/תקופות`} icon={WalletCards} tone={tuitionUnavailable ? "neutral" : outstanding ? "orange" : "green"} />
+        <FinanceMetric label="דורש טיפול" value={tuitionUnavailable ? "לא זמין" : overdue.length + reconciliation.length} hint={tuitionUnavailable ? "הספירה אינה ידועה" : `${overdue.length} באיחור · ${reconciliation.length} להתאמה`} icon={Clock3} tone={tuitionUnavailable ? "neutral" : overdue.length + reconciliation.length ? "red" : "green"} />
+      </FinanceMetrics>
+      <FinanceTruthBanner title="שני מסלולים, שתי מטרות" text="שכר לימוד עובר מהורה לגן. מנוי הפלטפורמה משולם מהגן לגן בטוח. יתרות ומסמכים אינם מתערבבים." />
 
-function money(value: unknown) {
-  return new Intl.NumberFormat("he-IL", {
-    style: "currency",
-    currency: "ILS",
-    maximumFractionDigits: 0
-  }).format(Number(value ?? 0));
-}
-
-function formatDate(value: unknown) {
-  if (!value) return "-";
-  const date = new Date(String(value));
-  return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("he-IL");
-}
-
-function asArray<T>(value: T[] | undefined | null): T[] {
-  return Array.isArray(value) ? value : [];
-}
-
-function hasCriticalFinanceFailure(diagnostics?: FinanceQueryDiagnostic[]) {
-  return asArray(diagnostics).some((item) => !item.success && ["children query", "profile garden", "unexpected loader error"].includes(item.label));
-}
-
-function SafeFinanceShell({
-  role = "manager",
-}: {
-  role?: "manager" | "owner";
-}) {
-  return (
-    <DashboardShell role={role} title="מרכז כספים">
-      <section className="empty-state">
-        <strong>עמוד כספים נטען במצב בטוח</strong>
-        <span>לא ניתן לטעון את כל נתוני הכספים כרגע, אבל העמוד לא יפנה למסך שגיאה כללי.</span>
-        <div className="profile-actions">
-          <Link className="button primary" href="/dashboard/garden/finance">רענון</Link>
-          <Link className="button secondary" href="/dashboard/garden">חזרה לדשבורד</Link>
-        </div>
-      </section>
-    </DashboardShell>
-  );
-}
-
-function MissingGarden({ role }: { role: "manager" | "owner" }) {
-  return (
-    <DashboardShell role={role} title="מרכז כספים">
-      <section className="empty-state">
-        <strong>לא נמצא שיוך לגן עבור המשתמש הזה</strong>
-        <span>כדי להציג כספים, המשתמש צריך להיות משויך לגן פעיל.</span>
-        <div className="profile-actions">
-          <Link className="button primary" href="/dashboard/garden">חזרה לדשבורד</Link>
-        </div>
-      </section>
-    </DashboardShell>
-  );
-}
-
-function SafeStat({ label, value, tone = "default" }: { label: string; value: string | number; tone?: "default" | "good" | "warn" | "bad" }) {
-  return (
-    <article className={`stat-card ${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </article>
-  );
-}
-
-export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<FinanceSearchParams> }) {
-  const params: FinanceSearchParams = await searchParams.catch(() => ({}));
-
-  try {
-    const { profile } = await requireRole(["manager", "owner"]);
-    const role = profile.role === "owner" ? "owner" : "manager";
-    const gardenId = profile.garden_id ?? "";
-    const supabase = await createClient();
-    const data = await loadGardenFinanceData({
-      supabase: supabase as any,
-      gardenId,
-      searchParams: params,
-      debug: false
-    });
-
-    if (!gardenId) {
-      return <MissingGarden role={role} />;
-    }
-
-    const children = asArray(data.core?.children);
-    const allChildren = asArray(data.core?.allChildren);
-    const history = asArray(data.secondary?.history);
-    const payoutConfigurations = asArray(data.secondary?.payoutConfigurations);
-    const parentPaymentAuthorizations = asArray(data.secondary?.parentPaymentAuthorizations);
-    const parentPaymentTransactions = asArray(data.secondary?.parentPaymentTransactions);
-    const totals = data.core?.totals ?? {
-      expected: 0,
-      paid: 0,
-      missing: 0,
-      overdue: 0,
-      partialPayments: 0,
-      paidChildren: 0,
-      unpaidChildren: 0,
-      failedChildren: 0,
-      specialArrangements: [],
-      specialArrangementsTotal: 0,
-      debtTotal: 0,
-      pausedTotal: 0,
-      yearRevenue: 0,
-      collection: 0
-    };
-    const activeFilter = params.filter ?? "";
-    const criticalFinanceFailure = hasCriticalFinanceFailure(data.diagnostics);
-
-    return (
-      <DashboardShell role={role} title="מרכז כספים" appHome>
-        <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="כספים ותשלומים של הגן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
-        <TeacherPageTitle icon={CreditCard} title="עמוד כספים גננת" subtitle="גבייה חודשית פשוטה וברורה" action={<Link className="button primary" href="/dashboard/garden/tuition-ledger"><Landmark size={18} /> ספר חיובי שכר לימוד</Link>} />
-
-        {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
-
-        <section className="warning-banner finance-routing-banner">
-          תשלומי הורים עוברים ישירות לחשבון הגן או לספק התשלום של הגן. גן בטוח לא מקבל כספי שכר לימוד.
-        </section>
-
-
-        <TeacherStatsGrid>
-          <TeacherStatCard title="הכנסה צפויה" value={money(totals.expected)} hint="שכר לימוד לגן" icon={WalletCards} tone="green" />
-          <TeacherStatCard title="נגבה החודש" value={money(totals.paid)} hint={`גבייה ${Number(totals.collection ?? 0)}%`} icon={CheckCircle2} tone="blue" />
-          <TeacherStatCard title="חסר לגבייה" value={money(totals.missing)} hint="דורש טיפול" icon={AlertTriangle} tone={Number(totals.missing ?? 0) ? "orange" : "green"} />
-          <TeacherStatCard title="באיחור" value={Number(totals.overdue ?? 0)} hint="ילדים" icon={AlertTriangle} tone={Number(totals.overdue ?? 0) ? "red" : "green"} />
-        </TeacherStatsGrid>
-
-        <TeacherFilterPills
-          items={[
-            { label: "הכל", href: "/dashboard/garden/finance", active: !activeFilter },
-            ...financeFilters.map((filter) => ({ label: filter.label, href: `/dashboard/garden/finance?filter=${filter.key}`, active: activeFilter === filter.key }))
-          ]}
-        />
-
-        {params.payout === "1" || payoutConfigurations.length === 0 ? <GardenPayoutConfigurationForm defaultOpen={params.payout === "1"} /> : null}
-
-        <section className="teacher-dashboard-grid">
-          <TeacherSection title="תשלומי ילדים" subtitle="זרם כסף: הורה → גן">
-            {children.length ? (
-              <TeacherCompactList>
-                {children.slice(0, 6).map((child: any, index) => (
-                  <TeacherCompactItem
-                    key={child?.id ?? index}
-                    title={child?.full_name ?? "ילד/ה"}
-                    subtitle={`${child?.fee_group_name ?? child?.classroom ?? child?.age_group ?? "קבוצה"} · ${money(child?.actual_monthly_fee ?? child?.group_monthly_fee ?? child?.monthly_fee)}`}
-                    tone={["failed", "not_transferred", "overdue"].includes(child?.payment_status) ? "red" : child?.payment_status === "paid" ? "green" : "orange"}
-                    meta={child?.payment_status === "paid" ? "שולם" : child?.payment_status ?? "לטיפול"}
-                  />
-                ))}
-              </TeacherCompactList>
-            ) : (
-              <div className="teacher-empty-state"><strong>אין ילדים לתצוגת כספים</strong><span>לאחר הוספת ילדים, נתוני התשלום יופיעו כאן.</span></div>
-            )}
-          </TeacherSection>
-
-          <TeacherSection title="יעד תשלום של הגן" subtitle="פרטי יעד נשמרים בצד מאובטח">
-            {payoutConfigurations.length ? (
-              <TeacherCompactList>
-                {payoutConfigurations.slice(0, 3).map((config: any) => (
-                  <TeacherCompactItem key={config.id} title={config.provider === "manual_bank" ? "חשבון בנק" : config.provider} subtitle={`${config.account_holder_name ?? "שם בעל החשבון חסר"} · ${config.billing_email ?? "מייל חיוב חסר"}`} tone={config.status === "verified" ? "green" : "orange"} meta={config.status === "verified" ? "מאומת" : "להשלמה"} />
-                ))}
-              </TeacherCompactList>
-            ) : (
-              <div className="teacher-empty-state"><strong>עדיין לא הוגדר יעד תשלום</strong><span>כדי לקבל תשלומי הורים, יש להגדיר חשבון בנק או ספק תשלום של הגן.</span></div>
-            )}
-          </TeacherSection>
-
-          <TeacherSection title="מנוי גן בטוח" subtitle="זרם נפרד: גן → גן בטוח">
-            <TeacherCompactList>
-              <TeacherCompactItem title="מנוי גן בטוח" subtitle="אינו קשור לשכר לימוד הורים" tone="purple" meta={<Link href="/dashboard/garden/subscription">חידוש</Link>} />
-              <TeacherCompactItem title="אישורי הורים לתשלום" subtitle={`${parentPaymentAuthorizations.length} אישורים`} tone={parentPaymentAuthorizations.length ? "green" : "orange"} meta="הורים" />
-              <TeacherCompactItem title="עסקאות הורים ישירות" subtitle={`${parentPaymentTransactions.length} עסקאות`} tone="blue" meta={<Landmark size={16} />} />
-            </TeacherCompactList>
-          </TeacherSection>
-        </section>
-
-        <TeacherAiInsight metric={`${Number(totals.collection ?? 0)}%`}>
-          {Number(totals.missing ?? 0) ? `חסר לגבייה ${money(totals.missing)}. מומלץ להתחיל בילדים עם תשלום באיחור.` : "הגבייה נראית מסודרת. אין פעולה דחופה כרגע."}
-        </TeacherAiInsight>
-
-        <details className="teacher-management-details">
-          <summary>ניהול כספים מלא</summary>
-          <div>
-
-        <section className="card action-panel">
-          <div className="section-heading">
-            <h2>סינון מהיר</h2>
-            <p>{activeFilter ? `מציג: ${financeFilterLabels[activeFilter] ?? activeFilter}` : "כל הילדים והתשלומים."}</p>
+      <div className="finance-two-column">
+        <FinanceSection title="ספר שכר לימוד" text="תמונה קנונית לפי ילד ותקופת חיוב" action={<Link className="button secondary tiny" href="/dashboard/garden/tuition-ledger">לניהול מלא</Link>}>
+          <nav className="finance-filter-bar" aria-label="סינון שכר לימוד">
+            {[["", "הכל"], ["pending", "לתשלום"], ["partially_paid", `חלקי ${partial.length}`], ["overdue", `באיחור ${overdue.length}`], ["reconciliation_required", `להתאמה ${reconciliation.length}`], ["paid", "שולם"]].map(([key, label]) => <Link className={(params.status ?? "") === key ? "active" : ""} href={key ? `/dashboard/garden/finance?status=${key}` : "/dashboard/garden/finance"} key={key}>{label}</Link>)}
+          </nav>
+          <div className="finance-ledger" style={{ marginTop: 14 }}>
+            <div className="finance-ledger-head"><span>ילד/ה</span><span>תקופה</span><span>לחיוב</span><span>שולם</span><span>יתרה</span><span>סטטוס</span></div>
+            {periods.slice(0, 8).map((period) => { const enrollment = enrollmentById.get(period.enrollment_id); const name = enrollment?.children?.full_name ?? "ילד/ה"; return <article className="finance-ledger-row" key={period.id}>
+              <div className="finance-ledger-person"><span className="finance-ledger-avatar">{name.slice(0, 1)}</span><span><b>{name}</b><small>{period.due_at ? `לפירעון ${dateText(period.due_at)}` : "מועד לא הוגדר"}</small></span></div>
+              <div className="finance-ledger-cell"><b>{periodText(period.period_start)}</b><small>{period.reconciliation_reason ? "נדרש עיון" : "תקופה חודשית"}</small></div>
+              <div className="finance-ledger-cell"><b>{money(period.amount_due)}</b></div><div className="finance-ledger-cell"><b>{money(period.amount_settled)}</b></div><div className="finance-ledger-cell"><b>{money(period.outstanding)}</b>{period.unapplied_credit_total ? <small>זיכוי {money(period.unapplied_credit_total)}</small> : null}</div><FinanceStatus status={period.status} />
+            </article>; })}
+            {!tuitionUnavailable && !periods.length ? <FinanceEmpty title="אין תקופות חיוב במסנן הזה" text="תקופת חיוב מופיעה רק לאחר יצירה קנונית מתוך הרשמה פעילה ומחיר מוסכם." action={<Link className="button primary" href="/dashboard/garden/tuition-ledger">יצירת תקופה</Link>} /> : null}
           </div>
-          <div className="profile-actions">
-            <Link className={activeFilter ? "button secondary" : "button primary"} href="/dashboard/garden/finance">הכל</Link>
-            {financeFilters.map((filter) => (
-              <Link className={activeFilter === filter.key ? "button primary" : "button secondary"} href={`/dashboard/garden/finance?filter=${filter.key}`} key={filter.key}>
-                {filter.label}
-              </Link>
-            ))}
-          </div>
-        </section>
+        </FinanceSection>
 
-        <div className="grid cols-4 dashboard-kpis">
-          <SafeStat label="הכנסה חודשית צפויה" value={money(totals.expected)} tone="good" />
-          <SafeStat label="נגבה החודש" value={money(totals.paid)} tone="good" />
-          <SafeStat label="חסר לגבייה" value={money(totals.missing)} tone={Number(totals.missing ?? 0) ? "warn" : "good"} />
-          <SafeStat label="תשלומים באיחור" value={Number(totals.overdue ?? 0)} tone={Number(totals.overdue ?? 0) ? "bad" : "good"} />
-          <SafeStat label="ילדים ששילמו" value={Number(totals.paidChildren ?? 0)} tone="good" />
-          <SafeStat label="ילדים ללא תשלום" value={Number(totals.unpaidChildren ?? 0)} tone={Number(totals.unpaidChildren ?? 0) ? "bad" : "good"} />
-          <SafeStat label="תשלומים חלקיים" value={Number(totals.partialPayments ?? 0)} tone={Number(totals.partialPayments ?? 0) ? "warn" : "good"} />
-          <SafeStat label="תשלום לא עבר" value={Number(totals.failedChildren ?? 0)} tone={Number(totals.failedChildren ?? 0) ? "bad" : "good"} />
-        </div>
+        <FinanceSection title="פעולות מהירות" text="גישה ישירה למרחבי הכספים"><FinanceQuickActions /></FinanceSection>
+      </div>
 
-        <section className="grid cols-3 dashboard-panels">
-          <article className="card action-panel">
-            <div className="section-heading">
-              <h2>יעד תשלום של הגן</h2>
-              <p>לא נשמרים פרטי אשראי או סודות תשלום בדפדפן.</p>
-            </div>
-            {payoutConfigurations.length ? (
-              <div className="procedure-list">
-                {payoutConfigurations.slice(0, 3).map((config: any) => (
-                  <article className="list-item" key={config.id}>
-                    <div>
-                      <strong>{config.provider === "manual_bank" ? "חשבון בנק" : config.provider}</strong>
-                      <span>{config.account_holder_name ?? "שם בעל החשבון חסר"} · {config.billing_email ?? "מייל חיוב חסר"}</span>
-                      <small>{config.bank_account_last4 ? `סיומת חשבון ${config.bank_account_last4}` : "אין פרטי חשבון מלאים במערכת"}</small>
-                    </div>
-                    <span className={config.status === "verified" ? "pill good" : "pill warn"}>{config.status === "verified" ? "מאומת" : "דורש השלמה"}</span>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <strong>עדיין לא הוגדר יעד תשלום</strong>
-                <span>כדי לקבל תשלומי הורים, יש להגדיר חשבון בנק או ספק תשלום של הגן.</span>
-              </div>
-            )}
-          </article>
-          <SafeStat label="אישורי הורים לתשלום" value={parentPaymentAuthorizations.length} tone={parentPaymentAuthorizations.length ? "good" : "warn"} />
-          <SafeStat label="עסקאות הורים ישירות" value={parentPaymentTransactions.length} tone="default" />
-        </section>
-
-        <section className="dashboard-section">
-          <div className="section-heading">
-            <h2>תשלומי ילדים</h2>
-            <p>כרטיס קצר לכל ילד ותשלום.</p>
-          </div>
-          {children.length === 0 ? (
-            <div className="empty-state">
-              <strong>{activeFilter ? `אין כרגע ${financeFilterLabels[activeFilter] ?? "תוצאות במסנן הזה"}` : "אין ילדים לתצוגת כספים"}</strong>
-              <span>{allChildren.length ? "אפשר לנקות סינון כדי לראות את כל הילדים." : "לאחר הוספת ילדים, נתוני התשלום יופיעו כאן."}</span>
-              <div className="profile-actions">
-                {activeFilter ? <Link className="button primary" href="/dashboard/garden/finance">ניקוי סינון</Link> : null}
-                <Link className="button secondary" href="/dashboard/garden/children">מעבר לילדים</Link>
-              </div>
-            </div>
-          ) : (
-            <div className="people-card-grid">
-              {children.map((child: any, index) => {
-                const status = child?.payments_paused ? "תשלומים נעצרו" : child?.payment_status === "failed" || child?.payment_status === "not_transferred" ? "תשלום לא עבר" : child?.payment_status ?? "לא הוגדר";
-                const statusClass = child?.payments_paused || ["failed", "not_transferred", "overdue"].includes(child?.payment_status) ? "pill bad" : child?.payment_status === "paid" ? "pill good" : "pill warn";
-                return (
-                  <article className="person-card finance-student-card" key={child?.id ?? `${child?.full_name ?? "child"}-${index}`}>
-                    <div>
-                      <span className={statusClass}>{status}</span>
-                      <h3>{child?.full_name ?? "ילד/ה"}</h3>
-                      <p>{child?.fee_group_name ?? child?.classroom ?? child?.age_group ?? "ללא קבוצת גיל"} · מחיר חודשי: {money(child?.actual_monthly_fee ?? child?.group_monthly_fee ?? child?.monthly_fee)}</p>
-                    </div>
-                    <div className="mini-kpi-row">
-                      <span>שולם <b>{formatDate(child?.last_payment_date)}</b></span>
-                      <span>תוקף עד <b>{formatDate(child?.valid_until)}</b></span>
-                      <span>חוב <b>{money(child?.debt_amount)}</b></span>
-                    </div>
-                    {["failed", "not_transferred"].includes(child?.payment_status) ? (
-                      <p className="danger-text">תשלום דורש טיפול: {child?.failure_reason ?? "לא צוינה סיבה"}</p>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section className="dashboard-section">
-          <div className="section-heading">
-            <h2>היסטוריית תשלומים</h2>
-            <p>נתון משני. אם הטבלה חסרה או חסומה, העמוד ממשיך להיטען.</p>
-          </div>
-          {history.length === 0 ? (
-            <div className="empty-state">
-              <strong>אין היסטוריית תשלומים זמינה כרגע</strong>
-              <span>ניתן עדיין לראות את מצב הגבייה לפי הילדים למעלה.</span>
-            </div>
-          ) : (
-            <div className="procedure-list">
-              {history.map((item: any, index) => (
-                <article className="card procedure-card" key={item?.id ?? `${item?.child_id ?? "payment"}-${index}`}>
-                  <div>
-                    <span className="pill">{item?.payment_status ?? item?.new_status ?? "תשלום"}</span>
-                    <h3>{item?.child_name ?? "ילד/ה"}</h3>
-                    <p>{money(item?.amount_paid ?? item?.amount)} · {item?.transaction_type ?? item?.action ?? "פעולה"}</p>
-                    <small>{formatDate(item?.paid_at ?? item?.created_at)}</small>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-          </div>
-        </details>
-        </TeacherAppFrame>
-      </DashboardShell>
-    );
-  } catch (error) {
-    console.error("[garden-finance] safe page fallback rendered", error);
-    return (
-      <SafeFinanceShell />
-    );
-  }
+      <div className="finance-two-column">
+        <FinanceSection title="היסטוריית פעולות" text="רישומים קנוניים שנשמרו עם תאריך, שיטה וסיבה">
+          <div className="finance-history">{entries.map((entry) => { const period = periodById.get(entry.period_id); const name = enrollmentById.get(period?.enrollment_id ?? "")?.children?.full_name ?? "ילד/ה"; return <article className="finance-history-row" key={entry.id}><span><ReceiptText size={21} /></span><div><b>{name} · {money(entry.amount)}</b><small>{entry.entry_kind === "manual_settlement" ? "תשלום ידני מאומת בידי הגן" : entry.entry_kind === "adjustment" ? `התאמה · ${entry.reason ?? "סיבה מתועדת"}` : "זיכוי שממתין להתאמה"}</small></div><time>{dateText(entry.created_at)}</time></article>; })}{!tuitionUnavailable && !entries.length ? <FinanceEmpty title="אין עדיין היסטוריית פעולות" text="תשלום ידני, התאמה או זיכוי יופיעו כאן לאחר שמירתם בספר הקנוני." /> : null}</div>
+        </FinanceSection>
+        <FinanceSection title="מנוי הפלטפורמה" text="גן → גן בטוח · מסלול נפרד משכר לימוד">
+          <div className="finance-domain-card subscription"><header><span><CreditCard size={23} /></span><div><h3>{subscriptionUnavailable ? "נתוני המנוי אינם זמינים" : String((currentSubscription?.subscription_plans as { name?: string } | undefined)?.name ?? "מנוי טרם הוגדר")}</h3><p>{subscriptionUnavailable ? "מקור המנוי לא נטען; לא מוצג מצב חלופי" : currentSubscription ? "נתוני המנוי של הגן הפעיל" : "לא נמצאה רשומת מנוי פעילה"}</p></div></header><div className="finance-ledger-cell"><b>{subscriptionUnavailable ? "לא זמין" : currentSubscription?.unit_price_snapshot == null ? "מחיר לא אומת" : money(currentSubscription.unit_price_snapshot)}</b><small>סטטוס: {subscriptionUnavailable ? "לא זמין" : String(currentSubscription?.status ?? "לא הוגדר")}</small></div><Link className="button primary" href="/dashboard/garden/subscription"><Landmark size={17} /> למנוי גן בטוח</Link></div>
+          <FinanceTruthBanner kind="warning" title="סליקה אלקטרונית אינה מאומתת" text="אין במסך זה חיוב אשראי, Apple Pay, Google Pay או אישור ספק מדומה. הסדר ידני נשאר זמין." />
+        </FinanceSection>
+      </div>
+      <FinanceSection title="בקרת איכות פיננסית" text="מצבים שדורשים החלטה, בלי לשנות חיוב מקורי">
+        <div className="finance-three-column"><div className="finance-domain-card"><b>תשלומים חלקיים</b><strong>{partial.length}</strong><p>היתרה נשארת פתוחה עד לסילוק מלא.</p></div><div className="finance-domain-card"><b>זיכויים והתאמות</b><strong>{allPeriods.filter((item) => item.adjustment_total !== 0 || item.unapplied_credit_total > 0).length}</strong><p>החיוב המקורי והסיבה נשמרים בביקורת.</p></div><div className="finance-domain-card"><b>יישוב חריגים</b><strong>{reconciliation.length}</strong><p>תשלום יתר אינו נבלע אוטומטית.</p></div></div>
+      </FinanceSection>
+      <FinanceTruthBanner kind="success" title="הנתונים ניתנים לרענון" text="השרת הוא מקור האמת לכל סכום וסטטוס." action={<Link className="button secondary tiny" href="/dashboard/garden/finance"><RefreshCcw size={16} /> רענון</Link>} />
+    </FinanceFrame>
+  </DashboardShell>;
 }
