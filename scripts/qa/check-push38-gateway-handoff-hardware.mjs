@@ -49,6 +49,8 @@ try {
   assert.match(activation, /handoffHardware \? 48/);
   assert.match(activation, /handoffHardware \? "gateway_remediation_handoff_hardware\.json"/);
   assert.match(activation, /hardwareHandoff: handoffHardware/);
+  assert.match(activation, /softwareFallbackHasOutputFailureEvidence/);
+  assert.match(activation, /warmHandoffs >= 1[\s\S]*encoder === "videotoolbox"/);
   const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
   assert.match(shadow, /encoder: input\.encoder \?\? null/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }

@@ -311,10 +311,21 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
     renewals.every(renewal => renewal.status === 200 && renewal.playlist_status === 200 &&
       renewal.segment_status === 200 && renewal.segment_bytes > 0);
   const lifecycle = checkpoints.at(-1)?.shadow?.media?.lifecycle || {};
+  const firstSoftwareIndex = checkpoints.findIndex(point =>
+    point.shadow?.media?.inputs?.[0]?.encoder === "libx264");
+  const softwareFallbackHasOutputFailureEvidence = firstSoftwareIndex < 0 ||
+    Number(checkpoints[firstSoftwareIndex]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0) >
+      Number(checkpoints[0]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0);
+  // Intentional warm handoff must preserve VideoToolbox. A later, genuine
+  // rendered-output stall may deliberately quarantine hardware and fall back
+  // to libx264; that is availability protection, not the false-quarantine bug.
   const hardwareHandoffProof = !hardwareHandoff || value.discovery?.codec === "hevc" &&
-    checkpoints.every(point => point.shadow?.media?.inputs?.length === 1 &&
-      point.shadow.media.inputs[0]?.encoder === "videotoolbox") &&
-    lifecycle.warmHandoffs >= 1;
+    checkpoints[0]?.shadow?.media?.inputs?.[0]?.encoder === "videotoolbox" &&
+    checkpoints.some(point => point.shadow?.media?.lifecycle?.warmHandoffs >= 1 &&
+      point.shadow?.media?.inputs?.[0]?.encoder === "videotoolbox") &&
+    checkpoints.every(point => ["videotoolbox", "libx264"].includes(
+      point.shadow?.media?.inputs?.[0]?.encoder)) &&
+    softwareFallbackHasOutputFailureEvidence && lifecycle.warmHandoffs >= 1;
   // A failed warmup is not a media outage when the authoritative relay stays
   // current and the next bounded attempt succeeds. The continuous-handoff
   // proof permits exactly one such contained retry, but still rejects every
