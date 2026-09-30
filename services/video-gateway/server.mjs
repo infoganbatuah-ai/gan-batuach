@@ -13,6 +13,7 @@ import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+  PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
@@ -140,12 +141,17 @@ async function maintainPrivateNvrRelayHandoffs() {
   // already in probation may still advance its own chain because that retires
   // one fallback before opening the successor and therefore does not increase
   // the recorder's probation count.
-  const [streamId, relay, handoffMode] = routine.find(([candidateId, candidate]) => {
+  // Output rescue is an imminent availability failure; routine finite-response
+  // rotation is preventative maintenance. Always consider rescue first and
+  // keep one of the existing four probation slots reserved for it.
+  routine.sort((left, right) => Number(right[2] === "OUTPUT_RESCUE")
+    - Number(left[2] === "OUTPUT_RESCUE"));
+  const [streamId, relay, handoffMode] = routine.find(([candidateId, candidate, mode]) => {
     const sessionKey = streamSources.get(candidateId)?.sessionKey;
     const activeProbations = [...relays.entries()].filter(([otherId, other]) =>
       streamSources.get(otherId)?.sessionKey === sessionKey && other?.retainedFallback).length;
     return privateNvrProvisionalHandoffAllowed({ activeProbations,
-      replacingExistingProbation: Boolean(candidate?.retainedFallback) });
+      replacingExistingProbation: Boolean(candidate?.retainedFallback), handoffMode: mode });
   }) || [];
   if (streamId && relays.get(streamId) === relay) {
     await warmReplacePrivateNvrRelay(streamId, relay, handoffMode);
@@ -2171,6 +2177,7 @@ async function handle(request, response) {
         liveRelayProcesses: [...liveRelays].filter(relayIsRunning).length,
         provisionalHandoffs: [...relays.values()].filter(relay => relay?.retainedFallback).length,
         maximumConcurrentProbations: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+        maximumRoutineProbations: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
         progressingRelays,
         stalledRelays,
         inputs: [...relays.entries()].map(([streamId, relay]) => {

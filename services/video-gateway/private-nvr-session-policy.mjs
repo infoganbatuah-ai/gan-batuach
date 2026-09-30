@@ -40,6 +40,14 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 20_000;
 // unbounded. Four concurrent probations keep the replacement sweep inside the
 // recorder's measured finite-response margin and make the extra load bounded.
 export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 4;
+// Do not let routine finite-response maintenance consume every probation
+// process. The first managed 0.2.31 pre-soak proved that an urgent output
+// rescue could otherwise wait behind four routine probations until a qualified
+// channel crossed the hard-stale boundary. Reserve one of the existing four
+// slots for output rescue; this changes scheduling priority without increasing
+// the recorder or host process budget.
+export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS =
+  PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS - 1;
 // Output rescue begins after twelve seconds without rendered HLS progress,
 // leaving eight seconds before the ordinary twenty-second stale boundary.
 // If an already-running warm replacement has not promoted by that boundary,
@@ -54,10 +62,14 @@ export const PRIVATE_NVR_RELAY_HANDOFF_TICK_MS = 2_000;
 
 export function privateNvrProvisionalHandoffAllowed({ activeProbations,
   replacingExistingProbation = false,
+  handoffMode = "ROUTINE_FINITE_RESPONSE",
   maximum = PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS }) {
+  const limit = handoffMode === "OUTPUT_RESCUE"
+    ? maximum
+    : Math.max(1, Math.min(maximum, PRIVATE_NVR_MAX_ROUTINE_PROBATIONS));
   return Boolean(Number.isInteger(activeProbations) && activeProbations >= 0
     && Number.isInteger(maximum) && maximum > 0
-    && (replacingExistingProbation || activeProbations < maximum));
+    && (replacingExistingProbation || activeProbations < limit));
 }
 
 // A proactive login renewal starts the recorder's observed prior-login media

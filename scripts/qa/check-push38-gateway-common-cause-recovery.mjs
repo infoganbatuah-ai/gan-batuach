@@ -9,6 +9,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+  PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
@@ -232,14 +233,23 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /scheduleOutputRescueProbation\(streamId, replacement, previous,[\s\S]*return true;/,
   "retained-fallback probation must not monopolize the warmup slot until the hard-stale boundary");
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 4);
-  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 3 }), true);
+  assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 3);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 2 }), true);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 3 }), false,
+  "routine maintenance must reserve one probation slot for output rescue");
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 3,
+    handoffMode: "OUTPUT_RESCUE" }), true,
+  "urgent output rescue may consume the reserved fourth slot");
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 4 }), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 4,
     replacingExistingProbation: true }), true,
   "an in-probation relay may replace its own chain without increasing process count");
   assert.match(gateway,
-    /liveRelayProcesses:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:/,
+    /liveRelayProcesses:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:[\s\S]*maximumRoutineProbations:/,
   "live health must expose the process-budget evidence used by qualification");
+  assert.match(gateway,
+    /routine\.sort\([\s\S]*OUTPUT_RESCUE[\s\S]*privateNvrProvisionalHandoffAllowed\(\{ activeProbations,[\s\S]*handoffMode: mode/,
+  "urgent output rescue must be scheduled ahead of routine maintenance");
   assert.match(gateway,
     /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
   "a playback request must await an in-flight bounded replacement before tearing down its relay");
