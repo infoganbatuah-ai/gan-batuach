@@ -20,7 +20,8 @@ test("retry is bound to the exact signed 0.2.32 release and 0.2.26 rollback", ()
 test("retry requires protected trust, fresh exact-device auth, stable health and bounded host load", () => {
   for (const value of ["PROTECTED_EDGE_TRUST_REGISTRY_PATH", "fresh_proof", "ED25519_V1",
     "explicit_device_ids", "broad_active", "EXPECTED_RELAY_NOT_PROGRESSING",
-    "event_loop_p99_ms", "supervision_crash_loops", "host.load_1m > host.logical_cpus * 3"])
+    "STALE_INPUT", "sample.connected === 0", "sample.stalled === 1", "event_loop_p99_ms",
+    "supervision_crash_loops", "host.load_1m > host.logical_cpus * 3"])
     assert.ok(source.includes(value), `missing retry safeguard: ${value}`);
   assert.match(source, /for \(let index = 0; index < 10; index \+= 1\)/);
 });

@@ -187,11 +187,16 @@ for (let index = 0; index < 10; index += 1) {
   samples.push(await sampleHealth());
   if (index < 9) await new Promise(resolveWait => setTimeout(resolveWait, 3_000));
 }
-const truthfulDegraded = sample => sample.status === "degraded" && sample.progressing === 0 &&
-  sample.stalled >= 0 && sample.health_reason_codes.includes("EXPECTED_RELAY_NOT_PROGRESSING");
+const healthy = sample => sample.ok && sample.status === "healthy" && sample.connected === 1 &&
+  sample.progressing === 1 && sample.stalled === 0 && sample.health_reason_codes.length === 0;
+const truthfulDegraded = sample => sample.ok === false && sample.status === "degraded" &&
+  sample.connected === 0 && sample.progressing === 0 && sample.stalled === 1 &&
+  sample.health_reason_codes.includes("EXPECTED_RELAY_NOT_PROGRESSING") &&
+  ["STALE_INPUT", "DISCOVERY_PROBE_FAILED", "SOURCE_UNREACHABLE"].some(reason =>
+    sample.source_reason === reason || sample.health_reason_codes.includes(reason));
 if (samples.some(sample => !sample.running || !sample.pid || sample.version !== item.rollbackVersion ||
-  !sample.ok || (!truthfulDegraded(sample) && sample.status !== "healthy") || sample.expected !== 1 ||
-  sample.connected !== 1 || sample.supervision_crash_loops !== 0 || sample.latency_ms > 2_000 ||
+  (!healthy(sample) && !truthfulDegraded(sample)) || sample.expected !== 1 ||
+  sample.supervision_crash_loops !== 0 || sample.latency_ms > 2_000 ||
   !Number.isFinite(sample.event_loop_p99_ms) || sample.event_loop_p99_ms > 2_000) ||
   new Set(samples.map(sample => sample.pid)).size !== 1)
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_CURRENT_RUNTIME_UNSTABLE");
