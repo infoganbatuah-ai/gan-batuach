@@ -32,22 +32,21 @@ export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // provisionally and the old relay remains available throughout probation.
 // This avoids both the no-rescue regression caused by an input-freshness gate
 // and the earlier false promotion after only two playlist writes.
-export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 20_000;
-// A provisional handoff temporarily owns both the old and replacement FFmpeg
-// processes. The Home recorder has nine source-available channels, so allowing
-// every channel to enter probation at once can double the media-process set.
-// The failed managed release became liveness-starved while that workload was
-// unbounded. Four concurrent probations keep the replacement sweep inside the
-// recorder's measured finite-response margin and make the extra load bounded.
-export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 4;
-// Do not let routine finite-response maintenance consume every probation
-// process. The first managed 0.2.31 pre-soak proved that an urgent output
-// rescue could otherwise wait behind four routine probations until a qualified
-// channel crossed the hard-stale boundary. Reserve one of the existing four
-// slots for output rescue; this changes scheduling priority without increasing
-// the recorder or host process budget.
-export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS =
-  PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS - 1;
+// The failed 0.2.36 pre-soak proved that elapsed time plus two playlist writes
+// is not a safe handoff proof. It admitted up to four concurrent replacements,
+// produced 437 relay starts in one hour, and exhausted a source long enough for
+// a real CH3 playback failure. Require four distinct post-start playlist
+// advances across at least six seconds. This is stronger media-continuity
+// evidence than a pair of writes while still completing a nine-channel sweep
+// well before the recorder's observed finite-response boundary.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 6_000;
+export const PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4;
+// Recorder media concurrency is separate from login exclusivity. The device
+// permits a non-exclusive login, but the live failure shows that several
+// simultaneous media replacements can still make a channel time out. Keep one
+// authoritative relay plus at most one candidate replacement for the recorder.
+export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 1;
+export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
 // Output rescue begins after twelve seconds without rendered HLS progress,
 // leaving eight seconds before the ordinary twenty-second stale boundary.
 // If an already-running warm replacement has not promoted by that boundary,
@@ -67,9 +66,10 @@ export function privateNvrProvisionalHandoffAllowed({ activeProbations,
   const limit = handoffMode === "OUTPUT_RESCUE"
     ? maximum
     : Math.max(1, Math.min(maximum, PRIVATE_NVR_MAX_ROUTINE_PROBATIONS));
-  return Boolean(Number.isInteger(activeProbations) && activeProbations >= 0
+  return Boolean(!replacingExistingProbation
+    && Number.isInteger(activeProbations) && activeProbations >= 0
     && Number.isInteger(maximum) && maximum > 0
-    && (replacingExistingProbation || activeProbations < limit));
+    && activeProbations < limit);
 }
 
 // A proactive login renewal starts the recorder's observed prior-login media
@@ -100,10 +100,12 @@ export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now())
 }
 
 export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
-  outputAdvanced, lastOutputAt, now = Date.now(),
+  outputAdvanced, outputAdvanceCount = outputAdvanced ? 1 : 0,
+  lastOutputAt, now = Date.now(),
   minimumConfirmationMs = PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
-  maximumOutputIdleMs = PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }) {
-  return Boolean(outputAdvanced
+  maximumOutputIdleMs = PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
+  minimumOutputAdvances = PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES }) {
+  return Boolean(outputAdvanced && outputAdvanceCount >= minimumOutputAdvances
     && Number.isFinite(confirmationStartedAt)
     && now - confirmationStartedAt >= minimumConfirmationMs
     && Number.isFinite(lastOutputAt)

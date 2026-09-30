@@ -37,7 +37,8 @@ try {
   const policy = readFileSync("services/video-gateway/private-nvr-session-policy.mjs", "utf8");
   const server = readFileSync("services/video-gateway/server.mjs", "utf8");
   assert.match(probe, /codec_name/);
-  assert.match(policy, /PRIVATE_NVR_MAX_ROUTINE_PROBATIONS =\s*\n\s*PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS - 1/);
+  assert.match(policy, /PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 1/);
+  assert.match(policy, /PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4/);
   assert.match(server, /maximumRoutineProbations/);
   assert.match(server, /right\[2\] === "OUTPUT_RESCUE"/);
   const registration = readFileSync(

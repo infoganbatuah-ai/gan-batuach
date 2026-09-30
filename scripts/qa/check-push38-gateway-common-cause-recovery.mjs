@@ -16,6 +16,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed,
@@ -146,7 +147,8 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
-  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 20_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES, 4);
   assert.equal(PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS, 8_000);
   assert.equal(PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS, 10_000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
@@ -188,17 +190,22 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     warming: true }, now), false);
   assert.equal(privateNvrRoutineHandoffConfirmed({
     confirmationStartedAt: now - 2_000, outputAdvanced: true,
-    lastOutputAt: now, now }), false,
-  "two early HLS writes must not promote a routine replacement");
+    outputAdvanceCount: 4, lastOutputAt: now, now }), false,
+  "four rapid HLS writes without the confirmation interval must not promote a replacement");
   assert.equal(privateNvrRoutineHandoffConfirmed({
     confirmationStartedAt: now - PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
-    outputAdvanced: true,
+    outputAdvanced: true, outputAdvanceCount: 3,
+    lastOutputAt: now, now }), false,
+  "three playlist advances are not sustained replacement evidence");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: now - PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+    outputAdvanced: true, outputAdvanceCount: 4,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS - 1,
     now }), false,
   "a replacement that survived the window without fresh output must not promote");
   assert.equal(privateNvrRoutineHandoffConfirmed({
     confirmationStartedAt: now - PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
-    outputAdvanced: true,
+    outputAdvanced: true, outputAdvanceCount: 4,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
     now }), true);
   assert.match(gateway,
@@ -235,31 +242,31 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /startRelay\(streamId, \{ warming: true,[\s\S]*previousRelay: previous, handoffMode \}\)/);
   assert.match(gateway,
-    /let firstOutputAt = null;[\s\S]*outputAt > firstOutputAt[\s\S]*outputConfirmed = true/,
+    /let firstOutputAt = null;[\s\S]*outputAt > lastObservedOutputAt[\s\S]*outputConfirmed = true/,
   "a warm replacement must advance HLS after its first playlist write before promotion");
   assert.match(gateway,
     /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"\]\.includes\(handoffMode\)[\s\S]*minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS[\s\S]*maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS/,
   "routine and output-rescue replacements must survive the hard-stale confirmation window");
   assert.match(gateway,
-    /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"\]\.includes\(handoffMode\)[\s\S]*previous\.probationFallback = true;[\s\S]*relays\.set\(streamId, replacement\)[\s\S]*warmHandoffProbations/,
-  "routine and output-rescue handoffs may serve only an advancing provisional replacement while retaining the old fallback");
+    /let outputAdvanceCount = 0;[\s\S]*outputAdvanceCount \+= 1;[\s\S]*privateNvrRoutineHandoffConfirmed\(\{ confirmationStartedAt,[\s\S]*outputAdvanceCount/,
+  "a replacement must prove four distinct playlist advances before ownership changes");
   assert.match(gateway,
-    /scheduleOutputRescueProbation\(streamId, replacement, previous,[\s\S]*return true;/,
-  "retained-fallback probation must not monopolize the warmup slot until the hard-stale boundary");
-  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 4);
-  assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 3);
-  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 2 }), true);
-  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 3 }), false,
-  "routine maintenance must reserve one probation slot for output rescue");
-  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 3,
-    handoffMode: "OUTPUT_RESCUE" }), true,
-  "urgent output rescue may consume the reserved fourth slot");
-  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 4 }), false);
-  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 4,
-    replacingExistingProbation: true }), true,
-  "an in-probation relay may replace its own chain without increasing process count");
+    /const expectedCurrent = previous;[\s\S]*relays\.set\(streamId, replacement\);[\s\S]*stopRelay\(streamId, previous, "WARM_HANDOFF"\)/,
+  "the old relay must remain the sole canonical owner until confirmed promotion");
+  assert.doesNotMatch(gateway, /WARM_HANDOFF_CHAIN_ADVANCED|scheduleOutputRescueProbation/,
+  "an unconfirmed replacement cannot advance a handoff chain");
+  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 1);
+  assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1 }), false,
+  "the recorder may have only one candidate replacement at a time");
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
+    handoffMode: "OUTPUT_RESCUE" }), false);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
+    replacingExistingProbation: true }), false,
+  "a candidate may never replace its own chain before confirmation");
   assert.match(gateway,
-    /liveRelayProcesses:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:[\s\S]*maximumRoutineProbations:/,
+    /liveRelayProcesses:[\s\S]*candidateHandoffs:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:[\s\S]*maximumRoutineProbations:/,
   "live health must expose the process-budget evidence used by qualification");
   assert.match(gateway,
     /routine\.sort\([\s\S]*OUTPUT_RESCUE[\s\S]*privateNvrProvisionalHandoffAllowed\(\{ activeProbations,[\s\S]*handoffMode: mode/,
@@ -271,11 +278,12 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /awaitingWarmReplacement[\s\S]*RELAY_STALE_MS[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return;/,
   "the stale monitor must allow the same bounded replacement grace");
   assert.match(gateway,
-    /relays\.set\(streamId, previous\)[\s\S]*warmHandoffRollbacks/,
-  "a failed output-rescue probation must restore the retained previous relay");
-  assert.match(gateway,
     /if \(!outputConfirmed \|\| !relayIsProgressing\(replacement\)[\s\S]*WARM_HANDOFF_ABORTED/,
   "an unconfirmed warm replacement must be rejected while the old relay remains authoritative");
+  assert.match(gateway, /startsByReason:[\s\S]*routineFiniteResponse:[\s\S]*outputRescue:/,
+  "relay starts must be attributable by lifecycle cause");
+  assert.match(gateway, /staleByOwner:[\s\S]*current:[\s\S]*warming:/,
+  "stale observations must distinguish the canonical owner from a candidate");
   assert.match(gateway, /relayLifecycle\.warmHandoffs/);
   assert.match(gateway, /previousDirectories/);
   assert.match(gateway, /const liveRelays = new Set\(\)/);

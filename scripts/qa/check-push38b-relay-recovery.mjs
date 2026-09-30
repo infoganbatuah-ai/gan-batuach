@@ -22,6 +22,6 @@ const monitorStop = runtime.indexOf("stopRelay(streamId, relay,", monitorRecover
 assert.ok(monitorRecovery >= 0 && monitorStop > monitorRecovery,
   "the stale monitor must arm backoff before deleting the current relay");
 assert.match(runtime,
-  /const restoredFallback = wasCurrent \? restoreRetainedFallback\(streamId, relay\) : null;[\s\S]*if \(wasCurrent && !restoredFallback && relay\.stopReason !== "WARM_HANDOFF"\) armRelayRecovery\(streamId, relay\)/,
-  "a natural child exit must restore a proven fallback or use the same idempotent recovery arm");
+  /const wasCurrent = relays\.get\(streamId\) === relay;[\s\S]*if \(wasCurrent\) relays\.delete\(streamId\);[\s\S]*if \(wasCurrent && relay\.stopReason !== "WARM_HANDOFF"\) armRelayRecovery\(streamId, relay\)/,
+  "a natural child exit must remove only the canonical owner and use the same idempotent recovery arm");
 console.log("push38b relay recovery policy: PASS");
