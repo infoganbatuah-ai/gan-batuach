@@ -20,8 +20,11 @@ export const PUSH38_CONNECTOR_CODEC_PRESERVATION = Object.freeze({
   rollbackVersion: "0.2.26-p38-health",
   supersedesReleaseId: "qa-p38-health-connector-liveness-isolation-e46f2cb0daf6",
   predecessorDigest: "e46f2cb0daf617cc80a5b8c2be1f448820ab391667992d390ab63de36afd1e53",
-  agentPredecessorReleaseId: "qa-p38-health-connector-rtsp-cadence-559bb01f78a2",
-  agentPredecessorDigest: "559bb01f78a2275f6dfc05723673250318803fbf68a8fd111f93084cbb47e02f"
+  // The management/OTA agent is versioned independently from the functional
+  // runtime. Runtime rollback restored 0.2.26, while the verified agent stayed
+  // on the signed observed-health management release.
+  agentPredecessorReleaseId: "qa-p38-health-connector-observed-health-3a211a8ef1c2",
+  agentPredecessorDigest: "3a211a8ef1c275283194ea7a4ef93ba59e6f560b7b8cc01dca43a28d03e6f395"
 });
 
 export function buildPush38ConnectorCodecPreservationManifest({ signingKeyId,

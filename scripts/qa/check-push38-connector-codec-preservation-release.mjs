@@ -20,6 +20,7 @@ assert.equal(document.artifact_sha256,
 assert.equal(document.artifact_size, 147436944);
 assert.equal(document.compatibility.minimum_current_version, "0.2.26-p38-health");
 assert.equal(document.compatibility.maximum_current_version, "0.2.26-p38-health");
+assert.equal(item.agentPredecessorReleaseId, "qa-p38-health-connector-observed-health-3a211a8ef1c2");
 assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 for (const path of ["./register-push38-homeqa-connector-rtsp-session.mjs",
