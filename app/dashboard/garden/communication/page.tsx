@@ -1,8 +1,10 @@
 import { Bell, MessageCircle, Send, Settings, Smartphone } from "lucide-react";
 import { CommunicationCenter } from "@/components/communication-center";
+import { BroadcastCenter, DeliveryReadinessStrip, type BroadcastClassroom, type BroadcastHistoryItem } from "@/components/broadcast-center";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 import {
   TeacherActionTile,
   TeacherAiInsight,
@@ -20,14 +22,20 @@ import {
 export default async function GardenCommunicationPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
-  const [logsResult, templatesResult, settingsResult] = await Promise.all([
+  const [logsResult, templatesResult, settingsResult, classroomsResult, broadcastsResult] = await Promise.all([
     profile.garden_id
       ? supabase.from("communication_logs" as any).select("*").eq("kindergarten_id", profile.garden_id).order("created_at", { ascending: false }).limit(150)
       : Promise.resolve({ data: [], error: null }),
     supabase.from("communication_templates" as any).select("*").order("audience_role", { ascending: true }).order("template_key", { ascending: true }),
     profile.garden_id
       ? supabase.from("kindergarten_communication_settings" as any).select("*").eq("garden_id", profile.garden_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null })
+      : Promise.resolve({ data: null, error: null }),
+    profile.garden_id
+      ? supabase.from("classrooms" as never).select("id,name").eq("garden_id", profile.garden_id).eq("status", "active").order("name")
+      : Promise.resolve({ data: [], error: null }),
+    profile.garden_id
+      ? supabase.from("communication_threads" as never).select("id,subject,thread_type,classroom_id,status,created_at,last_message_at,metadata,communication_thread_participants(profile_id)").eq("garden_id", profile.garden_id).in("thread_type", ["garden_broadcast", "classroom_broadcast", "staff_broadcast"]).order("created_at", { ascending: false }).limit(50)
+      : Promise.resolve({ data: [], error: null })
   ]);
 
   if (logsResult.error) console.error("[garden-communication-page] logs failed", { garden_id: profile.garden_id, error: logsResult.error.message });
@@ -40,6 +48,7 @@ export default async function GardenCommunicationPage() {
   const sent = logs.filter((log) => ["sent", "delivered"].includes(String(log.status)));
   const pending = logs.filter((log) => ["pending", "queued", "mock"].includes(String(log.status)));
   const settings = settingsResult.data as any;
+  const capability = managementDeliveryCapability();
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="תקשורת" appHome>
@@ -75,6 +84,14 @@ export default async function GardenCommunicationPage() {
           אם ספק הודעות אמיתי לא מחובר, המסך נשאר במצב בדיקה ולא מציג כאילו נשלחו הודעות production.
         </TeacherAiInsight>
 
+        <TeacherSection title="שידורים לקהל מורשה" subtitle="הודעות גן נפרדות משיחות אישיות, משימות ותלונות.">
+          <BroadcastCenter gardenId={profile.garden_id ?? ""} classrooms={(classroomsResult.data ?? []) as BroadcastClassroom[]} broadcasts={(broadcastsResult.data ?? []) as BroadcastHistoryItem[]} capability={capability} />
+        </TeacherSection>
+
+        <TeacherSection title="מוכנות ערוצי מסירה" subtitle="מצב אמיתי בלבד — אין סימון מסירה ללא ספק מאומת.">
+          <DeliveryReadinessStrip capability={capability} />
+        </TeacherSection>
+
         <TeacherQuickActions title="פעולות תקשורת">
           <TeacherActionTile title="הודעות הורים" href="/dashboard/garden/messages" icon={MessageCircle} tone="purple" />
           <TeacherActionTile title="התראות" href="/dashboard/garden/notifications" icon={Bell} tone="orange" />
@@ -90,6 +107,7 @@ export default async function GardenCommunicationPage() {
               templates={templates}
               settings={settings}
               apiPath="/api/garden/communication"
+              capability={capability}
             />
           </div>
         </details>

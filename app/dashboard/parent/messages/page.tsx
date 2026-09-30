@@ -74,7 +74,7 @@ export default async function ParentMessagesPage() {
           <ParentChildRequestForm children={childOptions} />
         </ParentSection>
         <ParentSection title="שיחה עם הגן" subtitle="שיחות רגילות נפרדות מפניות רשמיות ותלונות, ותמיד קשורות לילד מורשה.">
-          <InternalMessagingCenter recipients={recipients} linkedChildren={childOptions} messages={messagesRes.data ?? []} />
+          <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={childOptions} messages={messagesRes.data ?? []} />
         </ParentSection>
         <ParentSection title="השיחות שלי" subtitle="תשובות מהגן וסטטוס טיפול במקום אחד." className="parent-chat-card">
           {(requestsRes.data ?? []).length === 0 ? (

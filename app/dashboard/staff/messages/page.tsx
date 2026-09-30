@@ -31,7 +31,7 @@ export default async function StaffMessagesPage({ searchParams }: { searchParams
     <StaffAppFrame active="messages">
       <StaffPageHero eyebrow="הודעות במשמרת" title="מנהלת, צוות ועדכונים דחופים" text="פנייה קצרה למנהלת או לצוות, עם אפשרות לקשר ילד כשצריך." icon={MessageCircle} badge={<StatusChip tone="success">מתועד</StatusChip>} />
       <StaffSection title="מרכז הודעות">
-        <InternalMessagingCenter gardenId={gardenId} recipients={recipients} messages={(messagesRes.data ?? []) as any[]} linkedChildren={(childrenRes.data ?? []) as any[]} preselectedChildId={params?.childId} />
+        <InternalMessagingCenter gardenId={gardenId} currentProfileId={profile.id} recipients={recipients} messages={(messagesRes.data ?? []) as any[]} linkedChildren={(childrenRes.data ?? []) as any[]} preselectedChildId={params?.childId} />
       </StaffSection>
     </StaffAppFrame>
   );
