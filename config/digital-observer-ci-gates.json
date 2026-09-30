@@ -100,6 +100,7 @@
     { "name": "connector-relay-backoff-release", "args": ["scripts/qa/check-push38-connector-relay-backoff.mjs"] },
     { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
     { "name": "connector-parent-exit-recovery", "args": ["scripts/qa/check-push38-connector-parent-exit-recovery.mjs"] },
+    { "name": "connector-liveness-workspace-isolation", "args": ["scripts/qa/check-push38-connector-liveness-isolation.mjs"] },
     { "name": "edge-parent-shutdown", "args": ["scripts/qa/check-edge-parent-shutdown.mjs"] },
     { "name": "home-qa-identity-phases", "args": ["scripts/qa/check-push38-home-qa-phases.mjs"] },
     { "name": "home-qa-legacy-transition-proof", "args": ["scripts/qa/check-push38-home-qa-legacy-proof.mjs"] },
