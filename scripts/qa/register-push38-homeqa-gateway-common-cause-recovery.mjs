@@ -47,6 +47,8 @@ import { PUSH38_GATEWAY_PROBATION_BUDGET
 } from "../../services/video-gateway/push38-home-qa-gateway-probation-budget.mjs";
 import { PUSH38_GATEWAY_RESCUE_CAPACITY
 } from "../../services/video-gateway/push38-home-qa-gateway-rescue-capacity.mjs";
+import { PUSH38_GATEWAY_CODEC_PRESERVATION
+} from "../../services/video-gateway/push38-home-qa-gateway-codec-preservation.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -67,13 +69,15 @@ const continuousHandoff = process.argv.includes("--continuous-handoff");
 const routineProvisional = process.argv.includes("--routine-provisional");
 const probationBudget = process.argv.includes("--probation-budget");
 const rescueCapacity = process.argv.includes("--rescue-capacity");
+const codecPreservation = process.argv.includes("--gateway-codec-preservation");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
-  rescueCapacity]
+  rescueCapacity, codecPreservation]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = rescueCapacity ? PUSH38_GATEWAY_RESCUE_CAPACITY :
+const item = codecPreservation ? PUSH38_GATEWAY_CODEC_PRESERVATION :
+  rescueCapacity ? PUSH38_GATEWAY_RESCUE_CAPACITY :
   probationBudget ? PUSH38_GATEWAY_PROBATION_BUDGET :
   routineProvisional ? PUSH38_GATEWAY_ROUTINE_PROVISIONAL :
   continuousHandoff ? PUSH38_GATEWAY_CONTINUOUS_HANDOFF :
@@ -95,7 +99,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = rescueCapacity
+const artifact = codecPreservation
+  ? `${restrictedRoot}/push38-gateway-codec-preservation-22f852d2/gateway-runtime.tar.gz`
+  : rescueCapacity
   ? `${restrictedRoot}/push38-gateway-rescue-capacity-cedab840/gateway-runtime.tar.gz`
   : probationBudget
   ? `${restrictedRoot}/push38-gateway-probation-budget-0028df7f/gateway-runtime.tar.gz`
@@ -132,7 +138,9 @@ const artifact = rescueCapacity
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = rescueCapacity
+const publication = codecPreservation
+  ? `${restrictedRoot}/push38-gateway-codec-preservation-22f852d2/r2-publication.json`
+  : rescueCapacity
   ? `${restrictedRoot}/push38-gateway-rescue-capacity-cedab840/r2-publication.json`
   : probationBudget
   ? `${restrictedRoot}/push38-gateway-probation-budget-0028df7f/r2-publication.json`
@@ -169,7 +177,8 @@ const publication = rescueCapacity
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = rescueCapacity ? "gateway_remediation_rescue_capacity.json"
+const bundleName = codecPreservation ? "gateway_remediation_codec_preservation.json"
+  : rescueCapacity ? "gateway_remediation_rescue_capacity.json"
   : probationBudget ? "gateway_remediation_probation_budget.json"
   : routineProvisional ? "gateway_remediation_routine_provisional.json"
   : continuousHandoff ? "gateway_remediation_continuous_handoff.json"
@@ -188,9 +197,9 @@ const bundleName = rescueCapacity ? "gateway_remediation_rescue_capacity.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = rescueCapacity ? 44 : probationBudget ? 43 : routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = codecPreservation ? 46 : rescueCapacity ? 44 : probationBudget ? 43 : routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -287,7 +296,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: rescueCapacity ? "GATEWAY_RESCUE_CAPACITY_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: codecPreservation ? "GATEWAY_CODEC_PRESERVATION_REGISTERED_DRAFT" :
+  rescueCapacity ? "GATEWAY_RESCUE_CAPACITY_REGISTERED_DRAFT" :
   probationBudget ? "GATEWAY_PROBATION_BUDGET_REGISTERED_DRAFT" :
   routineProvisional ? "GATEWAY_ROUTINE_PROVISIONAL_REGISTERED_DRAFT" :
   continuousHandoff ? "GATEWAY_CONTINUOUS_HANDOFF_REGISTERED_DRAFT" :
