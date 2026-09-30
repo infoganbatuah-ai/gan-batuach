@@ -33,6 +33,8 @@ import { PUSH38_CONNECTOR_OUTPUT_RESCUE
 } from "../../services/video-gateway/push38-home-qa-connector-output-rescue.mjs";
 import { PUSH38_CONNECTOR_GENERIC_RTSP
 } from "../../services/video-gateway/push38-home-qa-connector-generic-rtsp.mjs";
+import { PUSH38_CONNECTOR_LIVENESS_ISOLATION
+} from "../../services/video-gateway/push38-home-qa-connector-liveness-isolation.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
@@ -46,11 +48,13 @@ const finalStability = process.argv.includes("--final-stability");
 const rtspCadence = process.argv.includes("--rtsp-cadence");
 const outputRescue = process.argv.includes("--output-rescue");
 const genericRtsp = process.argv.includes("--generic-rtsp");
+const livenessIsolation = process.argv.includes("--liveness-isolation");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
-  healthObservation, finalStability, rtspCadence, outputRescue, genericRtsp]
+  healthObservation, finalStability, rtspCadence, outputRescue, genericRtsp, livenessIsolation]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = genericRtsp ? PUSH38_CONNECTOR_GENERIC_RTSP :
+const item = livenessIsolation ? PUSH38_CONNECTOR_LIVENESS_ISOLATION :
+  genericRtsp ? PUSH38_CONNECTOR_GENERIC_RTSP :
   outputRescue ? PUSH38_CONNECTOR_OUTPUT_RESCUE :
   rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
   finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
@@ -66,7 +70,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = genericRtsp
+const artifact = livenessIsolation
+  ? `${restrictedRoot}/push38-connector-liveness-isolation-82a871d5/connector-remediation.tar.gz`
+  : genericRtsp
   ? `${restrictedRoot}/push38-connector-generic-rtsp-9632fa1b/connector-remediation.tar.gz`
   : outputRescue
   ? `${restrictedRoot}/push38-connector-output-rescue-9658853d/connector-remediation.tar.gz`
@@ -89,7 +95,9 @@ const artifact = genericRtsp
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = genericRtsp
+const publication = livenessIsolation
+  ? `${restrictedRoot}/push38-connector-liveness-isolation-82a871d5/r2-publication.json`
+  : genericRtsp
   ? `${restrictedRoot}/push38-connector-generic-rtsp-9632fa1b/r2-publication.json`
   : outputRescue
   ? `${restrictedRoot}/push38-connector-output-rescue-9658853d/r2-publication.json`
@@ -112,8 +120,9 @@ const publication = genericRtsp
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue || genericRtsp) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = genericRtsp ? "connector_remediation_generic_rtsp.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue || genericRtsp || livenessIsolation) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = livenessIsolation ? "connector_remediation_liveness_isolation.json" :
+  genericRtsp ? "connector_remediation_generic_rtsp.json" :
   outputRescue ? "connector_remediation_output_rescue.json" :
   rtspCadence ? "connector_remediation_rtsp_cadence.json" :
   finalStability ? "connector_remediation_final_stability.json" :
@@ -125,8 +134,8 @@ const bundleName = genericRtsp ? "connector_remediation_generic_rtsp.json" :
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = genericRtsp ? 41 : outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = genericRtsp ? 42 : outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = livenessIsolation ? 43 : genericRtsp ? 41 : outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = livenessIsolation ? 44 : genericRtsp ? 42 : outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -223,7 +232,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: genericRtsp ? "CONNECTOR_GENERIC_RTSP_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: livenessIsolation ? "CONNECTOR_LIVENESS_ISOLATION_REGISTERED_DRAFT" :
+  genericRtsp ? "CONNECTOR_GENERIC_RTSP_REGISTERED_DRAFT" :
   outputRescue ? "CONNECTOR_OUTPUT_RESCUE_REGISTERED_DRAFT" :
   "RTSP_SESSION_RECOVERY_REGISTERED_DRAFT",
   release_id: item.releaseId, predecessor_release: "PAUSED", exact_device: true,
