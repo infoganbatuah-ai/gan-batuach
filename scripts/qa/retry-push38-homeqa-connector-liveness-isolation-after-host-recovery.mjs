@@ -102,15 +102,26 @@ async function sampleHostPressure() {
   const idleDelta = after.idle - before.idle;
   const memoryText = execFileSync("/usr/bin/memory_pressure", ["-Q"],
     { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
-  const stateText = execFileSync("/bin/ps", ["-axo", "state="],
-    { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+  const blockedSamples = [];
+  for (let index = 0; index < 3; index += 1) {
+    const stateText = execFileSync("/bin/ps", ["-axo", "pid=,state="],
+      { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+    blockedSamples.push(new Set(stateText.split("\n").flatMap(line => {
+      const match = /^\s*(\d+)\s+([A-Z]+)/.exec(line);
+      return match && /^[UD]/.test(match[2]) ? [Number(match[1])] : [];
+    })));
+    if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 1_000));
+  }
+  const persistentBlocked = [...(blockedSamples[0] || [])]
+    .filter(pid => blockedSamples.slice(1).every(sample => sample.has(pid)));
   const memoryFreePercent = Number(/System-wide memory free percentage:\s*(\d+)%/.exec(memoryText)?.[1]);
   return { logical_cpus: availableParallelism(), load_1m: loadavg()[0],
     load_5m: loadavg()[1], load_15m: loadavg()[2],
     cpu_idle_percent: totalDelta > 0 ? Number(((idleDelta / totalDelta) * 100).toFixed(2)) : null,
     memory_free_percent: memoryFreePercent,
-    uninterruptible_processes: stateText.split("\n").filter(state => /^[UD]/.test(state.trim())).length,
-    safety_basis: "5s CPU headroom >=35% when load is elevated; memory-pressure free >=20%; no U/D process" };
+    uninterruptible_sample_counts: blockedSamples.map(sample => sample.size),
+    persistent_uninterruptible_processes: persistentBlocked.length,
+    safety_basis: "5s CPU headroom >=35% when load is elevated; memory-pressure free >=20%; no U/D process persisting across 3 samples" };
 }
 
 protectedFile(CONFIG_PATH, { restricted: false });
@@ -233,7 +244,7 @@ if (!agentText.includes("state = running") || !/\bpid = \d+/.test(agentText))
 const host = await sampleHostPressure();
 if (!Number.isFinite(host.cpu_idle_percent) || host.cpu_idle_percent < 25 ||
   !Number.isFinite(host.memory_free_percent) || host.memory_free_percent < 20 ||
-  host.uninterruptible_processes !== 0 ||
+  host.persistent_uninterruptible_processes !== 0 ||
   (host.load_1m > host.logical_cpus * 3 && host.cpu_idle_percent < 35))
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_HOST_SATURATED");
 

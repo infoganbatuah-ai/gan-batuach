@@ -22,7 +22,8 @@ test("retry requires protected trust, fresh exact-device auth, stable health and
     "explicit_device_ids", "broad_active", "EXPECTED_RELAY_NOT_PROGRESSING",
     "STALE_INPUT", "sample.connected === 0", "sample.stalled === 1", "event_loop_p99_ms",
     "supervision_crash_loops", "sampleHostPressure", "cpu_idle_percent", "memory_free_percent",
-    "uninterruptible_processes", "host.load_1m > host.logical_cpus * 3 && host.cpu_idle_percent < 35"])
+    "uninterruptible_sample_counts", "persistent_uninterruptible_processes",
+    "blockedSamples.slice(1).every", "host.load_1m > host.logical_cpus * 3 && host.cpu_idle_percent < 35"])
     assert.ok(source.includes(value), `missing retry safeguard: ${value}`);
   assert.match(source, /for \(let index = 0; index < 10; index \+= 1\)/);
 });
