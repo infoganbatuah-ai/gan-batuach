@@ -178,7 +178,7 @@ const bundleName = probationBudget ? "gateway_remediation_probation_budget.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = probationBudget ? 42 : routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = probationBudget ? 43 : routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget)
   ? item.supersedesReleaseId : item.rollbackReleaseId;

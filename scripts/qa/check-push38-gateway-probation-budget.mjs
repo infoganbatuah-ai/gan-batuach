@@ -41,8 +41,10 @@ try {
   const activation = readFileSync(
     "scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   assert.match(registration, /--probation-budget/);
+  assert.match(registration, /probationBudget \? 43/);
   assert.match(activation, /--probation-budget/);
   assert.match(activation, /connectorLivenessIsolationItem/);
+  assert.match(activation, /probationBudget \? 44/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
