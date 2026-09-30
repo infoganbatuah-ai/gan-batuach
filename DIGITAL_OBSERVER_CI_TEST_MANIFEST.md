@@ -73,6 +73,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-relay-handoff-remediation`: `node --test scripts/qa/check-push38-relay-handoff-remediation.mjs`
 - `gateway-relay-handoff-release`: `node scripts/qa/check-push38-gateway-relay-handoff-release.mjs`
+- `gateway-handoff-continuity-release`: `node scripts/qa/check-push38-gateway-handoff-continuity-release.mjs`
 - `gateway-supervisor-recovery`: `node scripts/qa/check-push38-gateway-supervisor-recovery.mjs`
 - `gateway-stable-handoff`: `node scripts/qa/check-push38-gateway-stable-handoff.mjs`
 - `gateway-media-cadence`: `node scripts/qa/check-push38-gateway-media-cadence.mjs`
@@ -265,6 +266,7 @@ Inventory count: **342** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-gateway-idle-handoff.mjs` | node scripts/qa/check-push38-gateway-idle-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-maintenance-isolation.mjs` | node scripts/qa/check-push38-gateway-maintenance-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-media-cadence.mjs` | node scripts/qa/check-push38-gateway-media-cadence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-gateway-handoff-continuity-release.mjs` | node scripts/qa/check-push38-gateway-handoff-continuity-release.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-output-rescue.mjs` | node scripts/qa/check-push38-gateway-output-rescue.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-probation-budget.mjs` | node scripts/qa/check-push38-gateway-probation-budget.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-relay-handoff-release.mjs` | node scripts/qa/check-push38-gateway-relay-handoff-release.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |

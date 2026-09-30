@@ -30,6 +30,7 @@ import { buildPush38GatewayRescueCapacityManifest } from "../../services/video-g
 import { buildPush38GatewayCodecPreservationManifest } from "../../services/video-gateway/push38-home-qa-gateway-codec-preservation.mjs";
 import { buildPush38GatewayHandoffHardwareManifest } from "../../services/video-gateway/push38-home-qa-gateway-handoff-hardware.mjs";
 import { buildPush38GatewayRelayHandoffRemediationManifest } from "../../services/video-gateway/push38-home-qa-gateway-relay-handoff-remediation.mjs";
+import { buildPush38GatewayHandoffContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-handoff-continuity.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -111,14 +112,15 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
   confirmedHandoff = false, startupWindow = false, handoffProbation = false,
   retainedFallback = false, continuousHandoff = false, routineProvisional = false,
   probationBudget = false, rescueCapacity = false, codecPreservation = false,
-  handoffHardware = false, relayHandoff = false }) {
+  handoffHardware = false, relayHandoff = false, handoffContinuity = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
     heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
     handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
-    rescueCapacity, codecPreservation, handoffHardware, relayHandoff]
+    rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity]
     .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = relayHandoff ? buildPush38GatewayRelayHandoffRemediationManifest :
+  const builder = handoffContinuity ? buildPush38GatewayHandoffContinuityManifest :
+    relayHandoff ? buildPush38GatewayRelayHandoffRemediationManifest :
     handoffHardware ? buildPush38GatewayHandoffHardwareManifest :
     codecPreservation ? buildPush38GatewayCodecPreservationManifest :
     rescueCapacity ? buildPush38GatewayRescueCapacityManifest :
@@ -186,7 +188,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: relayHandoff ?
+    const result = { protocol: handoffContinuity ?
+      "observer-push38-gateway-handoff-continuity-r2-publication-v1" : relayHandoff ?
       "observer-push38-gateway-relay-handoff-r2-publication-v1" : handoffHardware ?
       "observer-push38-gateway-handoff-hardware-r2-publication-v1" : codecPreservation ?
       "observer-push38-gateway-codec-preservation-r2-publication-v1" : rescueCapacity ?
@@ -239,6 +242,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const codecPreservation = process.argv.includes("--gateway-codec-preservation");
     const handoffHardware = process.argv.includes("--gateway-handoff-hardware");
     const relayHandoff = process.argv.includes("--gateway-relay-handoff");
+    const handoffContinuity = process.argv.includes("--gateway-handoff-continuity");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
@@ -246,7 +250,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--startup-window", "--handoff-probation", "--retained-fallback", "--continuous-handoff",
         "--routine-provisional", "--probation-budget", "--rescue-capacity",
         "--gateway-codec-preservation", "--gateway-handoff-hardware",
-        "--gateway-relay-handoff"]
+        "--gateway-relay-handoff", "--gateway-handoff-continuity"]
         .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
@@ -256,7 +260,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       mediaCadence, maintenanceIsolation, sessionSweep, heartbeatLogin, idleHandoff,
       bufferedOutput, outputRescue, confirmedHandoff, startupWindow, handoffProbation,
       retainedFallback, continuousHandoff, routineProvisional, probationBudget, rescueCapacity,
-      codecPreservation, handoffHardware, relayHandoff }) }));
+      codecPreservation, handoffHardware, relayHandoff, handoffContinuity }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");

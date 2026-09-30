@@ -93,6 +93,7 @@
     { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
     { "name": "gateway-relay-handoff-remediation", "args": ["--test", "scripts/qa/check-push38-relay-handoff-remediation.mjs"] },
     { "name": "gateway-relay-handoff-release", "args": ["scripts/qa/check-push38-gateway-relay-handoff-release.mjs"] },
+    { "name": "gateway-handoff-continuity-release", "args": ["scripts/qa/check-push38-gateway-handoff-continuity-release.mjs"] },
     { "name": "gateway-supervisor-recovery", "args": ["scripts/qa/check-push38-gateway-supervisor-recovery.mjs"] },
     { "name": "gateway-stable-handoff", "args": ["scripts/qa/check-push38-gateway-stable-handoff.mjs"] },
     { "name": "gateway-media-cadence", "args": ["scripts/qa/check-push38-gateway-media-cadence.mjs"] },
