@@ -37,6 +37,8 @@ import { PUSH38_CONNECTOR_LIVENESS_ISOLATION
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-isolation.mjs";
 import { PUSH38_CONNECTOR_CODEC_PRESERVATION
 } from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
+import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY
+} from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
@@ -52,12 +54,14 @@ const outputRescue = process.argv.includes("--output-rescue");
 const genericRtsp = process.argv.includes("--generic-rtsp");
 const livenessIsolation = process.argv.includes("--liveness-isolation");
 const codecPreservation = process.argv.includes("--codec-preservation");
+const handoffContinuity = process.argv.includes("--handoff-continuity");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
   healthObservation, finalStability, rtspCadence, outputRescue, genericRtsp, livenessIsolation,
-  codecPreservation]
+  codecPreservation, handoffContinuity]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = codecPreservation ? PUSH38_CONNECTOR_CODEC_PRESERVATION :
+const item = handoffContinuity ? PUSH38_CONNECTOR_HANDOFF_CONTINUITY :
+  codecPreservation ? PUSH38_CONNECTOR_CODEC_PRESERVATION :
   livenessIsolation ? PUSH38_CONNECTOR_LIVENESS_ISOLATION :
   genericRtsp ? PUSH38_CONNECTOR_GENERIC_RTSP :
   outputRescue ? PUSH38_CONNECTOR_OUTPUT_RESCUE :
@@ -75,7 +79,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = codecPreservation
+const artifact = handoffContinuity
+  ? `${restrictedRoot}/push38-connector-handoff-continuity-a6e2fc93/connector-remediation.tar.gz`
+  : codecPreservation
   ? `${restrictedRoot}/push38-connector-codec-preservation-0ffe282c/connector-remediation.tar.gz`
   : livenessIsolation
   ? `${restrictedRoot}/push38-connector-liveness-isolation-82a871d5/connector-remediation.tar.gz`
@@ -102,7 +108,9 @@ const artifact = codecPreservation
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = codecPreservation
+const publication = handoffContinuity
+  ? `${restrictedRoot}/push38-connector-handoff-continuity-a6e2fc93/r2-publication.json`
+  : codecPreservation
   ? `${restrictedRoot}/push38-connector-codec-preservation-0ffe282c/r2-publication.json`
   : livenessIsolation
   ? `${restrictedRoot}/push38-connector-liveness-isolation-82a871d5/r2-publication.json`
@@ -129,8 +137,9 @@ const publication = codecPreservation
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue || genericRtsp || livenessIsolation || codecPreservation) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = codecPreservation ? "connector_remediation_codec_preservation.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue || genericRtsp || livenessIsolation || codecPreservation || handoffContinuity) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = handoffContinuity ? "connector_remediation_handoff_continuity.json" :
+  codecPreservation ? "connector_remediation_codec_preservation.json" :
   livenessIsolation ? "connector_remediation_liveness_isolation.json" :
   genericRtsp ? "connector_remediation_generic_rtsp.json" :
   outputRescue ? "connector_remediation_output_rescue.json" :
@@ -144,8 +153,8 @@ const bundleName = codecPreservation ? "connector_remediation_codec_preservation
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = codecPreservation ? 45 : livenessIsolation ? 43 : genericRtsp ? 41 : outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = codecPreservation ? 46 : livenessIsolation ? 44 : genericRtsp ? 42 : outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = handoffContinuity ? 50 : codecPreservation ? 45 : livenessIsolation ? 43 : genericRtsp ? 41 : outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = handoffContinuity ? 51 : codecPreservation ? 46 : livenessIsolation ? 44 : genericRtsp ? 42 : outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -242,7 +251,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: codecPreservation ? "CONNECTOR_CODEC_PRESERVATION_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: handoffContinuity ? "CONNECTOR_HANDOFF_CONTINUITY_REGISTERED_DRAFT" :
+  codecPreservation ? "CONNECTOR_CODEC_PRESERVATION_REGISTERED_DRAFT" :
   livenessIsolation ? "CONNECTOR_LIVENESS_ISOLATION_REGISTERED_DRAFT" :
   genericRtsp ? "CONNECTOR_GENERIC_RTSP_REGISTERED_DRAFT" :
   outputRescue ? "CONNECTOR_OUTPUT_RESCUE_REGISTERED_DRAFT" :
