@@ -44,6 +44,9 @@ try {
     "scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   assert.match(registration, /--rescue-capacity/);
   assert.match(activation, /--rescue-capacity/);
+  assert.match(activation,
+    /rescueCapacity \? connectorCodecPreservationItem/);
+  assert.match(activation, /rescueCapacity \? 46/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,

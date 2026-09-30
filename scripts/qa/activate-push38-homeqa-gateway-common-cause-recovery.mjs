@@ -66,6 +66,8 @@ import { PUSH38_CONNECTOR_OUTPUT_RESCUE as connectorOutputRescueItem
 } from "../../services/video-gateway/push38-home-qa-connector-output-rescue.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_ISOLATION as connectorLivenessIsolationItem
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-isolation.mjs";
+import { PUSH38_CONNECTOR_CODEC_PRESERVATION as connectorCodecPreservationItem
+} from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -115,7 +117,8 @@ const item = rescueCapacity ? PUSH38_GATEWAY_RESCUE_CAPACITY :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = (probationBudget || rescueCapacity) ? connectorLivenessIsolationItem :
+const connectorItem = rescueCapacity ? connectorCodecPreservationItem :
+  probationBudget ? connectorLivenessIsolationItem :
   routineProvisional ? connectorRtspCadenceItem :
   (outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff)
   ? connectorOutputRescueItem :
@@ -426,7 +429,7 @@ const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_statu
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
-if (rollout.devices !== 2 || rollout.releases !== (rescueCapacity ? 45 : probationBudget ? 44 : routineProvisional ? 41 : continuousHandoff ? 39 : retainedFallback ? 38 : handoffProbation ? 37 : startupWindow ? 36 : confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+if (rollout.devices !== 2 || rollout.releases !== (rescueCapacity ? 46 : probationBudget ? 44 : routineProvisional ? 41 : continuousHandoff ? 39 : retainedFallback ? 38 : handoffProbation ? 37 : startupWindow ? 36 : confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
   (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
