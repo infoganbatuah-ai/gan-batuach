@@ -94,7 +94,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **329** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **331** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -229,6 +229,7 @@ Inventory count: **329** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-connector-host-continuity.mjs` | node scripts/qa/check-push38-connector-host-continuity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-known-good-restart.mjs` | node scripts/qa/check-push38-connector-known-good-restart.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-liveness-continuity.mjs` | node scripts/qa/check-push38-connector-liveness-continuity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-liveness-isolation-retry.mjs` | node scripts/qa/check-push38-connector-liveness-isolation-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-observed-health-retry.mjs` | node scripts/qa/check-push38-connector-observed-health-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-output-rescue-retry.mjs` | node scripts/qa/check-push38-connector-output-rescue-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-output-rescue.mjs` | node scripts/qa/check-push38-connector-output-rescue.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
@@ -392,6 +393,7 @@ Inventory count: **329** files. Classifications are conservative; environment-de
 | `scripts/qa/retry-push38-homeqa-connector-device-session-after-runtime-pid-fix.mjs` | node scripts/qa/retry-push38-homeqa-connector-device-session-after-runtime-pid-fix.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-final-stability-after-build-isolation.mjs` | node scripts/qa/retry-push38-homeqa-connector-final-stability-after-build-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-health-observation-after-build-isolation.mjs` | node scripts/qa/retry-push38-homeqa-connector-health-observation-after-build-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/retry-push38-homeqa-connector-liveness-isolation-after-host-recovery.mjs` | node scripts/qa/retry-push38-homeqa-connector-liveness-isolation-after-host-recovery.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | CAMERA / GATEWAY / CONNECTOR | HARDWARE / SUPPORT | requires exact Home Connector, isolated QA DB and restricted evidence path |
 | `scripts/qa/retry-push38-homeqa-connector-output-rescue.mjs` | node scripts/qa/retry-push38-homeqa-connector-output-rescue.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-restart-grace-after-source-recovery.mjs` | node scripts/qa/retry-push38-homeqa-connector-restart-grace-after-source-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/retry-push38-homeqa-connector-rtsp-cadence-after-build-isolation.mjs` | node scripts/qa/retry-push38-homeqa-connector-rtsp-cadence-after-build-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
