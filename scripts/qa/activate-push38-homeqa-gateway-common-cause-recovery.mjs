@@ -62,8 +62,8 @@ import { PUSH38_CONNECTOR_FINAL_STABILITY as connectorFinalStabilityItem
 } from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
 import { PUSH38_CONNECTOR_OUTPUT_RESCUE as connectorOutputRescueItem
 } from "../../services/video-gateway/push38-home-qa-connector-output-rescue.mjs";
-import { PUSH38_CONNECTOR_GENERIC_RTSP as connectorGenericRtspItem
-} from "../../services/video-gateway/push38-home-qa-connector-generic-rtsp.mjs";
+import { PUSH38_CONNECTOR_LIVENESS_ISOLATION as connectorLivenessIsolationItem
+} from "../../services/video-gateway/push38-home-qa-connector-liveness-isolation.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -110,7 +110,7 @@ const item = probationBudget ? PUSH38_GATEWAY_PROBATION_BUDGET :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = probationBudget ? connectorGenericRtspItem :
+const connectorItem = probationBudget ? connectorLivenessIsolationItem :
   routineProvisional ? connectorRtspCadenceItem :
   (outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff)
   ? connectorOutputRescueItem :

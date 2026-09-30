@@ -42,7 +42,7 @@ try {
     "scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   assert.match(registration, /--probation-budget/);
   assert.match(activation, /--probation-budget/);
-  assert.match(activation, /connectorGenericRtspItem/);
+  assert.match(activation, /connectorLivenessIsolationItem/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
