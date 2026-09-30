@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, lstatSync, readFileSync, realpathSync, statSync,
   writeFileSync } from "node:fs";
-import { availableParallelism, homedir, loadavg } from "node:os";
+import { availableParallelism, cpus, homedir, loadavg } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEdgeCrashLoopGuard } from "../../services/video-gateway/edge-crash-loop-guard.mjs";
@@ -86,6 +86,31 @@ async function sampleHealth() {
     event_loop_p99_ms: body.eventLoop?.delay_p99_ms ?? null,
     source_reason: body.sourceDiagnostics?.[0]?.reason ||
       body.mediaHeartbeat?.relayStates?.[0]?.failureReason || body.lastDiscovery?.reason || null };
+}
+
+function cpuTotals() {
+  return cpus().reduce((sum, cpu) => {
+    const total = Object.values(cpu.times).reduce((value, time) => value + time, 0);
+    return { idle: sum.idle + cpu.times.idle, total: sum.total + total };
+  }, { idle: 0, total: 0 });
+}
+async function sampleHostPressure() {
+  const before = cpuTotals();
+  await new Promise(resolveWait => setTimeout(resolveWait, 5_000));
+  const after = cpuTotals();
+  const totalDelta = after.total - before.total;
+  const idleDelta = after.idle - before.idle;
+  const memoryText = execFileSync("/usr/bin/memory_pressure", ["-Q"],
+    { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+  const stateText = execFileSync("/bin/ps", ["-axo", "state="],
+    { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+  const memoryFreePercent = Number(/System-wide memory free percentage:\s*(\d+)%/.exec(memoryText)?.[1]);
+  return { logical_cpus: availableParallelism(), load_1m: loadavg()[0],
+    load_5m: loadavg()[1], load_15m: loadavg()[2],
+    cpu_idle_percent: totalDelta > 0 ? Number(((idleDelta / totalDelta) * 100).toFixed(2)) : null,
+    memory_free_percent: memoryFreePercent,
+    uninterruptible_processes: stateText.split("\n").filter(state => /^[UD]/.test(state.trim())).length,
+    safety_basis: "5s CPU headroom >=35% when load is elevated; memory-pressure free >=20%; no U/D process" };
 }
 
 protectedFile(CONFIG_PATH, { restricted: false });
@@ -205,9 +230,11 @@ const agentText = execFileSync("/bin/launchctl", ["print",
 { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
 if (!agentText.includes("state = running") || !/\bpid = \d+/.test(agentText))
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_AGENT_UNAVAILABLE");
-const host = { logical_cpus: availableParallelism(), load_1m: loadavg()[0],
-  load_5m: loadavg()[1], load_15m: loadavg()[2] };
-if (host.load_1m > host.logical_cpus * 3)
+const host = await sampleHostPressure();
+if (!Number.isFinite(host.cpu_idle_percent) || host.cpu_idle_percent < 25 ||
+  !Number.isFinite(host.memory_free_percent) || host.memory_free_percent < 20 ||
+  host.uninterruptible_processes !== 0 ||
+  (host.load_1m > host.logical_cpus * 3 && host.cpu_idle_percent < 35))
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_HOST_SATURATED");
 
 const plan = { protocol: "observer-push38-connector-liveness-isolation-host-recovery-retry-v1",
