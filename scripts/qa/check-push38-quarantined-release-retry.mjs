@@ -23,6 +23,10 @@ test("retry removes only the verified failed slot and records an audit authoriza
   assert.match(manager, /quarantine-retry-authorizations\.json/);
   assert.match(manager, /EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED/);
   assert.match(manager, /remediation_evidence_sha256/);
+  assert.match(manager, /priorAuthorizations\.length !== 1/);
+  assert.match(manager, /QUALIFICATION_INTERFERENCE_REMOVED/);
+  assert.match(manager, /authorization_attempt/);
+  assert.match(manager, /prior_authorization_sha256/);
 });
 
 test("live command binds exact release, device, source, failure, and endpoint evidence", () => {

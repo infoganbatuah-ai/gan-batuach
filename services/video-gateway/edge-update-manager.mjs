@@ -168,7 +168,8 @@ export class EdgeUpdateManager {
     if (!current.some((item) => item.release_id === manifest.release_id)) current.push({ release_id: manifest.release_id, version: manifest.version, reason, at: new Date(this.now()).toISOString() });
     atomicJson(this.quarantinePath, current.slice(-100));
   }
-  authorizeQuarantinedReleaseRetry({ manifest: input, expectedFailureCategory, remediationEvidenceSha256 }) {
+  authorizeQuarantinedReleaseRetry({ manifest: input, expectedFailureCategory, remediationEvidenceSha256,
+    repeatAuthorization = null }) {
     if (!/^[a-f0-9]{64}$/.test(remediationEvidenceSha256 || ""))
       fail("EDGE_UPDATE_RETRY_EVIDENCE_REQUIRED");
     const verified = verifyEdgeUpdateManifest(input, this.trustedPublicKeys);
@@ -192,8 +193,21 @@ export class EdgeUpdateManager {
     if (!record || record.version !== manifest.version || record.reason !== expectedFailureCategory)
       fail("EDGE_UPDATE_RETRY_QUARANTINE_MISMATCH");
     const audit = this.readJson(this.quarantineRetryPath, []);
-    if (audit.some((item) => item.release_id === manifest.release_id))
-      fail("EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED");
+    const priorAuthorizations = audit.filter((item) => item.release_id === manifest.release_id);
+    if (priorAuthorizations.length) {
+      const prior = priorAuthorizations.at(-1);
+      const quarantineAt = Date.parse(record.at || "");
+      const priorAuthorizationAt = Date.parse(prior.authorized_at || "");
+      const repeatEvidence = repeatAuthorization?.interference_evidence_sha256;
+      if (priorAuthorizations.length !== 1 ||
+        repeatAuthorization?.category !== "QUALIFICATION_INTERFERENCE_REMOVED" ||
+        !/^[a-f0-9]{64}$/.test(repeatEvidence || "") ||
+        repeatEvidence === remediationEvidenceSha256 ||
+        remediationEvidenceSha256 === prior.remediation_evidence_sha256 ||
+        !Number.isFinite(quarantineAt) || !Number.isFinite(priorAuthorizationAt) ||
+        quarantineAt < priorAuthorizationAt)
+        fail("EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED");
+    }
     const failedSlot = join(this.root, "slots", safeVersion(manifest.version));
     const failedPointer = { version: manifest.version, slot: failedSlot, release_id: manifest.release_id,
       artifact_sha256: manifest.artifact_sha256 };
@@ -204,10 +218,17 @@ export class EdgeUpdateManager {
     rmSync(failedSlot, { recursive: true });
     atomicJson(this.quarantinePath, quarantined.filter((item) => item.release_id !== manifest.release_id));
     const authorization = { release_id: manifest.release_id, version: manifest.version,
+      authorization_attempt: priorAuthorizations.length + 1,
       previous_failure_category: expectedFailureCategory, remediation_evidence_sha256: remediationEvidenceSha256,
       recovery_failure_category: state.failure_category,
       authorized_at: new Date(this.now()).toISOString(), current_release_id: current.release_id,
-      current_artifact_sha256: current.artifact_sha256 };
+      current_artifact_sha256: current.artifact_sha256,
+      ...(priorAuthorizations.length ? {
+        repeat_authorization_category: repeatAuthorization.category,
+        interference_evidence_sha256: repeatAuthorization.interference_evidence_sha256,
+        prior_authorization_sha256: createHash("sha256")
+          .update(JSON.stringify(priorAuthorizations.at(-1))).digest("hex")
+      } : {}) };
     atomicJson(this.quarantineRetryPath, [...audit.slice(-99), authorization]);
     return authorization;
   }

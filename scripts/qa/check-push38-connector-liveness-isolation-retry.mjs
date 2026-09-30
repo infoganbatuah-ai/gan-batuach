@@ -37,3 +37,11 @@ test("apply uses canonical recovery and one-time retry while OTA remains sole in
   assert.doesNotMatch(source, /manager\.apply|adapter\.restart|launchctl", \["kickstart/);
   assert.doesNotMatch(source, /cohort_percent\s*=\s*100|cohort_percent=100/);
 });
+
+test("codec retry permits one evidence-bound interference retry and no active shadow", () => {
+  for (const value of ["--qualification-interference-retry",
+    "QUALIFICATION_INTERFERENCE_REMOVED", "activeShadowProcesses",
+    "REAL_DVR_SHADOW_COMPLETE", "NO_ACTIVE_SHADOW_PROCESS",
+    "retry_authorization_attempt", "interference_evidence_sha256"])
+    assert.ok(source.includes(value), `missing interference retry safeguard: ${value}`);
+});

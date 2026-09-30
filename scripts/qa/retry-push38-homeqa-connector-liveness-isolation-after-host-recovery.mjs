@@ -26,6 +26,9 @@ import { PUSH38_CONNECTOR_CODEC_PRESERVATION } from
 import { softwareConnectorDeviceSession } from "../../services/video-gateway/software-connector-cloud.mjs";
 
 const codecPreservationRetry = process.argv.includes("--codec-preservation");
+const qualificationInterferenceRetry = process.argv.includes("--qualification-interference-retry");
+if (qualificationInterferenceRetry && !codecPreservationRetry)
+  throw new Error("P38_CONNECTOR_INTERFERENCE_RETRY_REQUIRES_CODEC_RELEASE");
 const item = codecPreservationRetry ? PUSH38_CONNECTOR_CODEC_PRESERVATION :
   PUSH38_CONNECTOR_LIVENESS_ISOLATION;
 const FAILURE = "EDGE_UPDATE_CRASH_LOOP";
@@ -55,6 +58,12 @@ function persist(value) {
   writeFileSync(outputPath, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: "wx" });
   chmodSync(outputPath, 0o600);
   return sha(readFileSync(outputPath));
+}
+function activeShadowProcesses() {
+  const text = execFileSync("/bin/ps", ["-axo", "pid=,command="],
+    { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+  return text.split("\n").filter(line => /scripts\/qa\/run-push38-dvr-shadow\.mjs/.test(line))
+    .map(line => Number(/^\s*(\d+)/.exec(line)?.[1] || 0)).filter(Boolean);
 }
 function docker(args, input) {
   return execFileSync("docker", ["--context", "colima-push38t", ...args], {
@@ -179,6 +188,9 @@ const manager = new EdgeUpdateManager({ root: ROOT, trustedPublicKeys: trusted,
     architecture: "arm64", channel: "HOME_QA", currentVersion: item.rollbackVersion,
     configVersion: 4, revoked: false }, adapter, healthCheck });
 const state = manager.status(), current = manager.current(), knownGood = manager.knownGood();
+const retryAudit = manager.readJson(manager.quarantineRetryPath, [])
+  .filter(entry => entry.release_id === item.releaseId);
+const expectedPriorAuthorizations = qualificationInterferenceRetry ? 1 : 0;
 const originalFailurePreserved = (state.history || []).some(entry =>
   ["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(entry.state) && entry.category === FAILURE);
 if (!((state.state === "ACTION_REQUIRED" && state.failure_category === "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP") ||
@@ -188,11 +200,45 @@ if (!((state.state === "ACTION_REQUIRED" && state.failure_category === "EDGE_UPD
     entry.artifact_sha256 === current.artifact_sha256) ||
   !manager.quarantine().some(entry => entry.release_id === item.releaseId &&
     entry.version === item.version && entry.reason === FAILURE) ||
-  manager.readJson(manager.quarantineRetryPath, []).some(entry => entry.release_id === item.releaseId))
+  retryAudit.length !== expectedPriorAuthorizations)
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_ROLLBACK_STATE_INVALID");
 manager.verifySlot(current);
 manager.verifySlot({ version: item.version, slot: SLOT, release_id: item.releaseId,
   artifact_sha256: item.digest });
+
+const interferenceEvidence = qualificationInterferenceRetry ? (() => {
+  const activationPath = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/" +
+    "push38-gateway-codec-preservation-22f852d2/activation-apply-20260930T1721Z.json";
+  const shadowPath = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/" +
+    "push38-gateway-handoff-hardware-5d29b3a9/signed-shadow-hardware-live-20260930T1815Z.json";
+  const activationBytes = protectedFile(activationPath);
+  const shadowBytes = protectedFile(shadowPath);
+  const activation = JSON.parse(activationBytes);
+  const shadow = JSON.parse(shadowBytes);
+  const connectorPids = [...new Set((activation.connector_runtime_samples || []).map(sample => sample.pid))];
+  const rollbackAt = Date.parse(state.history?.findLast(entry =>
+    entry.state === "ROLLBACK_REQUIRED" && entry.category === FAILURE)?.at || "");
+  const shadowStartedAt = Date.parse(shadow.started_at || "");
+  const shadowEndedAt = Date.parse(shadow.ended_at || "");
+  if (connectorPids.length !== 1 || connectorPids[0] !== 92609 ||
+    (activation.connector_runtime_samples || []).some(sample => !sample.ok || sample.status !== "healthy") ||
+    activation.connector_release_id !== item.releaseId ||
+    shadow.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || shadow.runtime_mutation !== false ||
+    shadow.signed_release?.release_id !== "qa-p38-health-gateway-handoff-hardware-284d3c992aa4" ||
+    !Number.isFinite(rollbackAt) || !Number.isFinite(shadowStartedAt) || !Number.isFinite(shadowEndedAt) ||
+    rollbackAt < shadowStartedAt || rollbackAt > shadowEndedAt || activeShadowProcesses().length !== 0)
+    throw new Error("P38_CONNECTOR_INTERFERENCE_EVIDENCE_INVALID");
+  return { category: "QUALIFICATION_INTERFERENCE_REMOVED",
+    activation_evidence_sha256: sha(activationBytes), shadow_evidence_sha256: sha(shadowBytes),
+    interference_evidence_sha256: sha(Buffer.from(JSON.stringify({
+      connector_pid: connectorPids[0], activation_evidence_sha256: sha(activationBytes),
+      shadow_evidence_sha256: sha(shadowBytes), shadow_started_at: shadow.started_at,
+      shadow_ended_at: shadow.ended_at,
+      rollback_at: new Date(rollbackAt).toISOString(), active_shadow_processes: 0
+    }))), connector_runtime_pid: connectorPids[0], shadow_started_at: shadow.started_at,
+    shadow_ended_at: shadow.ended_at, rollback_at: new Date(rollbackAt).toISOString(),
+    active_shadow_processes: 0 };
+})() : null;
 
 const qa = JSON.parse(psql(`select jsonb_build_object(
   'devices',(select count(*) from public.video_gateway_device_enrollments),
@@ -254,7 +300,9 @@ if (!Number.isFinite(host.cpu_idle_percent) || host.cpu_idle_percent < 25 ||
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_HOST_SATURATED");
 
 const plan = { protocol: codecPreservationRetry
-  ? "observer-push38-connector-codec-preservation-host-recovery-retry-v1"
+  ? qualificationInterferenceRetry
+    ? "observer-push38-connector-codec-preservation-interference-retry-v1"
+    : "observer-push38-connector-codec-preservation-host-recovery-retry-v1"
   : "observer-push38-connector-liveness-isolation-host-recovery-retry-v1",
   generated_at: new Date().toISOString(), release_id: item.releaseId, version: item.version,
   artifact_sha256: item.digest, previous_failure_category: FAILURE,
@@ -262,9 +310,14 @@ const plan = { protocol: codecPreservationRetry
   rollback_target: item.rollbackReleaseId, exact_device_id: item.deviceId, cohort_percent: 0,
   signed_manifest: "PASS", live_trust: "PASS", managed_device_auth: "PASS",
   current_runtime_samples: samples, host_pressure: host,
+  retry_authorization_attempt: retryAudit.length + 1,
+  qualification_interference: interferenceEvidence,
   host_remediation: codecPreservationRetry
-    ? ["CHROME_PROCESS_GROUP_PAUSED", "CUA_NODE_PAUSED",
-      "EXACT_SIGNED_KNOWN_GOOD_RESTARTED", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"]
+    ? qualificationInterferenceRetry
+      ? ["REAL_DVR_SHADOW_COMPLETE", "NO_ACTIVE_SHADOW_PROCESS",
+        "EXACT_SIGNED_KNOWN_GOOD_STABLE", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"]
+      : ["CHROME_PROCESS_GROUP_PAUSED", "CUA_NODE_PAUSED",
+        "EXACT_SIGNED_KNOWN_GOOD_RESTARTED", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"]
     : ["FSEVENTS_RESTARTED_WITH_SIP_PRESERVED",
       "ORPHAN_COLIMA_VM_AND_USERNET_HELPERS_STOPPED", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"],
   ota_agent_owns_install: true, functional_runtime_changed_by_command: false, runtime_writes: 0 };
@@ -320,7 +373,8 @@ try {
   if (manager.status().state !== "ROLLED_BACK")
     throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_RECOVERY_FAILED");
   const authorization = manager.authorizeQuarantinedReleaseRetry({ manifest,
-    expectedFailureCategory: FAILURE, remediationEvidenceSha256: planSha256 });
+    expectedFailureCategory: FAILURE, remediationEvidenceSha256: planSha256,
+    repeatAuthorization: interferenceEvidence });
   const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(), recovery,
     crash_guard: guard?.action || "ALREADY_RECONCILED", authorization,
     failed_slot_removed: !existsSync(SLOT), exact_rollout_active: true, broad_cohort: false,

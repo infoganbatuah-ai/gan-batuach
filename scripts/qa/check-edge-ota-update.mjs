@@ -97,6 +97,18 @@ assert.equal((await repeatRetry.value.apply({ manifest: badManifest, artifactByt
 await assert.rejects(async () => repeatRetry.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
   expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "e".repeat(64) }),
 /EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED/);
+const boundedSecondRetry = repeatRetry.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
+  expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "e".repeat(64),
+  repeatAuthorization: { category: "QUALIFICATION_INTERFERENCE_REMOVED",
+    interference_evidence_sha256: "f".repeat(64) } });
+assert.equal(boundedSecondRetry.authorization_attempt, 2);
+assert.equal(boundedSecondRetry.repeat_authorization_category, "QUALIFICATION_INTERFERENCE_REMOVED");
+assert.equal((await repeatRetry.value.apply({ manifest: badManifest, artifactBytes: artifact })).state,
+  "ROLLED_BACK");
+await assert.rejects(async () => repeatRetry.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
+  expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "1".repeat(64),
+  repeatAuthorization: { category: "QUALIFICATION_INTERFERENCE_REMOVED",
+    interference_evidence_sha256: "2".repeat(64) } }), /EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED/);
 
 // If the signed known-good service is restored but its first managed-auth
 // probe is unavailable, preserve ACTION_REQUIRED. A later stable proof may
