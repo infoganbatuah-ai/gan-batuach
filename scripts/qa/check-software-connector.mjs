@@ -30,6 +30,9 @@ test("software and physical deployments share one runtime contract", () => {
   assert.equal(software.device_type, "SOFTWARE_CONNECTOR");
   assert.equal(physical.device_type, "PHYSICAL_GATEWAY");
   assert.equal(software.outbound_only, true);
+  assert.equal(software.resource_limits.max_cameras, 8);
+  assert.equal(physical.resource_limits.max_cameras, 16);
+  assert.equal(physical.resource_limits.max_parallel_relays, 20);
 });
 
 test("secure volume keeps identity and credentials private across restart", () => {
