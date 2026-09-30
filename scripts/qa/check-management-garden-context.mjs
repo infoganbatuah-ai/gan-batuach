@@ -176,6 +176,15 @@ for (const role of ["manager", "owner"]) {
       "zod": require("zod"),
       "@/lib/api": { ...api, ok: data => Response.json({ data }), handleRouteError: error => { throw error; } },
       "@/lib/management/garden-context": f.guard,
+      "@/lib/management/external-delivery": {
+        managementDeliveryCapability: () => ({
+          in_app: "available",
+          push: "not_configured",
+          email: "not_configured",
+          whatsapp: "not_configured",
+          sms: "not_configured"
+        })
+      },
       "@/lib/supabase/server": { createClient: async () => ({ from: table => ({ upsert: row => {
         assert.equal(f.calls.length, 1, "authorization must precede write");
         writes.push({ table, garden: row.garden_id, channel: row.default_parent_channel });
