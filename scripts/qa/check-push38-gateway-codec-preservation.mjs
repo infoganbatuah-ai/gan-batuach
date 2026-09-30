@@ -51,6 +51,8 @@ try {
   assert.match(publisher, /--gateway-codec-preservation/);
   assert.match(activation, /codecPreservation \? connectorCodecPreservationItem/);
   assert.match(activation, /codecPreservation \? 47/);
+  assert.match(activation, /rescueCapacity \|\| codecPreservation\)\s*\n\s*\? item\.agentPredecessorReleaseId/);
+  assert.match(activation, /codecPreservation \? "gateway_remediation_codec_preservation\.json"/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,

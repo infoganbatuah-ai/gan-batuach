@@ -340,14 +340,15 @@ if (config.profile !== item.profile || config.deviceId !== item.deviceId || conf
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity)
+const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation)
   ? item.agentPredecessorReleaseId : item.releaseId;
-const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity)
+const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation)
   ? item.priorManagementArtifactSha256 : item.digest;
 if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_sha256 !== expectedAgentDigest)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  codecPreservation ? "gateway_remediation_codec_preservation.json" :
   rescueCapacity ? "gateway_remediation_rescue_capacity.json" :
   probationBudget ? "gateway_remediation_probation_budget.json" :
   routineProvisional ? "gateway_remediation_routine_provisional.json" :
