@@ -298,7 +298,7 @@ async function healthSample(port, label) {
 
 function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   confirmedWarmHandoff = false, verifyPlaybackRenewals = false, boundedWarmupFailure = false,
-  expectedRelease = null, expectedChannel = 1 } = {}) {
+  hardwareHandoff = false, expectedRelease = null, expectedChannel = 1 } = {}) {
   const value = JSON.parse(protectedFile(path));
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
   const endedAt = Date.parse(value.ended_at || "");
@@ -311,6 +311,10 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
     renewals.every(renewal => renewal.status === 200 && renewal.playlist_status === 200 &&
       renewal.segment_status === 200 && renewal.segment_bytes > 0);
   const lifecycle = checkpoints.at(-1)?.shadow?.media?.lifecycle || {};
+  const hardwareHandoffProof = !hardwareHandoff || value.discovery?.codec === "hevc" &&
+    checkpoints.every(point => point.shadow?.media?.inputs?.length === 1 &&
+      point.shadow.media.inputs[0]?.encoder === "videotoolbox") &&
+    lifecycle.warmHandoffs >= 1;
   // A failed warmup is not a media outage when the authoritative relay stays
   // current and the next bounded attempt succeeds. The continuous-handoff
   // proof permits exactly one such contained retry, but still rejects every
@@ -330,7 +334,7 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
       value.signed_release?.signature_verified !== true || value.signed_release?.artifact_verified !== true)) ||
     !Number.isFinite(value.duration_ms) || value.duration_ms < (warmHandoff ? 6 * 60_000 : 60_000) ||
     !Number.isFinite(endedAt) || (recent && (endedAt > Date.now() || Date.now() - endedAt > 10 * 60_000)) ||
-    !streamProof || !playbackProof || !boundedFailureProof || (warmHandoff &&
+    !streamProof || !playbackProof || !boundedFailureProof || !hardwareHandoffProof || (warmHandoff &&
       (lifecycle.warmHandoffs < 1 ||
         !boundedWarmupFailure && lifecycle.warmHandoffFailures !== 0)) ||
     (confirmedWarmHandoff &&
@@ -719,6 +723,7 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
       warmHandoff: true,
       confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware,
       verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware,
+      hardwareHandoff: handoffHardware,
       boundedWarmupFailure: continuousHandoff,
       expectedRelease: item, expectedChannel: 1 });
   } catch {

@@ -48,6 +48,9 @@ try {
     assert.match(source, /--gateway-handoff-hardware/);
   assert.match(activation, /handoffHardware \? 48/);
   assert.match(activation, /handoffHardware \? "gateway_remediation_handoff_hardware\.json"/);
+  assert.match(activation, /hardwareHandoff: handoffHardware/);
+  const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
+  assert.match(shadow, /encoder: input\.encoder \?\? null/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,

@@ -171,6 +171,7 @@ async function health(url) {
       lifecycle: body.mediaHeartbeat.lifecycle,
       inputs: Array.isArray(body.mediaHeartbeat.inputs) ? body.mediaHeartbeat.inputs.map((input) => ({
         channel: input.channel,
+        encoder: input.encoder ?? null,
         bytes: input.bytes ?? input.input_bytes,
         chunks: input.chunks ?? input.input_chunks,
         progressing: input.progressing,
