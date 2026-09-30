@@ -181,7 +181,8 @@ function tlsProbe(path) {
 }
 async function runtimeSample() {
   const live = service("com.ganbatuach.software-connector.tapo");
-  const response = await fetch("http://127.0.0.1:18083/health", { signal: AbortSignal.timeout(5_000) });
+  const response = await fetch("http://127.0.0.1:18083/health",
+    { signal: AbortSignal.timeout(livenessIsolation ? 8_000 : 5_000) });
   if (!response.ok) throw new Error("P38_CONNECTOR_RTSP_SESSION_RUNTIME_UNAVAILABLE");
   const health = await response.json();
   return { pid: live.pid, running: live.running, ok: health.ok === true,
@@ -190,6 +191,21 @@ async function runtimeSample() {
     progressing: health.mediaHeartbeat?.progressingRelays ?? null,
     stalled: health.mediaHeartbeat?.stalledRelays ?? null,
     reason: health.lastDiscovery?.reason || health.mediaHeartbeat?.relayStates?.[0]?.failureReason || null };
+}
+async function boundedRuntimeSample() {
+  const attempts = livenessIsolation ? 3 : 1;
+  let failure;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return { ...await runtimeSample(), healthAttempts: attempt };
+    } catch (error) {
+      failure = error;
+      const live = service("com.ganbatuach.software-connector.tapo");
+      if (!live.running || !live.pid || attempt === attempts) break;
+      await new Promise(resolveWait => setTimeout(resolveWait, 2_000));
+    }
+  }
+  throw failure;
 }
 
 for (const path of [bundle, artifact, publication]) protectedFile(path);
@@ -295,7 +311,7 @@ if (!runtime.running || !runtime.pid || !agent.running || !agent.pid)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_SERVICE_MANAGER_INVALID");
 const samples = [];
 for (let index = 0; index < 3; index += 1) {
-  samples.push(await runtimeSample());
+  samples.push(await boundedRuntimeSample());
   if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 2_000));
 }
 // The Tapo outage is the remediation target. Require a stable supervised
