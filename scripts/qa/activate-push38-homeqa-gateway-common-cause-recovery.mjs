@@ -50,6 +50,8 @@ import { PUSH38_GATEWAY_ROUTINE_PROVISIONAL
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-provisional.mjs";
 import { PUSH38_GATEWAY_PROBATION_BUDGET
 } from "../../services/video-gateway/push38-home-qa-gateway-probation-budget.mjs";
+import { PUSH38_GATEWAY_RESCUE_CAPACITY
+} from "../../services/video-gateway/push38-home-qa-gateway-rescue-capacity.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -88,12 +90,15 @@ const retainedFallback = process.argv.includes("--retained-fallback");
 const continuousHandoff = process.argv.includes("--continuous-handoff");
 const routineProvisional = process.argv.includes("--routine-provisional");
 const probationBudget = process.argv.includes("--probation-budget");
+const rescueCapacity = process.argv.includes("--rescue-capacity");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
-  handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget]
+  handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
+  rescueCapacity]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = probationBudget ? PUSH38_GATEWAY_PROBATION_BUDGET :
+const item = rescueCapacity ? PUSH38_GATEWAY_RESCUE_CAPACITY :
+  probationBudget ? PUSH38_GATEWAY_PROBATION_BUDGET :
   routineProvisional ? PUSH38_GATEWAY_ROUTINE_PROVISIONAL :
   continuousHandoff ? PUSH38_GATEWAY_CONTINUOUS_HANDOFF :
   retainedFallback ? PUSH38_GATEWAY_RETAINED_FALLBACK :
@@ -110,7 +115,7 @@ const item = probationBudget ? PUSH38_GATEWAY_PROBATION_BUDGET :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = probationBudget ? connectorLivenessIsolationItem :
+const connectorItem = (probationBudget || rescueCapacity) ? connectorLivenessIsolationItem :
   routineProvisional ? connectorRtspCadenceItem :
   (outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff)
   ? connectorOutputRescueItem :
@@ -118,12 +123,14 @@ const connectorItem = probationBudget ? connectorLivenessIsolationItem :
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = probationBudget
+const artifact = rescueCapacity
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-rescue-capacity-cedab840/gateway-runtime.tar.gz"
+  : probationBudget
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-probation-budget-0028df7f/gateway-runtime.tar.gz"
   : routineProvisional
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-routine-rebased-167ad231/gateway-runtime.tar.gz"
@@ -158,7 +165,9 @@ const artifact = probationBudget
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = probationBudget
+const publication = rescueCapacity
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-rescue-capacity-cedab840/r2-publication.json"
+  : probationBudget
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-probation-budget-0028df7f/r2-publication.json"
   : routineProvisional
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-routine-rebased-167ad231/r2-publication.json"
@@ -319,14 +328,15 @@ if (config.profile !== item.profile || config.deviceId !== item.deviceId || conf
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget)
+const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity)
   ? item.agentPredecessorReleaseId : item.releaseId;
-const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget)
+const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity)
   ? item.priorManagementArtifactSha256 : item.digest;
 if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_sha256 !== expectedAgentDigest)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  rescueCapacity ? "gateway_remediation_rescue_capacity.json" :
   probationBudget ? "gateway_remediation_probation_budget.json" :
   routineProvisional ? "gateway_remediation_routine_provisional.json" :
   continuousHandoff ? "gateway_remediation_continuous_handoff.json" :
@@ -416,7 +426,7 @@ const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_statu
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
-if (rollout.devices !== 2 || rollout.releases !== (probationBudget ? 44 : routineProvisional ? 41 : continuousHandoff ? 39 : retainedFallback ? 38 : handoffProbation ? 37 : startupWindow ? 36 : confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+if (rollout.devices !== 2 || rollout.releases !== (rescueCapacity ? 45 : probationBudget ? 44 : routineProvisional ? 41 : continuousHandoff ? 39 : retainedFallback ? 38 : handoffProbation ? 37 : startupWindow ? 36 : confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
   (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
@@ -439,7 +449,7 @@ for (let index = 0; index < 3; index += 1) {
 const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample.pid) &&
   new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
 const expectsNineSources = stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep ||
-  heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget;
+  heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity;
 const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
   gatewaySamples.every(sample =>
     sample.assigned === 10 && sample.connected === (expectsNineSources ? 9 : 8) &&
@@ -484,7 +494,7 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
-const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget) && gatewaySamples.every(sample =>
+const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity) && gatewaySamples.every(sample =>
   (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
   Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
   Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
@@ -542,6 +552,36 @@ if (heartbeatLogin) {
     authentication_rejected: outage.dvr.recorder_session.authentication_rejected,
     last_rotation_reason: outage.dvr.session_lifecycle.last_rotation_reason,
     live_recovery_required: true };
+}
+if (rescueCapacity) {
+  const bytes = protectedFile(failedPreSoakEvidencePath);
+  const rows = bytes.toString("utf8").trim().split("\n").map(line => JSON.parse(line));
+  const stableBefore = rows.find(point => point.dvr?.progressing === 9 &&
+    point.release?.gateway?.software_version === item.supersedesVersion);
+  const blockedRescue = rows.find(point => point.dvr?.progressing === 8 &&
+    point.release?.gateway?.software_version === item.supersedesVersion &&
+    point.dvr?.recorder_session?.failures === 0 &&
+    point.dvr?.recorder_session?.authentication_rejected === 0 &&
+    point.dvr?.session_lifecycle?.rotations === 0 &&
+    point.dvr?.lifecycle?.warmHandoffProbations >= 4 &&
+    point.dvr?.lifecycle?.staleInput >= 1);
+  const recovered = rows.find(point => blockedRescue && point.sequence > blockedRescue.sequence &&
+    point.dvr?.progressing === 9 && point.release?.gateway?.software_version === item.supersedesVersion);
+  if (rows.length < 6 || rows.some(point => point.qualification_stage !== "PRE_SOAK") ||
+    !stableBefore || !blockedRescue || !recovered ||
+    stableBefore.sequence >= blockedRescue.sequence ||
+    blockedRescue.dvr?.lifecycle?.inputSocketError !== 0 ||
+    !Number.isFinite(Date.parse(blockedRescue.sampled_at || "")))
+    throw new Error("P38_GATEWAY_RESCUE_CAPACITY_FAILED_PRE_SOAK_EVIDENCE_INVALID");
+  failedPreSoakEvidence = { sha256: sha(bytes), checkpoints: rows.length,
+    prior_progressing: stableBefore.dvr.progressing,
+    minimum_progressing: Math.min(...rows.map(point => point.dvr.progressing)),
+    affected_sequence: blockedRescue.sequence,
+    recorder_session_failures: blockedRescue.dvr.recorder_session.failures,
+    authentication_rejected: blockedRescue.dvr.recorder_session.authentication_rejected,
+    session_rotations: blockedRescue.dvr.session_lifecycle.rotations,
+    warm_handoff_probations: blockedRescue.dvr.lifecycle.warmHandoffProbations,
+    recovered_sequence: recovered.sequence, live_recovery_required: true };
 }
 if (idleHandoff) {
   const bytes = protectedFile(failedCanaryEvidencePath);
@@ -623,14 +663,14 @@ if (handoffProbation || retainedFallback || continuousHandoff) {
     socket_error_delta: result.gateway.socket_error_delta, playback_failures: result.playback.failures,
     ai_failures: result.ai.failures, live_recovery_required: true };
 }
-if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget) {
+if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity) {
   if (!shadowEvidencePath)
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
       warmHandoff: true,
-      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget,
-      verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget,
+      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity,
+      verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity,
       boundedWarmupFailure: continuousHandoff,
       expectedRelease: item, expectedChannel: 1 });
   } catch {
@@ -667,7 +707,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: probationBudget ? "observer-push38-gateway-probation-budget-activation-v1" :
+const plan = { protocol: rescueCapacity ? "observer-push38-gateway-rescue-capacity-activation-v1" :
+  probationBudget ? "observer-push38-gateway-probation-budget-activation-v1" :
   routineProvisional ? "observer-push38-gateway-routine-provisional-activation-v1" :
   continuousHandoff ? "observer-push38-gateway-continuous-handoff-activation-v1" :
   retainedFallback ? "observer-push38-gateway-retained-fallback-activation-v1" :
@@ -690,7 +731,8 @@ const plan = { protocol: probationBudget ? "observer-push38-gateway-probation-bu
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (probationBudget ? "ROUTINE_PROVISIONAL_LIVENESS_FAILURE_PROBATION_BUDGET_QUALIFIED" :
+    retainedFallbackTargetTruth ? (rescueCapacity ? "FAILED_PRE_SOAK_OUTPUT_RESCUE_CAPACITY_SHADOW_QUALIFIED" :
+      probationBudget ? "ROUTINE_PROVISIONAL_LIVENESS_FAILURE_PROBATION_BUDGET_QUALIFIED" :
       routineProvisional ? "CONTINUOUS_HANDOFF_GAP_SHADOW_ROUTINE_PROVISIONAL_QUALIFIED" :
       continuousHandoff ? "RETAINED_FALLBACK_GAP_SHADOW_CONTINUOUS_HANDOFF_QUALIFIED" :
       "FAILED_HANDOFF_PROBATION_SHADOW_RETAINED_FALLBACK_QUALIFIED") :
@@ -714,15 +756,16 @@ const plan = { protocol: probationBudget ? "observer-push38-gateway-probation-bu
     service_pid_stable: gatewayPidStable
   } } : {}),
   dvr_truth: { expected: 10,
-    source_available: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget) ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
-    upstream_unavailable: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget) ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
+    source_available: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity) ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
+    upstream_unavailable: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity) ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
     empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: probationBudget ? "GATEWAY_PROBATION_BUDGET_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: rescueCapacity ? "GATEWAY_RESCUE_CAPACITY_PREFLIGHT_PASS" :
+    probationBudget ? "GATEWAY_PROBATION_BUDGET_PREFLIGHT_PASS" :
     routineProvisional ? "GATEWAY_ROUTINE_PROVISIONAL_PREFLIGHT_PASS" :
     continuousHandoff ? "GATEWAY_CONTINUOUS_HANDOFF_PREFLIGHT_PASS" :
     retainedFallback ? "GATEWAY_RETAINED_FALLBACK_PREFLIGHT_PASS" :
@@ -776,7 +819,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: probationBudget ? "EXACT_GATEWAY_PROBATION_BUDGET_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: rescueCapacity ? "EXACT_GATEWAY_RESCUE_CAPACITY_ROLLOUT_ACTIVE" :
+  probationBudget ? "EXACT_GATEWAY_PROBATION_BUDGET_ROLLOUT_ACTIVE" :
   routineProvisional ? "EXACT_GATEWAY_ROUTINE_PROVISIONAL_ROLLOUT_ACTIVE" :
   continuousHandoff ? "EXACT_GATEWAY_CONTINUOUS_HANDOFF_ROLLOUT_ACTIVE" :
   retainedFallback ? "EXACT_GATEWAY_RETAINED_FALLBACK_ROLLOUT_ACTIVE" :
