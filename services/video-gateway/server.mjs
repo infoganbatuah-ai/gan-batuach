@@ -41,7 +41,8 @@ import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight
 import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 import { createPrivateNvrCommandRuntime } from "./private-nvr-command-runtime.mjs";
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
-import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from "./hardware-transcoder.mjs";
+import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs,
+  shouldQuarantineHardwareTranscoder } from "./hardware-transcoder.mjs";
 import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
 import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
 import { createEdgeSupervisor, EDGE_RECOVERY_ACTION } from "./edge-supervision.mjs";
@@ -1772,7 +1773,9 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   child.on("close", (code) => {
     liveRelays.delete(relay);
     relay.drainTimer && clearTimeout(relay.drainTimer);
-    if (hardwareVideo && code !== null && code !== 0 && !relay.inputFailed) hardwareTranscoder.failed(streamId);
+    if (hardwareVideo && shouldQuarantineHardwareTranscoder({ exitCode: code,
+      inputFailed: relay.inputFailed, stopReason: relay.stopReason }))
+      hardwareTranscoder.failed(streamId);
     if (code === 0) relayLifecycle.upstreamEnded += 1;
     else if (code !== null) relayLifecycle.upstreamFailed += 1;
     const exitReason = classifyRelayExit({ stopReason: relay.stopReason, inputErrorCode: relay.lastInputErrorCode, stderr: relay.errorSummary, code });

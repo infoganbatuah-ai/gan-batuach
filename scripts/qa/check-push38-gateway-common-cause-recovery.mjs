@@ -24,6 +24,8 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
+import { shouldQuarantineHardwareTranscoder } from
+  "../../services/video-gateway/hardware-transcoder.mjs";
 
 const installer = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
 const registration = readFileSync("scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
@@ -76,6 +78,18 @@ test("only authentication rejection or corroborated common-cause loss may rotate
     heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
   }), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
+});
+
+test("intentional relay handoff never quarantines the hardware encoder", () => {
+  assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: null }), false);
+  assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 0 }), false);
+  assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 9,
+    stopReason: "WARM_HANDOFF" }), false);
+  assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 9,
+    stopReason: "STALE_INPUT" }), false);
+  assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 1,
+    inputFailed: true }), false);
+  assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 1 }), true);
 });
 
 test("heartbeat-maintained recorder login never rotates under progressing media", () => {
