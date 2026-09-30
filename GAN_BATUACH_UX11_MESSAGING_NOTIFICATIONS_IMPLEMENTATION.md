@@ -154,4 +154,12 @@ Material visual deviations: none. The reference depicts external delivery switch
 
 ## Integration closure
 
-This section is finalized after exact-head checks and integration merge.
+- Source Development head: `a1f521151804c9bf630c62c6f6ffb9aea71d3d3d`
+- Product commits: `759777d6afc907134d36349fd983ad23fac589fb`, `efa2e97a0dd2e5718302ed33425d9a71d1622fe3`
+- Branch: `codex/ux-implement-11-messaging-notifications`
+- Pull request: `#156` targeting `integration/development`
+- Exact-head checks: Management tenant context `36695747827` PASS; Digital Observer CI `36695747834` PASS including all six required gates and canonical quality; Snyk PASS
+- Product merge: `1c29c53fb35bdb28a2a10d19759a9355c9df3ef1`
+- Preservation: both scoped commits are ancestors of the remote Development merge
+- Post-merge: UX-11 focused `8/8`; management Garden context `50/50`; Development drift `244/244`; canonical Development preview `HTTP 200`, app `ok`, isolated Supabase `ok`
+- Production: untouched; no `main` merge, Production deployment, Production migration or Production data mutation
