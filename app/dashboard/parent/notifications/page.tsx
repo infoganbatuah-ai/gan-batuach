@@ -4,6 +4,7 @@ import { ParentAppFrame, ParentHero, ParentSection } from "@/components/parent-a
 import { ParentNotificationPreferences } from "@/components/parent-notification-preferences";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
 function categoryLabel(item: any) {
   const text = `${item.title ?? ""} ${item.message ?? item.body ?? ""} ${item.entity_type ?? ""}`.toLowerCase();
@@ -32,7 +33,7 @@ export default async function ParentNotificationsPage() {
         <ParentHero title="מרכז עדכונים" subtitle="מה צריך את תשומת הלב שלך היום?" />
         <section className="parent-notification-categories">{categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
         <ParentSection title="העדפות התראות" subtitle="בחירה אילו עדכונים לקבל ובאיזה ערוץ.">
-          <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} />
+          <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />
         </ParentSection>
         <ParentSection title="התראות אחרונות" subtitle="אירועים רגישים מוצגים רק אחרי בדיקה ואישור.">
           <NotificationCenter notifications={rows} />
