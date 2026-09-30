@@ -162,4 +162,5 @@ Material visual deviations: none. The reference depicts external delivery switch
 - Product merge: `1c29c53fb35bdb28a2a10d19759a9355c9df3ef1`
 - Preservation: both scoped commits are ancestors of the remote Development merge
 - Post-merge: UX-11 focused `8/8`; management Garden context `50/50`; Development drift `244/244`; canonical Development preview `HTTP 200`, app `ok`, isolated Supabase `ok`
+- Security closure: newly published `GHSA-vcvr-r3jv-pc5j` and `GHSA-m9gg-hp2v-232j` were cleared with compatible Next.js `16.3.8` and grpc-js `1.14.5` updates; clean install and `npm audit` report zero vulnerabilities; typecheck, lint, security `10/10`, UX-11 `8/8` and the 538-page Production build pass
 - Production: untouched; no `main` merge, Production deployment, Production migration or Production data mutation
