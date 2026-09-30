@@ -298,7 +298,8 @@ async function healthSample(port, label) {
 
 function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   confirmedWarmHandoff = false, verifyPlaybackRenewals = false, boundedWarmupFailure = false,
-  hardwareHandoff = false, expectedRelease = null, expectedChannel = 1 } = {}) {
+  hardwareHandoff = false, expectedRelease = null, expectedChannel = 1,
+  recentMaxAgeMs = 10 * 60_000 } = {}) {
   const value = JSON.parse(protectedFile(path));
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
   const endedAt = Date.parse(value.ended_at || "");
@@ -344,7 +345,8 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
       value.signed_release?.artifact_sha256 !== expectedRelease.digest ||
       value.signed_release?.signature_verified !== true || value.signed_release?.artifact_verified !== true)) ||
     !Number.isFinite(value.duration_ms) || value.duration_ms < (warmHandoff ? 6 * 60_000 : 60_000) ||
-    !Number.isFinite(endedAt) || (recent && (endedAt > Date.now() || Date.now() - endedAt > 10 * 60_000)) ||
+    !Number.isFinite(endedAt) || (recent &&
+      (endedAt > Date.now() || Date.now() - endedAt > recentMaxAgeMs)) ||
     !streamProof || !playbackProof || !boundedFailureProof || !hardwareHandoffProof || (warmHandoff &&
       (lifecycle.warmHandoffs < 1 ||
         !boundedWarmupFailure && lifecycle.warmHandoffFailures !== 0)) ||
@@ -735,6 +737,7 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
       confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware,
       verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware,
       hardwareHandoff: handoffHardware,
+      recentMaxAgeMs: handoffHardware ? 60 * 60_000 : 10 * 60_000,
       boundedWarmupFailure: continuousHandoff,
       expectedRelease: item, expectedChannel: 1 });
   } catch {

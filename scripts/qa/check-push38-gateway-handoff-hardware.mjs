@@ -49,6 +49,7 @@ try {
   assert.match(activation, /handoffHardware \? 48/);
   assert.match(activation, /handoffHardware \? "gateway_remediation_handoff_hardware\.json"/);
   assert.match(activation, /hardwareHandoff: handoffHardware/);
+  assert.match(activation, /recentMaxAgeMs: handoffHardware \? 60 \* 60_000 : 10 \* 60_000/);
   assert.match(activation, /softwareFallbackHasOutputFailureEvidence/);
   assert.match(activation, /warmHandoffs >= 1[\s\S]*encoder === "videotoolbox"/);
   const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
