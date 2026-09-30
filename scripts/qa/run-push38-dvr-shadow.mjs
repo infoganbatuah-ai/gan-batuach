@@ -22,6 +22,7 @@ const requestedSignedArtifact = String(process.env.DVR_SHADOW_SIGNED_ARTIFACT ||
 const requestedSignedBundle = String(process.env.DVR_SHADOW_SIGNED_BUNDLE || "").trim();
 const requestedManifestMember = String(process.env.DVR_SHADOW_MANIFEST_MEMBER ||
   "gateway_remediation_supervisor_recovery.json").trim();
+const playbackEveryCheckpoint = process.env.DVR_SHADOW_PLAYBACK_EVERY_CHECKPOINT === "1";
 if (!Number.isInteger(channel) || channel < 1 || channel > 64) throw new Error("DVR_SHADOW_CHANNEL is invalid");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
@@ -120,6 +121,7 @@ const evidence = {
   runtime_mutation: false,
   runtime_source: runtimeSource.sourceClass,
   signed_release: runtimeSource.signedRelease,
+  playback_every_checkpoint: playbackEveryCheckpoint,
   checkpoints: []
 };
 let child;
@@ -175,6 +177,9 @@ async function health(url) {
         bytes: input.bytes ?? input.input_bytes,
         chunks: input.chunks ?? input.input_chunks,
         progressing: input.progressing,
+        owner_state: input.owner_state ?? null,
+        canonical_owner_progressing: input.canonical_owner_progressing ?? null,
+        candidate_progressing: input.candidate_progressing ?? null,
         input_idle_ms: input.input_idle_ms ?? null,
         relay_age_ms: input.relay_age_ms ?? null,
         output_idle_ms: input.output_idle_ms ?? null
@@ -238,7 +243,8 @@ try {
   };
   let sequence = 0;
   while (Date.now() - startedAt < durationMs) {
-    const renewal = sequence % 2 === 0 ? await playback(selected.stream_id) : null;
+    const renewal = playbackEveryCheckpoint || sequence % 2 === 0
+      ? await playback(selected.stream_id) : null;
     const point = {
       sequence: ++sequence,
       observed_at: new Date().toISOString(),
