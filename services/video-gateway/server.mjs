@@ -20,6 +20,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
+  privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -215,6 +216,10 @@ setInterval(() => {
   }
 }, PRIVATE_NVR_RELAY_HANDOFF_TICK_MS).unref();
 const relays = new Map();
+// Candidate relays are not owners until the sustained-output contract passes.
+// Keep the object separately so health can report proven media continuity
+// without promoting it early or weakening the rollback boundary.
+const relayCandidates = new Map();
 // Include warm replacements that are not yet promoted into `relays`. HLS
 // cleanup must never remove a directory while any FFmpeg process owns it.
 const liveRelays = new Set();
@@ -1391,6 +1396,16 @@ function relayIsProgressing(relay) {
   }
 }
 
+function relayMediaContinuity(streamId, current = relays.get(streamId)) {
+  const candidate = relayCandidates.get(streamId);
+  const state = privateNvrHandoffMediaContinuity({
+    currentProgressing: relayIsProgressing(current),
+    candidateProgressing: relayIsProgressing(candidate)
+  });
+  return { ...state, current, candidate,
+    effective: state.owner === "WARMING_CONTINUITY" ? candidate : current };
+}
+
 function relayPlaylistMtime(relay) {
   if (!relay || !existsSync(relay.playlist)) return null;
   try { return statSync(relay.playlist).mtimeMs; } catch { return null; }
@@ -1423,10 +1438,12 @@ function relayEligibleForHandoff(streamId, relay) {
 function observeLocalResources() {
   for (const [streamId, source] of streamSources) {
     const relay = relays.get(streamId);
+    const continuity = relayMediaContinuity(streamId, relay);
     edgeSupervisor.observe({ resourceId: streamId, assignment: source?.status === "unassigned" ? "CHANNEL_EMPTY" : "ASSIGNED",
       processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
       sourceAvailable: source?.status !== "unavailable", relayRunning: relay ? relayIsRunning(relay) : false,
-      frameProgressing: relay ? relayIsProgressing(relay) : false, lastFrameAt: relay?.lastInputAt, dimension: "relay" });
+      frameProgressing: continuity.progressing,
+      lastFrameAt: continuity.effective?.lastInputAt, dimension: "relay" });
     if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) relayRecovery.delete(streamId);
   }
   for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
@@ -1442,6 +1459,7 @@ function stopRelay(streamId, relay, reason = "REQUESTED_STOP") {
   relay.controller?.abort();
   if (relay.process?.exitCode === null && !relay.process.killed) relay.process.kill("SIGKILL");
   if (relays.get(streamId) === relay) relays.delete(streamId);
+  if (relayCandidates.get(streamId) === relay) relayCandidates.delete(streamId);
 }
 
 function cleanupRelayDirectories(streamId, replacement, directories) {
@@ -1535,6 +1553,7 @@ async function warmReplaceRelay(streamId, previous, {
     replacement.previousDirectories = [...new Set(previousDirectories)];
     replacement.warming = false;
     relays.set(streamId, replacement);
+    relayCandidates.delete(streamId);
     stopRelay(streamId, previous, "WARM_HANDOFF");
     relayLifecycle.warmHandoffs += 1;
     cleanupRelayDirectories(streamId, replacement, previousDirectories);
@@ -1634,6 +1653,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     controller, errorSummary: "", sessionToken, sessionEpoch, sessionKey,
     warming, handoffMode, previousDirectories: [], monitor: null };
   liveRelays.add(relay);
+  if (warming) relayCandidates.set(streamId, relay);
   relayLifecycle.starts += 1;
   const startReason = handoffMode === "ROUTINE_FINITE_RESPONSE"
     ? "routineFiniteResponse"
@@ -1703,6 +1723,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   });
   child.on("close", (code) => {
     liveRelays.delete(relay);
+    if (relayCandidates.get(streamId) === relay) relayCandidates.delete(streamId);
     relay.drainTimer && clearTimeout(relay.drainTimer);
     if (hardwareVideo && shouldQuarantineHardwareTranscoder({ exitCode: code,
       inputFailed: relay.inputFailed, stopReason: relay.stopReason }))
@@ -2074,8 +2095,10 @@ async function handle(request, response) {
     const healthObservedAt = new Date().toISOString();
     const edge = localEdgeReadiness();
     const supervision = edgeSupervisor.snapshot();
-    const progressingRelays = [...relays.values()].filter(relayIsProgressing).length;
-    const stalledRelays = [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length;
+    const relayContinuity = [...relays.keys()].map(streamId =>
+      [streamId, relayMediaContinuity(streamId)]);
+    const progressingRelays = relayContinuity.filter(([, state]) => state.progressing).length;
+    const stalledRelays = relayContinuity.filter(([, state]) => !state.progressing).length;
     const observedAssigned = [...streamSources.values()].filter((source) => source.status !== "unassigned").length;
     const expectedAssigned = Math.max(observedAssigned, Number(lastDiscoverySummary.assignedCount || 0),
       edgeRuntimeIdentity.device_type === "SOFTWARE_CONNECTOR" ? Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 0) : 0);
@@ -2114,11 +2137,15 @@ async function handle(request, response) {
         maximumRoutineProbations: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
         progressingRelays,
         stalledRelays,
-        inputs: [...relays.entries()].map(([streamId, relay]) => {
+        inputs: relayContinuity.map(([streamId, continuity]) => {
+          const relay = continuity.effective;
           const observedAt = Date.now();
           const outputAt = relayPlaylistMtime(relay);
           return { channel: streamSources.get(streamId)?.channel,
-            progressing: relayIsProgressing(relay),
+            progressing: continuity.progressing,
+            owner_state: continuity.owner,
+            canonical_owner_progressing: relayIsProgressing(continuity.current),
+            candidate_progressing: relayIsProgressing(continuity.candidate),
             input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown",
             encoder: relay.encoder, ...relay.inputMetrics.snapshot(),
             relay_age_ms: Math.max(0, observedAt - relay.startedAt),

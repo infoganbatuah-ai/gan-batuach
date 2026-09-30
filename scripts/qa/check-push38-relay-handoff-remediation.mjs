@@ -10,6 +10,7 @@ import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+  privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
@@ -39,6 +40,20 @@ test("playlist continuity requires four distinct advances over six seconds", () 
   assert.equal(privateNvrRoutineHandoffConfirmed({
     confirmationStartedAt: now - 6_000, outputAdvanced: true,
     outputAdvanceCount: 4, lastOutputAt: now, now }), true);
+});
+
+test("a progressing candidate preserves health without early ownership promotion", () => {
+  assert.deepEqual(privateNvrHandoffMediaContinuity({
+    currentProgressing: true, candidateProgressing: true
+  }), { progressing: true, owner: "CURRENT" });
+  assert.deepEqual(privateNvrHandoffMediaContinuity({
+    currentProgressing: false, candidateProgressing: true
+  }), { progressing: true, owner: "WARMING_CONTINUITY" });
+  assert.deepEqual(privateNvrHandoffMediaContinuity({
+    currentProgressing: false, candidateProgressing: false
+  }), { progressing: false, owner: "NONE" });
+  assert.match(server, /const relayCandidates = new Map\(\)/);
+  assert.match(server, /replacement\.warming = false;\s+relays\.set\(streamId, replacement\);\s+relayCandidates\.delete\(streamId\)/);
 });
 
 test("consumer demand cannot bypass relay recovery backoff", () => {

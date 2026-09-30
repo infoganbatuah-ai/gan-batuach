@@ -112,6 +112,18 @@ export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
     && now - lastOutputAt <= maximumOutputIdleMs);
 }
 
+// Ownership and media availability are deliberately separate during a warm
+// handoff. The current relay remains authoritative until the replacement
+// passes the full confirmation contract, but a replacement that is already
+// producing current HLS is real media continuity and must not make the source
+// or the whole Gateway appear offline.
+export function privateNvrHandoffMediaContinuity({ currentProgressing,
+  candidateProgressing }) {
+  if (currentProgressing) return { progressing: true, owner: "CURRENT" };
+  if (candidateProgressing) return { progressing: true, owner: "WARMING_CONTINUITY" };
+  return { progressing: false, owner: "NONE" };
+}
+
 // Login/Heartbeat is the recorder's supported session-maintenance contract.
 // A successful heartbeat means the current login remains authoritative; a
 // second login was observed to retire every media response from the prior
