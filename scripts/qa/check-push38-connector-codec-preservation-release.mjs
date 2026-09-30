@@ -28,6 +28,13 @@ for (const path of ["./register-push38-homeqa-connector-rtsp-session.mjs",
   "../release/publish-push38-connector-pidfix-r2.mjs"]) {
   assert.match(readFileSync(new URL(path, import.meta.url), "utf8"), /codecPreservation/);
 }
+const retry = readFileSync(new URL(
+  "./retry-push38-homeqa-connector-liveness-isolation-after-host-recovery.mjs",
+  import.meta.url), "utf8");
+assert.match(retry, /--codec-preservation/);
+assert.match(retry, /PUSH38_CONNECTOR_CODEC_PRESERVATION/);
+assert.match(retry, /CHROME_PROCESS_GROUP_PAUSED/);
+assert.match(retry, /authorizeQuarantinedReleaseRetry/);
 assert.match(readFileSync(new URL(
   "../../services/video-gateway/home-qa-transition-phase.mjs", import.meta.url), "utf8"),
 new RegExp(item.releaseId));

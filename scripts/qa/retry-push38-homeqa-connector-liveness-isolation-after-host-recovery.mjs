@@ -1,4 +1,4 @@
-// Authorize one exact retry of the AWS-signed 0.2.32 Connector release after
+// Authorize one exact retry of a supported AWS-signed Connector release after
 // unrelated host pressure was removed and the signed 0.2.26 known-good slot
 // was re-verified. The installed OTA agent remains the sole downloader,
 // installer, health gate, promoter and rollback owner.
@@ -19,10 +19,15 @@ import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-upda
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from
   "../../services/video-gateway/edge-release-trust.mjs";
 import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
-import { PUSH38_CONNECTOR_LIVENESS_ISOLATION as item } from
+import { PUSH38_CONNECTOR_LIVENESS_ISOLATION } from
   "../../services/video-gateway/push38-home-qa-connector-liveness-isolation.mjs";
+import { PUSH38_CONNECTOR_CODEC_PRESERVATION } from
+  "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
 import { softwareConnectorDeviceSession } from "../../services/video-gateway/software-connector-cloud.mjs";
 
+const codecPreservationRetry = process.argv.includes("--codec-preservation");
+const item = codecPreservationRetry ? PUSH38_CONNECTOR_CODEC_PRESERVATION :
+  PUSH38_CONNECTOR_LIVENESS_ISOLATION;
 const FAILURE = "EDGE_UPDATE_CRASH_LOOP";
 const LABEL = "com.ganbatuach.software-connector.tapo";
 const ROOT = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -248,19 +253,26 @@ if (!Number.isFinite(host.cpu_idle_percent) || host.cpu_idle_percent < 25 ||
   (host.load_1m > host.logical_cpus * 3 && host.cpu_idle_percent < 35))
   throw new Error("P38_CONNECTOR_LIVENESS_ISOLATION_RETRY_HOST_SATURATED");
 
-const plan = { protocol: "observer-push38-connector-liveness-isolation-host-recovery-retry-v1",
+const plan = { protocol: codecPreservationRetry
+  ? "observer-push38-connector-codec-preservation-host-recovery-retry-v1"
+  : "observer-push38-connector-liveness-isolation-host-recovery-retry-v1",
   generated_at: new Date().toISOString(), release_id: item.releaseId, version: item.version,
   artifact_sha256: item.digest, previous_failure_category: FAILURE,
   rollback_recovery_category: state.failure_category, current_release_id: current.release_id,
   rollback_target: item.rollbackReleaseId, exact_device_id: item.deviceId, cohort_percent: 0,
   signed_manifest: "PASS", live_trust: "PASS", managed_device_auth: "PASS",
   current_runtime_samples: samples, host_pressure: host,
-  host_remediation: ["FSEVENTS_RESTARTED_WITH_SIP_PRESERVED",
-    "ORPHAN_COLIMA_VM_AND_USERNET_HELPERS_STOPPED", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"],
+  host_remediation: codecPreservationRetry
+    ? ["CHROME_PROCESS_GROUP_PAUSED", "CUA_NODE_PAUSED",
+      "EXACT_SIGNED_KNOWN_GOOD_RESTARTED", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"]
+    : ["FSEVENTS_RESTARTED_WITH_SIP_PRESERVED",
+      "ORPHAN_COLIMA_VM_AND_USERNET_HELPERS_STOPPED", "NONESSENTIAL_DEVELOPMENT_LOAD_STOPPED"],
   ota_agent_owns_install: true, functional_runtime_changed_by_command: false, runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: "CONNECTOR_LIVENESS_ISOLATION_RETRY_PREFLIGHT_PASS",
+  console.log(JSON.stringify({ status: codecPreservationRetry
+    ? "CONNECTOR_CODEC_PRESERVATION_RETRY_PREFLIGHT_PASS"
+    : "CONNECTOR_LIVENESS_ISOLATION_RETRY_PREFLIGHT_PASS",
     evidence_sha256: evidenceSha, exact_device: true, broad_cohort: false,
     samples: samples.length, runtime_writes: 0 }));
   process.exit(0);
@@ -314,7 +326,9 @@ try {
     failed_slot_removed: !existsSync(SLOT), exact_rollout_active: true, broad_cohort: false,
     ota_agent_owns_install: true, functional_runtime_changed_by_command: false, runtime_writes: 0 };
   const evidenceSha = persist(result);
-  console.log(JSON.stringify({ status: "EXACT_CONNECTOR_LIVENESS_ISOLATION_RETRY_AUTHORIZED",
+  console.log(JSON.stringify({ status: codecPreservationRetry
+    ? "EXACT_CONNECTOR_CODEC_PRESERVATION_RETRY_AUTHORIZED"
+    : "EXACT_CONNECTOR_LIVENESS_ISOLATION_RETRY_AUTHORIZED",
     evidence_sha256: evidenceSha, release_id: item.releaseId, failed_slot_removed: true,
     exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true }));
 } catch (error) {
