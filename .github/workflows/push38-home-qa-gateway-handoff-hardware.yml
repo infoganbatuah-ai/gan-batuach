@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ea1d1762f84f7d0de142e63073c7a854b971c6ed
+          ref: 994718d43e8b1d3e6b88e878c2a9ff430a96f8d2
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "ea1d1762f84f7d0de142e63073c7a854b971c6ed"
+        run: test "$(git rev-parse HEAD)" = "994718d43e8b1d3e6b88e878c2a9ff430a96f8d2"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable Gateway handoff-hardware contract
