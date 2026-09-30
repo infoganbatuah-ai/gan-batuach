@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { createEventEvidenceStore, evidencePlaylist } from "../../services/video-gateway/event-evidence-store.mjs";
+import { parseProbeResult } from "../../services/video-gateway/probe-result.mjs";
 import {
   hasCachedSoftwareConnectorConfiguration,
   resolveSoftwareConnectorStartupConfiguration
@@ -216,6 +217,23 @@ test("generic RTSP discovery registers a relay source instead of probe-only read
   const localReadiness = readiness.slice(readiness.indexOf("export function localEdgeReadiness()"), readiness.indexOf("export function warmLocalEdgeReadiness()"));
   assert.doesNotMatch(localReadiness, /spawn\(/);
   assert.doesNotMatch(readiness.slice(readiness.indexOf("function objectWorkerSelfTest()"), readiness.indexOf("function pendingBaseReadiness()")), /objectInference\.start\(/);
+});
+
+test("RTSP probe preserves the verified video codec for zero-copy H.264 relay", () => {
+  const result = parseProbeResult(JSON.stringify({ streams: [
+    { codec_type: "video", codec_name: "h264", width: 1920, height: 1080 },
+    { codec_type: "audio", codec_name: "aac" }
+  ] }));
+  assert.deepEqual(result, {
+    ok: true,
+    reason: "video_stream_found",
+    codec: "h264",
+    audio: true,
+    audio_codec: "aac",
+    width: 1920,
+    height: 1080
+  });
+  assert.equal(parseProbeResult(JSON.stringify({ streams: [] })).codec, null);
 });
 
 test("high-bitrate RTSP playback history keeps only the bounded event prebuffer", () => {
