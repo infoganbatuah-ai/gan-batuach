@@ -30,14 +30,17 @@ export const PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED = false;
 // bounded replacement. A later signed shadow also measured a 22-second joint
 // input/output pause: waiting for the hard-stale boundary tore down the owner
 // before a replacement could publish current HLS. Start one non-destructive
-// rescue probe after five seconds of rendered-output silence. The signed
-// b6682dc5 shadow measured replacement first-output latency up to 3.85 seconds;
-// five seconds keeps the replacement inside the unchanged ten-second HLS
-// freshness proof without relaxing that proof. Canonical ownership
+// rescue probe before the rendered-output freshness boundary. The signed
+// 0.2.53 Home shadow measured a 10.136-second playlist freeze when the prior
+// five-second trigger combined with 5.043 seconds of replacement acquisition.
+// Start the non-destructive probe after three seconds instead. The separately
+// measured 5.329-second worst-case first-output latency then remains inside the
+// unchanged ten-second HLS freshness proof without relaxing that proof.
+// Canonical ownership
 // still changes only after four advances across six seconds, so a burst pause
 // cannot be mistaken for an authoritative native response end.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
-export const PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS = 5_000;
+export const PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS = 3_000;
 export const PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS = 4_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A private-recorder response can stop delivering bytes even though the login
