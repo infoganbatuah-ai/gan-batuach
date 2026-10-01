@@ -160,7 +160,7 @@ async function maintainPrivateNvrRelayHandoffs() {
       routine.push([streamId, relay, "ROUTINE_FINITE_RESPONSE", lastOutputAt]);
     }
   }
-  // Once a new non-exclusive login exists, do not spend another two-second
+  // Once a new non-exclusive login exists, do not spend another scheduler
   // scheduler interval between channels. Warm replacements remain strictly
   // one-at-a-time, but the exact stale-epoch snapshot is drained immediately
   // so it completes inside the recorder's measured prior-login overlap.

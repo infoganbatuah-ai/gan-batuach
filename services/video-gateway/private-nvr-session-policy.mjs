@@ -35,7 +35,12 @@ export const PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED = false;
 // five-second trigger combined with 5.043 seconds of replacement acquisition.
 // Start the non-destructive probe after three seconds instead. The separately
 // measured 5.329-second worst-case first-output latency then remains inside the
-// unchanged ten-second HLS freshness proof without relaxing that proof.
+// unchanged ten-second HLS freshness proof only when scheduler detection is
+// included in the deadline. The signed 0.2.54 shadow caught the missing term:
+// a two-second scheduler tick plus acquisition produced a real 10.060-second
+// playlist freeze. Poll the bounded handoff scheduler every second so the
+// complete measured bound is 3.000 + 1.000 + 5.329 = 9.329 seconds, without
+// changing the HLS freshness threshold or the ownership proof.
 // Canonical ownership
 // still changes only after four advances across six seconds, so a burst pause
 // cannot be mistaken for an authoritative native response end.
@@ -122,7 +127,7 @@ export const PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS = 8_000;
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
 // replacement, but drive the independent handoff scheduler quickly enough to
 // move all sixteen possible channels inside that measured overlap window.
-export const PRIVATE_NVR_RELAY_HANDOFF_TICK_MS = 2_000;
+export const PRIVATE_NVR_RELAY_HANDOFF_TICK_MS = 1_000;
 
 export function privateNvrProvisionalHandoffAllowed({ activeProbations,
   replacingExistingProbation = false,

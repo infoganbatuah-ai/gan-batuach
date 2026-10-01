@@ -19,6 +19,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
   PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
@@ -155,8 +156,10 @@ test("playback can use a progressing rescue candidate without promoting ownershi
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
   assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS, 3_000);
-  assert.ok(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS + 5_329 < 10_000,
-    "measured rescue acquisition must fit inside the unchanged HLS freshness proof");
+  assert.equal(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS, 1_000);
+  assert.ok(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
+    + PRIVATE_NVR_RELAY_HANDOFF_TICK_MS + 5_329 < 10_000,
+  "trigger, scheduler detection and measured rescue acquisition must fit inside the unchanged HLS freshness proof");
   const now = 100_000;
   assert.equal(PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);

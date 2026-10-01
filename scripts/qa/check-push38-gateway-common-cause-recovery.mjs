@@ -326,7 +326,7 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /privateNvrSessionRenewalRun = maintainPrivateNvrSessionRenewals\(\)/);
   assert.match(gateway,
     /privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs\(\)/);
-  assert.equal(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS, 2_000);
+  assert.equal(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS, 1_000);
   assert.ok(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS * 16 < 50_000,
     "a one-at-a-time full recorder sweep must fit inside the observed prior-login overlap");
   assert.match(gateway,
