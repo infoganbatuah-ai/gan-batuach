@@ -53,7 +53,8 @@ try {
   assert.match(activation,
     /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity \|\| sweepDeadline/);
   assert.match(activation, /boundedFailureRecovered/);
-  assert.match(activation, /Math\.ceil\(value\.duration_ms \/ 60_000\) \+ 2/);
+  assert.match(activation,
+    /Math\.ceil\(value\.duration_ms \/ \(mediaContinuity \? 30_000 : 60_000\)\) \+ 2/);
   assert.match(activation,
     /\(sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
