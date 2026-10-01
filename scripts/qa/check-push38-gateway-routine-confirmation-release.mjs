@@ -175,6 +175,9 @@ try {
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
+  assert.match(activation,
+    /Math\.ceil\(value\.duration_ms \/ \(mediaContinuity \? 30_000 : 60_000\)\) \+ 2/,
+  "media-continuity successors use their explicit renewal budget instead of the legacy warmup budget");
   assert.match(registration,
     /rolloutReleaseIdsToPause = routineConfirmation[\s\S]*item\.rollbackReleaseId/);
   assert.match(registration, /item\.quarantinedBridgeReleaseId/);

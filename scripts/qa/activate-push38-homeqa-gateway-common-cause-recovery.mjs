@@ -430,8 +430,13 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   const boundedFailureRecovered = lifecycle.warmHandoffFailures === 0 || warmFailureIndex >= 0 &&
     (failedHandoffKeptCurrentMedia || checkpoints.slice(warmFailureIndex + 1).some(point =>
       Number(point.shadow?.media?.lifecycle?.warmHandoffs ?? 0) > failedHandoffCount));
+  // Media-continuity successors renew finite recorder output proactively and
+  // already enforce the stricter continuity-specific start budget below. Do
+  // not also apply the older one-start-per-minute warmup-failure budget to a
+  // run with zero rejected warmups; that would reject continuous HLS solely
+  // because clean, single-owner renewals happened inside the media budget.
   const boundedStarts = Number.isFinite(value.duration_ms)
-    ? Math.ceil(value.duration_ms / 60_000) + 2 : 0;
+    ? Math.ceil(value.duration_ms / (mediaContinuity ? 30_000 : 60_000)) + 2 : 0;
   const boundedFailureResult = classifyBoundedOutputRescueRejection(checkpoints, lifecycle);
   const boundedFailureProof = !boundedWarmupFailure || boundedFailureResult.pass &&
     lifecycle.warmHandoffConfirmationFailures <= lifecycle.warmHandoffFailures &&
