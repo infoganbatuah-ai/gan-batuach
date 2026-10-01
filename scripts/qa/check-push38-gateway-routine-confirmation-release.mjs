@@ -30,6 +30,9 @@ const enrollment = { identity_scheme: "ED25519_V1", credential_version: 1,
     home_qa_proof_sha256: "c".repeat(64),
     home_qa_known_good_release_id: "qa-legacy-gateway-91bf6814075f" } };
 assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: built }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
+  release_id: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
+  version: "0.2.46-p38-health" } }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
   gateway_id: "wrong-gateway" }, manifest: built }), false);
 
