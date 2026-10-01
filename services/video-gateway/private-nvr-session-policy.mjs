@@ -9,12 +9,19 @@ export function reuseMatchingPrivateNvrSession(existing, input) {
 export const PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES = 3;
 export const PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES = 2;
 export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 4 * 60 * 1000;
-// The Home recorder's native live.mp4 response has a separately observed
-// finite boundary of roughly three minutes. Refreshing only the login at four
-// minutes leaves a media gap even though authentication remains valid. Warmly
-// hand each progressing relay to a replacement with a full one-minute margin,
-// without creating another recorder login.
+// Retain the historical two-minute cadence as a measured scheduling datum.
+// It is no longer, by itself, authority to replace a healthy relay (see the
+// evidence-bound switch immediately below).
 export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
+// The live nine-source 0.2.46 canary disproved relay age as a reliable signal
+// for this recorder: established responses stayed productive for 12+ minutes,
+// while age-only maintenance launched 49 routine candidates in ten minutes.
+// Those candidates were followed by 27 rescue attempts and one real source
+// gap, despite a healthy recorder session and zero socket/auth failures. Keep
+// the historical cadence constant for evidence/scheduling tests, but disable
+// age-only ownership changes. Actual input/output cessation still enters the
+// independently bounded OUTPUT_RESCUE path below.
+export const PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED = false;
 // Real Home evidence shows the recorder can pause HTTP input while FFmpeg is
 // still producing current HLS output from already-buffered media. Input idle
 // alone is therefore not a handoff signal. Conversely, current input with a
@@ -208,7 +215,8 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   // measured rescue acquisition budget instead of misclassifying it as a
   // routine replacement.
   if (outputRescue) return "OUTPUT_RESCUE";
-  if (relay.recoveryStable && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS) {
+  if (PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED
+    && relay.recoveryStable && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS) {
     return "ROUTINE_FINITE_RESPONSE";
   }
   return null;

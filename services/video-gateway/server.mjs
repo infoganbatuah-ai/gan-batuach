@@ -160,10 +160,12 @@ async function maintainPrivateNvrRelayHandoffs() {
     return;
   }
   // The failed 0.2.36 pre-soak proved that unbounded provisional replacements
-  // can exhaust an otherwise healthy recorder. Keep one serialized routine
-  // lane and one separately bounded rescue lane. Deadline scheduling begins a
-  // synchronized nine-source sweep early enough that later channels do not
-  // hit hard stale while waiting for the routine lane.
+  // can exhaust an otherwise healthy recorder. The 0.2.46 nine-source canary
+  // then proved that relay age is not a finite-response signal: age-only work
+  // produced 49 routine starts plus 27 rescues in ten minutes while owners
+  // otherwise survived for 12+ minutes. The policy therefore leaves `routine`
+  // empty unless an explicitly qualified recorder contract re-enables that
+  // mode. Real rendered-output loss continues through the bounded rescue lane.
   outputRescues.sort((left, right) => comparePrivateNvrHandoffPriority(
     { startedAt: left[1].startedAt, lastOutputAt: left[3] },
     { startedAt: right[1].startedAt, lastOutputAt: right[3] }));

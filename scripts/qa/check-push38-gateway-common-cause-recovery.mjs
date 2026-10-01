@@ -20,6 +20,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+  PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
@@ -142,14 +143,15 @@ test("proactive renewal preserves only progressing relays from the same recorder
     sameToken: true, sameSessionKey: false }), true);
 });
 
-test("finite recorder responses receive an early media-only warm handoff", () => {
+test("healthy recorder responses are not replaced from age alone", () => {
   const now = Date.now();
   const eligible = { progressing: true, recoveryStable: true, warming: false,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS };
   assert.equal(PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, 2 * 60 * 1000);
-  assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), true);
-  assert.equal(privateNvrRelayHandoffMode(eligible, now),
-    "ROUTINE_FINITE_RESPONSE");
+  assert.equal(PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED, false);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), false);
+  assert.equal(privateNvrRelayHandoffMode(eligible, now), null,
+    "the live nine-source canary disproved age as a finite-response signal");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
@@ -170,7 +172,7 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now),
-  "OUTPUT_RESCUE", "stale rendered output must outrank an age-based routine renewal");
+  "OUTPUT_RESCUE", "stale rendered output remains evidence for bounded rescue");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,

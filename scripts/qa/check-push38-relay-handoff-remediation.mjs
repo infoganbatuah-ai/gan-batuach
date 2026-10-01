@@ -15,6 +15,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
   PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS,
@@ -44,6 +45,14 @@ test("one routine owner lane leaves one bounded output-rescue lane", () => {
     replacingExistingProbation: true }), false);
   assert.match(server, /const expectedCurrent = previous/);
   assert.doesNotMatch(server, /WARM_HANDOFF_CHAIN_ADVANCED/);
+});
+
+test("live multi-source evidence disables age-only relay churn", () => {
+  assert.equal(PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED, false);
+  assert.match(readFileSync("services/video-gateway/private-nvr-session-policy.mjs", "utf8"),
+    /PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED[\s\S]*recoveryStable/);
+  assert.match(server,
+    /Real rendered-output loss continues through the bounded rescue lane/);
 });
 
 test("a synchronized nine-source sweep starts before the finite deadline", () => {
