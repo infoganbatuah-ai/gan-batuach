@@ -18,15 +18,15 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const built = buildPush38GatewayRoutineConfirmationManifest({ signingKeyId: "observer-kms-release-v1",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(built.release_id, item.releaseId);
-assert.equal(built.version, "0.2.54-p38-health");
+assert.equal(built.version, "0.2.55-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
 assert.equal(built.compatibility.minimum_current_version, "0.2.41-p38-health");
 assert.equal(built.compatibility.maximum_current_version, "0.2.41-p38-health");
 assert.equal(item.supersedesReleaseId,
-  "qa-p38-health-gateway-rescue-backoff-direct-58fcb000d83e");
-assert.equal(item.supersedesVersion, "0.2.53-p38-health");
+  "qa-p38-health-gateway-hls-deadline-direct-0ccacdfadd8a");
+assert.equal(item.supersedesVersion, "0.2.54-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 const enrollment = { identity_scheme: "ED25519_V1", credential_version: 1,
@@ -63,6 +63,10 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
   release_id: "qa-p38-health-gateway-rescue-backoff-direct-58fcb000d83e",
   version: "0.2.53-p38-health" } }), false,
 "the failed HLS-deadline shadow release remains historical and cannot authorize activation");
+assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
+  release_id: "qa-p38-health-gateway-hls-deadline-direct-0ccacdfadd8a",
+  version: "0.2.54-p38-health" } }), false,
+"the scheduler-deadline shadow release remains historical and cannot authorize activation");
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
   gateway_id: "wrong-gateway" }, manifest: built }), false);
 
