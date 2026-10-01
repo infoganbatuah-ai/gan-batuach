@@ -25,6 +25,12 @@ for (const path of ["./register-push38-homeqa-connector-rtsp-session.mjs",
   "./activate-push38-homeqa-connector-rtsp-session.mjs",
   "../release/publish-push38-connector-pidfix-r2.mjs"])
   assert.match(readFileSync(new URL(path, import.meta.url), "utf8"), /handoffContinuity/);
+const publisher = readFileSync(new URL(
+  "../release/publish-push38-connector-pidfix-r2.mjs", import.meta.url), "utf8");
+for (const safeguard of ["CreateMultipartUploadCommand", "UploadPartCommand",
+  "CompleteMultipartUploadCommand", "AbortMultipartUploadCommand", "16 * 1024 * 1024",
+  "IfNoneMatch: \"*\""])
+  assert.ok(publisher.includes(safeguard), `missing large-artifact safeguard: ${safeguard}`);
 assert.match(readFileSync(new URL(
   "../../services/video-gateway/home-qa-transition-phase.mjs", import.meta.url), "utf8"),
 new RegExp(item.releaseId));

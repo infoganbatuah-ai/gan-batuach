@@ -3,7 +3,9 @@ import { createReadStream, lstatSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { S3Client, GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand,
+  CreateMultipartUploadCommand, S3Client, GetObjectCommand, HeadObjectCommand,
+  PutObjectCommand, UploadPartCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { edgeReleaseObjectPath, EDGE_RELEASE_R2_BUCKET } from "../../services/video-gateway/edge-release-object.mjs";
 import { buildPush38ConnectorPidfixManifest } from "../../services/video-gateway/push38-home-qa-connector-pidfix.mjs";
@@ -41,6 +43,43 @@ async function hashStream(stream, limit) {
   const hash = createHash("sha256"); let size = 0;
   for await (const chunk of stream) { size += chunk.length; if (size > limit) fail("P38_PIDFIX_R2_SIZE_LIMIT"); hash.update(chunk); }
   return { sha256: hash.digest("hex"), size };
+}
+
+async function putMultipart(client, { bucket, key, path, size, sha256, releaseId }) {
+  const partSize = 16 * 1024 * 1024;
+  const created = await client.send(new CreateMultipartUploadCommand({ Bucket: bucket, Key: key,
+    ContentType: "application/gzip", StorageClass: "STANDARD",
+    Metadata: { sha256, release_id: releaseId } }),
+  { abortSignal: AbortSignal.timeout(30_000) });
+  if (!created.UploadId) fail("P38_PIDFIX_R2_MULTIPART_CREATE_FAILED");
+  const parts = [];
+  try {
+    const descriptors = Array.from({ length: Math.ceil(size / partSize) }, (_, index) => {
+      const start = index * partSize, end = Math.min(size, start + partSize) - 1;
+      return { PartNumber: index + 1, start, end, ContentLength: end - start + 1 };
+    });
+    for (let index = 0; index < descriptors.length; index += 3) {
+      const completed = await Promise.all(descriptors.slice(index, index + 3).map(async descriptor => {
+        const response = await client.send(new UploadPartCommand({ Bucket: bucket, Key: key,
+          UploadId: created.UploadId, PartNumber: descriptor.PartNumber,
+          Body: createReadStream(path, { start: descriptor.start, end: descriptor.end }),
+          ContentLength: descriptor.ContentLength }),
+        { abortSignal: AbortSignal.timeout(180_000) });
+        if (!response.ETag) fail("P38_PIDFIX_R2_MULTIPART_PART_FAILED");
+        return { ETag: response.ETag, PartNumber: descriptor.PartNumber };
+      }));
+      parts.push(...completed);
+    }
+    await client.send(new CompleteMultipartUploadCommand({ Bucket: bucket, Key: key,
+      UploadId: created.UploadId, MultipartUpload: { Parts: parts }, IfNoneMatch: "*" }),
+    { abortSignal: AbortSignal.timeout(60_000) });
+  } catch (error) {
+    try {
+      await client.send(new AbortMultipartUploadCommand({ Bucket: bucket, Key: key,
+        UploadId: created.UploadId }), { abortSignal: AbortSignal.timeout(30_000) });
+    } catch {}
+    throw error;
+  }
 }
 
 async function publish({ artifactPath, evidencePath, recovery = false, startupRecovery = false,
@@ -110,10 +149,15 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
         error.name !== "NoSuchKey") throw error;
     }
     if (!existed) {
-      await publisher.send(new PutObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key,
-        Body: createReadStream(path), ContentLength: local.size, ContentType: "application/gzip",
-        StorageClass: "STANDARD", IfNoneMatch: "*", Metadata: { sha256: local.sha256,
-          release_id: document.release_id } }), { abortSignal: AbortSignal.timeout(600_000) });
+      if (local.size >= 64 * 1024 * 1024) {
+        await putMultipart(publisher, { bucket: EDGE_RELEASE_R2_BUCKET, key, path,
+          size: local.size, sha256: local.sha256, releaseId: document.release_id });
+      } else {
+        await publisher.send(new PutObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key,
+          Body: createReadStream(path), ContentLength: local.size, ContentType: "application/gzip",
+          StorageClass: "STANDARD", IfNoneMatch: "*", Metadata: { sha256: local.sha256,
+            release_id: document.release_id } }), { abortSignal: AbortSignal.timeout(600_000) });
+      }
     }
     const head = await reader.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }),
       { abortSignal: AbortSignal.timeout(30_000) });
