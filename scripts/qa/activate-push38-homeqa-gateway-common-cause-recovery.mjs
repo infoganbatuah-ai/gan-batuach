@@ -998,7 +998,11 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
       warmHandoff: true,
-      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity || routineConfirmation,
+      // The final successor permits one bounded routine candidate rejection
+      // only when the current owner and every playback checkpoint remain
+      // continuous. Output-rescue confirmation failures remain disallowed by
+      // the Shadow result and mode-specific failure checks.
+      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity,
       verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation,
       hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation,
       recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation) ? 60 * 60_000 : 10 * 60_000,

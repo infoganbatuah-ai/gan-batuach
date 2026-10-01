@@ -52,6 +52,10 @@ try {
   assert.match(activation, /P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID/);
   assert.match(activation, /FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED/);
   assert.doesNotMatch(activation, /routine_confirmation_budget_fault_reproduced/);
+  assert.match(activation,
+    /confirmedWarmHandoff:[^\n]+handoffOwnerContinuity,[\s\S]*boundedWarmupFailure:[\s\S]*routineConfirmation/);
+  assert.doesNotMatch(activation,
+    /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
