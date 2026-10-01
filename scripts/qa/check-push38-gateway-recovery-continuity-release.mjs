@@ -51,8 +51,8 @@ try {
   assert.match(activation, /P38_GATEWAY_RECOVERY_CONTINUITY_FAILED_PROOF_INVALID/);
   assert.match(activation, /mediaContinuity: recoveryContinuity/);
   assert.match(activation,
-    /new Set\(renewals\.map\(renewal => renewal\.segment_sha256\)\)\.size === renewals\.length/,
-  "recovery continuity requires unique fresh media bytes at every playback checkpoint");
+    /evaluateHlsRenewalContinuity\(checkpoints\)/,
+  "recovery continuity must enforce target-duration-aware sequence and byte freshness");
   assert.match(activation,
     /staleInput <= Number\(lifecycle\.startsByReason\?\.recovery \?\? -1\)/,
   "every stale-input classification must be causally bounded by a recovery start");

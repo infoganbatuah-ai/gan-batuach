@@ -43,7 +43,7 @@ test("one routine owner lane leaves one bounded output-rescue lane", () => {
     handoffMode: "OUTPUT_RESCUE" }), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
     replacingExistingProbation: true }), false);
-  assert.match(server, /const expectedCurrent = previous/);
+  assert.match(server, /let expectedCurrent = previous/);
   assert.doesNotMatch(server, /WARM_HANDOFF_CHAIN_ADVANCED/);
 });
 
@@ -143,7 +143,7 @@ test("playback can use a progressing rescue candidate without promoting ownershi
   assert.match(server,
     /candidate\?\.directory, \.\.\.\(candidate\?\.previousDirectories \|\| \[\]\)/);
   assert.match(server,
-    /cleanupRelayDirectories\(streamId, relays\.get\(streamId\), \[replacement\.directory\]\)/);
+    /cleanupRelayDirectories\(streamId, relays\.get\(streamId\), \[[\s\S]*replacement\?\.directory[\s\S]*\]\.filter\(Boolean\)\)/);
   assert.match(server, /last_handoff_first_output_latency_ms/);
   assert.match(server, /last_handoff_output_advances/);
 });
@@ -167,7 +167,7 @@ test("playlist continuity requires four distinct advances over six seconds", () 
     outputAdvanceCount: 5, lastOutputAt: now - 500, now }), true,
   "a proven candidate confirms when time matures between playlist writes");
   assert.match(server,
-    /if \(outputAt > lastObservedOutputAt\)[\s\S]*const confirmed = minimumConfirmationMs/);
+    /if \(outputAt > lastObservedOutputAt\)[\s\S]*outputConfirmed = minimumConfirmationMs/);
 });
 
 test("a progressing candidate preserves health without early ownership promotion", () => {

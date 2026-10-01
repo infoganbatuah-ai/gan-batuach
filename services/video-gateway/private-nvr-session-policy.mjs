@@ -239,6 +239,25 @@ export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
     && now - lastOutputAt <= maximumOutputIdleMs);
 }
 
+// Some recorders permit one productive HTTP media response per channel while
+// still accepting a second request far enough to emit an initial playlist.
+// A concurrent OUTPUT_RESCUE probe can therefore look alive without ever
+// advancing. Once the old owner is already hard stale, keeping it open and
+// launching further concurrent probes only creates a restart storm. Permit a
+// single controlled owner-release fallback only for that exact evidence. The
+// replacement still has to pass the unchanged sustained-output contract.
+export function shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
+  sourceKind, ownerRunning, ownerCurrent, ownerOutputAt, relayStaleMs,
+  candidateFirstOutputObserved, candidateConfirmed, now = Date.now() }) {
+  return Boolean(handoffMode === "OUTPUT_RESCUE"
+    && sourceKind === "private_nvr_http_mp4"
+    && ownerRunning && ownerCurrent
+    && candidateFirstOutputObserved && !candidateConfirmed
+    && Number.isFinite(ownerOutputAt) && Number.isFinite(relayStaleMs)
+    && relayStaleMs > 0 && Number.isFinite(now)
+    && now - ownerOutputAt >= relayStaleMs);
+}
+
 // Ownership and media availability are deliberately separate during a warm
 // handoff. The current relay remains authoritative until the replacement
 // passes the full confirmation contract, but a replacement that is already

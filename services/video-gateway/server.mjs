@@ -32,6 +32,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldUsePrivateNvrExclusiveOutputRescue,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
@@ -276,7 +277,9 @@ const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
   warmHandoffs: 0, warmHandoffFailures: 0,
   warmHandoffConfirmationFailures: 0, warmHandoffProbations: 0,
-  warmHandoffRollbacks: 0, staleInput: 0,
+  warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
+  exclusiveRescueConcurrentProbeRejections: 0, exclusiveRescueFailures: 0,
+  staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,
   startsByReason: { initialOrDemand: 0, recovery: 0, routineFiniteResponse: 0,
@@ -1430,7 +1433,7 @@ async function ensureRelay(streamId) {
       .catch(error => { reportPrivateNvrMaintenanceFailure("relay_request_rescue", error); });
   }
   const handoff = relayWarmups.get(streamId);
-  if (existing && handoff) {
+  if (handoff) {
     const handoffMode = relayWarmupModes.get(streamId);
     const requestGraceMs = handoffMode === "OUTPUT_RESCUE"
       ? PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS
@@ -1445,6 +1448,11 @@ async function ensureRelay(streamId) {
       if (available === promoted && relayRecoveryIsStable(promoted)) relayRecovery.delete(streamId);
       return available;
     }
+    // An exclusive output-rescue fallback deliberately has a short interval
+    // with no canonical owner. Never let a playback/AI/health request create a
+    // competing relay during that bounded handoff. Proven candidate media may
+    // be served, otherwise the request fails closed until the handoff settles.
+    if (relayWarmups.has(streamId)) return null;
     existing = promoted;
   }
   if (existing) {
@@ -1606,6 +1614,53 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
   timer.unref();
 }
 
+async function observeWarmReplacement(replacement, { handoffMode,
+  minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs }) {
+  const probationStartedAt = Date.now();
+  let deadline = privateNvrHandoffProbationDeadline({ handoffMode,
+    probationStartedAt, minimumConfirmationMs });
+  let firstOutputAt = null;
+  let lastObservedOutputAt = null;
+  let outputAdvanceCount = 0;
+  let confirmationStartedAt = null;
+  let outputConfirmed = false;
+  while (Date.now() < deadline && relayIsRunning(replacement)) {
+    if (relayIsProgressing(replacement)) {
+      const outputAt = relayPlaylistMtime(replacement);
+      if (Number.isFinite(outputAt)) {
+        if (firstOutputAt === null) {
+          firstOutputAt = outputAt;
+          lastObservedOutputAt = outputAt;
+          confirmationStartedAt = Date.now();
+          deadline = privateNvrHandoffProbationDeadline({ handoffMode,
+            probationStartedAt, firstOutputObservedAt: confirmationStartedAt,
+            minimumConfirmationMs });
+        } else {
+          if (outputAt > lastObservedOutputAt) {
+            lastObservedOutputAt = outputAt;
+            outputAdvanceCount += 1;
+          }
+          // Confirmation is elapsed-time plus distinct-output evidence. It
+          // must be evaluated on every probation tick after four advances,
+          // not only on the next playlist write.
+          outputConfirmed = minimumConfirmationMs === 0
+            ? true
+            : privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
+              outputAdvanced: outputAdvanceCount > 0, outputAdvanceCount,
+              lastOutputAt: lastObservedOutputAt,
+              minimumConfirmationMs, maximumOutputIdleMs,
+              minimumOutputAdvances });
+          if (outputConfirmed) break;
+        }
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  return { probationStartedAt, firstOutputAt, lastObservedOutputAt,
+    outputAdvanceCount, confirmationStartedAt, outputConfirmed,
+    durationMs: Date.now() - probationStartedAt };
+}
+
 async function warmReplaceRelay(streamId, previous, {
   minimumConfirmationMs = 0,
   minimumOutputAdvances = 1,
@@ -1630,8 +1685,8 @@ async function warmReplaceRelay(streamId, previous, {
     (!relayIsProgressing(previous) && !boundedStaleOutputRescue) ||
     !relayEligibleForHandoff(streamId, previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
-    const probationStartedAt = Date.now();
-    const replacement = await startRelay(streamId, { warming: true,
+    const handoffStartedAt = Date.now();
+    let replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
     if (!replacement) {
       relayLifecycle.warmHandoffFailures += 1;
@@ -1642,76 +1697,70 @@ async function warmReplaceRelay(streamId, previous, {
         last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED",
         last_handoff_first_output_latency_ms: null,
         last_handoff_output_advances: 0,
-        last_handoff_duration_ms: Date.now() - probationStartedAt });
+        last_handoff_duration_ms: Date.now() - handoffStartedAt });
       return false;
     }
-    // Routine candidates release the scheduler lane inside its declared slot.
-    // Output rescue owns a separate bounded lane and may use the measured
-    // first-output allowance without delaying the routine sweep.
-    let deadline = privateNvrHandoffProbationDeadline({ handoffMode,
-      probationStartedAt, minimumConfirmationMs });
-    let firstOutputAt = null;
-    let lastObservedOutputAt = null;
-    let outputAdvanceCount = 0;
-    let confirmationStartedAt = null;
-    let outputConfirmed = false;
-    while (Date.now() < deadline && relayIsRunning(replacement)) {
-      if (relayIsProgressing(replacement)) {
-        const outputAt = relayPlaylistMtime(replacement);
-        if (Number.isFinite(outputAt)) {
-          if (firstOutputAt === null) {
-            firstOutputAt = outputAt;
-            lastObservedOutputAt = outputAt;
-            confirmationStartedAt = Date.now();
-            deadline = privateNvrHandoffProbationDeadline({ handoffMode,
-              probationStartedAt, firstOutputObservedAt: confirmationStartedAt,
-              minimumConfirmationMs });
-          } else {
-            if (outputAt > lastObservedOutputAt) {
-              lastObservedOutputAt = outputAt;
-              outputAdvanceCount += 1;
-            }
-            // Confirmation is elapsed-time plus distinct-output evidence. It
-            // must be evaluated on every probation tick after four advances,
-            // not only on the next playlist write. The 0.2.45 shadow recorded
-            // five real advances, then rejected the routine candidate because
-            // the six-second boundary fell between HLS writes. That rejection
-            // left the old finite response alive until a visible output gap.
-            const confirmed = minimumConfirmationMs === 0
-              ? true
-              : privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
-                outputAdvanced: outputAdvanceCount > 0, outputAdvanceCount,
-                lastOutputAt: lastObservedOutputAt,
-                minimumConfirmationMs, maximumOutputIdleMs,
-                minimumOutputAdvances });
-            if (confirmed) {
-              outputConfirmed = true;
-              break;
-            }
-          }
-        }
+    let observation = await observeWarmReplacement(replacement, { handoffMode,
+      minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+    let expectedCurrent = previous;
+    let exclusiveRescue = false;
+    const initialCandidateDirectory = replacement.directory;
+    if (shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
+      sourceKind: source?.kind, ownerRunning: relayIsRunning(previous),
+      ownerCurrent: relays.get(streamId) === previous,
+      ownerOutputAt: relayPlaylistMtime(previous), relayStaleMs: RELAY_STALE_MS,
+      candidateFirstOutputObserved: Number.isFinite(observation.firstOutputAt),
+      candidateConfirmed: observation.outputConfirmed })) {
+      exclusiveRescue = true;
+      relayLifecycle.exclusiveRescueTakeovers += 1;
+      relayLifecycle.exclusiveRescueConcurrentProbeRejections += 1;
+      // This is one continuation of the same bounded handoff, not a second
+      // recovery system. Release the hard-stale owner and rejected concurrent
+      // probe before opening exactly one exclusive candidate. Existing HLS
+      // files remain available while the unchanged confirmation gate runs.
+      stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
+      stopRelay(streamId, replacement, "OUTPUT_RESCUE_CONCURRENT_PROBE_RELEASE");
+      cleanupRelayDirectories(streamId, null, [initialCandidateDirectory]);
+      replacement = await startRelay(streamId, { warming: true,
+        previousRelay: previous, handoffMode });
+      expectedCurrent = undefined;
+      if (replacement) {
+        observation = await observeWarmReplacement(replacement, { handoffMode,
+          minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+      } else {
+        observation = { probationStartedAt: Date.now(), firstOutputAt: null,
+          lastObservedOutputAt: null, outputAdvanceCount: 0,
+          confirmationStartedAt: null, outputConfirmed: false, durationMs: 0 };
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
     }
     // A single initial playlist write (or a pair) is not sustained media. Keep
     // the prior relay authoritative until the replacement has four distinct
-    // advances over the bounded confirmation interval.
-    const expectedCurrent = previous;
-    if (!outputConfirmed || !relayIsProgressing(replacement)
+    // advances over the bounded confirmation interval. The exclusive rescue
+    // path has intentionally released a proven-hard-stale prior owner, so it
+    // expects no canonical owner until promotion.
+    if (!replacement || !observation.outputConfirmed || !relayIsProgressing(replacement)
       || relays.get(streamId) !== expectedCurrent) {
       relayLifecycle.warmHandoffFailures += 1;
       relayLifecycle.warmHandoffFailuresByMode[
         privateNvrHandoffModeMetricKey(handoffMode)] += 1;
-      if (!outputConfirmed) relayLifecycle.warmHandoffConfirmationFailures += 1;
+      if (!observation.outputConfirmed) relayLifecycle.warmHandoffConfirmationFailures += 1;
+      if (exclusiveRescue) relayLifecycle.exclusiveRescueFailures += 1;
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_handoff_result: "FAILED",
-        last_handoff_failure: !outputConfirmed ? "CONFIRMATION_INCOMPLETE" : "OWNER_CHANGED",
-        last_handoff_first_output_latency_ms: confirmationStartedAt === null
-          ? null : confirmationStartedAt - probationStartedAt,
-        last_handoff_output_advances: outputAdvanceCount,
-        last_handoff_duration_ms: Date.now() - probationStartedAt });
-      stopRelay(streamId, replacement, "WARM_HANDOFF_ABORTED");
-      cleanupRelayDirectories(streamId, relays.get(streamId), [replacement.directory]);
+        last_handoff_failure: !observation.outputConfirmed
+          ? exclusiveRescue ? "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE"
+            : "CONFIRMATION_INCOMPLETE"
+          : "OWNER_CHANGED",
+        last_handoff_first_output_latency_ms: observation.confirmationStartedAt === null
+          ? null : observation.confirmationStartedAt - observation.probationStartedAt,
+        last_handoff_output_advances: observation.outputAdvanceCount,
+        last_handoff_duration_ms: Date.now() - handoffStartedAt,
+        last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
+      if (exclusiveRescue) armRelayRecovery(streamId, replacement || previous);
+      if (replacement) stopRelay(streamId, replacement, "WARM_HANDOFF_ABORTED");
+      cleanupRelayDirectories(streamId, relays.get(streamId), [
+        ...(exclusiveRescue ? [previous.directory] : []), replacement?.directory
+      ].filter(Boolean));
       return false;
     }
     const previousDirectories = replacement.previousDirectories.length
@@ -1728,10 +1777,11 @@ async function warmReplaceRelay(streamId, previous, {
     relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
       last_handoff_result: "PROMOTED",
       last_handoff_failure: null,
-      last_handoff_first_output_latency_ms: confirmationStartedAt === null
-        ? null : confirmationStartedAt - probationStartedAt,
-      last_handoff_output_advances: outputAdvanceCount,
-      last_handoff_duration_ms: Date.now() - probationStartedAt });
+      last_handoff_first_output_latency_ms: observation.confirmationStartedAt === null
+        ? null : observation.confirmationStartedAt - observation.probationStartedAt,
+      last_handoff_output_advances: observation.outputAdvanceCount,
+      last_handoff_duration_ms: Date.now() - handoffStartedAt,
+      last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
     cleanupRelayDirectories(streamId, replacement, previousDirectories);
     return true;
   })().finally(() => {
