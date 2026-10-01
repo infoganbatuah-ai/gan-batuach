@@ -56,11 +56,23 @@ export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
 // deadline calculation, not a relaxed freshness threshold: stale media still
 // fails at the same boundary and the rescue lane remains independently bounded.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS = 12_000;
-// Output rescue begins after twelve seconds without rendered HLS progress,
-// leaving eight seconds before the ordinary twenty-second stale boundary.
-// If an already-running warm replacement has not promoted by that boundary,
-// a playback request may wait through one additional bounded eight-second
-// interval instead of tearing down the only relay while its successor starts.
+// The live 0.2.41 proof showed that an output-rescue response can need about
+// thirteen seconds before its first HLS segment and then remain continuously
+// productive. Applying the routine lane's twelve-second scheduler budget to
+// that independent rescue lane killed the candidate just before it could
+// complete the unchanged six-second/four-advance confirmation contract. Keep
+// acquisition and total probation separately bounded; this does not increase
+// concurrency or relax the evidence required for ownership promotion.
+export const PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS = 14_000;
+export const PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS = 21_000;
+// Rescue begins after twelve seconds of output idle. Preserve the old owner as
+// a non-progressing identity anchor until the bounded rescue resolves, even
+// though it is no longer selected as media. The 16-second extension beyond the
+// ordinary stale boundary covers scheduler-tick jitter plus the full probation.
+export const PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS = 16_000;
+// Routine handoff and direct-RTSP requests retain the original bounded wait.
+// Output rescue uses the measured acquisition bound above, without extending
+// unrelated request paths.
 export const PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS = 8_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
@@ -98,6 +110,22 @@ export function privateNvrRoutineHandoffSchedule(startedAts, now = Date.now(), {
     entry.deadlineAt - (index + 1) * slotBudgetMs));
   return { ready: now >= latestSafeStartAt, latestSafeStartAt,
     nextStartedAt: deadlines[0].startedAt, queued: deadlines.length };
+}
+
+export function privateNvrHandoffProbationDeadline({ handoffMode,
+  probationStartedAt, firstOutputObservedAt = null,
+  minimumConfirmationMs = PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS }) {
+  if (!Number.isFinite(probationStartedAt)) return null;
+  if (handoffMode !== "OUTPUT_RESCUE") {
+    return probationStartedAt + Math.max(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
+      minimumConfirmationMs + 5_000);
+  }
+  if (!Number.isFinite(firstOutputObservedAt)) {
+    return probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS;
+  }
+  return Math.min(
+    probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
+    firstOutputObservedAt + minimumConfirmationMs + 1_000);
 }
 
 export function comparePrivateNvrHandoffPriority(left, right) {

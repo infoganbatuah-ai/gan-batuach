@@ -8,6 +8,16 @@ export function relayRecoveryIsStable(relay, now = Date.now(), stableMs = RELAY_
   return Boolean(relay && now - relay.startedAt >= stableMs);
 }
 
+export function relayRecoveryShouldResume({ hasPlaybackLease = false,
+  sourceRegistered = false } = {}) {
+  // A playback claim is deliberately issued only after ensureRelay succeeds.
+  // Requiring that future lease as the sole restart signal creates a circular
+  // recovery gap: the relay cannot restart without a lease and the lease
+  // cannot be issued without a relay. A registered local source is also an
+  // authoritative demand signal for health/AI supervision.
+  return Boolean(hasPlaybackLease || sourceRegistered);
+}
+
 export function nextRelayRecovery(previous, now = Date.now()) {
   // A zero exit can still be a short-lived native stream. Only sustained
   // progressing video, not the child exit code, clears the failure history.

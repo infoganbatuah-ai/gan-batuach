@@ -5,15 +5,20 @@ import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
-import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from
+import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
+  relayRetryDelayMs } from
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+  PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   comparePrivateNvrHandoffPriority,
+  privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
@@ -71,11 +76,41 @@ test("routine scheduling serves the least-fresh output before an older but fresh
   assert.match(server, /routine\.sort\(\(left, right\) => comparePrivateNvrHandoffPriority/);
 });
 
-test("failed handoff probation cannot outlive the scheduler slot budget", () => {
+test("routine probation stays scheduler-bounded while rescue has its own bounded lane", () => {
+  const startedAt = 500_000;
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "ROUTINE_FINITE_RESPONSE", probationStartedAt: startedAt
+  }), startedAt + 12_000);
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS, 14_000);
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS, 21_000);
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS, 16_000);
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt
+  }), startedAt + 14_000);
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
+    firstOutputObservedAt: startedAt + 13_000
+  }), startedAt + 20_000);
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
+    firstOutputObservedAt: startedAt + 20_000
+  }), startedAt + 21_000);
+  assert.match(server, /privateNvrHandoffProbationDeadline\(\{ handoffMode,/);
   assert.match(server,
-    /const deadline = Date\.now\(\) \+ Math\.max\(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,\s*minimumConfirmationMs \+ 5_000\)/);
-  assert.doesNotMatch(server,
-    /minimumConfirmationMs \+ \(maximumOutputIdleMs \?\? 0\) \+ 5_000/);
+    /relayWarmupModes\.get\(streamId\) === "OUTPUT_RESCUE"[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS/);
+});
+
+test("playback can use a progressing rescue candidate without promoting ownership", () => {
+  assert.match(server,
+    /const continuity = relayMediaContinuity\(streamId, promoted\);[\s\S]*const available = continuity\.effective/);
+  assert.match(server,
+    /let relay = relayMediaContinuity\(match\[1\]\)\.effective/);
+  assert.match(server,
+    /candidate\?\.directory, \.\.\.\(candidate\?\.previousDirectories \|\| \[\]\)/);
+  assert.match(server,
+    /cleanupRelayDirectories\(streamId, relays\.get\(streamId\), \[replacement\.directory\]\)/);
+  assert.match(server, /last_handoff_first_output_latency_ms/);
+  assert.match(server, /last_handoff_output_advances/);
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
@@ -114,7 +149,29 @@ test("consumer demand cannot bypass relay recovery backoff", () => {
   assert.equal(relayRetryDelayMs(first, now), 500);
   assert.equal(relayRetryDelayMs(first, now + 499), 1);
   assert.equal(relayRetryDelayMs(first, now + 500), 0);
-  assert.match(server, /if \(relayRetryDelayMs\(relayRecovery\.get\(streamId\)\) > 0\) return null/);
+  assert.match(server, /if \(retryDelayMs > maximumWaitMs\) return null/);
+  assert.match(server,
+    /await new Promise\(resolve => setTimeout\(resolve, retryDelayMs \+ 10\)\)/);
+});
+
+test("recovery does not require a playback lease that cannot exist yet", () => {
+  assert.equal(relayRecoveryShouldResume({ hasPlaybackLease: false,
+    sourceRegistered: true }), true);
+  assert.equal(relayRecoveryShouldResume({ hasPlaybackLease: true,
+    sourceRegistered: false }), true);
+  assert.equal(relayRecoveryShouldResume({ hasPlaybackLease: false,
+    sourceRegistered: false }), false);
+  assert.match(server,
+    /relayRecoveryShouldResume\(\{ hasPlaybackLease: hasActivePlaybackLease\(streamId\),\s+sourceRegistered: streamSources\.has\(streamId\) \}\)/);
+});
+
+test("stale request waits through bounded backoff and handoff media wakes demand", () => {
+  assert.match(server,
+    /stopRelay\(streamId, existing, "STALE_ON_REQUEST"\);\s+\}\s+return startRelayAfterRecoveryDelay\(streamId\)/);
+  assert.match(server,
+    /waitForRelayHandoffMedia\(streamId, requestGraceMs\)/);
+  assert.match(server,
+    /relayMediaContinuity\(streamId\)\.progressing/);
 });
 
 test("brief progress cannot clear recovery history", () => {

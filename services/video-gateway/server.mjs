@@ -10,11 +10,14 @@ import { objectInference } from "./object-inference-client.mjs";
 import { createEventEvidenceStore } from "./event-evidence-store.mjs";
 import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
-import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
+import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
+  relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
@@ -22,6 +25,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   comparePrivateNvrHandoffPriority,
+  privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffSchedule,
@@ -1386,27 +1390,55 @@ async function ensureRelay(streamId) {
   // second recovery path.
   const handoff = relayWarmups.get(streamId);
   if (existing && handoff) {
-    await Promise.race([
-      handoff.catch(() => false),
-      new Promise(resolve => setTimeout(resolve,
-        PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS))
-    ]);
+    const handoffMode = relayWarmupModes.get(streamId);
+    const requestGraceMs = handoffMode === "OUTPUT_RESCUE"
+      ? PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS
+      : PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS;
+    await Promise.race([handoff.catch(() => false),
+      waitForRelayHandoffMedia(streamId, requestGraceMs)]);
     const promoted = relays.get(streamId);
-    if (promoted && relayIsRunning(promoted) &&
-      relayBelongsToCurrentSession(promoted, source) && relayIsProgressing(promoted)) {
-      if (relayRecoveryIsStable(promoted)) relayRecovery.delete(streamId);
-      return promoted;
+    const continuity = relayMediaContinuity(streamId, promoted);
+    const available = continuity.effective;
+    if (available && relayIsRunning(available) &&
+      relayBelongsToCurrentSession(available, source) && continuity.progressing) {
+      if (available === promoted && relayRecoveryIsStable(promoted)) relayRecovery.delete(streamId);
+      return available;
     }
     existing = promoted;
   }
-  // Requests, including HLS and AI sampling, may not bypass the bounded
-  // recovery delay set by the child-exit path. Report temporary unavailability.
-  if (relayRetryDelayMs(relayRecovery.get(streamId)) > 0) return null;
   if (existing) {
     relayLifecycle.staleOnRequest += 1;
     armRelayRecovery(streamId, existing);
-    stopRelay(streamId, existing);
-    return null;
+    stopRelay(streamId, existing, "STALE_ON_REQUEST");
+  }
+  return startRelayAfterRecoveryDelay(streamId);
+}
+
+async function waitForRelayHandoffMedia(streamId, maximumWaitMs) {
+  const deadline = Date.now() + Math.max(0, Number(maximumWaitMs || 0));
+  while (Date.now() < deadline && relayWarmups.has(streamId)) {
+    if (relayMediaContinuity(streamId).progressing) return true;
+    await new Promise(resolve => setTimeout(resolve, Math.min(100,
+      Math.max(1, deadline - Date.now()))));
+  }
+  return relayMediaContinuity(streamId).progressing;
+}
+
+async function startRelayAfterRecoveryDelay(streamId,
+  maximumWaitMs = PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS) {
+  const retryDelayMs = relayRetryDelayMs(relayRecovery.get(streamId));
+  // Waiting for the already-recorded retry boundary preserves backoff. It is
+  // not a consumer bypass. Long exponential delays remain fail-closed.
+  if (retryDelayMs > maximumWaitMs) return null;
+  if (retryDelayMs > 0) {
+    await new Promise(resolve => setTimeout(resolve, retryDelayMs + 10));
+    if (relayRetryDelayMs(relayRecovery.get(streamId)) > 0) return null;
+  }
+  const current = relays.get(streamId);
+  const source = streamSources.get(streamId);
+  if (current && relayIsRunning(current) && relayBelongsToCurrentSession(current, source)
+    && (relayIsProgressing(current) || Date.now() - current.startedAt < RELAY_STALE_MS)) {
+    return current;
   }
   if (relayStarts.has(streamId)) return relayStarts.get(streamId);
   const start = startRelay(streamId).finally(() => relayStarts.delete(streamId));
@@ -1542,12 +1574,12 @@ async function warmReplaceRelay(streamId, previous, {
     const replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
     if (!replacement) return false;
-    // The deadline scheduler reserves PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS
-    // per row. A failed probation must release its lane within that same
-    // budget; otherwise one bad candidate invalidates the entire sweep's
-    // latest-safe-start calculation and later healthy owners can hard-stale.
-    const deadline = Date.now() + Math.max(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
-      minimumConfirmationMs + 5_000);
+    // Routine candidates release the scheduler lane inside its declared slot.
+    // Output rescue owns a separate bounded lane and may use the measured
+    // first-output allowance without delaying the routine sweep.
+    const probationStartedAt = Date.now();
+    let deadline = privateNvrHandoffProbationDeadline({ handoffMode,
+      probationStartedAt, minimumConfirmationMs });
     let firstOutputAt = null;
     let lastObservedOutputAt = null;
     let outputAdvanceCount = 0;
@@ -1561,6 +1593,9 @@ async function warmReplaceRelay(streamId, previous, {
             firstOutputAt = outputAt;
             lastObservedOutputAt = outputAt;
             confirmationStartedAt = Date.now();
+            deadline = privateNvrHandoffProbationDeadline({ handoffMode,
+              probationStartedAt, firstOutputObservedAt: confirmationStartedAt,
+              minimumConfirmationMs });
           } else if (outputAt > lastObservedOutputAt) {
             lastObservedOutputAt = outputAt;
             outputAdvanceCount += 1;
@@ -1588,7 +1623,15 @@ async function warmReplaceRelay(streamId, previous, {
       || relays.get(streamId) !== expectedCurrent) {
       relayLifecycle.warmHandoffFailures += 1;
       if (!outputConfirmed) relayLifecycle.warmHandoffConfirmationFailures += 1;
+      relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+        last_handoff_result: "FAILED",
+        last_handoff_failure: !outputConfirmed ? "CONFIRMATION_INCOMPLETE" : "OWNER_CHANGED",
+        last_handoff_first_output_latency_ms: confirmationStartedAt === null
+          ? null : confirmationStartedAt - probationStartedAt,
+        last_handoff_output_advances: outputAdvanceCount,
+        last_handoff_duration_ms: Date.now() - probationStartedAt });
       stopRelay(streamId, replacement, "WARM_HANDOFF_ABORTED");
+      cleanupRelayDirectories(streamId, relays.get(streamId), [replacement.directory]);
       return false;
     }
     const previousDirectories = replacement.previousDirectories.length
@@ -1600,6 +1643,13 @@ async function warmReplaceRelay(streamId, previous, {
     relayCandidates.delete(streamId);
     stopRelay(streamId, previous, "WARM_HANDOFF");
     relayLifecycle.warmHandoffs += 1;
+    relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+      last_handoff_result: "PROMOTED",
+      last_handoff_failure: null,
+      last_handoff_first_output_latency_ms: confirmationStartedAt === null
+        ? null : confirmationStartedAt - probationStartedAt,
+      last_handoff_output_advances: outputAdvanceCount,
+      last_handoff_duration_ms: Date.now() - probationStartedAt });
     cleanupRelayDirectories(streamId, replacement, previousDirectories);
     return true;
   })().finally(() => {
@@ -1756,7 +1806,10 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
           handoffInFlight: relayWarmups.has(streamId),
           candidateProgressing: relayIsProgressing(warmingCandidate),
           currentOutputAt: outputAt,
-          relayStaleMs: RELAY_STALE_MS
+          relayStaleMs: RELAY_STALE_MS,
+          requestGraceMs: relayWarmupModes.get(streamId) === "OUTPUT_RESCUE"
+            ? PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS
+            : PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS
         });
       if (awaitingWarmReplacement) return;
       if (hardwareVideo && (!progressing && !inputStale || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
@@ -2031,7 +2084,8 @@ function hasActivePlaybackLease(streamId) {
 
 function scheduleRelayResume(streamId, delayMs) {
   const resume = setTimeout(() => {
-    if (!hasActivePlaybackLease(streamId)) return;
+    if (!relayRecoveryShouldResume({ hasPlaybackLease: hasActivePlaybackLease(streamId),
+      sourceRegistered: streamSources.has(streamId) })) return;
     const remainingMs = relayRetryDelayMs(relayRecovery.get(streamId));
     // Timer scheduling may wake just before the recorded retry boundary. Do
     // not lose the only automatic recovery attempt because of clock jitter.
@@ -2052,7 +2106,7 @@ async function serveHls(request, response) {
   }
   requestMetrics[match[2] === "index.m3u8" ? "hlsPlaylists" : "hlsSegments"] += 1;
   if (request.headers.range) requestMetrics.hlsRangeRequests += 1;
-  let relay = relays.get(match[1]);
+  let relay = relayMediaContinuity(match[1]).effective;
   if (match[2] === "index.m3u8") {
     relay = await ensureRelay(match[1]);
     if (!relay || !(await waitForFile(relay.playlist, 8000))) {
@@ -2060,9 +2114,14 @@ async function serveHls(request, response) {
       return;
     }
   }
+  const continuity = relayMediaContinuity(match[1]);
+  const current = continuity.current;
+  const candidate = continuity.candidate;
   const directories = match[2] === "index.m3u8"
     ? [relay?.directory]
-    : [relay?.directory, ...(relay?.previousDirectories || [])];
+    : [relay?.directory, ...(relay?.previousDirectories || []),
+      current?.directory, ...(current?.previousDirectories || []),
+      candidate?.directory, ...(candidate?.previousDirectories || [])];
   const file = directories.filter(Boolean).map(directory => normalize(join(directory, match[2])))
     .find(candidate => candidate.startsWith(`${normalize(HLS_ROOT)}/`) && existsSync(candidate));
   if (!file) {
