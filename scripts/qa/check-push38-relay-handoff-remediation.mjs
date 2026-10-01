@@ -14,6 +14,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
   PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS,
@@ -177,7 +178,8 @@ test("a progressing candidate preserves health without early ownership promotion
   assert.deepEqual(privateNvrHandoffMediaContinuity({
     currentProgressing: true, candidateProgressing: true,
     handoffMode: "OUTPUT_RESCUE", currentOutputAt: 80_000,
-    candidateOutputAt: 99_000, now: 100_000, mediaTakeoverIdleMs: 12_000
+    candidateOutputAt: 99_000, now: 100_000,
+    mediaTakeoverIdleMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
   }), { progressing: true, owner: "CURRENT", mediaOwner: "WARMING_CONTINUITY" },
   "fresh rescue media is served without promoting canonical ownership");
   assert.deepEqual(privateNvrHandoffMediaContinuity({

@@ -12,6 +12,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
@@ -156,6 +157,7 @@ test("healthy recorder responses are not replaced from age alone", () => {
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS, 6_000);
   assert.equal(PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES, 4);
@@ -165,22 +167,22 @@ test("healthy recorder responses are not replaced from age alone", () => {
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true);
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now), true);
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now),
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now),
   "OUTPUT_RESCUE");
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
     lastInputAt: now,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now),
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now),
   "OUTPUT_RESCUE", "stale rendered output remains evidence for bounded rescue");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS + 1 }, now), false);
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS + 1 }, now), false);
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -210,8 +212,8 @@ test("healthy recorder responses are not replaced from age alone", () => {
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now - 30_000,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false,
-  "bursty recorder silence does not claim a finite end without an observed body end");
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now), true,
+  "joint recorder silence starts a bounded continuity probe without claiming a native end");
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     progressing: false,
     recoveryStable: false,
@@ -222,8 +224,8 @@ test("healthy recorder responses are not replaced from age alone", () => {
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     progressing: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false,
-  "a relay beyond the hard-stale boundary is recovered by the normal bounded restart path");
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true,
+  "a non-progressing owner enters the bounded rescue lane before destructive restart");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,

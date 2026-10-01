@@ -18,6 +18,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
@@ -1533,7 +1534,7 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
     currentProgressing: relayIsProgressing(current),
     candidateProgressing: relayIsProgressing(candidate),
     handoffMode: relayWarmupModes.get(streamId), currentOutputAt,
-    candidateOutputAt
+    candidateOutputAt, mediaTakeoverIdleMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
   });
   return { ...state, current, candidate,
     effective: state.mediaOwner === "WARMING_CONTINUITY" ? candidate : current };
