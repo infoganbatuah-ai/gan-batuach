@@ -1,4 +1,4 @@
-name: PUSH 38 Gateway HLS scheduler deadline Home QA manifest
+name: PUSH 38 Gateway HLS fallback window Home QA manifest
 
 on:
   push:
@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 20fa3d1649dec00edab0f4068ad600c36c93b264
+          ref: 6e5a550807342c63380bce2a3863a02ba4cf36e8
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "20fa3d1649dec00edab0f4068ad600c36c93b264"
+        run: test "$(git rev-parse HEAD)" = "6e5a550807342c63380bce2a3863a02ba4cf36e8"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable Gateway routine-confirmation contract
@@ -59,7 +59,7 @@ jobs:
           SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
           SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
-          PUSH38_CANDIDATE_SHA: 10da524ad3129894cd0628fe5bf105c283bf16be
+          PUSH38_CANDIDATE_SHA: a81f3d02ff8a08ade32a6ffed1dac957f12c4ba1
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
           HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-gateway-routine-confirmation
         run: node scripts/release/issue-push38-home-qa-gateway-routine-confirmation.mjs
