@@ -59,6 +59,7 @@
     "qa:push38-gateway-handoff-owner-continuity-release": "node scripts/qa/check-push38-gateway-handoff-owner-continuity-release.mjs",
     "qa:push38-gateway-sweep-deadline-release": "node scripts/qa/check-push38-gateway-sweep-deadline-release.mjs",
     "qa:push38-gateway-deadline-budget-release": "node scripts/qa/check-push38-gateway-deadline-budget-release.mjs",
+    "qa:push38-gateway-recovery-continuity-release": "node scripts/qa/check-push38-gateway-recovery-continuity-release.mjs",
     "qa:push38-connector-handoff-continuity-release": "node scripts/qa/check-push38-connector-handoff-continuity-release.mjs",
     "qa:digital-observer-real-home-soak": "node scripts/qa/run-real-home-soak.mjs --duration-ms=86400000 --interval-ms=60000 --deep-probe-ms=3600000",
     "qa:digital-observer-cost-engine": "node scripts/qa/check-digital-observer-cost-engine.mjs",
