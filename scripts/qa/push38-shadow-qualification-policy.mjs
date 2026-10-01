@@ -42,7 +42,9 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
     advances, maximum_stagnation_ms: maximumStagnationMs };
 }
 
-export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}) {
+export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}, {
+  expectedProgressing = 1
+} = {}) {
   const outputFailures = Number(lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
   if (outputFailures === 0) return { pass: true, warning: null };
   const startedAt = Date.parse(checkpoints?.[0]?.observed_at || "");
@@ -65,19 +67,21 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
   if (failureIndexes.length !== outputFailures)
     return { pass: false, warning: null, reason: "FAILURE_POINT_MISSING" };
   const mediaPreserved = failureIndexes.every(index => {
-    const failed = checkpoints[index], renewal = failed.renewal;
-    const input = failed.shadow?.media?.inputs?.[0];
-    const canonicalMedia = input?.owner_state === "CURRENT" &&
-      input?.canonical_owner_progressing === true;
-    const candidateMedia = input?.owner_state === "WARMING_CONTINUITY" &&
-      input?.candidate_progressing === true;
-    return failed.shadow?.media?.progressing === 1 && failed.shadow?.media?.stalled === 0 &&
-      (canonicalMedia || candidateMedia) && renewal?.status === 200 &&
-      renewal?.playlist_status === 200 && renewal?.segment_status === 200 &&
-      renewal?.segment_bytes > 0;
+    const failed = checkpoints[index];
+    const renewals = Array.isArray(failed.renewals)
+      ? failed.renewals.map(entry => entry.playback) : [failed.renewal];
+    const inputs = failed.shadow?.media?.inputs ?? [];
+    const mediaOwnersValid = inputs.length >= expectedProgressing && inputs.every(input =>
+      input?.owner_state === "CURRENT" && input?.canonical_owner_progressing === true ||
+      input?.owner_state === "WARMING_CONTINUITY" && input?.candidate_progressing === true);
+    const playbackValid = renewals.length === expectedProgressing && renewals.every(renewal =>
+      renewal?.status === 200 && renewal?.playlist_status === 200 &&
+      renewal?.segment_status === 200 && renewal?.segment_bytes > 0);
+    return failed.shadow?.media?.progressing === expectedProgressing &&
+      failed.shadow?.media?.stalled === 0 && mediaOwnersValid && playbackValid;
   });
   const final = checkpoints.at(-1);
-  if (!mediaPreserved || final?.shadow?.media?.progressing !== 1 ||
+  if (!mediaPreserved || final?.shadow?.media?.progressing !== expectedProgressing ||
     final?.shadow?.media?.stalled !== 0)
     return { pass: false, warning: null, reason: "MEDIA_NOT_PRESERVED_OR_NOT_RECOVERED" };
   return { pass: true,

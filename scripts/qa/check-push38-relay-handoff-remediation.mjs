@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { classifyBoundedOutputRescueRejection } from
+  "./push38-shadow-qualification-policy.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
 import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
@@ -29,6 +31,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS,
   comparePrivateNvrHandoffPriority,
+  privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrOutputRescueRetryAllowed,
@@ -39,7 +42,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
 
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 
-test("one routine owner lane leaves one bounded output-rescue lane", () => {
+test("handoff capacity reserves a routine lane only while routine handoff is enabled", () => {
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
   assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
@@ -50,8 +53,53 @@ test("one routine owner lane leaves one bounded output-rescue lane", () => {
     handoffMode: "OUTPUT_RESCUE" }), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
     replacingExistingProbation: true }), false);
+  assert.equal(privateNvrHandoffCapacityAllowed({
+    activeProbations: 1, activeRoutineProbations: 0,
+    activeRescueProbations: 1, handoffMode: "OUTPUT_RESCUE"
+  }), true, "the second bounded rescue lane must remain usable when routine handoff is off");
+  assert.equal(privateNvrHandoffCapacityAllowed({
+    activeProbations: 2, activeRoutineProbations: 0,
+    activeRescueProbations: 2, handoffMode: "OUTPUT_RESCUE"
+  }), false, "the recorder-safe global two-candidate cap remains authoritative");
+  assert.equal(privateNvrHandoffCapacityAllowed({
+    activeProbations: 1, activeRoutineProbations: 0,
+    activeRescueProbations: 1, handoffMode: "OUTPUT_RESCUE",
+    routineAgeHandoffEnabled: true
+  }), false, "routine mode reserves the other bounded lane");
+  assert.equal(privateNvrHandoffCapacityAllowed({
+    activeProbations: 1, activeRoutineProbations: 1,
+    activeRescueProbations: 0, handoffMode: "ROUTINE_FINITE_RESPONSE"
+  }), false, "routine candidates remain serialized");
+  assert.equal(privateNvrHandoffCapacityAllowed({
+    activeProbations: 1, activeRoutineProbations: 0,
+    activeRescueProbations: 1, handoffMode: "OUTPUT_RESCUE",
+    replacingExistingProbation: true
+  }), false, "a retained candidate cannot recursively replace itself");
   assert.match(server, /let expectedCurrent = previous/);
   assert.doesNotMatch(server, /WARM_HANDOFF_CHAIN_ADVANCED/);
+});
+
+test("two-source Shadow preserves both media paths through a bounded rescue rejection", () => {
+  const playback = suffix => ({ status: 200, playlist_status: 200,
+    segment_status: 200, segment_bytes: 1024, playlist_sha256: suffix.repeat(64),
+    segment_sha256: suffix.repeat(64), media_sequence: 1,
+    latest_segment_sequence: 3, target_duration_seconds: 2 });
+  const point = (sequence, failures) => ({ sequence,
+    observed_at: new Date(sequence * 60_000).toISOString(),
+    renewals: [{ channel: 1, playback: playback("a") },
+      { channel: 4, playback: playback("b") }],
+    shadow: { media: { progressing: 2, stalled: 0,
+      inputs: [{ owner_state: "CURRENT", canonical_owner_progressing: true },
+        { owner_state: "WARMING_CONTINUITY", candidate_progressing: true }],
+      lifecycle: { warmHandoffFailures: failures } } } });
+  const result = classifyBoundedOutputRescueRejection([
+    point(1, 0), point(2, 1), point(3, 1)
+  ], { warmHandoffFailures: 1, warmHandoffConfirmationFailures: 1,
+    warmHandoffRollbacks: 0, staleInput: 0, stalePlaylist: 0,
+    staleOnRequest: 0, inputSocketError: 0, upstreamFailed: 0,
+    startsByReason: { recovery: 0 }, warmHandoffs: 2,
+    warmHandoffFailuresByMode: { outputRescue: 1 } }, { expectedProgressing: 2 });
+  assert.equal(result.pass, true);
 });
 
 test("live multi-source evidence disables age-only relay churn", () => {
@@ -66,6 +114,10 @@ test("live multi-source evidence disables age-only relay churn", () => {
   assert.match(shadow,
     /!expectReactiveOnly && durationMs >= 2 \* 60_000/,
   "reactive-only proof must not fabricate a handoff merely to satisfy the old fixture");
+  assert.match(shadow, /DVR_SHADOW_CHANNELS/);
+  assert.match(shadow, /READ_ONLY_TWO_CHANNEL_SHADOW/);
+  assert.match(server, /filter\.length < 1 \|\| filter\.length > 2/,
+  "bounded Shadow may exercise both recorder-safe rescue lanes without broad access");
 });
 
 test("a synchronized nine-source sweep starts before the finite deadline", () => {

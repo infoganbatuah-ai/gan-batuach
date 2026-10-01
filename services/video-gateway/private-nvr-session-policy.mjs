@@ -67,9 +67,11 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4;
 // and the model's documented sixteen-channel playback ceiling permit the nine
 // qualified streams plus two bounded candidates. The 0.2.39 canary proved that
 // one globally serialized candidate cannot drain nine synchronized finite
-// responses before later sources become stale. Keep one routine lane and one
-// independently reserved output-rescue lane; never return to the unbounded
-// nine-candidate behavior that starved earlier releases.
+// responses before later sources become stale. When age-only maintenance is
+// enabled, keep one routine lane and one independently reserved output-rescue
+// lane. When it is disabled, both recorder-safe lanes may serve output rescue;
+// never return to the unbounded nine-candidate behavior that starved earlier
+// releases.
 export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 2;
 export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
 // The nine-channel live run measured routine first-output latency as high as
@@ -140,6 +142,28 @@ export function privateNvrProvisionalHandoffAllowed({ activeProbations,
     && Number.isInteger(activeProbations) && activeProbations >= 0
     && Number.isInteger(maximum) && maximum > 0
     && activeProbations < limit);
+}
+
+export function privateNvrHandoffCapacityAllowed({ activeProbations,
+  activeRoutineProbations, activeRescueProbations, handoffMode,
+  replacingExistingProbation = false,
+  routineAgeHandoffEnabled = PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
+  maximum = PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+  routineMaximum = PRIVATE_NVR_MAX_ROUTINE_PROBATIONS }) {
+  const activeModeProbations = handoffMode === "OUTPUT_RESCUE"
+    ? activeRescueProbations : activeRoutineProbations;
+  // When age-only maintenance is disabled, there is no routine candidate to
+  // reserve a lane for. Let the bounded rescue path use both recorder-safe
+  // probation slots so synchronized finite responses do not queue behind a
+  // lane that cannot run. The global maximum remains authoritative.
+  const modeMaximum = handoffMode === "OUTPUT_RESCUE" && !routineAgeHandoffEnabled
+    ? maximum : routineMaximum;
+  return privateNvrProvisionalHandoffAllowed({ activeProbations, maximum,
+    replacingExistingProbation, handoffMode: "OUTPUT_RESCUE" })
+    && privateNvrProvisionalHandoffAllowed({
+      activeProbations: activeModeProbations, maximum: modeMaximum,
+      replacingExistingProbation, handoffMode
+    });
 }
 
 export function privateNvrRoutineHandoffSchedule(startedAts, now = Date.now(), {

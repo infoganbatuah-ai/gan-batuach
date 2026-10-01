@@ -31,10 +31,11 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   comparePrivateNvrHandoffPriority,
+  privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrOutputRescueRetryAllowed,
-  privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
+  privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
@@ -319,14 +320,11 @@ function privateNvrHandoffCapacityAvailable(streamId, handoffMode, candidate) {
     streamSources.get(otherId)?.sessionKey === sessionKey && otherMode !== "OUTPUT_RESCUE").length;
   const activeRescueProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
     streamSources.get(otherId)?.sessionKey === sessionKey && otherMode === "OUTPUT_RESCUE").length;
-  return privateNvrProvisionalHandoffAllowed({ activeProbations,
-    maximum: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+  return privateNvrHandoffCapacityAllowed({ activeProbations,
+    activeRoutineProbations, activeRescueProbations, handoffMode,
     replacingExistingProbation: Boolean(candidate?.retainedFallback),
-    handoffMode: "OUTPUT_RESCUE" }) && privateNvrProvisionalHandoffAllowed({
-    activeProbations: handoffMode === "OUTPUT_RESCUE"
-      ? activeRescueProbations : activeRoutineProbations,
-    maximum: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
-    replacingExistingProbation: Boolean(candidate?.retainedFallback), handoffMode });
+    maximum: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+    routineMaximum: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS });
 }
 const edgeSupervisor = createEdgeSupervisor({ adapters: {
   [EDGE_RECOVERY_ACTION.RECONNECT_SOURCE]: async ({ resourceId }) => {
@@ -2637,8 +2635,9 @@ async function handle(request, response) {
       if (SHADOW_MODE) {
         const filter = payload?.metadata?.channel_filter;
         if (payload?.metadata?.shadow_qualification !== true || payload?.metadata?.read_only_requested !== true
-          || !Array.isArray(filter) || filter.length !== 1 || !Number.isInteger(filter[0])) {
-          throw new Error("Shadow qualification requires one explicit read-only channel");
+          || !Array.isArray(filter) || filter.length < 1 || filter.length > 2
+          || filter.some(channel => !Number.isInteger(channel))) {
+          throw new Error("Shadow qualification requires one or two explicit read-only channels");
         }
       }
       json(response, 200, await dvrConnect(payload));

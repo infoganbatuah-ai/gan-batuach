@@ -16,7 +16,10 @@ import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const requestedEndpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
-const channel = Number(process.env.DVR_SHADOW_CHANNEL || 1);
+const requestedChannels = String(process.env.DVR_SHADOW_CHANNELS ||
+  process.env.DVR_SHADOW_CHANNEL || "1").split(",").map(value => Number(value.trim()));
+const channels = [...new Set(requestedChannels)];
+const channel = channels[0];
 const durationMs = Number(process.env.DVR_SHADOW_DURATION_MS || 30 * 60_000);
 const intervalMs = Number(process.env.DVR_SHADOW_INTERVAL_MS || 30_000);
 const port = Number(process.env.DVR_SHADOW_PORT || 18084);
@@ -32,7 +35,9 @@ const expectReactiveOnly = process.env.DVR_SHADOW_EXPECT_REACTIVE_ONLY === "1";
 const requestedTransport = String(process.env.DVR_SHADOW_TRANSPORT || "native_http_mp4").trim();
 if (!["native_http_mp4", "private_rtsp"].includes(requestedTransport))
   throw new Error("DVR_SHADOW_TRANSPORT is invalid");
-if (!Number.isInteger(channel) || channel < 1 || channel > 64) throw new Error("DVR_SHADOW_CHANNEL is invalid");
+if (channels.length < 1 || channels.length > 2 ||
+  channels.some(value => !Number.isInteger(value) || value < 1 || value > 64))
+  throw new Error("DVR_SHADOW_CHANNELS must contain one or two valid channels");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("DVR_SHADOW_PORT is invalid");
@@ -114,7 +119,7 @@ const qualificationProfile = {
     // configuration or ownership change.
     vendor: requestedTransport === "private_rtsp"
       ? "xmeye_rtsp" : profile.metadata?.vendor || profile.vendor,
-    channel_filter: [channel],
+    channel_filter: channels,
     expected_channel_count: Number(profile.metadata?.expected_channel_count || profile.channel_count || 16),
     shadow_qualification: true,
     read_only_requested: true
@@ -128,9 +133,10 @@ const startedAt = Date.now();
 const evidence = {
   contract: "observer-push38-bounded-dvr-shadow-v1",
   started_at: new Date(startedAt).toISOString(),
-  mode: "READ_ONLY_ONE_CHANNEL_SHADOW",
+  mode: channels.length === 1 ? "READ_ONLY_ONE_CHANNEL_SHADOW" : "READ_ONLY_TWO_CHANNEL_SHADOW",
   transport: requestedTransport,
   channel,
+  channels,
   endpoint_redacted: true,
   credentials_recorded: false,
   cloud_access_enabled: false,
@@ -267,7 +273,7 @@ async function waitForSettledHandoff() {
     samples.push({ observed_at: new Date().toISOString(), candidates, provisionals,
       progressing, http: last.http });
     consecutiveSettled = last.http === 200 && candidates === 0 && provisionals === 0
-      && progressing === 1 ? consecutiveSettled + 1 : 0;
+      && progressing === channels.length ? consecutiveSettled + 1 : 0;
     if (consecutiveSettled >= 2) return { settled: true, elapsed_ms: Date.now() - startedAt,
       maximum_wait_ms: maximumWaitMs, samples, health: last };
     await sleep(250);
@@ -308,29 +314,37 @@ try {
     headers: { "content-type": "application/json", "x-video-gateway-secret": shadowSecret },
     body: JSON.stringify(qualificationProfile)
   });
-  const selected = discovery.data?.channels?.find((item) => item.channel === channel);
-  if (discovery.status !== 200 || selected?.status !== "connected" || !selected.stream_id) {
-    throw new Error(`Selected Shadow channel did not connect: HTTP ${discovery.status}, ${selected?.status || "missing"}, ${selected?.reason || "no_reason"}`);
+  const selected = channels.map(selectedChannel =>
+    discovery.data?.channels?.find((item) => item.channel === selectedChannel));
+  if (discovery.status !== 200 || selected.some(item =>
+    item?.status !== "connected" || !item.stream_id)) {
+    const summary = selected.map((item, index) => ({ channel: channels[index],
+      status: item?.status || "missing", reason: item?.reason || "no_reason" }));
+    throw new Error(`Selected Shadow channels did not connect: HTTP ${discovery.status}, ${JSON.stringify(summary)}`);
   }
   evidence.discovery = {
     status: discovery.status,
-    selected_channel_status: selected.status,
-    codec: selected.codec,
-    width: selected.width,
-    height: selected.height,
+    selected_channel_status: selected[0].status,
+    codec: selected[0].codec,
+    width: selected[0].width,
+    height: selected[0].height,
+    selected_channels: selected.map(item => ({ channel: item.channel,
+      status: item.status, codec: item.codec, width: item.width, height: item.height })),
     total_slots: discovery.data.channel_count,
     assigned: discovery.data.channel_count - discovery.data.unassigned_channel_count,
     unassigned: discovery.data.unassigned_channel_count
   };
   let sequence = 0;
   while (Date.now() - startedAt < durationMs) {
-    const renewal = playbackEveryCheckpoint || sequence % 2 === 0
-      ? await playback(selected.stream_id) : null;
+    const renewals = playbackEveryCheckpoint || sequence % 2 === 0
+      ? await Promise.all(selected.map(async item => ({ channel: item.channel,
+        playback: await playback(item.stream_id) }))) : [];
     const point = {
       sequence: ++sequence,
       observed_at: new Date().toISOString(),
       elapsed_ms: Date.now() - startedAt,
-      renewal,
+      renewal: renewals[0]?.playback ?? null,
+      renewals,
       shadow: await health(`${base}/health`),
       legacy: await health("http://127.0.0.1:18082/health")
     };
@@ -348,10 +362,9 @@ try {
   const finalPoint = { shadow: evidence.final_health };
   const lifecycle = evidence.final_health?.media?.lifecycle || {};
   const playbackFailures = playbackEveryCheckpoint
-    ? evidence.checkpoints.filter((point) => point.renewal?.status !== 200
-      || point.renewal?.playlist_status !== 200
-      || point.renewal?.segment_status !== 200
-      || !(point.renewal?.segment_bytes > 0)).length
+    ? evidence.checkpoints.flatMap(point => point.renewals).filter(entry =>
+      entry.playback?.status !== 200 || entry.playback?.playlist_status !== 200 ||
+      entry.playback?.segment_status !== 200 || !(entry.playback?.segment_bytes > 0)).length
     : 0;
   const failures = [];
   const warnings = [];
@@ -360,15 +373,25 @@ try {
   const outputRescueFailures = Number(
     lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
   const outputRescueClassification = classifyBoundedOutputRescueRejection(
-    evidence.checkpoints, lifecycle);
+    evidence.checkpoints, lifecycle, { expectedProgressing: channels.length });
+  const hlsContinuityByChannel = playbackEveryCheckpoint ? channels.map(selectedChannel => ({
+    channel: selectedChannel,
+    ...evaluateHlsRenewalContinuity(evidence.checkpoints.map(point => ({
+      observed_at: point.observed_at,
+      renewal: point.renewals.find(entry => entry.channel === selectedChannel)?.playback
+    })))
+  })) : [];
   const hlsContinuity = playbackEveryCheckpoint
-    ? evaluateHlsRenewalContinuity(evidence.checkpoints) : { pass: true, reason: null };
+    ? { pass: hlsContinuityByChannel.every(value => value.pass),
+      channels: hlsContinuityByChannel,
+      reason: hlsContinuityByChannel.find(value => !value.pass)?.reason ?? null }
+    : { pass: true, reason: null };
   const maximumBoundedRoutineFailures = Math.max(1,
     Math.ceil(evidence.duration_ms / PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS));
   if (!evidence.checkpoints.every((point) => point.shadow.http === 200
-    && point.shadow.discovery?.assigned === 1
-    && point.shadow.discovery?.connected === 1
-    && point.shadow.media?.progressing === 1)) failures.push("SHADOW_PROGRESSION");
+    && point.shadow.discovery?.assigned === channels.length
+    && point.shadow.discovery?.connected === channels.length
+    && point.shadow.media?.progressing === channels.length)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
   if (outputRescueFailures > 0 && !outputRescueClassification.pass)
     failures.push("OUTPUT_RESCUE_FAILURE");
