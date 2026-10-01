@@ -152,6 +152,8 @@ test("playback can use a progressing rescue candidate without promoting ownershi
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
+  assert.ok(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS + 3_850 < 10_000,
+    "measured rescue acquisition must fit inside the unchanged HLS freshness proof");
   const now = 100_000;
   assert.equal(PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);

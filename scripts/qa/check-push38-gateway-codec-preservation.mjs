@@ -37,10 +37,12 @@ try {
   const policy = readFileSync("services/video-gateway/private-nvr-session-policy.mjs", "utf8");
   const server = readFileSync("services/video-gateway/server.mjs", "utf8");
   assert.match(probe, /codec_name/);
-  assert.match(policy, /PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 1/);
+  assert.match(policy, /PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 2/);
+  assert.match(policy, /PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1/);
   assert.match(policy, /PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4/);
   assert.match(server, /maximumRoutineProbations/);
-  assert.match(server, /right\[2\] === "OUTPUT_RESCUE"/);
+  assert.match(server, /otherMode === "OUTPUT_RESCUE"/);
+  assert.match(server, /handoffMode === "OUTPUT_RESCUE"/);
   const registration = readFileSync(
     "scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   const activation = readFileSync(
@@ -51,9 +53,10 @@ try {
   assert.match(activation, /--gateway-codec-preservation/);
   assert.match(publisher, /--gateway-codec-preservation/);
   assert.match(activation, /codecPreservation \? connectorCodecPreservationItem/);
-  assert.match(activation, /codecPreservation \? 47/);
   assert.match(activation,
-    /rescueCapacity \|\| codecPreservation \|\| handoffHardware\)\s*\n\s*\? item\.agentPredecessorReleaseId/);
+    /expectsNineSources =[\s\S]*rescueCapacity \|\| codecPreservation \|\| handoffHardware/);
+  assert.match(activation,
+    /const expectedAgentReleaseId = \([\s\S]*codecPreservation \|\| handoffHardware \|\| relayHandoff[\s\S]*\)\s*\n\s*\? item\.agentPredecessorReleaseId/);
   assert.match(activation, /codecPreservation \? "gateway_remediation_codec_preservation\.json"/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 

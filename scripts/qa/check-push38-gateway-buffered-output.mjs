@@ -29,7 +29,7 @@ assert.equal(document.compatibility.maximum_current_version, "0.2.21-p38-health"
 assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 for (const source of [registration, activation, publisher]) assert.match(source, /bufferedOutput/);
-assert.match(activation, /BUFFERED_OUTPUT_SHADOW_EVIDENCE_INVALID/);
+assert.match(activation, /P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID/);
 assert.match(phase, new RegExp(item.releaseId));
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-buffered-output-test-"));

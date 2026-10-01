@@ -157,7 +157,7 @@ test("healthy recorder responses are not replaced from age alone", () => {
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
-  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS, 6_000);
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS, 5_000);
   assert.equal(PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES, 4);

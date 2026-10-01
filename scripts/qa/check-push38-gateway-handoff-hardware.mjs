@@ -46,10 +46,10 @@ try {
     "scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", "utf8");
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-handoff-hardware/);
-  assert.match(activation, /handoffHardware \? 48/);
   assert.match(activation, /handoffHardware \? "gateway_remediation_handoff_hardware\.json"/);
   assert.match(activation, /hardwareHandoff: handoffHardware/);
-  assert.match(activation, /recentMaxAgeMs: handoffHardware \? 60 \* 60_000 : 10 \* 60_000/);
+  assert.match(activation,
+    /recentMaxAgeMs: \(handoffHardware \|\| relayHandoff[\s\S]*\? 60 \* 60_000 : 10 \* 60_000/);
   assert.match(activation, /softwareFallbackHasOutputFailureEvidence/);
   assert.match(activation, /warmHandoffs >= 1[\s\S]*encoder === "videotoolbox"/);
   const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");

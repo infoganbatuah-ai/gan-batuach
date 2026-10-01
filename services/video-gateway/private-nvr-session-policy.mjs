@@ -30,11 +30,14 @@ export const PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED = false;
 // bounded replacement. A later signed shadow also measured a 22-second joint
 // input/output pause: waiting for the hard-stale boundary tore down the owner
 // before a replacement could publish current HLS. Start one non-destructive
-// rescue probe after six seconds of rendered-output silence. Canonical ownership
+// rescue probe after five seconds of rendered-output silence. The signed
+// b6682dc5 shadow measured replacement first-output latency up to 3.85 seconds;
+// five seconds keeps the replacement inside the unchanged ten-second HLS
+// freshness proof without relaxing that proof. Canonical ownership
 // still changes only after four advances across six seconds, so a burst pause
 // cannot be mistaken for an authoritative native response end.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
-export const PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS = 6_000;
+export const PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS = 5_000;
 export const PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS = 4_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A private-recorder response can stop delivering bytes even though the login
@@ -97,7 +100,7 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 180_000;
 // concurrency or relax the evidence required for ownership promotion.
 export const PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS = 14_000;
 export const PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS = 21_000;
-// Rescue begins after twelve seconds of output idle. Preserve the old owner as
+// Rescue begins after five seconds of output idle. Preserve the old owner as
 // a non-progressing identity anchor until the bounded rescue resolves, even
 // though it is no longer selected as media. The 16-second extension beyond the
 // ordinary stale boundary covers scheduler-tick jitter plus the full probation.

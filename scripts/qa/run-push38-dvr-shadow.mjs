@@ -29,6 +29,9 @@ const requestedManifestMember = String(process.env.DVR_SHADOW_MANIFEST_MEMBER ||
   "gateway_remediation_supervisor_recovery.json").trim();
 const playbackEveryCheckpoint = process.env.DVR_SHADOW_PLAYBACK_EVERY_CHECKPOINT === "1";
 const expectReactiveOnly = process.env.DVR_SHADOW_EXPECT_REACTIVE_ONLY === "1";
+const requestedTransport = String(process.env.DVR_SHADOW_TRANSPORT || "native_http_mp4").trim();
+if (!["native_http_mp4", "private_rtsp"].includes(requestedTransport))
+  throw new Error("DVR_SHADOW_TRANSPORT is invalid");
 if (!Number.isInteger(channel) || channel < 1 || channel > 64) throw new Error("DVR_SHADOW_CHANNEL is invalid");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
@@ -104,7 +107,13 @@ const qualificationProfile = {
   password,
   metadata: {
     ...(profile.metadata || {}),
-    vendor: profile.metadata?.vendor || profile.vendor,
+    // The installed Gateway keeps its canonical profile untouched. The
+    // explicit qualification-only vendor class makes the existing RTSP
+    // adapter run against this private recorder instead of the native HTTP
+    // MP4 adapter, so transport can be compared side-by-side without a live
+    // configuration or ownership change.
+    vendor: requestedTransport === "private_rtsp"
+      ? "xmeye_rtsp" : profile.metadata?.vendor || profile.vendor,
     channel_filter: [channel],
     expected_channel_count: Number(profile.metadata?.expected_channel_count || profile.channel_count || 16),
     shadow_qualification: true,
@@ -120,6 +129,7 @@ const evidence = {
   contract: "observer-push38-bounded-dvr-shadow-v1",
   started_at: new Date(startedAt).toISOString(),
   mode: "READ_ONLY_ONE_CHANNEL_SHADOW",
+  transport: requestedTransport,
   channel,
   endpoint_redacted: true,
   credentials_recorded: false,

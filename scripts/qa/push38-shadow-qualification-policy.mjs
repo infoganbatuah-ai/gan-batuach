@@ -59,9 +59,13 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
   const renewal = failed.renewal;
   const input = failed.shadow?.media?.inputs?.[0];
   const handoffsAtFailure = Number(failed.shadow?.media?.lifecycle?.warmHandoffs || 0);
+  const canonicalMedia = input?.owner_state === "CURRENT" &&
+    input?.canonical_owner_progressing === true;
+  const candidateMedia = input?.owner_state === "WARMING_CONTINUITY" &&
+    input?.candidate_progressing === true;
   const mediaPreserved = failed.shadow?.media?.progressing === 1 &&
-    failed.shadow?.media?.stalled === 0 && input?.owner_state === "CURRENT" &&
-    input?.canonical_owner_progressing === true && renewal?.status === 200 &&
+    failed.shadow?.media?.stalled === 0 && (canonicalMedia || candidateMedia) &&
+    renewal?.status === 200 &&
     renewal?.playlist_status === 200 && renewal?.segment_status === 200 &&
     renewal?.segment_bytes > 0;
   const laterPromotion = checkpoints.slice(failureIndex + 1).some(point =>

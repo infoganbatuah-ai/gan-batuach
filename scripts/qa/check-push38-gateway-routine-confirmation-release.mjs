@@ -99,6 +99,12 @@ const containedLifecycle = { warmHandoffFailures: 1, warmHandoffConfirmationFail
 assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(1, 0, 3), continuityPoint(2, 1, 3),
   continuityPoint(3, 1, 4, "PROMOTED")], containedLifecycle).pass, true);
+const candidateContinuity = continuityPoint(2, 1, 3);
+candidateContinuity.shadow.media.inputs[0] = { owner_state: "WARMING_CONTINUITY",
+  canonical_owner_progressing: false, candidate_progressing: true };
+assert.equal(classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), candidateContinuity,
+  continuityPoint(3, 1, 4, "PROMOTED")], containedLifecycle).pass, true);
 assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(1, 0, 3), continuityPoint(2, 1, 3)], containedLifecycle).pass, false);
 

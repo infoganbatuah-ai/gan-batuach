@@ -35,10 +35,12 @@ try {
   /P38_GATEWAY_RESCUE_CAPACITY_SIGNING_CONTEXT_INVALID/);
   const policy = readFileSync("services/video-gateway/private-nvr-session-policy.mjs", "utf8");
   const server = readFileSync("services/video-gateway/server.mjs", "utf8");
-  assert.match(policy, /PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 1/);
+  assert.match(policy, /PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 2/);
+  assert.match(policy, /PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1/);
   assert.match(policy, /PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4/);
   assert.match(server, /maximumRoutineProbations/);
-  assert.match(server, /right\[2\] === "OUTPUT_RESCUE"/);
+  assert.match(server, /otherMode === "OUTPUT_RESCUE"/);
+  assert.match(server, /handoffMode === "OUTPUT_RESCUE"/);
   const registration = readFileSync(
     "scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   const activation = readFileSync(
@@ -47,7 +49,8 @@ try {
   assert.match(activation, /--rescue-capacity/);
   assert.match(activation,
     /rescueCapacity \? connectorCodecPreservationItem/);
-  assert.match(activation, /rescueCapacity \? 46/);
+  assert.match(activation,
+    /expectsNineSources =[\s\S]*rescueCapacity \|\| codecPreservation \|\| handoffHardware/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
