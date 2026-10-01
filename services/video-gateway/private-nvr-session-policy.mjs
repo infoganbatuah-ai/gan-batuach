@@ -22,22 +22,15 @@ export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // age-only ownership changes. Actual input/output cessation still enters the
 // independently bounded OUTPUT_RESCUE path below.
 export const PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED = false;
-// Real Home evidence shows the recorder can pause HTTP input while FFmpeg is
-// still producing current HLS output from already-buffered media. Input idle
-// alone is therefore not a handoff signal. Conversely, current input with a
-// frozen rendered playlist is an output-path failure and must not wait for the
-// twenty-second hard-stale boundary. Live Home canary evidence showed that a
-// four-second output-only warning window was shorter than normal recorder/HLS
-// cadence: it caused 197 relay starts in fifteen minutes and one qualified-
-// channel outage. Keep that conservative detector for an isolated renderer
-// stall. A finite native response is stronger evidence: both recorder input
-// and rendered output stop together. The signed 0.2.45 shadow showed that
-// waiting twelve seconds in that case repeated the same HLS segment at two
-// adjacent ten-second checkpoints. Start the bounded rescue after four seconds
-// only when both signals are idle; current input or current output still
-// suppresses this early path.
+// Real Home evidence shows the recorder can pause both HTTP input and rendered
+// HLS output for more than four seconds and then resume the same response. Idle
+// timestamps therefore cannot prove that a finite native response ended. The
+// stream pump records the actual ReadableStream end separately. After that
+// authoritative event, preserve four seconds of buffered HLS drain before a
+// bounded replacement. An isolated renderer stall still uses the independently
+// measured twelve-second output-idle signal while recorder input remains fresh.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
-export const PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS = 4_000;
+export const PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS = 4_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A private-recorder response can stop delivering bytes even though the login
 // remains valid.  A replacement response is therefore allowed to probe that
@@ -200,21 +193,28 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
 }
 
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
-  if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return null;
+  if (!relay || relay.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;
-  const finiteResponseEnded = Number.isFinite(relay.lastInputAt)
-    && Number.isFinite(relay.lastOutputAt)
-    && now - relay.lastInputAt >= PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS
-    && now - relay.lastOutputAt >= PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS;
+  const outputIdleMs = Number.isFinite(relay.lastOutputAt)
+    ? now - relay.lastOutputAt : Number.POSITIVE_INFINITY;
+  const inputFresh = Number.isFinite(relay.lastInputAt)
+    && now - relay.lastInputAt < PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+  const relayStaleMs = Number.isFinite(relay.relayStaleMs) && relay.relayStaleMs > 0
+    ? relay.relayStaleMs : 20_000;
+  const finiteResponseEnded = relay.nativeInputEnded === true
+    && outputIdleMs >= PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS;
+  const rendererStalled = inputFresh
+    && outputIdleMs >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+  const hardStale = outputIdleMs >= relayStaleMs;
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && Number.isFinite(relay.lastOutputAt)
-    && (finiteResponseEnded
-      || now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS);
+    && (finiteResponseEnded || rendererStalled || hardStale);
   // Rendered-output loss is more urgent than the age-based finite-response
   // sweep. This also gives a genuinely stale older relay the separately
   // measured rescue acquisition budget instead of misclassifying it as a
   // routine replacement.
   if (outputRescue) return "OUTPUT_RESCUE";
+  if (!relay.progressing) return null;
   if (PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED
     && relay.recoveryStable && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS) {
     return "ROUTINE_FINITE_RESPONSE";
@@ -264,10 +264,22 @@ export function shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
 // producing current HLS is real media continuity and must not make the source
 // or the whole Gateway appear offline.
 export function privateNvrHandoffMediaContinuity({ currentProgressing,
-  candidateProgressing }) {
-  if (currentProgressing) return { progressing: true, owner: "CURRENT" };
-  if (candidateProgressing) return { progressing: true, owner: "WARMING_CONTINUITY" };
-  return { progressing: false, owner: "NONE" };
+  candidateProgressing, handoffMode = null, currentOutputAt = null,
+  candidateOutputAt = null, now = Date.now(),
+  mediaTakeoverIdleMs = PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }) {
+  const warmingMediaNewer = handoffMode === "OUTPUT_RESCUE"
+    && currentProgressing && candidateProgressing
+    && Number.isFinite(currentOutputAt) && Number.isFinite(candidateOutputAt)
+    && Number.isFinite(now) && Number.isFinite(mediaTakeoverIdleMs)
+    && mediaTakeoverIdleMs > 0 && now - currentOutputAt >= mediaTakeoverIdleMs
+    && candidateOutputAt > currentOutputAt;
+  if (warmingMediaNewer) return { progressing: true, owner: "CURRENT",
+    mediaOwner: "WARMING_CONTINUITY" };
+  if (currentProgressing) return { progressing: true, owner: "CURRENT",
+    mediaOwner: "CURRENT" };
+  if (candidateProgressing) return { progressing: true,
+    owner: "WARMING_CONTINUITY", mediaOwner: "WARMING_CONTINUITY" };
+  return { progressing: false, owner: "NONE", mediaOwner: "NONE" };
 }
 
 // The stale-owner monitor and the warm-handoff confirmation loop run

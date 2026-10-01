@@ -10,7 +10,7 @@ import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
-  PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS,
+  PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
@@ -150,7 +150,7 @@ test("playback can use a progressing rescue candidate without promoting ownershi
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
   const now = 100_000;
-  assert.equal(PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS, 4_000);
+  assert.equal(PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES, 4);
   assert.equal(privateNvrRoutineHandoffConfirmed({
@@ -173,14 +173,23 @@ test("playlist continuity requires four distinct advances over six seconds", () 
 test("a progressing candidate preserves health without early ownership promotion", () => {
   assert.deepEqual(privateNvrHandoffMediaContinuity({
     currentProgressing: true, candidateProgressing: true
-  }), { progressing: true, owner: "CURRENT" });
+  }), { progressing: true, owner: "CURRENT", mediaOwner: "CURRENT" });
+  assert.deepEqual(privateNvrHandoffMediaContinuity({
+    currentProgressing: true, candidateProgressing: true,
+    handoffMode: "OUTPUT_RESCUE", currentOutputAt: 80_000,
+    candidateOutputAt: 99_000, now: 100_000, mediaTakeoverIdleMs: 12_000
+  }), { progressing: true, owner: "CURRENT", mediaOwner: "WARMING_CONTINUITY" },
+  "fresh rescue media is served without promoting canonical ownership");
   assert.deepEqual(privateNvrHandoffMediaContinuity({
     currentProgressing: false, candidateProgressing: true
-  }), { progressing: true, owner: "WARMING_CONTINUITY" });
+  }), { progressing: true, owner: "WARMING_CONTINUITY",
+    mediaOwner: "WARMING_CONTINUITY" });
   assert.deepEqual(privateNvrHandoffMediaContinuity({
     currentProgressing: false, candidateProgressing: false
-  }), { progressing: false, owner: "NONE" });
+  }), { progressing: false, owner: "NONE", mediaOwner: "NONE" });
   assert.match(server, /const relayCandidates = new Map\(\)/);
+  assert.match(server, /effective: state\.mediaOwner === "WARMING_CONTINUITY" \? candidate : current/);
+  assert.match(server, /media_owner_state: continuity\.mediaOwner/);
   assert.match(server, /replacement\.warming = false;\s+relays\.set\(streamId, replacement\);\s+relayCandidates\.delete\(streamId\)/);
 });
 

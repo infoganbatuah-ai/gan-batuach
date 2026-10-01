@@ -135,6 +135,8 @@ async function maintainPrivateNvrRelayHandoffs() {
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
       lastOutputAt,
+      nativeInputEnded: relay.nativeInputEnded,
+      relayStaleMs: RELAY_STALE_MS,
       progressing: relayIsProgressing(relay),
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
@@ -275,6 +277,7 @@ const relayRecovery = new Map();
 const relayDiagnostics = new Map();
 const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
+  nativeInputEnds: 0,
   warmHandoffs: 0, warmHandoffFailures: 0,
   warmHandoffConfirmationFailures: 0, warmHandoffProbations: 0,
   warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
@@ -997,6 +1000,7 @@ async function privateNvrStreamResponse(url, token, cookie, signal, reportFailur
 async function pipeWebStreamToWritable(stream, writable, onChunk = null) {
   const reader = stream.getReader();
   let pipeError = null;
+  let sourceEnded = false;
   const onPipeError = (error) => { pipeError = error; };
   const removePipeErrorListener = () => writable.removeListener("error", onPipeError);
   writable.on("error", onPipeError);
@@ -1018,7 +1022,7 @@ async function pipeWebStreamToWritable(stream, writable, onChunk = null) {
   try {
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) { sourceEnded = true; break; }
       if (pipeError || writable.destroyed || !writable.writable) break;
       try {
         onChunk?.(value.byteLength, value);
@@ -1038,6 +1042,7 @@ async function pipeWebStreamToWritable(stream, writable, onChunk = null) {
     reader.releaseLock();
     if (writable.destroyed) removePipeErrorListener();
   }
+  return { sourceEnded };
 }
 
 async function probePrivateNvrStream(url, token, cookie) {
@@ -1403,10 +1408,13 @@ async function privateNvrRelayResponse(source, reportFailure = () => {}) {
 async function ensureRelay(streamId) {
   let existing = relays.get(streamId);
   const source = streamSources.get(streamId);
+  const existingContinuity = relayMediaContinuity(streamId, existing);
   if (existing && relayIsRunning(existing) && relayBelongsToCurrentSession(existing, source)
     && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) {
     if (relayIsProgressing(existing) && relayRecoveryIsStable(existing)) relayRecovery.delete(streamId);
-    return existing;
+    const available = existingContinuity.effective || existing;
+    return relayIsRunning(available) && relayBelongsToCurrentSession(available, source)
+      ? available : existing;
   }
   // Output-rescue handoffs are deliberately started before the hard-stale
   // boundary. If a request arrives at that boundary, let the already-running
@@ -1519,12 +1527,16 @@ function relayIsProgressing(relay) {
 
 function relayMediaContinuity(streamId, current = relays.get(streamId)) {
   const candidate = relayCandidates.get(streamId);
+  const currentOutputAt = relayPlaylistMtime(current);
+  const candidateOutputAt = relayPlaylistMtime(candidate);
   const state = privateNvrHandoffMediaContinuity({
     currentProgressing: relayIsProgressing(current),
-    candidateProgressing: relayIsProgressing(candidate)
+    candidateProgressing: relayIsProgressing(candidate),
+    handoffMode: relayWarmupModes.get(streamId), currentOutputAt,
+    candidateOutputAt
   });
   return { ...state, current, candidate,
-    effective: state.owner === "WARMING_CONTINUITY" ? candidate : current };
+    effective: state.mediaOwner === "WARMING_CONTINUITY" ? candidate : current };
 }
 
 function relayPlaylistMtime(relay) {
@@ -1557,6 +1569,8 @@ function relayEligibleForHandoff(streamId, relay) {
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
       lastOutputAt: outputAt,
+      nativeInputEnded: relay.nativeInputEnded,
+      relayStaleMs: RELAY_STALE_MS,
       progressing: relayIsProgressing(relay),
       recoveryStable: false,
       warming: relay.warming
@@ -1878,6 +1892,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   if (rtspInput) rtspInput.attach(child);
   const relay = { process: child, playlist, directory, generation,
     firstEvidenceSequence, startedAt: Date.now(), lastInputAt: Date.now(),
+    nativeInputEnded: false, nativeInputEndedAt: null,
     lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(),
     encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264",
     controller, errorSummary: "", sessionToken, sessionEpoch, sessionKey,
@@ -1901,6 +1916,13 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
       relay.lastInputAt = Date.now();
       relay.inputBytes += byteLength;
       relay.inputMetrics.observe(value);
+    }).then(({ sourceEnded }) => {
+      if (!sourceEnded || relay.stopReason || controller?.signal.aborted) return;
+      relay.nativeInputEnded = true;
+      relay.nativeInputEndedAt = Date.now();
+      relayLifecycle.nativeInputEnds += 1;
+      relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+        last_native_input_end_at: new Date(relay.nativeInputEndedAt).toISOString() });
     }).catch((error) => {
       const code = error?.cause?.code || error?.code;
       relay.lastInputErrorCode = safeInputCode(error);
@@ -2389,8 +2411,10 @@ async function handle(request, response) {
           return { channel: streamSources.get(streamId)?.channel,
             progressing: continuity.progressing,
             owner_state: continuity.owner,
+            media_owner_state: continuity.mediaOwner,
             canonical_owner_progressing: relayIsProgressing(continuity.current),
             candidate_progressing: relayIsProgressing(continuity.candidate),
+            native_input_ended: relay.nativeInputEnded === true,
             input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown",
             encoder: relay.encoder, ...relay.inputMetrics.snapshot(),
             relay_age_ms: Math.max(0, observedAt - relay.startedAt),
