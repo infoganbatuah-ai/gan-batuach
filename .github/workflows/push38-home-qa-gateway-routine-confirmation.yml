@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 5a47ea9c2e94358a0f9976290d0f5b29e51c41a1
+          ref: 4a3da370c078a4019b7b8d918e7e39d13b9baa6c
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -59,7 +59,7 @@ jobs:
           SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
           SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
-          PUSH38_CANDIDATE_SHA: 14da0d1433ecdfc0d8d32b90414e5785747e80f9
+          PUSH38_CANDIDATE_SHA: 4c53a31726f16a6b23a73ad4811672bf6af32fea
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
           HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-gateway-routine-confirmation
         run: node scripts/release/issue-push38-home-qa-gateway-routine-confirmation.mjs
