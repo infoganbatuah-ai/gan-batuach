@@ -5,6 +5,7 @@
 - Source integration head: `53843ce0a604774091f1b0601f0f12913f0fc004`
 - Source branch: `integration/development`
 - Feature branch: `codex/ux-implement-12-documents`
+- Validated product commit: `fb710f76ff05fee7188b34fb087a274d66602825`
 - Environment: isolated Development / Integration
 - Production: untouched
 - `main`: untouched

@@ -9888,12 +9888,16 @@
       "title": "UX-IMPLEMENT-12 Documents full platform",
       "owner": "UX-IMPLEMENT-12 owner",
       "sourceBranch": "codex/ux-implement-12-documents",
-      "sourceCommits": [],
-      "state": "VALIDATED_ON_BRANCH",
+      "sourceCommits": [
+        "fb710f76ff05fee7188b34fb087a274d66602825"
+      ],
+      "state": "PUSHED_REMOTE",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "validatedSourceCommit": null
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-12-documents@fb710f76ff05fee7188b34fb087a274d66602825"
+        ],
+        "validatedSourceCommit": "fb710f76ff05fee7188b34fb087a274d66602825"
       },
       "validation": {
         "status": "PASS_VISUAL_FUNCTIONAL_LOCAL_REQUIRED_GATES",
