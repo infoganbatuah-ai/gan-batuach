@@ -68,7 +68,8 @@ import { PUSH38_GATEWAY_DEADLINE_BUDGET
 } from "../../services/video-gateway/push38-home-qa-gateway-deadline-budget.mjs";
 import { PUSH38_GATEWAY_RECOVERY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-recovery-continuity.mjs";
-import { PUSH38_GATEWAY_ROUTINE_CONFIRMATION
+import { gatewayRoutineConfirmationBaselineSessionAcceptable,
+  PUSH38_GATEWAY_ROUTINE_CONFIRMATION
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
@@ -363,7 +364,15 @@ async function healthSample(port, label) {
     stalled: health.mediaHeartbeat?.stalledRelays ?? null,
     reason_codes: Array.isArray(health.health_reason_codes) ? health.health_reason_codes : [],
     rotations: health.recorderSessionLifecycle?.rotations ?? null,
-    last_rotation_reason: health.recorderSessionLifecycle?.last_rotation_reason ?? null };
+    last_rotation_reason: health.recorderSessionLifecycle?.last_rotation_reason ?? null,
+    login_attempts: health.recorderSessionLifecycle?.login_attempts ?? null,
+    login_succeeded: health.recorderSessionLifecycle?.login_succeeded ?? null,
+    proactive_attempts: health.recorderSessionLifecycle?.proactive_attempts ?? null,
+    proactive_succeeded: health.recorderSessionLifecycle?.proactive_succeeded ?? null,
+    active_sessions: health.recorderSessionLifecycle?.active_sessions ?? null,
+    responses_ok: health.recorderSessionHeartbeat?.responses_ok ?? null,
+    consecutive_failures: health.recorderSessionHeartbeat?.consecutive_failures ?? null,
+    authentication_rejected: health.recorderSessionHeartbeat?.authentication_rejected ?? null };
 }
 
 function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
@@ -659,7 +668,8 @@ const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || ro
   Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
-  sample.rotations === 0);
+  (routineConfirmation ? gatewayRoutineConfirmationBaselineSessionAcceptable(sample) :
+    sample.rotations === 0));
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);

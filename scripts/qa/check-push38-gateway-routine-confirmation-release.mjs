@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildPush38GatewayRoutineConfirmationManifest,
+  gatewayRoutineConfirmationBaselineSessionAcceptable,
   PUSH38_GATEWAY_ROUTINE_CONFIRMATION as item } from
   "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 import { issuePush38GatewayRoutineConfirmation } from
@@ -30,6 +31,20 @@ const enrollment = { identity_scheme: "ED25519_V1", credential_version: 1,
 assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: built }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
   gateway_id: "wrong-gateway" }, manifest: built }), false);
+
+const healthySession = { rotations: 1, last_rotation_reason: "proactive_nonexclusive_renewal",
+  login_attempts: 2, login_succeeded: 2, proactive_attempts: 1, proactive_succeeded: 1,
+  active_sessions: 1, responses_ok: 421, consecutive_failures: 0, authentication_rejected: 0 };
+assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable(healthySession), true);
+assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable({ ...healthySession,
+  proactive_succeeded: 0 }), false);
+assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable({ ...healthySession,
+  authentication_rejected: 1 }), false);
+assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable({ ...healthySession,
+  active_sessions: 2 }), false);
+assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable({ ...healthySession,
+  rotations: 0, last_rotation_reason: null, login_attempts: 1, login_succeeded: 1,
+  proactive_attempts: 0, proactive_succeeded: 0 }), true);
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-gateway-routine-confirmation-test-"));
 try {

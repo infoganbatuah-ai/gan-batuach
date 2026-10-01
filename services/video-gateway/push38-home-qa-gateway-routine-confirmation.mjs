@@ -27,6 +27,24 @@ export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
 
+// The long-running 0.2.41 predecessor renews its single recorder session
+// proactively. A cumulative rotation count greater than zero is therefore not
+// a failure by itself. Preflight may accept it only when every observed
+// rotation is the expected successful non-exclusive renewal and the current
+// session remains singular, authenticated, and responsive.
+export function gatewayRoutineConfirmationBaselineSessionAcceptable(sample = {}) {
+  return Number.isInteger(sample.rotations) && sample.rotations >= 0 &&
+    sample.active_sessions === 1 && sample.authentication_rejected === 0 &&
+    sample.consecutive_failures === 0 && sample.responses_ok > 0 &&
+    sample.login_attempts >= 1 && sample.login_succeeded === sample.login_attempts &&
+    (sample.rotations === 0
+      ? sample.last_rotation_reason === null && sample.proactive_attempts === 0 &&
+        sample.proactive_succeeded === 0
+      : sample.last_rotation_reason === "proactive_nonexclusive_renewal" &&
+        sample.proactive_attempts === sample.rotations &&
+        sample.proactive_succeeded === sample.rotations);
+}
+
 export function buildPush38GatewayRoutineConfirmationManifest({ signingKeyId,
   artifactOrigin, releasedAt }) {
   if (!/^[A-Za-z0-9._:-]{3,160}$/.test(signingKeyId || ""))
