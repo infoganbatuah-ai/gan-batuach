@@ -301,8 +301,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /outputRescues\.sort\([\s\S]*privateNvrRoutineHandoffSchedule\([\s\S]*relayWarmupModes/,
   "urgent rescue and the deadline-aware routine lane must use explicit bounded ownership");
   assert.match(gateway,
-    /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
-  "a playback request must await an in-flight bounded replacement before tearing down its relay");
+    /const handoff = relayWarmups\.get\(streamId\);[\s\S]*waitForRelayHandoffMedia\(streamId, requestGraceMs\)[\s\S]*const continuity = relayMediaContinuity\(streamId, promoted\);[\s\S]*return available;/,
+  "a playback request must await an in-flight bounded replacement and may use proven candidate media without promoting ownership");
   assert.match(gateway,
     /awaitingWarmReplacement[\s\S]*shouldDeferPrivateNvrStaleOwnerTeardown[\s\S]*relayStaleMs: RELAY_STALE_MS[\s\S]*return;/,
   "the stale monitor must allow the same bounded replacement grace");

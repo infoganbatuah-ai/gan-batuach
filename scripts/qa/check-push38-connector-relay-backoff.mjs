@@ -18,7 +18,8 @@ assert.equal(manifest.compatibility.minimum_current_version, "0.2.20-p38-health"
 assert.equal(manifest.compatibility.maximum_current_version, "0.2.20-p38-health");
 const runtime = readFileSync("services/video-gateway/server.mjs", "utf8");
 const requestRecovery = runtime.indexOf("armRelayRecovery(streamId, existing)");
-assert.ok(requestRecovery >= 0 && runtime.indexOf("stopRelay(streamId, existing)", requestRecovery) > requestRecovery);
+assert.ok(requestRecovery >= 0 &&
+  runtime.indexOf('stopRelay(streamId, existing, "STALE_ON_REQUEST")', requestRecovery) > requestRecovery);
 const monitorRecovery = runtime.indexOf("armRelayRecovery(streamId, relay)", requestRecovery);
 assert.ok(monitorRecovery >= 0 && runtime.indexOf("stopRelay(streamId, relay,", monitorRecovery) > monitorRecovery);
 for (const path of ["scripts/qa/install-push38-homeqa-ota-agent.mjs",
