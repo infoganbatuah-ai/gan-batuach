@@ -49,7 +49,8 @@ try {
     assert.match(source, /--gateway-handoff-owner-continuity/);
   assert.match(activation, /target_release_count[^\n]+release_id/);
   assert.match(activation, /rollout\.target_release_count !== 1/);
-  assert.match(activation, /handoffOwnerContinuity \? connectorHandoffContinuityItem/);
+  assert.match(activation,
+    /\(sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
