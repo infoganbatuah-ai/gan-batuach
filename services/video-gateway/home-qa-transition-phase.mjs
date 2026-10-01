@@ -59,12 +59,10 @@ const gatewayHandoffOwnerContinuity = "qa-p38-health-gateway-handoff-owner-conti
 const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046";
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
-// The current manifest is intentionally compatible only with the signed 0.2.46
-// predecessor. Keep that immutable predecessor eligible for exact-device
-// recovery after a diagnostic rollback; removing it from this allowlist makes
-// the successor unreachable without weakening the manifest compatibility gate.
-const gatewayRoutineConfirmationKnownGood = "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44";
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-rescue-backoff-52ada54c94f6";
+// The active candidate installs directly from the exact signed 0.2.41
+// known-good runtime. The quarantined 0.2.46 bridge and rejected 0.2.52 draft
+// remain historical records only and cannot authorize a new download.
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-rescue-backoff-direct-58fcb000d83e";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -105,8 +103,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayCodecPreservation, gatewayHandoffHardware,
       gatewayRelayHandoff, gatewayHandoffContinuity,
       gatewayHandoffOwnerContinuity, gatewaySweepDeadline, gatewayDeadlineBudget,
-      gatewayRecoveryContinuity, gatewayRoutineConfirmationKnownGood,
-      gatewayRoutineConfirmation].includes(manifest.release_id) &&
+      gatewayRecoveryContinuity, gatewayRoutineConfirmation].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }

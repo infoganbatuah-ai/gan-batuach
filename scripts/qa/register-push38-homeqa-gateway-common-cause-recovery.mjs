@@ -133,7 +133,7 @@ const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.s
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = routineConfirmation
-  ? `${restrictedRoot}/push38-gateway-rescue-backoff-a0876ef0-v2/gateway-runtime.tar.gz`
+  ? `${restrictedRoot}/push38-gateway-rescue-backoff-direct-a0876ef0/gateway-runtime.tar.gz`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/gateway-runtime.tar.gz`
   : deadlineBudget
@@ -188,7 +188,7 @@ const artifact = routineConfirmation
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = routineConfirmation
-  ? `${restrictedRoot}/push38-gateway-rescue-backoff-a0876ef0-v2/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-rescue-backoff-direct-a0876ef0/r2-publication-direct.json`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json`
   : deadlineBudget
@@ -279,9 +279,10 @@ const predecessorReleaseId = (routineConfirmation || recoveryContinuity || deadl
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
 const rolloutReleaseIdsToPause = routineConfirmation
-  ? [predecessorReleaseId, item.rollbackReleaseId]
+  ? [predecessorReleaseId, item.quarantinedBridgeReleaseId, item.rollbackReleaseId]
   : [predecessorReleaseId];
 const rolloutReleaseIdsToPauseSql = rolloutReleaseIdsToPause
+  .filter((releaseId, index, values) => values.indexOf(releaseId) === index)
   .map(releaseId => `'${releaseId}'`).join(",");
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;

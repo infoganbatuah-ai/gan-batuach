@@ -19,8 +19,8 @@ import { gatewayRoutineConfirmationBaselineSessionAcceptable,
 import { PUSH38_CONNECTOR_RTSP_CADENCE as connectorItem
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
 
-const RELEASE_ID = successorItem.rollbackReleaseId;
-const VERSION = successorItem.rollbackVersion;
+const RELEASE_ID = successorItem.quarantinedBridgeReleaseId;
+const VERSION = successorItem.quarantinedBridgeVersion;
 const DIGEST = successorItem.compatibilityArtifactSha256 ||
   "5cdf47d35b4469f6fb366a28c9837e53bd2c5c5317d17a32504e1f205b22fa1b";
 const FAILURE = "EDGE_UPDATE_CRASH_LOOP";

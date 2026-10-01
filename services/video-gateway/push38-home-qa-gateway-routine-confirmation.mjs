@@ -2,7 +2,7 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Exact-device successor to the signed 0.2.46 known-good runtime. The failed
+// Exact-device successor to the signed 0.2.41 known-good runtime. The failed
 // 60-minute pre-soak and the real-DVR shadows proved that the recorder pauses
 // output before a finite response ends. Waiting six seconds to start a bounded
 // rescue can cross the ten-second HLS freshness boundary. The measured rescue
@@ -11,20 +11,26 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // contract unchanged. A contained candidate rejection now receives a one-minute
 // retry backoff while the original owner remains current; hard-stale media
 // bypasses that delay. Canonical ownership still requires four advances across
-// six seconds. The signed 0.2.46 runtime remains the rollback target.
+// six seconds. The intermediate 0.2.46 release was quarantined after its
+// evidence-bound retry and cannot safely serve as another bridge. This complete
+// package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
+// known-good runtime; the Product source overlay remains pinned to the already-
+// qualified a0876ef0 commit.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-rescue-backoff-52ada54c94f6",
-  version: "0.2.52-p38-health",
+  releaseId: "qa-p38-health-gateway-rescue-backoff-direct-58fcb000d83e",
+  version: "0.2.53-p38-health",
   buildSha: "a0876ef06c920427cd04e6b136b1ef9e20362382",
-  digest: "52ada54c94f65e9d20874d70d65edf193f8a543392164e6c72468eecea4c8359",
-  size: 135839502,
+  digest: "58fcb000d83ea13c215770b7d5952f60ac0c2ec4cb08f038ffc24d3953190c6e",
+  size: 135839546,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
-  rollbackVersion: "0.2.46-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-freshness-continuity-6bfd6f957cd2",
-  supersedesVersion: "0.2.51-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
+  rollbackVersion: "0.2.41-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-rescue-backoff-52ada54c94f6",
+  supersedesVersion: "0.2.52-p38-health",
+  quarantinedBridgeReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
+  quarantinedBridgeVersion: "0.2.46-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
