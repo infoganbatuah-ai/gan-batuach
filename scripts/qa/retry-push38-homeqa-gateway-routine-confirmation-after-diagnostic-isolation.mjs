@@ -13,7 +13,7 @@ import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-mana
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { loadPinnedEdgeReleaseKeys,
   PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
-import { gatewayRoutineConfirmationLegacyRuntimeAcceptable,
+import { gatewayRoutineConfirmationBaselineSessionAcceptable,
   PUSH38_GATEWAY_ROUTINE_CONFIRMATION as successorItem
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 import { PUSH38_CONNECTOR_RTSP_CADENCE as connectorItem
@@ -70,7 +70,8 @@ async function healthSample(port, label) {
   const pid = servicePid(label);
   const response = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(10_000) });
   const body = await response.json();
-  const lifecycle = body.privateNvrSession || body.recorderSession || body.sessionLifecycle || {};
+  const lifecycle = body.recorderSessionLifecycle || {};
+  const heartbeat = body.recorderSessionHeartbeat || {};
   return { http: response.status, pid, ok: body.ok === true, status: body.status || null,
     assigned: body.lastDiscovery?.assignedCount ?? null,
     connected: body.lastDiscovery?.connectedCount ?? null,
@@ -78,7 +79,7 @@ async function healthSample(port, label) {
     empty: body.lastDiscovery?.unassignedCount ?? null,
     progressing: body.mediaHeartbeat?.progressingRelays ?? null,
     stalled: body.mediaHeartbeat?.stalledRelays ?? null,
-    reason_codes: body.reasonCodes || body.reason_codes || [],
+    reason_codes: body.health_reason_codes || [],
     rotations: lifecycle.rotations ?? 0,
     last_rotation_reason: lifecycle.last_rotation_reason ?? null,
     login_attempts: lifecycle.login_attempts ?? 1,
@@ -86,11 +87,22 @@ async function healthSample(port, label) {
     proactive_attempts: lifecycle.proactive_attempts ?? 0,
     proactive_succeeded: lifecycle.proactive_succeeded ?? 0,
     active_sessions: lifecycle.active_sessions ?? 1,
-    responses_ok: lifecycle.responses_ok ?? 1,
-    consecutive_failures: lifecycle.consecutive_failures ?? 0,
-    authentication_rejected: lifecycle.authentication_rejected ?? 0,
+    responses_ok: heartbeat.responses_ok ?? 0,
+    consecutive_failures: heartbeat.consecutive_failures ?? 0,
+    authentication_rejected: heartbeat.authentication_rejected ?? 0,
     version: body.edgeRuntime?.software_version || null,
     build_sha: body.edgeRuntime?.build_sha || null };
+}
+
+function gatewayRetryBaselineSafe(sample = {}) {
+  const expectedReasons = new Set(["EXPECTED_RELAY_NOT_PROGRESSING", "DISCOVERY_PROBE_FAILED"]);
+  return sample.http === 200 && ["degraded", "healthy"].includes(sample.status) &&
+    sample.assigned === 10 && sample.empty === 6 && Number.isInteger(sample.connected) &&
+    sample.connected >= 0 && sample.connected <= 9 && Number.isInteger(sample.progressing) &&
+    sample.progressing >= 0 && sample.progressing <= 9 && Number.isInteger(sample.failed) &&
+    sample.failed === 10 - sample.connected && Array.isArray(sample.reason_codes) &&
+    sample.reason_codes.every(reason => expectedReasons.has(reason)) &&
+    gatewayRoutineConfirmationBaselineSessionAcceptable(sample);
 }
 
 const shadowBytes = protectedFile(shadowPath);
@@ -171,8 +183,7 @@ for (let index = 0; index < 3; index += 1) {
   if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 2_000));
 }
 if (new Set(gatewaySamples.map(item => item.pid)).size !== 1 || gatewaySamples.some(item =>
-  item.http !== 200 || item.version !== CURRENT_VERSION ||
-  !gatewayRoutineConfirmationLegacyRuntimeAcceptable(item)) ||
+  item.version !== CURRENT_VERSION || !gatewayRetryBaselineSafe(item)) ||
   new Set(connectorSamples.map(item => item.pid)).size !== 1 || connectorSamples.some(item =>
     item.http !== 200 || !item.ok || item.assigned !== 1 || item.connected !== 1 ||
     item.progressing !== 1 || item.stalled !== 0 || item.version !== connectorItem.version))

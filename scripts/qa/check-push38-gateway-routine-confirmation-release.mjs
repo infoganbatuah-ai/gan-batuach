@@ -89,7 +89,8 @@ try {
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
   for (const token of ["authorizeQuarantinedReleaseRetry", "CONTROLLED_GATEWAY_PAUSE_FOR_SIGNED_SHADOW_DIAGNOSTIC",
-    "prior_healthy_duration_ms", "camera_runtime_writes_by_command: 0", "ota_agent_owns_install: true"])
+    "prior_healthy_duration_ms", "gatewayRetryBaselineSafe", "recorderSessionLifecycle",
+    "recorderSessionHeartbeat", "camera_runtime_writes_by_command: 0", "ota_agent_owns_install: true"])
     assert.match(retry, new RegExp(token));
   assert.match(retry, /healthyDurationMs < 60 \* 60_000/);
   assert.match(retry, /rollout\.retry_status !== "ACTIVE"/);
