@@ -104,7 +104,12 @@ test("routine probation stays scheduler-bounded while rescue has its own bounded
   assert.equal(privateNvrHandoffProbationDeadline({
     handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
     firstOutputObservedAt: startedAt + 13_000
-  }), startedAt + 20_000);
+  }), startedAt + 21_000);
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
+    firstOutputObservedAt: startedAt + 5_329
+  }), startedAt + 13_329,
+  "the measured rescue candidate receives the same bounded HLS cadence grace");
   assert.equal(privateNvrHandoffProbationDeadline({
     handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
     firstOutputObservedAt: startedAt + 20_000

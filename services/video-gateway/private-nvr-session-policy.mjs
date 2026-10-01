@@ -58,9 +58,11 @@ export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
 // is still bounded to 162 seconds, leaving margin before the recorder's
 // observed roughly three-minute native-response boundary.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS = 9_000;
-// A real candidate produced seven playlist advances with first output at
-// 7.543 s, but the previous first-output+7 s deadline expired about 0.1 s
-// before the next cadence boundary could prove the six-second contract.
+// Real routine and output-rescue candidates produced valid playlist advances,
+// but the previous first-output+7 s deadline expired about 0.1 s before the
+// next cadence boundary could prove the six-second contract. Apply the same
+// bounded cadence grace to both lanes; the independent rescue probation cap
+// below remains authoritative.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS = 2_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS = 18_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS =
@@ -156,7 +158,8 @@ export function privateNvrHandoffProbationDeadline({ handoffMode,
   }
   return Math.min(
     probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
-    firstOutputObservedAt + minimumConfirmationMs + 1_000);
+    firstOutputObservedAt + minimumConfirmationMs
+      + PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS);
 }
 
 export function comparePrivateNvrHandoffPriority(left, right) {
