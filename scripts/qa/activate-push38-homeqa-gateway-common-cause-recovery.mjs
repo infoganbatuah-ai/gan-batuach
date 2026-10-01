@@ -594,8 +594,15 @@ const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_statu
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
+// An evidence-bound retry may reactivate the exact signed predecessor while
+// its already-registered successor remains paused. This is the canonical
+// state immediately before activating the 0.2.47 routine-churn correction;
+// it is still exact-device only and never broadens eligibility.
+const activeRetriedPredecessorState = routineConfirmation && rollout.new_status === "PAUSED" &&
+  rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
+  JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
 if (rollout.devices !== 2 || rollout.target_release_count !== 1 ||
-  (!normalHandoffState && !activeBridgeHandoffState) ||
+  (!normalHandoffState && !activeBridgeHandoffState && !activeRetriedPredecessorState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
   rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.managed_identity !== "ED25519_V1" ||
