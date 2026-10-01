@@ -285,11 +285,13 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
   assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 16_000);
-  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS, 20_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS, 180_000);
   assert.equal(privateNvrRoutineHandoffRetryAllowed(null, 100_000), true);
   assert.equal(privateNvrRoutineHandoffRetryAllowed(90_000, 100_000), false,
   "a rejected routine candidate cannot create an immediate retry storm");
-  assert.equal(privateNvrRoutineHandoffRetryAllowed(80_000, 100_000), true);
+  assert.equal(privateNvrRoutineHandoffRetryAllowed(0, 179_999), false,
+  "a rejected source cannot re-enter before a full finite-response horizon");
+  assert.equal(privateNvrRoutineHandoffRetryAllowed(0, 180_000), true);
   assert.equal(privateNvrRoutineHandoffRetryAllowed(null, Number.NaN), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1 }), false,

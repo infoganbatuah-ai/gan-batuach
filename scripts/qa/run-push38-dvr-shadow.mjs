@@ -184,6 +184,24 @@ async function health(url) {
       progressing: body.mediaHeartbeat.progressingRelays,
       stalled: body.mediaHeartbeat.stalledRelays,
       lifecycle: body.mediaHeartbeat.lifecycle,
+      source_diagnostics: Array.isArray(body.mediaHeartbeat.source_diagnostics)
+        ? body.mediaHeartbeat.source_diagnostics.map((source) => ({
+          channel: source.channel,
+          source_kind: source.source_kind,
+          starts: source.starts ?? 0,
+          exits: source.exits ?? 0,
+          last_start_reason: source.last_start_reason ?? null,
+          last_handoff_mode: source.last_handoff_mode ?? null,
+          last_handoff_result: source.last_handoff_result ?? null,
+          last_handoff_failure: source.last_handoff_failure ?? null,
+          last_handoff_first_output_latency_ms:
+            source.last_handoff_first_output_latency_ms ?? null,
+          last_handoff_output_advances: source.last_handoff_output_advances ?? null,
+          last_handoff_duration_ms: source.last_handoff_duration_ms ?? null,
+          last_failure_reason: source.last_failure_reason ?? null,
+          last_failure_at: source.last_failure_at ?? null,
+          retry_failures: source.retry_failures ?? 0
+        })) : [],
       inputs: Array.isArray(body.mediaHeartbeat.inputs) ? body.mediaHeartbeat.inputs.map((input) => ({
         channel: input.channel,
         encoder: input.encoder ?? null,
@@ -273,10 +291,34 @@ try {
   }
   evidence.ended_at = new Date().toISOString();
   evidence.duration_ms = Date.now() - startedAt;
-  evidence.result = evidence.checkpoints.every((point) => point.shadow.http === 200
+  const finalPoint = evidence.checkpoints.at(-1);
+  const lifecycle = finalPoint?.shadow.media?.lifecycle || {};
+  const playbackFailures = playbackEveryCheckpoint
+    ? evidence.checkpoints.filter((point) => point.renewal?.status !== 200
+      || point.renewal?.playlist_status !== 200
+      || point.renewal?.segment_status !== 200
+      || !(point.renewal?.segment_bytes > 0)).length
+    : 0;
+  const failures = [];
+  if (!evidence.checkpoints.every((point) => point.shadow.http === 200
     && point.shadow.discovery?.assigned === 1
     && point.shadow.discovery?.connected === 1
-    && point.shadow.media?.progressing === 1) ? "PASS" : "FAIL";
+    && point.shadow.media?.progressing === 1)) failures.push("SHADOW_PROGRESSION");
+  if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
+  if ((lifecycle.warmHandoffConfirmationFailures || 0) > 0)
+    failures.push("HANDOFF_CONFIRMATION");
+  if ((lifecycle.stalePlaylist || 0) > 0) failures.push("STALE_PLAYLIST");
+  if ((lifecycle.inputSocketError || 0) > 0) failures.push("INPUT_SOCKET");
+  if ((finalPoint?.shadow.recorder_session?.rotations || 0) > 0)
+    failures.push("SESSION_ROTATION");
+  evidence.qualification = {
+    playback_failures: playbackFailures,
+    lifecycle_final: lifecycle,
+    recorder_session_final: finalPoint?.shadow.recorder_session || null,
+    source_diagnostics_final: finalPoint?.shadow.media?.source_diagnostics || [],
+    failures
+  };
+  evidence.result = failures.length === 0 ? "PASS" : "FAIL";
   persist();
   process.stdout.write(`${JSON.stringify({ result: evidence.result, duration_ms: evidence.duration_ms, checkpoints: evidence.checkpoints.length, output: outputPath })}\n`);
   if (evidence.result !== "PASS") process.exitCode = 1;

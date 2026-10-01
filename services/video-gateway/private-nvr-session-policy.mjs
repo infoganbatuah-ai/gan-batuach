@@ -64,10 +64,13 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS =
 // The signed 0.2.43 one-channel Home shadow kept HLS continuous, but six
 // rejected routine candidates were launched in a seven-minute window. A
 // rejected candidate is not evidence that the current progressing owner is
-// unsafe. Keep that owner and bound another routine attempt to the ordinary
-// twenty-second stale horizon. Output rescue remains independently eligible
-// as soon as rendered media is stale, so this never delays a real outage.
-export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 20_000;
+// unsafe. Keep that owner and do not let the same source re-enter the single
+// routine lane until the recorder's observed finite-response horizon has
+// elapsed. This lets a complete nine-source sweep drain instead of allowing
+// one rejected source to starve later cameras. Output rescue remains
+// independently eligible as soon as rendered media is stale, so this never
+// delays a real outage.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 180_000;
 // The live 0.2.41 proof showed that an output-rescue response can need about
 // thirteen seconds before its first HLS segment and then remain continuously
 // productive. Applying the routine lane's twelve-second scheduler budget to
