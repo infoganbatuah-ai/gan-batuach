@@ -471,6 +471,7 @@ connectorManager.verifySlot(connectorCurrent);
 const rollout = JSON.parse(psql(`select jsonb_build_object(
   'devices',(select count(*) from public.video_gateway_device_enrollments),
   'releases',(select count(*) from public.observer_edge_releases where channel='HOME_QA'),
+  'target_release_count',(select count(*) from public.observer_edge_releases where release_id='${item.releaseId}'),
   'new_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
   'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
   'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
@@ -481,15 +482,15 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-// The Connector restart-grace successor is a separately signed, exact-device
-// HOME_QA release registered after the Gateway maintenance-isolation release.
-// Count it in the cumulative inventory without changing Gateway eligibility.
+// Independent exact-device Connector and Gateway successors can be registered
+// in either order. Gate on the unique intended release and rollout rather than
+// a brittle cumulative HOME_QA history count.
 const exactTargets = { explicit_device_ids: [item.deviceId] };
 const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_status === "PAUSED";
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
-if (rollout.devices !== 2 || rollout.releases !== (handoffContinuity ? 50 : relayHandoff ? 49 : handoffHardware ? 48 : codecPreservation ? 47 : rescueCapacity ? 46 : probationBudget ? 44 : routineProvisional ? 41 : continuousHandoff ? 39 : retainedFallback ? 38 : handoffProbation ? 37 : startupWindow ? 36 : confirmedHandoff ? 35 : outputRescue ? 34 : bufferedOutput ? 32 : idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+if (rollout.devices !== 2 || rollout.target_release_count !== 1 ||
   (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||

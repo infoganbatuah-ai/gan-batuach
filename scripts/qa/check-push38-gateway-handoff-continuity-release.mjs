@@ -37,7 +37,8 @@ try {
   const publisher = readFileSync("scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", "utf8");
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-handoff-continuity/);
-  assert.match(activation, /handoffContinuity \? 50/);
+  assert.match(activation, /target_release_count[^\n]+release_id/);
+  assert.match(activation, /rollout\.target_release_count !== 1/);
   assert.match(activation, /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity/);
   assert.match(activation,
     /warmHandoffConfirmationFailures <= lifecycle\.warmHandoffFailures/);

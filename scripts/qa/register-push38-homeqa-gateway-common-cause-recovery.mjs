@@ -224,8 +224,6 @@ const bundleName = handoffContinuity ? "gateway_remediation_handoff_continuity.j
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = handoffContinuity ? 49 : relayHandoff ? 48 : handoffHardware ? 47 : codecPreservation ? 46 : rescueCapacity ? 44 : probationBudget ? 43 : routineProvisional ? 40 : continuousHandoff ? 38 : retainedFallback ? 37 : handoffProbation ? 36 : startupWindow ? 35 : confirmedHandoff ? 34 : outputRescue ? 33 : bufferedOutput ? 31 : idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
-const expectedAfter = expectedBefore + 1;
 const predecessorReleaseId = handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
@@ -286,8 +284,7 @@ do $$ begin
        and deployment_profile='PHYSICAL_GATEWAY' and lifecycle_state='ACTIVE'
        and identity_scheme='ED25519_V1' and metadata->>'home_qa_phase'='MANAGED_IDENTITY_VERIFIED') or
      not exists(select 1 from public.observer_edge_releases where release_id='${item.rollbackReleaseId}'
-       and channel='HOME_QA') or
-     (select count(*) from public.observer_edge_releases where channel='HOME_QA') not in (${expectedBefore},${expectedAfter})
+       and channel='HOME_QA')
   then raise exception 'P38_GATEWAY_COMMON_CAUSE_HOME_QA_PREREQUISITE_MISSING'; end if;
 end $$;
 insert into public.observer_edge_releases
@@ -313,7 +310,7 @@ update public.observer_edge_rollouts set status='PAUSED',updated_at=now()
 where release_id=(select id from public.observer_edge_releases where release_id='${predecessorReleaseId}')
   and status in ('DRAFT','ACTIVE');
 do $$ begin
-  if (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> ${expectedAfter} or
+  if (select count(*) from public.observer_edge_releases where release_id='${item.releaseId}') <> 1 or
      not exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
        where r.release_id='${item.releaseId}' and o.status='DRAFT' and o.cohort_percent=0
        and o.target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}')) or
