@@ -1,98 +1,38 @@
-import Link from "next/link";
-import { CheckCircle2, Clock, FileText, ShieldCheck, TriangleAlert } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
+import { DocumentsPlatform, type DocumentsPlatformRow, type DocumentsUploadTarget } from "@/components/documents-platform";
+import { ParentAppFrame } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
-import { createClient } from "@/lib/supabase/server";
 import { effectiveDocumentStatus } from "@/lib/management/document-policy";
+import { createClient } from "@/lib/supabase/server";
 
-function docStatusLabel(status?: string | null) {
-  if (status === "approved" || status === "signed" || status === "valid") return "מאושר";
-  if (status === "pending" || status === "review" || status === "pending_review") return "ממתין לבדיקה";
-  if (status === "missing") return "חסר";
-  if (status === "expired") return "פג תוקף";
-  if (status === "expiring_soon") return "עומד לפוג";
-  if (status === "replaced") return "הוחלף";
-  if (status === "rejected") return "צריך תיקון";
-  return "חדש";
-}
-
-function docTone(status?: string | null) {
-  if (status === "approved" || status === "signed" || status === "valid") return "green" as const;
-  if (status === "missing" || status === "expired" || status === "expiring_soon" || status === "rejected") return "orange" as const;
-  return "purple" as const;
-}
-
-function dateText(value?: string | null) {
-  return value ? new Date(value).toLocaleDateString("he-IL") : "";
-}
+const documentFields = "id,garden_id,owner_type,owner_profile_id,staff_id,child_id,inspection_id,uploaded_by,name,document_type,status,expires_at,created_at,reviewed_at,rejection_reason,mime_type,byte_size,replaces_document_id,replaced_by,file_url,reminder_days_before,deleted_at";
+type FamilyChild = { id: string; full_name: string; garden_id?: string | null };
+type FamilyGarden = { id: string; name: string };
 
 export default async function ParentDocumentsPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
-  const family = await getParentFamilyContext(supabase as any, profile);
-  const childIds = Array.from(new Set([
-    ...(family.children as any[]).map((child) => child.id),
-    ...(family.enrollments as any[]).map((enrollment) => enrollment.child_id)
-  ].filter(Boolean)));
-  const filters = [
-    childIds.length ? `child_id.in.(${childIds.join(",")})` : "",
-    `uploaded_by.eq.${profile.id}`
-  ].filter(Boolean);
-  const docsRes = filters.length
-    ? await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, child_id, garden_id, file_url, replaced_by, deleted_at, reminder_days_before").or(filters.join(",")).order("created_at", { ascending: false })
-    : { data: [], error: null };
-  if (docsRes.error) console.error("[parent-documents] query failed", { profile_id: profile.id, error: docsRes.error.message });
-  const rows = ((docsRes.data ?? []) as any[]).map((row) => ({ ...row,
-    status: effectiveDocumentStatus(row),
-    file_url: row.file_url === `/api/documents/${row.id}/file` ? row.file_url : null
+  const family = await getParentFamilyContext(supabase, profile);
+  const documentsRes = await supabase.from("documents" as never).select(documentFields as never).is("deleted_at", null).order("created_at", { ascending: false }).limit(100);
+  const children = family.children as FamilyChild[];
+  const childNames = new Map(children.map((item) => [item.id, item.full_name]));
+  const gardenNames = new Map((family.gardens as FamilyGarden[]).map((item) => [item.id, item.name]));
+  const rows: DocumentsPlatformRow[] = ((documentsRes.data ?? []) as unknown as DocumentsPlatformRow[]).map((row) => ({
+    ...row,
+    effective_status: effectiveDocumentStatus(row),
+    file_url: row.file_url === `/api/documents/${row.id}/file` ? row.file_url : null,
+    garden_name: gardenNames.get(row.garden_id) ?? "הגן המשויך",
+    context_name: row.child_id ? childNames.get(row.child_id) ?? "ילד/ה מקושר/ת" : row.owner_type === "guardian" ? profile.full_name : gardenNames.get(row.garden_id) ?? "הגן המשויך",
+    can_review: false
   }));
-  const needsAction = rows.filter((row) => ["missing", "rejected", "expired"].includes(String(row.status)));
-  const signed = rows.filter((row) => ["approved", "signed", "valid"].includes(String(row.status)));
-  const newDocs = rows.filter((row) => !["missing", "rejected", "expired", "expiring_soon", "approved", "signed", "valid"].includes(String(row.status)));
+  const childTargets: DocumentsUploadTarget[] = children.flatMap((child) => child.garden_id ? [{ id: `child-${child.id}`, label: `מסמכי ${child.full_name}`, gardenId: child.garden_id, ownerId: child.id, documentTypes: ["child_document", "medical_approval"] }] : []);
+  const guardianTargets: DocumentsUploadTarget[] = Array.from(new Set(family.gardenIds as string[])).map((gardenId) => ({ id: `guardian-${gardenId}`, label: `מסמכי הורה · ${gardenNames.get(gardenId) ?? "גן משויך"}`, gardenId, ownerId: profile.id, documentTypes: ["guardian_document"] }));
 
   return (
     <DashboardShell role="parent" title="מסמכים" appHome>
-      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
-        <ParentHero title="מסמכים ואישורים" subtitle="כל מה שצריך לאשר או לשמור" />
-
-        <section className="parent-metric-strip">
-          <ParentMetricCard title="צריך פעולה" value={needsAction.length} hint="מסמכים" icon={TriangleAlert} tone={needsAction.length ? "orange" : "green"} />
-          <ParentMetricCard title="חדשים" value={newDocs.length} hint="ממתינים" icon={Clock} tone={newDocs.length ? "purple" : "green"} />
-          <ParentMetricCard title="חתומים" value={signed.length} hint="מאושרים" icon={CheckCircle2} tone="green" />
-          <ParentMetricCard title="סה״כ" value={rows.length} hint="מסמכים" icon={FileText} tone="blue" />
-        </section>
-
-        <ParentSection title="מסמכים שלי" subtitle="מסמכי בריאות, פרטיות, צילום ואישורי גן מסודרים לפי מה שדורש פעולה.">
-          {rows.length === 0 ? <ParentEmptyState title="אין מסמכים נדרשים כרגע" text="אם הגן יבקש אישור או ישתף מסמך, הוא יופיע כאן עם פעולה ברורה." /> : (
-            <div className="parent-document-list">
-              {rows.map((row) => (
-                <article className="parent-document-card" key={row.id}>
-                  <div>
-                    <span className={`parent-status-chip ${docTone(row.status)}`}>{docStatusLabel(row.status)}</span>
-                    <h3>{row.name ?? row.document_type ?? "מסמך"}</h3>
-                    <p>{row.document_type ?? "אישור משפחתי"}</p>
-                    <small>{row.expires_at ? `בתוקף עד ${dateText(row.expires_at)}` : row.created_at ? `נוסף ${dateText(row.created_at)}` : ""}</small>
-                  </div>
-                  {row.file_url ? <Link className="button secondary" href={row.file_url}>פתיחה</Link> : <span className="pill">ממתין לקובץ</span>}
-                </article>
-              ))}
-            </div>
-          )}
-        </ParentSection>
-
-        <section className="parent-camera-promise">
-          <article><TriangleAlert /><h2>צריך פעולה</h2><p>מסמך חסר, פג תוקף או דורש תיקון מופיע ראשון במדדים.</p></article>
-          <article><Clock /><h2>ממתין לבדיקה</h2><p>מסמך שנשלח לגן נשאר במעקב עד אישור.</p></article>
-          <article><CheckCircle2 /><h2>מאושר</h2><p>מסמכים חתומים ושמורים נשארים זמינים למשפחה.</p></article>
-        </section>
-
-        <section className="parent-trust-card">
-          <ShieldCheck />
-          <h2>פרטיות</h2>
-          <p>הורה רואה רק מסמכים של הילדים שלו או מסמכים שהוא העלה. מסמכים פנימיים של הגן לא מוצגים כאן.</p>
-        </section>
+      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={profile.profile_image_url ?? null}>
+        <DocumentsPlatform title="המסמכים של המשפחה" subtitle="מסמכי הילדים וההורה לפי הגן המשויך, עם סטטוס ברור ופעולה בטוחה." rows={rows} uploadTargets={[...childTargets, ...guardianTargets]} roleLabel="משפחה" />
       </ParentAppFrame>
     </DashboardShell>
   );

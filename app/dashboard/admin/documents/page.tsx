@@ -1,19 +1,38 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AdminDataError, AdminEmptyState } from "@/components/admin-data-state";
-import { DocumentReviewActions } from "@/components/document-review-actions";
+import { DocumentsPlatform, type DocumentsPlatformRow } from "@/components/documents-platform";
 import { requireRole } from "@/lib/auth";
-import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
+import { effectiveDocumentStatus } from "@/lib/management/document-policy";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function AdminListPage() {
-  await requireRole(["admin"]);
-  const result = await safeAdminData("מסמכים", async () => {
-    const supabase = await createClient();
-    const { data, error } = await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, file_url, gardens(name), children(full_name), staff(full_name)").order("expires_at", { ascending: true }).limit(100);
-    logSupabaseError("מסמכים", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
-  const rows = result.data.rows;
-  const expiringSoon = rows.filter((row) => row.expires_at && new Date(row.expires_at).getTime() < Date.now() + 30 * 24 * 60 * 60 * 1000).length;
-  return <DashboardShell role="admin" title="מסמכים"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Document Center</p><h1>מרכז מסמכים מלא.</h1><p>ילדים, הורים, צוות, גנים ומפקחים: סוג מסמך, תוקף, סטטוס, חסרים, עומדים לפוג ואישור אדמין.</p></div><span className={expiringSoon ? "pill warn" : "pill good"}>{expiringSoon} עומדים לפוג</span></div><AdminDataError message={result.error ?? result.data.queryError} /><section className="dashboard-section">{rows.length === 0 ? <AdminEmptyState /> : <div className="document-center-grid">{rows.map((row) => <article className="card document-card" key={row.id ?? JSON.stringify(row)}><div><span className={row.status === "valid" ? "pill good" : row.status === "rejected" ? "pill bad" : "pill warn"}>{row.status ?? "pending_review"}</span><h3>{row.name ?? "מסמך"}</h3><p>{row.document_type ?? ""}</p><small>{row.gardens?.name ?? row.children?.full_name ?? row.staff?.full_name ?? "ישות כללית"} · תוקף {row.expires_at ? new Date(row.expires_at).toLocaleDateString("he-IL") : "לא הוגדר"}</small></div><div className="actions">{row.file_url === `/api/documents/${row.id}/file` ? <a className="button secondary tiny" href={row.file_url}>צפייה</a> : null}{row.id ? <DocumentReviewActions id={row.id} /> : null}</div></article>)}</div>}</section></DashboardShell>;
+const documentFields = "id,garden_id,owner_type,owner_profile_id,staff_id,child_id,inspection_id,uploaded_by,name,document_type,status,expires_at,created_at,reviewed_at,rejection_reason,mime_type,byte_size,replaces_document_id,replaced_by,file_url,reminder_days_before,deleted_at";
+
+export default async function AdminDocumentsPage() {
+  const { profile } = await requireRole(["admin"]);
+  const supabase = await createClient();
+  const documentsRes = await supabase.from("documents" as never).select(documentFields as never).is("deleted_at", null).order("created_at", { ascending: false }).limit(120);
+  const documentRows = (documentsRes.data ?? []) as unknown as DocumentsPlatformRow[];
+  const gardenIds = Array.from(new Set(documentRows.map((row) => row.garden_id).filter(Boolean)));
+  const gardensRes = gardenIds.length ? await supabase.from("gardens" as never).select("id,name" as never).in("id", gardenIds) : { data: [] };
+  const gardenNames = new Map(((gardensRes.data ?? []) as unknown as Array<{ id: string; name: string }>).map((garden) => [garden.id, garden.name]));
+  const rows: DocumentsPlatformRow[] = documentRows.map((row) => ({
+    ...row,
+    effective_status: effectiveDocumentStatus(row),
+    file_url: row.file_url === `/api/documents/${row.id}/file` ? row.file_url : null,
+    garden_name: gardenNames.get(row.garden_id) ?? "גן מורשה",
+    context_name: row.owner_type === "inspection" ? `ביקורת · ${gardenNames.get(row.garden_id) ?? "גן"}` : gardenNames.get(row.garden_id) ?? "מסמך ארגוני",
+    can_review: row.uploaded_by !== profile.id && ["garden", "owner", "teacher", "inspection"].includes(String(row.owner_type))
+  }));
+
+  return (
+    <DashboardShell role="admin" title="מרכז מסמכים">
+      <DocumentsPlatform
+        title="בקרת מסמכים"
+        subtitle="תור אימות מורשה למסמכי גן, בעלים, הוראה וביקורת. מסמכי משפחה וצוות נשארים מחוץ לטווח האדמין."
+        rows={rows}
+        canReview
+        roleLabel="אדמין"
+        limitedMessage="הגישה כאן משתמשת בהרשאות המשתמש וב־RLS. ראיות ביקורת, קבצי הודעות ומסמכים משפחתיים אינם נכללים במרכז הזה."
+      />
+    </DashboardShell>
+  );
 }

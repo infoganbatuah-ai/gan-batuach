@@ -169,6 +169,7 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
       { href: "/dashboard/inspector/corrective-actions", label: "מעקב תיקונים", hint: "אישור ודחיית תיקון", icon: BookOpenCheck },
       { href: "/dashboard/inspector/complaints", label: "תלונות", hint: "פניות בתחום השיוך", icon: MessageCircle },
       { href: "/dashboard/inspector/reports", label: "דוחות", hint: "דיווח ותיעוד", icon: BarChart3 },
+      { href: "/dashboard/inspector/documents", label: "מסמכים", hint: "תיעוד מורשה לביקורת", icon: FileText },
       { href: "/dashboard/inspector/tasks", label: "משימות", hint: "המשך ומעקב", icon: CalendarDays },
       { href: "/dashboard/inspector/preliminary-gardens", label: "גן מקדים", hint: "הקמה והזמנה חתומה", icon: UsersRound },
       { href: "/dashboard/inspector/cameras", label: "בטיחות ומצלמות", hint: "גישה מוגבלת לפי מדיניות", icon: Camera },

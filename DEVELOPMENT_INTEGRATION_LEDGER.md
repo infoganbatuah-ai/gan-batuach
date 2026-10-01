@@ -581,3 +581,16 @@ and high-severity grpc-js advisories; compatible updates to Next.js 16.3.8 and
 grpc-js 1.14.5 restored `npm audit` to zero vulnerabilities, with typecheck,
 lint, security 10/10, UX-11 8/8 and the 538-page Production build passing.
 UX-IMPLEMENT-12 has not started.
+
+UX-IMPLEMENT-12 branch qualification (2026-10-01):
+`codex/ux-implement-12-documents` implements the canonical private Documents
+platform for Owner/Manager, Parent, active Staff, Inspector and authorized
+Admin roles. Twenty concepts produced 40 fresh Desktop/Mobile captures, all
+OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results.
+Private Storage, signed retrieval, role and Garden isolation, replacement
+history, backend-authoritative verification, expiry and separation from message
+attachments and inspection evidence passed focused, live-RLS, security, domain,
+typecheck, zero-regression lint, migration, release-contract and 539-page
+Production-build validation. Exact-head PR checks and cumulative post-merge
+Development verification remain pending. No migration, paid provider,
+Production, `main`, customer data or Digital Observer core change is included.

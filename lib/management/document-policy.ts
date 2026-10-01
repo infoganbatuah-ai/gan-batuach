@@ -21,7 +21,7 @@ export function documentOwnerFor(category: string): ManagementDocumentOwner | nu
 }
 
 export function effectiveDocumentStatus(input: {
-  status: string; expires_at?: string | null; replaced_by?: string | null; deleted_at?: string | null;
+  status?: string | null; expires_at?: string | null; replaced_by?: string | null; deleted_at?: string | null;
   reminder_days_before?: number | null;
 }, today = new Date()): string {
   const todayDate = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(today);
@@ -33,7 +33,7 @@ export function effectiveDocumentStatus(input: {
     const days = (Date.parse(input.expires_at + "T00:00:00Z") - Date.parse(todayDate + "T00:00:00Z")) / 86400000;
     if (days <= threshold) return "expiring_soon";
   }
-  return input.status;
+  return input.status || "pending_review";
 }
 
 export const documentMimeExtensions = {

@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     const gardenId = search.get("garden_id");
     if (gardenId && !uuid.test(gardenId)) return fail("מזהה גן לא תקין.", 422);
     let query = db.from("documents" as never)
-      .select("id,garden_id,staff_id,child_id,owner_profile_id,inspection_id,name,document_type,owner_type,file_url,status,expires_at,reminder_days_before,created_at,replaced_by,deleted_at")
+      .select("id,garden_id,staff_id,child_id,owner_profile_id,inspection_id,uploaded_by,name,document_type,owner_type,file_url,status,expires_at,reminder_days_before,created_at,reviewed_by,reviewed_at,rejection_reason,mime_type,byte_size,replaces_document_id,replaced_by,deleted_at")
       .is("deleted_at", null).order("created_at", { ascending: false }).limit(100);
     if (gardenId) query = query.eq("garden_id", gardenId);
     const { data, error } = await query;
