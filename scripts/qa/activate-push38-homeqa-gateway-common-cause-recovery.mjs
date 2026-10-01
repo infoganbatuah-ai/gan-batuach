@@ -148,7 +148,12 @@ const item = deadlineBudget ? PUSH38_GATEWAY_DEADLINE_BUDGET :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = (deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
+// The deadline-budget Gateway successor is independent of the quarantined
+// Connector handoff candidate.  The live Connector correctly recovered to its
+// signed 0.2.26 known-good, so pin this Gateway-only activation to that exact
+// installed rollback state instead of requiring a quarantined release.
+const connectorItem = deadlineBudget ? connectorRtspCadenceItem :
+  (sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
   handoffContinuity ? connectorHandoffContinuityItem :
   relayHandoff ? connectorCodecPreservationItem :
   handoffHardware ? connectorCodecPreservationItem :
@@ -340,6 +345,7 @@ async function healthSample(port, label) {
     empty: health.lastDiscovery?.unassignedCount ?? null,
     progressing: health.mediaHeartbeat?.progressingRelays ?? null,
     stalled: health.mediaHeartbeat?.stalledRelays ?? null,
+    reason_codes: Array.isArray(health.health_reason_codes) ? health.health_reason_codes : [],
     rotations: health.recorderSessionLifecycle?.rotations ?? null,
     last_rotation_reason: health.recorderSessionLifecycle?.last_rotation_reason ?? null };
 }
@@ -940,9 +946,19 @@ if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth &&
   !confirmedHandoffTargetTruth && !startupWindowTargetTruth && !handoffProbationTargetTruth &&
   !retainedFallbackTargetTruth))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_TRUTH_INVALID");
-if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok ||
-  sample.assigned !== 1 || sample.progressing !== 1 || sample.stalled !== 0) ||
-  new Set(connectorSamples.map(sample => sample.pid)).size !== 1)
+const connectorPidStable = connectorSamples.every(sample => sample.running && sample.pid) &&
+  new Set(connectorSamples.map(sample => sample.pid)).size === 1;
+const connectorPrerequisiteHealthy = connectorSamples.every(sample => sample.ok &&
+  sample.status === "healthy" && sample.assigned === 1 && sample.connected === 1 &&
+  sample.failed === 0 && sample.empty === 0 && sample.progressing === 1 && sample.stalled === 0);
+// Tapo is a separately tracked physical source.  A Gateway-only remediation
+// may proceed while the exact signed Connector known-good reports that source
+// truthfully degraded; it must not proceed for a silent/ambiguous degradation.
+const connectorTruthfulTapoDegradation = deadlineBudget && connectorSamples.every(sample =>
+  !sample.ok && sample.status === "degraded" && sample.assigned === 1 && sample.connected === 1 &&
+  sample.failed === 0 && sample.empty === 0 && sample.progressing === 0 && sample.stalled === 1 &&
+  sample.reason_codes.length === 1 && sample.reason_codes[0] === "EXPECTED_RELAY_NOT_PROGRESSING");
+if (!connectorPidStable || (!connectorPrerequisiteHealthy && !connectorTruthfulTapoDegradation))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_CONNECTOR_HEALTH_INVALID");
 const disk = statfsSync(root);
 if (Number(disk.bavail) * Number(disk.bsize) < item.size * 3)
@@ -983,6 +999,8 @@ const plan = { protocol: deadlineBudget ? "observer-push38-gateway-deadline-budg
   current_release_id: current.release_id, rollback_target: item.rollbackReleaseId,
   runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
   connector_release_id: connectorCurrent.release_id,
+  connector_runtime_truth: connectorPrerequisiteHealthy ? "HEALTHY_1_OF_1_PROGRESSING" :
+    "SIGNED_KNOWN_GOOD_TRUTHFULLY_DEGRADED_TAPO_0_OF_1",
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
     retainedFallbackTargetTruth ? (deadlineBudget ? "FAILED_LIVE_PROOF_DEADLINE_BUDGET_SUCCESSOR_QUALIFIED" :
