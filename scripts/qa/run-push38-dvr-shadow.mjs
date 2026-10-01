@@ -25,6 +25,7 @@ const requestedSignedBundle = String(process.env.DVR_SHADOW_SIGNED_BUNDLE || "")
 const requestedManifestMember = String(process.env.DVR_SHADOW_MANIFEST_MEMBER ||
   "gateway_remediation_supervisor_recovery.json").trim();
 const playbackEveryCheckpoint = process.env.DVR_SHADOW_PLAYBACK_EVERY_CHECKPOINT === "1";
+const expectReactiveOnly = process.env.DVR_SHADOW_EXPECT_REACTIVE_ONLY === "1";
 if (!Number.isInteger(channel) || channel < 1 || channel > 64) throw new Error("DVR_SHADOW_CHANNEL is invalid");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
@@ -123,6 +124,7 @@ const evidence = {
   runtime_mutation: false,
   runtime_source: runtimeSource.sourceClass,
   signed_release: runtimeSource.signedRelease,
+  expected_relay_policy: expectReactiveOnly ? "REACTIVE_OUTPUT_RESCUE_ONLY" : "HANDOFF_REQUIRED",
   playback_every_checkpoint: playbackEveryCheckpoint,
   checkpoints: []
 };
@@ -318,11 +320,13 @@ try {
     && point.shadow.media?.progressing === 1)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
   if (outputRescueFailures > 0) failures.push("OUTPUT_RESCUE_FAILURE");
+  if (expectReactiveOnly && Number(lifecycle.startsByReason?.routineFiniteResponse || 0) > 0)
+    failures.push("AGE_ONLY_ROUTINE_HANDOFF_OBSERVED");
   if (routineHandoffFailures > maximumBoundedRoutineFailures)
     failures.push("ROUTINE_HANDOFF_RETRY_STORM");
   else if (routineHandoffFailures > 0)
     warnings.push("BOUNDED_ROUTINE_CANDIDATE_REJECTED_WITHOUT_MEDIA_GAP");
-  if (durationMs >= 2 * 60_000 && (lifecycle.warmHandoffs || 0) < 1)
+  if (!expectReactiveOnly && durationMs >= 2 * 60_000 && (lifecycle.warmHandoffs || 0) < 1)
     failures.push("NO_SUCCESSFUL_HANDOFF_OBSERVED");
   if ((lifecycle.stalePlaylist || 0) > 0) failures.push("STALE_PLAYLIST");
   if ((lifecycle.staleInput || 0) > 0) failures.push("STALE_INPUT");

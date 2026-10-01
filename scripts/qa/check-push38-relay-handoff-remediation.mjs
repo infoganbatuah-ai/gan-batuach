@@ -53,6 +53,12 @@ test("live multi-source evidence disables age-only relay churn", () => {
     /PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED[\s\S]*recoveryStable/);
   assert.match(server,
     /Real rendered-output loss continues through the bounded rescue lane/);
+  const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
+  assert.match(shadow,
+    /DVR_SHADOW_EXPECT_REACTIVE_ONLY[\s\S]*AGE_ONLY_ROUTINE_HANDOFF_OBSERVED/);
+  assert.match(shadow,
+    /!expectReactiveOnly && durationMs >= 2 \* 60_000/,
+  "reactive-only proof must not fabricate a handoff merely to satisfy the old fixture");
 });
 
 test("a synchronized nine-source sweep starts before the finite deadline", () => {
