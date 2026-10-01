@@ -100,6 +100,12 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 180_000;
 // concurrency or relax the evidence required for ownership promotion.
 export const PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS = 14_000;
 export const PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS = 21_000;
+// A rejected rescue candidate can leave the original owner healthy and
+// progressing. Do not immediately open another recorder response in that
+// case: the signed Home shadow proved that such back-to-back probes add churn
+// without improving HLS continuity. Hard-stale media bypasses this delay so a
+// real outage still enters the existing bounded recovery path promptly.
+export const PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS = 60_000;
 // Rescue begins after five seconds of output idle. Preserve the old owner as
 // a non-progressing identity anchor until the bounded rescue resolves, even
 // though it is no longer selected as media. The 16-second extension beyond the
@@ -151,6 +157,14 @@ export function privateNvrRoutineHandoffRetryAllowed(lastAttemptAt,
   now = Date.now(), retryBackoffMs = PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS) {
   return Boolean(Number.isFinite(now)
     && (!Number.isFinite(lastAttemptAt) || now - lastAttemptAt >= retryBackoffMs)
+    && Number.isFinite(retryBackoffMs) && retryBackoffMs > 0);
+}
+
+export function privateNvrOutputRescueRetryAllowed(lastFailureAt,
+  now = Date.now(), { hardStale = false,
+    retryBackoffMs = PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS } = {}) {
+  return Boolean(hardStale || Number.isFinite(now)
+    && (!Number.isFinite(lastFailureAt) || now - lastFailureAt >= retryBackoffMs)
     && Number.isFinite(retryBackoffMs) && retryBackoffMs > 0);
 }
 

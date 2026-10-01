@@ -16,6 +16,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
@@ -28,6 +29,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   comparePrivateNvrHandoffPriority,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrOutputRescueRetryAllowed,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
   privateNvrRoutineHandoffSchedule } from
@@ -230,6 +232,18 @@ test("consumer demand cannot bypass relay recovery backoff", () => {
   assert.match(server, /if \(retryDelayMs > maximumWaitMs\) return null/);
   assert.match(server,
     /await new Promise\(resolve => setTimeout\(resolve, retryDelayMs \+ 10\)\)/);
+});
+
+test("a contained output-rescue rejection cannot create an immediate retry storm", () => {
+  const now = 400_000;
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS, 60_000);
+  assert.equal(privateNvrOutputRescueRetryAllowed(now - 59_999, now), false);
+  assert.equal(privateNvrOutputRescueRetryAllowed(now - 60_000, now), true);
+  assert.equal(privateNvrOutputRescueRetryAllowed(now - 1, now,
+    { hardStale: true }), true, "hard-stale media must bypass the contained-failure delay");
+  assert.match(server, /lastOutputRescueFailureAt/);
+  assert.match(server,
+    /privateNvrOutputRescueRetryAllowed\(relay\.lastOutputRescueFailureAt/);
 });
 
 test("recovery does not require a playback lease that cannot exist yet", () => {

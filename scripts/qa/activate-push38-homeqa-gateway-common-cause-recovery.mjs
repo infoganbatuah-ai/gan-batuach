@@ -89,7 +89,8 @@ import { PUSH38_CONNECTOR_CODEC_PRESERVATION as connectorCodecPreservationItem
 } from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
 import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY as connectorHandoffContinuityItem
 } from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
-import { evaluateHlsRenewalContinuity } from "./push38-shadow-qualification-policy.mjs";
+import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
+} from "./push38-shadow-qualification-policy.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -431,8 +432,8 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
       Number(point.shadow?.media?.lifecycle?.warmHandoffs ?? 0) > failedHandoffCount));
   const boundedStarts = Number.isFinite(value.duration_ms)
     ? Math.ceil(value.duration_ms / 60_000) + 2 : 0;
-  const boundedFailureProof = !boundedWarmupFailure ||
-    lifecycle.warmHandoffFailures <= 1 &&
+  const boundedFailureResult = classifyBoundedOutputRescueRejection(checkpoints, lifecycle);
+  const boundedFailureProof = !boundedWarmupFailure || boundedFailureResult.pass &&
     lifecycle.warmHandoffConfirmationFailures <= lifecycle.warmHandoffFailures &&
     lifecycle.warmHandoffs >= 1 && lifecycle.warmHandoffRollbacks === 0 &&
     lifecycle.starts <= boundedStarts && lifecycle.staleInput <= 1 && lifecycle.stalePlaylist === 0 &&

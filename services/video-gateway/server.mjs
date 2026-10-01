@@ -20,6 +20,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
@@ -31,6 +32,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   comparePrivateNvrHandoffPriority,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrOutputRescueRetryAllowed,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
@@ -145,7 +147,11 @@ async function maintainPrivateNvrRelayHandoffs() {
       warming: relay.warming
     }, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
-      outputRescues.push([streamId, relay, handoffMode, lastOutputAt]);
+      const hardStale = Number.isFinite(lastOutputAt)
+        && observedAt - lastOutputAt >= RELAY_STALE_MS;
+      if (privateNvrOutputRescueRetryAllowed(relay.lastOutputRescueFailureAt,
+        observedAt, { hardStale }))
+        outputRescues.push([streamId, relay, handoffMode, lastOutputAt]);
     } else if (handoffMode === "ROUTINE_FINITE_RESPONSE"
       && relayIsProgressing(relay) && relayEligibleForHandoff(streamId, relay)
       && privateNvrRoutineHandoffRetryAllowed(relay.lastRoutineHandoffAttemptAt,
@@ -1438,7 +1444,10 @@ async function ensureRelay(streamId) {
     && !existing.retainedFallback
     && Number.isFinite(outputAt)
     && Date.now() - existing.startedAt >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
-    && Date.now() - outputAt < RELAY_STALE_MS + PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS;
+    && Date.now() - outputAt < RELAY_STALE_MS + PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS
+    && privateNvrOutputRescueRetryAllowed(existing.lastOutputRescueFailureAt,
+      Date.now(), { hardStale: Date.now() - outputAt >= RELAY_STALE_MS,
+        retryBackoffMs: PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS });
   if (requestRescueEligible && !relayWarmups.has(streamId)
     && privateNvrHandoffCapacityAvailable(streamId, "OUTPUT_RESCUE", existing)) {
     void warmReplacePrivateNvrRelay(streamId, existing, "OUTPUT_RESCUE")
@@ -1753,6 +1762,9 @@ async function warmReplaceRelay(streamId, previous, {
         last_handoff_first_output_latency_ms: null,
         last_handoff_output_advances: 0,
         last_handoff_duration_ms: Date.now() - handoffStartedAt });
+      if (handoffMode === "OUTPUT_RESCUE" && relays.get(streamId) === previous
+        && relayIsProgressing(previous))
+        previous.lastOutputRescueFailureAt = Date.now();
       return false;
     }
     let observation = await observeWarmReplacement(replacement, { handoffMode,
@@ -1811,6 +1823,9 @@ async function warmReplaceRelay(streamId, previous, {
         last_handoff_output_advances: observation.outputAdvanceCount,
         last_handoff_duration_ms: Date.now() - handoffStartedAt,
         last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
+      if (handoffMode === "OUTPUT_RESCUE" && !exclusiveRescue
+        && relays.get(streamId) === previous && relayIsProgressing(previous))
+        previous.lastOutputRescueFailureAt = Date.now();
       if (exclusiveRescue) armRelayRecovery(streamId, replacement || previous);
       if (replacement) stopRelay(streamId, replacement, "WARM_HANDOFF_ABORTED");
       cleanupRelayDirectories(streamId, relays.get(streamId), [

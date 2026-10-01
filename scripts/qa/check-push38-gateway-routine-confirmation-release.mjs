@@ -97,7 +97,7 @@ const continuityPoint = (sequence, failures, handoffs, result = null) => ({ sequ
     lifecycle: { warmHandoffFailures: failures, warmHandoffs: handoffs },
     source_diagnostics: [{ last_handoff_result: result }] } } });
 const containedLifecycle = { warmHandoffFailures: 1, warmHandoffConfirmationFailures: 1,
-  warmHandoffRollbacks: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0,
+  warmHandoffs: 4, warmHandoffRollbacks: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0,
   inputSocketError: 0, upstreamFailed: 0, startsByReason: { recovery: 0 },
   warmHandoffFailuresByMode: { outputRescue: 1 } };
 assert.equal(classifyBoundedOutputRescueRejection([
@@ -109,8 +109,21 @@ candidateContinuity.shadow.media.inputs[0] = { owner_state: "WARMING_CONTINUITY"
 assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(1, 0, 3), candidateContinuity,
   continuityPoint(3, 1, 4, "PROMOTED")], containedLifecycle).pass, true);
+const lostContinuity = continuityPoint(2, 1, 3);
+lostContinuity.shadow.media.progressing = 0;
+lostContinuity.shadow.media.stalled = 1;
+lostContinuity.shadow.media.inputs[0] = { owner_state: "NONE",
+  canonical_owner_progressing: false, candidate_progressing: false };
 assert.equal(classifyBoundedOutputRescueRejection([
-  continuityPoint(1, 0, 3), continuityPoint(2, 1, 3)], containedLifecycle).pass, false);
+  continuityPoint(1, 0, 3), lostContinuity], containedLifecycle).pass, false);
+const multipleContainedLifecycle = { ...containedLifecycle, warmHandoffFailures: 2,
+  warmHandoffConfirmationFailures: 2, warmHandoffs: 5,
+  warmHandoffFailuresByMode: { outputRescue: 2 } };
+assert.equal(classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), continuityPoint(2, 1, 3),
+  continuityPoint(7, 1, 4, "PROMOTED"), continuityPoint(14, 2, 4),
+  continuityPoint(15, 2, 5, "PROMOTED")], multipleContainedLifecycle).pass, true,
+"multiple contained rejections remain bounded only with preserved media and more successful promotions");
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-gateway-routine-confirmation-test-"));
 try {
