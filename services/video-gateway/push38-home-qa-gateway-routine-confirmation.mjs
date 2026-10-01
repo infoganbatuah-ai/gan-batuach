@@ -2,25 +2,25 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Exact-device successor to 0.2.42. The first live canary proved that a
-// replacement can need 7.7 seconds for its first HLS output and the unchanged
-// six-second/four-advance continuity proof. The prior fixed twelve-second
-// probation therefore killed valid candidates before confirmation. This
-// release separates bounded acquisition from bounded confirmation while
-// preserving freshness, single-owner, backoff, and rollback requirements.
+// Exact-device successor to the signed 0.2.41 known-good runtime. Qualification
+// of 0.2.43 exposed two remaining continuity faults: a playback request during
+// hard stale could retire the old owner before a replacement produced output,
+// and routine confirmation expired at the HLS cadence boundary. This release
+// preserves the old owner during a bounded, capacity-checked rescue, aligns
+// confirmation with measured segment cadence, and keeps retry history intact.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-routine-confirmation-86028a0e75bf",
-  version: "0.2.43-p38-health",
-  buildSha: "4a55e3b9fb7dad30daaf2d1555f5fcda3cbc5a84",
-  digest: "86028a0e75bf5b9135741e35904db0a6e9d5e17d877969c5b1329cb26c759e18",
-  size: 135836820,
+  releaseId: "qa-p38-health-gateway-routine-confirmation-64cb4c533638",
+  version: "0.2.44-p38-health",
+  buildSha: "7ad07a23f9cbe2334a19cf42d5f39734f40f86ff",
+  digest: "64cb4c5336384f116ffb3ac96595d2ef454091547e0627961a0fb3d14a2cdb09",
+  size: 135835492,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-recovery-continuity-73787e3e60ac",
-  rollbackVersion: "0.2.42-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-recovery-continuity-73787e3e60ac",
-  supersedesVersion: "0.2.42-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
+  rollbackVersion: "0.2.41-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
+  supersedesVersion: "0.2.41-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
