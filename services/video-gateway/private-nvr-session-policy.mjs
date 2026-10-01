@@ -82,11 +82,11 @@ export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
 // is still bounded to 162 seconds, leaving margin before the recorder's
 // observed roughly three-minute native-response boundary.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS = 9_000;
-// Real routine and output-rescue candidates produced valid playlist advances,
-// but the previous first-output+7 s deadline expired about 0.1 s before the
-// next cadence boundary could prove the six-second contract. Apply the same
-// bounded cadence grace to both lanes; the independent rescue probation cap
-// below remains authoritative.
+// Real routine candidates produced valid playlist advances, but the previous
+// first-output+7 s deadline expired about 0.1 s before the next cadence
+// boundary could prove the six-second contract. Keep that bounded cadence
+// grace for routine maintenance. Output rescue has a separately measured total
+// probation below because its confirmation cadence is not routine scheduling.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS = 2_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS = 18_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS =
@@ -105,8 +105,13 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 180_000;
 // thirteen seconds before its first HLS segment and then remain continuously
 // productive. Applying the routine lane's twelve-second scheduler budget to
 // that independent rescue lane killed the candidate just before it could
-// complete the unchanged six-second/four-advance confirmation contract. Keep
-// acquisition and total probation separately bounded; this does not increase
+// complete the unchanged six-second/four-advance confirmation contract. The
+// two-channel Home shadow then measured a rescue that emitted first output in
+// 3.256 seconds and three advances, but was rejected at the clipped
+// first-output+8 s sub-deadline before the next cadence boundary. Keep
+// acquisition and total probation separately bounded: before first output the
+// fourteen-second acquisition limit applies; after first output the original
+// twenty-one-second total limit is authoritative. This does not increase
 // concurrency or relax the evidence required for ownership promotion.
 export const PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS = 14_000;
 export const PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS = 21_000;
@@ -216,10 +221,7 @@ export function privateNvrHandoffProbationDeadline({ handoffMode,
   if (!Number.isFinite(firstOutputObservedAt)) {
     return probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS;
   }
-  return Math.min(
-    probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
-    firstOutputObservedAt + minimumConfirmationMs
-      + PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS);
+  return probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS;
 }
 
 export function comparePrivateNvrHandoffPriority(left, right) {

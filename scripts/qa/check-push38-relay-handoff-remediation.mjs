@@ -183,12 +183,31 @@ test("routine probation stays scheduler-bounded while rescue has its own bounded
   assert.equal(privateNvrHandoffProbationDeadline({
     handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
     firstOutputObservedAt: startedAt + 5_329
-  }), startedAt + 13_329,
-  "the measured rescue candidate receives the same bounded HLS cadence grace");
+  }), startedAt + 21_000,
+  "first output unlocks the existing total rescue probation, not a clipped cadence sub-deadline");
   assert.equal(privateNvrHandoffProbationDeadline({
     handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
     firstOutputObservedAt: startedAt + 20_000
   }), startedAt + 21_000);
+  const measuredFirstOutputAt = startedAt + 3_256;
+  const measuredFourthAdvanceAt = startedAt + 15_000;
+  assert.ok(privateNvrHandoffProbationDeadline({
+    handoffMode: "OUTPUT_RESCUE", probationStartedAt: startedAt,
+    firstOutputObservedAt: measuredFirstOutputAt
+  }) >= measuredFourthAdvanceAt,
+  "the CH10 cadence has time to produce its fourth distinct advance inside the unchanged total bound");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: measuredFirstOutputAt,
+    outputAdvanced: true, outputAdvanceCount: 3,
+    lastOutputAt: startedAt + 11_000, now: startedAt + 11_000
+  }), false,
+  "three advances remain insufficient even while probation stays open");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: measuredFirstOutputAt,
+    outputAdvanced: true, outputAdvanceCount: 4,
+    lastOutputAt: measuredFourthAdvanceAt, now: measuredFourthAdvanceAt
+  }), true,
+  "the fourth fresh advance confirms the measured rescue without relaxing continuity evidence");
   assert.match(server, /privateNvrHandoffProbationDeadline\(\{ handoffMode,/);
   assert.match(server,
     /relayWarmupModes\.get\(streamId\) === "OUTPUT_RESCUE"[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS/);
