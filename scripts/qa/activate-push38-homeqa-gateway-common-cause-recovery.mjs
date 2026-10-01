@@ -60,6 +60,8 @@ import { PUSH38_GATEWAY_RELAY_HANDOFF_REMEDIATION
 } from "../../services/video-gateway/push38-home-qa-gateway-relay-handoff-remediation.mjs";
 import { PUSH38_GATEWAY_HANDOFF_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-handoff-continuity.mjs";
+import { PUSH38_GATEWAY_HANDOFF_OWNER_CONTINUITY
+} from "../../services/video-gateway/push38-home-qa-gateway-handoff-owner-continuity.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -107,13 +109,16 @@ const codecPreservation = process.argv.includes("--gateway-codec-preservation");
 const handoffHardware = process.argv.includes("--gateway-handoff-hardware");
 const relayHandoff = process.argv.includes("--gateway-relay-handoff");
 const handoffContinuity = process.argv.includes("--gateway-handoff-continuity");
+const handoffOwnerContinuity = process.argv.includes("--gateway-handoff-owner-continuity");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
-  rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity]
+  rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
+  handoffOwnerContinuity]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = handoffContinuity ? PUSH38_GATEWAY_HANDOFF_CONTINUITY :
+const item = handoffOwnerContinuity ? PUSH38_GATEWAY_HANDOFF_OWNER_CONTINUITY :
+  handoffContinuity ? PUSH38_GATEWAY_HANDOFF_CONTINUITY :
   relayHandoff ? PUSH38_GATEWAY_RELAY_HANDOFF_REMEDIATION :
   handoffHardware ? PUSH38_GATEWAY_HANDOFF_HARDWARE :
   codecPreservation ? PUSH38_GATEWAY_CODEC_PRESERVATION :
@@ -135,7 +140,8 @@ const item = handoffContinuity ? PUSH38_GATEWAY_HANDOFF_CONTINUITY :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = handoffContinuity ? connectorHandoffContinuityItem :
+const connectorItem = handoffOwnerContinuity ? connectorHandoffContinuityItem :
+  handoffContinuity ? connectorHandoffContinuityItem :
   relayHandoff ? connectorCodecPreservationItem :
   handoffHardware ? connectorCodecPreservationItem :
   codecPreservation ? connectorCodecPreservationItem :
@@ -148,13 +154,16 @@ const connectorItem = handoffContinuity ? connectorHandoffContinuityItem :
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = handoffContinuity ? item.rolloutPredecessorReleaseId :
+const predecessorReleaseId = handoffOwnerContinuity ? item.supersedesReleaseId :
+  handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = handoffContinuity
+const artifact = handoffOwnerContinuity
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-owner-continuity-dcda36fc/gateway-runtime.tar.gz"
+  : handoffContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-handoff-continuity-1fc10896/gateway-runtime.tar.gz"
   : relayHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-relay-handoff-d9497224/gateway-runtime.tar.gz"
@@ -199,7 +208,9 @@ const artifact = handoffContinuity
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = handoffContinuity
+const publication = handoffOwnerContinuity
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-owner-continuity-dcda36fc/r2-publication.json"
+  : handoffContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-handoff-continuity-1fc10896/r2-publication.json"
   : relayHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-relay-handoff-d9497224/r2-publication.json"
@@ -389,14 +400,15 @@ if (config.profile !== item.profile || config.deviceId !== item.deviceId || conf
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity)
+const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity)
   ? item.agentPredecessorReleaseId : item.releaseId;
-const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity)
+const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity)
   ? item.priorManagementArtifactSha256 : item.digest;
 if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_sha256 !== expectedAgentDigest)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  handoffOwnerContinuity ? "gateway_remediation_handoff_owner_continuity.json" :
   handoffContinuity ? "gateway_remediation_handoff_continuity.json" :
   relayHandoff ? "gateway_remediation_relay_handoff.json" :
   handoffHardware ? "gateway_remediation_handoff_hardware.json" :
@@ -515,7 +527,7 @@ for (let index = 0; index < 3; index += 1) {
 const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample.pid) &&
   new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
 const expectsNineSources = stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep ||
-  heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity;
+  heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity;
 const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
   gatewaySamples.every(sample =>
     sample.assigned === 10 && sample.connected === (expectsNineSources ? 9 : 8) &&
@@ -560,7 +572,7 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
-const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity) && gatewaySamples.every(sample =>
+const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity) && gatewaySamples.every(sample =>
   (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
   Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
   Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
@@ -703,6 +715,33 @@ if (relayHandoff || handoffContinuity) {
     recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
     socket_error_delta: result.gateway.socket_error_delta, live_recovery_required: true };
 }
+if (handoffOwnerContinuity) {
+  const bytes = protectedFile(failedCanaryEvidencePath);
+  const result = JSON.parse(bytes);
+  const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
+    name.startsWith("dvr-") && camera.qualification_denominator === true && camera.availability < 1);
+  if (result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "CANARY" || result.status !== "NOT_DONE" ||
+    result.checkpoints < 4 || result.elapsed_ms < 4 * 60_000 ||
+    result.dvr_source_available !== 9 ||
+    JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([8]) ||
+    result.gateway?.source_degraded_checkpoints < 1 || result.gateway?.relay_start_delta < 20 ||
+    result.gateway?.stale_input_delta < 5 || result.gateway?.runtime_restarts !== 0 ||
+    result.gateway?.socket_error_delta !== 0 || result.gateway?.recorder_session_failure_delta !== 0 ||
+    result.gateway?.recorder_auth_rejection_delta !== 0 || result.playback?.failures !== 0 ||
+    result.ai?.failures !== 0 || result.release?.gateway?.software_version !== item.supersedesVersion ||
+    result.release?.gateway?.build_sha !== "1fc108964c5c8e1f6773b037be99db45c32e2dbf" ||
+    affected.length < 1)
+    throw new Error("P38_GATEWAY_HANDOFF_OWNER_CONTINUITY_FAILED_CANARY_EVIDENCE_INVALID");
+  failedCanaryEvidence = { sha256: sha(bytes), checkpoints: result.checkpoints,
+    duration_ms: result.elapsed_ms, source_degraded_checkpoints: result.gateway.source_degraded_checkpoints,
+    affected_channels: affected.map(([name]) => name), relay_start_delta: result.gateway.relay_start_delta,
+    stale_input_delta: result.gateway.stale_input_delta,
+    recorder_session_failure_delta: result.gateway.recorder_session_failure_delta,
+    recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
+    socket_error_delta: result.gateway.socket_error_delta, playback_failures: result.playback.failures,
+    ai_failures: result.ai.failures, live_recovery_required: true };
+}
 if (idleHandoff) {
   const bytes = protectedFile(failedCanaryEvidencePath);
   const result = JSON.parse(bytes);
@@ -783,16 +822,16 @@ if (handoffProbation || retainedFallback || continuousHandoff) {
     socket_error_delta: result.gateway.socket_error_delta, playback_failures: result.playback.failures,
     ai_failures: result.ai.failures, live_recovery_required: true };
 }
-if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity) {
+if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity) {
   if (!shadowEvidencePath)
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
       warmHandoff: true,
-      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff,
-      verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity,
-      hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity,
-      recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity) ? 60 * 60_000 : 10 * 60_000,
+      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity,
+      verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity,
+      hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity,
+      recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity) ? 60 * 60_000 : 10 * 60_000,
       boundedWarmupFailure: continuousHandoff || handoffContinuity,
       expectedRelease: item, expectedChannel: 1 });
   } catch {
@@ -829,7 +868,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: handoffContinuity ? "observer-push38-gateway-handoff-continuity-activation-v1" :
+const plan = { protocol: handoffOwnerContinuity ? "observer-push38-gateway-handoff-owner-continuity-activation-v1" :
+  handoffContinuity ? "observer-push38-gateway-handoff-continuity-activation-v1" :
   relayHandoff ? "observer-push38-gateway-relay-handoff-activation-v1" :
   handoffHardware ? "observer-push38-gateway-handoff-hardware-activation-v1" :
   codecPreservation ? "observer-push38-gateway-codec-preservation-activation-v1" :
@@ -857,7 +897,8 @@ const plan = { protocol: handoffContinuity ? "observer-push38-gateway-handoff-co
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (handoffContinuity ? "FAILED_SHADOW_HEALTH_CONTINUITY_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (handoffOwnerContinuity ? "FAILED_CANARY_HANDOFF_OWNER_RACE_SUCCESSOR_QUALIFIED" :
+      handoffContinuity ? "FAILED_SHADOW_HEALTH_CONTINUITY_SUCCESSOR_QUALIFIED" :
       relayHandoff ? "FAILED_PRE_SOAK_SINGLE_OWNER_HANDOFF_SHADOW_QUALIFIED" :
       handoffHardware ? "INTENTIONAL_HANDOFF_HARDWARE_PATH_SHADOW_QUALIFIED" :
       codecPreservation ? "OUTPUT_RESCUE_AND_CODEC_PRESERVATION_SHADOW_QUALIFIED" :
@@ -886,15 +927,16 @@ const plan = { protocol: handoffContinuity ? "observer-push38-gateway-handoff-co
     service_pid_stable: gatewayPidStable
   } } : {}),
   dvr_truth: { expected: 10,
-    source_available: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity) ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
-    upstream_unavailable: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity) ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
+    source_available: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity) ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
+    upstream_unavailable: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity) ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
     empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: handoffContinuity ? "GATEWAY_HANDOFF_CONTINUITY_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: handoffOwnerContinuity ? "GATEWAY_HANDOFF_OWNER_CONTINUITY_PREFLIGHT_PASS" :
+    handoffContinuity ? "GATEWAY_HANDOFF_CONTINUITY_PREFLIGHT_PASS" :
     relayHandoff ? "GATEWAY_RELAY_HANDOFF_PREFLIGHT_PASS" :
     handoffHardware ? "GATEWAY_HANDOFF_HARDWARE_PREFLIGHT_PASS" :
     codecPreservation ? "GATEWAY_CODEC_PRESERVATION_PREFLIGHT_PASS" :
@@ -953,7 +995,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: handoffContinuity ? "EXACT_GATEWAY_HANDOFF_CONTINUITY_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: handoffOwnerContinuity ? "EXACT_GATEWAY_HANDOFF_OWNER_CONTINUITY_ROLLOUT_ACTIVE" :
+  handoffContinuity ? "EXACT_GATEWAY_HANDOFF_CONTINUITY_ROLLOUT_ACTIVE" :
   relayHandoff ? "EXACT_GATEWAY_RELAY_HANDOFF_ROLLOUT_ACTIVE" :
   handoffHardware ? "EXACT_GATEWAY_HANDOFF_HARDWARE_ROLLOUT_ACTIVE" :
   codecPreservation ? "EXACT_GATEWAY_CODEC_PRESERVATION_ROLLOUT_ACTIVE" :
