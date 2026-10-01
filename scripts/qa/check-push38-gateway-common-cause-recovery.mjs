@@ -21,6 +21,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed,
   relayMaySurvivePrivateNvrRenewal,
+  shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
@@ -212,6 +213,25 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     /recorder's media response ends before[\s\S]*warmReplacePrivateNvrRelay/);
 });
 
+test("a progressing warm candidate keeps its owner until bounded confirmation", () => {
+  const now = Date.now();
+  const stale = { handoffInFlight: true, candidateProgressing: false,
+    currentOutputAt: now - 28_001, relayStaleMs: 20_000, now };
+  assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown({ ...stale,
+    candidateProgressing: true }), true,
+  "real candidate continuity must survive beyond the old owner's grace boundary");
+  assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown({ ...stale,
+    currentOutputAt: now - 27_999 }), true,
+  "the existing bounded request grace remains valid while handoff is active");
+  assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown(stale), false);
+  assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown({ ...stale,
+    handoffInFlight: false, candidateProgressing: true }), false,
+  "an orphan candidate may never preserve a stale owner");
+  assert.match(gateway,
+    /const warmingCandidate = relayCandidates\.get\(streamId\);[\s\S]*shouldDeferPrivateNvrStaleOwnerTeardown\([\s\S]*candidateProgressing: relayIsProgressing\(warmingCandidate\)[\s\S]*if \(awaitingWarmReplacement\) return;/,
+  "the live monitor must consult candidate media before tearing down its owner");
+});
+
 test("heartbeat, login renewal, and media handoffs use independent bounded schedulers", () => {
   assert.match(gateway, /privateNvrHeartbeatRun = privateNvrHeartbeat\.tick\(\)/);
   assert.match(gateway,
@@ -275,7 +295,7 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
   "a playback request must await an in-flight bounded replacement before tearing down its relay");
   assert.match(gateway,
-    /awaitingWarmReplacement[\s\S]*RELAY_STALE_MS[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return;/,
+    /awaitingWarmReplacement[\s\S]*shouldDeferPrivateNvrStaleOwnerTeardown[\s\S]*relayStaleMs: RELAY_STALE_MS[\s\S]*return;/,
   "the stale monitor must allow the same bounded replacement grace");
   assert.match(gateway,
     /if \(!outputConfirmed \|\| !relayIsProgressing\(replacement\)[\s\S]*WARM_HANDOFF_ABORTED/,

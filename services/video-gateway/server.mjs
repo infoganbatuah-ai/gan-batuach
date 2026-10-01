@@ -23,6 +23,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed,
+  shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
@@ -1702,10 +1703,14 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // because lastInputAt follows playlist progress there.
     if (!progressing || directRtsp && inputStale) {
       const outputAt = relayPlaylistMtime(relay);
-      const awaitingWarmReplacement = !directRtsp && relayWarmups.has(streamId)
-        && Number.isFinite(outputAt)
-        && Date.now() - outputAt < RELAY_STALE_MS
-          + PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS;
+      const warmingCandidate = relayCandidates.get(streamId);
+      const awaitingWarmReplacement = !directRtsp &&
+        shouldDeferPrivateNvrStaleOwnerTeardown({
+          handoffInFlight: relayWarmups.has(streamId),
+          candidateProgressing: relayIsProgressing(warmingCandidate),
+          currentOutputAt: outputAt,
+          relayStaleMs: RELAY_STALE_MS
+        });
       if (awaitingWarmReplacement) return;
       if (hardwareVideo && (!progressing && !inputStale || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
       relayLifecycle[inputStale && !progressing ? "staleInput" : "stalePlaylist"] += 1;

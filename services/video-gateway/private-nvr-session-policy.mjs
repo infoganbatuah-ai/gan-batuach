@@ -124,6 +124,22 @@ export function privateNvrHandoffMediaContinuity({ currentProgressing,
   return { progressing: false, owner: "NONE" };
 }
 
+// The stale-owner monitor and the warm-handoff confirmation loop run
+// independently. Once a bounded candidate is producing current media, the
+// monitor must not remove the authoritative owner underneath that loop: doing
+// so makes the confirmation fail its ownership check and tears down both
+// relays. The handoff promise is the lifetime bound; without it, a candidate
+// can never keep a stale owner alive.
+export function shouldDeferPrivateNvrStaleOwnerTeardown({ handoffInFlight,
+  candidateProgressing, currentOutputAt, relayStaleMs,
+  requestGraceMs = PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
+  now = Date.now() }) {
+  if (!handoffInFlight) return false;
+  if (candidateProgressing) return true;
+  return Number.isFinite(currentOutputAt) && Number.isFinite(relayStaleMs) &&
+    relayStaleMs > 0 && now - currentOutputAt < relayStaleMs + requestGraceMs;
+}
+
 // Login/Heartbeat is the recorder's supported session-maintenance contract.
 // A successful heartbeat means the current login remains authoritative; a
 // second login was observed to retire every media response from the prior
