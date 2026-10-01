@@ -3,19 +3,20 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
 // Exact-device successor to the signed 0.2.41 known-good runtime. Qualification
-// of 0.2.43 exposed two remaining continuity faults: a playback request during
-// hard stale could retire the old owner before a replacement produced output,
-// and routine confirmation expired at the HLS cadence boundary. This release
-// preserves the old owner during a bounded, capacity-checked rescue, aligns
-// confirmation with measured segment cadence, and keeps retry history intact.
+// exposed two remaining continuity faults: a playback request during hard
+// stale could retire the old owner before a replacement produced output, and
+// routine/output-rescue confirmation could expire at the HLS cadence boundary.
+// This release preserves the old owner during a bounded, capacity-checked
+// rescue, aligns both confirmation lanes with measured segment cadence, and
+// keeps retry history intact.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-routine-confirmation-64cb4c533638",
-  version: "0.2.44-p38-health",
-  buildSha: "7ad07a23f9cbe2334a19cf42d5f39734f40f86ff",
-  digest: "64cb4c5336384f116ffb3ac96595d2ef454091547e0627961a0fb3d14a2cdb09",
-  size: 135835492,
+  releaseId: "qa-p38-health-gateway-routine-confirmation-3da0f6ee3522",
+  version: "0.2.45-p38-health",
+  buildSha: "707d3ee0374b8ae4fa541e16819acb63bd3f7a8e",
+  digest: "3da0f6ee3522797e9667f99ee212aaded3fbe63b482a32306791bd241137ec54",
+  size: 135835416,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
   rollbackVersion: "0.2.41-p38-health",
