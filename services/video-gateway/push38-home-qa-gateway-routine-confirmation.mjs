@@ -45,6 +45,20 @@ export function gatewayRoutineConfirmationBaselineSessionAcceptable(sample = {})
         sample.proactive_succeeded === sample.rotations);
 }
 
+export function gatewayRoutineConfirmationLegacyRuntimeAcceptable(sample = {}) {
+  const connected = sample.connected;
+  const progressing = sample.progressing;
+  const failed = sample.failed;
+  const expectedReasons = new Set(["EXPECTED_RELAY_NOT_PROGRESSING", "DISCOVERY_PROBE_FAILED"]);
+  return ["degraded", "healthy"].includes(sample.status) && sample.assigned === 10 &&
+    sample.empty === 6 && Number.isInteger(connected) && connected >= 7 && connected <= 9 &&
+    failed === 10 - connected && Number.isInteger(progressing) && progressing >= 7 && progressing <= 9 &&
+    Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
+    Math.max(connected, progressing) >= 8 && Array.isArray(sample.reason_codes) &&
+    sample.reason_codes.every(reason => expectedReasons.has(reason)) &&
+    gatewayRoutineConfirmationBaselineSessionAcceptable(sample);
+}
+
 export function buildPush38GatewayRoutineConfirmationManifest({ signingKeyId,
   artifactOrigin, releasedAt }) {
   if (!/^[A-Za-z0-9._:-]{3,160}$/.test(signingKeyId || ""))

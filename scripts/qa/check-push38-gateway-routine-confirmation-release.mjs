@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildPush38GatewayRoutineConfirmationManifest,
   gatewayRoutineConfirmationBaselineSessionAcceptable,
+  gatewayRoutineConfirmationLegacyRuntimeAcceptable,
   PUSH38_GATEWAY_ROUTINE_CONFIRMATION as item } from
   "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 import { issuePush38GatewayRoutineConfirmation } from
@@ -45,6 +46,16 @@ assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable({ ...healthySes
 assert.equal(gatewayRoutineConfirmationBaselineSessionAcceptable({ ...healthySession,
   rotations: 0, last_rotation_reason: null, login_attempts: 1, login_succeeded: 1,
   proactive_attempts: 0, proactive_succeeded: 0 }), true);
+const boundedLegacyRuntime = { ...healthySession, status: "degraded", assigned: 10,
+  connected: 7, failed: 3, empty: 6, progressing: 8, stalled: 1,
+  reason_codes: ["EXPECTED_RELAY_NOT_PROGRESSING", "DISCOVERY_PROBE_FAILED"] };
+assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable(boundedLegacyRuntime), true);
+assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable({ ...boundedLegacyRuntime,
+  progressing: 7 }), false);
+assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable({ ...boundedLegacyRuntime,
+  connected: 6, failed: 4, progressing: 9 }), false);
+assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable({ ...boundedLegacyRuntime,
+  reason_codes: [...boundedLegacyRuntime.reason_codes, "UNEXPECTED_INTEGRITY_FAILURE"] }), false);
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-gateway-routine-confirmation-test-"));
 try {

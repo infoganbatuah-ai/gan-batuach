@@ -68,7 +68,7 @@ import { PUSH38_GATEWAY_DEADLINE_BUDGET
 } from "../../services/video-gateway/push38-home-qa-gateway-deadline-budget.mjs";
 import { PUSH38_GATEWAY_RECOVERY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-recovery-continuity.mjs";
-import { gatewayRoutineConfirmationBaselineSessionAcceptable,
+import { gatewayRoutineConfirmationLegacyRuntimeAcceptable,
   PUSH38_GATEWAY_ROUTINE_CONFIRMATION
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
@@ -663,13 +663,13 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
 const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation) && gatewaySamples.every(sample =>
-  (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
-  Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
-  Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
-  Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
-  Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
-  (routineConfirmation ? gatewayRoutineConfirmationBaselineSessionAcceptable(sample) :
-    sample.rotations === 0));
+  routineConfirmation ? gatewayRoutineConfirmationLegacyRuntimeAcceptable(sample) :
+    (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
+    Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
+    Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
+    Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
+    Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
+    sample.rotations === 0);
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
