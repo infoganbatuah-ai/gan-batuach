@@ -274,6 +274,15 @@ const predecessorReleaseId = (routineConfirmation || recoveryContinuity || deadl
   handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
+// The routine-confirmation successor is qualified while its rollback baseline may
+// still have a one-shot diagnostic rollout. Pause both sources of eligibility so
+// the OTA agent cannot repeatedly retry the baseline while the successor remains
+// DRAFT. Activation re-enables only the exact release selected by its pinned plan.
+const rolloutReleaseIdsToPause = routineConfirmation
+  ? [predecessorReleaseId, item.rollbackReleaseId]
+  : [predecessorReleaseId];
+const rolloutReleaseIdsToPauseSql = rolloutReleaseIdsToPause
+  .map(releaseId => `'${releaseId}'`).join(",");
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -354,13 +363,16 @@ select id,'INTERNAL_QA','DRAFT',0,jsonb_build_object('explicit_device_ids',jsonb
 from public.observer_edge_releases r where r.release_id='${item.releaseId}'
 and not exists(select 1 from public.observer_edge_rollouts existing where existing.release_id=r.id);
 update public.observer_edge_rollouts set status='PAUSED',updated_at=now()
-where release_id=(select id from public.observer_edge_releases where release_id='${predecessorReleaseId}')
+where release_id in (select id from public.observer_edge_releases
+  where release_id in (${rolloutReleaseIdsToPauseSql}))
   and status in ('DRAFT','ACTIVE');
 do $$ begin
   if (select count(*) from public.observer_edge_releases where release_id='${item.releaseId}') <> 1 or
      not exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
        where r.release_id='${item.releaseId}' and o.status='DRAFT' and o.cohort_percent=0
        and o.target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}')) or
+     exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
+       where r.release_id in (${rolloutReleaseIdsToPauseSql}) and o.status<>'PAUSED') or
      exists(select 1 from public.observer_edge_rollouts where cohort_percent<>0)
   then raise exception 'P38_GATEWAY_COMMON_CAUSE_HOME_QA_RECONCILIATION_FAILED'; end if;
 end $$;
@@ -395,6 +407,6 @@ console.log(JSON.stringify({ status: routineConfirmation ? "GATEWAY_ROUTINE_CONF
   stableHandoff ? "GATEWAY_STABLE_HANDOFF_REGISTERED_DRAFT" :
   "GATEWAY_COMMON_CAUSE_RECOVERY_REGISTERED_DRAFT",
   release_id: item.releaseId, predecessor_release_id: predecessorReleaseId,
-  predecessor_release: "PAUSED", exact_device: true,
+  predecessor_release: "PAUSED", paused_release_ids: rolloutReleaseIdsToPause, exact_device: true,
   broad_cohort: "DISABLED", r2_round_trip: "PASS", live_trust: "PASS",
   production_writes: 0, runtime_writes: 0 }));

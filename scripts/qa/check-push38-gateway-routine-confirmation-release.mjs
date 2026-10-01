@@ -158,6 +158,10 @@ try {
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
+  assert.match(registration,
+    /rolloutReleaseIdsToPause = routineConfirmation[\s\S]*item\.rollbackReleaseId/);
+  assert.match(registration,
+    /r\.release_id in \(\$\{rolloutReleaseIdsToPauseSql\}\) and o\.status<>'PAUSED'/);
   for (const token of ["authorizeQuarantinedReleaseRetry", "CONTROLLED_GATEWAY_PAUSE_FOR_SIGNED_SHADOW_DIAGNOSTIC",
     "prior_healthy_duration_ms", "gatewayRetryBaselineSafe", "recorderSessionLifecycle",
     "recorderSessionHeartbeat", "camera_runtime_writes_by_command: 0", "ota_agent_owns_install: true"])
