@@ -55,7 +55,7 @@ try {
   assert.match(activation, /boundedFailureRecovered/);
   assert.match(activation, /Math\.ceil\(value\.duration_ms \/ 60_000\) \+ 2/);
   assert.match(activation,
-    /\(deadlineBudget \|\| sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
+    /\(sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
