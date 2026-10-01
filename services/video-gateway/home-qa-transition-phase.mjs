@@ -59,12 +59,12 @@ const gatewayHandoffOwnerContinuity = "qa-p38-health-gateway-handoff-owner-conti
 const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046";
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
-// The 0.2.49 manifest is intentionally compatible only with the signed 0.2.46
+// The 0.2.50 manifest is intentionally compatible only with the signed 0.2.46
 // predecessor. Keep that immutable predecessor eligible for exact-device
 // recovery after a diagnostic rollback; removing it from this allowlist makes
 // the successor unreachable without weakening the manifest compatibility gate.
 const gatewayRoutineConfirmationKnownGood = "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44";
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-native-end-2609b946f06b";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-prestale-rescue-7c7f559bcd91";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,

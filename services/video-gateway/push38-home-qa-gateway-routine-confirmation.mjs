@@ -3,27 +3,26 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
 // Exact-device successor to the signed 0.2.46 known-good runtime. The failed
-// 60-minute pre-soak and the signed 0.2.48 real-DVR shadow proved that a
-// four-second pause in both recorder input and HLS output is not evidence that
-// the HTTP body ended: the same response later resumed, while speculative
-// candidates created fourteen starts in six minutes. This release records the
-// actual native body end, keeps renderer/hard-stale rescue separately bounded,
-// and may serve a fresh rescue candidate without promoting canonical ownership
-// before the unchanged four-advance confirmation contract passes. The signed
-// 0.2.46 runtime remains the rollback target.
+// 60-minute pre-soak and signed 0.2.48/0.2.49 real-DVR shadows proved both sides
+// of the same timing defect: four seconds of burst silence is not a native end,
+// but waiting for the 20-second hard-stale boundary creates a real HLS gap. This
+// release records actual native body ends and starts one bounded continuity
+// probe after six seconds of rendered-output silence. A fresh candidate may
+// carry media, but canonical ownership still requires four advances across six
+// seconds. The signed 0.2.46 runtime remains the rollback target.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-native-end-2609b946f06b",
-  version: "0.2.49-p38-health",
-  buildSha: "14da0d1433ecdfc0d8d32b90414e5785747e80f9",
-  digest: "2609b946f06bb07acb851cf56495c4745d53fb3f882f312ffcf41afbe77d165e",
-  size: 135836046,
+  releaseId: "qa-p38-health-gateway-prestale-rescue-7c7f559bcd91",
+  version: "0.2.50-p38-health",
+  buildSha: "4c53a31726f16a6b23a73ad4811672bf6af32fea",
+  digest: "7c7f559bcd91ace5ed47ddd5eaa239fe244f7379a58e64dc8c07c09f60b52be7",
+  size: 135836062,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   rollbackVersion: "0.2.46-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-exclusive-rescue-1364e15a3eb5",
-  supersedesVersion: "0.2.48-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-native-end-2609b946f06b",
+  supersedesVersion: "0.2.49-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
