@@ -3,25 +3,27 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
 // Exact-device successor to the signed 0.2.46 known-good runtime. The failed
-// 60-minute pre-soak and the 0.2.47 real-DVR shadow showed that a concurrent
-// output-rescue candidate can emit an initial playlist and then stall while
-// the retained owner remains hard-stale. This release preserves the strict
-// four-advance confirmation contract, but permits one fail-closed exclusive
-// retry only after that exact evidence is present. The signed 0.2.46 runtime
-// remains the rollback target.
+// 60-minute pre-soak and the signed 0.2.48 real-DVR shadow proved that a
+// four-second pause in both recorder input and HLS output is not evidence that
+// the HTTP body ended: the same response later resumed, while speculative
+// candidates created fourteen starts in six minutes. This release records the
+// actual native body end, keeps renderer/hard-stale rescue separately bounded,
+// and may serve a fresh rescue candidate without promoting canonical ownership
+// before the unchanged four-advance confirmation contract passes. The signed
+// 0.2.46 runtime remains the rollback target.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-exclusive-rescue-1364e15a3eb5",
-  version: "0.2.48-p38-health",
-  buildSha: "94437688bb38583177a0cf24850426ee126223b6",
-  digest: "1364e15a3eb560ce54cd0c5e0d082db92cca32e7567ebcf84209b09eedde1b81",
-  size: 135835241,
+  releaseId: "qa-p38-health-gateway-native-end-2609b946f06b",
+  version: "0.2.49-p38-health",
+  buildSha: "14da0d1433ecdfc0d8d32b90414e5785747e80f9",
+  digest: "2609b946f06bb07acb851cf56495c4745d53fb3f882f312ffcf41afbe77d165e",
+  size: 135836046,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   rollbackVersion: "0.2.46-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-routine-confirmation-1f2048cfc6c7",
-  supersedesVersion: "0.2.47-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-exclusive-rescue-1364e15a3eb5",
+  supersedesVersion: "0.2.48-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });

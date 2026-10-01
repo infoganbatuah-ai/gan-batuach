@@ -185,7 +185,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = routineConfirmation
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-exclusive-rescue-94437688/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-native-end-14da0d14/gateway-runtime.tar.gz"
   : recoveryContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-recovery-continuity-a49a37aa/gateway-runtime.tar.gz"
   : deadlineBudget
@@ -240,7 +240,7 @@ const artifact = routineConfirmation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = routineConfirmation
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-exclusive-rescue-94437688/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-native-end-14da0d14/r2-publication.json"
   : recoveryContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json"
   : deadlineBudget
@@ -592,7 +592,7 @@ const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSE
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
 // An evidence-bound retry may reactivate the exact signed predecessor while
 // its already-registered successor remains paused. This is the canonical
-// state immediately before activating the 0.2.48 exclusive-rescue correction;
+// state immediately before activating the 0.2.49 native-end correction;
 // it is still exact-device only and never broadens eligibility.
 const activeRetriedPredecessorState = routineConfirmation && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
