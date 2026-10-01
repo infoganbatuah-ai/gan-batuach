@@ -89,6 +89,7 @@ import { PUSH38_CONNECTOR_CODEC_PRESERVATION as connectorCodecPreservationItem
 } from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
 import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY as connectorHandoffContinuityItem
 } from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
+import { evaluateHlsRenewalContinuity } from "./push38-shadow-qualification-policy.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -441,14 +442,9 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   // last usable owner continues serving HLS.  For the recovery-continuity
   // successor the safety invariant is zero media gaps and bounded single-owner
   // recovery, not that every warming candidate must promote.
-  const mediaContinuityProof = !mediaContinuity || renewals.length === checkpoints.length &&
-    renewals.every((renewal, index) => Number.isInteger(renewal.media_sequence) &&
-      Number.isInteger(renewal.latest_segment_sequence) &&
-      /^[a-f0-9]{64}$/.test(renewal.playlist_sha256 || "") &&
-      /^[a-f0-9]{64}$/.test(renewal.segment_sha256 || "") &&
-      (index === 0 || renewal.segment_sha256 !== renewals[index - 1].segment_sha256)) &&
-    new Set(renewals.map(renewal => renewal.playlist_sha256)).size === renewals.length &&
-    new Set(renewals.map(renewal => renewal.segment_sha256)).size === renewals.length &&
+  const mediaContinuityResult = !mediaContinuity ? { pass: true } :
+    evaluateHlsRenewalContinuity(checkpoints);
+  const mediaContinuityProof = mediaContinuityResult.pass &&
     lifecycle.starts <= Math.ceil(value.duration_ms / 30_000) + 2 &&
     lifecycle.warmHandoffFailures <= lifecycle.starts &&
     lifecycle.warmHandoffConfirmationFailures === lifecycle.warmHandoffFailures &&

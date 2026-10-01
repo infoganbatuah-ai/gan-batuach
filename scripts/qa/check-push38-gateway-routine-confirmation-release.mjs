@@ -11,6 +11,8 @@ import { issuePush38GatewayRoutineConfirmation } from
   "../release/issue-push38-home-qa-gateway-routine-confirmation.mjs";
 import { HOME_QA_PHASE, homeQaManagedPhaseAllows } from
   "../../services/video-gateway/home-qa-transition-phase.mjs";
+import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
+} from "./push38-shadow-qualification-policy.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const built = buildPush38GatewayRoutineConfirmationManifest({ signingKeyId: "observer-kms-release-v1",
@@ -59,6 +61,35 @@ assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable({ ...boundedLegac
   connected: 6, failed: 4, progressing: 9 }), false);
 assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable({ ...boundedLegacyRuntime,
   reason_codes: [...boundedLegacyRuntime.reason_codes, "UNEXPECTED_INTEGRITY_FAILURE"] }), false);
+
+const renewal = (sequence, seconds, hash) => ({ observed_at: new Date(seconds * 1_000).toISOString(),
+  renewal: { status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1024,
+    media_sequence: Math.max(0, sequence - 3), latest_segment_sequence: sequence,
+    target_duration_seconds: 6, playlist_sha256: `${hash}`.repeat(64),
+    segment_sha256: `${hash}`.repeat(64) } });
+assert.equal(evaluateHlsRenewalContinuity([
+  renewal(10, 0, "a"), renewal(10, 5, "a"), renewal(11, 10, "b")]).pass, true);
+assert.equal(evaluateHlsRenewalContinuity([
+  renewal(10, 0, "a"), renewal(10, 15, "a"), renewal(11, 20, "b")]).reason,
+"PLAYLIST_FRESHNESS_EXCEEDED");
+assert.equal(evaluateHlsRenewalContinuity([
+  renewal(10, 0, "a"), renewal(9, 5, "b")]).reason, "SEQUENCE_REGRESSION");
+const continuityPoint = (sequence, failures, handoffs, result = null) => ({ sequence,
+  observed_at: new Date(sequence * 10_000).toISOString(),
+  renewal: { status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1024 },
+  shadow: { media: { progressing: 1, stalled: 0,
+    inputs: [{ owner_state: "CURRENT", canonical_owner_progressing: true }],
+    lifecycle: { warmHandoffFailures: failures, warmHandoffs: handoffs },
+    source_diagnostics: [{ last_handoff_result: result }] } } });
+const containedLifecycle = { warmHandoffFailures: 1, warmHandoffConfirmationFailures: 1,
+  warmHandoffRollbacks: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0,
+  inputSocketError: 0, upstreamFailed: 0, startsByReason: { recovery: 0 },
+  warmHandoffFailuresByMode: { outputRescue: 1 } };
+assert.equal(classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), continuityPoint(2, 1, 3),
+  continuityPoint(3, 1, 4, "PROMOTED")], containedLifecycle).pass, true);
+assert.equal(classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), continuityPoint(2, 1, 3)], containedLifecycle).pass, false);
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-gateway-routine-confirmation-test-"));
 try {

@@ -11,6 +11,8 @@ import { inspectArchive } from "../../services/video-gateway/edge-macos-installe
 import { PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
+import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
+} from "./push38-shadow-qualification-policy.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const requestedEndpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
@@ -161,6 +163,8 @@ async function playback(streamId) {
   const segmentName = playlistLines.filter(line => /^segment-\d+\.ts\?token=/.test(line)).at(-1);
   const mediaSequence = Number(/^#EXT-X-MEDIA-SEQUENCE:(\d+)$/.exec(
     playlistLines.find(line => line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) || "")?.[1]);
+  const targetDurationSeconds = Number(/^#EXT-X-TARGETDURATION:(\d+)$/.exec(
+    playlistLines.find(line => line.startsWith("#EXT-X-TARGETDURATION:")) || "")?.[1]);
   const latestSegmentSequence = Number(/^segment-(\d+)\.ts/.exec(segmentName || "")?.[1]);
   const segmentUrl = segmentName ? new URL(segmentName, grant.data.playback.hls_url).toString() : "";
   const segmentResponse = segmentUrl ? await fetch(segmentUrl, { signal: AbortSignal.timeout(20_000) }).catch(() => null) : null;
@@ -168,6 +172,7 @@ async function playback(streamId) {
   return { status: grant.status, playlist_status: playlistResponse?.status || 0,
     segment_status: segmentResponse?.status || 0, segment_bytes: segment.byteLength,
     media_sequence: Number.isInteger(mediaSequence) ? mediaSequence : null,
+    target_duration_seconds: Number.isInteger(targetDurationSeconds) ? targetDurationSeconds : null,
     latest_segment_sequence: Number.isInteger(latestSegmentSequence) ? latestSegmentSequence : null,
     playlist_sha256: playlist ? createHash("sha256").update(playlist).digest("hex") : null,
     segment_sha256: segment.length ? createHash("sha256").update(segment).digest("hex") : null };
@@ -338,6 +343,10 @@ try {
     lifecycle.warmHandoffFailuresByMode?.routineFiniteResponse || 0);
   const outputRescueFailures = Number(
     lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
+  const outputRescueClassification = classifyBoundedOutputRescueRejection(
+    evidence.checkpoints, lifecycle);
+  const hlsContinuity = playbackEveryCheckpoint
+    ? evaluateHlsRenewalContinuity(evidence.checkpoints) : { pass: true, reason: null };
   const maximumBoundedRoutineFailures = Math.max(1,
     Math.ceil(evidence.duration_ms / PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS));
   if (!evidence.checkpoints.every((point) => point.shadow.http === 200
@@ -345,7 +354,10 @@ try {
     && point.shadow.discovery?.connected === 1
     && point.shadow.media?.progressing === 1)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
-  if (outputRescueFailures > 0) failures.push("OUTPUT_RESCUE_FAILURE");
+  if (outputRescueFailures > 0 && !outputRescueClassification.pass)
+    failures.push("OUTPUT_RESCUE_FAILURE");
+  else if (outputRescueClassification.warning) warnings.push(outputRescueClassification.warning);
+  if (!hlsContinuity.pass) failures.push("PLAYLIST_CONTINUITY");
   if (expectReactiveOnly && Number(lifecycle.startsByReason?.routineFiniteResponse || 0) > 0)
     failures.push("AGE_ONLY_ROUTINE_HANDOFF_OBSERVED");
   if (routineHandoffFailures > maximumBoundedRoutineFailures)
@@ -372,6 +384,8 @@ try {
     source_diagnostics_final: finalPoint?.shadow.media?.source_diagnostics || [],
     routine_handoff_failures: routineHandoffFailures,
     output_rescue_failures: outputRescueFailures,
+    output_rescue_classification: outputRescueClassification,
+    hls_continuity: hlsContinuity,
     maximum_bounded_routine_failures: maximumBoundedRoutineFailures,
     warnings,
     failures
