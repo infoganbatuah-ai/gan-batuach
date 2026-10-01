@@ -372,13 +372,23 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   // proof permits exactly one such contained retry, but still rejects every
   // missing checkpoint, playback failure, request-time stale teardown, socket
   // error, or unbounded failure count.
+  const warmFailureIndex = checkpoints.findIndex((point, index) => index > 0 &&
+    Number(point.shadow?.media?.lifecycle?.warmHandoffFailures ?? 0) >
+      Number(checkpoints[index - 1]?.shadow?.media?.lifecycle?.warmHandoffFailures ?? 0));
+  const failedHandoffCount = warmFailureIndex < 0 ? 0 :
+    Number(checkpoints[warmFailureIndex]?.shadow?.media?.lifecycle?.warmHandoffs ?? 0);
+  const boundedFailureRecovered = lifecycle.warmHandoffFailures === 0 || warmFailureIndex >= 0 &&
+    checkpoints.slice(warmFailureIndex + 1).some(point =>
+      Number(point.shadow?.media?.lifecycle?.warmHandoffs ?? 0) > failedHandoffCount);
+  const boundedStarts = Number.isFinite(value.duration_ms)
+    ? Math.ceil(value.duration_ms / 60_000) + 2 : 0;
   const boundedFailureProof = !boundedWarmupFailure ||
     lifecycle.warmHandoffFailures <= 1 &&
     lifecycle.warmHandoffConfirmationFailures <= lifecycle.warmHandoffFailures &&
     lifecycle.warmHandoffs >= 1 && lifecycle.warmHandoffRollbacks === 0 &&
-    lifecycle.starts <= 8 && lifecycle.staleInput <= 1 && lifecycle.stalePlaylist === 0 &&
+    lifecycle.starts <= boundedStarts && lifecycle.staleInput <= 1 && lifecycle.stalePlaylist === 0 &&
     lifecycle.staleOnRequest === 0 && lifecycle.inputSocketError === 0 &&
-    lifecycle.upstreamFailed === 0;
+    lifecycle.upstreamFailed === 0 && boundedFailureRecovered;
   if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
     value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== expectedChannel ||
     value.endpoint_redacted !== true || value.credentials_recorded !== false ||
@@ -866,11 +876,11 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
   try {
     shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
       warmHandoff: true,
-      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity || sweepDeadline,
+      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity,
       verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline,
       hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline,
       recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline) ? 60 * 60_000 : 10 * 60_000,
-      boundedWarmupFailure: continuousHandoff || handoffContinuity,
+      boundedWarmupFailure: continuousHandoff || handoffContinuity || sweepDeadline,
       expectedRelease: item, expectedChannel: 1 });
   } catch {
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");

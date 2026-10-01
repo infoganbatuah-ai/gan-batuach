@@ -51,6 +51,10 @@ try {
   assert.match(activation, /target_release_count[^\n]+release_id/);
   assert.match(activation, /rollout\.target_release_count !== 1/);
   assert.match(activation,
+    /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity \|\| sweepDeadline/);
+  assert.match(activation, /boundedFailureRecovered/);
+  assert.match(activation, /Math\.ceil\(value\.duration_ms \/ 60_000\) \+ 2/);
+  assert.match(activation,
     /\(sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 

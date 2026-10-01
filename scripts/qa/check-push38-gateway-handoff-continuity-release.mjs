@@ -41,11 +41,13 @@ try {
   assert.match(activation, /rollout\.target_release_count !== 1/);
   assert.match(activation,
     /handoffContinuity \? connectorHandoffContinuityItem/);
-  assert.match(activation, /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity/);
+  assert.match(activation,
+    /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity \|\| sweepDeadline/);
   assert.match(activation,
     /warmHandoffConfirmationFailures <= lifecycle\.warmHandoffFailures/);
   assert.match(activation,
-    /warmHandoffRollbacks === 0[\s\S]*lifecycle\.starts <= 8[\s\S]*staleInput <= 1[\s\S]*stalePlaylist === 0/);
+    /warmHandoffRollbacks === 0[\s\S]*lifecycle\.starts <= boundedStarts[\s\S]*staleInput <= 1[\s\S]*stalePlaylist === 0/);
+  assert.match(activation, /boundedFailureRecovered/);
   assert.match(activation, /confirmedWarmHandoff:[^\n]+relayHandoff/);
   assert.match(activation, /failedPreSoakEvidence/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
