@@ -14,9 +14,11 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+  PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS,
   comparePrivateNvrHandoffPriority,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
@@ -46,7 +48,7 @@ test("a synchronized nine-source sweep starts before the finite deadline", () =>
   const startedAt = 1_000_000;
   const latestSafeStartAt = startedAt + PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS
     - 9 * PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS;
-  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 12_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 16_000);
   assert.deepEqual(privateNvrRoutineHandoffSchedule(
     Array(9).fill(startedAt), latestSafeStartAt - 1), {
     ready: false, latestSafeStartAt, nextStartedAt: startedAt, queued: 9
@@ -78,9 +80,19 @@ test("routine scheduling serves the least-fresh output before an older but fresh
 
 test("routine probation stays scheduler-bounded while rescue has its own bounded lane", () => {
   const startedAt = 500_000;
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS, 9_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS, 16_000);
   assert.equal(privateNvrHandoffProbationDeadline({
     handoffMode: "ROUTINE_FINITE_RESPONSE", probationStartedAt: startedAt
-  }), startedAt + 12_000);
+  }), startedAt + 9_000);
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "ROUTINE_FINITE_RESPONSE", probationStartedAt: startedAt,
+    firstOutputObservedAt: startedAt + 7_700
+  }), startedAt + 14_700);
+  assert.equal(privateNvrHandoffProbationDeadline({
+    handoffMode: "ROUTINE_FINITE_RESPONSE", probationStartedAt: startedAt,
+    firstOutputObservedAt: startedAt + 12_000
+  }), startedAt + 16_000);
   assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS, 14_000);
   assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS, 21_000);
   assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS, 16_000);

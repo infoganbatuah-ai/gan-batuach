@@ -50,12 +50,17 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4;
 // nine-candidate behavior that starved earlier releases.
 export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 2;
 export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
-// A successful replacement normally needs the first decoded output plus four
-// playlist advances over six seconds. Reserve twelve seconds per queued source
-// when deciding when the serialized routine lane must begin. This is a
-// deadline calculation, not a relaxed freshness threshold: stale media still
-// fails at the same boundary and the rescue lane remains independently bounded.
-export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS = 12_000;
+// The nine-channel live run measured routine first-output latency as high as
+// 7.7 seconds. A fixed twelve-second probation could therefore expire before
+// the unchanged six-second/four-advance continuity proof completed, even when
+// the candidate was producing valid media. Bound acquisition separately and
+// reserve sixteen seconds per serialized routine slot. A nine-source sweep is
+// still bounded to 144 seconds, leaving margin before the recorder's observed
+// roughly three-minute native-response boundary.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS = 9_000;
+export const PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS = 16_000;
+export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS =
+  PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS;
 // The live 0.2.41 proof showed that an output-rescue response can need about
 // thirteen seconds before its first HLS segment and then remain continuously
 // productive. Applying the routine lane's twelve-second scheduler budget to
@@ -117,8 +122,12 @@ export function privateNvrHandoffProbationDeadline({ handoffMode,
   minimumConfirmationMs = PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS }) {
   if (!Number.isFinite(probationStartedAt)) return null;
   if (handoffMode !== "OUTPUT_RESCUE") {
-    return probationStartedAt + Math.max(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
-      minimumConfirmationMs + 5_000);
+    if (!Number.isFinite(firstOutputObservedAt)) {
+      return probationStartedAt + PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS;
+    }
+    return Math.min(
+      probationStartedAt + PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS,
+      firstOutputObservedAt + minimumConfirmationMs + 1_000);
   }
   if (!Number.isFinite(firstOutputObservedAt)) {
     return probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS;

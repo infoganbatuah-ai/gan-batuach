@@ -278,7 +278,7 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   "an unconfirmed replacement cannot advance a handoff chain");
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
   assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
-  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 12_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 16_000);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1 }), false,
   "the recorder may have only one routine candidate replacement at a time");
@@ -294,9 +294,9 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /liveRelayProcesses:[\s\S]*candidateHandoffs:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:[\s\S]*maximumRoutineProbations:/,
   "live health must expose the process-budget evidence used by qualification");
   const synchronized = privateNvrRoutineHandoffSchedule(Array(9).fill(100_000),
-    112_000);
+    76_000);
   assert.equal(synchronized.ready, true);
-  assert.equal(synchronized.latestSafeStartAt, 112_000);
+  assert.equal(synchronized.latestSafeStartAt, 76_000);
   assert.match(gateway,
     /outputRescues\.sort\([\s\S]*privateNvrRoutineHandoffSchedule\([\s\S]*relayWarmupModes/,
   "urgent rescue and the deadline-aware routine lane must use explicit bounded ownership");
