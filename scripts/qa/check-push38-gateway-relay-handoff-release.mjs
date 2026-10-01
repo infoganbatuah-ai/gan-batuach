@@ -42,7 +42,8 @@ try {
     "scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", "utf8");
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-relay-handoff/);
-  assert.match(activation, /relayHandoff \? 49/);
+  assert.match(activation, /'target_release_count'/);
+  assert.match(activation, /rollout\.target_release_count !== 1/);
   assert.match(activation, /relayHandoff \? "gateway_remediation_relay_handoff\.json"/);
   assert.match(activation, /failedPreSoakEvidence/);
   assert.match(activation, /relay_start_delta < 400/);
