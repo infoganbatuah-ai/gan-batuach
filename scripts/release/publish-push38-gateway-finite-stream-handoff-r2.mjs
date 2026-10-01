@@ -1,8 +1,9 @@
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { setDefaultResultOrder } from "node:dns";
-import { createReadStream, lstatSync, statSync, writeFileSync } from "node:fs";
+import { createReadStream, lstatSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { open } from "node:fs/promises";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand,
@@ -37,7 +38,7 @@ import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const restrictedRoot = resolve(process.env.OBSERVER_RESTRICTED_EXPORT_ROOT ||
   fileURLToPath(new URL("../../exports/restricted/", import.meta.url)));
-const multipartPartSize = 8 * 1024 * 1024;
+const multipartPartSize = 5 * 1024 * 1024;
 // The measured Home QA IPv6 path stalls large R2 uploads; keep this publisher on
 // the verified IPv4 path without changing any Product/runtime network behavior.
 setDefaultResultOrder("ipv4first");
@@ -79,19 +80,51 @@ async function uploadMultipart({ client, bucket, key, path, size, sha256, releas
       const length = Math.min(multipartPartSize, size - offset), body = Buffer.allocUnsafe(length);
       const { bytesRead } = await handle.read(body, 0, length, offset);
       if (bytesRead !== length) fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_READ_FAILED");
-      let part;
+      const partDirectory = mkdtempSync(join(tmpdir(), "observer-p38-r2-part-"));
+      const partPath = join(partDirectory, `part-${partNumber}.bin`);
+      writeFileSync(partPath, body, { mode: 0o600, flag: "wx" });
+      let etag = "";
       try {
-        part = await client.send(new UploadPartCommand({ Bucket: bucket, Key: key, UploadId: uploadId,
-          PartNumber: partNumber, Body: body, ContentLength: length }),
-        { abortSignal: AbortSignal.timeout(180_000) });
+        for (let attempt = 1; attempt <= 3 && !etag; attempt += 1) {
+          try {
+            const command = new UploadPartCommand({ Bucket: bucket, Key: key, UploadId: uploadId,
+              PartNumber: partNumber });
+            const capability = await getSignedUrl(client, command, { expiresIn: 15 * 60 });
+            if (partNumber === 1 && attempt === 1) {
+              const scoped = new URL(capability);
+              console.error(JSON.stringify({ stage: "multipart_capability_contract",
+                query_keys: [...scoped.searchParams.keys()].sort(),
+                signed_headers: scoped.searchParams.get("X-Amz-SignedHeaders") }));
+            }
+            const response = spawnSync("curl", ["--silent", "--show-error", "--fail-with-body",
+              "--header", "Expect:", "--upload-file", partPath, "--dump-header", "-", "--output", "-",
+              "--max-time", "120", capability], { encoding: "utf8",
+              maxBuffer: 64 * 1024, timeout: 125_000 });
+            if (response.status !== 0)
+              throw new Error(`CURL_${response.status ?? "UNKNOWN"}_${String(response.stdout || "")
+                .match(/<Code>([^<]+)<\/Code>/)?.[1] ||
+                String(response.stdout || "").match(/HTTP\/\S+\s+(\d{3})/)?.[1] ||
+                "NO_PROVIDER_CODE"}_${String(response.stderr || "")
+                .replace(/https?:\/\/\S+/g, "[redacted-url]").replace(/[^A-Za-z0-9_. -]/g, "_").slice(0, 120)}`);
+            if (response.status === 0) {
+              const matches = [...response.stdout.matchAll(/^etag:\s*(.+)$/gim)];
+              etag = matches.at(-1)?.[1]?.trim() || "";
+            }
+          } catch (error) {
+            if (attempt === 3) throw error;
+          }
+        }
+        if (!etag) fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_PART_FAILED");
       } catch (error) {
         console.error(JSON.stringify({ stage: "multipart_upload_part", part_number: partNumber,
           error_name: String(error?.name || "UNKNOWN").replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 64),
+          error_code: String(error?.message || "UNKNOWN").replace(/[^A-Za-z0-9_. -]/g, "_").slice(0, 160),
           http_status: Number(error?.$metadata?.httpStatusCode) || null }));
         fail(`P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_PART_${partNumber}_REQUEST_FAILED`);
-      }
-      if (!part.ETag) fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_PART_FAILED");
-      parts.push({ ETag: part.ETag, PartNumber: partNumber });
+      } finally { rmSync(partDirectory, { recursive: true, force: true }); }
+      parts.push({ ETag: etag, PartNumber: partNumber });
+      console.error(JSON.stringify({ stage: "multipart_part_complete", part_number: partNumber,
+        bytes: length }));
     }
     await handle.close(); handle = undefined;
     try {
