@@ -8,10 +8,15 @@ const routes = new Set([
   "GET /api/video-gateway/edge-updates",
   "POST /api/video-gateway/edge-updates",
   "POST /api/video-gateway/edge-updates/download",
-  "POST /api/video-gateway/home-qa-legacy-download"
+  "POST /api/video-gateway/home-qa-legacy-download",
+  "POST /api/video-gateway/cloud-discovery",
+  "POST /api/video-gateway/device-heartbeat",
+  "POST /api/video-gateway/cloud-learning"
 ]);
 const forwardHeaders = new Set([
   "accept", "content-type", "x-video-gateway-device-token",
+  "x-video-gateway-id", "x-video-gateway-timestamp", "x-video-gateway-nonce",
+  "x-video-gateway-signature",
   "x-observer-device-protocol", "x-observer-device-id",
   "x-observer-device-credential-version", "x-observer-device-timestamp",
   "x-observer-device-nonce", "x-observer-device-runtime-instance",

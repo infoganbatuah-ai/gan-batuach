@@ -13,7 +13,10 @@ const allowed = [
   ["GET", "/api/video-gateway/edge-updates"],
   ["POST", "/api/video-gateway/edge-updates"],
   ["POST", "/api/video-gateway/edge-updates/download"],
-  ["POST", "/api/video-gateway/home-qa-legacy-download"]
+  ["POST", "/api/video-gateway/home-qa-legacy-download"],
+  ["POST", "/api/video-gateway/cloud-discovery"],
+  ["POST", "/api/video-gateway/device-heartbeat"],
+  ["POST", "/api/video-gateway/cloud-learning"]
 ];
 for (const [method, path] of allowed) assert.equal(push38tIngressAllows(method, path), true);
 for (const path of ["/", "/dashboard", "/api/admin/tasks", "/api/digital-observer/gateway-enrollment/other",
@@ -42,12 +45,24 @@ try {
   const denied = await fetch(base + "/api/digital-observer/gateway-enrollment", { method: "POST",
     headers: { "content-type": "application/json" }, body: "{}" });
   assert.equal(denied.status, 401);
+  for (const path of ["/api/video-gateway/cloud-discovery", "/api/video-gateway/device-heartbeat",
+    "/api/video-gateway/cloud-learning"]) {
+    const deviceRequest = await fetch(base + path, { method: "POST", headers: {
+      "content-type": "application/json", "x-video-gateway-device-token": "test-device-token",
+      "x-video-gateway-id": "test-gateway", "x-video-gateway-timestamp": "2026-10-01T00:00:00.000Z",
+      "x-video-gateway-nonce": "test-nonce"
+    }, body: "{}" });
+    assert.equal(deviceRequest.status, 401);
+  }
   assert.equal((await fetch(base + "/api/video-gateway/edge-updates/download?object=other", {
     method: "POST", body: "{}" })).status, 404);
   assert.equal(audit.some(event => event.pathname === "/api/video-gateway/edge-updates" &&
     event.outcome === "FORWARDED" && event.status === 401), true);
   assert.equal(audit.some(event => event.pathname === "/api/video-gateway/edge-updates/download" &&
     event.outcome === "DENIED" && event.status === 404), true);
+  assert.equal(audit.filter(event => ["/api/video-gateway/cloud-discovery",
+    "/api/video-gateway/device-heartbeat", "/api/video-gateway/cloud-learning"].includes(event.pathname) &&
+    event.outcome === "FORWARDED" && event.status === 401).length, 3);
   console.log(JSON.stringify({ status: "PASS", allowedRoutes: allowed.length,
     dashboard: "DENY", admin: "DENY", unrelatedApi: "DENY", supabase: "DENY", anonymousPrivileged: "DENY" }));
 } finally {

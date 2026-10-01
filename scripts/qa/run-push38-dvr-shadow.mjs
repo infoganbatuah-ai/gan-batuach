@@ -8,7 +8,8 @@ import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-sec
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 import { inspectArchive } from "../../services/video-gateway/edge-macos-installed-adapter.mjs";
-import { PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
+import { PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -231,6 +232,28 @@ async function health(url) {
     } : null
   };
 }
+async function waitForSettledHandoff() {
+  const startedAt = Date.now();
+  const maximumWaitMs = PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS + 2_000;
+  const samples = [];
+  let consecutiveSettled = 0;
+  let last = null;
+  while (Date.now() - startedAt <= maximumWaitMs) {
+    last = await health(`${base}/health`);
+    const candidates = Number(last.media?.candidate_handoffs || 0);
+    const provisionals = Number(last.media?.provisional_handoffs || 0);
+    const progressing = Number(last.media?.progressing || 0);
+    samples.push({ observed_at: new Date().toISOString(), candidates, provisionals,
+      progressing, http: last.http });
+    consecutiveSettled = last.http === 200 && candidates === 0 && provisionals === 0
+      && progressing === 1 ? consecutiveSettled + 1 : 0;
+    if (consecutiveSettled >= 2) return { settled: true, elapsed_ms: Date.now() - startedAt,
+      maximum_wait_ms: maximumWaitMs, samples, health: last };
+    await sleep(250);
+  }
+  return { settled: false, elapsed_ms: Date.now() - startedAt,
+    maximum_wait_ms: maximumWaitMs, samples, health: last };
+}
 function persist() {
   mkdirSync(dirname(outputPath), { recursive: true, mode: 0o700 });
   const temporary = `${outputPath}.tmp`;
@@ -295,9 +318,12 @@ try {
     process.stdout.write(`${JSON.stringify({ sequence: point.sequence, observed_at: point.observed_at, shadow: point.shadow, legacy: point.legacy })}\n`);
     await sleep(intervalMs);
   }
-  evidence.ended_at = new Date().toISOString();
+  evidence.measurement_ended_at = new Date().toISOString();
   evidence.duration_ms = Date.now() - startedAt;
-  evidence.final_health = await health(`${base}/health`);
+  evidence.settling = await waitForSettledHandoff();
+  evidence.final_health = evidence.settling.health;
+  evidence.ended_at = new Date().toISOString();
+  evidence.total_duration_ms = Date.now() - startedAt;
   const finalPoint = { shadow: evidence.final_health };
   const lifecycle = evidence.final_health?.media?.lifecycle || {};
   const playbackFailures = playbackEveryCheckpoint
@@ -333,7 +359,8 @@ try {
   if ((lifecycle.staleOnRequest || 0) > 0) failures.push("STALE_ON_REQUEST");
   if ((lifecycle.inputSocketError || 0) > 0) failures.push("INPUT_SOCKET");
   if ((lifecycle.startsByReason?.recovery || 0) > 0) failures.push("RELAY_RECOVERY_GAP");
-  if ((evidence.final_health?.media?.candidate_handoffs || 0) > 0
+  if (!evidence.settling.settled
+    || (evidence.final_health?.media?.candidate_handoffs || 0) > 0
     || (evidence.final_health?.media?.provisional_handoffs || 0) > 0)
     failures.push("HANDOFF_NOT_SETTLED");
   if ((finalPoint?.shadow.recorder_session?.rotations || 0) > 0)
