@@ -64,7 +64,7 @@ const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-737
 // recovery after a diagnostic rollback; removing it from this allowlist makes
 // the successor unreachable without weakening the manifest compatibility gate.
 const gatewayRoutineConfirmationKnownGood = "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44";
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-freshness-continuity-6bfd6f957cd2";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-rescue-backoff-52ada54c94f6";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,

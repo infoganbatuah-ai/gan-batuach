@@ -8,21 +8,23 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // rescue can cross the ten-second HLS freshness boundary. The measured rescue
 // candidate acquires media within 3.97 seconds, so this release starts the same
 // single-owner rescue at five seconds while keeping the ten-second freshness
-// contract unchanged. Canonical ownership still requires four advances across
+// contract unchanged. A contained candidate rejection now receives a one-minute
+// retry backoff while the original owner remains current; hard-stale media
+// bypasses that delay. Canonical ownership still requires four advances across
 // six seconds. The signed 0.2.46 runtime remains the rollback target.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-freshness-continuity-6bfd6f957cd2",
-  version: "0.2.51-p38-health",
-  buildSha: "560f91d52c21bf29c8df38805cd6d3000d0eb93c",
-  digest: "6bfd6f957cd2beefdc6e483473fa724707fa3071d022c271814e4495249bd1ec",
-  size: 135839004,
+  releaseId: "qa-p38-health-gateway-rescue-backoff-52ada54c94f6",
+  version: "0.2.52-p38-health",
+  buildSha: "a0876ef06c920427cd04e6b136b1ef9e20362382",
+  digest: "52ada54c94f65e9d20874d70d65edf193f8a543392164e6c72468eecea4c8359",
+  size: 135839502,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   rollbackVersion: "0.2.46-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-prestale-rescue-7c7f559bcd91",
-  supersedesVersion: "0.2.50-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-freshness-continuity-6bfd6f957cd2",
+  supersedesVersion: "0.2.51-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
