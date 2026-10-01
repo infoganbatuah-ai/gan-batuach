@@ -6,6 +6,9 @@
 - Source branch: `integration/development`
 - Feature branch: `codex/ux-implement-12-documents`
 - Validated product commit: `fb710f76ff05fee7188b34fb087a274d66602825`
+- Exact checked PR head: `54308f492fa8cdd7c68fb9548b2fd3351defade4`
+- Product pull request: `#158`
+- Product integration merge: `7784388b8122669e41df25853d258d99dba682e8`
 - Environment: isolated Development / Integration
 - Production: untouched
 - `main`: untouched
@@ -193,6 +196,8 @@ Passed locally on the feature head:
 - Security gate: 10/10.
 - Migration health: PASS, 244 migrations, no UX-12 migration.
 - Release contract: PASS; Production mutation false.
+
+Post-merge on `7784388b8122669e41df25853d258d99dba682e8`: UX-12 6/6, canonical Documents 6/6, Inspector 8/8, messaging 8/8, typecheck, Development ledger, local app/Supabase health, and the cumulative synthetic eight-role browser smoke passed.
 
 The screenshot fixtures used isolated synthetic Development identities and twelve bounded UX-12 document rows. Those twelve rows were removed after capture; existing QA personas and all pre-existing data were preserved.
 
