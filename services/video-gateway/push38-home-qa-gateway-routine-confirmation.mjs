@@ -2,7 +2,7 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Exact-device successor to the signed 0.2.41 known-good runtime. The failed
+// Exact-device successor to the signed 0.2.56 live runtime. The failed
 // 60-minute pre-soak and the real-DVR shadows proved that the recorder pauses
 // output before a finite response ends. The signed 0.2.53 shadow preserved
 // playback but measured one 10.136-second playlist freeze: its five-second
@@ -19,25 +19,30 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // first and last external sequence monotonically across candidate/fallback
 // generations. A contained candidate rejection receives a one-minute
 // retry backoff while the original owner remains current; hard-stale media
-// bypasses that delay. Canonical ownership still requires four advances across
-// six seconds. The intermediate 0.2.46 release was quarantined after its
+// bypasses that delay. The first two-lane Home shadow then proved the remaining
+// failure: an output-rescue candidate emitted first output in 3.256 seconds and
+// three valid advances, but the first-output+8 s sub-deadline rejected it before
+// the next cadence boundary. This release keeps the fourteen-second acquisition
+// limit and uses the already-bounded twenty-one-second total probation after
+// first output. Canonical ownership still requires four advances across six
+// seconds and concurrency remains capped at two. The intermediate 0.2.46 release was quarantined after its
 // evidence-bound retry and cannot safely serve as another bridge. This complete
 // package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
-// known-good runtime; the Product source overlay is pinned to the exact
-// a81f3d02 correction commit.
+// dependency/model baseline; live rollback targets signed 0.2.56 and the
+// Product source overlay is pinned to the exact dfac1ce3 correction commit.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
-  version: "0.2.56-p38-health",
-  buildSha: "a81f3d02ff8a08ade32a6ffed1dac957f12c4ba1",
-  digest: "59572f35f8ccb3877566f36c2deaa71a0b56063feffe094f69767e26105fc954",
-  size: 135841359,
+  releaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
+  version: "0.2.57-p38-health",
+  buildSha: "dfac1ce380e7a08ab4374d6dbca57bcad269745b",
+  digest: "9a9a29bfb861c35b291f108836e6fce8e0aaa33b2df17c0ea0614330cc8940ae",
+  size: 135842498,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
-  rollbackVersion: "0.2.41-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-hls-scheduler-direct-a8dec0815521",
-  supersedesVersion: "0.2.55-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
+  rollbackVersion: "0.2.56-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
+  supersedesVersion: "0.2.56-p38-health",
   quarantinedBridgeReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   quarantinedBridgeVersion: "0.2.46-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",

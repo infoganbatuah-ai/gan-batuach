@@ -59,10 +59,10 @@ const gatewayHandoffOwnerContinuity = "qa-p38-health-gateway-handoff-owner-conti
 const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046";
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
-// The active candidate installs directly from the exact signed 0.2.41
-// known-good runtime. The quarantined 0.2.46 bridge and rejected 0.2.52 draft
-// remain historical records only and cannot authorize a new download.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-hls-window-direct-59572f35f8cc";
+// The active candidate retains the exact signed 0.2.56 runtime as rollback and
+// installs a complete package rebuilt from the signed 0.2.41 dependency/model
+// baseline. Quarantined and superseded releases remain historical only.
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
