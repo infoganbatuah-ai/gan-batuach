@@ -852,48 +852,7 @@ if (deadlineBudget) {
     scheduler_slot_budget_violation_reproduced: true,
     historical_result_label_bug_corrected: true };
 }
-if (routineConfirmation) {
-  const bytes = protectedFile(failedCanaryEvidencePath);
-  const point = JSON.parse(bytes);
-  const diagnostics = Array.isArray(point.dvr?.relay_diagnostics)
-    ? point.dvr.relay_diagnostics : [];
-  const failedConfirmations = diagnostics.filter(entry =>
-    entry.last_handoff_result === "FAILED" &&
-    entry.last_handoff_failure === "CONFIRMATION_INCOMPLETE");
-  const slowValidCandidate = diagnostics.find(entry =>
-    Number(entry.last_handoff_first_output_latency_ms) >= 6_000 &&
-    Number(entry.last_handoff_output_advances) >= 4 &&
-    entry.last_handoff_result === "FAILED");
-  if (sha(bytes) !== "0f92a3a96c3cfbc18ba44a9b1aabbd983af1efdd184f5346213d9a6bbe890b24" ||
-    point.contract !== "observer-reliability-checkpoint-v1" ||
-    point.qualification_stage !== "CANARY" || point.sequence !== 1 ||
-    point.dvr?.liveness?.ok !== true || point.dvr?.component_status !== "degraded" ||
-    point.dvr?.expected !== 10 || point.dvr?.source_available !== 9 ||
-    JSON.stringify(point.dvr?.known_upstream_unavailable) !== JSON.stringify([8]) ||
-    point.dvr?.progressing !== 8 || point.dvr?.failed !== 1 ||
-    point.dvr?.lifecycle?.starts !== 86 ||
-    point.dvr?.lifecycle?.startsByReason?.routineFiniteResponse !== 57 ||
-    point.dvr?.lifecycle?.warmHandoffFailures !== 54 ||
-    point.dvr?.lifecycle?.warmHandoffConfirmationFailures !== 54 ||
-    point.dvr?.session_lifecycle?.rotations !== 0 ||
-    point.dvr?.session_lifecycle?.login_succeeded !== 1 ||
-    point.release?.gateway?.software_version !== item.supersedesVersion ||
-    point.release?.gateway?.build_sha !== "a49a37aa3776b07cd70d509d06e9ef3a9b1f6a3d" ||
-    failedConfirmations.length < 2 || !slowValidCandidate ||
-    Number(slowValidCandidate.last_handoff_duration_ms) < 12_000)
-    throw new Error("P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PROOF_INVALID");
-  failedCanaryEvidence = { sha256: sha(bytes), checkpoints: 1,
-    release_id: point.release.gateway.release_id,
-    progressing: point.dvr.progressing, source_available: point.dvr.source_available,
-    routine_starts: point.dvr.lifecycle.startsByReason.routineFiniteResponse,
-    confirmation_failures: point.dvr.lifecycle.warmHandoffConfirmationFailures,
-    maximum_observed_first_output_latency_ms: Math.max(...diagnostics.map(entry =>
-      Number(entry.last_handoff_first_output_latency_ms) || 0)),
-    session_rotations: point.dvr.session_lifecycle.rotations,
-    routine_confirmation_budget_fault_reproduced: true,
-    live_recovery_required: true };
-}
-if (recoveryContinuity) {
+if (recoveryContinuity || routineConfirmation) {
   const bytes = protectedFile(failedPreSoakEvidencePath);
   const result = JSON.parse(bytes);
   if (sha(bytes) !== "e6dfbe426d02414d612619a86443294b57197b148a31f9bf62c6e5eb417a85d1" ||
@@ -910,7 +869,9 @@ if (recoveryContinuity) {
     result.gateway?.recorder_session_failure_delta !== 0 ||
     result.gateway?.recorder_auth_rejection_delta !== 0 ||
     result.playback?.failures !== 1 || result.ai?.failures !== 0)
-    throw new Error("P38_GATEWAY_RECOVERY_CONTINUITY_FAILED_PROOF_INVALID");
+    throw new Error(routineConfirmation
+      ? "P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID"
+      : "P38_GATEWAY_RECOVERY_CONTINUITY_FAILED_PROOF_INVALID");
   failedPreSoakEvidence = { sha256: sha(bytes), checkpoints: result.checkpoints,
     duration_ms: result.elapsed_ms, unavailable_checkpoints: result.gateway.unavailable_checkpoints,
     failure_windows: result.gateway.outage_duration_ms.samples,
@@ -1131,7 +1092,7 @@ const plan = { protocol: routineConfirmation ? "observer-push38-gateway-routine-
     "SIGNED_KNOWN_GOOD_TRUTHFULLY_DEGRADED_TAPO_0_OF_1",
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (routineConfirmation ? "FAILED_CANARY_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (routineConfirmation ? "FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
       recoveryContinuity ? "FAILED_PRE_SOAK_RECOVERY_CONTINUITY_SUCCESSOR_QUALIFIED" :
       deadlineBudget ? "FAILED_LIVE_PROOF_DEADLINE_BUDGET_SUCCESSOR_QUALIFIED" :
       sweepDeadline ? "FAILED_CANARY_SYNCHRONIZED_SWEEP_SUCCESSOR_QUALIFIED" :
