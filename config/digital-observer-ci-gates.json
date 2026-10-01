@@ -95,6 +95,7 @@
     { "name": "gateway-relay-handoff-release", "args": ["scripts/qa/check-push38-gateway-relay-handoff-release.mjs"] },
     { "name": "gateway-handoff-continuity-release", "args": ["scripts/qa/check-push38-gateway-handoff-continuity-release.mjs"] },
     { "name": "gateway-handoff-owner-continuity-release", "args": ["scripts/qa/check-push38-gateway-handoff-owner-continuity-release.mjs"] },
+    { "name": "gateway-sweep-deadline-release", "args": ["scripts/qa/check-push38-gateway-sweep-deadline-release.mjs"] },
     { "name": "connector-handoff-continuity-release", "args": ["scripts/qa/check-push38-connector-handoff-continuity-release.mjs"] },
     { "name": "gateway-supervisor-recovery", "args": ["scripts/qa/check-push38-gateway-supervisor-recovery.mjs"] },
     { "name": "gateway-stable-handoff", "args": ["scripts/qa/check-push38-gateway-stable-handoff.mjs"] },

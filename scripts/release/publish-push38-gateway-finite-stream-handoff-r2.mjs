@@ -33,6 +33,7 @@ import { buildPush38GatewayHandoffHardwareManifest } from "../../services/video-
 import { buildPush38GatewayRelayHandoffRemediationManifest } from "../../services/video-gateway/push38-home-qa-gateway-relay-handoff-remediation.mjs";
 import { buildPush38GatewayHandoffContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-handoff-continuity.mjs";
 import { buildPush38GatewayHandoffOwnerContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-handoff-owner-continuity.mjs";
+import { buildPush38GatewaySweepDeadlineManifest } from "../../services/video-gateway/push38-home-qa-gateway-sweep-deadline.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -147,15 +148,16 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
   retainedFallback = false, continuousHandoff = false, routineProvisional = false,
   probationBudget = false, rescueCapacity = false, codecPreservation = false,
   handoffHardware = false, relayHandoff = false, handoffContinuity = false,
-  handoffOwnerContinuity = false }) {
+  handoffOwnerContinuity = false, sweepDeadline = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
     heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
     handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
     rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
-    handoffOwnerContinuity]
+    handoffOwnerContinuity, sweepDeadline]
     .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = handoffOwnerContinuity ? buildPush38GatewayHandoffOwnerContinuityManifest :
+  const builder = sweepDeadline ? buildPush38GatewaySweepDeadlineManifest :
+    handoffOwnerContinuity ? buildPush38GatewayHandoffOwnerContinuityManifest :
     handoffContinuity ? buildPush38GatewayHandoffContinuityManifest :
     relayHandoff ? buildPush38GatewayRelayHandoffRemediationManifest :
     handoffHardware ? buildPush38GatewayHandoffHardwareManifest :
@@ -225,7 +227,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: handoffOwnerContinuity ?
+    const result = { protocol: sweepDeadline ?
+      "observer-push38-gateway-sweep-deadline-r2-publication-v1" : handoffOwnerContinuity ?
       "observer-push38-gateway-handoff-owner-continuity-r2-publication-v1" : handoffContinuity ?
       "observer-push38-gateway-handoff-continuity-r2-publication-v1" : relayHandoff ?
       "observer-push38-gateway-relay-handoff-r2-publication-v1" : handoffHardware ?
@@ -282,6 +285,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const relayHandoff = process.argv.includes("--gateway-relay-handoff");
     const handoffContinuity = process.argv.includes("--gateway-handoff-continuity");
     const handoffOwnerContinuity = process.argv.includes("--gateway-handoff-owner-continuity");
+    const sweepDeadline = process.argv.includes("--gateway-sweep-deadline");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
@@ -290,7 +294,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--routine-provisional", "--probation-budget", "--rescue-capacity",
         "--gateway-codec-preservation", "--gateway-handoff-hardware",
         "--gateway-relay-handoff", "--gateway-handoff-continuity",
-        "--gateway-handoff-owner-continuity"]
+        "--gateway-handoff-owner-continuity", "--gateway-sweep-deadline"]
         .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
@@ -301,7 +305,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       bufferedOutput, outputRescue, confirmedHandoff, startupWindow, handoffProbation,
       retainedFallback, continuousHandoff, routineProvisional, probationBudget, rescueCapacity,
       codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
-      handoffOwnerContinuity }) }));
+      handoffOwnerContinuity, sweepDeadline }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");
