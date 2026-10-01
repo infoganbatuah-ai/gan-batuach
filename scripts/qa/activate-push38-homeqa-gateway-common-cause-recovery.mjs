@@ -184,7 +184,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = routineConfirmation
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-response-continuity-9f51b09c/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-age-churn-containment-8543c8d9/gateway-runtime.tar.gz"
   : recoveryContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-recovery-continuity-a49a37aa/gateway-runtime.tar.gz"
   : deadlineBudget
@@ -239,7 +239,7 @@ const artifact = routineConfirmation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = routineConfirmation
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-response-continuity-9f51b09c/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-age-churn-containment-8543c8d9/r2-publication.json"
   : recoveryContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json"
   : deadlineBudget

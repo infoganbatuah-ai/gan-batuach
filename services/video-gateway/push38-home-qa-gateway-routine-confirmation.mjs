@@ -2,27 +2,25 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Exact-device successor to the signed 0.2.41 known-good runtime. The signed
-// 0.2.45 shadow preserved process and request availability but exposed two
-// real media-continuity gaps: a finite native response waited for the noisier
-// output-only stale threshold, and a fully productive routine candidate could
-// be rejected when the six-second confirmation boundary fell between HLS
-// writes. This release detects coincident input/output end without reviving the
-// noisy output-only threshold and evaluates confirmation on every probation
-// tick after the required distinct output advances.
+// Exact-device successor to the signed 0.2.46 known-good runtime. Its real
+// nine-source canary proved that relay age is not a finite-response signal:
+// healthy owners survived for twelve minutes while age-only maintenance
+// launched sixty extra relays in fifteen minutes and created one CH7 gap.
+// This release retains the evidence-bound output-rescue and session-sweep
+// paths, but disables routine ownership replacement based on age alone.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
-  version: "0.2.46-p38-health",
-  buildSha: "9f51b09c6674a831bc3589547a8bebe26825691c",
-  digest: "5cdf47d35b4469f6fb366a28c9837e53bd2c5c5317d17a32504e1f205b22fa1b",
-  size: 135834926,
+  releaseId: "qa-p38-health-gateway-routine-confirmation-1f2048cfc6c7",
+  version: "0.2.47-p38-health",
+  buildSha: "8543c8d92153104464389bea09a0113aa7a753e1",
+  digest: "1f2048cfc6c765e6fdeb99a3149758454d31ba9414af326a8317091498d02a2d",
+  size: 135834137,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
-  rollbackVersion: "0.2.41-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
-  supersedesVersion: "0.2.41-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
+  rollbackVersion: "0.2.46-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
+  supersedesVersion: "0.2.46-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
