@@ -30,7 +30,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "5a47ea9c2e94358a0f9976290d0f5b29e51c41a1"
+        run: test "$(git rev-parse HEAD)" = "4a3da370c078a4019b7b8d918e7e39d13b9baa6c"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable Gateway routine-confirmation contract
