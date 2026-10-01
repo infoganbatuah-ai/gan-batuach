@@ -76,6 +76,8 @@ import { PUSH38_CONNECTOR_LIVENESS_ISOLATION as connectorLivenessIsolationItem
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-isolation.mjs";
 import { PUSH38_CONNECTOR_CODEC_PRESERVATION as connectorCodecPreservationItem
 } from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
+import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY as connectorHandoffContinuityItem
+} from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -133,7 +135,7 @@ const item = handoffContinuity ? PUSH38_GATEWAY_HANDOFF_CONTINUITY :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = handoffContinuity ? connectorCodecPreservationItem :
+const connectorItem = handoffContinuity ? connectorHandoffContinuityItem :
   relayHandoff ? connectorCodecPreservationItem :
   handoffHardware ? connectorCodecPreservationItem :
   codecPreservation ? connectorCodecPreservationItem :

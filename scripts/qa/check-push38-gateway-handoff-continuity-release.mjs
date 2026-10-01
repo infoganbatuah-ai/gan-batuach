@@ -39,6 +39,8 @@ try {
     assert.match(source, /--gateway-handoff-continuity/);
   assert.match(activation, /target_release_count[^\n]+release_id/);
   assert.match(activation, /rollout\.target_release_count !== 1/);
+  assert.match(activation,
+    /handoffContinuity \? connectorHandoffContinuityItem/);
   assert.match(activation, /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity/);
   assert.match(activation,
     /warmHandoffConfirmationFailures <= lifecycle\.warmHandoffFailures/);
