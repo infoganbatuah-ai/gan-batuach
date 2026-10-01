@@ -135,7 +135,6 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <key>ProgramArguments</key><array>${programArguments.map(value => `<string>${xml(value)}</string>`).join("")}</array>
 <key>WorkingDirectory</key><string>${xml(outputRoot)}</string>
 <key>RunAtLoad</key><true/>
-<key>ProcessType</key><string>Background</string>
 <key>StandardOutPath</key><string>${xml(join(outputRoot, "monitor.stdout.log"))}</string>
 <key>StandardErrorPath</key><string>${xml(join(outputRoot, "monitor.stderr.log"))}</string>
 <key>ThrottleInterval</key><integer>10</integer>

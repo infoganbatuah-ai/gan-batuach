@@ -116,6 +116,8 @@ assert.match(durableLauncher, /execution_owner: "MACOS_LAUNCHD_USER_DOMAIN"/);
 assert.match(durableLauncher, /terminal_session_independent: true/);
 assert.match(durableLauncher, /auto_restart: false/,
   "a failed Product qualification must never be hidden by automatic restarts");
+assert.doesNotMatch(durableLauncher, /<key>ProcessType<\/key><string>Background<\/string>/,
+  "the live qualification monitor must not be starved behind development load");
 assert.match(durableLauncher, /"Library", "LaunchAgents"/,
   "launchd must load the active plist from the canonical per-user LaunchAgents directory");
 assert.match(durableLauncher, /evidence_plist_path: evidencePlistPath/,
