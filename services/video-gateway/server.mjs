@@ -21,6 +21,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
+  comparePrivateNvrHandoffPriority,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffSchedule,
@@ -122,19 +123,20 @@ async function maintainPrivateNvrRelayHandoffs() {
       continue;
     }
     if (relayWarmups.has(streamId)) continue;
+    const lastOutputAt = relayPlaylistMtime(relay);
     const handoffMode = privateNvrRelayHandoffMode({
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
-      lastOutputAt: relayPlaylistMtime(relay),
+      lastOutputAt,
       progressing: relayIsProgressing(relay),
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
     }, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
-      outputRescues.push([streamId, relay, handoffMode]);
+      outputRescues.push([streamId, relay, handoffMode, lastOutputAt]);
     } else if (relayIsProgressing(relay) && relayEligibleForHandoff(streamId, relay)
       && !relayWarmups.has(streamId)) {
-      routine.push([streamId, relay, "ROUTINE_FINITE_RESPONSE"]);
+      routine.push([streamId, relay, "ROUTINE_FINITE_RESPONSE", lastOutputAt]);
     }
   }
   // Once a new non-exclusive login exists, do not spend another two-second
@@ -153,10 +155,12 @@ async function maintainPrivateNvrRelayHandoffs() {
   // lane and one separately bounded rescue lane. Deadline scheduling begins a
   // synchronized nine-source sweep early enough that later channels do not
   // hit hard stale while waiting for the routine lane.
-  outputRescues.sort((left, right) =>
-    (relayPlaylistMtime(left[1]) ?? Number.POSITIVE_INFINITY)
-      - (relayPlaylistMtime(right[1]) ?? Number.POSITIVE_INFINITY));
-  routine.sort((left, right) => left[1].startedAt - right[1].startedAt);
+  outputRescues.sort((left, right) => comparePrivateNvrHandoffPriority(
+    { startedAt: left[1].startedAt, lastOutputAt: left[3] },
+    { startedAt: right[1].startedAt, lastOutputAt: right[3] }));
+  routine.sort((left, right) => comparePrivateNvrHandoffPriority(
+    { startedAt: left[1].startedAt, lastOutputAt: left[3] },
+    { startedAt: right[1].startedAt, lastOutputAt: right[3] }));
   const schedule = privateNvrRoutineHandoffSchedule(
     routine.map(([, candidate]) => candidate.startedAt), observedAt,
     { slotBudgetMs: PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS });
@@ -1538,8 +1542,12 @@ async function warmReplaceRelay(streamId, previous, {
     const replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
     if (!replacement) return false;
-    const deadline = Date.now() + Math.max(12_000,
-      minimumConfirmationMs + (maximumOutputIdleMs ?? 0) + 5_000);
+    // The deadline scheduler reserves PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS
+    // per row. A failed probation must release its lane within that same
+    // budget; otherwise one bad candidate invalidates the entire sweep's
+    // latest-safe-start calculation and later healthy owners can hard-stale.
+    const deadline = Date.now() + Math.max(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
+      minimumConfirmationMs + 5_000);
     let firstOutputAt = null;
     let lastObservedOutputAt = null;
     let outputAdvanceCount = 0;

@@ -10,10 +10,16 @@ import { promisify } from "node:util";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 
 const exec = promisify(execFile);
-const AVAILABLE = Object.freeze([1, 3, 4, 5, 6, 7, 10, 11]);
-const UPSTREAM_UNAVAILABLE = Object.freeze([2, 8]);
+const ASSIGNED = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10, 11]);
 const EMPTY = Object.freeze([9, 12, 13, 14, 15, 16]);
 const option = (name) => process.argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
+const unavailableArgument = option("upstream-unavailable") || "8";
+const parsedUnavailable = unavailableArgument.split(",").filter(Boolean).map(Number);
+if (parsedUnavailable.some((value) => !Number.isInteger(value) || !ASSIGNED.includes(value))
+  || new Set(parsedUnavailable).size !== parsedUnavailable.length)
+  throw new Error("P38_DVR_TRUTH_UPSTREAM_UNAVAILABLE_INVALID");
+const UPSTREAM_UNAVAILABLE = Object.freeze([...parsedUnavailable].sort((left, right) => left - right));
+const AVAILABLE = Object.freeze(ASSIGNED.filter((channel) => !UPSTREAM_UNAVAILABLE.includes(channel)));
 const output = resolve(option("output") || ".");
 const durationMs = Number(option("duration-ms") || 5 * 60_000);
 const intervalMs = Number(option("interval-ms") || 30_000);
@@ -91,7 +97,7 @@ async function playback(channel) {
 const startedAt = Date.now();
 const evidence = { protocol: "observer-push38-live-gateway-dvr-truth-v1",
   started_at: new Date(startedAt).toISOString(), duration_target_ms: durationMs,
-  expected_physical: 10, source_available: AVAILABLE, upstream_unavailable: UPSTREAM_UNAVAILABLE,
+  expected_physical: ASSIGNED.length, source_available: AVAILABLE, upstream_unavailable: UPSTREAM_UNAVAILABLE,
   empty: EMPTY, endpoint_recorded: false, credentials_recorded: false, checkpoints: [] };
 let sequence = 0;
 while (Date.now() - startedAt < durationMs) {
@@ -117,18 +123,27 @@ evidence.duration_ms = Date.now() - startedAt;
 evidence.summary = {
   channels_ever_decoded: AVAILABLE.filter((channel) => evidence.checkpoints.some((point) =>
     point.media.some((item) => item.channel === channel && item.decoded))),
-  all_discovery_truthful: evidence.checkpoints.every((point) => point.health.discovery?.assigned === 10
-    && point.health.discovery?.connected === 8 && point.health.discovery?.failed === 2
+  all_discovery_truthful: evidence.checkpoints.every((point) => point.health.discovery?.assigned === ASSIGNED.length
+    && point.health.discovery?.connected === AVAILABLE.length
+    && point.health.discovery?.failed === UPSTREAM_UNAVAILABLE.length
     && point.health.discovery?.empty === 6),
   upstream_unavailable_never_authorized: evidence.checkpoints.every((point) =>
     point.unavailable.every((item) => item.denied_or_unavailable)),
   aggregate_health_truthful: evidence.checkpoints.every((point) => point.health.ok === false
     && point.health.status === "degraded"),
+  every_available_source_decoded_at_every_checkpoint: evidence.checkpoints.every((point) =>
+    point.media.length === AVAILABLE.length && point.media.every((item) => item.decoded)),
+  every_available_source_progressing_at_every_checkpoint: evidence.checkpoints.every((point) =>
+    point.health.media?.progressing >= AVAILABLE.length
+    && AVAILABLE.every((channel) => point.health.media.channels.some((item) =>
+      item.channel === channel && item.progressing))),
   endpoint_recorded: false,
   credential_recorded: false
 };
 evidence.result = evidence.summary.channels_ever_decoded.length === AVAILABLE.length
   && evidence.summary.all_discovery_truthful && evidence.summary.upstream_unavailable_never_authorized
+  && evidence.summary.every_available_source_decoded_at_every_checkpoint
+  && evidence.summary.every_available_source_progressing_at_every_checkpoint
   ? "MEDIA_AND_SOURCE_TRUTH_PASS" : "FAIL";
 writeFileSync(output, `${JSON.stringify(evidence, null, 2)}\n`, { mode: 0o600 });
 chmodSync(output, 0o600);

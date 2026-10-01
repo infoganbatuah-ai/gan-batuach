@@ -100,6 +100,19 @@ export function privateNvrRoutineHandoffSchedule(startedAts, now = Date.now(), {
     nextStartedAt: deadlines[0].startedAt, queued: deadlines.length };
 }
 
+export function comparePrivateNvrHandoffPriority(left, right) {
+  const leftOutputAt = Number.isFinite(left?.lastOutputAt)
+    ? left.lastOutputAt : Number.POSITIVE_INFINITY;
+  const rightOutputAt = Number.isFinite(right?.lastOutputAt)
+    ? right.lastOutputAt : Number.POSITIVE_INFINITY;
+  if (leftOutputAt !== rightOutputAt) return leftOutputAt - rightOutputAt;
+  const leftStartedAt = Number.isFinite(left?.startedAt)
+    ? left.startedAt : Number.POSITIVE_INFINITY;
+  const rightStartedAt = Number.isFinite(right?.startedAt)
+    ? right.startedAt : Number.POSITIVE_INFINITY;
+  return leftStartedAt - rightStartedAt;
+}
+
 // A proactive login renewal starts the recorder's observed prior-login media
 // retirement window. Relays still owned by the earlier epoch therefore take
 // precedence over the ordinary finite-response refresh cadence. The caller

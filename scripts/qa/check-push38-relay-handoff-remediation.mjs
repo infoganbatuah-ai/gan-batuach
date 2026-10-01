@@ -13,6 +13,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+  comparePrivateNvrHandoffPriority,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
@@ -55,6 +56,26 @@ test("a synchronized nine-source sweep starts before the finite deadline", () =>
   assert.match(server,
     /if \(relayWarmups\.has\(streamId\)\) continue;[\s\S]*const candidateRows = \[[\s\S]*\.\.\.outputRescues,[\s\S]*routine\.slice\(0, 1\)/,
   "an in-flight source cannot be selected twice and a rescue backlog cannot starve the routine lane");
+});
+
+test("routine scheduling serves the least-fresh output before an older but fresh relay", () => {
+  assert.ok(comparePrivateNvrHandoffPriority(
+    { startedAt: 2_000, lastOutputAt: 8_000 },
+    { startedAt: 1_000, lastOutputAt: 9_000 }) < 0);
+  assert.ok(comparePrivateNvrHandoffPriority(
+    { startedAt: 1_000, lastOutputAt: 9_000 },
+    { startedAt: 2_000, lastOutputAt: 8_000 }) > 0);
+  assert.equal(comparePrivateNvrHandoffPriority(
+    { startedAt: 1_000, lastOutputAt: 9_000 },
+    { startedAt: 2_000, lastOutputAt: 9_000 }), -1_000);
+  assert.match(server, /routine\.sort\(\(left, right\) => comparePrivateNvrHandoffPriority/);
+});
+
+test("failed handoff probation cannot outlive the scheduler slot budget", () => {
+  assert.match(server,
+    /const deadline = Date\.now\(\) \+ Math\.max\(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,\s*minimumConfirmationMs \+ 5_000\)/);
+  assert.doesNotMatch(server,
+    /minimumConfirmationMs \+ \(maximumOutputIdleMs \?\? 0\) \+ 5_000/);
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
