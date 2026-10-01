@@ -5,6 +5,8 @@ import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
+import { inspectHlsPlaybackPlaylist, projectHlsPlaybackPlaylist } from
+  "../../services/video-gateway/hls-playback-continuity.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from
   "../../services/video-gateway/relay-recovery-policy.mjs";
@@ -142,7 +144,7 @@ test("playback can use a progressing rescue candidate without promoting ownershi
   assert.match(server,
     /let relay = relayMediaContinuity\(match\[1\]\)\.effective/);
   assert.match(server,
-    /candidate\?\.directory, \.\.\.\(candidate\?\.previousDirectories \|\| \[\]\)/);
+    /\[relay, current, candidate\]\.flatMap\(relayGenerationDirectories\)/);
   assert.match(server,
     /cleanupRelayDirectories\(streamId, relays\.get\(streamId\), \[[\s\S]*replacement\?\.directory[\s\S]*\]\.filter\(Boolean\)\)/);
   assert.match(server, /last_handoff_first_output_latency_ms/);
@@ -169,6 +171,27 @@ test("playlist continuity requires four distinct advances over six seconds", () 
   "a proven candidate confirms when time matures between playlist writes");
   assert.match(server,
     /if \(outputAt > lastObservedOutputAt\)[\s\S]*outputConfirmed = minimumConfirmationMs/);
+});
+
+test("HLS playback numbering remains monotonic across relay generations", () => {
+  const oldPlaylist = "#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:15\nsegment-000025.ts\nsegment-000026.ts\n";
+  const candidatePlaylist = "#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:14\nsegment-000024.ts\nsegment-000025.ts\n";
+  assert.deepEqual(inspectHlsPlaybackPlaylist(oldPlaylist), {
+    mediaSequence: 15, segmentCount: 2, lastSequence: 16
+  });
+  const projected = projectHlsPlaybackPlaylist(candidatePlaylist, {
+    offset: 3, generation: "11111111-1111-4111-8111-111111111111",
+    revision: 1, token: "playback-token"
+  });
+  assert.equal(projected.firstSequence, 17);
+  assert.equal(projected.lastSequence, 18);
+  assert.match(projected.playlist, /#EXT-X-MEDIA-SEQUENCE:17/);
+  assert.match(projected.playlist,
+    /segment-000024\.ts\?generation=11111111-1111-4111-8111-111111111111&revision=1&token=playback-token/);
+  assert.match(server, /\["-readrate", "1", "-i", "pipe:0"\]/,
+    "private DVR MP4 input must be paced at its native timestamps");
+  assert.match(server, /projectPlaybackPlaylist\(match\[1\], relay/);
+  assert.match(server, /requestedGeneration[\s\S]*relayGenerationDirectories/);
 });
 
 test("a progressing candidate preserves health without early ownership promotion", () => {

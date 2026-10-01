@@ -12,6 +12,8 @@ import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from "./relay-recovery-policy.mjs";
+import { inspectHlsPlaybackPlaylist, projectHlsPlaybackPlaylist } from
+  "./hls-playback-continuity.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
@@ -261,6 +263,7 @@ const relays = new Map();
 // Keep the object separately so health can report proven media continuity
 // without promoting it early or weakening the rollback boundary.
 const relayCandidates = new Map();
+const hlsPlaybackSequenceState = new Map();
 // Include warm replacements that are not yet promoted into `relays`. HLS
 // cleanup must never remove a directory while any FFmpeg process owns it.
 const liveRelays = new Set();
@@ -1545,6 +1548,39 @@ function relayPlaylistMtime(relay) {
   try { return statSync(relay.playlist).mtimeMs; } catch { return null; }
 }
 
+function projectPlaybackPlaylist(streamId, relay, playlist, token) {
+  const inspected = inspectHlsPlaybackPlaylist(playlist);
+  if (!inspected || !relay?.generation) throw new Error("HLS_PLAYBACK_PLAYLIST_INVALID");
+  const state = hlsPlaybackSequenceState.get(streamId) || {
+    activeGeneration: null, lastExternalSequence: -1,
+    generationOffsets: new Map(), generationRevisions: new Map()
+  };
+  let offset = state.generationOffsets.get(relay.generation);
+  let revision = state.generationRevisions.get(relay.generation) || 0;
+  if (!Number.isSafeInteger(offset)) offset = 0;
+  let projectedLast = inspected.lastSequence + offset;
+  if (state.activeGeneration !== relay.generation && projectedLast <= state.lastExternalSequence) {
+    offset += state.lastExternalSequence + 1 - projectedLast;
+    revision += 1;
+    projectedLast = inspected.lastSequence + offset;
+  }
+  state.activeGeneration = relay.generation;
+  state.lastExternalSequence = Math.max(state.lastExternalSequence, projectedLast);
+  state.generationOffsets.set(relay.generation, offset);
+  state.generationRevisions.set(relay.generation, revision);
+  hlsPlaybackSequenceState.set(streamId, state);
+  return projectHlsPlaybackPlaylist(playlist, {
+    offset, generation: relay.generation, revision, token
+  }).playlist;
+}
+
+function relayGenerationDirectories(relay) {
+  if (!relay) return [];
+  return [{ generation: relay.generation, directory: relay.directory },
+    ...(relay.previousGenerations || []),
+    ...(relay.previousDirectories || []).map(directory => ({ generation: null, directory }))];
+}
+
 function relayEligibleForHandoff(streamId, relay) {
   // A replacement still carrying its predecessor has not completed the
   // single-owner handoff. Never advance that chain and discard the only known
@@ -1614,11 +1650,15 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
     if (current === replacement) {
       current.previousDirectories = (current.previousDirectories || [])
         .filter(directory => !directories.includes(directory));
+      current.previousGenerations = (current.previousGenerations || [])
+        .filter(entry => !directories.includes(entry.directory));
     }
     const activeDirectories = new Set([current?.directory,
       ...(current?.previousDirectories || []),
+      ...(current?.previousGenerations || []).map(entry => entry.directory),
       ...[...liveRelays].flatMap(relay => [relay.directory,
-        ...(relay.previousDirectories || [])])].filter(Boolean));
+        ...(relay.previousDirectories || []),
+        ...(relay.previousGenerations || []).map(entry => entry.directory)])].filter(Boolean));
     for (const directory of directories) {
       const normalized = normalize(directory);
       if (!activeDirectories.has(directory) && normalized.startsWith(`${normalize(HLS_ROOT)}/`)) {
@@ -1782,6 +1822,10 @@ async function warmReplaceRelay(streamId, previous, {
       ? replacement.previousDirectories
       : [previous.directory, ...(previous.previousDirectories || [])].filter(Boolean);
     replacement.previousDirectories = [...new Set(previousDirectories)];
+    replacement.previousGenerations = [
+      { generation: previous.generation, directory: previous.directory },
+      ...(previous.previousGenerations || [])
+    ].filter(entry => entry.generation && entry.directory);
     replacement.warming = false;
     relays.set(streamId, replacement);
     relayCandidates.delete(streamId);
@@ -1851,7 +1895,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // pools otherwise compete with the browser and local inference runtime.
     "-threads", "1", "-filter_threads", "1",
     ...(hardwareVideo ? hardwareDecodeArgs : []),
-    ...(directRtsp ? rtspInput.args : ["-i", "pipe:0"]),
+    ...(directRtsp ? rtspInput.args : ["-readrate", "1", "-i", "pipe:0"]),
     "-map", "0:v:0",
     "-an",
     ...(copyVideo
@@ -1897,7 +1941,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(),
     encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264",
     controller, errorSummary: "", sessionToken, sessionEpoch, sessionKey,
-    warming, handoffMode, previousDirectories: [], monitor: null };
+    warming, handoffMode, previousDirectories: [], previousGenerations: [], monitor: null };
   liveRelays.add(relay);
   if (warming) relayCandidates.set(streamId, relay);
   relayLifecycle.starts += 1;
@@ -2274,12 +2318,17 @@ async function serveHls(request, response) {
   const continuity = relayMediaContinuity(match[1]);
   const current = continuity.current;
   const candidate = continuity.candidate;
-  const directories = match[2] === "index.m3u8"
-    ? [relay?.directory]
-    : [relay?.directory, ...(relay?.previousDirectories || []),
-      current?.directory, ...(current?.previousDirectories || []),
-      candidate?.directory, ...(candidate?.previousDirectories || [])];
-  const file = directories.filter(Boolean).map(directory => normalize(join(directory, match[2])))
+  const requestedGeneration = url.searchParams.get("generation");
+  if (requestedGeneration && !/^[a-f0-9-]{36}$/i.test(requestedGeneration)) {
+    browserJson(request, response, 400, { error: "invalid_generation" });
+    return;
+  }
+  const entries = match[2] === "index.m3u8"
+    ? relayGenerationDirectories(relay).slice(0, 1)
+    : [relay, current, candidate].flatMap(relayGenerationDirectories);
+  const file = entries.filter(entry => entry.directory &&
+    (!requestedGeneration || entry.generation === requestedGeneration))
+    .map(entry => normalize(join(entry.directory, match[2])))
     .find(candidate => candidate.startsWith(`${normalize(HLS_ROOT)}/`) && existsSync(candidate));
   if (!file) {
     browserJson(request, response, 404, { error: "not_ready" });
@@ -2287,8 +2336,8 @@ async function serveHls(request, response) {
   }
   const extension = extname(file);
   if (extension === ".m3u8") {
-    const token = encodeURIComponent(url.searchParams.get("token"));
-    const playlist = readFileSync(file, "utf8").replace(/^(segment-\d+\.ts)$/gm, `$1?token=${token}`);
+    const token = url.searchParams.get("token");
+    const playlist = projectPlaybackPlaylist(match[1], relay, readFileSync(file, "utf8"), token);
     response.writeHead(200, browserHeaders(request, "application/vnd.apple.mpegurl"));
     response.end(playlist);
     return;

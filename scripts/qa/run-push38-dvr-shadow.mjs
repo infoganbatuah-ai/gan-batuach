@@ -160,12 +160,14 @@ async function playback(streamId) {
   const playlistResponse = await fetch(grant.data.playback.hls_url, { signal: AbortSignal.timeout(20_000) }).catch(() => null);
   const playlist = playlistResponse?.ok ? await playlistResponse.text() : "";
   const playlistLines = playlist.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-  const segmentName = playlistLines.filter(line => /^segment-\d+\.ts\?token=/.test(line)).at(-1);
+  const segmentName = playlistLines.filter(line => /^segment-\d+\.ts\?/.test(line)).at(-1);
   const mediaSequence = Number(/^#EXT-X-MEDIA-SEQUENCE:(\d+)$/.exec(
     playlistLines.find(line => line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) || "")?.[1]);
   const targetDurationSeconds = Number(/^#EXT-X-TARGETDURATION:(\d+)$/.exec(
     playlistLines.find(line => line.startsWith("#EXT-X-TARGETDURATION:")) || "")?.[1]);
-  const latestSegmentSequence = Number(/^segment-(\d+)\.ts/.exec(segmentName || "")?.[1]);
+  const latestSegmentSequence = Number.isInteger(mediaSequence)
+    ? mediaSequence + playlistLines.filter(line => /^segment-\d+\.ts\?/.test(line)).length - 1
+    : null;
   const segmentUrl = segmentName ? new URL(segmentName, grant.data.playback.hls_url).toString() : "";
   const segmentResponse = segmentUrl ? await fetch(segmentUrl, { signal: AbortSignal.timeout(20_000) }).catch(() => null) : null;
   const segment = segmentResponse?.ok ? Buffer.from(await segmentResponse.arrayBuffer()) : Buffer.alloc(0);
@@ -173,7 +175,8 @@ async function playback(streamId) {
     segment_status: segmentResponse?.status || 0, segment_bytes: segment.byteLength,
     media_sequence: Number.isInteger(mediaSequence) ? mediaSequence : null,
     target_duration_seconds: Number.isInteger(targetDurationSeconds) ? targetDurationSeconds : null,
-    latest_segment_sequence: Number.isInteger(latestSegmentSequence) ? latestSegmentSequence : null,
+    latest_segment_sequence: Number.isInteger(latestSegmentSequence) && latestSegmentSequence >= 0
+      ? latestSegmentSequence : null,
     playlist_sha256: playlist ? createHash("sha256").update(playlist).digest("hex") : null,
     segment_sha256: segment.length ? createHash("sha256").update(segment).digest("hex") : null };
 }
