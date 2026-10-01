@@ -5,7 +5,8 @@ import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
-import { inspectHlsPlaybackPlaylist, projectHlsPlaybackPlaylist } from
+import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
+  projectHlsPlaybackPlaylist } from
   "../../services/video-gateway/hls-playback-continuity.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from
@@ -196,6 +197,22 @@ test("HLS playback numbering remains monotonic across relay generations", () => 
   assert.match(projected.playlist, /#EXT-X-MEDIA-SEQUENCE:17/);
   assert.match(projected.playlist,
     /segment-000024\.ts\?generation=11111111-1111-4111-8111-111111111111&revision=1&token=playback-token/);
+  const candidate = { mediaSequence: 0, segmentCount: 2, lastSequence: 1 };
+  const candidateOffset = nextHlsPlaybackOffset(candidate, {
+    currentOffset: 0, lastExternalFirstSequence: 14,
+    lastExternalLastSequence: 25, generationChanged: true
+  });
+  assert.equal(candidate.mediaSequence + candidateOffset, 25);
+  assert.equal(candidate.lastSequence + candidateOffset, 26);
+  const fallback = { mediaSequence: 18, segmentCount: 12, lastSequence: 29 };
+  const fallbackOffset = nextHlsPlaybackOffset(fallback, {
+    currentOffset: 0, lastExternalFirstSequence: 25,
+    lastExternalLastSequence: 26, generationChanged: true
+  });
+  assert.equal(fallback.mediaSequence + fallbackOffset, 25,
+    "candidate rejection cannot move the fallback playlist window backwards");
+  assert.equal(fallback.lastSequence + fallbackOffset, 36,
+    "candidate rejection advances the external tail across generations");
   assert.match(server, /\["-readrate", "1", "-i", "pipe:0"\]/,
     "private DVR MP4 input must be paced at its native timestamps");
   assert.match(server, /projectPlaybackPlaylist\(match\[1\], relay/);

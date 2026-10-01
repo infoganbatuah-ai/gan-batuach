@@ -13,6 +13,25 @@ export function inspectHlsPlaybackPlaylist(playlist) {
     lastSequence: mediaSequence + segments.length - 1 };
 }
 
+export function nextHlsPlaybackOffset(inspected, {
+  currentOffset = 0,
+  lastExternalFirstSequence = -1,
+  lastExternalLastSequence = -1,
+  generationChanged = false
+} = {}) {
+  if (!inspected || !Number.isSafeInteger(inspected.mediaSequence) ||
+    !Number.isSafeInteger(inspected.lastSequence) || inspected.mediaSequence < 0 ||
+    inspected.lastSequence < inspected.mediaSequence ||
+    !Number.isSafeInteger(currentOffset) || currentOffset < 0 ||
+    !Number.isSafeInteger(lastExternalFirstSequence) ||
+    !Number.isSafeInteger(lastExternalLastSequence))
+    throw new Error("HLS_PLAYBACK_PROJECTION_STATE_INVALID");
+  if (!generationChanged) return currentOffset;
+  return Math.max(currentOffset, 0,
+    lastExternalFirstSequence - inspected.mediaSequence,
+    lastExternalLastSequence + 1 - inspected.lastSequence);
+}
+
 export function projectHlsPlaybackPlaylist(playlist, { offset = 0, generation,
   revision = 0, token }) {
   if (!Number.isSafeInteger(offset) || offset < 0 ||

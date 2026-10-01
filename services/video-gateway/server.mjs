@@ -12,7 +12,8 @@ import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from "./relay-recovery-policy.mjs";
-import { inspectHlsPlaybackPlaylist, projectHlsPlaybackPlaylist } from
+import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
+  projectHlsPlaybackPlaylist } from
   "./hls-playback-continuity.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
@@ -1561,19 +1562,28 @@ function projectPlaybackPlaylist(streamId, relay, playlist, token) {
   const inspected = inspectHlsPlaybackPlaylist(playlist);
   if (!inspected || !relay?.generation) throw new Error("HLS_PLAYBACK_PLAYLIST_INVALID");
   const state = hlsPlaybackSequenceState.get(streamId) || {
-    activeGeneration: null, lastExternalSequence: -1,
+    activeGeneration: null, lastExternalFirstSequence: -1,
+    lastExternalSequence: -1,
     generationOffsets: new Map(), generationRevisions: new Map()
   };
   let offset = state.generationOffsets.get(relay.generation);
   let revision = state.generationRevisions.get(relay.generation) || 0;
   if (!Number.isSafeInteger(offset)) offset = 0;
-  let projectedLast = inspected.lastSequence + offset;
-  if (state.activeGeneration !== relay.generation && projectedLast <= state.lastExternalSequence) {
-    offset += state.lastExternalSequence + 1 - projectedLast;
+  const priorOffset = offset;
+  offset = nextHlsPlaybackOffset(inspected, {
+    currentOffset: offset,
+    lastExternalFirstSequence: state.lastExternalFirstSequence,
+    lastExternalLastSequence: state.lastExternalSequence,
+    generationChanged: state.activeGeneration !== relay.generation
+  });
+  if (offset !== priorOffset) {
     revision += 1;
-    projectedLast = inspected.lastSequence + offset;
   }
+  const projectedFirst = inspected.mediaSequence + offset;
+  const projectedLast = inspected.lastSequence + offset;
   state.activeGeneration = relay.generation;
+  state.lastExternalFirstSequence = Math.max(
+    state.lastExternalFirstSequence, projectedFirst);
   state.lastExternalSequence = Math.max(state.lastExternalSequence, projectedLast);
   state.generationOffsets.set(relay.generation, offset);
   state.generationRevisions.set(relay.generation, revision);
