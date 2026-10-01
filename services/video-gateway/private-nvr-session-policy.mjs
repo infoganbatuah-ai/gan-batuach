@@ -54,11 +54,15 @@ export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
 // 7.7 seconds. A fixed twelve-second probation could therefore expire before
 // the unchanged six-second/four-advance continuity proof completed, even when
 // the candidate was producing valid media. Bound acquisition separately and
-// reserve sixteen seconds per serialized routine slot. A nine-source sweep is
-// still bounded to 144 seconds, leaving margin before the recorder's observed
-// roughly three-minute native-response boundary.
+// reserve eighteen seconds per serialized routine slot. A nine-source sweep
+// is still bounded to 162 seconds, leaving margin before the recorder's
+// observed roughly three-minute native-response boundary.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS = 9_000;
-export const PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS = 16_000;
+// A real candidate produced seven playlist advances with first output at
+// 7.543 s, but the previous first-output+7 s deadline expired about 0.1 s
+// before the next cadence boundary could prove the six-second contract.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS = 2_000;
+export const PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS = 18_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS =
   PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS;
 // The signed 0.2.43 one-channel Home shadow kept HLS continuous, but six
@@ -144,7 +148,8 @@ export function privateNvrHandoffProbationDeadline({ handoffMode,
     }
     return Math.min(
       probationStartedAt + PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS,
-      firstOutputObservedAt + minimumConfirmationMs + 1_000);
+      firstOutputObservedAt + minimumConfirmationMs
+        + PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS);
   }
   if (!Number.isFinite(firstOutputObservedAt)) {
     return probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS;

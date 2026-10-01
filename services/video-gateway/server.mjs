@@ -279,8 +279,18 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
   inputAborted: 0, inputOtherError: 0,
   startsByReason: { initialOrDemand: 0, recovery: 0, routineFiniteResponse: 0,
     outputRescue: 0, sessionSweep: 0, otherHandoff: 0 },
+  warmHandoffsByMode: { routineFiniteResponse: 0, outputRescue: 0,
+    sessionSweep: 0, otherHandoff: 0 },
+  warmHandoffFailuresByMode: { routineFiniteResponse: 0, outputRescue: 0,
+    sessionSweep: 0, otherHandoff: 0 },
   staleByOwner: { current: 0, warming: 0, retainedFallback: 0,
     detached: 0 } };
+
+function privateNvrHandoffModeMetricKey(handoffMode) {
+  return handoffMode === "ROUTINE_FINITE_RESPONSE" ? "routineFiniteResponse"
+    : handoffMode === "OUTPUT_RESCUE" ? "outputRescue"
+      : handoffMode === "SESSION_SWEEP" ? "sessionSweep" : "otherHandoff";
+}
 
 function privateNvrHandoffCapacityAvailable(streamId, handoffMode, candidate) {
   const sessionKey = streamSources.get(streamId)?.sessionKey;
@@ -1613,6 +1623,8 @@ async function warmReplaceRelay(streamId, previous, {
       previousRelay: previous, handoffMode });
     if (!replacement) {
       relayLifecycle.warmHandoffFailures += 1;
+      relayLifecycle.warmHandoffFailuresByMode[
+        privateNvrHandoffModeMetricKey(handoffMode)] += 1;
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_handoff_result: "FAILED",
         last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED",
@@ -1668,6 +1680,8 @@ async function warmReplaceRelay(streamId, previous, {
     if (!outputConfirmed || !relayIsProgressing(replacement)
       || relays.get(streamId) !== expectedCurrent) {
       relayLifecycle.warmHandoffFailures += 1;
+      relayLifecycle.warmHandoffFailuresByMode[
+        privateNvrHandoffModeMetricKey(handoffMode)] += 1;
       if (!outputConfirmed) relayLifecycle.warmHandoffConfirmationFailures += 1;
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_handoff_result: "FAILED",
@@ -1689,6 +1703,8 @@ async function warmReplaceRelay(streamId, previous, {
     relayCandidates.delete(streamId);
     stopRelay(streamId, previous, "WARM_HANDOFF");
     relayLifecycle.warmHandoffs += 1;
+    relayLifecycle.warmHandoffsByMode[
+      privateNvrHandoffModeMetricKey(handoffMode)] += 1;
     relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
       last_handoff_result: "PROMOTED",
       last_handoff_failure: null,

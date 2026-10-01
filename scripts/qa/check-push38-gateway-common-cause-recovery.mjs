@@ -16,6 +16,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
@@ -287,7 +288,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   "an unconfirmed replacement cannot advance a handoff chain");
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
   assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
-  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 16_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 18_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS, 2_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS, 180_000);
   assert.equal(privateNvrRoutineHandoffRetryAllowed(null, 100_000), true);
   assert.equal(privateNvrRoutineHandoffRetryAllowed(90_000, 100_000), false,
@@ -310,10 +312,13 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /liveRelayProcesses:[\s\S]*candidateHandoffs:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:[\s\S]*maximumRoutineProbations:/,
   "live health must expose the process-budget evidence used by qualification");
+  assert.match(gateway,
+    /warmHandoffsByMode:[\s\S]*warmHandoffFailuresByMode:/,
+  "live health must classify successful and failed handoffs by lifecycle mode");
   const synchronized = privateNvrRoutineHandoffSchedule(Array(9).fill(100_000),
-    76_000);
+    58_000);
   assert.equal(synchronized.ready, true);
-  assert.equal(synchronized.latestSafeStartAt, 76_000);
+  assert.equal(synchronized.latestSafeStartAt, 58_000);
   assert.match(gateway,
     /outputRescues\.sort\([\s\S]*privateNvrRoutineHandoffSchedule\([\s\S]*relayWarmupModes/,
   "urgent rescue and the deadline-aware routine lane must use explicit bounded ownership");

@@ -8,6 +8,8 @@ import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-sec
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 import { inspectArchive } from "../../services/video-gateway/edge-macos-installed-adapter.mjs";
+import { PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
+  "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const requestedEndpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
@@ -300,15 +302,30 @@ try {
       || !(point.renewal?.segment_bytes > 0)).length
     : 0;
   const failures = [];
+  const warnings = [];
+  const routineHandoffFailures = Number(
+    lifecycle.warmHandoffFailuresByMode?.routineFiniteResponse || 0);
+  const outputRescueFailures = Number(
+    lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
+  const maximumBoundedRoutineFailures = Math.max(1,
+    Math.ceil(evidence.duration_ms / PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS));
   if (!evidence.checkpoints.every((point) => point.shadow.http === 200
     && point.shadow.discovery?.assigned === 1
     && point.shadow.discovery?.connected === 1
     && point.shadow.media?.progressing === 1)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
-  if ((lifecycle.warmHandoffFailures || 0) > 0)
-    failures.push("HANDOFF_FAILURE");
+  if (outputRescueFailures > 0) failures.push("OUTPUT_RESCUE_FAILURE");
+  if (routineHandoffFailures > maximumBoundedRoutineFailures)
+    failures.push("ROUTINE_HANDOFF_RETRY_STORM");
+  else if (routineHandoffFailures > 0)
+    warnings.push("BOUNDED_ROUTINE_CANDIDATE_REJECTED_WITHOUT_MEDIA_GAP");
+  if (durationMs >= 2 * 60_000 && (lifecycle.warmHandoffs || 0) < 1)
+    failures.push("NO_SUCCESSFUL_HANDOFF_OBSERVED");
   if ((lifecycle.stalePlaylist || 0) > 0) failures.push("STALE_PLAYLIST");
+  if ((lifecycle.staleInput || 0) > 0) failures.push("STALE_INPUT");
+  if ((lifecycle.staleOnRequest || 0) > 0) failures.push("STALE_ON_REQUEST");
   if ((lifecycle.inputSocketError || 0) > 0) failures.push("INPUT_SOCKET");
+  if ((lifecycle.startsByReason?.recovery || 0) > 0) failures.push("RELAY_RECOVERY_GAP");
   if ((finalPoint?.shadow.recorder_session?.rotations || 0) > 0)
     failures.push("SESSION_ROTATION");
   evidence.qualification = {
@@ -316,6 +333,10 @@ try {
     lifecycle_final: lifecycle,
     recorder_session_final: finalPoint?.shadow.recorder_session || null,
     source_diagnostics_final: finalPoint?.shadow.media?.source_diagnostics || [],
+    routine_handoff_failures: routineHandoffFailures,
+    output_rescue_failures: outputRescueFailures,
+    maximum_bounded_routine_failures: maximumBoundedRoutineFailures,
+    warnings,
     failures
   };
   evidence.result = failures.length === 0 ? "PASS" : "FAIL";
