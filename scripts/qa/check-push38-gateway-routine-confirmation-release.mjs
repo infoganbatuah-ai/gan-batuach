@@ -74,6 +74,8 @@ try {
   const registration = readFileSync("scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   const activation = readFileSync("scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   const publisher = readFileSync("scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", "utf8");
+  const retry = readFileSync(
+    "scripts/qa/retry-push38-homeqa-gateway-routine-confirmation-after-diagnostic-isolation.mjs", "utf8");
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-routine-confirmation/);
   assert.match(publisher, /observer-push38-gateway-routine-confirmation-r2-publication-v1/);
@@ -86,6 +88,13 @@ try {
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
+  for (const token of ["authorizeQuarantinedReleaseRetry", "CONTROLLED_GATEWAY_PAUSE_FOR_SIGNED_SHADOW_DIAGNOSTIC",
+    "prior_healthy_duration_ms", "camera_runtime_writes_by_command: 0", "ota_agent_owns_install: true"])
+    assert.match(retry, new RegExp(token));
+  assert.match(retry, /healthyDurationMs < 60 \* 60_000/);
+  assert.match(retry, /rollout\.retry_status !== "ACTIVE"/);
+  assert.match(retry, /rollout\.successor_status !== "DRAFT"/);
+  assert.doesNotMatch(retry, /launchctl[^\n]+bootout|adapter\.restart|manager\.apply/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
