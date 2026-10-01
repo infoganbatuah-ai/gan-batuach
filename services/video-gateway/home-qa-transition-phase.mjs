@@ -62,7 +62,7 @@ const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-737
 // The active candidate installs directly from the exact signed 0.2.41
 // known-good runtime. The quarantined 0.2.46 bridge and rejected 0.2.52 draft
 // remain historical records only and cannot authorize a new download.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-hls-scheduler-direct-a8dec0815521";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-hls-window-direct-59572f35f8cc";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,

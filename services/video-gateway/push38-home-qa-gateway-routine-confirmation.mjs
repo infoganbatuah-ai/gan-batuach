@@ -12,27 +12,32 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // 10.060-second playlist freeze. This release includes scheduler detection in
 // the deadline and checks the bounded rescue lane every second: the measured
 // complete bound is 3.000 + 1.000 + 5.329 = 9.329 seconds, while the ten-second
-// freshness contract remains unchanged. A contained candidate rejection receives a one-minute
+// freshness contract remains unchanged. The signed 0.2.55 shadow then exposed
+// the remaining rollback edge: the newest segment kept advancing, but returning
+// from a safely rejected candidate to the longer fallback playlist moved the
+// advertised window start from 26 back to 18. This release projects both the
+// first and last external sequence monotonically across candidate/fallback
+// generations. A contained candidate rejection receives a one-minute
 // retry backoff while the original owner remains current; hard-stale media
 // bypasses that delay. Canonical ownership still requires four advances across
 // six seconds. The intermediate 0.2.46 release was quarantined after its
 // evidence-bound retry and cannot safely serve as another bridge. This complete
 // package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
 // known-good runtime; the Product source overlay is pinned to the exact
-// 10da524a correction commit.
+// a81f3d02 correction commit.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-hls-scheduler-direct-a8dec0815521",
-  version: "0.2.55-p38-health",
-  buildSha: "10da524ad3129894cd0628fe5bf105c283bf16be",
-  digest: "a8dec0815521fa9ce5b9f071795117edfea25c19df09e5543e6c6b7a4a28de2d",
-  size: 135840285,
+  releaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
+  version: "0.2.56-p38-health",
+  buildSha: "a81f3d02ff8a08ade32a6ffed1dac957f12c4ba1",
+  digest: "59572f35f8ccb3877566f36c2deaa71a0b56063feffe094f69767e26105fc954",
+  size: 135841359,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
   rollbackVersion: "0.2.41-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-hls-deadline-direct-0ccacdfadd8a",
-  supersedesVersion: "0.2.54-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-hls-scheduler-direct-a8dec0815521",
+  supersedesVersion: "0.2.55-p38-health",
   quarantinedBridgeReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   quarantinedBridgeVersion: "0.2.46-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
