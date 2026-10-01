@@ -23,12 +23,14 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+  PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   comparePrivateNvrHandoffPriority,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
-  privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffSchedule,
+  privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
+  privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
@@ -138,7 +140,10 @@ async function maintainPrivateNvrRelayHandoffs() {
     }, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
       outputRescues.push([streamId, relay, handoffMode, lastOutputAt]);
-    } else if (relayIsProgressing(relay) && relayEligibleForHandoff(streamId, relay)
+    } else if (handoffMode === "ROUTINE_FINITE_RESPONSE"
+      && relayIsProgressing(relay) && relayEligibleForHandoff(streamId, relay)
+      && privateNvrRoutineHandoffRetryAllowed(relay.lastRoutineHandoffAttemptAt,
+        observedAt, PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS)
       && !relayWarmups.has(streamId)) {
       routine.push([streamId, relay, "ROUTINE_FINITE_RESPONSE", lastOutputAt]);
     }
@@ -195,6 +200,9 @@ async function maintainPrivateNvrRelayHandoffs() {
     return commonCapacity && laneCapacity;
   }) || [];
   if (streamId && relays.get(streamId) === relay) {
+    if (handoffMode === "ROUTINE_FINITE_RESPONSE") {
+      relay.lastRoutineHandoffAttemptAt = observedAt;
+    }
     void warmReplacePrivateNvrRelay(streamId, relay, handoffMode)
       .catch(error => { reportPrivateNvrMaintenanceFailure("relay_handoff_candidate", error); });
   }

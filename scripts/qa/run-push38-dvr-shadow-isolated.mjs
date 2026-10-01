@@ -92,7 +92,11 @@ async function restore() {
     return value?.edgeRuntime?.software_version === expectedVersion &&
       value?.edgeRuntime?.build_sha === expectedBuild &&
       value?.lastDiscovery?.assignedCount === 10 && value?.lastDiscovery?.unassignedCount === 6;
-  }, 90_000);
+  // A clean signed restart can spend up to three minutes in read-only DVR
+  // discovery before the 10/6 source snapshot is visible. Restoration must
+  // cover that already-bounded startup path rather than falsely failing at
+  // ninety seconds while the exact known-good runtime is still recovering.
+  }, 4 * 60_000);
   if (!loaded(agentLabel)) launchctl(["bootstrap", domain, agentPlist]);
   if (!(await waitFor(() => loaded(agentLabel), 20_000)))
     throw new Error("DVR_SHADOW_ISOLATION_AGENT_RESTORE_FAILED");

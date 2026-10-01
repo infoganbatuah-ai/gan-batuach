@@ -61,6 +61,13 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS = 9_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS = 16_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS =
   PRIVATE_NVR_ROUTINE_HANDOFF_PROBATION_MS;
+// The signed 0.2.43 one-channel Home shadow kept HLS continuous, but six
+// rejected routine candidates were launched in a seven-minute window. A
+// rejected candidate is not evidence that the current progressing owner is
+// unsafe. Keep that owner and bound another routine attempt to the ordinary
+// twenty-second stale horizon. Output rescue remains independently eligible
+// as soon as rendered media is stale, so this never delays a real outage.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 20_000;
 // The live 0.2.41 proof showed that an output-rescue response can need about
 // thirteen seconds before its first HLS segment and then remain continuously
 // productive. Applying the routine lane's twelve-second scheduler budget to
@@ -117,6 +124,13 @@ export function privateNvrRoutineHandoffSchedule(startedAts, now = Date.now(), {
     nextStartedAt: deadlines[0].startedAt, queued: deadlines.length };
 }
 
+export function privateNvrRoutineHandoffRetryAllowed(lastAttemptAt,
+  now = Date.now(), retryBackoffMs = PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS) {
+  return Boolean(Number.isFinite(now)
+    && (!Number.isFinite(lastAttemptAt) || now - lastAttemptAt >= retryBackoffMs)
+    && Number.isFinite(retryBackoffMs) && retryBackoffMs > 0);
+}
+
 export function privateNvrHandoffProbationDeadline({ handoffMode,
   probationStartedAt, firstOutputObservedAt = null,
   minimumConfirmationMs = PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS }) {
@@ -164,13 +178,18 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;
-  if (relay.recoveryStable && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS) {
-    return "ROUTINE_FINITE_RESPONSE";
-  }
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && Number.isFinite(relay.lastOutputAt)
     && now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
-  return outputRescue ? "OUTPUT_RESCUE" : null;
+  // Rendered-output loss is more urgent than the age-based finite-response
+  // sweep. This also gives a genuinely stale older relay the separately
+  // measured rescue acquisition budget instead of misclassifying it as a
+  // routine replacement.
+  if (outputRescue) return "OUTPUT_RESCUE";
+  if (relay.recoveryStable && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS) {
+    return "ROUTINE_FINITE_RESPONSE";
+  }
+  return null;
 }
 
 export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {

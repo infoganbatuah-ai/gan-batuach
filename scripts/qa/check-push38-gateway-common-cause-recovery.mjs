@@ -18,9 +18,11 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+  PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
-  privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffSchedule,
+  privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
+  privateNvrRoutineHandoffSchedule,
   relayMaySurvivePrivateNvrRenewal,
   shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldProactivelyHandoffPrivateNvrRelay,
@@ -162,6 +164,10 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now),
   "OUTPUT_RESCUE");
+  assert.equal(privateNvrRelayHandoffMode({ ...eligible,
+    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now),
+  "OUTPUT_RESCUE", "stale rendered output must outrank an age-based routine renewal");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -279,6 +285,12 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
   assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 16_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS, 20_000);
+  assert.equal(privateNvrRoutineHandoffRetryAllowed(null, 100_000), true);
+  assert.equal(privateNvrRoutineHandoffRetryAllowed(90_000, 100_000), false,
+  "a rejected routine candidate cannot create an immediate retry storm");
+  assert.equal(privateNvrRoutineHandoffRetryAllowed(80_000, 100_000), true);
+  assert.equal(privateNvrRoutineHandoffRetryAllowed(null, Number.NaN), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1 }), false,
   "the recorder may have only one routine candidate replacement at a time");
@@ -300,6 +312,9 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /outputRescues\.sort\([\s\S]*privateNvrRoutineHandoffSchedule\([\s\S]*relayWarmupModes/,
   "urgent rescue and the deadline-aware routine lane must use explicit bounded ownership");
+  assert.match(gateway,
+    /privateNvrRoutineHandoffRetryAllowed\(relay\.lastRoutineHandoffAttemptAt,[\s\S]*relay\.lastRoutineHandoffAttemptAt = observedAt/,
+  "a failed routine handoff must retain a bounded per-owner retry backoff");
   assert.match(gateway,
     /const handoff = relayWarmups\.get\(streamId\);[\s\S]*waitForRelayHandoffMedia\(streamId, requestGraceMs\)[\s\S]*const continuity = relayMediaContinuity\(streamId, promoted\);[\s\S]*return available;/,
   "a playback request must await an in-flight bounded replacement and may use proven candidate media without promoting ownership");
