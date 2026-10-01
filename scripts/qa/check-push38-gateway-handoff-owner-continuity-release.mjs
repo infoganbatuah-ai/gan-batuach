@@ -7,6 +7,8 @@ import { buildPush38GatewayHandoffOwnerContinuityManifest,
   "../../services/video-gateway/push38-home-qa-gateway-handoff-owner-continuity.mjs";
 import { issuePush38GatewayHandoffOwnerContinuity } from
   "../release/issue-push38-home-qa-gateway-handoff-owner-continuity.mjs";
+import { HOME_QA_PHASE, homeQaManagedPhaseAllows } from
+  "../../services/video-gateway/home-qa-transition-phase.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const built = buildPush38GatewayHandoffOwnerContinuityManifest({ signingKeyId: "observer-kms-release-v1",
@@ -20,6 +22,14 @@ assert.equal(built.compatibility.minimum_current_version, "0.2.38-p38-health");
 assert.equal(built.compatibility.maximum_current_version, "0.2.38-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
+const enrollment = { identity_scheme: "ED25519_V1", credential_version: 1,
+  gateway_id: item.deviceId, deployment_profile: item.profile,
+  metadata: { home_qa_phase: HOME_QA_PHASE.VERIFIED,
+    home_qa_proof_sha256: "c".repeat(64),
+    home_qa_known_good_release_id: "qa-legacy-gateway-91bf6814075f" } };
+assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: built }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
+  gateway_id: "wrong-gateway" }, manifest: built }), false);
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-gateway-handoff-owner-continuity-test-"));
 try {
