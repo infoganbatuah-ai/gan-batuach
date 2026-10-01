@@ -1,0 +1,374 @@
+{
+  "generatedAt": "2026-10-01T12:00:24.907Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_DOCUMENTS_FULL_PLATFORM.png",
+  "concepts": 20,
+  "captures": 40,
+  "ownerReviewReady": 40,
+  "needsPolish": 0,
+  "visualDrift": 0,
+  "broken": 0,
+  "productionAccess": false,
+  "items": [
+    {
+      "domain": "Documents",
+      "screen": "documents-center",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/documents-center-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "documents-center",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/documents-center-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "document-list",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/document-list-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "document-list",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/document-list-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "document-detail",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/document-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "document-detail",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/document-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "secure-preview",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/secure-preview-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "secure-preview",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/secure-preview-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "upload",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/upload-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "upload",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/upload-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "replace",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/replace-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "replace",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/replace-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "verified-state",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/verified-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "verified-state",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/verified-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "pending-state",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/pending-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "pending-state",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/pending-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "rejected-state",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/rejected-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "rejected-state",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/rejected-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "expired-state",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/expired-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "expired-state",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/expired-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "replacement-required",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/replacement-required-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "replacement-required",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/replacement-required-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "child-documents",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/child-documents-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "child-documents",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/child-documents-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "parent-documents",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/parent-documents-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "parent-documents",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/parent-documents-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "staff-documents",
+      "viewport": "1440×1024",
+      "route": "/dashboard/staff/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/staff-documents-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "staff-documents",
+      "viewport": "390×844",
+      "route": "/dashboard/staff/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/staff-documents-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "garden-documents",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/garden-documents-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "garden-documents",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/garden-documents-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "inspector-limited",
+      "viewport": "1440×1024",
+      "route": "/dashboard/inspector/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/inspector-limited-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "inspector-limited",
+      "viewport": "390×844",
+      "route": "/dashboard/inspector/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/inspector-limited-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "admin-verification",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/admin-verification-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "admin-verification",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/admin-verification-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "categories",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/categories-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "categories",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/categories-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "search-filter",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/search-filter-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "search-filter",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/search-filter-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "empty-state",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/empty-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    },
+    {
+      "domain": "Documents",
+      "screen": "empty-state",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/documents",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-12/qa-evidence/ux-implement-12/screenshots/empty-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; private access and evidence-domain separation preserved"
+    }
+  ]
+}

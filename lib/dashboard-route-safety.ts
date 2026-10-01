@@ -105,6 +105,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/inspector/ai-events", label: "AI", roles: ["inspector"], dataTable: "ai_events" },
   { route: "/dashboard/inspector/observer-pilot", label: "פיילוט תצפיתן", roles: ["inspector"], dataTable: "skeleton_observer_events" },
   { route: "/dashboard/inspector/reports", label: "דיווחים", roles: ["inspector"], dataTable: "complaints" },
+  { route: "/dashboard/inspector/documents", label: "מסמכי פיקוח", roles: ["inspector"], dataTable: "documents" },
   { route: "/dashboard/inspector/tasks", label: "משימות", roles: ["inspector"], dataTable: "tasks" },
   { route: "/dashboard/inspector/violations", label: "ליקויים", roles: ["inspector"], dataTable: "violations" },
   { route: "/dashboard/inspector/notifications", label: "התראות מפקח", roles: ["inspector"], dataTable: "notifications" }
