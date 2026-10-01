@@ -97,7 +97,7 @@ async function uploadMultipart({ client, bucket, key, path, size, sha256, releas
                 query_keys: [...scoped.searchParams.keys()].sort(),
                 signed_headers: scoped.searchParams.get("X-Amz-SignedHeaders") }));
             }
-            const response = spawnSync("curl", ["--silent", "--show-error", "--fail-with-body",
+            const response = spawnSync("curl", ["--ipv4", "--silent", "--show-error", "--fail-with-body",
               "--header", "Expect:", "--upload-file", partPath, "--dump-header", "-", "--output", "-",
               "--max-time", "120", capability], { encoding: "utf8",
               maxBuffer: 64 * 1024, timeout: 125_000 });
