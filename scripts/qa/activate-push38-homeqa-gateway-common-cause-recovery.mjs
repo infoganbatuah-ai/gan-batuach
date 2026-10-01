@@ -353,9 +353,11 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   // error, or unbounded failure count.
   const boundedFailureProof = !boundedWarmupFailure ||
     lifecycle.warmHandoffFailures <= 1 &&
-    lifecycle.warmHandoffConfirmationFailures === lifecycle.warmHandoffFailures &&
-    lifecycle.warmHandoffs >= 1 && lifecycle.staleOnRequest === 0 &&
-    lifecycle.inputSocketError === 0;
+    lifecycle.warmHandoffConfirmationFailures <= lifecycle.warmHandoffFailures &&
+    lifecycle.warmHandoffs >= 1 && lifecycle.warmHandoffRollbacks === 0 &&
+    lifecycle.starts <= 8 && lifecycle.staleInput <= 1 && lifecycle.stalePlaylist === 0 &&
+    lifecycle.staleOnRequest === 0 && lifecycle.inputSocketError === 0 &&
+    lifecycle.upstreamFailed === 0;
   if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
     value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== expectedChannel ||
     value.endpoint_redacted !== true || value.credentials_recorded !== false ||

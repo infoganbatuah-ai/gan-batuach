@@ -39,6 +39,10 @@ try {
     assert.match(source, /--gateway-handoff-continuity/);
   assert.match(activation, /handoffContinuity \? 50/);
   assert.match(activation, /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity/);
+  assert.match(activation,
+    /warmHandoffConfirmationFailures <= lifecycle\.warmHandoffFailures/);
+  assert.match(activation,
+    /warmHandoffRollbacks === 0[\s\S]*lifecycle\.starts <= 8[\s\S]*staleInput <= 1[\s\S]*stalePlaylist === 0/);
   assert.match(activation, /confirmedWarmHandoff:[^\n]+relayHandoff/);
   assert.match(activation, /failedPreSoakEvidence/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
