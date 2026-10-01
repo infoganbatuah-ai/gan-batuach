@@ -2,21 +2,22 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Exact-device successor to the signed 0.2.41 known-good runtime. Qualification
-// exposed two remaining continuity faults: a playback request during hard
-// stale could retire the old owner before a replacement produced output, and
-// routine/output-rescue confirmation could expire at the HLS cadence boundary.
-// This release preserves the old owner during a bounded, capacity-checked
-// rescue, aligns both confirmation lanes with measured segment cadence, and
-// keeps retry history intact.
+// Exact-device successor to the signed 0.2.41 known-good runtime. The signed
+// 0.2.45 shadow preserved process and request availability but exposed two
+// real media-continuity gaps: a finite native response waited for the noisier
+// output-only stale threshold, and a fully productive routine candidate could
+// be rejected when the six-second confirmation boundary fell between HLS
+// writes. This release detects coincident input/output end without reviving the
+// noisy output-only threshold and evaluates confirmation on every probation
+// tick after the required distinct output advances.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-routine-confirmation-3da0f6ee3522",
-  version: "0.2.45-p38-health",
-  buildSha: "707d3ee0374b8ae4fa541e16819acb63bd3f7a8e",
-  digest: "3da0f6ee3522797e9667f99ee212aaded3fbe63b482a32306791bd241137ec54",
-  size: 135835416,
+  releaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
+  version: "0.2.46-p38-health",
+  buildSha: "9f51b09c6674a831bc3589547a8bebe26825691c",
+  digest: "5cdf47d35b4469f6fb366a28c9837e53bd2c5c5317d17a32504e1f205b22fa1b",
+  size: 135834926,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-deadline-budget-42702082e62f",
   rollbackVersion: "0.2.41-p38-health",
