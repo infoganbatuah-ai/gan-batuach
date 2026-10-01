@@ -63,6 +63,8 @@ import { PUSH38_GATEWAY_DEADLINE_BUDGET
 } from "../../services/video-gateway/push38-home-qa-gateway-deadline-budget.mjs";
 import { PUSH38_GATEWAY_RECOVERY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-recovery-continuity.mjs";
+import { PUSH38_GATEWAY_ROUTINE_CONFIRMATION
+} from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -91,14 +93,16 @@ const handoffOwnerContinuity = process.argv.includes("--gateway-handoff-owner-co
 const sweepDeadline = process.argv.includes("--gateway-sweep-deadline");
 const deadlineBudget = process.argv.includes("--gateway-deadline-budget");
 const recoveryContinuity = process.argv.includes("--gateway-recovery-continuity");
+const routineConfirmation = process.argv.includes("--gateway-routine-confirmation");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
-  handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity]
+  handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = recoveryContinuity ? PUSH38_GATEWAY_RECOVERY_CONTINUITY :
+const item = routineConfirmation ? PUSH38_GATEWAY_ROUTINE_CONFIRMATION :
+  recoveryContinuity ? PUSH38_GATEWAY_RECOVERY_CONTINUITY :
   deadlineBudget ? PUSH38_GATEWAY_DEADLINE_BUDGET :
   sweepDeadline ? PUSH38_GATEWAY_SWEEP_DEADLINE :
   handoffOwnerContinuity ? PUSH38_GATEWAY_HANDOFF_OWNER_CONTINUITY :
@@ -128,7 +132,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = recoveryContinuity
+const artifact = routineConfirmation
+  ? `${restrictedRoot}/push38-gateway-routine-confirmation-4a55e3b9/gateway-runtime.tar.gz`
+  : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/gateway-runtime.tar.gz`
   : deadlineBudget
   ? `${restrictedRoot}/push38-gateway-deadline-budget-72b25159/gateway-runtime.tar.gz`
@@ -181,7 +187,9 @@ const artifact = recoveryContinuity
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = recoveryContinuity
+const publication = routineConfirmation
+  ? `${restrictedRoot}/push38-gateway-routine-confirmation-4a55e3b9/r2-publication.json`
+  : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json`
   : deadlineBudget
   ? `${restrictedRoot}/push38-gateway-deadline-budget-72b25159/r2-publication.json`
@@ -234,7 +242,8 @@ const publication = recoveryContinuity
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = recoveryContinuity ? "gateway_remediation_recovery_continuity.json"
+const bundleName = routineConfirmation ? "gateway_remediation_routine_confirmation.json"
+  : recoveryContinuity ? "gateway_remediation_recovery_continuity.json"
   : deadlineBudget ? "gateway_remediation_deadline_budget.json"
   : sweepDeadline ? "gateway_remediation_sweep_deadline.json"
   : handoffOwnerContinuity ? "gateway_remediation_handoff_owner_continuity.json"
@@ -261,7 +270,7 @@ const bundleName = recoveryContinuity ? "gateway_remediation_recovery_continuity
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
+const predecessorReleaseId = (routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
   handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
@@ -359,7 +368,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: recoveryContinuity ? "GATEWAY_RECOVERY_CONTINUITY_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: routineConfirmation ? "GATEWAY_ROUTINE_CONFIRMATION_REGISTERED_DRAFT" :
+  recoveryContinuity ? "GATEWAY_RECOVERY_CONTINUITY_REGISTERED_DRAFT" :
   deadlineBudget ? "GATEWAY_DEADLINE_BUDGET_REGISTERED_DRAFT" :
   sweepDeadline ? "GATEWAY_SWEEP_DEADLINE_REGISTERED_DRAFT" :
   handoffOwnerContinuity ? "GATEWAY_HANDOFF_OWNER_CONTINUITY_REGISTERED_DRAFT" :

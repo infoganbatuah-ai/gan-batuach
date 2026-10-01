@@ -78,6 +78,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `gateway-sweep-deadline-release`: `node scripts/qa/check-push38-gateway-sweep-deadline-release.mjs`
 - `gateway-deadline-budget-release`: `node scripts/qa/check-push38-gateway-deadline-budget-release.mjs`
 - `gateway-recovery-continuity-release`: `node scripts/qa/check-push38-gateway-recovery-continuity-release.mjs`
+- `gateway-routine-confirmation-release`: `node scripts/qa/check-push38-gateway-routine-confirmation-release.mjs`
 - `connector-handoff-continuity-release`: `node scripts/qa/check-push38-connector-handoff-continuity-release.mjs`
 - `gateway-supervisor-recovery`: `node scripts/qa/check-push38-gateway-supervisor-recovery.mjs`
 - `gateway-stable-handoff`: `node scripts/qa/check-push38-gateway-stable-handoff.mjs`
@@ -104,7 +105,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **348** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **350** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -281,6 +282,7 @@ Inventory count: **348** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-gateway-relay-handoff-release.mjs` | node scripts/qa/check-push38-gateway-relay-handoff-release.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-rescue-capacity.mjs` | node scripts/qa/check-push38-gateway-rescue-capacity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-retained-fallback.mjs` | node scripts/qa/check-push38-gateway-retained-fallback.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-routine-confirmation-release.mjs` | npm run qa:push38-gateway-routine-confirmation-release | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-routine-provisional.mjs` | node scripts/qa/check-push38-gateway-routine-provisional.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-session-stability.mjs` | node scripts/qa/check-push38-gateway-session-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-session-sweep.mjs` | node scripts/qa/check-push38-gateway-session-sweep.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
@@ -431,6 +433,7 @@ Inventory count: **348** files. Classifications are conservative; environment-de
 | `scripts/qa/run-completion-role-boundary-probes.mjs` | npm run qa:probe-role-boundaries | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-guard-preview-learning.mjs` | node scripts/qa/run-guard-preview-learning.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CONTEXT / BASELINE | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-connector-liveness-shadow.mjs` | node scripts/qa/run-push38-connector-liveness-shadow.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-push38-dvr-shadow-isolated.mjs` | node scripts/qa/run-push38-dvr-shadow-isolated.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-dvr-shadow.mjs` | node scripts/qa/run-push38-dvr-shadow.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-homeqa-connector-transition.mjs` | node scripts/qa/run-push38-homeqa-connector-transition.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-homeqa-gateway-bootstrap.mjs` | node scripts/qa/run-push38-homeqa-gateway-bootstrap.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
