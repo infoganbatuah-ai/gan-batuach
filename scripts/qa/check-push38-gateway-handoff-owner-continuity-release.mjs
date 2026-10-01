@@ -50,7 +50,7 @@ try {
   assert.match(activation, /target_release_count[^\n]+release_id/);
   assert.match(activation, /rollout\.target_release_count !== 1/);
   assert.match(activation,
-    /\(sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
+    /\(deadlineBudget \|\| sweepDeadline \|\| handoffOwnerContinuity\) \? connectorHandoffContinuityItem/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
