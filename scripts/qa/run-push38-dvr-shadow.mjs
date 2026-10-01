@@ -183,6 +183,8 @@ async function health(url) {
     } : null,
     media: body.mediaHeartbeat ? {
       active: body.mediaHeartbeat.activeRelays,
+      candidate_handoffs: body.mediaHeartbeat.candidateHandoffs ?? 0,
+      provisional_handoffs: body.mediaHeartbeat.provisionalHandoffs ?? 0,
       progressing: body.mediaHeartbeat.progressingRelays,
       stalled: body.mediaHeartbeat.stalledRelays,
       lifecycle: body.mediaHeartbeat.lifecycle,
@@ -293,8 +295,9 @@ try {
   }
   evidence.ended_at = new Date().toISOString();
   evidence.duration_ms = Date.now() - startedAt;
-  const finalPoint = evidence.checkpoints.at(-1);
-  const lifecycle = finalPoint?.shadow.media?.lifecycle || {};
+  evidence.final_health = await health(`${base}/health`);
+  const finalPoint = { shadow: evidence.final_health };
+  const lifecycle = evidence.final_health?.media?.lifecycle || {};
   const playbackFailures = playbackEveryCheckpoint
     ? evidence.checkpoints.filter((point) => point.renewal?.status !== 200
       || point.renewal?.playlist_status !== 200
@@ -326,6 +329,9 @@ try {
   if ((lifecycle.staleOnRequest || 0) > 0) failures.push("STALE_ON_REQUEST");
   if ((lifecycle.inputSocketError || 0) > 0) failures.push("INPUT_SOCKET");
   if ((lifecycle.startsByReason?.recovery || 0) > 0) failures.push("RELAY_RECOVERY_GAP");
+  if ((evidence.final_health?.media?.candidate_handoffs || 0) > 0
+    || (evidence.final_health?.media?.provisional_handoffs || 0) > 0)
+    failures.push("HANDOFF_NOT_SETTLED");
   if ((finalPoint?.shadow.recorder_session?.rotations || 0) > 0)
     failures.push("SESSION_ROTATION");
   evidence.qualification = {

@@ -191,6 +191,10 @@ test("stale request waits through bounded backoff and handoff media wakes demand
   "a stale playback request must reuse the bounded output-rescue lane before destructive recovery");
   assert.match(server, /last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED"/,
   "failed candidate acquisition must be visible in source diagnostics");
+  const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
+  assert.match(shadow,
+    /evidence\.final_health = await health[\s\S]*HANDOFF_NOT_SETTLED/,
+  "shadow qualification must sample a settled final owner after its last interval");
 });
 
 test("brief progress cannot clear recovery history", () => {
