@@ -93,7 +93,7 @@ try {
     assert.match(retry, new RegExp(token));
   assert.match(retry, /healthyDurationMs < 60 \* 60_000/);
   assert.match(retry, /rollout\.retry_status !== "ACTIVE"/);
-  assert.match(retry, /rollout\.successor_status !== "DRAFT"/);
+  assert.match(retry, /\["DRAFT", "PAUSED"\]\.includes\(rollout\.successor_status\)/);
   assert.doesNotMatch(retry, /launchctl[^\n]+bootout|adapter\.restart|manager\.apply/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 

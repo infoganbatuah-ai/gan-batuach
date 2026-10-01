@@ -160,7 +160,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
 const exactTargets = { explicit_device_ids: [successorItem.deviceId] };
 if (rollout.retry_status !== "ACTIVE" || rollout.retry_cohort !== 0 ||
   JSON.stringify(rollout.retry_targets) !== JSON.stringify(exactTargets) ||
-  rollout.successor_status !== "DRAFT" || rollout.successor_cohort !== 0 ||
+  !["DRAFT", "PAUSED"].includes(rollout.successor_status) || rollout.successor_cohort !== 0 ||
   JSON.stringify(rollout.successor_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0)
   throw new Error("P38_GATEWAY_ROUTINE_CONFIRMATION_RETRY_ROLLOUT_INVALID");
 
@@ -188,6 +188,7 @@ const plan = { protocol: "observer-push38-gateway-routine-confirmation-diagnosti
   diagnostic_shadow_started_at: shadow.started_at,
   controlled_pause_backup_mtime: new Date(backupMtime).toISOString(),
   successor_release_id: successorItem.releaseId, signed_retry_manifest: "PASS",
+  successor_rollout_status: rollout.successor_status,
   live_trust: "PASS", exact_targeting: true, broad_cohort: false,
   gateway_samples: gatewaySamples, connector_samples: connectorSamples,
   ota_agent_pid: servicePid("com.ganbatuach.video-gateway.ota-agent"),
