@@ -2,25 +2,26 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Exact-device successor to the signed 0.2.46 known-good runtime. Its real
-// nine-source canary proved that relay age is not a finite-response signal:
-// healthy owners survived for twelve minutes while age-only maintenance
-// launched sixty extra relays in fifteen minutes and created one CH7 gap.
-// This release retains the evidence-bound output-rescue and session-sweep
-// paths, but disables routine ownership replacement based on age alone.
+// Exact-device successor to the signed 0.2.46 known-good runtime. The failed
+// 60-minute pre-soak and the 0.2.47 real-DVR shadow showed that a concurrent
+// output-rescue candidate can emit an initial playlist and then stall while
+// the retained owner remains hard-stale. This release preserves the strict
+// four-advance confirmation contract, but permits one fail-closed exclusive
+// retry only after that exact evidence is present. The signed 0.2.46 runtime
+// remains the rollback target.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_ROUTINE_CONFIRMATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-routine-confirmation-1f2048cfc6c7",
-  version: "0.2.47-p38-health",
-  buildSha: "8543c8d92153104464389bea09a0113aa7a753e1",
-  digest: "1f2048cfc6c765e6fdeb99a3149758454d31ba9414af326a8317091498d02a2d",
-  size: 135834137,
+  releaseId: "qa-p38-health-gateway-exclusive-rescue-1364e15a3eb5",
+  version: "0.2.48-p38-health",
+  buildSha: "94437688bb38583177a0cf24850426ee126223b6",
+  digest: "1364e15a3eb560ce54cd0c5e0d082db92cca32e7567ebcf84209b09eedde1b81",
+  size: 135835241,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   rollbackVersion: "0.2.46-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
-  supersedesVersion: "0.2.46-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-routine-confirmation-1f2048cfc6c7",
+  supersedesVersion: "0.2.47-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });

@@ -18,12 +18,15 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const built = buildPush38GatewayRoutineConfirmationManifest({ signingKeyId: "observer-kms-release-v1",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(built.release_id, item.releaseId);
-assert.equal(built.version, "0.2.47-p38-health");
+assert.equal(built.version, "0.2.48-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
 assert.equal(built.compatibility.minimum_current_version, "0.2.46-p38-health");
 assert.equal(built.compatibility.maximum_current_version, "0.2.46-p38-health");
+assert.equal(item.supersedesReleaseId,
+  "qa-p38-health-gateway-routine-confirmation-1f2048cfc6c7");
+assert.equal(item.supersedesVersion, "0.2.47-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 const enrollment = { identity_scheme: "ED25519_V1", credential_version: 1,
