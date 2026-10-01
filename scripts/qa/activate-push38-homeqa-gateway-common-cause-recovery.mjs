@@ -399,9 +399,18 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
       Number(checkpoints[index - 1]?.shadow?.media?.lifecycle?.warmHandoffFailures ?? 0));
   const failedHandoffCount = warmFailureIndex < 0 ? 0 :
     Number(checkpoints[warmFailureIndex]?.shadow?.media?.lifecycle?.warmHandoffs ?? 0);
+  const failedHandoffCheckpoint = warmFailureIndex < 0 ? null : checkpoints[warmFailureIndex];
+  const failedHandoffKeptCurrentMedia = failedHandoffCheckpoint?.shadow?.media?.progressing === 1 &&
+    failedHandoffCheckpoint?.shadow?.media?.stalled === 0 &&
+    failedHandoffCheckpoint?.shadow?.media?.inputs?.[0]?.owner_state === "CURRENT" &&
+    failedHandoffCheckpoint?.shadow?.media?.inputs?.[0]?.canonical_owner_progressing === true &&
+    failedHandoffCheckpoint?.renewal?.status === 200 &&
+    failedHandoffCheckpoint?.renewal?.playlist_status === 200 &&
+    failedHandoffCheckpoint?.renewal?.segment_status === 200 &&
+    /^[a-f0-9]{64}$/.test(failedHandoffCheckpoint?.renewal?.segment_sha256 || "");
   const boundedFailureRecovered = lifecycle.warmHandoffFailures === 0 || warmFailureIndex >= 0 &&
-    checkpoints.slice(warmFailureIndex + 1).some(point =>
-      Number(point.shadow?.media?.lifecycle?.warmHandoffs ?? 0) > failedHandoffCount);
+    (failedHandoffKeptCurrentMedia || checkpoints.slice(warmFailureIndex + 1).some(point =>
+      Number(point.shadow?.media?.lifecycle?.warmHandoffs ?? 0) > failedHandoffCount));
   const boundedStarts = Number.isFinite(value.duration_ms)
     ? Math.ceil(value.duration_ms / 60_000) + 2 : 0;
   const boundedFailureProof = !boundedWarmupFailure ||
@@ -416,11 +425,19 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   // successor the safety invariant is zero media gaps and bounded single-owner
   // recovery, not that every warming candidate must promote.
   const mediaContinuityProof = !mediaContinuity || renewals.length === checkpoints.length &&
+    renewals.every((renewal, index) => Number.isInteger(renewal.media_sequence) &&
+      Number.isInteger(renewal.latest_segment_sequence) &&
+      /^[a-f0-9]{64}$/.test(renewal.playlist_sha256 || "") &&
+      /^[a-f0-9]{64}$/.test(renewal.segment_sha256 || "") &&
+      (index === 0 || renewal.segment_sha256 !== renewals[index - 1].segment_sha256)) &&
+    new Set(renewals.map(renewal => renewal.playlist_sha256)).size === renewals.length &&
+    new Set(renewals.map(renewal => renewal.segment_sha256)).size === renewals.length &&
     lifecycle.starts <= Math.ceil(value.duration_ms / 30_000) + 2 &&
     lifecycle.warmHandoffFailures <= lifecycle.starts &&
     lifecycle.warmHandoffConfirmationFailures === lifecycle.warmHandoffFailures &&
-    lifecycle.warmHandoffRollbacks === 0 && lifecycle.staleInput <= 1 &&
-    lifecycle.stalePlaylist === 0 && lifecycle.staleOnRequest === 0 &&
+    lifecycle.warmHandoffRollbacks === 0 &&
+    lifecycle.staleInput <= Number(lifecycle.startsByReason?.recovery ?? -1) &&
+    lifecycle.stalePlaylist === 0 && lifecycle.staleOnRequest <= 1 &&
     lifecycle.inputSocketError === 0 && lifecycle.upstreamFailed === 0;
   if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
     value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== expectedChannel ||
@@ -974,7 +991,8 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
       verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity,
       hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity,
       recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity) ? 60 * 60_000 : 10 * 60_000,
-      boundedWarmupFailure: continuousHandoff || handoffContinuity || sweepDeadline || deadlineBudget,
+      boundedWarmupFailure: continuousHandoff || handoffContinuity || sweepDeadline || deadlineBudget ||
+        recoveryContinuity,
       mediaContinuity: recoveryContinuity,
       expectedRelease: item, expectedChannel: 1 });
   } catch {
@@ -1006,11 +1024,18 @@ const connectorPrerequisiteHealthy = connectorSamples.every(sample => sample.ok 
 // may proceed while the exact signed Connector known-good reports that source
 // truthfully degraded; it must not proceed for a silent/ambiguous degradation.
 const connectorTruthfulTapoDegradation = (deadlineBudget || recoveryContinuity) && connectorSamples.every(sample =>
-  !sample.ok && sample.status === "degraded" && sample.assigned === 1 && sample.connected === 1 &&
-  sample.failed === 0 && sample.empty === 0 && sample.progressing === 0 && sample.stalled === 1 &&
-  sample.reason_codes.length === 1 && sample.reason_codes[0] === "EXPECTED_RELAY_NOT_PROGRESSING");
+  !sample.ok && sample.status === "degraded" && sample.assigned === 1 && sample.empty === 0 &&
+  sample.progressing === 0 && (
+    sample.connected === 1 && sample.failed === 0 && [0, 1].includes(sample.stalled) &&
+      sample.reason_codes.length === 1 && sample.reason_codes[0] === "EXPECTED_RELAY_NOT_PROGRESSING" ||
+    sample.connected === 0 && sample.failed === 1 && sample.stalled === 0 &&
+      JSON.stringify([...sample.reason_codes].sort()) ===
+        JSON.stringify(["DISCOVERY_PROBE_FAILED", "EXPECTED_RELAY_NOT_PROGRESSING"])
+  ));
 if (!connectorPidStable || (!connectorPrerequisiteHealthy && !connectorTruthfulTapoDegradation))
-  throw new Error("P38_GATEWAY_COMMON_CAUSE_CONNECTOR_HEALTH_INVALID");
+  throw new Error(`P38_GATEWAY_COMMON_CAUSE_CONNECTOR_HEALTH_INVALID:${JSON.stringify({
+    connectorPidStable, connectorSamples
+  })}`);
 const disk = statfsSync(root);
 if (Number(disk.bavail) * Number(disk.bsize) < item.size * 3)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_DISK_INSUFFICIENT");

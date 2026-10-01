@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -145,14 +145,27 @@ async function playback(streamId) {
   const grant = await jsonFetch(`${base}/camera/${encodeURIComponent(streamId)}/playback`, {
     headers: { "x-video-gateway-secret": shadowSecret }
   }).catch(() => null);
-  if (grant?.status !== 200 || !grant.data?.playback?.hls_url) return { status: grant?.status || 0, playlist_status: 0, segment_status: 0, segment_bytes: 0 };
+  if (grant?.status !== 200 || !grant.data?.playback?.hls_url) return {
+    status: grant?.status || 0, playlist_status: 0, segment_status: 0, segment_bytes: 0,
+    media_sequence: null, latest_segment_sequence: null, playlist_sha256: null,
+    segment_sha256: null
+  };
   const playlistResponse = await fetch(grant.data.playback.hls_url, { signal: AbortSignal.timeout(20_000) }).catch(() => null);
   const playlist = playlistResponse?.ok ? await playlistResponse.text() : "";
-  const segmentName = playlist.match(/^(segment-\d+\.ts\?token=.+)$/m)?.[1];
+  const playlistLines = playlist.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const segmentName = playlistLines.filter(line => /^segment-\d+\.ts\?token=/.test(line)).at(-1);
+  const mediaSequence = Number(/^#EXT-X-MEDIA-SEQUENCE:(\d+)$/.exec(
+    playlistLines.find(line => line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) || "")?.[1]);
+  const latestSegmentSequence = Number(/^segment-(\d+)\.ts/.exec(segmentName || "")?.[1]);
   const segmentUrl = segmentName ? new URL(segmentName, grant.data.playback.hls_url).toString() : "";
   const segmentResponse = segmentUrl ? await fetch(segmentUrl, { signal: AbortSignal.timeout(20_000) }).catch(() => null) : null;
-  const segmentBytes = segmentResponse?.ok ? (await segmentResponse.arrayBuffer()).byteLength : 0;
-  return { status: grant.status, playlist_status: playlistResponse?.status || 0, segment_status: segmentResponse?.status || 0, segment_bytes: segmentBytes };
+  const segment = segmentResponse?.ok ? Buffer.from(await segmentResponse.arrayBuffer()) : Buffer.alloc(0);
+  return { status: grant.status, playlist_status: playlistResponse?.status || 0,
+    segment_status: segmentResponse?.status || 0, segment_bytes: segment.byteLength,
+    media_sequence: Number.isInteger(mediaSequence) ? mediaSequence : null,
+    latest_segment_sequence: Number.isInteger(latestSegmentSequence) ? latestSegmentSequence : null,
+    playlist_sha256: playlist ? createHash("sha256").update(playlist).digest("hex") : null,
+    segment_sha256: segment.length ? createHash("sha256").update(segment).digest("hex") : null };
 }
 async function health(url) {
   const result = await jsonFetch(url).catch(() => null);

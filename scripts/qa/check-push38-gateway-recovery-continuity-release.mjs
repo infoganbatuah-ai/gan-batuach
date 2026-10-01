@@ -50,6 +50,32 @@ try {
   assert.match(publisher, /observer-push38-gateway-recovery-continuity-r2-publication-v1/);
   assert.match(activation, /P38_GATEWAY_RECOVERY_CONTINUITY_FAILED_PROOF_INVALID/);
   assert.match(activation, /mediaContinuity: recoveryContinuity/);
+  assert.match(activation,
+    /new Set\(renewals\.map\(renewal => renewal\.segment_sha256\)\)\.size === renewals\.length/,
+  "recovery continuity requires unique fresh media bytes at every playback checkpoint");
+  assert.match(activation,
+    /staleInput <= Number\(lifecycle\.startsByReason\?\.recovery \?\? -1\)/,
+  "every stale-input classification must be causally bounded by a recovery start");
+  assert.match(activation, /staleOnRequest <= 1/,
+  "one contained demand-boundary recovery may pass only with uninterrupted fresh media proof");
+  assert.match(activation,
+    /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity \|\| sweepDeadline \|\| deadlineBudget \|\|\s+recoveryContinuity/,
+  "recovery continuity must use the bounded recovered warmup-failure contract");
+  assert.match(activation,
+    /failedHandoffKeptCurrentMedia[\s\S]*owner_state === "CURRENT"[\s\S]*canonical_owner_progressing === true/,
+  "a rejected candidate is contained when the canonical owner remains current and serves fresh media");
+  assert.match(activation,
+    /DISCOVERY_PROBE_FAILED[\s\S]*EXPECTED_RELAY_NOT_PROGRESSING/,
+  "a Gateway-only rollout may preserve a separately truthful Tapo discovery failure");
+  assert.match(activation, /\[0, 1\]\.includes\(sample\.stalled\)/,
+  "Tapo retry may temporarily have no relay object while remaining explicitly degraded");
+  const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
+  assert.match(shadow, /latest_segment_sequence/);
+  assert.match(shadow, /segment_sha256/);
+  const isolated = readFileSync("scripts/qa/run-push38-dvr-shadow-isolated.mjs", "utf8");
+  assert.match(isolated, /CONTROLLED_LAUNCHD_PAUSE_WITH_FINALLY_RESTORE/);
+  assert.match(isolated, /finally \{\s+await restore\(\)/);
+  assert.match(isolated, /exact_live_release_restored: true/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
