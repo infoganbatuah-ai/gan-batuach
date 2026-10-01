@@ -15,11 +15,12 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
-  privateNvrRoutineHandoffConfirmed,
+  privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffSchedule,
   relayMaySurvivePrivateNvrRenewal,
   shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldProactivelyHandoffPrivateNvrRelay,
@@ -251,8 +252,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
     "a renewed-session sweep drains stale epochs without scheduler gaps");
   assert.match(gateway,
-    /routine\.find\([\s\S]*privateNvrProvisionalHandoffAllowed[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
-    "ordinary finite-response maintenance is process-budgeted per recorder");
+    /privateNvrRoutineHandoffSchedule\([\s\S]*commonCapacity[\s\S]*laneCapacity[\s\S]*void warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
+    "ordinary finite-response maintenance is deadline- and process-budgeted per recorder");
   assert.doesNotMatch(gateway,
     /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
     "a slow media sweep must not block heartbeat or login renewal");
@@ -275,12 +276,16 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   "the old relay must remain the sole canonical owner until confirmed promotion");
   assert.doesNotMatch(gateway, /WARM_HANDOFF_CHAIN_ADVANCED|scheduleOutputRescueProbation/,
   "an unconfirmed replacement cannot advance a handoff chain");
-  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 1);
+  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
   assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 12_000);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1 }), false,
-  "the recorder may have only one candidate replacement at a time");
+  "the recorder may have only one routine candidate replacement at a time");
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
+    handoffMode: "OUTPUT_RESCUE" }), true,
+  "one output-rescue candidate remains available beside the routine lane");
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 2,
     handoffMode: "OUTPUT_RESCUE" }), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
     replacingExistingProbation: true }), false,
@@ -288,9 +293,13 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /liveRelayProcesses:[\s\S]*candidateHandoffs:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:[\s\S]*maximumRoutineProbations:/,
   "live health must expose the process-budget evidence used by qualification");
+  const synchronized = privateNvrRoutineHandoffSchedule(Array(9).fill(100_000),
+    112_000);
+  assert.equal(synchronized.ready, true);
+  assert.equal(synchronized.latestSafeStartAt, 112_000);
   assert.match(gateway,
-    /routine\.sort\([\s\S]*OUTPUT_RESCUE[\s\S]*privateNvrProvisionalHandoffAllowed\(\{ activeProbations,[\s\S]*handoffMode: mode/,
-  "urgent output rescue must be scheduled ahead of routine maintenance");
+    /outputRescues\.sort\([\s\S]*privateNvrRoutineHandoffSchedule\([\s\S]*relayWarmupModes/,
+  "urgent rescue and the deadline-aware routine lane must use explicit bounded ownership");
   assert.match(gateway,
     /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
   "a playback request must await an in-flight bounded replacement before tearing down its relay");

@@ -17,12 +17,13 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
-  privateNvrRoutineHandoffConfirmed,
+  privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
@@ -107,6 +108,7 @@ async function maintainPrivateNvrRelayHandoffs() {
   // potentially slow media handoff. Replace at most one channel per pass, so
   // a full handoff sweep can never starve the ten-second heartbeat.
   const sessionSweep = [];
+  const outputRescues = [];
   const routine = [];
   for (const [streamId, relay] of [...relays]) {
     const source = streamSources.get(streamId);
@@ -119,6 +121,7 @@ async function maintainPrivateNvrRelayHandoffs() {
       sessionSweep.push([streamId, relay]);
       continue;
     }
+    if (relayWarmups.has(streamId)) continue;
     const handoffMode = privateNvrRelayHandoffMode({
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
@@ -127,7 +130,12 @@ async function maintainPrivateNvrRelayHandoffs() {
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
     }, observedAt);
-    if (handoffMode) routine.push([streamId, relay, handoffMode]);
+    if (handoffMode === "OUTPUT_RESCUE") {
+      outputRescues.push([streamId, relay, handoffMode]);
+    } else if (relayIsProgressing(relay) && relayEligibleForHandoff(streamId, relay)
+      && !relayWarmups.has(streamId)) {
+      routine.push([streamId, relay, "ROUTINE_FINITE_RESPONSE"]);
+    }
   }
   // Once a new non-exclusive login exists, do not spend another two-second
   // scheduler interval between channels. Warm replacements remain strictly
@@ -140,22 +148,47 @@ async function maintainPrivateNvrRelayHandoffs() {
     }
     return;
   }
-  // The failed 0.2.36 pre-soak proved that parallel provisional replacements
-  // can exhaust an otherwise healthy recorder source. Keep one replacement
-  // candidate for the recorder, and keep the old relay authoritative until
-  // that candidate proves sustained output. Output rescue remains higher
-  // priority than preventative finite-response renewal.
-  routine.sort((left, right) => Number(right[2] === "OUTPUT_RESCUE")
-    - Number(left[2] === "OUTPUT_RESCUE"));
-  const [streamId, relay, handoffMode] = routine.find(([candidateId, candidate, mode]) => {
+  // The failed 0.2.36 pre-soak proved that unbounded provisional replacements
+  // can exhaust an otherwise healthy recorder. Keep one serialized routine
+  // lane and one separately bounded rescue lane. Deadline scheduling begins a
+  // synchronized nine-source sweep early enough that later channels do not
+  // hit hard stale while waiting for the routine lane.
+  outputRescues.sort((left, right) =>
+    (relayPlaylistMtime(left[1]) ?? Number.POSITIVE_INFINITY)
+      - (relayPlaylistMtime(right[1]) ?? Number.POSITIVE_INFINITY));
+  routine.sort((left, right) => left[1].startedAt - right[1].startedAt);
+  const schedule = privateNvrRoutineHandoffSchedule(
+    routine.map(([, candidate]) => candidate.startedAt), observedAt,
+    { slotBudgetMs: PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS });
+  // Prefer an urgent rescue, but still let the routine row use its own lane
+  // when the rescue lane is already occupied. This prevents a rescue backlog
+  // from starving the finite-response deadline sweep.
+  const candidateRows = [
+    ...outputRescues,
+    ...(schedule.ready ? routine.slice(0, 1) : [])
+  ];
+  const [streamId, relay, handoffMode] = candidateRows.find(([candidateId, candidate, mode]) => {
     const sessionKey = streamSources.get(candidateId)?.sessionKey;
-    const activeProbations = [...relays.entries()].filter(([otherId, other]) =>
-      streamSources.get(otherId)?.sessionKey === sessionKey && other?.retainedFallback).length;
-    return privateNvrProvisionalHandoffAllowed({ activeProbations,
-      replacingExistingProbation: Boolean(candidate?.retainedFallback), handoffMode: mode });
+    const activeProbations = [...relayWarmupModes.entries()].filter(([otherId]) =>
+      streamSources.get(otherId)?.sessionKey === sessionKey).length;
+    const activeRoutineProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
+      streamSources.get(otherId)?.sessionKey === sessionKey && otherMode !== "OUTPUT_RESCUE").length;
+    const activeRescueProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
+      streamSources.get(otherId)?.sessionKey === sessionKey && otherMode === "OUTPUT_RESCUE").length;
+    const commonCapacity = privateNvrProvisionalHandoffAllowed({ activeProbations,
+      maximum: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+      replacingExistingProbation: Boolean(candidate?.retainedFallback),
+      handoffMode: "OUTPUT_RESCUE" });
+    const laneCapacity = privateNvrProvisionalHandoffAllowed({
+      activeProbations: mode === "OUTPUT_RESCUE"
+        ? activeRescueProbations : activeRoutineProbations,
+        maximum: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+        replacingExistingProbation: Boolean(candidate?.retainedFallback), handoffMode: mode });
+    return commonCapacity && laneCapacity;
   }) || [];
   if (streamId && relays.get(streamId) === relay) {
-    await warmReplacePrivateNvrRelay(streamId, relay, handoffMode);
+    void warmReplacePrivateNvrRelay(streamId, relay, handoffMode)
+      .catch(error => { reportPrivateNvrMaintenanceFailure("relay_handoff_candidate", error); });
   }
 }
 
@@ -207,8 +240,9 @@ setInterval(() => {
   }
 }, 10_000).unref();
 // Keep recorder media replacement independent from login/heartbeat work and
-// fast enough to complete a bounded one-at-a-time sweep before the recorder
-// retires responses owned by the prior non-exclusive login.
+// fast enough to complete a bounded routine sweep before the recorder retires
+// responses owned by the prior non-exclusive login. A second, independently
+// bounded lane may rescue output that is already approaching hard stale.
 setInterval(() => {
   if (!privateNvrRelayHandoffRun) {
     privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs()
@@ -233,6 +267,7 @@ let activeEventCaptures = 0;
 let eventManifestRequestRevision = 0;
 const relayStarts = new Map();
 const relayWarmups = new Map();
+const relayWarmupModes = new Map();
 const relayRecovery = new Map();
 const relayDiagnostics = new Map();
 const playbackTokens = new Map();
@@ -1559,8 +1594,12 @@ async function warmReplaceRelay(streamId, previous, {
     relayLifecycle.warmHandoffs += 1;
     cleanupRelayDirectories(streamId, replacement, previousDirectories);
     return true;
-  })().finally(() => relayWarmups.delete(streamId));
+  })().finally(() => {
+    relayWarmups.delete(streamId);
+    relayWarmupModes.delete(streamId);
+  });
   relayWarmups.set(streamId, promise);
+  relayWarmupModes.set(streamId, handoffMode);
   return promise;
 }
 

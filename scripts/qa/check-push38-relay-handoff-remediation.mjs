@@ -8,23 +8,53 @@ import { classifyRelayExit } from
 import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+  PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+  PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   privateNvrHandoffMediaContinuity,
   privateNvrProvisionalHandoffAllowed,
-  privateNvrRoutineHandoffConfirmed } from
+  privateNvrRoutineHandoffConfirmed,
+  privateNvrRoutineHandoffSchedule } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 
-test("a handoff has one canonical owner and one candidate", () => {
-  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 1);
+test("one routine owner lane leaves one bounded output-rescue lane", () => {
+  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
+  assert.equal(PRIVATE_NVR_MAX_ROUTINE_PROBATIONS, 1);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 0 }), true);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1 }), false);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
+    handoffMode: "OUTPUT_RESCUE" }), true);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 2,
+    handoffMode: "OUTPUT_RESCUE" }), false);
   assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 1,
     replacingExistingProbation: true }), false);
   assert.match(server, /const expectedCurrent = previous/);
   assert.doesNotMatch(server, /WARM_HANDOFF_CHAIN_ADVANCED/);
+});
+
+test("a synchronized nine-source sweep starts before the finite deadline", () => {
+  const startedAt = 1_000_000;
+  const latestSafeStartAt = startedAt + PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS
+    - 9 * PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS;
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS, 12_000);
+  assert.deepEqual(privateNvrRoutineHandoffSchedule(
+    Array(9).fill(startedAt), latestSafeStartAt - 1), {
+    ready: false, latestSafeStartAt, nextStartedAt: startedAt, queued: 9
+  });
+  assert.deepEqual(privateNvrRoutineHandoffSchedule(
+    Array(9).fill(startedAt), latestSafeStartAt), {
+    ready: true, latestSafeStartAt, nextStartedAt: startedAt, queued: 9
+  });
+  assert.match(server, /const relayWarmupModes = new Map\(\)/);
+  assert.match(server,
+    /privateNvrRoutineHandoffSchedule\([\s\S]*void warmReplacePrivateNvrRelay/);
+  assert.match(server,
+    /if \(relayWarmups\.has\(streamId\)\) continue;[\s\S]*const candidateRows = \[[\s\S]*\.\.\.outputRescues,[\s\S]*routine\.slice\(0, 1\)/,
+  "an in-flight source cannot be selected twice and a rescue backlog cannot starve the routine lane");
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
@@ -103,4 +133,24 @@ test("source degradation does not falsely mark the Gateway component offline", (
   assert.equal(result.health_dimensions.source.gateway_degraded_checkpoints, 1);
   assert.ok(result.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"));
   assert.ok(!result.gate_failures.includes("COMPONENT_HEALTH_CHECK_FAILED"));
+});
+
+test("a missing runtime sample is not reported as a process restart", () => {
+  const startedAt = Date.parse("2026-10-01T01:00:00.000Z");
+  const point = (minute, runtimePid) => ({
+    sampled_at: new Date(startedAt + minute * 60_000).toISOString(),
+    interval_ms: 60_000, empty_dvr_slots: 6,
+    dvr: { liveness: { ok: true }, classification: "PASS", component_status: "degraded",
+      expected: 10, source_available: 9, known_upstream_unavailable: [8], progressing: 9,
+      inputs: [1, 2, 3, 4, 5, 6, 7, 10, 11].map(channel => ({ channel, progressing: true })) },
+    tapo: { liveness: { ok: true }, classification: "PASS", progressing: 1,
+      inputs: [{ channel: 1, progressing: true }] },
+    resources: { gateway: { supervisor_pid: 101, runtime_pid: runtimePid, pid: 101 },
+      connector: { supervisor_pid: 201, runtime_pid: 202, pid: 201 } }
+  });
+  const result = summarizeRealHomeSoak([point(0, 102), point(1, null), point(2, 102)], {
+    startedAt, endedAt: startedAt + 180_000, requiredDurationMs: 180_000,
+    dvrSourceAvailable: 9, dvrKnownUpstreamUnavailable: [8]
+  });
+  assert.equal(result.gateway.runtime_restarts, 0);
 });

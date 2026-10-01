@@ -41,12 +41,21 @@ export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // well before the recorder's observed finite-response boundary.
 export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 6_000;
 export const PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES = 4;
-// Recorder media concurrency is separate from login exclusivity. The device
-// permits a non-exclusive login, but the live failure shows that several
-// simultaneous media replacements can still make a channel time out. Keep one
-// authoritative relay plus at most one candidate replacement for the recorder.
-export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 1;
+// Recorder media concurrency is separate from login exclusivity. Login/Range
+// and the model's documented sixteen-channel playback ceiling permit the nine
+// qualified streams plus two bounded candidates. The 0.2.39 canary proved that
+// one globally serialized candidate cannot drain nine synchronized finite
+// responses before later sources become stale. Keep one routine lane and one
+// independently reserved output-rescue lane; never return to the unbounded
+// nine-candidate behavior that starved earlier releases.
+export const PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS = 2;
 export const PRIVATE_NVR_MAX_ROUTINE_PROBATIONS = 1;
+// A successful replacement normally needs the first decoded output plus four
+// playlist advances over six seconds. Reserve twelve seconds per queued source
+// when deciding when the serialized routine lane must begin. This is a
+// deadline calculation, not a relaxed freshness threshold: stale media still
+// fails at the same boundary and the rescue lane remains independently bounded.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS = 12_000;
 // Output rescue begins after twelve seconds without rendered HLS progress,
 // leaving eight seconds before the ordinary twenty-second stale boundary.
 // If an already-running warm replacement has not promoted by that boundary,
@@ -70,6 +79,25 @@ export function privateNvrProvisionalHandoffAllowed({ activeProbations,
     && Number.isInteger(activeProbations) && activeProbations >= 0
     && Number.isInteger(maximum) && maximum > 0
     && activeProbations < limit);
+}
+
+export function privateNvrRoutineHandoffSchedule(startedAts, now = Date.now(), {
+  renewalMs = PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  slotBudgetMs = PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS
+} = {}) {
+  const deadlines = (Array.isArray(startedAts) ? startedAts : [])
+    .filter(Number.isFinite)
+    .map(startedAt => ({ startedAt, deadlineAt: startedAt + renewalMs }))
+    .sort((left, right) => left.deadlineAt - right.deadlineAt);
+  if (!deadlines.length || !Number.isFinite(now) || !Number.isFinite(slotBudgetMs)
+    || slotBudgetMs <= 0) {
+    return { ready: false, latestSafeStartAt: null, nextStartedAt: null,
+      queued: deadlines.length };
+  }
+  const latestSafeStartAt = Math.min(...deadlines.map((entry, index) =>
+    entry.deadlineAt - (index + 1) * slotBudgetMs));
+  return { ready: now >= latestSafeStartAt, latestSafeStartAt,
+    nextStartedAt: deadlines[0].startedAt, queued: deadlines.length };
 }
 
 // A proactive login renewal starts the recorder's observed prior-login media
