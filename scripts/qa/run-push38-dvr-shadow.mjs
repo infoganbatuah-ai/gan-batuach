@@ -305,8 +305,8 @@ try {
     && point.shadow.discovery?.connected === 1
     && point.shadow.media?.progressing === 1)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
-  if ((lifecycle.warmHandoffConfirmationFailures || 0) > 0)
-    failures.push("HANDOFF_CONFIRMATION");
+  if ((lifecycle.warmHandoffFailures || 0) > 0)
+    failures.push("HANDOFF_FAILURE");
   if ((lifecycle.stalePlaylist || 0) > 0) failures.push("STALE_PLAYLIST");
   if ((lifecycle.inputSocketError || 0) > 0) failures.push("INPUT_SOCKET");
   if ((finalPoint?.shadow.recorder_session?.rotations || 0) > 0)

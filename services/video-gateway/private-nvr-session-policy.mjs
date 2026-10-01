@@ -232,10 +232,11 @@ export function privateNvrHandoffMediaContinuity({ currentProgressing,
 // can never keep a stale owner alive.
 export function shouldDeferPrivateNvrStaleOwnerTeardown({ handoffInFlight,
   candidateProgressing, currentOutputAt, relayStaleMs,
+  preserveOwnerUntilHandoffSettles = false,
   requestGraceMs = PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   now = Date.now() }) {
   if (!handoffInFlight) return false;
-  if (candidateProgressing) return true;
+  if (candidateProgressing || preserveOwnerUntilHandoffSettles) return true;
   return Number.isFinite(currentOutputAt) && Number.isFinite(relayStaleMs) &&
     relayStaleMs > 0 && now - currentOutputAt < relayStaleMs + requestGraceMs;
 }

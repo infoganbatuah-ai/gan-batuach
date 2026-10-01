@@ -184,6 +184,11 @@ test("stale request waits through bounded backoff and handoff media wakes demand
     /waitForRelayHandoffMedia\(streamId, requestGraceMs\)/);
   assert.match(server,
     /relayMediaContinuity\(streamId\)\.progressing/);
+  assert.match(server,
+    /requestRescueEligible[\s\S]*privateNvrHandoffCapacityAvailable\(streamId, "OUTPUT_RESCUE", existing\)[\s\S]*warmReplacePrivateNvrRelay\(streamId, existing, "OUTPUT_RESCUE"\)/,
+  "a stale playback request must reuse the bounded output-rescue lane before destructive recovery");
+  assert.match(server, /last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED"/,
+  "failed candidate acquisition must be visible in source diagnostics");
 });
 
 test("brief progress cannot clear recovery history", () => {

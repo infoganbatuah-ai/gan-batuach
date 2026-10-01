@@ -180,25 +180,9 @@ async function maintainPrivateNvrRelayHandoffs() {
     ...outputRescues,
     ...(schedule.ready ? routine.slice(0, 1) : [])
   ];
-  const [streamId, relay, handoffMode] = candidateRows.find(([candidateId, candidate, mode]) => {
-    const sessionKey = streamSources.get(candidateId)?.sessionKey;
-    const activeProbations = [...relayWarmupModes.entries()].filter(([otherId]) =>
-      streamSources.get(otherId)?.sessionKey === sessionKey).length;
-    const activeRoutineProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
-      streamSources.get(otherId)?.sessionKey === sessionKey && otherMode !== "OUTPUT_RESCUE").length;
-    const activeRescueProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
-      streamSources.get(otherId)?.sessionKey === sessionKey && otherMode === "OUTPUT_RESCUE").length;
-    const commonCapacity = privateNvrProvisionalHandoffAllowed({ activeProbations,
-      maximum: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
-      replacingExistingProbation: Boolean(candidate?.retainedFallback),
-      handoffMode: "OUTPUT_RESCUE" });
-    const laneCapacity = privateNvrProvisionalHandoffAllowed({
-      activeProbations: mode === "OUTPUT_RESCUE"
-        ? activeRescueProbations : activeRoutineProbations,
-        maximum: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
-        replacingExistingProbation: Boolean(candidate?.retainedFallback), handoffMode: mode });
-    return commonCapacity && laneCapacity;
-  }) || [];
+  const [streamId, relay, handoffMode] = candidateRows.find(
+    ([candidateId, candidate, mode]) =>
+      privateNvrHandoffCapacityAvailable(candidateId, mode, candidate)) || [];
   if (streamId && relays.get(streamId) === relay) {
     if (handoffMode === "ROUTINE_FINITE_RESPONSE") {
       relay.lastRoutineHandoffAttemptAt = observedAt;
@@ -297,6 +281,24 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
     outputRescue: 0, sessionSweep: 0, otherHandoff: 0 },
   staleByOwner: { current: 0, warming: 0, retainedFallback: 0,
     detached: 0 } };
+
+function privateNvrHandoffCapacityAvailable(streamId, handoffMode, candidate) {
+  const sessionKey = streamSources.get(streamId)?.sessionKey;
+  const activeProbations = [...relayWarmupModes.entries()].filter(([otherId]) =>
+    streamSources.get(otherId)?.sessionKey === sessionKey).length;
+  const activeRoutineProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
+    streamSources.get(otherId)?.sessionKey === sessionKey && otherMode !== "OUTPUT_RESCUE").length;
+  const activeRescueProbations = [...relayWarmupModes.entries()].filter(([otherId, otherMode]) =>
+    streamSources.get(otherId)?.sessionKey === sessionKey && otherMode === "OUTPUT_RESCUE").length;
+  return privateNvrProvisionalHandoffAllowed({ activeProbations,
+    maximum: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+    replacingExistingProbation: Boolean(candidate?.retainedFallback),
+    handoffMode: "OUTPUT_RESCUE" }) && privateNvrProvisionalHandoffAllowed({
+    activeProbations: handoffMode === "OUTPUT_RESCUE"
+      ? activeRescueProbations : activeRoutineProbations,
+    maximum: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+    replacingExistingProbation: Boolean(candidate?.retainedFallback), handoffMode });
+}
 const edgeSupervisor = createEdgeSupervisor({ adapters: {
   [EDGE_RECOVERY_ACTION.RECONNECT_SOURCE]: async ({ resourceId }) => {
     const relay = relays.get(resourceId);
@@ -1396,6 +1398,25 @@ async function ensureRelay(streamId) {
   // replacement finish instead of destroying the current generation and
   // returning a synthetic 503 gap. The wait is bounded and never starts a
   // second recovery path.
+  // A real Home playback request caught a private-recorder owner just after
+  // its playlist crossed hard stale, after the scheduler's first rescue
+  // acquisition had already ended. Starting destructive recovery here caused
+  // a synthetic 503 even though the recorder login remained healthy. Give the
+  // same bounded, capacity-checked output-rescue path one request-triggered
+  // chance while retaining the old owner as an identity/HLS fallback.
+  const outputAt = relayPlaylistMtime(existing);
+  const requestRescueEligible = source?.kind === "private_nvr_http_mp4"
+    && existing && relayIsRunning(existing)
+    && relayBelongsToCurrentSession(existing, source)
+    && !existing.retainedFallback
+    && Number.isFinite(outputAt)
+    && Date.now() - existing.startedAt >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
+    && Date.now() - outputAt < RELAY_STALE_MS + PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS;
+  if (requestRescueEligible && !relayWarmups.has(streamId)
+    && privateNvrHandoffCapacityAvailable(streamId, "OUTPUT_RESCUE", existing)) {
+    void warmReplacePrivateNvrRelay(streamId, existing, "OUTPUT_RESCUE")
+      .catch(error => { reportPrivateNvrMaintenanceFailure("relay_request_rescue", error); });
+  }
   const handoff = relayWarmups.get(streamId);
   if (existing && handoff) {
     const handoffMode = relayWarmupModes.get(streamId);
@@ -1576,16 +1597,33 @@ async function warmReplaceRelay(streamId, previous, {
   // session policy already permits a progressing relay to survive a proactive
   // non-exclusive renewal, so defer its warm handoff until it has completed
   // the same stability window that clears recovery history.
-  if (!previous || previous.retainedFallback || !relayIsProgressing(previous) ||
+  const outputAt = relayPlaylistMtime(previous);
+  const source = streamSources.get(streamId);
+  const boundedStaleOutputRescue = handoffMode === "OUTPUT_RESCUE"
+    && source?.kind === "private_nvr_http_mp4"
+    && relayIsRunning(previous) && relayBelongsToCurrentSession(previous, source)
+    && Number.isFinite(outputAt)
+    && Date.now() - outputAt < RELAY_STALE_MS + PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS;
+  if (!previous || previous.retainedFallback ||
+    (!relayIsProgressing(previous) && !boundedStaleOutputRescue) ||
     !relayEligibleForHandoff(streamId, previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
+    const probationStartedAt = Date.now();
     const replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
-    if (!replacement) return false;
+    if (!replacement) {
+      relayLifecycle.warmHandoffFailures += 1;
+      relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+        last_handoff_result: "FAILED",
+        last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED",
+        last_handoff_first_output_latency_ms: null,
+        last_handoff_output_advances: 0,
+        last_handoff_duration_ms: Date.now() - probationStartedAt });
+      return false;
+    }
     // Routine candidates release the scheduler lane inside its declared slot.
     // Output rescue owns a separate bounded lane and may use the measured
     // first-output allowance without delaying the routine sweep.
-    const probationStartedAt = Date.now();
     let deadline = privateNvrHandoffProbationDeadline({ handoffMode,
       probationStartedAt, minimumConfirmationMs });
     let firstOutputAt = null;
@@ -1813,6 +1851,8 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
         shouldDeferPrivateNvrStaleOwnerTeardown({
           handoffInFlight: relayWarmups.has(streamId),
           candidateProgressing: relayIsProgressing(warmingCandidate),
+          preserveOwnerUntilHandoffSettles:
+            relayWarmupModes.get(streamId) === "OUTPUT_RESCUE",
           currentOutputAt: outputAt,
           relayStaleMs: RELAY_STALE_MS,
           requestGraceMs: relayWarmupModes.get(streamId) === "OUTPUT_RESCUE"

@@ -232,10 +232,13 @@ test("a progressing warm candidate keeps its owner until bounded confirmation", 
   "the existing bounded request grace remains valid while handoff is active");
   assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown(stale), false);
   assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown({ ...stale,
+    preserveOwnerUntilHandoffSettles: true }), true,
+  "a bounded output-rescue promise keeps the identity owner until it settles");
+  assert.equal(shouldDeferPrivateNvrStaleOwnerTeardown({ ...stale,
     handoffInFlight: false, candidateProgressing: true }), false,
   "an orphan candidate may never preserve a stale owner");
   assert.match(gateway,
-    /const warmingCandidate = relayCandidates\.get\(streamId\);[\s\S]*shouldDeferPrivateNvrStaleOwnerTeardown\([\s\S]*candidateProgressing: relayIsProgressing\(warmingCandidate\)[\s\S]*if \(awaitingWarmReplacement\) return;/,
+    /const warmingCandidate = relayCandidates\.get\(streamId\);[\s\S]*shouldDeferPrivateNvrStaleOwnerTeardown\([\s\S]*candidateProgressing: relayIsProgressing\(warmingCandidate\)[\s\S]*preserveOwnerUntilHandoffSettles:[\s\S]*if \(awaitingWarmReplacement\) return;/,
   "the live monitor must consult candidate media before tearing down its owner");
 });
 
@@ -258,7 +261,7 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
     "a renewed-session sweep drains stale epochs without scheduler gaps");
   assert.match(gateway,
-    /privateNvrRoutineHandoffSchedule\([\s\S]*commonCapacity[\s\S]*laneCapacity[\s\S]*void warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
+    /privateNvrRoutineHandoffSchedule\([\s\S]*privateNvrHandoffCapacityAvailable\(candidateId, mode, candidate\)[\s\S]*void warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
     "ordinary finite-response maintenance is deadline- and process-budgeted per recorder");
   assert.doesNotMatch(gateway,
     /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
