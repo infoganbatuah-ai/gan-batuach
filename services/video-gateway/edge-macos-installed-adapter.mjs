@@ -34,6 +34,18 @@ export function plistXml(value) {
   };
   return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0">${entry(value)}</plist>`;
 }
+
+export function managedEdgeLaunchAgent(source) {
+  if (!source || typeof source !== "object" || Array.isArray(source))
+    fail("EDGE_INSTALLED_PLIST_INVALID");
+  const managed = { ...source };
+  // The desktop bootstrap is a low-priority convenience process, but the
+  // managed Site Edge is an always-on camera workload. Carrying the legacy
+  // Background process class into the managed lifecycle can starve Node/V8
+  // startup under host pressure before the health endpoint exists.
+  delete managed.ProcessType;
+  return managed;
+}
 function atomic(path, bytes) {
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
   const temporary = `${path}.${process.pid}.${randomUUID()}.staging`;
@@ -190,7 +202,8 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
       return service();
     }
     if (!existsSync(backupPath)) atomic(backupPath, original);
-    const source = JSON.parse(run("/usr/bin/plutil", ["-convert", "json", "-o", "-", backupPath]));
+    const source = managedEdgeLaunchAgent(JSON.parse(run("/usr/bin/plutil",
+      ["-convert", "json", "-o", "-", backupPath])));
     if (source.Label !== label || programRunner(source.ProgramArguments) !== originalRunner)
       fail("EDGE_INSTALLED_PLIST_REWRITE_FAILED");
     let node = programNode(source.ProgramArguments);

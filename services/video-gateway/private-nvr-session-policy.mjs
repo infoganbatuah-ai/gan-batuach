@@ -20,11 +20,17 @@ export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // alone is therefore not a handoff signal. Conversely, current input with a
 // frozen rendered playlist is an output-path failure and must not wait for the
 // twenty-second hard-stale boundary. Live Home canary evidence showed that a
-// four-second warning window was shorter than normal recorder/HLS cadence: it
-// caused 197 relay starts in fifteen minutes and one qualified-channel outage.
-// Require twelve continuous output-idle seconds, leaving eight seconds before
-// the hard-stale boundary for the bounded warm replacement to become current.
+// four-second output-only warning window was shorter than normal recorder/HLS
+// cadence: it caused 197 relay starts in fifteen minutes and one qualified-
+// channel outage. Keep that conservative detector for an isolated renderer
+// stall. A finite native response is stronger evidence: both recorder input
+// and rendered output stop together. The signed 0.2.45 shadow showed that
+// waiting twelve seconds in that case repeated the same HLS segment at two
+// adjacent ten-second checkpoints. Start the bounded rescue after four seconds
+// only when both signals are idle; current input or current output still
+// suppresses this early path.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
+export const PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS = 4_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A private-recorder response can stop delivering bytes even though the login
 // remains valid.  A replacement response is therefore allowed to probe that
@@ -189,9 +195,14 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;
+  const finiteResponseEnded = Number.isFinite(relay.lastInputAt)
+    && Number.isFinite(relay.lastOutputAt)
+    && now - relay.lastInputAt >= PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS
+    && now - relay.lastOutputAt >= PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS;
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && Number.isFinite(relay.lastOutputAt)
-    && now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+    && (finiteResponseEnded
+      || now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS);
   // Rendered-output loss is more urgent than the age-based finite-response
   // sweep. This also gives a genuinely stale older relay the separately
   // measured rescue acquisition budget instead of misclassifying it as a

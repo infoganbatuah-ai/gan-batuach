@@ -10,6 +10,7 @@ import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+  PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
@@ -134,6 +135,7 @@ test("playback can use a progressing rescue candidate without promoting ownershi
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
   const now = 100_000;
+  assert.equal(PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES, 4);
   assert.equal(privateNvrRoutineHandoffConfirmed({
@@ -145,6 +147,12 @@ test("playlist continuity requires four distinct advances over six seconds", () 
   assert.equal(privateNvrRoutineHandoffConfirmed({
     confirmationStartedAt: now - 6_000, outputAdvanced: true,
     outputAdvanceCount: 4, lastOutputAt: now, now }), true);
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: now - 6_000, outputAdvanced: true,
+    outputAdvanceCount: 5, lastOutputAt: now - 500, now }), true,
+  "a proven candidate confirms when time matures between playlist writes");
+  assert.match(server,
+    /if \(outputAt > lastObservedOutputAt\)[\s\S]*const confirmed = minimumConfirmationMs/);
 });
 
 test("a progressing candidate preserves health without early ownership promotion", () => {

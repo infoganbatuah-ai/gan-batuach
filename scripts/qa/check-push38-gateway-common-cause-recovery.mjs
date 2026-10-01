@@ -10,6 +10,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+  PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
@@ -152,6 +153,7 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
+  assert.equal(PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS, 4_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 6_000);
   assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES, 4);
   assert.equal(PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS, 8_000);
@@ -173,6 +175,24 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS + 1 }, now), false);
+  assert.equal(privateNvrRelayHandoffMode({ ...eligible,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS,
+    lastOutputAt: now - PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS }, now),
+  "OUTPUT_RESCUE", "coincident input/output idle is a finite-response end, not ordinary HLS cadence");
+  assert.equal(privateNvrRelayHandoffMode({ ...eligible,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now,
+    lastOutputAt: now - PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS }, now), null,
+  "current recorder input suppresses the early finite-response detector");
+  assert.equal(privateNvrRelayHandoffMode({ ...eligible,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_FINITE_RESPONSE_END_IDLE_MS,
+    lastOutputAt: now }, now), null,
+  "current rendered output suppresses the early finite-response detector");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -219,6 +239,9 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     now }), true);
   assert.match(gateway,
     /recorder's media response ends before[\s\S]*warmReplacePrivateNvrRelay/);
+  assert.match(gateway,
+    /if \(outputAt > lastObservedOutputAt\)[\s\S]*const confirmed = minimumConfirmationMs/,
+  "probation confirmation must be re-evaluated between HLS writes");
 });
 
 test("a progressing warm candidate keeps its owner until bounded confirmation", () => {

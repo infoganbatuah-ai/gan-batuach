@@ -1542,6 +1542,16 @@ function relayEligibleForHandoff(streamId, relay) {
   const outputIdleMs = source?.kind === "rtsp"
     ? DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS
     : PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
+  if (source?.kind === "private_nvr_http_mp4") {
+    return privateNvrRelayHandoffMode({
+      startedAt: relay.startedAt,
+      lastInputAt: relay.lastInputAt,
+      lastOutputAt: outputAt,
+      progressing: relayIsProgressing(relay),
+      recoveryStable: false,
+      warming: relay.warming
+    }, Date.now()) === "OUTPUT_RESCUE";
+  }
   return Date.now() - relay.startedAt >= minimumAgeMs
     && Date.now() - outputAt >= outputIdleMs;
 }
@@ -1654,14 +1664,22 @@ async function warmReplaceRelay(streamId, previous, {
             deadline = privateNvrHandoffProbationDeadline({ handoffMode,
               probationStartedAt, firstOutputObservedAt: confirmationStartedAt,
               minimumConfirmationMs });
-          } else if (outputAt > lastObservedOutputAt) {
-            lastObservedOutputAt = outputAt;
-            outputAdvanceCount += 1;
+          } else {
+            if (outputAt > lastObservedOutputAt) {
+              lastObservedOutputAt = outputAt;
+              outputAdvanceCount += 1;
+            }
+            // Confirmation is elapsed-time plus distinct-output evidence. It
+            // must be evaluated on every probation tick after four advances,
+            // not only on the next playlist write. The 0.2.45 shadow recorded
+            // five real advances, then rejected the routine candidate because
+            // the six-second boundary fell between HLS writes. That rejection
+            // left the old finite response alive until a visible output gap.
             const confirmed = minimumConfirmationMs === 0
               ? true
               : privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
-                outputAdvanced: true, outputAdvanceCount,
-                lastOutputAt: outputAt,
+                outputAdvanced: outputAdvanceCount > 0, outputAdvanceCount,
+                lastOutputAt: lastObservedOutputAt,
                 minimumConfirmationMs, maximumOutputIdleMs,
                 minimumOutputAdvances });
             if (confirmed) {
