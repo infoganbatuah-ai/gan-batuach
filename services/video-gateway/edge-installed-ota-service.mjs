@@ -102,7 +102,7 @@ function configFrom(path) {
   return config;
 }
 
-export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
+export async function runInstalledEdgeOtaService(configPath, { signal, once = false } = {}) {
   const config = configFrom(configPath), qa = Boolean(config.qaIsolationRoot);
   const trustRegistryPath = qa ? config.qaTrustRegistryPath : PROTECTED_EDGE_TRUST_REGISTRY_PATH;
   const trusted = loadPinnedEdgeReleaseKeys({ registryPath: trustRegistryPath,
@@ -160,6 +160,7 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
     trustRegistryPath, ...(qa ? { qaRootPinPath: config.qaRootPinPath, qaIsolationRoot: config.qaIsolationRoot } : {}),
     download, intervalMs: config.intervalMs || 5000,
     onEvent: event => process.stdout.write(`${JSON.stringify({ at: new Date().toISOString(), ...event })}\n`) });
+  if (once) return agent.tick();
   await agent.start({ signal });
 }
 

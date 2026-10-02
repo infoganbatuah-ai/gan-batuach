@@ -542,6 +542,19 @@ export class EdgeUpdateManager {
 export async function downloadEdgeUpdateArtifact({ url, destination, expectedSize, expectedSha256, fetchImpl = fetch, maxBytes = 2 * 1024 * 1024 * 1024 }) {
   const parsed = new URL(url); if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.hash) fail("EDGE_UPDATE_ARTIFACT_TRANSPORT_INVALID");
   if (!Number.isSafeInteger(expectedSize) || expectedSize < 1 || expectedSize > maxBytes) fail("EDGE_UPDATE_ARTIFACT_SIZE_INVALID");
+  // Immutable release objects may already be present after a prior verified
+  // download. A fresh authorization is still obtained by the caller before
+  // reaching this function; reuse only a protected regular file whose exact
+  // size and digest match the newly verified signed manifest.
+  if (existsSync(destination)) {
+    const info = lstatSync(destination);
+    if (!info.isFile() || info.isSymbolicLink() || (info.mode & 0o077) !== 0)
+      fail("EDGE_UPDATE_ARTIFACT_CACHE_UNSAFE");
+    const cached = readFileSync(destination);
+    if (cached.length !== expectedSize || createHash("sha256").update(cached).digest("hex") !== expectedSha256)
+      fail("EDGE_UPDATE_ARTIFACT_CACHE_INVALID");
+    return { path: destination, bytes: cached.length, reused: true };
+  }
   const temporary = `${destination}.${process.pid}.${randomUUID()}.partial`; mkdirSync(dirname(destination), { recursive: true, mode: 0o700 });
   let handle;
   try {

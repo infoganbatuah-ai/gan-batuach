@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   canonicalEdgeUpdateManifest, evaluateEdgeUpdateEligibility, shouldPauseRollout, verifyEdgeUpdateManifest
 } from "../../services/video-gateway/edge-update-contract.mjs";
-import { EdgeUpdateManager, edgeHealthGate } from "../../services/video-gateway/edge-update-manager.mjs";
+import { downloadEdgeUpdateArtifact, EdgeUpdateManager, edgeHealthGate } from "../../services/video-gateway/edge-update-manager.mjs";
 import { createEdgeCrashLoopGuard } from "../../services/video-gateway/edge-crash-loop-guard.mjs";
 
 const pair = generateKeyPairSync("ed25519");
@@ -317,6 +317,28 @@ for (const token of ["hasObserverAdminClaim", "verifyEdgeUpdateManifest", "write
 for (const table of ["observer_edge_releases", "observer_edge_rollouts", "observer_edge_device_updates"]) assert.match(migration, new RegExp(`enable row level security;[\\s\\S]*${table}|${table}[\\s\\S]*enable row level security`));
 assert.match(mac, /edge-update-agent|readdirSync\("services\/video-gateway"\)/); assert.match(windows, /edge-update-agent|readdirSync\("services\/video-gateway"\)/);
 assert.equal(existsSync("services/video-gateway/edge-update-agent.mjs"), true);
+
+// A fresh, scoped authorization may safely reuse an immutable prior download,
+// but only when the protected file exactly matches the signed size and digest.
+const cacheRoot = mkdtempSync(join(tmpdir(), "observer-edge-cache-"));
+try {
+  const cached = join(cacheRoot, "release.artifact");
+  writeFileSync(cached, artifact, { mode: 0o600 });
+  let fetched = 0;
+  const reused = await downloadEdgeUpdateArtifact({ url: "https://updates.example.invalid/release.artifact",
+    destination: cached, expectedSize: artifact.length, expectedSha256: digest,
+    fetchImpl: async () => { fetched++; throw new Error("cache should prevent network transfer"); } });
+  assert.deepEqual(reused, { path: cached, bytes: artifact.length, reused: true });
+  assert.equal(fetched, 0);
+  writeFileSync(cached, Buffer.from("tampered"), { mode: 0o600 });
+  await assert.rejects(downloadEdgeUpdateArtifact({ url: "https://updates.example.invalid/release.artifact",
+    destination: cached, expectedSize: artifact.length, expectedSha256: digest }),
+  /EDGE_UPDATE_ARTIFACT_CACHE_INVALID/);
+  writeFileSync(cached, artifact, { mode: 0o600 }); chmodSync(cached, 0o644);
+  await assert.rejects(downloadEdgeUpdateArtifact({ url: "https://updates.example.invalid/release.artifact",
+    destination: cached, expectedSize: artifact.length, expectedSha256: digest }),
+  /EDGE_UPDATE_ARTIFACT_CACHE_UNSAFE/);
+} finally { rmSync(cacheRoot, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", protocol: "observer-edge-update-v1", release_signing: "Ed25519",
   successful_update: "1.0.0->1.1.0 HEALTHY", controlled_bad_release: "1.2.0->health failure->automatic rollback->1.1.0 HEALTHY",
