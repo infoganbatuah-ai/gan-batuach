@@ -73,6 +73,11 @@ const gatewayHealthSerialization = "qa-p38-health-gateway-health-serialization-d
 // manifest rolls back directly to the signed live 0.2.64 KNOWN_GOOD.
 // Quarantined and superseded releases remain historical only.
 const gatewayRoutineConfirmation = "qa-p38-health-gateway-owner-recovery-eba5eebec6bc";
+// This successor serializes proactive session renewal against same-epoch
+// output rescue after the exact signed 0.2.64 predecessor. It remains bounded
+// by the same exact-device, zero-cohort and managed-identity checks above; this
+// allow-list entry does not broaden eligibility or replace signature checks.
+const gatewaySessionRenewalRescue = "qa-p38-health-gateway-renewal-rescue-89071bf49a45";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -114,7 +119,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayRelayHandoff, gatewayHandoffContinuity,
       gatewayHandoffOwnerContinuity, gatewaySweepDeadline, gatewayDeadlineBudget,
       gatewayRecoveryContinuity, gatewayHealthSerialization,
-      gatewayRoutineConfirmation].includes(manifest.release_id) &&
+      gatewayRoutineConfirmation, gatewaySessionRenewalRescue].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
