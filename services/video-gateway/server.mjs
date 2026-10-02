@@ -1641,7 +1641,8 @@ function observeLocalResources() {
     const continuity = relayMediaContinuity(streamId, relay);
     edgeSupervisor.observe({ resourceId: streamId, assignment: source?.status === "unassigned" ? "CHANNEL_EMPTY" : "ASSIGNED",
       processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
-      sourceAvailable: source?.status !== "unavailable", relayRunning: relay ? relayIsRunning(relay) : false,
+      sourceAvailable: source?.status !== "unavailable",
+      relayRunning: relayIsRunning(continuity.effective),
       frameProgressing: continuity.progressing,
       lastFrameAt: continuity.effective?.lastInputAt, dimension: "relay" });
     if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) relayRecovery.delete(streamId);
@@ -2447,7 +2448,15 @@ async function handle(request, response) {
     const healthObservedAt = new Date().toISOString();
     const edge = localEdgeReadiness();
     const supervision = edgeSupervisor.snapshot();
-    const relayContinuity = [...relays.keys()].map(streamId =>
+    // Exclusive output rescue deliberately releases a proven-hard-stale
+    // canonical owner before the already-acquired replacement has completed
+    // its promotion probation. During that bounded interval the candidate is
+    // the effective media owner and its HLS remains available. Enumerating only
+    // `relays` made truthful continuity disappear from health even while
+    // playback and the playlist were advancing. Keep canonical ownership and
+    // media availability separate by including candidate-only stream IDs.
+    const relayStreamIds = new Set([...relays.keys(), ...relayCandidates.keys()]);
+    const relayContinuity = [...relayStreamIds].map(streamId =>
       [streamId, relayMediaContinuity(streamId)]);
     const progressingRelays = relayContinuity.filter(([, state]) => state.progressing).length;
     const stalledRelays = relayContinuity.filter(([, state]) => !state.progressing).length;
@@ -2481,7 +2490,9 @@ async function handle(request, response) {
       deviceAuthorization: { status: deviceAuthorizationState === "ready" && deviceAccessExpiresAt <= Date.now() ? "unavailable" : deviceAuthorizationState },
       commandRuntime: privateNvrCommandRuntime ? privateNvrCommandRuntime.status() : privateNvrCommandRuntimeState,
       mediaHeartbeat: {
-        activeRelays: relays.size,
+        activeRelays: relayContinuity.filter(([, state]) =>
+          relayIsRunning(state.effective)).length,
+        canonicalRelays: relays.size,
         liveRelayProcesses: [...liveRelays].filter(relayIsRunning).length,
         candidateHandoffs: relayWarmups.size,
         provisionalHandoffs: [...relays.values()].filter(relay => relay?.retainedFallback).length,

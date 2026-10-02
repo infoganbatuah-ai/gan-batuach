@@ -322,6 +322,14 @@ test("a progressing candidate preserves health without early ownership promotion
   }), { progressing: false, owner: "NONE", mediaOwner: "NONE" });
   assert.match(server, /const relayCandidates = new Map\(\)/);
   assert.match(server, /effective: state\.mediaOwner === "WARMING_CONTINUITY" \? candidate : current/);
+  assert.match(server,
+    /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\)\]\)/,
+  "health must enumerate candidate-only continuity during exclusive rescue");
+  assert.match(server,
+    /activeRelays: relayContinuity\.filter\(\(\[, state\]\) =>\s*relayIsRunning\(state\.effective\)\)\.length/,
+  "active media health must count the effective relay without promoting ownership");
+  assert.match(server, /relayRunning: relayIsRunning\(continuity\.effective\)/,
+  "supervision must observe the effective relay during candidate-only continuity");
   assert.match(server, /media_owner_state: continuity\.mediaOwner/);
   assert.match(server, /replacement\.warming = false;\s+relays\.set\(streamId, replacement\);\s+relayCandidates\.delete\(streamId\)/);
 });
