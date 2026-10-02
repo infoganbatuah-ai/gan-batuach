@@ -59,20 +59,30 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // make rollback unsafe. This replacement manifest therefore binds the exact
 // already-qualified 0.2.62 artifact directly to the live signed 0.2.56
 // KNOWN_GOOD and rolls back to that same immutable slot. No runtime bytes were
-// rebuilt for this baseline reconciliation.
+// rebuilt for that baseline reconciliation. The first live 0.2.62 canary then
+// captured one final finite-response race on CH10: the old recorder response
+// ended naturally after a replacement was acquired but before its six-second
+// confirmation completed. Treating the now-missing owner as an ownership
+// conflict discarded the only candidate and created one cold-recovery gap.
+// This 0.2.63 release distinguishes a naturally ended owner from a different
+// canonical owner, retains the already-bounded candidate as the sole response,
+// and still requires the unchanged four advances across six seconds before
+// promotion. It rolls back exactly to the signed live 0.2.62 KNOWN_GOOD.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-exclusive-acquisition-retry-from-hls-window-86fa5a9253a9",
-  version: "0.2.62-p38-health",
-  buildSha: "4697ddc5663be6a70adc851b9ca80bf3b8b9729c",
-  digest: "86fa5a9253a9d99ce9ea8f0d2dc192630f98294810cf7b7ade9af13411cfd8bc",
-  size: 135842795,
+  releaseId: "qa-p38-health-gateway-finite-owner-exit-79141a089f25",
+  version: "0.2.63-p38-health",
+  buildSha: "4be70f11097ac41d690d30a1429f4594a9a30067",
+  digest: "79141a089f251d3616c6d89af44c11b6e02f0c5ec0956bba7b214ef776b39a6a",
+  size: 135842777,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
-  rollbackVersion: "0.2.56-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
-  supersedesVersion: "0.2.56-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-exclusive-acquisition-retry-from-hls-window-86fa5a9253a9",
+  rollbackVersion: "0.2.62-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-exclusive-acquisition-retry-from-hls-window-86fa5a9253a9",
+  supersedesVersion: "0.2.62-p38-health",
+  failedLiveCanaryReleaseId: "qa-p38-health-gateway-exclusive-acquisition-retry-from-hls-window-86fa5a9253a9",
+  failedLiveCanaryVersion: "0.2.62-p38-health",
   quarantinedRuntimeReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
   quarantinedRuntimeVersion: "0.2.58-p38-health",
   failedCandidateReleaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
