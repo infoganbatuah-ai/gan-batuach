@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
-import { classifyBoundedOutputRescueRejection } from
+import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery } from
   "./push38-shadow-qualification-policy.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
@@ -260,6 +260,31 @@ test("a recovered owner wins over an early confirmed rescue candidate", () => {
     ownerOutputAt: now - 250, candidateOutputAt: now - 50, now }), false);
   assert.match(server,
     /last_handoff_result: "OWNER_RECOVERED"[\s\S]*lastOutputRescueFailureAt = Date\.now\(\)[\s\S]*OUTPUT_RESCUE_OWNER_RECOVERED/);
+});
+
+test("Shadow accepts an explicitly contained owner recovery only with media continuity", () => {
+  const playback = { status: 200, playlist_status: 200, segment_status: 200,
+    segment_bytes: 4096 };
+  const checkpoint = (sequence, recovered = false, eventAt = sequence * 10_000 - 1_000) => ({ sequence,
+    observed_at: new Date(sequence * 10_000).toISOString(),
+    renewals: [{ channel: 4, playback }],
+    shadow: { media: { progressing: 1, stalled: 0,
+      inputs: [{ owner_state: "CURRENT", canonical_owner_progressing: true }],
+      lifecycle: { staleInput: 0, stalePlaylist: 0, staleOnRequest: 0,
+        startsByReason: { recovery: 0 } },
+      source_diagnostics: recovered ? [{ channel: 4,
+        last_handoff_result: "OWNER_RECOVERED",
+        last_failure_reason: "OUTPUT_RESCUE_OWNER_RECOVERED",
+        last_failure_at: new Date(eventAt).toISOString() }] : [] } } });
+  const contained = classifyContainedOwnerRecovery([
+    checkpoint(1), checkpoint(2, true, 19_000), checkpoint(3, true, 19_000)
+  ]);
+  assert.equal(contained.pass, true);
+  assert.equal(contained.events, 1, "repeated health projections must not double-count one recovery");
+  const broken = checkpoint(2, true);
+  broken.shadow.media.progressing = 0;
+  assert.equal(classifyContainedOwnerRecovery([checkpoint(1), broken]).reason,
+    "OWNER_RECOVERY_MEDIA_GAP");
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {

@@ -11,7 +11,8 @@ import { inspectArchive } from "../../services/video-gateway/edge-macos-installe
 import { PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
-import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
+import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
+  evaluateHlsRenewalContinuity
 } from "./push38-shadow-qualification-policy.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -407,6 +408,8 @@ try {
     lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
   const outputRescueClassification = classifyBoundedOutputRescueRejection(
     qualificationCheckpoints, lifecycle, { expectedProgressing: channels.length });
+  const ownerRecoveryClassification = classifyContainedOwnerRecovery(
+    qualificationCheckpoints, { expectedProgressing: channels.length });
   const hlsContinuityByChannel = playbackEveryCheckpoint ? channels.map(selectedChannel => ({
     channel: selectedChannel,
     ...evaluateHlsRenewalContinuity(qualificationCheckpoints.map(point => ({
@@ -436,8 +439,16 @@ try {
     failures.push("ROUTINE_HANDOFF_RETRY_STORM");
   else if (routineHandoffFailures > 0)
     warnings.push("BOUNDED_ROUTINE_CANDIDATE_REJECTED_WITHOUT_MEDIA_GAP");
-  if (!expectReactiveOnly && durationMs >= 2 * 60_000 && (lifecycle.warmHandoffs || 0) < 1)
+  // A real replacement promotion is not required when every early rescue probe
+  // is safely cancelled because the canonical owner recovered. That is the
+  // exact 0.2.65 behavior under qualification, and it is accepted only when the
+  // event is explicitly diagnosed and owner/playback continuity is proven at
+  // its first checkpoint.
+  if (!expectReactiveOnly && durationMs >= 2 * 60_000 &&
+    (lifecycle.warmHandoffs || 0) < 1 && !ownerRecoveryClassification.pass)
     failures.push("NO_SUCCESSFUL_HANDOFF_OBSERVED");
+  else if (ownerRecoveryClassification.pass)
+    warnings.push("CONTAINED_OUTPUT_RESCUE_OWNER_RECOVERY_WITHOUT_MEDIA_GAP");
   if ((lifecycle.stalePlaylist || 0) > 0) failures.push("STALE_PLAYLIST");
   if ((lifecycle.staleInput || 0) > 0) failures.push("STALE_INPUT");
   if ((lifecycle.staleOnRequest || 0) > 0) failures.push("STALE_ON_REQUEST");
@@ -457,6 +468,7 @@ try {
     routine_handoff_failures: routineHandoffFailures,
     output_rescue_failures: outputRescueFailures,
     output_rescue_classification: outputRescueClassification,
+    owner_recovery_classification: ownerRecoveryClassification,
     hls_continuity: hlsContinuity,
     maximum_bounded_routine_failures: maximumBoundedRoutineFailures,
     warnings,

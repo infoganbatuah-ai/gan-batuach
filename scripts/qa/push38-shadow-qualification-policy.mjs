@@ -94,3 +94,46 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
     failure_checkpoints: failureIndexes.map(index => checkpoints[index].sequence ?? index + 1),
     maximum_bounded_failures: boundedFailures };
 }
+
+export function classifyContainedOwnerRecovery(checkpoints, { expectedProgressing = 1 } = {}) {
+  if (!Array.isArray(checkpoints) || checkpoints.length < 2 ||
+    !Number.isInteger(expectedProgressing) || expectedProgressing < 1)
+    return { pass: false, reason: "INVALID_INPUT", events: 0 };
+  const events = new Map();
+  for (const [index, point] of checkpoints.entries()) {
+    const diagnostics = point?.shadow?.media?.source_diagnostics;
+    if (!Array.isArray(diagnostics)) continue;
+    for (const source of diagnostics) {
+      if (source?.last_handoff_result !== "OWNER_RECOVERED" ||
+        source?.last_failure_reason !== "OUTPUT_RESCUE_OWNER_RECOVERED" ||
+        !Number.isInteger(source?.channel) ||
+        !Number.isFinite(Date.parse(source?.last_failure_at || ""))) continue;
+      const key = `${source.channel}:${source.last_failure_at}`;
+      if (!events.has(key)) events.set(key, { index, channel: source.channel,
+        observed_at: point.observed_at, event_at: source.last_failure_at });
+    }
+  }
+  if (events.size < 1) return { pass: false, reason: "NO_OWNER_RECOVERY_OBSERVED", events: 0 };
+  for (const event of events.values()) {
+    const point = checkpoints[event.index];
+    const lifecycle = point?.shadow?.media?.lifecycle || {};
+    const inputs = point?.shadow?.media?.inputs || [];
+    const renewals = Array.isArray(point?.renewals)
+      ? point.renewals.map(entry => entry.playback) : [point?.renewal];
+    const mediaPreserved = point?.shadow?.media?.progressing === expectedProgressing &&
+      point?.shadow?.media?.stalled === 0 && inputs.length >= expectedProgressing &&
+      inputs.every(input => input?.owner_state === "CURRENT" &&
+        input?.canonical_owner_progressing === true) &&
+      renewals.length === expectedProgressing && renewals.every(renewal =>
+        renewal?.status === 200 && renewal?.playlist_status === 200 &&
+        renewal?.segment_status === 200 && renewal?.segment_bytes > 0) &&
+      Number(lifecycle.staleInput || 0) === 0 && Number(lifecycle.stalePlaylist || 0) === 0 &&
+      Number(lifecycle.staleOnRequest || 0) === 0 &&
+      Number(lifecycle.startsByReason?.recovery || 0) === 0;
+    if (!mediaPreserved) return { pass: false, reason: "OWNER_RECOVERY_MEDIA_GAP",
+      events: events.size, failed_event: event };
+  }
+  return { pass: true, reason: null, events: events.size,
+    event_checkpoints: [...events.values()].map(event => ({ channel: event.channel,
+      observed_at: event.observed_at, event_at: event.event_at })) };
+}
