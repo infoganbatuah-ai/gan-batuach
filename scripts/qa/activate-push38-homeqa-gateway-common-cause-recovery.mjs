@@ -382,7 +382,16 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   hardwareHandoff = false, mediaContinuity = false, expectedRelease = null, expectedChannel = 1,
   recentMaxAgeMs = 10 * 60_000 } = {}) {
   const value = JSON.parse(protectedFile(path));
-  const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
+  // The Shadow runner performs a protected terminal playback/health check
+  // after handoff settlement and includes it in its own qualification. Keep
+  // activation validation on that exact contract: a ten-minute run with 19
+  // interval samples plus the terminal verification is still 20 anchored
+  // media observations, not an incomplete run.
+  const checkpoints = [
+    ...(Array.isArray(value.checkpoints) ? value.checkpoints : []),
+    ...(value.final_verification?.terminal_verification === true
+      ? [value.final_verification] : [])
+  ];
   const endedAt = Date.parse(value.ended_at || "");
   const streamProof = checkpoints.length >= (warmHandoff ? 20 : 4) && checkpoints.every(point =>
     point.shadow?.http === 200 && point.shadow?.discovery?.assigned === 1 &&

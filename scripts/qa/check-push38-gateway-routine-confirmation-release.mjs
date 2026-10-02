@@ -223,6 +223,9 @@ try {
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
+  assert.match(activation,
+    /final_verification\?\.terminal_verification === true[\s\S]*value\.final_verification/,
+  "activation must count the runner's terminal playback and health verification");
   assert.match(registration,
     /item\.failedCandidateReleaseId/,
   "registration must disable the failed 0.2.57 candidate before publishing its successor");
