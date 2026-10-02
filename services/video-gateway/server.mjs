@@ -1779,34 +1779,26 @@ async function warmReplaceRelay(streamId, previous, {
       minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
     let expectedCurrent = previous;
     let exclusiveRescue = false;
-    const initialCandidateDirectory = replacement.directory;
     if (shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
       sourceKind: source?.kind, ownerRunning: relayIsRunning(previous),
       ownerCurrent: relays.get(streamId) === previous,
       ownerOutputAt: relayPlaylistMtime(previous), relayStaleMs: RELAY_STALE_MS,
+      candidateRunning: relayIsRunning(replacement),
       candidateFirstOutputObserved: Number.isFinite(observation.firstOutputAt),
       candidateConfirmed: observation.outputConfirmed })) {
       exclusiveRescue = true;
       relayLifecycle.exclusiveRescueTakeovers += 1;
       relayLifecycle.exclusiveRescueConcurrentProbeRejections += 1;
       // This is one continuation of the same bounded handoff, not a second
-      // recovery system. Release the hard-stale owner and rejected concurrent
-      // probe before opening exactly one exclusive candidate. Existing HLS
-      // files remain available while the unchanged confirmation gate runs.
+      // recovery system. Release only the hard-stale owner. The already-open
+      // candidate has proved acquisition and becomes the one exclusive DVR
+      // response; killing it and opening a third response caused a measured
+      // ownerless acquisition gap. Restart its observation window and require
+      // the unchanged four-advance/six-second confirmation before promotion.
       stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
-      stopRelay(streamId, replacement, "OUTPUT_RESCUE_CONCURRENT_PROBE_RELEASE");
-      cleanupRelayDirectories(streamId, null, [initialCandidateDirectory]);
-      replacement = await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode });
       expectedCurrent = undefined;
-      if (replacement) {
-        observation = await observeWarmReplacement(replacement, { handoffMode,
-          minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
-      } else {
-        observation = { probationStartedAt: Date.now(), firstOutputAt: null,
-          lastObservedOutputAt: null, outputAdvanceCount: 0,
-          confirmationStartedAt: null, outputConfirmed: false, durationMs: 0 };
-      }
+      observation = await observeWarmReplacement(replacement, { handoffMode,
+        minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
     }
     // A single initial playlist write (or a pair) is not sustained media. Keep
     // the prior relay authoritative until the replacement has four distinct

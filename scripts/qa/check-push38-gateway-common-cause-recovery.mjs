@@ -295,20 +295,25 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
   const evidence = { handoffMode: "OUTPUT_RESCUE",
     sourceKind: "private_nvr_http_mp4", ownerRunning: true,
     ownerCurrent: true, ownerOutputAt: now - 20_000, relayStaleMs: 20_000,
-    candidateFirstOutputObserved: true, candidateConfirmed: false, now };
+    candidateRunning: true, candidateFirstOutputObserved: true,
+    candidateConfirmed: false, now };
   assert.equal(shouldUsePrivateNvrExclusiveOutputRescue(evidence), true);
   for (const override of [
     { handoffMode: "ROUTINE_FINITE_RESPONSE" },
     { sourceKind: "rtsp" },
     { ownerRunning: false },
     { ownerCurrent: false },
+    { candidateRunning: false },
     { ownerOutputAt: now - 19_999 },
     { candidateFirstOutputObserved: false },
     { candidateConfirmed: true }
   ]) assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence, ...override }), false);
   assert.match(gateway,
-    /shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*OUTPUT_RESCUE_CONCURRENT_PROBE_RELEASE[\s\S]*startRelay\(streamId, \{ warming: true,/,
-  "exclusive fallback must release both prior processes before one fresh candidate");
+    /shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*observation = await observeWarmReplacement\(replacement,/,
+  "exclusive fallback must reuse the acquired candidate after releasing only the stale owner");
+  assert.doesNotMatch(gateway,
+    /OUTPUT_RESCUE_CONCURRENT_PROBE_RELEASE/,
+  "exclusive fallback must not create an ownerless third-response acquisition gap");
   assert.match(gateway,
     /if \(relayWarmups\.has\(streamId\)\) return null;/,
   "consumer demand must fail closed instead of opening a competing relay during owner release");

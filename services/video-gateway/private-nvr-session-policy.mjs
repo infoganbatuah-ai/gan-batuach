@@ -298,13 +298,17 @@ export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
 // advancing. Once the old owner is already hard stale, keeping it open and
 // launching further concurrent probes only creates a restart storm. Permit a
 // single controlled owner-release fallback only for that exact evidence. The
-// replacement still has to pass the unchanged sustained-output contract.
+// already-open candidate becomes the exclusive response after owner release;
+// killing it and opening a third response creates a measured acquisition gap.
+// The retained candidate still has to pass the unchanged sustained-output
+// contract from a fresh post-release observation window.
 export function shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
   sourceKind, ownerRunning, ownerCurrent, ownerOutputAt, relayStaleMs,
-  candidateFirstOutputObserved, candidateConfirmed, now = Date.now() }) {
+  candidateRunning, candidateFirstOutputObserved, candidateConfirmed,
+  now = Date.now() }) {
   return Boolean(handoffMode === "OUTPUT_RESCUE"
     && sourceKind === "private_nvr_http_mp4"
-    && ownerRunning && ownerCurrent
+    && ownerRunning && ownerCurrent && candidateRunning
     && candidateFirstOutputObserved && !candidateConfirmed
     && Number.isFinite(ownerOutputAt) && Number.isFinite(relayStaleMs)
     && relayStaleMs > 0 && Number.isFinite(now)
