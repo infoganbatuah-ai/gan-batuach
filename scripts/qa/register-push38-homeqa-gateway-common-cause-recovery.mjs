@@ -65,6 +65,8 @@ import { PUSH38_GATEWAY_RECOVERY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-recovery-continuity.mjs";
 import { PUSH38_GATEWAY_ROUTINE_CONFIRMATION
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
+import { PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY
+} from "../../services/video-gateway/push38-home-qa-gateway-session-renewal-continuity.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -94,14 +96,17 @@ const sweepDeadline = process.argv.includes("--gateway-sweep-deadline");
 const deadlineBudget = process.argv.includes("--gateway-deadline-budget");
 const recoveryContinuity = process.argv.includes("--gateway-recovery-continuity");
 const routineConfirmation = process.argv.includes("--gateway-routine-confirmation");
+const sessionRenewal = process.argv.includes("--gateway-session-renewal");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
-  handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation]
+  handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
+  sessionRenewal]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = routineConfirmation ? PUSH38_GATEWAY_ROUTINE_CONFIRMATION :
+const item = sessionRenewal ? PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY :
+  routineConfirmation ? PUSH38_GATEWAY_ROUTINE_CONFIRMATION :
   recoveryContinuity ? PUSH38_GATEWAY_RECOVERY_CONTINUITY :
   deadlineBudget ? PUSH38_GATEWAY_DEADLINE_BUDGET :
   sweepDeadline ? PUSH38_GATEWAY_SWEEP_DEADLINE :
@@ -132,7 +137,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = routineConfirmation
+const artifact = sessionRenewal
+  ? `${restrictedRoot}/push38-gateway-session-renewal-60f831f4/gateway-runtime.tar.gz`
+  : routineConfirmation
   ? `${restrictedRoot}/push38-gateway-owner-recovery-e661c374/gateway-runtime.tar.gz`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/gateway-runtime.tar.gz`
@@ -187,7 +194,9 @@ const artifact = routineConfirmation
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = routineConfirmation
+const publication = sessionRenewal
+  ? `${restrictedRoot}/push38-gateway-session-renewal-60f831f4/r2-publication.json`
+  : routineConfirmation
   ? `${restrictedRoot}/push38-gateway-owner-recovery-e661c374/r2-publication.json`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json`
@@ -242,7 +251,8 @@ const publication = routineConfirmation
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = routineConfirmation ? "gateway_remediation_routine_confirmation.json"
+const bundleName = sessionRenewal ? "gateway_remediation_session_renewal_continuity.json"
+  : routineConfirmation ? "gateway_remediation_routine_confirmation.json"
   : recoveryContinuity ? "gateway_remediation_recovery_continuity.json"
   : deadlineBudget ? "gateway_remediation_deadline_budget.json"
   : sweepDeadline ? "gateway_remediation_sweep_deadline.json"
@@ -270,7 +280,7 @@ const bundleName = routineConfirmation ? "gateway_remediation_routine_confirmati
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
+const predecessorReleaseId = (sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
   handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
@@ -278,7 +288,9 @@ const predecessorReleaseId = (routineConfirmation || recoveryContinuity || deadl
 // still have a one-shot diagnostic rollout. Pause both sources of eligibility so
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
-const rolloutReleaseIdsToPause = routineConfirmation
+const rolloutReleaseIdsToPause = sessionRenewal
+  ? [predecessorReleaseId, item.failedQualificationReleaseId, item.rollbackReleaseId]
+  : routineConfirmation
   ? [predecessorReleaseId, item.failedCandidateReleaseId,
     item.failedHealthCandidateReleaseId, item.failedContinuityCandidateReleaseId,
     item.failedAcquisitionCandidateReleaseId,
@@ -386,7 +398,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: routineConfirmation ? "GATEWAY_ROUTINE_CONFIRMATION_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: sessionRenewal ? "GATEWAY_SESSION_RENEWAL_REGISTERED_DRAFT" :
+  routineConfirmation ? "GATEWAY_ROUTINE_CONFIRMATION_REGISTERED_DRAFT" :
   recoveryContinuity ? "GATEWAY_RECOVERY_CONTINUITY_REGISTERED_DRAFT" :
   deadlineBudget ? "GATEWAY_DEADLINE_BUDGET_REGISTERED_DRAFT" :
   sweepDeadline ? "GATEWAY_SWEEP_DEADLINE_REGISTERED_DRAFT" :

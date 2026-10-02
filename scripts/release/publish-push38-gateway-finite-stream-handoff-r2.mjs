@@ -37,6 +37,7 @@ import { buildPush38GatewaySweepDeadlineManifest } from "../../services/video-ga
 import { buildPush38GatewayDeadlineBudgetManifest } from "../../services/video-gateway/push38-home-qa-gateway-deadline-budget.mjs";
 import { buildPush38GatewayRecoveryContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-recovery-continuity.mjs";
 import { buildPush38GatewayRoutineConfirmationManifest } from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
+import { buildPush38GatewaySessionRenewalContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-session-renewal-continuity.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -152,15 +153,17 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
   probationBudget = false, rescueCapacity = false, codecPreservation = false,
   handoffHardware = false, relayHandoff = false, handoffContinuity = false,
   handoffOwnerContinuity = false, sweepDeadline = false, deadlineBudget = false,
-  recoveryContinuity = false, routineConfirmation = false }) {
+  recoveryContinuity = false, routineConfirmation = false, sessionRenewal = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
     heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
     handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
     rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
-    handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation]
+    handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
+    sessionRenewal]
     .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = routineConfirmation ? buildPush38GatewayRoutineConfirmationManifest :
+  const builder = sessionRenewal ? buildPush38GatewaySessionRenewalContinuityManifest :
+    routineConfirmation ? buildPush38GatewayRoutineConfirmationManifest :
     recoveryContinuity ? buildPush38GatewayRecoveryContinuityManifest :
     deadlineBudget ? buildPush38GatewayDeadlineBudgetManifest :
     sweepDeadline ? buildPush38GatewaySweepDeadlineManifest :
@@ -234,7 +237,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: routineConfirmation ?
+    const result = { protocol: sessionRenewal ?
+      "observer-push38-gateway-session-renewal-continuity-r2-publication-v1" : routineConfirmation ?
       "observer-push38-gateway-routine-confirmation-r2-publication-v1" : recoveryContinuity ?
       "observer-push38-gateway-recovery-continuity-r2-publication-v1" : deadlineBudget ?
       "observer-push38-gateway-deadline-budget-r2-publication-v1" : sweepDeadline ?
@@ -299,6 +303,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const deadlineBudget = process.argv.includes("--gateway-deadline-budget");
     const recoveryContinuity = process.argv.includes("--gateway-recovery-continuity");
     const routineConfirmation = process.argv.includes("--gateway-routine-confirmation");
+    const sessionRenewal = process.argv.includes("--gateway-session-renewal");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
@@ -309,7 +314,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--gateway-relay-handoff", "--gateway-handoff-continuity",
         "--gateway-handoff-owner-continuity", "--gateway-sweep-deadline",
         "--gateway-deadline-budget", "--gateway-recovery-continuity",
-        "--gateway-routine-confirmation"]
+        "--gateway-routine-confirmation", "--gateway-session-renewal"]
         .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
@@ -321,7 +326,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       retainedFallback, continuousHandoff, routineProvisional, probationBudget, rescueCapacity,
       codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
       handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity,
-      routineConfirmation }) }));
+      routineConfirmation, sessionRenewal }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");
