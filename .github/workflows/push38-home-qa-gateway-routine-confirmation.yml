@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 2aa52fc5708bd3dab0f3db022493178e0d4309f8
+          ref: 32bd9a3c0984e35ce0091171918148591a716b0d
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "2aa52fc5708bd3dab0f3db022493178e0d4309f8"
+        run: test "$(git rev-parse HEAD)" = "32bd9a3c0984e35ce0091171918148591a716b0d"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable Gateway routine-confirmation contract
