@@ -293,6 +293,7 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
   warmHandoffs: 0, warmHandoffFailures: 0,
   warmHandoffConfirmationFailures: 0, warmHandoffProbations: 0,
   warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
+  exclusiveRescueColdTakeovers: 0,
   exclusiveRescueConcurrentProbeRejections: 0, exclusiveRescueFailures: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
@@ -1779,22 +1780,41 @@ async function warmReplaceRelay(streamId, previous, {
       minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
     let expectedCurrent = previous;
     let exclusiveRescue = false;
+    // A recorder can accept the replacement request but withhold its body
+    // until the old per-channel response closes. If probation finishes just
+    // before the old playlist reaches hard stale, retain the already-acquired
+    // candidate for that bounded remainder. Re-evaluate the playlist after the
+    // wait: recovered owner output cancels the takeover, while a proven stale
+    // owner enters the same exclusive rescue path without a third request.
+    if (handoffMode === "OUTPUT_RESCUE" && !observation.outputConfirmed
+      && relayIsRunning(replacement) && relays.get(streamId) === previous) {
+      const ownerOutputAt = relayPlaylistMtime(previous);
+      const hardStaleWaitMs = Number.isFinite(ownerOutputAt)
+        ? RELAY_STALE_MS - (Date.now() - ownerOutputAt) : 0;
+      if (hardStaleWaitMs > 0
+        && hardStaleWaitMs <= PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS) {
+        await new Promise(resolve => setTimeout(resolve, hardStaleWaitMs + 25));
+      }
+    }
     if (shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
       sourceKind: source?.kind, ownerRunning: relayIsRunning(previous),
       ownerCurrent: relays.get(streamId) === previous,
       ownerOutputAt: relayPlaylistMtime(previous), relayStaleMs: RELAY_STALE_MS,
       candidateRunning: relayIsRunning(replacement),
-      candidateFirstOutputObserved: Number.isFinite(observation.firstOutputAt),
       candidateConfirmed: observation.outputConfirmed })) {
       exclusiveRescue = true;
       relayLifecycle.exclusiveRescueTakeovers += 1;
+      if (!Number.isFinite(observation.firstOutputAt))
+        relayLifecycle.exclusiveRescueColdTakeovers += 1;
       relayLifecycle.exclusiveRescueConcurrentProbeRejections += 1;
       // This is one continuation of the same bounded handoff, not a second
       // recovery system. Release only the hard-stale owner. The already-open
       // candidate has proved acquisition and becomes the one exclusive DVR
-      // response; killing it and opening a third response caused a measured
-      // ownerless acquisition gap. Restart its observation window and require
-      // the unchanged four-advance/six-second confirmation before promotion.
+      // response. The recorder may not emit candidate bytes until this exact
+      // release. Killing the candidate and opening a third response caused a
+      // measured ownerless acquisition gap. Restart its observation window and
+      // require the unchanged four-advance/six-second confirmation before
+      // promotion.
       stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
       expectedCurrent = undefined;
       observation = await observeWarmReplacement(replacement, { handoffMode,

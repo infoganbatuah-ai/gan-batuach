@@ -58,7 +58,8 @@ export function planInstalledOtaAgent({ profile, managedRoot, agentPlistPath, ag
 
 // HOME_QA credentials belong to the OTA agent alone. The legacy functional
 // Connector/Gateway must continue using its existing Product credential store.
-export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaIsolationRoot = "" }) {
+export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig,
+  qaIsolationRoot = "", now = Date.now() }) {
   if (qaIsolationRoot || runtimeConfig?.channel !== "HOME_QA") return null;
   const root = resolve(managedRoot);
   const secrets = join(root, "home-qa-device-secrets");
@@ -74,7 +75,7 @@ export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaI
     fail("EDGE_OTA_HOME_QA_IDENTITY_SCOPE_INVALID");
   const tls = new X509Certificate(readFileSync(certificate));
   if (!tls.subjectAltName?.includes("IP Address:127.0.0.1") ||
-    Date.parse(tls.validTo) < Date.now() + 26 * 60 * 60_000)
+    !Number.isFinite(now) || Date.parse(tls.validTo) < now + 26 * 60 * 60_000)
     fail("EDGE_OTA_HOME_QA_TLS_CERTIFICATE_INVALID");
   return { secretDir: secrets, certificate };
 }

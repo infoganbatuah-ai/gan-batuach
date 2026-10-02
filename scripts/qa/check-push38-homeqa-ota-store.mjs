@@ -11,20 +11,30 @@ const certificate = join(managedRoot, "qa-control-plane-ca.crt");
 writeFileSync(certificate, readFileSync(
   "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260920.crt"),
 { mode: 0o600, flag: "wx" });
+// The checked fixture is intentionally immutable and short-lived. Pin the
+// synthetic assertion inside its documented validity interval so this unit
+// contract does not decay with wall-clock time; live callers still default to
+// Date.now() and reject an expired or near-expiry certificate.
+const fixtureNow = Date.parse("2026-09-20T06:10:55.000Z");
 const config = { channel: "HOME_QA", secretDir: join(managedRoot, "home-qa-device-secrets"),
   qaTlsCaPath: certificate, qaTlsCaSha256: createHash("sha256").update(readFileSync(certificate)).digest("hex") };
-assert.equal(validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig: config }).secretDir, config.secretDir);
+assert.equal(validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig: config,
+  now: fixtureNow }).secretDir, config.secretDir);
 for (const change of [
   { secretDir: "/Users/danielderi/Library/Application Support/Digital Observer/Tapo Connector/secrets" },
   { keychainService: "com.ganbatuach.video-gateway.runtime" },
   { qaTlsCaSha256: "0".repeat(64) }
 ]) assert.throws(() => validateHomeQaOtaIdentityScope({ managedRoot,
-  runtimeConfig: { ...config, ...change } }), /EDGE_OTA_HOME_QA_IDENTITY_SCOPE_INVALID/);
+  runtimeConfig: { ...config, ...change }, now: fixtureNow }),
+/EDGE_OTA_HOME_QA_IDENTITY_SCOPE_INVALID/);
 assert.equal(validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig: { channel: "INTERNAL" } }), null);
 assert.throws(() => validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig: {
   ...config,
   qaTlsCaPath: "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260920.crt"
-} }), /EDGE_OTA_HOME_QA_IDENTITY_SCOPE_INVALID/);
+}, now: fixtureNow }), /EDGE_OTA_HOME_QA_IDENTITY_SCOPE_INVALID/);
+assert.throws(() => validateHomeQaOtaIdentityScope({ managedRoot,
+  runtimeConfig: config, now: Date.parse("2026-09-27T04:00:00.000Z") }),
+/EDGE_OTA_HOME_QA_TLS_CERTIFICATE_INVALID/);
 console.log(JSON.stringify({ status: "PASS", qa_agent_secret_store: "ISOLATED",
   product_legacy_store_reuse: "DENIED", tls_certificate_pinned: true, tls_certificate_local: true,
   production_writes: 0, runtime_writes: 0 }));

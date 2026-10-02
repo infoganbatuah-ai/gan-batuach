@@ -226,6 +226,18 @@ test("playback can use a progressing rescue candidate without promoting ownershi
   assert.match(server, /last_handoff_output_advances/);
 });
 
+test("a body-blocked rescue reuses its acquired candidate after hard stale", () => {
+  assert.match(server,
+    /hardStaleWaitMs[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS[\s\S]*hardStaleWaitMs \+ 25/,
+  "the acquired request stays bounded until the old owner reaches hard stale");
+  assert.match(server,
+    /exclusiveRescueColdTakeovers \+= 1[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE/,
+  "live evidence distinguishes candidates that could not output before owner release");
+  assert.doesNotMatch(server,
+    /candidateFirstOutputObserved: Number\.isFinite\(observation\.firstOutputAt\)/,
+  "a recorder body blocked by its stale owner must not force a third media request");
+});
+
 test("playlist continuity requires four distinct advances over six seconds", () => {
   assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS, 3_000);
   assert.equal(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS, 1_000);

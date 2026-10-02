@@ -292,24 +292,24 @@ export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
     && now - lastOutputAt <= maximumOutputIdleMs);
 }
 
-// Some recorders permit one productive HTTP media response per channel while
-// still accepting a second request far enough to emit an initial playlist.
-// A concurrent OUTPUT_RESCUE probe can therefore look alive without ever
-// advancing. Once the old owner is already hard stale, keeping it open and
-// launching further concurrent probes only creates a restart storm. Permit a
-// single controlled owner-release fallback only for that exact evidence. The
-// already-open candidate becomes the exclusive response after owner release;
-// killing it and opening a third response creates a measured acquisition gap.
-// The retained candidate still has to pass the unchanged sustained-output
-// contract from a fresh post-release observation window.
+// Some recorders permit only one productive HTTP media response per channel.
+// They may accept a second request while withholding its body until the first
+// response closes, so "candidate acquired and still running" is the strongest
+// continuity evidence available before releasing an already hard-stale owner.
+// Waiting for a first candidate playlist in that state is circular: the first
+// playlist cannot exist until the stale owner releases the recorder slot.
+// Permit one controlled owner release only after the old output is hard stale.
+// Reuse the already-open candidate instead of killing it and opening a third
+// response; it must still pass the unchanged sustained-output contract from a
+// fresh post-release observation window before promotion.
 export function shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
   sourceKind, ownerRunning, ownerCurrent, ownerOutputAt, relayStaleMs,
-  candidateRunning, candidateFirstOutputObserved, candidateConfirmed,
+  candidateRunning, candidateConfirmed,
   now = Date.now() }) {
   return Boolean(handoffMode === "OUTPUT_RESCUE"
     && sourceKind === "private_nvr_http_mp4"
     && ownerRunning && ownerCurrent && candidateRunning
-    && candidateFirstOutputObserved && !candidateConfirmed
+    && !candidateConfirmed
     && Number.isFinite(ownerOutputAt) && Number.isFinite(relayStaleMs)
     && relayStaleMs > 0 && Number.isFinite(now)
     && now - ownerOutputAt >= relayStaleMs);

@@ -298,6 +298,9 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
     candidateRunning: true, candidateFirstOutputObserved: true,
     candidateConfirmed: false, now };
   assert.equal(shouldUsePrivateNvrExclusiveOutputRescue(evidence), true);
+  assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence,
+    candidateFirstOutputObserved: false }), true,
+  "an acquired candidate may be body-blocked by the proven hard-stale owner");
   for (const override of [
     { handoffMode: "ROUTINE_FINITE_RESPONSE" },
     { sourceKind: "rtsp" },
@@ -305,11 +308,10 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
     { ownerCurrent: false },
     { candidateRunning: false },
     { ownerOutputAt: now - 19_999 },
-    { candidateFirstOutputObserved: false },
     { candidateConfirmed: true }
   ]) assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence, ...override }), false);
   assert.match(gateway,
-    /shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*observation = await observeWarmReplacement\(replacement,/,
+    /hardStaleWaitMs[\s\S]*shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*observation = await observeWarmReplacement\(replacement,/,
   "exclusive fallback must reuse the acquired candidate after releasing only the stale owner");
   assert.doesNotMatch(gateway,
     /OUTPUT_RESCUE_CONCURRENT_PROBE_RELEASE/,
@@ -321,7 +323,7 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
     /if \(exclusiveRescue\) armRelayRecovery\(streamId, replacement \|\| previous\)/,
   "exclusive rescue failure must enter the existing recovery machinery exactly once");
   assert.match(gateway,
-    /exclusiveRescueTakeovers:[\s\S]*exclusiveRescueConcurrentProbeRejections:[\s\S]*exclusiveRescueFailures:/,
+    /exclusiveRescueTakeovers:[\s\S]*exclusiveRescueColdTakeovers:[\s\S]*exclusiveRescueConcurrentProbeRejections:[\s\S]*exclusiveRescueFailures:/,
   "health evidence must expose the bounded exclusive path");
 });
 
