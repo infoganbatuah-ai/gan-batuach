@@ -324,6 +324,27 @@ export function shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
     && now - ownerOutputAt >= relayStaleMs);
 }
 
+// A one-response-per-channel recorder can reject the concurrent rescue probe
+// with a non-media response at the exact boundary where the old response is
+// ending. That rejection is not authority to rotate the shared login, but it
+// is evidence that a second productive response cannot coexist with the hard-
+// stale owner. Permit one continuation of the already-bounded rescue after
+// the owner has become hard stale, provided no different canonical owner took
+// its place. The caller still requires the full four-advance/six-second media
+// proof before promotion.
+export function shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection({
+  handoffMode, sourceKind, acquisitionFailure, canonicalOwnerUnchanged,
+  ownerOutputAt, relayStaleMs, now = Date.now()
+}) {
+  return Boolean(handoffMode === "OUTPUT_RESCUE"
+    && sourceKind === "private_nvr_http_mp4"
+    && acquisitionFailure === "source_not_media"
+    && canonicalOwnerUnchanged
+    && Number.isFinite(ownerOutputAt) && Number.isFinite(relayStaleMs)
+    && relayStaleMs > 0 && Number.isFinite(now)
+    && now - ownerOutputAt >= relayStaleMs);
+}
+
 // Ownership and media availability are deliberately separate during a warm
 // handoff. The current relay remains authoritative until the replacement
 // passes the full confirmation contract, but a replacement that is already

@@ -29,6 +29,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   privateNvrRoutineHandoffSchedule,
   relayMaySurvivePrivateNvrRenewal,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
   shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -325,6 +326,32 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
   assert.match(gateway,
     /exclusiveRescueTakeovers:[\s\S]*exclusiveRescueColdTakeovers:[\s\S]*exclusiveRescueReopens:[\s\S]*exclusiveRescueReopenFailures:[\s\S]*exclusiveRescueConcurrentProbeRejections:[\s\S]*exclusiveRescueFailures:/,
   "health evidence must expose the bounded exclusive path");
+});
+
+test("a hard-stale owner can reopen once after the recorder rejects the concurrent probe", () => {
+  const now = Date.now();
+  const evidence = { handoffMode: "OUTPUT_RESCUE",
+    sourceKind: "private_nvr_http_mp4", acquisitionFailure: "source_not_media",
+    canonicalOwnerUnchanged: true, ownerOutputAt: now - 20_000,
+    relayStaleMs: 20_000, now };
+  assert.equal(shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection(evidence), true);
+  for (const override of [
+    { handoffMode: "ROUTINE_FINITE_RESPONSE" },
+    { sourceKind: "rtsp" },
+    { acquisitionFailure: "authentication_rejected" },
+    { canonicalOwnerUnchanged: false },
+    { ownerOutputAt: now - 19_999 }
+  ]) assert.equal(shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection({
+    ...evidence, ...override }), false);
+  assert.match(gateway,
+    /candidateStartFailure[\s\S]*shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection\([\s\S]*canonicalOwnerUnchanged:[\s\S]*exclusiveRescueColdTakeovers \+= 1[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*startRelay\(streamId, \{ warming: true/,
+  "the rejected concurrent probe must continue through one bounded exclusive response");
+  assert.match(gateway,
+    /replacement\.previousDirectories = \[\.\.\.new Set\([\s\S]*previous\.directory[\s\S]*observeWarmReplacement\(replacement/,
+  "the exclusive response must retain old HLS while proving fresh output");
+  assert.match(gateway,
+    /EXCLUSIVE_RESCUE_ACQUISITION_FAILED[\s\S]*armRelayRecovery\(streamId, previous\)/,
+  "a failed exclusive continuation must fall back to the existing recovery machinery");
 });
 
 test("heartbeat, login renewal, and media handoffs use independent bounded schedulers", () => {

@@ -40,6 +40,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
@@ -1774,25 +1775,80 @@ async function warmReplaceRelay(streamId, previous, {
     const handoffStartedAt = Date.now();
     let replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
+    let candidateStartFailure = replacement ? null
+      : relayDiagnostics.get(streamId)?.last_failure_reason || null;
+    let expectedCurrent = previous;
+    let exclusiveRescue = false;
+    let observation = null;
+    // Real-DVR 0.2.61 evidence captured the remaining one-response boundary:
+    // the concurrent probe was rejected as non-media at the same instant the
+    // hard-stale owner ended. Returning immediately entered ordinary recovery
+    // and produced a real playback 503. Keep this inside the existing bounded
+    // handoff instead. Release only the stale owner (if it has not already
+    // ended), open exactly one exclusive response, preserve the prior HLS
+    // generation, and still require the unchanged promotion proof.
+    const ownerNow = relays.get(streamId);
+    if (!replacement && shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection({
+      handoffMode, sourceKind: source?.kind,
+      acquisitionFailure: candidateStartFailure,
+      canonicalOwnerUnchanged: ownerNow === previous || ownerNow === undefined,
+      ownerOutputAt: relayPlaylistMtime(previous), relayStaleMs: RELAY_STALE_MS
+    })) {
+      exclusiveRescue = true;
+      relayLifecycle.exclusiveRescueTakeovers += 1;
+      relayLifecycle.exclusiveRescueColdTakeovers += 1;
+      relayLifecycle.exclusiveRescueConcurrentProbeRejections += 1;
+      relayLifecycle.exclusiveRescueReopens += 1;
+      if (ownerNow === previous) {
+        stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
+      }
+      expectedCurrent = undefined;
+      replacement = await startRelay(streamId, { warming: true,
+        previousRelay: previous, handoffMode });
+      if (!replacement) candidateStartFailure =
+        relayDiagnostics.get(streamId)?.last_failure_reason || candidateStartFailure;
+      if (replacement) {
+        replacement.previousDirectories = [...new Set([
+          previous.directory, ...(previous.previousDirectories || [])
+        ].filter(Boolean))];
+        replacement.previousGenerations = [
+          { generation: previous.generation, directory: previous.directory },
+          ...(previous.previousGenerations || [])
+        ].filter(entry => entry.generation && entry.directory);
+        observation = await observeWarmReplacement(replacement, { handoffMode,
+          minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+      } else {
+        relayLifecycle.exclusiveRescueReopenFailures += 1;
+      }
+    }
     if (!replacement) {
       relayLifecycle.warmHandoffFailures += 1;
       relayLifecycle.warmHandoffFailuresByMode[
         privateNvrHandoffModeMetricKey(handoffMode)] += 1;
+      if (exclusiveRescue) relayLifecycle.exclusiveRescueFailures += 1;
+      const acquisitionEvidence = {
+        last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED"
+      };
+      if (exclusiveRescue) {
+        acquisitionEvidence.last_handoff_failure =
+          "EXCLUSIVE_RESCUE_ACQUISITION_FAILED";
+      }
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_handoff_result: "FAILED",
-        last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED",
+        ...acquisitionEvidence,
         last_handoff_first_output_latency_ms: null,
         last_handoff_output_advances: 0,
-        last_handoff_duration_ms: Date.now() - handoffStartedAt });
+        last_handoff_duration_ms: Date.now() - handoffStartedAt,
+        last_handoff_path: exclusiveRescue
+          ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
+      if (exclusiveRescue) armRelayRecovery(streamId, previous);
       if (handoffMode === "OUTPUT_RESCUE" && relays.get(streamId) === previous
         && relayIsProgressing(previous))
         previous.lastOutputRescueFailureAt = Date.now();
       return false;
     }
-    let observation = await observeWarmReplacement(replacement, { handoffMode,
+    if (!observation) observation = await observeWarmReplacement(replacement, { handoffMode,
       minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
-    let expectedCurrent = previous;
-    let exclusiveRescue = false;
     // A recorder can accept the replacement request but withhold its body
     // until the old per-channel response closes. If probation finishes just
     // before the old playlist reaches hard stale, retain the already-acquired
@@ -2006,7 +2062,8 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     playlist
   ];
   let startFailure = "SOURCE_OPEN_FAILED";
-  const relaySource = source.kind === "private_nvr_http_mp4" ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }) : null;
+  const relaySource = source.kind === "private_nvr_http_mp4"
+    ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }) : null;
   if (!relaySource && !directRtsp) {
     relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), last_failure_reason: startFailure, last_failure_at: new Date().toISOString() });
     return null;
