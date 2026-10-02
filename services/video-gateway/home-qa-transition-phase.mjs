@@ -59,6 +59,11 @@ const gatewayHandoffOwnerContinuity = "qa-p38-health-gateway-handoff-owner-conti
 const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046";
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
+// This signed release is the exact 0.2.64 predecessor for the active owner-
+// recovery candidate. It remains eligible only while its exact-device,
+// zero-cohort rollout is explicitly active. That permits an evidence-bound
+// retry to restore the required KNOWN_GOOD without broadening HOME_QA scope.
+const gatewayHealthSerialization = "qa-p38-health-gateway-health-serialization-dee178ab7c45";
 // The active candidate installs a complete package with bounded exclusive
 // continuation after a rejected concurrent probe, body-blocked handoff,
 // truthful candidate-only health continuity, a naturally ended finite owner
@@ -108,7 +113,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayCodecPreservation, gatewayHandoffHardware,
       gatewayRelayHandoff, gatewayHandoffContinuity,
       gatewayHandoffOwnerContinuity, gatewaySweepDeadline, gatewayDeadlineBudget,
-      gatewayRecoveryContinuity, gatewayRoutineConfirmation].includes(manifest.release_id) &&
+      gatewayRecoveryContinuity, gatewayHealthSerialization,
+      gatewayRoutineConfirmation].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }

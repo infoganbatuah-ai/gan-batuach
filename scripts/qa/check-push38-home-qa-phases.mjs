@@ -32,6 +32,7 @@ const gatewayProbationBudget = "qa-p38-health-gateway-probation-budget-ac185c72c
 const gatewayRescueCapacity = "qa-p38-health-gateway-rescue-capacity-cedb6ebe5d18";
 const gatewayCodecPreservation = "qa-p38-health-gateway-codec-preservation-f303e4226954";
 const gatewayHandoffHardware = "qa-p38-health-gateway-handoff-hardware-284d3c992aa4";
+const gatewayHealthSerialization = "qa-p38-health-gateway-health-serialization-dee178ab7c45";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
   channel: "HOME_QA", platform: "darwin", architecture: "arm64", profile,
   rollout: { stage: "INTERNAL_QA", cohort_percent: 0, explicit_device_ids: [deviceId] } });
@@ -63,6 +64,7 @@ const gatewayProbationBudgetRemediation = manifest(gatewayProbationBudget, gatew
 const gatewayRescueCapacityRemediation = manifest(gatewayRescueCapacity, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayCodecPreservationRemediation = manifest(gatewayCodecPreservation, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayHandoffHardwareRemediation = manifest(gatewayHandoffHardware, gatewayId, "PHYSICAL_GATEWAY");
+const gatewayHealthSerializationRemediation = manifest(gatewayHealthSerialization, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
 assert.equal(HOME_QA_PHASE.PENDING, "MANAGED_IDENTITY_PENDING_PROOF");
 const connector = { gateway_id: connectorId, deployment_profile: "SOFTWARE_CONNECTOR",
@@ -98,6 +100,8 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayPr
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayRescueCapacityRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayCodecPreservationRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayHandoffHardwareRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
+  manifest: gatewayHealthSerializationRemediation }), true);
 for (const bad of [
   { ...connector, identity_scheme: "LEGACY_HMAC" },
   { ...connector, credential_version: 0 },

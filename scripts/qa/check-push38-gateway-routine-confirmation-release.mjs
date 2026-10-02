@@ -123,10 +123,10 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
 assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
   release_id: "qa-p38-health-gateway-finite-owner-exit-79141a089f25",
   version: "0.2.63-p38-health" } }), false,
-"the health-serialization canary predecessor remains historical and cannot authorize activation");
+"the evidence-bound health-serialization predecessor remains eligible as the exact signed rollback base");
 assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
   release_id: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
-  version: "0.2.64-p38-health" } }), false,
+  version: "0.2.64-p38-health" } }), true,
 "the failed owner-recovery canary predecessor remains historical and cannot authorize activation");
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
   gateway_id: "wrong-gateway" }, manifest: built }), false);
