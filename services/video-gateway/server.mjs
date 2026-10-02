@@ -1868,6 +1868,7 @@ async function warmReplaceRelay(streamId, previous, {
     if (shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
       sourceKind: source?.kind, ownerRunning: relayIsRunning(previous),
       ownerCurrent: relays.get(streamId) === previous,
+      ownerMissing: relays.get(streamId) === undefined,
       ownerOutputAt: relayPlaylistMtime(previous), relayStaleMs: RELAY_STALE_MS,
       candidateRunning: relayIsRunning(replacement),
       candidateConfirmed: observation.outputConfirmed })) {

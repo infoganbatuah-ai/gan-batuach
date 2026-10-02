@@ -312,12 +312,18 @@ export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
 // response; it must still pass the unchanged sustained-output contract from a
 // fresh post-release observation window before promotion.
 export function shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
-  sourceKind, ownerRunning, ownerCurrent, ownerOutputAt, relayStaleMs,
+  sourceKind, ownerRunning, ownerCurrent, ownerMissing = false,
+  ownerOutputAt, relayStaleMs,
   candidateRunning, candidateConfirmed,
   now = Date.now() }) {
   return Boolean(handoffMode === "OUTPUT_RESCUE"
     && sourceKind === "private_nvr_http_mp4"
-    && ownerRunning && ownerCurrent && candidateRunning
+    // The finite recorder response can end naturally while the already-open
+    // candidate is still inside its bounded confirmation window. An absent
+    // canonical owner is not an ownership conflict: retain the candidate as
+    // the one exclusive response. A different owner remains a hard deny.
+    && ((ownerRunning && ownerCurrent) || (!ownerRunning && ownerMissing))
+    && candidateRunning
     && !candidateConfirmed
     && Number.isFinite(ownerOutputAt) && Number.isFinite(relayStaleMs)
     && relayStaleMs > 0 && Number.isFinite(now)

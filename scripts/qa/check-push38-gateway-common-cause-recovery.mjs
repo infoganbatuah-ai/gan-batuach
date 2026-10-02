@@ -302,17 +302,21 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
   assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence,
     candidateFirstOutputObserved: false }), true,
   "an acquired candidate may be body-blocked by the proven hard-stale owner");
+  assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence,
+    ownerRunning: false, ownerCurrent: false, ownerMissing: true }), true,
+  "a naturally ended finite owner must not make the bounded candidate look like an ownership conflict");
   for (const override of [
     { handoffMode: "ROUTINE_FINITE_RESPONSE" },
     { sourceKind: "rtsp" },
-    { ownerRunning: false },
-    { ownerCurrent: false },
+    { ownerRunning: false, ownerCurrent: true },
+    { ownerRunning: false, ownerCurrent: false, ownerMissing: false },
+    { ownerRunning: true, ownerCurrent: false, ownerMissing: true },
     { candidateRunning: false },
     { ownerOutputAt: now - 19_999 },
     { candidateConfirmed: true }
   ]) assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence, ...override }), false);
   assert.match(gateway,
-    /hardStaleWaitMs[\s\S]*shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*maximumNoAdvanceMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS/,
+    /hardStaleWaitMs[\s\S]*shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*ownerMissing: relays\.get\(streamId\) === undefined,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*maximumNoAdvanceMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS/,
   "exclusive fallback must first reuse the acquired candidate after releasing only the stale owner");
   assert.match(gateway,
     /observation\.continuationStalled[\s\S]*EXCLUSIVE_RESCUE_REOPEN[\s\S]*startRelay\(streamId, \{ warming: true/,
