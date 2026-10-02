@@ -133,7 +133,7 @@ const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.s
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = routineConfirmation
-  ? `${restrictedRoot}/push38-gateway-finite-owner-exit-4be70f11/gateway-runtime.tar.gz`
+  ? `${restrictedRoot}/push38-gateway-health-serialization-5b3ee9f0/gateway-runtime.tar.gz`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/gateway-runtime.tar.gz`
   : deadlineBudget
@@ -188,7 +188,7 @@ const artifact = routineConfirmation
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = routineConfirmation
-  ? `${restrictedRoot}/push38-gateway-finite-owner-exit-4be70f11/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-health-serialization-5b3ee9f0/r2-publication.json`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json`
   : deadlineBudget
