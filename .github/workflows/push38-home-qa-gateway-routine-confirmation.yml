@@ -1,4 +1,4 @@
-name: PUSH 38 Gateway handoff-health Home QA manifest
+name: PUSH 38 Gateway routine-confirmation Home QA manifest
 
 on:
   push:
@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 4f27e7646b40f4db1aefa3f56874edde2b538e19
+          ref: 898813682322606d684e3b341bc366aaa503f7af
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "4f27e7646b40f4db1aefa3f56874edde2b538e19"
+        run: test "$(git rev-parse HEAD)" = "898813682322606d684e3b341bc366aaa503f7af"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable Gateway routine-confirmation contract
