@@ -29,6 +29,11 @@ const stall = summarizeRealHomeSoak([point(0), point(1, { stalledChannel: 1 })],
 assert.equal(stall.per_camera["dvr-1"].availability, 0.5);
 assert.equal(stall.per_camera["dvr-2"].availability, 1);
 assert.ok(stall.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"));
+assert.deepEqual(stall.gate_failure_details.source_availability.map(value => value.source), ["dvr-1"]);
+assert.equal(stall.gate_failure_details.source_availability[0].failed_checkpoints.length, 1);
+assert.equal(stall.gate_failure_details.source_availability[0].failed_checkpoints[0].sampled_at,
+  new Date(start + 60_000).toISOString());
+assert.equal(stall.gate_failure_details.source_availability[0].failed_checkpoints[0].component_liveness, null);
 
 const missing = summarizeRealHomeSoak([point(0), point(4)], { startedAt: start, endedAt: start + 300_000, requiredDurationMs: 300_000 });
 assert.equal(missing.checkpoint_coverage.expected_checkpoints, 5);
