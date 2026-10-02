@@ -351,6 +351,47 @@ export function shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection({
     && now - ownerOutputAt >= relayStaleMs);
 }
 
+// A concurrent candidate can acquire the recorder response and then exit
+// before publishing HLS. Live 0.2.64 evidence showed that the prior owner may
+// cross the hard-stale boundary during that bounded observation. Treating the
+// ended candidate as an ordinary confirmation failure left no productive
+// owner until the separate recovery timer fired. This is the same one-response
+// boundary as an acquisition rejection: permit exactly one exclusive reopen,
+// but only after the canonical owner is still the same and is provably hard
+// stale. The caller retains the normal confirmation and rollback contracts.
+export function shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit({
+  handoffMode, sourceKind, candidateRunning, candidateConfirmed,
+  canonicalOwnerUnchanged, ownerOutputAt, relayStaleMs, now = Date.now()
+}) {
+  return Boolean(handoffMode === "OUTPUT_RESCUE"
+    && sourceKind === "private_nvr_http_mp4"
+    && candidateRunning === false
+    && candidateConfirmed === false
+    && canonicalOwnerUnchanged
+    && Number.isFinite(ownerOutputAt) && Number.isFinite(relayStaleMs)
+    && relayStaleMs > 0 && Number.isFinite(now)
+    && now - ownerOutputAt >= relayStaleMs);
+}
+
+// An early output-rescue probe is intentionally non-destructive. It is not
+// authority to replace a relay that resumed current HLS while the candidate
+// was proving itself. Promote only when the old owner still needs rescue and
+// the replacement is the fresher media path. This preserves the measured
+// three-second early-warning budget without turning ordinary DVR/encoder
+// cadence jitter into a replacement storm.
+export function privateNvrOutputRescueStillRequired({ ownerRunning,
+  ownerCurrent, ownerProgressing, ownerOutputAt, candidateOutputAt,
+  rescueTriggerMs = PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+  now = Date.now() }) {
+  if (!ownerRunning || !ownerCurrent || !ownerProgressing) return true;
+  return Boolean(Number.isFinite(ownerOutputAt)
+    && Number.isFinite(candidateOutputAt)
+    && Number.isFinite(rescueTriggerMs) && rescueTriggerMs > 0
+    && Number.isFinite(now)
+    && now - ownerOutputAt >= rescueTriggerMs
+    && candidateOutputAt > ownerOutputAt);
+}
+
 // Ownership and media availability are deliberately separate during a warm
 // handoff. The current relay remains authoritative until the replacement
 // passes the full confirmation contract, but a replacement that is already

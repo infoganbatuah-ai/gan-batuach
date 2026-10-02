@@ -25,11 +25,13 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrHealthEffectiveRelay,
+  privateNvrOutputRescueStillRequired,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   relayMaySurvivePrivateNvrRenewal,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
   shouldProactivelyHandoffPrivateNvrRelay,
@@ -372,6 +374,44 @@ test("a hard-stale owner can reopen once after the recorder rejects the concurre
   assert.match(gateway,
     /EXCLUSIVE_RESCUE_ACQUISITION_FAILED[\s\S]*armRelayRecovery\(streamId, previous\)/,
   "a failed exclusive continuation must fall back to the existing recovery machinery");
+});
+
+test("an ended candidate at hard stale reuses the bounded exclusive rescue", () => {
+  const now = Date.now();
+  const evidence = { handoffMode: "OUTPUT_RESCUE",
+    sourceKind: "private_nvr_http_mp4", candidateRunning: false,
+    candidateConfirmed: false, canonicalOwnerUnchanged: true,
+    ownerOutputAt: now - 20_000, relayStaleMs: 20_000, now };
+  assert.equal(shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit(evidence), true);
+  for (const override of [
+    { handoffMode: "ROUTINE_FINITE_RESPONSE" }, { sourceKind: "rtsp" },
+    { candidateRunning: true }, { candidateConfirmed: true },
+    { canonicalOwnerUnchanged: false }, { ownerOutputAt: now - 19_999 }
+  ]) assert.equal(shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit({
+    ...evidence, ...override }), false);
+  assert.match(gateway,
+    /shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit\(\{ handoffMode,[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*previousRelay: endedCandidate/,
+  "an ended concurrent candidate must continue through one existing exclusive rescue");
+});
+
+test("an early rescue probe cannot replace an owner that recovered", () => {
+  const now = Date.now();
+  const recovered = { ownerRunning: true, ownerCurrent: true,
+    ownerProgressing: true, ownerOutputAt: now - 500,
+    candidateOutputAt: now - 100, now };
+  assert.equal(privateNvrOutputRescueStillRequired(recovered), false);
+  assert.equal(privateNvrOutputRescueStillRequired({ ...recovered,
+    ownerOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+    candidateOutputAt: now }), true);
+  assert.equal(privateNvrOutputRescueStillRequired({ ...recovered,
+    ownerRunning: false }), true);
+  assert.equal(privateNvrOutputRescueStillRequired({ ...recovered,
+    ownerCurrent: false }), true);
+  assert.equal(privateNvrOutputRescueStillRequired({ ...recovered,
+    ownerProgressing: false }), true);
+  assert.match(gateway,
+    /const ownerRecovered = handoffMode === "OUTPUT_RESCUE"[\s\S]*privateNvrOutputRescueStillRequired[\s\S]*OUTPUT_RESCUE_OWNER_RECOVERED/,
+  "a recovered canonical owner must survive the non-destructive probe");
 });
 
 test("heartbeat, login renewal, and media handoffs use independent bounded schedulers", () => {

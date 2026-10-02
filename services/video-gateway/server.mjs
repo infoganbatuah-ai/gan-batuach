@@ -36,11 +36,13 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffMediaContinuity,
   privateNvrHealthEffectiveRelay,
   privateNvrExclusiveRescueContinuationStalled,
+  privateNvrOutputRescueStillRequired,
   privateNvrOutputRescueRetryAllowed,
   privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -1867,6 +1869,41 @@ async function warmReplaceRelay(streamId, previous, {
         await new Promise(resolve => setTimeout(resolve, hardStaleWaitMs + 25));
       }
     }
+    // The concurrent response may end without publishing HLS while the owner
+    // crosses hard stale. Continue the same bounded rescue through exactly one
+    // exclusive reopen instead of returning to a delayed ownerless recovery.
+    if (shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit({ handoffMode,
+      sourceKind: source?.kind, candidateRunning: relayIsRunning(replacement),
+      candidateConfirmed: observation.outputConfirmed,
+      canonicalOwnerUnchanged: relays.get(streamId) === previous,
+      ownerOutputAt: relayPlaylistMtime(previous), relayStaleMs: RELAY_STALE_MS })) {
+      exclusiveRescue = true;
+      relayLifecycle.exclusiveRescueTakeovers += 1;
+      relayLifecycle.exclusiveRescueColdTakeovers += 1;
+      relayLifecycle.exclusiveRescueReopens += 1;
+      stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
+      expectedCurrent = undefined;
+      const endedCandidate = replacement;
+      replacement = await startRelay(streamId, { warming: true,
+        previousRelay: endedCandidate, handoffMode });
+      if (replacement) {
+        replacement.previousDirectories = [...new Set([
+          endedCandidate?.directory, ...(endedCandidate?.previousDirectories || []),
+          previous.directory, ...(previous.previousDirectories || [])
+        ].filter(Boolean))];
+        replacement.previousGenerations = [
+          ...(endedCandidate ? [{ generation: endedCandidate.generation,
+            directory: endedCandidate.directory }] : []),
+          ...(endedCandidate?.previousGenerations || []),
+          { generation: previous.generation, directory: previous.directory },
+          ...(previous.previousGenerations || [])
+        ].filter(entry => entry.generation && entry.directory);
+        observation = await observeWarmReplacement(replacement, { handoffMode,
+          minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+      } else {
+        relayLifecycle.exclusiveRescueReopenFailures += 1;
+      }
+    }
     if (shouldUsePrivateNvrExclusiveOutputRescue({ handoffMode,
       sourceKind: source?.kind, ownerRunning: relayIsRunning(previous),
       ownerCurrent: relays.get(streamId) === previous,
@@ -1923,6 +1960,29 @@ async function warmReplaceRelay(streamId, previous, {
           relayLifecycle.exclusiveRescueReopenFailures += 1;
         }
       }
+    }
+    const ownerRecovered = handoffMode === "OUTPUT_RESCUE" && !exclusiveRescue
+      && observation.outputConfirmed
+      && !privateNvrOutputRescueStillRequired({
+        ownerRunning: relayIsRunning(previous),
+        ownerCurrent: relays.get(streamId) === previous,
+        ownerProgressing: relayIsProgressing(previous),
+        ownerOutputAt: relayPlaylistMtime(previous),
+        candidateOutputAt: relayPlaylistMtime(replacement)
+      });
+    if (ownerRecovered) {
+      relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+        last_handoff_result: "OWNER_RECOVERED",
+        last_handoff_failure: null,
+        last_handoff_first_output_latency_ms: observation.confirmationStartedAt === null
+          ? null : observation.confirmationStartedAt - observation.probationStartedAt,
+        last_handoff_output_advances: observation.outputAdvanceCount,
+        last_handoff_duration_ms: Date.now() - handoffStartedAt,
+        last_handoff_path: "CONCURRENT_WARM" });
+      previous.lastOutputRescueFailureAt = Date.now();
+      stopRelay(streamId, replacement, "OUTPUT_RESCUE_OWNER_RECOVERED");
+      cleanupRelayDirectories(streamId, previous, [replacement.directory]);
+      return true;
     }
     // A single initial playlist write (or a pair) is not sustained media. Keep
     // the prior relay authoritative until the replacement has four distinct

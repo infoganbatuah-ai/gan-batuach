@@ -35,6 +35,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrExclusiveRescueContinuationStalled,
+  privateNvrOutputRescueStillRequired,
   privateNvrOutputRescueRetryAllowed,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
@@ -250,6 +251,15 @@ test("an exclusive rescue reopens only a stranded retained response", () => {
   assert.match(server,
     /observeWarmReplacement\(replacement,[\s\S]*minimumConfirmationMs,[\s\S]*minimumOutputAdvances/,
   "the reopened response must satisfy the unchanged promotion contract");
+});
+
+test("a recovered owner wins over an early confirmed rescue candidate", () => {
+  const now = Date.now();
+  assert.equal(privateNvrOutputRescueStillRequired({ ownerRunning: true,
+    ownerCurrent: true, ownerProgressing: true,
+    ownerOutputAt: now - 250, candidateOutputAt: now - 50, now }), false);
+  assert.match(server,
+    /last_handoff_result: "OWNER_RECOVERED"[\s\S]*lastOutputRescueFailureAt = Date\.now\(\)[\s\S]*OUTPUT_RESCUE_OWNER_RECOVERED/);
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
