@@ -116,6 +116,10 @@ test("live multi-source evidence disables age-only relay churn", () => {
   "reactive-only proof must not fabricate a handoff merely to satisfy the old fixture");
   assert.match(shadow, /DVR_SHADOW_CHANNELS/);
   assert.match(shadow, /READ_ONLY_TWO_CHANNEL_SHADOW/);
+  assert.match(shadow,
+    /pre_validation_settling[\s\S]*finalRenewals[\s\S]*final_verification[\s\S]*qualificationCheckpoints/,
+  "terminal Shadow evidence must include post-settlement playback and lifecycle counters");
+  assert.match(shadow, /terminal_verification: true/);
   assert.match(server, /filter\.length < 1 \|\| filter\.length > 2/,
   "bounded Shadow may exercise both recorder-safe rescue lanes without broad access");
 });

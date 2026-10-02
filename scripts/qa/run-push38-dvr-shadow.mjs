@@ -355,14 +355,28 @@ try {
   }
   evidence.measurement_ended_at = new Date().toISOString();
   evidence.duration_ms = Date.now() - startedAt;
+  evidence.pre_validation_settling = await waitForSettledHandoff();
+  const finalRenewals = playbackEveryCheckpoint
+    ? await Promise.all(selected.map(async item => ({ channel: item.channel,
+      playback: await playback(item.stream_id) }))) : [];
   evidence.settling = await waitForSettledHandoff();
   evidence.final_health = evidence.settling.health;
+  evidence.final_verification = {
+    sequence: evidence.checkpoints.length + 1,
+    observed_at: new Date().toISOString(),
+    elapsed_ms: Date.now() - startedAt,
+    renewal: finalRenewals[0]?.playback ?? null,
+    renewals: finalRenewals,
+    shadow: evidence.final_health,
+    terminal_verification: true
+  };
   evidence.ended_at = new Date().toISOString();
   evidence.total_duration_ms = Date.now() - startedAt;
   const finalPoint = { shadow: evidence.final_health };
+  const qualificationCheckpoints = [...evidence.checkpoints, evidence.final_verification];
   const lifecycle = evidence.final_health?.media?.lifecycle || {};
   const playbackFailures = playbackEveryCheckpoint
-    ? evidence.checkpoints.flatMap(point => point.renewals).filter(entry =>
+    ? qualificationCheckpoints.flatMap(point => point.renewals).filter(entry =>
       entry.playback?.status !== 200 || entry.playback?.playlist_status !== 200 ||
       entry.playback?.segment_status !== 200 || !(entry.playback?.segment_bytes > 0)).length
     : 0;
@@ -373,10 +387,10 @@ try {
   const outputRescueFailures = Number(
     lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
   const outputRescueClassification = classifyBoundedOutputRescueRejection(
-    evidence.checkpoints, lifecycle, { expectedProgressing: channels.length });
+    qualificationCheckpoints, lifecycle, { expectedProgressing: channels.length });
   const hlsContinuityByChannel = playbackEveryCheckpoint ? channels.map(selectedChannel => ({
     channel: selectedChannel,
-    ...evaluateHlsRenewalContinuity(evidence.checkpoints.map(point => ({
+    ...evaluateHlsRenewalContinuity(qualificationCheckpoints.map(point => ({
       observed_at: point.observed_at,
       renewal: point.renewals.find(entry => entry.channel === selectedChannel)?.playback
     })))
