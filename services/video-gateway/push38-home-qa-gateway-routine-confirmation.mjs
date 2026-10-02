@@ -38,23 +38,27 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // starts the full confirmation observation. Its signed real-DVR Shadow kept
 // playback and the HLS playlist continuous, but exposed a health aggregation
 // defect: candidate-only continuity was omitted while canonical ownership was
-// intentionally empty during probation. This 0.2.60 successor counts the
-// effective candidate media in health and supervision without promoting it
-// early. Canonical ownership still requires four advances across six seconds
-// and concurrency remains capped at two. The
+// intentionally empty during probation. Release 0.2.60 counted the effective
+// candidate media in health and supervision without promoting it early. Its
+// signed real-DVR Shadow then proved that a candidate which briefly produced
+// output could strand after the stale owner closed. This 0.2.61 successor gives
+// that retained response the existing three-second freshness budget and, only
+// if it stops advancing, reopens one exclusive response while preserving both
+// prior HLS generations. Canonical ownership still requires four advances
+// across six seconds and concurrency remains capped at two. The
 // intermediate 0.2.46 release was quarantined after its evidence-bound retry
 // and cannot safely serve as another bridge. This complete
 // package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
 // dependency/model baseline; live rollback targets signed 0.2.58 and the
-// Product source overlay is pinned to the exact 7097d996 correction commit.
+// Product source overlay is pinned to the exact b11de2be correction commit.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-handoff-health-4fd9e7b95e77",
-  version: "0.2.60-p38-health",
-  buildSha: "7097d9967501301d783633788bf64bf0dfc18c46",
-  digest: "4fd9e7b95e779368571f3b0c323945d81e7fcd3b71217f7b9053d392604c65ad",
-  size: 135843170,
+  releaseId: "qa-p38-health-gateway-exclusive-reopen-9053fd23eb8e",
+  version: "0.2.61-p38-health",
+  buildSha: "b11de2be805537a5b8beb6f6afb36ca5af337ef1",
+  digest: "9053fd23eb8e4430ac42d2e0bc466923f1e5482ad050de033bdbb931896acae7",
+  size: 135843529,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
   rollbackVersion: "0.2.58-p38-health",
@@ -64,6 +68,8 @@ export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   failedCandidateVersion: "0.2.57-p38-health",
   failedHealthCandidateReleaseId: "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd",
   failedHealthCandidateVersion: "0.2.59-p38-health",
+  failedContinuityCandidateReleaseId: "qa-p38-health-gateway-handoff-health-4fd9e7b95e77",
+  failedContinuityCandidateVersion: "0.2.60-p38-health",
   quarantinedBridgeReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   quarantinedBridgeVersion: "0.2.46-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
