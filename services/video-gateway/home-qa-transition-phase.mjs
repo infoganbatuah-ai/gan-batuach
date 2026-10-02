@@ -59,10 +59,10 @@ const gatewayHandoffOwnerContinuity = "qa-p38-health-gateway-handoff-owner-conti
 const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046";
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
-// The active candidate retains the exact signed 0.2.56 runtime as rollback and
-// installs a complete package rebuilt from the signed 0.2.41 dependency/model
-// baseline. Quarantined and superseded releases remain historical only.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-exclusive-reuse-8b32513d7591";
+// The active candidate retains the exact signed 0.2.58 runtime as rollback and
+// installs a complete package with the body-blocked DVR handoff correction.
+// Quarantined and superseded releases remain historical only.
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,

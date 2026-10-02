@@ -28,28 +28,33 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // rescue gap: the concurrent candidate had already acquired media, but the
 // owner-release path killed both it and the hard-stale owner before opening a
 // third response. One checkpoint consequently had no active relay even though
-// retained HLS remained playable. This release releases only the stale owner,
-// reuses the already-open candidate as the exclusive response, and restarts the
-// full confirmation observation. Canonical ownership still requires four
-// advances across six seconds and concurrency remains capped at two. The
+// retained HLS remained playable. Release 0.2.58 retained that acquired
+// candidate, but the live canary proved another recorder-specific boundary:
+// the recorder may accept the second request while withholding its response
+// body until the hard-stale owner closes. Requiring candidate output before
+// owner release was therefore circular and still caused a third-request media
+// gap. This 0.2.59 successor retains the acquired, running candidate through
+// the bounded hard-stale remainder, releases only the stale owner, and then
+// starts the full confirmation observation. Canonical ownership still requires
+// four advances across six seconds and concurrency remains capped at two. The
 // intermediate 0.2.46 release was quarantined after its evidence-bound retry
 // and cannot safely serve as another bridge. This complete
 // package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
-// dependency/model baseline; live rollback targets signed 0.2.56 and the
-// Product source overlay is pinned to the exact 7f38eb5d correction commit.
+// dependency/model baseline; live rollback targets signed 0.2.58 and the
+// Product source overlay is pinned to the exact d1c3cecb correction commit.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
-  version: "0.2.58-p38-health",
-  buildSha: "7f38eb5dbeb867b3ae68c622efbacdc7867bd803",
-  digest: "8b32513d7591cfa5aecba0c2d5ce451d075d2d85d1b698f9367deb23ea914272",
-  size: 135842839,
+  releaseId: "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd",
+  version: "0.2.59-p38-health",
+  buildSha: "d1c3cecb27e39649286e0ecb496843b10b14c227",
+  digest: "55a5a7a7f8bdc7bb41fb5970e0ae50ad3dc4940c1c07199be330ea5442a89059",
+  size: 135843552,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
-  rollbackVersion: "0.2.56-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
-  supersedesVersion: "0.2.56-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
+  rollbackVersion: "0.2.58-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
+  supersedesVersion: "0.2.58-p38-health",
   failedCandidateReleaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
   failedCandidateVersion: "0.2.57-p38-health",
   quarantinedBridgeReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",

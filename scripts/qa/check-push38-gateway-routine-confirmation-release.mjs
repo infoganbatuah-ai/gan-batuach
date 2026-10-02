@@ -18,15 +18,15 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const built = buildPush38GatewayRoutineConfirmationManifest({ signingKeyId: "observer-kms-release-v1",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(built.release_id, item.releaseId);
-assert.equal(built.version, "0.2.58-p38-health");
+assert.equal(built.version, "0.2.59-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
-assert.equal(built.compatibility.minimum_current_version, "0.2.56-p38-health");
-assert.equal(built.compatibility.maximum_current_version, "0.2.56-p38-health");
+assert.equal(built.compatibility.minimum_current_version, "0.2.58-p38-health");
+assert.equal(built.compatibility.maximum_current_version, "0.2.58-p38-health");
 assert.equal(item.supersedesReleaseId,
-  "qa-p38-health-gateway-hls-window-direct-59572f35f8cc");
-assert.equal(item.supersedesVersion, "0.2.56-p38-health");
+  "qa-p38-health-gateway-exclusive-reuse-8b32513d7591");
+assert.equal(item.supersedesVersion, "0.2.58-p38-health");
 assert.equal(item.failedCandidateReleaseId,
   "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861");
 assert.equal(item.failedCandidateVersion, "0.2.57-p38-health");
@@ -82,6 +82,10 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
   release_id: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
   version: "0.2.57-p38-health" } }), false,
 "the failed exclusive reacquisition release remains historical and cannot authorize activation");
+assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
+  release_id: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
+  version: "0.2.58-p38-health" } }), false,
+"the failed canary release remains historical and cannot authorize a new activation");
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
   gateway_id: "wrong-gateway" }, manifest: built }), false);
 
