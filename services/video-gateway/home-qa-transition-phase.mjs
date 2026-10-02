@@ -62,11 +62,12 @@ const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-737
 // The active candidate installs a complete package with bounded exclusive
 // continuation after a rejected concurrent probe, body-blocked handoff,
 // truthful candidate-only health continuity, a naturally ended finite owner
-// during bounded candidate confirmation, and a serializable health projection
-// while neither canonical nor candidate media is an effective owner. Its
-// manifest rolls back directly to the signed live 0.2.63 KNOWN_GOOD.
+// during bounded candidate confirmation, a serializable health projection while
+// neither canonical nor candidate media is an effective owner, and preservation
+// of a recovered current owner across an unnecessary rescue candidate. Its
+// manifest rolls back directly to the signed live 0.2.64 KNOWN_GOOD.
 // Quarantined and superseded releases remain historical only.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-health-serialization-dee178ab7c45";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-owner-recovery-eba5eebec6bc";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,

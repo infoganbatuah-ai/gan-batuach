@@ -71,24 +71,35 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // exposing a health-only serialization boundary: canonical ownership could be
 // intentionally empty while a candidate had not produced current media, so the
 // health projection dereferenced no effective owner and returned HTTP 500.
-// This 0.2.64 release keeps the exact relay contract and reports that bounded
+// Release 0.2.64 kept the exact relay contract and reported that bounded
 // interval truthfully as no effective input instead of failing the whole health
-// response. It rolls back exactly to the signed live 0.2.63 KNOWN_GOOD.
+// response. Its live canary then preserved process, socket, authentication and
+// recorder-session health but measured two brief source gaps and fifty-six relay
+// starts in fifteen minutes. Evidence showed two ownership races rather than a
+// recorder failure: an early output-rescue candidate could replace an owner that
+// had already resumed current HLS, and a candidate which exited before media at
+// the hard-stale boundary could fall into ordinary delayed recovery. This 0.2.65
+// successor keeps the recovered current owner and applies the existing bounded
+// exclusive rescue once at the second boundary. Thresholds, concurrency, four
+// advances across six seconds, and rollback machinery are unchanged. It rolls
+// back exactly to the signed live 0.2.64 KNOWN_GOOD.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
-  version: "0.2.64-p38-health",
-  buildSha: "5b3ee9f0e78c22926ff5688ee9f77c973257632b",
-  digest: "dee178ab7c455b7e744d3a1658e79333296f5420787299182b021f9020068ba2",
-  size: 135842806,
+  releaseId: "qa-p38-health-gateway-owner-recovery-eba5eebec6bc",
+  version: "0.2.65-p38-health",
+  buildSha: "e661c3747f891f05ebe6ef7cc5598431956c2126",
+  digest: "eba5eebec6bc0fe3885367a5372a795e4ad3bf09eb12b1900f3c88af0d59123f",
+  size: 135844371,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-finite-owner-exit-79141a089f25",
-  rollbackVersion: "0.2.63-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-finite-owner-exit-79141a089f25",
-  supersedesVersion: "0.2.63-p38-health",
-  failedLiveCanaryReleaseId: "qa-p38-health-gateway-finite-owner-exit-79141a089f25",
-  failedLiveCanaryVersion: "0.2.63-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
+  rollbackVersion: "0.2.64-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
+  supersedesVersion: "0.2.64-p38-health",
+  failedLiveCanaryReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
+  failedLiveCanaryVersion: "0.2.64-p38-health",
+  failedHealthSerializationPredecessorReleaseId: "qa-p38-health-gateway-finite-owner-exit-79141a089f25",
+  failedHealthSerializationPredecessorVersion: "0.2.63-p38-health",
   quarantinedRuntimeReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
   quarantinedRuntimeVersion: "0.2.58-p38-health",
   failedCandidateReleaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
