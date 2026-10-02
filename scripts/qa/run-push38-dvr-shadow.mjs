@@ -288,8 +288,27 @@ function persist() {
   renameSync(temporary, outputPath);
   chmodSync(outputPath, 0o600);
 }
-function stopChild() {
-  if (child?.exitCode === null && !child.killed) child.kill("SIGTERM");
+function waitForChildExit(timeoutMs) {
+  return new Promise((resolve) => {
+    if (!child || child.exitCode !== null) return resolve(true);
+    const onExit = () => {
+      clearTimeout(timer);
+      resolve(true);
+    };
+    const timer = setTimeout(() => {
+      child.off("exit", onExit);
+      resolve(false);
+    }, timeoutMs);
+    child.once("exit", onExit);
+  });
+}
+async function stopChild() {
+  if (!child || child.exitCode !== null) return;
+  child.kill("SIGTERM");
+  if (!await waitForChildExit(5_000)) {
+    child.kill("SIGKILL");
+    await waitForChildExit(2_000);
+  }
 }
 
 try {
@@ -448,8 +467,8 @@ try {
   process.stdout.write(`${JSON.stringify({ result: evidence.result, duration_ms: evidence.duration_ms, checkpoints: evidence.checkpoints.length, output: outputPath })}\n`);
   if (evidence.result !== "PASS") process.exitCode = 1;
 } finally {
-  stopChild();
-  await sleep(500);
-  rmSync(hlsRoot, { recursive: true, force: true });
-  if (runtimeSource.cleanupRoot) rmSync(runtimeSource.cleanupRoot, { recursive: true, force: true });
+  await stopChild();
+  rmSync(hlsRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  if (runtimeSource.cleanupRoot) rmSync(runtimeSource.cleanupRoot,
+    { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
