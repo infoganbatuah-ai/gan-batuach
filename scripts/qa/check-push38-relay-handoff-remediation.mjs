@@ -335,7 +335,9 @@ test("a progressing candidate preserves health without early ownership promotion
     currentProgressing: false, candidateProgressing: false
   }), { progressing: false, owner: "NONE", mediaOwner: "NONE" });
   assert.match(server, /const relayCandidates = new Map\(\)/);
-  assert.match(server, /effective: state\.mediaOwner === "WARMING_CONTINUITY" \? candidate : current/);
+  assert.match(server,
+    /effective: privateNvrHealthEffectiveRelay\(\{ current, candidate,[\s\S]*mediaOwner: state\.mediaOwner \}\)/,
+  "health must select only the relay named by continuity and tolerate a bounded no-owner interval");
   assert.match(server,
     /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\)\]\)/,
   "health must enumerate candidate-only continuity during exclusive rescue");
