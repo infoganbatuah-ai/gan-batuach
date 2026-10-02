@@ -161,6 +161,32 @@ const interrupted = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
 await assert.rejects(interrupted.value.apply({ manifest: goodManifest, artifactBytes: artifact, interruptAt: "STAGED" }), /EDGE_UPDATE_INTERRUPTED_STAGING/);
 assert.equal(interrupted.value.current().version, "1.0.0"); assert.equal(interrupted.value.status().state, "UPDATE_FAILED");
 
+// If the agent is replaced after CURRENT switches but before health commits,
+// failed resumed health must use the existing signed rollback machinery.
+const interruptedHealth = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
+const interruptedHealthManifest = manifest({ version: "1.1.0", release: "qa-interrupted-health-1.1.0" });
+assert.equal((await interruptedHealth.value.apply({ manifest: interruptedHealthManifest,
+  artifactBytes: artifact })).state, "HEALTHY");
+const interruptedHealthCurrent = interruptedHealth.value.current();
+const interruptedHealthPrior = interruptedHealth.value.knownGood().filter(item =>
+  item.release_id !== interruptedHealthCurrent.release_id);
+writeFileSync(interruptedHealth.value.knownGoodPath,
+  `${JSON.stringify(interruptedHealthPrior, null, 2)}\n`);
+writeFileSync(interruptedHealth.value.statePath, `${JSON.stringify({
+  ...interruptedHealth.value.status(), state: "VERIFYING_HEALTH",
+  release_id: interruptedHealthCurrent.release_id,
+  target_version: interruptedHealthCurrent.version,
+  current_version: interruptedHealthCurrent.version,
+  known_good_version: interruptedHealthPrior.at(-1)?.version || null
+}, null, 2)}\n`);
+interruptedHealth.value.healthCheck = async ({ rollback }) => rollback
+  ? healthy(1) : { ...healthy(1), progressing_physical_cameras: 0 };
+assert.equal((await interruptedHealth.value.recoverInterruptedHealthVerification()).state,
+  "ROLLED_BACK");
+assert.equal(interruptedHealth.value.current().version, "1.0.0");
+assert.equal(interruptedHealth.value.quarantine().some(item =>
+  item.release_id === interruptedHealthManifest.release_id), true);
+
 // Physical Gateway uses the same manager and empty DVR capacity is not a failed camera.
 const gatewayManifest = manifest({ version: "1.1.0", profile: "PHYSICAL_GATEWAY", release: "qa-gateway-1.1.0" });
 const gateway = await manager("PHYSICAL_GATEWAY", async () => healthy(10, 6));

@@ -102,6 +102,30 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
     assert.equal(manager.current().release_id, target.release_id);
     assert.equal(retryEvents.some(event => event.state === "AUTHORIZED_RETRY_ACTIVE" &&
       event.release_id === target.release_id), true);
+    // Simulate replacement of the independently supervised OTA agent after
+    // CURRENT switched but before the successful health result was committed.
+    // The restarted agent must resume the exact signed slot without another
+    // service restart, and must either promote it or use canonical rollback.
+    const interruptedHealthCurrent = manager.current();
+    const priorKnownGood = manager.knownGood().filter(item =>
+      item.release_id !== interruptedHealthCurrent.release_id);
+    writeFileSync(manager.knownGoodPath, `${JSON.stringify(priorKnownGood, null, 2)}\n`);
+    writeFileSync(manager.statePath, `${JSON.stringify({ ...manager.status(),
+      state: "VERIFYING_HEALTH", release_id: interruptedHealthCurrent.release_id,
+      target_version: interruptedHealthCurrent.version,
+      current_version: interruptedHealthCurrent.version,
+      known_good_version: priorKnownGood.at(-1)?.version || null }, null, 2)}\n`);
+    const resumedHealthEvents = [];
+    const resumedHealthAgent = createInstalledEdgeOtaAgent({ ...options,
+      onEvent: event => resumedHealthEvents.push(event) });
+    assert.equal((await resumedHealthAgent.tick()).state, "HEALTHY");
+    assert.equal(manager.status().recovery_category,
+      "EDGE_UPDATE_INTERRUPTED_HEALTH_RESUMED");
+    assert.equal(manager.knownGood().some(item =>
+      item.release_id === interruptedHealthCurrent.release_id), true);
+    assert.equal(resumedHealthEvents.some(event => event.state === "HEALTHY" &&
+      event.release_id === interruptedHealthCurrent.release_id), true);
+    assert.equal(restarts, 3, "health resumption must not restart the camera runtime");
     // Simulate an agent crash after a late rollback switched CURRENT but
     // before the service-manager restart and terminal-state write.
     target = release(profile, "1.2.0");
@@ -119,6 +143,7 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
     assert.equal(restarts, 5);
     results.push({ profile, automatic_cycle: "PASS", persistent_crash_rollback: "PASS",
       authorized_retry_bypasses_only_legacy_http_probe: "PASS", interrupted_rollback_recovery: "PASS",
+      interrupted_health_verification_recovery: "PASS",
       quarantine: "PASS", agent_restart: "PASS", predownload_manifest_gate: "PASS" });
   } finally { rmSync(scope, { recursive: true, force: true }); }
 }

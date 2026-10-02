@@ -77,6 +77,13 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
         await reportLateFailure(manager);
         return recovered;
       }
+      if (manager.status().state === "VERIFYING_HEALTH") {
+        const recovered = await manager.recoverInterruptedHealthVerification();
+        onEvent({ state: recovered.state, release_id: manager.current().release_id,
+          reason: recovered.failure_category || null });
+        await reportLateFailure(manager);
+        return recovered;
+      }
       const pendingRetry = manager.pendingQuarantineRetry();
       if (pendingRetry) {
         // A one-time, evidence-bound retry exists precisely because the old

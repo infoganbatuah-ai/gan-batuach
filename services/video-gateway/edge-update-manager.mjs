@@ -294,6 +294,39 @@ export class EdgeUpdateManager {
       return this.status();
     }
   }
+  // The OTA agent is independently supervised and can be replaced after the
+  // runtime handoff but before the health result is committed. Resume that
+  // exact signed CURRENT slot; never select a new release or silently promote
+  // it. A healthy result completes the original promotion, while any failed
+  // result enters the existing canonical rollback path.
+  async recoverInterruptedHealthVerification() {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "VERIFYING_HEALTH" || !state.release_id ||
+      state.release_id !== current.release_id || state.target_version !== current.version)
+      fail("EDGE_UPDATE_HEALTH_RECOVERY_NOT_APPLICABLE");
+    const manifest = this.verifySlot(current);
+    if (manifest.version !== current.version || manifest.release_id !== state.release_id)
+      fail("EDGE_UPDATE_HEALTH_RECOVERY_SLOT_MISMATCH");
+    try {
+      const health = edgeHealthGate(await this.healthCheck({ version: current.version,
+        manifest, resumed: true }));
+      if (!health.healthy) fail(health.reason);
+      if (!known.some(item => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256)) {
+        known.push({ ...current, promoted_at: new Date(this.now()).toISOString(), health });
+        atomicJson(this.knownGoodPath, known.slice(-3));
+      }
+      return this.transition("HEALTHY", { target_version: current.version,
+        release_id: current.release_id, health, failure_category: null,
+        recovery_category: "EDGE_UPDATE_INTERRUPTED_HEALTH_RESUMED",
+        failed_version: null, recovered_version: null, recovery_health: null });
+    } catch (error) {
+      const reason = error.code || "EDGE_UPDATE_HEALTH_RECOVERY_FAILED";
+      this.transition("ROLLBACK_REQUIRED", { failure_category: reason,
+        target_version: current.version, failed_version: current.version });
+      return this.recoverInterruptedRollback();
+    }
+  }
   // Reconcile only the false terminal created after CURRENT had already been
   // restored to the exact signed known-good slot but the old camera runtime was
   // degraded. This never selects a different slot and never promotes the failed
