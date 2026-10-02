@@ -282,6 +282,7 @@ const rolloutReleaseIdsToPause = routineConfirmation
   ? [predecessorReleaseId, item.failedCandidateReleaseId,
     item.failedHealthCandidateReleaseId, item.failedContinuityCandidateReleaseId,
     item.failedAcquisitionCandidateReleaseId,
+    item.quarantinedRuntimeReleaseId,
     item.quarantinedBridgeReleaseId,
     item.rollbackReleaseId]
   : [predecessorReleaseId];

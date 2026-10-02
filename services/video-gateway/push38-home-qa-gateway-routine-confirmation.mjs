@@ -52,23 +52,29 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // prior HLS generation while requiring the unchanged four advances across six
 // seconds. Concurrency remains capped at two. The
 // intermediate 0.2.46 release was quarantined after its evidence-bound retry
-// and cannot safely serve as another bridge. This complete
-// package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
-// dependency/model baseline; live rollback targets signed 0.2.58 and the
-// Product source overlay is pinned to the exact b11de2be correction commit.
+// and cannot safely serve as another bridge. The first 0.2.62 manifest targeted
+// 0.2.58, but the installed crash guard later quarantined 0.2.58 after a
+// sustained health-endpoint outage under the same relay churn this candidate
+// fixes. Re-promoting that removed release solely to bridge an update would
+// make rollback unsafe. This replacement manifest therefore binds the exact
+// already-qualified 0.2.62 artifact directly to the live signed 0.2.56
+// KNOWN_GOOD and rolls back to that same immutable slot. No runtime bytes were
+// rebuilt for this baseline reconciliation.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-exclusive-acquisition-retry-86fa5a9253a9",
+  releaseId: "qa-p38-health-gateway-exclusive-acquisition-retry-from-hls-window-86fa5a9253a9",
   version: "0.2.62-p38-health",
   buildSha: "4697ddc5663be6a70adc851b9ca80bf3b8b9729c",
   digest: "86fa5a9253a9d99ce9ea8f0d2dc192630f98294810cf7b7ade9af13411cfd8bc",
   size: 135842795,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
-  rollbackVersion: "0.2.58-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
-  supersedesVersion: "0.2.58-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
+  rollbackVersion: "0.2.56-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
+  supersedesVersion: "0.2.56-p38-health",
+  quarantinedRuntimeReleaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
+  quarantinedRuntimeVersion: "0.2.58-p38-health",
   failedCandidateReleaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
   failedCandidateVersion: "0.2.57-p38-health",
   failedHealthCandidateReleaseId: "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd",

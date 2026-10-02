@@ -22,11 +22,14 @@ assert.equal(built.version, "0.2.62-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
-assert.equal(built.compatibility.minimum_current_version, "0.2.58-p38-health");
-assert.equal(built.compatibility.maximum_current_version, "0.2.58-p38-health");
+assert.equal(built.compatibility.minimum_current_version, "0.2.56-p38-health");
+assert.equal(built.compatibility.maximum_current_version, "0.2.56-p38-health");
 assert.equal(item.supersedesReleaseId,
+  "qa-p38-health-gateway-hls-window-direct-59572f35f8cc");
+assert.equal(item.supersedesVersion, "0.2.56-p38-health");
+assert.equal(item.quarantinedRuntimeReleaseId,
   "qa-p38-health-gateway-exclusive-reuse-8b32513d7591");
-assert.equal(item.supersedesVersion, "0.2.58-p38-health");
+assert.equal(item.quarantinedRuntimeVersion, "0.2.58-p38-health");
 assert.equal(item.failedCandidateReleaseId,
   "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861");
 assert.equal(item.failedCandidateVersion, "0.2.57-p38-health");
@@ -222,6 +225,7 @@ try {
   assert.match(registration, /item\.failedHealthCandidateReleaseId/);
   assert.match(registration, /item\.failedContinuityCandidateReleaseId/);
   assert.match(registration, /item\.failedAcquisitionCandidateReleaseId/);
+  assert.match(registration, /item\.quarantinedRuntimeReleaseId/);
   assert.match(registration, /item\.quarantinedBridgeReleaseId/);
   assert.match(registration,
     /r\.release_id in \(\$\{rolloutReleaseIdsToPauseSql\}\) and o\.status<>'PAUSED'/);

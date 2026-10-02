@@ -59,12 +59,13 @@ const gatewayHandoffOwnerContinuity = "qa-p38-health-gateway-handoff-owner-conti
 const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046";
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
-// The active candidate retains the exact signed 0.2.58 runtime as rollback and
-// installs a complete package with bounded exclusive continuation after a
-// rejected concurrent probe, body-blocked handoff, and truthful candidate-only
-// health continuity.
+// The active candidate installs a complete package with bounded exclusive
+// continuation after a rejected concurrent probe, body-blocked handoff, and
+// truthful candidate-only health continuity. Its replacement manifest rolls
+// back directly to the signed live 0.2.56 KNOWN_GOOD after the crash guard
+// quarantined 0.2.58 during a sustained health-endpoint outage.
 // Quarantined and superseded releases remain historical only.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-exclusive-acquisition-retry-86fa5a9253a9";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-exclusive-acquisition-retry-from-hls-window-86fa5a9253a9";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
