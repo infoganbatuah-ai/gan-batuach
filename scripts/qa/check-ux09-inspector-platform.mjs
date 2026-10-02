@@ -65,7 +65,9 @@ test("Reports, findings and corrective actions preserve server truth and history
 
 test("Complaints, trends and preliminary Gardens remain canonically scoped", () => {
   assert.match(complaints, /assigned_inspector_id/);
-  assert.match(complaints, /ComplaintCaseActions/);
+  assert.match(complaints, /ComplaintWorkspace/);
+  assert.match(complaints, /role="inspector"/);
+  assert.match(complaints, /scopeMessage=/);
   assert.match(trends, /\.eq\("inspector_id", profile\.id\)/);
   assert.match(trends, /weighted_score/);
   assert.match(preliminary, /InspectorPreliminaryGardens/);

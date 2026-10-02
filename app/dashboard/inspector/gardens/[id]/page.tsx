@@ -78,7 +78,7 @@ export default async function InspectorGardenDetailPage({ params }: { params: Pr
         action={<Link className="inspector-action-button" href={`/dashboard/inspector/inspections?garden=${id}`}>פתיחת ביקורת</Link>}
       />
       <InspectorMetricGrid columns={4}>
-        <InspectorMetricCard label="ציון אחרון" value={garden.last_inspection_score ?? "—"} hint={date(garden.last_inspection_at)} icon={ShieldCheck} tone={Number(garden.last_inspection_score ?? 0) >= 80 ? "success" : "warning"} />
+        <InspectorMetricCard label="ציון אחרון" value={garden.last_inspection_score ?? "—"} hint={date(garden.last_inspection_at)} icon={ShieldCheck} tone={garden.safe_status === "safe" ? "success" : "warning"} />
         <InspectorMetricCard label="ביקורת הבאה" value={date(garden.next_inspection_at)} hint={garden.inspection_required_status ?? "לפי לוח פיקוח"} icon={CalendarCheck} />
         <InspectorMetricCard label="ליקויים פתוחים" value={openViolations.length} hint="פעולות תיקון" icon={AlertTriangle} tone={openViolations.length ? "warning" : "success"} />
         <InspectorMetricCard label="פניות פתוחות" value={complaints.filter((row) => !["closed", "resolved"].includes(row.status)).length} hint="בתחום השיוך" icon={MessageSquareWarning} />
