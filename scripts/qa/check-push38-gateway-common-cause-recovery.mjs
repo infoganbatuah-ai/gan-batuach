@@ -311,11 +311,11 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
     { candidateConfirmed: true }
   ]) assert.equal(shouldUsePrivateNvrExclusiveOutputRescue({ ...evidence, ...override }), false);
   assert.match(gateway,
-    /hardStaleWaitMs[\s\S]*shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*observation = await observeWarmReplacement\(replacement,/,
-  "exclusive fallback must reuse the acquired candidate after releasing only the stale owner");
-  assert.doesNotMatch(gateway,
-    /OUTPUT_RESCUE_CONCURRENT_PROBE_RELEASE/,
-  "exclusive fallback must not create an ownerless third-response acquisition gap");
+    /hardStaleWaitMs[\s\S]*shouldUsePrivateNvrExclusiveOutputRescue\(\{ handoffMode,[\s\S]*candidateRunning: relayIsRunning\(replacement\)[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE[\s\S]*maximumNoAdvanceMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS/,
+  "exclusive fallback must first reuse the acquired candidate after releasing only the stale owner");
+  assert.match(gateway,
+    /observation\.continuationStalled[\s\S]*EXCLUSIVE_RESCUE_REOPEN[\s\S]*startRelay\(streamId, \{ warming: true/,
+  "only a measured post-release stall may open one fresh exclusive response");
   assert.match(gateway,
     /if \(relayWarmups\.has\(streamId\)\) return null;/,
   "consumer demand must fail closed instead of opening a competing relay during owner release");
@@ -323,7 +323,7 @@ test("a hard-stale private DVR owner permits one strict exclusive rescue", () =>
     /if \(exclusiveRescue\) armRelayRecovery\(streamId, replacement \|\| previous\)/,
   "exclusive rescue failure must enter the existing recovery machinery exactly once");
   assert.match(gateway,
-    /exclusiveRescueTakeovers:[\s\S]*exclusiveRescueColdTakeovers:[\s\S]*exclusiveRescueConcurrentProbeRejections:[\s\S]*exclusiveRescueFailures:/,
+    /exclusiveRescueTakeovers:[\s\S]*exclusiveRescueColdTakeovers:[\s\S]*exclusiveRescueReopens:[\s\S]*exclusiveRescueReopenFailures:[\s\S]*exclusiveRescueConcurrentProbeRejections:[\s\S]*exclusiveRescueFailures:/,
   "health evidence must expose the bounded exclusive path");
 });
 

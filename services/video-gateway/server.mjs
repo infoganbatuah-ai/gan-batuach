@@ -34,6 +34,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueRetryAllowed,
   privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
@@ -293,7 +294,8 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
   warmHandoffs: 0, warmHandoffFailures: 0,
   warmHandoffConfirmationFailures: 0, warmHandoffProbations: 0,
   warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
-  exclusiveRescueColdTakeovers: 0,
+  exclusiveRescueColdTakeovers: 0, exclusiveRescueReopens: 0,
+  exclusiveRescueReopenFailures: 0,
   exclusiveRescueConcurrentProbeRejections: 0, exclusiveRescueFailures: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
@@ -1689,7 +1691,8 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
 }
 
 async function observeWarmReplacement(replacement, { handoffMode,
-  minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs }) {
+  minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs,
+  maximumNoAdvanceMs = null }) {
   const probationStartedAt = Date.now();
   let deadline = privateNvrHandoffProbationDeadline({ handoffMode,
     probationStartedAt, minimumConfirmationMs });
@@ -1698,6 +1701,8 @@ async function observeWarmReplacement(replacement, { handoffMode,
   let outputAdvanceCount = 0;
   let confirmationStartedAt = null;
   let outputConfirmed = false;
+  let lastAdvanceObservedAt = probationStartedAt;
+  let continuationStalled = false;
   while (Date.now() < deadline && relayIsRunning(replacement)) {
     if (relayIsProgressing(replacement)) {
       const outputAt = relayPlaylistMtime(replacement);
@@ -1706,6 +1711,7 @@ async function observeWarmReplacement(replacement, { handoffMode,
           firstOutputAt = outputAt;
           lastObservedOutputAt = outputAt;
           confirmationStartedAt = Date.now();
+          lastAdvanceObservedAt = confirmationStartedAt;
           deadline = privateNvrHandoffProbationDeadline({ handoffMode,
             probationStartedAt, firstOutputObservedAt: confirmationStartedAt,
             minimumConfirmationMs });
@@ -1713,6 +1719,7 @@ async function observeWarmReplacement(replacement, { handoffMode,
           if (outputAt > lastObservedOutputAt) {
             lastObservedOutputAt = outputAt;
             outputAdvanceCount += 1;
+            lastAdvanceObservedAt = Date.now();
           }
           // Confirmation is elapsed-time plus distinct-output evidence. It
           // must be evaluated on every probation tick after four advances,
@@ -1728,11 +1735,16 @@ async function observeWarmReplacement(replacement, { handoffMode,
         }
       }
     }
+    if (!outputConfirmed && privateNvrExclusiveRescueContinuationStalled({
+      lastAdvanceObservedAt, maximumNoAdvanceMs })) {
+      continuationStalled = true;
+      break;
+    }
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   return { probationStartedAt, firstOutputAt, lastObservedOutputAt,
     outputAdvanceCount, confirmationStartedAt, outputConfirmed,
-    durationMs: Date.now() - probationStartedAt };
+    continuationStalled, durationMs: Date.now() - probationStartedAt };
 }
 
 async function warmReplaceRelay(streamId, previous, {
@@ -1819,7 +1831,39 @@ async function warmReplaceRelay(streamId, previous, {
       stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
       expectedCurrent = undefined;
       observation = await observeWarmReplacement(replacement, { handoffMode,
-        minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+        minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs,
+        maximumNoAdvanceMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS });
+      // Live 0.2.60 evidence showed that this recorder can let a concurrent
+      // candidate publish briefly and then strand that exact HTTP response
+      // after the old owner closes. Waiting the full probation produced a
+      // measured freshness gap. If the retained response makes no advance for
+      // the already-qualified three-second rescue trigger, close only that
+      // stranded response and immediately open one exclusive replacement.
+      // Preserve both prior HLS generations while the replacement proves the
+      // unchanged four-advance/six-second promotion contract.
+      if (!observation.outputConfirmed && observation.continuationStalled) {
+        relayLifecycle.exclusiveRescueReopens += 1;
+        const stranded = replacement;
+        stopRelay(streamId, stranded, "EXCLUSIVE_RESCUE_REOPEN");
+        replacement = await startRelay(streamId, { warming: true,
+          previousRelay: stranded, handoffMode });
+        if (replacement) {
+          replacement.previousDirectories = [...new Set([
+            stranded.directory, ...(stranded.previousDirectories || []),
+            previous.directory, ...(previous.previousDirectories || [])
+          ].filter(Boolean))];
+          replacement.previousGenerations = [
+            { generation: stranded.generation, directory: stranded.directory },
+            ...(stranded.previousGenerations || []),
+            { generation: previous.generation, directory: previous.directory },
+            ...(previous.previousGenerations || [])
+          ].filter(entry => entry.generation && entry.directory);
+          observation = await observeWarmReplacement(replacement, { handoffMode,
+            minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+        } else {
+          relayLifecycle.exclusiveRescueReopenFailures += 1;
+        }
+      }
     }
     // A single initial playlist write (or a pair) is not sustained media. Keep
     // the prior relay authoritative until the replacement has four distinct
@@ -1859,9 +1903,12 @@ async function warmReplaceRelay(streamId, previous, {
       : [previous.directory, ...(previous.previousDirectories || [])].filter(Boolean);
     replacement.previousDirectories = [...new Set(previousDirectories)];
     replacement.previousGenerations = [
+      ...(replacement.previousGenerations || []),
       { generation: previous.generation, directory: previous.directory },
       ...(previous.previousGenerations || [])
-    ].filter(entry => entry.generation && entry.directory);
+    ].filter((entry, index, values) => entry.generation && entry.directory &&
+      values.findIndex(candidate => candidate.generation === entry.generation &&
+        candidate.directory === entry.directory) === index);
     replacement.warming = false;
     relays.set(streamId, replacement);
     relayCandidates.delete(streamId);

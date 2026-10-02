@@ -224,6 +224,15 @@ export function privateNvrHandoffProbationDeadline({ handoffMode,
   return probationStartedAt + PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS;
 }
 
+export function privateNvrExclusiveRescueContinuationStalled({
+  lastAdvanceObservedAt, now = Date.now(),
+  maximumNoAdvanceMs = PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
+}) {
+  return Boolean(Number.isFinite(lastAdvanceObservedAt) && Number.isFinite(now)
+    && Number.isFinite(maximumNoAdvanceMs) && maximumNoAdvanceMs > 0
+    && now - lastAdvanceObservedAt >= maximumNoAdvanceMs);
+}
+
 export function comparePrivateNvrHandoffPriority(left, right) {
   const leftOutputAt = Number.isFinite(left?.lastOutputAt)
     ? left.lastOutputAt : Number.POSITIVE_INFINITY;

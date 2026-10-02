@@ -34,6 +34,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueRetryAllowed,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
@@ -230,16 +231,25 @@ test("playback can use a progressing rescue candidate without promoting ownershi
   assert.match(server, /last_handoff_output_advances/);
 });
 
-test("a body-blocked rescue reuses its acquired candidate after hard stale", () => {
+test("an exclusive rescue reopens only a stranded retained response", () => {
   assert.match(server,
     /hardStaleWaitMs[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS[\s\S]*hardStaleWaitMs \+ 25/,
   "the acquired request stays bounded until the old owner reaches hard stale");
+  assert.equal(privateNvrExclusiveRescueContinuationStalled({
+    lastAdvanceObservedAt: 10_000, now: 12_999, maximumNoAdvanceMs: 3_000
+  }), false);
+  assert.equal(privateNvrExclusiveRescueContinuationStalled({
+    lastAdvanceObservedAt: 10_000, now: 13_000, maximumNoAdvanceMs: 3_000
+  }), true);
   assert.match(server,
-    /exclusiveRescueColdTakeovers \+= 1[\s\S]*OUTPUT_RESCUE_OWNER_RELEASE/,
-  "live evidence distinguishes candidates that could not output before owner release");
-  assert.doesNotMatch(server,
-    /candidateFirstOutputObserved: Number\.isFinite\(observation\.firstOutputAt\)/,
-  "a recorder body blocked by its stale owner must not force a third media request");
+    /maximumNoAdvanceMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS[\s\S]*observation\.continuationStalled[\s\S]*EXCLUSIVE_RESCUE_REOPEN/,
+  "the retained response gets the existing freshness budget before one exclusive reopen");
+  assert.match(server,
+    /exclusiveRescueReopens \+= 1[\s\S]*previousDirectories[\s\S]*previousGenerations/,
+  "the exclusive reopen preserves both prior HLS generations");
+  assert.match(server,
+    /observeWarmReplacement\(replacement,[\s\S]*minimumConfirmationMs,[\s\S]*minimumOutputAdvances/,
+  "the reopened response must satisfy the unchanged promotion contract");
 });
 
 test("playlist continuity requires four distinct advances over six seconds", () => {
