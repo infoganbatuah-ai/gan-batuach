@@ -18,10 +18,12 @@ OUTPUT_RESCUE probation after first output. A real-DVR CH4/CH10 Shadow ran
 failures. Release metadata is preserved at `bcbe88211920ee04b7e333c0c8d3fc7f9a169b8a`;
 the monitor now records exact failed source/checkpoint state at `9fd296ea`.
 TypeScript, lint (zero regressions), Domain 30/30, Security 33/33, 209 migration
-checks, release contract, relay 18/18 and the local Production-compatible build
-passed. The unit remains `PRESERVED_PENDING_INTEGRATION`: PUSH 38 is not done,
-0.2.57 is not live, main/Production are unchanged, and protected signing plus
-new canary/pre-soak/V8 remain pending.
+checks, release contract, relay 18/18, the local Production-compatible build and
+exact-head Digital Observer CI run `36945524317` passed. Protected signing run
+`36938914476` also completed successfully and produced artifact `11201873816`;
+local bundle retrieval/trust verification remains pending. The unit remains
+`PRESERVED_PENDING_INTEGRATION`: PUSH 38 is not done, 0.2.57 is not live,
+main/Production are unchanged, and new canary/pre-soak/V8 remain pending.
 
 PUSH 38S scoped inventory (2026-09-19):
 `DIGITAL_OBSERVER_PUSH_38S_INTEGRATION_INVENTORY.json` accounts for **124/124**

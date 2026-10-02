@@ -9963,9 +9963,18 @@
           "migration health 209 PASS",
           "release contract PASS",
           "Production-compatible local build PASS",
+          "Digital Observer CI run 36945524317 PASS at exact head 9fd296ea",
           "relay handoff deterministic suite 18/18 PASS",
           "real-DVR CH4/CH10 shadow 610640ms PASS with 39 checkpoints and zero playback/stale-input failures"
         ],
+        "protectedSigning": {
+          "status": "WORKFLOW_PASS_BUNDLE_LOCAL_VERIFICATION_PENDING",
+          "sourceBranch": "codex/push-38-aws-signing",
+          "sourceCommit": "7ed07b3767d6a13be2533649d91f5a7ff54ceb3e",
+          "runId": "36938914476",
+          "artifactId": "11201873816",
+          "artifactName": "push38-homeqa-gateway-routine-confirmation-36938914476"
+        },
         "failedCanary": {
           "runId": "push38-hls-window-canary-20261001T212905Z",
           "status": "NOT_DONE",
@@ -9980,7 +9989,7 @@
         "reason": "PUSH 38 remains incomplete until live exact-device activation, canary, pre-soak, V8 and remote-client gates pass. Do not merge the incomplete qualification unit into integration/development."
       },
       "dependencies": {
-        "status": "LIVE_SIGNATURE_AND_QUALIFICATION_PENDING",
+        "status": "SIGNED_BUNDLE_RETRIEVAL_AND_LIVE_QUALIFICATION_PENDING",
         "units": [
           "codex/push-38-aws-signing"
         ]
@@ -9992,7 +10001,7 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Complete the protected HOME_QA_SIGNING run for release 0.2.57, verify the manifest against installed live trust, activate exact-device Gateway OTA with signed 0.2.56 rollback, then run a new 15-minute canary, new 60-minute pre-soak and V8 only after each prior gate passes. Main and Production remain unchanged."
+      "nextAction": "Retrieve protected-signing artifact 11201873816 from successful run 36938914476, verify its manifest against installed live trust, activate exact-device Gateway OTA with signed 0.2.56 rollback, then run a new 15-minute canary, new 60-minute pre-soak and V8 only after each prior gate passes. Main and Production remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
