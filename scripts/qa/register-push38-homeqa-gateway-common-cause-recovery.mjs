@@ -188,7 +188,7 @@ const artifact = routineConfirmation
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = routineConfirmation
-  ? `${restrictedRoot}/push38-gateway-exclusive-acquisition-retry-4697ddc5/r2-publication-direct.json`
+  ? `${restrictedRoot}/push38-gateway-exclusive-acquisition-retry-4697ddc5/r2-publication-live-baseline.json`
   : recoveryContinuity
   ? `${restrictedRoot}/push38-gateway-recovery-continuity-a49a37aa/r2-publication.json`
   : deadlineBudget
