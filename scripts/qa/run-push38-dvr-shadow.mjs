@@ -12,7 +12,7 @@ import { PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
-  evaluateHlsRenewalContinuity
+  classifyContinuousSessionRenewal, evaluateHlsRenewalContinuity
 } from "./push38-shadow-qualification-policy.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -255,6 +255,8 @@ async function health(url) {
       login_attempts: body.recorderSessionLifecycle.login_attempts,
       login_succeeded: body.recorderSessionLifecycle.login_succeeded,
       rotations: body.recorderSessionLifecycle.rotations,
+      proactive_attempts: body.recorderSessionLifecycle.proactive_attempts,
+      proactive_succeeded: body.recorderSessionLifecycle.proactive_succeeded,
       last_rotation_reason: body.recorderSessionLifecycle.last_rotation_reason,
       active_sessions: body.recorderSessionLifecycle.active_sessions
     } : null
@@ -410,6 +412,9 @@ try {
     qualificationCheckpoints, lifecycle, { expectedProgressing: channels.length });
   const ownerRecoveryClassification = classifyContainedOwnerRecovery(
     qualificationCheckpoints, { expectedProgressing: channels.length });
+  const sessionRenewalClassification = classifyContinuousSessionRenewal(
+    qualificationCheckpoints, lifecycle, finalPoint?.shadow.recorder_session || {},
+    { expectedProgressing: channels.length });
   const hlsContinuityByChannel = playbackEveryCheckpoint ? channels.map(selectedChannel => ({
     channel: selectedChannel,
     ...evaluateHlsRenewalContinuity(qualificationCheckpoints.map(point => ({
@@ -458,8 +463,10 @@ try {
     || (evidence.final_health?.media?.candidate_handoffs || 0) > 0
     || (evidence.final_health?.media?.provisional_handoffs || 0) > 0)
     failures.push("HANDOFF_NOT_SETTLED");
-  if ((finalPoint?.shadow.recorder_session?.rotations || 0) > 0)
+  if (!sessionRenewalClassification.pass)
     failures.push("SESSION_ROTATION");
+  else if (sessionRenewalClassification.warning)
+    warnings.push(sessionRenewalClassification.warning);
   evidence.qualification = {
     playback_failures: playbackFailures,
     lifecycle_final: lifecycle,
@@ -469,6 +476,7 @@ try {
     output_rescue_failures: outputRescueFailures,
     output_rescue_classification: outputRescueClassification,
     owner_recovery_classification: ownerRecoveryClassification,
+    session_renewal_classification: sessionRenewalClassification,
     hls_continuity: hlsContinuity,
     maximum_bounded_routine_failures: maximumBoundedRoutineFailures,
     warnings,

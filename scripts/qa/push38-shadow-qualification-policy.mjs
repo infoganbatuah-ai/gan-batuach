@@ -137,3 +137,44 @@ export function classifyContainedOwnerRecovery(checkpoints, { expectedProgressin
     event_checkpoints: [...events.values()].map(event => ({ channel: event.channel,
       observed_at: event.observed_at, event_at: event.event_at })) };
 }
+
+// A recorder login rotation is acceptable qualification evidence only when it
+// is the measured, proactive non-exclusive renewal and every source is moved
+// exactly once per rotation through the existing SESSION_SWEEP contract. The
+// classification deliberately rechecks media and playback at every sampled
+// point so it cannot turn a reactive outage or a partial epoch drain into a
+// passing renewal.
+export function classifyContinuousSessionRenewal(checkpoints, lifecycle = {},
+  session = {}, { expectedProgressing = 1 } = {}) {
+  const rotations = Number(session.rotations || 0);
+  if (rotations === 0) return { pass: true, warning: null, rotations: 0 };
+  if (!Array.isArray(checkpoints) || checkpoints.length < 2 ||
+    !Number.isInteger(expectedProgressing) || expectedProgressing < 1)
+    return { pass: false, reason: "INVALID_INPUT", rotations };
+  const expectedSweeps = rotations * expectedProgressing;
+  if (session.last_rotation_reason !== "proactive_nonexclusive_renewal" ||
+    Number(session.proactive_attempts || 0) !== rotations ||
+    Number(session.proactive_succeeded || 0) !== rotations ||
+    Number(session.login_succeeded || 0) !== rotations + 1 ||
+    Number(lifecycle.startsByReason?.sessionSweep || 0) !== expectedSweeps ||
+    Number(lifecycle.warmHandoffsByMode?.sessionSweep || 0) !== expectedSweeps ||
+    Number(lifecycle.warmHandoffFailuresByMode?.sessionSweep || 0) !== 0 ||
+    Number(lifecycle.startsByReason?.recovery || 0) !== 0 ||
+    Number(lifecycle.inputSocketError || 0) !== 0 ||
+    Number(lifecycle.staleInput || 0) !== 0 || Number(lifecycle.stalePlaylist || 0) !== 0 ||
+    Number(lifecycle.staleOnRequest || 0) !== 0)
+    return { pass: false, reason: "SESSION_SWEEP_COUNTERS_INVALID", rotations,
+      expected_sweeps: expectedSweeps };
+  const continuity = checkpoints.every(point => {
+    const renewals = Array.isArray(point?.renewals)
+      ? point.renewals.map(entry => entry.playback) : [point?.renewal];
+    return point?.shadow?.http === 200 && point?.shadow?.media?.progressing === expectedProgressing &&
+      point?.shadow?.media?.stalled === 0 && renewals.length === expectedProgressing &&
+      renewals.every(renewal => renewal?.status === 200 && renewal?.playlist_status === 200 &&
+        renewal?.segment_status === 200 && renewal?.segment_bytes > 0);
+  });
+  if (!continuity) return { pass: false, reason: "SESSION_SWEEP_MEDIA_GAP", rotations,
+    expected_sweeps: expectedSweeps };
+  return { pass: true, reason: null, rotations, expected_sweeps: expectedSweeps,
+    warning: "PROACTIVE_SESSION_RENEWAL_WITH_CONTINUOUS_MEDIA" };
+}

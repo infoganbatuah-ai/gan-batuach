@@ -114,7 +114,8 @@ async function maintainPrivateNvrSessionRenewals() {
         && relayIsProgressing(relay)).length;
     if (!shouldProactivelyRefreshPrivateNvrSession(session, {
       activeProgressingRelays,
-      heartbeatConsecutiveFailures: heartbeat.consecutive_failures
+      heartbeatConsecutiveFailures: heartbeat.consecutive_failures,
+      heartbeatResponsesOk: heartbeat.responses_ok
     }, observedAt)) continue;
     await refreshPrivateNvrSession(sessionKey, session.token,
       "proactive_nonexclusive_renewal");

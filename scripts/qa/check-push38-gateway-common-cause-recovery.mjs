@@ -121,7 +121,7 @@ test("intentional relay handoff never quarantines the hardware encoder", () => {
   assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 1 }), true);
 });
 
-test("heartbeat-maintained recorder login never rotates under progressing media", () => {
+test("heartbeat-proven recorder login renews before its measured hard expiry", () => {
   const now = Date.now();
   const eligible = { loginExclusivity: false,
     updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS };
@@ -129,9 +129,16 @@ test("heartbeat-maintained recorder login never rotates under progressing media"
     heartbeatConsecutiveFailures: PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES };
   assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible,
     idleAfterHeartbeatLoss, now), true);
+  const activeBeforeHardExpiry = { activeProgressingRelays: 9,
+    heartbeatConsecutiveFailures: 0, heartbeatResponsesOk: 1 };
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible,
+    activeBeforeHardExpiry, now), true);
   assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
-    ...idleAfterHeartbeatLoss, activeProgressingRelays: 1
-  }, now), false);
+    ...activeBeforeHardExpiry, heartbeatResponsesOk: 0
+  }, now), false, "active renewal requires an actually proven heartbeat");
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
+    ...activeBeforeHardExpiry, heartbeatConsecutiveFailures: 1
+  }, now), false, "active renewal fails closed during heartbeat uncertainty");
   assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
     activeProgressingRelays: 0, heartbeatConsecutiveFailures: 0
   }, now), false);
@@ -145,7 +152,7 @@ test("heartbeat-maintained recorder login never rotates under progressing media"
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
     refreshPromise: Promise.resolve() }, idleAfterHeartbeatLoss, now), false);
   assert.match(gateway,
-    /activeProgressingRelays[\s\S]*shouldProactivelyRefreshPrivateNvrSession\(session, \{[\s\S]*activeProgressingRelays,[\s\S]*heartbeatConsecutiveFailures/,
+    /activeProgressingRelays[\s\S]*shouldProactivelyRefreshPrivateNvrSession\(session, \{[\s\S]*activeProgressingRelays,[\s\S]*heartbeatConsecutiveFailures:[\s\S]*heartbeatResponsesOk:/,
   "live renewal must be gated by media and heartbeat evidence");
 });
 

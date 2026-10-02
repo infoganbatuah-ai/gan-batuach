@@ -445,22 +445,31 @@ export function shouldDeferPrivateNvrStaleOwnerTeardown({ handoffInFlight,
     relayStaleMs > 0 && now - currentOutputAt < relayStaleMs + requestGraceMs;
 }
 
-// Login/Heartbeat is the recorder's supported session-maintenance contract.
-// A successful heartbeat means the current login remains authoritative; a
-// second login was observed to retire every media response from the prior
-// login and can therefore create a recorder-wide outage. Never rotate a login
-// while any relay from that recorder is progressing. Background replacement
-// is limited to an idle recorder session after corroborated heartbeat loss;
-// active media/auth failures retain the separately bounded reactive path.
+// Login/Heartbeat is the recorder's supported session-maintenance contract,
+// but the owned Home recorder also proved a hard five-minute login lifetime:
+// heartbeat stayed successful until the token expired and the productive
+// media response then closed. Waiting for zero progressing relays created a
+// repeatable playback gap before the reactive login could run. For a recorder
+// that explicitly permits non-exclusive logins, renew at the measured
+// four-minute boundary only after heartbeat success and while the current
+// relays are still progressing. The existing stale-epoch SESSION_SWEEP then
+// moves those owners one-at-a-time onto the fresh login; this is distinct from
+// the disabled age-only relay churn. An already-idle session still requires
+// corroborated heartbeat loss before renewal.
 export function shouldProactivelyRefreshPrivateNvrSession(session, evidence = {},
   now = Date.now()) {
+  const activeProgressingRelays = Number(evidence.activeProgressingRelays || 0);
+  const heartbeatConsecutiveFailures = Number(evidence.heartbeatConsecutiveFailures || 0);
+  const heartbeatResponsesOk = Number(evidence.heartbeatResponsesOk || 0);
+  const boundedActiveSweep = activeProgressingRelays > 0
+    && heartbeatConsecutiveFailures === 0 && heartbeatResponsesOk > 0;
+  const corroboratedIdleExpiry = activeProgressingRelays === 0
+    && heartbeatConsecutiveFailures >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES;
   return Boolean(session?.loginExclusivity === false
     && !session.refreshPromise
     && Number.isFinite(session.updatedAt)
     && now - session.updatedAt >= PRIVATE_NVR_PROACTIVE_RENEWAL_MS
-    && Number(evidence.activeProgressingRelays || 0) === 0
-    && Number(evidence.heartbeatConsecutiveFailures || 0)
-      >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
+    && (boundedActiveSweep || corroboratedIdleExpiry));
 }
 
 // A proactive non-exclusive renewal is not evidence that an established HTTP

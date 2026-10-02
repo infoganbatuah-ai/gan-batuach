@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
-import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery } from
+import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
+  classifyContinuousSessionRenewal } from
   "./push38-shadow-qualification-policy.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
@@ -102,6 +103,29 @@ test("two-source Shadow preserves both media paths through a bounded rescue reje
     startsByReason: { recovery: 0 }, warmHandoffs: 2,
     warmHandoffFailuresByMode: { outputRescue: 1 } }, { expectedProgressing: 2 });
   assert.equal(result.pass, true);
+});
+
+test("proactive session renewal passes only with an exact continuous epoch drain", () => {
+  const playback = { status: 200, playlist_status: 200, segment_status: 200,
+    segment_bytes: 1024 };
+  const checkpoints = [1, 2, 3].map(sequence => ({ sequence,
+    renewals: [{ channel: 1, playback }, { channel: 4, playback }],
+    shadow: { http: 200, media: { progressing: 2, stalled: 0 } } }));
+  const lifecycle = { startsByReason: { sessionSweep: 4, recovery: 0 },
+    warmHandoffsByMode: { sessionSweep: 4 },
+    warmHandoffFailuresByMode: { sessionSweep: 0 }, inputSocketError: 0,
+    staleInput: 0, stalePlaylist: 0, staleOnRequest: 0 };
+  const session = { rotations: 2, login_succeeded: 3, proactive_attempts: 2,
+    proactive_succeeded: 2, last_rotation_reason: "proactive_nonexclusive_renewal" };
+  assert.equal(classifyContinuousSessionRenewal(checkpoints, lifecycle, session,
+    { expectedProgressing: 2 }).pass, true);
+  assert.equal(classifyContinuousSessionRenewal(checkpoints, {
+    ...lifecycle, startsByReason: { sessionSweep: 3, recovery: 0 }
+  }, session, { expectedProgressing: 2 }).reason, "SESSION_SWEEP_COUNTERS_INVALID");
+  assert.equal(classifyContinuousSessionRenewal([
+    ...checkpoints.slice(0, 1), { ...checkpoints[1], shadow: { http: 200,
+      media: { progressing: 1, stalled: 1 } } }, ...checkpoints.slice(2)
+  ], lifecycle, session, { expectedProgressing: 2 }).reason, "SESSION_SWEEP_MEDIA_GAP");
 });
 
 test("live multi-source evidence disables age-only relay churn", () => {
