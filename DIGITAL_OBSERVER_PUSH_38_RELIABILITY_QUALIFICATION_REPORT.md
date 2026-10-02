@@ -4,7 +4,51 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — V7 24H SOAK FAILED; V8 NOT READY`
+`NOT DONE — POST-REMEDIATION CANARY FAILED; FOLLOW-UP FIX VALIDATED; V8 NOT READY`
+
+## 2026-10-02 RELAY/HANDOFF CLOSURE UPDATE
+
+The completed 60-minute pre-soak remains immutable failed evidence: 60 checkpoints,
+98.33% overall availability, 11 Gateway-unavailable checkpoints across seven
+windows, 437 relay starts, 224 stale-input events, and one CH3 playback failure.
+The run had zero process restarts, zero socket errors, zero DVR session failures,
+and zero authentication rejections. This narrows that failure away from process,
+socket, shared-login, and authentication collapse and toward relay renewal,
+handoff, and freshness behavior.
+
+The first post-fix live canary (`push38-exclusive-reuse-canary-20261002T0139Z`)
+also remains failed evidence. It ran for 900,019 ms with 15/15 checkpoints. The
+Gateway process, playback probes, Tapo, and AI were available throughout, but DVR
+camera-sample availability was 145/150 (96.6667%). CH4, CH5, CH7, and CH11 each
+missed at least one checkpoint. The canary recorded 102 DVR relay starts, 81
+successful handoffs, 16 failed handoffs, five recovery/unattributed starts, and
+four stale-input events. Pre-soak and V8 were not started.
+
+Chronological evidence showed that this DVR may accept a second HTTP media
+request while withholding its response body until the old per-channel response
+closes. The 0.2.58 policy required first output from the candidate before it
+could release a hard-stale owner. That condition was circular for the observed
+recorder behavior: the body-blocked candidate timed out, was discarded, the
+stale owner was then stopped, and a third request introduced an ownerless media
+gap visible at minute checkpoints.
+
+Commit `d1c3cecb` applies the smallest supported correction. Once the existing
+owner is hard stale, the already-acquired, still-running candidate is retained
+through the bounded remaining grace, the stale owner alone is released, and the
+same candidate must still satisfy the unchanged four-distinct-advances over six
+seconds confirmation before promotion. The canonical rollback and recovery
+machinery is unchanged. A separate cold-takeover metric makes this path visible.
+The static HOME_QA certificate fixture was also made clock-deterministic while
+live callers continue to reject expired or near-expiry certificates.
+
+Validation on the exact candidate passed TypeScript, canonical lint, Production-
+compatible build, all 30 domain suites, all 33 security/isolation suites,
+migration health, release contract, tracked-source secret scans, and the focused
+relay/handoff tests (34/34). `npm audit --audit-level=high` reported zero High or
+Critical findings and two Moderate findings. The commit is remotely preserved on
+`origin/codex/push-38t-qualification`. A new signed Gateway artifact, bounded
+real-DVR shadow proof, fresh live canary, and fresh 60-minute pre-soak are still
+required before V8 may start.
 
 PUSH 38N classified the prior shared 0/10 DVR window as a **known legacy pre-remediation reliability failure**, not a new deployment blocker. A fresh 600.013-second, 11-check read-only window was 10/10 DVR and 1/1 Tapo throughout, and exact live baseline hashes still matched. **No live write followed:** the protected release trust root is absent and requires authenticated macOS administration; QA release manifests use non-deployable placeholder URLs rather than a verified canonical live rollout. Connector/Gateway remain unmanaged legacy; no canary, pre-soak or v8 began. See `DIGITAL_OBSERVER_PUSH_38N_DEPLOYMENT_GATE_REPORT.md`.
 

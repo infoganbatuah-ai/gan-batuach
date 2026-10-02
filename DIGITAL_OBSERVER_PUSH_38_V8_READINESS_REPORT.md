@@ -1,5 +1,19 @@
 # PUSH 38 v8 readiness — NOT READY
 
+2026-10-02 update: the completed post-remediation 60-minute pre-soak failed and
+is preserved as failed evidence. A subsequent 900,019 ms canary for Gateway
+0.2.58 also failed the DVR camera-sample gate at 145/150 despite 100% Gateway
+process, playback-probe, Tapo, and AI availability. The narrowed cause is a
+body-blocked replacement request on a recorder that permits only one productive
+HTTP media response per channel: the previous policy waited for candidate bytes
+that could not arrive until the hard-stale owner released the recorder slot.
+Commit `d1c3cecb` reuses the acquired candidate after the bounded hard-stale
+owner release and preserves the unchanged sustained-output promotion gate. The
+exact candidate passes all six local CI gates plus focused deterministic tests
+and is remotely preserved. V8 remains blocked pending a newly signed Gateway
+artifact, bounded real-DVR proof, a fresh passing 15-minute canary, a fresh
+passing 60-minute pre-soak, and a frozen V8 qualification matrix.
+
 PUSH 38N: 10-minute read-only current-state gate PASS (600.013 seconds, 11/11 checks, DVR 10/10, Tapo 1/1); Gateway and Connector exact live baselines MATCH. The prior 0/10 event remains a known unresolved legacy reliability failure. The protected QA trust root is absent and needs authenticated local administration, and the QA artifact URLs are not deployable through the live canonical OTA path. **No live transition, remediation, 15-minute canary, 60-minute pre-soak or v8 started.** See `DIGITAL_OBSERVER_PUSH_38N_DEPLOYMENT_GATE_REPORT.md`; PR #28 remains draft/unmerged.
 
 PUSH 38M pre-write gate **failed before any live change**: both exact baselines matched, but the Gateway reported 0/10 DVR relays progressing and 10 stalled on the first health read; Tapo remained 1/1. A later 10/10 recovery does not qualify the unhealthy baseline. No live transition, bootstrap, remediation, 60-minute gate or V8 started. See `DIGITAL_OBSERVER_PUSH_38M_PREWRITE_GATE_REPORT.md`.
