@@ -45,6 +45,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
+  shouldDeferPrivateNvrOutputRescueForSessionRenewal,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
@@ -142,6 +143,12 @@ async function maintainPrivateNvrRelayHandoffs() {
       sessionSweep.push([streamId, relay]);
       continue;
     }
+    const sessionRenewalPending =
+      shouldDeferPrivateNvrOutputRescueForSessionRenewal({
+        refreshPending: Boolean(session?.refreshPromise),
+        relayEpoch: relay.sessionEpoch,
+        currentEpoch: session?.epoch
+      });
     if (relayWarmups.has(streamId)) continue;
     const lastOutputAt = relayPlaylistMtime(relay);
     const handoffMode = privateNvrRelayHandoffMode({
@@ -155,6 +162,7 @@ async function maintainPrivateNvrRelayHandoffs() {
       warming: relay.warming
     }, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
+      if (sessionRenewalPending) continue;
       const hardStale = Number.isFinite(lastOutputAt)
         && observedAt - lastOutputAt >= RELAY_STALE_MS;
       if (privateNvrOutputRescueRetryAllowed(relay.lastOutputRescueFailureAt,
@@ -1445,12 +1453,21 @@ async function ensureRelay(streamId) {
   // same bounded, capacity-checked output-rescue path one request-triggered
   // chance while retaining the old owner as an identity/HLS fallback.
   const outputAt = relayPlaylistMtime(existing);
+  const recorderSession = source?.sessionKey
+    ? privateNvrSessions.get(source.sessionKey) : null;
+  const sessionRenewalPending =
+    shouldDeferPrivateNvrOutputRescueForSessionRenewal({
+      refreshPending: Boolean(recorderSession?.refreshPromise),
+      relayEpoch: existing?.sessionEpoch,
+      currentEpoch: recorderSession?.epoch
+    });
   const requestRescueEligible = source?.kind === "private_nvr_http_mp4"
     && existing && relayIsRunning(existing)
     && relayBelongsToCurrentSession(existing, source)
     && !existing.retainedFallback
     && Number.isFinite(outputAt)
     && Date.now() - existing.startedAt >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
+    && !sessionRenewalPending
     && Date.now() - outputAt < RELAY_STALE_MS + PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS
     && privateNvrOutputRescueRetryAllowed(existing.lastOutputRescueFailureAt,
       Date.now(), { hardStale: Date.now() - outputAt >= RELAY_STALE_MS,

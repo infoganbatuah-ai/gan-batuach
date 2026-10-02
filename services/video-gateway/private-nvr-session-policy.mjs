@@ -8,7 +8,15 @@ export function reuseMatchingPrivateNvrSession(existing, input) {
 
 export const PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES = 3;
 export const PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES = 2;
-export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 4 * 60 * 1000;
+// The signed 0.2.66 Home Shadow measured the second productive response stop
+// at 237.446 seconds of relay age. Starting renewal at four minutes therefore
+// left no time for the ten-second maintenance cadence, the bounded Login
+// exchange, and first replacement output. Renew at 3.5 minutes instead. The
+// resulting 27-second conservative margin is larger than the measured control
+// path and preserves the unchanged media-continuity proof; it does not relax a
+// freshness or health threshold.
+export const PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS = 237_000;
+export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 3.5 * 60 * 1000;
 // Retain the historical two-minute cadence as a measured scheduling datum.
 // It is no longer, by itself, authority to replace a healthy relay (see the
 // evidence-bound switch immediately below).
@@ -255,6 +263,20 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
   currentEpoch }) {
   return Boolean(Number.isInteger(relayEpoch) && Number.isInteger(currentEpoch)
     && relayEpoch < currentEpoch);
+}
+
+// A proactive Login refresh and an output rescue must never compete for the
+// same old session epoch. While the bounded refresh is in flight, retain the
+// still-authoritative owner; success immediately moves it into SESSION_SWEEP,
+// while failure clears the promise and restores ordinary output-rescue
+// eligibility. A relay already behind the current epoch is handled by the
+// higher-priority sweep and is not deferred here.
+export function shouldDeferPrivateNvrOutputRescueForSessionRenewal({
+  refreshPending, relayEpoch, currentEpoch
+}) {
+  return Boolean(refreshPending
+    && Number.isInteger(relayEpoch) && Number.isInteger(currentEpoch)
+    && relayEpoch === currentEpoch);
 }
 
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {

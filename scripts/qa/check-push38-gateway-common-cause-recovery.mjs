@@ -13,6 +13,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+  PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
@@ -31,6 +32,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   privateNvrRoutineHandoffSchedule,
   relayMaySurvivePrivateNvrRenewal,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldDeferPrivateNvrOutputRescueForSessionRenewal,
   shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
@@ -123,6 +125,10 @@ test("intentional relay handoff never quarantines the hardware encoder", () => {
 
 test("heartbeat-proven recorder login renews before its measured hard expiry", () => {
   const now = Date.now();
+  assert.equal(PRIVATE_NVR_PROACTIVE_RENEWAL_MS, 3.5 * 60 * 1000);
+  assert.ok(PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS
+    - PRIVATE_NVR_PROACTIVE_RENEWAL_MS >= 27_000,
+  "renewal must retain the measured scheduler/login/first-output margin");
   const eligible = { loginExclusivity: false,
     updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS };
   const idleAfterHeartbeatLoss = { activeProgressingRelays: 0,
@@ -154,6 +160,23 @@ test("heartbeat-proven recorder login renews before its measured hard expiry", (
   assert.match(gateway,
     /activeProgressingRelays[\s\S]*shouldProactivelyRefreshPrivateNvrSession\(session, \{[\s\S]*activeProgressingRelays,[\s\S]*heartbeatConsecutiveFailures:[\s\S]*heartbeatResponsesOk:/,
   "live renewal must be gated by media and heartbeat evidence");
+});
+
+test("proactive renewal serializes rescue and session-sweep ownership", () => {
+  const pending = { refreshPending: true, relayEpoch: 4, currentEpoch: 4 };
+  assert.equal(shouldDeferPrivateNvrOutputRescueForSessionRenewal(pending), true);
+  assert.equal(shouldDeferPrivateNvrOutputRescueForSessionRenewal({
+    ...pending, refreshPending: false
+  }), false, "a failed or completed refresh restores ordinary rescue");
+  assert.equal(shouldDeferPrivateNvrOutputRescueForSessionRenewal({
+    ...pending, relayEpoch: 3
+  }), false, "an older epoch must enter SESSION_SWEEP instead of deferral");
+  assert.match(gateway,
+    /const sessionRenewalPending =[^;]*shouldDeferPrivateNvrOutputRescueForSessionRenewal\([\s\S]*if \(handoffMode === "OUTPUT_RESCUE"\) \{[\s\S]*if \(sessionRenewalPending\) continue;/,
+  "scheduler output rescue must not race a proactive Login refresh");
+  assert.match(gateway,
+    /const requestRescueEligible =[\s\S]*&& !sessionRenewalPending[\s\S]*privateNvrOutputRescueRetryAllowed/,
+  "playback and AI demand must not open a competing rescue during refresh");
 });
 
 test("proactive renewal preserves only progressing relays from the same recorder", () => {
