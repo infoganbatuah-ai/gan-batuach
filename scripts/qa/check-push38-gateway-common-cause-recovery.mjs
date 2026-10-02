@@ -24,6 +24,7 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
+  privateNvrHealthEffectiveRelay,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
@@ -89,6 +90,21 @@ test("only authentication rejection or corroborated common-cause loss may rotate
     heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
   }), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
+});
+
+test("health remains serializable while a finite owner has exited before candidate media", () => {
+  const current = { id: "current" }, candidate = { id: "candidate" };
+  assert.equal(privateNvrHealthEffectiveRelay({ current, candidate,
+    mediaOwner: "CURRENT" }), current);
+  assert.equal(privateNvrHealthEffectiveRelay({ current, candidate,
+    mediaOwner: "WARMING_CONTINUITY" }), candidate);
+  assert.equal(privateNvrHealthEffectiveRelay({ current: null, candidate,
+    mediaOwner: "NONE" }), null);
+  assert.equal(privateNvrHealthEffectiveRelay({ current: null, candidate,
+    mediaOwner: "CURRENT" }), null);
+  assert.match(gateway,
+    /inputs: relayContinuity\.flatMap[\s\S]*const relay = continuity\.effective;[\s\S]*if \(!relay\) return \[\];/,
+  "a candidate-only acquisition gap must degrade source health without turning /health into HTTP 500");
 });
 
 test("intentional relay handoff never quarantines the hardware encoder", () => {

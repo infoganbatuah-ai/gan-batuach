@@ -375,6 +375,18 @@ export function privateNvrHandoffMediaContinuity({ currentProgressing,
   return { progressing: false, owner: "NONE", mediaOwner: "NONE" };
 }
 
+// Health is sampled independently from relay acquisition. A candidate can be
+// registered before it has produced current media, while the finite prior
+// owner has already exited. In that bounded state there is deliberately no
+// effective media owner. Return null instead of selecting a missing owner so
+// the health endpoint can report a stalled source without throwing.
+export function privateNvrHealthEffectiveRelay({ current = null,
+  candidate = null, mediaOwner = "NONE" } = {}) {
+  if (mediaOwner === "WARMING_CONTINUITY") return candidate || null;
+  if (mediaOwner === "CURRENT") return current || null;
+  return null;
+}
+
 // The stale-owner monitor and the warm-handoff confirmation loop run
 // independently. Once a bounded candidate is producing current media, the
 // monitor must not remove the authoritative owner underneath that loop: doing

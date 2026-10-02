@@ -34,6 +34,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrHealthEffectiveRelay,
   privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueRetryAllowed,
   privateNvrRelayHandoffMode,
@@ -1552,7 +1553,8 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
     candidateOutputAt, mediaTakeoverIdleMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
   });
   return { ...state, current, candidate,
-    effective: state.mediaOwner === "WARMING_CONTINUITY" ? candidate : current };
+    effective: privateNvrHealthEffectiveRelay({ current, candidate,
+      mediaOwner: state.mediaOwner }) };
 }
 
 function relayPlaylistMtime(relay) {
@@ -2605,11 +2607,15 @@ async function handle(request, response) {
         maximumRoutineProbations: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
         progressingRelays,
         stalledRelays,
-        inputs: relayContinuity.map(([streamId, continuity]) => {
+        inputs: relayContinuity.flatMap(([streamId, continuity]) => {
           const relay = continuity.effective;
+          // A finite owner may exit before its candidate has produced enough
+          // media to become the effective owner. Keep /health available and
+          // report that source as stalled instead of dereferencing no owner.
+          if (!relay) return [];
           const observedAt = Date.now();
           const outputAt = relayPlaylistMtime(relay);
-          return { channel: streamSources.get(streamId)?.channel,
+          return [{ channel: streamSources.get(streamId)?.channel,
             progressing: continuity.progressing,
             owner_state: continuity.owner,
             media_owner_state: continuity.mediaOwner,
@@ -2621,7 +2627,7 @@ async function handle(request, response) {
             relay_age_ms: Math.max(0, observedAt - relay.startedAt),
             output_idle_ms: Number.isFinite(outputAt) ? Math.max(0, observedAt - outputAt) : null,
             stdin_backpressure: relay.process.stdin?.writableNeedDrain === true,
-            stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 };
+            stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 }];
         }),
         lifecycle: relayLifecycle,
         recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state })),
