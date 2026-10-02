@@ -49,7 +49,7 @@ try {
     assert.match(source, /--gateway-deadline-budget/);
   assert.match(publisher, /observer-push38-gateway-deadline-budget-r2-publication-v1/);
   assert.match(activation, /P38_GATEWAY_DEADLINE_BUDGET_FAILED_PROOF_INVALID/);
-  assert.match(activation, /\(routineConfirmation \|\| recoveryContinuity \|\| deadlineBudget\) \? connectorRtspCadenceItem/);
+  assert.match(activation, /\(sessionRenewal \|\| routineConfirmation \|\| recoveryContinuity \|\| deadlineBudget\) \? connectorRtspCadenceItem/);
   assert.match(activation, /connectorTruthfulTapoDegradation/);
   assert.match(activation, /EXPECTED_RELAY_NOT_PROGRESSING/);
   assert.match(activation, /boundedWarmupFailure: continuousHandoff \|\| handoffContinuity \|\| sweepDeadline \|\| deadlineBudget/);

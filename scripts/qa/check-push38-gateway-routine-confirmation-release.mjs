@@ -249,16 +249,16 @@ try {
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-routine-confirmation/);
   assert.match(publisher, /observer-push38-gateway-routine-confirmation-r2-publication-v1/);
-  assert.match(activation, /if \(recoveryContinuity \|\| routineConfirmation\)/);
+  assert.match(activation, /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal\)/);
   assert.match(activation, /P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID/);
   assert.match(activation, /FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED/);
-  assert.match(activation, /activeRetriedPredecessorState = routineConfirmation/);
+  assert.match(activation, /activeRetriedPredecessorState = \(routineConfirmation \|\| sessionRenewal\)/);
   assert.doesNotMatch(activation, /routine_confirmation_budget_fault_reproduced/);
   assert.match(activation,
     /confirmedWarmHandoff:[^\n]+handoffOwnerContinuity,[\s\S]*boundedWarmupFailure:[\s\S]*routineConfirmation/);
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
-  assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
+  assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal/);
   assert.match(activation, /expectedRelease: item, expectedChannel: shadowChannel/);
   assert.match(activation, /qualifiedOwnerContinuity/);
   assert.match(activation, /qualified_shadow_channel: shadowChannel/);
@@ -272,7 +272,7 @@ try {
     /Math\.ceil\(value\.duration_ms \/ \(mediaContinuity \? 30_000 : 60_000\)\) \+ 2/,
   "media-continuity successors use their explicit renewal budget instead of the legacy warmup budget");
   assert.match(registration,
-    /rolloutReleaseIdsToPause = routineConfirmation[\s\S]*item\.rollbackReleaseId/);
+    /: routineConfirmation[\s\S]*item\.rollbackReleaseId/);
   assert.match(registration, /item\.failedHealthCandidateReleaseId/);
   assert.match(registration, /item\.failedContinuityCandidateReleaseId/);
   assert.match(registration, /item\.failedAcquisitionCandidateReleaseId/);
