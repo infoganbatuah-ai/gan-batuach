@@ -18,7 +18,7 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const built = buildPush38GatewayRoutineConfirmationManifest({ signingKeyId: "observer-kms-release-v1",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(built.release_id, item.releaseId);
-assert.equal(built.version, "0.2.59-p38-health");
+assert.equal(built.version, "0.2.60-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
@@ -30,6 +30,9 @@ assert.equal(item.supersedesVersion, "0.2.58-p38-health");
 assert.equal(item.failedCandidateReleaseId,
   "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861");
 assert.equal(item.failedCandidateVersion, "0.2.57-p38-health");
+assert.equal(item.failedHealthCandidateReleaseId,
+  "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd");
+assert.equal(item.failedHealthCandidateVersion, "0.2.59-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 const enrollment = { identity_scheme: "ED25519_V1", credential_version: 1,
@@ -86,6 +89,10 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
   release_id: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
   version: "0.2.58-p38-health" } }), false,
 "the failed canary release remains historical and cannot authorize a new activation");
+assert.equal(homeQaManagedPhaseAllows({ enrollment, manifest: { ...built,
+  release_id: "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd",
+  version: "0.2.59-p38-health" } }), false,
+"the failed health-aggregation Shadow remains historical and cannot authorize activation");
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...enrollment,
   gateway_id: "wrong-gateway" }, manifest: built }), false);
 
@@ -198,6 +205,7 @@ try {
   "media-continuity successors use their explicit renewal budget instead of the legacy warmup budget");
   assert.match(registration,
     /rolloutReleaseIdsToPause = routineConfirmation[\s\S]*item\.rollbackReleaseId/);
+  assert.match(registration, /item\.failedHealthCandidateReleaseId/);
   assert.match(registration, /item\.quarantinedBridgeReleaseId/);
   assert.match(registration,
     /r\.release_id in \(\$\{rolloutReleaseIdsToPauseSql\}\) and o\.status<>'PAUSED'/);

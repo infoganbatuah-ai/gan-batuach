@@ -60,9 +60,10 @@ const gatewaySweepDeadline = "qa-p38-health-gateway-sweep-deadline-f2490d2f0046"
 const gatewayDeadlineBudget = "qa-p38-health-gateway-deadline-budget-42702082e62f";
 const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-73787e3e60ac";
 // The active candidate retains the exact signed 0.2.58 runtime as rollback and
-// installs a complete package with the body-blocked DVR handoff correction.
+// installs a complete package with body-blocked handoff plus truthful
+// candidate-only health continuity.
 // Quarantined and superseded releases remain historical only.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-body-blocked-reuse-55a5a7a7f8bd";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-handoff-health-4fd9e7b95e77";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
