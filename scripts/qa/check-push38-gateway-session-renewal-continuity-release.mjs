@@ -14,7 +14,7 @@ const built = buildPush38GatewaySessionRenewalContinuityManifest({
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
   releasedAt: new Date().toISOString() }).document;
 assert.equal(built.release_id, item.releaseId);
-assert.equal(built.version, "0.2.66-p38-health");
+assert.equal(built.version, "0.2.67-p38-health");
 assert.equal(built.build_sha, item.buildSha);
 assert.equal(built.artifact_sha256, item.digest);
 assert.equal(built.artifact_size, item.size);
@@ -23,7 +23,8 @@ assert.equal(built.compatibility.maximum_current_version, "0.2.64-p38-health");
 assert.equal(built.compatibility.security_floor_version, "0.2.64-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
-assert.equal(item.failedQualificationVersion, "0.2.65-p38-health");
+assert.equal(item.failedQualificationVersion, "0.2.66-p38-health");
+assert.equal(item.priorFailedQualificationVersion, "0.2.65-p38-health");
 
 for (const path of [
   new URL("../release/publish-push38-gateway-finite-stream-handoff-r2.mjs", import.meta.url),

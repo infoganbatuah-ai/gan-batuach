@@ -196,7 +196,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = sessionRenewal
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-renewal-60f831f4/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-renewal-rescue-7facf042/gateway-runtime.tar.gz"
   : routineConfirmation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-owner-recovery-e661c374/gateway-runtime.tar.gz"
   : recoveryContinuity
@@ -253,7 +253,7 @@ const artifact = sessionRenewal
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = sessionRenewal
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-renewal-60f831f4/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-renewal-rescue-7facf042/r2-publication.json"
   : routineConfirmation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-owner-recovery-e661c374/r2-publication.json"
   : recoveryContinuity

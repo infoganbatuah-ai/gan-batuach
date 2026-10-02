@@ -2,32 +2,32 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// The live 0.2.64 runtime and the signed 0.2.65 Shadow both proved that the
-// owned recorder's Login session has a hard lifetime of roughly five minutes:
-// Heartbeat remains successful until expiry, then every media response tied to
-// the old token closes. Reactive renewal consequently creates a real playback
-// gap even though authentication, the DVR and the Gateway process are healthy.
-// This exact-device successor renews a proven non-exclusive session at the
-// existing four-minute boundary and drains each progressing relay through the
-// existing SESSION_SWEEP handoff. It does not re-enable age-only relay churn,
-// change freshness thresholds, or add another rollback implementation. The
-// signed live 0.2.64 release remains the exact rollback target; 0.2.65 remains
-// immutable failed-qualification history and is never an activation bridge.
+// The signed 0.2.66 Shadow reproduced a 10.018-second playlist gap when the
+// second recorder response retired at 237.446 seconds: the old four-minute
+// renewal boundary left no time for scheduler jitter, Login, and first output,
+// while an output-rescue acquisition competed on the old session epoch. This
+// exact-device successor starts the same evidence-gated renewal at 3.5 minutes
+// and serializes rescue while that refresh is pending. It does not relax HLS
+// freshness, re-enable age-only churn, or add another rollback system. Signed
+// live 0.2.64 remains the rollback target; 0.2.65 and 0.2.66 remain immutable
+// failed-qualification history and are never activation bridges.
 export const PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY = Object.freeze({
-  role: "GATEWAY_SESSION_RENEWAL_CONTINUITY",
+  role: "GATEWAY_SESSION_RENEWAL_RESCUE_SERIALIZATION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-session-renewal-d12d9594eefb",
-  version: "0.2.66-p38-health",
-  buildSha: "60f831f4c46a3b118b2ce470eeb3826798e9de08",
-  digest: "d12d9594eefbb88183bf58a5991a7c515f165328cdde53339b75a1432958b0cc",
-  size: 135845414,
+  releaseId: "qa-p38-health-gateway-renewal-rescue-89071bf49a45",
+  version: "0.2.67-p38-health",
+  buildSha: "7facf04268e82477b6594720b1c21a26833e388e",
+  digest: "89071bf49a4579bcf827eeeb2f8529f9ac90448bef21c2298fe73f4f15a95d95",
+  size: 135845919,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
   rollbackVersion: "0.2.64-p38-health",
   supersedesReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
   supersedesVersion: "0.2.64-p38-health",
-  failedQualificationReleaseId: "qa-p38-health-gateway-owner-recovery-eba5eebec6bc",
-  failedQualificationVersion: "0.2.65-p38-health",
+  failedQualificationReleaseId: "qa-p38-health-gateway-session-renewal-d12d9594eefb",
+  failedQualificationVersion: "0.2.66-p38-health",
+  priorFailedQualificationReleaseId: "qa-p38-health-gateway-owner-recovery-eba5eebec6bc",
+  priorFailedQualificationVersion: "0.2.65-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });
