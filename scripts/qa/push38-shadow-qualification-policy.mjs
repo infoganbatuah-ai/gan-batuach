@@ -53,7 +53,12 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
     ? Math.max(1, Math.ceil((endedAt - startedAt) / 120_000)) : 0;
   if (!Array.isArray(checkpoints) || outputFailures > boundedFailures ||
     lifecycle.warmHandoffFailures !== outputFailures ||
-    lifecycle.warmHandoffConfirmationFailures !== outputFailures ||
+    // A rejected candidate can fail either before media acquisition or during
+    // confirmation. Both are safe only when the canonical owner and playback
+    // remain continuous at the exact failure checkpoint. Requiring every
+    // rejection to be a confirmation failure incorrectly rejected a measured
+    // acquisition timeout with zero media gap.
+    lifecycle.warmHandoffConfirmationFailures > outputFailures ||
     lifecycle.warmHandoffRollbacks !== 0 ||
     lifecycle.staleInput !== 0 || lifecycle.stalePlaylist !== 0 || lifecycle.staleOnRequest !== 0 ||
     lifecycle.inputSocketError !== 0 || lifecycle.upstreamFailed !== 0 ||

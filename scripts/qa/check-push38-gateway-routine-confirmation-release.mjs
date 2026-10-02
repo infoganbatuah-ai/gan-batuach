@@ -163,6 +163,12 @@ const containedLifecycle = { warmHandoffFailures: 1, warmHandoffConfirmationFail
 assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(1, 0, 3), continuityPoint(2, 1, 3),
   continuityPoint(3, 1, 4, "PROMOTED")], containedLifecycle).pass, true);
+const containedAcquisitionLifecycle = { ...containedLifecycle,
+  warmHandoffConfirmationFailures: 0 };
+assert.equal(classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), continuityPoint(2, 1, 3),
+  continuityPoint(3, 1, 4, "PROMOTED")], containedAcquisitionLifecycle).pass, true,
+"a bounded pre-confirmation candidate rejection is safe only with preserved media");
 const candidateContinuity = continuityPoint(2, 1, 3);
 candidateContinuity.shadow.media.inputs[0] = { owner_state: "WARMING_CONTINUITY",
   canonical_owner_progressing: false, candidate_progressing: true };
@@ -176,6 +182,9 @@ lostContinuity.shadow.media.inputs[0] = { owner_state: "NONE",
   canonical_owner_progressing: false, candidate_progressing: false };
 assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(1, 0, 3), lostContinuity], containedLifecycle).pass, false);
+assert.equal(classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), lostContinuity], containedAcquisitionLifecycle).pass, false,
+"an acquisition rejection with a media gap remains a hard failure");
 const multipleContainedLifecycle = { ...containedLifecycle, warmHandoffFailures: 2,
   warmHandoffConfirmationFailures: 2, warmHandoffs: 5,
   warmHandoffFailuresByMode: { outputRescue: 2 } };
