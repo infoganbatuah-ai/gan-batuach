@@ -89,7 +89,8 @@ import { PUSH38_CONNECTOR_CODEC_PRESERVATION as connectorCodecPreservationItem
 } from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
 import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY as connectorHandoffContinuityItem
 } from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
-import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
+import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
+  evaluateHlsRenewalContinuity
 } from "./push38-shadow-qualification-policy.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
@@ -98,6 +99,10 @@ const configPath = join(root, "agent-config.json");
 const agentReleasePath = join(root, "agent/agent-release.json");
 const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
+const shadowChannelValue = option("shadow-channel");
+const shadowChannel = shadowChannelValue ? Number(shadowChannelValue) : 1;
+if (!Number.isInteger(shadowChannel) || shadowChannel < 1 || shadowChannel > 64)
+  throw new Error("P38_GATEWAY_SHADOW_CHANNEL_INVALID");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
 const supervisorRecovery = process.argv.includes("--supervisor-recovery");
 const stableHandoff = process.argv.includes("--stable-handoff");
@@ -407,16 +412,20 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   const softwareFallbackHasOutputFailureEvidence = firstSoftwareIndex < 0 ||
     Number(checkpoints[firstSoftwareIndex]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0) >
       Number(checkpoints[0]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0);
+  const ownerRecoveryResult = classifyContainedOwnerRecovery(checkpoints);
+  const qualifiedOwnerContinuity = mediaContinuity && ownerRecoveryResult.pass;
   // Intentional warm handoff must preserve VideoToolbox. A later, genuine
   // rendered-output stall may deliberately quarantine hardware and fall back
   // to libx264; that is availability protection, not the false-quarantine bug.
   const hardwareHandoffProof = !hardwareHandoff || value.discovery?.codec === "hevc" &&
     checkpoints[0]?.shadow?.media?.inputs?.[0]?.encoder === "videotoolbox" &&
-    checkpoints.some(point => point.shadow?.media?.lifecycle?.warmHandoffs >= 1 &&
-      point.shadow?.media?.inputs?.[0]?.encoder === "videotoolbox") &&
+    (checkpoints.some(point => point.shadow?.media?.lifecycle?.warmHandoffs >= 1 &&
+      point.shadow?.media?.inputs?.[0]?.encoder === "videotoolbox") ||
+      qualifiedOwnerContinuity) &&
     checkpoints.every(point => ["videotoolbox", "libx264"].includes(
       point.shadow?.media?.inputs?.[0]?.encoder)) &&
-    softwareFallbackHasOutputFailureEvidence && lifecycle.warmHandoffs >= 1;
+    softwareFallbackHasOutputFailureEvidence &&
+    (lifecycle.warmHandoffs >= 1 || qualifiedOwnerContinuity);
   // A failed warmup is not a media outage when the authoritative relay stays
   // current and the next bounded attempt succeeds. The continuous-handoff
   // proof permits exactly one such contained retry, but still rejects every
@@ -449,7 +458,8 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   const boundedFailureResult = classifyBoundedOutputRescueRejection(checkpoints, lifecycle);
   const boundedFailureProof = !boundedWarmupFailure || boundedFailureResult.pass &&
     lifecycle.warmHandoffConfirmationFailures <= lifecycle.warmHandoffFailures &&
-    lifecycle.warmHandoffs >= 1 && lifecycle.warmHandoffRollbacks === 0 &&
+    (lifecycle.warmHandoffs >= 1 || qualifiedOwnerContinuity) &&
+    lifecycle.warmHandoffRollbacks === 0 &&
     lifecycle.starts <= boundedStarts && lifecycle.staleInput <= 1 && lifecycle.stalePlaylist === 0 &&
     lifecycle.staleOnRequest === 0 && lifecycle.inputSocketError === 0 &&
     lifecycle.upstreamFailed === 0 && boundedFailureRecovered;
@@ -479,8 +489,8 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
       (endedAt > Date.now() || Date.now() - endedAt > recentMaxAgeMs)) ||
     !streamProof || !playbackProof || !boundedFailureProof || !mediaContinuityProof ||
     !hardwareHandoffProof || (warmHandoff &&
-      (lifecycle.warmHandoffs < 1 ||
-        !boundedWarmupFailure && lifecycle.warmHandoffFailures !== 0)) ||
+      ((lifecycle.warmHandoffs < 1 && !qualifiedOwnerContinuity) ||
+        (!boundedWarmupFailure && lifecycle.warmHandoffFailures !== 0))) ||
     (confirmedWarmHandoff &&
       lifecycle.warmHandoffConfirmationFailures !== 0))
     throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_INVALID");
@@ -1037,7 +1047,7 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
       boundedWarmupFailure: continuousHandoff || handoffContinuity || sweepDeadline || deadlineBudget ||
         recoveryContinuity || routineConfirmation,
       mediaContinuity: recoveryContinuity || routineConfirmation,
-      expectedRelease: item, expectedChannel: 1 });
+      expectedRelease: item, expectedChannel: shadowChannel });
   } catch {
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   }
@@ -1123,6 +1133,7 @@ const plan = { protocol: routineConfirmation ? "observer-push38-gateway-routine-
   connector_runtime_truth: connectorPrerequisiteHealthy ? "HEALTHY_1_OF_1_PROGRESSING" :
     "SIGNED_KNOWN_GOOD_TRUTHFULLY_DEGRADED_TAPO_0_OF_1",
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
+  qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
     retainedFallbackTargetTruth ? (routineConfirmation ? "FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
       recoveryContinuity ? "FAILED_PRE_SOAK_RECOVERY_CONTINUITY_SUCCESSOR_QUALIFIED" :

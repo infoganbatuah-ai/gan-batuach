@@ -11,7 +11,8 @@ import { issuePush38GatewayRoutineConfirmation } from
   "../release/issue-push38-home-qa-gateway-routine-confirmation.mjs";
 import { HOME_QA_PHASE, homeQaManagedPhaseAllows } from
   "../../services/video-gateway/home-qa-transition-phase.mjs";
-import { classifyBoundedOutputRescueRejection, evaluateHlsRenewalContinuity
+import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
+  evaluateHlsRenewalContinuity
 } from "./push38-shadow-qualification-policy.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -211,6 +212,21 @@ assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(7, 1, 4, "PROMOTED"), continuityPoint(14, 2, 4),
   continuityPoint(15, 2, 5, "PROMOTED")], multipleContainedLifecycle).pass, true,
 "multiple contained rejections remain bounded only with preserved media and more successful promotions");
+const ownerRecoveryPoint = continuityPoint(2, 0, 0);
+ownerRecoveryPoint.shadow.media.lifecycle = { staleInput: 0, stalePlaylist: 0,
+  staleOnRequest: 0, startsByReason: { recovery: 0 } };
+ownerRecoveryPoint.shadow.media.source_diagnostics[0] = { channel: 4,
+  last_handoff_result: "OWNER_RECOVERED",
+  last_failure_reason: "OUTPUT_RESCUE_OWNER_RECOVERED",
+  last_failure_at: ownerRecoveryPoint.observed_at };
+assert.equal(classifyContainedOwnerRecovery([
+  continuityPoint(1, 0, 0), ownerRecoveryPoint]).pass, true,
+"a contained owner recovery is valid only when the canonical owner and playback stay current");
+const ownerRecoveryGap = structuredClone(ownerRecoveryPoint);
+ownerRecoveryGap.renewal.segment_bytes = 0;
+assert.equal(classifyContainedOwnerRecovery([
+  continuityPoint(1, 0, 0), ownerRecoveryGap]).pass, false,
+"an owner recovery with a playback gap remains rejected");
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-gateway-routine-confirmation-test-"));
 try {
@@ -243,6 +259,9 @@ try {
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation/);
+  assert.match(activation, /expectedRelease: item, expectedChannel: shadowChannel/);
+  assert.match(activation, /qualifiedOwnerContinuity/);
+  assert.match(activation, /qualified_shadow_channel: shadowChannel/);
   assert.match(activation,
     /final_verification\?\.terminal_verification === true[\s\S]*value\.final_verification/,
   "activation must count the runner's terminal playback and health verification");
