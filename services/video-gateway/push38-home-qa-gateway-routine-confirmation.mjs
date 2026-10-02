@@ -24,25 +24,34 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // three valid advances, but the first-output+8 s sub-deadline rejected it before
 // the next cadence boundary. This release keeps the fourteen-second acquisition
 // limit and uses the already-bounded twenty-one-second total probation after
-// first output. Canonical ownership still requires four advances across six
-// seconds and concurrency remains capped at two. The intermediate 0.2.46 release was quarantined after its
-// evidence-bound retry and cannot safely serve as another bridge. This complete
+// first output. The signed 0.2.57 Shadow then exposed a distinct exclusive
+// rescue gap: the concurrent candidate had already acquired media, but the
+// owner-release path killed both it and the hard-stale owner before opening a
+// third response. One checkpoint consequently had no active relay even though
+// retained HLS remained playable. This release releases only the stale owner,
+// reuses the already-open candidate as the exclusive response, and restarts the
+// full confirmation observation. Canonical ownership still requires four
+// advances across six seconds and concurrency remains capped at two. The
+// intermediate 0.2.46 release was quarantined after its evidence-bound retry
+// and cannot safely serve as another bridge. This complete
 // package is therefore rebuilt from, and rolls back to, the exact signed 0.2.41
 // dependency/model baseline; live rollback targets signed 0.2.56 and the
-// Product source overlay is pinned to the exact dfac1ce3 correction commit.
+// Product source overlay is pinned to the exact 7f38eb5d correction commit.
 export const PUSH38_GATEWAY_ROUTINE_CONFIRMATION = Object.freeze({
   role: "GATEWAY_FRESHNESS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
-  version: "0.2.57-p38-health",
-  buildSha: "dfac1ce380e7a08ab4374d6dbca57bcad269745b",
-  digest: "9a9a29bfb861c35b291f108836e6fce8e0aaa33b2df17c0ea0614330cc8940ae",
-  size: 135842498,
+  releaseId: "qa-p38-health-gateway-exclusive-reuse-8b32513d7591",
+  version: "0.2.58-p38-health",
+  buildSha: "7f38eb5dbeb867b3ae68c622efbacdc7867bd803",
+  digest: "8b32513d7591cfa5aecba0c2d5ce451d075d2d85d1b698f9367deb23ea914272",
+  size: 135842839,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
   rollbackVersion: "0.2.56-p38-health",
   supersedesReleaseId: "qa-p38-health-gateway-hls-window-direct-59572f35f8cc",
   supersedesVersion: "0.2.56-p38-health",
+  failedCandidateReleaseId: "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861",
+  failedCandidateVersion: "0.2.57-p38-health",
   quarantinedBridgeReleaseId: "qa-p38-health-gateway-routine-confirmation-5cdf47d35b44",
   quarantinedBridgeVersion: "0.2.46-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",

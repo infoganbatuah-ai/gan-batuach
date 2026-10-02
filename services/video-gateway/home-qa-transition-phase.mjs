@@ -62,7 +62,7 @@ const gatewayRecoveryContinuity = "qa-p38-health-gateway-recovery-continuity-737
 // The active candidate retains the exact signed 0.2.56 runtime as rollback and
 // installs a complete package rebuilt from the signed 0.2.41 dependency/model
 // baseline. Quarantined and superseded releases remain historical only.
-const gatewayRoutineConfirmation = "qa-p38-health-gateway-rescue-probation-direct-9a9a29bfb861";
+const gatewayRoutineConfirmation = "qa-p38-health-gateway-exclusive-reuse-8b32513d7591";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
