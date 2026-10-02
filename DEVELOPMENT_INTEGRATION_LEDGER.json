@@ -9931,6 +9931,68 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-12 is complete in Development. Stop before UX-IMPLEMENT-13; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/push-38t-qualification-relay-probation-20261002",
+      "project": "Digital Observer",
+      "title": "PUSH 38 relay handoff probation remediation and exact canary failure evidence",
+      "owner": "PUSH 38 qualification owner",
+      "sourceBranch": "codex/push-38t-qualification",
+      "sourceCommits": [
+        "dfac1ce380e7a08ab4374d6dbca57bcad269745b",
+        "bcbe88211920ee04b7e333c0c8d3fc7f9a169b8a",
+        "9fd296ea"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-38t-qualification@9fd296ea"
+        ],
+        "validatedRuntimeSource": "dfac1ce380e7a08ab4374d6dbca57bcad269745b",
+        "releaseMetadataCommit": "bcbe88211920ee04b7e333c0c8d3fc7f9a169b8a",
+        "qualificationEvidenceCommit": "9fd296ea"
+      },
+      "validation": {
+        "status": "PASS_SOURCE_AND_RELEASE_QA_LIVE_ACTIVATION_PENDING",
+        "checks": [
+          "TypeScript PASS",
+          "lint baseline PASS with zero regressions",
+          "domain 30/30 PASS",
+          "security 33/33 PASS",
+          "migration health 209 PASS",
+          "release contract PASS",
+          "Production-compatible local build PASS",
+          "relay handoff deterministic suite 18/18 PASS",
+          "real-DVR CH4/CH10 shadow 610640ms PASS with 39 checkpoints and zero playback/stale-input failures"
+        ],
+        "failedCanary": {
+          "runId": "push38-hls-window-canary-20261001T212905Z",
+          "status": "NOT_DONE",
+          "cause": "CH10 checkpoint 4 and CH4 checkpoint 11 reached STALE_INPUT after the live 0.2.56 bounded handoff candidate was rejected before the fourth required playlist advance; Gateway liveness, playback deep probes, AI, session and process continuity remained available.",
+          "restrictedEvidence": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-hls-window-canary-20261001T212905Z/root-cause.json",
+          "publishContents": false
+        }
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "commit": null,
+        "reason": "PUSH 38 remains incomplete until live exact-device activation, canary, pre-soak, V8 and remote-client gates pass. Do not merge the incomplete qualification unit into integration/development."
+      },
+      "dependencies": {
+        "status": "LIVE_SIGNATURE_AND_QUALIFICATION_PENDING",
+        "units": [
+          "codex/push-38-aws-signing"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_EXACT_HEAD_SOURCE_TESTS_AND_BUILD; LIVE_0_2_57_NOT_ACTIVATED",
+      "releaseEligibility": "NOT_READY_PUSH38_QUALIFICATION_INCOMPLETE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Complete the protected HOME_QA_SIGNING run for release 0.2.57, verify the manifest against installed live trust, activate exact-device Gateway OTA with signed 0.2.56 rollback, then run a new 15-minute canary, new 60-minute pre-soak and V8 only after each prior gate passes. Main and Production remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
