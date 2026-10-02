@@ -228,6 +228,8 @@ try {
   const publisher = readFileSync("scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", "utf8");
   const retry = readFileSync(
     "scripts/qa/retry-push38-homeqa-gateway-routine-confirmation-after-diagnostic-isolation.mjs", "utf8");
+  const healthSerializationRetry = readFileSync(
+    "scripts/qa/retry-push38-homeqa-gateway-health-serialization-after-shadow-isolation.mjs", "utf8");
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-routine-confirmation/);
   assert.match(publisher, /observer-push38-gateway-routine-confirmation-r2-publication-v1/);
@@ -267,6 +269,16 @@ try {
   assert.match(retry, /rollout\.retry_status !== "ACTIVE"/);
   assert.match(retry, /\["DRAFT", "PAUSED"\]\.includes\(rollout\.successor_status\)/);
   assert.doesNotMatch(retry, /launchctl[^\n]+bootout|adapter\.restart|manager\.apply/);
+  for (const token of ["CONTROLLED_GATEWAY_AND_OTA_PAUSE_FOR_SIGNED_SHADOW",
+    "AUTHORIZE_ONE_TIME_EXACT_0_2_64_RETRY", "ACTIVATE_EXACT_0_2_64_ROLLOUT",
+    "authorizeQuarantinedReleaseRetry", "ota_agent_owns_install: true"])
+    assert.match(healthSerializationRetry, new RegExp(token));
+  assert.match(healthSerializationRetry, /successor\.rollbackReleaseId/);
+  assert.match(healthSerializationRetry,
+    /successor\.failedHealthSerializationPredecessorReleaseId/);
+  assert.match(healthSerializationRetry, /rollout\.retry_status !== "PAUSED"/);
+  assert.doesNotMatch(healthSerializationRetry,
+    /launchctl[^\n]+bootout|adapter\.restart|manager\.apply/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
