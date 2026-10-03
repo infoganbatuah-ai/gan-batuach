@@ -35,6 +35,8 @@ const requestedSignedBundle = String(process.env.DVR_SHADOW_SIGNED_BUNDLE || "")
 const requestedManifestMember = String(process.env.DVR_SHADOW_MANIFEST_MEMBER ||
   "gateway_remediation_supervisor_recovery.json").trim();
 const playbackEveryCheckpoint = process.env.DVR_SHADOW_PLAYBACK_EVERY_CHECKPOINT === "1";
+const highResolutionPlaybackContinuity =
+  process.env.DVR_SHADOW_HIGH_RESOLUTION_PLAYBACK_CONTINUITY === "1";
 const expectReactiveOnly = process.env.DVR_SHADOW_EXPECT_REACTIVE_ONLY === "1";
 const requestedTransport = String(process.env.DVR_SHADOW_TRANSPORT || "native_http_mp4").trim();
 if (!["native_http_mp4", "private_rtsp"].includes(requestedTransport))
@@ -47,7 +49,12 @@ if (channels.length > 2 && (!isolatedMultiChannel ||
   channels.some((value, index) => value !== homeSourceAvailableChannels[index])))
   throw new Error("DVR_SHADOW_ISOLATED requires the exact nine source-available Home channels");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
-if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
+const minimumIntervalMs = highResolutionPlaybackContinuity ? 1_000 : 10_000;
+if (!Number.isFinite(intervalMs) || intervalMs < minimumIntervalMs || intervalMs > 60_000)
+  throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
+if (highResolutionPlaybackContinuity && (channels.length !== 1 ||
+  !playbackEveryCheckpoint || !requestedSignedArtifact || !requestedSignedBundle))
+  throw new Error("DVR_SHADOW_HIGH_RESOLUTION_PLAYBACK_CONTINUITY requires one signed channel and every-checkpoint playback");
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("DVR_SHADOW_PORT is invalid");
 if (!outputPath) throw new Error("DVR_SHADOW_OUTPUT is required");
 
@@ -157,6 +164,7 @@ const evidence = {
   signed_release: runtimeSource.signedRelease,
   expected_relay_policy: expectReactiveOnly ? "REACTIVE_OUTPUT_RESCUE_ONLY" : "HANDOFF_REQUIRED",
   playback_every_checkpoint: playbackEveryCheckpoint,
+  high_resolution_playback_continuity: highResolutionPlaybackContinuity,
   checkpoints: []
 };
 let child;

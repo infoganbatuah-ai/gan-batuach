@@ -81,19 +81,26 @@ function logSignals(path) {
   } catch { return { cloud_401: null, set_type_of_service_einval: null, fatal_or_uncaught: null }; }
 }
 function classifyCheckpoint(probe, resource, expected) {
-  if (probe.ok && (Number(probe.body?.mediaHeartbeat?.progressingRelays) < expected || probe.body?.status !== "healthy")) return "PRODUCT_FAILURE";
+  const available = Number(probe.body?.mediaHeartbeat?.availableRelays ??
+    probe.body?.mediaHeartbeat?.progressingRelays);
+  if (probe.ok && (available < expected || probe.body?.status !== "healthy")) return "PRODUCT_FAILURE";
   if (resource?.inspection_ok === false && probe.ok) return "MONITOR_FAILURE";
-  if (probe.ok && Number(probe.body?.mediaHeartbeat?.progressingRelays) === expected && probe.body?.status === "healthy") return "PASS";
+  if (probe.ok && available === expected && probe.body?.status === "healthy") return "PASS";
   if (!probe.ok && probe.reason === "CONNECTION_REFUSED") return "PRODUCT_FAILURE";
   if (!probe.ok && resource?.inspection_ok === true && resource?.runtime_pid === null) return "PRODUCT_FAILURE";
   return "INSUFFICIENT_EVIDENCE";
 }
 function classifyGatewayCheckpoint(probe, resource) {
-  const discovery = probe.body?.lastDiscovery || {}, progressing = Number(probe.body?.mediaHeartbeat?.progressingRelays ?? 0);
+  const discovery = probe.body?.lastDiscovery || {};
+  const available = Number(probe.body?.mediaHeartbeat?.availableRelays ??
+    probe.body?.mediaHeartbeat?.progressingRelays ?? 0);
   const inputs = new Map((probe.body?.mediaHeartbeat?.inputs ?? [])
     .map(input => [Number(input.channel), input]));
-  const requiredChannelsProgressing = DVR_AVAILABLE_CHANNELS.every(channel =>
-    inputs.get(channel)?.progressing === true);
+  const requiredChannelsProgressing = DVR_AVAILABLE_CHANNELS.every(channel => {
+    const input = inputs.get(channel);
+    return input?.progressing === true ||
+      input?.renewing === true && input?.playback_continuity === true;
+  });
   const currentFailures = Number(discovery.failedAssignedCount ?? 0);
   const expectedStatus = currentFailures > 0 ? "degraded" : "healthy";
   const expectedHealthPayload = probe.http_status === 200 &&
@@ -106,7 +113,7 @@ function classifyGatewayCheckpoint(probe, resource) {
   if (discovery.assignedCount !== 10 || discovery.unassignedCount !== 6 ||
     Number(discovery.connectedCount) < DVR_SOURCE_AVAILABLE ||
     Number(discovery.connectedCount) + currentFailures !== 10 ||
-    currentFailures > DVR_UPSTREAM_UNAVAILABLE.length || progressing < DVR_SOURCE_AVAILABLE ||
+    currentFailures > DVR_UPSTREAM_UNAVAILABLE.length || available < DVR_SOURCE_AVAILABLE ||
     !requiredChannelsProgressing || probe.body?.status !== expectedStatus) return "PRODUCT_FAILURE";
   return "PASS";
 }
@@ -294,9 +301,9 @@ while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
     run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
     scheduled_at: new Date(scheduledAt).toISOString(), drift_ms: sampledAt - scheduledAt, probe_duration_ms: probeCompletedAt - sampledAt, interval_ms: intervalMs,
     expected_physical_cameras: 11, source_available_physical_cameras: DVR_SOURCE_AVAILABLE + 1, empty_dvr_slots: 6,
-    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: DVR_SOURCE_AVAILABLE, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, relay_processes: gateway.body?.mediaHeartbeat ? Object.fromEntries(["activeRelays", "liveRelayProcesses", "candidateHandoffs", "provisionalHandoffs"].map(key => [key, gateway.body.mediaHeartbeat[key] ?? null])) : null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
+    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: DVR_SOURCE_AVAILABLE, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, renewing: gateway.body?.mediaHeartbeat?.renewingRelays ?? 0, available: gateway.body?.mediaHeartbeat?.availableRelays ?? gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, relay_processes: gateway.body?.mediaHeartbeat ? Object.fromEntries(["activeRelays", "liveRelayProcesses", "candidateHandoffs", "provisionalHandoffs"].map(key => [key, gateway.body.mediaHeartbeat[key] ?? null])) : null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
       session_lifecycle: gateway.body?.recorderSessionLifecycle ?? null, relay_diagnostics: gateway.body?.mediaHeartbeat?.source_diagnostics ?? null,
-      inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "owner_state", "media_owner_state", "canonical_owner_progressing", "candidate_progressing", "native_input_ended", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "relay_age_ms", "output_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
+      inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "renewing", "playback_continuity", "owner_state", "media_owner_state", "canonical_owner_progressing", "candidate_progressing", "native_input_ended", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "relay_age_ms", "output_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
     tapo: { health_ok: connector.ok, health_error: connector.reason, health_http_status: connector.http_status, liveness: connector.liveness ?? null, event_loop: connector.body?.eventLoop ?? null, component_status: connector.body?.status ?? null, classification: classifyCheckpoint(connector, connectorResource, 1), health_latency_ms: connector.latency_ms, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null, relay_processes: connector.body?.mediaHeartbeat ? Object.fromEntries(["activeRelays", "liveRelayProcesses", "candidateHandoffs", "provisionalHandoffs"].map(key => [key, connector.body.mediaHeartbeat[key] ?? null])) : null,
       relay_diagnostics: connector.body?.mediaHeartbeat?.source_diagnostics ?? null,
       inputs: (connector.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "owner_state", "media_owner_state", "canonical_owner_progressing", "candidate_progressing", "native_input_ended", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "relay_age_ms", "output_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },

@@ -35,6 +35,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrHealthEffectiveRelay,
+  privateNvrRetainedHlsContinuity,
   privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueStillRequired,
   privateNvrOutputRescueRetryAllowed,
@@ -408,6 +409,10 @@ let eventManifestRequestRevision = 0;
 const relayStarts = new Map();
 const relayWarmups = new Map();
 const relayWarmupModes = new Map();
+// A stopped session-sweep owner can still hold a fresh, bounded HLS buffer.
+// Keep that public-media generation separate from canonical relay ownership;
+// it is never authority to promote a release or to claim frame progression.
+const relayRetainedPlayback = new Map();
 const relayRecovery = new Map();
 const relayDiagnostics = new Map();
 const playbackTokens = new Map();
@@ -421,6 +426,8 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   exclusiveRescueReopenFailures: 0,
   exclusiveRescueConcurrentProbeRejections: 0, exclusiveRescueFailures: 0,
   exclusiveSessionSweepTakeovers: 0, exclusiveSessionSweepFailures: 0,
+  retainedHlsContinuityWindows: 0, retainedHlsPlaylistResponses: 0,
+  retainedHlsSegmentResponses: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,
@@ -1683,7 +1690,8 @@ async function ensureRelay(streamId) {
       waitForRelayHandoffMedia(streamId, requestGraceMs)]);
     const promoted = relays.get(streamId);
     const continuity = relayMediaContinuity(streamId, promoted);
-    const available = continuity.effective;
+    const available = continuity.playbackEffective;
+    if (available && continuity.renewing) return available;
     if (available && relayIsRunning(available) &&
       relayBelongsToCurrentSession(available, source) && continuity.progressing) {
       if (available === promoted && relayRecoveryIsStable(promoted)) relayRecovery.delete(streamId);
@@ -1707,11 +1715,11 @@ async function ensureRelay(streamId) {
 async function waitForRelayHandoffMedia(streamId, maximumWaitMs) {
   const deadline = Date.now() + Math.max(0, Number(maximumWaitMs || 0));
   while (Date.now() < deadline && relayWarmups.has(streamId)) {
-    if (relayMediaContinuity(streamId).progressing) return true;
+    if (relayMediaContinuity(streamId).playbackContinuity) return true;
     await new Promise(resolve => setTimeout(resolve, Math.min(100,
       Math.max(1, deadline - Date.now()))));
   }
-  return relayMediaContinuity(streamId).progressing;
+  return relayMediaContinuity(streamId).playbackContinuity;
 }
 
 async function startRelayAfterRecoveryDelay(streamId,
@@ -1778,6 +1786,16 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
   });
   const source = streamSources.get(streamId);
   const recovery = relayRecovery.get(streamId);
+  const retainedPlayback = relayRetainedPlayback.get(streamId)?.relay || null;
+  const retainedSessionSweepOutputAt = relayPlaylistMtime(retainedPlayback);
+  const retainedSessionSweep = privateNvrRetainedHlsContinuity({
+    handoffInFlight: relayWarmups.has(streamId),
+    recoveryInFlight: relayRecovery.has(streamId) || relayStarts.has(streamId),
+    handoffMode: relayRetainedPlayback.get(streamId)?.handoffMode ||
+      relayWarmupModes.get(streamId),
+    retainedOutputAt: retainedSessionSweepOutputAt,
+    relayStaleMs: RELAY_STALE_MS
+  });
   const retainedPlaylist = join(relayDirectory(streamId), "index.m3u8");
   let retainedOutputAt = null;
   try { retainedOutputAt = statSync(retainedPlaylist).mtimeMs; } catch {}
@@ -1785,15 +1803,33 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
   // the bounded automatic reopen, the retained playlist is still valid media
   // for viewers. Report this as RENEWING continuity, not a stalled source or
   // an offline Gateway; the unchanged hard-stale deadline still fails closed.
-  const renewing = !state.progressing && source?.kind === "private_nvr_http_mp4"
+  const finiteResponseRenewing = !state.progressing && source?.kind === "private_nvr_http_mp4"
     && ["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
       .includes(recovery?.previous_relay_exit_reason)
     && Number.isFinite(retainedOutputAt)
     && Date.now() - retainedOutputAt < RELAY_STALE_MS
     && (relayStarts.has(streamId) || relayRetryDelayMs(recovery) <= RELAY_STALE_MS);
-  return { ...state, renewing, retainedOutputAt, current, candidate,
-    effective: privateNvrHealthEffectiveRelay({ current, candidate,
-      mediaOwner: state.mediaOwner }) };
+  const renewing = finiteResponseRenewing || retainedSessionSweep;
+  const effective = privateNvrHealthEffectiveRelay({ current, candidate,
+    mediaOwner: state.mediaOwner });
+  return { ...state, renewing,
+    playbackContinuity: state.progressing || renewing,
+    retainedOutputAt: retainedSessionSweep
+      ? retainedSessionSweepOutputAt : retainedOutputAt,
+    retainedPlayback: retainedSessionSweep ? retainedPlayback : null,
+    current, candidate, effective,
+    playbackEffective: effective || (retainedSessionSweep ? retainedPlayback : null) };
+}
+
+function retainSessionSweepPlayback(streamId, relay) {
+  const outputAt = relayPlaylistMtime(relay);
+  if (!relay || !Number.isFinite(outputAt) ||
+    Date.now() - outputAt >= RELAY_STALE_MS) return false;
+  relayRetainedPlayback.set(streamId, {
+    relay, handoffMode: "SESSION_SWEEP_EXCLUSIVE", retainedAt: Date.now()
+  });
+  relayLifecycle.retainedHlsContinuityWindows += 1;
+  return true;
 }
 
 function relayPlaylistMtime(relay) {
@@ -1890,7 +1926,12 @@ function observeLocalResources() {
       frameProgressing: continuity.progressing || continuity.renewing,
       lastFrameAt: continuity.effective?.lastInputAt || continuity.retainedOutputAt,
       dimension: continuity.renewing ? "relay_renewing" : "relay" });
-    if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) relayRecovery.delete(streamId);
+    if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) {
+      relayRecovery.delete(streamId);
+      relayRetainedPlayback.delete(streamId);
+    } else if (relayRetainedPlayback.has(streamId) && !continuity.renewing &&
+      !relayWarmups.has(streamId) && !relayRecovery.has(streamId) &&
+      !relayStarts.has(streamId)) relayRetainedPlayback.delete(streamId);
   }
   for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
     edgeSupervisor.observe({ resourceId: `unassigned-slot-${index + 1}`, assignment: "CHANNEL_EMPTY" });
@@ -1925,7 +1966,8 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
       ...(current?.previousGenerations || []).map(entry => entry.directory),
       ...[...liveRelays].flatMap(relay => [relay.directory,
         ...(relay.previousDirectories || []),
-        ...(relay.previousGenerations || []).map(entry => entry.directory)])].filter(Boolean));
+        ...(relay.previousGenerations || []).map(entry => entry.directory)]),
+      relayRetainedPlayback.get(streamId)?.relay?.directory].filter(Boolean));
     for (const directory of directories) {
       const normalized = normalize(directory);
       if (!activeDirectories.has(directory) && normalized.startsWith(`${normalize(HLS_ROOT)}/`)) {
@@ -2032,6 +2074,7 @@ async function warmReplaceRelay(streamId, previous, {
     });
     if (exclusiveSessionSweep) {
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
+      retainSessionSweepPlayback(streamId, previous);
       stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
     }
@@ -2110,6 +2153,7 @@ async function warmReplaceRelay(streamId, previous, {
       exclusiveSessionSweep = true;
       if (currentSession) currentSession.requiresExclusiveMediaHandoff = true;
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
+      retainSessionSweepPlayback(streamId, previous);
       stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
       replacement = await startRelay(streamId, { warming: true,
@@ -2190,6 +2234,7 @@ async function warmReplaceRelay(streamId, previous, {
         { generation: previous.generation, directory: previous.directory },
         ...(previous.previousGenerations || [])
       ].filter(entry => entry.generation && entry.directory);
+      retainSessionSweepPlayback(streamId, previous);
       stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
       observation = await observeWarmReplacement(replacement, { handoffMode,
@@ -2395,6 +2440,10 @@ async function warmReplaceRelay(streamId, previous, {
     cleanupRelayDirectories(streamId, replacement, previousDirectories);
     return true;
   })().finally(() => {
+    const current = relays.get(streamId);
+    if (relayIsProgressing(current) ||
+      !relayRecovery.has(streamId) && !relayStarts.has(streamId))
+      relayRetainedPlayback.delete(streamId);
     relayWarmups.delete(streamId);
     relayWarmupModes.delete(streamId);
   });
@@ -2919,15 +2968,19 @@ async function serveHls(request, response) {
   }
   requestMetrics[match[2] === "index.m3u8" ? "hlsPlaylists" : "hlsSegments"] += 1;
   if (request.headers.range) requestMetrics.hlsRangeRequests += 1;
-  let relay = relayMediaContinuity(match[1]).effective;
+  let continuity = relayMediaContinuity(match[1]);
+  let relay = continuity.playbackEffective;
   if (match[2] === "index.m3u8") {
-    relay = await ensureRelay(match[1]);
+    // A retained generation is playback data, not a running relay. Serve it
+    // directly while the canonical recovery timer continues independently;
+    // calling ensureRelay here would let a viewer race or replace that timer.
+    if (!(continuity.renewing && relay)) relay = await ensureRelay(match[1]);
     if (!relay || !(await waitForFile(relay.playlist, 8000))) {
       browserJson(request, response, 503, { error: "stream_starting", retryable: true });
       return;
     }
   }
-  const continuity = relayMediaContinuity(match[1]);
+  continuity = relayMediaContinuity(match[1]);
   const current = continuity.current;
   const candidate = continuity.candidate;
   const requestedGeneration = url.searchParams.get("generation");
@@ -2950,10 +3003,14 @@ async function serveHls(request, response) {
   if (extension === ".m3u8") {
     const token = url.searchParams.get("token");
     const playlist = projectPlaybackPlaylist(match[1], relay, readFileSync(file, "utf8"), token);
+    if (relay === continuity.retainedPlayback)
+      relayLifecycle.retainedHlsPlaylistResponses += 1;
     response.writeHead(200, browserHeaders(request, "application/vnd.apple.mpegurl"));
     response.end(playlist);
     return;
   }
+  if (relay === continuity.retainedPlayback)
+    relayLifecycle.retainedHlsSegmentResponses += 1;
   response.writeHead(200, { ...browserHeaders(request, "video/mp2t"), "content-length": statSync(file).size });
   const media = createReadStream(file);
   const closeMedia = () => media.destroy();
@@ -3037,6 +3094,7 @@ async function handle(request, response) {
       [streamId, relayMediaContinuity(streamId)]);
     const progressingRelays = relayContinuity.filter(([, state]) => state.progressing).length;
     const renewingRelays = relayContinuity.filter(([, state]) => state.renewing).length;
+    const availableRelays = progressingRelays + renewingRelays;
     const stalledRelays = relayContinuity.filter(([, state]) =>
       !state.progressing && !state.renewing).length;
     const observedAssigned = [...streamSources.values()].filter((source) => source.status !== "unassigned").length;
@@ -3044,7 +3102,7 @@ async function handle(request, response) {
       edgeRuntimeIdentity.device_type === "SOFTWARE_CONNECTOR" ? Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 0) : 0);
     const mediaHealth = connectorHeartbeatHealth({ ok: true,
       failedStreamCount: lastDiscoverySummary.failedAssignedCount,
-      mediaHeartbeat: { progressingRelays: progressingRelays + renewingRelays,
+      mediaHeartbeat: { progressingRelays: availableRelays,
         stalledRelays } }, expectedAssigned);
     json(response, 200, {
       contract: "observer-edge-health-v1",
@@ -3084,6 +3142,7 @@ async function handle(request, response) {
         maximumRoutineProbations: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
         progressingRelays,
         renewingRelays,
+        availableRelays,
         stalledRelays,
         inputs: relayContinuity.flatMap(([streamId, continuity]) => {
           const relay = continuity.effective;

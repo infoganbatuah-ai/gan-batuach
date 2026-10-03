@@ -35,6 +35,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrRetainedHlsContinuity,
   privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueStillRequired,
   privateNvrOutputRescueRetryAllowed,
@@ -165,6 +166,60 @@ test("finite recorder-response renewal passes only with retained HLS continuity"
     { expectedProgressing: 1 }).reason, "SESSION_SWEEP_MEDIA_GAP");
 });
 
+test("exclusive session sweep serves only a fresh retained HLS generation", () => {
+  const now = 100_000;
+  assert.equal(privateNvrRetainedHlsContinuity({ handoffInFlight: true,
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", retainedOutputAt: now - 6_000,
+    relayStaleMs: 20_000, now }), true);
+  assert.equal(privateNvrRetainedHlsContinuity({ handoffInFlight: true,
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", retainedOutputAt: now - 20_000,
+    relayStaleMs: 20_000, now }), false, "hard-stale HLS must fail closed");
+  assert.equal(privateNvrRetainedHlsContinuity({ handoffInFlight: false,
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", retainedOutputAt: now - 1_000,
+    relayStaleMs: 20_000, now }), false, "completed handoff cannot retain authority");
+  assert.equal(privateNvrRetainedHlsContinuity({ handoffInFlight: false,
+    recoveryInFlight: true, handoffMode: "SESSION_SWEEP_EXCLUSIVE",
+    retainedOutputAt: now - 11_000, relayStaleMs: 20_000, now }), true,
+  "the same fresh generation bridges one canonical recovery after a failed sweep");
+  assert.equal(privateNvrRetainedHlsContinuity({ handoffInFlight: true,
+    handoffMode: "OUTPUT_RESCUE", retainedOutputAt: now - 1_000,
+    relayStaleMs: 20_000, now }), false, "other recovery modes stay fail-closed");
+  assert.match(server, /const relayRetainedPlayback = new Map\(\)/);
+  assert.match(server,
+    /retainSessionSweepPlayback\(streamId, previous\);[\s\S]*SESSION_SWEEP_OWNER_RELEASE/);
+  assert.match(server, /playbackEffective: effective \|\|/);
+  assert.match(server,
+    /if \(!\(continuity\.renewing && relay\)\) relay = await ensureRelay\(match\[1\]\)/,
+  "retained playback must not bypass or replace the canonical recovery timer");
+});
+
+test("qualification counts bounded retained playback without inventing frame progression", () => {
+  const startedAt = Date.parse("2026-10-03T00:00:00.000Z");
+  const channels = [1, 2, 3, 4, 5, 6, 7, 10, 11];
+  const point = (minute, renewing = null) => ({
+    sampled_at: new Date(startedAt + minute * 60_000).toISOString(),
+    interval_ms: 60_000, empty_dvr_slots: 6,
+    dvr: { liveness: { ok: true }, classification: "PASS", component_status: "degraded",
+      expected: 10, source_available: 9, known_upstream_unavailable: [8],
+      progressing: renewing ? 8 : 9, available: 9,
+      inputs: channels.map(channel => ({ channel,
+        progressing: channel !== renewing,
+        renewing: channel === renewing,
+        playback_continuity: channel === renewing })) },
+    tapo: { liveness: { ok: true }, classification: "PASS", progressing: 1,
+      inputs: [{ channel: 1, progressing: true }] },
+    resources: { gateway: { runtime_pid: 11, supervisor_pid: 1 },
+      connector: { runtime_pid: 22, supervisor_pid: 2 } }
+  });
+  const result = summarizeRealHomeSoak([point(0), point(1, 6)], {
+    startedAt, endedAt: startedAt + 120_000, requiredDurationMs: 120_000,
+    dvrSourceAvailable: 9, dvrKnownUpstreamUnavailable: [8]
+  });
+  assert.equal(result.camera_sample_availability, 1);
+  assert.equal(result.per_camera["dvr-6"].availability, 1);
+  assert.ok(!result.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"));
+});
+
 test("live multi-source evidence disables age-only relay churn", () => {
   assert.equal(PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED, false);
   assert.match(readFileSync("services/video-gateway/private-nvr-session-policy.mjs", "utf8"),
@@ -178,6 +233,9 @@ test("live multi-source evidence disables age-only relay churn", () => {
     /!expectReactiveOnly && durationMs >= 2 \* 60_000/,
   "reactive-only proof must not fabricate a handoff merely to satisfy the old fixture");
   assert.match(shadow, /DVR_SHADOW_CHANNELS/);
+  assert.match(shadow,
+    /DVR_SHADOW_HIGH_RESOLUTION_PLAYBACK_CONTINUITY[\s\S]*minimumIntervalMs[\s\S]*requestedSignedArtifact[\s\S]*requestedSignedBundle/,
+  "one signed channel may sample HLS every second without widening the general Shadow surface");
   assert.match(shadow, /DVR_SHADOW_ISOLATED_LIVE_GATEWAY_MUST_BE_STOPPED/);
   assert.match(shadow, /VIDEO_GATEWAY_SHADOW_ALLOWED_CHANNELS/);
   assert.match(shadow,
@@ -287,9 +345,9 @@ test("routine probation stays scheduler-bounded while rescue has its own bounded
 
 test("playback can use a progressing rescue candidate without promoting ownership", () => {
   assert.match(server,
-    /const continuity = relayMediaContinuity\(streamId, promoted\);[\s\S]*const available = continuity\.effective/);
+    /const continuity = relayMediaContinuity\(streamId, promoted\);[\s\S]*const available = continuity\.playbackEffective/);
   assert.match(server,
-    /let relay = relayMediaContinuity\(match\[1\]\)\.effective/);
+    /let continuity = relayMediaContinuity\(match\[1\]\);\s+let relay = continuity\.playbackEffective/);
   assert.match(server,
     /\[relay, current, candidate\]\.flatMap\(relayGenerationDirectories\)/);
   assert.match(server,
@@ -439,7 +497,7 @@ test("a progressing candidate preserves health without early ownership promotion
   }), { progressing: false, owner: "NONE", mediaOwner: "NONE" });
   assert.match(server, /const relayCandidates = new Map\(\)/);
   assert.match(server,
-    /effective: privateNvrHealthEffectiveRelay\(\{ current, candidate,[\s\S]*mediaOwner: state\.mediaOwner \}\)/,
+    /const effective = privateNvrHealthEffectiveRelay\(\{ current, candidate,[\s\S]*mediaOwner: state\.mediaOwner \}\)/,
   "health must select only the relay named by continuity and tolerate a bounded no-owner interval");
   assert.match(server,
     /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\),[\s\S]*\.\.\.relayRecovery\.keys\(\)\]\)/,
@@ -498,7 +556,7 @@ test("stale request waits through bounded backoff and handoff media wakes demand
   assert.match(server,
     /waitForRelayHandoffMedia\(streamId, requestGraceMs\)/);
   assert.match(server,
-    /relayMediaContinuity\(streamId\)\.progressing/);
+    /relayMediaContinuity\(streamId\)\.playbackContinuity/);
   assert.match(server,
     /requestRescueEligible[\s\S]*existing\.nativeInputEnded === true[\s\S]*privateNvrHandoffCapacityAvailable\(streamId, "OUTPUT_RESCUE", existing\)[\s\S]*warmReplacePrivateNvrRelay\(streamId, existing, "OUTPUT_RESCUE"\)/,
   "a playback request may reuse the rescue lane only after an observed response end");
