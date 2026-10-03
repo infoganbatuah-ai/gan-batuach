@@ -16,6 +16,7 @@ import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+  PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
@@ -35,6 +36,8 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrHardwareOutputStalled,
+  privateNvrRelayHandoffMode,
   privateNvrRetainedHlsContinuity,
   privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueStillRequired,
@@ -202,11 +205,55 @@ test("exclusive session sweep serves only a fresh retained HLS generation", () =
     /relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\),\s+\.\.\.relayRecovery\.keys\(\), \.\.\.relayRetainedPlayback\.keys\(\)\]\)/,
   "retained-only streams must remain visible to the health contract");
   assert.match(server,
-    /retainSessionSweepPlayback\(streamId, previous\);[\s\S]*SESSION_SWEEP_OWNER_RELEASE/);
+    /retainExclusivePlayback\(streamId, previous, "SESSION_SWEEP_EXCLUSIVE"\);[\s\S]*SESSION_SWEEP_OWNER_RELEASE/);
   assert.match(server, /playbackEffective: effective \|\|/);
   assert.match(server,
     /if \(!\(continuity\.renewing && relay\)\) relay = await ensureRelay\(match\[1\]\)/,
   "retained playback must not bypass or replace the canonical recovery timer");
+});
+
+test("fresh recorder input with stalled VideoToolbox output enters one exclusive software rescue", () => {
+  const now = 100_000;
+  const stalledHardware = {
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - 100,
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+    nativeInputEnded: false,
+    encoder: "videotoolbox",
+    progressing: true,
+    recoveryStable: true,
+    warming: false
+  };
+  assert.equal(privateNvrHardwareOutputStalled(stalledHardware, now), true);
+  assert.equal(privateNvrRelayHandoffMode(stalledHardware, now), "OUTPUT_RESCUE");
+  assert.equal(privateNvrHardwareOutputStalled({
+    ...stalledHardware, encoder: "libx264"
+  }, now), false, "software output idle remains on the established transport path");
+  assert.equal(privateNvrHardwareOutputStalled({
+    ...stalledHardware,
+    lastInputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
+  }, now), false, "stale input must not be misclassified as an encoder-only failure");
+  assert.equal(privateNvrRetainedHlsContinuity({
+    handoffInFlight: true, handoffMode: "OUTPUT_RESCUE_EXCLUSIVE",
+    retainedOutputAt: now - 1_000, relayStaleMs: 20_000, now
+  }), true, "fresh retained HLS bridges the bounded exclusive encoder rescue");
+  assert.equal(privateNvrRetainedHlsContinuity({
+    handoffInFlight: false, recoveryInFlight: false,
+    handoffMode: "OUTPUT_RESCUE_EXCLUSIVE",
+    retainedOutputAt: now - 1_000, relayStaleMs: 20_000, now
+  }), false, "retained output cannot outlive the canonical handoff/recovery");
+  assert.match(server,
+    /hardwareOutputStalled[\s\S]*hardwareTranscoder\.failed\(streamId\)/,
+  "the affected hardware path must be quarantined before replacement starts");
+  assert.match(server,
+    /forcedHardwareOutputRescue[\s\S]*retainExclusivePlayback\(streamId, previous, "OUTPUT_RESCUE_EXCLUSIVE"\)[\s\S]*HARDWARE_OUTPUT_STALL_OWNER_RELEASE/,
+  "the DVR's one-response boundary requires retained HLS before releasing the failed owner");
+  assert.match(server,
+    /rmSync\(join\(HLS_ROOT, "\.generations"\), \{ recursive: true, force: true \}\)/,
+  "interrupted candidate generations must be scavenged on service startup");
+  assert.match(server,
+    /gan-batuach-video-gateway-hls-\$\{PORT\}/,
+  "Gateway, Connector and deterministic QA must not share one HLS namespace");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {
@@ -628,8 +675,8 @@ test("stale request waits through bounded backoff and handoff media wakes demand
   assert.match(server,
     /relayMediaContinuity\(streamId\)\.playbackContinuity/);
   assert.match(server,
-    /requestRescueEligible[\s\S]*existing\.nativeInputEnded === true[\s\S]*privateNvrHandoffCapacityAvailable\(streamId, "OUTPUT_RESCUE", existing\)[\s\S]*warmReplacePrivateNvrRelay\(streamId, existing, "OUTPUT_RESCUE"\)/,
-  "a playback request may reuse the rescue lane only after an observed response end");
+    /requestHardwareOutputStalled[\s\S]*requestRescueEligible[\s\S]*existing\.nativeInputEnded === true \|\| requestHardwareOutputStalled[\s\S]*privateNvrHandoffCapacityAvailable\(streamId, "OUTPUT_RESCUE", existing\)[\s\S]*warmReplacePrivateNvrRelay\(streamId, existing, "OUTPUT_RESCUE"\)/,
+  "a playback request may reuse the rescue lane after a response end or isolated hardware-output failure");
   assert.match(server, /last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED"/,
   "failed candidate acquisition must be visible in source diagnostics");
   const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");

@@ -34,6 +34,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrHardwareOutputStalled,
   privateNvrHealthEffectiveRelay,
   privateNvrRetainedHlsContinuity,
   privateNvrExclusiveRescueContinuationStalled,
@@ -92,7 +93,11 @@ const HOME_SOURCE_AVAILABLE_SHADOW_CHANNELS = [1, 2, 3, 4, 5, 6, 7, 10, 11];
 const PROBE_TIMEOUT_MS = Number(process.env.DVR_PROBE_TIMEOUT_MS || 3500);
 const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 16);
 const MAX_CHANNEL_COUNT = 64;
-const defaultHlsRoot = join(tmpdir(), "gan-batuach-video-gateway-hls");
+// Keep ephemeral media isolated per bound service. The owned Home Gateway and
+// Connector intentionally coexist on one host, and deterministic QA may start
+// another loopback instance. Sharing one generation namespace lets one safe
+// startup scavenge another process's active handoff output.
+const defaultHlsRoot = join(tmpdir(), `gan-batuach-video-gateway-hls-${PORT}`);
 const shadowHlsRoot = normalize(String(process.env.VIDEO_GATEWAY_SHADOW_HLS_ROOT || ""));
 const HLS_ROOT = SHADOW_MODE ? shadowHlsRoot : defaultHlsRoot;
 if (SHADOW_MODE && !["127.0.0.1", "localhost", "::1"].includes(HOST)) throw new Error("Shadow qualification must bind to loopback");
@@ -256,18 +261,30 @@ async function maintainPrivateNvrRelayHandoffs() {
       });
     if (relayWarmups.has(streamId)) continue;
     const lastOutputAt = relayPlaylistMtime(relay);
-    const handoffMode = privateNvrRelayHandoffMode({
+    const handoffEvidence = {
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
       lastOutputAt,
       nativeInputEnded: relay.nativeInputEnded,
+      encoder: relay.encoder,
       relayStaleMs: RELAY_STALE_MS,
       progressing: relayIsProgressing(relay),
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
-    }, observedAt);
+    };
+    const hardwareOutputStalled =
+      privateNvrHardwareOutputStalled(handoffEvidence, observedAt);
+    const handoffMode = privateNvrRelayHandoffMode(handoffEvidence, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
       if (sessionRenewalPending) continue;
+      if (hardwareOutputStalled) {
+        relay.hardwareOutputStalled = true;
+        hardwareTranscoder.failed(streamId);
+        relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+          hardware_output_stalled_at: new Date(observedAt).toISOString(),
+          hardware_output_stalled_input_idle_ms: observedAt - relay.lastInputAt,
+          hardware_output_stalled_output_idle_ms: observedAt - lastOutputAt });
+      }
       const hardStale = Number.isFinite(lastOutputAt)
         && observedAt - lastOutputAt >= RELAY_STALE_MS;
       if (privateNvrOutputRescueRetryAllowed(relay.lastOutputRescueFailureAt,
@@ -508,6 +525,13 @@ const preflightDriver = createPrivateNvrPreflightDriver({
 });
 
 mkdirSync(HLS_ROOT, { recursive: true });
+// Generation directories are bounded, disposable relay output. A graceful
+// handoff removes them after its playback holdback, but a process interruption
+// cannot run that timer. Scavenge only this ephemeral namespace at startup so
+// old candidates cannot accumulate across service restarts; canonical source,
+// configuration, evidence and current relay directories are untouched.
+rmSync(join(HLS_ROOT, ".generations"), { recursive: true, force: true });
+mkdirSync(join(HLS_ROOT, ".generations"), { recursive: true, mode: 0o700 });
 
 // Start expensive self-tests in the background. The contract stays false until
 // they complete, while health and live playback remain responsive.
@@ -1663,11 +1687,22 @@ async function ensureRelay(streamId) {
       relayEpoch: existing?.sessionEpoch,
       currentEpoch: recorderSession?.epoch
     });
+  const requestHardwareOutputStalled = privateNvrHardwareOutputStalled({
+    startedAt: existing?.startedAt,
+    lastInputAt: existing?.lastInputAt,
+    lastOutputAt: outputAt,
+    nativeInputEnded: existing?.nativeInputEnded,
+    encoder: existing?.encoder
+  }, Date.now());
+  if (requestHardwareOutputStalled) {
+    existing.hardwareOutputStalled = true;
+    hardwareTranscoder.failed(streamId);
+  }
   const requestRescueEligible = source?.kind === "private_nvr_http_mp4"
     && existing && relayIsRunning(existing)
     && relayBelongsToCurrentSession(existing, source)
     && !existing.retainedFallback
-    && existing.nativeInputEnded === true
+    && (existing.nativeInputEnded === true || requestHardwareOutputStalled)
     && Number.isFinite(outputAt)
     && Date.now() - existing.startedAt >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && !sessionRenewalPending
@@ -1821,12 +1856,14 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
     playbackEffective: effective || (retainedSessionSweep ? retainedPlayback : null) };
 }
 
-function retainSessionSweepPlayback(streamId, relay) {
+function retainExclusivePlayback(streamId, relay, handoffMode) {
+  if (!["SESSION_SWEEP_EXCLUSIVE", "OUTPUT_RESCUE_EXCLUSIVE"]
+    .includes(handoffMode)) return false;
   const outputAt = relayPlaylistMtime(relay);
   if (!relay || !Number.isFinite(outputAt) ||
     Date.now() - outputAt >= RELAY_STALE_MS) return false;
   relayRetainedPlayback.set(streamId, {
-    relay, handoffMode: "SESSION_SWEEP_EXCLUSIVE", retainedAt: Date.now()
+    relay, handoffMode, retainedAt: Date.now()
   });
   relayLifecycle.retainedHlsContinuityWindows += 1;
   return true;
@@ -1905,6 +1942,7 @@ function relayEligibleForHandoff(streamId, relay) {
       lastInputAt: relay.lastInputAt,
       lastOutputAt: outputAt,
       nativeInputEnded: relay.nativeInputEnded,
+      encoder: relay.encoder,
       relayStaleMs: RELAY_STALE_MS,
       progressing: relayIsProgressing(relay),
       recoveryStable: false,
@@ -2064,6 +2102,8 @@ async function warmReplaceRelay(streamId, previous, {
       ? privateNvrSessions.get(source.sessionKey) : null;
     let expectedCurrent = previous;
     let exclusiveRescue = false;
+    const forcedHardwareOutputRescue = handoffMode === "OUTPUT_RESCUE"
+      && previous?.hardwareOutputStalled === true;
     let exclusiveSessionSweep = shouldUsePrivateNvrExclusiveSessionSweep({
       handoffMode, sourceKind: source?.kind,
       exclusiveBoundaryObserved: handoffMode === "SESSION_SWEEP_EXCLUSIVE",
@@ -2072,9 +2112,24 @@ async function warmReplaceRelay(streamId, previous, {
       relayEpoch: previous?.sessionEpoch,
       currentEpoch: currentSession?.epoch
     });
+    if (forcedHardwareOutputRescue) {
+      // The recorder response is still delivering current bytes, so a second
+      // response would test the DVR rather than repair the isolated encoder
+      // failure. Preserve the fresh HLS buffer, release exactly the failed
+      // hardware owner, and reopen through the existing confirmed rescue lane.
+      // The scheduler has already quarantined VideoToolbox for this source, so
+      // the replacement deterministically uses the software fallback.
+      exclusiveRescue = true;
+      relayLifecycle.exclusiveRescueTakeovers += 1;
+      relayLifecycle.exclusiveRescueColdTakeovers += 1;
+      relayLifecycle.exclusiveRescueReopens += 1;
+      retainExclusivePlayback(streamId, previous, "OUTPUT_RESCUE_EXCLUSIVE");
+      stopRelay(streamId, previous, "HARDWARE_OUTPUT_STALL_OWNER_RELEASE");
+      expectedCurrent = undefined;
+    }
     if (exclusiveSessionSweep) {
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
-      retainSessionSweepPlayback(streamId, previous);
+      retainExclusivePlayback(streamId, previous, "SESSION_SWEEP_EXCLUSIVE");
       stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
     }
@@ -2083,7 +2138,7 @@ async function warmReplaceRelay(streamId, previous, {
     let candidateStartFailure = replacement ? null
       : relayDiagnostics.get(streamId)?.last_failure_reason || null;
     let observation = null;
-    if (replacement && exclusiveSessionSweep) {
+    if (replacement && (exclusiveSessionSweep || forcedHardwareOutputRescue)) {
       replacement.previousDirectories = [...new Set([
         previous.directory, ...(previous.previousDirectories || [])
       ].filter(Boolean))];
@@ -2153,7 +2208,7 @@ async function warmReplaceRelay(streamId, previous, {
       exclusiveSessionSweep = true;
       if (currentSession) currentSession.requiresExclusiveMediaHandoff = true;
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
-      retainSessionSweepPlayback(streamId, previous);
+      retainExclusivePlayback(streamId, previous, "SESSION_SWEEP_EXCLUSIVE");
       stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
       replacement = await startRelay(streamId, { warming: true,
@@ -2234,7 +2289,7 @@ async function warmReplaceRelay(streamId, previous, {
         { generation: previous.generation, directory: previous.directory },
         ...(previous.previousGenerations || [])
       ].filter(entry => entry.generation && entry.directory);
-      retainSessionSweepPlayback(streamId, previous);
+      retainExclusivePlayback(streamId, previous, "SESSION_SWEEP_EXCLUSIVE");
       stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
       observation = await observeWarmReplacement(replacement, { handoffMode,

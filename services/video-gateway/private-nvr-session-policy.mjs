@@ -320,6 +320,25 @@ export function shouldDeferPrivateNvrOutputRescueForSessionRenewal({
     && relayEpoch === currentEpoch);
 }
 
+// VideoToolbox can stop publishing rendered HLS while the recorder response
+// continues to deliver bytes. That is materially different from the recorder
+// pauses measured on the Home DVR: fresh native input proves the transport is
+// alive, while an independently stale playlist isolates the failure to the
+// hardware render pipeline. Only that narrow signal may bypass the usual
+// native-response-end requirement; software/copy relays and stale input stay
+// on their existing transport/recovery paths.
+export function privateNvrHardwareOutputStalled(relay, now = Date.now()) {
+  if (!relay || relay.encoder !== "videotoolbox"
+    || relay.nativeInputEnded === true
+    || !Number.isFinite(relay.lastInputAt)
+    || !Number.isFinite(relay.lastOutputAt)
+    || !Number.isFinite(now)) return false;
+  const inputIdleMs = now - relay.lastInputAt;
+  const outputIdleMs = now - relay.lastOutputAt;
+  return inputIdleMs >= 0 && inputIdleMs < PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
+    && outputIdleMs >= PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS;
+}
+
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   if (!relay || relay.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;
@@ -327,17 +346,16 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
     ? now - relay.lastOutputAt : Number.POSITIVE_INFINITY;
   const finiteResponseEnded = relay.nativeInputEnded === true
     && outputIdleMs >= PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS;
-  // Neither rendered-output idle nor joint input/output idle proves this
-  // recorder's response retired: the real Home recorder resumed after both,
-  // and a soft-idle probe later contaminated an otherwise healthy response.
-  // Only an observed body end may start replacement. The real Home recorder
-  // resumed after both soft and hard output-idle boundaries, and probing at
-  // either boundary contaminated the still-authoritative response. The body
-  // or socket termination drives the existing recovery path; retained HLS
-  // covers the bounded reopen gap.
+  const hardwareOutputStalled = privateNvrHardwareOutputStalled(relay, now);
+  // Rendered-output idle alone does not prove this recorder's response
+  // retired: the real Home recorder resumed after soft and hard idle windows.
+  // The only additional authority is the independently measured hardware
+  // failure signature above: current native bytes with a stale VideoToolbox
+  // playlist. That path quarantines hardware for the affected source and uses
+  // the existing exclusive rescue/rollback machinery.
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && Number.isFinite(relay.lastOutputAt)
-    && finiteResponseEnded;
+    && (finiteResponseEnded || hardwareOutputStalled);
   // Rendered-output loss is more urgent than the age-based finite-response
   // sweep. This also gives a genuinely stale older relay the separately
   // measured rescue acquisition budget instead of misclassifying it as a
@@ -524,7 +542,7 @@ export function privateNvrRetainedHlsContinuity({ handoffInFlight,
   recoveryInFlight = false, handoffMode = null, retainedOutputAt = null, relayStaleMs,
   now = Date.now() }) {
   return Boolean((handoffInFlight || recoveryInFlight)
-    && handoffMode === "SESSION_SWEEP_EXCLUSIVE"
+    && ["SESSION_SWEEP_EXCLUSIVE", "OUTPUT_RESCUE_EXCLUSIVE"].includes(handoffMode)
     && Number.isFinite(retainedOutputAt) && Number.isFinite(relayStaleMs)
     && relayStaleMs > 0 && Number.isFinite(now)
     && now >= retainedOutputAt && now - retainedOutputAt < relayStaleMs);
