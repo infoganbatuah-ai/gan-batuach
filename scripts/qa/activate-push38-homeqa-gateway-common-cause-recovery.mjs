@@ -205,7 +205,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-health-continuity-b4579b44/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-hls-buffer-8e4b40b1/gateway-runtime.tar.gz"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
   : sessionRenewal
@@ -266,7 +266,7 @@ const artifact = playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-health-continuity-b4579b44/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-hls-buffer-8e4b40b1/r2-publication.json"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
   : sessionRenewal
@@ -928,23 +928,24 @@ if (playbackSweep) {
   const shadowBytes = protectedFile(failedShadowEvidencePath);
   const failedShadow = JSON.parse(shadowBytes);
   const failedLifecycle = failedShadow.qualification?.lifecycle_final || {};
-  if (sha(shadowBytes) !== "cf936075bd8ebe9be97a6cff75699120013d743d7d8addb245220816b78ba64e" ||
+  if (sha(shadowBytes) !== "c3606bb4d7dc2df7973d92ae5f5fca9c9b41f94c265c3605dd7ec437abfd4145" ||
     failedShadow.contract !== "observer-push38-bounded-dvr-shadow-v1" ||
     failedShadow.result !== "FAIL" || failedShadow.runtime_mutation !== false ||
     failedShadow.signed_release?.release_id !== item.failedShadowReleaseId ||
     failedShadow.signed_release?.version !== item.failedShadowVersion ||
     failedShadow.signed_release?.artifact_sha256 !==
-      "35df17e8631613804057e23f64801afd7b9cc1af736302744c665c9001ff68d3" ||
+      "1fc0a19c3fd7aa5cc84d1b9c44d7ec0d3f3c6c1488ccc5f7af8c2d671460e7a0" ||
     failedShadow.signed_release?.signature_verified !== true ||
     failedShadow.signed_release?.artifact_verified !== true ||
     failedShadow.duration_ms < 300_000 || failedShadow.checkpoints?.length < 270 ||
     failedShadow.qualification?.playback_failures !== 0 ||
-    failedShadow.qualification?.hls_continuity?.pass !== true ||
+    failedShadow.qualification?.hls_continuity?.pass !== false ||
+    failedShadow.qualification?.hls_continuity?.reason !== "PLAYLIST_FRESHNESS_EXCEEDED" ||
     JSON.stringify(failedShadow.qualification?.failures) !==
-      JSON.stringify(["SHADOW_PROGRESSION", "SESSION_ROTATION"]) ||
+      JSON.stringify(["PLAYLIST_CONTINUITY"]) ||
     failedLifecycle.retainedHlsContinuityWindows !== 2 ||
-    failedLifecycle.retainedHlsPlaylistResponses !== 6 ||
-    failedLifecycle.retainedHlsSegmentResponses !== 6 ||
+    failedLifecycle.retainedHlsPlaylistResponses !== 8 ||
+    failedLifecycle.retainedHlsSegmentResponses !== 8 ||
     failedLifecycle.staleInput !== 0 || failedLifecycle.stalePlaylist !== 0 ||
     failedLifecycle.staleOnRequest !== 0 || failedLifecycle.inputSocketError !== 0)
     throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_SHADOW_PROOF_INVALID");
@@ -952,9 +953,9 @@ if (playbackSweep) {
     checkpoints: failedShadow.checkpoints.length,
     release_id: failedShadow.signed_release.release_id,
     failures: failedShadow.qualification.failures,
-    hls_continuity: "PASS", playback_failures: 0,
+    hls_continuity: "FAIL_PLAYLIST_FRESHNESS_EXCEEDED", playback_failures: 0,
     retained_hls_windows: failedLifecycle.retainedHlsContinuityWindows,
-    health_projection_omission_reproduced: true };
+    playback_buffer_gap_reproduced: true };
   const bytes = protectedFile(failedCanaryEvidencePath);
   const result = JSON.parse(bytes);
   const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
