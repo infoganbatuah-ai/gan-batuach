@@ -4,7 +4,38 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — RELAY/SESSION REMEDIATION VALIDATED; SIGNED LIVE SUCCESSOR PENDING; V8 NOT READY`
+`NOT DONE — 0.2.74 SIGNED AND VALIDATED; PACKAGE-SPECIFIC R2 EXPORT APPROVAL PENDING; V8 MUST RESTART FROM ZERO`
+
+## 2026-10-03 V8 HARDWARE-OUTPUT STALL AND 0.2.74 SUCCESSOR
+
+Gateway `0.2.73-p38-health` passed a fresh 15-minute canary and fresh 60-minute
+pre-soak, then began V8 from zero at `2026-10-03T18:28:42.714Z`. V8 did not
+qualify. At checkpoint 47, CH3 disappeared for one checkpoint while the Gateway
+process, DVR input/session and host resources remained available; the same
+source was present immediately before and after. The immutable failed V8 result
+contains 55 checkpoints over 3,295,641 ms, one source-degraded checkpoint, zero
+component-unavailable checkpoints, zero process restarts, zero socket/session/
+authentication failures, and zero playback or AI probe failures. V8 was stopped
+and is not reused as qualifying duration.
+
+Commit `d6403447eded40e341f01b2067ccacf8d564a657` adds the evidence-gated
+VideoToolbox output-stall rescue and isolates HLS namespaces by service port.
+Deterministic relay tests, TypeScript and canonical lint passed locally. Release
+preparation commit `66964698f7cba0f72331c8bde0bb5ff1d36d2aba` passed all six
+Digital Observer CI gates. The exact immutable package is
+`0.2.74-p38-health`, 135,864,508 bytes, SHA-256
+`f43358023c15d975003fa86a41cdd53ced8f2f70294f65ff4b9ddb98f01e06b4`.
+Protected GitHub run `37149507888` issued the exact-device AWS KMS-signed
+manifest; the live installed trust registry accepted it and the local archive
+matched its signed size/hash.
+
+No live update followed. The external-action permission layer requires a
+package-specific owner approval before uploading this archive to the existing
+private R2 bucket, despite the existing general PUSH 38 and bounded-cost
+authorization. After that approval, the remaining sequence is: private R2
+round-trip, HOME_QA registration/preflight, managed OTA update with rollback to
+signed `0.2.73`, new canary, new pre-soak, V8 from zero, and the separate remote
+phone proof. `main` and Production remain unchanged.
 
 ## 2026-10-03 RELAY/SESSION REMEDIATION UPDATE
 
@@ -128,10 +159,11 @@ The capacity curve identifies local SQLite coordination as the current saturatio
 
 ## OPEN GATES
 
-- Complete root-cause closure and the 60-minute pre-soak gate, then begin a new uninterrupted qualifying v8 interval of at least 24 hours.
-- Evaluate memory/log/relay/session/recovery deltas and flapping from the final ledger.
-- Re-check persisted Product learning coverage; local activity sampling alone does not prove Site persistence.
-- Repeat the authorized Product Live View checkpoint at the end in addition to automated local playback decoding.
-- Run final CI/security/regression gates, update evidence ledger, merge PR and verify `origin/main`.
+- Obtain the package-specific approval required by the external-action layer and publish/round-trip the already signed 0.2.74 archive to private R2.
+- Register and activate the exact-device HOME_QA successor, retaining signed 0.2.73 as automatic rollback.
+- Run a new 15-minute canary and new 60-minute pre-soak, then start V8 from zero for at least 24 actual hours.
+- Complete the bounded HTTPS remote-phone DVR and Tapo playback proof with no client-side Edge installation.
+- Evaluate final memory/log/relay/session/recovery, AI, learning, integrity, isolation and Product truthfulness rows against the frozen V8 matrix.
+- Preserve final branch/ledger evidence and reconcile the completed PUSH 38 unit into `integration/development`; `main` and Production remain owner-controlled and unchanged.
 
 North-Star counts remain 24 `DONE + REAL PROOF`, 36 `IMPLEMENTED — NEEDS REAL PROOF`, 64 `FOUNDATION`, 18 `PARTIAL`, 47 `NOT STARTED`, and 1 `EXTERNAL COVERAGE GAP` until final evidence supports explicit row transitions. Multi-host proof remains not verified. The deferred PUSH 25 billing-role RLS finding remains open and unchanged.

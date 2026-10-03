@@ -1,7 +1,7 @@
 {
   "contract": "digital-observer-push38-relay-handoff-remediation-evidence-v1",
-  "recorded_at": "2026-10-03T11:17:05Z",
-  "status": "CANDIDATE_VALIDATED_PENDING_SIGNED_LIVE_RELEASE",
+  "recorded_at": "2026-10-03T20:00:00Z",
+  "status": "SIGNED_0_2_74_PENDING_PACKAGE_SPECIFIC_R2_EXPORT_APPROVAL",
   "branch": "codex/push-38t-qualification",
   "source_parent_sha": "c18c087b65e07a67fb341d2c97a68c7e90d18843",
   "failed_pre_soak": {
@@ -62,6 +62,46 @@
     "exact_live_release_restored": true,
     "result": "PASS"
   },
+  "failed_v8": {
+    "release_id": "qa-p38-health-gateway-unique-health-45d09d249eb2",
+    "version": "0.2.73-p38-health",
+    "started_at": "2026-10-03T18:28:42.714Z",
+    "elapsed_ms": 3295641,
+    "checkpoints": 55,
+    "failed_checkpoint": 47,
+    "affected_channel": 3,
+    "classification": "HARDWARE_OUTPUT_STALL_WITH_FRESH_DVR_SESSION",
+    "source_degraded_checkpoints": 1,
+    "component_unavailable_checkpoints": 0,
+    "runtime_restarts": 0,
+    "socket_errors": 0,
+    "session_failures": 0,
+    "authentication_rejections": 0,
+    "playback_failures": 0,
+    "ai_failures": 0,
+    "result_sha256": "3ace610558222f06c694defbeb316a64f262a9c5f5ceb31db185b968a7bc9fc9",
+    "checkpoints_sha256": "80c5bba8ab1f22790656735ca6b2168352f3e617d12c8e99e18960f965b6afbc",
+    "result": "FAIL_NOT_REUSABLE_FOR_V8_DURATION"
+  },
+  "gateway_0_2_74": {
+    "release_id": "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
+    "version": "0.2.74-p38-health",
+    "source_sha": "d6403447eded40e341f01b2067ccacf8d564a657",
+    "release_preparation_sha": "66964698f7cba0f72331c8bde0bb5ff1d36d2aba",
+    "artifact_sha256": "f43358023c15d975003fa86a41cdd53ced8f2f70294f65ff4b9ddb98f01e06b4",
+    "artifact_size": 135864508,
+    "rollback_release_id": "qa-p38-health-gateway-unique-health-45d09d249eb2",
+    "rollback_version": "0.2.73-p38-health",
+    "ci_run_id": 37149087001,
+    "ci": "PASS_6_OF_6",
+    "aws_signing_run_id": 37149507888,
+    "aws_signature": "PASS",
+    "live_trust_verification": "PASS",
+    "exact_device_count": 1,
+    "cohort_percent": 0,
+    "r2_uploaded": false,
+    "runtime_activated": false
+  },
   "restricted_evidence": [
     {
       "path_class": "exports/restricted/push38-gateway-final-native-shadow-20261003T082137Z.json",
@@ -93,16 +133,18 @@
     "migration_health": "PASS",
     "release_contract": "PASS",
     "dependency_audit_high_critical": 0,
-    "focused_relay_tests": "PASS_48_OF_48",
+    "focused_relay_tests": "PASS_29_OF_29_PLUS_RELEASE_REGRESSIONS",
     "braces_cve_backport": "PASS"
   },
   "live_state": {
     "runtime_mutated_by_shadow": false,
-    "gateway_current_version": "0.2.64-p38-health",
-    "gateway_failed_successor": "0.2.67-p38-health",
+    "gateway_current_version": "0.2.73-p38-health",
+    "gateway_known_good_version": "0.2.73-p38-health",
+    "gateway_pending_successor": "0.2.74-p38-health",
     "connector_version": "0.2.26-p38-health",
     "v8_started": false,
+    "v8_failed_attempt_preserved": true,
     "push38_done": false
   },
-  "next_gate": "BUILD_SIGN_PUBLISH_AND_ACTIVATE_EXACT_DEVICE_SUCCESSOR_THEN_RUN_NEW_CANARY_AND_PRE_SOAK"
+  "next_gate": "PACKAGE_SPECIFIC_R2_EXPORT_APPROVAL_THEN_ROUND_TRIP_REGISTER_ACTIVATE_CANARY_PRE_SOAK_V8_REMOTE_PHONE"
 }
