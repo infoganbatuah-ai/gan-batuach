@@ -76,6 +76,13 @@ try {
     body: JSON.stringify(resultPayload) })).status, 202);
   assert.equal(remoteResults.length, 1);
   assert.equal(remoteResults[0].pass, true);
+  const failedPayload = { ...resultPayload, pass: false, error: "REMOTE_CLIENT_FAILED", results: [] };
+  assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
+    headers: { "content-type": "application/json",
+      "x-push38-result-token": "qualification-result-token-00000000000000000000" },
+    body: JSON.stringify(failedPayload) })).status, 202);
+  assert.equal(remoteResults.length, 2);
+  assert.equal(remoteResults[1].pass, false);
   qualificationNow = remoteQualificationDeadline + 1;
   assert.equal((await fetch(base + "/push38/remote-playback")).status, 404);
   assert.equal((await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",

@@ -48,7 +48,11 @@ run.addEventListener("click",async()=>{
   try{const raw=decodeFragment();config={accessToken:raw.accessToken||raw.t,resultToken:raw.resultToken||raw.r,siteId:raw.siteId||raw.s,
     sources:(raw.sources||raw.c||[]).map(source=>({id:source.id||source.i,label:source.label||source.l,kind:source.kind||source.k,
       expect:source.expect||source.e,play:source.play===true||source.p===true}))};history.replaceState(null,"",location.pathname);
-    if(!config.accessToken||!config.resultToken||!config.siteId||!Array.isArray(config.sources))throw new Error("QUALIFICATION_INPUT_INVALID");
+    const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if(config.accessToken.split(".").length!==3||!/^[A-Za-z0-9_-]{43}$/.test(config.resultToken)||!uuid.test(config.siteId)||
+      !Array.isArray(config.sources)||config.sources.length!==11||new Set(config.sources.map(source=>source.id)).size!==11||
+      config.sources.some(source=>!uuid.test(source.id)||!["DVR","TAPO"].includes(source.kind)||!["ALLOW","DENY"].includes(source.expect)))
+      throw new Error("QUALIFICATION_INPUT_INVALID");
     const results=[];
     for(const source of config.sources){
       const auth=await authorize(config,source);const allowed=auth.status===200&&auth.body?.data?.playback;
@@ -60,7 +64,7 @@ run.addEventListener("click",async()=>{
     const pass=results.every(item=>item.authorization_expected&&item.localhost_absent!==false&&(!item.media||item.media.moving));
     const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,results,pass};
     await report(config,result);summary.className="status "+(pass?"ok":"bad");summary.textContent=pass?"PASS — הצפייה המרוחקת מתקדמת":"FAIL — אחת מבדיקות ההרשאה או הווידאו נכשלה";
-  }catch(error){const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,pass:false,error:String(error?.message||"REMOTE_CLIENT_FAILED").slice(0,120)};if(config)await report(config,result);summary.className="status bad";summary.textContent="FAIL — הבדיקה לא הושלמה"}
+  }catch(error){const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,pass:false,error:String(error?.message||"REMOTE_CLIENT_FAILED").slice(0,120),results:[]};if(config)await report(config,result);summary.className="status bad";summary.textContent="FAIL — הבדיקה לא הושלמה"}
 });
 </script></body></html>`;
 
