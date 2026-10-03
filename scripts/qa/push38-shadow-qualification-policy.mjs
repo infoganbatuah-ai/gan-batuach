@@ -65,6 +65,22 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
     maximum_buffered_stagnation_ms: maximumBufferedStagnationMs };
 }
 
+export function hasQualifiedHandoffEncoderState(point) {
+  const input = point?.shadow?.media?.inputs?.[0];
+  if (["videotoolbox", "libx264"].includes(input?.encoder)) return true;
+  // During an exclusive session renewal the previous encoder has exited and
+  // the replacement has not yet become CURRENT.  The relay is still serving
+  // the retained, bounded HLS window.  Accept the intentionally absent encoder
+  // only when the full retained-playback contract is present and playable.
+  return input?.encoder == null && input?.renewing === true &&
+    input?.playback_continuity === true && input?.owner_state === "RENEWING" &&
+    input?.media_owner_state === "RETAINED_HLS" &&
+    point?.shadow?.media?.progressing === 0 && point?.shadow?.media?.renewing === 1 &&
+    point?.shadow?.media?.available === 1 && point?.shadow?.media?.stalled === 0 &&
+    point?.renewal?.status === 200 && point?.renewal?.playlist_status === 200 &&
+    point?.renewal?.segment_status === 200 && point?.renewal?.segment_bytes > 0;
+}
+
 export function evaluateShadowMeasurementReadiness(checkpoints, {
   expectedProgressing = 1,
   minimumStableMs = 30_000

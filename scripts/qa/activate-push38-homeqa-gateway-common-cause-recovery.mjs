@@ -96,7 +96,7 @@ import { PUSH38_CONNECTOR_CODEC_PRESERVATION as connectorCodecPreservationItem
 import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY as connectorHandoffContinuityItem
 } from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
 import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
-  evaluateHlsRenewalContinuity
+  evaluateHlsRenewalContinuity, hasQualifiedHandoffEncoderState
 } from "./push38-shadow-qualification-policy.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
@@ -453,8 +453,7 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
     (checkpoints.some(point => point.shadow?.media?.lifecycle?.warmHandoffs >= 1 &&
       point.shadow?.media?.inputs?.[0]?.encoder === "videotoolbox") ||
       qualifiedOwnerContinuity) &&
-    checkpoints.every(point => ["videotoolbox", "libx264"].includes(
-      point.shadow?.media?.inputs?.[0]?.encoder)) &&
+    checkpoints.every(hasQualifiedHandoffEncoderState) &&
     softwareFallbackHasOutputFailureEvidence &&
     (lifecycle.warmHandoffs >= 1 || qualifiedOwnerContinuity);
   // A failed warmup is not a media outage when the authoritative relay stays

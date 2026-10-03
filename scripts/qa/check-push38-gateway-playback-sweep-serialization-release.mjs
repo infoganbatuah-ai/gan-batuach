@@ -12,6 +12,8 @@ import { verifyEdgeUpdateManifest } from
   "../../services/video-gateway/edge-update-contract.mjs";
 import { homeQaManagedPhaseAllows } from
   "../../services/video-gateway/home-qa-transition-phase.mjs";
+import { hasQualifiedHandoffEncoderState } from
+  "./push38-shadow-qualification-policy.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const built = buildPush38GatewayPlaybackSweepSerializationManifest({
@@ -30,6 +32,18 @@ assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [release.deviceId]);
 assert.equal(release.failedShadowVersion, "0.2.72-p38-health");
 assert.equal(release.priorFailedShadowVersion, "0.2.71-p38-health");
+const retainedHlsCheckpoint = {
+  shadow: { media: { progressing: 0, renewing: 1, available: 1, stalled: 0,
+    inputs: [{ encoder: null, renewing: true, playback_continuity: true,
+      owner_state: "RENEWING", media_owner_state: "RETAINED_HLS" }] } },
+  renewal: { status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1 }
+};
+assert.equal(hasQualifiedHandoffEncoderState(retainedHlsCheckpoint), true);
+assert.equal(hasQualifiedHandoffEncoderState({ ...retainedHlsCheckpoint,
+  renewal: { ...retainedHlsCheckpoint.renewal, segment_status: 500 } }), false);
+assert.equal(hasQualifiedHandoffEncoderState({ shadow: { media: { inputs: [
+  { encoder: "videotoolbox" }
+] } } }), true);
 const managedGateway = {
   gateway_id: release.deviceId,
   deployment_profile: release.profile,
