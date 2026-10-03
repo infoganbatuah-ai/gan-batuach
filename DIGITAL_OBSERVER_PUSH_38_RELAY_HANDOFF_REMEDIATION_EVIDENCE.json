@@ -1,7 +1,7 @@
 {
   "contract": "digital-observer-push38-relay-handoff-remediation-evidence-v1",
-  "recorded_at": "2026-10-03T20:00:00Z",
-  "status": "SIGNED_0_2_74_PENDING_PACKAGE_SPECIFIC_R2_EXPORT_APPROVAL",
+  "recorded_at": "2026-10-03T23:05:00Z",
+  "status": "FAILED_0_2_74_PRE_SOAK_0_2_75_SUCCESSOR_CI_IN_PROGRESS",
   "branch": "codex/push-38t-qualification",
   "source_parent_sha": "c18c087b65e07a67fb341d2c97a68c7e90d18843",
   "failed_pre_soak": {
@@ -99,6 +99,37 @@
     "live_trust_verification": "PASS",
     "exact_device_count": 1,
     "cohort_percent": 0,
+    "r2_uploaded": true,
+    "runtime_activated": true,
+    "canary": "PASS_15_MINUTES",
+    "pre_soak": "FAIL_ONE_SOURCE_DEGRADED_CHECKPOINT",
+    "pre_soak_run_id": "push38-gateway-0.2.74-pre-soak-20261003T215117Z",
+    "pre_soak_elapsed_ms": 3600018,
+    "pre_soak_checkpoints": 60,
+    "pre_soak_result_sha256": "9f0bc70bc1bc6a9ed2c17fdf2332a660c56483a811f2aaf696749485ad667cba",
+    "pre_soak_checkpoints_sha256": "8bd8693aec97e25dd961876a1012b4825dd99ec278c7e10da6eee93ee9baa614",
+    "failed_checkpoint": 30,
+    "failed_checkpoint_progressing": 2,
+    "failed_checkpoint_expected_available": 9,
+    "failed_checkpoint_live_relay_processes": 9,
+    "failed_checkpoint_active_relays": 2,
+    "session_sweep_promotions_with_zero_output_advances": 9,
+    "output_rescue_promotions_with_five_output_advances": 2,
+    "next_checkpoint_recovery_starts": 7,
+    "failure_class": "SESSION_SWEEP_PROMOTED_WITHOUT_SUSTAINED_MEDIA"
+  },
+  "gateway_0_2_75": {
+    "release_id": "qa-p38-health-gateway-session-sweep-confirmation-20d96603a933",
+    "version": "0.2.75-p38-health",
+    "source_sha": "0a41a628a79b6a9ef3f43b031bf802371f9913ed",
+    "release_preparation_sha": "5cea1599db2a868ec813661d4ee58ea4a09a19f9",
+    "artifact_sha256": "20d96603a9334ef85adb8e134fc81fce753b8bf5d76d15534666ce64b8372f80",
+    "artifact_size": 135864532,
+    "rollback_release_id": "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
+    "rollback_version": "0.2.74-p38-health",
+    "focused_qa": "PASS_54_OF_54_PLUS_RELEASE_CONTRACT",
+    "ci": "IN_PROGRESS",
+    "aws_signature": "NOT_ISSUED",
     "r2_uploaded": false,
     "runtime_activated": false
   },
@@ -133,18 +164,18 @@
     "migration_health": "PASS",
     "release_contract": "PASS",
     "dependency_audit_high_critical": 0,
-    "focused_relay_tests": "PASS_29_OF_29_PLUS_RELEASE_REGRESSIONS",
+    "focused_relay_tests": "PASS_54_OF_54_PLUS_RELEASE_REGRESSIONS",
     "braces_cve_backport": "PASS"
   },
   "live_state": {
     "runtime_mutated_by_shadow": false,
-    "gateway_current_version": "0.2.73-p38-health",
-    "gateway_known_good_version": "0.2.73-p38-health",
-    "gateway_pending_successor": "0.2.74-p38-health",
+    "gateway_current_version": "0.2.74-p38-health",
+    "gateway_known_good_version": "0.2.74-p38-health",
+    "gateway_pending_successor": "0.2.75-p38-health",
     "connector_version": "0.2.26-p38-health",
     "v8_started": false,
     "v8_failed_attempt_preserved": true,
     "push38_done": false
   },
-  "next_gate": "PACKAGE_SPECIFIC_R2_EXPORT_APPROVAL_THEN_ROUND_TRIP_REGISTER_ACTIVATE_CANARY_PRE_SOAK_V8_REMOTE_PHONE"
+  "next_gate": "CI_THEN_COST_APPROVAL_SIGN_ROUND_TRIP_REGISTER_ACTIVATE_CANARY_PRE_SOAK_V8_REMOTE_PHONE"
 }

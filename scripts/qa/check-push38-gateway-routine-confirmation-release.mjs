@@ -291,9 +291,9 @@ try {
   assert.match(publisher, /observer-push38-gateway-routine-confirmation-r2-publication-v1/);
   assert.match(activation, /const proactiveSuccessor = playbackSweep \|\| proactiveExclusive/);
   assert.match(activation, /if \(playbackSweep\) \{/);
-  assert.match(activation, /P38_GATEWAY_PLAYBACK_SWEEP_FAILED_V8_PROOF_INVALID/);
-  assert.match(activation, /failed-v8-evidence/);
-  assert.match(activation, /failed-v8-checkpoints/);
+  assert.match(activation, /P38_GATEWAY_PLAYBACK_SWEEP_FAILED_PRE_SOAK_PROOF_INVALID/);
+  assert.match(activation, /failed-pre-soak-evidence/);
+  assert.match(activation, /failed-pre-soak-checkpoints/);
   assert.match(activation,
     /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive\)/);
   assert.match(activation, /P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID/);

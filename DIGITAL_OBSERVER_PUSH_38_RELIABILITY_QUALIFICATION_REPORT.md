@@ -4,7 +4,41 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.74 SIGNED AND VALIDATED; PACKAGE-SPECIFIC R2 EXPORT APPROVAL PENDING; V8 MUST RESTART FROM ZERO`
+`NOT DONE — 0.2.74 PRE-SOAK FAILED; 0.2.75 SUSTAINED SESSION-SWEEP SUCCESSOR PREPARED; V8 NOT STARTED`
+
+## 2026-10-04 0.2.74 PRE-SOAK FAILURE AND 0.2.75 SUCCESSOR
+
+Gateway `0.2.74-p38-health` was published to the existing private R2 bucket,
+round-trip verified, AWS-signed for the exact Home Gateway, accepted by the
+installed public trust, and promoted live through managed OTA. Its new
+15-minute canary passed. Its new 60-minute pre-soak did not: one checkpoint
+reported only 2/9 source-available DVR channels while the component process,
+recorder session, network and host remained live. The failed run is preserved
+under restricted run ID `push38-gateway-0.2.74-pre-soak-20261003T215117Z` with
+60 checkpoints over 3,600,018 ms, one source-degraded checkpoint, zero
+component-unavailable checkpoints, zero process/supervisor restarts, zero
+socket/session/authentication failures, 252 relay starts, zero stale-input
+events, and zero playback or AI failures. It is not qualifying pre-soak or V8
+duration.
+
+The causal sequence is explicit in checkpoints 29–31. All nine exclusive
+session-sweep replacements had been promoted after their first playlist write
+with `last_handoff_output_advances = 0`. Seven of those owners stopped together;
+the two channels that entered the existing output-rescue path proved five
+advances and remained healthy. Seven clean source ends and recovery starts then
+restored 9/9. This narrows the defect to weak session-sweep promotion proof, not
+authentication, the shared login, socket failure, process crash, or CPU
+saturation.
+
+Source commit `0a41a628a79b6a9ef3f43b031bf802371f9913ed` applies the existing
+four-distinct-advances over six seconds confirmation contract to ordinary and
+exclusive session sweeps. Focused handoff/common-cause QA passes 54/54. The
+immutable successor package is `0.2.75-p38-health`, 135,864,532 bytes, SHA-256
+`20d96603a9334ef85adb8e134fc81fce753b8bf5d76d15534666ce64b8372f80`,
+with signed `0.2.74` as the exact rollback predecessor. Release preparation is
+preserved at commit `5cea1599db2a868ec813661d4ee58ea4a09a19f9`; exact-commit CI is in
+progress. No 0.2.75 signature, R2 upload, HOME_QA activation, or live runtime
+write is claimed at this checkpoint. V8 remains not started.
 
 ## 2026-10-03 V8 HARDWARE-OUTPUT STALL AND 0.2.74 SUCCESSOR
 
@@ -29,13 +63,10 @@ Protected GitHub run `37149507888` issued the exact-device AWS KMS-signed
 manifest; the live installed trust registry accepted it and the local archive
 matched its signed size/hash.
 
-No live update followed. The external-action permission layer requires a
-package-specific owner approval before uploading this archive to the existing
-private R2 bucket, despite the existing general PUSH 38 and bounded-cost
-authorization. After that approval, the remaining sequence is: private R2
-round-trip, HOME_QA registration/preflight, managed OTA update with rollback to
-signed `0.2.73`, new canary, new pre-soak, V8 from zero, and the separate remote
-phone proof. `main` and Production remain unchanged.
+The archive was subsequently approved, uploaded to private R2, round-trip
+verified, exact-device activated, and promoted through managed OTA. A fresh
+canary passed; the later failed pre-soak and its 0.2.75 successor are recorded
+in the newer section above. `main` and Production remain unchanged.
 
 ## 2026-10-03 RELAY/SESSION REMEDIATION UPDATE
 
@@ -159,8 +190,8 @@ The capacity curve identifies local SQLite coordination as the current saturatio
 
 ## OPEN GATES
 
-- Obtain the package-specific approval required by the external-action layer and publish/round-trip the already signed 0.2.74 archive to private R2.
-- Register and activate the exact-device HOME_QA successor, retaining signed 0.2.73 as automatic rollback.
+- Complete exact-commit CI, protected signing and approved private-R2 publication for 0.2.75.
+- Register and activate the exact-device HOME_QA successor, retaining signed 0.2.74 as automatic rollback.
 - Run a new 15-minute canary and new 60-minute pre-soak, then start V8 from zero for at least 24 actual hours.
 - Complete the bounded HTTPS remote-phone DVR and Tapo playback proof with no client-side Edge installation.
 - Evaluate final memory/log/relay/session/recovery, AI, learning, integrity, isolation and Product truthfulness rows against the frozen V8 matrix.
