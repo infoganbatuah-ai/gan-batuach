@@ -41,7 +41,7 @@ try {
     /--continuous-handoff/);
   const activation = readFileSync("scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
   assert.match(activation,
-    /boundedWarmupFailure[\s\S]*warmHandoffFailures <= 1[\s\S]*staleOnRequest === 0[\s\S]*inputSocketError === 0/,
+    /boundedFailureResult = classifyBoundedOutputRescueRejection[\s\S]*boundedFailureProof = !boundedWarmupFailure \|\| boundedFailureResult\.pass[\s\S]*staleOnRequest === 0[\s\S]*inputSocketError === 0/,
   "a contained warmup retry may pass only when media, request and socket continuity remain intact");
   assert.match(activation,
     /renewals\.every\(renewal => renewal\.status === 200[\s\S]*renewal\.segment_bytes > 0/,

@@ -424,9 +424,19 @@ test("consumer demand retains one healthy private DVR response owner", () => {
     inputFailed: true }), false);
   assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...evidence,
     sourceKind: "rtsp" }), false);
+  const sweepBoundary = { ...evidence, belongsToCurrentSession: false,
+    sessionSweepPending: true };
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand(sweepBoundary), true,
+    "consumer demand must retain the prior progressing owner while the canonical session sweep takes ownership");
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...sweepBoundary,
+    sessionSweepPending: false }), false,
+  "an arbitrary stale epoch cannot bypass normal bounded recovery");
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...sweepBoundary,
+    nativeInputEnded: true }), false,
+  "a genuinely ended prior response cannot masquerade as sweep continuity");
   assert.match(gateway,
-    /shouldRetainPrivateNvrOwnerOnDemand\(\{[\s\S]*privateNvrHeartbeat\.status\(\)\.consecutive_failures[\s\S]*\}\)\) return existing;/,
-  "all demand must retain the canonical owner until a boundary or corroborated heartbeat loss");
+    /sessionSweepPending[\s\S]*shouldRetainPrivateNvrOwnerOnDemand\(\{[\s\S]*sessionSweepPending[\s\S]*privateNvrHeartbeat\.status\(\)\.consecutive_failures[\s\S]*\}\)\) return existing;/,
+  "all demand must retain the canonical or pending-sweep owner until a boundary or corroborated heartbeat loss");
 });
 
 test("a progressing warm candidate keeps its owner until bounded confirmation", () => {

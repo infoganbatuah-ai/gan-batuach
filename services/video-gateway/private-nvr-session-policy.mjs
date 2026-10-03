@@ -371,10 +371,12 @@ export function shouldPrimePrivateNvrSessionForResponseRetirement({
 // releases this guard and reuses the normal bounded recovery path.
 export function shouldRetainPrivateNvrOwnerOnDemand({ sourceKind,
   ownerRunning = false, belongsToCurrentSession = false,
+  sessionSweepPending = false,
   nativeInputEnded = false, inputFailed = false,
   heartbeatConsecutiveFailures = 0 } = {}) {
   return Boolean(sourceKind === "private_nvr_http_mp4" && ownerRunning
-    && belongsToCurrentSession && !nativeInputEnded && !inputFailed
+    && (belongsToCurrentSession || sessionSweepPending)
+    && !nativeInputEnded && !inputFailed
     && Number(heartbeatConsecutiveFailures || 0)
       < PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
 }

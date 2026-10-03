@@ -1611,10 +1611,28 @@ async function ensureRelay(streamId) {
     return relayIsRunning(available) && relayBelongsToCurrentSession(available, source)
       ? available : existing;
   }
+  const recorderSession = source?.sessionKey
+    ? privateNvrSessions.get(source.sessionKey) : null;
+  // A playback/AI request can arrive after proactive login renewal has
+  // advanced the session epoch but before the handoff scheduler has installed
+  // its warmup marker. The prior response is still the single progressing
+  // media owner in that bounded interval. Retain it for the request and let
+  // the canonical SESSION_SWEEP_EXCLUSIVE lane replace it; ordinary recovery
+  // here would race that lane, destroy continuity, and misclassify a healthy
+  // renewal as STALE_ON_REQUEST.
+  const sessionSweepPending = Boolean(recorderSession?.requiresExclusiveMediaHandoff
+    && existing?.sessionKey === source?.sessionKey
+    && shouldPrioritizePrivateNvrSessionHandoff({
+      relayEpoch: existing?.sessionEpoch,
+      currentEpoch: recorderSession?.epoch,
+      relayProgressing: relayIsProgressing(existing),
+      preserveRelayEpochsThrough: recorderSession?.preserveRelayEpochsThrough
+    }));
   if (shouldRetainPrivateNvrOwnerOnDemand({
     sourceKind: source?.kind,
     ownerRunning: relayIsRunning(existing),
     belongsToCurrentSession: relayBelongsToCurrentSession(existing, source),
+    sessionSweepPending,
     nativeInputEnded: existing?.nativeInputEnded === true,
     inputFailed: existing?.inputFailed === true,
     heartbeatConsecutiveFailures:
@@ -1632,8 +1650,6 @@ async function ensureRelay(streamId) {
   // same bounded, capacity-checked output-rescue path one request-triggered
   // chance while retaining the old owner as an identity/HLS fallback.
   const outputAt = relayPlaylistMtime(existing);
-  const recorderSession = source?.sessionKey
-    ? privateNvrSessions.get(source.sessionKey) : null;
   const sessionRenewalPending =
     shouldDeferPrivateNvrOutputRescueForSessionRenewal({
       refreshPending: Boolean(recorderSession?.refreshPromise),
