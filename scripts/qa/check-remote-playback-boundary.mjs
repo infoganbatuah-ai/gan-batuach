@@ -34,7 +34,8 @@ const origin = createServer((request, response) => {
 origin.listen(0, "127.0.0.1");
 await once(origin, "listening");
 const upstream = `http://127.0.0.1:${origin.address().port}`;
-const ingress = createPlaybackIngress({ origin: upstream });
+const ingress = createPlaybackIngress({ origin: upstream,
+  rateLimits: { claimPerMinute: 1, mediaPerMinute: 2, maxClients: 2 } });
 ingress.listen(0, "127.0.0.1");
 await once(ingress, "listening");
 try {
@@ -42,9 +43,15 @@ try {
   const claim = await fetch(`${base}/playback/claim`, { method: "POST", headers: { origin: "https://ganbatuach.com", "content-type": "application/json" }, body: '{"grant":"test"}' });
   assert.equal(claim.status, 200);
   assert.equal(claim.headers.get("cache-control"), "private, no-store");
+  const repeatedClaim = await fetch(`${base}/playback/claim`, { method: "POST",
+    headers: { origin: "https://ganbatuach.com", "content-type": "application/json" }, body: '{"grant":"test"}' });
+  assert.equal(repeatedClaim.status, 429);
+  assert.equal(repeatedClaim.headers.get("retry-after"), "60");
   const media = await fetch(`${base}/hls/stream/segment-1.ts?token=${token}`);
   assert.equal(media.status, 200);
   assert.equal(await media.text(), "segment");
+  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?token=${token}`)).status, 200);
+  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?token=${token}`)).status, 429);
   assert.equal((await fetch(`${base}/admin`)).status, 404);
   assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?token=${token}&x=1`)).status, 404);
 } finally {

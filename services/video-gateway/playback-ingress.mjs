@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { isIP } from "node:net";
 import { Readable } from "node:stream";
 
 // This is the only service a future site-edge HTTPS tunnel may reach.
@@ -11,14 +12,55 @@ export function playbackIngressAllows(method, pathname, search = "") {
   return [...params.keys()].length === 1 && /^[A-Za-z0-9_-]{32}$/.test(params.get("token") || "");
 }
 
-export function createPlaybackIngress({ origin = "http://127.0.0.1:18082" } = {}) {
+function loopbackAddress(value) {
+  return ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(String(value || "").toLowerCase());
+}
+
+function playbackClientAddress(request) {
+  const direct = String(request.socket.remoteAddress || "unknown");
+  if (!loopbackAddress(direct)) return direct;
+  const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return isIP(forwarded) ? forwarded : direct;
+}
+
+export function createPlaybackIngress({ origin = "http://127.0.0.1:18082", now = Date.now,
+  rateLimits = {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password
     || target.pathname !== "/" || target.search || target.hash) throw new Error("PLAYBACK_INGRESS_ORIGIN_NOT_LOOPBACK");
+  const limits = {
+    claim: Number(rateLimits.claimPerMinute ?? 30),
+    media: Number(rateLimits.mediaPerMinute ?? 1200),
+    clients: Number(rateLimits.maxClients ?? 2048)
+  };
+  if (![limits.claim, limits.media, limits.clients].every(Number.isInteger)
+    || limits.claim < 1 || limits.media < 1 || limits.clients < 1) throw new Error("PLAYBACK_INGRESS_RATE_LIMIT_INVALID");
+  const windows = new Map();
+  function rateAllowed(request, pathname) {
+    const observedAt = now();
+    const kind = pathname === "/playback/claim" ? "claim" : "media";
+    const key = `${kind}:${playbackClientAddress(request)}`;
+    let current = windows.get(key);
+    if (!current || current.expiresAt <= observedAt) {
+      if (!current && windows.size >= limits.clients * 2) {
+        for (const [candidate, window] of windows)
+          if (window.expiresAt <= observedAt) windows.delete(candidate);
+        if (windows.size >= limits.clients * 2) return false;
+      }
+      current = { count: 0, expiresAt: observedAt + 60_000 };
+      windows.set(key, current);
+    }
+    current.count += 1;
+    return current.count <= limits[kind];
+  }
   return createServer(async (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
     if (!playbackIngressAllows(request.method, url.pathname, url.search)) {
       response.writeHead(404, { "cache-control": "no-store" }).end();
+      return;
+    }
+    if (!rateAllowed(request, url.pathname)) {
+      response.writeHead(429, { "cache-control": "no-store", "retry-after": "60" }).end();
       return;
     }
     try {
