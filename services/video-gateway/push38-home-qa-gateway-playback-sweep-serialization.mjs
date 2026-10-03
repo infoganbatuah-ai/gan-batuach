@@ -2,31 +2,31 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// The signed 0.2.73 V8 run isolated a hardware-render stall: the DVR input,
-// shared session and Gateway process remained live while one VideoToolbox HLS
-// output disappeared for one checkpoint. This successor retains the proven
-// single-owner/session-sweep path and adds the exact hardware-output rescue and
-// per-service HLS namespace shipped by the pinned candidate. Signed 0.2.73 is
-// the exact live activation and rollback predecessor; older playback-sweep
-// releases remain historical and ineligible.
+// The signed 0.2.74 pre-soak exposed one exact ownership gap: session-sweep
+// replacements were promoted after the first playlist write with zero later
+// output advances. Seven such owners ended together; two output-rescue owners
+// that had proved five advances remained healthy. This successor applies the
+// already-qualified four-advance/six-second promotion proof to both ordinary
+// and exclusive session sweeps. Signed 0.2.74 is the exact live rollback
+// predecessor; all older playback-sweep releases remain historical/ineligible.
 export const PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION = Object.freeze({
-  role: "GATEWAY_HARDWARE_OUTPUT_STALL_RESCUE",
+  role: "GATEWAY_SESSION_SWEEP_SUSTAINED_PROMOTION",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
-  version: "0.2.74-p38-health",
-  buildSha: "d6403447eded40e341f01b2067ccacf8d564a657",
-  digest: "f43358023c15d975003fa86a41cdd53ced8f2f70294f65ff4b9ddb98f01e06b4",
-  size: 135864508,
+  releaseId: "qa-p38-health-gateway-session-sweep-confirmation-20d96603a933",
+  version: "0.2.75-p38-health",
+  buildSha: "0a41a628a79b6a9ef3f43b031bf802371f9913ed",
+  digest: "20d96603a9334ef85adb8e134fc81fce753b8bf5d76d15534666ce64b8372f80",
+  size: 135864532,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-unique-health-45d09d249eb2",
-  rollbackVersion: "0.2.73-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-unique-health-45d09d249eb2",
-  supersedesVersion: "0.2.73-p38-health",
-  failedV8ReleaseId: "qa-p38-health-gateway-unique-health-45d09d249eb2",
-  failedV8Version: "0.2.73-p38-health",
-  failedV8BuildSha: "f9fd0266fb2a3112d0f2096e868973893a657411",
-  failedV8ResultSha256: "3ace610558222f06c694defbeb316a64f262a9c5f5ceb31db185b968a7bc9fc9",
-  failedV8CheckpointsSha256: "80c5bba8ab1f22790656735ca6b2168352f3e617d12c8e99e18960f965b6afbc",
+  rollbackReleaseId: "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
+  rollbackVersion: "0.2.74-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
+  supersedesVersion: "0.2.74-p38-health",
+  failedPreSoakReleaseId: "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
+  failedPreSoakVersion: "0.2.74-p38-health",
+  failedPreSoakBuildSha: "d6403447eded40e341f01b2067ccacf8d564a657",
+  failedPreSoakResultSha256: "9f0bc70bc1bc6a9ed2c17fdf2332a660c56483a811f2aaf696749485ad667cba",
+  failedPreSoakCheckpointsSha256: "8bd8693aec97e25dd961876a1012b4825dd99ec278c7e10da6eee93ee9baa614",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });

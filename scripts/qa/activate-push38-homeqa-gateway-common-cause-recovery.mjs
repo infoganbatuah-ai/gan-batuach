@@ -205,7 +205,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.74-build-20261003T193701Z/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.75-build-20261003T225803Z/gateway-runtime.tar.gz"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
   : sessionRenewal
@@ -266,7 +266,7 @@ const artifact = playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.74-build-20261003T193701Z/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.75-build-20261003T225803Z/r2-publication.json"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
   : sessionRenewal
@@ -331,13 +331,11 @@ const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
 const planSha = option("plan-sha256");
 const shadowEvidencePath = option("shadow-evidence") ? resolve(option("shadow-evidence")) : "";
-const failedV8EvidencePath = option("failed-v8-evidence")
-  ? resolve(option("failed-v8-evidence")) : "";
-const failedV8CheckpointsPath = option("failed-v8-checkpoints")
-  ? resolve(option("failed-v8-checkpoints")) : "";
 const failedCanaryEvidencePath = option("failed-canary-evidence") ? resolve(option("failed-canary-evidence")) : "";
 const failedPreSoakEvidencePath = option("failed-pre-soak-evidence")
   ? resolve(option("failed-pre-soak-evidence")) : "";
+const failedPreSoakCheckpointsPath = option("failed-pre-soak-checkpoints")
+  ? resolve(option("failed-pre-soak-checkpoints")) : "";
 const warmHandoffEvidencePath =
   "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-dvr-warm-handoff-shadow-20260924T003032Z.json";
 if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
@@ -737,7 +735,7 @@ const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewayS
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
 let shadowEvidence = null, warmHandoffEvidence = null;
-let failedV8Evidence = null;
+let failedPlaybackSweepEvidence = null;
 let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 if (sessionSweep) {
@@ -927,48 +925,55 @@ if (deadlineBudget) {
     historical_result_label_bug_corrected: true };
 }
 if (playbackSweep) {
-  const resultBytes = protectedFile(failedV8EvidencePath);
-  const checkpointBytes = protectedFile(failedV8CheckpointsPath);
+  const resultBytes = protectedFile(failedPreSoakEvidencePath);
+  const checkpointBytes = protectedFile(failedPreSoakCheckpointsPath);
   const result = JSON.parse(resultBytes);
   const checkpoints = checkpointBytes.toString("utf8").trim().split("\n").map(line => JSON.parse(line));
-  const checkpoint46 = checkpoints.find(point => point.sequence === 46);
-  const checkpoint47 = checkpoints.find(point => point.sequence === 47);
-  const checkpoint48 = checkpoints.find(point => point.sequence === 48);
-  const channel3 = point => point?.dvr?.inputs?.find(input => input.channel === 3);
-  if (sha(resultBytes) !== item.failedV8ResultSha256 ||
-    sha(checkpointBytes) !== item.failedV8CheckpointsSha256 ||
+  const checkpoint29 = checkpoints.find(point => point.sequence === 29);
+  const checkpoint30 = checkpoints.find(point => point.sequence === 30);
+  const checkpoint31 = checkpoints.find(point => point.sequence === 31);
+  const sessionSweepAdvances = point => (point?.dvr?.relay_diagnostics || [])
+    .filter(relay => relay.last_handoff_mode === "SESSION_SWEEP_EXCLUSIVE")
+    .map(relay => relay.last_handoff_output_advances);
+  if (sha(resultBytes) !== item.failedPreSoakResultSha256 ||
+    sha(checkpointBytes) !== item.failedPreSoakCheckpointsSha256 ||
     result.contract !== "observer-reliability-qualification-v1" ||
-    result.qualification_stage !== "V8" || result.status !== "NOT_DONE" ||
-    result.checkpoints !== 55 || result.elapsed_ms < 45 * 60_000 ||
+    result.qualification_stage !== "PRE_SOAK" || result.status !== "NOT_DONE" ||
+    result.checkpoints !== 60 || result.elapsed_ms < 60 * 60_000 ||
     result.dvr_source_available !== 9 ||
     JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([8]) ||
-    result.release?.gateway?.software_version !== item.failedV8Version ||
-    result.release?.gateway?.build_sha !== item.failedV8BuildSha ||
-    result.release?.gateway?.known_good_version !== item.failedV8Version ||
+    result.release?.gateway?.software_version !== item.failedPreSoakVersion ||
+    result.release?.gateway?.build_sha !== item.failedPreSoakBuildSha ||
+    result.release?.gateway?.known_good_version !== item.failedPreSoakVersion ||
     result.gateway?.source_degraded_checkpoints !== 1 ||
-    result.gateway?.unavailable_checkpoints !== 0 || result.gateway?.relay_start_delta !== 234 ||
+    result.gateway?.unavailable_checkpoints !== 0 || result.gateway?.relay_start_delta !== 252 ||
     result.gateway?.stale_input_delta !== 0 || result.gateway?.runtime_restarts !== 0 ||
     result.gateway?.supervisor_restarts !== 0 || result.gateway?.socket_error_delta !== 0 ||
     result.gateway?.recorder_session_failure_delta !== 0 ||
     result.gateway?.recorder_auth_rejection_delta !== 0 ||
     result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
     JSON.stringify(result.gate_failures) !== JSON.stringify([
-      "SOAK_EVIDENCE_INCOMPLETE", "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) ||
-    result.termination?.kind !== "EXTERNAL_SIGNAL" || result.termination?.signal !== "SIGTERM" ||
-    checkpoints.length !== 55 || checkpoint46?.dvr?.classification !== "PASS" ||
-    checkpoint46?.dvr?.available !== 9 || channel3(checkpoint46)?.progressing !== true ||
-    channel3(checkpoint46)?.native_input_ended !== false ||
-    channel3(checkpoint46)?.encoder !== "videotoolbox" ||
-    checkpoint47?.dvr?.classification !== "PRODUCT_FAILURE" ||
-    checkpoint47?.dvr?.progressing !== 8 || checkpoint47?.dvr?.available !== 8 ||
-    checkpoint47?.dvr?.stalled !== 1 || channel3(checkpoint47) !== undefined ||
-    checkpoint48?.dvr?.classification !== "PASS" || checkpoint48?.dvr?.available !== 9 ||
-    channel3(checkpoint48)?.progressing !== true || channel3(checkpoint48)?.encoder !== "videotoolbox")
-    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_V8_PROOF_INVALID");
-  failedV8Evidence = { result_sha256: sha(resultBytes), checkpoints_sha256: sha(checkpointBytes),
+      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) || result.termination !== null ||
+    checkpoints.length !== 60 || checkpoint29?.dvr?.classification !== "PASS" ||
+    checkpoint29?.dvr?.available !== 9 || checkpoint29?.dvr?.progressing !== 9 ||
+    sessionSweepAdvances(checkpoint29).length !== 9 ||
+    sessionSweepAdvances(checkpoint29).some(advances => advances !== 0) ||
+    checkpoint30?.dvr?.classification !== "PRODUCT_FAILURE" ||
+    checkpoint30?.dvr?.progressing !== 2 || checkpoint30?.dvr?.available !== 2 ||
+    checkpoint30?.dvr?.stalled !== 7 || checkpoint30?.dvr?.relay_processes?.liveRelayProcesses !== 9 ||
+    checkpoint30?.dvr?.relay_processes?.activeRelays !== 2 ||
+    checkpoint30?.dvr?.recorder_session?.failures !== 0 ||
+    checkpoint30?.dvr?.lifecycle?.inputSocketError !== 0 ||
+    checkpoint31?.dvr?.classification !== "PASS" || checkpoint31?.dvr?.available !== 9 ||
+    checkpoint31?.dvr?.progressing !== 9 || checkpoint31?.dvr?.lifecycle?.upstreamEnded !== 7 ||
+    checkpoint31?.dvr?.lifecycle?.startsByReason?.recovery !== 7)
+    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_PRE_SOAK_PROOF_INVALID");
+  failedPlaybackSweepEvidence = { result_sha256: sha(resultBytes),
+    checkpoints_sha256: sha(checkpointBytes),
     checkpoints: result.checkpoints, duration_ms: result.elapsed_ms,
-    release_id: item.failedV8ReleaseId, failed_sequence: checkpoint47.sequence,
-    failed_channel: 3, failure_class: "HARDWARE_OUTPUT_STALL_WITH_FRESH_DVR_SESSION",
+    release_id: item.failedPreSoakReleaseId, failed_sequence: checkpoint30.sequence,
+    affected_channels: 7,
+    failure_class: "SESSION_SWEEP_PROMOTED_WITHOUT_SUSTAINED_MEDIA",
     component_unavailable_checkpoints: result.gateway.unavailable_checkpoints,
     source_degraded_checkpoints: result.gateway.source_degraded_checkpoints,
     playback_failures: result.playback.failures, ai_failures: result.ai.failures,
@@ -1226,7 +1231,7 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (playbackSweep ? "FAILED_V8_HARDWARE_OUTPUT_STALL_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (playbackSweep ? "FAILED_PRE_SOAK_SESSION_SWEEP_PROMOTION_SUCCESSOR_QUALIFIED" :
       proactiveExclusive ? "FAILED_PRE_SOAK_PROACTIVE_EXCLUSIVE_SUCCESSOR_QUALIFIED" :
       sessionRenewal ? "FAILED_PRE_SOAK_SESSION_RENEWAL_SUCCESSOR_QUALIFIED" :
       routineConfirmation ? "FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
@@ -1252,10 +1257,12 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
       "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
-  ...(failedV8Evidence ? { failed_v8_evidence: failedV8Evidence } : {}),
+  ...(failedPlaybackSweepEvidence ? {
+    failed_playback_sweep_evidence: failedPlaybackSweepEvidence } : {}),
   ...(failedCanaryEvidence ? { failed_canary_evidence: failedCanaryEvidence } : {}),
   ...(failedPreSoakEvidence ? { failed_pre_soak_evidence: failedPreSoakEvidence } : {}),
-  ...((failedCanaryEvidence || failedPreSoakEvidence || failedV8Evidence) ? { live_recovery_evidence: {
+  ...((failedCanaryEvidence || failedPreSoakEvidence || failedPlaybackSweepEvidence) ? {
+    live_recovery_evidence: {
     release_id: current.release_id,
     progressing: gatewaySamples.at(-1).progressing,
     connected: gatewaySamples.at(-1).connected,

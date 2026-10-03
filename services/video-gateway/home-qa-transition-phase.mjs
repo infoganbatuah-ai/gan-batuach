@@ -81,7 +81,8 @@ const gatewaySessionRenewalRescue = "qa-p38-health-gateway-renewal-rescue-89071b
 // The playback/session-sweep releases are managed Gateway-only successors.
 // Keep the installed 0.2.69 predecessor and failed 0.2.70/0.2.71/0.2.72 Shadow
 // releases as historical allow-list entries, retain signed 0.2.73 as the exact
-// rollback target, and qualify the 0.2.74 hardware-output rescue. Rollout state,
+// rollback target, retain 0.2.74 as the exact live rollback target, and qualify
+// the 0.2.75 sustained session-sweep promotion proof. Rollout state,
 // signature, exact-device,
 // compatibility and downgrade checks still run independently and keep
 // historical releases paused.
@@ -90,7 +91,8 @@ const gatewayPlaybackSweepRetainedHls = "qa-p38-health-gateway-retained-hls-35df
 const gatewayPlaybackSweepRetainedHlsHealth = "qa-p38-health-gateway-retained-hls-health-1fc0a19c3fd7";
 const gatewayPlaybackSweepBufferedHls = "qa-p38-health-gateway-buffered-hls-266a9625c785";
 const gatewayPlaybackSweepUniqueHealth = "qa-p38-health-gateway-unique-health-45d09d249eb2";
-const gatewayPlaybackSweepSerialization = "qa-p38-health-gateway-hardware-output-rescue-f43358023c15";
+const gatewayHardwareOutputRescue = "qa-p38-health-gateway-hardware-output-rescue-f43358023c15";
+const gatewayPlaybackSweepSerialization = "qa-p38-health-gateway-session-sweep-confirmation-20d96603a933";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -138,6 +140,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayPlaybackSweepRetainedHlsHealth,
       gatewayPlaybackSweepBufferedHls,
       gatewayPlaybackSweepUniqueHealth,
+      gatewayHardwareOutputRescue,
       gatewayPlaybackSweepSerialization].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;

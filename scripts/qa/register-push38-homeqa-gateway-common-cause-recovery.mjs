@@ -146,7 +146,7 @@ const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.s
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? `${restrictedRoot}/push38-gateway-0.2.74-build-20261003T193701Z/gateway-runtime.tar.gz`
+  ? `${restrictedRoot}/push38-gateway-0.2.75-build-20261003T225803Z/gateway-runtime.tar.gz`
   : proactiveExclusive
   ? `${restrictedRoot}/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz`
   : sessionRenewal
@@ -207,7 +207,7 @@ const artifact = playbackSweep
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = playbackSweep
-  ? `${restrictedRoot}/push38-gateway-0.2.74-build-20261003T193701Z/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-0.2.75-build-20261003T225803Z/r2-publication.json`
   : proactiveExclusive
   ? `${restrictedRoot}/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json`
   : sessionRenewal
@@ -307,7 +307,7 @@ const predecessorReleaseId = (playbackSweep || proactiveExclusive || sessionRene
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
 const rolloutReleaseIdsToPause = playbackSweep
-  ? [predecessorReleaseId, item.failedV8ReleaseId, item.rollbackReleaseId]
+  ? [predecessorReleaseId, item.failedPreSoakReleaseId, item.rollbackReleaseId]
   : proactiveExclusive
   ? [predecessorReleaseId, item.failedLiveReleaseId, item.rollbackReleaseId]
   : sessionRenewal
