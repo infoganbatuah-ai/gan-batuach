@@ -205,7 +205,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-health-dedupe-f9fd0266/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.74-build-20261003T193701Z/gateway-runtime.tar.gz"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
   : sessionRenewal
@@ -266,7 +266,7 @@ const artifact = playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-health-dedupe-f9fd0266/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.74-build-20261003T193701Z/r2-publication.json"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
   : sessionRenewal
@@ -331,8 +331,10 @@ const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
 const planSha = option("plan-sha256");
 const shadowEvidencePath = option("shadow-evidence") ? resolve(option("shadow-evidence")) : "";
-const failedShadowEvidencePath = option("failed-shadow-evidence")
-  ? resolve(option("failed-shadow-evidence")) : "";
+const failedV8EvidencePath = option("failed-v8-evidence")
+  ? resolve(option("failed-v8-evidence")) : "";
+const failedV8CheckpointsPath = option("failed-v8-checkpoints")
+  ? resolve(option("failed-v8-checkpoints")) : "";
 const failedCanaryEvidencePath = option("failed-canary-evidence") ? resolve(option("failed-canary-evidence")) : "";
 const failedPreSoakEvidencePath = option("failed-pre-soak-evidence")
   ? resolve(option("failed-pre-soak-evidence")) : "";
@@ -734,7 +736,8 @@ const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || ro
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
-let shadowEvidence = null, warmHandoffEvidence = null, failedShadowEvidence = null;
+let shadowEvidence = null, warmHandoffEvidence = null;
+let failedV8Evidence = null;
 let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 if (sessionSweep) {
@@ -924,79 +927,52 @@ if (deadlineBudget) {
     historical_result_label_bug_corrected: true };
 }
 if (playbackSweep) {
-  const shadowBytes = protectedFile(failedShadowEvidencePath);
-  const failedShadow = JSON.parse(shadowBytes);
-  const failedLifecycle = failedShadow.qualification?.lifecycle_final || {};
-  const availabilityOvercounts = (failedShadow.checkpoints || []).filter(point =>
-    Number(point.shadow?.media?.available || 0) > 1);
-  const overlap = availabilityOvercounts[0];
-  if (sha(shadowBytes) !== "96a9020d5b85b1cd063fb9194d94658024a005841e8ff82b9b5178c145d903cb" ||
-    failedShadow.contract !== "observer-push38-bounded-dvr-shadow-v1" ||
-    failedShadow.result !== "FAIL" || failedShadow.runtime_mutation !== false ||
-    failedShadow.signed_release?.release_id !== item.failedShadowReleaseId ||
-    failedShadow.signed_release?.version !== item.failedShadowVersion ||
-    failedShadow.signed_release?.artifact_sha256 !== item.failedShadowDigest ||
-    failedShadow.signed_release?.signature_verified !== true ||
-    failedShadow.signed_release?.artifact_verified !== true ||
-    failedShadow.duration_ms < 300_000 || failedShadow.checkpoints?.length < 270 ||
-    failedShadow.qualification?.playback_failures !== 0 ||
-    failedShadow.qualification?.hls_continuity?.pass !== true ||
-    failedShadow.qualification?.hls_continuity?.reason !== null ||
-    JSON.stringify(failedShadow.qualification?.failures) !==
-      JSON.stringify(["SHADOW_PROGRESSION", "SESSION_ROTATION"]) ||
-    failedLifecycle.retainedHlsContinuityWindows !== 2 ||
-    failedLifecycle.retainedHlsPlaylistResponses !== 7 ||
-    failedLifecycle.retainedHlsSegmentResponses !== 7 ||
-    availabilityOvercounts.length !== 1 || overlap.shadow?.media?.progressing !== 1 ||
-    overlap.shadow?.media?.renewing !== 1 || overlap.shadow?.media?.available !== 2 ||
-    overlap.shadow?.media?.inputs?.length !== 1 ||
-    overlap.shadow.media.inputs[0]?.progressing !== true ||
-    overlap.shadow.media.inputs[0]?.renewing !== true ||
-    overlap.renewal?.status !== 200 || overlap.renewal?.playlist_status !== 200 ||
-    overlap.renewal?.segment_status !== 200 || !(overlap.renewal?.segment_bytes > 0) ||
-    failedLifecycle.staleInput !== 0 || failedLifecycle.stalePlaylist !== 0 ||
-    failedLifecycle.staleOnRequest !== 0 || failedLifecycle.inputSocketError !== 0)
-    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_SHADOW_PROOF_INVALID");
-  failedShadowEvidence = { sha256: sha(shadowBytes), duration_ms: failedShadow.duration_ms,
-    checkpoints: failedShadow.checkpoints.length,
-    release_id: failedShadow.signed_release.release_id,
-    failures: failedShadow.qualification.failures,
-    hls_continuity: "PASS", playback_failures: 0,
-    retained_hls_windows: failedLifecycle.retainedHlsContinuityWindows,
-    unique_source_health_overcount_reproduced: true };
-  const bytes = protectedFile(failedCanaryEvidencePath);
-  const result = JSON.parse(bytes);
-  const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
-    name.startsWith("dvr-") && camera.qualification_denominator === true && camera.availability < 1);
-  if (sha(bytes) !== "e2f3fc7ec335b375ab99c963bd0e0c81bdb3d919df64437641175e995cc9bdaf" ||
+  const resultBytes = protectedFile(failedV8EvidencePath);
+  const checkpointBytes = protectedFile(failedV8CheckpointsPath);
+  const result = JSON.parse(resultBytes);
+  const checkpoints = checkpointBytes.toString("utf8").trim().split("\n").map(line => JSON.parse(line));
+  const checkpoint46 = checkpoints.find(point => point.sequence === 46);
+  const checkpoint47 = checkpoints.find(point => point.sequence === 47);
+  const checkpoint48 = checkpoints.find(point => point.sequence === 48);
+  const channel3 = point => point?.dvr?.inputs?.find(input => input.channel === 3);
+  if (sha(resultBytes) !== item.failedV8ResultSha256 ||
+    sha(checkpointBytes) !== item.failedV8CheckpointsSha256 ||
     result.contract !== "observer-reliability-qualification-v1" ||
-    result.qualification_stage !== "CANARY" || result.status !== "NOT_DONE" ||
-    result.checkpoints !== 15 || result.elapsed_ms < 15 * 60_000 ||
+    result.qualification_stage !== "V8" || result.status !== "NOT_DONE" ||
+    result.checkpoints !== 55 || result.elapsed_ms < 45 * 60_000 ||
     result.dvr_source_available !== 9 ||
     JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([8]) ||
-    result.gateway?.unavailable_checkpoints !== 0 ||
-    result.gateway?.source_degraded_checkpoints !== 8 ||
-    result.gateway?.relay_start_delta !== 62 || result.gateway?.stale_input_delta !== 0 ||
-    result.gateway?.runtime_restarts !== 0 || result.gateway?.supervisor_restarts !== 0 ||
-    result.gateway?.socket_error_delta !== 0 ||
+    result.release?.gateway?.software_version !== item.failedV8Version ||
+    result.release?.gateway?.build_sha !== item.failedV8BuildSha ||
+    result.release?.gateway?.known_good_version !== item.failedV8Version ||
+    result.gateway?.source_degraded_checkpoints !== 1 ||
+    result.gateway?.unavailable_checkpoints !== 0 || result.gateway?.relay_start_delta !== 234 ||
+    result.gateway?.stale_input_delta !== 0 || result.gateway?.runtime_restarts !== 0 ||
+    result.gateway?.supervisor_restarts !== 0 || result.gateway?.socket_error_delta !== 0 ||
     result.gateway?.recorder_session_failure_delta !== 0 ||
     result.gateway?.recorder_auth_rejection_delta !== 0 ||
     result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
-    result.release?.gateway?.software_version !== item.supersedesVersion ||
-    result.release?.gateway?.build_sha !== "bc6cdbc26fbc55fc3ff0927bb5dba96ea9420727" ||
-    affected.length !== 4)
-    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_CANARY_PROOF_INVALID");
-  failedCanaryEvidence = { sha256: sha(bytes), checkpoints: result.checkpoints,
-    duration_ms: result.elapsed_ms,
-    source_degraded_checkpoints: result.gateway.source_degraded_checkpoints,
+    JSON.stringify(result.gate_failures) !== JSON.stringify([
+      "SOAK_EVIDENCE_INCOMPLETE", "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) ||
+    result.termination?.kind !== "EXTERNAL_SIGNAL" || result.termination?.signal !== "SIGTERM" ||
+    checkpoints.length !== 55 || checkpoint46?.dvr?.classification !== "PASS" ||
+    checkpoint46?.dvr?.available !== 9 || channel3(checkpoint46)?.progressing !== true ||
+    channel3(checkpoint46)?.native_input_ended !== false ||
+    channel3(checkpoint46)?.encoder !== "videotoolbox" ||
+    checkpoint47?.dvr?.classification !== "PRODUCT_FAILURE" ||
+    checkpoint47?.dvr?.progressing !== 8 || checkpoint47?.dvr?.available !== 8 ||
+    checkpoint47?.dvr?.stalled !== 1 || channel3(checkpoint47) !== undefined ||
+    checkpoint48?.dvr?.classification !== "PASS" || checkpoint48?.dvr?.available !== 9 ||
+    channel3(checkpoint48)?.progressing !== true || channel3(checkpoint48)?.encoder !== "videotoolbox")
+    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_V8_PROOF_INVALID");
+  failedV8Evidence = { result_sha256: sha(resultBytes), checkpoints_sha256: sha(checkpointBytes),
+    checkpoints: result.checkpoints, duration_ms: result.elapsed_ms,
+    release_id: item.failedV8ReleaseId, failed_sequence: checkpoint47.sequence,
+    failed_channel: 3, failure_class: "HARDWARE_OUTPUT_STALL_WITH_FRESH_DVR_SESSION",
     component_unavailable_checkpoints: result.gateway.unavailable_checkpoints,
-    affected_channels: affected.map(([name]) => name),
-    relay_start_delta: result.gateway.relay_start_delta,
-    stale_input_delta: result.gateway.stale_input_delta,
-    playback_failures: result.playback.failures,
-    recorder_session_failure_delta: result.gateway.recorder_session_failure_delta,
-    recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
-    socket_error_delta: result.gateway.socket_error_delta, live_recovery_required: true };
+    source_degraded_checkpoints: result.gateway.source_degraded_checkpoints,
+    playback_failures: result.playback.failures, ai_failures: result.ai.failures,
+    live_recovery_required: true };
 }
 if (recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) {
   const bytes = protectedFile(failedPreSoakEvidencePath);
@@ -1250,7 +1226,7 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (playbackSweep ? "FAILED_SIGNED_SHADOW_PLAYBACK_SWEEP_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (playbackSweep ? "FAILED_V8_HARDWARE_OUTPUT_STALL_SUCCESSOR_QUALIFIED" :
       proactiveExclusive ? "FAILED_PRE_SOAK_PROACTIVE_EXCLUSIVE_SUCCESSOR_QUALIFIED" :
       sessionRenewal ? "FAILED_PRE_SOAK_SESSION_RENEWAL_SUCCESSOR_QUALIFIED" :
       routineConfirmation ? "FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
@@ -1276,10 +1252,10 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
       "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
-  ...(failedShadowEvidence ? { failed_shadow_evidence: failedShadowEvidence } : {}),
+  ...(failedV8Evidence ? { failed_v8_evidence: failedV8Evidence } : {}),
   ...(failedCanaryEvidence ? { failed_canary_evidence: failedCanaryEvidence } : {}),
   ...(failedPreSoakEvidence ? { failed_pre_soak_evidence: failedPreSoakEvidence } : {}),
-  ...((failedCanaryEvidence || failedPreSoakEvidence) ? { live_recovery_evidence: {
+  ...((failedCanaryEvidence || failedPreSoakEvidence || failedV8Evidence) ? { live_recovery_evidence: {
     release_id: current.release_id,
     progressing: gatewaySamples.at(-1).progressing,
     connected: gatewaySamples.at(-1).connected,

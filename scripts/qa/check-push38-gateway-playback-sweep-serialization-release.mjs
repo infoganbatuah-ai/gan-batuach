@@ -20,18 +20,21 @@ const built = buildPush38GatewayPlaybackSweepSerializationManifest({
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
   releasedAt: new Date().toISOString()
 }).document;
-assert.equal(built.release_id, "qa-p38-health-gateway-unique-health-45d09d249eb2");
-assert.equal(built.version, "0.2.73-p38-health");
-assert.equal(built.build_sha, "f9fd0266fb2a3112d0f2096e868973893a657411");
+assert.equal(built.release_id, "qa-p38-health-gateway-hardware-output-rescue-f43358023c15");
+assert.equal(built.version, "0.2.74-p38-health");
+assert.equal(built.build_sha, "d6403447eded40e341f01b2067ccacf8d564a657");
 assert.equal(built.artifact_sha256,
-  "45d09d249eb22a1eee6d6a42bfa1e738f9821a8e9040af22cf4433b24bb5ab10");
-assert.equal(built.artifact_size, 135865925);
-assert.equal(built.compatibility.minimum_current_version, "0.2.69-p38-health");
-assert.equal(built.compatibility.maximum_current_version, "0.2.69-p38-health");
+  "f43358023c15d975003fa86a41cdd53ced8f2f70294f65ff4b9ddb98f01e06b4");
+assert.equal(built.artifact_size, 135864508);
+assert.equal(built.compatibility.minimum_current_version, "0.2.73-p38-health");
+assert.equal(built.compatibility.maximum_current_version, "0.2.73-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [release.deviceId]);
-assert.equal(release.failedShadowVersion, "0.2.72-p38-health");
-assert.equal(release.priorFailedShadowVersion, "0.2.71-p38-health");
+assert.equal(release.failedV8Version, "0.2.73-p38-health");
+assert.equal(release.failedV8ResultSha256,
+  "3ace610558222f06c694defbeb316a64f262a9c5f5ceb31db185b968a7bc9fc9");
+assert.equal(release.failedV8CheckpointsSha256,
+  "80c5bba8ab1f22790656735ca6b2168352f3e617d12c8e99e18960f965b6afbc");
 const retainedHlsCheckpoint = {
   shadow: { media: { progressing: 0, renewing: 1, available: 1, stalled: 0,
     inputs: [{ encoder: null, renewing: true, playback_continuity: true,
@@ -69,14 +72,14 @@ for (const [path, required] of [
   ["scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", [
     "--gateway-playback-sweep",
     "gateway_remediation_playback_sweep_serialization.json",
-    "failedLiveReleaseId"
+    "failedV8ReleaseId"
   ]],
   ["scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", [
     "--gateway-playback-sweep",
     "gateway_remediation_playback_sweep_serialization.json",
-    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_CANARY_PROOF_INVALID",
-    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_SHADOW_PROOF_INVALID",
-    "failed-shadow-evidence"
+    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_V8_PROOF_INVALID",
+    "failed-v8-evidence",
+    "failed-v8-checkpoints"
   ]]
 ]) {
   const source = readFileSync(path, "utf8");
