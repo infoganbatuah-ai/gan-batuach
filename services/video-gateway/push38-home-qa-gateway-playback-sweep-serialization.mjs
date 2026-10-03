@@ -2,28 +2,28 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// The signed 0.2.69 live canary proved that serialized session sweeps avoid
-// recorder-session and socket failures, but a sweep still stopped the prior
-// relay before replacement media was ready. This successor keeps that prior
-// public HLS generation available for the already-bounded stale window while
-// canonical ownership and recovery continue independently. It never promotes
-// retained media to relay ownership or reports retained media as progression.
-// Signed 0.2.69 remains the exact activation and rollback predecessor.
+// The signed 0.2.70 Shadow proved that the retained public HLS generation stays
+// readable during an exclusive session sweep, but also exposed a truthful-
+// health omission: retained-only stream IDs were absent from the health
+// projection for one checkpoint. This successor includes that bounded media in
+// availability without promoting it to relay ownership or reporting it as
+// frame progression. Signed 0.2.69 remains the exact live activation and
+// rollback predecessor; failed 0.2.70 stays historical and ineligible.
 export const PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION = Object.freeze({
-  role: "GATEWAY_SESSION_SWEEP_RETAINED_HLS_CONTINUITY",
+  role: "GATEWAY_SESSION_SWEEP_RETAINED_HLS_HEALTH_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-retained-hls-35df17e86316",
-  version: "0.2.70-p38-health",
-  buildSha: "13b5ae4cce4ea38998efeb99fa24bd9a238c496c",
-  digest: "35df17e8631613804057e23f64801afd7b9cc1af736302744c665c9001ff68d3",
-  size: 135866409,
+  releaseId: "qa-p38-health-gateway-retained-hls-health-1fc0a19c3fd7",
+  version: "0.2.71-p38-health",
+  buildSha: "b4579b44d4f68a71a063b7e3ee746db59e032d53",
+  digest: "1fc0a19c3fd7aa5cc84d1b9c44d7ec0d3f3c6c1488ccc5f7af8c2d671460e7a0",
+  size: 135866365,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
   rollbackVersion: "0.2.69-p38-health",
   supersedesReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
   supersedesVersion: "0.2.69-p38-health",
-  failedShadowReleaseId: "qa-p38-health-gateway-proactive-exclusive-322642bf9294",
-  failedShadowVersion: "0.2.68-p38-health",
+  failedShadowReleaseId: "qa-p38-health-gateway-retained-hls-35df17e86316",
+  failedShadowVersion: "0.2.70-p38-health",
   failedLiveReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
   failedLiveVersion: "0.2.69-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",

@@ -79,11 +79,13 @@ const gatewayRoutineConfirmation = "qa-p38-health-gateway-owner-recovery-eba5eeb
 // allow-list entry does not broaden eligibility or replace signature checks.
 const gatewaySessionRenewalRescue = "qa-p38-health-gateway-renewal-rescue-89071bf49a45";
 // The playback/session-sweep releases are managed Gateway-only successors.
-// Keep both the installed 0.2.69 predecessor and its 0.2.70 retained-HLS
-// successor explicitly allow-listed; signature, exact-device rollout,
-// compatibility and downgrade checks still run independently.
+// Keep the installed 0.2.69 predecessor and the failed 0.2.70 Shadow release as
+// historical allow-list entries while the 0.2.71 health-continuity successor
+// is qualified. Rollout state, signature, exact-device, compatibility and
+// downgrade checks still run independently and keep historical releases paused.
 const gatewayPlaybackSweepSerializationLegacy = "qa-p38-health-gateway-playback-sweep-a3d66994bb01";
-const gatewayPlaybackSweepSerialization = "qa-p38-health-gateway-retained-hls-35df17e86316";
+const gatewayPlaybackSweepRetainedHls = "qa-p38-health-gateway-retained-hls-35df17e86316";
+const gatewayPlaybackSweepSerialization = "qa-p38-health-gateway-retained-hls-health-1fc0a19c3fd7";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -127,6 +129,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayRecoveryContinuity, gatewayHealthSerialization,
       gatewayRoutineConfirmation, gatewaySessionRenewalRescue,
       gatewayPlaybackSweepSerializationLegacy,
+      gatewayPlaybackSweepRetainedHls,
       gatewayPlaybackSweepSerialization].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;

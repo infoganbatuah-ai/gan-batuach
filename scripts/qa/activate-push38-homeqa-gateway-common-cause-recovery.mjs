@@ -205,7 +205,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-retained-hls-13b5ae4c/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-health-continuity-b4579b44/gateway-runtime.tar.gz"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
   : sessionRenewal
@@ -266,7 +266,7 @@ const artifact = playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-retained-hls-13b5ae4c/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-health-continuity-b4579b44/r2-publication.json"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
   : sessionRenewal
@@ -331,6 +331,8 @@ const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
 const planSha = option("plan-sha256");
 const shadowEvidencePath = option("shadow-evidence") ? resolve(option("shadow-evidence")) : "";
+const failedShadowEvidencePath = option("failed-shadow-evidence")
+  ? resolve(option("failed-shadow-evidence")) : "";
 const failedCanaryEvidencePath = option("failed-canary-evidence") ? resolve(option("failed-canary-evidence")) : "";
 const failedPreSoakEvidencePath = option("failed-pre-soak-evidence")
   ? resolve(option("failed-pre-soak-evidence")) : "";
@@ -427,7 +429,10 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   const streamProof = checkpoints.length >= (warmHandoff ? 20 : 4) && checkpoints.every(point =>
     point.shadow?.http === 200 && point.shadow?.discovery?.assigned === 1 &&
     point.shadow?.discovery?.connected === 1 && point.shadow?.discovery?.failed === 0 &&
-    point.shadow?.media?.progressing === 1 && point.shadow?.media?.stalled === 0);
+    Number(point.shadow?.media?.available ??
+      Number(point.shadow?.media?.progressing || 0)
+        + Number(point.shadow?.media?.renewing || 0)) === 1 &&
+    point.shadow?.media?.stalled === 0);
   const renewals = checkpoints.map(point => point.renewal).filter(Boolean);
   const playbackProof = !verifyPlaybackRenewals || renewals.length >= Math.floor(checkpoints.length / 2) &&
     renewals.every(renewal => renewal.status === 200 && renewal.playlist_status === 200 &&
@@ -730,7 +735,7 @@ const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || ro
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
-let shadowEvidence = null, warmHandoffEvidence = null;
+let shadowEvidence = null, warmHandoffEvidence = null, failedShadowEvidence = null;
 let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 if (sessionSweep) {
@@ -920,6 +925,36 @@ if (deadlineBudget) {
     historical_result_label_bug_corrected: true };
 }
 if (playbackSweep) {
+  const shadowBytes = protectedFile(failedShadowEvidencePath);
+  const failedShadow = JSON.parse(shadowBytes);
+  const failedLifecycle = failedShadow.qualification?.lifecycle_final || {};
+  if (sha(shadowBytes) !== "cf936075bd8ebe9be97a6cff75699120013d743d7d8addb245220816b78ba64e" ||
+    failedShadow.contract !== "observer-push38-bounded-dvr-shadow-v1" ||
+    failedShadow.result !== "FAIL" || failedShadow.runtime_mutation !== false ||
+    failedShadow.signed_release?.release_id !== item.failedShadowReleaseId ||
+    failedShadow.signed_release?.version !== item.failedShadowVersion ||
+    failedShadow.signed_release?.artifact_sha256 !==
+      "35df17e8631613804057e23f64801afd7b9cc1af736302744c665c9001ff68d3" ||
+    failedShadow.signed_release?.signature_verified !== true ||
+    failedShadow.signed_release?.artifact_verified !== true ||
+    failedShadow.duration_ms < 300_000 || failedShadow.checkpoints?.length < 270 ||
+    failedShadow.qualification?.playback_failures !== 0 ||
+    failedShadow.qualification?.hls_continuity?.pass !== true ||
+    JSON.stringify(failedShadow.qualification?.failures) !==
+      JSON.stringify(["SHADOW_PROGRESSION", "SESSION_ROTATION"]) ||
+    failedLifecycle.retainedHlsContinuityWindows !== 2 ||
+    failedLifecycle.retainedHlsPlaylistResponses !== 6 ||
+    failedLifecycle.retainedHlsSegmentResponses !== 6 ||
+    failedLifecycle.staleInput !== 0 || failedLifecycle.stalePlaylist !== 0 ||
+    failedLifecycle.staleOnRequest !== 0 || failedLifecycle.inputSocketError !== 0)
+    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_SHADOW_PROOF_INVALID");
+  failedShadowEvidence = { sha256: sha(shadowBytes), duration_ms: failedShadow.duration_ms,
+    checkpoints: failedShadow.checkpoints.length,
+    release_id: failedShadow.signed_release.release_id,
+    failures: failedShadow.qualification.failures,
+    hls_continuity: "PASS", playback_failures: 0,
+    retained_hls_windows: failedLifecycle.retainedHlsContinuityWindows,
+    health_projection_omission_reproduced: true };
   const bytes = protectedFile(failedCanaryEvidencePath);
   const result = JSON.parse(bytes);
   const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
@@ -1232,6 +1267,7 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
       "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
+  ...(failedShadowEvidence ? { failed_shadow_evidence: failedShadowEvidence } : {}),
   ...(failedCanaryEvidence ? { failed_canary_evidence: failedCanaryEvidence } : {}),
   ...(failedPreSoakEvidence ? { failed_pre_soak_evidence: failedPreSoakEvidence } : {}),
   ...((failedCanaryEvidence || failedPreSoakEvidence) ? { live_recovery_evidence: {

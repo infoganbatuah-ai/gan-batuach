@@ -18,12 +18,12 @@ const built = buildPush38GatewayPlaybackSweepSerializationManifest({
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
   releasedAt: new Date().toISOString()
 }).document;
-assert.equal(built.release_id, "qa-p38-health-gateway-retained-hls-35df17e86316");
-assert.equal(built.version, "0.2.70-p38-health");
-assert.equal(built.build_sha, "13b5ae4cce4ea38998efeb99fa24bd9a238c496c");
+assert.equal(built.release_id, "qa-p38-health-gateway-retained-hls-health-1fc0a19c3fd7");
+assert.equal(built.version, "0.2.71-p38-health");
+assert.equal(built.build_sha, "b4579b44d4f68a71a063b7e3ee746db59e032d53");
 assert.equal(built.artifact_sha256,
-  "35df17e8631613804057e23f64801afd7b9cc1af736302744c665c9001ff68d3");
-assert.equal(built.artifact_size, 135866409);
+  "1fc0a19c3fd7aa5cc84d1b9c44d7ec0d3f3c6c1488ccc5f7af8c2d671460e7a0");
+assert.equal(built.artifact_size, 135866365);
 assert.equal(built.compatibility.minimum_current_version, "0.2.69-p38-health");
 assert.equal(built.compatibility.maximum_current_version, "0.2.69-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
@@ -58,7 +58,9 @@ for (const [path, required] of [
   ["scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", [
     "--gateway-playback-sweep",
     "gateway_remediation_playback_sweep_serialization.json",
-    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_CANARY_PROOF_INVALID"
+    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_CANARY_PROOF_INVALID",
+    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_SHADOW_PROOF_INVALID",
+    "failed-shadow-evidence"
   ]]
 ]) {
   const source = readFileSync(path, "utf8");
