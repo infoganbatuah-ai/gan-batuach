@@ -10,6 +10,8 @@ import { issuePush38GatewayPlaybackSweepSerialization } from
   "../release/issue-push38-home-qa-gateway-playback-sweep-serialization.mjs";
 import { verifyEdgeUpdateManifest } from
   "../../services/video-gateway/edge-update-contract.mjs";
+import { homeQaManagedPhaseAllows } from
+  "../../services/video-gateway/home-qa-transition-phase.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const built = buildPush38GatewayPlaybackSweepSerializationManifest({
@@ -26,6 +28,22 @@ assert.equal(built.compatibility.minimum_current_version, "0.2.64-p38-health");
 assert.equal(built.compatibility.maximum_current_version, "0.2.64-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [release.deviceId]);
+const managedGateway = {
+  gateway_id: release.deviceId,
+  deployment_profile: release.profile,
+  identity_scheme: "ED25519_V1",
+  credential_version: 1,
+  metadata: {
+    home_qa_phase: "MANAGED_IDENTITY_VERIFIED",
+    home_qa_proof_sha256: "a".repeat(64),
+    home_qa_known_good_release_id: "qa-legacy-gateway-91bf6814075f"
+  }
+};
+assert.equal(homeQaManagedPhaseAllows({ enrollment: managedGateway, manifest: built }), true);
+assert.equal(homeQaManagedPhaseAllows({
+  enrollment: { ...managedGateway, gateway_id: "00000000-0000-4000-8000-000000000000" },
+  manifest: built
+}), false);
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", [
