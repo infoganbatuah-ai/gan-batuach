@@ -186,6 +186,9 @@ test("exclusive session sweep serves only a fresh retained HLS generation", () =
     relayStaleMs: 20_000, now }), false, "other recovery modes stay fail-closed");
   assert.match(server, /const relayRetainedPlayback = new Map\(\)/);
   assert.match(server,
+    /relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\),\s+\.\.\.relayRecovery\.keys\(\), \.\.\.relayRetainedPlayback\.keys\(\)\]\)/,
+  "retained-only streams must remain visible to the health contract");
+  assert.match(server,
     /retainSessionSweepPlayback\(streamId, previous\);[\s\S]*SESSION_SWEEP_OWNER_RELEASE/);
   assert.match(server, /playbackEffective: effective \|\|/);
   assert.match(server,
@@ -218,6 +221,32 @@ test("qualification counts bounded retained playback without inventing frame pro
   assert.equal(result.camera_sample_availability, 1);
   assert.equal(result.per_camera["dvr-6"].availability, 1);
   assert.ok(!result.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"));
+});
+
+test("session renewal accepts retained-HLS availability only with live playback", () => {
+  const playback = { status: 200, playlist_status: 200, segment_status: 200,
+    segment_bytes: 1 };
+  const checkpoints = [1, 2].map(sequence => ({ sequence,
+    shadow: { http: 200, media: { progressing: sequence === 1 ? 1 : 0,
+      renewing: 0, available: 1, stalled: 0 } },
+    renewals: [{ playback: { ...playback } }] }));
+  const lifecycle = { startsByReason: { sessionSweep: 1, recovery: 0 },
+    warmHandoffsByMode: { sessionSweep: 1 },
+    warmHandoffFailuresByMode: { sessionSweep: 0 }, staleInput: 0,
+    stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0 };
+  const session = { rotations: 1, proactive_attempts: 1, proactive_succeeded: 1,
+    login_succeeded: 2, logout_succeeded: 1, logout_failed: 0,
+    retired_session_backlog: 0, last_rotation_reason: "proactive_nonexclusive_renewal" };
+  assert.equal(classifyContinuousSessionRenewal(checkpoints, lifecycle, session,
+    { expectedProgressing: 1 }).pass, true);
+  const brokenPlayback = structuredClone(checkpoints);
+  brokenPlayback[1].renewals[0].playback.segment_status = 503;
+  assert.equal(classifyContinuousSessionRenewal(brokenPlayback, lifecycle, session,
+    { expectedProgressing: 1 }).reason, "SESSION_SWEEP_MEDIA_GAP");
+  const missingAvailability = structuredClone(checkpoints);
+  delete missingAvailability[1].shadow.media.available;
+  assert.equal(classifyContinuousSessionRenewal(missingAvailability, lifecycle, session,
+    { expectedProgressing: 1 }).reason, "SESSION_SWEEP_MEDIA_GAP");
 });
 
 test("live multi-source evidence disables age-only relay churn", () => {
@@ -500,8 +529,8 @@ test("a progressing candidate preserves health without early ownership promotion
     /const effective = privateNvrHealthEffectiveRelay\(\{ current, candidate,[\s\S]*mediaOwner: state\.mediaOwner \}\)/,
   "health must select only the relay named by continuity and tolerate a bounded no-owner interval");
   assert.match(server,
-    /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\),[\s\S]*\.\.\.relayRecovery\.keys\(\)\]\)/,
-  "health must enumerate candidate-only and bounded renewal continuity");
+    /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\),[\s\S]*\.\.\.relayRecovery\.keys\(\), \.\.\.relayRetainedPlayback\.keys\(\)\]\)/,
+  "health must enumerate candidate-only, recovery, and retained-HLS continuity");
   assert.match(server,
     /activeRelays: relayContinuity\.filter\(\(\[, state\]\) =>\s*relayIsRunning\(state\.effective\)\)\.length/,
   "active media health must count the effective relay without promoting ownership");

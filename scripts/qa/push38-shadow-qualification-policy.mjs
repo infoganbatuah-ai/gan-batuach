@@ -237,8 +237,9 @@ export function classifyContinuousSessionRenewal(checkpoints, lifecycle = {},
     const renewals = Array.isArray(point?.renewals)
       ? point.renewals.map(entry => entry.playback) : [point?.renewal];
     return point?.shadow?.http === 200 &&
-      Number(point?.shadow?.media?.progressing || 0)
-        + Number(point?.shadow?.media?.renewing || 0) === expectedProgressing &&
+      Number(point?.shadow?.media?.available ??
+        Number(point?.shadow?.media?.progressing || 0)
+          + Number(point?.shadow?.media?.renewing || 0)) === expectedProgressing &&
       point?.shadow?.media?.stalled === 0 && renewals.length === expectedProgressing &&
       renewals.every(renewal => renewal?.status === 200 && renewal?.playlist_status === 200 &&
         renewal?.segment_status === 200 && renewal?.segment_bytes > 0);

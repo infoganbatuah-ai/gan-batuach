@@ -244,6 +244,9 @@ async function health(url) {
       provisional_handoffs: body.mediaHeartbeat.provisionalHandoffs ?? 0,
       progressing: body.mediaHeartbeat.progressingRelays,
       renewing: body.mediaHeartbeat.renewingRelays ?? 0,
+      available: body.mediaHeartbeat.availableRelays ??
+        Number(body.mediaHeartbeat.progressingRelays || 0) +
+          Number(body.mediaHeartbeat.renewingRelays || 0),
       stalled: body.mediaHeartbeat.stalledRelays,
       lifecycle: body.mediaHeartbeat.lifecycle,
       source_diagnostics: Array.isArray(body.mediaHeartbeat.source_diagnostics)
@@ -554,8 +557,9 @@ try {
   if (!evidence.checkpoints.every((point) => point.shadow.http === 200
     && point.shadow.discovery?.assigned === channels.length
     && point.shadow.discovery?.connected === channels.length
-    && Number(point.shadow.media?.progressing || 0)
-      + Number(point.shadow.media?.renewing || 0) === channels.length
+    && Number(point.shadow.media?.available ??
+      Number(point.shadow.media?.progressing || 0)
+        + Number(point.shadow.media?.renewing || 0)) === channels.length
     && Number(point.shadow.media?.stalled || 0) === 0)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
   if (outputRescueFailures > 0 && !outputRescueClassification.pass)

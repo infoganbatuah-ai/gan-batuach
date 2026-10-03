@@ -3089,7 +3089,7 @@ async function handle(request, response) {
     // playback and the playlist were advancing. Keep canonical ownership and
     // media availability separate by including candidate-only stream IDs.
     const relayStreamIds = new Set([...relays.keys(), ...relayCandidates.keys(),
-      ...relayRecovery.keys()]);
+      ...relayRecovery.keys(), ...relayRetainedPlayback.keys()]);
     const relayContinuity = [...relayStreamIds].map(streamId =>
       [streamId, relayMediaContinuity(streamId)]);
     const progressingRelays = relayContinuity.filter(([, state]) => state.progressing).length;
