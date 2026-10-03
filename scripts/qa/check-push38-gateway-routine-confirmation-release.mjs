@@ -12,7 +12,7 @@ import { issuePush38GatewayRoutineConfirmation } from
 import { HOME_QA_PHASE, homeQaManagedPhaseAllows } from
   "../../services/video-gateway/home-qa-transition-phase.mjs";
 import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
-  evaluateHlsRenewalContinuity
+  evaluateHlsRenewalContinuity, evaluateShadowMeasurementReadiness
 } from "./push38-shadow-qualification-policy.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -168,6 +168,38 @@ assert.equal(evaluateHlsRenewalContinuity([
 "PLAYLIST_FRESHNESS_EXCEEDED");
 assert.equal(evaluateHlsRenewalContinuity([
   renewal(10, 0, "a"), renewal(9, 5, "b")]).reason, "SEQUENCE_REGRESSION");
+const readinessPoint = (observedAt, sequence) => ({
+  observed_at: observedAt,
+  renewals: [{ channel: 1, playback: {
+    status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1024,
+    media_sequence: sequence, latest_segment_sequence: sequence + 10,
+    target_duration_seconds: 1,
+    playlist_sha256: `${sequence + 1}`.padStart(64, "a").slice(-64),
+    segment_sha256: `${sequence + 1}`.padStart(64, "b").slice(-64)
+  } }],
+  shadow: {
+    http: 200,
+    discovery: { assigned: 1, connected: 1 },
+    media: { progressing: 1, renewing: 0, stalled: 0,
+      candidate_handoffs: 0, provisional_handoffs: 0 }
+  }
+});
+const readyWindow = [
+  readinessPoint("2026-10-03T00:00:00.000Z", 1),
+  readinessPoint("2026-10-03T00:00:15.000Z", 2),
+  readinessPoint("2026-10-03T00:00:30.000Z", 3)
+];
+assert.equal(evaluateShadowMeasurementReadiness(readyWindow).pass, true);
+const recoveringWindow = readyWindow.map((point, index) => index === 1
+  ? { ...point, shadow: { ...point.shadow,
+    media: { ...point.shadow.media, progressing: 0, renewing: 1 } } } : point);
+assert.equal(evaluateShadowMeasurementReadiness(recoveringWindow).reason,
+  "COMPONENT_NOT_STABLE");
+assert.equal(evaluateShadowMeasurementReadiness([
+  readinessPoint("2026-10-03T00:00:00.000Z", 1),
+  readinessPoint("2026-10-03T00:00:15.000Z", 1),
+  readinessPoint("2026-10-03T00:00:30.000Z", 1)
+]).reason, "PLAYLIST_FRESHNESS_EXCEEDED");
 const continuityPoint = (sequence, failures, handoffs, result = null) => ({ sequence,
   observed_at: new Date(sequence * 10_000).toISOString(),
   renewal: { status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1024 },
@@ -212,6 +244,12 @@ assert.equal(classifyBoundedOutputRescueRejection([
   continuityPoint(7, 1, 4, "PROMOTED"), continuityPoint(14, 2, 4),
   continuityPoint(15, 2, 5, "PROMOTED")], multipleContainedLifecycle).pass, true,
 "multiple contained rejections remain bounded only with preserved media and more successful promotions");
+const batchedContained = classifyBoundedOutputRescueRejection([
+  continuityPoint(1, 0, 3), continuityPoint(14, 2, 4),
+  continuityPoint(15, 2, 5, "PROMOTED")], multipleContainedLifecycle);
+assert.equal(batchedContained.pass, true,
+"multiple contained rejections sampled together retain their exact counter cardinality");
+assert.deepEqual(batchedContained.failure_checkpoints, [{ sequence: 14, count: 2 }]);
 const ownerRecoveryPoint = continuityPoint(2, 0, 0);
 ownerRecoveryPoint.shadow.media.lifecycle = { staleInput: 0, stalePlaylist: 0,
   staleOnRequest: 0, startsByReason: { recovery: 0 } };

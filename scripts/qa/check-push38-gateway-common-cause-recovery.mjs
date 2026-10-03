@@ -8,34 +8,43 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
+  PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+  PRIVATE_NVR_RESPONSE_RETIREMENT_PRIME_MINIMUM_MS,
   PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_BUDGET_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_GRACE_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
   PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS,
+  PRIVATE_NVR_SESSION_SWEEP_CONTROL_MARGIN_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
   privateNvrHealthEffectiveRelay,
+  privateNvrLogoutResponseRetired,
   privateNvrOutputRescueStillRequired,
+  privateNvrRetiredSessionReady,
   privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   relayMaySurvivePrivateNvrRenewal,
   shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldDeferPrivateNvrOutputRescueForSessionRenewal,
+  shouldPrimePrivateNvrSessionForResponseRetirement,
+  shouldRetainPrivateNvrOwnerOnDemand,
   shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
+  shouldUsePrivateNvrExclusiveSessionSweep,
   shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
@@ -85,7 +94,7 @@ test("Gateway finite-stream handoff is a new immutable release over signed 0.2.1
     PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY.releaseId);
 });
 
-test("only authentication rejection or corroborated common-cause loss may rotate the shared DVR session", () => {
+test("session rotation requires auth, common-cause, or a proven finite-response reopen boundary", () => {
   assert.equal(shouldRefreshPrivateNvrSession("authentication_rejected"), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_not_media",
     { loginExclusivity: false, sessionAgeMs: Number.MAX_SAFE_INTEGER }), false);
@@ -93,6 +102,15 @@ test("only authentication rejection or corroborated common-cause loss may rotate
     loginExclusivity: false, sessionAgeMs: Number.MAX_SAFE_INTEGER,
     heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
   }), true);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    previousRelayExitReason: "SOURCE_STREAM_ENDED"
+  }), true);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    previousRelayExitReason: "SOURCE_RESPONSE_RETIRED"
+  }), true);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    previousRelayExitReason: "UPSTREAM_UND_ERR_SOCKET"
+  }), false);
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
 });
 
@@ -107,8 +125,8 @@ test("health remains serializable while a finite owner has exited before candida
   assert.equal(privateNvrHealthEffectiveRelay({ current: null, candidate,
     mediaOwner: "CURRENT" }), null);
   assert.match(gateway,
-    /inputs: relayContinuity\.flatMap[\s\S]*const relay = continuity\.effective;[\s\S]*if \(!relay\) return \[\];/,
-  "a candidate-only acquisition gap must degrade source health without turning /health into HTTP 500");
+    /inputs: relayContinuity\.flatMap[\s\S]*const relay = continuity\.effective;[\s\S]*if \(!relay\) return continuity\.renewing[\s\S]*RETAINED_HLS/,
+  "a finite-response renewal must remain serializable and expose retained-HLS truth");
 });
 
 test("intentional relay handoff never quarantines the hardware encoder", () => {
@@ -123,12 +141,17 @@ test("intentional relay handoff never quarantines the hardware encoder", () => {
   assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 1 }), true);
 });
 
-test("heartbeat-proven recorder login renews before its measured hard expiry", () => {
+test("measured finite-response session renewal owns one exclusive epoch sweep", () => {
   const now = Date.now();
-  assert.equal(PRIVATE_NVR_PROACTIVE_RENEWAL_MS, 3.5 * 60 * 1000);
+  assert.equal(PRIVATE_NVR_PROACTIVE_RENEWAL_MS, 2 * 60 * 1000);
+  assert.equal(PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS,
+    PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS * 10,
+  "nine sources include one concurrent observation plus nine exclusive acquisitions");
   assert.ok(PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS
-    - PRIVATE_NVR_PROACTIVE_RENEWAL_MS >= 27_000,
-  "renewal must retain the measured scheduler/login/first-output margin");
+    - PRIVATE_NVR_PROACTIVE_RENEWAL_MS
+    - PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS
+    - PRIVATE_NVR_SESSION_SWEEP_CONTROL_MARGIN_MS >= 17_000,
+  "renewal must fit the complete serialized sweep before measured response retirement");
   const eligible = { loginExclusivity: false,
     updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS };
   const idleAfterHeartbeatLoss = { activeProgressingRelays: 0,
@@ -138,16 +161,27 @@ test("heartbeat-proven recorder login renews before its measured hard expiry", (
   const activeBeforeHardExpiry = { activeProgressingRelays: 9,
     heartbeatConsecutiveFailures: 0, heartbeatResponsesOk: 1 };
   assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible,
-    activeBeforeHardExpiry, now), true);
-  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
-    ...activeBeforeHardExpiry, heartbeatResponsesOk: 0
-  }, now), false, "active renewal requires an actually proven heartbeat");
-  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
-    ...activeBeforeHardExpiry, heartbeatConsecutiveFailures: 1
-  }, now), false, "active renewal fails closed during heartbeat uncertainty");
+    activeBeforeHardExpiry, now), true,
+  "the measured finite-response boundary and healthy heartbeat authorize one bounded epoch sweep");
+  for (const blocked of [
+    { pendingRetiredSessions: 1 },
+    { staleEpochRelays: 1 },
+    { activeHandoffs: 1 },
+    { recoveryBacklog: 1 }
+  ]) {
+    assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
+      ...activeBeforeHardExpiry, ...blocked
+    }, now), false,
+    "another renewal must wait for complete prior-epoch drain and retirement");
+  }
   assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
     activeProgressingRelays: 0, heartbeatConsecutiveFailures: 0
   }, now), false);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
+    activeProgressingRelays: 9, heartbeatConsecutiveFailures: 0,
+    heartbeatResponsesOk: 0
+  }, now), false,
+  "active media without a proven heartbeat cannot authorize a shared-login renewal");
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
     loginExclusivity: true }, idleAfterHeartbeatLoss, now), false);
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
@@ -158,8 +192,43 @@ test("heartbeat-proven recorder login renews before its measured hard expiry", (
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
     refreshPromise: Promise.resolve() }, idleAfterHeartbeatLoss, now), false);
   assert.match(gateway,
-    /activeProgressingRelays[\s\S]*shouldProactivelyRefreshPrivateNvrSession\(session, \{[\s\S]*activeProgressingRelays,[\s\S]*heartbeatConsecutiveFailures:[\s\S]*heartbeatResponsesOk:/,
+    /activeProgressingRelays[\s\S]*shouldProactivelyRefreshPrivateNvrSession\(session, \{[\s\S]*activeProgressingRelays,[\s\S]*heartbeatConsecutiveFailures:[\s\S]*heartbeatResponsesOk:[\s\S]*pendingRetiredSessions:[\s\S]*staleEpochRelays, activeHandoffs, recoveryBacklog/,
   "live renewal must be gated by media and heartbeat evidence");
+  assert.match(gateway,
+    /requiresExclusiveMediaHandoff: proactive[\s\S]*preserveRelayEpochsThrough: proactive[\s\S]*\? null/,
+  "a proactive renewal must immediately drain the stale epoch through the proven exclusive boundary");
+});
+
+test("superseded recorder login retires only after every media epoch drains", () => {
+  assert.equal(privateNvrRetiredSessionReady({ retiredEpoch: 4,
+    activeRelayEpochs: [5, 5, 5] }), true);
+  assert.equal(privateNvrRetiredSessionReady({ retiredEpoch: 4,
+    activeRelayEpochs: [5, 4, 5] }), false);
+  assert.equal(privateNvrRetiredSessionReady({ retiredEpoch: 4,
+    activeRelayEpochs: [3, 5] }), false);
+  assert.equal(privateNvrRetiredSessionReady({ retiredEpoch: null,
+    activeRelayEpochs: [] }), false);
+  assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 200,
+    result: "success" }), true);
+  assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 400,
+    errorCode: "logout" }), true,
+  "the verified repeated-Logout response means the old session is already retired");
+  assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 400,
+    errorCode: "expired" }), true,
+  "the verified post-migration response means the old session is already retired");
+  assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 400,
+    errorCode: "another_error" }), false);
+  assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 200,
+    result: "failed" }), false);
+  assert.match(gateway,
+    /retireDrainedPrivateNvrSessions[\s\S]*privateNvrRetiredSessionReady[\s\S]*privateNvrLogout/,
+  "live maintenance must close a drained superseded recorder login");
+  assert.match(gateway,
+    /retiredSessions = \[\.\.\.\(current\.retiredSessions \|\| \[\]\), \{[\s\S]*epoch: current\.epoch/,
+  "rotation must retain in-memory authority to retire the prior login");
+  assert.match(gateway,
+    /shutdownGateway[\s\S]*SERVICE_SHUTDOWN[\s\S]*privateNvrLogout[\s\S]*SIGTERM/,
+  "service shutdown must close media before retiring DVR logins");
 });
 
 test("proactive renewal serializes rescue and session-sweep ownership", () => {
@@ -216,18 +285,18 @@ test("healthy recorder responses are not replaced from age alone", () => {
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now,
-    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now), true);
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now), false);
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now,
     lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now),
-  "OUTPUT_RESCUE");
+  null, "fresh input suppresses a cadence-only rescue probe");
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
     lastInputAt: now,
     lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now),
-  "OUTPUT_RESCUE", "stale rendered output remains evidence for bounded rescue");
+  null, "rendered-output cadence alone is not a recorder-response failure");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -237,8 +306,8 @@ test("healthy recorder responses are not replaced from age alone", () => {
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now - PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
     lastOutputAt: now - PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS }, now),
-  "OUTPUT_RESCUE",
-  "four seconds of rendered-output silence may start a non-destructive continuity probe without proving native end");
+  null,
+  "joint soft idle is not proof that the recorder response retired");
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -251,8 +320,8 @@ test("healthy recorder responses are not replaced from age alone", () => {
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now,
     lastOutputAt: now - PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS }, now),
-  "OUTPUT_RESCUE",
-  "current input does not suppress a rendered-output continuity probe");
+  null,
+  "current recorder input suppresses a soft rendered-output cadence probe");
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -263,20 +332,20 @@ test("healthy recorder responses are not replaced from age alone", () => {
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now - 30_000,
-    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now), true,
-  "joint recorder silence starts a bounded continuity probe without claiming a native end");
+    lastOutputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS }, now), false,
+  "joint soft idle cannot start a replacement without an authoritative boundary");
   assert.equal(privateNvrRelayHandoffMode({ ...eligible,
     progressing: false,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
     lastInputAt: now - 30_000, lastOutputAt: now - 20_000,
-    relayStaleMs: 20_000 }, now), "OUTPUT_RESCUE",
-  "hard-stale rendered output remains eligible for the bounded rescue lane");
+    relayStaleMs: 20_000 }, now), null,
+  "hard-stale output alone cannot replace an authoritative recorder response");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     progressing: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
-    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true,
-  "a non-progressing owner enters the bounded rescue lane before destructive restart");
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false,
+  "a non-progressing owner remains untouched until an observed body end");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -317,6 +386,49 @@ test("healthy recorder responses are not replaced from age alone", () => {
   "probation confirmation must be re-evaluated between HLS writes");
 });
 
+test("sustained recorder response retirement primes one replacement login", () => {
+  const eligible = {
+    sourceKind: "private_nvr_http_mp4", inputErrorCode: "UND_ERR_SOCKET",
+    sustainedMedia: true, ownerCurrent: true, warming: false,
+    relayAgeMs: PRIVATE_NVR_RESPONSE_RETIREMENT_PRIME_MINIMUM_MS
+  };
+  assert.equal(shouldPrimePrivateNvrSessionForResponseRetirement(eligible), true);
+  assert.equal(shouldPrimePrivateNvrSessionForResponseRetirement({ ...eligible,
+    inputErrorCode: null, sourceEnded: true }), true,
+  "a clean sustained response end primes the same bounded replacement login");
+  assert.equal(shouldPrimePrivateNvrSessionForResponseRetirement({ ...eligible,
+    relayAgeMs: PRIVATE_NVR_RESPONSE_RETIREMENT_PRIME_MINIMUM_MS - 1 }), false,
+  "an early socket loss must not rotate recorder authentication");
+  assert.equal(shouldPrimePrivateNvrSessionForResponseRetirement({ ...eligible,
+    ownerCurrent: false }), false);
+  assert.equal(shouldPrimePrivateNvrSessionForResponseRetirement({ ...eligible,
+    warming: true }), false);
+  assert.equal(shouldPrimePrivateNvrSessionForResponseRetirement({ ...eligible,
+    inputErrorCode: "ECONNRESET",
+    relayAgeMs: PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS }), false,
+  "ECONNRESET must first fail exact-channel reopen before it may rotate a login");
+  assert.match(gateway,
+    /shouldPrimePrivateNvrSessionForResponseRetirement[\s\S]*finite_response_socket_retired/);
+});
+
+test("consumer demand retains one healthy private DVR response owner", () => {
+  const evidence = { sourceKind: "private_nvr_http_mp4", ownerRunning: true,
+    belongsToCurrentSession: true, nativeInputEnded: false,
+    inputFailed: false, heartbeatConsecutiveFailures: 0 };
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand(evidence), true);
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...evidence,
+    heartbeatConsecutiveFailures: PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES }), false);
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...evidence,
+    nativeInputEnded: true }), false);
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...evidence,
+    inputFailed: true }), false);
+  assert.equal(shouldRetainPrivateNvrOwnerOnDemand({ ...evidence,
+    sourceKind: "rtsp" }), false);
+  assert.match(gateway,
+    /shouldRetainPrivateNvrOwnerOnDemand\(\{[\s\S]*privateNvrHeartbeat\.status\(\)\.consecutive_failures[\s\S]*\}\)\) return existing;/,
+  "all demand must retain the canonical owner until a boundary or corroborated heartbeat loss");
+});
+
 test("a progressing warm candidate keeps its owner until bounded confirmation", () => {
   const now = Date.now();
   const stale = { handoffInFlight: true, candidateProgressing: false,
@@ -337,6 +449,15 @@ test("a progressing warm candidate keeps its owner until bounded confirmation", 
   assert.match(gateway,
     /const warmingCandidate = relayCandidates\.get\(streamId\);[\s\S]*shouldDeferPrivateNvrStaleOwnerTeardown\([\s\S]*candidateProgressing: relayIsProgressing\(warmingCandidate\)[\s\S]*preserveOwnerUntilHandoffSettles:[\s\S]*if \(awaitingWarmReplacement\) return;/,
   "the live monitor must consult candidate media before tearing down its owner");
+});
+
+test("private DVR idle waits for authoritative body or socket termination", () => {
+  assert.match(gateway,
+    /if \(!directRtsp\) return;[\s\S]*armRelayRecovery\(streamId, relay\)[\s\S]*stopRelay\(streamId, relay,/,
+  "private DVR monitoring must let the authoritative body/socket close own recovery classification");
+  assert.match(gateway,
+    /const requestRescueEligible = source\?\.kind === "private_nvr_http_mp4"[\s\S]*existing\.nativeInputEnded === true[\s\S]*privateNvrOutputRescueRetryAllowed/,
+  "consumer demand must not open a private DVR replacement from output idle alone");
 });
 
 test("a hard-stale private DVR owner permits one strict exclusive rescue", () => {
@@ -457,11 +578,49 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /\}, PRIVATE_NVR_RELAY_HANDOFF_TICK_MS\)\.unref\(\)/);
   assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 3,
     currentEpoch: 4 }), true);
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 3,
+    currentEpoch: 4, relayProgressing: true,
+    preserveRelayEpochsThrough: 3 }), false,
+  "a progressing prior-epoch owner migrates lazily instead of joining a recorder-wide sweep");
   assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 4,
     currentEpoch: 4 }), false);
+  const sessionSweepBoundary = { handoffMode: "SESSION_SWEEP",
+    sourceKind: "private_nvr_http_mp4", ownerRunning: true,
+    ownerCurrent: true, candidateRunning: true, candidateConfirmed: false,
+    relayEpoch: 19, currentEpoch: 20 };
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep(sessionSweepBoundary), true,
+    "a withheld stale-epoch candidate proves the per-channel exclusive boundary");
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep({ ...sessionSweepBoundary,
+    candidateConfirmed: true }), false,
+  "a productive concurrent candidate must retain the ordinary warm path");
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep({ ...sessionSweepBoundary,
+    relayEpoch: 20 }), false,
+  "the exclusive sweep may never replace a current-epoch owner");
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep({ ...sessionSweepBoundary,
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", candidateRunning: false,
+    exclusiveBoundaryObserved: true }), true,
+  "an observed recorder boundary applies immediately to later stale-epoch channels");
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep({ ...sessionSweepBoundary,
+    candidateRunning: false, candidateAcquisitionFailed: true,
+    candidateFailure: "source_timeout", ownerProgressing: true }), true,
+  "a bounded concurrent timeout beside a progressing stale owner proves the same boundary");
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep({ ...sessionSweepBoundary,
+    candidateRunning: false, candidateAcquisitionFailed: true,
+    candidateFailure: "host_network_unreachable", ownerProgressing: true }), false,
+  "network reachability failure must never authorize an exclusive takeover");
+  assert.equal(shouldUsePrivateNvrExclusiveSessionSweep({ ...sessionSweepBoundary,
+    candidateRunning: false, candidateAcquisitionFailed: true,
+    candidateFailure: "source_timeout", ownerProgressing: false }), false,
+  "a failed owner plus timeout is recovery evidence, not an exclusive-boundary proof");
   assert.match(gateway,
-    /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
-    "a renewed-session sweep drains stale epochs without scheduler gaps");
+    /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*requiresExclusiveMediaHandoff[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
+    "a renewed-session sweep drains stale epochs and reuses the proven exclusive boundary");
+  assert.match(gateway,
+    /shouldUsePrivateNvrExclusiveSessionSweep\([\s\S]*SESSION_SWEEP_OWNER_RELEASE[\s\S]*requiresExclusiveMediaHandoff = true/,
+    "the first withheld candidate must teach the serialized sweep without opening a third response");
+  assert.match(gateway,
+    /candidateAcquisitionFailed: true[\s\S]*candidateFailure: candidateStartFailure[\s\S]*SESSION_SWEEP_OWNER_RELEASE/,
+    "a bounded concurrent acquisition timeout must retry once after exact owner release");
   assert.match(gateway,
     /privateNvrRoutineHandoffSchedule\([\s\S]*privateNvrHandoffCapacityAvailable\(candidateId, mode, candidate\)[\s\S]*void warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
     "ordinary finite-response maintenance is deadline- and process-budgeted per recorder");

@@ -1,0 +1,108 @@
+{
+  "contract": "digital-observer-push38-relay-handoff-remediation-evidence-v1",
+  "recorded_at": "2026-10-03T11:17:05Z",
+  "status": "CANDIDATE_VALIDATED_PENDING_SIGNED_LIVE_RELEASE",
+  "branch": "codex/push-38t-qualification",
+  "source_parent_sha": "c18c087b65e07a67fb341d2c97a68c7e90d18843",
+  "failed_pre_soak": {
+    "duration_minutes": 60,
+    "checkpoints": 60,
+    "availability_percent": 98.33,
+    "gateway_unavailable_checkpoints": 11,
+    "failure_windows": 7,
+    "relay_starts": 437,
+    "stale_inputs": 224,
+    "playback_failures": 1,
+    "process_restarts": 0,
+    "socket_errors": 0,
+    "session_failures": 0,
+    "authentication_rejections": 0,
+    "classification": "RELAY_SESSION_RENEWAL_AND_FRESHNESS"
+  },
+  "root_cause": {
+    "summary": "The recorder's finite live HTTP-MP4 responses and the old relay policy interacted with an artificial FFmpeg read-rate throttle and late shared-session renewal. The result was input/playlist gaps, duplicate or delayed replacement acquisition, and relay-start amplification. A separate undefined-owner cleanup path could crash the live 0.2.67 process.",
+    "excluded_primary_causes": [
+      "DVR_AUTHENTICATION_REJECTION",
+      "SHARED_LOGIN_FAILURE",
+      "PROCESS_RESTART_DURING_FAILED_PRE_SOAK",
+      "SOCKET_FAILURE_DURING_FAILED_PRE_SOAK"
+    ]
+  },
+  "remediation": {
+    "live_input_readrate_removed": true,
+    "proactive_session_renewal_ms": 120000,
+    "exclusive_epoch_sweep_serialized": true,
+    "one_canonical_relay_owner": true,
+    "consumer_demand_cannot_bypass_backoff": true,
+    "retired_sessions_logged_out_after_epoch_drain": true,
+    "private_dvr_output_idle_does_not_destroy_authoritative_response": true,
+    "retained_hls_health_state": true,
+    "undefined_owner_cleanup_crash_fixed": true,
+    "service_shutdown_retires_media_before_logout": true
+  },
+  "real_dvr_shadow": {
+    "method": "CONTROLLED_SINGLE_CHANNEL_LIVE_GATEWAY_PAUSE_AND_EXACT_RESTORE",
+    "channel": 1,
+    "duration_ms": 901263,
+    "checkpoints": 60,
+    "playback_failures": 0,
+    "relay_starts": 8,
+    "initial_starts": 1,
+    "session_sweep_starts": 7,
+    "warm_handoffs": 7,
+    "handoff_failures": 0,
+    "stale_inputs": 0,
+    "stale_playlists": 0,
+    "input_socket_errors": 0,
+    "recovery_starts": 0,
+    "session_rotations": 7,
+    "logout_failures": 0,
+    "retired_session_backlog": 0,
+    "maximum_hls_stagnation_ms": 0,
+    "exact_live_release_restored": true,
+    "result": "PASS"
+  },
+  "restricted_evidence": [
+    {
+      "path_class": "exports/restricted/push38-gateway-final-native-shadow-20261003T082137Z.json",
+      "sha256": "97fcccf4b8055cd467a21bf017e6450186215fbf40b5bc58fd54d1cf21cf82b7",
+      "result": "FAIL_READRATE_AND_STALE_GAPS"
+    },
+    {
+      "path_class": "exports/restricted/push38-gateway-unthrottled-native-shadow-20261003T092100Z.json",
+      "sha256": "0c298b29fa981a22183c4c34326913cd1015293f8e772cf648f3a17419d80819",
+      "result": "FAIL_FINITE_RESPONSE_RENEWAL_GAP"
+    },
+    {
+      "path_class": "exports/restricted/push38-gateway-proactive-exclusive-shadow-20261003T112000Z.json",
+      "sha256": "75d7bbff73691ddec8a8deef6f12174fb2e4631a0cd46c2a1c71d6078f51b2a7",
+      "result": "PASS"
+    },
+    {
+      "path_class": "exports/restricted/push38-gateway-proactive-exclusive-shadow-isolation-20261003T112000Z.json",
+      "sha256": "fb889f266a51f2d62132554031abd2301280069f43f26a57e3ccc5b8e3658ed3",
+      "result": "PASS_EXACT_LIVE_RESTORE"
+    }
+  ],
+  "validation": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "domain": "PASS_30_OF_30",
+    "security_isolation": "PASS_34_OF_34",
+    "migration_health": "PASS",
+    "release_contract": "PASS",
+    "dependency_audit_high_critical": 0,
+    "focused_relay_tests": "PASS_48_OF_48",
+    "braces_cve_backport": "PASS"
+  },
+  "live_state": {
+    "runtime_mutated_by_shadow": false,
+    "gateway_current_version": "0.2.64-p38-health",
+    "gateway_failed_successor": "0.2.67-p38-health",
+    "connector_version": "0.2.26-p38-health",
+    "v8_started": false,
+    "push38_done": false
+  },
+  "next_gate": "BUILD_SIGN_PUBLISH_AND_ACTIVATE_EXACT_DEVICE_SUCCESSOR_THEN_RUN_NEW_CANARY_AND_PRE_SOAK"
+}

@@ -23,5 +23,5 @@ export function nextRelayRecovery(previous, now = Date.now()) {
   // progressing video, not the child exit code, clears the failure history.
   const failures = Math.min(8, (previous?.failures || 0) + 1);
   const retry_ms = Math.min(60_000, 500 * (2 ** Math.max(0, failures - 1)));
-  return { failures, next_retry_at: now + retry_ms, retry_ms };
+  return { ...previous, failures, next_retry_at: now + retry_ms, retry_ms };
 }

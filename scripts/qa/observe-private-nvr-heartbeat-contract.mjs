@@ -95,6 +95,23 @@ async function login() {
 }
 
 const startedAt = Date.now(), session = await login(), checkpoints = [];
+const logout = { first: null, repeated: null };
+async function observeLogout() {
+  const response = await fetch(`${baseUrl}/API/Web/Logout`, { method: "POST",
+    redirect: "error",
+    headers: { "content-type": "application/json", "x-csrftoken": session.token,
+      cookie: session.cookie },
+    body: JSON.stringify({ version: "1.0", data: {} }),
+    signal: AbortSignal.timeout(5_000) }).catch(error => ({ status: 0,
+      ok: false, arrayBuffer: async () => new ArrayBuffer(0),
+      transport_error: error?.code || error?.name || "FETCH_FAILED" }));
+  const payload = await readBounded(response);
+  return { http_status: response.status, ok: response.ok === true,
+    result: payload?.result || null,
+    reason: payload?.reason || payload?.data?.reason || null,
+    error_code: payload?.error_code ?? payload?.data?.error_code ?? null,
+    transport_error: response.transport_error || null };
+}
 try {
   let sequence = 0;
   while (Date.now() - startedAt < durationMs) {
@@ -119,16 +136,15 @@ try {
     if (sequence * intervalMs >= durationMs) break;
   }
 } finally {
-  await fetch(`${baseUrl}/API/Web/Logout`, { method: "POST", redirect: "error",
-    headers: { "content-type": "application/json", "x-csrftoken": session.token, cookie: session.cookie },
-    body: JSON.stringify({ version: "1.0", data: {} }), signal: AbortSignal.timeout(5_000) }).catch(() => null);
+  logout.first = await observeLogout();
+  logout.repeated = await observeLogout();
 }
 
 const evidence = { protocol: "observer-push38-private-nvr-heartbeat-observation-v1",
   started_at: new Date(startedAt).toISOString(), ended_at: new Date().toISOString(),
   elapsed_ms: Date.now() - startedAt, interval_ms: intervalMs, endpoint_fingerprint_sha256: originFingerprint,
   read_only: true, settings_changed: false, media_streams_opened: 0, credentials_exposed: false,
-  recorder: session.range, login: session.login, checkpoints,
+  recorder: session.range, login: session.login, logout, checkpoints,
   summary: { samples: checkpoints.length, successful: checkpoints.filter(point => point.ok && point.result !== "failed" && point.result !== "error").length,
     failed: checkpoints.filter(point => !point.ok || point.result === "failed" || point.result === "error").length,
     first_failure_elapsed_ms: checkpoints.find(point => !point.ok || point.result === "failed" || point.result === "error")?.elapsed_ms ?? null,

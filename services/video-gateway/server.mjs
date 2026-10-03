@@ -38,6 +38,8 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrExclusiveRescueContinuationStalled,
   privateNvrOutputRescueStillRequired,
   privateNvrOutputRescueRetryAllowed,
+  privateNvrLogoutResponseRetired,
+  privateNvrRetiredSessionReady,
   privateNvrRelayHandoffMode,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
@@ -45,7 +47,10 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
+  shouldUsePrivateNvrExclusiveSessionSweep,
   shouldDeferPrivateNvrOutputRescueForSessionRenewal,
+  shouldPrimePrivateNvrSessionForResponseRetirement,
+  shouldRetainPrivateNvrOwnerOnDemand,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
@@ -79,6 +84,10 @@ const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
 eventLoopDelay.enable();
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
 const SHADOW_MODE = process.env.VIDEO_GATEWAY_SHADOW_MODE === "1";
+const SHADOW_ISOLATED = SHADOW_MODE && process.env.VIDEO_GATEWAY_SHADOW_ISOLATED === "1";
+const SHADOW_ALLOWED_CHANNELS = String(process.env.VIDEO_GATEWAY_SHADOW_ALLOWED_CHANNELS || "")
+  .split(",").filter(Boolean).map(value => Number(value));
+const HOME_SOURCE_AVAILABLE_SHADOW_CHANNELS = [1, 2, 3, 4, 5, 6, 7, 10, 11];
 const PROBE_TIMEOUT_MS = Number(process.env.DVR_PROBE_TIMEOUT_MS || 3500);
 const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 16);
 const MAX_CHANNEL_COUNT = 64;
@@ -86,6 +95,14 @@ const defaultHlsRoot = join(tmpdir(), "gan-batuach-video-gateway-hls");
 const shadowHlsRoot = normalize(String(process.env.VIDEO_GATEWAY_SHADOW_HLS_ROOT || ""));
 const HLS_ROOT = SHADOW_MODE ? shadowHlsRoot : defaultHlsRoot;
 if (SHADOW_MODE && !["127.0.0.1", "localhost", "::1"].includes(HOST)) throw new Error("Shadow qualification must bind to loopback");
+const boundedIsolatedShadowChannels = SHADOW_ALLOWED_CHANNELS.length === 1 ||
+  SHADOW_ALLOWED_CHANNELS.length === HOME_SOURCE_AVAILABLE_SHADOW_CHANNELS.length &&
+  SHADOW_ALLOWED_CHANNELS.every((channel, index) =>
+    channel === HOME_SOURCE_AVAILABLE_SHADOW_CHANNELS[index]);
+if (SHADOW_ISOLATED && (!boundedIsolatedShadowChannels ||
+  SHADOW_ALLOWED_CHANNELS.some(channel =>
+    !Number.isInteger(channel) || channel < 1 || channel > 64)))
+  throw new Error("Isolated Shadow qualification requires bounded explicit channels");
 if (SHADOW_MODE && (!shadowHlsRoot || !shadowHlsRoot.startsWith(`${normalize(tmpdir())}/`))) {
   throw new Error("Shadow qualification HLS state must use an isolated temporary directory");
 }
@@ -101,22 +118,107 @@ const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
 const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
 const privateNvrSessions = new Map();
+let gatewayShuttingDown = false;
 const privateNvrSessionLifecycle = { login_attempts: 0, login_succeeded: 0,
+  last_login_status: null, last_login_error_code: null, last_login_at: null,
+  last_login_range_status: null,
   rotations: 0, proactive_attempts: 0, proactive_succeeded: 0,
+  logout_attempts: 0, logout_succeeded: 0, logout_failed: 0,
+  last_logout_status: null, last_logout_result: null,
+  last_logout_error_code: null, last_logout_at: null,
   last_rotation_at: null, last_rotation_reason: null };
 const privateNvrHeartbeat = createPrivateNvrHeartbeat({ sessions: () => privateNvrSessions.values() });
 const hardwareTranscoder = createHardwareTranscoder();
+
+async function privateNvrLogout(session) {
+  if (!session?.baseUrl || !session.token) return true;
+  privateNvrSessionLifecycle.logout_attempts += 1;
+  try {
+    const response = await fetch(`${session.baseUrl}/API/Web/Logout`, {
+      method: "POST", redirect: "error",
+      headers: { "content-type": "application/json",
+        "x-csrftoken": session.token,
+        ...(session.cookie ? { cookie: session.cookie } : {}) },
+      body: JSON.stringify({ version: "1.0", data: {} }),
+      signal: AbortSignal.timeout(Math.max(2000, PROBE_TIMEOUT_MS))
+    });
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length > 16_384) throw new Error("logout_response_too_large");
+    let payload = null;
+    try { payload = JSON.parse(bytes.toString("utf8")); } catch {}
+    const result = payload?.result || null;
+    const errorCode = payload?.error_code ?? payload?.data?.error_code ?? null;
+    privateNvrSessionLifecycle.last_logout_status = response.status;
+    privateNvrSessionLifecycle.last_logout_result = result;
+    privateNvrSessionLifecycle.last_logout_error_code = errorCode;
+    privateNvrSessionLifecycle.last_logout_at = new Date().toISOString();
+    const retired = privateNvrLogoutResponseRetired({
+      httpStatus: response.status, result, errorCode
+    });
+    if (retired) privateNvrSessionLifecycle.logout_succeeded += 1;
+    else privateNvrSessionLifecycle.logout_failed += 1;
+    return retired;
+  } catch {
+    privateNvrSessionLifecycle.last_logout_status = 0;
+    privateNvrSessionLifecycle.last_logout_result = null;
+    privateNvrSessionLifecycle.last_logout_error_code = null;
+    privateNvrSessionLifecycle.last_logout_at = new Date().toISOString();
+    privateNvrSessionLifecycle.logout_failed += 1;
+    return false;
+  }
+}
+
+async function retireDrainedPrivateNvrSessions(sessionKey, session,
+  observedAt = Date.now()) {
+  const pending = [...(session?.retiredSessions || [])];
+  if (!pending.length) return session;
+  const activeRelayEpochs = [...liveRelays]
+    .filter(relay => relayIsRunning(relay) && relay.sessionKey === sessionKey)
+    .map(relay => relay.sessionEpoch);
+  const retained = [];
+  for (const retired of pending) {
+    if (!privateNvrRetiredSessionReady({ retiredEpoch: retired.epoch,
+      activeRelayEpochs })) {
+      retained.push(retired);
+      continue;
+    }
+    if (Number.isFinite(retired.lastLogoutAttemptAt)
+      && observedAt - retired.lastLogoutAttemptAt < 30_000) {
+      retained.push(retired);
+      continue;
+    }
+    retired.lastLogoutAttemptAt = observedAt;
+    if (!await privateNvrLogout(retired)) retained.push(retired);
+  }
+  const latest = privateNvrSessions.get(sessionKey);
+  if (latest === session) latest.retiredSessions = retained;
+  return latest || session;
+}
+
 async function maintainPrivateNvrSessionRenewals() {
   const observedAt = Date.now();
   const heartbeat = privateNvrHeartbeat.status();
-  for (const [sessionKey, session] of privateNvrSessions) {
+  for (const [sessionKey, initialSession] of privateNvrSessions) {
+    const session = await retireDrainedPrivateNvrSessions(sessionKey,
+      initialSession, observedAt);
     const activeProgressingRelays = [...relays.entries()].filter(([streamId, relay]) =>
       streamSources.get(streamId)?.sessionKey === sessionKey
         && relayIsProgressing(relay)).length;
+    const staleEpochRelays = [...liveRelays].filter(relay =>
+      relayIsRunning(relay) && relay.sessionKey === sessionKey
+        && Number.isInteger(relay.sessionEpoch)
+        && Number.isInteger(session.epoch)
+        && relay.sessionEpoch < session.epoch).length;
+    const activeHandoffs = [...relayWarmups.keys()].filter(streamId =>
+      streamSources.get(streamId)?.sessionKey === sessionKey).length;
+    const recoveryBacklog = [...relayRecovery.keys()].filter(streamId =>
+      streamSources.get(streamId)?.sessionKey === sessionKey).length;
     if (!shouldProactivelyRefreshPrivateNvrSession(session, {
       activeProgressingRelays,
       heartbeatConsecutiveFailures: heartbeat.consecutive_failures,
-      heartbeatResponsesOk: heartbeat.responses_ok
+      heartbeatResponsesOk: heartbeat.responses_ok,
+      pendingRetiredSessions: session.retiredSessions?.length || 0,
+      staleEpochRelays, activeHandoffs, recoveryBacklog
     }, observedAt)) continue;
     await refreshPrivateNvrSession(sessionKey, session.token,
       "proactive_nonexclusive_renewal");
@@ -138,7 +240,9 @@ async function maintainPrivateNvrRelayHandoffs() {
     const session = privateNvrSessions.get(source.sessionKey);
     if (shouldPrioritizePrivateNvrSessionHandoff({
       relayEpoch: relay.sessionEpoch,
-      currentEpoch: session?.epoch
+      currentEpoch: session?.epoch,
+      relayProgressing: relayIsProgressing(relay),
+      preserveRelayEpochsThrough: session?.preserveRelayEpochsThrough
     })) {
       sessionSweep.push([streamId, relay]);
       continue;
@@ -183,7 +287,12 @@ async function maintainPrivateNvrRelayHandoffs() {
   if (sessionSweep.length) {
     for (const [streamId, relay] of sessionSweep) {
       if (relays.get(streamId) !== relay) continue;
-      await warmReplacePrivateNvrRelay(streamId, relay);
+      const source = streamSources.get(streamId);
+      const session = source?.sessionKey
+        ? privateNvrSessions.get(source.sessionKey) : null;
+      const handoffMode = session?.requiresExclusiveMediaHandoff
+        ? "SESSION_SWEEP_EXCLUSIVE" : "SESSION_SWEEP";
+      await warmReplacePrivateNvrRelay(streamId, relay, handoffMode);
     }
     return;
   }
@@ -302,7 +411,8 @@ const relayWarmupModes = new Map();
 const relayRecovery = new Map();
 const relayDiagnostics = new Map();
 const playbackTokens = new Map();
-const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
+const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
+  upstreamFailed: 0,
   nativeInputEnds: 0,
   warmHandoffs: 0, warmHandoffFailures: 0,
   warmHandoffConfirmationFailures: 0, warmHandoffProbations: 0,
@@ -310,6 +420,7 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
   exclusiveRescueColdTakeovers: 0, exclusiveRescueReopens: 0,
   exclusiveRescueReopenFailures: 0,
   exclusiveRescueConcurrentProbeRejections: 0, exclusiveRescueFailures: 0,
+  exclusiveSessionSweepTakeovers: 0, exclusiveSessionSweepFailures: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,
@@ -325,7 +436,7 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0,
 function privateNvrHandoffModeMetricKey(handoffMode) {
   return handoffMode === "ROUTINE_FINITE_RESPONSE" ? "routineFiniteResponse"
     : handoffMode === "OUTPUT_RESCUE" ? "outputRescue"
-      : handoffMode === "SESSION_SWEEP" ? "sessionSweep" : "otherHandoff";
+      : handoffMode?.startsWith("SESSION_SWEEP") ? "sessionSweep" : "otherHandoff";
 }
 
 function privateNvrHandoffCapacityAvailable(streamId, handoffMode, candidate) {
@@ -850,6 +961,7 @@ async function privateNvrLogin(input) {
     signal: AbortSignal.timeout(Math.max(2000, PROBE_TIMEOUT_MS))
   }).catch(() => null);
   const rangePayload = rangeResponse?.ok ? await rangeResponse.json().catch(() => null) : null;
+  privateNvrSessionLifecycle.last_login_range_status = rangeResponse?.status || 0;
   const loginExclusivity = typeof rangePayload?.data?.login_exclusivity === "boolean"
     ? rangePayload.data.login_exclusivity
     : null;
@@ -862,11 +974,20 @@ async function privateNvrLogin(input) {
     signal: AbortSignal.timeout(Math.max(2000, PROBE_TIMEOUT_MS))
   };
   const first = await fetch(`${baseUrl}${uri}`, common).catch(() => null);
-  if (!first) return null;
+  privateNvrSessionLifecycle.last_login_at = new Date().toISOString();
+  if (!first) {
+    privateNvrSessionLifecycle.last_login_status = 0;
+    privateNvrSessionLifecycle.last_login_error_code = "LOGIN_TRANSPORT_UNAVAILABLE";
+    return null;
+  }
   let response = first;
   if (first.status === 401) {
     const challenge = parseDigestChallenge(first.headers.get("www-authenticate"));
-    if (!challenge.realm || !challenge.nonce) return null;
+    if (!challenge.realm || !challenge.nonce) {
+      privateNvrSessionLifecycle.last_login_status = first.status;
+      privateNvrSessionLifecycle.last_login_error_code = "DIGEST_CHALLENGE_INVALID";
+      return null;
+    }
     const qop = String(challenge.qop || "auth").split(",")[0].trim();
     const nc = "00000001";
     const cnonce = randomBytes(8).toString("hex");
@@ -890,28 +1011,44 @@ async function privateNvrLogin(input) {
       headers: { ...common.headers, authorization }
     }).catch(() => null);
   }
-  if (!response?.ok) return null;
+  privateNvrSessionLifecycle.last_login_status = response?.status || 0;
+  if (!response?.ok) {
+    privateNvrSessionLifecycle.last_login_error_code = response
+      ? `LOGIN_HTTP_${response.status}` : "LOGIN_TRANSPORT_UNAVAILABLE";
+    return null;
+  }
   const token = String(response.headers.get("x-csrftoken") || "").split(",")[0].trim();
   const cookie = String(response.headers.get("set-cookie") || "").split(";")[0].trim();
-  if (!token) return null;
+  if (!token) {
+    privateNvrSessionLifecycle.last_login_error_code = "LOGIN_TOKEN_MISSING";
+    return null;
+  }
   privateNvrSessionLifecycle.login_succeeded++;
+  privateNvrSessionLifecycle.last_login_error_code = null;
   return { baseUrl, token, cookie, loginExclusivity };
 }
 
 function rememberPrivateNvrSession(input, session, reason = "initial_discovery") {
   const key = privateNvrSessionKey(input);
   const previous = privateNvrSessions.get(key);
+  const retiredSessions = [...(previous?.retiredSessions || [])];
   if (previous) {
     privateNvrSessionLifecycle.rotations++;
     privateNvrSessionLifecycle.last_rotation_at = new Date().toISOString();
     privateNvrSessionLifecycle.last_rotation_reason = reason;
+    if (previous.token && previous.token !== session.token) {
+      retiredSessions.push({ baseUrl: previous.baseUrl, token: previous.token,
+        cookie: previous.cookie, epoch: previous.epoch,
+        retiredAt: Date.now(), lastLogoutAttemptAt: null });
+    }
   }
   privateNvrSessions.set(key, {
     ...session,
     epoch: (previous?.epoch || 0) + 1,
     input,
     updatedAt: Date.now(),
-    refreshPromise: null
+    refreshPromise: null,
+    retiredSessions
   });
   return key;
 }
@@ -924,13 +1061,31 @@ async function refreshPrivateNvrSession(sessionKey, failedToken = null, reason =
   if (Date.now() - (current.lastRefreshAttemptAt || 0) < 30_000) return current;
   current.lastRefreshAttemptAt = Date.now();
   const proactive = reason === "proactive_nonexclusive_renewal";
+  const preserveProgressingRelays = proactive
+    || ["finite_response_reopen_rejected", "finite_response_socket_retired",
+      "finite_response_body_retired"]
+      .includes(reason);
   if (proactive) privateNvrSessionLifecycle.proactive_attempts++;
   const refreshPromise = (async () => {
     const session = await privateNvrLogin(current.input);
     if (!session) return current;
+    const retiredSessions = [...(current.retiredSessions || []), {
+      baseUrl: current.baseUrl, token: current.token, cookie: current.cookie,
+      epoch: current.epoch, retiredAt: Date.now(), lastLogoutAttemptAt: null
+    }];
     const refreshed = { ...current, ...session, epoch: (current.epoch || 0) + 1,
       updatedAt: Date.now(), refreshPromise: null,
-      preserveRelayEpochsThrough: proactive ? current.epoch : null };
+      retiredSessions,
+      // The Home recorder permits multiple logins but only one productive
+      // response per channel. A proactive finite-boundary renewal therefore
+      // starts with the already-proven exclusive sweep instead of spending a
+      // concurrent acquisition window relearning that recorder contract. The
+      // old HLS generation remains available until the new response proves
+      // output; reactive finite-response renewal keeps its lazy-survival rule.
+      requiresExclusiveMediaHandoff: proactive
+        ? true : current.requiresExclusiveMediaHandoff,
+      preserveRelayEpochsThrough: proactive
+        ? null : preserveProgressingRelays ? current.epoch : null };
     privateNvrSessionLifecycle.rotations++;
     if (proactive) privateNvrSessionLifecycle.proactive_succeeded++;
     privateNvrSessionLifecycle.last_rotation_at = new Date().toISOString();
@@ -1136,7 +1291,15 @@ async function discoverPrivateNvr(payload, channelCount) {
   // Reuse the existing shared login; an actual auth rejection on relay start
   // owns the bounded refresh path.
   const reuse = reuseMatchingPrivateNvrSession(existing, payload);
-  const session = reuse ? existing : await privateNvrLogin(payload);
+  let session = reuse ? existing : await privateNvrLogin(payload);
+  if (!session && !reuse) {
+    // One transient recorder login response must not silently demote the
+    // canonical native HTTP-MP4 adapter to generic RTSP. Retry once inside the
+    // same bounded discovery operation; qualification still fails closed when
+    // both attempts fail.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    session = await privateNvrLogin(payload);
+  }
   if (!session) return null;
   const sessionKey = reuse ? existingKey : rememberPrivateNvrSession(payload, session, existing ? "discovery_configuration_changed" : "initial_discovery");
   const channels = [];
@@ -1394,7 +1557,8 @@ function relayDirectory(streamId) {
   return join(HLS_ROOT, streamId.replace(/[^a-z0-9_-]/gi, "_"));
 }
 
-async function privateNvrRelayResponse(source, reportFailure = () => {}) {
+async function privateNvrRelayResponse(source, reportFailure = () => {},
+  { previousRelayExitReason = null } = {}) {
   let session = privateNvrSessions.get(source.sessionKey);
   if (!session) return null;
   if (session.refreshPromise) session = await session.refreshPromise;
@@ -1406,6 +1570,8 @@ async function privateNvrRelayResponse(source, reportFailure = () => {}) {
     sessionEpoch: session.epoch, sessionKey: source.sessionKey };
   controller.abort();
   const heartbeat = privateNvrHeartbeat.status();
+  const finiteResponseBoundary = ["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+    .includes(previousRelayExitReason);
   const commonCauseSourceFailures = [...streamSources.entries()].filter(([streamId, candidate]) =>
     candidate?.sessionKey === source.sessionKey
       && relayDiagnostics.get(streamId)?.last_failure_reason === "source_not_media"
@@ -1418,10 +1584,14 @@ async function privateNvrRelayResponse(source, reportFailure = () => {}) {
     loginExclusivity: session.loginExclusivity,
     sessionAgeMs: Date.now() - Number(session.updatedAt || Date.now()),
     heartbeatConsecutiveFailures: heartbeat.consecutive_failures,
-    commonCauseSourceFailures
+    commonCauseSourceFailures,
+    previousRelayExitReason
   })) return null;
   const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token,
-    failure === "source_not_media" ? "corroborated_common_cause_non_media" : `source_${failure}`);
+    failure === "source_not_media" && finiteResponseBoundary
+      ? "finite_response_reopen_rejected"
+      : failure === "source_not_media" ? "corroborated_common_cause_non_media"
+        : `source_${failure}`);
   if (!refreshed) return null;
   const retryController = new AbortController();
   const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);
@@ -1441,6 +1611,15 @@ async function ensureRelay(streamId) {
     return relayIsRunning(available) && relayBelongsToCurrentSession(available, source)
       ? available : existing;
   }
+  if (shouldRetainPrivateNvrOwnerOnDemand({
+    sourceKind: source?.kind,
+    ownerRunning: relayIsRunning(existing),
+    belongsToCurrentSession: relayBelongsToCurrentSession(existing, source),
+    nativeInputEnded: existing?.nativeInputEnded === true,
+    inputFailed: existing?.inputFailed === true,
+    heartbeatConsecutiveFailures:
+      privateNvrHeartbeat.status().consecutive_failures
+  })) return existing;
   // Output-rescue handoffs are deliberately started before the hard-stale
   // boundary. If a request arrives at that boundary, let the already-running
   // replacement finish instead of destroying the current generation and
@@ -1465,6 +1644,7 @@ async function ensureRelay(streamId) {
     && existing && relayIsRunning(existing)
     && relayBelongsToCurrentSession(existing, source)
     && !existing.retainedFallback
+    && existing.nativeInputEnded === true
     && Number.isFinite(outputAt)
     && Date.now() - existing.startedAt >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && !sessionRenewalPending
@@ -1544,12 +1724,20 @@ function relayIsRunning(relay) {
   return Boolean(relay?.process && relay.process.exitCode === null && !relay.process.killed);
 }
 
-function armRelayRecovery(streamId, relay) {
-  if (!relay || relay.recoveryScheduled) return;
+function armRelayRecovery(streamId, relay, exitReason = null) {
+  if (gatewayShuttingDown || !relay) return;
+  if (relay.recoveryScheduled) {
+    if (exitReason) relayRecovery.set(streamId, {
+      ...(relayRecovery.get(streamId) || {}),
+      previous_relay_exit_reason: exitReason
+    });
+    return;
+  }
   const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
-  relayRecovery.set(streamId, recovery);
+  relayRecovery.set(streamId, { ...recovery,
+    previous_relay_exit_reason: exitReason });
   relay.recoveryScheduled = true;
-  scheduleRelayResume(streamId, retryMs);
+  scheduleRelayResume(streamId, retryMs, relay);
 }
 
 function relayIsProgressing(relay) {
@@ -1572,7 +1760,22 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
     handoffMode: relayWarmupModes.get(streamId), currentOutputAt,
     candidateOutputAt, mediaTakeoverIdleMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS
   });
-  return { ...state, current, candidate,
+  const source = streamSources.get(streamId);
+  const recovery = relayRecovery.get(streamId);
+  const retainedPlaylist = join(relayDirectory(streamId), "index.m3u8");
+  let retainedOutputAt = null;
+  try { retainedOutputAt = statSync(retainedPlaylist).mtimeMs; } catch {}
+  // A finite recorder response can retire between two HLS segments. During
+  // the bounded automatic reopen, the retained playlist is still valid media
+  // for viewers. Report this as RENEWING continuity, not a stalled source or
+  // an offline Gateway; the unchanged hard-stale deadline still fails closed.
+  const renewing = !state.progressing && source?.kind === "private_nvr_http_mp4"
+    && ["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+      .includes(recovery?.previous_relay_exit_reason)
+    && Number.isFinite(retainedOutputAt)
+    && Date.now() - retainedOutputAt < RELAY_STALE_MS
+    && (relayStarts.has(streamId) || relayRetryDelayMs(recovery) <= RELAY_STALE_MS);
+  return { ...state, renewing, retainedOutputAt, current, candidate,
     effective: privateNvrHealthEffectiveRelay({ current, candidate,
       mediaOwner: state.mediaOwner }) };
 }
@@ -1667,9 +1870,10 @@ function observeLocalResources() {
     edgeSupervisor.observe({ resourceId: streamId, assignment: source?.status === "unassigned" ? "CHANNEL_EMPTY" : "ASSIGNED",
       processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
       sourceAvailable: source?.status !== "unavailable",
-      relayRunning: relayIsRunning(continuity.effective),
-      frameProgressing: continuity.progressing,
-      lastFrameAt: continuity.effective?.lastInputAt, dimension: "relay" });
+      relayRunning: relayIsRunning(continuity.effective) || continuity.renewing,
+      frameProgressing: continuity.progressing || continuity.renewing,
+      lastFrameAt: continuity.effective?.lastInputAt || continuity.retainedOutputAt,
+      dimension: continuity.renewing ? "relay_renewing" : "relay" });
     if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) relayRecovery.delete(streamId);
   }
   for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
@@ -1691,7 +1895,10 @@ function stopRelay(streamId, relay, reason = "REQUESTED_STOP") {
 function cleanupRelayDirectories(streamId, replacement, directories) {
   const timer = setTimeout(() => {
     const current = relays.get(streamId);
-    if (current === replacement) {
+    // Both references can legitimately be absent after a failed candidate or
+    // a completed owner stop. `undefined === undefined` is not ownership and
+    // must never dereference a relay that no longer exists.
+    if (current && current === replacement) {
       current.previousDirectories = (current.previousDirectories || [])
         .filter(directory => !directories.includes(directory));
       current.previousGenerations = (current.previousGenerations || [])
@@ -1795,13 +2002,37 @@ async function warmReplaceRelay(streamId, previous, {
     !relayEligibleForHandoff(streamId, previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
     const handoffStartedAt = Date.now();
+    const currentSession = source?.sessionKey
+      ? privateNvrSessions.get(source.sessionKey) : null;
+    let expectedCurrent = previous;
+    let exclusiveRescue = false;
+    let exclusiveSessionSweep = shouldUsePrivateNvrExclusiveSessionSweep({
+      handoffMode, sourceKind: source?.kind,
+      exclusiveBoundaryObserved: handoffMode === "SESSION_SWEEP_EXCLUSIVE",
+      ownerRunning: relayIsRunning(previous),
+      ownerCurrent: relays.get(streamId) === previous,
+      relayEpoch: previous?.sessionEpoch,
+      currentEpoch: currentSession?.epoch
+    });
+    if (exclusiveSessionSweep) {
+      relayLifecycle.exclusiveSessionSweepTakeovers += 1;
+      stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
+      expectedCurrent = undefined;
+    }
     let replacement = await startRelay(streamId, { warming: true,
       previousRelay: previous, handoffMode });
     let candidateStartFailure = replacement ? null
       : relayDiagnostics.get(streamId)?.last_failure_reason || null;
-    let expectedCurrent = previous;
-    let exclusiveRescue = false;
     let observation = null;
+    if (replacement && exclusiveSessionSweep) {
+      replacement.previousDirectories = [...new Set([
+        previous.directory, ...(previous.previousDirectories || [])
+      ].filter(Boolean))];
+      replacement.previousGenerations = [
+        { generation: previous.generation, directory: previous.directory },
+        ...(previous.previousGenerations || [])
+      ].filter(entry => entry.generation && entry.directory);
+    }
     // Real-DVR 0.2.61 evidence captured the remaining one-response boundary:
     // the concurrent probe was rejected as non-media at the same instant the
     // hard-stale owner ended. Returning immediately entered ordinary recovery
@@ -1843,17 +2074,59 @@ async function warmReplaceRelay(streamId, previous, {
         relayLifecycle.exclusiveRescueReopenFailures += 1;
       }
     }
+    // A stale-epoch candidate can be rejected with a bounded source timeout
+    // while the old owner keeps progressing. Combined with the successful new
+    // login, current recorder heartbeat, and exact stale epoch, that is the
+    // acquisition form of the same one-response-per-channel boundary. Close
+    // only that old owner and make one exclusive retry; network/unreachable
+    // failures never qualify for this path.
+    if (!replacement && !exclusiveSessionSweep
+      && shouldUsePrivateNvrExclusiveSessionSweep({
+        handoffMode, sourceKind: source?.kind,
+        ownerRunning: relayIsRunning(previous),
+        ownerCurrent: relays.get(streamId) === previous,
+        ownerProgressing: relayIsProgressing(previous),
+        candidateAcquisitionFailed: true,
+        candidateFailure: candidateStartFailure,
+        relayEpoch: previous?.sessionEpoch,
+        currentEpoch: currentSession?.epoch
+      })) {
+      exclusiveSessionSweep = true;
+      if (currentSession) currentSession.requiresExclusiveMediaHandoff = true;
+      relayLifecycle.exclusiveSessionSweepTakeovers += 1;
+      stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
+      expectedCurrent = undefined;
+      replacement = await startRelay(streamId, { warming: true,
+        previousRelay: previous, handoffMode });
+      if (!replacement) candidateStartFailure =
+        relayDiagnostics.get(streamId)?.last_failure_reason || candidateStartFailure;
+      if (replacement) {
+        replacement.previousDirectories = [...new Set([
+          previous.directory, ...(previous.previousDirectories || [])
+        ].filter(Boolean))];
+        replacement.previousGenerations = [
+          { generation: previous.generation, directory: previous.directory },
+          ...(previous.previousGenerations || [])
+        ].filter(entry => entry.generation && entry.directory);
+        observation = await observeWarmReplacement(replacement, { handoffMode,
+          minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+      }
+    }
     if (!replacement) {
       relayLifecycle.warmHandoffFailures += 1;
       relayLifecycle.warmHandoffFailuresByMode[
         privateNvrHandoffModeMetricKey(handoffMode)] += 1;
       if (exclusiveRescue) relayLifecycle.exclusiveRescueFailures += 1;
+      if (exclusiveSessionSweep) relayLifecycle.exclusiveSessionSweepFailures += 1;
       const acquisitionEvidence = {
         last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED"
       };
       if (exclusiveRescue) {
         acquisitionEvidence.last_handoff_failure =
           "EXCLUSIVE_RESCUE_ACQUISITION_FAILED";
+      } else if (exclusiveSessionSweep) {
+        acquisitionEvidence.last_handoff_failure =
+          "EXCLUSIVE_SESSION_SWEEP_ACQUISITION_FAILED";
       }
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_handoff_result: "FAILED",
@@ -1862,8 +2135,11 @@ async function warmReplaceRelay(streamId, previous, {
         last_handoff_output_advances: 0,
         last_handoff_duration_ms: Date.now() - handoffStartedAt,
         last_handoff_path: exclusiveRescue
-          ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
+          ? "EXCLUSIVE_OUTPUT_RESCUE"
+          : exclusiveSessionSweep ? "EXCLUSIVE_SESSION_SWEEP" : "CONCURRENT_WARM" });
       if (exclusiveRescue) armRelayRecovery(streamId, previous);
+      else if (exclusiveSessionSweep)
+        armRelayRecovery(streamId, replacement || previous);
       if (handoffMode === "OUTPUT_RESCUE" && relays.get(streamId) === previous
         && relayIsProgressing(previous))
         previous.lastOutputRescueFailureAt = Date.now();
@@ -1871,6 +2147,38 @@ async function warmReplaceRelay(streamId, previous, {
     }
     if (!observation) observation = await observeWarmReplacement(replacement, { handoffMode,
       minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+    // The 0.2.67 pre-soak proved that this recorder can keep a replacement
+    // request open but withhold all media until the prior response closes.
+    // Four serialized warm attempts consumed the one-minute prior-login
+    // overlap, after which all nine old responses reset together. Learn that
+    // per-recorder boundary from the first stale-epoch candidate, release only
+    // that channel's old owner, and reuse the already-open candidate. Later
+    // channels in this and future session sweeps take the same serialized
+    // exclusive path immediately; no parallel restart storm is introduced.
+    if (!exclusiveSessionSweep && shouldUsePrivateNvrExclusiveSessionSweep({
+      handoffMode, sourceKind: source?.kind,
+      ownerRunning: relayIsRunning(previous),
+      ownerCurrent: relays.get(streamId) === previous,
+      candidateRunning: relayIsRunning(replacement),
+      candidateConfirmed: observation.outputConfirmed,
+      relayEpoch: previous?.sessionEpoch,
+      currentEpoch: currentSession?.epoch
+    })) {
+      exclusiveSessionSweep = true;
+      if (currentSession) currentSession.requiresExclusiveMediaHandoff = true;
+      relayLifecycle.exclusiveSessionSweepTakeovers += 1;
+      replacement.previousDirectories = [...new Set([
+        previous.directory, ...(previous.previousDirectories || [])
+      ].filter(Boolean))];
+      replacement.previousGenerations = [
+        { generation: previous.generation, directory: previous.directory },
+        ...(previous.previousGenerations || [])
+      ].filter(entry => entry.generation && entry.directory);
+      stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
+      expectedCurrent = undefined;
+      observation = await observeWarmReplacement(replacement, { handoffMode,
+        minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+    }
     // A recorder can accept the replacement request but withhold its body
     // until the old per-channel response closes. If probation finishes just
     // before the old playlist reaches hard stale, retain the already-acquired
@@ -2014,24 +2322,30 @@ async function warmReplaceRelay(streamId, previous, {
         privateNvrHandoffModeMetricKey(handoffMode)] += 1;
       if (!observation.outputConfirmed) relayLifecycle.warmHandoffConfirmationFailures += 1;
       if (exclusiveRescue) relayLifecycle.exclusiveRescueFailures += 1;
+      if (exclusiveSessionSweep) relayLifecycle.exclusiveSessionSweepFailures += 1;
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_handoff_result: "FAILED",
         last_handoff_failure: !observation.outputConfirmed
           ? exclusiveRescue ? "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE"
-            : "CONFIRMATION_INCOMPLETE"
+            : exclusiveSessionSweep ? "EXCLUSIVE_SESSION_SWEEP_CONFIRMATION_INCOMPLETE"
+              : "CONFIRMATION_INCOMPLETE"
           : "OWNER_CHANGED",
         last_handoff_first_output_latency_ms: observation.confirmationStartedAt === null
           ? null : observation.confirmationStartedAt - observation.probationStartedAt,
         last_handoff_output_advances: observation.outputAdvanceCount,
         last_handoff_duration_ms: Date.now() - handoffStartedAt,
-        last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
+        last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE"
+          : exclusiveSessionSweep ? "EXCLUSIVE_SESSION_SWEEP" : "CONCURRENT_WARM" });
       if (handoffMode === "OUTPUT_RESCUE" && !exclusiveRescue
         && relays.get(streamId) === previous && relayIsProgressing(previous))
         previous.lastOutputRescueFailureAt = Date.now();
       if (exclusiveRescue) armRelayRecovery(streamId, replacement || previous);
+      else if (exclusiveSessionSweep)
+        armRelayRecovery(streamId, replacement || previous);
       if (replacement) stopRelay(streamId, replacement, "WARM_HANDOFF_ABORTED");
       cleanupRelayDirectories(streamId, relays.get(streamId), [
-        ...(exclusiveRescue ? [previous.directory] : []), replacement?.directory
+        ...(exclusiveRescue || exclusiveSessionSweep ? [previous.directory] : []),
+        replacement?.directory
       ].filter(Boolean));
       return false;
     }
@@ -2060,7 +2374,8 @@ async function warmReplaceRelay(streamId, previous, {
         ? null : observation.confirmationStartedAt - observation.probationStartedAt,
       last_handoff_output_advances: observation.outputAdvanceCount,
       last_handoff_duration_ms: Date.now() - handoffStartedAt,
-      last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE" : "CONCURRENT_WARM" });
+      last_handoff_path: exclusiveRescue ? "EXCLUSIVE_OUTPUT_RESCUE"
+        : exclusiveSessionSweep ? "EXCLUSIVE_SESSION_SWEEP" : "CONCURRENT_WARM" });
     cleanupRelayDirectories(streamId, replacement, previousDirectories);
     return true;
   })().finally(() => {
@@ -2115,7 +2430,13 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // pools otherwise compete with the browser and local inference runtime.
     "-threads", "1", "-filter_threads", "1",
     ...(hardwareVideo ? hardwareDecodeArgs : []),
-    ...(directRtsp ? rtspInput.args : ["-readrate", "1", "-i", "pipe:0"]),
+    // The private DVR response is already a live source. Applying `-readrate 1`
+    // to that pipe adds an artificial consumer throttle; FFmpeg explicitly
+    // warns that a low readrate on an actual live stream can lose packets. The
+    // Home shadow correlated that throttle with 15-30 s input/HLS freezes and
+    // finite-response retirement. Consume the live response as delivered and
+    // retain its embedded timestamps instead of pacing it a second time.
+    ...(directRtsp ? rtspInput.args : ["-i", "pipe:0"]),
     "-map", "0:v:0",
     "-an",
     ...(copyVideo
@@ -2143,8 +2464,11 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     playlist
   ];
   let startFailure = "SOURCE_OPEN_FAILED";
+  const recovery = relayRecovery.get(streamId);
   const relaySource = source.kind === "private_nvr_http_mp4"
-    ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }) : null;
+    ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }, {
+      previousRelayExitReason: recovery?.previous_relay_exit_reason || null
+    }) : null;
   if (!relaySource && !directRtsp) {
     relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), last_failure_reason: startFailure, last_failure_at: new Date().toISOString() });
     return null;
@@ -2169,7 +2493,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   const startReason = handoffMode === "ROUTINE_FINITE_RESPONSE"
     ? "routineFiniteResponse"
     : handoffMode === "OUTPUT_RESCUE" ? "outputRescue"
-      : handoffMode === "SESSION_SWEEP" ? "sessionSweep"
+      : handoffMode?.startsWith("SESSION_SWEEP") ? "sessionSweep"
         : handoffMode ? "otherHandoff"
           : relayRecovery.has(streamId) ? "recovery" : "initialOrDemand";
   relayLifecycle.startsByReason[startReason] += 1;
@@ -2187,6 +2511,17 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
       relay.nativeInputEnded = true;
       relay.nativeInputEndedAt = Date.now();
       relayLifecycle.nativeInputEnds += 1;
+      if (shouldPrimePrivateNvrSessionForResponseRetirement({
+        sourceKind: source.kind, sourceEnded: true,
+        sustainedMedia: relay.inputBytes > 0 && relayRecoveryIsStable(relay),
+        ownerCurrent: relays.get(streamId) === relay,
+        warming: relay.warming, relayAgeMs: Date.now() - relay.startedAt
+      })) {
+        void refreshPrivateNvrSession(source.sessionKey, relay.sessionToken,
+          "finite_response_body_retired").catch((refreshError) => {
+          reportPrivateNvrMaintenanceFailure("response_retirement_prime", refreshError);
+        });
+      }
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_native_input_end_at: new Date(relay.nativeInputEndedAt).toISOString() });
     }).catch((error) => {
@@ -2194,6 +2529,19 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
       relay.lastInputErrorCode = safeInputCode(error);
       relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
       if (child.exitCode !== null || child.killed) return;
+      if (shouldPrimePrivateNvrSessionForResponseRetirement({
+        sourceKind: source.kind,
+        inputErrorCode: relay.lastInputErrorCode,
+        sustainedMedia: relay.inputBytes > 0 && relayRecoveryIsStable(relay),
+        ownerCurrent: relays.get(streamId) === relay,
+        warming: relay.warming,
+        relayAgeMs: Date.now() - relay.startedAt
+      })) {
+        void refreshPrivateNvrSession(source.sessionKey, relay.sessionToken,
+          "finite_response_socket_retired").catch((refreshError) => {
+          reportPrivateNvrMaintenanceFailure("response_retirement_prime", refreshError);
+        });
+      }
       relay.inputFailed = true;
       relay.drainTimer = setTimeout(() => child.kill("SIGKILL"), 1500);
       relay.drainTimer.unref();
@@ -2219,6 +2567,14 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // failure for that source kind. Direct RTSP retains the stricter signal
     // because lastInputAt follows playlist progress there.
     if (!progressing || directRtsp && inputStale) {
+      // Output silence is not authority to terminate a private DVR response.
+      // The Home recorder has resumed after both soft and hard idle windows;
+      // stopping it here caused a competing response and poisoned the shared
+      // recorder session. Body completion closes stdin naturally and a socket
+      // failure already owns a bounded drain timer. Let child.close preserve
+      // SOURCE_STREAM_ENDED/SOURCE_RESPONSE_RETIRED instead of racing it with
+      // a synthetic STALE_* stop reason. RTSP keeps its existing stale policy.
+      if (!directRtsp) return;
       const outputAt = relayPlaylistMtime(relay);
       const warmingCandidate = relayCandidates.get(streamId);
       const awaitingWarmReplacement = !directRtsp &&
@@ -2257,7 +2613,13 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
       hardwareTranscoder.failed(streamId);
     if (code === 0) relayLifecycle.upstreamEnded += 1;
     else if (code !== null) relayLifecycle.upstreamFailed += 1;
-    const exitReason = classifyRelayExit({ stopReason: relay.stopReason, inputErrorCode: relay.lastInputErrorCode, stderr: relay.errorSummary, code });
+    const exitReason = classifyRelayExit({ stopReason: relay.stopReason,
+      inputErrorCode: relay.lastInputErrorCode, stderr: relay.errorSummary, code,
+      sustainedMedia: relay.inputBytes > 0 && relayRecoveryIsStable(relay),
+      responseRetirementEligible: source.kind === "private_nvr_http_mp4"
+        && relay.inputBytes > 0 && relayRecoveryIsStable(relay) });
+    if (exitReason === "SOURCE_RESPONSE_RETIRED")
+      relayLifecycle.responseRetired += 1;
     relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), exits: (relayDiagnostics.get(streamId)?.exits || 0) + 1,
       last_failure_reason: exitReason, last_failure_at: new Date().toISOString(), last_runtime_ms: Date.now() - relay.startedAt,
       last_exit_code: Number.isInteger(code) ? code : null, session_epoch: relay.sessionEpoch });
@@ -2273,7 +2635,8 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     if (wasCurrent) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
-    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF") armRelayRecovery(streamId, relay);
+    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF")
+      armRelayRecovery(streamId, relay, exitReason);
   });
   return relay;
 }
@@ -2504,15 +2867,27 @@ function hasActivePlaybackLease(streamId) {
   return [...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now());
 }
 
-function scheduleRelayResume(streamId, delayMs) {
+function scheduleRelayResume(streamId, delayMs, relay = null) {
   const resume = setTimeout(() => {
+    // The marker represents one pending timer, not the whole relay lifetime.
+    if (relay) relay.recoveryScheduled = false;
     if (!relayRecoveryShouldResume({ hasPlaybackLease: hasActivePlaybackLease(streamId),
       sourceRegistered: streamSources.has(streamId) })) return;
     const remainingMs = relayRetryDelayMs(relayRecovery.get(streamId));
     // Timer scheduling may wake just before the recorded retry boundary. Do
     // not lose the only automatic recovery attempt because of clock jitter.
-    if (remainingMs > 0) return scheduleRelayResume(streamId, remainingMs);
-    void ensureRelay(streamId).catch(() => undefined);
+    if (remainingMs > 0) return scheduleRelayResume(streamId, remainingMs, relay);
+    void ensureRelay(streamId).then((recovered) => {
+      if (recovered || gatewayShuttingDown || !streamSources.has(streamId)) return;
+      const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
+      relayRecovery.set(streamId, recovery);
+      scheduleRelayResume(streamId, retryMs);
+    }).catch(() => {
+      if (gatewayShuttingDown || !streamSources.has(streamId)) return;
+      const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
+      relayRecovery.set(streamId, recovery);
+      scheduleRelayResume(streamId, retryMs);
+    });
   }, Math.max(1, Number(delayMs || 0) + 10));
   resume.unref();
 }
@@ -2640,22 +3015,27 @@ async function handle(request, response) {
     // `relays` made truthful continuity disappear from health even while
     // playback and the playlist were advancing. Keep canonical ownership and
     // media availability separate by including candidate-only stream IDs.
-    const relayStreamIds = new Set([...relays.keys(), ...relayCandidates.keys()]);
+    const relayStreamIds = new Set([...relays.keys(), ...relayCandidates.keys(),
+      ...relayRecovery.keys()]);
     const relayContinuity = [...relayStreamIds].map(streamId =>
       [streamId, relayMediaContinuity(streamId)]);
     const progressingRelays = relayContinuity.filter(([, state]) => state.progressing).length;
-    const stalledRelays = relayContinuity.filter(([, state]) => !state.progressing).length;
+    const renewingRelays = relayContinuity.filter(([, state]) => state.renewing).length;
+    const stalledRelays = relayContinuity.filter(([, state]) =>
+      !state.progressing && !state.renewing).length;
     const observedAssigned = [...streamSources.values()].filter((source) => source.status !== "unassigned").length;
     const expectedAssigned = Math.max(observedAssigned, Number(lastDiscoverySummary.assignedCount || 0),
       edgeRuntimeIdentity.device_type === "SOFTWARE_CONNECTOR" ? Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 0) : 0);
     const mediaHealth = connectorHeartbeatHealth({ ok: true,
       failedStreamCount: lastDiscoverySummary.failedAssignedCount,
-      mediaHeartbeat: { progressingRelays, stalledRelays } }, expectedAssigned);
+      mediaHeartbeat: { progressingRelays: progressingRelays + renewingRelays,
+        stalledRelays } }, expectedAssigned);
     json(response, 200, {
       contract: "observer-edge-health-v1",
       observed_at: healthObservedAt,
       ok: mediaHealth.status === "HEALTHY",
       status: mediaHealth.status === "DEGRADED" ? "degraded"
+        : renewingRelays > 0 ? "recovering"
         : supervision.state === "HEALTHY" ? "healthy" : supervision.state === "RECOVERING" ? "recovering" : "degraded",
       health_reason_codes: mediaHealth.errorCodes,
       provider: "custom",
@@ -2670,7 +3050,10 @@ async function handle(request, response) {
       recorderSessionHeartbeat: privateNvrHeartbeat.status(),
       recorderSessionLifecycle: { ...privateNvrSessionLifecycle, active_sessions: privateNvrSessions.size,
         sessions: [...privateNvrSessions.values()].map((session) => ({ epoch: session.epoch ?? null,
-          age_ms: Date.now() - session.updatedAt })) },
+          age_ms: Date.now() - session.updatedAt,
+          retired_session_backlog: session.retiredSessions?.length || 0,
+          requires_exclusive_media_handoff:
+            session.requiresExclusiveMediaHandoff === true })) },
       hardwareTranscoding: hardwareTranscoder.status(),
       deviceAuthorization: { status: deviceAuthorizationState === "ready" && deviceAccessExpiresAt <= Date.now() ? "unavailable" : deviceAuthorizationState },
       commandRuntime: privateNvrCommandRuntime ? privateNvrCommandRuntime.status() : privateNvrCommandRuntimeState,
@@ -2684,17 +3067,32 @@ async function handle(request, response) {
         maximumConcurrentProbations: PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
         maximumRoutineProbations: PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
         progressingRelays,
+        renewingRelays,
         stalledRelays,
         inputs: relayContinuity.flatMap(([streamId, continuity]) => {
           const relay = continuity.effective;
           // A finite owner may exit before its candidate has produced enough
           // media to become the effective owner. Keep /health available and
           // report that source as stalled instead of dereferencing no owner.
-          if (!relay) return [];
+          if (!relay) return continuity.renewing ? [{
+            channel: streamSources.get(streamId)?.channel,
+            progressing: false, renewing: true,
+            playback_continuity: true,
+            owner_state: "RENEWING", media_owner_state: "RETAINED_HLS",
+            canonical_owner_progressing: false,
+            candidate_progressing: false,
+            native_input_ended: true,
+            input_codec: ["h264", "hevc", "mjpeg", "mpeg4"]
+              .includes(streamSources.get(streamId)?.codec)
+              ? streamSources.get(streamId).codec : "unknown",
+            output_idle_ms: Number.isFinite(continuity.retainedOutputAt)
+              ? Math.max(0, Date.now() - continuity.retainedOutputAt) : null
+          }] : [];
           const observedAt = Date.now();
           const outputAt = relayPlaylistMtime(relay);
           return [{ channel: streamSources.get(streamId)?.channel,
             progressing: continuity.progressing,
+            renewing: continuity.renewing,
             owner_state: continuity.owner,
             media_owner_state: continuity.mediaOwner,
             canonical_owner_progressing: relayIsProgressing(continuity.current),
@@ -2846,10 +3244,15 @@ async function handle(request, response) {
       const payload = await readJson(request);
       if (SHADOW_MODE) {
         const filter = payload?.metadata?.channel_filter;
+        const ordinaryFilterValid = !SHADOW_ISOLATED && Array.isArray(filter)
+          && filter.length === 1;
+        const isolatedFilterValid = SHADOW_ISOLATED && Array.isArray(filter)
+          && filter.length === SHADOW_ALLOWED_CHANNELS.length
+          && filter.every((channel, index) => channel === SHADOW_ALLOWED_CHANNELS[index]);
         if (payload?.metadata?.shadow_qualification !== true || payload?.metadata?.read_only_requested !== true
-          || !Array.isArray(filter) || filter.length < 1 || filter.length > 2
+          || !(ordinaryFilterValid || isolatedFilterValid)
           || filter.some(channel => !Number.isInteger(channel))) {
-          throw new Error("Shadow qualification requires one or two explicit read-only channels");
+          throw new Error("Shadow qualification requires the exact bounded read-only channels");
         }
       }
       json(response, 200, await dvrConnect(payload));
@@ -2990,3 +3393,42 @@ gatewayServer.listen(PORT, HOST, () => {
     build_sha: edgeRuntimeIdentity.build_sha
   })));
 });
+
+let gatewayShutdownPromise = null;
+async function shutdownGateway(signal) {
+  if (gatewayShutdownPromise) return gatewayShutdownPromise;
+  gatewayShutdownPromise = (async () => {
+    gatewayShuttingDown = true;
+    const serverClosed = new Promise(resolve => gatewayServer.close(resolve));
+    // Stop recorder media before Logout so the DVR never retains a live HTTP
+    // response owned by a session we are retiring. This is the same relay
+    // lifecycle used by ordinary handoff; no camera/source state is changed.
+    for (const [streamId, relay] of [...relays]) {
+      stopRelay(streamId, relay, "SERVICE_SHUTDOWN");
+    }
+    for (const [streamId, candidate] of [...relayCandidates]) {
+      stopRelay(streamId, candidate, "SERVICE_SHUTDOWN");
+    }
+    const relayExitDeadline = Date.now() + 3_000;
+    while ([...liveRelays].some(relayIsRunning) && Date.now() < relayExitDeadline) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    gatewayServer.closeAllConnections?.();
+    const sessions = [...privateNvrSessions.values()].flatMap(session => [
+      ...(session.retiredSessions || []), session
+    ]);
+    await Promise.allSettled(sessions.map(session => privateNvrLogout(session)));
+    await serverClosed;
+    console.log(JSON.stringify({ level: "info", event: "edge_runtime_stopped",
+      signal, recorder_sessions_retired: sessions.length }));
+  })();
+  return gatewayShutdownPromise;
+}
+
+for (const signal of ["SIGTERM", "SIGINT"]) {
+  process.once(signal, () => {
+    const forcedExit = setTimeout(() => process.exit(1), 8_000);
+    forcedExit.unref();
+    void shutdownGateway(signal).then(() => process.exit(0), () => process.exit(1));
+  });
+}

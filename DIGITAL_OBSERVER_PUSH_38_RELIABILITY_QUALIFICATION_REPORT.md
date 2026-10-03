@@ -4,7 +4,39 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — POST-REMEDIATION CANARY FAILED; FOLLOW-UP FIX VALIDATED; V8 NOT READY`
+`NOT DONE — RELAY/SESSION REMEDIATION VALIDATED; SIGNED LIVE SUCCESSOR PENDING; V8 NOT READY`
+
+## 2026-10-03 RELAY/SESSION REMEDIATION UPDATE
+
+The failed 60-minute pre-soak remains immutable evidence. Three controlled
+single-channel real-DVR Shadow runs isolated the failure sequence without
+changing Product identity or camera configuration. Removing FFmpeg's artificial
+`-readrate 1` from the already-live DVR response eliminated one source of
+15–30-second input/HLS freezes, but a finite recorder response still produced a
+renewal gap. The final candidate moves the evidence-gated shared-session renewal
+to the measured two-minute boundary, serializes one exclusive per-channel epoch
+sweep through the existing handoff machinery, keeps one relay owner, drains and
+logs out retired sessions, and preserves the existing retry/backoff contract.
+
+The final real-DVR Shadow ran for 901,263 ms across 60 checkpoints. It completed
+seven session rotations and seven handoffs with zero playback failures, zero
+handoff failures, zero stale input/playlist events, zero socket errors, zero
+recovery starts, zero retired-session backlog, and zero measured HLS stagnation.
+The exact signed live release was restored after the isolated run. The candidate
+also fixes the separately observed undefined-owner cleanup crash that caused the
+signed 0.2.67 successor to enter the OTA crash guard.
+
+All six local CI gates pass on the current candidate: TypeScript, canonical
+lint, Production-compatible build, domain 30/30, security/isolation 34/34,
+migration health, and release contract. High/Critical dependency findings are
+zero; the upstream `braces` depth-limit fix is pinned as a reviewed local
+backport with deterministic QA while no patched registry release is available.
+The machine-readable evidence index is
+`DIGITAL_OBSERVER_PUSH_38_RELAY_HANDOFF_REMEDIATION_EVIDENCE.json`.
+
+This is not yet a live reliability PASS. The next gate is an exact-device
+AWS-signed successor containing the complete fix, followed by a new 15-minute
+canary and a new 60-minute pre-soak. V8 remains not started.
 
 ## 2026-10-02 RELAY/HANDOFF CLOSURE UPDATE
 

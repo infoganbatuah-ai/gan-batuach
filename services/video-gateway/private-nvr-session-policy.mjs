@@ -9,14 +9,19 @@ export function reuseMatchingPrivateNvrSession(existing, input) {
 export const PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES = 3;
 export const PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES = 2;
 // The signed 0.2.66 Home Shadow measured the second productive response stop
-// at 237.446 seconds of relay age. Starting renewal at four minutes therefore
-// left no time for the ten-second maintenance cadence, the bounded Login
-// exchange, and first replacement output. Renew at 3.5 minutes instead. The
-// resulting 27-second conservative margin is larger than the measured control
-// path and preserves the unchanged media-continuity proof; it does not relax a
-// freshness or health threshold.
+// at 237.446 seconds of relay age. The live 0.2.67 pre-soak then proved that a
+// new login can keep per-channel replacement requests open without media until
+// the prior response closes. A complete nine-source serialized sweep therefore
+// needs ten bounded acquisition slots: one concurrent observation, one reuse
+// after releasing that owner, and eight direct exclusive replacements. Start
+// renewal at two minutes so the measured response horizon leaves 117 seconds:
+// 90 seconds for those slots plus 10 seconds for scheduler/Login jitter, with a
+// final 17-second evidence margin. This changes lifecycle scheduling only; it
+// does not relax freshness, health, or handoff-confirmation requirements.
 export const PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS = 237_000;
-export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 3.5 * 60 * 1000;
+export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 2 * 60 * 1000;
+export const PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS = 90_000;
+export const PRIVATE_NVR_SESSION_SWEEP_CONTROL_MARGIN_MS = 10_000;
 // Retain the historical two-minute cadence as a measured scheduling datum.
 // It is no longer, by itself, authority to replace a healthy relay (see the
 // evidence-bound switch immediately below).
@@ -56,6 +61,12 @@ export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
 export const PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS = 3_000;
 export const PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS = 4_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
+// A socket close is only the recorder's measured finite-response boundary
+// after the response has carried sustained media. Prime the next login at that
+// exact boundary so the recovery relay does not have to fail once on the
+// already-retired token before it can reopen. Early socket loss remains an
+// ordinary transport failure and never rotates recorder authentication.
+export const PRIVATE_NVR_RESPONSE_RETIREMENT_PRIME_MINIMUM_MS = 60_000;
 // A private-recorder response can stop delivering bytes even though the login
 // remains valid.  A replacement response is therefore allowed to probe that
 // condition before the hard-stale boundary.  The replacement is promoted only
@@ -260,8 +271,38 @@ export function comparePrivateNvrHandoffPriority(left, right) {
 // drains this bounded set without inserting another scheduler-tick delay
 // between channels.
 export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
-  currentEpoch }) {
-  return Boolean(Number.isInteger(relayEpoch) && Number.isInteger(currentEpoch)
+  currentEpoch, relayProgressing = false, preserveRelayEpochsThrough = null }) {
+  const preservedProgressingOwner = relayProgressing
+    && Number.isInteger(preserveRelayEpochsThrough)
+    && Number.isInteger(relayEpoch)
+    && relayEpoch <= preserveRelayEpochsThrough;
+  return Boolean(!preservedProgressingOwner
+    && Number.isInteger(relayEpoch) && Number.isInteger(currentEpoch)
+    && relayEpoch < currentEpoch);
+}
+
+// The owned Home recorder proved a one-productive-response boundary per
+// channel during proactive login renewal: a candidate request can stay open
+// without media until the prior response is released. After that behavior is
+// observed once, later stale-epoch channels use a serialized exclusive sweep
+// instead of spending the recorder's finite prior-login overlap on candidates
+// that cannot publish. This remains limited to a newer authenticated session;
+// it is never authority to replace a current-epoch owner.
+export function shouldUsePrivateNvrExclusiveSessionSweep({
+  handoffMode, sourceKind, exclusiveBoundaryObserved = false,
+  ownerRunning, ownerCurrent, candidateRunning = false,
+  candidateConfirmed = false, candidateAcquisitionFailed = false,
+  candidateFailure = null, ownerProgressing = false, relayEpoch, currentEpoch
+}) {
+  const recorderWithheldCandidate = candidateRunning && !candidateConfirmed;
+  const recorderRejectedConcurrentAcquisition = candidateAcquisitionFailed
+    && candidateFailure === "source_timeout" && ownerProgressing;
+  return Boolean(["SESSION_SWEEP", "SESSION_SWEEP_EXCLUSIVE"].includes(handoffMode)
+    && sourceKind === "private_nvr_http_mp4"
+    && (exclusiveBoundaryObserved || recorderWithheldCandidate
+      || recorderRejectedConcurrentAcquisition)
+    && ownerRunning && ownerCurrent
+    && Number.isInteger(relayEpoch) && Number.isInteger(currentEpoch)
     && relayEpoch < currentEpoch);
 }
 
@@ -284,15 +325,19 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   const ageMs = now - relay.startedAt;
   const outputIdleMs = Number.isFinite(relay.lastOutputAt)
     ? now - relay.lastOutputAt : Number.POSITIVE_INFINITY;
-  const relayStaleMs = Number.isFinite(relay.relayStaleMs) && relay.relayStaleMs > 0
-    ? relay.relayStaleMs : 20_000;
   const finiteResponseEnded = relay.nativeInputEnded === true
     && outputIdleMs >= PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS;
-  const continuityAtRisk = outputIdleMs >= PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS;
-  const hardStale = outputIdleMs >= relayStaleMs;
+  // Neither rendered-output idle nor joint input/output idle proves this
+  // recorder's response retired: the real Home recorder resumed after both,
+  // and a soft-idle probe later contaminated an otherwise healthy response.
+  // Only an observed body end may start replacement. The real Home recorder
+  // resumed after both soft and hard output-idle boundaries, and probing at
+  // either boundary contaminated the still-authoritative response. The body
+  // or socket termination drives the existing recovery path; retained HLS
+  // covers the bounded reopen gap.
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && Number.isFinite(relay.lastOutputAt)
-    && (finiteResponseEnded || continuityAtRisk || hardStale);
+    && finiteResponseEnded;
   // Rendered-output loss is more urgent than the age-based finite-response
   // sweep. This also gives a genuinely stale older relay the separately
   // measured rescue acquisition budget instead of misclassifying it as a
@@ -304,6 +349,34 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
     return "ROUTINE_FINITE_RESPONSE";
   }
   return null;
+}
+
+export function shouldPrimePrivateNvrSessionForResponseRetirement({
+  sourceKind, inputErrorCode = null, sourceEnded = false,
+  sustainedMedia = false, ownerCurrent = false,
+  warming = false, relayAgeMs = 0,
+  minimumAgeMs = PRIVATE_NVR_RESPONSE_RETIREMENT_PRIME_MINIMUM_MS
+} = {}) {
+  return Boolean(sourceKind === "private_nvr_http_mp4"
+    && (sourceEnded || inputErrorCode === "UND_ERR_SOCKET")
+    && sustainedMedia && ownerCurrent && !warming
+    && Number.isFinite(relayAgeMs) && Number.isFinite(minimumAgeMs)
+    && minimumAgeMs > 0 && relayAgeMs >= minimumAgeMs);
+}
+
+// Playback, AI, learning, and health all converge on ensureRelay. None may
+// turn a bursty recorder pause into an independent relay lifecycle. Keep the
+// canonical owner while the actual response remains open and the recorder
+// heartbeat is healthy. A body/socket boundary or corroborated heartbeat loss
+// releases this guard and reuses the normal bounded recovery path.
+export function shouldRetainPrivateNvrOwnerOnDemand({ sourceKind,
+  ownerRunning = false, belongsToCurrentSession = false,
+  nativeInputEnded = false, inputFailed = false,
+  heartbeatConsecutiveFailures = 0 } = {}) {
+  return Boolean(sourceKind === "private_nvr_http_mp4" && ownerRunning
+    && belongsToCurrentSession && !nativeInputEnded && !inputFailed
+    && Number(heartbeatConsecutiveFailures || 0)
+      < PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
 }
 
 export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
@@ -467,31 +540,66 @@ export function shouldDeferPrivateNvrStaleOwnerTeardown({ handoffInFlight,
     relayStaleMs > 0 && now - currentOutputAt < relayStaleMs + requestGraceMs;
 }
 
-// Login/Heartbeat is the recorder's supported session-maintenance contract,
-// but the owned Home recorder also proved a hard five-minute login lifetime:
-// heartbeat stayed successful until the token expired and the productive
-// media response then closed. Waiting for zero progressing relays created a
-// repeatable playback gap before the reactive login could run. For a recorder
-// that explicitly permits non-exclusive logins, renew at the measured
-// four-minute boundary only after heartbeat success and while the current
-// relays are still progressing. The existing stale-epoch SESSION_SWEEP then
-// moves those owners one-at-a-time onto the fresh login; this is distinct from
-// the disabled age-only relay churn. An already-idle session still requires
-// corroborated heartbeat loss before renewal.
+// Login/Heartbeat is the recorder's supported session-maintenance contract.
+// The earlier nine-source proof failed because it first opened concurrent
+// same-channel responses and learned the recorder's one-productive-response
+// boundary only after several acquisition windows. The unthrottled Home-DVR
+// proof then exposed the complementary truth: a healthy response can pause
+// rendered media near its finite boundary before the socket closes, so waiting
+// for body/socket retirement creates a real HLS gap. Once Range proves
+// non-exclusive logins, renew the shared login at the measured two-minute
+// deadline and drain the prior epoch through the already-bounded *exclusive*
+// session sweep. This is not generic per-relay age churn: one login rotation
+// owns one serialized sweep, and another rotation is blocked until every prior
+// epoch relay and retired login is settled. Repeated heartbeat loss while all
+// media is idle retains the same bounded recovery authority.
 export function shouldProactivelyRefreshPrivateNvrSession(session, evidence = {},
   now = Date.now()) {
   const activeProgressingRelays = Number(evidence.activeProgressingRelays || 0);
   const heartbeatConsecutiveFailures = Number(evidence.heartbeatConsecutiveFailures || 0);
-  const heartbeatResponsesOk = Number(evidence.heartbeatResponsesOk || 0);
-  const boundedActiveSweep = activeProgressingRelays > 0
-    && heartbeatConsecutiveFailures === 0 && heartbeatResponsesOk > 0;
+  const pendingRetiredSessions = Number(evidence.pendingRetiredSessions || 0);
+  const staleEpochRelays = Number(evidence.staleEpochRelays || 0);
+  const activeHandoffs = Number(evidence.activeHandoffs || 0);
+  const recoveryBacklog = Number(evidence.recoveryBacklog || 0);
+  const priorEpochSettled = pendingRetiredSessions === 0
+    && staleEpochRelays === 0 && activeHandoffs === 0 && recoveryBacklog === 0;
   const corroboratedIdleExpiry = activeProgressingRelays === 0
-    && heartbeatConsecutiveFailures >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES;
+    && heartbeatConsecutiveFailures >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES
+    && priorEpochSettled;
+  const measuredActiveFiniteBoundary = activeProgressingRelays > 0
+    && heartbeatConsecutiveFailures === 0
+    && Number(evidence.heartbeatResponsesOk || 0) > 0
+    && priorEpochSettled;
   return Boolean(session?.loginExclusivity === false
     && !session.refreshPromise
     && Number.isFinite(session.updatedAt)
     && now - session.updatedAt >= PRIVATE_NVR_PROACTIVE_RENEWAL_MS
-    && (boundedActiveSweep || corroboratedIdleExpiry));
+    && (measuredActiveFiniteBoundary || corroboratedIdleExpiry));
+}
+
+// The recorder web contract exposes Logout for retiring an authenticated
+// session. Close a superseded login only after every canonical and candidate
+// media process has left that epoch; otherwise Logout could invalidate a
+// replacement still proving continuity.
+export function privateNvrRetiredSessionReady({ retiredEpoch,
+  activeRelayEpochs = [] }) {
+  if (!Number.isInteger(retiredEpoch)) return false;
+  return !activeRelayEpochs.some(epoch =>
+    Number.isInteger(epoch) && epoch <= retiredEpoch);
+}
+
+// The recorder returns HTTP 400 with error_code "logout" or "expired" when a
+// token is already unusable. Bounded read-only live probes verified both: the
+// first after repeated Logout, the second after finite-response lazy session
+// migration. Either means the old session is retired; arbitrary 400s remain
+// failures and continue to block another login.
+export function privateNvrLogoutResponseRetired({ httpStatus, result = null,
+  errorCode = null }) {
+  const status = Number(httpStatus || 0);
+  if (status === 401 || status === 403) return true;
+  if (status === 400 && ["logout", "expired"].includes(errorCode)) return true;
+  return status >= 200 && status < 300
+    && !["failed", "error"].includes(String(result || "").toLowerCase());
 }
 
 // A proactive non-exclusive renewal is not evidence that an established HTTP
@@ -508,15 +616,19 @@ export function relayMaySurvivePrivateNvrRenewal({ sameToken, sameSessionKey,
     && relayEpoch <= preserveRelayEpochsThrough);
 }
 
-// Ordinary transport, finite native-stream, and camera-specific non-media
-// responses must not rotate a recorder login shared by every channel. A
-// bounded replacement is allowed only when the recorder heartbeat and more
-// than one channel independently prove the same session is no longer usable.
-// refreshPrivateNvrSession serializes that replacement, so eight failed
-// channels still produce one login rather than a session-invalidating storm.
+// Ordinary transport and camera-specific non-media responses must not rotate
+// a recorder login shared by every channel. The owned recorder additionally
+// proved a finite-response contract: after ffmpeg successfully consumes one
+// response, the recorder rejects reopening that exact channel on the same
+// login as non-media. That exact two-step proof authorizes one serialized
+// non-exclusive login while existing progressing owners remain untouched and
+// migrate lazily as their own responses end. Otherwise a bounded replacement
+// is allowed only when heartbeat plus multiple channels prove common expiry.
 export function shouldRefreshPrivateNvrSession(failure, evidence = {}) {
   if (failure === "authentication_rejected") return true;
   if (failure !== "source_not_media") return false;
+  if (["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+    .includes(evidence.previousRelayExitReason)) return true;
   return Number(evidence.heartbeatConsecutiveFailures || 0) >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES
     && Number(evidence.commonCauseSourceFailures || 0) >= PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES;
 }

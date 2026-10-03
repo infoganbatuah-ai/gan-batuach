@@ -12,7 +12,8 @@ import { PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
-  classifyContinuousSessionRenewal, evaluateHlsRenewalContinuity
+  classifyContinuousSessionRenewal, evaluateHlsRenewalContinuity,
+  evaluateShadowMeasurementReadiness
 } from "./push38-shadow-qualification-policy.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -20,6 +21,8 @@ const requestedEndpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
 const requestedChannels = String(process.env.DVR_SHADOW_CHANNELS ||
   process.env.DVR_SHADOW_CHANNEL || "1").split(",").map(value => Number(value.trim()));
 const channels = [...new Set(requestedChannels)];
+const isolatedMultiChannel = process.env.DVR_SHADOW_ISOLATED === "1";
+const homeSourceAvailableChannels = [1, 2, 3, 4, 5, 6, 7, 10, 11];
 const channel = channels[0];
 const durationMs = Number(process.env.DVR_SHADOW_DURATION_MS || 30 * 60_000);
 const intervalMs = Number(process.env.DVR_SHADOW_INTERVAL_MS || 30_000);
@@ -36,9 +39,13 @@ const expectReactiveOnly = process.env.DVR_SHADOW_EXPECT_REACTIVE_ONLY === "1";
 const requestedTransport = String(process.env.DVR_SHADOW_TRANSPORT || "native_http_mp4").trim();
 if (!["native_http_mp4", "private_rtsp"].includes(requestedTransport))
   throw new Error("DVR_SHADOW_TRANSPORT is invalid");
-if (channels.length < 1 || channels.length > 2 ||
+if (channels.length < 1 || channels.length > (isolatedMultiChannel ? 9 : 2) ||
   channels.some(value => !Number.isInteger(value) || value < 1 || value > 64))
-  throw new Error("DVR_SHADOW_CHANNELS must contain one or two valid channels");
+  throw new Error("DVR_SHADOW_CHANNELS exceeds the bounded qualification scope");
+if (channels.length > 2 && (!isolatedMultiChannel ||
+  channels.length !== homeSourceAvailableChannels.length ||
+  channels.some((value, index) => value !== homeSourceAvailableChannels[index])))
+  throw new Error("DVR_SHADOW_ISOLATED requires the exact nine source-available Home channels");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("DVR_SHADOW_PORT is invalid");
@@ -130,11 +137,14 @@ const qualificationProfile = {
 const hlsRoot = mkdtempSync(join(tmpdir(), "observer-p38-dvr-shadow-"));
 const base = `http://127.0.0.1:${port}`;
 const shadowSecret = randomBytes(32).toString("base64url");
-const startedAt = Date.now();
+const processStartedAt = Date.now();
+let measurementStartedAt = processStartedAt;
 const evidence = {
   contract: "observer-push38-bounded-dvr-shadow-v1",
-  started_at: new Date(startedAt).toISOString(),
-  mode: channels.length === 1 ? "READ_ONLY_ONE_CHANNEL_SHADOW" : "READ_ONLY_TWO_CHANNEL_SHADOW",
+  started_at: new Date(processStartedAt).toISOString(),
+  mode: channels.length === 1 ? "READ_ONLY_ONE_CHANNEL_SHADOW"
+    : channels.length === 2 ? "READ_ONLY_TWO_CHANNEL_SHADOW"
+      : "READ_ONLY_ISOLATED_NINE_CHANNEL_SHADOW",
   transport: requestedTransport,
   channel,
   channels,
@@ -143,6 +153,7 @@ const evidence = {
   cloud_access_enabled: false,
   runtime_mutation: false,
   runtime_source: runtimeSource.sourceClass,
+  discovery_attempts: [],
   signed_release: runtimeSource.signedRelease,
   expected_relay_policy: expectReactiveOnly ? "REACTIVE_OUTPUT_RESCUE_ONLY" : "HANDOFF_REQUIRED",
   playback_every_checkpoint: playbackEveryCheckpoint,
@@ -151,14 +162,24 @@ const evidence = {
 let child;
 
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
-async function jsonFetch(url, options) {
-  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(20_000) });
+async function jsonFetch(url, options = {}) {
+  const { timeoutMs = 20_000, ...requestOptions } = options;
+  const response = await fetch(url, { ...requestOptions,
+    signal: AbortSignal.timeout(timeoutMs) });
   const data = await response.json().catch(() => null);
   return { status: response.status, data };
 }
 async function waitForServer() {
-  const deadline = Date.now() + 20_000;
+  // The nine-source isolated proof runs immediately after a five-minute DVR
+  // session drain and performs the full local readiness warm-up on a host that
+  // is also restoring protected Edge state. The single-source path normally
+  // listens inside twenty seconds; give the exact isolated nine-source mode a
+  // bounded ninety-second startup window without weakening measurement
+  // readiness or extending any relay/health threshold.
+  const deadline = Date.now() + (isolatedMultiChannel ? 90_000 : 20_000);
   while (Date.now() < deadline) {
+    if (child?.exitCode !== null)
+      throw new Error("Shadow Gateway exited before startup");
     const result = await jsonFetch(`${base}/health/live`).catch(() => null);
     if (result?.status === 200) return;
     await sleep(250);
@@ -214,6 +235,7 @@ async function health(url) {
       candidate_handoffs: body.mediaHeartbeat.candidateHandoffs ?? 0,
       provisional_handoffs: body.mediaHeartbeat.provisionalHandoffs ?? 0,
       progressing: body.mediaHeartbeat.progressingRelays,
+      renewing: body.mediaHeartbeat.renewingRelays ?? 0,
       stalled: body.mediaHeartbeat.stalledRelays,
       lifecycle: body.mediaHeartbeat.lifecycle,
       source_diagnostics: Array.isArray(body.mediaHeartbeat.source_diagnostics)
@@ -241,6 +263,8 @@ async function health(url) {
         bytes: input.bytes ?? input.input_bytes,
         chunks: input.chunks ?? input.input_chunks,
           progressing: input.progressing,
+          renewing: input.renewing ?? false,
+          playback_continuity: input.playback_continuity ?? false,
           owner_state: input.owner_state ?? null,
           media_owner_state: input.media_owner_state ?? null,
           canonical_owner_progressing: input.canonical_owner_progressing ?? null,
@@ -254,11 +278,25 @@ async function health(url) {
     recorder_session: body.recorderSessionLifecycle ? {
       login_attempts: body.recorderSessionLifecycle.login_attempts,
       login_succeeded: body.recorderSessionLifecycle.login_succeeded,
+      last_login_status: body.recorderSessionLifecycle.last_login_status,
+      last_login_error_code: body.recorderSessionLifecycle.last_login_error_code,
+      last_login_at: body.recorderSessionLifecycle.last_login_at,
+      last_login_range_status: body.recorderSessionLifecycle.last_login_range_status,
       rotations: body.recorderSessionLifecycle.rotations,
       proactive_attempts: body.recorderSessionLifecycle.proactive_attempts,
       proactive_succeeded: body.recorderSessionLifecycle.proactive_succeeded,
+      logout_attempts: body.recorderSessionLifecycle.logout_attempts,
+      logout_succeeded: body.recorderSessionLifecycle.logout_succeeded,
+      logout_failed: body.recorderSessionLifecycle.logout_failed,
+      last_logout_status: body.recorderSessionLifecycle.last_logout_status,
+      last_logout_result: body.recorderSessionLifecycle.last_logout_result,
+      last_logout_error_code: body.recorderSessionLifecycle.last_logout_error_code,
+      last_logout_at: body.recorderSessionLifecycle.last_logout_at,
       last_rotation_reason: body.recorderSessionLifecycle.last_rotation_reason,
-      active_sessions: body.recorderSessionLifecycle.active_sessions
+      active_sessions: body.recorderSessionLifecycle.active_sessions,
+      retired_session_backlog: Array.isArray(body.recorderSessionLifecycle.sessions)
+        ? body.recorderSessionLifecycle.sessions.reduce((total, session) =>
+          total + Number(session.retired_session_backlog || 0), 0) : 0
     } : null
   };
 }
@@ -273,16 +311,56 @@ async function waitForSettledHandoff() {
     const candidates = Number(last.media?.candidate_handoffs || 0);
     const provisionals = Number(last.media?.provisional_handoffs || 0);
     const progressing = Number(last.media?.progressing || 0);
+    const rotations = Number(last.recorder_session?.rotations || 0);
+    const logoutSucceeded = Number(last.recorder_session?.logout_succeeded || 0);
+    const retiredBacklog = Number(last.recorder_session?.retired_session_backlog || 0);
     samples.push({ observed_at: new Date().toISOString(), candidates, provisionals,
-      progressing, http: last.http });
+      progressing, rotations, logout_succeeded: logoutSucceeded,
+      retired_session_backlog: retiredBacklog, http: last.http });
     consecutiveSettled = last.http === 200 && candidates === 0 && provisionals === 0
-      && progressing === channels.length ? consecutiveSettled + 1 : 0;
+      && progressing === channels.length && retiredBacklog === 0
+      && logoutSucceeded === rotations ? consecutiveSettled + 1 : 0;
     if (consecutiveSettled >= 2) return { settled: true, elapsed_ms: Date.now() - startedAt,
       maximum_wait_ms: maximumWaitMs, samples, health: last };
     await sleep(250);
   }
   return { settled: false, elapsed_ms: Date.now() - startedAt,
     maximum_wait_ms: maximumWaitMs, samples, health: last };
+}
+async function waitForMeasurementReadiness(selected) {
+  const startedAt = Date.now();
+  const maximumWaitMs = 120_000;
+  const minimumStableMs = 30_000;
+  const sampleIntervalMs = 1_000;
+  let stableSamples = [];
+  const resetReasons = new Set([
+    "COMPONENT_NOT_STABLE", "CHANNEL_SET_MISMATCH", "INVALID_RENEWAL",
+    "SEQUENCE_REGRESSION", "ADVANCE_WITHOUT_NEW_SEGMENT",
+    "SAME_SEQUENCE_DIFFERENT_SEGMENT", "PLAYLIST_FRESHNESS_EXCEEDED"
+  ]);
+  while (Date.now() - startedAt <= maximumWaitMs) {
+    const sample = {
+      observed_at: new Date().toISOString(),
+      renewals: await Promise.all(selected.map(async item => ({
+        channel: item.channel,
+        playback: await playback(item.stream_id)
+      }))),
+      shadow: await health(`${base}/health`)
+    };
+    stableSamples.push(sample);
+    const readiness = evaluateShadowMeasurementReadiness(stableSamples, {
+      expectedProgressing: channels.length,
+      minimumStableMs
+    });
+    if (readiness.pass) return { ...readiness, elapsed_ms: Date.now() - startedAt,
+      maximum_wait_ms: maximumWaitMs, minimum_stable_ms: minimumStableMs,
+      samples: stableSamples };
+    if (resetReasons.has(readiness.reason)) stableSamples = [sample];
+    await sleep(sampleIntervalMs);
+  }
+  return { pass: false, reason: "MEASUREMENT_READINESS_TIMEOUT",
+    elapsed_ms: Date.now() - startedAt, maximum_wait_ms: maximumWaitMs,
+    minimum_stable_ms: minimumStableMs, samples: stableSamples };
 }
 function persist() {
   mkdirSync(dirname(outputPath), { recursive: true, mode: 0o700 });
@@ -314,6 +392,14 @@ async function stopChild() {
   }
 }
 
+if (channels.length > 2) {
+  const liveGateway = await fetch("http://127.0.0.1:18082/health/live", {
+    signal: AbortSignal.timeout(2_000)
+  }).catch(() => null);
+  if (liveGateway?.ok)
+    throw new Error("DVR_SHADOW_ISOLATED_LIVE_GATEWAY_MUST_BE_STOPPED");
+}
+
 try {
   child = spawn(process.execPath, [join(runtimeSource.root, "services/video-gateway/server.mjs")], {
     cwd: runtimeSource.root,
@@ -324,6 +410,8 @@ try {
       HOST: "127.0.0.1",
       VIDEO_GATEWAY_PORT: String(port),
       VIDEO_GATEWAY_SHADOW_MODE: "1",
+      VIDEO_GATEWAY_SHADOW_ISOLATED: isolatedMultiChannel ? "1" : "0",
+      VIDEO_GATEWAY_SHADOW_ALLOWED_CHANNELS: channels.join(","),
       VIDEO_GATEWAY_SHADOW_HLS_ROOT: hlsRoot,
       VIDEO_GATEWAY_SIGNING_SECRET: shadowSecret,
       DVR_EXPECTED_CHANNEL_COUNT: String(qualificationProfile.metadata.expected_channel_count)
@@ -331,15 +419,34 @@ try {
     stdio: ["ignore", "ignore", "ignore"]
   });
   await waitForServer();
-  const discovery = await jsonFetch(`${base}/dvr/connect`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-video-gateway-secret": shadowSecret },
-    body: JSON.stringify(qualificationProfile)
-  });
-  const selected = channels.map(selectedChannel =>
-    discovery.data?.channels?.find((item) => item.channel === selectedChannel));
+  let discovery = null;
+  let selected = [];
+  // The owned recorder occasionally rejects the first read-only discovery
+  // immediately after a prior login drains. The installed runner already
+  // retries this startup boundary. Mirror that bounded contract in Shadow,
+  // while preserving every attempt so a later success cannot hide churn.
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    discovery = await jsonFetch(`${base}/dvr/connect`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-video-gateway-secret": shadowSecret },
+      body: JSON.stringify(qualificationProfile),
+      timeoutMs: isolatedMultiChannel ? 120_000 : 20_000
+    });
+    selected = channels.map(selectedChannel =>
+      discovery.data?.channels?.find((item) => item.channel === selectedChannel));
+    evidence.discovery_attempts.push({ attempt, observed_at: new Date().toISOString(),
+      http_status: discovery.status,
+      selected: selected.map((item, index) => ({ channel: channels[index],
+        status: item?.status || "missing", reason: item?.reason || "no_reason",
+        template: item?.template || null })) });
+    if (discovery.status === 200 && selected.every(item => item?.status === "connected"
+      && item.stream_id && (requestedTransport !== "native_http_mp4"
+        || item.template === "er_private_http_mp4"))) break;
+    if (attempt < 3) await sleep(5_000);
+  }
   if (discovery.status !== 200 || selected.some(item =>
-    item?.status !== "connected" || !item.stream_id)) {
+    item?.status !== "connected" || !item.stream_id ||
+    requestedTransport === "native_http_mp4" && item.template !== "er_private_http_mp4")) {
     const summary = selected.map((item, index) => ({ channel: channels[index],
       status: item?.status || "missing", reason: item?.reason || "no_reason" }));
     throw new Error(`Selected Shadow channels did not connect: HTTP ${discovery.status}, ${JSON.stringify(summary)}`);
@@ -351,20 +458,27 @@ try {
     width: selected[0].width,
     height: selected[0].height,
     selected_channels: selected.map(item => ({ channel: item.channel,
-      status: item.status, codec: item.codec, width: item.width, height: item.height })),
+      status: item.status, template: item.template, codec: item.codec,
+      width: item.width, height: item.height })),
     total_slots: discovery.data.channel_count,
     assigned: discovery.data.channel_count - discovery.data.unassigned_channel_count,
     unassigned: discovery.data.unassigned_channel_count
   };
+  evidence.measurement_readiness = await waitForMeasurementReadiness(selected);
+  if (!evidence.measurement_readiness.pass)
+    throw new Error(`Shadow measurement readiness failed: ${evidence.measurement_readiness.reason}`);
+  measurementStartedAt = Date.now();
+  evidence.measurement_started_at = new Date(measurementStartedAt).toISOString();
+  persist();
   let sequence = 0;
-  while (Date.now() - startedAt < durationMs) {
+  while (Date.now() - measurementStartedAt < durationMs) {
     const renewals = playbackEveryCheckpoint || sequence % 2 === 0
       ? await Promise.all(selected.map(async item => ({ channel: item.channel,
         playback: await playback(item.stream_id) }))) : [];
     const point = {
       sequence: ++sequence,
       observed_at: new Date().toISOString(),
-      elapsed_ms: Date.now() - startedAt,
+      elapsed_ms: Date.now() - measurementStartedAt,
       renewal: renewals[0]?.playback ?? null,
       renewals,
       shadow: await health(`${base}/health`),
@@ -376,7 +490,7 @@ try {
     await sleep(intervalMs);
   }
   evidence.measurement_ended_at = new Date().toISOString();
-  evidence.duration_ms = Date.now() - startedAt;
+  evidence.duration_ms = Date.now() - measurementStartedAt;
   evidence.pre_validation_settling = await waitForSettledHandoff();
   const finalRenewals = playbackEveryCheckpoint
     ? await Promise.all(selected.map(async item => ({ channel: item.channel,
@@ -386,14 +500,14 @@ try {
   evidence.final_verification = {
     sequence: evidence.checkpoints.length + 1,
     observed_at: new Date().toISOString(),
-    elapsed_ms: Date.now() - startedAt,
+    elapsed_ms: Date.now() - measurementStartedAt,
     renewal: finalRenewals[0]?.playback ?? null,
     renewals: finalRenewals,
     shadow: evidence.final_health,
     terminal_verification: true
   };
   evidence.ended_at = new Date().toISOString();
-  evidence.total_duration_ms = Date.now() - startedAt;
+  evidence.total_duration_ms = Date.now() - processStartedAt;
   const finalPoint = { shadow: evidence.final_health };
   const qualificationCheckpoints = [...evidence.checkpoints, evidence.final_verification];
   const lifecycle = evidence.final_health?.media?.lifecycle || {};
@@ -412,9 +526,6 @@ try {
     qualificationCheckpoints, lifecycle, { expectedProgressing: channels.length });
   const ownerRecoveryClassification = classifyContainedOwnerRecovery(
     qualificationCheckpoints, { expectedProgressing: channels.length });
-  const sessionRenewalClassification = classifyContinuousSessionRenewal(
-    qualificationCheckpoints, lifecycle, finalPoint?.shadow.recorder_session || {},
-    { expectedProgressing: channels.length });
   const hlsContinuityByChannel = playbackEveryCheckpoint ? channels.map(selectedChannel => ({
     channel: selectedChannel,
     ...evaluateHlsRenewalContinuity(qualificationCheckpoints.map(point => ({
@@ -427,12 +538,17 @@ try {
       channels: hlsContinuityByChannel,
       reason: hlsContinuityByChannel.find(value => !value.pass)?.reason ?? null }
     : { pass: true, reason: null };
+  const sessionRenewalClassification = classifyContinuousSessionRenewal(
+    qualificationCheckpoints, lifecycle, finalPoint?.shadow.recorder_session || {},
+    { expectedProgressing: channels.length });
   const maximumBoundedRoutineFailures = Math.max(1,
     Math.ceil(evidence.duration_ms / PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS));
   if (!evidence.checkpoints.every((point) => point.shadow.http === 200
     && point.shadow.discovery?.assigned === channels.length
     && point.shadow.discovery?.connected === channels.length
-    && point.shadow.media?.progressing === channels.length)) failures.push("SHADOW_PROGRESSION");
+    && Number(point.shadow.media?.progressing || 0)
+      + Number(point.shadow.media?.renewing || 0) === channels.length
+    && Number(point.shadow.media?.stalled || 0) === 0)) failures.push("SHADOW_PROGRESSION");
   if (playbackFailures > 0) failures.push("PLAYBACK_CONTINUITY");
   if (outputRescueFailures > 0 && !outputRescueClassification.pass)
     failures.push("OUTPUT_RESCUE_FAILURE");
@@ -457,8 +573,10 @@ try {
   if ((lifecycle.stalePlaylist || 0) > 0) failures.push("STALE_PLAYLIST");
   if ((lifecycle.staleInput || 0) > 0) failures.push("STALE_INPUT");
   if ((lifecycle.staleOnRequest || 0) > 0) failures.push("STALE_ON_REQUEST");
-  if ((lifecycle.inputSocketError || 0) > 0) failures.push("INPUT_SOCKET");
-  if ((lifecycle.startsByReason?.recovery || 0) > 0) failures.push("RELAY_RECOVERY_GAP");
+  if ((lifecycle.inputSocketError || 0) > 0 && !sessionRenewalClassification.pass)
+    failures.push("INPUT_SOCKET");
+  if ((lifecycle.startsByReason?.recovery || 0) > 0
+    && !sessionRenewalClassification.pass) failures.push("RELAY_RECOVERY_GAP");
   if (!evidence.settling.settled
     || (evidence.final_health?.media?.candidate_handoffs || 0) > 0
     || (evidence.final_health?.media?.provisional_handoffs || 0) > 0)
@@ -486,6 +604,15 @@ try {
   persist();
   process.stdout.write(`${JSON.stringify({ result: evidence.result, duration_ms: evidence.duration_ms, checkpoints: evidence.checkpoints.length, output: outputPath })}\n`);
   if (evidence.result !== "PASS") process.exitCode = 1;
+} catch (error) {
+  evidence.ended_at = new Date().toISOString();
+  evidence.total_duration_ms = Date.now() - processStartedAt;
+  evidence.result = "FAIL";
+  evidence.failure = {
+    code: String(error?.message || error?.name || "SHADOW_QUALIFICATION_FAILED")
+  };
+  persist();
+  throw error;
 } finally {
   await stopChild();
   rmSync(hlsRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });

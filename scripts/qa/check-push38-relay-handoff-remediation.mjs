@@ -44,6 +44,9 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
+assert.match(server,
+  /const current = relays\.get\(streamId\);[\s\S]*if \(current && current === replacement\)/,
+  "deferred HLS cleanup must not treat two absent owners as the same relay");
 
 test("handoff capacity reserves a routine lane only while routine handoff is enabled", () => {
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);
@@ -116,16 +119,50 @@ test("proactive session renewal passes only with an exact continuous epoch drain
     warmHandoffFailuresByMode: { sessionSweep: 0 }, inputSocketError: 0,
     staleInput: 0, stalePlaylist: 0, staleOnRequest: 0 };
   const session = { rotations: 2, login_succeeded: 3, proactive_attempts: 2,
-    proactive_succeeded: 2, last_rotation_reason: "proactive_nonexclusive_renewal" };
+    proactive_succeeded: 2, logout_succeeded: 2, logout_failed: 0,
+    retired_session_backlog: 0,
+    last_rotation_reason: "proactive_nonexclusive_renewal" };
   assert.equal(classifyContinuousSessionRenewal(checkpoints, lifecycle, session,
     { expectedProgressing: 2 }).pass, true);
   assert.equal(classifyContinuousSessionRenewal(checkpoints, {
     ...lifecycle, startsByReason: { sessionSweep: 3, recovery: 0 }
   }, session, { expectedProgressing: 2 }).reason, "SESSION_SWEEP_COUNTERS_INVALID");
+  assert.equal(classifyContinuousSessionRenewal(checkpoints, lifecycle, {
+    ...session, logout_succeeded: 1, retired_session_backlog: 1
+  }, { expectedProgressing: 2 }).reason, "SESSION_SWEEP_COUNTERS_INVALID");
   assert.equal(classifyContinuousSessionRenewal([
     ...checkpoints.slice(0, 1), { ...checkpoints[1], shadow: { http: 200,
       media: { progressing: 1, stalled: 1 } } }, ...checkpoints.slice(2)
   ], lifecycle, session, { expectedProgressing: 2 }).reason, "SESSION_SWEEP_MEDIA_GAP");
+});
+
+test("finite recorder-response renewal passes only with retained HLS continuity", () => {
+  const playback = { status: 200, playlist_status: 200, segment_status: 200,
+    segment_bytes: 1024 };
+  const checkpoints = [
+    { progressing: 1, renewing: 0 },
+    { progressing: 0, renewing: 1 },
+    { progressing: 1, renewing: 0 }
+  ].map((media, sequence) => ({ sequence: sequence + 1,
+    renewals: [{ channel: 1, playback: { ...playback } }],
+    shadow: { http: 200, media: { ...media, stalled: 0 } } }));
+  const lifecycle = { upstreamEnded: 1, inputSocketError: 1,
+    startsByReason: { sessionSweep: 0, recovery: 1 },
+    warmHandoffsByMode: { sessionSweep: 0 },
+    warmHandoffFailuresByMode: { sessionSweep: 0 },
+    staleInput: 0, stalePlaylist: 0, staleOnRequest: 0 };
+  const session = { rotations: 1, login_succeeded: 2,
+    proactive_attempts: 0, proactive_succeeded: 0,
+    logout_succeeded: 1, logout_failed: 0, retired_session_backlog: 0,
+    last_rotation_reason: "finite_response_body_retired" };
+  const result = classifyContinuousSessionRenewal(checkpoints, lifecycle, session,
+    { expectedProgressing: 1 });
+  assert.equal(result.pass, true);
+  assert.equal(result.warning, "FINITE_RESPONSE_RENEWAL_WITH_CONTINUOUS_MEDIA");
+  const broken = structuredClone(checkpoints);
+  broken[1].renewals[0].playback.segment_status = 503;
+  assert.equal(classifyContinuousSessionRenewal(broken, lifecycle, session,
+    { expectedProgressing: 1 }).reason, "SESSION_SWEEP_MEDIA_GAP");
 });
 
 test("live multi-source evidence disables age-only relay churn", () => {
@@ -141,13 +178,18 @@ test("live multi-source evidence disables age-only relay churn", () => {
     /!expectReactiveOnly && durationMs >= 2 \* 60_000/,
   "reactive-only proof must not fabricate a handoff merely to satisfy the old fixture");
   assert.match(shadow, /DVR_SHADOW_CHANNELS/);
-  assert.match(shadow, /READ_ONLY_TWO_CHANNEL_SHADOW/);
+  assert.match(shadow, /DVR_SHADOW_ISOLATED_LIVE_GATEWAY_MUST_BE_STOPPED/);
+  assert.match(shadow, /VIDEO_GATEWAY_SHADOW_ALLOWED_CHANNELS/);
   assert.match(shadow,
     /pre_validation_settling[\s\S]*finalRenewals[\s\S]*final_verification[\s\S]*qualificationCheckpoints/,
   "terminal Shadow evidence must include post-settlement playback and lifecycle counters");
   assert.match(shadow, /terminal_verification: true/);
-  assert.match(server, /filter\.length < 1 \|\| filter\.length > 2/,
-  "bounded Shadow may exercise both recorder-safe rescue lanes without broad access");
+  assert.match(server,
+    /ordinaryFilterValid[\s\S]*filter\.length === 1[\s\S]*isolatedFilterValid[\s\S]*SHADOW_ALLOWED_CHANNELS/,
+  "all Shadow modes stay on their exact explicitly bounded read-only channel set");
+  assert.match(server,
+    /HOME_SOURCE_AVAILABLE_SHADOW_CHANNELS = \[1, 2, 3, 4, 5, 6, 7, 10, 11\][\s\S]*boundedIsolatedShadowChannels/,
+  "the isolated multi-source proof may use only the nine physically source-available Home channels");
 });
 
 test("a synchronized nine-source sweep starts before the finite deadline", () => {
@@ -369,8 +411,10 @@ test("HLS playback numbering remains monotonic across relay generations", () => 
     "candidate rejection cannot move the fallback playlist window backwards");
   assert.equal(fallback.lastSequence + fallbackOffset, 36,
     "candidate rejection advances the external tail across generations");
-  assert.match(server, /\["-readrate", "1", "-i", "pipe:0"\]/,
-    "private DVR MP4 input must be paced at its native timestamps");
+  assert.match(server, /directRtsp \? rtspInput\.args : \["-i", "pipe:0"\]/,
+    "an already-live private DVR response must be consumed without an artificial readrate throttle");
+  assert.doesNotMatch(server, /\["-readrate", "1", "-i", "pipe:0"\]/,
+    "FFmpeg warns that readrate throttling an actual live stream can lose packets");
   assert.match(server, /projectPlaybackPlaylist\(match\[1\], relay/);
   assert.match(server, /requestedGeneration[\s\S]*relayGenerationDirectories/);
 });
@@ -398,13 +442,14 @@ test("a progressing candidate preserves health without early ownership promotion
     /effective: privateNvrHealthEffectiveRelay\(\{ current, candidate,[\s\S]*mediaOwner: state\.mediaOwner \}\)/,
   "health must select only the relay named by continuity and tolerate a bounded no-owner interval");
   assert.match(server,
-    /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\)\]\)/,
-  "health must enumerate candidate-only continuity during exclusive rescue");
+    /const relayStreamIds = new Set\(\[\.\.\.relays\.keys\(\), \.\.\.relayCandidates\.keys\(\),[\s\S]*\.\.\.relayRecovery\.keys\(\)\]\)/,
+  "health must enumerate candidate-only and bounded renewal continuity");
   assert.match(server,
     /activeRelays: relayContinuity\.filter\(\(\[, state\]\) =>\s*relayIsRunning\(state\.effective\)\)\.length/,
   "active media health must count the effective relay without promoting ownership");
-  assert.match(server, /relayRunning: relayIsRunning\(continuity\.effective\)/,
-  "supervision must observe the effective relay during candidate-only continuity");
+  assert.match(server,
+    /relayRunning: relayIsRunning\(continuity\.effective\) \|\| continuity\.renewing/,
+  "supervision must observe candidate media and bounded retained-HLS renewal continuity");
   assert.match(server, /media_owner_state: continuity\.mediaOwner/);
   assert.match(server, /replacement\.warming = false;\s+relays\.set\(streamId, replacement\);\s+relayCandidates\.delete\(streamId\)/);
 });
@@ -446,14 +491,17 @@ test("recovery does not require a playback lease that cannot exist yet", () => {
 
 test("stale request waits through bounded backoff and handoff media wakes demand", () => {
   assert.match(server,
+    /shouldRetainPrivateNvrOwnerOnDemand\(\{[\s\S]*\}\)\) return existing;[\s\S]*STALE_ON_REQUEST/,
+  "consumer demand must retain an open private DVR response while heartbeat remains healthy");
+  assert.match(server,
     /stopRelay\(streamId, existing, "STALE_ON_REQUEST"\);\s+\}\s+return startRelayAfterRecoveryDelay\(streamId\)/);
   assert.match(server,
     /waitForRelayHandoffMedia\(streamId, requestGraceMs\)/);
   assert.match(server,
     /relayMediaContinuity\(streamId\)\.progressing/);
   assert.match(server,
-    /requestRescueEligible[\s\S]*privateNvrHandoffCapacityAvailable\(streamId, "OUTPUT_RESCUE", existing\)[\s\S]*warmReplacePrivateNvrRelay\(streamId, existing, "OUTPUT_RESCUE"\)/,
-  "a stale playback request must reuse the bounded output-rescue lane before destructive recovery");
+    /requestRescueEligible[\s\S]*existing\.nativeInputEnded === true[\s\S]*privateNvrHandoffCapacityAvailable\(streamId, "OUTPUT_RESCUE", existing\)[\s\S]*warmReplacePrivateNvrRelay\(streamId, existing, "OUTPUT_RESCUE"\)/,
+  "a playback request may reuse the rescue lane only after an observed response end");
   assert.match(server, /last_handoff_failure: "CANDIDATE_ACQUISITION_FAILED"/,
   "failed candidate acquisition must be visible in source diagnostics");
   const shadow = readFileSync("scripts/qa/run-push38-dvr-shadow.mjs", "utf8");
@@ -473,6 +521,22 @@ test("brief progress cannot clear recovery history", () => {
 
 test("clean native end is distinct from authentication and transport failure", () => {
   assert.equal(classifyRelayExit({ code: 0 }), "SOURCE_STREAM_ENDED");
+  assert.equal(classifyRelayExit({ code: 0, inputErrorCode: "UND_ERR_SOCKET" }),
+    "SOURCE_STREAM_ENDED",
+  "a recorder response-boundary close with a successful decoder exit is a finite stream end");
+  assert.equal(classifyRelayExit({ code: null, inputErrorCode: "UND_ERR_SOCKET",
+    sustainedMedia: true }), "SOURCE_RESPONSE_RETIRED");
+  assert.equal(classifyRelayExit({ code: null, inputErrorCode: "UND_ERR_SOCKET",
+    sustainedMedia: false }), "UPSTREAM_UND_ERR_SOCKET",
+  "an early socket loss remains a transport failure");
+  assert.equal(classifyRelayExit({ code: null, inputErrorCode: "ECONNRESET",
+    sustainedMedia: true, responseRetirementEligible: true }),
+  "SOURCE_RESPONSE_RETIRED",
+  "an age-bound recorder ECONNRESET is the observed finite-response boundary");
+  assert.equal(classifyRelayExit({ code: null, inputErrorCode: "ECONNRESET",
+    sustainedMedia: true, responseRetirementEligible: false }),
+  "UPSTREAM_ECONNRESET",
+  "an ordinary reset cannot rotate shared recorder authentication");
   assert.equal(classifyRelayExit({ code: 1, stderr: "timed out" }), "SOURCE_TIMEOUT");
   assert.equal(classifyRelayExit({ code: 1, stderr: "401 unauthorized" }),
     "SOURCE_AUTH_REJECTED");

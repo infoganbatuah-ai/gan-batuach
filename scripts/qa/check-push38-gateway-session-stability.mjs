@@ -26,7 +26,7 @@ test("Gateway session stability is an immutable exact-device release", () => {
     [PUSH38_GATEWAY_SESSION_STABILITY.deviceId]);
 });
 
-test("only authentication rejection or corroborated common-cause loss may rotate the shared DVR session", () => {
+test("finite-response reopen rejection is distinct from ordinary transport failure", () => {
   assert.equal(shouldRefreshPrivateNvrSession("authentication_rejected"), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_not_media",
     { loginExclusivity: false, sessionAgeMs: Number.MAX_SAFE_INTEGER }), false);
@@ -34,7 +34,37 @@ test("only authentication rejection or corroborated common-cause loss may rotate
     loginExclusivity: false, sessionAgeMs: Number.MAX_SAFE_INTEGER,
     heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
   }), true);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    previousRelayExitReason: "SOURCE_STREAM_ENDED"
+  }), true);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    previousRelayExitReason: "SOURCE_RESPONSE_RETIRED"
+  }), true);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    previousRelayExitReason: "UPSTREAM_UND_ERR_SOCKET"
+  }), false);
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
+});
+
+test("finite renewal counts clean ends and proven response retirements", async () => {
+  const { classifyContinuousSessionRenewal } = await import(
+    "./push38-shadow-qualification-policy.mjs");
+  const checkpoint = {
+    shadow: { http: 200, media: { progressing: 1, renewing: 0, stalled: 0 } },
+    renewal: { status: 200, playlist_status: 200, segment_status: 200,
+      segment_bytes: 1 }
+  };
+  const result = classifyContinuousSessionRenewal({
+    session: { rotations: 2, login_succeeded: 3, logout_succeeded: 2,
+      logout_failed: 0, retired_session_backlog: 0,
+      last_rotation_reason: "finite_response_reopen_rejected",
+      proactive_attempts: 0, proactive_succeeded: 0 },
+    lifecycle: { startsByReason: { recovery: 2 }, upstreamEnded: 1,
+      responseRetired: 1, inputSocketError: 2, staleInput: 0,
+      stalePlaylist: 0, staleOnRequest: 0 },
+    checkpoints: [checkpoint, checkpoint], expectedProgressing: 1
+  });
+  assert.equal(result.pass, true);
 });
 
 test("management upgrade is pinned to the signed 0.2.10 known-good release", () => {

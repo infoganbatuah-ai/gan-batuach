@@ -42,6 +42,46 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
     advances, maximum_stagnation_ms: maximumStagnationMs };
 }
 
+export function evaluateShadowMeasurementReadiness(checkpoints, {
+  expectedProgressing = 1,
+  minimumStableMs = 30_000
+} = {}) {
+  if (!Array.isArray(checkpoints) || checkpoints.length < 2 ||
+    !Number.isInteger(expectedProgressing) || expectedProgressing < 1 ||
+    !Number.isFinite(minimumStableMs) || minimumStableMs < 1_000)
+    return { pass: false, reason: "INVALID_INPUT" };
+  const startedAt = Date.parse(checkpoints[0]?.observed_at || "");
+  const endedAt = Date.parse(checkpoints.at(-1)?.observed_at || "");
+  if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt) || endedAt < startedAt)
+    return { pass: false, reason: "INVALID_TIMESTAMP" };
+  const componentStable = checkpoints.every(point => point.shadow?.http === 200 &&
+    point.shadow?.discovery?.assigned === expectedProgressing &&
+    point.shadow?.discovery?.connected === expectedProgressing &&
+    Number(point.shadow?.media?.progressing || 0) === expectedProgressing &&
+    Number(point.shadow?.media?.renewing || 0) === 0 &&
+    Number(point.shadow?.media?.stalled || 0) === 0 &&
+    Number(point.shadow?.media?.candidate_handoffs || 0) === 0 &&
+    Number(point.shadow?.media?.provisional_handoffs || 0) === 0);
+  if (!componentStable) return { pass: false, reason: "COMPONENT_NOT_STABLE" };
+  const channels = checkpoints[0].renewals?.map(entry => entry.channel) ?? [];
+  if (channels.length !== expectedProgressing || new Set(channels).size !== channels.length)
+    return { pass: false, reason: "CHANNEL_SET_MISMATCH" };
+  const channelResults = channels.map(channel => ({
+    channel,
+    ...evaluateHlsRenewalContinuity(checkpoints.map(point => ({
+      observed_at: point.observed_at,
+      renewal: point.renewals?.find(entry => entry.channel === channel)?.playback
+    })))
+  }));
+  const failed = channelResults.find(result => !result.pass);
+  if (failed) return { pass: false, reason: failed.reason, channels: channelResults };
+  const stableMs = endedAt - startedAt;
+  if (stableMs < minimumStableMs)
+    return { pass: false, reason: "STABLE_WINDOW_PENDING", stable_ms: stableMs,
+      channels: channelResults };
+  return { pass: true, reason: null, stable_ms: stableMs, channels: channelResults };
+}
+
 export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}, {
   expectedProgressing = 1
 } = {}) {
@@ -65,13 +105,22 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
     Number(lifecycle.startsByReason?.recovery || 0) !== 0 ||
     Number(lifecycle.warmHandoffs || 0) <= outputFailures)
     return { pass: false, warning: null, reason: "UNBOUNDED_OUTPUT_RESCUE_FAILURE" };
-  const failureIndexes = checkpoints.map((point, index) => index > 0 &&
-    Number(point.shadow?.media?.lifecycle?.warmHandoffFailures || 0) >
-      Number(checkpoints[index - 1].shadow?.media?.lifecycle?.warmHandoffFailures || 0)
-      ? index : -1).filter(index => index >= 0);
-  if (failureIndexes.length !== outputFailures)
+  // Several source-level candidate rejections can complete inside one sampling
+  // interval. Keep the counter delta as the event cardinality instead of
+  // assuming that every rejection has a distinct checkpoint. The checkpoint
+  // still has to prove uninterrupted media for every batched event.
+  const failurePoints = checkpoints.flatMap((point, index) => {
+    const current = Number(point.shadow?.media?.lifecycle?.warmHandoffFailures || 0);
+    const previous = index > 0
+      ? Number(checkpoints[index - 1].shadow?.media?.lifecycle?.warmHandoffFailures || 0)
+      : 0;
+    const count = current - previous;
+    return Number.isInteger(count) && count > 0 ? [{ index, count }] : [];
+  });
+  const observedFailures = failurePoints.reduce((total, point) => total + point.count, 0);
+  if (observedFailures !== outputFailures)
     return { pass: false, warning: null, reason: "FAILURE_POINT_MISSING" };
-  const mediaPreserved = failureIndexes.every(index => {
+  const mediaPreserved = failurePoints.every(({ index }) => {
     const failed = checkpoints[index];
     const renewals = Array.isArray(failed.renewals)
       ? failed.renewals.map(entry => entry.playback) : [failed.renewal];
@@ -91,7 +140,9 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
     return { pass: false, warning: null, reason: "MEDIA_NOT_PRESERVED_OR_NOT_RECOVERED" };
   return { pass: true,
     warning: "BOUNDED_OUTPUT_RESCUE_CANDIDATE_REJECTED_WITHOUT_MEDIA_GAP",
-    failure_checkpoints: failureIndexes.map(index => checkpoints[index].sequence ?? index + 1),
+    failure_checkpoints: failurePoints.map(({ index, count }) => ({
+      sequence: checkpoints[index].sequence ?? index + 1, count
+    })),
     maximum_bounded_failures: boundedFailures };
 }
 
@@ -152,15 +203,32 @@ export function classifyContinuousSessionRenewal(checkpoints, lifecycle = {},
     !Number.isInteger(expectedProgressing) || expectedProgressing < 1)
     return { pass: false, reason: "INVALID_INPUT", rotations };
   const expectedSweeps = rotations * expectedProgressing;
-  if (session.last_rotation_reason !== "proactive_nonexclusive_renewal" ||
+  const proactiveRenewal = session.last_rotation_reason ===
+    "proactive_nonexclusive_renewal";
+  const finiteResponseRenewal = ["finite_response_reopen_rejected",
+    "finite_response_socket_retired", "finite_response_body_retired"]
+    .includes(session.last_rotation_reason);
+  const invalidModeCounters = proactiveRenewal ? (
     Number(session.proactive_attempts || 0) !== rotations ||
     Number(session.proactive_succeeded || 0) !== rotations ||
-    Number(session.login_succeeded || 0) !== rotations + 1 ||
     Number(lifecycle.startsByReason?.sessionSweep || 0) !== expectedSweeps ||
     Number(lifecycle.warmHandoffsByMode?.sessionSweep || 0) !== expectedSweeps ||
     Number(lifecycle.warmHandoffFailuresByMode?.sessionSweep || 0) !== 0 ||
     Number(lifecycle.startsByReason?.recovery || 0) !== 0 ||
-    Number(lifecycle.inputSocketError || 0) !== 0 ||
+    Number(lifecycle.inputSocketError || 0) !== 0
+  ) : finiteResponseRenewal ? (
+    Number(session.proactive_attempts || 0) !== 0 ||
+    Number(session.proactive_succeeded || 0) !== 0 ||
+    Number(lifecycle.startsByReason?.recovery || 0) !== rotations ||
+    Number(lifecycle.upstreamEnded || 0)
+      + Number(lifecycle.responseRetired || 0) !== rotations ||
+    Number(lifecycle.inputSocketError || 0) > rotations
+  ) : true;
+  if (invalidModeCounters ||
+    Number(session.login_succeeded || 0) !== rotations + 1 ||
+    Number(session.logout_succeeded || 0) !== rotations ||
+    Number(session.logout_failed || 0) !== 0 ||
+    Number(session.retired_session_backlog || 0) !== 0 ||
     Number(lifecycle.staleInput || 0) !== 0 || Number(lifecycle.stalePlaylist || 0) !== 0 ||
     Number(lifecycle.staleOnRequest || 0) !== 0)
     return { pass: false, reason: "SESSION_SWEEP_COUNTERS_INVALID", rotations,
@@ -168,13 +236,18 @@ export function classifyContinuousSessionRenewal(checkpoints, lifecycle = {},
   const continuity = checkpoints.every(point => {
     const renewals = Array.isArray(point?.renewals)
       ? point.renewals.map(entry => entry.playback) : [point?.renewal];
-    return point?.shadow?.http === 200 && point?.shadow?.media?.progressing === expectedProgressing &&
+    return point?.shadow?.http === 200 &&
+      Number(point?.shadow?.media?.progressing || 0)
+        + Number(point?.shadow?.media?.renewing || 0) === expectedProgressing &&
       point?.shadow?.media?.stalled === 0 && renewals.length === expectedProgressing &&
       renewals.every(renewal => renewal?.status === 200 && renewal?.playlist_status === 200 &&
         renewal?.segment_status === 200 && renewal?.segment_bytes > 0);
   });
   if (!continuity) return { pass: false, reason: "SESSION_SWEEP_MEDIA_GAP", rotations,
     expected_sweeps: expectedSweeps };
-  return { pass: true, reason: null, rotations, expected_sweeps: expectedSweeps,
-    warning: "PROACTIVE_SESSION_RENEWAL_WITH_CONTINUOUS_MEDIA" };
+  return { pass: true, reason: null, rotations,
+    expected_sweeps: proactiveRenewal ? expectedSweeps : 0,
+    warning: proactiveRenewal
+      ? "PROACTIVE_SESSION_RENEWAL_WITH_CONTINUOUS_MEDIA"
+      : "FINITE_RESPONSE_RENEWAL_WITH_CONTINUOUS_MEDIA" };
 }
