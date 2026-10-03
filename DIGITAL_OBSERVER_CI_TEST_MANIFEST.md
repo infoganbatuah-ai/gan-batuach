@@ -97,6 +97,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `home-qa-legacy-transition-proof`: `node scripts/qa/check-push38-home-qa-legacy-proof.mjs`
 - `home-qa-r2-authorization`: `node scripts/qa/check-push38q-r2-download.mjs`
 - `remote-playback-boundary`: `node scripts/qa/check-remote-playback-boundary.mjs`
+- `remote-playback-https-ingress`: `node scripts/qa/check-push38-https-playback-ingress.mjs`
 - `environment-safety`: `node scripts/validate-environment-safety.mjs`
 - `encryption-separation`: `node scripts/qa/check-encryption-key-separation.mjs`
 - `storage-policy`: `node scripts/qa/check-storage-policy-safety.mjs`
@@ -107,7 +108,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **366** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **368** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -309,6 +310,7 @@ Inventory count: **366** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-homeqa-legacy-live-auth.mjs` | node scripts/qa/check-push38-homeqa-legacy-live-auth.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | LEGACY / FIXTURE | none known |
 | `scripts/qa/check-push38-homeqa-mixed-identity-proof.mjs` | node scripts/qa/check-push38-homeqa-mixed-identity-proof.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-homeqa-ota-store.mjs` | node scripts/qa/check-push38-homeqa-ota-store.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push38-https-playback-ingress.mjs` | node scripts/qa/check-push38-https-playback-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38-quarantined-release-retry.mjs` | node scripts/qa/check-push38-quarantined-release-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-relay-handoff-remediation.mjs` | npm run qa:push38-relay-handoff-remediation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38-tapo-endpoint-reconciliation.mjs` | node scripts/qa/check-push38-tapo-endpoint-reconciliation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -462,6 +464,7 @@ Inventory count: **366** files. Classifications are conservative; environment-de
 | `scripts/qa/stage-camera-queue-release.mjs` | node scripts/qa/stage-camera-queue-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/stage-event-release.mjs` | node scripts/qa/stage-event-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/stage-guard-diagnostics-release.mjs` | node scripts/qa/stage-guard-diagnostics-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/start-push38-https-playback-ingress.mjs` | node scripts/qa/start-push38-https-playback-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/start-push38-playback-ingress.mjs` | node scripts/qa/start-push38-playback-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/start-push38t-ingress.mjs` | node scripts/qa/start-push38t-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/start-push38t-qualification.mjs` | node scripts/qa/start-push38t-qualification.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |

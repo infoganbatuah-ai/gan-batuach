@@ -8,7 +8,10 @@ export function edgePlaybackOrigin(gatewayId: string, raw: string | undefined): 
   if (typeof value !== "string" || value.length > 255) return null;
   try {
     const url = new URL(value);
-    if (url.protocol !== "https:" || url.username || url.password || url.port || url.search || url.hash
+    const explicitPort = url.port ? Number(url.port) : null;
+    if (url.protocol !== "https:" || url.username || url.password
+      || (explicitPort !== null && (!Number.isInteger(explicitPort) || explicitPort < 1024 || explicitPort > 65535))
+      || url.search || url.hash
       || url.pathname !== "/" || url.hostname === "localhost" || url.hostname.endsWith(".localhost")
       || /^\d+\.\d+\.\d+\.\d+$/.test(url.hostname) || !url.hostname.includes(".")) return null;
     return url.origin;

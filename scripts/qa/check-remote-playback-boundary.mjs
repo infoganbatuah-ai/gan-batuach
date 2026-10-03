@@ -8,8 +8,11 @@ import { createPlaybackIngress, playbackIngressAllows } from "../../services/vid
 const gateway = "11111111-1111-4111-8111-111111111111";
 const map = JSON.stringify({ [gateway]: "https://edge.example.test" });
 assert.equal(edgePlaybackOrigin(gateway, map), "https://edge.example.test");
+assert.equal(edgePlaybackOrigin(gateway, JSON.stringify({ [gateway]: "https://edge.example.test:18443" })),
+  "https://edge.example.test:18443");
 for (const invalid of ["http://edge.example.test", "https://127.0.0.1", "https://edge.example.test/other",
-  "https://user:pass@edge.example.test", "https://edge.example.test:8443", "https://edge.example.test?x=1"])
+  "https://user:pass@edge.example.test", "https://edge.example.test:443/other",
+  "https://edge.example.test:80", "https://edge.example.test?x=1"])
   assert.equal(edgePlaybackOrigin(gateway, JSON.stringify({ [gateway]: invalid })), null);
 assert.equal(edgePlaybackOrigin("22222222-2222-4222-8222-222222222222", map), null);
 assert.equal(localPlaybackAllowed("https://ganbatuach.com/view", "development"), false);
