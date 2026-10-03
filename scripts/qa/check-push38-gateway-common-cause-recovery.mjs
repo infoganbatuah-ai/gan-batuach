@@ -646,8 +646,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /async function observeWarmReplacement[\s\S]*let firstOutputAt = null;[\s\S]*outputAt > lastObservedOutputAt[\s\S]*outputConfirmed = minimumConfirmationMs/,
   "a warm replacement must advance HLS after its first playlist write before promotion");
   assert.match(gateway,
-    /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"\]\.includes\(handoffMode\)[\s\S]*minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS[\s\S]*maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS/,
-  "routine and output-rescue replacements must survive the hard-stale confirmation window");
+    /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE", "SESSION_SWEEP",\s+"SESSION_SWEEP_EXCLUSIVE"\]\.includes\(handoffMode\)[\s\S]*minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS[\s\S]*maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS/,
+  "routine, output-rescue, and session-sweep replacements must survive the hard-stale confirmation window");
   assert.match(gateway,
     /let outputAdvanceCount = 0;[\s\S]*outputAdvanceCount \+= 1;[\s\S]*privateNvrRoutineHandoffConfirmed\(\{ confirmationStartedAt,[\s\S]*outputAdvanceCount/,
   "a replacement must prove four distinct playlist advances before ownership changes");

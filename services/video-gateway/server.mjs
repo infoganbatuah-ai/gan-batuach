@@ -2509,8 +2509,17 @@ async function warmReplaceRelay(streamId, previous, {
 
 async function warmReplacePrivateNvrRelay(streamId, previous,
   handoffMode = "SESSION_SWEEP") {
+  // The failed 0.2.74 pre-soak caught seven session-sweep replacements after
+  // they had been promoted on their first playlist write (zero subsequent
+  // advances). Two hardware-output rescues survived, while the other seven
+  // owners stopped publishing together before their recorder responses
+  // retired. A session refresh is not permission to weaken the media proof:
+  // every replacement must sustain the same four advances across six seconds
+  // already required by the bounded routine/rescue paths. The exclusive sweep
+  // keeps the prior HLS generation readable while this proof completes.
   return warmReplaceRelay(streamId, previous,
-    ["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE"].includes(handoffMode) ? {
+    ["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE", "SESSION_SWEEP",
+      "SESSION_SWEEP_EXCLUSIVE"].includes(handoffMode) ? {
       handoffMode,
       minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
       maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,

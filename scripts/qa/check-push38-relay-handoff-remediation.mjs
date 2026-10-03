@@ -23,6 +23,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+  PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED,
@@ -151,6 +152,33 @@ test("proactive session renewal passes only with an exact continuous epoch drain
     ...checkpoints.slice(0, 1), { ...checkpoints[1], shadow: { http: 200,
       media: { progressing: 1, stalled: 1 } } }, ...checkpoints.slice(2)
   ], lifecycle, session, { expectedProgressing: 2 }).reason, "SESSION_SWEEP_MEDIA_GAP");
+});
+
+test("session-sweep replacements require sustained media before promotion", () => {
+  assert.match(server,
+    /\["ROUTINE_FINITE_RESPONSE", "OUTPUT_RESCUE", "SESSION_SWEEP",\s+"SESSION_SWEEP_EXCLUSIVE"\]\.includes\(handoffMode\)[\s\S]*minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS[\s\S]*minimumOutputAdvances: PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES/,
+  "session sweeps must use the same sustained-output promotion proof as bounded rescue");
+  assert.match(server,
+    /if \(!replacement \|\| !observation\.outputConfirmed \|\| !relayIsProgressing\(replacement\)/,
+  "no handoff mode may promote an unconfirmed replacement");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: 1_000,
+    outputAdvanced: true,
+    outputAdvanceCount: PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES - 1,
+    lastOutputAt: 8_000,
+    now: 8_000,
+    minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+    maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS
+  }), false, "brief session-sweep output must remain in probation");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: 1_000,
+    outputAdvanced: true,
+    outputAdvanceCount: PRIVATE_NVR_ROUTINE_HANDOFF_MINIMUM_ADVANCES,
+    lastOutputAt: 8_000,
+    now: 8_000,
+    minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+    maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS
+  }), true, "four advances across the bounded window may promote");
 });
 
 test("finite recorder-response renewal passes only with retained HLS continuity", () => {
