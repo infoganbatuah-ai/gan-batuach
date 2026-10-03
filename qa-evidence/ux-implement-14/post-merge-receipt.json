@@ -5,6 +5,8 @@
   "sourceIntegrationHead": "7c54b20e3ea593465cbf3c6d9646153edc69dca4",
   "productCommit": "e1faaa7b82297b84130d7a8186e82abeac0e2f74",
   "productPullRequest": 162,
+  "securityMitigationCommit": "8aefc6d19a9b201b48dc91a69cd43629f3b0b7a4",
+  "securityMitigationVerifiedAt": "2026-10-03T02:24:02Z",
   "productionAccess": false,
   "localProduct": {
     "url": "http://127.0.0.1:3000",
@@ -25,7 +27,8 @@
     "lint": "PASS; zero regressions",
     "productionBuild": "PASS; 541 routes/pages",
     "domain": "30/30 PASS",
-    "security": "10/10 PASS",
+    "security": "11/11 PASS",
+    "npmAudit": "0 vulnerabilities",
     "migrations": "244/244 PASS",
     "developmentBaselineDrift": "244/244 PASS",
     "releaseContract": "PASS; production mutation false"

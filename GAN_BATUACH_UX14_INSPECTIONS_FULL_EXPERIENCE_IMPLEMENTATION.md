@@ -9,6 +9,7 @@
 - Product pull request: `#162`
 - Product merge commit: `7c54b20e3ea593465cbf3c6d9646153edc69dca4`
 - Merged-head evidence receipt: `793bb1d31f99ad9f22fc44da988fd2e7070074e7`
+- CI advisory mitigation: `8aefc6d19a9b201b48dc91a69cd43629f3b0b7a4`
 - Target branch: `integration/development`
 - Environment used for functional and visual QA: isolated local Development/Integration Supabase and loopback application
 - Production: untouched
@@ -219,6 +220,17 @@ recorded with the post-merge receipt.
 Product PR #162 passed all nine exact-head checks before its ancestry-preserving
 merge: Canonical quality gate, the six Digital Observer CI gates,
 `management-context` and `security/snyk`.
+
+During the closure PR, GitHub's refreshed npm advisory data began blocking the
+security job for CVE-2026-93687 / GHSA-vfj7-8cjw-p6xm in the transitive
+`braces@3.0.3` dependency. The advisory has no patched upstream release. A
+cost-free vendored package based on the official npm tarball now rejects
+excessive brace nesting before recursive compile/expand traversal and removes
+the package's debug log from the invalid-close path. A dedicated security suite
+verifies the installed package, portable lock resolution, normal compilation,
+depth rejection and absence of logging. Clean `npm ci`, typecheck, zero-
+regression lint, the 541-page build, Security `11/11` and `npm audit` with zero
+vulnerabilities passed after the mitigation.
 
 All QA uses isolated synthetic Development data. Existing QA personas are preserved and no global reset is performed.
 

@@ -669,8 +669,12 @@ NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. The canonical launcher reported
 `http://127.0.0.1:3000`. Local health, UX-14 focused 9/9, Inspector approval
 4/4, inspection/corrective lifecycle 25/25, private evidence authorization
 21/21, Parent/Manager 23/23, UX-09 8/8, UX-13 6/6, typecheck, zero-regression
-lint, 541-page Production build, Domain 30/30, Security 10/10, migration health
+lint, 541-page Production build, Domain 30/30, Security 11/11, npm audit with
+zero vulnerabilities, migration health
 and Development drift 244/244, and release-contract checks passed. Merged-head
 evidence is preserved at `793bb1d31f99ad9f22fc44da988fd2e7070074e7`.
+The closure also preserves the cost-free CVE-2026-93687 brace-depth mitigation
+and its dedicated security regression at
+`8aefc6d19a9b201b48dc91a69cd43629f3b0b7a4`; upstream has no patched release.
 No migration, paid provider, Production, `main`, customer data or Digital
 Observer core change occurred. UX-IMPLEMENT-15 has not started.
