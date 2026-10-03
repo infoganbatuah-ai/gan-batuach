@@ -2,31 +2,30 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// The signed 0.2.68 one-channel Shadow proved that proactive exclusive
-// renewal itself is bounded, but also captured one playback request in the
-// interval after the recorder session epoch advanced and before the canonical
-// session-sweep handoff marker existed. The request incorrectly entered the
-// ordinary stale-recovery lane, so 0.2.68 remains failed qualification history.
-// This successor retains the still-progressing prior-epoch owner for that
-// exact bounded interval and leaves replacement to SESSION_SWEEP_EXCLUSIVE.
-// Signed 0.2.64 remains the only activation and rollback predecessor.
+// The signed 0.2.69 live canary proved that serialized session sweeps avoid
+// recorder-session and socket failures, but a sweep still stopped the prior
+// relay before replacement media was ready. This successor keeps that prior
+// public HLS generation available for the already-bounded stale window while
+// canonical ownership and recovery continue independently. It never promotes
+// retained media to relay ownership or reports retained media as progression.
+// Signed 0.2.69 remains the exact activation and rollback predecessor.
 export const PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION = Object.freeze({
-  role: "GATEWAY_PLAYBACK_SESSION_SWEEP_SERIALIZATION",
+  role: "GATEWAY_SESSION_SWEEP_RETAINED_HLS_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
-  version: "0.2.69-p38-health",
-  buildSha: "bc6cdbc26fbc55fc3ff0927bb5dba96ea9420727",
-  digest: "a3d66994bb014c94c8915c71bc179b40505ab3fd664e3f054b3d4e8a3f4e4fc7",
-  size: 135863386,
+  releaseId: "qa-p38-health-gateway-retained-hls-35df17e86316",
+  version: "0.2.70-p38-health",
+  buildSha: "13b5ae4cce4ea38998efeb99fa24bd9a238c496c",
+  digest: "35df17e8631613804057e23f64801afd7b9cc1af736302744c665c9001ff68d3",
+  size: 135866409,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
-  rollbackVersion: "0.2.64-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-health-serialization-dee178ab7c45",
-  supersedesVersion: "0.2.64-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
+  rollbackVersion: "0.2.69-p38-health",
+  supersedesReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
+  supersedesVersion: "0.2.69-p38-health",
   failedShadowReleaseId: "qa-p38-health-gateway-proactive-exclusive-322642bf9294",
   failedShadowVersion: "0.2.68-p38-health",
-  failedLiveReleaseId: "qa-p38-health-gateway-renewal-rescue-89071bf49a45",
-  failedLiveVersion: "0.2.67-p38-health",
+  failedLiveReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
+  failedLiveVersion: "0.2.69-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72"
 });

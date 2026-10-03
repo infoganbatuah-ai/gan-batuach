@@ -205,7 +205,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-playback-sweep-bc6cdbc2/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-retained-hls-13b5ae4c/gateway-runtime.tar.gz"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
   : sessionRenewal
@@ -266,7 +266,7 @@ const artifact = playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = playbackSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-playback-sweep-bc6cdbc2/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-retained-hls-13b5ae4c/r2-publication.json"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
   : sessionRenewal
@@ -919,7 +919,42 @@ if (deadlineBudget) {
     scheduler_slot_budget_violation_reproduced: true,
     historical_result_label_bug_corrected: true };
 }
-if (recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) {
+if (playbackSweep) {
+  const bytes = protectedFile(failedCanaryEvidencePath);
+  const result = JSON.parse(bytes);
+  const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
+    name.startsWith("dvr-") && camera.qualification_denominator === true && camera.availability < 1);
+  if (sha(bytes) !== "e2f3fc7ec335b375ab99c963bd0e0c81bdb3d919df64437641175e995cc9bdaf" ||
+    result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "CANARY" || result.status !== "NOT_DONE" ||
+    result.checkpoints !== 15 || result.elapsed_ms < 15 * 60_000 ||
+    result.dvr_source_available !== 9 ||
+    JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([8]) ||
+    result.gateway?.unavailable_checkpoints !== 0 ||
+    result.gateway?.source_degraded_checkpoints !== 8 ||
+    result.gateway?.relay_start_delta !== 62 || result.gateway?.stale_input_delta !== 0 ||
+    result.gateway?.runtime_restarts !== 0 || result.gateway?.supervisor_restarts !== 0 ||
+    result.gateway?.socket_error_delta !== 0 ||
+    result.gateway?.recorder_session_failure_delta !== 0 ||
+    result.gateway?.recorder_auth_rejection_delta !== 0 ||
+    result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
+    result.release?.gateway?.software_version !== item.supersedesVersion ||
+    result.release?.gateway?.build_sha !== "bc6cdbc26fbc55fc3ff0927bb5dba96ea9420727" ||
+    affected.length !== 4)
+    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_FAILED_CANARY_PROOF_INVALID");
+  failedCanaryEvidence = { sha256: sha(bytes), checkpoints: result.checkpoints,
+    duration_ms: result.elapsed_ms,
+    source_degraded_checkpoints: result.gateway.source_degraded_checkpoints,
+    component_unavailable_checkpoints: result.gateway.unavailable_checkpoints,
+    affected_channels: affected.map(([name]) => name),
+    relay_start_delta: result.gateway.relay_start_delta,
+    stale_input_delta: result.gateway.stale_input_delta,
+    playback_failures: result.playback.failures,
+    recorder_session_failure_delta: result.gateway.recorder_session_failure_delta,
+    recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
+    socket_error_delta: result.gateway.socket_error_delta, live_recovery_required: true };
+}
+if (recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) {
   const bytes = protectedFile(failedPreSoakEvidencePath);
   const result = JSON.parse(bytes);
   if (sha(bytes) !== "e6dfbe426d02414d612619a86443294b57197b148a31f9bf62c6e5eb417a85d1" ||
@@ -936,7 +971,7 @@ if (recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSucc
     result.gateway?.recorder_session_failure_delta !== 0 ||
     result.gateway?.recorder_auth_rejection_delta !== 0 ||
     result.playback?.failures !== 1 || result.ai?.failures !== 0)
-    throw new Error(proactiveSuccessor
+    throw new Error(proactiveExclusive
       ? "P38_GATEWAY_PROACTIVE_EXCLUSIVE_FAILED_PRE_SOAK_PROOF_INVALID"
       : sessionRenewal
       ? "P38_GATEWAY_SESSION_RENEWAL_FAILED_PRE_SOAK_PROOF_INVALID"

@@ -18,14 +18,14 @@ const built = buildPush38GatewayPlaybackSweepSerializationManifest({
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
   releasedAt: new Date().toISOString()
 }).document;
-assert.equal(built.release_id, "qa-p38-health-gateway-playback-sweep-a3d66994bb01");
-assert.equal(built.version, "0.2.69-p38-health");
-assert.equal(built.build_sha, "bc6cdbc26fbc55fc3ff0927bb5dba96ea9420727");
+assert.equal(built.release_id, "qa-p38-health-gateway-retained-hls-35df17e86316");
+assert.equal(built.version, "0.2.70-p38-health");
+assert.equal(built.build_sha, "13b5ae4cce4ea38998efeb99fa24bd9a238c496c");
 assert.equal(built.artifact_sha256,
-  "a3d66994bb014c94c8915c71bc179b40505ab3fd664e3f054b3d4e8a3f4e4fc7");
-assert.equal(built.artifact_size, 135863386);
-assert.equal(built.compatibility.minimum_current_version, "0.2.64-p38-health");
-assert.equal(built.compatibility.maximum_current_version, "0.2.64-p38-health");
+  "35df17e8631613804057e23f64801afd7b9cc1af736302744c665c9001ff68d3");
+assert.equal(built.artifact_size, 135866409);
+assert.equal(built.compatibility.minimum_current_version, "0.2.69-p38-health");
+assert.equal(built.compatibility.maximum_current_version, "0.2.69-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [release.deviceId]);
 const managedGateway = {
@@ -53,12 +53,12 @@ for (const [path, required] of [
   ["scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", [
     "--gateway-playback-sweep",
     "gateway_remediation_playback_sweep_serialization.json",
-    "failedShadowReleaseId"
+    "failedLiveReleaseId"
   ]],
   ["scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", [
     "--gateway-playback-sweep",
     "gateway_remediation_playback_sweep_serialization.json",
-    "FAILED_SIGNED_SHADOW_PLAYBACK_SWEEP_SUCCESSOR_QUALIFIED"
+    "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_CANARY_PROOF_INVALID"
   ]]
 ]) {
   const source = readFileSync(path, "utf8");
