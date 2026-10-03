@@ -14,6 +14,22 @@ const run = (command, args) => execFileSync(command, args, { cwd: root, env: bas
   encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
 const enableLegacyDelivery = process.argv.includes("--enable-legacy-delivery");
 const serveBuild = process.argv.includes("--serve-build");
+const cloudDiscoverySecret = process.env.PUSH38T_VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET ||
+  randomBytes(48).toString("base64url");
+if (cloudDiscoverySecret.length < 43 || cloudDiscoverySecret.length > 512 || /\s/.test(cloudDiscoverySecret))
+  throw new Error("P38_QA_CLOUD_DISCOVERY_SECRET_INVALID");
+const playbackOriginsRaw = process.env.PUSH38T_PLAYBACK_EDGE_ORIGINS_JSON || "";
+let playbackOrigins;
+if (playbackOriginsRaw) {
+  try { playbackOrigins = JSON.parse(playbackOriginsRaw); } catch { throw new Error("P38_QA_PLAYBACK_ORIGINS_INVALID"); }
+  const expected = new Map([
+    ["62df97e2-3c0b-427f-9108-bde029bc10e7", "https://gateway-media-homeqa.ganbatuach.com:18443"],
+    ["db267b52-6282-4944-bcee-5d4857698fb0", "https://connector-media-homeqa.ganbatuach.com:18443"]
+  ]);
+  if (!playbackOrigins || Array.isArray(playbackOrigins) || Object.keys(playbackOrigins).length !== expected.size ||
+    [...expected].some(([deviceId, origin]) => playbackOrigins[deviceId] !== origin))
+    throw new Error("P38_QA_PLAYBACK_ORIGINS_INVALID");
+}
 function r2Credentials() {
   const service = process.env.OBSERVER_R2_READER_SERVICE ||
     "digital-observer-r2-home-qa-reader-20260922";
@@ -113,7 +129,8 @@ const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", serveB
     // defect. It is not published and preserves the real service-role JWT.
     SUPABASE_ADMIN_URL: "http://127.0.0.1:56431",
     SUPABASE_SERVICE_ROLE_KEY: variables.SERVICE_ROLE_KEY,
-    VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET: randomBytes(48).toString("base64url") },
+    VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET: cloudDiscoverySecret,
+    ...(playbackOrigins ? { OBSERVER_PLAYBACK_EDGE_ORIGINS_JSON: JSON.stringify(playbackOrigins) } : {}) },
   stdio: "inherit"
 });
 for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => child.kill(signal));

@@ -32,6 +32,7 @@ const child = spawn(process.execPath, ["scripts/qa/start-push38-https-playback-i
   `--gateway-host=${gatewayHost}`, `--connector-host=${connectorHost}`, `--port=${port}`,
   "--bind-address=::1",
   `--tls-key=${keyPath}`, `--tls-cert=${certPath}`,
+  "--browser-origin=https://gateway.ganbatuach.com",
   `--gateway-origin=http://127.0.0.1:${gateway.address().port}`,
   `--connector-origin=http://127.0.0.1:${connector.address().port}`], { stdio: ["ignore", "pipe", "pipe"] });
 const ready = await Promise.race([
@@ -41,11 +42,12 @@ const ready = await Promise.race([
 assert.match(String(ready[0]), /observer-push38-https-playback-ingress-v1/);
 const request = (host, path, method = "GET", body = "") => new Promise((resolve, reject) => {
   const outgoing = httpsRequest({ hostname: "::1", port, servername: host, rejectUnauthorized: false,
-    method, path, headers: { host: `${host}:${port}`, origin: "https://ganbatuach.com",
+    method, path, headers: { host: `${host}:${port}`, origin: "https://gateway.ganbatuach.com",
       ...(body ? { "content-type": "application/json", "content-length": Buffer.byteLength(body) } : {}) } }, response => {
     const chunks = [];
     response.on("data", chunk => chunks.push(chunk));
-    response.on("end", () => resolve({ status: response.statusCode, body: Buffer.concat(chunks).toString("utf8") }));
+    response.on("end", () => resolve({ status: response.statusCode,
+      headers: response.headers, body: Buffer.concat(chunks).toString("utf8") }));
   });
   outgoing.on("error", reject);
   if (body) outgoing.write(body);
@@ -54,6 +56,7 @@ const request = (host, path, method = "GET", body = "") => new Promise((resolve,
 try {
   const gatewayClaim = await request(gatewayHost, "/playback/claim", "POST", '{"grant":"test"}');
   assert.equal(gatewayClaim.status, 200);
+  assert.equal(gatewayClaim.headers["access-control-allow-origin"], "https://gateway.ganbatuach.com");
   assert.equal(JSON.parse(gatewayClaim.body).label, "gateway");
   const connectorClaim = await request(connectorHost, "/playback/claim", "POST", '{"grant":"test"}');
   assert.equal(connectorClaim.status, 200);

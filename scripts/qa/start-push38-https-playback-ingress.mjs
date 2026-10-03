@@ -16,12 +16,17 @@ const port = Number(args.get("port") || 18443);
 const bindAddress = String(args.get("bind-address") || "");
 const keyPath = String(args.get("tls-key") || "");
 const certPath = String(args.get("tls-cert") || "");
+const browserOrigin = String(args.get("browser-origin") || "");
 if (!hostnamePattern.test(gatewayHost) || !hostnamePattern.test(connectorHost) || gatewayHost === connectorHost)
   throw new Error("PUSH38_MEDIA_HOSTS_INVALID");
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("PUSH38_MEDIA_PORT_INVALID");
 if (isIP(bindAddress) !== 6 || bindAddress === "::" || bindAddress.toLowerCase().startsWith("fe80:"))
   throw new Error("PUSH38_MEDIA_BIND_ADDRESS_INVALID");
 if (!keyPath || !certPath) throw new Error("PUSH38_MEDIA_TLS_REQUIRED");
+const browserUrl = new URL(browserOrigin);
+if (browserUrl.protocol !== "https:" || browserUrl.username || browserUrl.password || browserUrl.pathname !== "/" ||
+  browserUrl.search || browserUrl.hash || !hostnamePattern.test(browserUrl.hostname))
+  throw new Error("PUSH38_MEDIA_BROWSER_ORIGIN_INVALID");
 const loopbackOrigin = (raw, fallback) => {
   const value = new URL(String(raw || fallback));
   const originPort = Number(value.port);
@@ -69,7 +74,12 @@ const front = createHttpsServer({
     path: `${url.pathname}${url.search}`,
     headers
   }, upstreamResponse => {
-    response.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
+    const responseHeaders = { ...upstreamResponse.headers };
+    if (String(request.headers.origin || "").replace(/\/$/, "") === browserUrl.origin) {
+      responseHeaders["access-control-allow-origin"] = browserUrl.origin;
+      responseHeaders.vary = "Origin";
+    }
+    response.writeHead(upstreamResponse.statusCode || 502, responseHeaders);
     upstreamResponse.pipe(response);
   });
   upstream.setTimeout(30_000, () => upstream.destroy(new Error("PUSH38_MEDIA_UPSTREAM_TIMEOUT")));
@@ -86,6 +96,7 @@ process.stdout.write(`${JSON.stringify({
   contract: "observer-push38-https-playback-ingress-v1",
   bind: `[${bindAddress === "::1" ? "loopback" : "configured-ipv6"}]:${port}`,
   hosts: profiles.map(({ hostname, profile }) => ({ hostname, profile })),
+  browser_origin: browserUrl.origin,
   exposed_routes: ["POST /playback/claim", "GET /hls/{stream}/index.m3u8", "GET /hls/{stream}/segment-{n}.ts"],
   default_deny: true,
   rate_limited: true,

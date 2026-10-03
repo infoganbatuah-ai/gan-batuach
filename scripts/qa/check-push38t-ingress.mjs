@@ -16,7 +16,10 @@ const allowed = [
   ["POST", "/api/video-gateway/home-qa-legacy-download"],
   ["POST", "/api/video-gateway/cloud-discovery"],
   ["POST", "/api/video-gateway/device-heartbeat"],
-  ["POST", "/api/video-gateway/cloud-learning"]
+  ["POST", "/api/video-gateway/cloud-learning"],
+  ["POST", "/api/digital-observer/dvr-gateway"],
+  ["GET", "/push38/remote-playback"],
+  ["POST", "/push38/remote-playback/result"]
 ];
 for (const [method, path] of allowed) assert.equal(push38tIngressAllows(method, path), true);
 for (const path of ["/", "/dashboard", "/api/admin/tasks", "/api/digital-observer/gateway-enrollment/other",
@@ -32,7 +35,10 @@ const origin = createServer((request, response) => response.writeHead(401, { "co
   "set-cookie": "should-not-forward=1" }).end(JSON.stringify({ denied: true, path: request.url })));
 await new Promise(resolve => origin.listen(0, "127.0.0.1", resolve));
 const audit = [];
+const remoteResults = [];
 const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}`,
+  remoteResultToken: "qualification-result-token-00000000000000000000",
+  onRemoteResult: result => remoteResults.push(result),
   onAudit: event => audit.push(event) });
 await new Promise(resolve => proxy.listen(0, "127.0.0.1", resolve));
 try {
@@ -45,6 +51,27 @@ try {
   const denied = await fetch(base + "/api/digital-observer/gateway-enrollment", { method: "POST",
     headers: { "content-type": "application/json" }, body: "{}" });
   assert.equal(denied.status, 401);
+  const productDenied = await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",
+    headers: { "content-type": "application/json" }, body: "{}" });
+  assert.equal(productDenied.status, 401);
+  const page = await fetch(base + "/push38/remote-playback");
+  assert.equal(page.status, 200);
+  assert.equal((await page.text()).includes("accessToken"), true);
+  const resultPayload = { protocol: "observer-push38-remote-client-proof-v1",
+    started_at: "2026-10-03T00:00:00.000Z", completed_at: "2026-10-03T00:00:12.000Z",
+    client_class: "OWNER_PHONE_BROWSER", edge_software_installed: false, pass: true,
+    results: [{ label: "DVR CH1", kind: "DVR", authorization_status: 200,
+      authorization_expected: true, remote_url_https: true, localhost_absent: true,
+      media: { hls_https: true, localhost_absent: true, moving: true, width: 1280, height: 720 } }] };
+  assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
+    headers: { "content-type": "application/json", "x-push38-result-token": "wrong-token-000000000000000000000000" },
+    body: JSON.stringify(resultPayload) })).status, 401);
+  assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
+    headers: { "content-type": "application/json",
+      "x-push38-result-token": "qualification-result-token-00000000000000000000" },
+    body: JSON.stringify(resultPayload) })).status, 202);
+  assert.equal(remoteResults.length, 1);
+  assert.equal(remoteResults[0].pass, true);
   for (const path of ["/api/video-gateway/cloud-discovery", "/api/video-gateway/device-heartbeat",
     "/api/video-gateway/cloud-learning"]) {
     const deviceRequest = await fetch(base + path, { method: "POST", headers: {

@@ -2,6 +2,8 @@ import { createServer } from "node:http";
 import { createServer as createSecureServer } from "node:https";
 import { lstatSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { timingSafeEqual } from "node:crypto";
+import { push38RemotePlaybackPage, sanitizePush38RemotePlaybackResult } from "./push38-remote-playback-page.mjs";
 
 const routes = new Set([
   "POST /api/digital-observer/gateway-enrollment",
@@ -11,10 +13,13 @@ const routes = new Set([
   "POST /api/video-gateway/home-qa-legacy-download",
   "POST /api/video-gateway/cloud-discovery",
   "POST /api/video-gateway/device-heartbeat",
-  "POST /api/video-gateway/cloud-learning"
+  "POST /api/video-gateway/cloud-learning",
+  "POST /api/digital-observer/dvr-gateway",
+  "GET /push38/remote-playback",
+  "POST /push38/remote-playback/result"
 ]);
 const forwardHeaders = new Set([
-  "accept", "content-type", "x-video-gateway-device-token",
+  "accept", "authorization", "content-type", "x-video-gateway-device-token",
   "x-video-gateway-id", "x-video-gateway-timestamp", "x-video-gateway-nonce",
   "x-video-gateway-signature",
   "x-observer-device-protocol", "x-observer-device-id",
@@ -22,6 +27,11 @@ const forwardHeaders = new Set([
   "x-observer-device-nonce", "x-observer-device-runtime-instance",
   "x-observer-device-sequence", "x-observer-device-signature",
   "x-observer-home-qa-legacy-signature"
+]);
+const remoteQualificationRoutes = new Set([
+  "POST /api/digital-observer/dvr-gateway",
+  "GET /push38/remote-playback",
+  "POST /push38/remote-playback/result"
 ]);
 
 export function push38tIngressAllows(method, pathname) {
@@ -50,7 +60,14 @@ function tlsMaterial(path, privateKey) {
   return readFileSync(target);
 }
 
-export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null, onAudit = () => {} } = {}) {
+function safeEqual(left, right) {
+  const a = Buffer.from(String(left || ""));
+  const b = Buffer.from(String(right || ""));
+  return a.length === b.length && a.length >= 32 && timingSafeEqual(a, b);
+}
+
+export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null,
+  remoteResultToken = "", onRemoteResult = () => {}, onAudit = () => {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
     throw new Error("QA_INGRESS_ORIGIN_NOT_LOOPBACK");
@@ -63,6 +80,23 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       response.writeHead(404, { "cache-control": "no-store" }).end();
       return;
     }
+    if (!remoteResultToken && remoteQualificationRoutes.has(`${request.method} ${url.pathname}`)) {
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
+      response.writeHead(404, { "cache-control": "no-store" }).end();
+      return;
+    }
+    if (url.pathname === "/push38/remote-playback" && request.method === "GET") {
+      if (!remoteResultToken) {
+        onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
+        response.writeHead(404, { "cache-control": "no-store" }).end();
+        return;
+      }
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "QUALIFICATION_CLIENT", status: 200 });
+      response.writeHead(200, { "cache-control": "private, no-store", "content-type": "text/html; charset=utf-8",
+        "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https:; media-src https:; img-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+        "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" }).end(push38RemotePlaybackPage());
+      return;
+    }
     try {
       const chunks = []; let length = 0;
       for await (const chunk of request) {
@@ -72,6 +106,20 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
           return;
         }
         chunks.push(chunk);
+      }
+      if (url.pathname === "/push38/remote-playback/result") {
+        if (!safeEqual(request.headers["x-push38-result-token"], remoteResultToken)) {
+          onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 401 });
+          response.writeHead(401, { "cache-control": "no-store" }).end();
+          return;
+        }
+        const result = sanitizePush38RemotePlaybackResult(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+        onRemoteResult(result);
+        onAudit({ method: request.method, pathname: url.pathname, outcome: "REMOTE_RESULT", status: 202,
+          responseClass: result.pass ? "PASS" : "FAIL" });
+        response.writeHead(202, { "cache-control": "no-store", "content-type": "application/json" })
+          .end('{"accepted":true}');
+        return;
       }
       const headers = new Headers();
       for (const [name, value] of Object.entries(request.headers))
