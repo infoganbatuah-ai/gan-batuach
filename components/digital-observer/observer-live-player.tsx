@@ -185,7 +185,12 @@ export function ObserverLivePlayer({
         await videoElement.play().catch(() => undefined);
       } else if (Hls.isSupported()) {
         hls = new Hls({
-          liveSyncDurationCount: 2,
+          // Match the Gateway's signed HLS holdback contract. The Home DVR
+          // allows one productive response per channel, so a managed session
+          // renewal briefly drains retained segments while the replacement
+          // starts. Six one-second segments preserve moving playback without
+          // weakening the Gateway's source-freshness deadline.
+          liveSyncDurationCount: 6,
           liveMaxLatencyDurationCount: 12,
           // A worker per thumbnail is expensive and requires a blob worker CSP.
           // Parsing these short local playlists on the main thread keeps the

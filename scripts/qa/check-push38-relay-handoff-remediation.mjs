@@ -4,11 +4,11 @@ import test from "node:test";
 import { summarizeRealHomeSoak } from
   "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
-  classifyContinuousSessionRenewal } from
+  classifyContinuousSessionRenewal, evaluateHlsRenewalContinuity } from
   "./push38-shadow-qualification-policy.mjs";
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
-import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
+import { HLS_PLAYBACK_HOLDBACK_SEGMENTS, inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
   projectHlsPlaybackPlaylist } from
   "../../services/video-gateway/hls-playback-continuity.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
@@ -480,6 +480,10 @@ test("HLS playback numbering remains monotonic across relay generations", () => 
   assert.equal(projected.firstSequence, 17);
   assert.equal(projected.lastSequence, 18);
   assert.match(projected.playlist, /#EXT-X-MEDIA-SEQUENCE:17/);
+  assert.equal(HLS_PLAYBACK_HOLDBACK_SEGMENTS, 6);
+  assert.match(projected.playlist,
+    /#EXT-X-START:TIME-OFFSET=-6,PRECISE=YES/,
+  "the signed Gateway advertises a six-segment playback holdback across exclusive renewal");
   assert.match(projected.playlist,
     /segment-000024\.ts\?generation=11111111-1111-4111-8111-111111111111&revision=1&token=playback-token/);
   const candidate = { mediaSequence: 0, segmentCount: 2, lastSequence: 1 };
@@ -504,6 +508,30 @@ test("HLS playback numbering remains monotonic across relay generations", () => 
     "FFmpeg warns that readrate throttling an actual live stream can lose packets");
   assert.match(server, /projectPlaybackPlaylist\(match\[1\], relay/);
   assert.match(server, /requestedGeneration[\s\S]*relayGenerationDirectories/);
+});
+
+test("retained HLS may bridge only its explicitly advertised playback buffer", () => {
+  const point = (seconds, sequence, ownerState = "CURRENT") => ({
+    observed_at: new Date(seconds * 1_000).toISOString(), channel: 1,
+    renewal: { status: 200, playlist_status: 200, segment_status: 200,
+      segment_bytes: 1024, media_sequence: sequence - 11,
+      latest_segment_sequence: sequence, target_duration_seconds: 1,
+      start_time_offset_seconds: -6, segment_count: 12,
+      playlist_sha256: `${sequence}`.padStart(64, "a").slice(-64),
+      segment_sha256: `${sequence}`.padStart(64, "b").slice(-64) },
+    shadow: { media: { inputs: [{ channel: 1, owner_state: ownerState,
+      media_owner_state: ownerState === "RENEWING" ? "RETAINED_HLS" : "CURRENT",
+      playback_continuity: ownerState === "RENEWING" }] } }
+  });
+  const buffered = evaluateHlsRenewalContinuity([
+    point(0, 20), point(1, 21), point(5.5, 21, "RENEWING"), point(6, 22)
+  ]);
+  assert.equal(buffered.pass, true);
+  assert.equal(buffered.buffered_handoffs, 1);
+  assert.equal(evaluateHlsRenewalContinuity([
+    point(0, 20), point(1, 21), point(7.1, 21, "RENEWING")
+  ]).reason, "PLAYLIST_FRESHNESS_EXCEEDED",
+  "retained playback must still fail closed after its advertised buffer is exhausted");
 });
 
 test("a progressing candidate preserves health without early ownership promotion", () => {

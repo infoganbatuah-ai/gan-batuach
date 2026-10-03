@@ -159,6 +159,7 @@ assert.equal(gatewayRoutineConfirmationLegacyRuntimeAcceptable({ ...boundedLegac
 const renewal = (sequence, seconds, hash) => ({ observed_at: new Date(seconds * 1_000).toISOString(),
   renewal: { status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1024,
     media_sequence: Math.max(0, sequence - 3), latest_segment_sequence: sequence,
+    segment_count: 4, start_time_offset_seconds: -6,
     target_duration_seconds: 6, playlist_sha256: `${hash}`.repeat(64),
     segment_sha256: `${hash}`.repeat(64) } });
 assert.equal(evaluateHlsRenewalContinuity([
@@ -173,6 +174,7 @@ const readinessPoint = (observedAt, sequence) => ({
   renewals: [{ channel: 1, playback: {
     status: 200, playlist_status: 200, segment_status: 200, segment_bytes: 1024,
     media_sequence: sequence, latest_segment_sequence: sequence + 10,
+    segment_count: 11, start_time_offset_seconds: -6,
     target_duration_seconds: 1,
     playlist_sha256: `${sequence + 1}`.padStart(64, "a").slice(-64),
     segment_sha256: `${sequence + 1}`.padStart(64, "b").slice(-64)

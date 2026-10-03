@@ -5,6 +5,9 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
     !Number.isFinite(graceMs) || graceMs < 0) return { pass: false, reason: "INVALID_INPUT" };
   let lastAdvanceAt = null;
   let maximumStagnationMs = 0;
+  let maximumBufferedStagnationMs = 0;
+  let bufferedHandoffs = 0;
+  let inBufferedHandoff = false;
   let advances = 0;
   for (let index = 0; index < checkpoints.length; index += 1) {
     const point = checkpoints[index], renewal = point?.renewal;
@@ -14,6 +17,7 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
       renewal?.playlist_status !== 200 || renewal?.segment_status !== 200 ||
       !(renewal?.segment_bytes > 0) || !Number.isInteger(renewal?.media_sequence) ||
       !Number.isInteger(renewal?.latest_segment_sequence) ||
+      !Number.isInteger(renewal?.segment_count) || renewal.segment_count < 1 ||
       !Number.isInteger(targetDurationSeconds) || targetDurationSeconds < 1 ||
       targetDurationSeconds > 60 || !/^[a-f0-9]{64}$/.test(renewal?.playlist_sha256 || "") ||
       !/^[a-f0-9]{64}$/.test(renewal?.segment_sha256 || ""))
@@ -27,6 +31,7 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
       if (renewal.segment_sha256 === previous.segment_sha256)
         return { pass: false, reason: "ADVANCE_WITHOUT_NEW_SEGMENT", index };
       lastAdvanceAt = observedAt;
+      inBufferedHandoff = false;
       advances += 1;
       continue;
     }
@@ -34,12 +39,30 @@ export function evaluateHlsRenewalContinuity(checkpoints, { maximumTargetPeriods
       return { pass: false, reason: "SAME_SEQUENCE_DIFFERENT_SEGMENT", index };
     const stagnationMs = observedAt - lastAdvanceAt;
     maximumStagnationMs = Math.max(maximumStagnationMs, stagnationMs);
-    if (stagnationMs > targetDurationSeconds * maximumTargetPeriods * 1_000 + graceMs)
-      return { pass: false, reason: "PLAYLIST_FRESHNESS_EXCEEDED", index,
-        maximum_stagnation_ms: maximumStagnationMs };
+    const strictFreshnessMs = targetDurationSeconds * maximumTargetPeriods * 1_000 + graceMs;
+    if (stagnationMs <= strictFreshnessMs) continue;
+    const input = point?.shadow?.media?.inputs?.find(entry =>
+      !Number.isInteger(point?.channel) || entry?.channel === point.channel);
+    const holdbackSeconds = Math.abs(Number(renewal?.start_time_offset_seconds));
+    const retainedBufferValid = input?.owner_state === "RENEWING" &&
+      input?.media_owner_state === "RETAINED_HLS" &&
+      input?.playback_continuity === true && Number.isFinite(holdbackSeconds) &&
+      renewal.start_time_offset_seconds < 0 &&
+      renewal.segment_count >= Math.ceil(holdbackSeconds / targetDurationSeconds) &&
+      stagnationMs <= holdbackSeconds * 1_000;
+    if (retainedBufferValid) {
+      maximumBufferedStagnationMs = Math.max(maximumBufferedStagnationMs, stagnationMs);
+      if (!inBufferedHandoff) bufferedHandoffs += 1;
+      inBufferedHandoff = true;
+      continue;
+    }
+    return { pass: false, reason: "PLAYLIST_FRESHNESS_EXCEEDED", index,
+      maximum_stagnation_ms: maximumStagnationMs };
   }
   return { pass: advances > 0, reason: advances > 0 ? null : "NO_SEGMENT_ADVANCE",
-    advances, maximum_stagnation_ms: maximumStagnationMs };
+    advances, maximum_stagnation_ms: maximumStagnationMs,
+    buffered_handoffs: bufferedHandoffs,
+    maximum_buffered_stagnation_ms: maximumBufferedStagnationMs };
 }
 
 export function evaluateShadowMeasurementReadiness(checkpoints, {
@@ -70,6 +93,8 @@ export function evaluateShadowMeasurementReadiness(checkpoints, {
     channel,
     ...evaluateHlsRenewalContinuity(checkpoints.map(point => ({
       observed_at: point.observed_at,
+      channel,
+      shadow: point.shadow,
       renewal: point.renewals?.find(entry => entry.channel === channel)?.playback
     })))
   }));

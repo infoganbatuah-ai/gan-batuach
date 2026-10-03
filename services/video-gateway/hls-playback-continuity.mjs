@@ -1,6 +1,13 @@
 const SEGMENT_LINE = /^segment-(\d+)\.ts$/;
 const MEDIA_SEQUENCE_LINE = /^#EXT-X-MEDIA-SEQUENCE:(\d+)$/;
 
+// The Home recorder permits one productive response per channel. Its measured
+// exclusive renewal takes a little over four seconds before the replacement
+// publishes media. Keep Product viewers six target durations behind the live
+// edge so the already-bounded twelve-segment ring can bridge that source-side
+// handoff without relaxing source freshness or ownership gates.
+export const HLS_PLAYBACK_HOLDBACK_SEGMENTS = 6;
+
 export function inspectHlsPlaybackPlaylist(playlist) {
   const lines = String(playlist || "").split(/\r?\n/);
   const mediaSequence = Number(MEDIA_SEQUENCE_LINE.exec(
@@ -33,18 +40,23 @@ export function nextHlsPlaybackOffset(inspected, {
 }
 
 export function projectHlsPlaybackPlaylist(playlist, { offset = 0, generation,
-  revision = 0, token }) {
+  revision = 0, token, holdbackSegments = HLS_PLAYBACK_HOLDBACK_SEGMENTS }) {
   if (!Number.isSafeInteger(offset) || offset < 0 ||
     !/^[a-f0-9-]{36}$/i.test(generation || "") ||
-    !Number.isSafeInteger(revision) || revision < 0 || !token)
+    !Number.isSafeInteger(revision) || revision < 0 || !token ||
+    !Number.isSafeInteger(holdbackSegments) || holdbackSegments < 1)
     throw new Error("HLS_PLAYBACK_PROJECTION_INVALID");
   const inspected = inspectHlsPlaybackPlaylist(playlist);
   if (!inspected || inspected.lastSequence + offset > Number.MAX_SAFE_INTEGER)
     throw new Error("HLS_PLAYBACK_PLAYLIST_INVALID");
   const query = `generation=${encodeURIComponent(generation)}&revision=${revision}` +
     `&token=${encodeURIComponent(token)}`;
+  const start = `#EXT-X-START:TIME-OFFSET=-${holdbackSegments},PRECISE=YES`;
+  const withHoldback = /^#EXT-X-START:/m.test(String(playlist))
+    ? String(playlist).replace(/^#EXT-X-START:.*$/m, start)
+    : String(playlist).replace(/^#EXTM3U$/m, `#EXTM3U\n${start}`);
   return {
-    playlist: String(playlist)
+    playlist: withHoldback
       .replace(/^#EXT-X-MEDIA-SEQUENCE:(\d+)$/m,
         `#EXT-X-MEDIA-SEQUENCE:${inspected.mediaSequence + offset}`)
       .replace(/^(segment-\d+\.ts)$/gm, `$1?${query}`),

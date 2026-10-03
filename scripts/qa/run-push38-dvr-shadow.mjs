@@ -211,8 +211,11 @@ async function playback(streamId) {
     playlistLines.find(line => line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) || "")?.[1]);
   const targetDurationSeconds = Number(/^#EXT-X-TARGETDURATION:(\d+)$/.exec(
     playlistLines.find(line => line.startsWith("#EXT-X-TARGETDURATION:")) || "")?.[1]);
+  const startTimeOffsetSeconds = Number(/^#EXT-X-START:TIME-OFFSET=(-?\d+(?:\.\d+)?)(?:,|$)/.exec(
+    playlistLines.find(line => line.startsWith("#EXT-X-START:")) || "")?.[1]);
+  const segmentCount = playlistLines.filter(line => /^segment-\d+\.ts\?/.test(line)).length;
   const latestSegmentSequence = Number.isInteger(mediaSequence)
-    ? mediaSequence + playlistLines.filter(line => /^segment-\d+\.ts\?/.test(line)).length - 1
+    ? mediaSequence + segmentCount - 1
     : null;
   const segmentUrl = segmentName ? new URL(segmentName, grant.data.playback.hls_url).toString() : "";
   const segmentResponse = segmentUrl ? await fetch(segmentUrl, { signal: AbortSignal.timeout(20_000) }).catch(() => null) : null;
@@ -221,6 +224,9 @@ async function playback(streamId) {
     segment_status: segmentResponse?.status || 0, segment_bytes: segment.byteLength,
     media_sequence: Number.isInteger(mediaSequence) ? mediaSequence : null,
     target_duration_seconds: Number.isInteger(targetDurationSeconds) ? targetDurationSeconds : null,
+    start_time_offset_seconds: Number.isFinite(startTimeOffsetSeconds)
+      ? startTimeOffsetSeconds : null,
+    segment_count: Number.isInteger(segmentCount) && segmentCount > 0 ? segmentCount : null,
     latest_segment_sequence: Number.isInteger(latestSegmentSequence) && latestSegmentSequence >= 0
       ? latestSegmentSequence : null,
     playlist_sha256: playlist ? createHash("sha256").update(playlist).digest("hex") : null,
@@ -541,6 +547,8 @@ try {
     channel: selectedChannel,
     ...evaluateHlsRenewalContinuity(qualificationCheckpoints.map(point => ({
       observed_at: point.observed_at,
+      channel: selectedChannel,
+      shadow: point.shadow,
       renewal: point.renewals.find(entry => entry.channel === selectedChannel)?.playback
     })))
   })) : [];
