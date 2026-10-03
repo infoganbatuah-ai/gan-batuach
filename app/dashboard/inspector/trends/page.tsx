@@ -15,11 +15,13 @@ type InspectionTrend = {
 export default async function InspectorTrendsPage() {
   const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
-  const [inspectorRes, inspectionsRes] = await Promise.all([
+  const [inspectorRes, inspectionsRes, settingsRes] = await Promise.all([
     supabase.from("inspectors").select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("inspections").select("id,garden_id,completed_at,weighted_score,violation_count,status,gardens(name,city)").eq("inspector_id", profile.id).eq("status", "done").order("completed_at", { ascending: false }).limit(100)
+    supabase.from("inspections").select("id,garden_id,completed_at,weighted_score,violation_count,status,gardens(name,city)").eq("inspector_id", profile.id).eq("status", "done").order("completed_at", { ascending: false }).limit(100),
+    supabase.from("inspection_product_settings").select("attention_score_below").eq("id", true).maybeSingle()
   ]);
   const rows = (inspectionsRes.data ?? []) as unknown as InspectionTrend[];
+  const attentionThreshold = Number(settingsRes.data?.attention_score_below ?? 8);
   const scores = rows.map((r) => Number(r.weighted_score)).filter(Number.isFinite);
   const average = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as unknown as InspectorPhoto | null)?.profile_photo_url ?? profile.profile_image_url };
@@ -32,7 +34,7 @@ export default async function InspectorTrendsPage() {
         <InspectorMetricCard label="ליקויים שתועדו" value={rows.reduce((sum, r) => sum + Number(r.violation_count ?? 0), 0)} hint="לאורך ההיסטוריה" icon={CheckCircle2} tone="warning" />
       </InspectorMetricGrid>
       <InspectorSection title="ציר ביקורות" subtitle="גן, תאריך, ציון ומספר ממצאים" icon={BarChart3}>
-        {rows.length ? <InspectorTimeline items={rows.map((row) => ({ title: `${row.gardens?.name ?? "גן"} — ציון ${row.weighted_score ?? "—"}`, text: `${row.violation_count ?? 0} ממצאים · ${row.gardens?.city ?? ""}`, date: row.completed_at ? new Date(row.completed_at).toLocaleDateString("he-IL") : "", tone: Number(row.weighted_score ?? 0) >= 80 ? "success" : "warning" }))} /> : <InspectorEmpty title="אין נתוני מגמה" text="לאחר השלמת ביקורות, ההיסטוריה תופיע כאן." icon={TrendingUp} />}
+        {rows.length ? <InspectorTimeline items={rows.map((row) => ({ title: `${row.gardens?.name ?? "גן"} — ציון ${row.weighted_score ?? "—"}`, text: `${row.violation_count ?? 0} ממצאים · ${row.gardens?.city ?? ""}`, date: row.completed_at ? new Date(row.completed_at).toLocaleDateString("he-IL") : "", tone: Number(row.weighted_score ?? 0) >= attentionThreshold ? "success" : "warning" }))} /> : <InspectorEmpty title="אין נתוני מגמה" text="לאחר השלמת ביקורות, ההיסטוריה תופיע כאן." icon={TrendingUp} />}
       </InspectorSection>
     </InspectorAppFrame>
   );
