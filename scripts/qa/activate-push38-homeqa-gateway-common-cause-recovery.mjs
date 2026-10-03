@@ -73,6 +73,8 @@ import { gatewayRoutineConfirmationLegacyRuntimeAcceptable,
 } from "../../services/video-gateway/push38-home-qa-gateway-routine-confirmation.mjs";
 import { PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-session-renewal-continuity.mjs";
+import { PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL
+} from "../../services/video-gateway/push38-home-qa-gateway-proactive-exclusive-renewal.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -133,15 +135,17 @@ const deadlineBudget = process.argv.includes("--gateway-deadline-budget");
 const recoveryContinuity = process.argv.includes("--gateway-recovery-continuity");
 const routineConfirmation = process.argv.includes("--gateway-routine-confirmation");
 const sessionRenewal = process.argv.includes("--gateway-session-renewal");
+const proactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
-  sessionRenewal]
+  sessionRenewal, proactiveExclusive]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = sessionRenewal ? PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY :
+const item = proactiveExclusive ? PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL :
+  sessionRenewal ? PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY :
   routineConfirmation ? PUSH38_GATEWAY_ROUTINE_CONFIRMATION :
   recoveryContinuity ? PUSH38_GATEWAY_RECOVERY_CONTINUITY :
   deadlineBudget ? PUSH38_GATEWAY_DEADLINE_BUDGET :
@@ -173,7 +177,7 @@ const item = sessionRenewal ? PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY :
 // Connector handoff candidate.  The live Connector correctly recovered to its
 // signed 0.2.26 known-good, so pin this Gateway-only activation to that exact
 // installed rollback state instead of requiring a quarantined release.
-const connectorItem = (sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
+const connectorItem = (proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
   (sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
   handoffContinuity ? connectorHandoffContinuityItem :
   relayHandoff ? connectorCodecPreservationItem :
@@ -188,14 +192,16 @@ const connectorItem = (sessionRenewal || routineConfirmation || recoveryContinui
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
+const predecessorReleaseId = (proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
   handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = sessionRenewal
+const artifact = proactiveExclusive
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
+  : sessionRenewal
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-renewal-rescue-7facf042/gateway-runtime.tar.gz"
   : routineConfirmation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-owner-recovery-e661c374/gateway-runtime.tar.gz"
@@ -252,7 +258,9 @@ const artifact = sessionRenewal
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = sessionRenewal
+const publication = proactiveExclusive
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
+  : sessionRenewal
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-renewal-rescue-7facf042/r2-publication.json"
   : routineConfirmation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-owner-recovery-e661c374/r2-publication.json"
@@ -516,14 +524,15 @@ if (config.profile !== item.profile || config.deviceId !== item.deviceId || conf
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal)
+const expectedAgentReleaseId = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive)
   ? item.agentPredecessorReleaseId : item.releaseId;
-const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal)
+const expectedAgentDigest = (idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive)
   ? item.priorManagementArtifactSha256 : item.digest;
 if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_sha256 !== expectedAgentDigest)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  proactiveExclusive ? "gateway_remediation_proactive_exclusive_renewal.json" :
   sessionRenewal ? "gateway_remediation_session_renewal_continuity.json" :
   routineConfirmation ? "gateway_remediation_routine_confirmation.json" :
   recoveryContinuity ? "gateway_remediation_recovery_continuity.json" :
@@ -629,7 +638,7 @@ const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSE
 // its already-registered successor remains paused. This is the canonical
 // state immediately before activating the current freshness-continuity correction;
 // it is still exact-device only and never broadens eligibility.
-const activeRetriedPredecessorState = (routineConfirmation || sessionRenewal) && rollout.new_status === "PAUSED" &&
+const activeRetriedPredecessorState = (routineConfirmation || sessionRenewal || proactiveExclusive) && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
 if (rollout.devices !== 2 || rollout.target_release_count !== 1 ||
@@ -655,7 +664,7 @@ for (let index = 0; index < 3; index += 1) {
 const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample.pid) &&
   new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
 const expectsNineSources = stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep ||
-  heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal;
+  heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive;
 const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
   gatewaySamples.every(sample =>
     sample.assigned === 10 && sample.connected === (expectsNineSources ? 9 : 8) &&
@@ -700,8 +709,8 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
-const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal) && gatewaySamples.every(sample =>
-  (routineConfirmation || sessionRenewal) ? gatewayRoutineConfirmationLegacyRuntimeAcceptable(sample) :
+const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) && gatewaySamples.every(sample =>
+  (routineConfirmation || sessionRenewal || proactiveExclusive) ? gatewayRoutineConfirmationLegacyRuntimeAcceptable(sample) :
     (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
     Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
     Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&
@@ -900,7 +909,7 @@ if (deadlineBudget) {
     scheduler_slot_budget_violation_reproduced: true,
     historical_result_label_bug_corrected: true };
 }
-if (recoveryContinuity || routineConfirmation || sessionRenewal) {
+if (recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) {
   const bytes = protectedFile(failedPreSoakEvidencePath);
   const result = JSON.parse(bytes);
   if (sha(bytes) !== "e6dfbe426d02414d612619a86443294b57197b148a31f9bf62c6e5eb417a85d1" ||
@@ -917,7 +926,9 @@ if (recoveryContinuity || routineConfirmation || sessionRenewal) {
     result.gateway?.recorder_session_failure_delta !== 0 ||
     result.gateway?.recorder_auth_rejection_delta !== 0 ||
     result.playback?.failures !== 1 || result.ai?.failures !== 0)
-    throw new Error(sessionRenewal
+    throw new Error(proactiveExclusive
+      ? "P38_GATEWAY_PROACTIVE_EXCLUSIVE_FAILED_PRE_SOAK_PROOF_INVALID"
+      : sessionRenewal
       ? "P38_GATEWAY_SESSION_RENEWAL_FAILED_PRE_SOAK_PROOF_INVALID"
       : routineConfirmation
       ? "P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID"
@@ -1042,7 +1053,7 @@ if (handoffProbation || retainedFallback || continuousHandoff) {
     socket_error_delta: result.gateway.socket_error_delta, playback_failures: result.playback.failures,
     ai_failures: result.ai.failures, live_recovery_required: true };
 }
-if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal) {
+if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) {
   if (!shadowEvidencePath)
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
   try {
@@ -1053,12 +1064,12 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
       // continuous. Output-rescue confirmation failures remain disallowed by
       // the Shadow result and mode-specific failure checks.
       confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity,
-      verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal,
-      hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal,
-      recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal) ? 60 * 60_000 : 10 * 60_000,
+      verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive,
+      hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive,
+      recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) ? 60 * 60_000 : 10 * 60_000,
       boundedWarmupFailure: continuousHandoff || handoffContinuity || sweepDeadline || deadlineBudget ||
-        recoveryContinuity || routineConfirmation || sessionRenewal,
-      mediaContinuity: recoveryContinuity || routineConfirmation || sessionRenewal,
+        recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive,
+      mediaContinuity: recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive,
       expectedRelease: item, expectedChannel: shadowChannel });
   } catch {
     throw new Error("P38_GATEWAY_OUTPUT_RESCUE_SHADOW_EVIDENCE_INVALID");
@@ -1088,7 +1099,7 @@ const connectorPrerequisiteHealthy = connectorSamples.every(sample => sample.ok 
 // Tapo is a separately tracked physical source.  A Gateway-only remediation
 // may proceed while the exact signed Connector known-good reports that source
 // truthfully degraded; it must not proceed for a silent/ambiguous degradation.
-const connectorTruthfulTapoDegradation = (deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal) && connectorSamples.every(sample =>
+const connectorTruthfulTapoDegradation = (deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) && connectorSamples.every(sample =>
   !sample.ok && sample.status === "degraded" && sample.assigned === 1 && sample.empty === 0 &&
   sample.progressing === 0 && (
     sample.connected === 1 && sample.failed === 0 && [0, 1].includes(sample.stalled) &&
@@ -1111,7 +1122,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: sessionRenewal ? "observer-push38-gateway-session-renewal-continuity-activation-v1" :
+const plan = { protocol: proactiveExclusive ? "observer-push38-gateway-proactive-exclusive-renewal-activation-v1" :
+  sessionRenewal ? "observer-push38-gateway-session-renewal-continuity-activation-v1" :
   routineConfirmation ? "observer-push38-gateway-routine-confirmation-activation-v1" :
   recoveryContinuity ? "observer-push38-gateway-recovery-continuity-activation-v1" :
   deadlineBudget ? "observer-push38-gateway-deadline-budget-activation-v1" :
@@ -1148,7 +1160,8 @@ const plan = { protocol: sessionRenewal ? "observer-push38-gateway-session-renew
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (sessionRenewal ? "FAILED_PRE_SOAK_SESSION_RENEWAL_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (proactiveExclusive ? "FAILED_PRE_SOAK_PROACTIVE_EXCLUSIVE_SUCCESSOR_QUALIFIED" :
+      sessionRenewal ? "FAILED_PRE_SOAK_SESSION_RENEWAL_SUCCESSOR_QUALIFIED" :
       routineConfirmation ? "FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
       recoveryContinuity ? "FAILED_PRE_SOAK_RECOVERY_CONTINUITY_SUCCESSOR_QUALIFIED" :
       deadlineBudget ? "FAILED_LIVE_PROOF_DEADLINE_BUDGET_SUCCESSOR_QUALIFIED" :
@@ -1183,15 +1196,16 @@ const plan = { protocol: sessionRenewal ? "observer-push38-gateway-session-renew
     service_pid_stable: gatewayPidStable
   } } : {}),
   dvr_truth: { expected: 10,
-    source_available: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal) ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
-    upstream_unavailable: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal) ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
+    source_available: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) ? gatewaySamples.at(-1).connected : confirmedHandoff ? 8 : expectsNineSources ? 9 : 8,
+    upstream_unavailable: (startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) ? gatewaySamples.at(-1).failed : confirmedHandoff ? 2 : expectsNineSources ? 1 : 2,
     empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: sessionRenewal ? "GATEWAY_SESSION_RENEWAL_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: proactiveExclusive ? "GATEWAY_PROACTIVE_EXCLUSIVE_PREFLIGHT_PASS" :
+    sessionRenewal ? "GATEWAY_SESSION_RENEWAL_PREFLIGHT_PASS" :
     routineConfirmation ? "GATEWAY_ROUTINE_CONFIRMATION_PREFLIGHT_PASS" :
     recoveryContinuity ? "GATEWAY_RECOVERY_CONTINUITY_PREFLIGHT_PASS" :
     deadlineBudget ? "GATEWAY_DEADLINE_BUDGET_PREFLIGHT_PASS" :
@@ -1256,7 +1270,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: sessionRenewal ? "EXACT_GATEWAY_SESSION_RENEWAL_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: proactiveExclusive ? "EXACT_GATEWAY_PROACTIVE_EXCLUSIVE_ROLLOUT_ACTIVE" :
+  sessionRenewal ? "EXACT_GATEWAY_SESSION_RENEWAL_ROLLOUT_ACTIVE" :
   routineConfirmation ? "EXACT_GATEWAY_ROUTINE_CONFIRMATION_ROLLOUT_ACTIVE" :
   recoveryContinuity ? "EXACT_GATEWAY_RECOVERY_CONTINUITY_ROLLOUT_ACTIVE" :
   deadlineBudget ? "EXACT_GATEWAY_DEADLINE_BUDGET_ROLLOUT_ACTIVE" :

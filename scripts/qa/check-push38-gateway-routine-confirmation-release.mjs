@@ -287,16 +287,19 @@ try {
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-routine-confirmation/);
   assert.match(publisher, /observer-push38-gateway-routine-confirmation-r2-publication-v1/);
-  assert.match(activation, /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal\)/);
+  assert.match(activation,
+    /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive\)/);
   assert.match(activation, /P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID/);
   assert.match(activation, /FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED/);
-  assert.match(activation, /activeRetriedPredecessorState = \(routineConfirmation \|\| sessionRenewal\)/);
+  assert.match(activation,
+    /activeRetriedPredecessorState = \(routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive\)/);
   assert.doesNotMatch(activation, /routine_confirmation_budget_fault_reproduced/);
   assert.match(activation,
     /confirmedWarmHandoff:[^\n]+handoffOwnerContinuity,[\s\S]*boundedWarmupFailure:[\s\S]*routineConfirmation/);
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
-  assert.match(activation, /mediaContinuity: recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal/);
+  assert.match(activation,
+    /mediaContinuity: recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive/);
   assert.match(activation, /expectedRelease: item, expectedChannel: shadowChannel/);
   assert.match(activation, /qualifiedOwnerContinuity/);
   assert.match(activation, /qualified_shadow_channel: shadowChannel/);
