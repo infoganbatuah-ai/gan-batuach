@@ -36,8 +36,12 @@ const origin = createServer((request, response) => response.writeHead(401, { "co
 await new Promise(resolve => origin.listen(0, "127.0.0.1", resolve));
 const audit = [];
 const remoteResults = [];
+const remoteQualificationDeadline = Date.now() + 60_000;
+let qualificationNow = remoteQualificationDeadline - 1;
 const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}`,
   remoteResultToken: "qualification-result-token-00000000000000000000",
+  remoteResultExpiresAt: remoteQualificationDeadline,
+  now: () => qualificationNow,
   onRemoteResult: result => remoteResults.push(result),
   onAudit: event => audit.push(event) });
 await new Promise(resolve => proxy.listen(0, "127.0.0.1", resolve));
@@ -72,6 +76,14 @@ try {
     body: JSON.stringify(resultPayload) })).status, 202);
   assert.equal(remoteResults.length, 1);
   assert.equal(remoteResults[0].pass, true);
+  qualificationNow = remoteQualificationDeadline + 1;
+  assert.equal((await fetch(base + "/push38/remote-playback")).status, 404);
+  assert.equal((await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",
+    headers: { "content-type": "application/json" }, body: "{}" })).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
+    headers: { "content-type": "application/json",
+      "x-push38-result-token": "qualification-result-token-00000000000000000000" },
+    body: JSON.stringify(resultPayload) })).status, 404);
   for (const path of ["/api/video-gateway/cloud-discovery", "/api/video-gateway/device-heartbeat",
     "/api/video-gateway/cloud-learning"]) {
     const deviceRequest = await fetch(base + path, { method: "POST", headers: {

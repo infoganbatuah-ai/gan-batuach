@@ -67,7 +67,8 @@ function safeEqual(left, right) {
 }
 
 export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null,
-  remoteResultToken = "", onRemoteResult = () => {}, onAudit = () => {} } = {}) {
+  remoteResultToken = "", remoteResultExpiresAt = 0, now = Date.now,
+  onRemoteResult = () => {}, onAudit = () => {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
     throw new Error("QA_INGRESS_ORIGIN_NOT_LOOPBACK");
@@ -80,13 +81,15 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       response.writeHead(404, { "cache-control": "no-store" }).end();
       return;
     }
-    if (!remoteResultToken && remoteQualificationRoutes.has(`${request.method} ${url.pathname}`)) {
+    const remoteQualificationActive = Boolean(remoteResultToken) && Number.isFinite(remoteResultExpiresAt) &&
+      remoteResultExpiresAt > now();
+    if (!remoteQualificationActive && remoteQualificationRoutes.has(`${request.method} ${url.pathname}`)) {
       onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
       response.writeHead(404, { "cache-control": "no-store" }).end();
       return;
     }
     if (url.pathname === "/push38/remote-playback" && request.method === "GET") {
-      if (!remoteResultToken) {
+      if (!remoteQualificationActive) {
         onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
         response.writeHead(404, { "cache-control": "no-store" }).end();
         return;

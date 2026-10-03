@@ -17,6 +17,7 @@ if (secrets.protocol !== "observer-push38-remote-runtime-secrets-v1" ||
   !/^[A-Za-z0-9_-]{43}$/.test(secrets.result_token || ""))
   throw new Error("P38_REMOTE_INGRESS_SECRET_INVALID");
 process.env.PUSH38T_REMOTE_RESULT_TOKEN = secrets.result_token;
+process.env.PUSH38T_REMOTE_RESULT_EXPIRES_AT = String(Date.now() + 20 * 60_000);
 process.env.PUSH38T_TLS_KEY_PATH = keyPath;
 process.env.PUSH38T_TLS_CERT_PATH = certPath;
 await import("./start-push38t-ingress.mjs");

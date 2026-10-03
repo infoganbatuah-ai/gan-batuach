@@ -45,7 +45,10 @@ async function report(config,result){
 }
 run.addEventListener("click",async()=>{
   run.disabled=true;summary.textContent="הבדיקה פועלת…";const startedAt=new Date().toISOString();let config;
-  try{config=decodeFragment();history.replaceState(null,"",location.pathname);if(!config.accessToken||!config.resultToken||!config.siteId||!Array.isArray(config.sources))throw new Error("QUALIFICATION_INPUT_INVALID");
+  try{const raw=decodeFragment();config={accessToken:raw.accessToken||raw.t,resultToken:raw.resultToken||raw.r,siteId:raw.siteId||raw.s,
+    sources:(raw.sources||raw.c||[]).map(source=>({id:source.id||source.i,label:source.label||source.l,kind:source.kind||source.k,
+      expect:source.expect||source.e,play:source.play===true||source.p===true}))};history.replaceState(null,"",location.pathname);
+    if(!config.accessToken||!config.resultToken||!config.siteId||!Array.isArray(config.sources))throw new Error("QUALIFICATION_INPUT_INVALID");
     const results=[];
     for(const source of config.sources){
       const auth=await authorize(config,source);const allowed=auth.status===200&&auth.body?.data?.playback;
