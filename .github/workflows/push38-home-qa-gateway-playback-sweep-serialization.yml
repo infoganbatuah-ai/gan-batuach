@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 3e6bcac1afabe44d7aa5725a9bb491d1195e72b2
+          ref: 1a004781c1989143f1325f379825adf60cb51d76
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "3e6bcac1afabe44d7aa5725a9bb491d1195e72b2"
+        run: test "$(git rev-parse HEAD)" = "1a004781c1989143f1325f379825adf60cb51d76"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable playback sweep serialization contract
@@ -59,7 +59,7 @@ jobs:
           SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
           SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
-          PUSH38_CANDIDATE_SHA: 8e4b40b1f0c31448ea0b496a0af1bcb5b90fec85
+          PUSH38_CANDIDATE_SHA: f9fd0266fb2a3112d0f2096e868973893a657411
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
           HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-gateway-playback-sweep
         run: node scripts/release/issue-push38-home-qa-gateway-playback-sweep-serialization.mjs
