@@ -146,7 +146,7 @@ const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.s
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = playbackSweep
-  ? `${restrictedRoot}/push38-gateway-hls-buffer-8e4b40b1/gateway-runtime.tar.gz`
+  ? `${restrictedRoot}/push38-gateway-health-dedupe-f9fd0266/gateway-runtime.tar.gz`
   : proactiveExclusive
   ? `${restrictedRoot}/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz`
   : sessionRenewal
@@ -207,7 +207,7 @@ const artifact = playbackSweep
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = playbackSweep
-  ? `${restrictedRoot}/push38-gateway-hls-buffer-8e4b40b1/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-health-dedupe-f9fd0266/r2-publication.json`
   : proactiveExclusive
   ? `${restrictedRoot}/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json`
   : sessionRenewal

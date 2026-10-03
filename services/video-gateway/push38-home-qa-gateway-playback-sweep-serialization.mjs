@@ -2,32 +2,32 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// The signed 0.2.71 Shadow proved exact health and ownership continuity through
-// two exclusive session renewals, then exposed the remaining playback truth:
-// the recorder needs about 4.4 seconds to publish replacement media while the
-// Product player kept only two one-second segments behind live. This successor
-// advertises and consumes a six-segment HLS holdback inside the existing
-// twelve-segment ring. Source freshness and ownership deadlines are unchanged;
-// the buffer is accepted only during the exact retained-HLS renewal state.
+// The signed 0.2.72 Shadow proved two exclusive session renewals and 280/280
+// playback checks without stale input, socket error or upstream failure. It
+// then exposed one health aggregation defect: the same source was counted once
+// as progressing and once as renewing during the promotion overlap. This
+// successor keeps the proven six-segment HLS holdback and counts availability
+// by unique source. Source freshness and ownership deadlines are unchanged.
 // Signed 0.2.69 remains the exact live activation and rollback predecessor;
-// failed 0.2.70 and 0.2.71 stay historical and ineligible.
+// failed 0.2.70, 0.2.71 and 0.2.72 stay historical and ineligible.
 export const PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION = Object.freeze({
-  role: "GATEWAY_SESSION_SWEEP_BUFFERED_HLS_PLAYBACK_CONTINUITY",
+  role: "GATEWAY_SESSION_SWEEP_UNIQUE_SOURCE_HEALTH_CONTINUITY",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-buffered-hls-266a9625c785",
-  version: "0.2.72-p38-health",
-  buildSha: "8e4b40b1f0c31448ea0b496a0af1bcb5b90fec85",
-  digest: "266a9625c78586d289a17fb014e8e42201bbbac75e797da4abe38f857a5f83c3",
-  size: 135865907,
+  releaseId: "qa-p38-health-gateway-unique-health-45d09d249eb2",
+  version: "0.2.73-p38-health",
+  buildSha: "f9fd0266fb2a3112d0f2096e868973893a657411",
+  digest: "45d09d249eb22a1eee6d6a42bfa1e738f9821a8e9040af22cf4433b24bb5ab10",
+  size: 135865925,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
   rollbackVersion: "0.2.69-p38-health",
   supersedesReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
   supersedesVersion: "0.2.69-p38-health",
-  failedShadowReleaseId: "qa-p38-health-gateway-retained-hls-health-1fc0a19c3fd7",
-  failedShadowVersion: "0.2.71-p38-health",
-  priorFailedShadowReleaseId: "qa-p38-health-gateway-retained-hls-35df17e86316",
-  priorFailedShadowVersion: "0.2.70-p38-health",
+  failedShadowReleaseId: "qa-p38-health-gateway-buffered-hls-266a9625c785",
+  failedShadowVersion: "0.2.72-p38-health",
+  failedShadowDigest: "266a9625c78586d289a17fb014e8e42201bbbac75e797da4abe38f857a5f83c3",
+  priorFailedShadowReleaseId: "qa-p38-health-gateway-retained-hls-health-1fc0a19c3fd7",
+  priorFailedShadowVersion: "0.2.71-p38-health",
   failedLiveReleaseId: "qa-p38-health-gateway-playback-sweep-a3d66994bb01",
   failedLiveVersion: "0.2.69-p38-health",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",

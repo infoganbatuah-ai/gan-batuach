@@ -18,18 +18,18 @@ const built = buildPush38GatewayPlaybackSweepSerializationManifest({
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
   releasedAt: new Date().toISOString()
 }).document;
-assert.equal(built.release_id, "qa-p38-health-gateway-buffered-hls-266a9625c785");
-assert.equal(built.version, "0.2.72-p38-health");
-assert.equal(built.build_sha, "8e4b40b1f0c31448ea0b496a0af1bcb5b90fec85");
+assert.equal(built.release_id, "qa-p38-health-gateway-unique-health-45d09d249eb2");
+assert.equal(built.version, "0.2.73-p38-health");
+assert.equal(built.build_sha, "f9fd0266fb2a3112d0f2096e868973893a657411");
 assert.equal(built.artifact_sha256,
-  "266a9625c78586d289a17fb014e8e42201bbbac75e797da4abe38f857a5f83c3");
-assert.equal(built.artifact_size, 135865907);
+  "45d09d249eb22a1eee6d6a42bfa1e738f9821a8e9040af22cf4433b24bb5ab10");
+assert.equal(built.artifact_size, 135865925);
 assert.equal(built.compatibility.minimum_current_version, "0.2.69-p38-health");
 assert.equal(built.compatibility.maximum_current_version, "0.2.69-p38-health");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [release.deviceId]);
-assert.equal(release.failedShadowVersion, "0.2.71-p38-health");
-assert.equal(release.priorFailedShadowVersion, "0.2.70-p38-health");
+assert.equal(release.failedShadowVersion, "0.2.72-p38-health");
+assert.equal(release.priorFailedShadowVersion, "0.2.71-p38-health");
 const managedGateway = {
   gateway_id: release.deviceId,
   deployment_profile: release.profile,
