@@ -1,0 +1,20 @@
+{
+  "contract": "observer-reliability-soak-state-v1",
+  "run_id": "push38-smoke",
+  "status": "NOT_DONE",
+  "started_at": "2026-09-11T20:31:56.248Z",
+  "started_at_ms": 1789158716248,
+  "target_ended_at": "2026-09-11T20:32:56.248Z",
+  "duration_ms": 60000,
+  "interval_ms": 10000,
+  "deep_probe_ms": 3600000,
+  "checkpoint_count": 6,
+  "last_checkpoint_at": "2026-09-11T20:32:47.723Z",
+  "next_deep_probe_at": 1789162316278,
+  "output_root": "/private/tmp/gan-batuach-push38/qa-evidence/push-38/push38-smoke",
+  "ended_at": "2026-09-11T20:32:56.251Z",
+  "result_path": "/private/tmp/gan-batuach-push38/qa-evidence/push-38/push38-smoke/result.json",
+  "gate_failures": [
+    "SOAK_EVIDENCE_INCOMPLETE"
+  ]
+}
