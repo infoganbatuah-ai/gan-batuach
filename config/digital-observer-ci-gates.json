@@ -86,6 +86,7 @@
   ],
   "security": [
     { "name": "environment-safety", "args": ["scripts/validate-environment-safety.mjs"] },
+    { "name": "vendored-braces-depth-guard", "args": ["scripts/qa/check-vendored-braces-security.mjs"] },
     { "name": "management-production-hardening", "args": ["scripts/qa/check-management-production-hardening.mjs"] },
     { "name": "management-crypto-configuration", "args": ["scripts/qa/check-management-crypto-configuration.mjs"] },
     { "name": "management-credential-remediation", "args": ["scripts/qa/check-production-credential-remediation.mjs"] },

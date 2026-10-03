@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-02T22:20:40.668Z",
+  "generatedAt": "2026-10-03T00:57:17.498Z",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3014",
+  "base": "http://127.0.0.1:3000",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
   "concepts": 17,
   "captures": 34,
@@ -15,7 +15,7 @@
       "screen": "inspection-dashboard",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-dashboard-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-dashboard-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -24,7 +24,7 @@
       "screen": "inspection-dashboard",
       "viewport": "390×844",
       "route": "/dashboard/inspector",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-dashboard-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-dashboard-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -33,7 +33,7 @@
       "screen": "inspection-list-calendar",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/due",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-list-calendar-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-list-calendar-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -42,7 +42,7 @@
       "screen": "inspection-list-calendar",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/due",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-list-calendar-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-list-calendar-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -51,7 +51,7 @@
       "screen": "inspection-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -60,7 +60,7 @@
       "screen": "inspection-detail",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -69,7 +69,7 @@
       "screen": "draft-resume",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/draft-resume-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/draft-resume-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -78,7 +78,7 @@
       "screen": "draft-resume",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/draft-resume-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/draft-resume-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -87,7 +87,7 @@
       "screen": "checklist",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/checklist-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/checklist-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -96,7 +96,7 @@
       "screen": "checklist",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/checklist-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/checklist-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -105,7 +105,7 @@
       "screen": "checklist-evidence",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/checklist-evidence-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/checklist-evidence-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -114,7 +114,7 @@
       "screen": "checklist-evidence",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/checklist-evidence-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/checklist-evidence-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -123,7 +123,7 @@
       "screen": "finding-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/violations",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/finding-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/finding-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -132,7 +132,7 @@
       "screen": "finding-detail",
       "viewport": "390×844",
       "route": "/dashboard/inspector/violations",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/finding-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/finding-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -141,7 +141,7 @@
       "screen": "review-before-submission",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/review-before-submission-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/review-before-submission-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -150,7 +150,7 @@
       "screen": "review-before-submission",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000004",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/review-before-submission-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/review-before-submission-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -159,7 +159,7 @@
       "screen": "submitted-report",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/submitted-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/submitted-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -168,7 +168,7 @@
       "screen": "submitted-report",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/submitted-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/submitted-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -177,7 +177,7 @@
       "screen": "inspection-history",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/history",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-history-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-history-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -186,7 +186,7 @@
       "screen": "inspection-history",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/history",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspection-history-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspection-history-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -195,7 +195,7 @@
       "screen": "owner-inspection-view",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/inspections",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/owner-inspection-view-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/owner-inspection-view-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -204,7 +204,7 @@
       "screen": "owner-inspection-view",
       "viewport": "390×844",
       "route": "/dashboard/garden/inspections",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/owner-inspection-view-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/owner-inspection-view-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -213,7 +213,7 @@
       "screen": "corrective-action",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/corrective-action-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/corrective-action-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -222,7 +222,7 @@
       "screen": "corrective-action",
       "viewport": "390×844",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/corrective-action-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/corrective-action-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -231,7 +231,7 @@
       "screen": "owner-remediation",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/owner-remediation-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/owner-remediation-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -240,7 +240,7 @@
       "screen": "owner-remediation",
       "viewport": "390×844",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/owner-remediation-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/owner-remediation-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -249,7 +249,7 @@
       "screen": "inspector-remediation-review",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspector-remediation-review-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspector-remediation-review-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -258,7 +258,7 @@
       "screen": "inspector-remediation-review",
       "viewport": "390×844",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/inspector-remediation-review-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/inspector-remediation-review-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -267,7 +267,7 @@
       "screen": "closed-remediation",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/closed-remediation-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/closed-remediation-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -276,7 +276,7 @@
       "screen": "closed-remediation",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/closed-remediation-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/closed-remediation-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -285,7 +285,7 @@
       "screen": "empty-state",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/inspections/due",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/empty-state-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/empty-state-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -294,7 +294,7 @@
       "screen": "empty-state",
       "viewport": "390×844",
       "route": "/dashboard/inspector/inspections/due",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/empty-state-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/empty-state-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -303,7 +303,7 @@
       "screen": "camera-safety-limited",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/camera-safety-limited-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/camera-safety-limited-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     },
@@ -312,7 +312,7 @@
       "screen": "camera-safety-limited",
       "viewport": "390×844",
       "route": "/dashboard/inspector/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-14/qa-evidence/ux-implement-14/screenshots/camera-safety-limited-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-14/screenshots/camera-safety-limited-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
     }
