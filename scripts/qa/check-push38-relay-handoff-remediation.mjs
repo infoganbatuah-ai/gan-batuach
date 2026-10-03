@@ -9,7 +9,7 @@ import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
 import { HLS_PLAYBACK_HOLDBACK_SEGMENTS, inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
-  projectHlsPlaybackPlaylist } from
+  projectHlsPlaybackPlaylist, summarizeRelayAvailability } from
   "../../services/video-gateway/hls-playback-continuity.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from
@@ -48,6 +48,19 @@ const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 assert.match(server,
   /const current = relays\.get\(streamId\);[\s\S]*if \(current && current === replacement\)/,
   "deferred HLS cleanup must not treat two absent owners as the same relay");
+
+test("health counts a renewing and progressing handoff as one available source", () => {
+  assert.deepEqual(summarizeRelayAvailability([
+    ["camera-1", { progressing: true, renewing: true }],
+    ["camera-2", { progressing: false, renewing: true }],
+    ["camera-3", { progressing: false, renewing: false }]
+  ]), {
+    progressingRelays: 1,
+    renewingRelays: 2,
+    availableRelays: 2,
+    stalledRelays: 1
+  });
+});
 
 test("handoff capacity reserves a routine lane only while routine handoff is enabled", () => {
   assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 2);

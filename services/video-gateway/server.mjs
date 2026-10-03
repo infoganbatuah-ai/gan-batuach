@@ -13,7 +13,7 @@ import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
-  projectHlsPlaybackPlaylist } from
+  projectHlsPlaybackPlaylist, summarizeRelayAvailability } from
   "./hls-playback-continuity.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
@@ -3092,11 +3092,8 @@ async function handle(request, response) {
       ...relayRecovery.keys(), ...relayRetainedPlayback.keys()]);
     const relayContinuity = [...relayStreamIds].map(streamId =>
       [streamId, relayMediaContinuity(streamId)]);
-    const progressingRelays = relayContinuity.filter(([, state]) => state.progressing).length;
-    const renewingRelays = relayContinuity.filter(([, state]) => state.renewing).length;
-    const availableRelays = progressingRelays + renewingRelays;
-    const stalledRelays = relayContinuity.filter(([, state]) =>
-      !state.progressing && !state.renewing).length;
+    const { progressingRelays, renewingRelays, availableRelays, stalledRelays } =
+      summarizeRelayAvailability(relayContinuity);
     const observedAssigned = [...streamSources.values()].filter((source) => source.status !== "unassigned").length;
     const expectedAssigned = Math.max(observedAssigned, Number(lastDiscoverySummary.assignedCount || 0),
       edgeRuntimeIdentity.device_type === "SOFTWARE_CONNECTOR" ? Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 0) : 0);

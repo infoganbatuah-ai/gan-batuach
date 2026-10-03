@@ -8,6 +8,24 @@ const MEDIA_SEQUENCE_LINE = /^#EXT-X-MEDIA-SEQUENCE:(\d+)$/;
 // handoff without relaxing source freshness or ownership gates.
 export const HLS_PLAYBACK_HOLDBACK_SEGMENTS = 6;
 
+export function summarizeRelayAvailability(relayContinuity) {
+  if (!Array.isArray(relayContinuity))
+    throw new Error("RELAY_AVAILABILITY_INPUT_INVALID");
+  const states = relayContinuity.map(entry => Array.isArray(entry) ? entry[1] : entry);
+  if (states.some(state => !state || typeof state !== "object"))
+    throw new Error("RELAY_AVAILABILITY_INPUT_INVALID");
+  return {
+    progressingRelays: states.filter(state => state.progressing === true).length,
+    renewingRelays: states.filter(state => state.renewing === true).length,
+    // A source can have new media and still be inside its renewal handoff for
+    // one sample. It is one available source, not two available cameras.
+    availableRelays: states.filter(state =>
+      state.progressing === true || state.renewing === true).length,
+    stalledRelays: states.filter(state =>
+      state.progressing !== true && state.renewing !== true).length,
+  };
+}
+
 export function inspectHlsPlaybackPlaylist(playlist) {
   const lines = String(playlist || "").split(/\r?\n/);
   const mediaSequence = Number(MEDIA_SEQUENCE_LINE.exec(
