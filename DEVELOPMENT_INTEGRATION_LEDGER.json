@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-02T21:20:09.785Z",
+  "updatedAt": "2026-10-03T01:22:32.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9981,6 +9981,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-13 is complete in Development. Stop before UX-IMPLEMENT-14; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-14-inspections",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-14 Inspections Full Experience",
+      "owner": "UX-IMPLEMENT-14 owner",
+      "sourceBranch": "codex/ux-implement-14-inspections",
+      "sourceCommits": [
+        "e1faaa7b82297b84130d7a8186e82abeac0e2f74",
+        "793bb1d31f99ad9f22fc44da988fd2e7070074e7"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-14-inspections@e1faaa7b82297b84130d7a8186e82abeac0e2f74",
+          "origin/integration/development@7c54b20e3ea593465cbf3c6d9646153edc69dca4"
+        ],
+        "validatedSourceCommit": "e1faaa7b82297b84130d7a8186e82abeac0e2f74",
+        "mergedHeadEvidenceCommit": "793bb1d31f99ad9f22fc44da988fd2e7070074e7"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_SECURITY_ISOLATION_AND_POST_MERGE_CUMULATIVE_VALIDATION",
+        "evidence": [
+          "GAN_BATUACH_UX14_INSPECTIONS_FULL_EXPERIENCE_IMPLEMENTATION.md",
+          "qa-evidence/ux-implement-14/visual-report.json",
+          "qa-evidence/ux-implement-14/post-merge-receipt.json",
+          "qa-evidence/ux-implement-14/SHA256SUMS.txt"
+        ],
+        "limits": "UX-14 product PR #162 passed all nine exact-head checks at e1faaa7b82297b84130d7a8186e82abeac0e2f74 and merged by ancestry into integration/development as 7c54b20e3ea593465cbf3c6d9646153edc69dca4. Seventeen canonical inspection concepts produced 34 fresh Desktop/Mobile captures from merged Development, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Exact merged Development startup, app/Supabase health, UX-14 focused 9/9, Inspector approval/assignment 4/4, inspection/corrective lifecycle 25/25, private evidence authorization 21/21, Parent/Manager 23/23, UX-09 8/8, UX-13 6/6, typecheck, zero-regression lint, 541-page build, Domain 30/30, Security 10/10, migration health and Development drift 244/244, and release-contract validation passed. No migration, paid provider, Production, main or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "7c54b20e3ea593465cbf3c6d9646153edc69dca4",
+        "pullRequest": 162,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_13_INTEGRATED",
+        "units": [
+          "codex/ux-implement-13-tasks-complaints"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_UX14_FOCUSED_9_OF_9_INSPECTOR_APPROVAL_4_OF_4_INSPECTION_CORRECTIVE_LIFECYCLE_25_OF_25_PRIVATE_EVIDENCE_21_OF_21_PARENT_MANAGER_23_OF_23_UX09_8_OF_8_UX13_6_OF_6_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_DEVELOPMENT_DRIFT_244_OF_244_RELEASE_CONTRACT_VISUAL_34_OWNER_REVIEW_READY_POST_MERGE_HEALTH_200_SUPABASE_OK",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-14 is complete in Development. Stop before UX-IMPLEMENT-15; Production and main remain unchanged pending a separate explicit owner release instruction."
     },
     {
       "id": "codex/push-38t-qualification-relay-probation-20261002",

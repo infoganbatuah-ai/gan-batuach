@@ -5,6 +5,10 @@
 - Batch: `UX-IMPLEMENT-14`
 - Source branch: `codex/ux-implement-14-inspections`
 - Source integration head: `44e4437de2de567052b646bc06d293246128dcd0`
+- Product commit: `e1faaa7b82297b84130d7a8186e82abeac0e2f74`
+- Product pull request: `#162`
+- Product merge commit: `7c54b20e3ea593465cbf3c6d9646153edc69dca4`
+- Merged-head evidence receipt: `793bb1d31f99ad9f22fc44da988fd2e7070074e7`
 - Target branch: `integration/development`
 - Environment used for functional and visual QA: isolated local Development/Integration Supabase and loopback application
 - Production: untouched
@@ -162,6 +166,7 @@ Artifacts:
 - `qa-evidence/ux-implement-14/reference-comparison-board.webp`
 - `qa-evidence/ux-implement-14/visual-report.json`
 - `qa-evidence/ux-implement-14/visual-report.md`
+- `qa-evidence/ux-implement-14/post-merge-receipt.json`
 - `qa-evidence/ux-implement-14/SHA256SUMS.txt`
 
 The comparison board was visually reviewed against both supplied references. No material reference drift remained.
@@ -202,6 +207,18 @@ Observed branch results:
 - migration health: `244/244 PASS`, zero new migrations
 - Development baseline drift: `244/244 PASS`, no missing migrations
 - release contract: `PASS`, Production mutation false
+
+The same functional, security, migration and visual verification was repeated
+from canonical merged Development commit
+`7c54b20e3ea593465cbf3c6d9646153edc69dca4`. The canonical launcher reported
+`DEVELOPMENT / INTEGRATION`, `LOCAL_SUPABASE`, `production:false` and
+`http://127.0.0.1:3000`; application and Supabase health passed. All 34 visual
+captures were regenerated from that merged head, and their checksums are
+recorded with the post-merge receipt.
+
+Product PR #162 passed all nine exact-head checks before its ancestry-preserving
+merge: Canonical quality gate, the six Digital Observer CI gates,
+`management-context` and `security/snyk`.
 
 All QA uses isolated synthetic Development data. Existing QA personas are preserved and no global reset is performed.
 
