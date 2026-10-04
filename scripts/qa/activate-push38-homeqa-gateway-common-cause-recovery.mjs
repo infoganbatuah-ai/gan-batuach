@@ -139,15 +139,16 @@ const deadlineBudget = process.argv.includes("--gateway-deadline-budget");
 const recoveryContinuity = process.argv.includes("--gateway-recovery-continuity");
 const routineConfirmation = process.argv.includes("--gateway-routine-confirmation");
 const sessionRenewal = process.argv.includes("--gateway-session-renewal");
-const proactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 const playbackSweep = process.argv.includes("--gateway-playback-sweep");
 const finiteResponseContinuity = process.argv.includes("--gateway-finite-response-continuity");
+const explicitProactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
+const proactiveExclusive = explicitProactiveExclusive || finiteResponseContinuity;
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
-  sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity]
+  sessionRenewal, explicitProactiveExclusive, playbackSweep, finiteResponseContinuity]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
 const item = finiteResponseContinuity ? PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY :
@@ -185,7 +186,7 @@ const item = finiteResponseContinuity ? PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUIT
 // Connector handoff candidate.  The live Connector correctly recovered to its
 // signed 0.2.26 known-good, so pin this Gateway-only activation to that exact
 // installed rollback state instead of requiring a quarantined release.
-const proactiveSuccessor = finiteResponseContinuity || playbackSweep || proactiveExclusive;
+const proactiveSuccessor = playbackSweep || proactiveExclusive;
 const connectorItem = (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
   (sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
   handoffContinuity ? connectorHandoffContinuityItem :
