@@ -71,6 +71,8 @@ import { PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL
 } from "../../services/video-gateway/push38-home-qa-gateway-proactive-exclusive-renewal.mjs";
 import { PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION
 } from "../../services/video-gateway/push38-home-qa-gateway-playback-sweep-serialization.mjs";
+import { PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY
+} from "../../services/video-gateway/push38-home-qa-gateway-finite-response-continuity.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -103,15 +105,17 @@ const routineConfirmation = process.argv.includes("--gateway-routine-confirmatio
 const sessionRenewal = process.argv.includes("--gateway-session-renewal");
 const proactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 const playbackSweep = process.argv.includes("--gateway-playback-sweep");
+const finiteResponseContinuity = process.argv.includes("--gateway-finite-response-continuity");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
-  sessionRenewal, proactiveExclusive, playbackSweep]
+  sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = playbackSweep ? PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION :
+const item = finiteResponseContinuity ? PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY :
+  playbackSweep ? PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION :
   proactiveExclusive ? PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL :
   sessionRenewal ? PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY :
   routineConfirmation ? PUSH38_GATEWAY_ROUTINE_CONFIRMATION :
@@ -145,7 +149,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = playbackSweep
+const artifact = finiteResponseContinuity
+  ? `${restrictedRoot}/push38-gateway-0.2.76-build-20261004T0500Z/gateway-runtime.tar.gz`
+  : playbackSweep
   ? `${restrictedRoot}/push38-gateway-0.2.75-build-20261003T225803Z/gateway-runtime.tar.gz`
   : proactiveExclusive
   ? `${restrictedRoot}/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz`
@@ -206,7 +212,9 @@ const artifact = playbackSweep
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = playbackSweep
+const publication = finiteResponseContinuity
+  ? `${restrictedRoot}/push38-gateway-0.2.76-build-20261004T0500Z/r2-publication.json`
+  : playbackSweep
   ? `${restrictedRoot}/push38-gateway-0.2.75-build-20261003T225803Z/r2-publication.json`
   : proactiveExclusive
   ? `${restrictedRoot}/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json`
@@ -267,7 +275,8 @@ const publication = playbackSweep
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = playbackSweep ? "gateway_remediation_playback_sweep_serialization.json"
+const bundleName = finiteResponseContinuity ? "gateway_remediation_finite_response_continuity.json"
+  : playbackSweep ? "gateway_remediation_playback_sweep_serialization.json"
   : proactiveExclusive ? "gateway_remediation_proactive_exclusive_renewal.json"
   : sessionRenewal ? "gateway_remediation_session_renewal_continuity.json"
   : routineConfirmation ? "gateway_remediation_routine_confirmation.json"
@@ -298,7 +307,7 @@ const bundleName = playbackSweep ? "gateway_remediation_playback_sweep_serializa
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (playbackSweep || proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
+const predecessorReleaseId = (finiteResponseContinuity || playbackSweep || proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
   handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
@@ -306,7 +315,9 @@ const predecessorReleaseId = (playbackSweep || proactiveExclusive || sessionRene
 // still have a one-shot diagnostic rollout. Pause both sources of eligibility so
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
-const rolloutReleaseIdsToPause = playbackSweep
+const rolloutReleaseIdsToPause = finiteResponseContinuity
+  ? [predecessorReleaseId, item.failedV8ReleaseId, item.rollbackReleaseId]
+  : playbackSweep
   ? [predecessorReleaseId, item.failedPreSoakReleaseId, item.rollbackReleaseId]
   : proactiveExclusive
   ? [predecessorReleaseId, item.failedLiveReleaseId, item.rollbackReleaseId]
@@ -420,7 +431,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: playbackSweep ? "GATEWAY_PLAYBACK_SWEEP_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: finiteResponseContinuity ? "GATEWAY_FINITE_RESPONSE_CONTINUITY_REGISTERED_DRAFT" :
+  playbackSweep ? "GATEWAY_PLAYBACK_SWEEP_REGISTERED_DRAFT" :
   proactiveExclusive ? "GATEWAY_PROACTIVE_EXCLUSIVE_REGISTERED_DRAFT" :
   sessionRenewal ? "GATEWAY_SESSION_RENEWAL_REGISTERED_DRAFT" :
   routineConfirmation ? "GATEWAY_ROUTINE_CONFIRMATION_REGISTERED_DRAFT" :

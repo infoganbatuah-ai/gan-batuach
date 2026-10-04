@@ -56,6 +56,7 @@
     "qa:digital-observer-reliability-qualification": "node scripts/qa/check-digital-observer-reliability-qualification.mjs",
     "qa:push38-relay-handoff-remediation": "node --test scripts/qa/check-push38-relay-handoff-remediation.mjs",
     "qa:push38-gateway-playback-sweep-release": "node scripts/qa/check-push38-gateway-playback-sweep-serialization-release.mjs",
+    "qa:push38-gateway-finite-response-continuity-release": "node scripts/qa/check-push38-gateway-finite-response-continuity-release.mjs",
     "qa:push38-gateway-handoff-continuity-release": "node scripts/qa/check-push38-gateway-handoff-continuity-release.mjs",
     "qa:push38-gateway-handoff-owner-continuity-release": "node scripts/qa/check-push38-gateway-handoff-owner-continuity-release.mjs",
     "qa:push38-gateway-sweep-deadline-release": "node scripts/qa/check-push38-gateway-sweep-deadline-release.mjs",

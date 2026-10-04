@@ -77,6 +77,8 @@ import { PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL
 } from "../../services/video-gateway/push38-home-qa-gateway-proactive-exclusive-renewal.mjs";
 import { PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION
 } from "../../services/video-gateway/push38-home-qa-gateway-playback-sweep-serialization.mjs";
+import { PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY
+} from "../../services/video-gateway/push38-home-qa-gateway-finite-response-continuity.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -139,15 +141,17 @@ const routineConfirmation = process.argv.includes("--gateway-routine-confirmatio
 const sessionRenewal = process.argv.includes("--gateway-session-renewal");
 const proactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 const playbackSweep = process.argv.includes("--gateway-playback-sweep");
+const finiteResponseContinuity = process.argv.includes("--gateway-finite-response-continuity");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
-  sessionRenewal, proactiveExclusive, playbackSweep]
+  sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = playbackSweep ? PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION :
+const item = finiteResponseContinuity ? PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY :
+  playbackSweep ? PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION :
   proactiveExclusive ? PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL :
   sessionRenewal ? PUSH38_GATEWAY_SESSION_RENEWAL_CONTINUITY :
   routineConfirmation ? PUSH38_GATEWAY_ROUTINE_CONFIRMATION :
@@ -181,7 +185,7 @@ const item = playbackSweep ? PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION :
 // Connector handoff candidate.  The live Connector correctly recovered to its
 // signed 0.2.26 known-good, so pin this Gateway-only activation to that exact
 // installed rollback state instead of requiring a quarantined release.
-const proactiveSuccessor = playbackSweep || proactiveExclusive;
+const proactiveSuccessor = finiteResponseContinuity || playbackSweep || proactiveExclusive;
 const connectorItem = (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
   (sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
   handoffContinuity ? connectorHandoffContinuityItem :
@@ -204,7 +208,9 @@ const predecessorReleaseId = (proactiveSuccessor || sessionRenewal || routineCon
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = playbackSweep
+const artifact = finiteResponseContinuity
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.76-build-20261004T0500Z/gateway-runtime.tar.gz"
+  : playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.75-build-20261003T225803Z/gateway-runtime.tar.gz"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/gateway-runtime.tar.gz"
@@ -265,7 +271,9 @@ const artifact = playbackSweep
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = playbackSweep
+const publication = finiteResponseContinuity
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.76-build-20261004T0500Z/r2-publication.json"
+  : playbackSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.75-build-20261003T225803Z/r2-publication.json"
   : proactiveExclusive
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-proactive-exclusive-66e6f1c1/r2-publication.json"
@@ -336,6 +344,12 @@ const failedPreSoakEvidencePath = option("failed-pre-soak-evidence")
   ? resolve(option("failed-pre-soak-evidence")) : "";
 const failedPreSoakCheckpointsPath = option("failed-pre-soak-checkpoints")
   ? resolve(option("failed-pre-soak-checkpoints")) : "";
+const failedV8EvidencePath = option("failed-v8-evidence")
+  ? resolve(option("failed-v8-evidence")) : "";
+const failedV8CheckpointsPath = option("failed-v8-checkpoints")
+  ? resolve(option("failed-v8-checkpoints")) : "";
+const failedV8SummaryPath = option("failed-v8-summary")
+  ? resolve(option("failed-v8-summary")) : "";
 const warmHandoffEvidencePath =
   "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-dvr-warm-handoff-shadow-20260924T003032Z.json";
 if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
@@ -545,6 +559,7 @@ if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  finiteResponseContinuity ? "gateway_remediation_finite_response_continuity.json" :
   playbackSweep ? "gateway_remediation_playback_sweep_serialization.json" :
   proactiveExclusive ? "gateway_remediation_proactive_exclusive_renewal.json" :
   sessionRenewal ? "gateway_remediation_session_renewal_continuity.json" :
@@ -736,6 +751,7 @@ const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewayS
   sample.progressing === 0 && sample.stalled === 0);
 let shadowEvidence = null, warmHandoffEvidence = null;
 let failedPlaybackSweepEvidence = null;
+let failedFiniteResponseEvidence = null;
 let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 if (sessionSweep) {
@@ -923,6 +939,54 @@ if (deadlineBudget) {
     failed_checkpoints: bad.map(point => point.sequence),
     scheduler_slot_budget_violation_reproduced: true,
     historical_result_label_bug_corrected: true };
+}
+if (finiteResponseContinuity) {
+  const resultBytes = protectedFile(failedV8EvidencePath);
+  const checkpointBytes = protectedFile(failedV8CheckpointsPath);
+  const summaryBytes = protectedFile(failedV8SummaryPath);
+  const result = JSON.parse(resultBytes);
+  const summary = JSON.parse(summaryBytes);
+  const checkpoints = checkpointBytes.toString("utf8").trim().split("\n")
+    .map(line => JSON.parse(line));
+  const before = checkpoints.find(point => point.sequence === 68);
+  const failed = checkpoints.find(point => point.sequence === 69);
+  const recovered = checkpoints.find(point => point.sequence === 70);
+  if (sha(resultBytes) !== item.failedV8ResultSha256 ||
+    sha(checkpointBytes) !== item.failedV8CheckpointsSha256 ||
+    sha(summaryBytes) !== item.failedV8SummarySha256 ||
+    result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "V8" || result.status !== "NOT_DONE" ||
+    result.checkpoints !== 75 || result.elapsed_ms !== 4449855 ||
+    result.dvr_source_available !== 9 ||
+    JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([8]) ||
+    result.release?.gateway?.software_version !== item.failedV8Version ||
+    result.release?.gateway?.build_sha !== item.failedV8BuildSha ||
+    result.release?.gateway?.known_good_version !== item.failedV8Version ||
+    result.gateway?.unavailable_checkpoints !== 0 ||
+    result.gateway?.runtime_restarts !== 0 || result.gateway?.supervisor_restarts !== 0 ||
+    result.gateway?.recorder_auth_rejection_delta !== 0 ||
+    result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
+    !result.gate_failures?.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT") ||
+    result.termination?.signal !== "SIGTERM" || checkpoints.length !== 75 ||
+    before?.dvr?.classification !== "PASS" || before?.dvr?.available !== 9 ||
+    failed?.dvr?.classification !== "PRODUCT_FAILURE" || failed?.dvr?.progressing !== 4 ||
+    failed?.dvr?.renewing !== 1 || failed?.dvr?.available !== 5 ||
+    failed?.dvr?.stalled !== 4 || failed?.dvr?.relay_processes?.liveRelayProcesses !== 9 ||
+    recovered?.dvr?.classification !== "PASS" || recovered?.dvr?.available !== 9 ||
+    summary.contract !== "observer-push38-v8-failure-summary-v1" ||
+    summary.classification !== "INTERNAL_GATEWAY_RELAY_CONTINUITY_FAILURE" ||
+    summary.failed_checkpoint?.sequence !== 69 ||
+    JSON.stringify(summary.affected_dvr_channels) !== JSON.stringify([1, 6, 7, 10]) ||
+    summary.root_cause?.status !== "PROVEN_CODE_PATH" ||
+    summary.qualification_decision !== "FAIL_STOPPED")
+    throw new Error("P38_GATEWAY_FINITE_RESPONSE_CONTINUITY_FAILED_V8_PROOF_INVALID");
+  failedFiniteResponseEvidence = { result_sha256: sha(resultBytes),
+    checkpoints_sha256: sha(checkpointBytes), summary_sha256: sha(summaryBytes),
+    checkpoints: result.checkpoints, duration_ms: result.elapsed_ms,
+    release_id: item.failedV8ReleaseId, failed_sequence: failed.sequence,
+    affected_channels: summary.affected_dvr_channels,
+    failure_class: "FINITE_RESPONSE_RECOVERY_MISSING_RETAINED_HLS_OWNER",
+    live_recovery_required: true };
 }
 if (playbackSweep) {
   const resultBytes = protectedFile(failedPreSoakEvidencePath);
@@ -1193,7 +1257,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep-serialization-activation-v1" :
+const plan = { protocol: finiteResponseContinuity ? "observer-push38-gateway-finite-response-continuity-activation-v1" :
+  playbackSweep ? "observer-push38-gateway-playback-sweep-serialization-activation-v1" :
   proactiveExclusive ? "observer-push38-gateway-proactive-exclusive-renewal-activation-v1" :
   sessionRenewal ? "observer-push38-gateway-session-renewal-continuity-activation-v1" :
   routineConfirmation ? "observer-push38-gateway-routine-confirmation-activation-v1" :
@@ -1232,7 +1297,8 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (playbackSweep ? "FAILED_PRE_SOAK_SESSION_SWEEP_PROMOTION_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (finiteResponseContinuity ? "FAILED_V8_FINITE_RESPONSE_CONTINUITY_SUCCESSOR_QUALIFIED" :
+      playbackSweep ? "FAILED_PRE_SOAK_SESSION_SWEEP_PROMOTION_SUCCESSOR_QUALIFIED" :
       proactiveExclusive ? "FAILED_PRE_SOAK_PROACTIVE_EXCLUSIVE_SUCCESSOR_QUALIFIED" :
       sessionRenewal ? "FAILED_PRE_SOAK_SESSION_RENEWAL_SUCCESSOR_QUALIFIED" :
       routineConfirmation ? "FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED" :
@@ -1260,9 +1326,12 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
     warm_handoff_evidence: warmHandoffEvidence } : {}),
   ...(failedPlaybackSweepEvidence ? {
     failed_playback_sweep_evidence: failedPlaybackSweepEvidence } : {}),
+  ...(failedFiniteResponseEvidence ? {
+    failed_finite_response_evidence: failedFiniteResponseEvidence } : {}),
   ...(failedCanaryEvidence ? { failed_canary_evidence: failedCanaryEvidence } : {}),
   ...(failedPreSoakEvidence ? { failed_pre_soak_evidence: failedPreSoakEvidence } : {}),
-  ...((failedCanaryEvidence || failedPreSoakEvidence || failedPlaybackSweepEvidence) ? {
+  ...((failedCanaryEvidence || failedPreSoakEvidence || failedPlaybackSweepEvidence ||
+    failedFiniteResponseEvidence) ? {
     live_recovery_evidence: {
     release_id: current.release_id,
     progressing: gatewaySamples.at(-1).progressing,
@@ -1280,7 +1349,8 @@ const plan = { protocol: playbackSweep ? "observer-push38-gateway-playback-sweep
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: playbackSweep ? "GATEWAY_PLAYBACK_SWEEP_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: finiteResponseContinuity ? "GATEWAY_FINITE_RESPONSE_CONTINUITY_PREFLIGHT_PASS" :
+    playbackSweep ? "GATEWAY_PLAYBACK_SWEEP_PREFLIGHT_PASS" :
     proactiveExclusive ? "GATEWAY_PROACTIVE_EXCLUSIVE_PREFLIGHT_PASS" :
     sessionRenewal ? "GATEWAY_SESSION_RENEWAL_PREFLIGHT_PASS" :
     routineConfirmation ? "GATEWAY_ROUTINE_CONFIRMATION_PREFLIGHT_PASS" :
@@ -1347,7 +1417,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: playbackSweep ? "EXACT_GATEWAY_PLAYBACK_SWEEP_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: finiteResponseContinuity ? "EXACT_GATEWAY_FINITE_RESPONSE_CONTINUITY_ROLLOUT_ACTIVE" :
+  playbackSweep ? "EXACT_GATEWAY_PLAYBACK_SWEEP_ROLLOUT_ACTIVE" :
   proactiveExclusive ? "EXACT_GATEWAY_PROACTIVE_EXCLUSIVE_ROLLOUT_ACTIVE" :
   sessionRenewal ? "EXACT_GATEWAY_SESSION_RENEWAL_ROLLOUT_ACTIVE" :
   routineConfirmation ? "EXACT_GATEWAY_ROUTINE_CONFIRMATION_ROLLOUT_ACTIVE" :
