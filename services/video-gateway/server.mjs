@@ -501,10 +501,18 @@ const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "";
 const GATEWAY_SECRET_DIR = process.env.GAN_BATUACH_GATEWAY_SECRET_DIR || "";
-if (SHADOW_MODE && (GATEWAY_KEYCHAIN_SERVICE || GATEWAY_SECRET_DIR)) {
+const DEVICE_IDENTITY_SECRET_DIR = process.env.OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR || "";
+if (SHADOW_MODE && (GATEWAY_KEYCHAIN_SERVICE || GATEWAY_SECRET_DIR || DEVICE_IDENTITY_SECRET_DIR)) {
   throw new Error("Shadow qualification cannot load managed-device or cloud credentials");
 }
 const keychain = createKeychainStore({ service: GATEWAY_KEYCHAIN_SERVICE, secretDir: GATEWAY_SECRET_DIR });
+// The managed HOME_QA identity belongs to the OTA lifecycle store, while DVR
+// credentials and command-audit material remain in the existing Product
+// Keychain. Keeping these stores separate lets the functional runtime prove
+// the exact managed device without copying a private key or exposing camera
+// credentials to the updater.
+const deviceIdentity = DEVICE_IDENTITY_SECRET_DIR
+  ? createKeychainStore({ secretDir: DEVICE_IDENTITY_SECRET_DIR }) : keychain;
 const edgeRuntimeIdentity = connectorRuntimeIdentity();
 let deviceAccessToken = "";
 let deviceAccessExpiresAt = 0;
@@ -572,7 +580,8 @@ function browserJson(request, response, status, body) {
 }
 
 const keychainSecret = keychain.read;
-const storeKeychainSecret = keychain.write;
+const deviceIdentitySecret = deviceIdentity.read;
+const storeDeviceIdentitySecret = deviceIdentity.write;
 let privateNvrCommandRuntime = null;
 let privateNvrCommandRuntimeState = {
   version: 12,
@@ -640,14 +649,14 @@ async function refreshGatewayDeviceAccess() {
   if (deviceAccessToken && deviceAccessExpiresAt > Date.now() + 30_000) return deviceAccessToken;
   if (deviceAccessRefreshPromise) return deviceAccessRefreshPromise;
   deviceAccessRefreshPromise = (async () => {
-    const gatewayId = await keychainSecret("device_gateway_id");
-    const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
+    const gatewayId = await deviceIdentitySecret("device_gateway_id");
+    const cloudBaseUrl = (await deviceIdentitySecret("device_cloud_base_url")).replace(/\/$/, "");
     if (!gatewayId || !cloudBaseUrl) throw new Error("Gateway device identity is unavailable");
-    const identity = createHash("sha256").update(`${gatewayId}:${await keychainSecret("device_refresh_token")}`).digest("hex");
+    const identity = createHash("sha256").update(`${gatewayId}:${await deviceIdentitySecret("device_refresh_token")}`).digest("hex");
     if (rejectedDeviceIdentity === identity) throw Object.assign(new Error("Gateway device identity requires approval"), { code: "device_relink_required" });
     const credentials = await refreshDeviceCredentials({
-      gatewayId, cloudBaseUrl, readSecret: keychainSecret, writeSecret: storeKeychainSecret,
-      removeSecret: keychain.remove,
+      gatewayId, cloudBaseUrl, readSecret: deviceIdentitySecret, writeSecret: storeDeviceIdentitySecret,
+      removeSecret: deviceIdentity.remove,
       timeoutMs: CLOUD_AUTH_TIMEOUT_MS
     }).catch((error) => {
       if (error?.code === "device_relink_required") rejectedDeviceIdentity = identity;
@@ -666,7 +675,7 @@ async function refreshGatewayDeviceAccess() {
 }
 
 async function claimCloudPlaybackGrant(grant) {
-  const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
+  const cloudBaseUrl = (await deviceIdentitySecret("device_cloud_base_url")).replace(/\/$/, "");
   const accessToken = await refreshGatewayDeviceAccess();
   const response = await fetch(`${cloudBaseUrl}/api/video-gateway/playback-grant`, {
     method: "POST",
@@ -715,7 +724,7 @@ function provisionMappedCommandBindings(discoveryPayload, upstream) {
 
 async function pollCloudCameraActions() {
   try {
-    const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
+    const cloudBaseUrl = (await deviceIdentitySecret("device_cloud_base_url")).replace(/\/$/, "");
     if (!cloudBaseUrl || (!GATEWAY_KEYCHAIN_SERVICE && !GATEWAY_SECRET_DIR)) return;
     const accessToken = await refreshGatewayDeviceAccess();
     const submitCommandResult = async (result) => {
@@ -740,7 +749,7 @@ async function pollCloudCameraActions() {
     const action = payload.data?.action_request;
     if (!response.ok || !action?.id) return;
     if (["capability_snapshot", "command_preflight"].includes(action.task_kind)) {
-      const identity = { gatewayId: await keychainSecret("device_gateway_id"), siteId: await keychainSecret("device_observer_site_id") };
+      const identity = { gatewayId: await deviceIdentitySecret("device_gateway_id"), siteId: await deviceIdentitySecret("device_observer_site_id") };
       const result = await (privateNvrCommandRuntime
         ? privateNvrCommandRuntime.diagnostic(action)
         : preflightDriver(action, identity)).catch(() => ({ outcome: "failed", result_code: "preflight_validation_or_expiry_failed" }));
@@ -838,8 +847,8 @@ async function readBuffer(request, maxBytes = 10 * 1024 * 1024) {
 
 async function forwardDeviceCloudRequest(path, body, contentType, method = "POST", signal) {
   if (SHADOW_MODE) throw new Error("Shadow qualification cloud access is disabled");
-  const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
-  const gatewayId = await keychainSecret("device_gateway_id");
+  const cloudBaseUrl = (await deviceIdentitySecret("device_cloud_base_url")).replace(/\/$/, "");
+  const gatewayId = await deviceIdentitySecret("device_gateway_id");
   if (!cloudBaseUrl || !gatewayId) throw new Error("Gateway cloud identity is unavailable");
   const accessToken = await refreshGatewayDeviceAccess();
   const response = await fetch(`${cloudBaseUrl}${path}`, {

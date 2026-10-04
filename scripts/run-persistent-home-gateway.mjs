@@ -1,8 +1,8 @@
 import "../services/video-gateway/http-runtime.mjs";
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, renameSync, statfsSync, writeFileSync } from "node:fs";
-import { cpus, freemem, loadavg, totalmem, uptime } from "node:os";
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, statfsSync, writeFileSync } from "node:fs";
+import { cpus, freemem, homedir, loadavg, totalmem, uptime } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { startJournalLoop } from "../services/video-gateway/journal-loop.mjs";
@@ -68,12 +68,34 @@ process.env.OBSERVER_EDGE_INSTALLATION_ID = installationId;
 process.env.OBSERVER_EDGE_DEVICE_TYPE = edgeDeviceType;
 const edgeRuntime = connectorRuntimeIdentity(process.env);
 const cloudSecret = keychainSecret("cloud_discovery_secret");
-const deviceGatewayId = keychainSecret("device_gateway_id");
-const deviceObserverSiteId = keychainSecret("device_observer_site_id");
-const deviceRefreshToken = keychainSecret("device_refresh_token");
-const devicePrivateKey = keychainSecret("device_private_key_pkcs8");
-const gatewayId = deviceGatewayId || keychainSecret("cloud_gateway_id");
-const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_site_id");
+const homeQaIdentityDir = join(homedir(), "Library/Application Support/Digital Observer",
+  "observer-gateway/ota/home-qa-device-secrets");
+const configuredIdentityDir = process.env.OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR || "";
+const deviceIdentitySecretDir = edgeDeviceType === "PHYSICAL_GATEWAY" &&
+  (configuredIdentityDir || existsSync(homeQaIdentityDir))
+  ? (configuredIdentityDir || homeQaIdentityDir) : "";
+let identityStore = null;
+if (deviceIdentitySecretDir) {
+  const expected = realpathSync(homeQaIdentityDir);
+  const actual = realpathSync(deviceIdentitySecretDir);
+  const info = lstatSync(actual);
+  if (actual !== expected || !info.isDirectory() || info.isSymbolicLink() || info.uid !== process.getuid() ||
+    (info.mode & 0o077) !== 0) throw new Error("Managed device identity store is unsafe");
+  identityStore = createEdgeSecretStoreSync({ secretDir: actual });
+}
+const legacyDeviceGatewayId = keychainSecret("device_gateway_id");
+const legacyDeviceObserverSiteId = keychainSecret("device_observer_site_id");
+const managedDeviceGatewayId = identityStore?.read("device_gateway_id") || "";
+const managedDeviceObserverSiteId = identityStore?.read("device_observer_site_id") || "";
+const gatewayId = managedDeviceGatewayId || legacyDeviceGatewayId || keychainSecret("cloud_gateway_id");
+const observerSiteId = managedDeviceObserverSiteId || legacyDeviceObserverSiteId || keychainSecret("cloud_observer_site_id");
+const deviceRefreshToken = identityStore?.read("device_refresh_token") || keychainSecret("device_refresh_token");
+const devicePrivateKey = identityStore?.read("device_private_key_pkcs8") || keychainSecret("device_private_key_pkcs8");
+if (identityStore && (identityStore.read("device_credential_version") !== "1" ||
+  !devicePrivateKey || identityStore.read("device_cloud_base_url") !== "https://127.0.0.1:3101" ||
+  legacyDeviceGatewayId && legacyDeviceGatewayId !== gatewayId ||
+  legacyDeviceObserverSiteId && legacyDeviceObserverSiteId !== observerSiteId))
+  throw new Error("Managed device identity store does not match the installed Gateway");
 const missingCloudConfiguration = [
   !gatewaySecret && "gateway_signing_secret",
   !gatewayId && "device_gateway_id",
@@ -148,7 +170,7 @@ async function signedPost(path, payload, options = {}) {
   return JSON.parse(responseText);
 }
 
-const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
+const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir, OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR: deviceIdentitySecretDir }, stdio: "inherit" });
 const childWatchdog = createEdgeChildLivenessWatchdog({
   // A 2s loopback timeout still detects an unresponsive child quickly, while
   // requiring 45s of continuous loss avoids restart storms during measured
