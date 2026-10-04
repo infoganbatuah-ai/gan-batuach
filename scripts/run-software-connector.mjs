@@ -1,8 +1,13 @@
 import { mkdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { resolveSoftwareConnectorStartupConfiguration, softwareConnectorSecretStore } from "../services/video-gateway/software-connector-cloud.mjs";
-import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
+import { preferPackagedObjectModel, resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 
 process.env.OBSERVER_EDGE_DEVICE_TYPE = "SOFTWARE_CONNECTOR";
+// OTA Connector bundles keep immutable model bytes inside the signed app while
+// mutable camera state stays in the legacy-compatible data directory. Prefer
+// the bundled model when present, but preserve an explicit managed override.
+preferPackagedObjectModel(fileURLToPath(new URL("../../models", import.meta.url)));
 const paths = resolveEdgeRuntimePaths();
 const dataRoot = paths.dataDir;
 const keychainService = process.env.OBSERVER_CONNECTOR_KEYCHAIN_SERVICE || "";

@@ -146,6 +146,8 @@ test("software connector uses an isolated port, owner lock and stream namespace"
   assert.match(wrapper, /GAN_BATUACH_JOURNAL_OWNER_LOCK_PATH/);
   assert.match(wrapper, /connector_stream_namespace/);
   assert.match(wrapper, /resolveSoftwareConnectorStartupConfiguration\(\{ store \}\)/);
+  assert.match(wrapper, /preferPackagedObjectModel/);
+  assert.match(wrapper, /new URL\("\.\.\/\.\.\/models", import\.meta\.url\)/);
   assert.match(runner, /gatewayPort/);
   assert.match(runner, /connectionType/);
   assert.match(runner, /createEdgeChildLivenessWatchdog/);
