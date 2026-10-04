@@ -1,11 +1,11 @@
 {
   "contract": "digital-observer-push38-v8-qualification-matrix-v1",
   "status": "FROZEN",
-  "frozen_at": "2026-10-04T01:28:00Z",
+  "frozen_at": "2026-10-04T11:42:00Z",
   "candidate_branch": "codex/push-38t-qualification",
   "qualification_runtime": {
-    "gateway_version": "0.2.75-p38-health",
-    "gateway_build_sha": "0a41a628a79b6a9ef3f43b031bf802371f9913ed",
+    "gateway_version": "0.2.76-p38-health",
+    "gateway_build_sha": "591d5b97fa24a31ab540a7ceaef8ec9e5ad9335f",
     "connector_version": "0.2.26-p38-health",
     "gateway_source_available": 9,
     "gateway_known_upstream_unavailable_channels": [8],
@@ -53,7 +53,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect signed CURRENT, KNOWN_GOOD, runtime PID, build identity, and OTA state.",
-      "pass_criteria": "Gateway stays on signed 0.2.75, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
+      "pass_criteria": "Gateway stays on signed 0.2.76, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
       "evidence_source": "V8 release snapshots, OTA state, and process telemetry"
     },
     {
