@@ -1,0 +1,15 @@
+{
+  "protocol": "observer-remote-signing-evidence-v1",
+  "role": "GATEWAY_FINITE_RESPONSE_CONTINUITY",
+  "signing_key_id": "observer-kms-release-v1",
+  "public_key_sha256": "08311439236332c563a37624425d75f13c479d97c60858dcfaf06a88e1580638",
+  "payload_sha256": "ff0d99f5863e810718255aaea09c91f082a8998811d29496eb14857d187100da",
+  "signed_document_sha256": "2706e8602cef548732d523b1f1c393aa8cc204517b75b8c92d618e6108d47805",
+  "algorithm": "ED25519_SHA_512",
+  "provider_signature_verified": true,
+  "device_id": "62df97e2-3c0b-427f-9108-bde029bc10e7",
+  "artifact_sha256": "10c4c6d33593f4c2796789eecb24faa0abd9c26448c8a6190600f61742dd140c",
+  "manifest_file_sha256": "2904c503e9ff4b8524353a9eaee470a952831dd82db1cdbc4967e9e84c9adb42",
+  "source_commit": "591d5b97fa24a31ab540a7ceaef8ec9e5ad9335f",
+  "signing_workflow_commit": "10f8db7372b7e6d40c8b38dc8642aabaeec9d27e"
+}
