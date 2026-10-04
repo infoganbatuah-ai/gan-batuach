@@ -41,6 +41,7 @@ import { buildPush38GatewaySessionRenewalContinuityManifest } from "../../servic
 import { buildPush38GatewayProactiveExclusiveRenewalManifest } from "../../services/video-gateway/push38-home-qa-gateway-proactive-exclusive-renewal.mjs";
 import { buildPush38GatewayPlaybackSweepSerializationManifest } from "../../services/video-gateway/push38-home-qa-gateway-playback-sweep-serialization.mjs";
 import { buildPush38GatewayFiniteResponseContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-finite-response-continuity.mjs";
+import { buildPush38GatewayDeviceIdentityContinuityManifest } from "../../services/video-gateway/push38-home-qa-gateway-device-identity-continuity.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -158,16 +159,18 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
   handoffOwnerContinuity = false, sweepDeadline = false, deadlineBudget = false,
   recoveryContinuity = false, routineConfirmation = false, sessionRenewal = false,
   proactiveExclusive = false, playbackSweep = false,
-  finiteResponseContinuity = false }) {
+  finiteResponseContinuity = false, deviceIdentityContinuity = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
     heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
     handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
     rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
     handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
-    sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity]
+    sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity,
+    deviceIdentityContinuity]
     .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = finiteResponseContinuity ? buildPush38GatewayFiniteResponseContinuityManifest :
+  const builder = deviceIdentityContinuity ? buildPush38GatewayDeviceIdentityContinuityManifest :
+    finiteResponseContinuity ? buildPush38GatewayFiniteResponseContinuityManifest :
     playbackSweep ? buildPush38GatewayPlaybackSweepSerializationManifest :
     proactiveExclusive ? buildPush38GatewayProactiveExclusiveRenewalManifest :
     sessionRenewal ? buildPush38GatewaySessionRenewalContinuityManifest :
@@ -245,7 +248,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: finiteResponseContinuity ?
+    const result = { protocol: deviceIdentityContinuity ?
+      "observer-push38-gateway-device-identity-continuity-r2-publication-v1" : finiteResponseContinuity ?
       "observer-push38-gateway-finite-response-continuity-r2-publication-v1" : playbackSweep ?
       "observer-push38-gateway-playback-sweep-serialization-r2-publication-v1" : proactiveExclusive ?
       "observer-push38-gateway-proactive-exclusive-renewal-r2-publication-v1" : sessionRenewal ?
@@ -318,6 +322,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const proactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
     const playbackSweep = process.argv.includes("--gateway-playback-sweep");
     const finiteResponseContinuity = process.argv.includes("--gateway-finite-response-continuity");
+    const deviceIdentityContinuity = process.argv.includes("--gateway-device-identity-continuity");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
@@ -330,7 +335,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--gateway-deadline-budget", "--gateway-recovery-continuity",
         "--gateway-routine-confirmation", "--gateway-session-renewal",
         "--gateway-proactive-exclusive", "--gateway-playback-sweep",
-        "--gateway-finite-response-continuity"]
+        "--gateway-finite-response-continuity", "--gateway-device-identity-continuity"]
         .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
@@ -343,7 +348,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
       handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity,
       routineConfirmation, sessionRenewal, proactiveExclusive, playbackSweep,
-      finiteResponseContinuity }) }));
+      finiteResponseContinuity, deviceIdentityContinuity }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");
