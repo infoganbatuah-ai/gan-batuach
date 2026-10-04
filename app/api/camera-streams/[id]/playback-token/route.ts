@@ -1,6 +1,7 @@
 import { requirePermission } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createCameraPlaybackSession, playbackTokenSchema } from "@/lib/domain/video-streaming";
+import { MANAGEMENT_LIVE_PRODUCTION_VERIFIED } from "@/lib/management/safety-cameras";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 
 function firstForwardedIp(value: string | null) {
@@ -12,6 +13,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const permission = await requirePermission("video:stream");
     if (!permission.allowed) return fail("Forbidden", 403);
     await assertRateLimit(request.headers.get("x-forwarded-for") ?? "viewer", "/api/camera-streams/playback-token", 120, 60);
+    if (!MANAGEMENT_LIVE_PRODUCTION_VERIFIED) {
+      return fail("צפייה חיה אינה מאומתת כרגע ל־Production.", 503);
+    }
     const { id } = await params;
     const payload = playbackTokenSchema.parse(await request.json());
     const session = await createCameraPlaybackSession(id, payload, {

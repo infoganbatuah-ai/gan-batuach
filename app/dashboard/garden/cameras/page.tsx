@@ -1,137 +1,76 @@
-import { DashboardShell } from "@/components/dashboard-shell";
-import { AdminDataError } from "@/components/admin-data-state";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
-import { GardenCameraCapabilityPanel } from "@/components/garden-camera-capability-panel";
-import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { RoleAppShell } from "@/components/role-app-shell";
+import { SafetyCamerasPlatform } from "@/components/safety-cameras-platform";
 import { requireRole } from "@/lib/auth";
-import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
+import { safeIncident, toSafetyCamera } from "@/lib/management/safety-cameras";
 import { createClient } from "@/lib/supabase/server";
-import { Camera, CameraOff, Eye, LockKeyhole, PlayCircle, Plus, RadioTower, ShieldCheck, Video } from "lucide-react";
-import {
-  TeacherActionTile,
-  TeacherAiInsight,
-  TeacherAppFrame,
-  TeacherCompactItem,
-  TeacherCompactList,
-  TeacherEmptyState,
-  TeacherPageTitle,
-  TeacherQuickActions,
-  TeacherSection,
-  TeacherStatCard,
-  TeacherStatsGrid
-} from "@/components/teacher-app-ui";
 
-function isCameraOnline(camera: any) {
-  return Boolean(camera.active) && ["online", "connected"].includes(String(camera.status ?? camera.stream_status ?? ""));
-}
+const cameraColumns = "id,garden_id,kindergarten_id,name,area,camera_zone_label,status,stream_status,health_status,active,last_seen,last_health_check_at,last_test_at,last_test_status,gateway_registration_status,parent_view_allowed,parent_viewing_allowed,staff_view_allowed,inspector_view_allowed,inspector_access_policy,observer_enabled,recording_enabled,source_type,system_type,camera_provider_key,gateway_provider_preference,connection_method,protocol,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,parent_visibility_status,parent_blocked_reason,observer_review_required,observer_confidence_threshold,last_test_message,gateway_last_error,masked_connection_summary,video_gateway_stream_id,gateway_stream_id,viewing_hours,operating_hours,retention_days,archive_policy,playback_hls_ready,playback_webrtc_ready";
 
-function cameraStatusLabel(camera: any) {
-  if (isCameraOnline(camera)) return "מחוברת ומוכנה";
-  if (camera.status === "pending_gateway" || camera.stream_status === "pending") return "ממתינה לחיבור";
-  if (camera.active === false) return "כבויה";
-  return "דורשת בדיקה";
-}
+type SearchParams = Promise<{ view?: string; filter?: string; camera?: string; q?: string }>;
+const views = new Set(["overview", "events", "setup", "policy", "readiness"]);
+const filters = new Set(["all", "online", "degraded", "offline", "setup_required", "action"]);
 
-function cameraStatusTone(camera: any) {
-  if (isCameraOnline(camera)) return "green";
-  if (camera.status === "pending_gateway" || camera.stream_status === "pending") return "orange";
-  return "red";
-}
-
-function cameraVisibilityLabel(camera: any) {
-  if (camera.parent_view_allowed || camera.parent_viewing_allowed) return "צפיית הורים מאושרת";
-  if (camera.parent_visibility_status === "pending_gateway") return "צפייה ממתינה ל-Gateway";
-  return "צפייה להורים חסומה";
-}
-
-export default async function GardenCameraSetupPage({ searchParams }: { searchParams: Promise<{ filter?: string; camera?: string; add?: string }> }) {
+export default async function GardenCamerasPage({ searchParams }: { searchParams: SearchParams }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
-  const gardenId = profile.garden_id ?? "";
-  const result = await safeAdminData("garden cameras", async () => {
+  const context = await resolveManagementGardenContext(profile);
+  const gardenId = context.activeGarden?.id ?? profile.garden_id ?? "";
+  const role = profile.role === "owner" ? "owner" : "manager";
+  const result = await safeAdminData("UX16 garden safety cameras", async () => {
     const supabase = await createClient();
-    const [cameras, garden] = await Promise.all([
-      supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, camera_type, source_type,source_category,camera_zone_label,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model, stream_status, health_status, last_seen, connection_method, protocol, status, active, parent_view_allowed, parent_viewing_allowed,parent_visibility_status,parent_blocked_reason,staff_view_allowed,inspector_view_allowed,inspector_access_policy,observer_enabled,observer_review_required,observer_confidence_threshold, last_health_check_at, last_test_status, last_test_message, last_test_at, gateway_registration_status, gateway_last_error, masked_connection_summary, video_gateway_stream_id, gateway_stream_id, viewing_hours,operating_hours, recording_enabled, retention_days, archive_policy, playback_hls_ready, playback_webrtc_ready").eq("garden_id", gardenId),
-      supabase.from("gardens" as any).select("id, name, city").eq("id", gardenId).maybeSingle()
+    const [cameraRes, gardenRes, incidentRes] = await Promise.all([
+      supabase.from("camera_streams" as never).select(cameraColumns as never).eq("garden_id", gardenId).limit(120),
+      supabase.from("gardens" as never).select("id,name,city" as never).eq("id", gardenId).maybeSingle(),
+      supabase.from("incident_reports" as never).select("id,title,severity,status,description,created_at" as never).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(20)
     ]);
-    logSupabaseError("garden cameras", cameras.error); logSupabaseError("garden camera garden", garden.error);
-    const rawCameras = (cameras.data ?? []) as any[];
-    const filtered = rawCameras.filter((camera) => {
-      if (params.filter === "offline" || params.filter === "issues" || params.camera === "issue") return !camera.active || !["online", "connected"].includes(camera.status);
-      if (params.filter === "pending") return camera.status === "pending_gateway";
-      return true;
-    });
-    return { cameras: filtered, gardens: garden.data ? [garden.data] : [], queryError: cameras.error || garden.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null });
-  const filterLabel = params.filter === "offline" || params.filter === "issues" || params.camera === "issue" ? "מצלמות לא מחוברות" : params.filter === "pending" ? "מצלמות שממתינות לחיבור" : null;
-  const cameras = result.data.cameras as any[];
-  const online = cameras.filter((camera) => camera.active && ["online", "connected"].includes(camera.status)).length;
-  const issues = cameras.filter((camera) => !camera.active || !["online", "connected"].includes(camera.status)).length;
-  const parentAllowed = cameras.filter((camera) => camera.parent_view_allowed || camera.parent_viewing_allowed).length;
+    [cameraRes, gardenRes, incidentRes].forEach((query, index) => logSupabaseError(`UX16 garden safety ${index}`, query.error));
+    const garden = gardenRes.data as unknown as { id: string; name?: string | null; city?: string | null } | null;
+    return {
+      rawCameras: (cameraRes.data ?? []) as unknown as Record<string, unknown>[],
+      incidents: (incidentRes.data ?? []) as unknown as Record<string, unknown>[],
+      garden,
+      sourceError: [cameraRes.error, gardenRes.error, incidentRes.error].some(Boolean) ? "חלק מנתוני הבטיחות אינם זמינים כרגע; לא הוצגו נתונים משוערים." : null
+    };
+  }, { rawCameras: [] as Record<string, unknown>[], incidents: [] as Record<string, unknown>[], garden: null as { id: string; name?: string | null; city?: string | null } | null, sourceError: null as string | null });
+
+  const gardenName = cleanSyntheticLabel(result.data.garden?.name, "הגן הפעיל");
+  const cameras = result.data.rawCameras.map((camera) => toSafetyCamera({ ...camera, garden_name: gardenName }, role));
+  const incidents = result.data.incidents.map((incident) => safeIncident({ ...incident, garden_name: gardenName }));
+  const view = views.has(params.view ?? "") ? params.view as "events" | "setup" | "policy" | "readiness" : "overview";
+  const filter = filters.has(params.filter ?? "") ? params.filter as "online" | "degraded" | "offline" | "setup_required" | "action" : "all";
+  const managementSlot = (
+    <CameraAdminManager
+      cameras={result.data.rawCameras as any[]}
+      gardens={context.gardens.map((garden) => ({ id: garden.id, name: garden.name, city: "" })) as any[]}
+      gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)}
+      defaultOpenAdd
+      showHealthCenter={false}
+    />
+  );
+
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מצלמות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="אזור מצלמות גננת" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
-        <TeacherPageTitle icon={Camera} title="אזור מצלמות" subtitle="צפייה, חיבור והרשאות צפייה בטוחות" action={<a className="button primary" href="/dashboard/garden/cameras?add=1#camera-management"><Plus size={18} /> הוספת מצלמה</a>} />
-        <TeacherStatsGrid>
-          <TeacherStatCard title="מצלמות" value={cameras.length} hint="בגן" icon={Video} tone="blue" />
-          <TeacherStatCard title="מחוברות" value={online} hint="פעילות" icon={ShieldCheck} tone="green" />
-          <TeacherStatCard title="דורשות טיפול" value={issues} hint="בדיקה" icon={CameraOff} tone={issues ? "red" : "green"} href="/dashboard/garden/cameras?filter=issues" />
-          <TeacherStatCard title="צפיית הורים" value={parentAllowed} hint="מאושרות" icon={Eye} tone="purple" />
-        </TeacherStatsGrid>
-        <DashboardFilterChip label={filterLabel} clearHref="/dashboard/garden/cameras" isEmpty={cameras.length === 0} emptyTitle={filterLabel ? `אין כרגע ${filterLabel}` : undefined} emptyText="כל המצלמות במסנן הזה תקינות או שאין מצלמות מתאימות." />
-        <AdminDataError message={result.error ?? result.data.queryError} />
-
-        <TeacherSection title="גלריית מצלמות הגן" subtitle={process.env.VIDEO_GATEWAY_URL ? "Gateway מחובר לצפייה בטוחה" : "התצוגה מוכנה לחיבור Gateway, בלי לחשוף כתובות או סיסמאות"}>
-          {cameras.length ? (
-            <div className="ganenet-camera-gallery">
-              {cameras.map((camera) => {
-                const tone = cameraStatusTone(camera);
-                return (
-                  <article className={`ganenet-camera-card ${tone}`} key={camera.id}>
-                    <div className="ganenet-camera-preview">
-                      <Video size={42} />
-                      <strong>{isCameraOnline(camera) ? "מוכנה לצפייה מאובטחת" : "ממתינה לחיבור בטוח"}</strong>
-                      <small>{camera.area ?? camera.camera_zone_label ?? "אזור הגן"}</small>
-                      <span className={`ganenet-camera-signal ${isCameraOnline(camera) ? "online" : ""}`} />
-                    </div>
-                    <div className="ganenet-camera-info">
-                      <div className="ganenet-camera-heading">
-                        <b>{camera.name ?? "מצלמת גן"}</b>
-                        <span>{cameraStatusLabel(camera)}</span>
-                      </div>
-                      <div className="ganenet-camera-tags">
-                        <span><RadioTower size={15} /> {camera.protocol ?? camera.connection_method ?? "חיבור מאובטח"}</span>
-                        <span><Eye size={15} /> {cameraVisibilityLabel(camera)}</span>
-                        <span><LockKeyhole size={15} /> {camera.masked_connection_summary ? "פרטי חיבור מוסתרים" : "ללא חשיפת סיסמאות"}</span>
-                      </div>
-                      <div className="ganenet-camera-actions">
-                        <a href={`/dashboard/garden/cameras?camera=${camera.id}#camera-management`}><PlayCircle size={16} /> ניהול וצפייה</a>
-                        <a href="/dashboard/garden/camera-health"><ShieldCheck size={16} /> בדיקת חיבור</a>
-                      </div>
-                      <GardenCameraCapabilityPanel cameraId={camera.id} />
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : <TeacherEmptyState title="עדיין אין מצלמות מחוברות" text="אפשר להכין חיבור מצלמה בלי לחשוף כתובת RTSP או סיסמאות בדפדפן." action={<a className="button primary" href="/dashboard/garden/cameras?add=1#camera-management"><Plus size={18} /> הוספת מצלמה ראשונה</a>} />}
-        </TeacherSection>
-
-        <TeacherQuickActions title="פעולות מצלמה">
-          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1#camera-management" icon={Plus} tone="purple" />
-          <TeacherActionTile title="מצלמות תקולות" href="/dashboard/garden/cameras?filter=issues" icon={CameraOff} tone="orange" />
-          <TeacherActionTile title="הרשאות צפייה" href="/dashboard/garden/camera-health" icon={ShieldCheck} tone="green" />
-        </TeacherQuickActions>
-
-        <TeacherAiInsight>
-          אין חשיפת RTSP או סיסמאות במסך הגננת. צפייה להורים נפתחת רק לפי מדיניות והרשאה.
-        </TeacherAiInsight>
-
-        <details className="teacher-management-details" id="camera-management" open={params.add === "1" || Boolean(params.camera)}>
-          <summary>ניהול מצלמות מלא</summary>
-          <CameraAdminManager cameras={cameras} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} defaultOpenAdd={params.add === "1"} showHealthCenter={false} />
-        </details>
-      </TeacherAppFrame>
+    <DashboardShell role={role} title="בטיחות ומצלמות" appHome>
+      <RoleAppShell role={role} activeHref="/dashboard/garden/cameras" title="בטיחות ומצלמות" subtitle="מצב, הרשאות ומוכנות לפי הגן הפעיל" profile={profile} className="safety-runtime-shell">
+        <main className="dashboard-runtime-content">
+          <SafetyCamerasPlatform
+            role={role}
+            cameras={cameras}
+            incidents={incidents}
+            gardenName={gardenName}
+            view={view}
+            filter={filter}
+            selectedCameraId={params.camera ?? null}
+            searchQuery={params.q ?? ""}
+            sourceError={result.error ?? result.data.sourceError}
+            managementSlot={managementSlot}
+          />
+        </main>
+      </RoleAppShell>
     </DashboardShell>
   );
 }

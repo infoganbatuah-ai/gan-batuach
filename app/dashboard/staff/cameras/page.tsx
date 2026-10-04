@@ -1,78 +1,43 @@
-import { CameraPlaybackCard } from "@/components/camera-playback-card";
-import { Camera, ShieldCheck } from "lucide-react";
-import { CameraPreviewCard, StatusChip } from "@/components/gan-batuach-design-system";
-import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
+import { SafetyCamerasPlatform } from "@/components/safety-cameras-platform";
+import { StaffAppFrame } from "@/components/staff-app-ui";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { requireOperationalRole } from "@/lib/management/operational-role";
-import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
+import { toSafetyCamera } from "@/lib/management/safety-cameras";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function StaffCamerasPage() {
-  const { employment } = await requireOperationalRole(["staff"]);
+type SearchParams = Promise<{ view?: string; filter?: string; camera?: string; q?: string }>;
+const views = new Set(["overview", "events", "policy", "readiness"]);
+const filters = new Set(["all", "online", "degraded", "offline", "setup_required", "action"]);
+
+export default async function StaffCamerasPage({ searchParams }: { searchParams: SearchParams }) {
+  const { profile, employment } = await requireOperationalRole(["staff"]);
+  const params = await searchParams;
   const supabase = await createClient();
   const gardenId = employment?.garden_id ?? "";
-  if (!gardenId) {
-    return (
-      <StaffAppFrame active="home" mode="candidate">
-        <StaffPageHero
-          eyebrow="מצלמות צוות"
-          title="מצלמות ייפתחו רק אחרי שיוך לגן"
-          text="לפני אישור ושיוך אין גישה למצלמות, למיקומים פנימיים או למידע תפעולי של גן."
-          icon={Camera}
-          badge={<StatusChip tone="warning" icon={ShieldCheck}>ממתין לשיוך</StatusChip>}
-        />
-        <StaffSection title="אין גישה למצלמות">
-          <StaffEmpty title="עדיין לא שובצת לגן" text="כאשר מנהלת תאשר את השיוך, יוצגו רק מצלמות שאושרו לצפיית צוות." icon={Camera} />
-        </StaffSection>
-      </StaffAppFrame>
-    );
-  }
-  const camerasRes = await supabase
-    .from("camera_streams" as any)
-    .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, staff_view_allowed, gateway_stream_id, video_gateway_stream_id, live_preview_status, playback_hls_ready, playback_webrtc_ready, last_health_check_at, gardens(name, city)")
-    .eq("garden_id", gardenId)
-    .eq("active", true)
-    .eq("staff_view_allowed", true);
-  const cameras = (camerasRes.data ?? []) as any[];
-  const productionVerified = (camera: any) => Boolean(
-    (camera.status === "online" || camera.status === "connected") &&
-    (camera.playback_hls_ready || camera.playback_webrtc_ready || camera.live_preview_status === "ready") &&
-    (camera.gateway_stream_id || camera.video_gateway_stream_id)
-  );
-  const statusLabel: Record<string, string> = {
-    online: "זמינה",
-    connected: "זמינה",
-    pending_gateway: "ממתינה לחיבור",
-    offline: "לא זמינה",
-    disabled: "כבויה",
-    error: "תקלה"
-  };
+  const [cameraRes, gardenRes] = await Promise.all([
+    supabase.from("camera_streams" as never)
+      .select("id,garden_id,kindergarten_id,name,area,camera_zone_label,status,stream_status,health_status,active,last_seen,last_health_check_at,last_test_at,last_test_status,gateway_registration_status,staff_view_allowed,observer_enabled,recording_enabled" as never)
+      .eq("garden_id", gardenId).eq("active", true).eq("staff_view_allowed", true).limit(80),
+    supabase.from("gardens" as never).select("name" as never).eq("id", gardenId).maybeSingle()
+  ]);
+  const garden = gardenRes.data as unknown as { name?: string | null } | null;
+  const gardenName = cleanSyntheticLabel(garden?.name, "הגן המשויך");
+  const cameras = ((cameraRes.data ?? []) as unknown as Record<string, unknown>[])
+    .map((camera) => toSafetyCamera({ ...camera, garden_name: gardenName }, "staff"));
+  const view = views.has(params.view ?? "") ? params.view as "events" | "policy" | "readiness" : "overview";
+  const filter = filters.has(params.filter ?? "") ? params.filter as "online" | "degraded" | "offline" | "setup_required" | "action" : "all";
   return (
-    <StaffAppFrame active="more">
-      <StaffPageHero
-        eyebrow="מצלמות צוות"
-        title="צפייה במצלמות המאושרות לצוות"
-        text="צוות רואה רק מצלמות של הגן המשויך אליו, ורק אם מנהלת הגן אישרה צפייה."
-        icon={Camera}
-        badge={<StatusChip tone="success" icon={ShieldCheck}>גן משויך בלבד</StatusChip>}
+    <StaffAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
+      <SafetyCamerasPlatform
+        role="staff"
+        cameras={cameras}
+        gardenName={gardenName}
+        view={view}
+        filter={filter}
+        selectedCameraId={params.camera ?? null}
+        searchQuery={params.q ?? ""}
+        sourceError={cameraRes.error || gardenRes.error ? "נתוני הבטיחות אינם זמינים במלואם כרגע; לא הוצגו נתונים משוערים." : null}
       />
-      <StaffSection title="גלריית מצלמות">
-        {cameras.length === 0 ? (
-          <StaffEmpty title="אין מצלמות זמינות לצוות" text="צפיית צוות נפתחת רק אם מנהלת הגן אישרה זאת. כל צפייה מתועדת." icon={Camera} />
-        ) : (
-          <div className="camera-playback-grid">
-            {cameras.map((camera) => (
-              <CameraPreviewCard
-                key={camera.id}
-                title={camera.name}
-                subtitle={`${camera.area ?? "אזור לא צוין"} · ${camera.gardens?.name ?? "גן"}`}
-                live={productionVerified(camera)}
-                status={<StatusChip tone={productionVerified(camera) ? "success" : "warning"}>{productionVerified(camera) ? statusLabel[camera.status] ?? "זמינה" : "בדיקה נדרשת"}</StatusChip>}
-                action={<CameraPlaybackCard camera={sanitizeCameraForPlaybackCard(camera)} accessReason="צפיית צוות מורשית" safeDetails />}
-              />
-            ))}
-          </div>
-        )}
-      </StaffSection>
     </StaffAppFrame>
   );
 }
