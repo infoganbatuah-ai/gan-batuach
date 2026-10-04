@@ -1,0 +1,22 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const source = readFileSync("scripts/qa/reconcile-push38-homeqa-connector-runtime-metadata.mjs", "utf8");
+assert.match(source, /com\.supabase\.cli\.project/);
+assert.match(source, /push38t-loopback/);
+assert.match(source, /active_runtime_instance_id is not null/);
+assert.match(source, /home_qa_phase'='MANAGED_IDENTITY_VERIFIED/);
+assert.match(source, /metadata=metadata\|\|jsonb_build_object/);
+assert.match(source, /p38_source_snapshot/);
+assert.match(source, /SOURCE_INTEGRITY_FAILED/);
+assert.match(source, /'device_type','\$\{PROFILE\}'/);
+assert.match(source, /'installation_id','\$\{installationId\}'/);
+assert.match(source, /'connector_config_version',\$\{connectorConfigVersion\}/);
+assert.match(source, /Number\.isSafeInteger\(connectorConfigVersion\)/);
+assert.match(source, /production_writes: 0/);
+assert.match(source, /camera_source_writes: 0/);
+assert.match(source, /private_key_reads: 0/);
+assert.doesNotMatch(source, /device_private_key/);
+assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY/);
+assert.doesNotMatch(source, /ganbatuach\.com/);
+console.log("PUSH38_HOME_QA_CONNECTOR_RUNTIME_METADATA_QA_PASS");
