@@ -13,7 +13,6 @@ export async function awaitRelayTransportRelease(relay, {
   let timer = null;
   const timeout = new Promise(resolve => {
     timer = setTimer(() => resolve(false), timeoutMs);
-    timer?.unref?.();
   });
   const released = await Promise.race([
     Promise.allSettled(pending).then(() => true),
