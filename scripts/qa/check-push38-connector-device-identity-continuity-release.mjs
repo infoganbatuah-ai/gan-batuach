@@ -39,6 +39,9 @@ const installer = readFileSync(new URL("./install-push38-homeqa-ota-agent.mjs", 
 for (const required of ["--connector-device-identity-continuity-upgrade", item.releaseId,
   "connector_remediation_device_identity_continuity.json", item.agentPredecessorReleaseId,
   item.agentPredecessorDigest]) assert.match(installer, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+assert.match(installer, /existsSync\(installedCertPath\) \? installedCertPath/);
+assert.match(installer, /new X509Certificate\(certBytes\)/);
+assert.match(installer, /certificate\.validTo/);
 assert.match(readFileSync(new URL(
   "../../services/video-gateway/home-qa-transition-phase.mjs", import.meta.url), "utf8"),
 new RegExp(item.releaseId));

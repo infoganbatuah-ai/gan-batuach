@@ -2,7 +2,7 @@
 // HOME_QA remediation stays ineligible until the running agent proves its own
 // isolated Ed25519 key and the QA rollout is explicitly promoted.
 import { execFileSync } from "node:child_process";
-import { createHash, createPrivateKey, createPublicKey } from "node:crypto";
+import { createHash, createPrivateKey, createPublicKey, X509Certificate } from "node:crypto";
 import { createWriteStream, existsSync, lstatSync, mkdtempSync, readFileSync, rmSync, statSync,
   writeFileSync } from "node:fs";
 import { once } from "node:events";
@@ -263,12 +263,26 @@ const root = join(homedir(), "Library/Application Support/Digital Observer", spe
 const secrets = join(root, "home-qa-device-secrets");
 const agentLabel = `${spec.label}.ota-agent`;
 const agentPlistPath = join(homedir(), "Library/LaunchAgents", `${agentLabel}.plist`);
-const certPath = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260927.crt";
-const certSha = createHash("sha256").update(readFileSync(certPath)).digest("hex");
 const installedCertPath = join(root, "qa-control-plane-ca.crt");
+const certOption = process.argv.find(arg => arg.startsWith("--tls-cert="))?.slice(11);
+const certPath = existsSync(installedCertPath) ? installedCertPath : resolve(certOption ||
+  "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260927.crt");
+const tlsRestrictedRoot = `${resolve("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
+if (certPath !== installedCertPath && (!certPath.startsWith(tlsRestrictedRoot) ||
+  !certPath.endsWith(".crt")))
+  throw new Error("P38_HOME_QA_AGENT_LOCAL_TLS_CERT_SCOPE_INVALID");
+const certInfo = lstatSync(certPath);
+if (certInfo.isSymbolicLink() || !certInfo.isFile() || (certInfo.mode & 0o077) !== 0)
+  throw new Error("P38_HOME_QA_AGENT_LOCAL_TLS_CERT_PERMISSIONS_INVALID");
+const certBytes = readFileSync(certPath);
+const certificate = new X509Certificate(certBytes);
+if (!certificate.subjectAltName?.includes("IP Address:127.0.0.1") ||
+  !certificate.verify(certificate.publicKey) || Date.parse(certificate.validTo) < Date.now() + 24 * 60 * 60_000)
+  throw new Error("P38_HOME_QA_AGENT_LOCAL_TLS_CERT_EXPIRED_OR_INVALID");
+const certSha = createHash("sha256").update(certBytes).digest("hex");
 if (apply) {
   if (!existsSync(installedCertPath))
-    writeFileSync(installedCertPath, readFileSync(certPath), { mode: 0o600, flag: "wx" });
+    writeFileSync(installedCertPath, certBytes, { mode: 0o600, flag: "wx" });
   if (lstatSync(installedCertPath).isSymbolicLink() || !lstatSync(installedCertPath).isFile() ||
     (lstatSync(installedCertPath).mode & 0o077) !== 0 ||
     createHash("sha256").update(readFileSync(installedCertPath)).digest("hex") !== certSha)
