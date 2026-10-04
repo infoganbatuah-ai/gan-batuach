@@ -240,6 +240,47 @@ test("exclusive session sweep serves only a fresh retained HLS generation", () =
   "retained playback must not bypass or replace the canonical recovery timer");
 });
 
+test("simultaneous finite-response recovery retains every fresh DVR source", () => {
+  const now = 100_000;
+  const states = Array.from({ length: 9 }, (_, index) => ({
+    progressing: false,
+    renewing: privateNvrRetainedHlsContinuity({
+      handoffInFlight: false,
+      recoveryInFlight: true,
+      handoffMode: "FINITE_RESPONSE_RECOVERY",
+      retainedOutputAt: now - 2_000 - index,
+      relayStaleMs: 20_000,
+      now
+    })
+  }));
+  assert.deepEqual(summarizeRelayAvailability(states), {
+    progressingRelays: 0,
+    renewingRelays: 9,
+    availableRelays: 9,
+    stalledRelays: 0
+  });
+  assert.equal(privateNvrRetainedHlsContinuity({
+    recoveryInFlight: true,
+    handoffMode: "FINITE_RESPONSE_RECOVERY",
+    retainedOutputAt: now - 20_000,
+    relayStaleMs: 20_000,
+    now
+  }), false, "finite-response continuity still fails closed at hard stale");
+  assert.equal(privateNvrRetainedHlsContinuity({
+    recoveryInFlight: false,
+    handoffMode: "FINITE_RESPONSE_RECOVERY",
+    retainedOutputAt: now - 1_000,
+    relayStaleMs: 20_000,
+    now
+  }), false, "retained media without canonical recovery is not availability");
+  assert.match(server,
+    /retainFiniteResponsePlayback\(streamId, relay, exitReason\);[\s\S]*relays\.delete\(streamId\)/,
+  "finite media must be retained before canonical ownership is removed");
+  assert.match(server,
+    /if \(!relay\) return \[\{[\s\S]*playback_continuity: continuity\.playbackContinuity[\s\S]*media_owner_state:/,
+  "health must report both retained renewal and explicit stalled source rows");
+});
+
 test("fresh recorder input with stalled VideoToolbox output enters one exclusive software rescue", () => {
   const now = 100_000;
   const stalledHardware = {

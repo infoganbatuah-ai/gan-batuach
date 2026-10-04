@@ -1,7 +1,7 @@
 {
   "contract": "digital-observer-push38-relay-handoff-remediation-evidence-v1",
-  "recorded_at": "2026-10-03T23:05:00Z",
-  "status": "FAILED_0_2_74_PRE_SOAK_0_2_75_SUCCESSOR_CI_IN_PROGRESS",
+  "recorded_at": "2026-10-04T04:52:59Z",
+  "status": "FAILED_0_2_75_V8_FINITE_RESPONSE_CONTINUITY_FIX_LOCAL_PASS",
   "branch": "codex/push-38t-qualification",
   "source_parent_sha": "c18c087b65e07a67fb341d2c97a68c7e90d18843",
   "failed_pre_soak": {
@@ -128,7 +128,41 @@
     "rollback_release_id": "qa-p38-health-gateway-hardware-output-rescue-f43358023c15",
     "rollback_version": "0.2.74-p38-health",
     "focused_qa": "PASS_54_OF_54_PLUS_RELEASE_CONTRACT",
-    "ci": "IN_PROGRESS",
+    "ci": "PASS_6_OF_6",
+    "aws_signature": "PASS",
+    "r2_uploaded": true,
+    "runtime_activated": true,
+    "canary": "PASS_15_MINUTES",
+    "pre_soak": "PASS_60_MINUTES",
+    "v8": "FAIL_STOPPED_NOT_REUSABLE",
+    "v8_run_id": "push38-gateway-0.2.75-v8-20261004T0313Z",
+    "v8_started_at": "2026-10-04T03:13:22.888Z",
+    "v8_stopped_at": "2026-10-04T04:27:32.743Z",
+    "v8_elapsed_ms": 4449855,
+    "v8_checkpoints": 75,
+    "v8_failed_checkpoint": 69,
+    "v8_affected_channels": [1, 6, 7, 10],
+    "v8_result_sha256": "dd46c2f58102ea1fd00828323c38634ac1614b9dfced56895be73759697755ec",
+    "v8_checkpoints_sha256": "6e65bae6257f5a15c7ce7108752b755be81c2b2d113afad7ec1a2e91afabfbae",
+    "v8_failure_summary_sha256": "d3e4f2d5aa143dd67bc0394b74fd75114e27f80e7bd3f56d1a69f440f0b34a56",
+    "v8_failure_class": "FINITE_RESPONSE_RECOVERY_MISSING_RETAINED_HLS_OWNER"
+  },
+  "gateway_successor_fix": {
+    "source_parent_sha": "483804c7c1fc2d8e85c372ca4d611e3d0a34f76a",
+    "classification": "FINITE_RESPONSE_RECOVERY_CONTINUITY",
+    "retained_hls_requires_recovery_in_flight": true,
+    "retained_hls_hard_stale_fail_closed": true,
+    "explicit_stalled_source_rows": true,
+    "focused_qa": "PASS_55_OF_55",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "domain": "PASS_30_OF_30",
+    "security_isolation": "PASS_36_OF_36",
+    "migration_health": "PASS",
+    "release_contract": "PASS",
+    "exact_commit_ci": "PENDING",
+    "artifact": "NOT_BUILT",
     "aws_signature": "NOT_ISSUED",
     "r2_uploaded": false,
     "runtime_activated": false
@@ -153,6 +187,11 @@
       "path_class": "exports/restricted/push38-gateway-proactive-exclusive-shadow-isolation-20261003T112000Z.json",
       "sha256": "fb889f266a51f2d62132554031abd2301280069f43f26a57e3ccc5b8e3658ed3",
       "result": "PASS_EXACT_LIVE_RESTORE"
+    },
+    {
+      "path_class": "exports/restricted/push38-gateway-0.2.75-v8-20261004T0313Z/v8-failure-summary.json",
+      "sha256": "d3e4f2d5aa143dd67bc0394b74fd75114e27f80e7bd3f56d1a69f440f0b34a56",
+      "result": "FAIL_STOPPED_NOT_REUSABLE"
     }
   ],
   "validation": {
@@ -164,18 +203,18 @@
     "migration_health": "PASS",
     "release_contract": "PASS",
     "dependency_audit_high_critical": 0,
-    "focused_relay_tests": "PASS_54_OF_54_PLUS_RELEASE_REGRESSIONS",
+    "focused_relay_tests": "PASS_55_OF_55_PLUS_RELEASE_REGRESSIONS",
     "braces_cve_backport": "PASS"
   },
   "live_state": {
     "runtime_mutated_by_shadow": false,
-    "gateway_current_version": "0.2.74-p38-health",
-    "gateway_known_good_version": "0.2.74-p38-health",
-    "gateway_pending_successor": "0.2.75-p38-health",
+    "gateway_current_version": "0.2.75-p38-health",
+    "gateway_known_good_version": "0.2.75-p38-health",
+    "gateway_pending_successor": "UNSIGNED_FINITE_RESPONSE_CONTINUITY_FIX",
     "connector_version": "0.2.26-p38-health",
     "v8_started": false,
     "v8_failed_attempt_preserved": true,
     "push38_done": false
   },
-  "next_gate": "CI_THEN_COST_APPROVAL_SIGN_ROUND_TRIP_REGISTER_ACTIVATE_CANARY_PRE_SOAK_V8_REMOTE_PHONE"
+  "next_gate": "EXACT_COMMIT_CI_THEN_BUILD_COST_APPROVAL_SIGN_ROUND_TRIP_REGISTER_ACTIVATE_CANARY_PRE_SOAK_NEW_V8_REMOTE_PHONE"
 }

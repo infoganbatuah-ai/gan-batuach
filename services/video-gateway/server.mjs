@@ -1822,13 +1822,14 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
   const source = streamSources.get(streamId);
   const recovery = relayRecovery.get(streamId);
   const retainedPlayback = relayRetainedPlayback.get(streamId)?.relay || null;
-  const retainedSessionSweepOutputAt = relayPlaylistMtime(retainedPlayback);
-  const retainedSessionSweep = privateNvrRetainedHlsContinuity({
+  const retainedContinuityOutputAt = relayPlaylistMtime(retainedPlayback);
+  const retainedContinuity = privateNvrRetainedHlsContinuity({
     handoffInFlight: relayWarmups.has(streamId),
-    recoveryInFlight: relayRecovery.has(streamId) || relayStarts.has(streamId),
+    recoveryInFlight: relayRecovery.has(streamId) || relayStarts.has(streamId)
+      || Boolean(retainedPlayback && relayIsRunning(current) && !state.progressing),
     handoffMode: relayRetainedPlayback.get(streamId)?.handoffMode ||
       relayWarmupModes.get(streamId),
-    retainedOutputAt: retainedSessionSweepOutputAt,
+    retainedOutputAt: retainedContinuityOutputAt,
     relayStaleMs: RELAY_STALE_MS
   });
   const retainedPlaylist = join(relayDirectory(streamId), "index.m3u8");
@@ -1844,16 +1845,17 @@ function relayMediaContinuity(streamId, current = relays.get(streamId)) {
     && Number.isFinite(retainedOutputAt)
     && Date.now() - retainedOutputAt < RELAY_STALE_MS
     && (relayStarts.has(streamId) || relayRetryDelayMs(recovery) <= RELAY_STALE_MS);
-  const renewing = finiteResponseRenewing || retainedSessionSweep;
+  const renewing = !state.progressing &&
+    (finiteResponseRenewing || retainedContinuity);
   const effective = privateNvrHealthEffectiveRelay({ current, candidate,
     mediaOwner: state.mediaOwner });
   return { ...state, renewing,
     playbackContinuity: state.progressing || renewing,
-    retainedOutputAt: retainedSessionSweep
-      ? retainedSessionSweepOutputAt : retainedOutputAt,
-    retainedPlayback: retainedSessionSweep ? retainedPlayback : null,
+    retainedOutputAt: retainedContinuity
+      ? retainedContinuityOutputAt : retainedOutputAt,
+    retainedPlayback: retainedContinuity ? retainedPlayback : null,
     current, candidate, effective,
-    playbackEffective: effective || (retainedSessionSweep ? retainedPlayback : null) };
+    playbackEffective: effective || (retainedContinuity ? retainedPlayback : null) };
 }
 
 function retainExclusivePlayback(streamId, relay, handoffMode) {
@@ -1864,6 +1866,20 @@ function retainExclusivePlayback(streamId, relay, handoffMode) {
     Date.now() - outputAt >= RELAY_STALE_MS) return false;
   relayRetainedPlayback.set(streamId, {
     relay, handoffMode, retainedAt: Date.now()
+  });
+  relayLifecycle.retainedHlsContinuityWindows += 1;
+  return true;
+}
+
+function retainFiniteResponsePlayback(streamId, relay, exitReason) {
+  if (!["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+    .includes(exitReason)) return false;
+  const outputAt = relayPlaylistMtime(relay);
+  if (!relay || !Number.isFinite(outputAt) ||
+    Date.now() - outputAt >= RELAY_STALE_MS) return false;
+  relayRetainedPlayback.set(streamId, {
+    relay, handoffMode: "FINITE_RESPONSE_RECOVERY",
+    retainedAt: Date.now(), exitReason
   });
   relayLifecycle.retainedHlsContinuityWindows += 1;
   return true;
@@ -2761,6 +2777,8 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // The next start validates HTTP authentication. A decoder error alone
     // must never rotate the recorder session shared by unrelated cameras.
     const wasCurrent = relays.get(streamId) === relay;
+    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF")
+      retainFiniteResponsePlayback(streamId, relay, exitReason);
     if (wasCurrent) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
@@ -3210,20 +3228,22 @@ async function handle(request, response) {
           // A finite owner may exit before its candidate has produced enough
           // media to become the effective owner. Keep /health available and
           // report that source as stalled instead of dereferencing no owner.
-          if (!relay) return continuity.renewing ? [{
+          if (!relay) return [{
             channel: streamSources.get(streamId)?.channel,
-            progressing: false, renewing: true,
-            playback_continuity: true,
-            owner_state: "RENEWING", media_owner_state: "RETAINED_HLS",
+            progressing: false, renewing: continuity.renewing,
+            playback_continuity: continuity.playbackContinuity,
+            owner_state: continuity.renewing ? "RENEWING" : "NONE",
+            media_owner_state: continuity.renewing ? "RETAINED_HLS" : "NONE",
             canonical_owner_progressing: false,
             candidate_progressing: false,
-            native_input_ended: true,
+            native_input_ended: ["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+              .includes(relayDiagnostics.get(streamId)?.last_failure_reason),
             input_codec: ["h264", "hevc", "mjpeg", "mpeg4"]
               .includes(streamSources.get(streamId)?.codec)
               ? streamSources.get(streamId).codec : "unknown",
             output_idle_ms: Number.isFinite(continuity.retainedOutputAt)
               ? Math.max(0, Date.now() - continuity.retainedOutputAt) : null
-          }] : [];
+          }];
           const observedAt = Date.now();
           const outputAt = relayPlaylistMtime(relay);
           return [{ channel: streamSources.get(streamId)?.channel,

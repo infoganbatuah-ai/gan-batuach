@@ -4,7 +4,50 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.74 PRE-SOAK FAILED; 0.2.75 SUSTAINED SESSION-SWEEP SUCCESSOR PREPARED; V8 NOT STARTED`
+`NOT DONE — 0.2.75 V8 FAILED AND STOPPED; FINITE-RESPONSE CONTINUITY FIX VALIDATED LOCALLY; SUCCESSOR NOT YET SIGNED`
+
+## 2026-10-04 0.2.75 V8 FINITE-RESPONSE CONTINUITY FAILURE
+
+Gateway `0.2.75-p38-health` passed a fresh 15-minute canary and fresh 60-minute
+pre-soak, then started V8 from zero at `2026-10-04T03:13:22.888Z`. V8 was
+stopped at `2026-10-04T04:27:32.743Z` after one internal availability failure
+and none of its elapsed time is reusable. The immutable failed run contains 75
+checkpoints over 4,449,855 ms. At checkpoint 69, nine DVR relay processes and
+the Gateway process were alive, but only four DVR sources were progressing and
+one had explicit retained-HLS continuity. CH1, CH6, CH7, and CH10 therefore
+missed one availability checkpoint. All Product playback and AI probes passed;
+there was no Gateway restart, authentication rejection, recorder-session
+failure, or host-network outage.
+
+The causal code path is proven. Multiple natural finite DVR responses ended at
+nearly the same time and canonical replacements started immediately. The old
+relay generation was retained explicitly only for exclusive handoff modes, not
+for ordinary finite-response recovery, so four still-fresh HLS generations had
+no bounded continuity owner and disappeared from health inputs until their
+replacements published. This was a health/media-continuity gap, not a recorder
+or process outage.
+
+The scoped correction retains the prior HLS generation for
+`FINITE_RESPONSE_RECOVERY` only while the one canonical recovery/replacement is
+in flight and only until the existing hard-stale deadline. It also emits an
+explicit stalled source row when neither progression nor valid retained
+continuity exists. Deterministic coverage includes simultaneous nine-source
+finite response ends, hard-stale fail-closed behavior, missing-recovery denial,
+and source-health serialization. Focused relay/common-cause QA passes 55/55;
+TypeScript, canonical lint, local build, domain 30/30, security/isolation 36/36,
+migration health, and release contract also pass locally. Exact-commit protected
+CI, immutable successor packaging, cost approval, AWS signature, private-R2
+round trip, live OTA, a new canary, a new pre-soak, and a new V8 from zero still
+remain. `main` and Production are unchanged.
+
+The restricted evidence pointer is
+`exports/restricted/push38-gateway-0.2.75-v8-20261004T0313Z/`.
+`result.json` SHA-256 is
+`dd46c2f58102ea1fd00828323c38634ac1614b9dfced56895be73759697755ec`,
+`checkpoints.ndjson` SHA-256 is
+`6e65bae6257f5a15c7ce7108752b755be81c2b2d113afad7ec1a2e91afabfbae`,
+and the redacted failure summary SHA-256 is
+`d3e4f2d5aa143dd67bc0394b74fd75114e27f80e7bd3f56d1a69f440f0b34a56`.
 
 ## 2026-10-04 0.2.74 PRE-SOAK FAILURE AND 0.2.75 SUCCESSOR
 

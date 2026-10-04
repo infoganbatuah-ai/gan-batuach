@@ -125,8 +125,8 @@ test("health remains serializable while a finite owner has exited before candida
   assert.equal(privateNvrHealthEffectiveRelay({ current: null, candidate,
     mediaOwner: "CURRENT" }), null);
   assert.match(gateway,
-    /inputs: relayContinuity\.flatMap[\s\S]*const relay = continuity\.effective;[\s\S]*if \(!relay\) return continuity\.renewing[\s\S]*RETAINED_HLS/,
-  "a finite-response renewal must remain serializable and expose retained-HLS truth");
+    /inputs: relayContinuity\.flatMap[\s\S]*const relay = continuity\.effective;[\s\S]*if \(!relay\) return \[\{[\s\S]*playback_continuity: continuity\.playbackContinuity[\s\S]*RETAINED_HLS/,
+  "finite-response renewal and stalled-source truth must remain serializable");
 });
 
 test("intentional relay handoff never quarantines the hardware encoder", () => {
