@@ -18,8 +18,8 @@ export const PUSH38_CONNECTOR_AI_MODEL_PATH = Object.freeze({
   rollbackReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
   rollbackVersion: "0.2.36-p38-health",
   supersedesReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
-  agentPredecessorReleaseId: "qa-p38-health-connector-observed-health-3a211a8ef1c2",
-  agentPredecessorDigest: "3a211a8ef1c275283194ea7a4ef93ba59e6f560b7b8cc01dca43a28d03e6f395"
+  agentPredecessorReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
+  agentPredecessorDigest: "c439a2c097bccdd7238512b052d7c072962a5cd36cc7811c7d77b0cc43bc6b80"
 });
 
 export function buildPush38ConnectorAiModelPathManifest({ signingKeyId,

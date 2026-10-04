@@ -20,6 +20,9 @@ assert.equal(document.artifact_sha256, item.digest);
 assert.equal(document.artifact_size, item.size);
 assert.equal(document.compatibility.minimum_current_version, "0.2.36-p38-health");
 assert.equal(document.compatibility.maximum_current_version, "0.2.36-p38-health");
+assert.equal(item.agentPredecessorReleaseId, item.rollbackReleaseId);
+assert.equal(item.agentPredecessorDigest,
+  "c439a2c097bccdd7238512b052d7c072962a5cd36cc7811c7d77b0cc43bc6b80");
 assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 assert.match(readFileSync(new URL("../release/publish-push38-connector-pidfix-r2.mjs", import.meta.url), "utf8"),
