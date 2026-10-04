@@ -8,7 +8,7 @@ export type NotificationPreferences = {
   critical_push_allowed?: boolean; emergency_messages_allowed?: boolean; parent_daily_digest_enabled?: boolean;
   parent_ai_summary_enabled?: boolean; parent_category_channels?: Record<string, string[]>;
   notification_category_channels?: Record<string, string[]>; quiet_hours_start?: string | null;
-  quiet_hours_end?: string | null; quiet_hours_timezone?: string;
+  quiet_hours_end?: string | null; quiet_hours_timezone?: string; preferred_language?: "he" | "en" | "ar";
 };
 export type DeliveryCapability = {
   in_app: string; push: string; email: string; whatsapp: string; sms: string;
@@ -91,9 +91,10 @@ export function NotificationPreferencesPanel({ preferences, pushCategoryPreferen
       parent_ai_summary_enabled: false,
       parent_category_channels: sanitized,
       notification_category_channels: sanitized,
+      preferred_language: String(data.get("preferred_language") || "he"),
       quiet_hours_start: quietEnabled ? String(data.get("quiet_hours_start") || "") || null : null,
       quiet_hours_end: quietEnabled ? String(data.get("quiet_hours_end") || "") || null : null,
-      quiet_hours_timezone: "Asia/Jerusalem",
+      quiet_hours_timezone: String(data.get("quiet_hours_timezone") || "Asia/Jerusalem"),
       push_category_preferences: categoryEnabled
     };
     setMessage("");
@@ -122,7 +123,12 @@ export function NotificationPreferencesPanel({ preferences, pushCategoryPreferen
 
       <section className="quiet-hours-card">
         <div className="quiet-hours-title"><span><Clock3 size={22} /></span><div><strong>שעות שקט</strong><p>עדכונים רגילים ימתינו. חריגי חירום פועלים לפי כללי המוצר.</p></div><label className="delivery-channel-toggle"><input type="checkbox" checked={quietEnabled} onChange={(event) => setQuietEnabled(event.target.checked)} /><span /></label></div>
-        <div className={`quiet-hours-times ${quietEnabled ? "" : "disabled"}`}><label>משעה<input name="quiet_hours_start" type="time" defaultValue={preferences?.quiet_hours_start?.slice(0, 5) ?? "22:00"} disabled={!quietEnabled} /></label><span>עד</span><label>עד שעה<input name="quiet_hours_end" type="time" defaultValue={preferences?.quiet_hours_end?.slice(0, 5) ?? "07:00"} disabled={!quietEnabled} /></label><small>Asia/Jerusalem</small></div>
+        <div className={`quiet-hours-times ${quietEnabled ? "" : "disabled"}`}><label>משעה<input name="quiet_hours_start" type="time" defaultValue={preferences?.quiet_hours_start?.slice(0, 5) ?? "22:00"} disabled={!quietEnabled} /></label><span>עד</span><label>עד שעה<input name="quiet_hours_end" type="time" defaultValue={preferences?.quiet_hours_end?.slice(0, 5) ?? "07:00"} disabled={!quietEnabled} /></label><label>אזור זמן<select name="quiet_hours_timezone" defaultValue={preferences?.quiet_hours_timezone ?? "Asia/Jerusalem"}><option value="Asia/Jerusalem">ירושלים (GMT+3)</option><option value="UTC">UTC</option></select></label></div>
+      </section>
+
+      <section className="quiet-hours-card" id="preferences">
+        <div className="quiet-hours-title"><span><BellRing size={22} /></span><div><strong>שפה ותצוגה מקומית</strong><p>השפה נשמרת כהעדפה קנונית. תאריכים ומספרים נשארים קריאים ב־RTL.</p></div></div>
+        <div className="quiet-hours-times"><label>שפת ממשק<select name="preferred_language" defaultValue={preferences?.preferred_language ?? "he"}><option value="he">עברית</option><option value="en">English</option><option value="ar">العربية</option></select></label><small>שינוי שפה משפיע רק כאשר התרגום הקנוני זמין.</small></div>
       </section>
 
       <section className="notification-category-matrix">
