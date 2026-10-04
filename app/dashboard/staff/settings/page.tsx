@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeCheck, Bell, Building2, CalendarDays, ChevronLeft, FileCheck2, KeyRound, Languages, Mail, MapPin, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { BadgeCheck, Bell, Building2, CalendarDays, Camera, ChevronLeft, FileCheck2, KeyRound, Languages, Mail, MapPin, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
@@ -8,8 +8,10 @@ import { StaffAppFrame, StaffSection } from "@/components/staff-app-ui";
 import { CandidateIdentity, CompletenessRing, RecruitmentTabs } from "@/components/recruitment-ui";
 import { StaffCandidateProfileForm } from "@/components/staff-candidate-profile-form";
 import { StaffCandidateDocumentUpload } from "@/components/staff-candidate-document-upload";
+import { AccountVerificationSummary, SettingsPlatformHeader, SettingsPlatformLayout, SettingsPlatformNavigation, SettingsSection, SettingsStatusCard, SettingsStatusGrid } from "@/components/settings-platform-ui";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { managementContactVerification } from "@/lib/management/contact-verification";
 import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +22,7 @@ type CandidateRow = { full_name?: string | null; profile_photo_url?: string | nu
 type Completeness = { percentage?: number; blockers?: string[]; status?: string; required_fields_complete?: boolean; documents_ready?: boolean };
 
 export default async function SettingsPage() {
-  const { profile } = await requireRole(["staff"]);
+  const { user, profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const context = await resolveStaffEmploymentContext(profile);
   const active = context.activeEmployment;
@@ -41,8 +43,20 @@ export default async function SettingsPage() {
   const roleName = cleanSyntheticLabel(employment?.role_title ?? active?.role_title ?? staff?.role_title, "צוות גן");
 
   const portrait = candidate?.profile_photo_url ?? staff?.profile_photo_url ?? profile.profile_image_url;
+  const verification = managementContactVerification(user, profile);
 
   return <StaffAppFrame active="profile" profileName={candidate?.full_name ?? name} avatarUrl={portrait} mode={active ? "assigned" : "candidate"}>
+    <SettingsPlatformHeader role="staff" title="הגדרות וחשבון" description="פרופיל אישי, אבטחה והעדפות לפי העסקה פעילה, גן וכיתה." />
+    <SettingsPlatformLayout navigation={<SettingsPlatformNavigation role="staff" activeHref="/dashboard/staff/settings" />}>
+      <SettingsStatusGrid>
+        <SettingsStatusCard label="מצב" value={active ? "צוות פעיל" : "מועמדות"} detail={active ? gardenName : "טרם קיים שיוך תפעולי"} icon={BadgeCheck} tone={active ? "green" : "orange"} />
+        <SettingsStatusCard label="הקשר גן" value={active ? gardenName : "ללא גן פעיל"} detail={context.employments.length > 1 ? `${context.employments.length} העסקות פעילות` : "לפי העסקה מאומתת"} icon={Building2} tone="blue" />
+        <SettingsStatusCard label="מצלמות" value="לפי אזור ותפקיד" detail="אין גישה כלל־גנית כברירת מחדל" icon={Camera} tone="purple" href="/dashboard/staff/cameras" />
+      </SettingsStatusGrid>
+      <SettingsSection id="staff-account" title="חשבון ואימות" description="דוא״ל מאומת מספיק להפעלה רגילה; אימות טלפון אינו חובה" icon={ShieldCheck}>
+        <AccountVerificationSummary email={profile.email ?? user.email} emailVerified={verification.emailVerified} phone={profile.phone ?? staff?.phone} phoneVerified={verification.phoneVerified} />
+      </SettingsSection>
+    </SettingsPlatformLayout>
     {!active ? <RecruitmentTabs active="profile" /> : null}
     {!active ? <section className="ux08-candidate-profile-hero"><CandidateIdentity name={candidate?.full_name ?? name} role={candidate?.professional_role} city={candidate?.city} photo={candidate?.profile_photo_url ?? profile.profile_image_url} status={candidate?.status} /><CompletenessRing percentage={Number(completeness?.percentage ?? 0)} /></section> : <section className="ux07-staff-identity-hero">
       <Avatar name={name} src={portrait} size="lg" />
@@ -73,7 +87,7 @@ export default async function SettingsPage() {
         <Link href="/dashboard/staff/shifts"><CalendarDays /><span><b>משמרות</b><small>לוח עבודה והיסטוריית שעות</small></span><ChevronLeft /></Link>
         <Link href="/dashboard/staff/attendance"><BadgeCheck /><span><b>נוכחות</b><small>מצב נוכחי ופעולות שעון</small></span><ChevronLeft /></Link>
         <Link href="/dashboard/staff/documents"><FileCheck2 /><span><b>מסמכים</b><small>אישורים ותעודות</small></span><ChevronLeft /></Link>
-        <a href="#profile-settings"><KeyRound /><span><b>אבטחה וכניסה</b><small>פרטי חשבון ואימות</small></span><ChevronLeft /></a>
+        <Link href="/dashboard/security-settings"><KeyRound /><span><b>אבטחה וכניסה</b><small>MFA, Passkey, מכשירים וסשנים</small></span><ChevronLeft /></Link>
         <span><Languages /><span><b>שפה</b><small>עברית</small></span><StatusChip tone="info">RTL</StatusChip></span>
         <Link href="/dashboard/staff/notifications"><Bell /><span><b>התראות</b><small>עדכונים והעדפות צפייה</small></span><ChevronLeft /></Link>
       </nav>

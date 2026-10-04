@@ -1,0 +1,303 @@
+{
+  "generatedAt": "2026-10-04T15:43:42.191Z",
+  "sourceReference": {
+    "path": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_SETTINGS_ACCOUNT_PERMISSIONS_FULL_PLATFORM.png",
+    "sha256": "58a4ae7af9050b0b45d8c2c4a094df15f581418612ae76142fb7e4fb436129a1"
+  },
+  "files": [
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/settings-home-desktop.webp",
+      "sha256": "2eabca4a0e13dabff82a7c1345c1afb18d275a10d8de1ae5fcf16042bb641ea8",
+      "viewport": "1440×1024",
+      "screen": "settings-home",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/settings-home-mobile.webp",
+      "sha256": "d1de8b4ca945c263e749bc7b8531b80d6e2cf1e5f2b6420b2d2b57d2994e54a1",
+      "viewport": "390×844",
+      "screen": "settings-home",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/personal-profile-desktop.webp",
+      "sha256": "1d3ddb4e348ad631d147d3bffb10553900d7a7976d5b0bf0d9842851be03412c",
+      "viewport": "1440×1024",
+      "screen": "personal-profile",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/personal-profile-mobile.webp",
+      "sha256": "a1571ef7031299cf49a9f5562a771f7a3bf15ec313f1081358f9fda5b3219595",
+      "viewport": "390×844",
+      "screen": "personal-profile",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/security-desktop.webp",
+      "sha256": "77936b70bd6e88c651e2a193c25e5648098135ed16ebe63ab0e42da59230e185",
+      "viewport": "1440×1024",
+      "screen": "security",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/security-mobile.webp",
+      "sha256": "4d50de07095efd8b9e832010a3d79d6964908849c5aea21885cccc8058c47074",
+      "viewport": "390×844",
+      "screen": "security",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/email-phone-verification-desktop.webp",
+      "sha256": "75f35567261a7b1e9da6b1f9559ed990465f5f7c328c52ca44b3295a83e3dd31",
+      "viewport": "1440×1024",
+      "screen": "email-phone-verification",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/email-phone-verification-mobile.webp",
+      "sha256": "3be64e29e482c29835cce32c21a0a5c037669a2acb6e317e273754a1a8930280",
+      "viewport": "390×844",
+      "screen": "email-phone-verification",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/notification-preferences-desktop.webp",
+      "sha256": "d564453d34e36cf459fd6d4d2bee3f57ce738fff47ee780656414910898e387d",
+      "viewport": "1440×1024",
+      "screen": "notification-preferences",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/notification-preferences-mobile.webp",
+      "sha256": "afdb1d160556b7e004b94bde4c35d756a2bf39f72bd36212cf3872c425d4b434",
+      "viewport": "390×844",
+      "screen": "notification-preferences",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/quiet-hours-desktop.webp",
+      "sha256": "e281ec396b6fbf1a61ee196c1c3e8a86f02c05794eca2da0f1705f05b575aab5",
+      "viewport": "1440×1024",
+      "screen": "quiet-hours",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/quiet-hours-mobile.webp",
+      "sha256": "ab296e3c27380359054c36baa46abdf43fd9e87decc3ef7f400b2a306773e374",
+      "viewport": "390×844",
+      "screen": "quiet-hours",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/garden-settings-desktop.webp",
+      "sha256": "1a15f1562b74defd2ceabec867fc30e4fe056dd86ca854050ed1af9c1b7c9c64",
+      "viewport": "1440×1024",
+      "screen": "garden-settings",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/garden-settings-mobile.webp",
+      "sha256": "3d4bd836e81c6b4df25771456f845bd1a69d65a83c415160421bee0d6b140ca0",
+      "viewport": "390×844",
+      "screen": "garden-settings",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/multi-garden-desktop.webp",
+      "sha256": "b3faf4f316f0d1368a699b0531a43e0d29a353c7d99c7e324cfae4b334074219",
+      "viewport": "1440×1024",
+      "screen": "multi-garden",
+      "role": "owner-ab"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/multi-garden-mobile.webp",
+      "sha256": "e1dba055770f9fa8aa03fc449472555ece2f4647f21625972e71c519a9b4495f",
+      "viewport": "390×844",
+      "screen": "multi-garden",
+      "role": "owner-ab"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/permissions-desktop.webp",
+      "sha256": "eeda985dd2f1fc1e45c6180e6e1eba634debff3f7930e79c3a1c1ca8ff7b9deb",
+      "viewport": "1440×1024",
+      "screen": "permissions",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/permissions-mobile.webp",
+      "sha256": "94fa66d55ee2646f3e0fa1f3f69d6ee1b29bad50a3d72f6cec946117efed98a0",
+      "viewport": "390×844",
+      "screen": "permissions",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/staff-permissions-desktop.webp",
+      "sha256": "eeda985dd2f1fc1e45c6180e6e1eba634debff3f7930e79c3a1c1ca8ff7b9deb",
+      "viewport": "1440×1024",
+      "screen": "staff-permissions",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/staff-permissions-mobile.webp",
+      "sha256": "94fa66d55ee2646f3e0fa1f3f69d6ee1b29bad50a3d72f6cec946117efed98a0",
+      "viewport": "390×844",
+      "screen": "staff-permissions",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/camera-permissions-desktop.webp",
+      "sha256": "a0e489ec9c3feb48b7b85248132fd8708dfeb6b8e7686b1d9debe5c1119812d1",
+      "viewport": "1440×1024",
+      "screen": "camera-permissions",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/camera-permissions-mobile.webp",
+      "sha256": "a124b2a6141baf169f7599a1b1fc304e3a355d985aedcd9e23cee821150ace34",
+      "viewport": "390×844",
+      "screen": "camera-permissions",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/subscription-desktop.webp",
+      "sha256": "38d680d6fd5ff6e5acce8857c99989405546c7d2f729d1ac93e8bd4223dfe29c",
+      "viewport": "1440×1024",
+      "screen": "subscription",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/subscription-mobile.webp",
+      "sha256": "6fb5f6b34aa9249fdff0713263f318970ca9ff6b6b5230a930934b31d9a10de0",
+      "viewport": "390×844",
+      "screen": "subscription",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/billing-readiness-desktop.webp",
+      "sha256": "9b3c419e931c7bef02126af393515a6123c779708a87adcea5c77e7d08716693",
+      "viewport": "1440×1024",
+      "screen": "billing-readiness",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/billing-readiness-mobile.webp",
+      "sha256": "9f3e14b2644c1d42fc0712bae0a2116a5adf96c6c671334a96406c5670cc3f07",
+      "viewport": "390×844",
+      "screen": "billing-readiness",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/integrations-desktop.webp",
+      "sha256": "15305757ac6f7da26e7d3e18521a3673e798e5d54f69f5ffcd00f16252370938",
+      "viewport": "1440×1024",
+      "screen": "integrations",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/integrations-mobile.webp",
+      "sha256": "e3b84897062a6c34594accbb7d0b1447c662f95a3fe7bd3f1f62c4dbedf4fb6f",
+      "viewport": "390×844",
+      "screen": "integrations",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/provider-unavailable-desktop.webp",
+      "sha256": "9b3c419e931c7bef02126af393515a6123c779708a87adcea5c77e7d08716693",
+      "viewport": "1440×1024",
+      "screen": "provider-unavailable",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/provider-unavailable-mobile.webp",
+      "sha256": "9f3e14b2644c1d42fc0712bae0a2116a5adf96c6c671334a96406c5670cc3f07",
+      "viewport": "390×844",
+      "screen": "provider-unavailable",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/language-timezone-desktop.webp",
+      "sha256": "9befc6ea451f9f8957062c26655a1faa0e4894afdc716a123d37eed7b88b0f27",
+      "viewport": "1440×1024",
+      "screen": "language-timezone",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/language-timezone-mobile.webp",
+      "sha256": "afdb1d160556b7e004b94bde4c35d756a2bf39f72bd36212cf3872c425d4b434",
+      "viewport": "390×844",
+      "screen": "language-timezone",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/privacy-desktop.webp",
+      "sha256": "15305757ac6f7da26e7d3e18521a3673e798e5d54f69f5ffcd00f16252370938",
+      "viewport": "1440×1024",
+      "screen": "privacy",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/privacy-mobile.webp",
+      "sha256": "d125ee4b7f7696f082ec9a7c69321b9e424f8f8e64294314513ec8cab3b3bed5",
+      "viewport": "390×844",
+      "screen": "privacy",
+      "role": "owner-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/parent-role-limited-desktop.webp",
+      "sha256": "8670861df15697c30908fbb239c45b5ca90505ecadba4b7f45a192663ca417e4",
+      "viewport": "1440×1024",
+      "screen": "parent-role-limited",
+      "role": "parent-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/parent-role-limited-mobile.webp",
+      "sha256": "a4aec202680c5552019ea796a9f2dd76971e9700311df6776ad1021934eba8a0",
+      "viewport": "390×844",
+      "screen": "parent-role-limited",
+      "role": "parent-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/staff-role-limited-desktop.webp",
+      "sha256": "f49cd35e535e86122ffe9d81f3ea135530c807de021dacabe44bb59bfc9210f9",
+      "viewport": "1440×1024",
+      "screen": "staff-role-limited",
+      "role": "staff-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/staff-role-limited-mobile.webp",
+      "sha256": "0ac015cc94d07a6e9daf436e93d92d370b895043fac85221a313670a376da088",
+      "viewport": "390×844",
+      "screen": "staff-role-limited",
+      "role": "staff-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/inspector-role-limited-desktop.webp",
+      "sha256": "dba57c6a9431f24c53020aa11e414211cbc52e4c6f6b6d76654fa3243bb17b51",
+      "viewport": "1440×1024",
+      "screen": "inspector-role-limited",
+      "role": "inspector-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/inspector-role-limited-mobile.webp",
+      "sha256": "2cca7d29823805f30739ab2310363576db8cc6809ba4c125943a792ad129f45e",
+      "viewport": "390×844",
+      "screen": "inspector-role-limited",
+      "role": "inspector-a"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/admin-role-limited-desktop.webp",
+      "sha256": "bf41123535599d0463ca24ce7f556a246ddf18bdd3a1235a9a10bfcd3a68d18c",
+      "viewport": "1440×1024",
+      "screen": "admin-role-limited",
+      "role": "admin"
+    },
+    {
+      "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-18/qa-evidence/ux-implement-18/screenshots/admin-role-limited-mobile.webp",
+      "sha256": "e8ac57befa0f46ecca48ab4f49f53e2e0d129d602f966fd68ed9922d0c862e5f",
+      "viewport": "390×844",
+      "screen": "admin-role-limited",
+      "role": "admin"
+    }
+  ]
+}
