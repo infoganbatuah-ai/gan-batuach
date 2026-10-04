@@ -729,3 +729,19 @@ validation passed. Live remains fail-closed without Production verification;
 mock, shadow and sandbox sources are never promoted to Production truth. No
 migration, paid provider, Production, `main`, customer data or Digital Observer
 core change occurred. UX-IMPLEMENT-17 has not started.
+
+UX-IMPLEMENT-17 Development integration closure (2026-10-04): product PR #168
+passed all eight exact-head checks at
+`058bf79319731e78c828d4ddd83bf7b2b743cf4c` and merged by ancestry into
+`integration/development` as `bf42c18c434798a43b840144b78fea9d1f0bfe1b`.
+Nineteen canonical Platform Admin concepts produced 38 Desktop/Mobile captures;
+all are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN
+results. The canonical 12-area Admin IA, server-side Admin authorization,
+tenant-safe aggregate views, privacy boundaries and truthful provider/service
+states are preserved. Post-merge UX-17 focused 9/9, subscriptions 5/5,
+Inspector approval 4/4, reporting 7/7, legacy consolidation 8/8, payment
+provider 5/5, Parent/Manager 23/23, typecheck, zero-regression lint, the
+541-page Production build, Domain 30/30, Security 11/11, migration health and
+Development drift 244/244, integration-ledger and release-contract validation
+passed. No migration, paid provider, Production, `main`, customer data or
+Digital Observer core change occurred. UX-IMPLEMENT-18 has not started.
