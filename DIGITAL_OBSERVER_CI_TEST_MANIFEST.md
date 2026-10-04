@@ -82,6 +82,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `gateway-playback-sweep-release`: `node scripts/qa/check-push38-gateway-playback-sweep-serialization-release.mjs`
 - `gateway-finite-response-continuity-release`: `node scripts/qa/check-push38-gateway-finite-response-continuity-release.mjs`
 - `connector-handoff-continuity-release`: `node scripts/qa/check-push38-connector-handoff-continuity-release.mjs`
+- `connector-device-identity-continuity-release`: `node scripts/qa/check-push38-connector-device-identity-continuity-release.mjs`
 - `gateway-supervisor-recovery`: `node scripts/qa/check-push38-gateway-supervisor-recovery.mjs`
 - `gateway-stable-handoff`: `node scripts/qa/check-push38-gateway-stable-handoff.mjs`
 - `gateway-media-cadence`: `node scripts/qa/check-push38-gateway-media-cadence.mjs`
@@ -244,6 +245,7 @@ Inventory count: **368** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-connector-generic-rtsp.mjs` | node scripts/qa/check-push38-connector-generic-rtsp.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-guard-retry.mjs` | node scripts/qa/check-push38-connector-guard-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-handoff-continuity-release.mjs` | npm run qa:push38-connector-handoff-continuity-release | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-connector-device-identity-continuity-release.mjs` | npm run qa:push38-connector-device-identity-continuity-release | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-connector-health-observation.mjs` | node scripts/qa/check-push38-connector-health-observation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-host-continuity.mjs` | node scripts/qa/check-push38-connector-host-continuity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-known-good-restart.mjs` | node scripts/qa/check-push38-connector-known-good-restart.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
