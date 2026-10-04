@@ -15,6 +15,11 @@ process.env.PUSH38T_PLAYBACK_EDGE_ORIGINS_JSON = JSON.stringify({
   "62df97e2-3c0b-427f-9108-bde029bc10e7": "https://gateway-media-homeqa.ganbatuach.com:18443",
   "db267b52-6282-4944-bcee-5d4857698fb0": "https://connector-media-homeqa.ganbatuach.com:18443"
 });
-if (!process.argv.includes("--serve-build")) process.argv.push("--serve-build");
+// The frozen exact build remains the default. During qualification closure a
+// route-only candidate correction may need to run from the current preserved
+// source before a new exact build is produced; keep that mode explicit and
+// development-labelled instead of silently serving a stale build.
+if (!process.argv.includes("--source-candidate") && !process.argv.includes("--serve-build"))
+  process.argv.push("--serve-build");
 if (!process.argv.includes("--enable-legacy-delivery")) process.argv.push("--enable-legacy-delivery");
 await import("./start-push38t-qualification.mjs");
