@@ -31,6 +31,8 @@ const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
 const planSha256 = option("plan-sha256");
 const shadowPath = option("shadow-evidence") ? resolve(option("shadow-evidence")) : "";
+const interferencePath = option("interference-evidence") ? resolve(option("interference-evidence")) : "";
+const priorApplyPath = option("prior-apply-evidence") ? resolve(option("prior-apply-evidence")) : "";
 if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
   throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_RETRY_MODE_OR_OUTPUT_INVALID");
 
@@ -145,8 +147,39 @@ const manifest = JSON.parse(readFileSync(join(root, "slots", retryItem.version, 
 const verified = verifyEdgeUpdateManifest(manifest, trusted);
 const current = manager.current(), knownGood = manager.knownGood(), state = manager.status();
 const quarantined = manager.quarantine().find(item => item.release_id === retryItem.releaseId);
-const priorRetry = manager.readJson(manager.quarantineRetryPath, [])
-  .find(item => item.release_id === retryItem.releaseId);
+const priorRetries = manager.readJson(manager.quarantineRetryPath, [])
+  .filter(item => item.release_id === retryItem.releaseId);
+const repeatRetry = priorRetries.length === 1;
+if (priorRetries.length > 1)
+  throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_RETRY_ALREADY_REPEATED");
+let interferenceBytes = null, interference = null, priorApplyBytes = null, priorApply = null;
+if (repeatRetry) {
+  interferenceBytes = protectedFile(interferencePath);
+  priorApplyBytes = protectedFile(priorApplyPath);
+  interference = JSON.parse(interferenceBytes);
+  priorApply = JSON.parse(priorApplyBytes);
+  const requiredFixes = [
+    "c72a46560539fee025624985deb523cd32f0d3d8",
+    "a360ac261ebf50306216292f015f1ee7c859d999"
+  ];
+  if (interference.protocol !== "observer-push38-gateway-activation-preflight-interference-v1" ||
+    interference.classification !== "QUALIFICATION_INTERFERENCE_REMOVED" ||
+    interference.release_id !== retryItem.releaseId ||
+    interference.first_retry_apply_sha256 !== sha(priorApplyBytes) ||
+    interference.runtime_write_by_reconciliation !== false || interference.new_cost !== false ||
+    JSON.stringify(interference.activation_gate_fix_commits) !== JSON.stringify(requiredFixes) ||
+    priorApply.protocol !== "observer-push38-gateway-playback-sweep-shadow-pressure-retry-v1" ||
+    priorApply.mode !== "APPLY" || priorApply.release_id !== retryItem.releaseId ||
+    priorApply.authorization?.authorization_attempt !== 1 ||
+    requiredFixes.some(commit => {
+      try {
+        execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"],
+          { stdio: "ignore", timeout: 10_000 });
+        return false;
+      } catch { return true; }
+    }))
+    throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_REPEAT_INTERFERENCE_EVIDENCE_INVALID");
+}
 const crashIndex = state.history?.findLastIndex(item => item.state === "ROLLBACK_REQUIRED" &&
   item.category === FAILURE) ?? -1;
 const healthyIndex = crashIndex < 0 ? -1 : state.history.slice(0, crashIndex)
@@ -165,9 +198,13 @@ if (!verified.ok || manifest.release_id !== retryItem.releaseId ||
   !knownGood.some(item => item.release_id === current.release_id &&
     item.artifact_sha256 === current.artifact_sha256) || state.state !== "ROLLED_BACK" ||
   state.release_id !== retryItem.releaseId || state.failure_category !== FAILURE ||
-  quarantined?.reason !== FAILURE || priorRetry || !Number.isFinite(healthyDurationMs) ||
-  healthyDurationMs < 6 * 60 * 60_000 || !Number.isFinite(rollbackAt) ||
-  rollbackAt <= shadowStartedAt || rollbackAt >= shadowEndedAt || liveBeforeRollback.length < 20)
+  quarantined?.reason !== FAILURE || !Number.isFinite(healthyDurationMs) ||
+  healthyDurationMs < (repeatRetry ? 3 * 60_000 : 6 * 60 * 60_000) ||
+  !Number.isFinite(rollbackAt) || (!repeatRetry &&
+    (rollbackAt <= shadowStartedAt || rollbackAt >= shadowEndedAt || liveBeforeRollback.length < 20)) ||
+  (repeatRetry && (Date.parse(quarantined.at || "") <=
+    Date.parse(priorRetries[0].authorized_at || "") ||
+    interference.second_rollback_at !== quarantined.at)))
   throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_RETRY_STATE_INVALID");
 manager.verifySlot(current);
 manager.verifySlot({ version: retryItem.version, slot: join(root, "slots", retryItem.version),
@@ -213,16 +250,23 @@ if (new Set(gatewaySamples.map(item => item.pid)).size !== 1 ||
     gatewaySamples, connectorSamples
   })}`);
 
-const plan = { protocol: "observer-push38-gateway-playback-sweep-shadow-pressure-retry-v1",
+const plan = { protocol: repeatRetry ?
+  "observer-push38-gateway-playback-sweep-interference-removed-repeat-v1" :
+  "observer-push38-gateway-playback-sweep-shadow-pressure-retry-v1",
   generated_at: new Date().toISOString(), mode: "PREFLIGHT", release_id: retryItem.releaseId,
   version: retryItem.version, build_sha: retryItem.buildSha, artifact_sha256: retryItem.digest,
   exact_device_id: retryItem.deviceId, previous_failure: FAILURE,
   current_release_id: retryItem.rollbackReleaseId,
-  prior_healthy_duration_ms: healthyDurationMs,
-  qualification_interference: "READ_ONLY_SIGNED_SUCCESSOR_SHADOW_WITH_STRICT_AGENT_HEALTH_TIMEOUTS",
+  authorization_attempt: repeatRetry ? 2 : 1, prior_healthy_duration_ms: healthyDurationMs,
+  qualification_interference: repeatRetry ?
+    "ACTIVATION_PREFLIGHT_GATE_DEFECTS_FIXED_AND_VALIDATED" :
+    "READ_ONLY_SIGNED_SUCCESSOR_SHADOW_WITH_STRICT_AGENT_HEALTH_TIMEOUTS",
+  ...(repeatRetry ? { interference_evidence_sha256: sha(interferenceBytes),
+    prior_apply_evidence_sha256: sha(priorApplyBytes) } : {}),
   shadow_evidence_sha256: sha(shadowBytes), shadow_window: {
     started_at: shadow.started_at, rollback_at: state.history[crashIndex].at, ended_at: shadow.ended_at },
-  pre_rollback_live_health_200_samples: liveBeforeRollback.length,
+  pre_rollback_live_health_200_samples: repeatRetry ?
+    interference.first_retry_live_health_200_samples : liveBeforeRollback.length,
   successor_release_id: successorItem.releaseId, signed_retry_manifest: "PASS",
   live_trust: "PASS", exact_targeting: true, broad_cohort: false,
   gateway_samples: gatewaySamples, connector_samples: connectorSamples,
@@ -247,7 +291,9 @@ const saved = JSON.parse(planBytes);
 const planAge = Date.now() - Date.parse(saved.generated_at || "");
 if (saved.protocol !== plan.protocol || saved.release_id !== retryItem.releaseId ||
   saved.current_release_id !== retryItem.rollbackReleaseId ||
-  saved.shadow_evidence_sha256 !== plan.shadow_evidence_sha256 || !saved.exact_targeting ||
+  saved.shadow_evidence_sha256 !== plan.shadow_evidence_sha256 ||
+  saved.interference_evidence_sha256 !== plan.interference_evidence_sha256 ||
+  saved.prior_apply_evidence_sha256 !== plan.prior_apply_evidence_sha256 || !saved.exact_targeting ||
   saved.broad_cohort !== false || !Number.isFinite(planAge) || planAge < -300_000 ||
   planAge > 10 * 60_000)
   throw new Error("P38_GATEWAY_PLAYBACK_SWEEP_RETRY_PLAN_INVALID");
@@ -255,7 +301,11 @@ if (saved.protocol !== plan.protocol || saved.release_id !== retryItem.releaseId
 let authorized = false;
 try {
   const authorization = manager.authorizeQuarantinedReleaseRetry({ manifest,
-    expectedFailureCategory: FAILURE, remediationEvidenceSha256: planSha256 });
+    expectedFailureCategory: FAILURE, remediationEvidenceSha256: planSha256,
+    ...(repeatRetry ? { repeatAuthorization: {
+      category: "QUALIFICATION_INTERFERENCE_REMOVED",
+      interference_evidence_sha256: sha(interferenceBytes)
+    } } : {}) });
   authorized = true;
   const sql = `begin;
     update public.observer_edge_rollouts set status='PAUSED',updated_at=now()

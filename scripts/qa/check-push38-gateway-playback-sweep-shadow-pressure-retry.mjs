@@ -31,6 +31,20 @@ test("retry preserves the physical Home truth and signed Connector prerequisite"
     assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
+test("one repeat is evidence-bound to removed qualification interference", () => {
+  for (const token of ["QUALIFICATION_INTERFERENCE_REMOVED", "interference-evidence",
+    "prior-apply-evidence", "authorization_attempt: repeatRetry ? 2 : 1",
+    "P38_GATEWAY_PLAYBACK_SWEEP_RETRY_ALREADY_REPEATED"])
+    assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("Gateway-only activation accepts only bounded Connector discovery disagreement", () => {
+  for (const token of ["connectorHealthyDuringDiscoveryProbeFailure",
+    "sample.connected === 0", "sample.failed === 1", "sample.progressing === 1",
+    "sample.stalled === 0", "DISCOVERY_PROBE_FAILED"])
+    assert.match(activation, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
 test("finite-response activation consumes its own failed-V8 proof", () => {
   assert.match(activation,
     /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| explicitProactiveExclusive\)/);

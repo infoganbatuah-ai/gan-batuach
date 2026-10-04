@@ -1248,6 +1248,14 @@ const connectorPidStable = connectorSamples.every(sample => sample.running && sa
 const connectorPrerequisiteHealthy = connectorSamples.every(sample => sample.ok &&
   sample.status === "healthy" && sample.assigned === 1 && sample.connected === 1 &&
   sample.failed === 0 && sample.empty === 0 && sample.progressing === 1 && sample.stalled === 0);
+// A bounded discovery probe may fail while the already-open Tapo relay remains
+// current. For Gateway-only activation accept only that exact truthful state:
+// signed Connector known-good, one progressing relay, no stall, and no other
+// reason code. This does not turn arbitrary Connector degradation into PASS.
+const connectorHealthyDuringDiscoveryProbeFailure = connectorSamples.every(sample => sample.ok &&
+  sample.status === "healthy" && sample.assigned === 1 && sample.connected === 0 &&
+  sample.failed === 1 && sample.empty === 0 && sample.progressing === 1 && sample.stalled === 0 &&
+  JSON.stringify(sample.reason_codes) === JSON.stringify(["DISCOVERY_PROBE_FAILED"]));
 // Tapo is a separately tracked physical source.  A Gateway-only remediation
 // may proceed while the exact signed Connector known-good reports that source
 // truthfully degraded; it must not proceed for a silent/ambiguous degradation.
@@ -1260,7 +1268,8 @@ const connectorTruthfulTapoDegradation = (deadlineBudget || recoveryContinuity |
       JSON.stringify([...sample.reason_codes].sort()) ===
         JSON.stringify(["DISCOVERY_PROBE_FAILED", "EXPECTED_RELAY_NOT_PROGRESSING"])
   ));
-if (!connectorPidStable || (!connectorPrerequisiteHealthy && !connectorTruthfulTapoDegradation))
+if (!connectorPidStable || (!connectorPrerequisiteHealthy &&
+  !connectorHealthyDuringDiscoveryProbeFailure && !connectorTruthfulTapoDegradation))
   throw new Error(`P38_GATEWAY_COMMON_CAUSE_CONNECTOR_HEALTH_INVALID:${JSON.stringify({
     connectorPidStable, connectorSamples
   })}`);
@@ -1310,7 +1319,9 @@ const plan = { protocol: finiteResponseContinuity ? "observer-push38-gateway-fin
   runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
   connector_release_id: connectorCurrent.release_id,
   connector_runtime_truth: connectorPrerequisiteHealthy ? "HEALTHY_1_OF_1_PROGRESSING" :
-    "SIGNED_KNOWN_GOOD_TRUTHFULLY_DEGRADED_TAPO_0_OF_1",
+    connectorHealthyDuringDiscoveryProbeFailure ?
+      "HEALTHY_1_OF_1_PROGRESSING_DISCOVERY_PROBE_FAILED" :
+      "SIGNED_KNOWN_GOOD_TRUTHFULLY_DEGRADED_TAPO_0_OF_1",
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
