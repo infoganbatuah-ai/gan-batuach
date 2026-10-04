@@ -745,3 +745,22 @@ provider 5/5, Parent/Manager 23/23, typecheck, zero-regression lint, the
 Development drift 244/244, integration-ledger and release-contract validation
 passed. No migration, paid provider, Production, `main`, customer data or
 Digital Observer core change occurred. UX-IMPLEMENT-18 has not started.
+
+UX-IMPLEMENT-18 Development integration closure (2026-10-05): product PR #170
+passed all nine exact-head required and external checks at
+`4983d97e31cf72ac4925bf33cba378a724b217e8` and merged by ancestry into
+`integration/development` as `58768a715193d9d63e4057c2397d5d2962278ed3`.
+Twenty-one canonical Settings, Account and Permissions concepts produced 42
+Desktop/Mobile captures; all are OWNER_REVIEW_READY with zero NEEDS_POLISH,
+VISUAL_DRIFT or BROKEN results. The canonical launcher reported
+`DEVELOPMENT / INTEGRATION`, `LOCAL_SUPABASE`, `production:false` and
+`http://127.0.0.1:3000`; local app and Supabase health passed. Post-merge UX-18
+focused 9/9, authenticated Owner/Parent/Staff/Inspector/Admin full-stack role
+and mutation isolation, UX-11 8/8, UX-16 10/10, UX-17 9/9, Parent/Manager
+23/23, typecheck, zero-regression lint, the 541-page Production build, Domain
+30/30, Security 11/11, migration health and Development drift 244/244, and
+release-contract validation passed. Verified Email remains sufficient for
+normal activation; phone verification remains optional; canonical RBAC,
+notification, camera-policy, subscription and provider-readiness models are
+reused. No migration, paid provider, Production, `main`, customer data or
+Digital Observer core change occurred. UX-IMPLEMENT-19 has not started.
