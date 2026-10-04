@@ -34,7 +34,8 @@ test("retry preserves the physical Home truth and signed Connector prerequisite"
 test("one repeat is evidence-bound to removed qualification interference", () => {
   for (const token of ["QUALIFICATION_INTERFERENCE_REMOVED", "interference-evidence",
     "prior-apply-evidence", "authorization_attempt: repeatRetry ? 2 : 1",
-    "P38_GATEWAY_PLAYBACK_SWEEP_RETRY_ALREADY_REPEATED"])
+    "P38_GATEWAY_PLAYBACK_SWEEP_RETRY_ALREADY_REPEATED",
+    "expectedRetryStatus = repeatRetry ? \"ACTIVE\" : \"PAUSED\""])
     assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 

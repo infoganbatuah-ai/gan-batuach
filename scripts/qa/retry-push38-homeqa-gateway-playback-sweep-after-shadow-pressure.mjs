@@ -228,7 +228,13 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'successor_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${successorItem.releaseId}'),
   'broad_active',(select count(*) from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0));`));
 const exactTargets = { explicit_device_ids: [retryItem.deviceId] };
-if (rollout.retry_status !== "PAUSED" || rollout.retry_cohort !== 0 ||
+// After the first authorized attempt the exact-device rollout remains ACTIVE,
+// while the local quarantine prevents a failed release from reinstalling. A
+// second evidence-bound authorization therefore expects that exact persisted
+// state; the apply transaction still pauses every Gateway rollout before it
+// reactivates only this exact device.
+const expectedRetryStatus = repeatRetry ? "ACTIVE" : "PAUSED";
+if (rollout.retry_status !== expectedRetryStatus || rollout.retry_cohort !== 0 ||
   JSON.stringify(rollout.retry_targets) !== JSON.stringify(exactTargets) ||
   !["DRAFT", "PAUSED"].includes(rollout.successor_status) || rollout.successor_cohort !== 0 ||
   JSON.stringify(rollout.successor_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0)
