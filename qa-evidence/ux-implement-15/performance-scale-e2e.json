@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-04T02:00:55.105Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "syntheticRows": 500,
+  "productionAccess": false,
+  "pageLimit": 200,
+  "total": 500,
+  "firstPageLatencyMs": 473,
+  "thirdPageLatencyMs": 473
+}

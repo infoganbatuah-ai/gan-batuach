@@ -15,7 +15,7 @@ import {
   InspectorStatus
 } from "@/components/inspector-app-ui";
 
-type GardenRow = { id: string };
+type GardenRow = { id: string; name?: string | null };
 type InspectorProfileRow = { profile_photo_url?: string | null };
 type ReportRow = {
   id: string;
@@ -56,9 +56,10 @@ export default async function InspectorReportsPage() {
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
     supabase.from("inspectors" as never).select("profile_photo_url" as never).eq("id", profile.id).maybeSingle(),
-    supabase.from("gardens" as never).select("id" as never).eq("inspector_id", profile.id)
+    supabase.from("gardens" as never).select("id,name" as never).eq("inspector_id", profile.id)
   ]);
-  const ids = ((gardensRes.data ?? []) as unknown as GardenRow[]).map((garden) => garden.id);
+  const gardens = (gardensRes.data ?? []) as unknown as GardenRow[];
+  const ids = gardens.map((garden) => garden.id);
   const [complaints, incidents] = ids.length ? await Promise.all([
     supabase.from("complaints" as never).select("id, subject, severity, status, created_at, acknowledgement_due_at, response_due_at, resolution_due_at, sla_policy_id, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false }),
     supabase.from("incident_reports" as never).select("id, title, severity, status, created_at, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false })
@@ -94,7 +95,7 @@ export default async function InspectorReportsPage() {
           {rows.length === 0 ? <InspectorEmpty title="אין דיווחים פתוחים" text="כאשר הורה, גן או תצפיתן ייצרו אירוע בגנים שלך, הוא יופיע כאן." icon={FileText} /> : null}
         </InspectorList>
       </InspectorSection>
-      <ReportsCenter role="inspector" />
+      <ReportsCenter role="inspector" gardens={gardens.map((garden) => ({ id: garden.id, label: garden.name ?? "גן" }))} />
     </InspectorAppFrame>
   );
 }

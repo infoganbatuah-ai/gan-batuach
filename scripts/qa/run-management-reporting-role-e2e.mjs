@@ -1,15 +1,19 @@
 // Authenticated GB-M36 report API matrix. Synthetic loopback QA only.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createServerClient } from "@supabase/ssr";
+import { config } from "../development/local-database.mjs";
+import { localCredentials } from "../development/local-client.mjs";
 
 const base = process.env.GB_M36_BASE_URL ?? "http://127.0.0.1:3016";
-const stack = process.env.GB_M36_STACK ?? "/private/tmp/gb-m35-auth-qa/stack";
-const identitiesPath = process.env.GB_M36_IDENTITIES ?? "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/qa-identities.private.json";
+const identitiesPath = process.env.GB_M36_IDENTITIES ?? resolve(config.runtimeRoot, "qa-identities.private.json");
 assert.match(base, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
-const keys = JSON.parse(execFileSync("supabase", ["status", "--workdir", stack, "--output", "json"], { encoding: "utf8" }));
-assert.equal(keys.API_URL, "http://127.0.0.1:56421");
+assert.equal(config.environment, "DEVELOPMENT / INTEGRATION");
+assert.equal(config.productionAllowed, false);
+const local = localCredentials();
+const keys = { API_URL: local.url, ANON_KEY: local.anon, SERVICE_ROLE_KEY: local.service };
+assert.equal(keys.API_URL, config.apiUrl);
 assert.ok(keys.ANON_KEY);
 const saved = JSON.parse(readFileSync(identitiesPath, "utf8"));
 assert.equal(saved.environment, "DEVELOPMENT / INTEGRATION");
