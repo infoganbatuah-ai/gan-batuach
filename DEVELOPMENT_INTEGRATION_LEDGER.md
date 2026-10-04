@@ -711,3 +711,21 @@ validation. Merged-head evidence is remotely preserved at
 `29cdc71c5fea1f775a12032486f801974710f341`. No migration, paid provider,
 Production, `main`, customer data or Digital Observer core change occurred.
 UX-IMPLEMENT-16 has not started.
+
+UX-IMPLEMENT-16 Development integration closure (2026-10-04): product PR #166
+passed all nine exact-head required and external checks at
+`e80e2928fe3e85231005fa423cbe9b0cd896aa2d` and merged by ancestry into
+`integration/development` as `f8400cd3d78f813ad8b79cb6c8b6ca80a100cbd8`.
+Twenty-four canonical Safety and Cameras concepts produced 48 Desktop/Mobile
+captures; all are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or
+BROKEN results. The canonical launcher reported `DEVELOPMENT / INTEGRATION`,
+`LOCAL_SUPABASE` and `http://127.0.0.1:3000`; local health returned app and
+Supabase OK. Post-merge UX-16 focused 10/10, Manager/Parent 23/23, camera
+connections 15/15, onboarding 7/7, authenticated role/isolation 9/9 identities
+and assertions, Watch Rules, Investigation, observer separation, typecheck,
+zero-regression lint, the 541-page Production build, Domain 30/30, Security
+11/11, migration health and Development drift 244/244, and release-contract
+validation passed. Live remains fail-closed without Production verification;
+mock, shadow and sandbox sources are never promoted to Production truth. No
+migration, paid provider, Production, `main`, customer data or Digital Observer
+core change occurred. UX-IMPLEMENT-17 has not started.
