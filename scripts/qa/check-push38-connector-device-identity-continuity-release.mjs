@@ -35,6 +35,10 @@ for (const path of ["./register-push38-homeqa-connector-rtsp-session.mjs",
   "./activate-push38-homeqa-connector-rtsp-session.mjs",
   "../release/publish-push38-connector-pidfix-r2.mjs"])
   assert.match(readFileSync(new URL(path, import.meta.url), "utf8"), /deviceIdentityContinuity/);
+const installer = readFileSync(new URL("./install-push38-homeqa-ota-agent.mjs", import.meta.url), "utf8");
+for (const required of ["--connector-device-identity-continuity-upgrade", item.releaseId,
+  "connector_remediation_device_identity_continuity.json", item.agentPredecessorReleaseId,
+  item.agentPredecessorDigest]) assert.match(installer, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 assert.match(readFileSync(new URL(
   "../../services/video-gateway/home-qa-transition-phase.mjs", import.meta.url), "utf8"),
 new RegExp(item.releaseId));

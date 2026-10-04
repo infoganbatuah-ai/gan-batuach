@@ -31,6 +31,7 @@ const connectorRelayBackoffUpgrade = process.argv.includes("--connector-relay-ba
 const connectorRestartGraceUpgrade = process.argv.includes("--connector-restart-grace-upgrade");
 const connectorRtspHandoffUpgrade = process.argv.includes("--connector-rtsp-handoff-upgrade");
 const connectorHealthObservationUpgrade = process.argv.includes("--connector-health-observation-upgrade");
+const connectorDeviceIdentityContinuityUpgrade = process.argv.includes("--connector-device-identity-continuity-upgrade");
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
 const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-stability-upgrade");
 const gatewayCommonCauseRecoveryUpgrade = process.argv.includes("--gateway-common-cause-recovery-upgrade");
@@ -56,7 +57,7 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
-  connectorHealthObservationUpgrade]
+  connectorHealthObservationUpgrade, connectorDeviceIdentityContinuityUpgrade]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
@@ -70,7 +71,8 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
-  connectorRtspHandoffUpgrade || connectorHealthObservationUpgrade;
+  connectorRtspHandoffUpgrade || connectorHealthObservationUpgrade ||
+  connectorDeviceIdentityContinuityUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
@@ -93,7 +95,8 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: connectorHealthObservationUpgrade ? "qa-p38-health-connector-observed-health-3a211a8ef1c2" :
+  remediationRelease: connectorDeviceIdentityContinuityUpgrade ? "qa-p38-health-connector-device-identity-continuity-c439a2c097bc" :
+    connectorHealthObservationUpgrade ? "qa-p38-health-connector-observed-health-3a211a8ef1c2" :
     connectorRtspHandoffUpgrade ? "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792" :
     connectorRestartGraceUpgrade ? "qa-p38-health-connector-restart-grace-34b1985a311c" :
     connectorRelayBackoffUpgrade ? "qa-p38-health-connector-relay-backoff-f551947fd1ee" :
@@ -109,7 +112,8 @@ const spec = connector ? {
     recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: connectorHealthObservationUpgrade ? "connector_remediation_health_observation.json" :
+  bundleName: connectorDeviceIdentityContinuityUpgrade ? "connector_remediation_device_identity_continuity.json" :
+    connectorHealthObservationUpgrade ? "connector_remediation_health_observation.json" :
     connectorRtspHandoffUpgrade ? "connector_remediation_rtsp_handoff_known_good.json" :
     connectorRestartGraceUpgrade ? "connector_remediation_restart_grace.json" :
     connectorRelayBackoffUpgrade ? "connector_remediation_relay_backoff.json" :
@@ -124,7 +128,10 @@ const spec = connector ? {
     startupRecoveryUpgrade ? "connector_remediation_startup.json" :
     recoveryUpgrade ? "connector_remediation_recovery.json" :
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: connectorHealthObservationUpgrade ? {
+  priorManagement: connectorDeviceIdentityContinuityUpgrade ? {
+    release_id: "qa-p38-health-connector-observed-health-3a211a8ef1c2",
+    artifact_sha256: "3a211a8ef1c275283194ea7a4ef93ba59e6f560b7b8cc01dca43a28d03e6f395" } :
+    connectorHealthObservationUpgrade ? {
     release_id: "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792",
     artifact_sha256: "448381dc3792dfed37a3e98ddf73b71f5dea1ef8d4119818071e5ed03ede348b" } :
     connectorRtspHandoffUpgrade ? {
@@ -279,6 +286,8 @@ if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
 const bundle = resolve(bundleOverride || (connectorHealthObservationUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-health-observation.zip"
+  : connectorDeviceIdentityContinuityUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-device-identity-44b238ed-20261004T161141Z/push38-homeqa-connector-device-identity-continuity-37216887743.zip"
   : connectorRtspHandoffUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-rtsp-handoff-known-good.zip"
   : connectorRestartGraceUpgrade
@@ -352,7 +361,8 @@ if (!verifyEdgeUpdateManifest(manifest, keys).ok || manifest.release_id !== spec
   throw new Error("P38_HOME_QA_AGENT_SIGNED_RELEASE_INVALID");
 function managedRuntimeSeed(store) {
   if (!connectorDeviceSessionUpgrade && !connectorLivenessContinuityUpgrade &&
-    !connectorRelayBackoffUpgrade && !connectorRestartGraceUpgrade && !connectorRtspHandoffUpgrade) return null;
+    !connectorRelayBackoffUpgrade && !connectorRestartGraceUpgrade && !connectorRtspHandoffUpgrade &&
+    !connectorDeviceIdentityContinuityUpgrade) return null;
   const sql = `select json_build_object(
     'gateway_id',e.gateway_id,
     'runtime_instance_id',e.active_runtime_instance_id,
@@ -386,7 +396,7 @@ function managedRuntimeSeed(store) {
 }
 const sessionStore = connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
-  connectorRtspHandoffUpgrade
+  connectorRtspHandoffUpgrade || connectorDeviceIdentityContinuityUpgrade
   ? createEdgeSecretStoreSync({ secretDir: secrets }) : null;
 const sessionSeed = sessionStore ? managedRuntimeSeed(sessionStore) : null;
 if (dryRun) {
