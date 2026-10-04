@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-04T02:46:16.000Z",
+  "updatedAt": "2026-10-04T04:43:00.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10094,6 +10094,59 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-15 is complete in Development. Stop before UX-IMPLEMENT-16; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-16-safety-cameras",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-16 Safety + Cameras Full Platform",
+      "owner": "UX-IMPLEMENT-16 owner",
+      "sourceBranch": "codex/ux-implement-16-safety-cameras",
+      "sourceCommits": [
+        "e80e2928fe3e85231005fa423cbe9b0cd896aa2d"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-16-safety-cameras@e80e2928fe3e85231005fa423cbe9b0cd896aa2d",
+          "origin/integration/development@f8400cd3d78f813ad8b79cb6c8b6ca80a100cbd8"
+        ],
+        "validatedSourceCommit": "e80e2928fe3e85231005fa423cbe9b0cd896aa2d",
+        "qualificationCommit": "e80e2928fe3e85231005fa423cbe9b0cd896aa2d",
+        "mergedHeadEvidenceCommit": "e80e2928fe3e85231005fa423cbe9b0cd896aa2d"
+      },
+      "validation": {
+        "status": "PASS_EXACT_HEAD_CI_AND_MERGED_DEVELOPMENT_VISUAL_FUNCTIONAL_ROLE_ISOLATION_BUILD_DOMAIN_SECURITY_MIGRATION_AND_RELEASE_CONTRACT",
+        "evidence": [
+          "GAN_BATUACH_UX16_SAFETY_CAMERAS_FULL_PLATFORM_IMPLEMENTATION.md",
+          "qa-evidence/ux-implement-16/visual-report.json",
+          "qa-evidence/ux-implement-16/visual-report.md",
+          "qa-evidence/ux-implement-16/role-boundary-probes.json",
+          "qa-evidence/ux-implement-16/SHA256SUMS.txt"
+        ],
+        "limits": "Product PR #166 passed all nine required and external checks at exact qualification head e80e2928fe3e85231005fa423cbe9b0cd896aa2d and merged by ancestry as f8400cd3d78f813ad8b79cb6c8b6ca80a100cbd8. Twenty-four canonical Safety and Cameras concepts produced 48 Desktop/Mobile captures, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Post-merge UX-16 focused 10/10, Manager/Parent 23/23, camera connections 15/15, onboarding 7/7, authenticated role/isolation 9/9 identities and assertions, Watch Rules, Investigation, observer separation, typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migration health and Development drift 244/244, release-contract validation and local DEVELOPMENT / INTEGRATION health passed. Live remains fail-closed without Production verification, mock/shadow/sandbox sources are not promoted, and no migration, paid provider, Production, main, customer data or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "f8400cd3d78f813ad8b79cb6c8b6ca80a100cbd8",
+        "pullRequest": 166,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_15_INTEGRATED",
+        "units": [
+          "codex/ux-implement-15-reports-analytics"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_MERGED_HEAD_F8400CD3_DEVELOPMENT_INTEGRATION_LOCAL_SUPABASE_HEALTH_OK_UX16_FOCUSED_10_OF_10_MANAGER_PARENT_23_OF_23_CAMERA_CONNECTIONS_15_OF_15_ONBOARDING_7_OF_7_ROLE_ISOLATION_9_OF_9_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_11_OF_11_MIGRATIONS_244_DEVELOPMENT_DRIFT_244_OF_244_RELEASE_CONTRACT_VISUAL_48_OWNER_REVIEW_READY",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-16 is complete in Development. Stop before UX-IMPLEMENT-17; Production and main remain unchanged pending a separate explicit owner release instruction."
     },
     {
       "id": "codex/push-38t-qualification-relay-probation-20261002",
