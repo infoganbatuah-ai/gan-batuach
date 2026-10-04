@@ -31,13 +31,17 @@ for (const [method, path, search] of [["GET", "/", ""], ["GET", "/admin", ""],
   assert.equal(playbackIngressAllows(method, path, search), false);
 
 const origin = createServer((request, response) => {
-  if (request.url === "/playback/claim") response.writeHead(200, { "content-type": "application/json" }).end('{"ok":true}');
+  if (request.url === "/playback/claim") response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+    ok: true, private_source_hidden: true,
+    playback: { hls_url: `http://127.0.0.1:${origin.address().port}/hls/stream/index.m3u8?token=${token}` }
+  }));
   else response.writeHead(200, { "content-type": "video/mp2t" }).end("segment");
 });
 origin.listen(0, "127.0.0.1");
 await once(origin, "listening");
 const upstream = `http://127.0.0.1:${origin.address().port}`;
 const ingress = createPlaybackIngress({ origin: upstream,
+  publicOrigin: "https://edge.example.test:18443",
   rateLimits: { claimPerMinute: 1, mediaPerMinute: 2, maxClients: 2 } });
 ingress.listen(0, "127.0.0.1");
 await once(ingress, "listening");
@@ -46,6 +50,8 @@ try {
   const claim = await fetch(`${base}/playback/claim`, { method: "POST", headers: { origin: "https://ganbatuach.com", "content-type": "application/json" }, body: '{"grant":"test"}' });
   assert.equal(claim.status, 200);
   assert.equal(claim.headers.get("cache-control"), "private, no-store");
+  assert.equal((await claim.json()).playback.hls_url,
+    `https://edge.example.test:18443/hls/stream/index.m3u8?token=${token}`);
   const repeatedClaim = await fetch(`${base}/playback/claim`, { method: "POST",
     headers: { origin: "https://ganbatuach.com", "content-type": "application/json" }, body: '{"grant":"test"}' });
   assert.equal(repeatedClaim.status, 429);

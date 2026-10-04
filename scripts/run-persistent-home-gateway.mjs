@@ -68,11 +68,12 @@ process.env.OBSERVER_EDGE_INSTALLATION_ID = installationId;
 process.env.OBSERVER_EDGE_DEVICE_TYPE = edgeDeviceType;
 const edgeRuntime = connectorRuntimeIdentity(process.env);
 const cloudSecret = keychainSecret("cloud_discovery_secret");
+const managedIdentityProfileRoot = edgeDeviceType === "SOFTWARE_CONNECTOR"
+  ? "observer-connector" : "observer-gateway";
 const homeQaIdentityDir = join(homedir(), "Library/Application Support/Digital Observer",
-  "observer-gateway/ota/home-qa-device-secrets");
+  `${managedIdentityProfileRoot}/ota/home-qa-device-secrets`);
 const configuredIdentityDir = process.env.OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR || "";
-const deviceIdentitySecretDir = edgeDeviceType === "PHYSICAL_GATEWAY" &&
-  (configuredIdentityDir || existsSync(homeQaIdentityDir))
+const deviceIdentitySecretDir = configuredIdentityDir || existsSync(homeQaIdentityDir)
   ? (configuredIdentityDir || homeQaIdentityDir) : "";
 let identityStore = null;
 if (deviceIdentitySecretDir) {
@@ -95,7 +96,7 @@ if (identityStore && (identityStore.read("device_credential_version") !== "1" ||
   !devicePrivateKey || identityStore.read("device_cloud_base_url") !== "https://127.0.0.1:3101" ||
   legacyDeviceGatewayId && legacyDeviceGatewayId !== gatewayId ||
   legacyDeviceObserverSiteId && legacyDeviceObserverSiteId !== observerSiteId))
-  throw new Error("Managed device identity store does not match the installed Gateway");
+  throw new Error("Managed device identity store does not match the installed Edge");
 const missingCloudConfiguration = [
   !gatewaySecret && "gateway_signing_secret",
   !gatewayId && "device_gateway_id",

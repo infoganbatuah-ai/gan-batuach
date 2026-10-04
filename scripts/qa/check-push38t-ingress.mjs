@@ -18,6 +18,10 @@ const allowed = [
   ["POST", "/api/video-gateway/device-heartbeat"],
   ["POST", "/api/video-gateway/cloud-learning"],
   ["POST", "/api/video-gateway/playback-grant"],
+  ["POST", "/api/video-gateway/camera-actions"],
+  ["GET", "/api/video-gateway/event-manifest"],
+  ["POST", "/api/video-gateway/cloud-events"],
+  ["POST", "/api/video-gateway/cloud-event-media"],
   ["POST", "/api/digital-observer/dvr-gateway"],
   ["GET", "/push38/remote-playback"],
   ["POST", "/push38/remote-playback/result"]
@@ -92,6 +96,10 @@ try {
   assert.equal(remoteResults[1].pass, false);
   qualificationNow = remoteQualificationDeadline + 1;
   assert.equal((await fetch(base + `/push38/remote-playback?session=${remoteSession.session_id}`)).status, 404);
+  const deviceGrant = await fetch(base + "/api/video-gateway/playback-grant", { method: "POST",
+    headers: { "content-type": "application/json", "x-video-gateway-device-token": "test-device-token" },
+    body: "{}" });
+  assert.equal(deviceGrant.status, 401);
   assert.equal((await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",
     headers: { "content-type": "application/json" }, body: "{}" })).status, 404);
   assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
@@ -99,7 +107,7 @@ try {
       "x-push38-result-token": "qualification-result-token-00000000000000000000" },
     body: JSON.stringify(resultPayload) })).status, 404);
   for (const path of ["/api/video-gateway/cloud-discovery", "/api/video-gateway/device-heartbeat",
-    "/api/video-gateway/cloud-learning"]) {
+    "/api/video-gateway/cloud-learning", "/api/video-gateway/camera-actions", "/api/video-gateway/cloud-events"]) {
     const deviceRequest = await fetch(base + path, { method: "POST", headers: {
       "content-type": "application/json", "x-video-gateway-device-token": "test-device-token",
       "x-video-gateway-id": "test-gateway", "x-video-gateway-timestamp": "2026-10-01T00:00:00.000Z",
@@ -114,8 +122,11 @@ try {
   assert.equal(audit.some(event => event.pathname === "/api/video-gateway/edge-updates/download" &&
     event.outcome === "DENIED" && event.status === 404), true);
   assert.equal(audit.filter(event => ["/api/video-gateway/cloud-discovery",
-    "/api/video-gateway/device-heartbeat", "/api/video-gateway/cloud-learning"].includes(event.pathname) &&
-    event.outcome === "FORWARDED" && event.status === 401).length, 3);
+    "/api/video-gateway/device-heartbeat", "/api/video-gateway/cloud-learning",
+    "/api/video-gateway/camera-actions", "/api/video-gateway/cloud-events"].includes(event.pathname) &&
+    event.outcome === "FORWARDED" && event.status === 401).length, 5);
+  assert.equal(audit.some(event => event.pathname === "/api/video-gateway/playback-grant" &&
+    event.outcome === "FORWARDED" && event.status === 401), true);
   console.log(JSON.stringify({ status: "PASS", allowedRoutes: allowed.length,
     dashboard: "DENY", admin: "DENY", unrelatedApi: "DENY", supabase: "DENY", anonymousPrivileged: "DENY" }));
 } finally {

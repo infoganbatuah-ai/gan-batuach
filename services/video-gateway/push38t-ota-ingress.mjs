@@ -15,6 +15,10 @@ const routes = new Set([
   "POST /api/video-gateway/device-heartbeat",
   "POST /api/video-gateway/cloud-learning",
   "POST /api/video-gateway/playback-grant",
+  "POST /api/video-gateway/camera-actions",
+  "GET /api/video-gateway/event-manifest",
+  "POST /api/video-gateway/cloud-events",
+  "POST /api/video-gateway/cloud-event-media",
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
   "POST /push38/remote-playback/result"
@@ -30,7 +34,6 @@ const forwardHeaders = new Set([
   "x-observer-home-qa-legacy-signature"
 ]);
 const remoteQualificationRoutes = new Set([
-  "POST /api/video-gateway/playback-grant",
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
   "POST /push38/remote-playback/result"
@@ -107,9 +110,11 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
     }
     try {
       const chunks = []; let length = 0;
+      const requestLimit = request.method === "POST" && url.pathname === "/api/video-gateway/cloud-event-media"
+        ? 8 * 1024 * 1024 + 64 * 1024 : 8192;
       for await (const chunk of request) {
         length += chunk.length;
-        if (length > 8192) {
+        if (length > requestLimit) {
           response.writeHead(413, { "cache-control": "no-store" }).end();
           return;
         }

@@ -33,6 +33,6 @@ const server = createPush38tIngress({ tls: { keyPath, certPath },
 server.listen(3101, "127.0.0.1", () => console.log(JSON.stringify({
   environment: "PUSH38T_QUALIFICATION", bind: "127.0.0.1:3101",
   transport: "HTTPS", surface: remoteResultToken && remoteResultExpiresAt > Date.now()
-    ? "OTA_AND_REMOTE_PLAYBACK_QUALIFICATION" : "OTA_AUTHORIZATION_ONLY",
+    ? "DEVICE_CONTROL_OTA_AND_REMOTE_PLAYBACK_QUALIFICATION" : "DEVICE_CONTROL_AND_OTA_AUTHORIZATION",
   publicExposure: false
 })));

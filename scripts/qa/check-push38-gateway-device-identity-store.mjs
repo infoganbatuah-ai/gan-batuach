@@ -4,8 +4,10 @@ import { readFileSync } from "node:fs";
 const runner = readFileSync("scripts/run-persistent-home-gateway.mjs", "utf8");
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 
-assert.match(runner, /observer-gateway\/ota\/home-qa-device-secrets/);
-assert.match(runner, /Managed device identity store does not match the installed Gateway/);
+assert.match(runner, /managedIdentityProfileRoot = edgeDeviceType === "SOFTWARE_CONNECTOR"/);
+assert.match(runner, /"observer-connector" : "observer-gateway"/);
+assert.match(runner, /\$\{managedIdentityProfileRoot\}\/ota\/home-qa-device-secrets/);
+assert.match(runner, /Managed device identity store does not match the installed Edge/);
 assert.match(runner, /OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR: deviceIdentitySecretDir/);
 assert.match(runner, /const managedDeviceGatewayId = identityStore\?\.read\("device_gateway_id"\)/);
 assert.match(runner, /const managedDeviceObserverSiteId = identityStore\?\.read\("device_observer_site_id"\)/);

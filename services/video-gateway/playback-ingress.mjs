@@ -23,11 +23,15 @@ function playbackClientAddress(request) {
   return isIP(forwarded) ? forwarded : direct;
 }
 
-export function createPlaybackIngress({ origin = "http://127.0.0.1:18082", now = Date.now,
+export function createPlaybackIngress({ origin = "http://127.0.0.1:18082", publicOrigin = "", now = Date.now,
   rateLimits = {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password
     || target.pathname !== "/" || target.search || target.hash) throw new Error("PLAYBACK_INGRESS_ORIGIN_NOT_LOOPBACK");
+  const external = publicOrigin ? new URL(publicOrigin) : null;
+  if (external && (external.protocol !== "https:" || external.username || external.password ||
+    external.pathname !== "/" || external.search || external.hash))
+    throw new Error("PLAYBACK_INGRESS_PUBLIC_ORIGIN_INVALID");
   const limits = {
     claim: Number(rateLimits.claimPerMinute ?? 30),
     media: Number(rateLimits.mediaPerMinute ?? 1200),
@@ -89,7 +93,15 @@ export function createPlaybackIngress({ origin = "http://127.0.0.1:18082", now =
       for (const key of ["access-control-allow-origin", "access-control-allow-methods", "access-control-allow-headers", "vary"])
         if (upstream.headers.has(key)) safe[key] = upstream.headers.get(key);
       response.writeHead(upstream.status, safe);
-      if (upstream.body) Readable.fromWeb(upstream.body).on("error", () => response.destroy()).pipe(response);
+      if (external && request.method === "POST" && url.pathname === "/playback/claim" && upstream.ok) {
+        const payload = await upstream.json();
+        const internal = new URL(String(payload?.playback?.hls_url || ""));
+        if (internal.protocol !== "http:" || internal.hostname !== "127.0.0.1" ||
+          internal.username || internal.password || internal.hash)
+          throw new Error("PLAYBACK_INGRESS_CLAIM_URL_INVALID");
+        payload.playback.hls_url = `${external.origin}${internal.pathname}${internal.search}`;
+        response.end(JSON.stringify(payload));
+      } else if (upstream.body) Readable.fromWeb(upstream.body).on("error", () => response.destroy()).pipe(response);
       else response.end();
     } catch {
       if (!response.headersSent) response.writeHead(502, { "cache-control": "no-store" }).end();

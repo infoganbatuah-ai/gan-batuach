@@ -9,6 +9,9 @@ const option = name => process.argv.find(value => value.startsWith(`--${name}=`)
 const secretOption = option("secret");
 const controlOrigin = option("control-origin") || "http://127.0.0.1:3100";
 const expectRemote = process.argv.includes("--expect-remote");
+const claimMedia = process.argv.includes("--claim-media");
+const claimLocalMedia = process.argv.includes("--claim-local-media");
+if (claimMedia && claimLocalMedia) throw new Error("P38_REMOTE_MEDIA_MODE_CONFLICT");
 if (!secretOption) throw new Error("P38_REMOTE_PRODUCT_SECRET_REQUIRED");
 const restricted = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const secretPath = realpathSync(resolve(secretOption));
@@ -59,6 +62,55 @@ const assigned = sourceRead.data.filter(row => row.metadata?.channel_assignment 
 const empty = sourceRead.data.filter(row => row.metadata?.channel_assignment === "CHANNEL_EMPTY");
 if (assigned.length !== 11 || empty.length !== 6) throw new Error("P38_REMOTE_PRODUCT_SOURCE_SEMANTICS_INVALID");
 const results = [];
+const mediaResults = [];
+const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+const playlistState = text => {
+  const sequence = Number(/^#EXT-X-MEDIA-SEQUENCE:(\d+)$/m.exec(text)?.[1]);
+  const segment = text.split(/\r?\n/).filter(line => line && !line.startsWith("#")).at(-1) || "";
+  if (!Number.isInteger(sequence) || !segment) throw new Error("P38_REMOTE_MEDIA_PLAYLIST_INVALID");
+  return { sequence, segment };
+};
+async function proveLiveMedia(playback, kind, channel, local = false) {
+  const claimUrl = new URL(local
+    ? `http://127.0.0.1:${kind === "TAPO" ? 18083 : 18082}/playback/claim`
+    : playback.claim_url);
+  const claim = await fetch(claimUrl, { method: "POST", headers: { "content-type": "application/json",
+    origin: "https://gateway.ganbatuach.com" }, body: JSON.stringify({ grant: playback.grant }),
+    signal: AbortSignal.timeout(30_000) });
+  const claimBody = await claim.json().catch(() => ({}));
+  if (!claim.ok) {
+    const category = String(claimBody.error || "FAILED").replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 60);
+    throw new Error(`P38_REMOTE_MEDIA_CLAIM_${kind}_${channel}_${claim.status}_${category}`);
+  }
+  if (typeof claimBody.playback?.hls_url !== "string")
+    throw new Error(`P38_REMOTE_MEDIA_CLAIM_${kind}_${channel}_URL_MISSING`);
+  const hls = new URL(claimBody.playback.hls_url);
+  const localUrl = hls.protocol === "http:" && hls.hostname === "127.0.0.1" && hls.host === claimUrl.host;
+  const remoteUrl = hls.protocol === "https:" && hls.host === claimUrl.host &&
+    !["localhost", "127.0.0.1", "::1"].includes(hls.hostname);
+  if ((local ? !localUrl : !remoteUrl) || claimBody.private_source_hidden !== true)
+    throw new Error(`P38_REMOTE_MEDIA_CLAIM_${kind}_${channel}_${claim.status}`);
+  const readPlaylist = async () => {
+    const response = await fetch(hls, { headers: { origin: "https://gateway.ganbatuach.com" },
+      cache: "no-store", signal: AbortSignal.timeout(20_000) });
+    if (!response.ok) throw new Error(`P38_REMOTE_MEDIA_PLAYLIST_${kind}_${channel}_${response.status}`);
+    return playlistState(await response.text());
+  };
+  const first = await readPlaylist();
+  const segment = await fetch(new URL(first.segment, hls), { headers: { origin: "https://gateway.ganbatuach.com" },
+    cache: "no-store", signal: AbortSignal.timeout(20_000) });
+  const bytes = (await segment.arrayBuffer()).byteLength;
+  if (!segment.ok || bytes < 1024) throw new Error(`P38_REMOTE_MEDIA_SEGMENT_${kind}_${channel}_${segment.status}`);
+  let latest = first;
+  for (let attempt = 0; attempt < 4 && latest.sequence === first.sequence && latest.segment === first.segment; attempt++) {
+    await wait(3_000);
+    latest = await readPlaylist();
+  }
+  if (latest.sequence === first.sequence && latest.segment === first.segment)
+    throw new Error(`P38_REMOTE_MEDIA_NOT_ADVANCING_${kind}_${channel}`);
+  return { kind, channel, bytes, advanced: true, path: local ? "LOCAL_LOOPBACK" : "SCOPED_HTTPS",
+    https: !local, localhost_absent: !local };
+}
 for (const source of assigned) {
   const response = await fetch(`${controlOrigin}/api/digital-observer/dvr-gateway`, {
     method: "POST", headers: { "content-type": "application/json",
@@ -80,6 +132,9 @@ for (const source of assigned) {
     if (expectRemote !== remote) throw new Error("P38_REMOTE_PRODUCT_ORIGIN_POLICY_FAILED");
     if (/rtsp|password|credential|secret_reference/i.test(JSON.stringify(body)))
       throw new Error("P38_REMOTE_PRODUCT_PRIVATE_SOURCE_LEAK");
+    if ((claimMedia || claimLocalMedia) && (source.connector_type === "rtsp" || channel === 1))
+      mediaResults.push(await proveLiveMedia(body.data.playback,
+        source.connector_type === "rtsp" ? "TAPO" : "DVR", channel || 1, claimLocalMedia));
   }
   results.push({ kind: source.connector_type === "rtsp" ? "TAPO" : "DVR", channel: channel || 1,
     expected: expectedAllowed ? "ALLOW" : "SOURCE_UNAVAILABLE", status: response.status });
@@ -88,4 +143,5 @@ console.log(JSON.stringify({ status: "PASS", control: expectRemote ? "SCOPED_HTT
   dvr_expected: 10, dvr_authorized: results.filter(row => row.kind === "DVR" && row.status === 200).length,
   dvr_upstream_unavailable: results.filter(row => row.kind === "DVR" && row.status !== 200).length,
   tapo_authorized: results.filter(row => row.kind === "TAPO" && row.status === 200).length,
-  empty_excluded: empty.length, private_source_hidden: true, credentials_returned: false }));
+  empty_excluded: empty.length, media_claims: mediaResults,
+  private_source_hidden: true, credentials_returned: false }));

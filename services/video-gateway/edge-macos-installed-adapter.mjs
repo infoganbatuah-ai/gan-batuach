@@ -1,7 +1,7 @@
 // macOS installed-runtime adapter. Constructor is read-only. Mutations require
 // an explicit approved artifact digest and are never invoked by discovery.
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomUUID, X509Certificate } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync,
   renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -45,6 +45,29 @@ export function managedEdgeLaunchAgent(source) {
   // startup under host pressure before the health endpoint exists.
   delete managed.ProcessType;
   return managed;
+}
+export function trustedHomeQaRuntimeCertificate(managedRoot, profile, now = Date.now()) {
+  const root = resolve(managedRoot);
+  const configPath = join(root, "agent-config.json");
+  if (!existsSync(configPath)) return "";
+  if (lstatSync(configPath).isSymbolicLink() || !lstatSync(configPath).isFile() ||
+    lstatSync(configPath).uid !== process.getuid() || (lstatSync(configPath).mode & 0o022) !== 0)
+    fail("EDGE_INSTALLED_HOME_QA_CONFIG_UNSAFE");
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  if (config.channel !== "HOME_QA") return "";
+  const certificate = join(root, "qa-control-plane-ca.crt");
+  if (config.managedRoot !== root || config.profile !== profile || config.qaTlsCaPath !== certificate ||
+    !/^[a-f0-9]{64}$/.test(config.qaTlsCaSha256 || "") || !existsSync(certificate) ||
+    lstatSync(certificate).isSymbolicLink() || !lstatSync(certificate).isFile() ||
+    lstatSync(certificate).uid !== process.getuid() || (lstatSync(certificate).mode & 0o022) !== 0 ||
+    realpathSync(certificate) !== certificate ||
+    createHash("sha256").update(readFileSync(certificate)).digest("hex") !== config.qaTlsCaSha256)
+    fail("EDGE_INSTALLED_HOME_QA_CERTIFICATE_UNSAFE");
+  const parsed = new X509Certificate(readFileSync(certificate));
+  if (!parsed.subjectAltName?.includes("IP Address:127.0.0.1") ||
+    Date.parse(parsed.validTo) < now + 26 * 60 * 60_000)
+    fail("EDGE_INSTALLED_HOME_QA_CERTIFICATE_EXPIRED");
+  return certificate;
 }
 function atomic(path, bytes) {
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
@@ -218,6 +241,8 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     source.EnvironmentVariables.OBSERVER_EDGE_VERSION = release.version;
     source.EnvironmentVariables.OBSERVER_EDGE_BUILD_SHA = release.build_sha;
     source.EnvironmentVariables.OBSERVER_EDGE_DEVICE_TYPE = profile;
+    const homeQaCertificate = trustedHomeQaRuntimeCertificate(root, profile);
+    if (homeQaCertificate) source.EnvironmentVariables.NODE_EXTRA_CA_CERTS = homeQaCertificate;
     const next = plistXml(source);
     try { run("/bin/launchctl", ["bootout", domain, plistPath]); } catch {}
     const until = Date.now() + 10_000;

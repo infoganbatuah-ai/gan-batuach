@@ -43,7 +43,8 @@ const profiles = [
     origin: loopbackOrigin(args.get("connector-origin"), "http://127.0.0.1:18083") }
 ];
 for (const profile of profiles) {
-  profile.ingress = createPlaybackIngress({ origin: profile.origin });
+  profile.ingress = createPlaybackIngress({ origin: profile.origin,
+    publicOrigin: `https://${profile.hostname}:${port}` });
   profile.ingress.listen(0, "127.0.0.1");
   await once(profile.ingress, "listening");
   profile.ingressPort = profile.ingress.address().port;

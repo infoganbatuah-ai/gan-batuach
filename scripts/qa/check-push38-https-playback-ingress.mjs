@@ -17,7 +17,9 @@ execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days
 { stdio: "ignore" });
 
 const fake = label => createHttpServer((request, response) => {
-  response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ label, path: request.url }));
+  response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ label, path: request.url,
+    private_source_hidden: true,
+    playback: { hls_url: `http://127.0.0.1:${label === "gateway" ? gateway.address().port : connector.address().port}/hls/stream/index.m3u8?token=${"a".repeat(32)}` } }));
 });
 const gateway = fake("gateway"), connector = fake("connector");
 for (const server of [gateway, connector]) { server.listen(0, "127.0.0.1"); await once(server, "listening"); }
@@ -57,10 +59,12 @@ try {
   const gatewayClaim = await request(gatewayHost, "/playback/claim", "POST", '{"grant":"test"}');
   assert.equal(gatewayClaim.status, 200);
   assert.equal(gatewayClaim.headers["access-control-allow-origin"], "https://gateway.ganbatuach.com");
-  assert.equal(JSON.parse(gatewayClaim.body).label, "gateway");
+  assert.equal(JSON.parse(gatewayClaim.body).playback.hls_url,
+    `https://${gatewayHost}:${port}/hls/stream/index.m3u8?token=${"a".repeat(32)}`);
   const connectorClaim = await request(connectorHost, "/playback/claim", "POST", '{"grant":"test"}');
   assert.equal(connectorClaim.status, 200);
-  assert.equal(JSON.parse(connectorClaim.body).label, "connector");
+  assert.equal(JSON.parse(connectorClaim.body).playback.hls_url,
+    `https://${connectorHost}:${port}/hls/stream/index.m3u8?token=${"a".repeat(32)}`);
   assert.equal((await request(gatewayHost, "/admin")).status, 404);
   assert.equal((await request("foreign.ganbatuach.com", "/playback/claim", "POST", '{"grant":"test"}')).status, 404);
   assert.equal((await request(gatewayHost, "/hls/stream/index.m3u8")).status, 404);
