@@ -289,13 +289,14 @@ try {
   for (const source of [registration, activation, publisher])
     assert.match(source, /--gateway-routine-confirmation/);
   assert.match(publisher, /observer-push38-gateway-routine-confirmation-r2-publication-v1/);
-  assert.match(activation, /const proactiveSuccessor = playbackSweep \|\| proactiveExclusive/);
+  assert.match(activation,
+    /const proactiveSuccessor = playbackSweep \|\| proactiveExclusive \|\| deviceIdentityContinuity/);
   assert.match(activation, /if \(playbackSweep\) \{/);
   assert.match(activation, /P38_GATEWAY_PLAYBACK_SWEEP_FAILED_PRE_SOAK_PROOF_INVALID/);
   assert.match(activation, /failed-pre-soak-evidence/);
   assert.match(activation, /failed-pre-soak-checkpoints/);
   assert.match(activation,
-    /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive\)/);
+    /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| explicitProactiveExclusive\)/);
   assert.match(activation, /P38_GATEWAY_ROUTINE_CONFIRMATION_FAILED_PRE_SOAK_PROOF_INVALID/);
   assert.match(activation, /FAILED_PRE_SOAK_ROUTINE_CONFIRMATION_SUCCESSOR_QUALIFIED/);
   assert.match(activation,
