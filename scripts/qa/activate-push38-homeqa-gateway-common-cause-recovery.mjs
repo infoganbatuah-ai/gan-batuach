@@ -1045,7 +1045,11 @@ if (playbackSweep) {
     playback_failures: result.playback.failures, ai_failures: result.ai.failures,
     live_recovery_required: true };
 }
-if (recoveryContinuity || routineConfirmation || sessionRenewal || proactiveExclusive) {
+// finiteResponseContinuity reuses the proactive-exclusive runtime safety
+// predicates, but owns a different immutable failed-V8 proof above. Do not
+// accidentally demand the older failed pre-soak document merely because the
+// behavior alias is enabled.
+if (recoveryContinuity || routineConfirmation || sessionRenewal || explicitProactiveExclusive) {
   const bytes = protectedFile(failedPreSoakEvidencePath);
   const result = JSON.parse(bytes);
   if (sha(bytes) !== "e6dfbe426d02414d612619a86443294b57197b148a31f9bf62c6e5eb417a85d1" ||

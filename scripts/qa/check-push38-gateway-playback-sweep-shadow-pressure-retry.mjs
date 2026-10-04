@@ -4,6 +4,8 @@ import test from "node:test";
 
 const source = readFileSync(
   "scripts/qa/retry-push38-homeqa-gateway-playback-sweep-after-shadow-pressure.mjs", "utf8");
+const activation = readFileSync(
+  "scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
 
 test("retry binds the exact signed bridge, successor, and rollback state", () => {
   for (const token of ["PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION",
@@ -27,4 +29,11 @@ test("retry preserves the physical Home truth and signed Connector prerequisite"
     "PUSH38_CONNECTOR_RTSP_CADENCE", "connectorPrerequisiteSafe",
     "DISCOVERY_PROBE_FAILED", "sample.progressing === 1", "sample.stalled === 0"])
     assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("finite-response activation consumes its own failed-V8 proof", () => {
+  assert.match(activation,
+    /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| explicitProactiveExclusive\)/);
+  assert.doesNotMatch(activation,
+    /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive\)/);
 });
