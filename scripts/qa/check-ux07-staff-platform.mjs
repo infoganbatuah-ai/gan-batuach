@@ -12,6 +12,8 @@ const staffShifts = read("app/dashboard/staff/shifts/page.tsx");
 const managerStaff = read("app/dashboard/garden/staff/page.tsx");
 const managerTime = read("app/dashboard/garden/staff-time/page.tsx");
 const camera = read("app/dashboard/staff/cameras/page.tsx");
+const safetyPlatform = read("components/safety-cameras-platform.tsx");
+const safetyModel = read("lib/management/safety-cameras.ts");
 const css = read("app/styles/dashboard-runtime.css");
 
 test("Staff navigation keeps all active-employment capabilities discoverable", () => {
@@ -51,8 +53,10 @@ test("candidate and active employment remain distinct", () => {
 
 test("Staff camera access stays policy and capability bound", () => {
   assert.match(camera, /staff_view_allowed/);
-  assert.match(camera, /productionVerified|capability|playback_source/);
-  assert.match(camera, /permission|הרשאה|אין גישה|לא זמינה/);
+  assert.match(camera, /toSafetyCamera/);
+  assert.match(safetyModel, /production_verification_required/);
+  assert.match(safetyModel, /לא מאושרת לצוות/);
+  assert.match(safetyPlatform, /Live לא מסומן כפעיל ללא אימות Production והרשאת תפקיד/);
 });
 
 test("UX-07 is RTL-first, responsive, and uses the approved Staff visual system", () => {

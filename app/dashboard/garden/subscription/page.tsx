@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PermissionDeniedState } from "@/components/global-state-system";
 import { CalendarClock, CheckCircle2, CreditCard, FileText, ReceiptText, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FinanceFrame } from "@/components/finance-platform-frame";
@@ -18,7 +19,7 @@ type SubscriptionReceipt = { id: string; receipt_number?: string | null; amount:
 
 export default async function GardenSubscriptionPage() {
   const access = await getManagementGardenContext();
-  if (!access.allowed) return <main className="card">אין הרשאה לצפות במנוי הגן.</main>;
+  if (!access.allowed) return <PermissionDeniedState backHref="/dashboard/garden/finance" description="פרטי המנוי זמינים רק לבעלי תפקיד מורשים בגן הפעיל." />;
   const role = access.session.profile.role === "owner" ? "owner" : "manager";
   const supabase = await createClient();
   const [data, gardenRes] = await Promise.all([

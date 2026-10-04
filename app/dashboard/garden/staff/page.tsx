@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PermissionDeniedState } from "@/components/global-state-system";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { StaffProfileCards } from "@/components/people-profile-cards";
 import { TeachingAssignmentsPanel } from "@/components/teaching-assignments-panel";
@@ -23,7 +24,7 @@ type EmploymentRow = { staff_id: string; status: string; role_title: string | nu
 export default async function GardenStaffPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const filters = await searchParams;
   const access = await getManagementGardenContext();
-  if (!access.allowed) return <main className="card">אין הרשאה לצפות בצוות הגן.</main>;
+  if (!access.allowed) return <PermissionDeniedState backHref="/dashboard/garden" description="הצגת צוות הגן מוגבלת לבעלי תפקיד מורשים בגן הפעיל." />;
   const profile = access.session.profile;
   const supabase = await createClient();
   const gardenId = access.gardenId;

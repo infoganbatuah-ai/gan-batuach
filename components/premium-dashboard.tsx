@@ -1,12 +1,16 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import type { LucideProps } from "lucide-react";
+import { GlobalStatePanel } from "@/components/global-state-system";
+import { canonicalStatusLabel, canonicalStatusTone } from "@/lib/ui/canonical-status";
 
 type Tone = "default" | "good" | "warn" | "bad";
 type IconType = ComponentType<LucideProps>;
 
 export function StatusBadge({ children, tone = "default" }: { children: ReactNode; tone?: Tone }) {
-  return <span className={`premium-status-badge ${tone}`}>{children}</span>;
+  const canonicalTone = typeof children === "string" ? canonicalStatusTone(children) : "default";
+  const normalizedTone = tone !== "default" ? tone : canonicalTone === "success" ? "good" : canonicalTone === "warning" ? "warn" : canonicalTone === "danger" ? "bad" : "default";
+  return <span className={`premium-status-badge ${normalizedTone}`} role="status"><i aria-hidden="true" />{typeof children === "string" ? canonicalStatusLabel(children) : children}</span>;
 }
 
 export function PremiumDashboardHero({
@@ -92,13 +96,7 @@ export function CleanSection({ title, subtitle, action, children }: { title: str
 }
 
 export function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
-  return (
-    <div className="premium-empty-state">
-      <strong>{title}</strong>
-      {text ? <span>{text}</span> : null}
-      {action ? <div>{action}</div> : null}
-    </div>
-  );
+  return <GlobalStatePanel kind="empty" title={title} description={text} action={action} compact className="premium-empty-state" />;
 }
 
 export function AppHomeShell({ children, className = "" }: { children: ReactNode; className?: string }) {

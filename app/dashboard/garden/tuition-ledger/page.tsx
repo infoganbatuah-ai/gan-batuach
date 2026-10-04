@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PermissionDeniedState } from "@/components/global-state-system";
 import { WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FinanceFrame } from "@/components/finance-platform-frame";
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function GardenTuitionLedgerPage() {
   const access = await getManagementGardenContext();
-  if (!access.allowed) return <main className="card">אין הרשאה לצפות בספר החיובים. <Link href="/dashboard/garden/finance">חזרה לכספים</Link></main>;
+  if (!access.allowed) return <PermissionDeniedState backHref="/dashboard/garden/finance" description="ספר החיובים זמין רק לבעלי תפקיד מורשים בגן הפעיל." />;
   const supabase = await createClient();
   const [periods, enrollments, garden, entries] = await Promise.all([
     supabase.from("tuition_billing_periods" as never)
