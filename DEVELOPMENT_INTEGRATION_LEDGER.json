@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-04T13:51:38Z",
+  "updatedAt": "2026-10-04T21:09:04Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10271,6 +10271,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-17 is complete in Development. Stop before UX-IMPLEMENT-18; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-18-settings-account-permissions",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-18 Settings, Account and Permissions Full Platform",
+      "owner": "UX-IMPLEMENT-18 owner",
+      "sourceBranch": "codex/ux-implement-18-settings-account-permissions",
+      "sourceCommits": [
+        "4983d97e31cf72ac4925bf33cba378a724b217e8"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-18-settings-account-permissions@4983d97e31cf72ac4925bf33cba378a724b217e8",
+          "origin/integration/development@58768a715193d9d63e4057c2397d5d2962278ed3"
+        ],
+        "validatedSourceCommit": "4983d97e31cf72ac4925bf33cba378a724b217e8",
+        "qualificationCommit": "4983d97e31cf72ac4925bf33cba378a724b217e8",
+        "mergedHeadEvidenceCommit": "4983d97e31cf72ac4925bf33cba378a724b217e8"
+      },
+      "validation": {
+        "status": "PASS_EXACT_HEAD_CI_AND_MERGED_DEVELOPMENT_VISUAL_FUNCTIONAL_ROLE_AUTH_ISOLATION_BUILD_DOMAIN_SECURITY_MIGRATION_AND_RELEASE_CONTRACT",
+        "evidence": [
+          "GAN_BATUACH_UX18_SETTINGS_ACCOUNT_PERMISSIONS_IMPLEMENTATION.md",
+          "qa-evidence/ux-implement-18/visual-qa-report.json",
+          "qa-evidence/ux-implement-18/evidence-manifest.json",
+          "qa-evidence/ux-implement-18/reference-comparison-board.webp",
+          "qa-evidence/ux-implement-18/contact-sheet-desktop.webp",
+          "qa-evidence/ux-implement-18/contact-sheet-mobile.webp"
+        ],
+        "limits": "Product PR #170 passed all nine required and external checks at exact head 4983d97e31cf72ac4925bf33cba378a724b217e8 and merged by ancestry as 58768a715193d9d63e4057c2397d5d2962278ed3. Twenty-one canonical Settings concepts produced 42 Desktop/Mobile captures, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Post-merge UX-18 focused 9/9, authenticated Owner/Parent/Staff/Inspector/Admin full-stack role and mutation isolation, UX-11 8/8, UX-16 10/10, UX-17 9/9, Parent/Manager 23/23, typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migration health and Development drift 244/244, and release-contract validation passed. Verified Email remains sufficient for normal activation, phone verification remains optional, canonical RBAC and role-specific permissions are reused, provider states remain truthful, and no secrets are exposed. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "58768a715193d9d63e4057c2397d5d2962278ed3",
+        "pullRequest": 170,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_17_INTEGRATED",
+        "units": [
+          "codex/ux-implement-17-platform-admin"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_MERGED_HEAD_58768A71_DEVELOPMENT_INTEGRATION_UX18_FOCUSED_9_OF_9_AUTHENTICATED_FULL_STACK_OWNER_PARENT_STAFF_INSPECTOR_ADMIN_PROFILE_SAVE_CROSS_ROLE_AND_GARDEN_MUTATION_ISOLATION_NOTIFICATIONS_SECURITY_UX11_8_OF_8_UX16_10_OF_10_UX17_9_OF_9_PARENT_MANAGER_23_OF_23_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_11_OF_11_MIGRATIONS_244_DEVELOPMENT_DRIFT_244_OF_244_RELEASE_CONTRACT_VISUAL_42_OWNER_REVIEW_READY",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-18 is complete in Development. Stop before UX-IMPLEMENT-19; Production and main remain unchanged pending a separate explicit owner release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
