@@ -37,3 +37,11 @@ test("finite-response activation consumes its own failed-V8 proof", () => {
   assert.doesNotMatch(activation,
     /if \(recoveryContinuity \|\| routineConfirmation \|\| sessionRenewal \|\| proactiveExclusive\)/);
 });
+
+test("activation accepts software fallback only with explicit output-stall and playback proof", () => {
+  for (const token of ["HARDWARE_OUTPUT_STALL_OWNER_RELEASE", "OUTPUT_RESCUE",
+    "last_handoff_output_advances", "firstSoftwareCheckpoint?.renewal?.playlist_status === 200",
+    "firstSoftwareCheckpoint?.renewal?.segment_status === 200",
+    "firstSoftwareCheckpoint?.renewal?.segment_bytes > 0"])
+    assert.match(activation, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});

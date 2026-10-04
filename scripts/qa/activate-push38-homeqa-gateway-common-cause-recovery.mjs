@@ -455,9 +455,21 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   const lifecycle = checkpoints.at(-1)?.shadow?.media?.lifecycle || {};
   const firstSoftwareIndex = checkpoints.findIndex(point =>
     point.shadow?.media?.inputs?.[0]?.encoder === "libx264");
+  const firstSoftwareCheckpoint = firstSoftwareIndex < 0 ? null : checkpoints[firstSoftwareIndex];
+  const firstSoftwareSource = firstSoftwareCheckpoint?.shadow?.media?.source_diagnostics?.[0];
   const softwareFallbackHasOutputFailureEvidence = firstSoftwareIndex < 0 ||
     Number(checkpoints[firstSoftwareIndex]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0) >
-      Number(checkpoints[0]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0);
+      Number(checkpoints[0]?.shadow?.media?.lifecycle?.stalePlaylist ?? 0) ||
+    Number(firstSoftwareCheckpoint?.shadow?.media?.lifecycle?.startsByReason?.outputRescue ?? 0) > 0 &&
+      firstSoftwareSource?.last_start_reason === "outputRescue" &&
+      firstSoftwareSource?.last_handoff_mode === "OUTPUT_RESCUE" &&
+      firstSoftwareSource?.last_handoff_result === "PROMOTED" &&
+      firstSoftwareSource?.last_failure_reason === "HARDWARE_OUTPUT_STALL_OWNER_RELEASE" &&
+      Number(firstSoftwareSource?.last_handoff_output_advances ?? 0) >= 4 &&
+      firstSoftwareCheckpoint?.renewal?.status === 200 &&
+      firstSoftwareCheckpoint?.renewal?.playlist_status === 200 &&
+      firstSoftwareCheckpoint?.renewal?.segment_status === 200 &&
+      firstSoftwareCheckpoint?.renewal?.segment_bytes > 0;
   const ownerRecoveryResult = classifyContainedOwnerRecovery(checkpoints);
   const qualifiedOwnerContinuity = mediaContinuity && ownerRecoveryResult.pass;
   // Intentional warm handoff must preserve VideoToolbox. A later, genuine
