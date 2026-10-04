@@ -1,11 +1,11 @@
 {
   "contract": "digital-observer-push38-v8-qualification-matrix-v1",
   "status": "FROZEN",
-  "frozen_at": "2026-10-03T01:06:53Z",
+  "frozen_at": "2026-10-04T01:28:00Z",
   "candidate_branch": "codex/push-38t-qualification",
   "qualification_runtime": {
-    "gateway_version": "0.2.67-p38-health",
-    "gateway_build_sha": "7facf04268e82477b6594720b1c21a26833e388e",
+    "gateway_version": "0.2.75-p38-health",
+    "gateway_build_sha": "0a41a628a79b6a9ef3f43b031bf802371f9913ed",
     "connector_version": "0.2.26-p38-health",
     "gateway_source_available": 9,
     "gateway_known_upstream_unavailable_channels": [8],
@@ -53,7 +53,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect signed CURRENT, KNOWN_GOOD, runtime PID, build identity, and OTA state.",
-      "pass_criteria": "Gateway stays on signed 0.2.67, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
+      "pass_criteria": "Gateway stays on signed 0.2.75, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
       "evidence_source": "V8 release snapshots, OTA state, and process telemetry"
     },
     {
@@ -206,7 +206,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Collect sampling coverage across all source-available physical cameras.",
-      "pass_criteria": "Every one of the ten source-available cameras is sampled; no unexplained 1/N concentration or false maturity claim.",
+      "pass_criteria": "All nine source-available DVR cameras and the source-available Tapo camera are sampled; no unexplained 1/N concentration or false maturity claim.",
       "evidence_source": "V8 learning sampled_source_ids and coverage summary"
     },
     {
