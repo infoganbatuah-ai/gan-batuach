@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/push38-remote-client-preflight.yml
       - scripts/qa/check-push38-remote-client-ipv6.mjs
+      - scripts/qa/check-push38-remote-media-external.mjs
   workflow_dispatch:
 
 permissions:
@@ -28,3 +29,15 @@ jobs:
           node-version: 22
       - name: Verify outbound IPv6 over TLS
         run: node scripts/qa/check-push38-remote-client-ipv6.mjs
+
+  bounded-media:
+    name: Bounded HOME_QA media IPv6/TLS
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify bounded media reachability and default deny
+        run: node scripts/qa/check-push38-remote-media-external.mjs

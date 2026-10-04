@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileS
 import { homedir } from "node:os";
 import { dirname, resolve, sep } from "node:path";
 import { once } from "node:events";
+import { selectBoundedMediaIpv6 } from "../../services/video-gateway/push38-bounded-media-network.mjs";
 
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const durationSeconds = Number(option("duration-seconds") || 1200);
@@ -25,11 +26,36 @@ if (!statePath.startsWith(restricted)) throw new Error("P38_BOUNDED_MEDIA_STATE_
 if (existsSync(statePath)) throw new Error("P38_BOUNDED_MEDIA_STATE_ALREADY_EXISTS");
 mkdirSync(dirname(statePath), { recursive: true, mode: 0o700 });
 
+const runUpnp = (args, failure, timeout = 30_000) => {
+  try {
+    return execFileSync("/opt/homebrew/bin/upnpc", args, {
+      encoding: "utf8", timeout, stdio: ["ignore", "pipe", "pipe"]
+    });
+  } catch {
+    // miniupnpc includes the selected local/public addresses in its errors.
+    // Keep those details out of qualification logs and emit only a bounded code.
+    throw new Error(failure);
+  }
+};
+const addPinhole = args => {
+  try {
+    return execFileSync("/opt/homebrew/bin/upnpc", args, {
+      encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"]
+    });
+  } catch (error) {
+    const diagnostic = `${String(error?.stdout || "")}\n${String(error?.stderr || "")}`;
+    // Some ISP routers expose one shared IPv6-pinhole table and return 701
+    // when it is occupied. Keep the route-limited server and temporary DNS
+    // alive for an independent off-LAN reachability proof, but never claim
+    // ownership of or delete an unknown pre-existing firewall rule.
+    if (/code\s+701\s*\(PinholeSpaceExhausted\)/i.test(diagnostic)) return "";
+    throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ADD_FAILED");
+  }
+};
 const ifconfig = execFileSync("/sbin/ifconfig", ["en0"], { encoding: "utf8", timeout: 10_000 });
-const addressLine = ifconfig.split("\n").find(line => /\binet6\s+(?!fe80:)[0-9a-f:]+\b/.test(line) &&
-  /\bsecured\b/.test(line) && !/\btemporary\b/.test(line));
-const address = /\binet6\s+([0-9a-f:]+)/.exec(addressLine || "")?.[1];
-if (!address) throw new Error("P38_BOUNDED_MEDIA_STABLE_IPV6_UNAVAILABLE");
+const upnpStatus = runUpnp(["-6", "-m", "en0", "-s"], "P38_BOUNDED_MEDIA_UPNP_DISCOVERY_FAILED", 20_000);
+const address = selectBoundedMediaIpv6({ ifconfigOutput: ifconfig, upnpOutput: upnpStatus });
+if (!address) throw new Error("P38_BOUNDED_MEDIA_UPNP_IPV6_UNAVAILABLE");
 
 const cloudflarePem = readFileSync(`${homedir()}/.cloudflared/cert.pem`, "utf8");
 const encoded = cloudflarePem.split("\n").filter(line => line && !line.startsWith("-----")).join("");
@@ -66,6 +92,7 @@ const state = {
   private_camera_credentials_exposed: false,
   recurring_cost_introduced: false,
   address_redacted: true,
+  address_source: "UPNP_ACTIVE_LAN_MATCH",
   pinhole_id_recorded: false
 };
 writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`, { flag: "wx", mode: 0o600 });
@@ -83,8 +110,8 @@ async function cleanup(reason) {
   let pinholeRemoved = pinholeId === null;
   if (pinholeId !== null) {
     try {
-      execFileSync("/opt/homebrew/bin/upnpc", ["-6", "-D", String(pinholeId)],
-        { encoding: "utf8", timeout: 20_000, stdio: ["ignore", "pipe", "pipe"] });
+      runUpnp(["-6", "-m", "en0", "-D", String(pinholeId)],
+        "P38_BOUNDED_MEDIA_PINHOLE_REMOVE_FAILED", 20_000);
       pinholeRemoved = true;
     } catch { pinholeRemoved = false; }
   }
@@ -119,16 +146,18 @@ try {
   for (const name of names) records.push(await api(`/zones/${credential.zoneID}/dns_records`, {
     method: "POST", body: JSON.stringify({ type: "AAAA", name, content: address, proxied: false, ttl: 60 })
   }));
-  const pinhole = execFileSync("/opt/homebrew/bin/upnpc", ["-6", "-A", "", "0", address,
-    String(port), "TCP", String(durationSeconds)], { encoding: "utf8", timeout: 30_000,
-    stdio: ["ignore", "pipe", "pipe"] });
-  pinholeId = Number(/unique\s*ID\s*(?:is|:)\s*(\d+)/i.exec(pinhole)?.[1]);
-  if (!Number.isInteger(pinholeId)) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
+  const pinhole = addPinhole(["-6", "-m", "en0", "-A", "", "0", address,
+    String(port), "TCP", String(durationSeconds)]);
+  pinholeId = pinhole ? Number(/unique\s*ID\s*(?:is|:)\s*(\d+)/i.exec(pinhole)?.[1]) : null;
+  if (pinhole && !Number.isInteger(pinholeId)) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
+  const exposureStatus = pinholeId === null ? "PENDING_EXTERNAL_PROOF" : "ACTIVE";
   const startedAt = new Date(); const expiresAt = new Date(startedAt.getTime() + durationSeconds * 1000);
-  writeFileSync(statePath, `${JSON.stringify({ ...state, status: "ACTIVE", started_at: startedAt.toISOString(),
-    expires_at: expiresAt.toISOString(), pinhole_id_recorded: true }, null, 2)}\n`, { mode: 0o600 });
-  console.log(JSON.stringify({ status: "ACTIVE", duration_seconds: durationSeconds, hostnames: names,
-    port, address_redacted: true, auto_cleanup: true, recurring_cost_introduced: false }));
+  writeFileSync(statePath, `${JSON.stringify({ ...state, status: exposureStatus, started_at: startedAt.toISOString(),
+    expires_at: expiresAt.toISOString(), pinhole_id_recorded: pinholeId !== null,
+    firewall_path: pinholeId === null ? "PREEXISTING_REQUIRES_EXTERNAL_PROOF" : "MANAGED_TEMPORARY_PINHOLE" }, null, 2)}\n`, { mode: 0o600 });
+  console.log(JSON.stringify({ status: exposureStatus, duration_seconds: durationSeconds, hostnames: names,
+    port, address_redacted: true, pinhole_managed: pinholeId !== null,
+    auto_cleanup: true, recurring_cost_introduced: false }));
   const timer = setTimeout(async () => process.exit(await cleanup("LEASE_EXPIRED") ? 0 : 1), durationSeconds * 1000);
   for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => {
     clearTimeout(timer); cleanup(signal).then(success => process.exit(success ? 0 : 1));
