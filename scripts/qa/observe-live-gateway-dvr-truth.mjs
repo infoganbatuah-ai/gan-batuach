@@ -75,7 +75,13 @@ async function playback(channel) {
     const playlistResponse = await fetch(url, { signal: AbortSignal.timeout(8000) }).catch(() => null);
     playlistStatus = playlistResponse?.status || 0;
     const playlist = playlistResponse?.ok ? await playlistResponse.text() : "";
-    const segment = playlist.match(/^(segment-\d+\.ts\?token=.+)$/m)?.[1];
+    // Segment grants also carry the relay generation and revision. Treat the
+    // token as a required query parameter, not as the first parameter, so the
+    // proof keeps following the canonical handoff-aware HLS contract.
+    const segment = playlist.split(/\r?\n/).map((line) => line.trim()).find((line) => {
+      if (!/^segment-\d+\.ts\?/.test(line)) return false;
+      try { return new URL(line, url).searchParams.has("token"); } catch { return false; }
+    });
     if (segment) {
       const segmentResponse = await fetch(new URL(segment, url), { signal: AbortSignal.timeout(8000) }).catch(() => null);
       if (segmentResponse?.ok) segmentBytes = (await segmentResponse.arrayBuffer()).byteLength;
