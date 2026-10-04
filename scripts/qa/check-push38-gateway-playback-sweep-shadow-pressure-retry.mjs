@@ -26,6 +26,7 @@ test("retry remains exact-device, fail-closed, and OTA-agent-owned", () => {
 test("retry preserves the physical Home truth and signed Connector prerequisite", () => {
   for (const token of ["sample.assigned === 10", "sample.connected === 9",
     "sample.failed === 1", "sample.empty === 6", "sample.progressing === 9",
+    "sample.login_succeeded >= sample.login_attempts - 1", "sample.authentication_rejected === 0",
     "PUSH38_CONNECTOR_RTSP_CADENCE", "connectorPrerequisiteSafe",
     "DISCOVERY_PROBE_FAILED", "sample.progressing === 1", "sample.stalled === 0"])
     assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));

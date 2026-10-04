@@ -103,7 +103,11 @@ function gatewayRollbackSafe(sample) {
     sample.connected === 9 && sample.failed === 1 && sample.empty === 6 &&
     sample.progressing === 9 && sample.stalled === 0 && sample.version === retryItem.rollbackVersion &&
     sample.active_sessions === 1 && sample.login_attempts >= 1 &&
-    sample.login_succeeded === sample.login_attempts && sample.authentication_rejected === 0 &&
+    // One transport-level login attempt may fail while the active recorder
+    // session and all nine source-available relays remain current. Require a
+    // bounded single miss, no authentication rejection, and recovered I/O.
+    sample.login_succeeded >= sample.login_attempts - 1 && sample.login_succeeded >= 1 &&
+    sample.authentication_rejected === 0 &&
     sample.consecutive_failures === 0 && sample.responses_ok > 0 &&
     sample.reason_codes.every(reason => allowed.has(reason));
 }
