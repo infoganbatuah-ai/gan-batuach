@@ -71,11 +71,25 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/admin/notifications",
     subtitle: "תפעול, אבטחה, מנויים ומוכנות השקה",
     nav: [
-      { href: "/dashboard/admin", label: "בית", icon: Home },
+      { href: "/dashboard/admin", label: "ראשי", icon: Home },
       { href: "/dashboard/admin/kindergartens", label: "גנים", icon: UsersRound },
-      { href: "/dashboard/admin/inspectors", label: "פיקוח", icon: ShieldCheck },
-      { href: "/dashboard/admin/reports", label: "דוחות", icon: BarChart3 },
+      { href: "/dashboard/admin/users", label: "משתמשים", icon: UserRound },
+      { href: "/dashboard/admin/kindergarten-applications", label: "אישורים", icon: ClipboardCheck },
       { href: "/dashboard/admin/settings", label: "עוד", icon: Menu }
+    ],
+    desktopNav: [
+      { href: "/dashboard/admin", label: "ראשי", hint: "תמונת מצב ופעולות", icon: Home },
+      { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "מחזור חיים ומוכנות", icon: UsersRound },
+      { href: "/dashboard/admin/users", label: "משתמשים", hint: "חשבונות והרשאות", icon: UserRound },
+      { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "אישור, שיוך ופיקוח", icon: ShieldCheck },
+      { href: "/dashboard/admin/kindergarten-applications", label: "אישורים", hint: "גנים, מפקחים ומסמכים", icon: ClipboardCheck },
+      { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "גן אל גן בטוח", icon: WalletCards },
+      { href: "/dashboard/admin/complaints", label: "תלונות", hint: "SLA והסלמות", icon: MessageCircle },
+      { href: "/dashboard/admin/provider-production", label: "ספקים ותמיכה", hint: "מוכנות ושירות", icon: Bell },
+      { href: "/dashboard/admin/system-health", label: "מצב מערכת", hint: "בריאות ושירותים", icon: BookOpenCheck },
+      { href: "/dashboard/admin/audit-logs", label: "Audit ואבטחה", hint: "פעולות רגישות", icon: FileText },
+      { href: "/dashboard/admin/reports", label: "דוחות", hint: "אנליטיקה מצרפית", icon: BarChart3 },
+      { href: "/dashboard/admin/settings", label: "הגדרות", hint: "תצורה ומדיניות", icon: Settings }
     ]
   },
   manager: {
