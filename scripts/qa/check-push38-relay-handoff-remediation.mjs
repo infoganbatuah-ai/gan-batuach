@@ -14,6 +14,8 @@ import { HLS_PLAYBACK_HOLDBACK_SEGMENTS, inspectHlsPlaybackPlaylist, nextHlsPlay
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from
   "../../services/video-gateway/relay-recovery-policy.mjs";
+import { awaitRelayTransportRelease } from
+  "../../services/video-gateway/relay-transport-release.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -52,6 +54,37 @@ const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 assert.match(server,
   /const current = relays\.get\(streamId\);[\s\S]*if \(current && current === replacement\)/,
   "deferred HLS cleanup must not treat two absent owners as the same relay");
+
+test("exclusive DVR replacement waits for input and FFmpeg closure", async () => {
+  let releaseInput;
+  let releaseProcess;
+  const relay = {
+    inputCompletion: new Promise(resolve => { releaseInput = resolve; }),
+    processClosed: new Promise(resolve => { releaseProcess = resolve; })
+  };
+  let settled = false;
+  const waiting = awaitRelayTransportRelease(relay, { timeoutMs: 1_000 })
+    .then(result => { settled = true; return result; });
+  await Promise.resolve();
+  releaseInput();
+  await Promise.resolve();
+  assert.equal(settled, false, "the new DVR response must wait for FFmpeg closure too");
+  releaseProcess();
+  assert.equal((await waiting).released, true);
+  assert.match(server,
+    /await stopRelayForExclusiveReplacement\(streamId, previous,[\s\S]*SESSION_SWEEP_OWNER_RELEASE/,
+    "exclusive session replacement must await transport release before opening a new response");
+});
+
+test("exclusive DVR replacement fails closed when transport release times out", async () => {
+  const result = await awaitRelayTransportRelease({
+    inputCompletion: new Promise(() => {}),
+    processClosed: new Promise(() => {})
+  }, { timeoutMs: 5 });
+  assert.equal(result.released, false);
+  assert.match(server, /OWNER_TRANSPORT_RELEASE_TIMEOUT/);
+  assert.match(server, /exclusiveOwnerReleaseTimeouts/);
+});
 
 test("health counts a renewing and progressing handoff as one available source", () => {
   assert.deepEqual(summarizeRelayAvailability([

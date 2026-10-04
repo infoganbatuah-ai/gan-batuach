@@ -73,6 +73,7 @@ import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight
 import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 import { createPrivateNvrCommandRuntime } from "./private-nvr-command-runtime.mjs";
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
+import { awaitRelayTransportRelease } from "./relay-transport-release.mjs";
 import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs,
   shouldQuarantineHardwareTranscoder } from "./hardware-transcoder.mjs";
 import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
@@ -441,6 +442,9 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
   exclusiveRescueColdTakeovers: 0, exclusiveRescueReopens: 0,
   exclusiveRescueReopenFailures: 0,
+  exclusiveOwnerReleaseWaits: 0,
+  exclusiveOwnerReleaseTimeouts: 0,
+  exclusiveOwnerReleaseWaitMs: 0,
   exclusiveRescueConcurrentProbeRejections: 0, exclusiveRescueFailures: 0,
   exclusiveSessionSweepTakeovers: 0, exclusiveSessionSweepFailures: 0,
   retainedHlsContinuityWindows: 0, retainedHlsPlaylistResponses: 0,
@@ -2012,6 +2016,22 @@ function stopRelay(streamId, relay, reason = "REQUESTED_STOP") {
   if (relayCandidates.get(streamId) === relay) relayCandidates.delete(streamId);
 }
 
+async function stopRelayForExclusiveReplacement(streamId, relay, reason) {
+  relayLifecycle.exclusiveOwnerReleaseWaits += 1;
+  stopRelay(streamId, relay, reason);
+  const release = await awaitRelayTransportRelease(relay, {
+    timeoutMs: Math.max(500, Math.min(PROBE_TIMEOUT_MS, 2_000))
+  });
+  relayLifecycle.exclusiveOwnerReleaseWaitMs += release.elapsed_ms;
+  if (!release.released) {
+    relayLifecycle.exclusiveOwnerReleaseTimeouts += 1;
+    relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+      last_failure_reason: "OWNER_TRANSPORT_RELEASE_TIMEOUT",
+      last_failure_at: new Date().toISOString() });
+  }
+  return release.released;
+}
+
 function cleanupRelayDirectories(streamId, replacement, directories) {
   const timer = setTimeout(() => {
     const current = relays.get(streamId);
@@ -2127,6 +2147,7 @@ async function warmReplaceRelay(streamId, previous, {
       ? privateNvrSessions.get(source.sessionKey) : null;
     let expectedCurrent = previous;
     let exclusiveRescue = false;
+    let exclusiveOwnerReleased = true;
     const forcedHardwareOutputRescue = handoffMode === "OUTPUT_RESCUE"
       && previous?.hardwareOutputStalled === true;
     let exclusiveSessionSweep = shouldUsePrivateNvrExclusiveSessionSweep({
@@ -2149,19 +2170,25 @@ async function warmReplaceRelay(streamId, previous, {
       relayLifecycle.exclusiveRescueColdTakeovers += 1;
       relayLifecycle.exclusiveRescueReopens += 1;
       retainExclusivePlayback(streamId, previous, "OUTPUT_RESCUE_EXCLUSIVE");
-      stopRelay(streamId, previous, "HARDWARE_OUTPUT_STALL_OWNER_RELEASE");
+      exclusiveOwnerReleased = await stopRelayForExclusiveReplacement(streamId, previous,
+        "HARDWARE_OUTPUT_STALL_OWNER_RELEASE");
       expectedCurrent = undefined;
     }
     if (exclusiveSessionSweep) {
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
       retainExclusivePlayback(streamId, previous, "SESSION_SWEEP_EXCLUSIVE");
-      stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
+      exclusiveOwnerReleased = await stopRelayForExclusiveReplacement(streamId, previous,
+        "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
     }
-    let replacement = await startRelay(streamId, { warming: true,
-      previousRelay: previous, handoffMode });
+    let replacement = exclusiveOwnerReleased
+      ? await startRelay(streamId, { warming: true,
+        previousRelay: previous, handoffMode })
+      : null;
     let candidateStartFailure = replacement ? null
-      : relayDiagnostics.get(streamId)?.last_failure_reason || null;
+      : exclusiveOwnerReleased
+        ? relayDiagnostics.get(streamId)?.last_failure_reason || null
+        : "owner_transport_release_timeout";
     let observation = null;
     if (replacement && (exclusiveSessionSweep || forcedHardwareOutputRescue)) {
       replacement.previousDirectories = [...new Set([
@@ -2191,12 +2218,12 @@ async function warmReplaceRelay(streamId, previous, {
       relayLifecycle.exclusiveRescueColdTakeovers += 1;
       relayLifecycle.exclusiveRescueConcurrentProbeRejections += 1;
       relayLifecycle.exclusiveRescueReopens += 1;
-      if (ownerNow === previous) {
-        stopRelay(streamId, previous, "OUTPUT_RESCUE_OWNER_RELEASE");
-      }
+      const ownerReleased = ownerNow !== previous ||
+        await stopRelayForExclusiveReplacement(streamId, previous,
+          "OUTPUT_RESCUE_OWNER_RELEASE");
       expectedCurrent = undefined;
-      replacement = await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode });
+      replacement = ownerReleased ? await startRelay(streamId, { warming: true,
+        previousRelay: previous, handoffMode }) : null;
       if (!replacement) candidateStartFailure =
         relayDiagnostics.get(streamId)?.last_failure_reason || candidateStartFailure;
       if (replacement) {
@@ -2234,10 +2261,11 @@ async function warmReplaceRelay(streamId, previous, {
       if (currentSession) currentSession.requiresExclusiveMediaHandoff = true;
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
       retainExclusivePlayback(streamId, previous, "SESSION_SWEEP_EXCLUSIVE");
-      stopRelay(streamId, previous, "SESSION_SWEEP_OWNER_RELEASE");
+      const ownerReleased = await stopRelayForExclusiveReplacement(streamId, previous,
+        "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
-      replacement = await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode });
+      replacement = ownerReleased ? await startRelay(streamId, { warming: true,
+        previousRelay: previous, handoffMode }) : null;
       if (!replacement) candidateStartFailure =
         relayDiagnostics.get(streamId)?.last_failure_reason || candidateStartFailure;
       if (replacement) {
@@ -2407,9 +2435,10 @@ async function warmReplaceRelay(streamId, previous, {
       if (!observation.outputConfirmed && observation.continuationStalled) {
         relayLifecycle.exclusiveRescueReopens += 1;
         const stranded = replacement;
-        stopRelay(streamId, stranded, "EXCLUSIVE_RESCUE_REOPEN");
-        replacement = await startRelay(streamId, { warming: true,
-          previousRelay: stranded, handoffMode });
+        const released = await stopRelayForExclusiveReplacement(streamId,
+          stranded, "EXCLUSIVE_RESCUE_REOPEN");
+        replacement = released ? await startRelay(streamId, { warming: true,
+          previousRelay: stranded, handoffMode }) : null;
         if (replacement) {
           replacement.previousDirectories = [...new Set([
             stranded.directory, ...(stranded.previousDirectories || []),
@@ -2641,6 +2670,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264",
     controller, errorSummary: "", sessionToken, sessionEpoch, sessionKey,
     warming, handoffMode, previousDirectories: [], previousGenerations: [], monitor: null };
+  relay.processClosed = new Promise(resolve => child.once("close", resolve));
   liveRelays.add(relay);
   if (warming) relayCandidates.set(streamId, relay);
   relayLifecycle.starts += 1;
@@ -2656,7 +2686,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     ...(handoffMode ? { last_handoff_mode: handoffMode } : {}) });
   if (!warming) relays.set(streamId, relay);
   if (response?.body && child.stdin) {
-    void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
+    relay.inputCompletion = pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
       relay.lastInputAt = Date.now();
       relay.inputBytes += byteLength;
       relay.inputMetrics.observe(value);
@@ -2700,6 +2730,8 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
       relay.drainTimer = setTimeout(() => child.kill("SIGKILL"), 1500);
       relay.drainTimer.unref();
     });
+  } else {
+    relay.inputCompletion = Promise.resolve();
   }
   relay.monitor = setInterval(() => {
     if (relays.get(streamId) !== relay && !relay.warming && !relay.probationFallback)

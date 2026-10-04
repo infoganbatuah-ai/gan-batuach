@@ -4,7 +4,46 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.75 V8 FAILED AND STOPPED; FINITE-RESPONSE CONTINUITY FIX VALIDATED LOCALLY; SUCCESSOR NOT YET SIGNED`
+`NOT DONE — 0.2.77 PRE-SOAK FAILED; OWNER-TRANSPORT RELEASE FIX VALIDATED LOCALLY; SUCCESSOR NOT YET SIGNED`
+
+## 2026-10-05 0.2.77 PRE-SOAK FAILURE AND OWNER-TRANSPORT RELEASE FIX
+
+Gateway `0.2.77-p38-health` and Connector `0.2.37-p38-health` passed a fresh
+15-minute canary. The following fresh 60-minute pre-soak completed 60 anchored
+checkpoints over 3,600,172 ms but failed and none of its duration is reusable.
+Camera-sample availability was 98.3333%. Gateway was unavailable at two
+checkpoints and Connector at one, with zero supervisor or runtime restarts.
+Playback passed 20/20 samples; AI passed 19/20. The immutable restricted run is
+`exports/restricted/push38-connector-0.2.37-pre-soak-20261004T2105Z/`.
+`result.json` SHA-256 is
+`ef8814d5c314fdf8e80ce621644933e84f3ffb955d86471eab1ee21f217fcd73`
+and `checkpoints.ndjson` SHA-256 is
+`7e6934a28f68920168c30d307a7007e32313614d057fa603edb87070e71f8cbb`.
+
+The run contains two distinct failures. At checkpoint 3, CH3 lost its canonical
+owner for 73.69 seconds after an exclusive session-sweep replacement ended in
+`EXCLUSIVE_RESCUE_ACQUISITION_FAILED` / `source_timeout`. The live code aborted
+the old DVR response and killed FFmpeg, but opened the replacement before the
+input pipe and FFmpeg child had actually closed. The recorder could still count
+the old per-channel response and withhold or reject the replacement. The scoped
+fix now waits for both closures before acquisition, uses a bounded two-second
+deadline, fails closed on timeout, and exposes wait/timeout telemetry.
+
+At checkpoint 19, both component probes were delayed together without a process
+restart. macOS recorded critical memory/swap/low-disk pressure while a stale
+Codex/CUA worker consumed about 160% CPU and 1.1 GiB RSS. Resetting that stale
+worker returned load averages from the hundreds to approximately 6.5/8.7/11.3,
+memory free to roughly 62%, and free disk to roughly 19 GiB while both live
+component PIDs remained unchanged. This is qualification-host interference, not
+a recorder authentication/session or camera-runtime crash. Formal canary,
+pre-soak and V8 will run with unrelated heavy development/CUA work excluded.
+
+Focused relay QA passes 33/33 plus the existing release regressions. TypeScript,
+canonical lint, Production-compatible build, domain 30/30,
+security/isolation 37/37, migration health and release contract all pass locally.
+Exact-commit protected CI, immutable successor packaging, AWS signature,
+private-R2 round trip, exact-device activation, live OTA, a new canary, a new
+pre-soak and a new V8 from zero remain. `main` and Production are unchanged.
 
 ## 2026-10-04 0.2.75 V8 FINITE-RESPONSE CONTINUITY FAILURE
 

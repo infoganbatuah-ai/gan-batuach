@@ -1,5 +1,16 @@
 # PUSH 38 v8 readiness — NOT READY
 
+2026-10-05 update: Gateway `0.2.77-p38-health` and Connector
+`0.2.37-p38-health` passed a fresh canary, but the next fresh 60-minute
+pre-soak failed at CH3 during an exclusive owner replacement and at one
+host-wide checkpoint under critical development-host pressure. The immutable
+run completed 60 checkpoints over 3,600,172 ms and is not reusable. The scoped
+Gateway correction waits for both the old DVR input pipe and FFmpeg process to
+close before requesting the replacement response; it fails closed after a
+bounded deadline and exposes release-wait telemetry. All six local gates and
+focused deterministic QA pass. A signed exact-device successor, live proof, a
+new canary and a new pre-soak are still required. V8 remains not started.
+
 2026-10-02 update: the completed post-remediation 60-minute pre-soak failed and
 is preserved as failed evidence. A subsequent 900,019 ms canary for Gateway
 0.2.58 also failed the DVR camera-sample gate at 145/150 despite 100% Gateway
