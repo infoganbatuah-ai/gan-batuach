@@ -1,0 +1,402 @@
+{
+  "generatedAt": "2026-10-04T10:52:20.016Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3017",
+  "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_PLATFORM_ADMIN_FULL_PLATFORM.png",
+  "sourceReferenceSha256": "ccdd55229842b15ab15adeb66dcb1232b82641dbb8135ed77092a9e43b6647d6",
+  "concepts": 19,
+  "captures": 38,
+  "ownerReviewReady": 38,
+  "needsPolish": 0,
+  "visualDrift": 0,
+  "broken": 0,
+  "productionAccess": false,
+  "digitalObserverCoreDiff": 0,
+  "canonicalAdminAreas": 12,
+  "deviations": [
+    "Specialist routes remain reachable inside their canonical parent areas and are omitted from the primary navigation.",
+    "Provider health remains setup-required or degraded when Production verification evidence is absent."
+  ],
+  "items": [
+    {
+      "domain": "Platform Admin",
+      "screen": "admin-dashboard",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/admin-dashboard-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "admin-dashboard",
+      "viewport": "390×844",
+      "route": "/dashboard/admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/admin-dashboard-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "gardens-list",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/kindergartens",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/gardens-list-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "gardens-list",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/kindergartens",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/gardens-list-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "garden-detail",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/gardens/97000000-0000-4000-8000-000000000002",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/garden-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "garden-detail",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/gardens/97000000-0000-4000-8000-000000000002",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/garden-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "pending-garden-approval",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/kindergarten-applications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/pending-garden-approval-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "pending-garden-approval",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/kindergarten-applications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/pending-garden-approval-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "users-list",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/users",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/users-list-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "users-list",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/users",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/users-list-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "user-detail",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/users",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/user-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "user-detail",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/users",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/user-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "roles-permissions",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/users",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/roles-permissions-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "roles-permissions",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/users",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/roles-permissions-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "inspector-approvals",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/inspector-applications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/inspector-approvals-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "inspector-approvals",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/inspector-applications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/inspector-approvals-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "subscriptions",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/subscriptions",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/subscriptions-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "subscriptions",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/subscriptions",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/subscriptions-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "provider-unavailable",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/provider-production",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/provider-unavailable-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "provider-unavailable",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/provider-production",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/provider-unavailable-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "complaints",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/complaints",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/complaints-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "complaints",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/complaints",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/complaints-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "escalated-complaint",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/complaints",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/escalated-complaint-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "escalated-complaint",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/complaints",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/escalated-complaint-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "system-status",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/system-health",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/system-status-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "system-status",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/system-health",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/system-status-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "audit",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/audit-logs",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/audit-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "audit",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/audit-logs",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/audit-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "reports-entry",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/reports",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/reports-entry-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "reports-entry",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/reports",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/reports-entry-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "settings",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/settings",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/settings-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "settings",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/settings",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/settings-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "recent-activity",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/recent-activity-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "recent-activity",
+      "viewport": "390×844",
+      "route": "/dashboard/admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/recent-activity-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "empty-action-center",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/empty-action-center-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "empty-action-center",
+      "viewport": "390×844",
+      "route": "/dashboard/admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/empty-action-center-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "degraded-state",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/system-health",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/degraded-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    },
+    {
+      "domain": "Platform Admin",
+      "screen": "degraded-state",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/system-health",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-17/qa-evidence/ux-implement-17/screenshots/degraded-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "privacy": "aggregate or intentionally authorized operational context",
+      "productionAccess": false
+    }
+  ]
+}

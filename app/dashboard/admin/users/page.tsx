@@ -33,9 +33,9 @@ export default async function AdminUsersPage() {
   return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/users" title="ניהול משתמשים" subtitle="חשבונות, הרשאות, שיוכים ופעולות זהירות במקום אחד." badge="משתמשים">
     <PremiumCard size="lg" className="admin-section-card">
       <SectionHeader eyebrow="משתמשים" title="ניהול חשבונות והרשאות" subtitle="מנהלות, הורים, צוות, מפקחים ואדמין, עם Audit ושיוך גן ברור." icon={UsersRound} />
-      <StatusChip tone={configured ? "success" : "danger"}>{configured ? "מוכן לפעולות אדמין" : "נדרשת הגדרת Service Role"}</StatusChip>
+      <StatusChip tone={configured ? "success" : "danger"}>{configured ? "מוכן לפעולות אדמין" : "שירות ניהול החשבונות אינו זמין"}</StatusChip>
     </PremiumCard>
-    {!configured ? <div className="error-banner">SUPABASE_SERVICE_ROLE_KEY חסר. יצירת משתמשים ואיפוס סיסמה דורשים להגדיר אותו ב-Vercel Environment Variables.</div> : null}
+    {!configured ? <div className="error-banner">יצירת משתמשים ואיפוס סיסמה אינם זמינים כרגע. יש לפנות לבעל הרשאת תשתית.</div> : null}
     <AdminDataError message={result.error ?? result.data.queryError} />
     <AdminUsersManagement users={result.data.users} auditLogs={result.data.auditLogs} />
   </AdminAppFrame>;

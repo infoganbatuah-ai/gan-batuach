@@ -1,40 +1,10 @@
-import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
-import {
-  BarChart3,
-  Bell,
-  CalendarDays,
-  ChevronLeft,
-  CreditCard,
-  Home,
-  Menu,
-  Search,
-  ShieldCheck,
-  UserRound
-} from "lucide-react";
-import { Avatar } from "@/components/avatar";
-import {
-  AppShell,
-  BottomNav,
-  ResponsivePage,
-  SidebarNav
-} from "@/components/gan-batuach-design-system";
 import { RoleAppShell } from "@/components/role-app-shell";
 
 type AdminProfile = {
   full_name?: string | null;
   profile_image_url?: string | null;
 };
-
-const adminNavItems = [
-  { href: "/dashboard/admin", label: "ראשי", icon: ShieldCheck },
-  { href: "/dashboard/admin/kindergarten-applications", label: "אישורים", icon: CalendarDays },
-  { href: "/dashboard/admin/users", label: "משתמשים", icon: UserRound },
-  { href: "/dashboard/admin/subscriptions", label: "תשלומים", icon: CreditCard },
-  { href: "/dashboard/admin/notifications", label: "התראות", icon: Bell, badge: "2" },
-  { href: "/dashboard/admin/settings", label: "עוד", icon: Menu }
-];
 
 export function AdminAppFrame({
   profile,

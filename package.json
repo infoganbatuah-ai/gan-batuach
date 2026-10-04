@@ -88,6 +88,8 @@
     "qa:ux15-visual": "node scripts/qa/capture-ux15-reports-analytics.mjs",
     "qa:ux16-focused": "node --experimental-strip-types --test scripts/qa/check-ux16-safety-cameras.mjs",
     "qa:ux16-visual": "node scripts/qa/capture-ux16-safety-cameras.mjs",
+    "qa:ux17-focused": "node --test scripts/qa/check-ux17-platform-admin.mjs",
+    "qa:ux17-visual": "node scripts/qa/capture-ux17-platform-admin.mjs",
     "qa:management-legacy-consolidation": "node --test scripts/qa/check-management-legacy-consolidation.mjs",
     "qa:management-dashboard-e2e": "node scripts/qa/run-management-dashboard-role-e2e.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",

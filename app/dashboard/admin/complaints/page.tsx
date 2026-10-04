@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { AdminDataError } from "@/components/admin-data-state";
 import { AdminReportsCenter } from "@/components/admin-reports-center";
 import { ComplaintWorkspace } from "@/components/complaint-workspace";
@@ -11,7 +11,7 @@ type ComplaintRows = ComponentProps<typeof ComplaintWorkspace>["rows"];
 type IncidentRow = Record<string, unknown>;
 
 export default async function AdminReportsAndComplaintsPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("דיווחים ופניות", async () => {
     const supabase = createAdminClient();
     const [complaintsRes, incidentsRes] = await Promise.all([
@@ -22,9 +22,9 @@ export default async function AdminReportsAndComplaintsPage() {
     return { complaints: (complaintsRes.data ?? []) as unknown as ComplaintRows, incidents: (incidentsRes.data ?? []) as unknown as IncidentRow[], queryError: complaintsRes.error || incidentsRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { complaints: [] as ComplaintRows, incidents: [] as IncidentRow[], queryError: null as string | null });
 
-  return <DashboardShell role="admin" title="דיווחים ופניות">
+  return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/complaints" title="תלונות והסלמות" subtitle="פיקוח פלטפורמה לפי הרשאה, SLA והצורך התפעולי." badge="תלונות">
     <AdminDataError message={result.error ?? result.data.queryError} />
     <ComplaintWorkspace rows={result.data.complaints} role="admin" title="תלונות מכל המערכת" scopeMessage="תצוגת אדמין מורשית. פעולות ותוכן מוצגים לפי מדיניות ההרשאה והבידוד הקנונית." />
     {result.data.incidents.length ? <details className="teacher-management-details"><summary>דיווחי אירוע נפרדים</summary><AdminReportsCenter complaints={[]} incidents={result.data.incidents} /></details> : null}
-  </DashboardShell>;
+  </AdminAppFrame>;
 }

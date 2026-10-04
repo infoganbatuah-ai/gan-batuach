@@ -13,15 +13,15 @@ import { createClient } from "@/lib/supabase/server";
 type Row = Record<string, any>;
 type Tone = "default" | "good" | "warn" | "bad";
 
-const providerTypes: Array<{ type: IntegrationType; title: string; icon: typeof Mail; modeLabel: string }> = [
-  { type: "email", title: "Email", icon: Mail, modeLabel: "COMMUNICATIONS_SEND_MODE" },
-  { type: "whatsapp", title: "WhatsApp", icon: MessageCircle, modeLabel: "COMMUNICATIONS_SEND_MODE" },
-  { type: "sms", title: "SMS", icon: Smartphone, modeLabel: "COMMUNICATIONS_SEND_MODE" },
-  { type: "push", title: "Push", icon: BellRing, modeLabel: "PUSH_MODE" },
-  { type: "payment", title: "Payments", icon: CreditCard, modeLabel: "PAYMENT_MODE" },
-  { type: "invoice", title: "Invoices", icon: FileText, modeLabel: "INVOICE_MODE" },
-  { type: "camera_gateway", title: "Camera Gateway", icon: Camera, modeLabel: "CAMERA_GATEWAY_MODE" },
-  { type: "ai_provider", title: "AI Provider", icon: Brain, modeLabel: "AI_PROVIDER_MODE" }
+const providerTypes: Array<{ type: IntegrationType; title: string; icon: typeof Mail }> = [
+  { type: "email", title: "דוא״ל", icon: Mail },
+  { type: "whatsapp", title: "WhatsApp", icon: MessageCircle },
+  { type: "sms", title: "SMS", icon: Smartphone },
+  { type: "push", title: "התראות Push", icon: BellRing },
+  { type: "payment", title: "תשלומים", icon: CreditCard },
+  { type: "invoice", title: "חשבוניות", icon: FileText },
+  { type: "camera_gateway", title: "שער מצלמות", icon: Camera },
+  { type: "ai_provider", title: "שירות AI", icon: Brain }
 ];
 
 async function safeQuery<T>(label: string, run: () => any) {
@@ -82,6 +82,11 @@ function money(value: unknown) {
 function dateText(value?: string | null) {
   if (!value) return "עדיין לא";
   return new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+}
+
+function providerDisplay(value?: string | null) {
+  if (!value || value === "selected_provider" || value === "not_selected") return "ספק טרם נבחר";
+  return "ספק מוגדר";
 }
 
 function toneForScore(score: number): Tone {
@@ -170,32 +175,32 @@ export default async function ProviderProductionPage() {
     <AdminAppFrame profile={profile} activeHref="/dashboard/admin/provider-production" title="בריאות ספקים" subtitle="ספקי תקשורת, תשלום, חשבוניות, Camera Gateway ו־AI תחת בקרה." badge="ספקים">
       <div className="commercial-dashboard">
         <PremiumDashboardHero
-          eyebrow="Provider Production Activation"
-          title="הפעלת ספקי Production בצורה מבוקרת"
-          subtitle="מרכז שליטה להפעלת ספקי Email, WhatsApp, SMS, Push, תשלומים, חשבוניות, Camera Gateway, AI ו-Webhooks. אין שליחה רחבה ואין חיובים חיים בלי דגלי env ואישור אדמין."
+          eyebrow="מוכנות ספקים חיצוניים"
+          title="הפעלת ספקים בצורה מבוקרת"
+          subtitle="מרכז שליטה לערוצי תקשורת, תשלומים, חשבוניות, מצלמות ושירותי AI. הפעלה חיה דורשת אימות שרת ואישור מנהל מורשה."
           badge={`${readiness}/100`}
           badgeTone={toneForScore(readiness)}
-          actions={<><Link className="button primary" href="#test-center">Safe test center</Link><Link className="button secondary" href="/dashboard/admin/integrations">Integrations</Link></>}
+          actions={<><Link className="button primary" href="#test-center">מרכז בדיקות בטוח</Link><Link className="button secondary" href="/dashboard/admin/integrations">הגדרות חיבור</Link></>}
         >
           <div className="setup-checklist">
-            <span>No hardcoded secrets</span>
-            <span>No client service keys</span>
-            <span>No mass sends</span>
-            <span>No live charge by default</span>
+            <span>סודות נשמרים בצד השרת</span>
+            <span>אין מפתחות שירות בדפדפן</span>
+            <span>אין שליחה המונית</span>
+            <span>אין חיוב חי כברירת מחדל</span>
           </div>
         </PremiumDashboardHero>
         <AdminDataError message={result.error} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Activation readiness" value={`${readiness}/100`} hint={label(score.production_activation_status)} tone={toneForScore(readiness)} />
-          <RoleMetricCard label="Production active" value={productionActive} hint={`${productionPending} pending`} tone={productionActive ? "good" : "warn"} />
-          <RoleMetricCard label="Webhooks ready" value={`${webhookReady}/${data.webhooks.length || 8}`} hint="signature + replay + idempotency" tone={webhookReady ? "good" : "warn"} />
-          <RoleMetricCard label="Rollback ready" value={`${rollbackReady}/${data.rollbacks.length || 6}`} hint="preserve logs and customer state" tone={rollbackReady ? "good" : "warn"} />
-          <RoleMetricCard label="Provider issues" value={failedOrDegraded} hint="degraded, failed or high alert" tone={failedOrDegraded ? "bad" : "good"} />
-          <RoleMetricCard label="Estimated monthly cost" value={money(totalEstimatedCost)} hint="provider cost tracking baseline" tone="warn" />
+          <RoleMetricCard label="מוכנות להפעלה" value={`${readiness}/100`} hint={label(score.production_activation_status)} tone={toneForScore(readiness)} />
+          <RoleMetricCard label="פעילים בסביבה חיה" value={productionActive} hint={`${productionPending} ממתינים`} tone={productionActive ? "good" : "warn"} />
+          <RoleMetricCard label="חיבורי אירועים מוכנים" value={`${webhookReady}/${data.webhooks.length || 8}`} hint="חתימה, מניעת כפילויות והתאוששות" tone={webhookReady ? "good" : "warn"} />
+          <RoleMetricCard label="התאוששות מוכנה" value={`${rollbackReady}/${data.rollbacks.length || 6}`} hint="שמירת לוגים ומצב לקוח" tone={rollbackReady ? "good" : "warn"} />
+          <RoleMetricCard label="תקלות ספקים" value={failedOrDegraded} hint="שירותים שדורשים טיפול" tone={failedOrDegraded ? "bad" : "good"} />
+          <RoleMetricCard label="עלות חודשית משוערת" value={money(totalEstimatedCost)} hint="בסיס מעקב עלויות" tone="warn" />
         </section>
 
-        <CleanSection title="Production Safety Flags" subtitle="ברירת המחדל נשארת בטוחה. Production דורש env מפורש, בדיקת ספק ואישור owner.">
+        <CleanSection title="מצבי הפעלה בטוחים" subtitle="ברירת המחדל נשארת בטוחה. הפעלה חיה דורשת הגדרת שרת, בדיקת ספק ואישור בעלים.">
           <div className="communication-template-grid">
             {providerTypes.map((item) => {
               const mode = modeFor(item.type, modes);
@@ -203,7 +208,7 @@ export default async function ProviderProductionPage() {
                 <article className="communication-template-card" key={item.type}>
                   <div>
                     <strong>{item.title}</strong>
-                    <span>{item.modeLabel} = {mode}</span>
+                    <span>מצב נוכחי: {label(String(mode))}</span>
                   </div>
                   <StatusBadge tone={String(mode).includes("production") || mode === "live" ? "warn" : "good"}>{label(String(mode))}</StatusBadge>
                 </article>
@@ -212,7 +217,7 @@ export default async function ProviderProductionPage() {
           </div>
         </CleanSection>
 
-        <CleanSection title="Provider Activation Status" subtitle="כל ספק חייב env, webhook, test, audit, fallback ו-rollback לפני production_active.">
+        <CleanSection title="מצב הפעלת ספקים" subtitle="כל ספק חייב הגדרת שרת, חיבור אירועים, בדיקה, תיעוד ויכולת התאוששות לפני הפעלה חיה.">
           <div className="communication-channel-grid">
             {providerCards.map((card) => {
               const Icon = card.icon;
@@ -223,22 +228,22 @@ export default async function ProviderProductionPage() {
                     <span className="communication-channel-icon"><Icon size={22} /></span>
                     <div>
                       <h3>{card.title}</h3>
-                      <p>{card.checklist?.notes ?? `${card.title} production readiness`}</p>
+                      <p>מוכנות תפעולית והרשאה לערוץ זה</p>
                     </div>
                     <StatusBadge tone={toneForStatus(card.status)}>{label(card.status)}</StatusBadge>
                   </div>
                   <div className="communication-provider-list">
                     <div className="communication-provider-row">
                       <div>
-                        <strong>{card.checklist?.provider ?? card.rows[0]?.provider ?? "selected_provider"}</strong>
-                        <span>{missing.length ? `Missing: ${missing.slice(0, 3).join(", ")}` : "No missing env detected from server context"}</span>
+                        <strong>{providerDisplay(card.checklist?.provider ?? card.rows[0]?.provider)}</strong>
+                        <span>{missing.length ? "נדרשת השלמת הגדרה מאובטחת בצד השרת" : "הגדרת השרת נבדקה ללא חשיפת פרטים פנימיים"}</span>
                       </div>
-                      <StatusBadge tone={card.checklist?.owner_approved ? "good" : "warn"}>{card.checklist?.owner_approved ? "owner approved" : "approval required"}</StatusBadge>
+                      <StatusBadge tone={card.checklist?.owner_approved ? "good" : "warn"}>{card.checklist?.owner_approved ? "אושר בידי בעלים" : "נדרש אישור"}</StatusBadge>
                     </div>
                     <div className="communication-provider-row">
                       <div>
-                        <strong>Health</strong>
-                        <span>delivery {card.health?.delivery_rate_percent ?? 0}% · latency {card.health?.latency_ms ?? "TBD"}ms · last success {dateText(card.health?.last_successful_request_at)}</span>
+                        <strong>מצב שירות</strong>
+                        <span>מסירה {card.health?.delivery_rate_percent ?? 0}% · הצלחה אחרונה {dateText(card.health?.last_successful_request_at)}</span>
                       </div>
                       <StatusBadge tone={toneForStatus(card.health?.rollback_status)}>{label(card.health?.rollback_status ?? "available")}</StatusBadge>
                     </div>
@@ -250,32 +255,32 @@ export default async function ProviderProductionPage() {
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
-          <CleanSection title="Payment & Invoice Separation" subtitle="שלושה זרמי כסף נפרדים: גן בטוח, תשלומי הורים לגן, Digital Observer. אין raw card data.">
+          <CleanSection title="הפרדת תשלומים וחשבוניות" subtitle="שלושה זרמי כסף נפרדים: גן בטוח, תשלומי הורים לגן ו־Digital Observer. פרטי כרטיס אינם מוצגים.">
             <div className="camera-infra-list">
               {[
-                ["Gan Batuach subscription", "Kindergarten → Gan Batuach company account", "800 NIS/month + 200 NIS per extra class"],
-                ["Parent tuition", "Parent → kindergarten account/provider", "Gan Batuach facilitates only"],
-                ["Digital Observer", "Standalone customer → Digital Observer product account", "package / trial / paid beta / active"]
+                ["מנוי גן בטוח", "גן → חשבון החברה", "תמחור המנוי הקנוני"],
+                ["שכר לימוד הורים", "הורה → חשבון או ספק הגן", "גן בטוח מתווך בלבד"],
+                ["Digital Observer", "לקוח עצמאי → חשבון המוצר", "חבילה, ניסיון או מנוי פעיל"]
               ].map(([title, flow, detail]) => (
                 <article className="camera-infra-row" key={title}>
                   <div>
                     <strong>{title}</strong>
                     <span>{flow}</span>
                   </div>
-                  <StatusBadge tone="good">separated</StatusBadge>
+                  <StatusBadge tone="good">מופרד</StatusBadge>
                   <small>{detail}</small>
                 </article>
               ))}
             </div>
           </CleanSection>
 
-          <CleanSection title="Webhook Infrastructure" subtitle="חתימה, replay protection, idempotency, event logging, retry ו-dead-letter readiness.">
+          <CleanSection title="תשתית חיבורי אירועים" subtitle="חתימה, מניעת שליחה חוזרת, מניעת כפילויות, תיעוד וניסיון חוזר.">
             <div className="procedure-list compact-list">
               {data.webhooks.map((webhook) => (
                 <div className="mini-row" key={webhook.id ?? webhook.webhook_key}>
                   <span>{webhook.webhook_key}</span>
                   <strong><StatusBadge tone={toneForStatus(webhook.status)}>{label(webhook.status)}</StatusBadge></strong>
-                  <small>{webhook.endpoint_path} · {webhook.signing_secret_env ?? "secret env required"}</small>
+                  <small>פרטי החיבור והחתימה נשמרים בצד השרת</small>
                 </div>
               ))}
             </div>
@@ -283,46 +288,46 @@ export default async function ProviderProductionPage() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <CleanSection title="Provider Health & Costs" subtitle="בקשות אחרונות, שגיאות, latency, delivery rate, rate limits ועלות חודשית לפי מוצר/ערוץ.">
+          <CleanSection title="מצב ספקים ועלויות" subtitle="שיעורי הצלחה, מסירה ועלות חודשית לפי מוצר וערוץ.">
             <div className="procedure-list compact-list">
               {data.health.map((item) => (
                 <div className="mini-row" key={item.id ?? item.metric_key}>
                   <span>{label(item.integration_type)} · {item.provider}</span>
                   <strong><StatusBadge tone={toneForStatus(item.provider_status)}>{label(item.provider_status)}</StatusBadge></strong>
-                  <small>error {item.error_rate_percent}% · delivery {item.delivery_rate_percent}% · {item.next_action}</small>
+                  <small>שגיאות {item.error_rate_percent}% · מסירה {item.delivery_rate_percent}% · הפעולה הבאה מוצגת ללא פרטי תשתית</small>
                 </div>
               ))}
               {data.costs.map((item) => (
                 <div className="mini-row" key={item.id ?? item.cost_key}>
                   <span>{label(item.product)} · {label(item.channel)} · {item.provider}</span>
                   <strong><StatusBadge tone={toneForStatus(item.status)}>{money(item.estimated_cost_nis)}</StatusBadge></strong>
-                  <small>{item.unit_count} units · {dateText(item.cost_month)}</small>
+                  <small>{item.unit_count} יחידות · {dateText(item.cost_month)}</small>
                 </div>
               ))}
             </div>
           </CleanSection>
 
-          <CleanSection title="Incidents, Fallbacks & Rollback" subtitle="כל כשל ספק חייב fallback בטוח ויכולת rollback בלי מחיקת נתונים.">
+          <CleanSection title="תקלות והתאוששות" subtitle="כל כשל ספק דורש חלופה בטוחה ויכולת חזרה ללא מחיקת נתונים.">
             <div className="procedure-list compact-list">
               {data.alerts.map((alert) => (
                 <div className="mini-row" key={alert.id ?? alert.alert_key}>
                   <span>{label(alert.alert_type)}</span>
                   <strong><StatusBadge tone={toneForStatus(alert.severity)}>{label(alert.severity)}</StatusBadge></strong>
-                  <small>{alert.message} · fallback: {alert.fallback_action}</small>
+                  <small>פרטי התקלה זמינים לבעלי הרשאה; מעבר לערוץ חלופי נשאר מבוקר</small>
                 </div>
               ))}
               {data.fallbacks.map((rule) => (
                 <div className="mini-row" key={rule.id ?? rule.rule_key}>
-                  <span>{rule.trigger_channel} · {rule.trigger_condition}</span>
+                  <span>{label(rule.trigger_channel)} · כלל התאוששות</span>
                   <strong><StatusBadge tone={toneForStatus(rule.status)}>{label(rule.status)}</StatusBadge></strong>
-                  <small>{rule.fallback_action}</small>
+                  <small>הפעולה המלאה נשמרת בצד השרת</small>
                 </div>
               ))}
               {data.rollbacks.map((rollback) => (
                 <div className="mini-row" key={rollback.id ?? rollback.rollback_key}>
                   <span>{label(rollback.integration_type)} · {rollback.provider}</span>
-                  <strong><StatusBadge tone={toneForStatus(rollback.rollback_status)}>{rollback.current_mode} → {rollback.rollback_mode}</StatusBadge></strong>
-                  <small>preserves logs, invoices, payment records, delivery records and customer state</small>
+                  <strong><StatusBadge tone={toneForStatus(rollback.rollback_status)}>{label(rollback.rollback_status)}</StatusBadge></strong>
+                  <small>שומר לוגים, חשבוניות, תשלומים, מסירות ומצב לקוח</small>
                 </div>
               ))}
             </div>
@@ -330,40 +335,40 @@ export default async function ProviderProductionPage() {
         </section>
 
         <section id="test-center" className="grid cols-2 dashboard-panels">
-          <CleanSection title="Real Test Send Center" subtitle="בדיקות רק לנמענים פנימיים מאושרים, עם אישור אדמין ולוג מלא. אין mass tests.">
+          <CleanSection title="מרכז בדיקות בטוח" subtitle="בדיקות רק לנמענים פנימיים מאושרים, עם אישור מנהל ולוג מלא. אין בדיקות המוניות.">
             <div className="procedure-list compact-list">
               {data.tests.map((test) => (
                 <div className="mini-row" key={test.id ?? test.test_key}>
                   <span>{label(test.test_type)} · {test.provider}</span>
                   <strong><StatusBadge tone={toneForStatus(test.last_test_status)}>{label(test.last_test_status)}</StatusBadge></strong>
-                  <small>{test.next_action} · last {dateText(test.last_test_at)}</small>
+                  <small>בדיקה אחרונה {dateText(test.last_test_at)}</small>
                 </div>
               ))}
             </div>
             <AdminIntegrationsTestPanel integrations={data.integrations.map((item) => ({ integration_type: item.integration_type, provider: item.provider, status: item.status }))} />
           </CleanSection>
 
-          <CleanSection title="Production Runbooks" subtitle="תקלות ספקים, webhook failure, מניעת mass-send ומניעת duplicate payment.">
+          <CleanSection title="נוהלי התאוששות" subtitle="תקלות ספקים, כשלי חיבור, מניעת שליחה המונית ומניעת תשלום כפול.">
             <div className="procedure-list compact-list">
               {data.runbooks.map((runbook) => (
                 <div className="mini-row" key={runbook.id ?? runbook.runbook_key}>
                   <span>{runbook.title}</span>
                   <strong><StatusBadge tone={toneForStatus(runbook.status)}>{label(runbook.status)}</StatusBadge></strong>
-                  <small>{runbook.escalation_owner ?? "Owner TBD"} · rollback {runbook.rollback_reference ?? "manual"}</small>
+                  <small>גורם אחראי ונתיב התאוששות נשמרים ברשומה המורשית</small>
                 </div>
               ))}
             </div>
           </CleanSection>
         </section>
 
-        <CleanSection title="Recent Delivery Logs" subtitle="לוג אחיד לכל הערוצים, כולל queued/sent/delivered/read/opened/failed/skipped/blocked/retried.">
+        <CleanSection title="לוגי מסירה אחרונים" subtitle="לוג אחיד לכל הערוצים ולכל מצבי המסירה הקנוניים.">
           {data.deliveryLogs.length ? (
             <div className="communication-log-list">
               {data.deliveryLogs.map((log) => (
                 <article className="communication-log-row" key={log.id}>
                   <div>
                     <strong>{log.channel} · {log.provider}</strong>
-                    <span>{log.template ?? "provider event"} · {dateText(log.delivered_at ?? log.sent_at ?? log.failed_at ?? log.created_at)}</span>
+                    <span>אירוע ספק · {dateText(log.delivered_at ?? log.sent_at ?? log.failed_at ?? log.created_at)}</span>
                   </div>
                   <StatusBadge tone={String(log.status).includes("failed") ? "bad" : "good"}>{label(log.status)}</StatusBadge>
                 </article>

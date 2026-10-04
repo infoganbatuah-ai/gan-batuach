@@ -1,51 +1,83 @@
 import Link from "next/link";
-import { AlertTriangle, Bot, Camera, ClipboardCheck, FileText, ShieldCheck, UserRound, UsersRound } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { StatCard } from "@/components/stat-card";
-import { InspectionOverrideButton } from "@/components/inspection-override-button";
-import { AdminGardenMessageForm } from "@/components/admin-garden-message-form";
+import { Activity, Building2, ClipboardCheck, FileText, MessageSquareWarning, ShieldCheck, UsersRound, WalletCards } from "lucide-react";
+import { AdminAppFrame } from "@/components/admin-app-ui";
+import { AdminDataError } from "@/components/admin-data-state";
+import { DashboardGrid, EmptyState, MetricCard, PremiumCard, SectionHeader, StatusChip } from "@/components/gan-batuach-design-system";
+import { AdminSectionIntro, AdminTruthState } from "@/components/platform-admin-ui";
+import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 
+type GardenRecord = { id: string; name?: string | null; city?: string | null; address?: string | null; status?: string | null; approval_flow_status?: string | null; final_approval_status?: string | null; owner_name?: string | null; owner?: { full_name?: string | null } | null; manager?: { full_name?: string | null } | null; inspector?: { full_name?: string | null } | null };
+type StaffRecord = { approved_to_work?: boolean | null };
+type StatusRecord = { status?: string | null };
+type InspectionRecord = StatusRecord & { completed_at?: string | null; violation_count?: number | null; weighted_score?: number | null };
+type SubscriptionRecord = StatusRecord & { billing_status?: string | null };
+type AuditRecord = { id: string; action?: string | null; actor_role?: string | null; created_at?: string | null };
+
+function tone(value?: string | null): "success" | "warning" | "danger" | "muted" {
+  if (["active", "approved", "verified", "healthy", "done", "completed"].includes(String(value))) return "success";
+  if (["suspended", "blocked", "rejected", "expired", "payment_failed"].includes(String(value))) return "danger";
+  if (["pending", "preliminary", "replacement_required", "degraded"].includes(String(value))) return "warning";
+  return "muted";
+}
+
+function label(value?: string | null) {
+  const labels: Record<string, string> = { active: "פעיל", approved: "מאושר", pending: "ממתין", preliminary: "מקדים", suspended: "מושהה", blocked: "חסום", verified: "מאומת", rejected: "נדחה", expired: "פג תוקף", replacement_required: "נדרשת החלפה", healthy: "תקין", degraded: "מוגבל", unavailable: "לא זמין", manual: "ידני", payment_failed: "כשל תשלום" };
+  return labels[String(value ?? "")] ?? "דורש בדיקה";
+}
+
 export default async function AdminGardenProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const { id } = await params;
-  const supabase = await createClient();
-  const [gardenRes, recipientsRes, children, parents, staff, attendance, complaints, tasks, docs, cameras, aiEvents, inspections, leads] = await Promise.all([
-    supabase.from("gardens").select("*, manager:profiles!gardens_manager_id_fkey(id, full_name, phone), owner:profiles!gardens_owner_profile_id_fkey(id, full_name, phone, role), inspector:profiles!gardens_inspector_id_fkey(id, full_name)").eq("id", id).single(),
-    supabase.from("profiles").select("id, full_name, role").eq("garden_id", id).in("role", ["manager", "owner"]),
-    supabase.from("children").select("id, full_name, status, parent_completed, manager_approved_at").eq("garden_id", id).limit(20),
-    supabase.from("parents").select("id, full_name, phone, email, status").eq("garden_id", id).limit(20),
-    supabase.from("staff").select("id, full_name, role_title, background_check_status, police_clearance_status, approved_to_work").eq("garden_id", id).limit(20),
-    supabase.from("attendance").select("id, status, attendance_date").eq("garden_id", id).limit(100),
-    supabase.from("complaints").select("id, subject, severity, status").eq("garden_id", id).neq("status", "closed").limit(10),
-    supabase.from("tasks").select("id, title, status, due_at").eq("garden_id", id).neq("status", "done").limit(10),
-    supabase.from("documents").select("id, name, document_type, status, expires_at").eq("garden_id", id).limit(10),
-    supabase.from("camera_streams").select("id, name, area, status, active, parent_view_allowed").eq("garden_id", id).limit(10),
-    supabase.from("ai_events").select("id, event_type, severity, status, confidence, detected_at").eq("garden_id", id).order("detected_at", { ascending: false }).limit(10),
-    supabase.from("inspections").select("id, status, weighted_score, completed_at, violation_count").eq("garden_id", id).order("created_at", { ascending: false }).limit(5),
-    supabase.from("leads").select("id, parent_name, phone, child_name, status").eq("garden_id", id).eq("lead_type", "parent").limit(10)
-  ]);
-  const garden = gardenRes.data as any;
-  const attendanceRows = attendance.data ?? [];
-  const presentCount = attendanceRows.filter((row: any) => row.status === "present").length;
-  if (!garden) return <DashboardShell role="admin" title="פרופיל גן"><div className="empty-state"><strong>הגן לא נמצא</strong><span>בדקו שהקישור תקין.</span></div></DashboardShell>;
+  const result = await safeAdminData("admin garden detail", async () => {
+    const supabase = await createClient();
+    const [gardenRes, childrenRes, parentsRes, staffRes, complaintsRes, docsRes, inspectionsRes, subscriptionRes, auditRes] = await Promise.all([
+      supabase.from("gardens" as never).select("id,name,city,address,status,safe_status,approval_flow_status,final_approval_status,owner_name,manager_id,owner_profile_id,inspector_id,children_capacity,current_children_count,staff_count,public_profile_enabled,created_at,manager:manager_id(full_name),owner:owner_profile_id(full_name),inspector:inspector_id(full_name)" as never).eq("id" as never, id as never).maybeSingle(),
+      supabase.from("children" as never).select("id" as never, { count: "exact", head: true }).eq("garden_id" as never, id as never),
+      supabase.from("parents" as never).select("id" as never, { count: "exact", head: true }).eq("garden_id" as never, id as never),
+      supabase.from("staff" as never).select("id,approved_to_work" as never, { count: "exact" }).eq("garden_id" as never, id as never).limit(500),
+      supabase.from("complaints" as never).select("id,status,severity" as never).eq("garden_id" as never, id as never).limit(500),
+      supabase.from("documents" as never).select("id,status,document_type" as never).eq("garden_id" as never, id as never).limit(500),
+      supabase.from("inspections" as never).select("id,status,weighted_score,completed_at,violation_count" as never).eq("garden_id" as never, id as never).order("created_at" as never, { ascending: false }).limit(8),
+      supabase.from("kindergarten_subscriptions" as never).select("id,status,billing_status,current_period_end,subscription_plans(name)" as never).eq("garden_id" as never, id as never).order("created_at" as never, { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("audit_logs" as never).select("id,action,actor_role,entity_type,created_at" as never).eq("entity_id" as never, id as never).order("created_at" as never, { ascending: false }).limit(8)
+    ]);
+    [gardenRes, childrenRes, parentsRes, staffRes, complaintsRes, docsRes, inspectionsRes, subscriptionRes, auditRes].forEach((item, index) => logSupabaseError(`admin garden detail ${index}`, item.error));
+    return { garden: gardenRes.data as unknown as GardenRecord | null, children: childrenRes.count ?? 0, parents: parentsRes.count ?? 0, staff: (staffRes.data ?? []) as unknown as StaffRecord[], complaints: (complaintsRes.data ?? []) as unknown as StatusRecord[], documents: (docsRes.data ?? []) as unknown as StatusRecord[], inspections: (inspectionsRes.data ?? []) as unknown as InspectionRecord[], subscription: subscriptionRes.data as unknown as SubscriptionRecord | null, audit: (auditRes.data ?? []) as unknown as AuditRecord[], queryError: [gardenRes, childrenRes, parentsRes, staffRes, complaintsRes, docsRes, inspectionsRes, subscriptionRes, auditRes].some((item) => item.error) ? "חלק מנתוני הגן לא נטענו" : null };
+  }, { garden: null as GardenRecord | null, children: 0, parents: 0, staff: [] as StaffRecord[], complaints: [] as StatusRecord[], documents: [] as StatusRecord[], inspections: [] as InspectionRecord[], subscription: null as SubscriptionRecord | null, audit: [] as AuditRecord[], queryError: null as string | null });
+
+  const garden = result.data.garden;
+  if (!garden) return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/kindergartens" title="פרטי גן" subtitle="הגן המבוקש אינו זמין." backHref="/dashboard/admin/kindergartens"><EmptyState title="הגן לא נמצא" text="ייתכן שהוסר, הועבר או שאינו זמין להרשאתך." icon={Building2} /></AdminAppFrame>;
+  const openComplaints = result.data.complaints.filter((item) => !["closed", "resolved", "dismissed"].includes(String(item.status))).length;
+  const documentActions = result.data.documents.filter((item) => ["missing", "rejected", "expired", "replacement_required"].includes(String(item.status))).length;
+  const approvedStaff = result.data.staff.filter((item) => item.approved_to_work).length;
+  const latestInspection = result.data.inspections[0];
+  const serviceState = garden.status === "active" && !documentActions ? "healthy" : garden.status === "suspended" ? "unavailable" : "degraded";
 
   return (
-    <DashboardShell role="admin" title="פרופיל גן">
-      <div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Kindergarten profile</p><h1>{garden.name}</h1><p>{garden.city} · {garden.address ?? "כתובת לא הוזנה"} · מנהלת: {garden.manager?.full_name ?? "לא שויך"}</p></div><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}><ShieldCheck size={15} /> {garden.safe_status}</span></div>
-      <div className="grid cols-4 dashboard-kpis"><StatCard label="ילדים" value={children.data?.length ?? 0} /><StatCard label="הורים" value={parents.data?.length ?? 0} /><StatCard label="ציון ביקורת" value={String(garden.last_inspection_score ?? "-")} /><StatCard label="נוכחים במדגם" value={presentCount} tone="good" /></div>
-      <section className="quick-actions-grid"><Link className="quick-action" href="/dashboard/admin/notices"><UserRound /><strong>הודעה למנהלת</strong><span>שליחת הודעה מתועדת.</span></Link><Link className="quick-action" href="/dashboard/admin/tasks"><ClipboardCheck /><strong>יצירת משימה</strong><span>משימה לגן או לפקח.</span></Link><Link className="quick-action" href="/dashboard/admin/onboarding"><UsersRound /><strong>שיוך פקח</strong><span>ניהול משתמשים ושיוכים.</span></Link><Link className="quick-action" href="/dashboard/admin/camera-ai"><Camera /><strong>מצלמות</strong><span>צפייה בהגדרות ובריאות.</span></Link></section>
-      <AdminGardenMessageForm gardenId={id} recipients={(recipientsRes.data ?? []) as any[]} />
-      <section className="grid cols-2 dashboard-panels">
-        <article className="card action-panel"><h2>צוות</h2>{(staff.data ?? []).length === 0 ? <div className="empty-mini">אין אנשי צוות.</div> : (staff.data ?? []).map((item: any) => <div className="list-item" key={item.id}><div><strong>{item.full_name}</strong><span>{item.role_title} · רקע {item.background_check_status} · יושר {item.police_clearance_status}</span></div><span className={item.approved_to_work ? "pill good" : "pill warn"}>{item.approved_to_work ? "מאושר" : "ממתין"}</span></div>)}</article>
-        <article className="card action-panel"><h2>ילדים ובקשות רישום</h2>{(children.data ?? []).length === 0 ? <div className="empty-mini">אין ילדים.</div> : (children.data ?? []).map((item: any) => <div className="list-item" key={item.id}><div><strong>{item.full_name}</strong><span>{item.parent_completed ? "הורה השלים" : "חסר פרטים"}</span></div><span className="pill">{item.status}</span></div>)}</article>
-        <article className="card action-panel"><h2>הורים</h2>{(parents.data ?? []).length === 0 ? <div className="empty-mini">אין הורים.</div> : (parents.data ?? []).map((item: any) => <div className="list-item" key={item.id}><div><strong>{item.full_name}</strong><span>{item.phone} · {item.email ?? "ללא מייל"}</span></div><span className="pill">{item.status}</span></div>)}</article>
-        <article className="card action-panel"><h2>משימות ותלונות</h2><div className="risk-list"><div><ClipboardCheck /> משימות פתוחות <b>{tasks.data?.length ?? 0}</b></div><div><AlertTriangle /> תלונות פתוחות <b>{complaints.data?.length ?? 0}</b></div><div><FileText /> מסמכים <b>{docs.data?.length ?? 0}</b></div></div></article>
-        <article className="card action-panel"><h2>מצלמות</h2>{(cameras.data ?? []).length === 0 ? <div className="empty-mini">אין מצלמות מחוברות.</div> : (cameras.data ?? []).map((camera: any) => <div className="list-item" key={camera.id}><div><strong>{camera.name}</strong><span>{camera.area} · צפיית הורים {camera.parent_view_allowed ? "מאושרת" : "לא מאושרת"}</span></div><span className={camera.status === "online" ? "pill good" : "pill bad"}>{camera.status}</span></div>)}</article>
-        <article className="card action-panel"><h2>תצפיתן AI</h2>{(aiEvents.data ?? []).length === 0 ? <div className="empty-mini">אין אירועי AI.</div> : (aiEvents.data ?? []).map((event: any) => <div className="list-item" key={event.id}><div><strong>{event.event_type}</strong><span>confidence {event.confidence ?? "-"}</span></div><span className="pill bad">{event.severity}</span></div>)}</article>
-      </section>
-      <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>ביקורות אחרונות</h2>{(inspections.data ?? []).length === 0 ? <div className="empty-mini">אין ביקורות.</div> : (inspections.data ?? []).map((inspection: any) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{inspection.completed_at ? new Date(inspection.completed_at).toLocaleDateString("he-IL") : inspection.status}</span><InspectionOverrideButton inspectionId={inspection.id} /></div><span className="pill">{inspection.violation_count ?? 0} ליקויים</span></div>)}</article><article className="card action-panel"><h2>לידים מהורים</h2>{(leads.data ?? []).length === 0 ? <div className="empty-mini">אין לידים.</div> : (leads.data ?? []).map((lead: any) => <div className="list-item" key={lead.id}><div><strong>{lead.parent_name}</strong><span>{lead.phone} · {lead.child_name ?? "ילד"}</span></div><span className="pill warn">{lead.status}</span></div>)}</article></section>
-    </DashboardShell>
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/kindergartens" title="פרטי גן" subtitle="מידע תפעולי מצומצם והרשאות אדמין." backHref="/dashboard/admin/kindergartens" badge={label(garden.status)}>
+      <div className="platform-admin">
+        <AdminSectionIntro eyebrow="GARDEN DETAIL" title={cleanSyntheticLabel(garden.name, "גן")} text={`${garden.city ?? "עיר לא צוינה"} · ${garden.address ?? "כתובת לא הוזנה"}. מסך זה מציג מידע הנדרש לניהול הפלטפורמה ואינו פותח רשומות פרטיות של ילדים, משפחות, הודעות או מסמכים.`} actions={<><StatusChip tone={tone(garden.status)}>{label(garden.status)}</StatusChip><Link className="admin-primary-button" href={`/dashboard/admin/kindergarten-applications?garden=${id}`}>אישור ומוכנות</Link></>} />
+        <AdminDataError message={result.error ?? result.data.queryError} />
+        <DashboardGrid columns={4}>
+          <MetricCard label="משתמשים מקושרים" value={result.data.children + result.data.parents + result.data.staff.length} hint="ספירה מצרפית בלבד" icon={UsersRound} tone="primary" />
+          <MetricCard label="צוות מאושר" value={`${approvedStaff}/${result.data.staff.length}`} hint="לפי סמכות השרת" icon={ShieldCheck} tone={approvedStaff === result.data.staff.length ? "success" : "warning"} />
+          <MetricCard label="פעולות מסמך" value={documentActions} hint="ללא חשיפת תוכן" icon={FileText} tone={documentActions ? "warning" : "success"} />
+          <MetricCard label="תלונות פתוחות" value={openComplaints} hint="פרטים לפי צורך והרשאה" icon={MessageSquareWarning} tone={openComplaints ? "warning" : "success"} />
+        </DashboardGrid>
+        <section className="platform-admin-service-grid" aria-label="מוכנות הגן">
+          <AdminTruthState title="מחזור חיי הגן" text={`סטטוס: ${label(garden.status)} · אישור: ${label(garden.final_approval_status ?? garden.approval_flow_status)}`} tone={tone(garden.status) === "success" ? "good" : tone(garden.status) === "danger" ? "danger" : "warning"} icon={Building2} />
+          <AdminTruthState title="מנוי פלטפורמה" text={`${label(result.data.subscription?.status)} · חיוב ${label(result.data.subscription?.billing_status)}`} tone={tone(result.data.subscription?.status) === "success" ? "good" : "warning"} icon={WalletCards} action={<Link className="admin-link-button" href="/dashboard/admin/subscriptions">פתיחת מנויים</Link>} />
+          <AdminTruthState title="מצב שירות" text={serviceState === "healthy" ? "השירותים התפעוליים נראים תקינים לפי הנתונים הזמינים." : "נדרשת בדיקה; אין הצגת מצב ירוק ללא מקור מאומת."} tone={serviceState === "healthy" ? "good" : serviceState === "unavailable" ? "danger" : "warning"} icon={Activity} />
+        </section>
+        <DashboardGrid columns={2}>
+          <PremiumCard size="lg"><SectionHeader title="זהות ושיוכים" subtitle="המידע הדרוש לתפעול הפלטפורמה" icon={UsersRound} /><div className="platform-admin-list"><AdminTruthState title="בעלות" text={garden.owner?.full_name ?? garden.owner_name ?? "טרם שויכה"} /><AdminTruthState title="מנהלת" text={garden.manager?.full_name ?? "טרם שויכה"} /><AdminTruthState title="מפקח" text={garden.inspector?.full_name ?? "טרם שויך"} /></div></PremiumCard>
+          <PremiumCard size="lg"><SectionHeader title="פיקוח ומוכנות" subtitle="ציון שהוגש נשאר סמכות השרת" icon={ClipboardCheck} />{latestInspection ? <><AdminTruthState title="ביקורת אחרונה" text={`${latestInspection.completed_at ? new Date(latestInspection.completed_at).toLocaleDateString("he-IL") : label(latestInspection.status)} · ${latestInspection.violation_count ?? 0} ממצאים`} tone={latestInspection.status === "completed" || latestInspection.status === "done" ? "good" : "warning"} /><div className="platform-admin-safe-meta"><span>ציון שרת: {latestInspection.weighted_score ?? "לא זמין"}</span><span>היסטוריה: {result.data.inspections.length} ביקורות</span></div></> : <EmptyState title="אין ביקורות להצגה" text="ביקורת שתוגש תופיע כאן ללא שינוי הציון ההיסטורי." icon={ClipboardCheck} />}</PremiumCard>
+        </DashboardGrid>
+        <PremiumCard size="lg"><SectionHeader title="פעילות אדמין אחרונה" subtitle="פעולות תפעוליות בלבד; ללא תוכן פרטי" icon={Activity} />{result.data.audit.length ? <div className="platform-admin-timeline">{result.data.audit.map((item) => <article key={item.id}><h3>{item.action}</h3><p>{item.actor_role ?? "system"} · {item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : "זמן לא זמין"}</p></article>)}</div> : <EmptyState title="אין פעילות אדמין אחרונה" text="אישור, שינוי שיוך או שינוי מנוי יופיעו כאן לאחר רישום canonical audit." icon={Activity} />}</PremiumCard>
+      </div>
+    </AdminAppFrame>
   );
 }
