@@ -10,6 +10,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ReportsCenter } from "@/components/reports-center";
 import { requireRole } from "@/lib/auth";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 import { resolveReportRange } from "@/lib/management/reporting";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -25,11 +26,11 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenReportsPage({ searchParams }: { searchParams: Promise<{ manage?: string }> }) {
+export default async function GardenReportsPage() {
   const { profile } = await requireRole(["manager", "owner"]);
-  const params = await searchParams;
   const supabase = await createClient();
-  const gardenId = profile.garden_id ?? "";
+  const gardenContext = await resolveManagementGardenContext(profile);
+  const gardenId = gardenContext.activeGarden?.id ?? profile.garden_id ?? "";
   const gardenRes = await supabase.from("gardens" as never).select("operational_timezone" as never).eq("id", gardenId).maybeSingle();
   const garden = gardenRes.data as unknown as { operational_timezone?: string | null } | null;
   const timezone = String(garden?.operational_timezone ?? "Asia/Jerusalem");
@@ -64,6 +65,16 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
       >
         <TeacherPageTitle icon={BarChart3} title="דיווחים ודוחות" subtitle="תמונת מצב יומית מהנתונים הקיימים בגן" />
 
+        <div id="reports-workbench">
+          <ReportsCenter
+            role={profile.role === "owner" ? "owner" : "manager"}
+            gardenId={gardenId}
+            gardens={gardenContext.gardens.map((garden) => ({ id: garden.id, label: garden.name }))}
+          />
+        </div>
+
+        <details className="teacher-management-details">
+          <summary>תמונת המצב היומית ופעולות מהירות</summary>
         <TeacherStatsGrid>
           <TeacherStatCard title="נוכחות היום" value={`${attendanceRate}%`} hint={`${present} נוכחים`} icon={UsersRound} tone="purple" href="/dashboard/garden/attendance" />
           <TeacherStatCard title="אירועים" value={incidentsRes.count ?? 0} hint="דיווחים" icon={ShieldCheck} tone={(incidentsRes.count ?? 0) ? "orange" : "green"} href="/dashboard/garden/incidents" />
@@ -103,12 +114,8 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
           <TeacherActionTile title="דוח נוכחות" href="/dashboard/garden/attendance" icon={UsersRound} tone="purple" />
           <TeacherActionTile title="לוח יום" href="/dashboard/garden/daily-journal" icon={CalendarDays} tone="blue" />
           <TeacherActionTile title="אירועים" href="/dashboard/garden/incidents" icon={ShieldCheck} tone="orange" />
-          <TeacherActionTile title="ייצוא וניהול" href="/dashboard/garden/reports?manage=1#reports-workbench" icon={FileText} tone="green" />
+          <TeacherActionTile title="ייצוא וניהול" href="/dashboard/garden/reports#reports-workbench" icon={FileText} tone="green" />
         </TeacherQuickActions>
-
-        <details className="teacher-management-details" id="reports-workbench" open={params.manage === "1"}>
-          <summary>מרכז דוחות מלא</summary>
-          <ReportsCenter role={profile.role === "owner" ? "owner" : "manager"} gardenId={gardenId} />
         </details>
       </TeacherAppFrame>
     </DashboardShell>

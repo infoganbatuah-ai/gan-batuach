@@ -16,6 +16,7 @@ import "./styles/ux-implement-08.css";
 import "./styles/ux-implement-12.css";
 import "./styles/ux-implement-13.css";
 import "./styles/ux-implement-14.css";
+import "./styles/ux-implement-15.css";
 
 export const metadata: Metadata = {
   verification: {

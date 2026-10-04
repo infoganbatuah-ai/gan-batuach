@@ -1,20 +1,24 @@
 // Bounded synthetic scale proof. Inserts only tagged QA rows and always cleans them.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createServerClient } from "@supabase/ssr";
+import { config, sql } from "../development/local-database.mjs";
+import { localCredentials } from "../development/local-client.mjs";
 
-const container = "supabase_db_gan-batuach-m35-auth-qa";
 const garden = "00000000-0000-4000-8000-000000000601";
 const actor = "00000000-0000-4000-8000-000000000201";
 const marker = "GB-M36-SCALE-QA";
 const base = process.env.GB_M36_BASE_URL ?? "http://127.0.0.1:3016";
 assert.match(base, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
-const psql = sql => execFileSync("docker", ["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], { input: `${sql}\n`, encoding: "utf8" });
-assert.equal(psql(`select name from public.gardens where id='${garden}' and name like 'QA %';`).trim(), "QA Garden A");
-const keys = JSON.parse(execFileSync("supabase", ["status", "--workdir", "/private/tmp/gb-m35-auth-qa/stack", "--output", "json"], { encoding: "utf8" }));
-assert.equal(keys.API_URL, "http://127.0.0.1:56421");
-const saved = JSON.parse(readFileSync("/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/qa-identities.private.json", "utf8"));
+assert.equal(config.environment, "DEVELOPMENT / INTEGRATION");
+assert.equal(config.productionAllowed, false);
+const psql = query => sql(query);
+assert.equal(psql(`select id from public.gardens where id='${garden}';`).trim(), garden);
+const local = localCredentials();
+const keys = { API_URL: local.url, ANON_KEY: local.anon, SERVICE_ROLE_KEY: local.service };
+assert.equal(keys.API_URL, config.apiUrl);
+const saved = JSON.parse(readFileSync(resolve(config.runtimeRoot, "qa-identities.private.json"), "utf8"));
 const identity = saved.users.find(user => user.email === "manager-a@integration.qa.invalid");
 assert.ok(identity?.password);
 const jar = new Map();
