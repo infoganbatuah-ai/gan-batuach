@@ -28,6 +28,7 @@ const connectorLivenessIsolation = "qa-p38-health-connector-liveness-isolation-e
 const connectorCodecPreservation = "qa-p38-health-connector-codec-preservation-70ea29e3dcad";
 const connectorHandoffContinuity = "qa-p38-health-connector-handoff-continuity-3dd81d72a040";
 const connectorDeviceIdentityContinuity = "qa-p38-health-connector-device-identity-continuity-c439a2c097bc";
+const connectorAiModelPath = "qa-p38-health-connector-ai-model-path-34408b2cc48e";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
@@ -121,7 +122,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       connectorHealthObservationRecovery, connectorFinalStability, connectorRtspCadence,
       connectorOutputRescue, connectorGenericRtsp, connectorLivenessIsolation,
       connectorCodecPreservation, connectorHandoffContinuity,
-      connectorDeviceIdentityContinuity]
+      connectorDeviceIdentityContinuity, connectorAiModelPath]
       .includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")

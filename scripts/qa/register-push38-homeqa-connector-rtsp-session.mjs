@@ -41,6 +41,8 @@ import { PUSH38_CONNECTOR_HANDOFF_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
 import { PUSH38_CONNECTOR_DEVICE_IDENTITY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-connector-device-identity-continuity.mjs";
+import { PUSH38_CONNECTOR_AI_MODEL_PATH
+} from "../../services/video-gateway/push38-home-qa-connector-ai-model-path.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
@@ -58,12 +60,14 @@ const livenessIsolation = process.argv.includes("--liveness-isolation");
 const codecPreservation = process.argv.includes("--codec-preservation");
 const handoffContinuity = process.argv.includes("--handoff-continuity");
 const deviceIdentityContinuity = process.argv.includes("--device-identity-continuity");
+const aiModelPath = process.argv.includes("--ai-model-path");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
   healthObservation, finalStability, rtspCadence, outputRescue, genericRtsp, livenessIsolation,
-  codecPreservation, handoffContinuity, deviceIdentityContinuity]
+  codecPreservation, handoffContinuity, deviceIdentityContinuity, aiModelPath]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = deviceIdentityContinuity ? PUSH38_CONNECTOR_DEVICE_IDENTITY_CONTINUITY :
+const item = aiModelPath ? PUSH38_CONNECTOR_AI_MODEL_PATH :
+  deviceIdentityContinuity ? PUSH38_CONNECTOR_DEVICE_IDENTITY_CONTINUITY :
   handoffContinuity ? PUSH38_CONNECTOR_HANDOFF_CONTINUITY :
   codecPreservation ? PUSH38_CONNECTOR_CODEC_PRESERVATION :
   livenessIsolation ? PUSH38_CONNECTOR_LIVENESS_ISOLATION :
@@ -83,7 +87,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = deviceIdentityContinuity
+const artifact = aiModelPath
+  ? `${restrictedRoot}/push38-connector-ai-model-path-6ade377f-20261004T1827Z/connector-remediation.tar.gz`
+  : deviceIdentityContinuity
   ? `${restrictedRoot}/push38-connector-device-identity-44b238ed-20261004T161141Z/connector-remediation.tar.gz`
   : handoffContinuity
   ? `${restrictedRoot}/push38-connector-handoff-continuity-a6e2fc93/connector-remediation.tar.gz`
@@ -114,7 +120,9 @@ const artifact = deviceIdentityContinuity
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = deviceIdentityContinuity
+const publication = aiModelPath
+  ? `${restrictedRoot}/push38-connector-ai-model-path-6ade377f-20261004T1827Z/r2-publication.json`
+  : deviceIdentityContinuity
   ? `${restrictedRoot}/push38-connector-device-identity-44b238ed-20261004T161141Z/r2-publication.json`
   : handoffContinuity
   ? `${restrictedRoot}/push38-connector-handoff-continuity-a6e2fc93/r2-publication.json`
@@ -145,8 +153,9 @@ const publication = deviceIdentityContinuity
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue || genericRtsp || livenessIsolation || codecPreservation || handoffContinuity || deviceIdentityContinuity) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = deviceIdentityContinuity ? "connector_remediation_device_identity_continuity.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence || outputRescue || genericRtsp || livenessIsolation || codecPreservation || handoffContinuity || deviceIdentityContinuity || aiModelPath) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = aiModelPath ? "connector_remediation_ai_model_path.json" :
+  deviceIdentityContinuity ? "connector_remediation_device_identity_continuity.json" :
   handoffContinuity ? "connector_remediation_handoff_continuity.json" :
   codecPreservation ? "connector_remediation_codec_preservation.json" :
   livenessIsolation ? "connector_remediation_liveness_isolation.json" :
@@ -162,8 +171,8 @@ const bundleName = deviceIdentityContinuity ? "connector_remediation_device_iden
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = deviceIdentityContinuity ? 88 : handoffContinuity ? 50 : codecPreservation ? 45 : livenessIsolation ? 43 : genericRtsp ? 41 : outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = deviceIdentityContinuity ? 89 : handoffContinuity ? 51 : codecPreservation ? 46 : livenessIsolation ? 44 : genericRtsp ? 42 : outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = aiModelPath ? 89 : deviceIdentityContinuity ? 88 : handoffContinuity ? 50 : codecPreservation ? 45 : livenessIsolation ? 43 : genericRtsp ? 41 : outputRescue ? 32 : rtspCadence ? 29 : finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = aiModelPath ? 90 : deviceIdentityContinuity ? 89 : handoffContinuity ? 51 : codecPreservation ? 46 : livenessIsolation ? 44 : genericRtsp ? 42 : outputRescue ? 33 : rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -260,7 +269,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: deviceIdentityContinuity ? "CONNECTOR_DEVICE_IDENTITY_CONTINUITY_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: aiModelPath ? "CONNECTOR_AI_MODEL_PATH_REGISTERED_DRAFT" :
+  deviceIdentityContinuity ? "CONNECTOR_DEVICE_IDENTITY_CONTINUITY_REGISTERED_DRAFT" :
   handoffContinuity ? "CONNECTOR_HANDOFF_CONTINUITY_REGISTERED_DRAFT" :
   codecPreservation ? "CONNECTOR_CODEC_PRESERVATION_REGISTERED_DRAFT" :
   livenessIsolation ? "CONNECTOR_LIVENESS_ISOLATION_REGISTERED_DRAFT" :

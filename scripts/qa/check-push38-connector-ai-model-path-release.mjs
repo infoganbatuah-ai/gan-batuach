@@ -24,6 +24,12 @@ assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 assert.match(readFileSync(new URL("../release/publish-push38-connector-pidfix-r2.mjs", import.meta.url), "utf8"),
   /aiModelPath/);
+for (const path of ["./register-push38-homeqa-connector-rtsp-session.mjs",
+  "./activate-push38-homeqa-connector-rtsp-session.mjs"])
+  assert.match(readFileSync(new URL(path, import.meta.url), "utf8"), /aiModelPath/);
+assert.match(readFileSync(new URL(
+  "../../services/video-gateway/home-qa-transition-phase.mjs", import.meta.url), "utf8"),
+new RegExp(item.releaseId));
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-connector-ai-model-path-test-"));
 try {

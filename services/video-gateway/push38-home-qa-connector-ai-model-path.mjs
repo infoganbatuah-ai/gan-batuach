@@ -17,7 +17,9 @@ export const PUSH38_CONNECTOR_AI_MODEL_PATH = Object.freeze({
   profile: "SOFTWARE_CONNECTOR",
   rollbackReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
   rollbackVersion: "0.2.36-p38-health",
-  supersedesReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc"
+  supersedesReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
+  agentPredecessorReleaseId: "qa-p38-health-connector-observed-health-3a211a8ef1c2",
+  agentPredecessorDigest: "3a211a8ef1c275283194ea7a4ef93ba59e6f560b7b8cc01dca43a28d03e6f395"
 });
 
 export function buildPush38ConnectorAiModelPathManifest({ signingKeyId,
