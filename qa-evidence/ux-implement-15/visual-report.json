@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-04T01:55:56.069Z",
+  "generatedAt": "2026-10-04T02:38:28.502Z",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3015",
+  "base": "http://127.0.0.1:3000",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_REPORTS_ANALYTICS_FULL_PLATFORM.png",
   "sourceReferenceSha256": "479de16dc2684ea4e3c44ab827fd9ef45051ebdfd840f63362c962acdb03e14a",
   "concepts": 20,
@@ -17,7 +17,7 @@
       "screen": "reports-center",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/reports-center-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/reports-center-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -26,7 +26,7 @@
       "screen": "reports-center",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/reports-center-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/reports-center-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -35,7 +35,7 @@
       "screen": "report-configuration",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/report-configuration-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/report-configuration-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -44,7 +44,7 @@
       "screen": "report-configuration",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/report-configuration-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/report-configuration-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -53,7 +53,7 @@
       "screen": "attendance-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/attendance-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/attendance-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -62,7 +62,7 @@
       "screen": "attendance-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/attendance-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/attendance-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -71,7 +71,7 @@
       "screen": "pickup-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/pickup-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/pickup-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -80,7 +80,7 @@
       "screen": "pickup-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/pickup-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/pickup-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -89,7 +89,7 @@
       "screen": "staff-hours-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/staff-hours-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/staff-hours-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -98,7 +98,7 @@
       "screen": "staff-hours-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/staff-hours-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/staff-hours-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -107,7 +107,7 @@
       "screen": "tuition-report",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/tuition-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/tuition-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -116,7 +116,7 @@
       "screen": "tuition-report",
       "viewport": "390×844",
       "route": "/dashboard/parent/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/tuition-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/tuition-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -125,7 +125,7 @@
       "screen": "subscription-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/subscription-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/subscription-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -134,7 +134,7 @@
       "screen": "subscription-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/subscription-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/subscription-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -143,7 +143,7 @@
       "screen": "enrollment-funnel",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/enrollment-funnel-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/enrollment-funnel-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -152,7 +152,7 @@
       "screen": "enrollment-funnel",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/enrollment-funnel-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/enrollment-funnel-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -161,7 +161,7 @@
       "screen": "capacity-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/capacity-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/capacity-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -170,7 +170,7 @@
       "screen": "capacity-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/capacity-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/capacity-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -179,7 +179,7 @@
       "screen": "document-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/document-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/document-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -188,7 +188,7 @@
       "screen": "document-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/document-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/document-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -197,7 +197,7 @@
       "screen": "inspection-report",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/inspection-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/inspection-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -206,7 +206,7 @@
       "screen": "inspection-report",
       "viewport": "390×844",
       "route": "/dashboard/inspector/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/inspection-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/inspection-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -215,7 +215,7 @@
       "screen": "complaint-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/complaint-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/complaint-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -224,7 +224,7 @@
       "screen": "complaint-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/complaint-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/complaint-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -233,7 +233,7 @@
       "screen": "task-report",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/task-report-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/task-report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -242,7 +242,7 @@
       "screen": "task-report",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/task-report-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/task-report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -251,7 +251,7 @@
       "screen": "report-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/report-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/report-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -260,7 +260,7 @@
       "screen": "report-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/report-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/report-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -269,7 +269,7 @@
       "screen": "chart-heavy-view",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/chart-heavy-view-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/chart-heavy-view-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -278,7 +278,7 @@
       "screen": "chart-heavy-view",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/chart-heavy-view-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/chart-heavy-view-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -287,7 +287,7 @@
       "screen": "table-heavy-view",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/table-heavy-view-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/table-heavy-view-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -296,7 +296,7 @@
       "screen": "table-heavy-view",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/table-heavy-view-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/table-heavy-view-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -305,7 +305,7 @@
       "screen": "bounded-export",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/bounded-export-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/bounded-export-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -314,7 +314,7 @@
       "screen": "bounded-export",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/bounded-export-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/bounded-export-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -323,7 +323,7 @@
       "screen": "empty-no-data",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/empty-no-data-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/empty-no-data-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -332,7 +332,7 @@
       "screen": "empty-no-data",
       "viewport": "390×844",
       "route": "/dashboard/garden/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/empty-no-data-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/empty-no-data-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -341,7 +341,7 @@
       "screen": "permission-limited-role",
       "viewport": "1440×1024",
       "route": "/dashboard/staff/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/permission-limited-role-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/permission-limited-role-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -350,7 +350,7 @@
       "screen": "permission-limited-role",
       "viewport": "390×844",
       "route": "/dashboard/staff/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/permission-limited-role-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/permission-limited-role-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -359,7 +359,7 @@
       "screen": "admin-platform-summary",
       "viewport": "1440×1024",
       "route": "/dashboard/admin/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/admin-platform-summary-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/admin-platform-summary-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     },
@@ -368,7 +368,7 @@
       "screen": "admin-platform-summary",
       "viewport": "390×844",
       "route": "/dashboard/admin/reports",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-15/qa-evidence/ux-implement-15/screenshots/admin-platform-summary-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux15-integration-receipt/qa-evidence/ux-implement-15/screenshots/admin-platform-summary-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical GB-M36 data and role boundaries preserved"
     }
