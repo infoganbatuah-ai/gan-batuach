@@ -6,7 +6,11 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { createEventEvidenceStore, evidencePlaylist } from "../../services/video-gateway/event-evidence-store.mjs";
-import { hasCachedSoftwareConnectorConfiguration } from "../../services/video-gateway/software-connector-cloud.mjs";
+import { parseProbeResult } from "../../services/video-gateway/probe-result.mjs";
+import {
+  hasCachedSoftwareConnectorConfiguration,
+  resolveSoftwareConnectorStartupConfiguration
+} from "../../services/video-gateway/software-connector-cloud.mjs";
 import {
   connectorRuntimeIdentity,
   createInstallationId,
@@ -26,6 +30,9 @@ test("software and physical deployments share one runtime contract", () => {
   assert.equal(software.device_type, "SOFTWARE_CONNECTOR");
   assert.equal(physical.device_type, "PHYSICAL_GATEWAY");
   assert.equal(software.outbound_only, true);
+  assert.equal(software.resource_limits.max_cameras, 8);
+  assert.equal(physical.resource_limits.max_cameras, 16);
+  assert.equal(physical.resource_limits.max_parallel_relays, 20);
 });
 
 test("secure volume keeps identity and credentials private across restart", () => {
@@ -86,6 +93,9 @@ test("discovery maps through canonical source contract", () => {
   assert.match(gatewayDomain, /physicalGatewayAvailable: !softwareConnector && values\.gatewayConfigured/);
   assert.match(gatewayDomain, /connector_transport: softwareConnector \? "software_connector" : "gateway"/);
   assert.match(gatewayDomain, /connector_device_type: values\.edgeDeviceType \?\? "PHYSICAL_GATEWAY"/);
+  assert.match(gatewayDomain, /softwareConnector\s*\? "SOFTWARE_CONNECTOR_SOURCE_OFFLINE"/);
+  assert.match(gatewayDomain, /values\.connectorType === "dvr" \|\| values\.connectorType === "nvr"/);
+  assert.match(gatewayDomain, /מקור מצלמת ה-IP לא החזיר וידאו דרך ה-Software Connector/);
   assert.match(gatewayDomain, /edgeDeviceType,/);
 });
 
@@ -135,9 +145,12 @@ test("software connector uses an isolated port, owner lock and stream namespace"
   assert.match(wrapper, /VIDEO_GATEWAY_PORT \|\|= "18083"/);
   assert.match(wrapper, /GAN_BATUACH_JOURNAL_OWNER_LOCK_PATH/);
   assert.match(wrapper, /connector_stream_namespace/);
-  assert.match(wrapper, /hasCachedSoftwareConnectorConfiguration/);
+  assert.match(wrapper, /resolveSoftwareConnectorStartupConfiguration\(\{ store \}\)/);
   assert.match(runner, /gatewayPort/);
   assert.match(runner, /connectionType/);
+  assert.match(runner, /createEdgeChildLivenessWatchdog/);
+  assert.match(runner, /\/health\/live/);
+  assert.match(runner, /child\.kill\("SIGKILL"\)/);
 });
 
 test("temporary cloud-sync failure preserves an existing secure local camera configuration", () => {
@@ -150,15 +163,80 @@ test("temporary cloud-sync failure preserves an existing secure local camera con
   assert.equal(hasCachedSoftwareConnectorConfiguration(store), true);
 });
 
+test("connector startup uses verified local configuration without awaiting cloud", async () => {
+  const values = new Map([["connector_profiles_json", "profiles"]]);
+  const store = { read: key => values.get(key) ?? "" };
+  let syncCalls = 0;
+  const result = await resolveSoftwareConnectorStartupConfiguration({
+    store,
+    sync: async () => {
+      syncCalls += 1;
+      throw new Error("cloud must not be consulted when the local profile is complete");
+    }
+  });
+  assert.deepEqual(result, { configured: true, source: "secure_local_cache" });
+  assert.equal(syncCalls, 0);
+});
+
+test("connector startup falls back to bounded cloud configuration only when cache is absent", async () => {
+  const store = { read: () => "" };
+  let syncCalls = 0;
+  const result = await resolveSoftwareConnectorStartupConfiguration({
+    store,
+    sync: async () => {
+      syncCalls += 1;
+      return { configured: true };
+    }
+  });
+  assert.deepEqual(result, { configured: true, source: "cloud_sync" });
+  assert.equal(syncCalls, 1);
+});
+
 test("generic RTSP discovery registers a relay source instead of probe-only readiness", () => {
   const gateway = source("services/video-gateway/server.mjs");
   const inference = source("services/video-gateway/object-inference-client.mjs");
+  const readiness = source("services/video-gateway/edge-readiness.mjs");
   assert.match(gateway, /kind: "rtsp"/);
   assert.match(gateway, /directRtsp/);
-  assert.match(gateway, /-rtsp_transport/);
+  assert.match(gateway, /function protectedRtspInput/);
+  assert.match(gateway, /option rtsp_transport tcp/);
+  assert.match(gateway, /"-protocol_whitelist",\s*"pipe,rtsp,tcp,udp,rtp,http,https,tls,crypto"/);
+  assert.match(gateway, /child\.stdin\.end\(content\)/);
+  assert.match(gateway, /activeCandidate && relayIsProgressing\(currentRelay\)/);
+  assert.match(gateway, /reason: "active_relay_verified"/);
+  const genericStream = gateway.indexOf('template: "generic_stream"');
+  const genericChannel = gateway.indexOf('template: "generic_channel_quality"');
+  assert.ok(genericStream >= 0 && genericStream < genericChannel,
+    "generic RTSP must try /streamN before alternate generic layouts");
+  assert.match(gateway,
+    /vendor === "generic"[\s\S]*?all\.filter\(\(item\) => item\.vendor === "generic"\)/,
+    "an explicitly generic/Tapo source must not consume sessions on DVR-vendor probes");
+  assert.doesNotMatch(gateway, /"-i", source\.url/);
   assert.match(gateway, /controller\?\.abort\(\)/);
   assert.match(gateway, /relay\.process\.stdin\?\.writableNeedDrain/);
   assert.match(inference, /VIDEO_GATEWAY_OBJECT_WORKER_PATH/);
+  assert.match(readiness, /const warmup = setTimeout\(\(\) => \{[\s\S]*?void objectInference\.start\(\)/);
+  assert.doesNotMatch(readiness, /spawnSync/);
+  const localReadiness = readiness.slice(readiness.indexOf("export function localEdgeReadiness()"), readiness.indexOf("export function warmLocalEdgeReadiness()"));
+  assert.doesNotMatch(localReadiness, /spawn\(/);
+  assert.doesNotMatch(readiness.slice(readiness.indexOf("function objectWorkerSelfTest()"), readiness.indexOf("function pendingBaseReadiness()")), /objectInference\.start\(/);
+});
+
+test("RTSP probe preserves the verified video codec for zero-copy H.264 relay", () => {
+  const result = parseProbeResult(JSON.stringify({ streams: [
+    { codec_type: "video", codec_name: "h264", width: 1920, height: 1080 },
+    { codec_type: "audio", codec_name: "aac" }
+  ] }));
+  assert.deepEqual(result, {
+    ok: true,
+    reason: "video_stream_found",
+    codec: "h264",
+    audio: true,
+    audio_codec: "aac",
+    width: 1920,
+    height: 1080
+  });
+  assert.equal(parseProbeResult(JSON.stringify({ streams: [] })).codec, null);
 });
 
 test("high-bitrate RTSP playback history keeps only the bounded event prebuffer", () => {
@@ -203,7 +281,7 @@ test("local software runtime reports its type and rejects arbitrary command", as
   const port = 19116;
   const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], {
     cwd: new URL("../../", import.meta.url),
-    env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VIDEO_GATEWAY_SIGNING_SECRET: "qa-signing-secret-1234567890", GAN_BATUACH_GATEWAY_SECRET_DIR: directory, OBSERVER_EDGE_DEVICE_TYPE: "SOFTWARE_CONNECTOR", OBSERVER_EDGE_INSTALLATION_ID: id, OBSERVER_EDGE_VERSION: "qa", OBSERVER_EDGE_BUILD_SHA: "qa-sha" },
+    env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VIDEO_GATEWAY_SIGNING_SECRET: "qa-signing-secret-1234567890", GAN_BATUACH_GATEWAY_SECRET_DIR: directory, OBSERVER_EDGE_DEVICE_TYPE: "SOFTWARE_CONNECTOR", OBSERVER_EDGE_INSTALLATION_ID: id, OBSERVER_EDGE_VERSION: "qa", OBSERVER_EDGE_BUILD_SHA: "qa-sha", DVR_EXPECTED_CHANNEL_COUNT: "1" },
     stdio: "ignore"
   });
   context.after(() => child.kill("SIGTERM"));
@@ -216,6 +294,14 @@ test("local software runtime reports its type and rejects arbitrary command", as
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.equal(health?.edgeRuntime?.device_type, "SOFTWARE_CONNECTOR");
+  assert.equal(health?.contract, "observer-edge-health-v1");
+  assert.equal(health?.ok, false, "an expected but missing physical stream cannot be healthy");
+  assert.equal(health?.status, "degraded");
+  assert.deepEqual(health?.health_reason_codes, ["EXPECTED_RELAY_NOT_PROGRESSING"]);
+  assert.ok(Number.isFinite(Date.parse(health?.observed_at)));
+  const liveness = await fetch(`http://127.0.0.1:${port}/health/live`).then(response => response.json());
+  assert.equal(liveness.contract, "observer-edge-liveness-v1");
+  assert.equal(liveness.ok, true);
   assert.equal(health?.edgeRuntime?.build_sha, "qa-sha");
   const now = Date.now();
   const valid = await fetch(`http://127.0.0.1:${port}/connector/command`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": "qa-signing-secret-1234567890" }, body: JSON.stringify({ id: "command-health-1234", command: "HEALTH_PROBE", issued_at: new Date(now).toISOString(), expires_at: new Date(now + 30_000).toISOString() }) });

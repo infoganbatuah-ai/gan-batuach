@@ -1,0 +1,339 @@
+{
+  "contract": "digital-observer-push38-v8-qualification-matrix-v1",
+  "status": "FROZEN",
+  "frozen_at": "2026-10-04T01:28:00Z",
+  "candidate_branch": "codex/push-38t-qualification",
+  "qualification_runtime": {
+    "gateway_version": "0.2.75-p38-health",
+    "gateway_build_sha": "0a41a628a79b6a9ef3f43b031bf802371f9913ed",
+    "connector_version": "0.2.26-p38-health",
+    "gateway_source_available": 9,
+    "gateway_known_upstream_unavailable_channels": [8],
+    "gateway_empty_slots": 6,
+    "tapo_source_available": 1
+  },
+  "rules": {
+    "minimum_elapsed_ms": 86400000,
+    "timer_reuse": false,
+    "criteria_may_change_during_run": false,
+    "remote_client_proof_required_for_push38_done": true,
+    "future_unimplemented_capabilities_are_not_qualified": true
+  },
+  "rows": [
+    {
+      "capability": "Configured DVR source semantics",
+      "domain": "CAMERA_SOURCE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "One-minute live health checkpoints preserve 10 assigned physical sources, nine source-available channels, CH8 upstream-unavailable, and six empty slots.",
+      "pass_criteria": "Every checkpoint reports assigned=10, connected>=9, connected+failed=10, empty=6, and CH8 never substitutes for a qualified channel.",
+      "evidence_source": "V8 checkpoints.ndjson and result.json"
+    },
+    {
+      "capability": "Per-source frame progression",
+      "domain": "CAMERA_SOURCE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Inspect each qualified DVR input and the Tapo input at every checkpoint.",
+      "pass_criteria": "All nine qualified DVR channels and Tapo progress at every mandatory checkpoint; no unexplained stale interval.",
+      "evidence_source": "V8 per_camera summary and checkpoint input telemetry"
+    },
+    {
+      "capability": "Upstream-unavailable truthfulness",
+      "domain": "CAMERA_SOURCE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Compare discovery failure state with the owner-verified DVR exception.",
+      "pass_criteria": "CH8 remains visible as an upstream source failure if unavailable, is excluded only from the transport denominator, and does not mark the Gateway process offline.",
+      "evidence_source": "V8 health payloads and result gate_failure_details"
+    },
+    {
+      "capability": "Managed Gateway lifecycle",
+      "domain": "EDGE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Continuously inspect signed CURRENT, KNOWN_GOOD, runtime PID, build identity, and OTA state.",
+      "pass_criteria": "Gateway stays on signed 0.2.75, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
+      "evidence_source": "V8 release snapshots, OTA state, and process telemetry"
+    },
+    {
+      "capability": "Managed Connector lifecycle",
+      "domain": "EDGE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Continuously inspect Connector release identity, supervision, runtime PID, and OTA state.",
+      "pass_criteria": "Connector remains on signed known-good 0.2.26, healthy, and free of crash loops or manual recovery.",
+      "evidence_source": "V8 release snapshots and process telemetry"
+    },
+    {
+      "capability": "Gateway managed identity continuity",
+      "domain": "EDGE",
+      "owner_push": "PUSH_18/PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Verify the installed Gateway identity and exact-device release binding remain unchanged.",
+      "pass_criteria": "Device, tenant, Site, profile, key fingerprint, and release scope remain unchanged; no duplicate device appears.",
+      "evidence_source": "Enrollment proof, release authorization audit, and final identity comparison"
+    },
+    {
+      "capability": "Connector managed identity continuity",
+      "domain": "EDGE",
+      "owner_push": "PUSH_18/PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Verify the installed Connector identity and exact-device release binding remain unchanged.",
+      "pass_criteria": "Device, tenant, Site, profile, key fingerprint, and release scope remain unchanged; no duplicate device appears.",
+      "evidence_source": "Enrollment proof, release authorization audit, and final identity comparison"
+    },
+    {
+      "capability": "Relay single ownership",
+      "domain": "EDGE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Track canonical, candidate, provisional, and live relay process counts per source.",
+      "pass_criteria": "One effective media owner per source; bounded candidates only during handoff; no ownership gap or duplicate output.",
+      "evidence_source": "V8 mediaHeartbeat inputs, relay_processes, and lifecycle counters"
+    },
+    {
+      "capability": "Proactive recorder-session renewal",
+      "domain": "EDGE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Observe repeated bounded session renewals and per-channel handoffs across the full run.",
+      "pass_criteria": "Every proactive attempt succeeds or recovers without source outage; one active session remains; no auth/session failure.",
+      "evidence_source": "V8 recorderSessionLifecycle and heartbeat counters"
+    },
+    {
+      "capability": "Relay backoff and self-healing",
+      "domain": "EDGE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Correlate recovery starts, stale detection, consumer demand, and supervision events.",
+      "pass_criteria": "No restart storm, consumer bypass, repeated unexplained stale event, or manual recovery; bounded retries remain effective.",
+      "evidence_source": "V8 lifecycle, recovery, source diagnostics, and supervision events"
+    },
+    {
+      "capability": "DVR playback continuity",
+      "domain": "PLAYBACK",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Decode a current frame through the authorized HLS contract for all nine qualified DVR sources at start, periodic checkpoints, and end.",
+      "pass_criteria": "All qualified playback probes succeed with current media; no unexplained playlist or segment gap.",
+      "evidence_source": "V8 playback probes and per_camera playback counts"
+    },
+    {
+      "capability": "Tapo playback continuity",
+      "domain": "PLAYBACK",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Decode a current frame through the authorized Connector HLS contract at each deep probe.",
+      "pass_criteria": "Every Tapo playback probe succeeds; failures and recovery remain separately attributed from DVR.",
+      "evidence_source": "V8 playback probes and Connector diagnostics"
+    },
+    {
+      "capability": "Playback authorization",
+      "domain": "PLAYBACK",
+      "owner_push": "PUSH_18/PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Use the canonical signed playback request and local Edge authorization boundary.",
+      "pass_criteria": "Authorized exact source succeeds; anonymous, wrong tenant, wrong Site, and expired grant remain denied.",
+      "evidence_source": "Playback authorization QA plus V8 successful authorized probes"
+    },
+    {
+      "capability": "Remote HTTPS media readiness",
+      "domain": "REMOTE_CLIENT",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Inspect the Product playback URL and complete playback through the approved HTTPS media endpoint.",
+      "pass_criteria": "HTTPS approved host, bounded camera-scoped authorization, correct Edge association, and no localhost/private management endpoint or camera credential.",
+      "evidence_source": "Remote media contract QA and final remote-device playback receipt"
+    },
+    {
+      "capability": "Remote DVR client",
+      "domain": "REMOTE_CLIENT",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Use an authorized separate device with no Gateway or Connector installed; validate all camera grants and visibly verify representative moving DVR streams.",
+      "pass_criteria": "Authorization contract covers all nine source-available DVR cameras and representative moving/current playback passes on the remote device.",
+      "evidence_source": "Final owner-device remote DVR receipt"
+    },
+    {
+      "capability": "Remote Tapo client",
+      "domain": "REMOTE_CLIENT",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Use an authorized separate device with no Edge software and visibly verify current Tapo playback.",
+      "pass_criteria": "Moving/current Tapo playback passes without localhost, camera-side credentials, or client-side Edge software.",
+      "evidence_source": "Final owner-device remote Tapo receipt"
+    },
+    {
+      "capability": "AI preprocessing and scheduling",
+      "domain": "AI_PIPELINE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Use a real authorized camera frame through preprocessing, adaptive sampling, and scheduler policy.",
+      "pass_criteria": "At least one policy-expected job per deep probe proceeds through the canonical scheduler; quiet sources are policy-explained.",
+      "evidence_source": "V8 AI deep-probe records"
+    },
+    {
+      "capability": "Durable AI queue and worker",
+      "domain": "AI_PIPELINE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Follow the scheduled job through durable queue, routing, worker execution, and result.",
+      "pass_criteria": "Every expected deep probe returns a canonical inference result with zero failed jobs or unbounded backlog.",
+      "evidence_source": "V8 AI results and queue telemetry"
+    },
+    {
+      "capability": "Canonical observer inference",
+      "domain": "AI_PIPELINE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Verify model provenance and EDGE_LOCAL inference result without fabricating a physical Event.",
+      "pass_criteria": "Approved model and runtime are recorded; inference succeeds; event_fabricated=false.",
+      "evidence_source": "V8 AI qualification_path, model, and result"
+    },
+    {
+      "capability": "Natural Event to Incident pipeline",
+      "domain": "EVENTS_INCIDENTS",
+      "owner_push": "PUSH_23/PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Observe naturally occurring qualifying Events when present and verify canonical Event-to-Incident processing without injecting a physical event.",
+      "pass_criteria": "Any natural qualifying Event preserves tenant/source identity and canonical processing; absence of a natural Event is reported as NOT_EXERCISED, not fabricated PASS.",
+      "evidence_source": "V8 event journal and incident evidence, if naturally exercised"
+    },
+    {
+      "capability": "Per-camera learning fairness",
+      "domain": "LEARNING",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Collect sampling coverage across all source-available physical cameras.",
+      "pass_criteria": "All nine source-available DVR cameras and the source-available Tapo camera are sampled; no unexplained 1/N concentration or false maturity claim.",
+      "evidence_source": "V8 learning sampled_source_ids and coverage summary"
+    },
+    {
+      "capability": "Offline queue health",
+      "domain": "QUEUES_OFFLINE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Record bounded queue depth, bytes, retries, oldest age, dead letters, and final synchronization state.",
+      "pass_criteria": "No unbounded growth, failed-item accumulation, acknowledged loss, or duplicate Product effect.",
+      "evidence_source": "V8 runtime_state and queues summary"
+    },
+    {
+      "capability": "Idempotent recovery effects",
+      "domain": "QUEUES_OFFLINE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Correlate retries and recoveries with Product effect counters.",
+      "pass_criteria": "duplicate_product_effects=0 and acknowledged_data_loss=0 for the complete run.",
+      "evidence_source": "V8 result integrity counters"
+    },
+    {
+      "capability": "Component health truthfulness",
+      "domain": "HEALTH",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Compare process liveness, component status, source failures, relays, playback, and AI dimensions.",
+      "pass_criteria": "Gateway and Connector component status never falsely mirrors a single source state; widespread failures still produce degraded truth.",
+      "evidence_source": "V8 health payloads and health_dimensions"
+    },
+    {
+      "capability": "Source and relay health truthfulness",
+      "domain": "HEALTH",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Compare per-source progression and relay ownership with aggregate health at every checkpoint.",
+      "pass_criteria": "No false healthy source, false Gateway outage, or unexplained flapping; CH8 stays correctly attributed upstream.",
+      "evidence_source": "V8 checkpoints and per_camera result"
+    },
+    {
+      "capability": "Playback and AI health separation",
+      "domain": "HEALTH",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Record playback and AI results independently from frame and component progression.",
+      "pass_criteria": "Each health dimension reflects its own evidence; all required playback and AI probes pass.",
+      "evidence_source": "V8 health_dimensions, playback, and ai summaries"
+    },
+    {
+      "capability": "Process and crash-loop reliability",
+      "domain": "RELIABILITY",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Track supervisor/runtime PIDs, health transitions, crash guard, and fatal logs.",
+      "pass_criteria": "No unexplained process restart, crash loop, fatal/uncaught growth, or manual intervention.",
+      "evidence_source": "V8 process telemetry, logs, and OTA crash guard"
+    },
+    {
+      "capability": "Resource trend stability",
+      "domain": "RELIABILITY",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Track CPU, RSS, handles, event-loop delay, disk free space, and FFmpeg lifecycle for 24 hours.",
+      "pass_criteria": "No sustained saturation, unbounded memory/handle growth, process leak, or qualification-threatening disk pressure.",
+      "evidence_source": "V8 resource distributions and checkpoint telemetry"
+    },
+    {
+      "capability": "Monitor coverage and drift",
+      "domain": "RELIABILITY",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Use anchored one-minute checkpoints from a durable launchd monitor.",
+      "pass_criteria": "At least 1,440 checkpoints over >=86,400,000 ms, no duplicates, no unexplained missing checkpoints, and bounded documented drift.",
+      "evidence_source": "V8 state, checkpoints, and checkpoint_coverage"
+    },
+    {
+      "capability": "Tenant isolation and data integrity",
+      "domain": "DATA_INTEGRITY",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Preserve tenant/Site/source identities and monitor leakage, duplication, ordering, and loss counters.",
+      "pass_criteria": "cross_tenant_leakage=0, duplicate_product_effects=0, acknowledged_data_loss=0, and source continuity remains exact.",
+      "evidence_source": "V8 result integrity counters and final identity comparison"
+    },
+    {
+      "capability": "Evidence and storage health",
+      "domain": "STORAGE_EVIDENCE",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Inspect existing implemented evidence references, bounded queue/storage state, and disk headroom without treating source recordings as Evidence.",
+      "pass_criteria": "Implemented evidence paths remain available and bounded; no raw continuous media is copied into Supabase or the qualification repository.",
+      "evidence_source": "V8 runtime state, disk telemetry, and existing evidence-path checks"
+    },
+    {
+      "capability": "Release trust and OTA integrity",
+      "domain": "SECURITY",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Continuously verify installed signed release identities and retain pre-run negative trust and authorization QA.",
+      "pass_criteria": "Only AWS-trusted exact-device releases are active; no trust, signature, downgrade, cohort, or secret-leak regression.",
+      "evidence_source": "Live trust QA, authorization QA, OTA state, and V8 release snapshots"
+    },
+    {
+      "capability": "Product API health truthfulness",
+      "domain": "PRODUCT",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Compare Product-facing state with current Edge source, component, playback, and AI evidence.",
+      "pass_criteria": "Product API semantics match physical/Edge truth and never substitute localhost for a remote client.",
+      "evidence_source": "V8 health/playback evidence and remote playback contract QA"
+    },
+    {
+      "capability": "Viewing-client independence",
+      "domain": "REMOTE_CLIENT",
+      "owner_push": "PUSH_38",
+      "expected_in_push38": true,
+      "test_method": "Inspect remote URL contracts and use a separate authorized client with no camera-side software.",
+      "pass_criteria": "Client requires no Gateway, Connector, camera LAN access, filesystem path, or private Edge management port.",
+      "evidence_source": "Remote playback boundary QA and final remote-device receipt"
+    },
+    {
+      "capability": "Unfinished biometric and investigation expansion",
+      "domain": "FUTURE_CAPABILITY",
+      "owner_push": "FUTURE",
+      "expected_in_push38": false,
+      "test_method": "Not part of V8 qualification.",
+      "pass_criteria": "Reported as out of scope; no success inferred from uptime.",
+      "evidence_source": "Frozen matrix scope"
+    }
+  ]
+}

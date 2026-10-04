@@ -1,0 +1,266 @@
+// Activate the exact AWS-signed Gateway authorization recovery only after a
+// pinned preflight. The installed managed OTA agent remains the sole owner of
+// download, installation, health-gated promotion, and rollback.
+import "../../services/video-gateway/http-runtime.mjs";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { request as httpsRequest } from "node:https";
+import { chmodSync, existsSync, lstatSync, readFileSync, realpathSync, statfsSync, statSync,
+  writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, resolve, sep } from "node:path";
+import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
+import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
+import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
+import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
+import { PUSH38_GATEWAY_AUTH_RECOVERY } from "../../services/video-gateway/push38-home-qa-gateway-auth-recovery.mjs";
+import { PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
+
+const item = PUSH38_GATEWAY_AUTH_RECOVERY;
+const connectorItem = PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY;
+const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
+const failedGatewayRelease = "qa-p38-health-gateway-6c9d08327ec6";
+const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
+const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
+const configPath = join(root, "agent-config.json");
+const agentReleasePath = join(root, "agent/agent-release.json");
+const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
+const bundle = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-auth.zip";
+const artifact = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-remediation-d9c0b804/gateway-runtime.tar.gz";
+const publication = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-auth-recovery-r2-20260923.json";
+const mode = process.argv.includes("--preflight") ? "PREFLIGHT" : process.argv.includes("--apply") ? "APPLY" : "";
+const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
+const outputPath = resolve(option("output") || ".");
+const planPath = option("plan") ? resolve(option("plan")) : "";
+const planSha = option("plan-sha256");
+if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
+  throw new Error("P38_GATEWAY_AUTH_MODE_OR_OUTPUT_INVALID");
+
+function sha(value) { return createHash("sha256").update(value).digest("hex"); }
+function protectedFile(file) {
+  if (!file || !existsSync(file) || !realpathSync(file).startsWith(restrictedRoot) ||
+    lstatSync(file).isSymbolicLink() || !lstatSync(file).isFile() || (statSync(file).mode & 0o077) !== 0)
+    throw new Error("P38_GATEWAY_AUTH_PROTECTED_EVIDENCE_REQUIRED");
+  return readFileSync(file);
+}
+function protectedLocalFile(file) {
+  if (!file || !existsSync(file) || lstatSync(file).isSymbolicLink() || !lstatSync(file).isFile() ||
+    realpathSync(file) !== resolve(file) || (statSync(file).mode & 0o077) !== 0)
+    throw new Error("P38_GATEWAY_AUTH_LOCAL_FILE_UNSAFE");
+  return readFileSync(file);
+}
+function persist(value) {
+  writeFileSync(outputPath, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+  chmodSync(outputPath, 0o600);
+  return sha(readFileSync(outputPath));
+}
+function docker(args, input) {
+  return execFileSync("docker", ["--context", "colima-push38t", ...args], {
+    encoding: "utf8", timeout: 45_000, input,
+    stdio: [input ? "pipe" : "ignore", "pipe", "pipe"]
+  }).trim();
+}
+function psql(sql) {
+  return docker(["exec", "supabase_db_gan-batuach-push38t", "psql", "-X", "-A", "-t",
+    "-U", "postgres", "-d", "postgres", "-c", sql]);
+}
+function service(label) {
+  const text = execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${label}`],
+    { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+  return { running: text.includes("state = running"), pid: Number(/\bpid = (\d+)/.exec(text)?.[1] || 0) || null };
+}
+function tlsProbe(route) {
+  return new Promise((accept, reject) => {
+    const req = httpsRequest({ hostname: "127.0.0.1", port: 3101, path: route, method: "GET",
+      ca: readFileSync(config.qaTlsCaPath), rejectUnauthorized: true, timeout: 8_000 }, response => {
+      response.resume(); response.on("end", () => accept(response.statusCode));
+    });
+    req.on("timeout", () => req.destroy(new Error("P38_GATEWAY_AUTH_TLS_TIMEOUT")));
+    req.on("error", reject); req.end();
+  });
+}
+async function healthSample(port, label, profile) {
+  const live = service(label);
+  const response = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(12_000) });
+  if (!response.ok) throw new Error(`P38_${profile}_RUNTIME_UNAVAILABLE`);
+  const health = await response.json();
+  return { pid: live.pid, running: live.running, ok: health.ok === true, status: health.status || null,
+    assigned: health.lastDiscovery?.assignedCount ?? health.lastDiscovery?.channelCount ?? null,
+    connected: health.lastDiscovery?.connectedCount ?? null,
+    failed: health.lastDiscovery?.failedAssignedCount ?? null,
+    empty: health.lastDiscovery?.unassignedCount ?? null,
+    progressing: health.mediaHeartbeat?.progressingRelays ?? null,
+    stalled: health.mediaHeartbeat?.stalledRelays ?? null };
+}
+
+for (const file of [bundle, artifact, publication]) protectedFile(file);
+const config = JSON.parse(protectedLocalFile(configPath).toString("utf8"));
+if (config.profile !== item.profile || config.deviceId !== item.deviceId || config.channel !== "HOME_QA" ||
+  config.managedRoot !== root || config.port !== 18082 || !config.secretDir || !config.qaTlsCaPath ||
+  !/^[a-f0-9]{64}$/.test(config.qaTlsCaSha256 || ""))
+  throw new Error("P38_GATEWAY_AUTH_CONFIG_MISMATCH");
+if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
+  throw new Error("P38_GATEWAY_AUTH_TLS_PIN_MISMATCH");
+
+const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle, "gateway_remediation_auth.json"],
+  { encoding: "utf8", timeout: 15_000, maxBuffer: 16_384 }));
+const trusted = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
+const publicationProof = JSON.parse(readFileSync(publication, "utf8"));
+const expectedObject = `home-qa/${item.releaseId}/${item.digest}.tar.gz`;
+if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== item.releaseId ||
+  manifest.version !== item.version || manifest.build_sha !== item.buildSha ||
+  manifest.artifact_sha256 !== item.digest || manifest.artifact_size !== item.size ||
+  manifest.profile !== item.profile || manifest.channel !== "HOME_QA" ||
+  JSON.stringify(manifest.rollout?.explicit_device_ids) !== JSON.stringify([item.deviceId]) ||
+  manifest.rollout?.cohort_percent !== 0 || manifest.signing_key_id !== "observer-kms-release-v1" ||
+  assertEdgeReleaseObjectUrl(manifest, "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com") !== expectedObject ||
+  statSync(artifact).size !== item.size || sha(readFileSync(artifact)) !== item.digest ||
+  publicationProof.release_id !== item.releaseId || publicationProof.object_key !== expectedObject ||
+  publicationProof.artifact_sha256 !== item.digest || publicationProof.bytes !== item.size ||
+  publicationProof.round_trip !== "PASS" || publicationProof.anonymous_access_denied !== true ||
+  publicationProof.storage_class !== "STANDARD")
+  throw new Error("P38_GATEWAY_AUTH_RELEASE_INVALID");
+
+const labels = JSON.parse(docker(["inspect", "--format", "{{json .Config.Labels}}",
+  "supabase_db_gan-batuach-push38t"]));
+const network = docker(["network", "inspect", "push38t-loopback", "--format",
+  "{{index .Options \"com.docker.network.bridge.host_binding_ipv4\"}}"]).trim();
+if (labels["com.supabase.cli.project"] !== "gan-batuach-push38t" || network !== "127.0.0.1")
+  throw new Error("P38_GATEWAY_AUTH_DATABASE_NOT_ISOLATED");
+
+const gatewayManager = new EdgeUpdateManager({ root, trustedPublicKeys: trusted,
+  device: { deviceId: item.deviceId, profile: item.profile, platform: "darwin", architecture: "arm64",
+    channel: "HOME_QA", currentVersion: "0.1.0-legacy", configVersion: 1, revoked: false },
+  adapter: {}, healthCheck: async () => ({}) });
+const current = gatewayManager.current(), knownGood = gatewayManager.knownGood();
+const failed = gatewayManager.quarantine().find(entry => entry.release_id === failedGatewayRelease);
+if (gatewayManager.status().state !== "ROLLED_BACK" || current.release_id !== gatewayBaseline ||
+  current.artifact_sha256 !== "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d" ||
+  !knownGood.some(entry => entry.release_id === gatewayBaseline && entry.artifact_sha256 === current.artifact_sha256) ||
+  !failed || gatewayManager.quarantine().some(entry => entry.release_id === item.releaseId))
+  throw new Error("P38_GATEWAY_AUTH_ROLLBACK_STATE_INVALID");
+gatewayManager.verifySlot(current);
+
+const connectorManager = new EdgeUpdateManager({ root: connectorRoot, trustedPublicKeys: trusted,
+  device: { deviceId: connectorItem.deviceId, profile: connectorItem.profile, platform: "darwin",
+    architecture: "arm64", channel: "HOME_QA", currentVersion: connectorItem.version,
+    configVersion: 4, revoked: false }, adapter: {}, healthCheck: async () => ({}) });
+const connectorCurrent = connectorManager.current();
+if (connectorCurrent.release_id !== connectorItem.releaseId ||
+  connectorCurrent.artifact_sha256 !== connectorItem.digest ||
+  !connectorManager.knownGood().some(entry => entry.release_id === connectorItem.releaseId))
+  throw new Error("P38_GATEWAY_AUTH_CONNECTOR_PREREQUISITE_INVALID");
+connectorManager.verifySlot(connectorCurrent);
+
+const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath).toString("utf8"));
+if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !== item.digest)
+  throw new Error("P38_GATEWAY_AUTH_AGENT_NOT_UPGRADED");
+
+const rollout = JSON.parse(psql(`select jsonb_build_object(
+  'devices',(select count(*) from public.video_gateway_device_enrollments),
+  'releases',(select count(*) from public.observer_edge_releases where channel='HOME_QA'),
+  'new_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
+  'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
+  'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
+  'failed_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${failedGatewayRelease}'),
+  'broad_active',(select count(*) from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0),
+  'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
+  'known_good',(select metadata->>'home_qa_known_good_release_id' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
+  'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
+  'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
+if (rollout.devices !== 2 || rollout.releases !== 9 || rollout.new_status !== "DRAFT" ||
+  rollout.new_cohort !== 0 || JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
+  rollout.failed_status !== "PAUSED" || rollout.broad_active !== 0 ||
+  rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.known_good !== gatewayBaseline ||
+  rollout.managed_identity !== "ED25519_V1" || rollout.fresh_proof !== 1)
+  throw new Error("P38_GATEWAY_AUTH_HOME_QA_STATE_INVALID");
+
+const gatewayService = service("com.ganbatuach.video-gateway");
+const gatewayAgent = service("com.ganbatuach.video-gateway.ota-agent");
+const connectorService = service("com.ganbatuach.software-connector.tapo");
+if (!gatewayService.running || !gatewayService.pid || !gatewayAgent.running || !gatewayAgent.pid ||
+  !connectorService.running || !connectorService.pid)
+  throw new Error("P38_GATEWAY_AUTH_SERVICE_MANAGER_INVALID");
+const gatewaySamples = [], connectorSamples = [];
+for (let index = 0; index < 3; index += 1) {
+  gatewaySamples.push(await healthSample(18082, "com.ganbatuach.video-gateway", "GATEWAY"));
+  connectorSamples.push(await healthSample(18083, "com.ganbatuach.software-connector.tapo", "CONNECTOR"));
+  if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 2_000));
+}
+if (gatewaySamples.some(sample => !sample.running || !sample.pid || !sample.ok || sample.assigned !== 10 ||
+  sample.connected !== 8 || sample.failed !== 2 || sample.empty !== 6 || sample.progressing !== 8 || sample.stalled !== 0) ||
+  new Set(gatewaySamples.map(sample => sample.pid)).size !== 1)
+  throw new Error("P38_GATEWAY_AUTH_RUNTIME_TRUTH_INVALID");
+// Connector discovery can retain the most recent RTSP-open result while the
+// relay has already recovered. The pre-write gate is the current expected
+// source plus frame/relay progression, not a stale discovery snapshot.
+if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok || sample.assigned !== 1) ||
+  new Set(connectorSamples.map(sample => sample.pid)).size !== 1 ||
+  connectorSamples.at(-1).progressing !== 1 || connectorSamples.at(-1).stalled !== 0)
+  throw new Error("P38_GATEWAY_AUTH_CONNECTOR_HEALTH_INVALID");
+const disk = statfsSync(root);
+if (Number(disk.bavail) * Number(disk.bsize) < item.size * 3)
+  throw new Error("P38_GATEWAY_AUTH_DISK_INSUFFICIENT");
+const [anonymous, wrongRoute] = await Promise.all([
+  tlsProbe("/api/video-gateway/edge-updates?platform=darwin&architecture=arm64&profile=PHYSICAL_GATEWAY&current_version=0.1.0-legacy&config_version=1&channel=HOME_QA"),
+  tlsProbe("/api/video-gateway/not-exposed")
+]);
+if (anonymous !== 401 || wrongRoute !== 404) throw new Error("P38_GATEWAY_AUTH_INGRESS_INVALID");
+
+const plan = { protocol: "observer-push38-gateway-auth-activation-v1",
+  generated_at: new Date().toISOString(), mode: "PREFLIGHT", release_id: item.releaseId,
+  version: item.version, build_sha: item.buildSha, artifact_sha256: item.digest,
+  artifact_size: item.size, r2_object_key: expectedObject, exact_device_id: item.deviceId,
+  cohort_percent: 0, signed_manifest: "PASS", live_trust: "PASS", r2_round_trip: "PASS",
+  private_r2: "PASS", managed_device_auth: "PASS", https_control: "PASS",
+  current_release_id: current.release_id, rollback_target: gatewayBaseline,
+  quarantined_failed_release: failedGatewayRelease, runtime_pid: gatewayService.pid,
+  ota_agent_pid: gatewayAgent.pid, connector_release_id: connectorCurrent.release_id,
+  gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
+  dvr_truth: { expected: 10, source_available: 8, upstream_unavailable: 2, empty: 6 },
+  actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_AUTH_ROLLOUT",
+    "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
+    "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
+if (mode === "PREFLIGHT") {
+  const evidenceSha = persist(plan);
+  console.log(JSON.stringify({ status: "GATEWAY_AUTH_PREFLIGHT_PASS", evidence_sha256: evidenceSha,
+    release_id: item.releaseId, exact_device: true, broad_cohort: false,
+    dvr_progressing: gatewaySamples.at(-1).progressing, runtime_writes: 0 }));
+  process.exit(0);
+}
+
+const savedBytes = protectedFile(planPath);
+if (!/^[a-f0-9]{64}$/.test(planSha) || sha(savedBytes) !== planSha)
+  throw new Error("P38_GATEWAY_AUTH_PLAN_PIN_MISMATCH");
+const saved = JSON.parse(savedBytes);
+if (saved.protocol !== plan.protocol || saved.release_id !== item.releaseId ||
+  saved.artifact_sha256 !== item.digest || saved.current_release_id !== gatewayBaseline ||
+  saved.rollback_target !== gatewayBaseline || saved.runtime_pid !== gatewayService.pid ||
+  saved.ota_agent_pid !== gatewayAgent.pid || Date.now() - Date.parse(saved.generated_at) > 10 * 60_000)
+  throw new Error("P38_GATEWAY_AUTH_PLAN_STALE");
+const sql = `begin;
+  update public.observer_edge_rollouts set status='PAUSED',updated_at=now()
+  where release_id in (select id from public.observer_edge_releases where channel='HOME_QA' and deployment_profile='PHYSICAL_GATEWAY')
+    and status in ('DRAFT','ACTIVE');
+  update public.observer_edge_rollouts set status='ACTIVE',paused_reason=null,updated_at=now()
+  where release_id=(select id from public.observer_edge_releases where release_id='${item.releaseId}')
+    and cohort_percent=0 and target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}');
+  do $$ begin
+    if not exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
+      where r.release_id='${item.releaseId}' and o.status='ACTIVE' and o.cohort_percent=0
+      and o.target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}')) or
+      exists(select 1 from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0) or
+      exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
+        where r.deployment_profile='PHYSICAL_GATEWAY' and r.release_id<>'${item.releaseId}' and o.status='ACTIVE')
+    then raise exception 'P38_GATEWAY_AUTH_ACTIVATION_VERIFY_FAILED'; end if;
+  end $$;
+commit;`;
+docker(["exec", "-i", "supabase_db_gan-batuach-push38t", "psql", "-X", "-q", "-v", "ON_ERROR_STOP=1",
+  "-U", "postgres", "-d", "postgres"], sql);
+const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
+  exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
+  functional_runtime_changed_by_command: false, runtime_writes: 0 };
+const evidenceSha = persist(result);
+console.log(JSON.stringify({ status: "EXACT_GATEWAY_AUTH_ROLLOUT_ACTIVE", evidence_sha256: evidenceSha,
+  release_id: item.releaseId, exact_device: true, broad_cohort: false,
+  ota_agent_owns_install: true, runtime_writes: 0 }));
