@@ -79,7 +79,8 @@ for (const [path, required] of [
     "gateway_remediation_playback_sweep_serialization.json",
     "P38_GATEWAY_PLAYBACK_SWEEP_FAILED_PRE_SOAK_PROOF_INVALID",
     "failed-pre-soak-evidence",
-    "failed-pre-soak-checkpoints"
+    "failed-pre-soak-checkpoints",
+    '"termination" in result'
   ]]
 ]) {
   const source = readFileSync(path, "utf8");

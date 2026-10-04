@@ -953,7 +953,8 @@ if (playbackSweep) {
     result.gateway?.recorder_auth_rejection_delta !== 0 ||
     result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
     JSON.stringify(result.gate_failures) !== JSON.stringify([
-      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) || result.termination !== null ||
+      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) ||
+    ("termination" in result && result.termination !== null) ||
     checkpoints.length !== 60 || checkpoint29?.dvr?.classification !== "PASS" ||
     checkpoint29?.dvr?.available !== 9 || checkpoint29?.dvr?.progressing !== 9 ||
     sessionSweepAdvances(checkpoint29).length !== 9 ||
