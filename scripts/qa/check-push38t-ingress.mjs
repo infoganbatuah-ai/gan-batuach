@@ -17,6 +17,7 @@ const allowed = [
   ["POST", "/api/video-gateway/cloud-discovery"],
   ["POST", "/api/video-gateway/device-heartbeat"],
   ["POST", "/api/video-gateway/cloud-learning"],
+  ["POST", "/api/video-gateway/playback-grant"],
   ["POST", "/api/digital-observer/dvr-gateway"],
   ["GET", "/push38/remote-playback"],
   ["POST", "/push38/remote-playback/result"]
@@ -38,9 +39,13 @@ const audit = [];
 const remoteResults = [];
 const remoteQualificationDeadline = Date.now() + 60_000;
 let qualificationNow = remoteQualificationDeadline - 1;
+const remoteSession = { session_id: "short-session-id-1234", expires_at_ms: remoteQualificationDeadline,
+  config: { t: "header.payload.signature", r: "qualification-result-token-00000000000000000000",
+    s: "00000000-0000-4000-8000-000000000001", c: [] } };
 const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}`,
   remoteResultToken: "qualification-result-token-00000000000000000000",
   remoteResultExpiresAt: remoteQualificationDeadline,
+  remoteSession,
   now: () => qualificationNow,
   onRemoteResult: result => remoteResults.push(result),
   onAudit: event => audit.push(event) });
@@ -58,7 +63,9 @@ try {
   const productDenied = await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",
     headers: { "content-type": "application/json" }, body: "{}" });
   assert.equal(productDenied.status, 401);
-  const page = await fetch(base + "/push38/remote-playback");
+  assert.equal((await fetch(base + "/push38/remote-playback")).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback?session=wrong-session-id-1")).status, 404);
+  const page = await fetch(base + `/push38/remote-playback?session=${remoteSession.session_id}`);
   assert.equal(page.status, 200);
   assert.equal((await page.text()).includes("accessToken"), true);
   const resultPayload = { protocol: "observer-push38-remote-client-proof-v1",
@@ -84,7 +91,7 @@ try {
   assert.equal(remoteResults.length, 2);
   assert.equal(remoteResults[1].pass, false);
   qualificationNow = remoteQualificationDeadline + 1;
-  assert.equal((await fetch(base + "/push38/remote-playback")).status, 404);
+  assert.equal((await fetch(base + `/push38/remote-playback?session=${remoteSession.session_id}`)).status, 404);
   assert.equal((await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",
     headers: { "content-type": "application/json" }, body: "{}" })).status, 404);
   assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",

@@ -6,8 +6,11 @@ import { once } from "node:events";
 
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const durationSeconds = Number(option("duration-seconds") || 1200);
+const remoteSessionId = option("remote-session-id");
 if (!Number.isInteger(durationSeconds) || durationSeconds < 300 || durationSeconds > 1200)
   throw new Error("P38_BOUNDED_CONTROL_WINDOW_INVALID");
+if (remoteSessionId && !/^[A-Za-z0-9_-]{22}$/.test(remoteSessionId))
+  throw new Error("P38_BOUNDED_CONTROL_REMOTE_SESSION_INVALID");
 const restricted = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const statePath = resolve(option("state-output"));
 if (!statePath.startsWith(restricted) || existsSync(statePath))
@@ -35,6 +38,8 @@ writeFileSync(scopedConfig, `tunnel: ${tunnel}\ncredentials-file: ${credentials}
   `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
   `  - hostname: gateway.ganbatuach.com\n    path: ^/api/digital-observer/dvr-gateway$\n` +
   `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
+  `  - hostname: gateway.ganbatuach.com\n    path: ^/api/video-gateway/playback-grant$\n` +
+  `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
   `  - service: http_status:404\n`, { flag: "wx", mode: 0o600 });
 execFileSync(cloudflared, ["--config", scopedConfig, "tunnel", "ingress", "validate"],
   { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
@@ -44,7 +49,8 @@ const state = {
   status: "STARTING",
   duration_seconds: durationSeconds,
   hostname: "gateway.ganbatuach.com",
-  allowed_routes: ["/push38/remote-playback", "/push38/remote-playback/result", "/api/digital-observer/dvr-gateway"],
+  allowed_routes: ["/push38/remote-playback", "/push38/remote-playback/result",
+    "/api/digital-observer/dvr-gateway", "/api/video-gateway/playback-grant"],
   default_deny: true,
   local_origin: "TLS_LOOPBACK_3101",
   secrets_logged: false,
@@ -97,7 +103,8 @@ try {
   for (let attempt = 0; attempt < 15 && child.exitCode === null; attempt += 1) {
     await sleep(1_000);
     const [page, dashboard, unrelated] = await Promise.all([
-      publicStatus("/push38/remote-playback"), publicStatus("/dashboard"), publicStatus("/api/unrelated")
+      publicStatus(`/push38/remote-playback${remoteSessionId ? `?session=${remoteSessionId}` : ""}`),
+      publicStatus("/dashboard"), publicStatus("/api/unrelated")
     ]);
     if (page === 200 && dashboard === 404 && unrelated === 404) { ready = true; break; }
   }

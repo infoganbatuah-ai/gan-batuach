@@ -14,6 +14,7 @@ const routes = new Set([
   "POST /api/video-gateway/cloud-discovery",
   "POST /api/video-gateway/device-heartbeat",
   "POST /api/video-gateway/cloud-learning",
+  "POST /api/video-gateway/playback-grant",
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
   "POST /push38/remote-playback/result"
@@ -29,6 +30,7 @@ const forwardHeaders = new Set([
   "x-observer-home-qa-legacy-signature"
 ]);
 const remoteQualificationRoutes = new Set([
+  "POST /api/video-gateway/playback-grant",
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
   "POST /push38/remote-playback/result"
@@ -67,7 +69,7 @@ function safeEqual(left, right) {
 }
 
 export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null,
-  remoteResultToken = "", remoteResultExpiresAt = 0, now = Date.now,
+  remoteResultToken = "", remoteResultExpiresAt = 0, remoteSession = null, now = Date.now,
   onRemoteResult = () => {}, onAudit = () => {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
@@ -75,21 +77,23 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
   if (tls && (!tls.keyPath || !tls.certPath)) throw new Error("QA_INGRESS_TLS_MATERIAL_REQUIRED");
   const handler = async (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
+    const remoteSessionMatch = request.method === "GET" && url.pathname === "/push38/remote-playback" &&
+      remoteSession && url.searchParams.size === 1 && url.searchParams.get("session") === remoteSession.session_id;
     if (!push38tIngressAllows(request.method, url.pathname) ||
-      (url.pathname !== "/api/video-gateway/edge-updates" && url.search)) {
+      (url.pathname !== "/api/video-gateway/edge-updates" && url.search && !remoteSessionMatch)) {
       onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
       response.writeHead(404, { "cache-control": "no-store" }).end();
       return;
     }
     const remoteQualificationActive = Boolean(remoteResultToken) && Number.isFinite(remoteResultExpiresAt) &&
-      remoteResultExpiresAt > now();
+      remoteResultExpiresAt > now() && (!remoteSession || remoteSession.expires_at_ms > now());
     if (!remoteQualificationActive && remoteQualificationRoutes.has(`${request.method} ${url.pathname}`)) {
       onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
       response.writeHead(404, { "cache-control": "no-store" }).end();
       return;
     }
     if (url.pathname === "/push38/remote-playback" && request.method === "GET") {
-      if (!remoteQualificationActive) {
+      if (!remoteQualificationActive || (remoteSession && !remoteSessionMatch)) {
         onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
         response.writeHead(404, { "cache-control": "no-store" }).end();
         return;
@@ -97,7 +101,8 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       onAudit({ method: request.method, pathname: url.pathname, outcome: "QUALIFICATION_CLIENT", status: 200 });
       response.writeHead(200, { "cache-control": "private, no-store", "content-type": "text/html; charset=utf-8",
         "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https:; media-src https:; img-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
-        "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" }).end(push38RemotePlaybackPage());
+        "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" })
+        .end(push38RemotePlaybackPage(remoteSession?.config ?? null));
       return;
     }
     try {

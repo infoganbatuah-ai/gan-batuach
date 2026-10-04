@@ -22,7 +22,8 @@ const html = String.raw`<!doctype html>
   <p><small>ההרשאות והקישורים קצרים בזמן ואינם כוללים פרטי DVR, ‏RTSP או מצלמה.</small></p>
 </main><script>
 const summary=document.getElementById("summary"),videos=document.getElementById("videos"),run=document.getElementById("run");
-const decodeFragment=()=>{const raw=location.hash.slice(1).replace(/-/g,"+").replace(/_/g,"/");return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(raw+"=".repeat((4-raw.length%4)%4)),c=>c.charCodeAt(0))))};
+const embeddedConfig=__PUSH38_REMOTE_CONFIG__;
+const decodeFragment=()=>{if(embeddedConfig)return embeddedConfig;const raw=location.hash.slice(1).replace(/-/g,"+").replace(/_/g,"/");return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(raw+"=".repeat((4-raw.length%4)%4)),c=>c.charCodeAt(0))))};
 const wait=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
 const safeRemote=url=>{const value=new URL(url);return value.protocol==="https:"&&!(["localhost","127.0.0.1","::1"].includes(value.hostname)||value.hostname.endsWith(".local"))};
 async function authorize(config,source){
@@ -68,8 +69,9 @@ run.addEventListener("click",async()=>{
 });
 </script></body></html>`;
 
-export function push38RemotePlaybackPage() {
-  return html;
+export function push38RemotePlaybackPage(config = null) {
+  const embedded = config === null ? "null" : JSON.stringify(config).replace(/</g, "\\u003c");
+  return html.replace("__PUSH38_REMOTE_CONFIG__", embedded);
 }
 
 export function sanitizePush38RemotePlaybackResult(value) {

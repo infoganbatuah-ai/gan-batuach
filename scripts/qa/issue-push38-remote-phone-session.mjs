@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { createHmac } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { chmodSync, existsSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { resolve, sep } from "node:path";
 import { createClient } from "@supabase/supabase-js";
@@ -26,6 +26,7 @@ const outputPath = name => {
 };
 const qrPath = outputPath("qr-output");
 const sessionPath = outputPath("session-output");
+const payloadPath = outputPath("payload-output");
 const pageOrigin = new URL(option("page-origin") || "https://gateway.ganbatuach.com");
 if (pageOrigin.protocol !== "https:" || pageOrigin.hostname !== "gateway.ganbatuach.com" || pageOrigin.username ||
   pageOrigin.password || pageOrigin.pathname !== "/" || pageOrigin.search || pageOrigin.hash)
@@ -78,15 +79,21 @@ const sources = [...dvr.map(row => {
     p: representativeChannels.has(channel) };
 }), { i: tapo[0].id, l: "Tapo", k: "TAPO", e: "ALLOW", p: true }];
 const config = { t: accessToken, r: runtimeSecret.result_token, s: SITE_ID, c: sources };
-const phoneUrl = `${pageOrigin.origin}/push38/remote-playback#${Buffer.from(JSON.stringify(config)).toString("base64url")}`;
+const sessionId = randomBytes(16).toString("base64url");
+const phoneUrl = `${pageOrigin.origin}/push38/remote-playback?session=${sessionId}`;
 run("/opt/homebrew/bin/qrencode", ["-l", "L", "-s", "8", "-m", "4", "-o", qrPath], { input: phoneUrl });
 chmodSync(qrPath, 0o600);
+writeFileSync(payloadPath, `${JSON.stringify({ protocol: "observer-push38-remote-phone-payload-v1",
+  session_id: sessionId, issued_at: new Date(now * 1000).toISOString(),
+  expires_at: new Date(expires * 1000).toISOString(), config }, null, 2)}\n`, { flag: "wx", mode: 0o600 });
 writeFileSync(sessionPath, `${JSON.stringify({ protocol: "observer-push38-remote-phone-session-v1",
   status: "READY", issued_at: new Date(now * 1000).toISOString(), expires_at: new Date(expires * 1000).toISOString(),
   client_class: "OWNER_PHONE_BROWSER", edge_software_required: false, source_authorizations: sources.length,
   dvr_authorizations: 10, dvr_visual_samples: [...representativeChannels], tapo_visual_samples: 1,
   expected_dvr_denials: 1, empty_excluded: 6, url_logged: false, secrets_logged: false,
-  qr_contains_short_lived_bearer: true }, null, 2)}\n`, { flag: "wx", mode: 0o600 });
+  qr_contains_short_lived_bearer: true, qr_encoding: "SHORT_SESSION_ID", payload_server_side: true,
+  payload_path_logged: false }, null, 2)}\n`, { flag: "wx", mode: 0o600 });
 console.log(JSON.stringify({ status: "PASS", session: "SHORT_LIVED_RESTRICTED_QR", expires_at: new Date(expires * 1000).toISOString(),
   source_authorizations: sources.length, dvr_visual_samples: representativeChannels.size,
-  tapo_visual_samples: 1, edge_software_required: false, secrets_logged: false }));
+  tapo_visual_samples: 1, edge_software_required: false, qr_encoding: "SHORT_SESSION_ID",
+  secrets_logged: false }));
