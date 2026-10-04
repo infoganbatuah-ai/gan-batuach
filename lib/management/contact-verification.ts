@@ -15,6 +15,19 @@ export type ManagementContactVerification = {
   complete: boolean;
 };
 
+export type AccountVerificationAction = "normal_account" | "verified_phone_action" | "high_assurance_action";
+
+export function evaluateAccountVerification(user: User, action: AccountVerificationAction, profile?: ContactProfile | null) {
+  const state = managementContactVerification(user, profile);
+  const blockers: string[] = [];
+  if (action === "normal_account" && !state.complete) blockers.push("email_verification_required");
+  if (action === "verified_phone_action" && !state.phoneVerified) blockers.push("phone_verification_required");
+  // Higher assurance is enforced by the action's existing MFA/reauthentication guard.
+  // A verified phone number alone must never satisfy that guard.
+  if (action === "high_assurance_action") blockers.push("mfa_or_reauthentication_required");
+  return { allowed: blockers.length === 0, blockers, ...state };
+}
+
 export function managementContactVerification(user: User, profile?: ContactProfile | null): ManagementContactVerification {
   const required = profile?.contact_verification_required === true
     || user.app_metadata?.contact_verification_required === true;
@@ -24,7 +37,7 @@ export function managementContactVerification(user: User, profile?: ContactProfi
     required,
     emailVerified,
     phoneVerified,
-    complete: !required || (emailVerified && phoneVerified)
+    complete: !required || emailVerified
   };
 }
 

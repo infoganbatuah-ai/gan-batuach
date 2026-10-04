@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Baby, FileText, HeartPulse, ShieldCheck, UserRoundCheck } from "lucide-react";
+import { Baby, CalendarDays, Camera, FileText, HeartPulse, MessageCircle, ShieldCheck, UserRoundCheck, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { ChildPhotoUpload } from "@/components/child-photo-upload";
 import { DashboardShell } from "@/components/dashboard-shell";
@@ -88,6 +88,15 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
             <Link className="button primary" href="/dashboard/parent/messages">פנייה לגן</Link>
           </div>
         </section>
+
+        <nav className="ux05-child-profile-nav" aria-label="אזורי כרטיס הילד">
+          <Link href={`/dashboard/parent/children/${child.id}`} aria-current="page"><Baby size={19} />סקירה</Link>
+          <Link href={`/dashboard/parent/attendance?child=${child.id}`}><CalendarDays size={19} />נוכחות</Link>
+          <Link href="/dashboard/parent/cameras"><Camera size={19} />מצלמות</Link>
+          <Link href="/dashboard/parent/documents"><FileText size={19} />מסמכים</Link>
+          <Link href="/dashboard/parent/payments"><WalletCards size={19} />תשלומים</Link>
+          <Link href="/dashboard/parent/messages"><MessageCircle size={19} />הודעות</Link>
+        </nav>
 
         <section className="parent-two-column">
           <ChildPhotoUpload childId={child.id} initialUrl={child.photo_url ?? child.face_image_url} />

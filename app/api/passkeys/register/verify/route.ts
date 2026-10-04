@@ -1,8 +1,11 @@
 import { verifyRegistrationResponse, type RegistrationResponseJSON } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
+import { handleSafeRouteError } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getPasskeyContext, toBase64Url } from "@/lib/passkeys";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const runtime = "nodejs";
 
@@ -12,14 +15,17 @@ type RegisterVerifyBody = {
 };
 
 export async function POST(request: Request) {
+  try {
+  assertTrustedMutationOrigin(request);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user?.email) {
     return NextResponse.json({ error: "יש להתחבר עם סיסמה לפני הפעלת Passkey." }, { status: 401 });
   }
+  await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers, userId: user.id }), "management:passkey-register-verify", 10, 10 * 60);
 
-  const body = (await request.json()) as RegisterVerifyBody;
+  const body = (await parseBoundedJson(request, 64 * 1024)) as RegisterVerifyBody;
   if (!body.response) {
     return NextResponse.json({ error: "חסרה תגובת Passkey מהדפדפן." }, { status: 400 });
   }
@@ -79,4 +85,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleSafeRouteError(error);
+  }
 }

@@ -336,9 +336,10 @@ export const emergencyTaskSchema = z.object({
 export const staffShiftSchema = z.object({
   staff_id: z.string().uuid(),
   garden_id: z.string().uuid(),
-  shift_date: z.string(),
-  planned_start: z.string().optional(),
-  planned_end: z.string().optional()
+  shift_date: z.iso.date(),
+  planned_start: z.iso.time(),
+  planned_end: z.iso.time(),
+  classroom_id: z.string().uuid().nullable().optional()
 });
 
 export const staffCertificateSchema = z.object({

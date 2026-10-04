@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
@@ -32,11 +32,14 @@ async function cleanupProvisionedInspector(userId: string) {
 export async function POST(request: Request) {
   let createdUserId: string | null = null;
   try {
-    const { profile } = await requireRole(["admin"]);
+    const { user: sessionUser, profile } = await getSessionProfile();
+    if (!sessionUser || !profile) return fail("נדרשת התחברות.", 401);
+    if (profile.role !== "admin") return fail("אין הרשאת מנהל מערכת.", 403);
     const payload = schema.parse(await request.json());
     if (payload.garden_ids?.length) return fail("יש לאשר את בקשת המפקח לפני שיוך גנים.", 409);
     const admin = createAdminClient();
     const inspectorEmail = normalizeOptionalEmail(payload.email);
+    if (!inspectorEmail) return fail("נדרש דוא״ל כדי לשלוח הזמנת פקח מאובטחת.", 422);
     const identityNumber = payload.identity_number.replace(/\D/g, "");
     if (identityNumber.length < 5) return fail("יש להזין תעודת זהות מפקח תקינה.", 422, { field: "identity_number" });
     if (debugLogsEnabled()) console.info("[create-inspector-email-check]", { attemptedEmail: payload.email ?? null, normalizedEmail: inspectorEmail ?? null });
@@ -49,7 +52,6 @@ export async function POST(request: Request) {
       fullName: payload.full_name,
       email: inspectorEmail,
       phone: payload.phone,
-      temporaryPassword: payload.temporary_password,
       createdBy: profile.id,
       conflictField: "inspector_email"
     });

@@ -1,0 +1,51 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+const read=p=>JSON.parse(readFileSync(p,'utf8')),write=(p,v)=>writeFileSync(p,JSON.stringify(v,null,2)+'\n');
+const git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:'pipe',maxBuffer:32*1024*1024}).trim();
+const now=new Date().toISOString(),app=read('development/database/local-product-receipt.json');
+if(app.status!=='PASS')throw Error('Local Product verification must pass first');
+const integration=git('rev-parse','integration/development');
+if(app.integrationCommit!==integration)throw Error('App receipt is stale');
+const ledger=read('DEVELOPMENT_INTEGRATION_LEDGER.json'),migration=read('DEVELOPMENT_MIGRATION_LEDGER.json');
+const audit=read('DEVELOPMENT_DATABASE_STATE_AUDIT_2026-09-19.json');
+const main=git('rev-parse','origin/main');
+if(main!=='8113d0607e4282dc8778540aa58c1502367f4221')throw Error('Main changed; re-audit before reporting unchanged');
+const historicalTrees=new Map(git('log','--format=%T %H','origin/main').split('\n').map(l=>l.split(' ')));
+const refs=git('for-each-ref','--format=%(refname) %(objectname)','refs/heads/','refs/remotes/origin/').split('\n').map(l=>l.split(' ')).filter(([r])=>r!=='refs/remotes/origin/HEAD');
+const names=[...new Set(refs.map(([r])=>r.replace(/^refs\/(heads|remotes\/origin)\//,'')))];
+const ancestor=(a,b)=>{try{git('merge-base','--is-ancestor',a,b);return true;}catch{return false;}};
+const branches=[];
+for(const name of names){
+ const remote=refs.find(([r])=>r===`refs/remotes/origin/${name}`),local=refs.find(([r])=>r===`refs/heads/${name}`);
+ const sha=local?.[1]||remote[1],unit=ledger.units.find(u=>u.id===name);
+ const witnesses=git('for-each-ref',`--contains=${sha}`,'--format=%(refname:short)','refs/remotes/').split('\n').filter(Boolean);
+ const equivalent=historicalTrees.get(git('rev-parse',`${sha}^{tree}`));
+ let disposition=ancestor(sha,main)?'ALREADY_IN_MAIN':ancestor(sha,integration)?'ALREADY_INTEGRATED':equivalent?'SUPERSEDED':unit?.reconciliation?.disposition||'PRESERVED_PENDING_INTEGRATION';
+ let reason=equivalent?`Exact whole-tree equals main-history commit ${equivalent}; preserve original source history, do not overlay it on newer development`:unit?.reconciliation?.reason||'Exact ancestry inclusion';
+ if(!witnesses.length){disposition='BLOCKED';reason='Head not remotely preserved';}
+ if(unit){unit.reconciliation={disposition,reason,observedAt:now};if(equivalent&&!ancestor(sha,main)&&!ancestor(sha,integration))unit.integration={...unit.integration,status:'BASELINE_ACCOUNTED',equivalence:'EXACT_TREE_EQUALS_MAIN_HISTORY',equivalentMainCommit:equivalent};}
+ branches.push({branch:name,localHead:local?.[1]??null,remoteHead:remote?.[1]??null,remoteContainingHead:witnesses,disposition,reason});
+}
+const stash=git('rev-parse','stash@{0}'),remoteStash=git('ls-remote','origin','refs/heads/backup/local-wip-preserved-20260830').split(/\s/)[0];
+if(stash!==remoteStash)throw Error('Stash remote identity differs');
+const stashUntracked=git('ls-tree','-r',`${stash}^3`).split('\n');
+const privateEvidence=ledger.externalEvidence.map(e=>({path:e.path,sha256:e.sha256,status:createHash('sha256').update(readFileSync(e.path)).digest('hex')===e.sha256?'PASS':'CHANGED'}));
+if(privateEvidence.some(e=>e.status!=='PASS'))throw Error('Private evidence checksum changed');
+const receipt={observedAt:now,main,integration,branches,branchCounts:branches.reduce((a,b)=>(a[b.disposition]=(a[b.disposition]||0)+1,a),{}),localOnlyCommits:git('rev-list','--branches','--not','--remotes').split('\n').filter(Boolean),worktrees:audit.worktrees.map(w=>({path:w.worktree,present:w.present,statusReadable:w.statusReadable,changeCount:w.changes?.length??null,remoteContainingHead:w.remoteContainingHead})),stash:{sha:stash,remoteVerified:true,parents:git('rev-list','--parents','-1',stash).split(' ').slice(1),untrackedFiles:stashUntracked.length,retained:true,correction:'Three blobs initially omitted by partial-clone rev-list --missing=allow-promisor were verified in the exact remote stash third-parent tree and materialized successfully. They are NOT local-only.'},privateEvidence,limitations:['Two absent directories: past untracked/private content unverifiable','Fourteen existing temporary directories have unreadable Git metadata; physical source separately inventoried','GB-M29 owner holds PR57 unmerged; canonical HTTP E2E remains pending','Historical divergent branches with no equivalence proof stay explicitly pending; no blind merge','Private evidence is on Kingston, not certified as independently remotely backed up']};
+write('DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json',receipt);
+const unit=ledger.units.find(u=>u.id==='codex/development-database-baseline-20260919');
+unit.sourceCommits=[...new Set([...unit.sourceCommits,'b146cbb77bc3c652623b57b871aa20a2cfcd422f'])];
+unit.state='LOCAL_FULL_STACK_VERIFIED';unit.localVerification='PASS_FULL_PRODUCT';unit.releaseEligibility='NOT_READY_WORKFLOW_RECONCILIATION_AND_PRODUCTION_GATES';
+unit.integration={status:'INTEGRATED_DEVELOPMENT',commit:integration,pullRequests:[59,60],conflicts:'NONE'};
+unit.validation={...unit.validation,status:'PASS_LOCAL_FULL_STACK_SCOPED_SYNTHETIC_QA',receipt:'development/database/local-product-receipt.json',ci:[...unit.validation.ci,'https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35456854933','https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35456854909'],limitations:app.limitations};
+unit.nextAction='Continue canonical full-stack development; resolve GB-M29 hold and historical pending units before declaring overall transition DONE; no Production release authorized';
+ledger.transitionStatus='LOCAL_FULL_STACK_VERIFIED_RECONCILIATION_NOT_DONE';ledger.updatedAt=now;ledger.reconciliationReport='DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json';
+ledger.integrationVerification={commit:integration,status:'PASS_LOCAL_FULL_STACK_SCOPED_SYNTHETIC_QA',receipt:'development/database/local-product-receipt.json',observedAt:now};
+write('DEVELOPMENT_INTEGRATION_LEDGER.json',ledger);
+const selected=new Map(git('ls-tree','-r',integration,'--','supabase/migrations').split('\n').filter(l=>l.endsWith('.sql')).map(l=>{const [meta,file]=l.split('\t');return [file,meta.split(' ')[2]];}));
+migration.developmentExpected=selected.size;migration.developmentAppliedVerified=migration.migrations.filter(m=>selected.get(m.file)===m.blob&&m.developmentApplied==='YES').length;
+migration.historicalReplayBlockers=migration.blockers;migration.blockers=[];migration.localDatabaseStatus='READY_BASELINE_AND_INTEGRATED_MIGRATIONS_VERIFIED';migration.observedAt=now;
+write('DEVELOPMENT_MIGRATION_LEDGER.json',migration);
+const conf=read('config/development-database.json');conf.status='READY_LOCAL_FULL_STACK';write('config/development-database.json',conf);
+console.log(JSON.stringify({branches:branches.length,counts:receipt.branchCounts,stash:'REMOTE_VERIFIED_RETAINED',privateEvidenceChecks:privateEvidence.length,expected:migration.developmentExpected,developmentApplied:migration.developmentAppliedVerified,workflowTransition:'NOT_DONE',localProduct:'FULL_STACK'}));

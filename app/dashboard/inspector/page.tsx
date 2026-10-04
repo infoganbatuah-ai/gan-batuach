@@ -11,7 +11,7 @@ import {
   Navigation,
   ShieldCheck
 } from "lucide-react";
-import { requireOperationalRole } from "@/lib/management/operational-role";
+import { requireApprovedInspector } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorActionCard,
@@ -35,8 +35,8 @@ function daysUntil(value?: string | null) {
 
 function statusTone(score?: number | null) {
   if (score === null || score === undefined) return "muted" as const;
-  if (Number(score ?? 0) >= 85) return "success" as const;
-  if (Number(score ?? 0) < 70) return "warning" as const;
+  if (Number(score ?? 0) >= 8.5) return "success" as const;
+  if (Number(score ?? 0) < 7) return "warning" as const;
   return "primary" as const;
 }
 
@@ -64,7 +64,7 @@ function taskStatusLabel(value?: string | null) {
 }
 
 export default async function InspectorDashboard() {
-  const { profile } = await requireOperationalRole(["inspector"]);
+  const { profile } = await requireApprovedInspector();
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
     supabase.from("inspectors" as any).select("id, service_cities, profile_photo_url").eq("id", profile.id).maybeSingle(),
@@ -76,19 +76,20 @@ export default async function InspectorDashboard() {
 
   const assignedGardens = (gardensRes.data ?? []) as any[];
 
-  if ((!inspector && assignedGardens.length === 0) || profile.active === false) {
+  if (assignedGardens.length === 0) {
     return (
-      <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="בקשת מפקח" subtitle="הגישה תיפתח לאחר אישור אדמין ושיוך גנים" badge="ממתין לאישור">
+      <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="מרכז פיקוח" subtitle="החשבון מאושר וממתין לשיוך גנים" badge="מאושר ללא שיוך">
         <InspectorHero
-          eyebrow="סטטוס מועמדות"
-          title="הבקשה שלך ממתינה לאישור אדמין"
-          subtitle="עד אישור ושיוך גנים לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
-          artwork={<ClipboardCheck />}
-          action={<Link className="inspector-action-button" href="/dashboard/inspector/apply">השלמת בקשה</Link>}
+          eyebrow="סטטוס שיוך"
+          title="טרם הוקצו לך גנים"
+          subtitle="החשבון מאושר. עד שיוך מפורש לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
+          imageSrc="/assets/ux09-inspector-hero.webp"
+          imageAlt="מפקחת בטיחות בכניסה לגן ילדים"
+          action={<Link className="inspector-action-button" href="/dashboard/inspector/preliminary-gardens">הקמת גן מקדים</Link>}
         />
         <InspectorMetricGrid columns={3}>
           <InspectorMetricCard label="גישה לגנים" value="חסומה" hint="עד שיוך מפורש" icon={Home} tone="warning" />
-          <InspectorMetricCard label="בקשה" value="בהמתנה" hint="פרטים ומסמכים" icon={ClipboardCheck} tone="warning" href="/dashboard/inspector/apply" />
+          <InspectorMetricCard label="חשבון" value="מאושר" hint="ממתין לשיוך" icon={ClipboardCheck} tone="success" />
           <InspectorMetricCard label="משימות" value="0" hint="יופיעו לאחר אישור" icon={CalendarCheck} tone="muted" />
         </InspectorMetricGrid>
       </InspectorAppFrame>
@@ -119,8 +120,8 @@ export default async function InspectorDashboard() {
     const days = daysUntil(item.due_at);
     return days !== null && days >= 0 && days <= 7;
   });
-  const inspectionScores = inspections.map((item) => Number(item.weighted_score)).filter((score) => Number.isFinite(score));
-  const gardenScores = gardens.map((garden) => Number(garden.last_inspection_score)).filter((score) => Number.isFinite(score));
+  const inspectionScores = inspections.filter((item) => item.weighted_score !== null && item.weighted_score !== undefined).map((item) => Number(item.weighted_score)).filter((score) => Number.isFinite(score));
+  const gardenScores = gardens.filter((garden) => garden.last_inspection_score !== null && garden.last_inspection_score !== undefined).map((garden) => Number(garden.last_inspection_score)).filter((score) => Number.isFinite(score));
   const avgScore = inspectionScores.length
     ? Math.round(inspectionScores.reduce((sum, score) => sum + score, 0) / inspectionScores.length)
     : gardenScores.length
@@ -133,7 +134,8 @@ export default async function InspectorDashboard() {
         eyebrow="הביקורת הבאה"
         title={next?.gardens?.name ?? "אין ביקורת מתוכננת"}
         subtitle={next ? `${next.gardens?.address ?? next.gardens?.city ?? ""} · ${next.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}` : "כאשר אדמין ישייך ביקורת, היא תופיע כאן עם כל פרטי השטח."}
-        artwork={<ClipboardCheck />}
+        imageSrc="/assets/ux09-inspector-hero.webp"
+        imageAlt="מפקחת בטיחות בגן ילדים"
         meta={next ? <><InspectorStatus tone="primary">{next.due_at ? new Date(next.due_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "ללא שעה"}</InspectorStatus><InspectorStatus tone={overdue.length ? "warning" : "success"}>{overdue.length ? "דורש טיפול" : "מתוכננת"}</InspectorStatus></> : null}
         action={<><Link className="inspector-action-button" href={next ? `/dashboard/inspector/inspections?required=${next.id}` : "/dashboard/inspector/inspections"}>התחל ביקורת</Link><Link className="inspector-action-button" href="/dashboard/inspector/control-center">נווט <Navigation size={18} /></Link></>}
       />
@@ -142,7 +144,7 @@ export default async function InspectorDashboard() {
         <InspectorMetricCard label="גנים מוקצים" value={gardens.length} hint="גנים בפיקוח" icon={Home} tone="success" href="/dashboard/inspector/control-center" />
         <InspectorMetricCard label="ביקורות החודש" value={`${inspections.length}/${Math.max(required.length, gardens.length, 1)}`} hint="הושלמו" icon={ClipboardCheck} tone="primary" href="/dashboard/inspector/inspections/history" />
         <InspectorMetricCard label="ליקויים פתוחים" value={violations.length} hint="דורש טיפול" icon={AlertTriangle} tone={violations.length ? "warning" : "success"} href="/dashboard/inspector/violations" />
-        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "מתוך 100"} icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
+        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "מתוך 10"} icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
       </InspectorMetricGrid>
 
       <DashboardTwoColumns>

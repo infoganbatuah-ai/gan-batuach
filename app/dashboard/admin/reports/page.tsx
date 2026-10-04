@@ -11,17 +11,17 @@ export default async function AdminListPage() {
   const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("דוחות", async () => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("report_exports" as any).select("id, report_type, format, status, created_at").limit(50);
+    const { data, error } = await supabase.from("report_exports" as never).select("id, report_type, format, status, created_at" as never).limit(50);
     logSupabaseError("דוחות", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
+    return { rows: (data ?? []) as unknown as Array<Record<string, unknown>>, queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { rows: [] as Array<Record<string, unknown>>, queryError: null as string | null });
   const rows = result.data.rows;
   const ready = rows.filter((row) => ["ready", "done", "completed", "success"].includes(String(row.status))).length;
   const pending = rows.filter((row) => ["queued", "pending", "running", "processing"].includes(String(row.status))).length;
   return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/reports" title="דוחות וניתוח נתונים" subtitle="דוחות, ייצוא, אנליטיקה, ערים ומגמות תפעוליות." badge="דוחות">
     <PremiumCard size="lg" className="admin-section-card">
       <SectionHeader eyebrow="Reports Center" title="מרכז דוחות וייצוא מתקדם" subtitle="נוכחות ילדים, שעות צוות, ביקורות, אירועים, תלונות, מצלמות, משימות וסיכום חודשי." icon={FileText} />
-      <StatusChip tone="success">Export ready when backend exists</StatusChip>
+      <StatusChip tone="success">ייצוא מוגבל, מאומת ומתועד</StatusChip>
     </PremiumCard>
     <DashboardGrid columns={3}>
       <MetricCard label="ייצואים" value={rows.length} hint="בטווח האחרון" icon={FileText} tone="primary" />
@@ -29,6 +29,6 @@ export default async function AdminListPage() {
       <MetricCard label="בתהליך" value={pending} hint="Queued / Running" icon={FileText} tone={pending ? "warning" : "success"} />
     </DashboardGrid>
     <AdminDataError message={result.error ?? result.data.queryError} />
-    <ReportsCenter exports={rows} />
+    <ReportsCenter role="admin" />
   </AdminAppFrame>;
 }

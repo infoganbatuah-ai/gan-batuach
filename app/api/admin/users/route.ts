@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateTemporaryPassword, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { createClient } from "@/lib/supabase/server";
+import { authCallbackUrl } from "@/lib/domain/auth-flow";
 
 const schema = z.object({
   action: z.enum(["regenerate_credentials", "reset_password", "send_password_reset", "deactivate", "reactivate", "update_profile"]),
@@ -19,7 +21,9 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin"]);
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות.", 401);
+    if (profile.role !== "admin") return fail("אין הרשאת מנהל מערכת.", 403);
     const payload = schema.parse(await request.json());
     const supabase = createAdminClient();
 
@@ -67,44 +71,15 @@ export async function POST(request: Request) {
     if (payload.action === "send_password_reset") {
       const username = String(target.email || target.username || "").trim();
       if (!username) return fail("אין מייל לשליחת איפוס סיסמה.", 422);
-      const { error } = await supabase.auth.admin.generateLink({ type: "recovery", email: username });
+      const auth = await createClient();
+      const { error } = await auth.auth.resetPasswordForEmail(username, {
+        redirectTo: authCallbackUrl("gan_batuach", "/reset-password", "recovery")
+      });
       if (error) return fail("לא ניתן לשלוח איפוס סיסמה: " + error.message, 400);
-      const credentialUpdate = await supabase.from("generated_credentials").update({ reset_sent_at: new Date().toISOString() }).eq("user_id", payload.user_id);
-      if (credentialUpdate.error) {
-        console.error("[admin-users-reset-credential-state-failed]", { user_id: payload.user_id, message: credentialUpdate.error.message });
-        return fail("נוצר קישור איפוס, אך סטטוס פרטי ההתחברות לא עודכן. יש לבדוק את רשימת פרטי ההתחברות.", 409);
-      }
       await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: "send_password_reset", afterData: { username } });
       return ok({ status: "reset_sent" });
     }
-
-    const temporaryPassword = generateTemporaryPassword();
-    const username = String(target.email || target.username || "").trim();
-    const { error: credentialDeleteError } = await supabase.from("generated_credentials").delete().eq("user_id", payload.user_id).is("password_changed_at", null);
-    if (credentialDeleteError) {
-      console.error("[admin-users-reset-credential-cleanup-failed]", { user_id: payload.user_id, message: credentialDeleteError.message });
-      return fail("איפוס הסיסמה נעצר לפני שינוי הסיסמה כי לא ניתן לעדכן את רשומת פרטי ההתחברות.", 409);
-    }
-
-    const { error: passwordError } = await supabase.auth.admin.updateUserById(payload.user_id, { password: temporaryPassword });
-    if (passwordError) return fail("איפוס הסיסמה נכשל: " + passwordError.message, 400);
-
-    const { error: credentialError } = await supabase.from("generated_credentials").insert({
-      user_id: payload.user_id,
-      username,
-      temporary_password: temporaryPassword,
-      created_by: profile.id
-    });
-    if (credentialError) return fail("הסיסמה אופסה אך שמירת פרטי ההתחברות נכשלה.", 400);
-
-    const profileUpdate = await supabase.from("profiles").update({ must_change_password: true }).eq("id", payload.user_id);
-    if (profileUpdate.error) {
-      console.error("[admin-users-reset-profile-state-failed]", { user_id: payload.user_id, message: profileUpdate.error.message });
-      return fail("הסיסמה אופסה אך סימון החלפת הסיסמה בפרופיל נכשל.", 409);
-    }
-    await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: payload.action, afterData: { username } });
-
-    return ok({ username, temporary_password: temporaryPassword });
+    return fail("איפוס ידני באמצעות סיסמה זמנית הופסק. יש לשלוח קישור שחזור לחשבון.", 410);
   } catch (error) {
     return handleRouteError(error);
   }

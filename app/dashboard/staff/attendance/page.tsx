@@ -1,4 +1,5 @@
-import { Fingerprint, MapPin, ShieldCheck, TimerReset } from "lucide-react";
+import Link from "next/link";
+import { Fingerprint, MapPin, ShieldCheck, TimerReset, UsersRound } from "lucide-react";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { StaffAttendanceActions } from "@/components/staff-attendance-actions";
 import { ListRowCard, StatusChip } from "@/components/gan-batuach-design-system";
@@ -80,6 +81,12 @@ export default async function Page() {
           <StaffAttendanceActions staffId={staff?.id} gardenId={employment!.garden_id} hasOpenShift={Boolean(openShift)} />
           <ListRowCard title="מיקום הגן" subtitle={`${staff?.gardens?.name ?? "גן לא משויך"} · ${staff?.gardens?.address ?? "כתובת טרם הוגדרה"}`} meta={latestSample?.distance_meters != null ? `${Math.round(latestSample.distance_meters)} מטר מהגן` : "מרחק יחושב אחרי דגימת GPS"} avatar={<MapPin size={22} />} status={<StatusChip tone={latestSample?.inside_geofence ? "success" : "warning"}>{latestSample?.inside_geofence ? "בתחום הגן" : "מחכה לדגימה"}</StatusChip>} actions={null} />
           <ListRowCard title="שקיפות והוגנות" subtitle="דגימות מיקום נשמרות רק לצורך נוכחות, ובחריגה מתבצעת בדיקה." status={<StatusChip tone={anomalies.length ? "warning" : "success"}>{anomalies.length ? "דורש בדיקה" : "תקין"}</StatusChip>} actions={null} />
+        </div>
+      </StaffSection>
+      <StaffSection title="נוכחות ואיסוף ילדים">
+        <div className="ux06-staff-entry-grid">
+          <Link href="/dashboard/staff/children-attendance"><UsersRound size={24} /><span><b>נוכחות הכיתות שלי</b><small>הגעה, היעדרות וילדים שטרם הגיעו</small></span></Link>
+          <Link href="/dashboard/staff/pickup"><ShieldCheck size={24} /><span><b>אישור איסוף</b><small>בדיקת מורשה ואישור שחרור אנושי</small></span></Link>
         </div>
       </StaffSection>
       <StaffSection title="מוכנות וחריגות">

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { FileUp } from "lucide-react";
-import { uploadFiles } from "@/lib/client-upload";
+import { uploadManagementDocument } from "@/lib/client-upload";
 
 type DocumentRow = {
   id: string;
@@ -30,35 +30,22 @@ export function StaffDocumentUpload({ gardenId, staffId, documents }: { gardenId
       setMessage("יש לבחור קובץ להעלאה.");
       return;
     }
-    let uploaded: string[] = [];
+    let created: DocumentRow;
     try {
-      uploaded = await uploadFiles([file], "documents", "staff-documents");
+      created = await uploadManagementDocument(file, {
+        garden_id: gardenId, owner_id: staffId,
+        name: String(formData.get("name") || file.name || "מסמך צוות"),
+        document_type: String(formData.get("document_type") || "staff_document"),
+        expires_at: String(formData.get("expires_at") || "")
+      });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "העלאת המסמך נכשלה.");
       return;
     }
 
-    startTransition(async () => {
-      const payload = {
-        garden_id: gardenId,
-        staff_id: staffId,
-        name: String(formData.get("name") || file.name || "מסמך צוות"),
-        document_type: String(formData.get("document_type") || "staff_document"),
-        file_url: uploaded[0],
-        expires_at: String(formData.get("expires_at") || "") || undefined
-      };
-      const response = await fetch("/api/documents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const body = await response.json().catch(() => null);
-      if (response.ok && body?.data) {
-        setRows((current) => [body.data, ...current]);
-        setMessage("המסמך הועלה ונשלח לבדיקה.");
-      } else {
-        setMessage(body?.error || "לא ניתן לשמור את המסמך כרגע.");
-      }
+    startTransition(() => {
+      setRows((current) => [created, ...current]);
+      setMessage("המסמך הועלה ונשלח לבדיקה.");
     });
   }
 
@@ -67,14 +54,14 @@ export function StaffDocumentUpload({ gardenId, staffId, documents }: { gardenId
       <form className="card form wizard-form" action={submit}>
         <div className="section-heading">
           <h2><FileUp size={20} /> העלאת מסמך</h2>
-          <p>העלו תעודה, אישור רקע או מסמך נדרש. המנהלת תוכל לבדוק ולאשר.</p>
+          <p>העלו PDF או תמונה. המסמך ימתין לבדיקה, ופתיחתו תבדוק הרשאה מחדש.</p>
         </div>
         {message ? <div className={message.includes("הועלה") ? "success-banner" : "error-banner"}>{message}</div> : null}
         <div className="form-grid">
           <label>שם המסמך<input name="name" required placeholder="לדוגמה: תעודת עזרה ראשונה" /></label>
           <label>סוג מסמך<select name="document_type"><option value="first_aid">עזרה ראשונה</option><option value="police_clearance">תעודת יושר</option><option value="background_check">בדיקת רקע</option><option value="training">הכשרה</option><option value="staff_document">מסמך צוות אחר</option></select></label>
           <label>תוקף עד<input name="expires_at" type="date" /></label>
-          <label className="wide">קובץ<input name="file" type="file" required /></label>
+          <label className="wide">קובץ<input name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required /></label>
         </div>
         <button className="button primary large" disabled={isPending}>{isPending ? "שומר..." : "העלאת מסמך"}</button>
       </form>

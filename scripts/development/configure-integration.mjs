@@ -1,0 +1,11 @@
+import {execFileSync} from 'node:child_process';
+import {writeFileSync,readFileSync,existsSync} from 'node:fs';
+import {localCredentials} from './local-client.mjs';
+if(execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim()!=='integration/development')throw Error('Canonical integration branch only');
+const k=localCredentials();
+const text=`NEXT_PUBLIC_SUPABASE_URL=${k.url}\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${k.anon}\nSUPABASE_SERVICE_ROLE_KEY=${k.service}\n`;
+const file='config/integration.local.env';
+execFileSync('git',['check-ignore','--quiet',file]);
+if(existsSync(file)&&readFileSync(file,'utf8')!==text)throw Error('Existing environment differs: no automatic overwrite');
+if(!existsSync(file))writeFileSync(file,text,{mode:0o600,flag:'wx'});
+console.log('Canonical integration configured for verified loopback Supabase only; secret values not printed.');

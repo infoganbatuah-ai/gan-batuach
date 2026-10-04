@@ -37,13 +37,15 @@ export function TeacherAppFrame({
   title,
   subtitle,
   avatarUrl,
-  active = "home"
+  active = "home",
+  role = "manager"
 }: {
   children: ReactNode;
   title: string;
   subtitle?: string;
   avatarUrl?: string | null;
   active?: "home" | "children" | "calendar" | "messages" | "more";
+  role?: "manager" | "owner";
 }) {
   const firstTitleWord = title.replace(/\[DEMO\]/g, "").trim();
   const profileName = firstTitleWord.replace(/^(?:בוקר טוב|שלום),\s*/u, "").trim() || "מנהלת הגן";
@@ -56,7 +58,7 @@ export function TeacherAppFrame({
   }[active];
   return (
     <RoleAppShell
-      role="manager"
+      role={role}
       activeHref={activeMap.href}
       title={firstTitleWord}
       subtitle={subtitle?.replace(/\[DEMO\]/g, "")}

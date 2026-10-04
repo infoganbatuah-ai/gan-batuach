@@ -28,7 +28,7 @@ function load(file, dependencies) {
   return module.exports;
 }
 
-function fixture({ role = "staff", active = true, profile = {}, session, rows = {}, rpc = { data: true, error: null }, authThrows = false } = {}) {
+function fixture({ role = "staff", active = true, profile = {}, session, rows = {}, rpc = { data: true, error: null }, approval = { data: true, error: null }, authThrows = false } = {}) {
   const resolvedSession = session ?? {
     user: { id: actorId },
     profile: { id: actorId, role, active, garden_id: gardenId, ...profile }
@@ -64,8 +64,8 @@ function fixture({ role = "staff", active = true, profile = {}, session, rows = 
     "@/lib/supabase/server": { createClient: async () => ({
       from: query,
       rpc: async (name, params) => {
-        calls.push({ table: "rpc", column: name, value: params.target_garden_id });
-        return rpc;
+        calls.push({ table: "rpc", column: name, value: params?.target_garden_id });
+        return name === "current_inspector_approved" ? approval : rpc;
       }
     }) }
   });
@@ -112,30 +112,24 @@ test("staff without an active matching employment is denied", async () => {
   } }, ["staff"], 403, "staff_employment");
 });
 
-test("active inspector requires approval, inspector identity, activation timestamp and assignment", async () => {
+test("active inspector requires canonical approval and current Garden assignment", async () => {
   const f = fixture({ role: "inspector", profile: { garden_id: null }, rows: {
-    inspector_applications: { data: { id: "application-1", status: "approved", activated_at: "2026-09-07T00:00:00Z" }, error: null },
-    inspectors: { data: { id: actorId }, error: null },
     gardens: { data: { id: gardenId }, error: null }
   } });
   const result = await f.module.getOperationalRoleContext(["inspector"]);
   assert.equal(result.allowed, true);
   assert.equal(result.gardenIds.length, 1);
   assert.equal(result.gardenIds[0], gardenId);
+  assert.ok(f.calls.some(call => call.table === "rpc" && call.column === "current_inspector_approved"));
+  assert.ok(!f.calls.some(call => call.table === "inspectors"));
 });
 
-for (const [label, rows, reason] of [
-  ["application still submitted", {
-    inspector_applications: { data: { status: "submitted", activated_at: null }, error: null },
-    inspectors: { data: null, error: null }, gardens: { data: null, error: null }
-  }, "inspector_approval"],
-  ["approval has no assignment", {
-    inspector_applications: { data: { status: "approved", activated_at: "2026-09-07T00:00:00Z" }, error: null },
-    inspectors: { data: { id: actorId }, error: null }, gardens: { data: null, error: null }
-  }, "inspector_assignment"]
+for (const [label, approval, rows, reason] of [
+  ["application still submitted or suspended", { data: false, error: null }, { gardens: { data: null, error: null } }, "inspector_approval"],
+  ["approval has no assignment", { data: true, error: null }, { gardens: { data: null, error: null } }, "inspector_assignment"]
 ]) {
   test(`inspector candidate is denied: ${label}`, async () => {
-    await expectDenied({ role: "inspector", profile: { garden_id: null }, rows }, ["inspector"], 403, reason);
+    await expectDenied({ role: "inspector", profile: { garden_id: null }, approval, rows }, ["inspector"], 403, reason);
   });
 }
 
@@ -144,14 +138,23 @@ test("inactive profile is denied before lifecycle tables are queried", async () 
   assert.equal(f.calls.length, 0);
 });
 
-test("new accounts missing either verified contact are denied before lifecycle queries", async () => {
+test("new accounts missing verified email are denied before lifecycle queries", async () => {
   const f = await expectDenied({
     session: {
-      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: "2026-09-08T00:00:00Z", phone_confirmed_at: null },
+      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: null, phone_confirmed_at: "2026-09-08T00:00:00Z" },
       profile: { id: actorId, role: "staff", active: true, garden_id: gardenId, contact_verification_required: true }
     }
   }, ["staff"], 403, "contact_verification");
   assert.equal(f.calls.length, 0);
+});
+
+test("confirmed email without phone passes account verification but still needs active employment", async () => {
+  await expectDenied({
+    session: {
+      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: "2026-09-08T00:00:00Z", phone_confirmed_at: null },
+      profile: { id: actorId, role: "staff", active: true, garden_id: gardenId, contact_verification_required: true }
+    }
+  }, ["staff"], 403, "staff_employment");
 });
 
 test("unknown activation value is denied", async () => {
@@ -171,6 +174,7 @@ test("missing or mismatched session identity is denied", async () => {
 
 test("lifecycle authority errors fail closed without private details", async () => {
   await expectDenied({ rows: { staff: { data: null, error: { message: "private database detail" } } } }, ["staff"], 503, "authority_unavailable");
+  await expectDenied({ role: "inspector", approval: { data: null, error: { message: "private database detail" } } }, ["inspector"], 503, "authority_unavailable");
   await expectDenied({ authThrows: true }, ["staff"], 503, "authority_unavailable");
 });
 
@@ -209,11 +213,8 @@ test("operational pages route candidates to safe lifecycle screens", async () =>
     /redirect:\/dashboard\/staff\/job-market/
   );
 
-  const pendingInspector = fixture({ role: "inspector", profile: { garden_id: null }, rows: {
-    inspector_applications: { data: { status: "submitted", activated_at: null }, error: null },
-    inspectors: { data: null, error: null },
-    gardens: { data: null, error: null }
-  } });
+  const pendingInspector = fixture({ role: "inspector", profile: { garden_id: null },
+    approval: { data: false, error: null }, rows: { gardens: { data: null, error: null } } });
   await assert.rejects(
     pendingInspector.module.requireOperationalRole(["inspector"]),
     /redirect:\/dashboard\/inspector\/apply/
@@ -286,10 +287,14 @@ const operationalInspectorPages = [
 ].map(name => `app/dashboard/inspector/${name}/page.tsx`);
 
 test("operational staff and inspector pages require activated role context", () => {
-  for (const file of [...operationalStaffPages, ...operationalInspectorPages, "app/dashboard/inspector/page.tsx", "app/dashboard/tasks/page.tsx"]) {
+  for (const file of [...operationalStaffPages, ...operationalInspectorPages, "app/dashboard/tasks/page.tsx"]) {
     const source = readFileSync(file, "utf8");
     assert.match(source, file.includes("command-center") ? /await requireApprovedInspector\(/ : /await requireOperationalRole\(/, `${file}: missing Inspector page guard`);
   }
+  const inspectorHome = readFileSync("app/dashboard/inspector/page.tsx", "utf8");
+  assert.match(inspectorHome, /await requireApprovedInspector\(/, "approved unassigned Inspector needs a private command-center empty state");
+  assert.match(inspectorHome, /\.eq\("inspector_id", profile\.id\)/, "Inspector home assignment query must remain actor-scoped");
+  assert.match(inspectorHome, /assignedGardens\.length === 0/, "unassigned Inspector must stop before operational portfolio queries");
   assert.match(readFileSync("app/dashboard/inspector/control-center/page.tsx", "utf8"), /export \{ default \} from "\.\.\/command-center\/page"/);
 });
 

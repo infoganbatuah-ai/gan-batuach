@@ -10,6 +10,7 @@ export type EmailMessage = {
   html?: string | null;
   category: string;
   metadata?: Record<string, unknown>;
+  idempotencyKey?: string;
 };
 
 export type EmailProviderResult = {
@@ -19,6 +20,7 @@ export type EmailProviderResult = {
   providerReference?: string | null;
   failureReason?: string | null;
   dryRunPayload?: unknown;
+  retryable?: boolean;
 };
 
 export type EmailProviderReadiness = {
@@ -130,7 +132,7 @@ const resendEmailProvider: EmailProvider = {
         { name: "category", value: safeTagValue(message.category) },
         { name: "application", value: "gan_batuach" }
       ]
-    });
+    }, message.idempotencyKey ? { idempotencyKey: message.idempotencyKey } : undefined);
 
     if (response.error || !response.data?.id) {
       return {
@@ -138,7 +140,8 @@ const resendEmailProvider: EmailProvider = {
         provider: "resend",
         providerMessageId: null,
         providerReference: "resend_api_error",
-        failureReason: response.error?.message || "Resend did not return a message id."
+        failureReason: response.error ? `resend_http_${response.error.statusCode}` : "resend_missing_message_id",
+        retryable: response.error?.statusCode === 429 || (response.error?.statusCode ?? 0) >= 500
       };
     }
 

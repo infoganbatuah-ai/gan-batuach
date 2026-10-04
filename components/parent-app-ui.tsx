@@ -12,11 +12,13 @@ type IconType = ComponentType<LucideProps>;
 export function ParentAppFrame({
   children,
   active = "home",
+  activeHref,
   avatarUrl,
   profileName
 }: {
   children: ReactNode;
   active?: "home" | "dashboard" | "calendar" | "alerts" | "more";
+  activeHref?: string;
   avatarUrl?: string | null;
   profileName?: string | null;
 }) {
@@ -25,7 +27,7 @@ export function ParentAppFrame({
   return (
     <RoleAppShell
       role="parent"
-      activeHref={active === "calendar" ? "/dashboard/parent/schedule" : active === "alerts" ? "/dashboard/parent/notifications" : active === "more" ? "/dashboard/parent/settings" : active === "home" ? "/dashboard/parent/family-home" : "/dashboard/parent"}
+      activeHref={activeHref ?? (active === "calendar" ? "/dashboard/parent/schedule" : active === "alerts" ? "/dashboard/parent/notifications" : active === "more" ? "/dashboard/parent/settings" : active === "home" ? "/dashboard/parent/family-home" : "/dashboard/parent")}
       title="דשבורד הורים"
       subtitle="מעקב חכם אחר הילד והגן"
       profile={{ full_name: displayName, profile_image_url: avatarUrl }}

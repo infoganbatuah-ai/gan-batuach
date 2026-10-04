@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertManagementInternalToolAccess } from "@/lib/security/management-production-guards";
 
 const schema = z.object({
   channel: z.enum(["whatsapp", "sms", "email", "push"]),
@@ -21,6 +22,7 @@ function maskRecipient(value?: string) {
 
 export async function POST(request: Request) {
   try {
+    assertManagementInternalToolAccess();
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();

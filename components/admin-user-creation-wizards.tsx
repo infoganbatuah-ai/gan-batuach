@@ -6,7 +6,7 @@ import { UploadImageField } from "@/components/upload-image-field";
 type Lead = Record<string, any> | null;
 type Garden = { id: string; name: string; city?: string | null };
 type Inspector = { id: string; full_name?: string | null };
-type Credentials = { username: string; email: string; temporary_password: string };
+type Credentials = { username: string; email: string };
 
 type Result = { title: string; credentials?: Credentials; owner?: Credentials | null } | null;
 
@@ -28,13 +28,9 @@ async function postJson(url: string, payload: unknown) {
   }
   return body.data;
 }
-function Copy({ credentials }: { credentials: Credentials }) {
-  const text = "Username: " + credentials.username + "\nPassword: " + credentials.temporary_password;
-  return <button className="button secondary" type="button" onClick={() => navigator.clipboard?.writeText(text)}>העתקת פרטים</button>;
-}
 function ResultBox({ result }: { result: Result }) {
   if (!result) return null;
-  return <div className="success-screen"><strong>{result.title}</strong>{result.credentials ? <div className="credential-box" dir="ltr"><span>Username: {result.credentials.username}</span><span>Password: {result.credentials.temporary_password}</span><Copy credentials={result.credentials} /></div> : null}{result.owner ? <div className="credential-box" dir="ltr"><span>Owner: {result.owner.username}</span><span>Password: {result.owner.temporary_password}</span><Copy credentials={result.owner} /></div> : null}<small>פרטי הכניסה מוצגים פעם אחת בלבד.</small></div>;
+  return <div className="success-screen"><strong>{result.title}</strong>{result.credentials ? <div className="credential-box"><span>הזמנה נשלחה אל: {result.credentials.username}</span></div> : null}{result.owner ? <div className="credential-box"><span>הזמנה לבעלים נשלחה אל: {result.owner.username}</span></div> : null}<small>הנמען מגדיר את הגישה לחשבון דרך קישור ההזמנה בדוא״ל.</small></div>;
 }
 
 export function KindergartenCreationWizard({ lead, inspectors }: { lead?: Lead; inspectors: Inspector[] }) {

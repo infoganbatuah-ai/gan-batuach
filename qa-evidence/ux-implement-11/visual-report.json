@@ -1,0 +1,374 @@
+{
+  "generatedAt": "2026-09-30T05:31:03.738Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/ GB_UX_REF_MESSAGING_NOTIFICATIONS_FULL_PLATFORM.png",
+  "concepts": 20,
+  "captures": 40,
+  "ownerReviewReady": 40,
+  "needsPolish": 0,
+  "visualDrift": 0,
+  "broken": 0,
+  "productionAccess": false,
+  "items": [
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "message-thread-list",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/message-thread-list-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "message-thread-list",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/message-thread-list-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "thread-detail",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/thread-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "thread-detail",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/thread-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "composer",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/composer-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "composer",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/composer-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "attachment",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/attachment-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "attachment",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/attachment-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "parent-messaging",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/parent-messaging-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "parent-messaging",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/parent-messaging-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "staff-messaging",
+      "viewport": "1440×1024",
+      "route": "/dashboard/staff/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/staff-messaging-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "staff-messaging",
+      "viewport": "390×844",
+      "route": "/dashboard/staff/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/staff-messaging-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "owner-messaging",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/owner-messaging-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "owner-messaging",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/owner-messaging-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "inspector-limited",
+      "viewport": "1440×1024",
+      "route": "/dashboard/inspector/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/inspector-limited-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "inspector-limited",
+      "viewport": "390×844",
+      "route": "/dashboard/inspector/messages",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/inspector-limited-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "broadcast-creation",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/communication",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/broadcast-creation-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "broadcast-creation",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/communication",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/broadcast-creation-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "broadcast-preview",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/communication",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/broadcast-preview-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "broadcast-preview",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/communication",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/broadcast-preview-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "broadcast-history",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/communication",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/broadcast-history-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "broadcast-history",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/communication",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/broadcast-history-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "notification-center",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/notification-center-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "notification-center",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/notification-center-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "notification-detail",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/notification-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "notification-detail",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/notification-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "preferences",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/preferences-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "preferences",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/preferences-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "quiet-hours",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/quiet-hours-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "quiet-hours",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/quiet-hours-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "provider-unavailable",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/provider-unavailable-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "provider-unavailable",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/provider-unavailable-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "push-readiness",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/push-readiness-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "push-readiness",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/push-readiness-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "email-readiness",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/email-readiness-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "email-readiness",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/email-readiness-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "whatsapp-unavailable",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/whatsapp-unavailable-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "whatsapp-unavailable",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/whatsapp-unavailable-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "sms-unavailable",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/sms-unavailable-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    },
+    {
+      "domain": "Messaging/Broadcasts/Notifications",
+      "screen": "sms-unavailable",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/notifications",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-11/qa-evidence/ux-implement-11/screenshots/sms-unavailable-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material; unsupported external channels remain truthfully unavailable"
+    }
+  ]
+}

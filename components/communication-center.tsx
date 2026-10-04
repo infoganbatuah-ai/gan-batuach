@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DeliveryReadinessStrip } from "@/components/broadcast-center";
+import type { DeliveryCapability } from "@/components/parent-notification-preferences";
 
 type CommunicationLog = {
   id: string;
@@ -53,8 +55,8 @@ const statusLabels: Record<string, string> = {
 
 function toneForStatus(status: string) {
   if (status === "failed") return "bad";
-  if (status === "sent" || status === "sent_mock" || status === "delivered" || status === "read") return "good";
-  if (status === "skipped_preferences" || status === "deduped") return "warn";
+  if (status === "sent" || status === "delivered" || status === "read") return "good";
+  if (status === "sent_mock" || status === "skipped_preferences" || status === "deduped") return "warn";
   return "neutral";
 }
 
@@ -63,13 +65,15 @@ export function CommunicationCenter({
   logs,
   templates,
   settings,
-  apiPath
+  apiPath,
+  capability = { in_app: "available", push: "not_configured", email: "not_configured", whatsapp: "not_configured", sms: "not_configured" }
 }: {
   role: "admin" | "garden";
   logs: CommunicationLog[];
   templates: CommunicationTemplate[];
   settings?: CommunicationSettings | null;
   apiPath: string;
+  capability?: DeliveryCapability;
 }) {
   const [channel, setChannel] = useState("all");
   const [status, setStatus] = useState("all");
@@ -117,9 +121,11 @@ export function CommunicationCenter({
 
   const failedCount = logs.filter((log) => log.status === "failed").length;
   const mockCount = logs.filter((log) => log.status === "sent_mock").length;
+  const availableDefaults = ["in_app", "email"].filter((item) => item === "in_app" || capability[item as "email"] === "provider_submission_available");
 
   return (
     <div className="stack">
+      <DeliveryReadinessStrip capability={capability} />
       <section className="card-grid three">
         <div className="metric-card"><span>הודעות</span><strong>{logs.length}</strong><small>כל הערוצים</small></div>
         <div className="metric-card"><span>מצב בדיקה</span><strong>{mockCount}</strong><small>לא נשלח SMS/WhatsApp אמיתי</small></div>
@@ -131,15 +137,15 @@ export function CommunicationCenter({
           <div>
             <p className="eyebrow">ערוץ ברירת מחדל</p>
             <h2>איך לשלוח הודעות להורים</h2>
-            <p>המערכת עדיין עובדת במצב בדיקה. אפשר לבחור ערוץ מועדף כדי לבדוק זרימה בלי לשלוח הודעות אמיתיות.</p>
+            <p>אפשר לבחור רק ערוץ שמוכן בפועל. ערוצים ללא ספק פעיל נשארים גלויים כלא מחוברים.</p>
           </div>
           <label>
             ערוץ ברירת מחדל
             <select value={defaultChannel} onChange={(event) => setDefaultChannel(event.target.value)}>
               <option value="in_app">התראה במערכת</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="sms">SMS</option>
-              <option value="email">Email</option>
+              <option value="whatsapp" disabled>WhatsApp — לא מחובר</option>
+              <option value="sms" disabled>SMS — לא מחובר</option>
+              <option value="email" disabled={!availableDefaults.includes("email")}>Email{availableDefaults.includes("email") ? "" : " — לא מחובר"}</option>
             </select>
           </label>
           <button className="primary-action" type="button" disabled={saving} onClick={saveSettings}>שמירת הגדרות</button>
@@ -189,7 +195,7 @@ export function CommunicationCenter({
               <span className={`pill ${toneForStatus(log.status)}`}>{statusLabels[log.status] ?? log.status}</span>
             </div>
             <div className="meta-row">
-              <span>{log.provider || "mock"}</span>
+              <span>{log.provider || (log.channel === "in_app" ? "מסירה פנימית" : "ספק לא מוגדר")}</span>
               <span>{log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : "ללא תאריך"}</span>
               {log.failure_reason ? <span>{log.failure_reason}</span> : null}
             </div>

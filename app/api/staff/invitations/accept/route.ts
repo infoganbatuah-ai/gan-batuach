@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const verifiedEmail = session.user.email_confirmed_at ? normalizeInvitationEmail(session.user.email) : null;
     if (!verifiedEmail || verifiedEmail !== normalizeInvitationEmail(invitation.recipient_email)) return fail("ההזמנה אינה תואמת לדוא״ל המאומת בחשבון.", 403);
     if (invitation.target_profile_id && invitation.target_profile_id !== session.profile.id) return fail("ההזמנה משויכת למשתמש אחר.", 403);
-    if (!managementContactVerification(session.user, session.profile).complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני קבלת ההזמנה.", 409);
+    if (!managementContactVerification(session.user, session.profile).complete) return fail("יש להשלים אימות דוא״ל לפני קבלת ההזמנה.", 409);
     const completeness = await admin.from("staff_candidate_profiles").select("profile_completeness,qualification_keys").eq("profile_id", session.profile.id).maybeSingle();
     if (!completeness.data || completeness.data.profile_completeness?.required_fields_complete !== true) return fail("יש להשלים את הפרופיל המקצועי והמסמכים לפני קבלת ההזמנה.", 409);
     const openingId = String(invitation.payload?.opening_id ?? "");

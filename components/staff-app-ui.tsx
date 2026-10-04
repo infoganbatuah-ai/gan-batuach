@@ -42,6 +42,28 @@ export async function StaffAppFrame({
   const activeHref = mode === "candidate"
     ? active === "jobs" ? "/dashboard/staff/job-market" : active === "applications" ? "/dashboard/staff/job-market#applications" : active === "documents" ? "/dashboard/staff/documents" : active === "profile" ? "/dashboard/staff/settings" : "/dashboard/staff"
     : active === "shifts" ? "/dashboard/staff/shifts" : active === "messages" ? "/dashboard/staff/messages" : active === "profile" ? "/dashboard/staff/settings" : active === "more" ? "/dashboard/staff/tasks" : "/dashboard/staff";
+  const candidateNavigation = {
+    label: "מועמדות",
+    subtitle: "פרופיל, משרות ומסלול קבלה",
+    homeHref: "/dashboard/staff/job-market",
+    settingsHref: "/dashboard/staff/settings",
+    notificationsHref: "/dashboard/staff/recruitment-notifications",
+    nav: [
+      { href: "/dashboard/staff/job-market", label: "ראשי", icon: Home },
+      { href: "/dashboard/staff/job-market#opportunities", label: "משרות", icon: Search },
+      { href: "/dashboard/staff/job-market#applications", label: "מועמדויות", icon: BriefcaseBusiness },
+      { href: "/dashboard/staff/documents", label: "מסמכים", icon: FileCheck2 },
+      { href: "/dashboard/staff/settings", label: "פרופיל", icon: UserRound }
+    ],
+    desktopNav: [
+      { href: "/dashboard/staff/job-market", label: "מרכז מועמדות", hint: "השלב הבא והזדמנויות", icon: Home },
+      { href: "/dashboard/staff/job-market#opportunities", label: "חיפוש משרות", hint: "גנים ומשרות שפורסמו", icon: Search },
+      { href: "/dashboard/staff/job-market#applications", label: "המועמדויות שלי", hint: "סטטוס, השלמות והצעות", icon: BriefcaseBusiness },
+      { href: "/dashboard/staff/documents", label: "מסמכים ותעודות", hint: "העלאה ומצב בדיקה", icon: FileCheck2 },
+      { href: "/dashboard/staff/recruitment-notifications", label: "עדכוני גיוס", hint: "בקשות מידע והזמנות", icon: Bell },
+      { href: "/dashboard/staff/settings", label: "פרופיל מקצועי", hint: "כישורים, ניסיון והעדפות", icon: UserRound }
+    ]
+  };
   return (
     <RoleAppShell
       role="staff"
@@ -50,6 +72,7 @@ export async function StaffAppFrame({
       subtitle={mode === "candidate" ? "פרופיל, מסמכים וחיפוש גן" : "משמרות, משימות ותקשורת"}
       profile={{ full_name: profileName ?? "צוות", profile_image_url: avatarUrl }}
       className="staff-runtime-shell"
+      navigation={mode === "candidate" ? candidateNavigation : undefined}
     >
       <main className="staff-app-main dashboard-runtime-content">
         {context?.available && <StaffGardenSelector employments={context.employments} activeGardenId={context.activeEmployment?.garden_id ?? null} />}

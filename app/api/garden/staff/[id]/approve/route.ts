@@ -34,7 +34,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (payload.action === "approve" && staff.profile_id) {
       const contact = await adminManagementContactVerification(supabase, staff.profile_id);
       if (!contact.available) return fail("לא ניתן לבדוק כרגע את אימות פרטי הקשר של איש הצוות.", 503);
-      if (!contact.state.complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני אישור הצוות.", 409);
+      if (!contact.state.complete) return fail("יש להשלים אימות דוא״ל לפני אישור הצוות.", 409);
     }
 
     const now = new Date().toISOString();

@@ -13,9 +13,6 @@ import { NotificationBell } from "@/components/notification-bell";
 import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
 import { FloatingActionCenter } from "@/components/floating-action-center";
 import { FcmPushRegistration } from "@/components/fcm-push-registration";
-import { GardenContextSwitcher } from "@/components/garden-context-switcher";
-import { getSessionProfile } from "@/lib/auth";
-import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 
 const roleLabels: Record<UserRole, string> = {
   admin: "אדמין",
@@ -157,6 +154,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/notifications", label: "התראות", hint: "פיקוח ומשימות" },
     { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
+    { href: "/dashboard/inspector/complaints", label: "תלונות", hint: "בתחום השיוך" },
+    { href: "/dashboard/inspector/corrective-actions", label: "פעולות תיקון", hint: "ראיות ואימות" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" },
     { href: "/dashboard/inspector/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ],
@@ -173,6 +172,9 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "ביקורות ופעולות" },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל הגן" },
     { href: "/dashboard/tasks", label: "משימות", hint: "כל מה שפתוח" },
+    { href: "/dashboard/garden/work-center", label: "מרכז עבודה", hint: "משימות, תלונות ותיקונים" },
+    { href: "/dashboard/garden/complaints", label: "תלונות", hint: "טיפול ויעדים" },
+    { href: "/dashboard/garden/corrective-actions", label: "פעולות תיקון", hint: "ראיות ואימות" },
     { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" },
     { href: "/dashboard/garden/trust-center", label: "אמון הורים", hint: "שקיפות וקהילה" }
   ],
@@ -189,6 +191,9 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "ביקורות ופעולות" },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל הגן" },
     { href: "/dashboard/tasks", label: "משימות", hint: "כל מה שפתוח" },
+    { href: "/dashboard/garden/work-center", label: "מרכז עבודה", hint: "משימות, תלונות ותיקונים" },
+    { href: "/dashboard/garden/complaints", label: "תלונות", hint: "טיפול ויעדים" },
+    { href: "/dashboard/garden/corrective-actions", label: "פעולות תיקון", hint: "ראיות ואימות" },
     { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" },
     { href: "/dashboard/garden/trust-center", label: "אמון הורים", hint: "שקיפות וקהילה" }
   ],
@@ -376,11 +381,6 @@ export async function DashboardShell({
   const mobileNav = mobileNavByRole[role];
   const navGroups = groupedNav(role);
   const isAppHome = appHome || role === "manager" || role === "owner";
-  let gardenContext: Awaited<ReturnType<typeof resolveManagementGardenContext>> | null = null;
-  if (role === "manager" || role === "owner") {
-    const session = await getSessionProfile();
-    if (session.profile) gardenContext = await resolveManagementGardenContext(session.profile);
-  }
   return (
     <>
       <div className={`dashboard-layout responsive-dashboard-shell dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
@@ -433,7 +433,6 @@ export async function DashboardShell({
           )}
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
-          {gardenContext?.available ? <GardenContextSwitcher gardens={gardenContext.gardens} initialActiveId={gardenContext.activeGarden?.id ?? null} /> : null}
           {isAppHome ? null : <OnboardingGuideControls role={role} />}
           {isAppHome ? null : <RoleOnboardingGuide role={role} />}
           {role === "admin" && !isAppHome ? <AdminGlobalSearch /> : null}

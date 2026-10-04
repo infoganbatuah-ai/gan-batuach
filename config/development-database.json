@@ -1,0 +1,17 @@
+{
+  "environment": "DEVELOPMENT",
+  "status": "READY_LOCAL_FULL_STACK",
+  "baselineId": "development-c0cf2de7-20260919-v1",
+  "projectId": "gan-batuach-integration",
+  "dockerContext": "colima-gbi",
+  "container": "supabase_db_gan-batuach-integration",
+  "workspace": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
+  "productionAccessAllowed": false,
+  "qaAttempt": {
+    "context": "colima-gb-m29",
+    "container": "supabase_db_gb-m29-supabase-qa",
+    "workdir": "/private/tmp/gb-m29-supabase-qa",
+    "status": "ADAPTED_DIAGNOSTIC_ONLY_NOT_CANONICAL",
+    "note": "Do not point the cumulative Product at this adapted feature QA database. Provision a durable canonical isolated stack only after an approved reproducible baseline path."
+  }
+}

@@ -58,6 +58,7 @@ export default async function ManagerCommandCenterPage() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ניהול הגן" appHome>
       <TeacherAppFrame
+        role={profile.role === "owner" ? "owner" : "manager"}
         title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle="מרכז פעולות הגן"
         avatarUrl={(profile as any).profile_image_url ?? null}

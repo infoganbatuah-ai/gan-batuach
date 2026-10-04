@@ -145,7 +145,7 @@ export async function PATCH(request: Request) {
     const editAuthority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: gardenId } as never);
     if (editAuthority.error || editAuthority.data !== true) return fail("אין הרשאה לערוך את תהליך הקליטה הזה", 403);
     if (payload.submit && !managementContactVerification(user, profile).complete) {
-      return fail("יש להשלים אימות דוא״ל וטלפון לפני הפעלת הגן.", 403);
+      return fail("יש להשלים אימות דוא״ל לפני הפעלת הגן.", 403);
     }
     const supabase = isAdminClientConfigured() ? createAdminClient() : await createClient();
     const now = new Date().toISOString();

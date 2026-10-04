@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { UploadImageField } from "@/components/upload-image-field";
 
-type Credentials = { username: string; email: string; temporary_password: string };
+type Credentials = { username: string; email: string };
 type ResultState = { title: string; message: string; credentials?: Credentials };
 type PendingChild = { id: string; full_name: string; status: string; created_at?: string };
 type PendingLead = { id: string; parent_name?: string; phone?: string; email?: string; child_name?: string; child_age?: string; status?: string };
@@ -62,7 +62,6 @@ async function postJson(url: string, payload: unknown) {
 
 function CredentialSuccess({ result }: { result: ResultState | null }) {
   if (!result) return null;
-  const copyText = result.credentials ? "Username: " + result.credentials.username + "\nPassword: " + result.credentials.temporary_password : "";
   return (
     <div className="success-screen">
       <strong>{result.title}</strong>
@@ -70,11 +69,10 @@ function CredentialSuccess({ result }: { result: ResultState | null }) {
       {result.credentials ? (
         <div className="credential-box" dir="ltr">
           <span>Username: {result.credentials.username}</span>
-          <span>Password: {result.credentials.temporary_password}</span>
-          <button className="button secondary" type="button" onClick={() => navigator.clipboard?.writeText(copyText)}>העתקת פרטי כניסה</button>
+          <span>קישור הזמנה נשלח לכתובת זו; לא נוצרה סיסמה זמנית.</span>
         </div>
       ) : null}
-      <small>פרטי הכניסה נשמרים למנהלת עד שהמשתמש מחליף סיסמה.</small>
+      <small>סיסמאות אינן נשמרות או מוצגות למנהלים.</small>
     </div>
   );
 }

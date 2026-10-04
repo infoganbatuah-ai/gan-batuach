@@ -65,6 +65,14 @@ export async function POST(request: Request) {
     const payload = healthSchema.parse(await request.json());
     if (profile.role !== "admin" && profile.garden_id !== payload.garden_id) return fail("אין הרשאה לעדכן מידע רפואי של גן אחר", 403);
     const supabase = await createClient();
+    if (payload.medication_approval_url) {
+      const match = /^\/api\/documents\/([0-9a-f]{8}-[0-9a-f-]{27,})\/file$/i.exec(payload.medication_approval_url);
+      if (!match) return fail("יש לבחור מסמך רפואי פרטי מתוך המערכת.", 422);
+      const linked = await supabase.from("documents" as never).select("id")
+        .eq("id", match[1]).eq("garden_id", payload.garden_id).eq("child_id", payload.child_id)
+        .eq("document_type", "medical_approval").is("deleted_at", null).maybeSingle();
+      if (linked.error || !linked.data) return fail("אין הרשאה לקישור המסמך הרפואי.", 403);
+    }
     const missingInfo = payload.missing_info ?? !(payload.hmo && payload.emergency_contacts.length);
     const allergyWarning = payload.allergy_warning ?? Boolean(payload.allergies?.trim());
     const encryptedPayload = {

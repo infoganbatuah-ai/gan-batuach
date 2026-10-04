@@ -7,9 +7,9 @@ import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffCamerasPage() {
-  const { profile } = await requireOperationalRole(["staff"]);
+  const { employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
-  const gardenId = profile.garden_id ?? "";
+  const gardenId = employment?.garden_id ?? "";
   if (!gardenId) {
     return (
       <StaffAppFrame active="home" mode="candidate">
@@ -33,7 +33,11 @@ export default async function StaffCamerasPage() {
     .eq("active", true)
     .eq("staff_view_allowed", true);
   const cameras = (camerasRes.data ?? []) as any[];
-  const hasPlaybackSource = (camera: any) => Boolean(camera.playback_hls_ready || camera.playback_webrtc_ready || camera.live_preview_status === "ready" || camera.gateway_stream_id || camera.video_gateway_stream_id);
+  const productionVerified = (camera: any) => Boolean(
+    (camera.status === "online" || camera.status === "connected") &&
+    (camera.playback_hls_ready || camera.playback_webrtc_ready || camera.live_preview_status === "ready") &&
+    (camera.gateway_stream_id || camera.video_gateway_stream_id)
+  );
   const statusLabel: Record<string, string> = {
     online: "זמינה",
     connected: "זמינה",
@@ -61,8 +65,8 @@ export default async function StaffCamerasPage() {
                 key={camera.id}
                 title={camera.name}
                 subtitle={`${camera.area ?? "אזור לא צוין"} · ${camera.gardens?.name ?? "גן"}`}
-                live={(camera.status === "online" || camera.status === "connected") && hasPlaybackSource(camera)}
-                status={<StatusChip tone={(camera.status === "online" || camera.status === "connected") && hasPlaybackSource(camera) ? "success" : "warning"}>{statusLabel[camera.status] ?? "ממתינה"}</StatusChip>}
+                live={productionVerified(camera)}
+                status={<StatusChip tone={productionVerified(camera) ? "success" : "warning"}>{productionVerified(camera) ? statusLabel[camera.status] ?? "זמינה" : "בדיקה נדרשת"}</StatusChip>}
                 action={<CameraPlaybackCard camera={sanitizeCameraForPlaybackCard(camera)} accessReason="צפיית צוות מורשית" safeDetails />}
               />
             ))}

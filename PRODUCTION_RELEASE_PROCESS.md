@@ -1,5 +1,13 @@
 # Production release process
 
+## Owner-controlled release only — effective 2026-09-19
+
+The canonical contract is AGENTS.md, section "Owner-controlled consolidated development and release". It supersedes earlier daily/midnight/per-PUSH release instructions, including historical handoffs. Main is release-only. Normal development goes to pushed feature branches, the DEVELOPMENT_INTEGRATION_LEDGER and integration/development, not main. No scheduled release or automatic retry to Production is authorized.
+
+Only a new explicit owner release instruction authorizes a release. Freeze the exact integration SHA, reconcile all READY units and dependencies/migrations against remote branches, audit omitted/local-only work, and record INCLUDED / EXCLUDED / BLOCKED. Start that exact candidate locally for inspection. After full cumulative checks, cost/backup gates and required approvals, create one consolidated release PR to main. Apply only reviewed included migrations in their verified compatible order and let the existing main integration perform one intentional release sequence; do not also issue a manual deployment. Record actual deployment behavior rather than promising a billing count.
+
+The steps below are validation requirements, not independent authorization to merge or deploy. PUSH 38 remains excluded until qualified. Production migration-history reconciliation must not replay already-applied or blocked draft migrations.
+
 Production deployments must originate from a clean, committed Git snapshot. The commit is the release manifest and rollback target; a dirty working tree is never a deployable release.
 
 Required gates:

@@ -2,6 +2,8 @@ import { z } from "zod";
 import { handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeOptionalEmail, normalizeOptionalPhone } from "@/lib/onboarding/user-provisioning";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email().optional()),
@@ -14,7 +16,9 @@ function debugLogsEnabled() {
 
 export async function POST(request: Request) {
   try {
-    const payload = schema.parse(await request.json());
+    assertTrustedMutationOrigin(request);
+    await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:validate-contact", 30, 60);
+    const payload = schema.parse(await parseBoundedJson(request, 4 * 1024));
     const supabase = await createClient();
     if (debugLogsEnabled()) {
       console.info("[public-validate-contact]", {

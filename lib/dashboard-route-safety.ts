@@ -74,6 +74,9 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/garden/cameras", label: "מצלמות", roles: ["manager", "owner"], dataTable: "camera_streams", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/observer-pilot", label: "פיילוט תצפיתן", roles: ["manager", "owner"], dataTable: "skeleton_observer_events", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/tasks", label: "משימות", roles: ["manager", "owner"], dataTable: "tasks", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/work-center", label: "מרכז עבודה", roles: ["manager", "owner"], dataTable: "tasks", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/complaints", label: "תלונות", roles: ["manager", "owner"], dataTable: "complaints", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/corrective-actions", label: "פעולות תיקון", roles: ["manager", "owner"], dataTable: "violations", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/documents", label: "מסמכים", roles: ["manager", "owner"], dataTable: "documents", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/inspections", label: "פיקוח", roles: ["manager", "owner"], dataTable: "inspections", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/notifications", label: "התראות גן", roles: ["manager", "owner"], dataTable: "notifications", requiredProfileField: "garden_id" },
@@ -105,6 +108,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/inspector/ai-events", label: "AI", roles: ["inspector"], dataTable: "ai_events" },
   { route: "/dashboard/inspector/observer-pilot", label: "פיילוט תצפיתן", roles: ["inspector"], dataTable: "skeleton_observer_events" },
   { route: "/dashboard/inspector/reports", label: "דיווחים", roles: ["inspector"], dataTable: "complaints" },
+  { route: "/dashboard/inspector/documents", label: "מסמכי פיקוח", roles: ["inspector"], dataTable: "documents" },
   { route: "/dashboard/inspector/tasks", label: "משימות", roles: ["inspector"], dataTable: "tasks" },
   { route: "/dashboard/inspector/violations", label: "ליקויים", roles: ["inspector"], dataTable: "violations" },
   { route: "/dashboard/inspector/notifications", label: "התראות מפקח", roles: ["inspector"], dataTable: "notifications" }

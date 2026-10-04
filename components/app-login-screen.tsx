@@ -1,17 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import {
-  BarChart3,
-  Building2,
-  Eye,
-  Heart,
-  Lock,
   Mail,
   ShieldCheck,
-  User,
-  Users
 } from "lucide-react";
+import { AppAuthShell } from "@/components/app-auth-shell";
+import { AuthPasswordInput } from "@/components/auth-password-input";
 import { signIn } from "@/app/login/actions";
 import { LoginSubmitButton } from "@/components/auth-submit-button";
 import { dashboardPathForProfile, getSessionProfile } from "@/lib/auth";
@@ -25,38 +19,13 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
   if (profile?.role && isRole(profile.role)) redirect(await dashboardPathForProfile(profile));
 
   return (
-    <main className="gb-reference-login" dir="rtl">
-      <div className="gb-reference-login-inner">
-        <section className="gb-reference-brand-stage" aria-label="גן בטוח">
-          <div className="gb-orbit-ring gb-orbit-ring-one" />
-          <div className="gb-orbit-ring gb-orbit-ring-two" />
-          <span className="gb-soft-cloud gb-soft-cloud-a" />
-          <span className="gb-soft-cloud gb-soft-cloud-b" />
-          <span className="gb-soft-dot gb-soft-dot-a" />
-          <span className="gb-soft-dot gb-soft-dot-b" />
-          <span className="gb-soft-dot gb-soft-dot-c" />
-
-          <div className="gb-floating-icon gb-floating-icon-users"><Users size={42} /></div>
-          <div className="gb-floating-icon gb-floating-icon-school"><Building2 size={42} /></div>
-          <div className="gb-floating-icon gb-floating-icon-user"><User size={34} /></div>
-          <div className="gb-floating-icon gb-floating-icon-chart"><BarChart3 size={35} /></div>
-          <div className="gb-floating-icon gb-floating-icon-lock"><Lock size={34} /></div>
-          <div className="gb-floating-icon gb-floating-icon-shield"><ShieldCheck size={37} /></div>
-
-          <div className="gb-reference-logo-mark">
-            <Image src="/assets/company-symbol.png" alt="" width={236} height={236} priority />
-          </div>
-          <Image className="gb-reference-logo-name" src="/assets/company-name.png" alt="גן בטוח" width={420} height={112} priority />
-          <p>סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.</p>
-          <Heart className="gb-reference-heart" size={31} fill="currentColor" />
-        </section>
-
-        <section className="gb-reference-login-card" aria-labelledby="login-title">
-          <header className="gb-reference-login-heading">
-            <h1 id="login-title">התחברות למערכת</h1>
-            <p>הזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם</p>
-          </header>
-
+    <AppAuthShell
+      eyebrow="שמחים שחזרת"
+      title="התחברות למערכת"
+      subtitle="הזינו את הפרטים שלכם ונעביר אתכם לסביבת העבודה המתאימה."
+      footer={<span>אין לכם חשבון? <Link href="/app/register">יצירת חשבון</Link></span>}
+    >
+        <section className="gb-reference-login-card" aria-label="טופס התחברות">
           <form className="gb-reference-login-form" action={signIn}>
             {params?.error ? <p className="error-banner">{params.error}</p> : null}
             <input type="hidden" name="context_garden_id" value={params?.gardenId ?? ""} />
@@ -64,17 +33,12 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             <input type="hidden" name="next" value={params?.next ?? ""} />
 
             <label className="gb-reference-field">
-              <span className="sr-only">אימייל או טלפון</span>
-              <input name="email" type="email" required placeholder="אימייל או טלפון" autoComplete="username" />
+              <span className="sr-only">כתובת אימייל</span>
+              <input name="email" type="email" required placeholder="כתובת אימייל" autoComplete="username" dir="ltr" />
               <span className="gb-reference-field-icon"><Mail size={28} /></span>
             </label>
 
-            <label className="gb-reference-field">
-              <span className="sr-only">סיסמה</span>
-              <input name="password" type="password" required placeholder="סיסמה" autoComplete="current-password" />
-              <span className="gb-reference-field-icon"><Lock size={27} /></span>
-              <span className="gb-reference-field-eye" aria-hidden="true"><Eye size={27} /></span>
-            </label>
+            <AuthPasswordInput />
 
             <div className="gb-reference-login-options">
               <label>
@@ -86,18 +50,14 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
 
             <LoginSubmitButton />
           </form>
-
-          <p className="gb-reference-register-line">אין לכם חשבון? <Link href="/app/register">הרשמה</Link></p>
-
           <aside className="gb-reference-security-card" aria-label="כניסה אחת לכל סוגי המשתמשים">
-            <div className="gb-reference-security-shield"><ShieldCheck size={82} /></div>
+            <div className="gb-reference-security-shield"><ShieldCheck size={42} /></div>
             <div>
               <h2>כניסה אחת לכל סוגי המשתמשים</h2>
-              <p>הורים, גנים, צוות, מפקחים ואדמין — המערכת תזהה את החשבון לאחר ההתחברות</p>
+              <p>הורים, גנים, צוות ומפקחים — ההרשאות נקבעות לפי החשבון והשיוך הפעיל.</p>
             </div>
           </aside>
         </section>
-      </div>
-    </main>
+    </AppAuthShell>
   );
 }

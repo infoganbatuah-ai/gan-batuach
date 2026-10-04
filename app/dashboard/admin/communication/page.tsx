@@ -2,6 +2,7 @@ import { CommunicationCenter } from "@/components/communication-center";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
 export default async function AdminCommunicationPage() {
   await requireRole(["admin"]);
@@ -29,6 +30,7 @@ export default async function AdminCommunicationPage() {
         logs={(logsResult.data ?? []) as any[]}
         templates={(templatesResult.data ?? []) as any[]}
         apiPath="/api/admin/communication"
+        capability={managementDeliveryCapability()}
       />
     </DashboardShell>
   );

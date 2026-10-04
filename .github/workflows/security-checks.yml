@@ -3,7 +3,8 @@ name: Deep security checks (manual or scheduled)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 3 * * 1"
+    # Monthly deep scan; workflow_dispatch remains available for risk-triggered checks.
+    - cron: "17 3 1 * *"
 
 permissions:
   contents: read

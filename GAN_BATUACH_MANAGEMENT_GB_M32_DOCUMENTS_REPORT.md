@@ -1,0 +1,133 @@
+# GB-M32 — Management documents, private access and retention
+
+Date: 2026-09-20. Branch: `codex/gb-m32-documents`. Development base: `3105b440383ea235abde76aa62f2727823fa31ee`. Production remains unchanged.
+
+## Development Integration
+
+PR #69 passed all nine required checks for exact feature commit `40b938fd317917fa702e82bae1702a26133b4792` and merged by ancestry into `integration/development` at `94d7376a191930481ff714b0bf9f4f004f78d04b`. The ordered migration is registered for **isolated Development only**. Persistent application, private HTTP/Storage E2E and cumulative Product QA remain pending at this handoff; this paragraph will be superseded by a verified receipt. No Production migration or deployment occurred.
+
+## Before State
+
+The existing `public.documents` table represented Garden, Child and Staff documents, with a single `file_url` field. Some client panels persisted temporary signed URLs. A generic service-role upload route accepted the `documents` bucket and a client prefix. Existing RLS allowed uploader updates, creating a self-verification/tenant-mutation risk. Other domains already have dedicated evidence/attachment storage.
+
+## Document Inventory
+
+See [Management document inventory](GAN_BATUACH_MANAGEMENT_DOCUMENT_INVENTORY.md). No competing document table is introduced.
+
+## Canonical Model
+
+The forward migration extends `public.documents` with explicit private object binding, owner profile, inspection, file size/MIME, replacement linkage and deletion/retention metadata. New records stay `pending_review`. Existing rows and historical files are not rewritten by guesswork. The business entity remains distinct from communication attachments and factual evidence.
+
+## Domain Boundaries
+
+Persistent Garden/Child/Staff/person/inspection documents use `documents`. GB-M22/23 evidence, GB-M25 complaint files and GB-M29 attachments retain their source-specific access and lifecycle. Digital Observer evidence stays independent.
+
+## Storage
+
+The existing 12 MB `documents` bucket is forced private. A restrictive `storage.objects` policy denies direct authenticated access; the elevated storage client runs only behind resource authorization. New paths contain opaque UUIDs, not names. PDF/JPEG/PNG/WebP content signatures and declared MIME are checked, with a 12 MB server cap. This is signature validation, **not** malware scanning; scanning is `unavailable/not_configured`.
+
+## Upload
+
+The multipart API checks account, category, Garden and entity authority before any upload, generates the object path server-side, and calls a guarded registration RPC. The RPC rechecks scope and object existence, atomically links a replacement and writes audit. On registration failure the route attempts object removal; failed cleanup requires orphan reconciliation. The generic elevated upload route no longer targets `documents` or `inspection-reports`.
+
+## Signed Retrieval
+
+`/api/documents/[id]/file` queries the document under the caller's RLS, logs the private read, and then issues a 60-second signed URL. IDs and storage paths from the browser never become storage authority. Legacy noncanonical `file_url` values are hidden in updated document views pending provenance review. A live signed URL expiry/anonymous raw-object test remains necessary.
+
+## Categories
+
+The server registry binds each supported category to exactly one entity type. Garden, Child, Staff, Teacher, Owner, Guardian and inspection categories are explicit. Category existence does not prove a legal requirement; workflow-required policy remains domain-specific until reviewed.
+
+## Verification
+
+Upload remains pending review. A transactional RPC allows authorized Garden management to review eligible Garden/Child/Staff/Guardian documents and Platform Admin to review Garden/Owner/Teacher/inspection documents. The uploader cannot self-verify. Review changes and rejection reasons are audited. Category-specific reviewer rules warrant controlled browser QA.
+
+## Expiry
+
+Server projection computes `expired` and `expiring_soon` in the Asia/Jerusalem calendar date, using the document's stored reminder threshold, capped at 365 days. Expiry never removes the object or rewrites prior verification. A bounded service-role expiry-intent producer exists and passed a retry/idempotency test; no periodic Production schedule is activated. Operational scheduling remains a release follow-up.
+
+## Replacement / Versioning
+
+New upload creates a new row/object. A row lock on the prior document permits only one current replacement; the previous row remains with its review and expiry history. Separate-connection replacement-race evidence remains open.
+
+## Notifications
+
+Review and the bounded expiry scan create privacy-safe in-app notifications through GB-M30 `notifications`, with source domain `documents`. The expiry scan rechecks active recipient relationships and deduplicates by document/stage. No external provider is called. Production scheduling is open; GB-M31 provider delivery is not claimed.
+
+## Garden
+
+The existing Garden upload panel uses the canonical upload route; the Garden document screen now evaluates expiry server-side and uses active Garden context.
+
+## Staff
+
+Staff document/background screens use GB-M19 active employment, so Garden A and B stay separate. Qualification upload never implies verified qualification or employment activation.
+
+## Child / Parent
+
+Child documents require a canonical Child/Garden binding. Parent reads follow the existing guardian/Child authorization helper. A medication approval reference must point to an authorized canonical private Child document. Other families and ordinary Staff cannot browse Child documents.
+
+## Inspector
+
+Only an approved, assigned Inspector may see selected Garden-level categories and inspection-scoped documents. This does not grant generic Child, Staff or message access.
+
+## Admin
+
+Admin Garden-level visibility and review are explicit; sensitive Child/Staff rows are not a blanket browse privilege. File access is audited.
+
+## Retention / Deletion
+
+An authorized actor may request logical deletion. Physical purge is Admin-only and requires an explicit request, elapsed `retention_until`, and no legal hold; it tombstones the row before object removal and is retryable. No retention duration is invented. Without an approved category schedule, purge remains blocked. Existing Garden/Child/Staff/Parent/Inspector foreign keys previously cascaded document-row deletion; the migration changes them to `RESTRICT`, so source deletion fails closed until document retention/storage handling is complete. Production migration planning must account for constraint locks/validation time and a current restore path. Existing privacy/forgetting workflows still need a documented retention mapping and Storage cleanup before activation.
+
+## Access Audit
+
+Upload, review, deletion request and signed private read record actor, context and timestamp without signed token. Purge records a separate audit event. Audit/storage partial failure is surfaced and requires reconciliation.
+
+## Security / RLS
+
+Direct document updates/inserts are removed for authenticated users; registration/review are guarded RPCs. Private-row read checks Child guardian, active Staff employment, current Garden management and approved Inspector assignment as appropriate. An isolated synthetic direct-RLS matrix covers Parent A/B, Manager A, multi-Garden Staff, Inspector A and Admin; it passed in a rollback transaction. Production RLS and Storage remain unverified.
+
+## Concurrency
+
+Replacement locks the old document row and rejects a second replacement. Independent-connection race proof and object-cleanup race proof remain open.
+
+## Storage Cost
+
+No new provider or fixed paid resource. Scenario assumption: two retained 2 MB documents per active user, no versions, 4 MB/user (1 GB = 1,000 MB for approximate billing). At 100/1,000/10,000/100,000 users this is 0.4/4/40/400 GB. [Supabase Storage pricing](https://supabase.com/docs/guides/storage/pricing) lists 100 GB included on Pro, then $0.0213/GB-month; modeled overage is $0/$0/$0/$6.39 monthly, before egress, operations, taxes and storage from other domains. At the [Bank of Israel 18 September 2026 USD rate of ₪3.028](https://www.boi.org.il/en/economic-roles/financial-markets/exchange-rates/), the last scenario is about ₪19.35 monthly, or ₪0.00019/user. [R2 pricing](https://developers.cloudflare.com/r2/pricing/) is $0.015/GB-month plus operations, but no R2 move is proposed. AWS is not added. This is a scenario, not invoice evidence or proof of the all-in ₪15 ceiling.
+
+## Monthly Cost Delta
+
+New fixed incremental commitment: **₪0/month**. Supabase Storage variable increment depends on actual retained bytes, egress and plan headroom; current Production usage/invoice allocation was not available in this isolated QA. R2: ₪0; AWS: ₪0; scanning provider: ₪0 (not configured). No all-in cost compliance claim is made without the supplier ledger and real paying-user denominator.
+
+## Tests
+
+Focused policy/signature tests (5/5), the Management source suites (233 tests), domain QA (29 suites), security QA (7 suites), migration health (235 ordered files), typecheck, Production-mode build, lint regression, release-contract preflight, and dependency install/audit (zero reported vulnerabilities) passed on the feature worktree. The final migration and synthetic direct-RLS matrix passed in a rollback-only transaction against the verified local Development Postgres. Raw object access was denied at the database policy layer. HTTP signed retrieval, separate-connection replacement concurrency, and cumulative Development QA remain to be recorded.
+
+## Live QA
+
+`LIVE DOCUMENT QA: BLOCKED BY ENVIRONMENT` until controlled role sessions and isolated private Storage upload/retrieval flow are verified. No customer document was used.
+
+## Carried QA Debt
+
+GB-M21–M31 live browser/provider/hardware debt remains in their own reports/ledgers. GB-M29 Production is deferred; this report does not close those gates.
+
+## Remaining Debt
+
+Approve/activate expiry scanning cadence, category-specific retention and required-document policy, legacy URL provenance audit, controlled private Storage E2E, separate-connection replacement race, secure deletion reconciliation, malware scanning decision, and Development integration/CI. These are explicit release blockers if still open at final validation.
+
+## Inputs For GB-M33
+
+Consume canonical document IDs and status projections, not raw storage paths or legacy signed URLs. Preserve separate attachment/evidence lifecycles and audit context.
+
+## Development QA Closure (supersedes pending statements above)
+
+PR #69 passed all nine required checks for feature commit `40b938fd317917fa702e82bae1702a26133b4792` and merged by ancestry at `94d7376a191930481ff714b0bf9f4f004f78d04b`. PR #70 registered the Development migration and merged at `950f64483f2bc475da0329a7955532cfb2cf4429`, also after nine green checks. The canonical runner applied `20260920130000_management_private_documents.sql` **only** to guarded isolated Development; ordered drift is **235/235 PASS**, schema fingerprint `80831b96f07af3e5f5e34e8b5497f776d05ce2af83ac26a11e0b9a8f5344359f`. Restricted pre-apply archive `/private/tmp/gb-m32-dev-pre-migration.dump` has SHA-256 `37f166edf8d0886154ccd66e0283fe039ad9bae47f9836ffdefe4b90ecc8c225` and passed archive-list inspection. This is not a restore drill or Production backup claim.
+
+The first authenticated upload exposed a shortened UUID validator (422 for a valid ID). Scoped fix `aaac28c2b8db2962ab74eb5b00842889b3fa62fb` centralizes the full UUID pattern in the document routes, with a regression test. On the local cumulative fix candidate, a synthetic Parent A uploaded a private Child A PDF; Parent A and Manager A retrieved it via 60-second signed URLs. Parent B, Manager B, Staff A, revoked Staff, assigned Inspector, ordinary Admin and anonymous callers were denied. Anonymous and authenticated raw Storage reads failed; the signed URL expired. The applied-schema direct RLS matrix passed. Unknown retention and legal hold blocked purge; a controlled synthetic eligible purge removed the object and a retry left one audit event. A true separate-connection replacement race produced one current version and one conflict. The synthetic document/object fixtures were removed through the supported private Storage API; append-only audit events were preserved. No customer data was used.
+
+Focused tests passed 6/6. Management source suites, domain QA (29 suites), security QA (7 suites), Parent/Manager contract (20/20), migration health and release preflight passed on the local cumulative candidate. Development health returned HTTP 200; unauthenticated list/upload/deletion APIs returned 401. The feature branch passed typecheck, Production-mode build, lint regression and dependency audit. Final scoped-fix PR checks and any exact-head cumulative build/lint are still pending and must be recorded before calling the remote integration closed. The local canonical launcher used `http://127.0.0.1:3000` with `LOCAL_SUPABASE`; the existing dirty shared integration checkout was not modified.
+
+`LIVE DOCUMENT QA: BLOCKED BY ENVIRONMENT` for customer-free Production role journeys. The earlier isolated private Storage and separate-connection replacement debt is closed by the synthetic evidence above. Remaining policy/release debt: category-specific retention and required-document policy, expiry scan schedule, legacy URL provenance, Production backup/restore verification, partial-failure deletion reconciliation, concurrent physical-purge audit deduplication, and malware-scanning decision. No Production migration/deployment, paid provider, legal retention period or malware-scan claim is made. `DIGITAL OBSERVER CORE DIFF: 0`.
+
+## Final Development Integration Receipt
+
+Scoped fix PR #71 passed all nine checks at `e63104c7dcb2e718fa2e1c8fe24140cacca76de0` and merged by ancestry at `b4e5b0195473a985ecbf14025537515cc983809c`. The exact merged integration head passed 235/235 ordered Development drift and launched with the canonical `DEVELOPMENT / INTEGRATION` label on `http://127.0.0.1:3000`; `/api/health` returned 200 and anonymous protected document list, upload and signed-retrieval routes returned 401. The private Storage role matrix and independent-connection replacement race above ran against the isolated Development database. Production migration, deployment, live-role QA, and release authorization remain deferred. `DIGITAL OBSERVER CORE DIFF: 0`.
