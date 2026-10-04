@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-04T02:15:39.000Z",
+  "updatedAt": "2026-10-04T02:46:16.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10044,31 +10044,41 @@
       "owner": "UX-IMPLEMENT-15 owner",
       "sourceBranch": "codex/ux-implement-15-reports-analytics",
       "sourceCommits": [
-        "c2397724e850ffa16a5dd9066147409f95f60525"
+        "c2397724e850ffa16a5dd9066147409f95f60525",
+        "611ea52e17cceeae38a9ad81d13200deae2fdcc3",
+        "29cdc71c5fea1f775a12032486f801974710f341"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "validatedSourceCommit": "c2397724e850ffa16a5dd9066147409f95f60525"
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-15-reports-analytics@611ea52e17cceeae38a9ad81d13200deae2fdcc3",
+          "origin/codex/ux15-integration-receipt@29cdc71c5fea1f775a12032486f801974710f341",
+          "origin/integration/development@4a1cbacbfb239cb6e918a611e7f0cfea257f12ae"
+        ],
+        "validatedSourceCommit": "c2397724e850ffa16a5dd9066147409f95f60525",
+        "qualificationCommit": "611ea52e17cceeae38a9ad81d13200deae2fdcc3",
+        "mergedHeadEvidenceCommit": "29cdc71c5fea1f775a12032486f801974710f341"
       },
       "validation": {
-        "status": "PASS_VISUAL_FUNCTIONAL_ROLE_ISOLATION_SCALE_BUILD_DOMAIN_SECURITY_MIGRATION_AND_RELEASE_CONTRACT",
+        "status": "PASS_EXACT_HEAD_CI_AND_MERGED_DEVELOPMENT_VISUAL_FUNCTIONAL_ROLE_ISOLATION_SCALE_BUILD_DOMAIN_SECURITY_MIGRATION_AND_RELEASE_CONTRACT",
         "evidence": [
           "GAN_BATUACH_UX15_REPORTS_ANALYTICS_FULL_PLATFORM_IMPLEMENTATION.md",
           "qa-evidence/ux-implement-15/visual-report.json",
           "qa-evidence/ux-implement-15/functional-role-e2e.json",
           "qa-evidence/ux-implement-15/performance-scale-e2e.json",
+          "qa-evidence/ux-implement-15/post-merge-role-e2e.json",
+          "qa-evidence/ux-implement-15/post-merge-receipt.json",
           "qa-evidence/ux-implement-15/SHA256SUMS.txt"
         ],
-        "limits": "Twenty canonical Reports & Analytics concepts produced 40 fresh Desktop/Mobile captures, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. UX-15 focused 9/9, GB-M36 7/7, authenticated role/isolation 27/27, bounded 500-row scale with a 200-row page cap and cleanup, Parent/Manager 23/23, typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migration health 244/244 and release-contract validation passed. Exact-head remote checks, Development merge and merged-head cumulative QA remain pending. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
+        "limits": "Product PR #164 passed all nine required checks at exact qualification head 611ea52e17cceeae38a9ad81d13200deae2fdcc3 and merged by ancestry as 4a1cbacbfb239cb6e918a611e7f0cfea257f12ae. Twenty canonical Reports & Analytics concepts produced 40 fresh merged-head Desktop/Mobile captures, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Post-merge UX-15 focused 9/9, GB-M36 7/7, authenticated role/isolation 27/27, Parent/Manager 23/23, typecheck, integration-ledger validation and migration health 244/244 passed against LOCAL_SUPABASE with production:false. Branch qualification also passed bounded 500-row scale with a 200-row page cap and cleanup, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11 and release-contract validation. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
       },
       "integration": {
-        "status": "READY_TO_INTEGRATE",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "pullRequest": null,
-        "requiredChecks": "PENDING_EXACT_HEAD"
+        "commit": "4a1cbacbfb239cb6e918a611e7f0cfea257f12ae",
+        "pullRequest": 164,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
       },
       "dependencies": {
         "status": "UX_IMPLEMENT_14_INTEGRATED",
@@ -10078,12 +10088,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_UX15_FOCUSED_9_OF_9_GB_M36_7_OF_7_ROLE_ISOLATION_27_OF_27_SCALE_500_ROWS_PAGE_LIMIT_200_PARENT_MANAGER_23_OF_23_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_11_OF_11_MIGRATIONS_244_RELEASE_CONTRACT_VISUAL_40_OWNER_REVIEW_READY",
-      "releaseEligibility": "ELIGIBLE_FOR_DEVELOPMENT_INTEGRATION_PRODUCTION_NOT_AUTHORIZED",
+      "localVerification": "PASS_MERGED_HEAD_4A1CBACB_DEVELOPMENT_INTEGRATION_LOCAL_SUPABASE_HEALTH_OK_UX15_FOCUSED_9_OF_9_GB_M36_7_OF_7_ROLE_ISOLATION_27_OF_27_SCALE_500_ROWS_PAGE_LIMIT_200_PARENT_MANAGER_23_OF_23_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_11_OF_11_MIGRATIONS_244_RELEASE_CONTRACT_VISUAL_40_OWNER_REVIEW_READY",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Push the validated source and ledger commits, open a PR to integration/development, require exact-head checks, merge by ancestry, then run cumulative merged-head Development QA and regenerate the final receipt. Production and main remain unchanged."
+      "nextAction": "UX-IMPLEMENT-15 is complete in Development. Stop before UX-IMPLEMENT-16; Production and main remain unchanged pending a separate explicit owner release instruction."
     },
     {
       "id": "codex/push-38t-qualification-relay-probation-20261002",

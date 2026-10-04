@@ -1,0 +1,271 @@
+{
+  "observedAt": "2026-10-04T02:35:08.160Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "syntheticOnly": true,
+  "productionAccess": false,
+  "performance": {
+    "samples": 27,
+    "p50Ms": 223,
+    "p95Ms": 429,
+    "maxMs": 551
+  },
+  "results": [
+    {
+      "name": "unauthenticated",
+      "actor": null,
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 183
+    },
+    {
+      "name": "manager dashboard",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "dashboard",
+      "total": 1,
+      "latencyMs": 391
+    },
+    {
+      "name": "manager cross-Garden IDOR",
+      "actor": "manager-a",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 327
+    },
+    {
+      "name": "multi-Garden network",
+      "actor": "owner-ab",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "network_summary",
+      "total": 1,
+      "latencyMs": 551
+    },
+    {
+      "name": "parent own attendance",
+      "actor": "parent-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "attendance",
+      "total": 0,
+      "latencyMs": 315
+    },
+    {
+      "name": "parent cross-Child IDOR",
+      "actor": "parent-a",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 223
+    },
+    {
+      "name": "parent own tuition",
+      "actor": "parent-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "tuition",
+      "total": 0,
+      "latencyMs": 181
+    },
+    {
+      "name": "staff own hours",
+      "actor": "staff-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "staff_hours",
+      "total": 0,
+      "latencyMs": 232
+    },
+    {
+      "name": "staff tuition denied",
+      "actor": "staff-a",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 208
+    },
+    {
+      "name": "assigned inspection portfolio",
+      "actor": "inspector-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "inspector_portfolio",
+      "total": 2,
+      "latencyMs": 251
+    },
+    {
+      "name": "inspector cross-Garden IDOR",
+      "actor": "inspector-a",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 241
+    },
+    {
+      "name": "inspector payroll denied",
+      "actor": "inspector-a",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 223
+    },
+    {
+      "name": "admin aggregate",
+      "actor": "admin",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "report": "platform_summary",
+      "total": 1,
+      "latencyMs": 194
+    },
+    {
+      "name": "admin private documents denied",
+      "actor": "admin",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "report": null,
+      "total": null,
+      "latencyMs": 136
+    },
+    {
+      "name": "manager source attendance",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 145
+    },
+    {
+      "name": "manager source pickup",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 161
+    },
+    {
+      "name": "manager source staff_hours",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 156
+    },
+    {
+      "name": "manager source tuition",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 179
+    },
+    {
+      "name": "manager source subscription",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 1,
+      "latencyMs": 152
+    },
+    {
+      "name": "manager source inspections",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 2,
+      "latencyMs": 429
+    },
+    {
+      "name": "manager source corrective_actions",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 2,
+      "latencyMs": 271
+    },
+    {
+      "name": "manager source complaints",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 191
+    },
+    {
+      "name": "manager source tasks",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 6,
+      "latencyMs": 273
+    },
+    {
+      "name": "manager source documents",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 219
+    },
+    {
+      "name": "manager source enrollment",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 0,
+      "latencyMs": 224
+    },
+    {
+      "name": "manager source capacity",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "total": 2,
+      "latencyMs": 264
+    },
+    {
+      "name": "authorized CSV export",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "latencyMs": 203,
+      "bytes": 83
+    }
+  ]
+}

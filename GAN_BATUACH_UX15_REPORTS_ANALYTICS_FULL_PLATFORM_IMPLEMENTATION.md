@@ -133,7 +133,9 @@ Both compositions include loading, empty, failure and unavailable states. Empty 
 - Visual set: 20 concepts × Desktop/Mobile = 40 captures.
 - Required classification: 40 `OWNER_REVIEW_READY`, 0 `NEEDS_POLISH`, 0 `VISUAL_DRIFT`, 0 `BROKEN`.
 
-The exact final commit, PR, integration merge head, required-check results, post-merge QA receipt and regenerated merged-head evidence are recorded after the Development workflow completes.
+Development integration completed through product PR [#164](https://github.com/infoganbatuah-ai/gan-batuach/pull/164). The scoped product commit is `c2397724e850ffa16a5dd9066147409f95f60525`, the qualification commit is `611ea52e17cceeae38a9ad81d13200deae2fdcc3`, and the product merge head is `4a1cbacbfb239cb6e918a611e7f0cfea257f12ae`. All nine required checks passed on the exact qualification head before merge.
+
+Post-merge QA ran from the canonical Development/Integration server at `http://127.0.0.1:3000`, identified as `4a1cbacbfb239cb6e918a611e7f0cfea257f12ae` with `LOCAL_SUPABASE` and `production: false`. The focused contract passed 9/9, GB-M36 passed 7/7, Parent/Manager passed 23/23, the role/isolation matrix passed 27/27, typecheck passed, the migration audit passed 244/244 with no UX-15 migration, and the Development integration ledger passed. Fresh evidence from that merged Product head remains 40/40 `OWNER_REVIEW_READY`; the machine-readable receipt is `qa-evidence/ux-implement-15/post-merge-receipt.json`.
 
 ## Deviations and constraints
 
