@@ -31,6 +31,7 @@ import { buildPush38ConnectorLivenessIsolationManifest } from "../../services/vi
 import { buildPush38ConnectorCodecPreservationManifest } from "../../services/video-gateway/push38-home-qa-connector-codec-preservation.mjs";
 import { buildPush38ConnectorHandoffContinuityManifest } from "../../services/video-gateway/push38-home-qa-connector-handoff-continuity.mjs";
 import { buildPush38ConnectorDeviceIdentityContinuityManifest } from "../../services/video-gateway/push38-home-qa-connector-device-identity-continuity.mjs";
+import { buildPush38ConnectorAiModelPathManifest } from "../../services/video-gateway/push38-home-qa-connector-ai-model-path.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -90,8 +91,9 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
   restartGraceRecovery = false, rtspHandoffRecovery = false, healthObservationRecovery = false,
   finalStabilityRecovery = false, rtspCadenceRecovery = false, outputRescue = false,
   genericRtsp = false, livenessIsolation = false, codecPreservation = false,
-  handoffContinuity = false, deviceIdentityContinuity = false }) {
-  const builder = deviceIdentityContinuity ? buildPush38ConnectorDeviceIdentityContinuityManifest :
+  handoffContinuity = false, deviceIdentityContinuity = false, aiModelPath = false }) {
+  const builder = aiModelPath ? buildPush38ConnectorAiModelPathManifest :
+    deviceIdentityContinuity ? buildPush38ConnectorDeviceIdentityContinuityManifest :
     handoffContinuity ? buildPush38ConnectorHandoffContinuityManifest :
     codecPreservation ? buildPush38ConnectorCodecPreservationManifest :
     livenessIsolation ? buildPush38ConnectorLivenessIsolationManifest :
@@ -180,7 +182,8 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_PIDFIX_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: deviceIdentityContinuity ? "observer-push38-connector-device-identity-continuity-r2-publication-v1" :
+    const result = { protocol: aiModelPath ? "observer-push38-connector-ai-model-path-r2-publication-v1" :
+      deviceIdentityContinuity ? "observer-push38-connector-device-identity-continuity-r2-publication-v1" :
       handoffContinuity ? "observer-push38-connector-handoff-continuity-r2-publication-v1" :
       codecPreservation ? "observer-push38-codec-preservation-r2-publication-v1" :
       livenessIsolation ? "observer-push38-liveness-isolation-r2-publication-v1" :
@@ -235,12 +238,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const codecPreservation = process.argv.includes("--codec-preservation");
     const handoffContinuity = process.argv.includes("--handoff-continuity");
     const deviceIdentityContinuity = process.argv.includes("--device-identity-continuity");
+    const aiModelPath = process.argv.includes("--ai-model-path");
     if ([recovery, startupRecovery, livenessRecovery, parentExitRecovery, rtspSessionRecovery,
       hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery, guardRetryRecovery,
       livenessContinuityRecovery, relayBackoffRecovery, restartGraceRecovery, rtspHandoffRecovery,
       healthObservationRecovery, finalStabilityRecovery, rtspCadenceRecovery, outputRescue,
       genericRtsp, livenessIsolation, codecPreservation, handoffContinuity,
-      deviceIdentityContinuity]
+      deviceIdentityContinuity, aiModelPath]
       .filter(Boolean).length > 1)
       fail("P38_PIDFIX_R2_MODE_INVALID");
     const [artifact, evidence] = process.argv.slice(2)
@@ -252,7 +256,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--health-observation-recovery", "--final-stability-recovery",
         "--rtsp-cadence-recovery", "--output-rescue", "--generic-rtsp",
         "--liveness-isolation", "--codec-preservation", "--handoff-continuity",
-        "--device-identity-continuity"].includes(value));
+        "--device-identity-continuity", "--ai-model-path"].includes(value));
     const evidenceRelative = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !evidenceRelative || evidenceRelative === ".." ||
       evidenceRelative.startsWith(`..${sep}`) || isAbsolute(evidenceRelative)) fail("P38_PIDFIX_R2_INPUT_SCOPE_INVALID");
@@ -263,7 +267,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       restartGraceRecovery, rtspHandoffRecovery, healthObservationRecovery,
       finalStabilityRecovery, rtspCadenceRecovery, outputRescue, genericRtsp,
       livenessIsolation, codecPreservation, handoffContinuity,
-      deviceIdentityContinuity }) }));
+      deviceIdentityContinuity, aiModelPath }) }));
   } catch (error) {
     console.error(/^P38_PIDFIX_R2_[A-Z0-9_]+$/.test(error.message) ? error.message : "P38_PIDFIX_R2_PUBLICATION_FAILED");
     process.exitCode = 1;
