@@ -43,6 +43,17 @@ export function push38tIngressAllows(method, pathname) {
   return routes.has(`${method} ${pathname}`);
 }
 
+export function push38tIngressRequestLimit(method, pathname) {
+  if (method !== "POST") return 8192;
+  if (pathname === "/api/video-gateway/cloud-event-media")
+    return 8 * 1024 * 1024 + 64 * 1024;
+  // A 16-channel DVR discovery contains bounded per-channel capability and
+  // health metadata. Keep every other control request at 8 KiB, while this
+  // exact authenticated route gets enough room for the canonical schema.
+  if (pathname === "/api/video-gateway/cloud-discovery") return 64 * 1024;
+  return 8192;
+}
+
 export function classifyPush38tIngressResponse(method, pathname, status, data) {
   if (method !== "GET" || pathname !== "/api/video-gateway/edge-updates" || status !== 200)
     return null;
@@ -110,8 +121,7 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
     }
     try {
       const chunks = []; let length = 0;
-      const requestLimit = request.method === "POST" && url.pathname === "/api/video-gateway/cloud-event-media"
-        ? 8 * 1024 * 1024 + 64 * 1024 : 8192;
+      const requestLimit = push38tIngressRequestLimit(request.method, url.pathname);
       for await (const chunk of request) {
         length += chunk.length;
         if (length > requestLimit) {
