@@ -81,6 +81,8 @@ import { PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-finite-response-continuity.mjs";
 import { PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-device-identity-continuity.mjs";
+import { PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE
+} from "../../services/video-gateway/push38-home-qa-gateway-owner-transport-release.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -144,6 +146,7 @@ const sessionRenewal = process.argv.includes("--gateway-session-renewal");
 const playbackSweep = process.argv.includes("--gateway-playback-sweep");
 const finiteResponseContinuity = process.argv.includes("--gateway-finite-response-continuity");
 const deviceIdentityContinuity = process.argv.includes("--gateway-device-identity-continuity");
+const ownerTransportRelease = process.argv.includes("--gateway-owner-transport-release");
 const explicitProactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 const proactiveExclusive = explicitProactiveExclusive || finiteResponseContinuity;
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
@@ -152,10 +155,11 @@ if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenance
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, explicitProactiveExclusive, playbackSweep, finiteResponseContinuity,
-  deviceIdentityContinuity]
+  deviceIdentityContinuity, ownerTransportRelease]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = deviceIdentityContinuity ? PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUITY :
+const item = ownerTransportRelease ? PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE :
+  deviceIdentityContinuity ? PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUITY :
   finiteResponseContinuity ? PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY :
   playbackSweep ? PUSH38_GATEWAY_PLAYBACK_SWEEP_SERIALIZATION :
   proactiveExclusive ? PUSH38_GATEWAY_PROACTIVE_EXCLUSIVE_RENEWAL :
@@ -191,7 +195,8 @@ const item = deviceIdentityContinuity ? PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUIT
 // Connector handoff candidate.  The live Connector correctly recovered to its
 // signed 0.2.26 known-good, so pin this Gateway-only activation to that exact
 // installed rollback state instead of requiring a quarantined release.
-const proactiveSuccessor = playbackSweep || proactiveExclusive || deviceIdentityContinuity;
+const proactiveSuccessor = playbackSweep || proactiveExclusive || deviceIdentityContinuity ||
+  ownerTransportRelease;
 const connectorItem = (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
   (sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
   handoffContinuity ? connectorHandoffContinuityItem :
@@ -207,7 +212,8 @@ const connectorItem = (proactiveSuccessor || sessionRenewal || routineConfirmati
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = deviceIdentityContinuity ? item.rollbackReleaseId :
+const predecessorReleaseId = ownerTransportRelease ? item.supersedesReleaseId :
+  deviceIdentityContinuity ? item.rollbackReleaseId :
   (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
   handoffContinuity ? item.rolloutPredecessorReleaseId :
   (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff || bufferedOutput || outputRescue || confirmedHandoff || startupWindow || handoffProbation || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff)
@@ -215,7 +221,9 @@ const predecessorReleaseId = deviceIdentityContinuity ? item.rollbackReleaseId :
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = deviceIdentityContinuity
+const artifact = ownerTransportRelease
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.78-build-20261005T0230IDT/gateway-runtime.tar.gz"
+  : deviceIdentityContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.77-build-20261004T143305Z/gateway-runtime.tar.gz"
   : finiteResponseContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.76-build-20261004T0500Z/gateway-runtime.tar.gz"
@@ -280,7 +288,9 @@ const artifact = deviceIdentityContinuity
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = deviceIdentityContinuity
+const publication = ownerTransportRelease
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.78-build-20261005T0230IDT/r2-publication.json"
+  : deviceIdentityContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.77-build-20261004T143305Z/r2-publication.json"
   : finiteResponseContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.76-build-20261004T0500Z/r2-publication.json"
@@ -582,6 +592,7 @@ if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  ownerTransportRelease ? "gateway_remediation_owner_transport_release.json" :
   deviceIdentityContinuity ? "gateway_remediation_device_identity_continuity.json" :
   finiteResponseContinuity ? "gateway_remediation_finite_response_continuity.json" :
   playbackSweep ? "gateway_remediation_playback_sweep_serialization.json" :
@@ -780,6 +791,44 @@ let failedPlaybackSweepEvidence = null;
 let failedFiniteResponseEvidence = null;
 let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
+if (ownerTransportRelease) {
+  const resultBytes = protectedFile(failedPreSoakEvidencePath);
+  const checkpointBytes = protectedFile(failedPreSoakCheckpointsPath);
+  const result = JSON.parse(resultBytes);
+  const checkpoints = checkpointBytes.toString("utf8").trim().split("\n")
+    .map(line => JSON.parse(line));
+  const ownerGap = checkpoints.find(point => point.sequence === 3);
+  const hostDelay = checkpoints.find(point => point.sequence === 19);
+  const affected = ownerGap?.dvr?.relay_diagnostics?.find(relay => relay.channel === 3);
+  const input = ownerGap?.dvr?.inputs?.find(candidate => candidate.channel === 3);
+  if (sha(resultBytes) !== item.failedPreSoakResultSha256 ||
+    sha(checkpointBytes) !== item.failedPreSoakCheckpointsSha256 ||
+    result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "PRE_SOAK" || result.status !== "NOT_DONE" ||
+    result.checkpoints !== 60 || result.elapsed_ms < 60 * 60_000 ||
+    result.dvr_source_available !== 9 ||
+    JSON.stringify(result.dvr_known_upstream_unavailable) !== JSON.stringify([8]) ||
+    result.release?.gateway?.software_version !== item.supersedesVersion ||
+    result.release?.gateway?.build_sha !== "43780453c212634076db3cb278a59cd01ad6ba2d" ||
+    result.release?.gateway?.known_good_version !== item.supersedesVersion ||
+    result.gateway?.unavailable_checkpoints !== 2 ||
+    result.gateway?.source_degraded_checkpoints !== 2 ||
+    result.gateway?.runtime_restarts !== 0 || result.gateway?.supervisor_restarts !== 0 ||
+    result.playback?.failures !== 0 || result.ai?.failures !== 1 ||
+    checkpoints.length !== 60 || ownerGap?.dvr?.classification !== "PRODUCT_FAILURE" ||
+    ownerGap?.dvr?.progressing !== 8 || affected?.last_handoff_result !== "FAILED" ||
+    affected?.last_handoff_failure !== "EXCLUSIVE_RESCUE_ACQUISITION_FAILED" ||
+    input?.owner_state !== "NONE" || input?.output_idle_ms < 60_000 ||
+    hostDelay?.dvr?.health_error !== "TIMEOUT" || hostDelay?.dvr?.liveness?.ok !== false)
+    throw new Error("P38_GATEWAY_OWNER_TRANSPORT_FAILED_PRE_SOAK_PROOF_INVALID");
+  failedPreSoakEvidence = { result_sha256: sha(resultBytes),
+    checkpoints_sha256: sha(checkpointBytes), checkpoints: result.checkpoints,
+    duration_ms: result.elapsed_ms, release_id: item.supersedesReleaseId,
+    owner_gap_sequence: ownerGap.sequence, owner_gap_channel: affected.channel,
+    owner_gap_duration_ms: input.output_idle_ms,
+    owner_gap_failure: affected.last_handoff_failure,
+    host_delay_sequence: hostDelay.sequence, live_recovery_required: true };
+}
 if (sessionSweep) {
   const rows = protectedFile(failedCanaryEvidencePath).toString("utf8").trim().split("\n").map(line => JSON.parse(line));
   const failed = rows.find(point => point.release?.gateway?.software_version === item.supersedesVersion &&
@@ -1228,7 +1277,7 @@ if (bufferedOutput || outputRescue || confirmedHandoff || startupWindow || hando
       // only when the current owner and every playback checkpoint remain
       // continuous. Output-rescue confirmation failures remain disallowed by
       // the Shadow result and mode-specific failure checks.
-      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity,
+      confirmedWarmHandoff: confirmedHandoff || startupWindow || handoffProbation || retainedFallback || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffOwnerContinuity || ownerTransportRelease,
       verifyPlaybackRenewals: continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor,
       hardwareHandoff: handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor,
       recentMaxAgeMs: (handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) ? 60 * 60_000 : 10 * 60_000,
@@ -1296,7 +1345,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: deviceIdentityContinuity ? "observer-push38-gateway-device-identity-continuity-activation-v1" :
+const plan = { protocol: ownerTransportRelease ? "observer-push38-gateway-owner-transport-release-activation-v1" :
+  deviceIdentityContinuity ? "observer-push38-gateway-device-identity-continuity-activation-v1" :
   finiteResponseContinuity ? "observer-push38-gateway-finite-response-continuity-activation-v1" :
   playbackSweep ? "observer-push38-gateway-playback-sweep-serialization-activation-v1" :
   proactiveExclusive ? "observer-push38-gateway-proactive-exclusive-renewal-activation-v1" :
@@ -1339,7 +1389,8 @@ const plan = { protocol: deviceIdentityContinuity ? "observer-push38-gateway-dev
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (deviceIdentityContinuity ? "RECOVERED_KNOWN_GOOD_DEVICE_IDENTITY_SUCCESSOR_QUALIFIED" :
+    retainedFallbackTargetTruth ? (ownerTransportRelease ? "FAILED_PRE_SOAK_OWNER_TRANSPORT_RELEASE_SUCCESSOR_QUALIFIED" :
+      deviceIdentityContinuity ? "RECOVERED_KNOWN_GOOD_DEVICE_IDENTITY_SUCCESSOR_QUALIFIED" :
       finiteResponseContinuity ? "FAILED_V8_FINITE_RESPONSE_CONTINUITY_SUCCESSOR_QUALIFIED" :
       playbackSweep ? "FAILED_PRE_SOAK_SESSION_SWEEP_PROMOTION_SUCCESSOR_QUALIFIED" :
       proactiveExclusive ? "FAILED_PRE_SOAK_PROACTIVE_EXCLUSIVE_SUCCESSOR_QUALIFIED" :
@@ -1392,7 +1443,8 @@ const plan = { protocol: deviceIdentityContinuity ? "observer-push38-gateway-dev
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: deviceIdentityContinuity ? "GATEWAY_DEVICE_IDENTITY_CONTINUITY_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: ownerTransportRelease ? "GATEWAY_OWNER_TRANSPORT_RELEASE_PREFLIGHT_PASS" :
+    deviceIdentityContinuity ? "GATEWAY_DEVICE_IDENTITY_CONTINUITY_PREFLIGHT_PASS" :
     finiteResponseContinuity ? "GATEWAY_FINITE_RESPONSE_CONTINUITY_PREFLIGHT_PASS" :
     playbackSweep ? "GATEWAY_PLAYBACK_SWEEP_PREFLIGHT_PASS" :
     proactiveExclusive ? "GATEWAY_PROACTIVE_EXCLUSIVE_PREFLIGHT_PASS" :
@@ -1461,7 +1513,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: deviceIdentityContinuity ? "EXACT_GATEWAY_DEVICE_IDENTITY_CONTINUITY_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: ownerTransportRelease ? "EXACT_GATEWAY_OWNER_TRANSPORT_RELEASE_ROLLOUT_ACTIVE" :
+  deviceIdentityContinuity ? "EXACT_GATEWAY_DEVICE_IDENTITY_CONTINUITY_ROLLOUT_ACTIVE" :
   finiteResponseContinuity ? "EXACT_GATEWAY_FINITE_RESPONSE_CONTINUITY_ROLLOUT_ACTIVE" :
   playbackSweep ? "EXACT_GATEWAY_PLAYBACK_SWEEP_ROLLOUT_ACTIVE" :
   proactiveExclusive ? "EXACT_GATEWAY_PROACTIVE_EXCLUSIVE_ROLLOUT_ACTIVE" :
