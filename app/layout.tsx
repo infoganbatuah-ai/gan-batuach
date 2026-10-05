@@ -21,6 +21,7 @@ import "./styles/ux-implement-16.css";
 import "./styles/ux-implement-17.css";
 import "./styles/ux-implement-18.css";
 import "./styles/ux-implement-19.css";
+import "./styles/ux-visual-remediation-final.css";
 
 export const metadata: Metadata = {
   verification: {

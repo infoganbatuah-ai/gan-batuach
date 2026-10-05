@@ -7,6 +7,7 @@ import {
   ParentActionTile,
   ParentAppFrame,
   ParentChildCard,
+  ParentChildContextCard,
   ParentEmptyState,
   ParentHero,
   ParentListRow,
@@ -108,16 +109,24 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
 
         <ParentKindergartenInvitationsPanel />
 
-        {childContexts.length > 1 ? <form className="parent-child-selector" method="get" aria-label="בחירת ילד להצגת הדשבורד">
-          <label htmlFor="dashboard-child">הצגת מידע עבור</label>
-          <select id="dashboard-child" name="child" defaultValue={selectedChildId}>
-            {childContexts.map(child => {
-              const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id);
-              return <option value={id} key={id}>{cleanSyntheticLabel(String(child.full_name ?? child.child?.full_name ?? ""), "ילד/ה")}</option>;
-            })}
-          </select>
-          <button className="parent-outline-button" type="submit">החלפת ילד</button>
-        </form> : null}
+        {childContexts.length > 1 ? <nav className="parent-child-selector parent-child-card-selector" aria-label="בחירת ילד להצגת הדשבורד">
+          <input type="hidden" name="child" value={selectedChildId} />
+          <div className="parent-child-selector-heading"><Baby size={22} /><span><b>הילדים שלי</b><small>בחירה מעדכנת מיד את כל המידע במסך</small></span></div>
+          <div className="parent-child-selector-track">{childContexts.map(child => {
+            const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id);
+            const enrollment = enrollmentRows.find(item => String(item.child_id ?? item.permanent_child_file_id ?? item.id ?? "") === id);
+            const garden = ((family.gardens ?? []) as unknown as DashboardRow[]).find(item => item.id === (enrollment?.garden_id ?? enrollment?.kindergarten_id));
+            return <ParentChildContextCard
+              key={id}
+              href={`/dashboard/parent?child=${encodeURIComponent(id)}`}
+              active={id === selectedChildId}
+              name={cleanSyntheticLabel(String(child.full_name ?? child.child?.full_name ?? ""), "ילד/ה")}
+              garden={cleanSyntheticLabel(String(garden?.name ?? ""), enrollment ? "הקשר הגן" : "טרם שויך לגן")}
+              status={id === selectedChildId ? "נבחר" : "הצגה"}
+              image={(child as DashboardRow).photo_url as string | null | undefined}
+            />;
+          })}</div>
+        </nav> : null}
 
         {selectedChild ? (
           <ParentChildCard

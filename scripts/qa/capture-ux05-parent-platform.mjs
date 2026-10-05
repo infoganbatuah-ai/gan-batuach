@@ -77,11 +77,13 @@ async function capture(page, name, viewport, path, referenceArea) {
   await page.setViewportSize(viewport);
   const response = await page.goto(`${base}${path}`, { waitUntil: "networkidle", timeout: 180_000 });
   assert.equal(response?.status(), 200, path);
+  await page.locator("main.dashboard-safe-state, main.loading-screen").first().waitFor({ state: "hidden", timeout: 180_000 });
+  await page.locator(".branded-splash").waitFor({ state: "detached", timeout: 10_000 });
   await page.evaluate(() => scrollTo(0, 0));
   await page.waitForTimeout(160);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
   assert.equal(overflow, false, `${name} has horizontal overflow`);
-  const png = await page.screenshot({ fullPage: false, animations: "disabled" });
+  const png = await page.screenshot({ fullPage: false, animations: "disabled", caret: "initial" });
   const file = resolve(screenshotRoot, `${name}.webp`);
   await sharp(png).webp({ quality: 88, effort: 5 }).toFile(file);
   captures.push({ name, route: path, viewport: `${viewport.width}x${viewport.height}`, referenceArea, screenshot: file.replace(`${process.cwd()}/`, ""), visualStatus: "VISUAL_PASS", deviations: [] });

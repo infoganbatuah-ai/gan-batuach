@@ -39,15 +39,53 @@ const navigationMs = [];
 
 async function ensureRichVisualFixtures() {
   const client = createSupabaseClient(localKeys.url, localKeys.service, { auth: { persistSession: false, autoRefreshToken: false } });
+  const now = Date.now();
   const gardenId = "00000000-0000-4000-8000-000000000601";
   const parentId = "00000000-0000-4000-8000-000000000101";
   const classroomId = "00000000-0000-4000-8000-000000000701";
   const secondClassroomId = "00000000-0000-4000-8000-000000000702";
   const classroomUpdate = await client.from("classrooms").upsert([
-    { id: classroomId, garden_id: gardenId, name: "QA A1", age_group_key: "toddlers", capacity_limit: 2 },
-    { id: secondClassroomId, garden_id: gardenId, name: "QA A2", age_group_key: "toddlers", capacity_limit: 1 }
+    { id: classroomId, garden_id: gardenId, name: "QA A1", age_group_key: "toddlers", capacity_limit: 16 },
+    { id: secondClassroomId, garden_id: gardenId, name: "QA A2", age_group_key: "toddlers", capacity_limit: 15 }
   ], { onConflict: "id" });
   assert.equal(classroomUpdate.error, null, classroomUpdate.error?.message);
+  const qaChildren = [
+    ["00000000-0000-4000-8000-000000005901", "דניאל כהן", "2022-04-18", classroomId, "present", 1],
+    ["00000000-0000-4000-8000-000000005902", "נועה לוי", "2022-11-09", classroomId, "late", 2],
+    ["00000000-0000-4000-8000-000000005903", "איתי מזרחי", "2023-02-14", secondClassroomId, "absent", 3],
+    ["00000000-0000-4000-8000-000000005904", "מיה ישראלי", "2022-08-27", secondClassroomId, "not_updated", 4]
+  ];
+  const childUpsert = await client.from("children").upsert(qaChildren.map(([id, full_name, birth_date], index) => ({
+    id,
+    garden_id: gardenId,
+    full_name,
+    birth_date,
+    identity_number: `99000000${index + 1}`,
+    status: "active",
+    parent_completed: true,
+    manager_approved_at: new Date(now - 30 * 86400000).toISOString()
+  })), { onConflict: "id" });
+  assert.equal(childUpsert.error, null, childUpsert.error?.message);
+  const assignmentUpsert = await client.from("child_classroom_assignments").upsert(qaChildren.map(([child_id, , , classroom_id], index) => ({
+    id: `00000000-0000-4000-8000-00000000591${index + 1}`,
+    garden_id: gardenId,
+    child_id,
+    classroom_id,
+    is_current: true,
+    metadata: { source: "ux04_visual_qa" }
+  })), { onConflict: "id" });
+  assert.equal(assignmentUpsert.error, null, assignmentUpsert.error?.message);
+  const attendanceDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(now));
+  const attendanceUpsert = await client.from("attendance").upsert(qaChildren.map(([child_id, , , classroom_id, status, hour], index) => ({
+    id: `00000000-0000-4000-8000-00000000592${index + 1}`,
+    garden_id: gardenId,
+    child_id,
+    classroom_id,
+    attendance_date: attendanceDate,
+    status,
+    check_in_at: status === "present" || status === "late" ? new Date(new Date(attendanceDate).getTime() + (7 + Number(hour) / 10) * 3600000).toISOString() : null
+  })), { onConflict: "id" });
+  assert.equal(attendanceUpsert.error, null, attendanceUpsert.error?.message);
   const childFiles = [
     ["00000000-0000-4000-8000-000000004901", "נועה כהן", "2023-03-12"],
     ["00000000-0000-4000-8000-000000004902", "איתי לוי", "2022-11-03"],
@@ -56,7 +94,6 @@ async function ensureRichVisualFixtures() {
   ].map(([id, full_name, birth_date]) => ({ id, primary_parent_profile_id: parentId, full_name, birth_date, source: "qa_visual", owner_status: "active", is_demo: true, demo_batch_id: "ux04" }));
   const fileUpsert = await client.from("permanent_child_files").upsert(childFiles, { onConflict: "id" });
   assert.equal(fileUpsert.error, null, fileUpsert.error?.message);
-  const now = Date.now();
   const requestRows = [
     { id: "00000000-0000-4000-8000-000000004911", child_profile_id: childFiles[0].id, status: "submitted", payment_status: "not_requested", parent_message: "נשמח להכיר את הצוות ואת סדר היום בגן." },
     { id: "00000000-0000-4000-8000-000000004912", child_profile_id: childFiles[1].id, status: "information_required", payment_status: "not_requested", information_request: "נדרש מסמך רפואי עדכני.", parent_message: "המסמך יישלח במהלך השבוע." },
@@ -88,7 +125,20 @@ async function sessionCookies() {
 
 async function navigate(page, path) {
   const startedAt = performance.now();
-  const response = await page.goto(`${base}${path}`, { waitUntil: "networkidle", timeout: 180_000 });
+  let response = await page.goto(`${base}${path}`, { waitUntil: "commit", timeout: 360_000 });
+  await page.waitForLoadState("domcontentloaded", { timeout: 360_000 });
+  const shell = page.locator(".app-shell, .role-app-shell").first();
+  try {
+    await shell.waitFor({ state: "visible", timeout: 30_000 });
+  } catch {
+    await page.context().addCookies(await sessionCookies());
+    response = await page.goto(`${base}${path}`, { waitUntil: "commit", timeout: 360_000 });
+    await page.waitForLoadState("domcontentloaded", { timeout: 360_000 });
+    await shell.waitFor({ state: "visible", timeout: 360_000 });
+  }
+  await page.locator("main.dashboard-safe-state, main.loading-screen").first().waitFor({ state: "hidden", timeout: 360_000 });
+  await page.locator(".branded-splash").waitFor({ state: "detached", timeout: 10_000 });
+  await page.waitForTimeout(500);
   navigationMs.push(Math.round(performance.now() - startedAt));
   assert.equal(response?.status(), 200, path);
 }
@@ -101,7 +151,7 @@ async function capture(page, name, viewport, selector) {
     await locator.scrollIntoViewIfNeeded();
   } else await page.evaluate(() => scrollTo(0, 0));
   await page.waitForTimeout(180);
-  const png = await page.screenshot({ fullPage: false, animations: "disabled" });
+  const png = await page.screenshot({ fullPage: false, caret: "initial" });
   const file = resolve(screenshotRoot, `${name}.webp`);
   await sharp(png).webp({ quality: 88, effort: 5 }).toFile(file);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
