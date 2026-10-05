@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildPush38GatewayOwnerTransportReleaseManifest,
+  gatewayOwnerTransportReleaseBaselineAcceptable,
   PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE as release } from
   "../../services/video-gateway/push38-home-qa-gateway-owner-transport-release.mjs";
 import { issuePush38GatewayOwnerTransportRelease } from
@@ -34,6 +35,25 @@ const managedGateway = { gateway_id: release.deviceId, deployment_profile: relea
 assert.equal(homeQaManagedPhaseAllows({ enrollment: managedGateway, manifest: built }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: { ...managedGateway,
   gateway_id: "00000000-0000-4000-8000-000000000000" }, manifest: built }), false);
+
+const exactFailedPredecessor = {
+  status: "degraded", assigned: 10, connected: 9, failed: 1, empty: 6,
+  progressing: 9, stalled: 0,
+  reason_codes: ["EXPECTED_RELAY_NOT_PROGRESSING", "DISCOVERY_PROBE_FAILED"],
+  rotations: 108, last_rotation_reason: "finite_response_reopen_rejected",
+  active_sessions: 1, authentication_rejected: 0, consecutive_failures: 0,
+  responses_ok: 5045, login_attempts: 109, login_succeeded: 109,
+  proactive_attempts: 1, proactive_succeeded: 1
+};
+assert.equal(gatewayOwnerTransportReleaseBaselineAcceptable(exactFailedPredecessor), true);
+assert.equal(gatewayOwnerTransportReleaseBaselineAcceptable({ ...exactFailedPredecessor,
+  active_sessions: 2 }), false);
+assert.equal(gatewayOwnerTransportReleaseBaselineAcceptable({ ...exactFailedPredecessor,
+  authentication_rejected: 1 }), false);
+assert.equal(gatewayOwnerTransportReleaseBaselineAcceptable({ ...exactFailedPredecessor,
+  connected: 6, failed: 4, progressing: 6 }), false);
+assert.equal(gatewayOwnerTransportReleaseBaselineAcceptable({ ...exactFailedPredecessor,
+  last_rotation_reason: "unexpected_rotation" }), false);
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-gateway-finite-stream-handoff-r2.mjs", [

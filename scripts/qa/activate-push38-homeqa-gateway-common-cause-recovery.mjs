@@ -81,7 +81,8 @@ import { PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-finite-response-continuity.mjs";
 import { PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-device-identity-continuity.mjs";
-import { PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE
+import { gatewayOwnerTransportReleaseBaselineAcceptable,
+  PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE
 } from "../../services/video-gateway/push38-home-qa-gateway-owner-transport-release.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
@@ -779,7 +780,8 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
 const retainedFallbackTargetTruth = (retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) && gatewaySamples.every(sample =>
-  (routineConfirmation || sessionRenewal || proactiveSuccessor) ? gatewayRoutineConfirmationLegacyRuntimeAcceptable(sample) :
+  ownerTransportRelease ? gatewayOwnerTransportReleaseBaselineAcceptable(sample) :
+    (routineConfirmation || sessionRenewal || proactiveSuccessor) ? gatewayRoutineConfirmationLegacyRuntimeAcceptable(sample) :
     (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
     Number.isInteger(sample.connected) && sample.connected >= 8 && sample.connected <= 9 &&
     Number.isInteger(sample.failed) && sample.failed >= 1 && sample.failed <= 2 && sample.empty === 6 &&

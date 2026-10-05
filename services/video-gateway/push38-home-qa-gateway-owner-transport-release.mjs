@@ -25,6 +25,35 @@ export const PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE = Object.freeze({
   failedPreSoakCheckpointsSha256: "7e6934a28f68920168c30d307a7007e32313614d057fa603edb87070e71f8cbb"
 });
 
+// The 0.2.77 predecessor may retain the cumulative
+// finite_response_reopen_rejected marker from the exact owner-gap failure this
+// release repairs. Accept that marker only while the live recorder session is
+// singular, authenticated, responsive, and the bounded source truth remains
+// intact. This keeps the preflight fail-closed for a new session/auth/common-
+// cause failure without requiring the predecessor to already contain the fix.
+export function gatewayOwnerTransportReleaseBaselineAcceptable(sample = {}) {
+  const connected = sample.connected;
+  const progressing = sample.progressing;
+  const expectedReasons = new Set(["EXPECTED_RELAY_NOT_PROGRESSING", "DISCOVERY_PROBE_FAILED"]);
+  const rotationReasonAllowed = sample.rotations === 0
+    ? sample.last_rotation_reason === null
+    : ["proactive_nonexclusive_renewal", "finite_response_reopen_rejected"]
+      .includes(sample.last_rotation_reason);
+  return ["degraded", "healthy"].includes(sample.status) && sample.assigned === 10 &&
+    sample.empty === 6 && Number.isInteger(connected) && connected >= 7 && connected <= 9 &&
+    sample.failed === 10 - connected && Number.isInteger(progressing) &&
+    progressing >= 7 && progressing <= 9 && Number.isInteger(sample.stalled) &&
+    sample.stalled >= 0 && sample.stalled <= 2 && Math.max(connected, progressing) >= 8 &&
+    Array.isArray(sample.reason_codes) && sample.reason_codes.every(reason => expectedReasons.has(reason)) &&
+    Number.isInteger(sample.rotations) && sample.rotations >= 0 && rotationReasonAllowed &&
+    sample.active_sessions === 1 && sample.authentication_rejected === 0 &&
+    sample.consecutive_failures === 0 && sample.responses_ok > 0 &&
+    sample.login_attempts >= 1 && sample.login_succeeded === sample.login_attempts &&
+    Number.isInteger(sample.proactive_attempts) && sample.proactive_attempts >= 0 &&
+    sample.proactive_attempts <= sample.rotations &&
+    sample.proactive_succeeded === sample.proactive_attempts;
+}
+
 export function buildPush38GatewayOwnerTransportReleaseManifest({ signingKeyId,
   artifactOrigin, releasedAt }) {
   if (!/^[A-Za-z0-9._:-]{3,160}$/.test(signingKeyId || ""))
