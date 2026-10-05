@@ -1,6 +1,6 @@
 {
   "contract": "digital-observer-push38-v8-liveness-failure-evidence-v1",
-  "recorded_at": "2026-10-05T22:45:04Z",
+  "recorded_at": "2026-10-05T23:27:45Z",
   "branch": "codex/push-38t-qualification",
   "source_parent_sha": "45134adf3e01f1c9763126584784437a3c08cb8c",
   "push38_status": "NOT_DONE",
@@ -223,10 +223,41 @@
     "focused_relay_tests": "PASS_35_OF_35",
     "domain_gate": "PASS_33_OF_33",
     "security_gate": "PASS_37_OF_37",
-    "protected_exact_commit_ci": "PENDING",
-    "aws_signature": "PENDING",
-    "private_r2_round_trip": "PENDING",
-    "live_successor_proof": "PENDING"
+    "protected_exact_commit_ci": "PASS_6_OF_6_RUN_37386032992_EXACT_COMMIT_C643E188F10B2770693786088C7C864AF78382B5",
+    "aws_signature": "PASS_PROTECTED_RUN_37386419906_LIVE_TRUST_VERIFIED",
+    "signed_manifest_sha256": "ce082633bcf33e0bb05bdeedad3ff16084b934ddc15a4e2fc71be031583e1462",
+    "failed_release_rollback": {
+      "status": "PASS",
+      "restored_release_id": "qa-p38-health-gateway-device-identity-continuity-63cd90b08ec9",
+      "restored_version": "0.2.77-p38-health",
+      "failed_release_quarantined": true,
+      "dry_run_evidence_sha256": "ea2d062ceb4e7525692f4e0f0253f45ccb13494442a6e17916d452ce4894edbd",
+      "apply_evidence_sha256": "b7c7e7b6cd78911b374be7be7f9a07376082f6178c29ddeba70b8cee4ddcfc3a"
+    },
+    "signed_real_dvr_shadow": {
+      "status": "PASS",
+      "channel": 4,
+      "duration_ms": 480646,
+      "checkpoints": 48,
+      "playback_failures": 0,
+      "warm_handoffs": 3,
+      "warm_handoff_failures": 0,
+      "stale_input": 0,
+      "hls_continuity": "PASS",
+      "candidate_evidence_sha256": "7fb89d0a0276144867f8ca28f684a09a2d5c9b44759b110f0c4b71b60c3c46c1",
+      "isolation_evidence_sha256": "c43c5ccb1ce19bfb2197c25598d576ba268c38d3bd45e0bd2426c1996bec0e5b",
+      "exact_live_rollback_restored": true
+    },
+    "private_r2_round_trip": "PENDING_OWNER_COST_CEILING_RECONCILIATION",
+    "r2_inventory_before_publication": {
+      "objects": 89,
+      "bytes": 12140676521,
+      "proportional_storage_usd_per_month_before_tax": 0.032110147815,
+      "proportional_after_successor_usd_per_month_before_tax": 0.034148280225,
+      "billing_unit_rounding": "ROUND_UP_TO_NEXT_GB_MONTH",
+      "safe_after_successor_ceiling_usd_per_month_before_tax": 0.045
+    },
+    "live_successor_proof": "PENDING_PRIVATE_R2_PUBLICATION_AND_EXACT_DEVICE_OTA"
   },
   "host_interference_after_successor_failure": {
     "classification": "STRONGLY_SUPPORTED_NOT_YET_CONCLUSIVE",
@@ -251,7 +282,7 @@
     },
     "required_next_evidence": "ONE_EVIDENCE_BOUND_EXACT_RETRY_THEN_NEW_CANARY"
   },
-  "next_gate": "PROTECTED_CI_NEW_SIGNED_SUCCESSOR_NEW_CANARY_NEW_PRE_SOAK_NEW_V8",
+  "next_gate": "OWNER_COST_CEILING_THEN_PRIVATE_R2_REGISTER_ACTIVATE_NEW_CANARY_NEW_PRE_SOAK_NEW_V8",
   "main": "UNCHANGED",
   "production": "UNCHANGED"
 }

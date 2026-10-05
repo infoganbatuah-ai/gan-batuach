@@ -4,7 +4,7 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.79 CANARY FAILED; 0.2.80 HARDWARE-RESCUE DEADLINE SUCCESSOR PENDING PROTECTED CI/SIGNING`
+`NOT DONE — 0.2.80 SIGNED/SHADOW-QUALIFIED; PRIVATE R2 PUBLICATION PENDING COST CEILING`
 
 ## 2026-10-06 0.2.79 CANARY FAILURE AND 0.2.80 SUCCESSOR
 
@@ -27,8 +27,33 @@ and size 135,875,494 bytes. Release/rollback tooling commit
 `e4f1ec749ade6c968f65b87c1e8983f63f09f7e0` uses the canonical manager to
 quarantine failed `0.2.79` and restore signed `0.2.77` before the successor is
 eligible. Local domain 33/33, security 37/37, focused relay 35/35 and the
-release/rollback tests pass. Protected exact-commit CI, AWS signing, private-R2
-round trip, real-DVR Shadow proof, a new canary and a new pre-soak remain.
+release/rollback tests pass. Protected exact-commit CI passed 6/6 in run
+`37386032992` for final preparation commit
+`c643e188f10b2770693786088c7c864af78382b5`. Protected signing run
+`37386419906` issued the exact-device AWS-signed manifest and it verified
+against the live installed trust registry.
+
+The canonical late-qualification rollback then passed dry-run and apply:
+failed `0.2.79` was quarantined and signed `0.2.77-p38-health` was restored as
+CURRENT/KNOWN_GOOD. The exact rollback evidence SHA-256 is
+`b7c7e7b6cd78911b374be7be7f9a07376082f6178c29ddeba70b8cee4ddcfc3a`.
+The signed `0.2.80` archive subsequently passed a controlled-pause real-DVR
+Shadow on CH4 for 480,646 ms / 48 checkpoints: playback failures 0, three
+single-owner warm handoffs, handoff failures 0, stale input 0 and continuous
+HLS 48/48. The wrapper restored exact signed 0.2.77 and live health returned
+to nine source-available DVR streams plus Tapo 1/1. Shadow and isolation
+evidence SHA-256 values are
+`7fb89d0a0276144867f8ca28f684a09a2d5c9b44759b110f0c4b71b60c3c46c1`
+and `c43c5ccb1ce19bfb2197c25598d576ba268c38d3bd45e0bd2426c1996bec0e5b`.
+
+Fresh authenticated R2 inventory measured 89 objects / 12,140,676,521 bytes.
+At the recorded Standard rate, the unrounded proportional full-month storage
+projection is about $0.03211 before tax and would become about $0.03415 after
+retaining the new archive. Cloudflare's current official billing policy rounds
+usage up to the next GB-month billing unit, so the safe account-level ceiling
+is $0.045/month before tax. This exceeds the previously approved $0.015
+ceiling, so no upload was performed pending the owner's sole cost exception. Private-R2 round trip,
+exact-device OTA, a new canary and a new pre-soak remain.
 `main` and Production remain unchanged.
 
 ## 2026-10-05 0.2.77 PRE-SOAK FAILURE AND OWNER-TRANSPORT RELEASE FIX

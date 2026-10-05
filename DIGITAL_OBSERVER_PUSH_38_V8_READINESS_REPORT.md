@@ -1,4 +1,23 @@
-# PUSH 38 v8 readiness — NOT READY; 0.2.78 V8 FAILED AND SUCCESSOR REQUIRED
+# PUSH 38 v8 readiness — NOT READY; 0.2.80 SIGNED/SHADOW-QUALIFIED, PUBLICATION PENDING
+
+2026-10-06 signed-Shadow update: protected exact-commit CI passed all six
+gates in run `37386032992`, and protected AWS signing run `37386419906`
+issued the exact-device `0.2.80-p38-health` manifest. Live installed trust
+accepted it. The canonical failed-canary rollback passed and quarantined
+0.2.79 while restoring signed 0.2.77 CURRENT/KNOWN_GOOD. A subsequent signed
+real-DVR CH4 Shadow passed 48/48 checkpoints over 480,646 ms with three
+single-owner warm handoffs, zero handoff/playback/stale-input failures and
+continuous HLS. Exact 0.2.77 was restored after the diagnostic; live state
+returned to 9/9 source-available DVR streams and Tapo 1/1.
+
+Private-R2 publication remains pending only because fresh authenticated bucket
+inventory measured 12,140,676,521 bytes. The projected full-month storage line
+is about $0.03211 before tax and about $0.03415 with the new immutable object
+before billing-unit rounding. Cloudflare rounds up to the next GB-month, so
+the safe account-level ceiling is $0.045/month before tax, above the previously
+approved $0.015 ceiling. No upload or live 0.2.80 OTA
+occurred at this checkpoint. A new canary, new pre-soak and new V8 remain at
+zero.
 
 2026-10-06 canary update: the one evidence-bound exact-device retry installed
 and promoted signed Gateway `0.2.79-p38-health`, but its fresh 900,079 ms canary
