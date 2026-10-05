@@ -81,6 +81,7 @@ import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
 import { createEdgeSupervisor, EDGE_RECOVERY_ACTION } from "./edge-supervision.mjs";
 import { connectorHeartbeatHealth } from "./connector-health-recovery.mjs";
 import { createDownstreamAbortScope } from "./edge-cloud-proxy-lifecycle.mjs";
+import { createRelayDirectoryCleanupQueue } from "./relay-directory-cleanup.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
@@ -449,6 +450,9 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   exclusiveSessionSweepTakeovers: 0, exclusiveSessionSweepFailures: 0,
   retainedHlsContinuityWindows: 0, retainedHlsPlaylistResponses: 0,
   retainedHlsSegmentResponses: 0,
+  directoryCleanupsQueued: 0, directoryCleanupsCompleted: 0,
+  directoryCleanupSkippedActive: 0, directoryCleanupFailures: 0,
+  directoryCleanupMaxMs: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,
@@ -2032,6 +2036,33 @@ async function stopRelayForExclusiveReplacement(streamId, relay, reason) {
   return release.released;
 }
 
+function relayDirectoryIsActive(directory) {
+  return [...relays.values(), ...relayCandidates.values(), ...liveRelays,
+    ...[...relayRetainedPlayback.values()].map(entry => entry?.relay)]
+    .filter(Boolean)
+    .some(relay => relay.directory === directory ||
+      (relay.previousDirectories || []).includes(directory) ||
+      (relay.previousGenerations || []).some(entry => entry.directory === directory));
+}
+
+const relayDirectoryCleanupQueue = createRelayDirectoryCleanupQueue({
+  root: HLS_ROOT,
+  mayRemove: directory => !relayDirectoryIsActive(directory),
+  onResult: result => {
+    relayLifecycle.directoryCleanupMaxMs = Math.max(
+      relayLifecycle.directoryCleanupMaxMs, result.duration_ms || 0);
+    if (result.status === "COMPLETED") relayLifecycle.directoryCleanupsCompleted += 1;
+    else if (result.status === "SKIPPED_ACTIVE") {
+      relayLifecycle.directoryCleanupSkippedActive += 1;
+    } else {
+      relayLifecycle.directoryCleanupFailures += 1;
+      console.error(JSON.stringify({ level: "error",
+        event: "relay_directory_cleanup_failed",
+        error_code: result.error_code || "RELAY_DIRECTORY_CLEANUP_FAILED" }));
+    }
+  }
+});
+
 function cleanupRelayDirectories(streamId, replacement, directories) {
   const timer = setTimeout(() => {
     const current = relays.get(streamId);
@@ -2051,12 +2082,10 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
         ...(relay.previousDirectories || []),
         ...(relay.previousGenerations || []).map(entry => entry.directory)]),
       relayRetainedPlayback.get(streamId)?.relay?.directory].filter(Boolean));
-    for (const directory of directories) {
-      const normalized = normalize(directory);
-      if (!activeDirectories.has(directory) && normalized.startsWith(`${normalize(HLS_ROOT)}/`)) {
-        rmSync(directory, { recursive: true, force: true });
-      }
-    }
+    const inactiveDirectories = directories.filter(directory =>
+      !activeDirectories.has(directory));
+    relayLifecycle.directoryCleanupsQueued +=
+      relayDirectoryCleanupQueue.enqueue(inactiveDirectories);
   }, 30_000);
   timer.unref();
 }

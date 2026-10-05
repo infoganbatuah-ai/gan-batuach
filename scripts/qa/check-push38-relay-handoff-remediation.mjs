@@ -16,6 +16,8 @@ import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { awaitRelayTransportRelease } from
   "../../services/video-gateway/relay-transport-release.mjs";
+import { createRelayDirectoryCleanupQueue } from
+  "../../services/video-gateway/relay-directory-cleanup.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -54,6 +56,82 @@ const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 assert.match(server,
   /const current = relays\.get\(streamId\);[\s\S]*if \(current && current === replacement\)/,
   "deferred HLS cleanup must not treat two absent owners as the same relay");
+
+test("retired HLS cleanup is asynchronous, serialized and root-bounded", async () => {
+  const removed = [];
+  const results = [];
+  let releaseFirst;
+  const firstRemoval = new Promise(resolve => { releaseFirst = resolve; });
+  const queue = createRelayDirectoryCleanupQueue({
+    root: "/tmp/push38-hls",
+    remove: async directory => {
+      removed.push(directory);
+      if (directory.endsWith("generation-a")) await firstRemoval;
+    },
+    onResult: result => results.push(result)
+  });
+  assert.equal(queue.enqueue([
+    "/tmp/push38-hls/generation-a",
+    "/tmp/push38-hls/generation-a",
+    "/tmp/push38-hls/generation-b",
+    "/tmp/push38-hls",
+    "/tmp/outside-generation"
+  ]), 2, "duplicates, the cleanup root and outside paths must never be queued");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(removed, ["/tmp/push38-hls/generation-a"],
+    "only one asynchronous removal may execute at a time");
+  let eventLoopAdvanced = false;
+  setImmediate(() => { eventLoopAdvanced = true; });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(eventLoopAdvanced, true,
+    "an unresolved directory removal must not block the Gateway event loop");
+  releaseFirst();
+  await queue.idle();
+  assert.deepEqual(removed, [
+    "/tmp/push38-hls/generation-a", "/tmp/push38-hls/generation-b"
+  ]);
+  assert.deepEqual(results.map(result => result.status), ["COMPLETED", "COMPLETED"]);
+  assert.equal(queue.status().pending, 0);
+
+  const cleanupSource = server.slice(server.indexOf("function cleanupRelayDirectories"),
+    server.indexOf("async function observeWarmReplacement"));
+  assert.match(cleanupSource, /relayDirectoryCleanupQueue\.enqueue\(inactiveDirectories\)/);
+  assert.doesNotMatch(cleanupSource, /rmSync\(/,
+    "runtime HLS cleanup must never synchronously recurse on the Node event loop");
+});
+
+test("relay directory cleanup rechecks ownership and contains removal failures", async () => {
+  const results = [];
+  const removed = [];
+  const queue = createRelayDirectoryCleanupQueue({
+    root: "/tmp/push38-hls",
+    mayRemove: directory => !directory.endsWith("active"),
+    remove: async directory => {
+      removed.push(directory);
+      if (directory.endsWith("broken")) {
+        const error = new Error("sensitive path omitted");
+        error.code = "EIO";
+        throw error;
+      }
+    },
+    onResult: result => results.push(result)
+  });
+  assert.equal(queue.enqueue([
+    "/tmp/push38-hls/active",
+    "/tmp/push38-hls/broken",
+    "/tmp/push38-hls/healthy"
+  ]), 3);
+  await queue.idle();
+  assert.deepEqual(removed, [
+    "/tmp/push38-hls/broken", "/tmp/push38-hls/healthy"
+  ], "one failed deletion must not stop later cleanup work");
+  assert.deepEqual(results.map(result => result.status), [
+    "SKIPPED_ACTIVE", "FAILED", "COMPLETED"
+  ]);
+  assert.equal(results[1].error_code, "EIO");
+  assert.equal(JSON.stringify(results).includes("sensitive path omitted"), false,
+    "cleanup telemetry must not disclose filesystem paths or raw errors");
+});
 
 test("exclusive DVR replacement waits for input and FFmpeg closure", async () => {
   let releaseInput;

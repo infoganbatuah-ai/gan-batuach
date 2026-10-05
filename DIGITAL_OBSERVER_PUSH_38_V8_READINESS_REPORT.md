@@ -1,4 +1,30 @@
-# PUSH 38 v8 readiness — READY TO START
+# PUSH 38 v8 readiness — NOT READY; 0.2.78 V8 FAILED AND SUCCESSOR REQUIRED
+
+2026-10-05 failure update: the V8 run started at
+`2026-10-05T09:53:54.087Z` and was stopped at `2026-10-05T13:40:58.708Z`
+after 228 checkpoints and 13,624,621 ms. None of that duration is reusable.
+The Gateway health endpoint timed out, the child disappeared after the
+sustained-down watchdog window, and launchd restarted the signed 0.2.78
+service. Playback passed 40/40 samples and AI passed 4/4, but V8 failed its
+component/process and camera-availability gates.
+
+The failure is causally narrowed to synchronous recursive removal of retired
+HLS generation directories on the Node event loop. Two failed rescue/handoff
+paths scheduled their cleanup at the same 30-second boundary immediately before
+the liveness loss. The live code then used recursive `rmSync`; CPU, RSS, open
+handles, recorder authentication/session state, sockets and macOS sleep do not
+explain the outage. The successor uses a serialized asynchronous cleanup queue,
+rechecks active ownership before each removal, remains bounded to the HLS root,
+contains removal failures, and leaves startup crash scavenging unchanged.
+
+Focused relay QA passes 35/35, liveness/common-cause/OTA health tests pass, and
+all six local Digital Observer CI gates pass. This is not live success yet. The
+fix still requires exact-commit protected CI, immutable Gateway packaging,
+AWS signing, private-R2 round-trip verification, exact-device OTA, a fresh
+canary, a fresh pre-soak, and a completely new V8 from zero. Machine-readable
+evidence is in `DIGITAL_OBSERVER_PUSH_38_V8_LIVENESS_FAILURE_EVIDENCE.json`;
+restricted raw evidence remains outside Git under run ID
+`push38-v8-0.2.78-20261005T0953Z`.
 
 2026-10-05 final start-gate update: Gateway `0.2.78-p38-health` is signed,
 installed, and promoted to CURRENT + KNOWN_GOOD; Connector
