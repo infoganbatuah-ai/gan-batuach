@@ -25,14 +25,21 @@ assert.equal(localCredentials().url, "http://127.0.0.1:55421");
 assert.ok(existsSync(chrome));
 assert.equal((await fetch(`${base}/api/health`)).status, 200);
 
+const referenceRoots = [
+  "/Users/danielderi/Downloads",
+  "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה"
+];
+function reference(name) {
+  return referenceRoots.map((root) => join(root, name)).find((candidate) => existsSync(candidate));
+}
 const refs = {
-  auth: "/Users/danielderi/Downloads/GB_UX_REF_AUTH_MASTER.png",
-  "owner-onboarding": "/Users/danielderi/Downloads/GB_UX_REF_OWNER_ONBOARDING.png",
-  "owner-dashboard": "/Users/danielderi/Downloads/GB_UX_REF_OWNER_CORE.png",
-  "children-classrooms": "/Users/danielderi/Downloads/GB_UX_REF_CHILDREN_CLASSROOMS_PROFILE_ENROLLMENT.png",
-  parent: "/Users/danielderi/Downloads/GB_UX_REF_PARENT_FULL_PLATFORM.png",
-  "attendance-pickup": "/Users/danielderi/Downloads/GB_UX_REF_ATTENDANCE_PICKUP_OPERATIONS.png",
-  staff: "/Users/danielderi/Downloads/GB_UX_REF_STAFF_FULL_PLATFORM.png"
+  auth: reference("GB_UX_REF_AUTH_MASTER.png"),
+  "owner-onboarding": reference("GB_UX_REF_OWNER_ONBOARDING.png"),
+  "owner-dashboard": reference("GB_UX_REF_OWNER_CORE.png"),
+  "children-classrooms": reference("GB_UX_REF_CHILDREN_CLASSROOMS_PROFILE_ENROLLMENT.png"),
+  parent: reference("GB_UX_REF_PARENT_FULL_PLATFORM.png"),
+  "attendance-pickup": reference("GB_UX_REF_ATTENDANCE_PICKUP_OPERATIONS.png"),
+  staff: reference("GB_UX_REF_STAFF_FULL_PLATFORM.png")
 };
 for (const path of Object.values(refs)) assert.ok(existsSync(path), `Missing reference ${path}`);
 
@@ -134,8 +141,13 @@ assert.equal(rows.length, 92);
 
 function imagePath(domain, name) { return join(outputRoot, domain, "screenshots", `${name}.webp`); }
 function ensurePath(path) { mkdirSync(dirname(path), { recursive: true }); }
+function sourceRoot(sourceDomain) {
+  return sourceDomain === "07"
+    ? "qa-evidence/ux07-staff-reference-correction"
+    : `qa-evidence/ux-implement-${sourceDomain}`;
+}
 function copy(domain, name, sourceDomain, sourceName = name) {
-  const source = resolve(`qa-evidence/ux-implement-${sourceDomain}/screenshots/${sourceName}.webp`);
+  const source = resolve(`${sourceRoot(sourceDomain)}/screenshots/${sourceName}.webp`);
   assert.ok(existsSync(source), `Missing source capture ${source}`);
   const target = imagePath(domain, name); ensurePath(target); copyFileSync(source, target);
 }
@@ -148,7 +160,7 @@ for (const [domain, screen, desktopName, mobileName] of rows) {
   const batch = direct[domain];
   if (!batch) continue;
   for (const name of [desktopName, mobileName]) {
-    const source = resolve(`qa-evidence/ux-implement-${batch}/screenshots/${name}.webp`);
+    const source = resolve(`${sourceRoot(batch)}/screenshots/${name}.webp`);
     if (existsSync(source)) copy(domain, name, batch);
   }
 }
@@ -158,6 +170,12 @@ copy("owner-onboarding", "parent-invitation-desktop", "02", "children-parent-inv
 copy("owner-onboarding", "parent-invitation-mobile", "02", "children-parent-invitations-mobile");
 copy("children-classrooms", "capacity-state-desktop", "04", "classroom-detail-desktop");
 copy("children-classrooms", "capacity-state-mobile", "04", "classroom-detail-mobile");
+copy("staff", "staff-time-desktop", "07", "time-records-desktop");
+copy("staff", "staff-time-mobile", "07", "time-records-mobile");
+copy("staff", "documents-desktop", "07", "staff-documents-desktop");
+copy("staff", "tasks-desktop", "07", "staff-tasks-desktop");
+copy("staff", "messaging-desktop", "07", "staff-messages-desktop");
+copy("staff", "safety-cameras-desktop", "07", "staff-camera-policy-desktop");
 
 const keys = localCredentials();
 const identities = JSON.parse(readFileSync(resolve(config.runtimeRoot, "qa-identities.private.json"), "utf8"));
@@ -185,7 +203,20 @@ async function shot(page, domain, name, viewport, route, selector, setup) {
   if (selector) { const locator = page.locator(selector).first(); await locator.waitFor({ state: "visible" }); await locator.scrollIntoViewIfNeeded(); }
   else await page.evaluate(() => scrollTo(0, 0));
   await page.waitForTimeout(180);
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1), false, `${name} overflow`);
+  const overflow = await page.evaluate(() => ({
+    detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    offenders: [...document.querySelectorAll("body *")]
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return { tag: element.tagName.toLowerCase(), className: String(element.className || "").slice(0, 120), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+      })
+      .filter((item) => item.left < -1 || item.right > document.documentElement.clientWidth + 1)
+      .sort((left, right) => right.width - left.width)
+      .slice(0, 12)
+  }));
+  assert.equal(overflow.detected, false, `${name} overflow: ${JSON.stringify(overflow)}`);
   const png = await page.screenshot({ fullPage: false, animations: "disabled" });
   const target = imagePath(domain, name); ensurePath(target); await sharp(png).webp({ quality: 89, effort: 5 }).toFile(target);
 }
