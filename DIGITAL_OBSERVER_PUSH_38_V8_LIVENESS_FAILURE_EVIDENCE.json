@@ -93,13 +93,14 @@
     "rollback_version": "0.2.77-p38-health",
     "runtime_bytes_protected_ci_run": 37334623617,
     "runtime_bytes_protected_ci": "PASS_6_OF_6",
-    "corrected_release_metadata_ci": "PENDING",
+    "corrected_release_metadata_ci_run": 37355404307,
+    "corrected_release_metadata_ci": "PASS_6_OF_6",
     "live_runtime_unchanged": true,
     "superseded_manifest_signing_run": 37337561743,
     "superseded_manifest_artifact_id": 11356329354,
-    "corrected_release_signing": "PENDING",
-    "corrected_private_r2_round_trip": "PENDING",
-    "exact_device_ota": "PENDING"
+    "corrected_release_signing": "PASS_AWS_PROTECTED",
+    "corrected_private_r2_round_trip": "PASS",
+    "exact_device_ota": "FAILED_HEALTH_GATE_ROLLED_BACK"
   },
   "post_failure_live_recovery": {
     "observed_at": "2026-10-05T16:30:47.090Z",
@@ -127,7 +128,51 @@
     "live_installed_trust_acceptance": true,
     "filesystem_mode": "0600"
   },
-  "next_gate": "CORRECTED_METADATA_CI_SIGN_PRIVATE_R2_ISOLATED_SHADOW_EXACT_DEVICE_OTA_CANARY_PRE_SOAK_NEW_V8",
+  "successor_live_attempt": {
+    "release_id": "qa-p38-health-gateway-event-loop-cleanup-rb77-83aaf23ce84e",
+    "version": "0.2.79-p38-health",
+    "exact_device_id": "62df97e2-3c0b-427f-9108-bde029bc10e7",
+    "activated_at": "2026-10-05T19:24:06.532Z",
+    "rollback_required_at": "2026-10-05T19:30:36.140Z",
+    "rollback_started_at": "2026-10-05T19:30:36.208Z",
+    "rollback_completed_at": "2026-10-05T19:31:44.123Z",
+    "failure_category": "EDGE_UPDATE_HEALTH_PROCESS_RUNNING_FAILED",
+    "rollback_release_id": "qa-p38-health-gateway-device-identity-continuity-63cd90b08ec9",
+    "rollback_version": "0.2.77-p38-health",
+    "current_and_known_good_match": true,
+    "failed_release_quarantined": true,
+    "exact_rollout_paused_after_failure": true,
+    "broad_cohort_enabled": false,
+    "canary_started": false,
+    "pre_soak_started": false,
+    "v8_started": false,
+    "restricted_preflight_evidence_sha256": "7dd368a9ddc3a83e07b72cbf2f4d2048648431f7b30d51913b448b3d0db46847",
+    "restricted_apply_evidence_sha256": "388f0095f2f1a776d56c22ef791a008306e78ccd5e42484abcd69794454b4ff0"
+  },
+  "host_interference_after_successor_failure": {
+    "classification": "STRONGLY_SUPPORTED_NOT_YET_CONCLUSIVE",
+    "summary": "The restored signed 0.2.77 known-good also suffered liveness loss and child restarts while the host was under extreme development/UI/VM pressure. The stale CUA worker consumed roughly 1.5-1.7 GiB RSS and sustained CPU; after resetting it and stopping only the isolated PUSH 38 QA VM/control-plane workload, six consecutive Gateway liveness and health probes returned HTTP 200 while load average fell from approximately 185 to 31.92.",
+    "unrelated_development_vm_stopped": false,
+    "push38_qa_vm_stopped": true,
+    "qa_control_plane_stopped": true,
+    "current_runtime_mutated_by_isolation": false,
+    "retry_authorizations_for_0_2_79": 0,
+    "host_isolation_media_proof": {
+      "result": "MEDIA_AND_SOURCE_TRUTH_PASS",
+      "duration_ms": 605831,
+      "checkpoints": 10,
+      "channels_decoded": 9,
+      "expected_physical": 10,
+      "source_available": 9,
+      "upstream_unavailable": 1,
+      "empty": 6,
+      "aggregate_health_truthful": true,
+      "evidence_sha256": "33d1bc4ff42ddb9611246c768279b0f08b23d9d03c05bd08e06932019c9ddce7",
+      "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.77-host-isolation-media-proof-20261005T1955Z.json"
+    },
+    "required_next_evidence": "ONE_EVIDENCE_BOUND_EXACT_RETRY_THEN_NEW_CANARY"
+  },
+  "next_gate": "HOST_ISOLATION_MEDIA_PROOF_EVIDENCE_BOUND_EXACT_RETRY_CANARY_PRE_SOAK_NEW_V8",
   "main": "UNCHANGED",
   "production": "UNCHANGED"
 }

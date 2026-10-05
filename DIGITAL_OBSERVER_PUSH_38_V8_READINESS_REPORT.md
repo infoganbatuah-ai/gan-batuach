@@ -1,5 +1,29 @@
 # PUSH 38 v8 readiness — NOT READY; 0.2.78 V8 FAILED AND SUCCESSOR REQUIRED
 
+2026-10-05 live-successor update: exact-device Gateway `0.2.79-p38-health`
+passed protected CI 6/6 (run `37355404307`), AWS-protected signing, private-R2
+round trip, installed-live trust verification and preflight. Its normal OTA
+health gate did not observe a continuously running process and automatically
+rolled back to signed `0.2.77-p38-health`: `ROLLBACK_REQUIRED` at
+`19:30:36.140Z`, `ROLLING_BACK` at `19:30:36.208Z`, and `ROLLED_BACK` at
+`19:31:44.123Z`. The failed release is quarantined, its exact rollout is
+paused, broad eligibility remains disabled, and no canary/pre-soak/V8 time was
+started. The host was simultaneously under extreme unrelated development/UI/VM
+pressure; importantly, the restored 0.2.77 known-good also lost liveness and
+restarted under that pressure. Resetting one stale automation worker and
+stopping only the isolated PUSH 38 QA VM/control-plane workload reduced load
+average from about 185 to 31.92 and produced six consecutive HTTP 200 Gateway
+liveness/health samples. A subsequent 605,831 ms read-only real-media window
+passed all 10 checkpoints: every one of the nine source-available DVR channels
+produced an authorized HLS playlist, segment bytes and a decoded current frame;
+CH8 remained the one truthful upstream-unavailable source, and six empty slots
+remained excluded. Restricted evidence SHA-256 is
+`33d1bc4ff42ddb9611246c768279b0f08b23d9d03c05bd08e06932019c9ddce7`.
+The exact 0.2.79 release has zero prior retry authorizations, so this evidence
+can support at most one exact-device retry through the existing quarantine
+contract after the retry tool and its canonical CI gate pass. The current and
+known-good runtime remains 0.2.77; main and Production remain unchanged.
+
 2026-10-05 rollback-boundary update: while the signed 0.2.79 successor was
 being qualified side-by-side, the installed 0.2.78 watchdog independently
 detected another sustained liveness failure and automatically rolled back at
