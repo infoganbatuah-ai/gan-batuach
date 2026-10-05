@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-05T11:12:04.134Z",
+  "generatedAt": "2026-10-05T12:56:28.994Z",
   "environment": "DEVELOPMENT / INTEGRATION",
   "sourceIntegrationSha": "7d7c9acc7ef72a315080b39be13641e6ec2db20a",
-  "finalIntegrationSha": null,
+  "finalIntegrationSha": "270c4fe27df78daf71b422de13b801224b8c73d7",
   "totalRolesReviewed": 7,
   "totalScreenConcepts": 326,
   "totalDesktopScreenshots": 326,

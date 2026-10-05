@@ -16,6 +16,7 @@ The product-wide comparison board is at `qa-evidence/ux-implement-20/owner-pack/
 - Approved references: 19
 - Material deviations: none
 - Production access: none
+- Merged product implementation head: `270c4fe27df78daf71b422de13b801224b8c73d7`
 
 ## Domain index
 

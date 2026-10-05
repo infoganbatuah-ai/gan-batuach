@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-04T21:09:04Z",
+  "updatedAt": "2026-10-05T12:30:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10380,6 +10380,62 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-19 is complete in Development. Verify the complete UX-01 through UX-19 visual reference inventory before beginning UX-IMPLEMENT-20; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-20-visual-regression",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-20 Full Product Visual Regression and Owner Acceptance Closure",
+      "owner": "UX-IMPLEMENT-20 owner",
+      "sourceBranch": "codex/ux-implement-20-visual-regression",
+      "sourceCommits": [
+        "904eef37",
+        "e5f7a4cd7b1ac4f295c50bb92dad8a6fc2d946f9"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-20-visual-regression@e5f7a4cd7b1ac4f295c50bb92dad8a6fc2d946f9",
+          "origin/integration/development@270c4fe27df78daf71b422de13b801224b8c73d7"
+        ],
+        "validatedSourceCommit": "e5f7a4cd7b1ac4f295c50bb92dad8a6fc2d946f9",
+        "qualificationCommit": "e5f7a4cd7b1ac4f295c50bb92dad8a6fc2d946f9",
+        "mergedHeadEvidenceCommit": "270c4fe27df78daf71b422de13b801224b8c73d7"
+      },
+      "validation": {
+        "status": "PASS_EXACT_HEAD_CI_AND_MERGED_DEVELOPMENT_FULL_PRODUCT_VISUAL_OWNER_ACCEPTANCE_FUNCTIONAL_SECURITY_RTL_ACCESSIBILITY_RESPONSIVE_BUILD_DOMAIN_MIGRATION_AND_RELEASE_CONTRACT",
+        "evidence": [
+          "GAN_BATUACH_UX20_FULL_PRODUCT_VISUAL_REGRESSION.md",
+          "GAN_BATUACH_UX20_OWNER_ACCEPTANCE_INDEX.md",
+          "qa-evidence/ux-implement-20/owner-pack/index.html",
+          "qa-evidence/ux-implement-20/owner-pack/visual-qa-report.json",
+          "qa-evidence/ux-implement-20/owner-pack/evidence-manifest.json",
+          "qa-evidence/ux-implement-20/owner-pack/boards/reference-comparison-board.webp",
+          "qa-evidence/ux-implement-20/owner-pack/SHA256SUMS"
+        ],
+        "limits": "Product PR #174 passed all nine required and external checks at exact head e5f7a4cd7b1ac4f295c50bb92dad8a6fc2d946f9 and merged by ancestry as 270c4fe27df78daf71b422de13b801224b8c73d7. The complete merged-head owner pack contains 326 canonical concepts, 326 Desktop captures, 326 Mobile captures and 652 OWNER_REVIEW_READY screenshots across 19 approved references, with zero NEEDS_POLISH, VISUAL_DRIFT, VISUAL_PARTIAL, VISUAL_FAIL or BROKEN results. Fresh QA also verified signed Candidate invitation resolution, data-backed Reports charts/tables/cards, and bounded Staff notification preference controls. Branch qualification passed 138 UX tests, 110 Management domain tests, Manager/Parent 23/23, authenticated role E2E 8/8, Settings live role/mutation isolation, typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migration health and Development drift 244/244, and release-contract validation. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "270c4fe27df78daf71b422de13b801224b8c73d7",
+        "pullRequest": 174,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_19_INTEGRATED",
+        "units": [
+          "codex/ux-implement-19-global-states"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_MERGED_HEAD_270C4FE2_DEVELOPMENT_INTEGRATION_326_CONCEPTS_652_SCREENSHOTS_19_REFERENCES_41_BOARDS_UX20_FOCUSED_4_OF_4_UX_TESTS_138_DOMAIN_TESTS_110_ROLE_E2E_8_OF_8_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_MIGRATIONS_244_DEVELOPMENT_DRIFT_244_OF_244_OWNER_REVIEW_READY_652",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-20 is complete in Development. Stop before RELEASE-GAP-01. Production and main remain unchanged pending a separate explicit owner release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

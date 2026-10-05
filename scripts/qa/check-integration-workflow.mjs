@@ -22,7 +22,12 @@ test('missing, remote, indirect and credential-bearing database targets fail clo
   for(const url of ['https://example.supabase.co','http://localhost:54321','http://127.0.0.1.evil.example','http://user:pass@127.0.0.1:54321','http://127.0.0.1:54321/path']) {
     assert.throws(()=>integrationEnvironment({NEXT_PUBLIC_SUPABASE_URL:url,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'test'}));
   }
-  assert.doesNotThrow(()=>integrationEnvironment({NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54321',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'test'}));
+  const backend = integrationEnvironment({
+    NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54321',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'test',
+    MANAGEMENT_INVITATION_SECRET:'local-development-invitation-secret',
+  });
+  assert.equal(backend.MANAGEMENT_INVITATION_SECRET,'local-development-invitation-secret');
 });
 test('UI-only cannot consume configured credentials; arbitrary env cannot reach child',()=>{
   assert.throws(()=>integrationEnvironment({SUPABASE_SERVICE_ROLE_KEY:'test'},{uiOnly:true}));

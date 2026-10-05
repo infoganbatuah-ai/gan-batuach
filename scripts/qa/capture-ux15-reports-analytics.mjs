@@ -61,9 +61,26 @@ async function waitForReport(page) {
   }, { timeout: 60_000 });
 }
 
+const waitForReportsResponse = (page) => page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.origin === new URL(base).origin && url.pathname === "/api/reports" && response.request().method() === "GET";
+  }, { timeout: 60_000 });
 const chooseReport = (name) => async (page) => {
+  const loaded = waitForReportsResponse(page);
   await page.getByRole("button", { name: new RegExp(name) }).first().click();
+  const response = await loaded;
+  assert.equal(response.status(), 200, `${name}: report request failed`);
   await waitForReport(page);
+  if (await page.locator(".reports-state.empty").count()) {
+    await page.getByRole("button", { name: /^מותאם$/ }).click();
+    const dates = page.locator('.reports-date-range input[type="date"]');
+    await dates.nth(0).fill("2026-01-01");
+    await dates.nth(1).fill("2026-12-31");
+    const expanded = waitForReportsResponse(page);
+    await page.getByRole("button", { name: /יצירת דוח/ }).click();
+    assert.equal((await expanded).status(), 200, `${name}: expanded report request failed`);
+    await waitForReport(page);
+  }
 };
 const chooseReportAndDisplay = (name, display) => async (page) => {
   await chooseReport(name)(page);
@@ -135,8 +152,17 @@ async function capture(name, route, user, viewport, label, focusSelector, action
   await waitForReport(page);
   if (action) await action(page);
   if (focusSelector) {
-    const focus = page.locator(focusSelector).first();
-    if (await focus.count() && await focus.isVisible()) await focus.scrollIntoViewIfNeeded();
+    const scrolled = await page.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (element && element.getClientRects().length > 0) {
+        element.scrollIntoView({ block: "nearest", inline: "nearest" });
+        return selector;
+      }
+      const fallback = document.querySelector(".reports-results");
+      fallback?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      return fallback ? ".reports-results" : null;
+    }, focusSelector);
+    assert.ok(scrolled, `${name}: ${focusSelector} is unavailable`);
   }
   await page.waitForTimeout(350);
   const overflow = await page.evaluate(() => ({ detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
