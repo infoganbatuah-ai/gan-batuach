@@ -119,13 +119,13 @@ Evidence is stored under `qa-evidence/ux-implement-19/`:
 - `reference-comparison-board.webp`
 - `contact-sheet-desktop.webp`
 - `contact-sheet-mobile.webp`
-- 36 individual Desktop/Mobile state captures under `screenshots/`
+- 48 individual captures under `screenshots/`: 36 global-state Desktop/Mobile captures and 12 authenticated role-shell Desktop/Mobile captures.
 
 The visual run covers 18 concepts at both 1440 × 1024 and 390 × 844: loading, empty, error, permission denied, unavailable, offline/degraded, success, destructive confirmation, validation, status variants, calendar/date, select/dropdown, toggles, search/filter, settings, modal/drawer, mixed-direction content and accessibility.
 
 Current state-system counts:
 
-- OWNER_REVIEW_READY: 36
+- OWNER_REVIEW_READY: 48
 - NEEDS_POLISH: 0
 - VISUAL_DRIFT: 0
 - BROKEN: 0
@@ -135,6 +135,8 @@ The evidence surface is Development-only and returns not-found in Production.
 ## Global regression results
 
 - UX-03 through UX-18 focused representative checks: PASS, including corrected current-contract coverage for Parent camera truth, Staff Safety access, Inspector Safety access and inspection Safety context.
+- Authenticated role-shell E2E: PASS 8/8 across manager, Owner-as-Teacher, multi-Child Parent, multi-Garden Staff, delegated Teacher, assigned Inspector, unassigned Inspector and Admin.
+- Authenticated Desktop/Mobile visual role-shell capture: PASS for Owner, Parent, Staff, Candidate, Inspector and Admin.
 - Management dashboards and Parent/Manager contract: PASS.
 - Classroom capacity, staffing, Child discovery, enrollment lifecycle/activation, recruitment/hiring, multi-Garden Staff, Inspector approval, Tasks, subscriptions, Parent tuition, payment provider, documents, reporting and legacy consolidation: PASS.
 - TypeScript, zero-regression lint, Production build, domain, security/isolation, migration health and release-contract gates: PASS on the feature worktree before final commit qualification.
@@ -146,7 +148,7 @@ Exact-head CI and merged-head post-integration results are recorded in the Devel
 
 - Formal WCAG certification was not performed; the product accessibility baseline listed above was verified.
 - Provider and hardware truth still depends on the canonical provider contracts and real environment evidence; UX-19 does not promote mock, shadow or local capability to Production truth.
-- At the branch evidence stage, the isolated Development database was unavailable, so state-system captures were completed in the Development-only UI harness. Authenticated role-shell evidence is regenerated from the merged integration head when the isolated database is available; it is not substituted with fabricated data.
+- The branch evidence was regenerated against the canonical isolated Development database after verifying migration drift at 244/244. Merged-head evidence is regenerated after integration so that the final report remains tied to the exact Development head.
 
 ## Cost, Digital Observer and Production
 

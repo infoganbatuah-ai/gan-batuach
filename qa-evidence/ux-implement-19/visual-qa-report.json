@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-10-04T23:09:25.967Z",
-  "environment": "DEVELOPMENT / INTEGRATION · UI-ONLY",
+  "generatedAt": "2026-10-05T00:23:25.143Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
   "base": "http://127.0.0.1:3019",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_GLOBAL_STATES_RTL_ACCESSIBILITY_RESPONSIVE.png",
   "sourceReferenceSha256": "a03981972447f5b3ae5b6aeffec0ebfc79c280f302fa61ec1c688ba382a29761",
   "concepts": 18,
-  "roleShells": 0,
-  "captures": 36,
+  "roleShells": 6,
+  "captures": 48,
   "counts": {
-    "OWNER_REVIEW_READY": 36,
+    "OWNER_REVIEW_READY": 48,
     "NEEDS_POLISH": 0,
     "VISUAL_DRIFT": 0,
     "BROKEN": 0
@@ -28,8 +28,7 @@
   "digitalObserverCoreDiff": 0,
   "deviations": [
     "The visual harness is available only in Development and resolves to not-found in Production.",
-    "Formal WCAG certification is outside this batch; the keyboard, focus, label, status, touch-target, reduced-motion and contrast baseline was verified.",
-    "Role-shell screenshots require the isolated Development database and were not captured in this UI-only run."
+    "Formal WCAG certification is outside this batch; the keyboard, focus, label, status, touch-target, reduced-motion and contrast baseline was verified."
   ],
   "items": [
     {
@@ -355,6 +354,114 @@
       "domain": "Global state system",
       "route": "/ux19-system-states?view=accessibility",
       "role": "Development visual harness"
+    },
+    {
+      "screen": "owner-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/owner-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/garden",
+      "role": "owner-a"
+    },
+    {
+      "screen": "owner-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/owner-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/garden",
+      "role": "owner-a"
+    },
+    {
+      "screen": "parent-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/parent-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/parent",
+      "role": "parent-a"
+    },
+    {
+      "screen": "parent-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/parent-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/parent",
+      "role": "parent-a"
+    },
+    {
+      "screen": "staff-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/staff-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff",
+      "role": "staff-a"
+    },
+    {
+      "screen": "staff-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/staff-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff",
+      "role": "staff-a"
+    },
+    {
+      "screen": "candidate-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/candidate-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff/job-market",
+      "role": "staff-candidate"
+    },
+    {
+      "screen": "candidate-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/candidate-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff/job-market",
+      "role": "staff-candidate"
+    },
+    {
+      "screen": "inspector-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/inspector-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/inspector",
+      "role": "inspector-a"
+    },
+    {
+      "screen": "inspector-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/inspector-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/inspector",
+      "role": "inspector-a"
+    },
+    {
+      "screen": "admin-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/admin-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/admin",
+      "role": "admin"
+    },
+    {
+      "screen": "admin-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-19/qa-evidence/ux-implement-19/screenshots/admin-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/admin",
+      "role": "admin"
     }
   ]
 }
