@@ -4,7 +4,32 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.77 PRE-SOAK FAILED; OWNER-TRANSPORT RELEASE FIX VALIDATED LOCALLY; SUCCESSOR NOT YET SIGNED`
+`NOT DONE — 0.2.79 CANARY FAILED; 0.2.80 HARDWARE-RESCUE DEADLINE SUCCESSOR PENDING PROTECTED CI/SIGNING`
+
+## 2026-10-06 0.2.79 CANARY FAILURE AND 0.2.80 SUCCESSOR
+
+The evidence-bound `0.2.79-p38-health` retry completed a fresh 900,079 ms
+canary and failed at checkpoint 13. CH6 and CH10 temporarily had no canonical
+media owner after fresh recorder input continued but VideoToolbox output
+stalled. The first exclusive software response used the generic probation
+window before the existing three-second no-advance reopen, exhausting roughly
+54–55 seconds of retained HLS. Both channels recovered on libx264 by the next
+checkpoint. There was no Gateway or supervisor restart, stale recorder input,
+authentication rejection, playback failure, AI failure or Tapo failure.
+Camera-sample availability was 148/150, so the run is failed and non-reusable.
+
+Runtime commit `a4bd57769d92e8abba4a9e89d8cc762b8ef83ba6` applies the existing
+three-second no-advance bound to that first software response only after
+hardware-output failure is proven. Promotion still requires four distinct
+advances over six seconds. Immutable Gateway `0.2.80-p38-health` has SHA-256
+`d8b7adb3f815b91ae186034a6c3dabb54cebad410c3df796ae1a6f120b1f0d94`
+and size 135,875,494 bytes. Release/rollback tooling commit
+`e4f1ec749ade6c968f65b87c1e8983f63f09f7e0` uses the canonical manager to
+quarantine failed `0.2.79` and restore signed `0.2.77` before the successor is
+eligible. Local domain 33/33, security 37/37, focused relay 35/35 and the
+release/rollback tests pass. Protected exact-commit CI, AWS signing, private-R2
+round trip, real-DVR Shadow proof, a new canary and a new pre-soak remain.
+`main` and Production remain unchanged.
 
 ## 2026-10-05 0.2.77 PRE-SOAK FAILURE AND OWNER-TRANSPORT RELEASE FIX
 

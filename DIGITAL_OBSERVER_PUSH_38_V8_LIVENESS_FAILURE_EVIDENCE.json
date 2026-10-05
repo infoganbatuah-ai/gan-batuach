@@ -206,6 +206,28 @@
     "focused_relay_tests": "PASS_35_OF_35",
     "live_successor_proof": "PENDING"
   },
+  "hardware_rescue_deadline_successor": {
+    "release_id": "qa-p38-health-gateway-hardware-rescue-deadline-d8b7adb3f815",
+    "version": "0.2.80-p38-health",
+    "runtime_build_sha": "a4bd57769d92e8abba4a9e89d8cc762b8ef83ba6",
+    "release_tooling_commit": "e4f1ec749ade6c968f65b87c1e8983f63f09f7e0",
+    "artifact_sha256": "d8b7adb3f815b91ae186034a6c3dabb54cebad410c3df796ae1a6f120b1f0d94",
+    "artifact_size": 135875494,
+    "compatibility_baseline": "0.2.77-p38-health",
+    "failed_release_to_quarantine": "qa-p38-health-gateway-event-loop-cleanup-rb77-83aaf23ce84e",
+    "canonical_failed_canary_rollback": true,
+    "rollback_implementation": "EdgeUpdateManager.rollbackAfterCrashLoop",
+    "rollback_reason": "EDGE_UPDATE_QUALIFICATION_FAILED",
+    "deterministic_release_qa": "PASS",
+    "deterministic_rollback_qa": "PASS",
+    "focused_relay_tests": "PASS_35_OF_35",
+    "domain_gate": "PASS_33_OF_33",
+    "security_gate": "PASS_37_OF_37",
+    "protected_exact_commit_ci": "PENDING",
+    "aws_signature": "PENDING",
+    "private_r2_round_trip": "PENDING",
+    "live_successor_proof": "PENDING"
+  },
   "host_interference_after_successor_failure": {
     "classification": "STRONGLY_SUPPORTED_NOT_YET_CONCLUSIVE",
     "summary": "The restored signed 0.2.77 known-good also suffered liveness loss and child restarts while the host was under extreme development/UI/VM pressure. The stale CUA worker consumed roughly 1.5-1.7 GiB RSS and sustained CPU; after resetting it and stopping only the isolated PUSH 38 QA VM/control-plane workload, six consecutive Gateway liveness and health probes returned HTTP 200 while load average fell from approximately 185 to 31.92.",

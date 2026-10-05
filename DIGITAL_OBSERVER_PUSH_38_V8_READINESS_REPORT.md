@@ -27,6 +27,17 @@ protected CI, AWS signing, private-R2 round trip, exact-device OTA, fresh canary
 and fresh pre-soak are required before any new V8. Main and Production remain
 unchanged.
 
+The immutable `0.2.80-p38-health` package is 135,875,494 bytes with SHA-256
+`d8b7adb3f815b91ae186034a6c3dabb54cebad410c3df796ae1a6f120b1f0d94`.
+Release and rollback orchestration is remotely preserved in commit
+`e4f1ec749ade6c968f65b87c1e8983f63f09f7e0`. The rollback command consumes the
+two pinned failed-canary evidence hashes, verifies both signed slots, invokes
+the existing `EdgeUpdateManager` late-rollback path, quarantines `0.2.79`, and
+restores signed `0.2.77`; it does not introduce a second rollback system.
+Local domain 33/33, security 37/37, release QA, rollback QA and focused relay
+35/35 pass. Protected exact-commit CI, AWS signing, private-R2 publication,
+Shadow qualification and live OTA remain pending at this checkpoint.
+
 2026-10-05 live-successor update: exact-device Gateway `0.2.79-p38-health`
 passed protected CI 6/6 (run `37355404307`), AWS-protected signing, private-R2
 round trip, installed-live trust verification and preflight. Its normal OTA
