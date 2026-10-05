@@ -44,7 +44,8 @@ for (const [path, required] of [
     "--gateway-owner-transport-release", "gateway_remediation_owner_transport_release.json"
   ]],
   ["scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", [
-    "--gateway-owner-transport-release", "gateway_remediation_owner_transport_release.json"
+    "--gateway-owner-transport-release", "gateway_remediation_owner_transport_release.json",
+    "ownerTransportRelease \\? connectorAiModelPathItem"
   ]]
 ]) {
   const source = readFileSync(path, "utf8");
