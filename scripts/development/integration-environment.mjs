@@ -1,4 +1,9 @@
-export const localKeys = new Set(['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY']);
+export const localKeys = new Set([
+  'NEXT_PUBLIC_SUPABASE_URL',
+  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'MANAGEMENT_INVITATION_SECRET',
+]);
 
 // Next dev changes only its generated type imports; never exempt arbitrary edits.
 export function isGeneratedNextEnv(current, baseline) {

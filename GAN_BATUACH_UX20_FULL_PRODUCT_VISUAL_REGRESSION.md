@@ -4,6 +4,7 @@
 
 - Task: `UX-IMPLEMENT-20`
 - Source integration head: `7d7c9acc7ef72a315080b39be13641e6ec2db20a`
+- Merged product implementation head: `270c4fe27df78daf71b422de13b801224b8c73d7`
 - Environment: isolated local `DEVELOPMENT / INTEGRATION`
 - Production access or deployment: none
 - Primary reference: `GB_UX_REF_FULL_PRODUCT_VISUAL_REGRESSION.png`
@@ -111,4 +112,4 @@ Security validation retains tenant isolation, Garden isolation, Parent isolation
 - Comparison board: `qa-evidence/ux-implement-20/owner-pack/boards/reference-comparison-board.webp`
 - Hash list: `qa-evidence/ux-implement-20/owner-pack/SHA256SUMS`
 
-The final integration SHA and post-merge verification are recorded after the Development PR and evidence receipt are merged.
+The 652 screenshots and all owner boards were regenerated from merged product head `270c4fe27df78daf71b422de13b801224b8c73d7`. The final evidence-receipt integration head is reported after its Development PR merges; it changes evidence and ledger records only.
