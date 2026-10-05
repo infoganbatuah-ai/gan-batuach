@@ -1,30 +1,7 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { GlobalErrorState } from "@/components/global-error-state";
 
 export function DashboardErrorState({ reset }: { reset?: () => void }) {
-  const router = useRouter();
-
-  return (
-    <main className="dashboard-safe-state" dir="rtl">
-      <div className="safe-state-card error">
-        <span className="pill bad">שגיאת טעינה</span>
-        <div>
-          <p className="eyebrow">Gan Batuach</p>
-          <h1>אירעה שגיאה בטעינת הנתונים</h1>
-          <p>העמוד לא קרס. ייתכן שחסר מידע, שקיים קשר ריק בנתונים, או שהחיבור ל־Supabase החזיר שגיאה זמנית.</p>
-        </div>
-        <div className="actions">
-          <button className="button primary" type="button" onClick={() => reset?.()}>
-            <RotateCcw size={16} />
-            טעינה מחדש
-          </button>
-          <button className="button secondary" type="button" onClick={() => router.refresh()}>
-            רענון נתונים
-          </button>
-        </div>
-      </div>
-    </main>
-  );
+  return <main className="dashboard-safe-state" dir="rtl"><GlobalErrorState reset={reset} title="אירעה שגיאה בטעינת הנתונים" description="לא הצלחנו להציג את המידע כרגע. אפשר לנסות שוב בלי לחשוף פרטי מערכת פנימיים." /></main>;
 }

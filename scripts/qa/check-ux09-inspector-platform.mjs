@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(path, "utf8");
-const [dashboard, shell, garden, inspection, report, correctiveList, correctiveDetail, complaints, trends, preliminary, apply, cameras, guard, css, approvalMigration, inspectionMigration, correctiveMigration, invitationApi] = await Promise.all([
+const [dashboard, shell, garden, inspection, report, correctiveList, correctiveDetail, complaints, trends, preliminary, apply, cameras, safetyPlatform, safetyModel, guard, css, approvalMigration, inspectionMigration, correctiveMigration, invitationApi] = await Promise.all([
   read("app/dashboard/inspector/page.tsx"),
   read("components/role-app-shell.tsx"),
   read("app/dashboard/inspector/gardens/[id]/page.tsx"),
@@ -16,6 +16,8 @@ const [dashboard, shell, garden, inspection, report, correctiveList, correctiveD
   read("app/dashboard/inspector/preliminary-gardens/page.tsx"),
   read("app/dashboard/inspector/apply/page.tsx"),
   read("app/dashboard/inspector/cameras/page.tsx"),
+  read("components/safety-cameras-platform.tsx"),
+  read("lib/management/safety-cameras.ts"),
   read("lib/management/operational-role.ts"),
   read("app/globals.css"),
   read("supabase/migrations/20260913030000_management_inspector_garden_bootstrap.sql"),
@@ -85,11 +87,13 @@ test("Pending, unassigned and suspended Inspector states are explicit", () => {
 });
 
 test("Camera access remains policy based and cannot become inspection truth", () => {
-  assert.match(cameras, /CameraPlaybackCard/);
+  assert.match(cameras, /SafetyCamerasPlatform/);
+  assert.match(cameras, /toSafetyCamera/);
   assert.match(cameras, /inspector_view_allowed/);
   assert.match(cameras, /inspector_access_policy/);
-  assert.match(cameras, /inspectorLiveViewProductionVerified = false/);
-  assert.match(cameras, /צפייה חיה אינה מאומתת כרגע/);
+  assert.match(safetyModel, /evidence_only/);
+  assert.match(safetyModel, /production_verification_required/);
+  assert.match(safetyPlatform, /Live אינו נפתח ללא הרשאה ואימות Production/);
   assert.doesNotMatch(cameras, /face|track_id|weighted_score/is);
 });
 

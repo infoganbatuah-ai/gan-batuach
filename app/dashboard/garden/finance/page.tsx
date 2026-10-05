@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PermissionDeniedState } from "@/components/global-state-system";
 import { BarChart3, CheckCircle2, CircleDollarSign, Clock3, CreditCard, Landmark, ReceiptText, RefreshCcw, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FinanceFrame } from "@/components/finance-platform-frame";
@@ -15,7 +16,7 @@ type LedgerEntry = { id: string; period_id: string; entry_kind: string; amount: 
 
 export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<Search> }) {
   const access = await getManagementGardenContext();
-  if (!access.allowed) return <main className="card">אין הרשאה לצפות במרכז הכספים.</main>;
+  if (!access.allowed) return <PermissionDeniedState backHref="/dashboard/garden" description="מרכז הכספים זמין רק לבעלי תפקיד מורשים בגן הפעיל." />;
   const params = await searchParams;
   const role = access.session.profile.role === "owner" ? "owner" : "manager";
   const supabase = await createClient();

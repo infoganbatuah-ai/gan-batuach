@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PermissionDeniedState } from "@/components/global-state-system";
 import { AlertTriangle, CalendarDays, Clock3, Download, WalletCards } from "lucide-react";
 import { MetricCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { RoleAppShell } from "@/components/role-app-shell";
@@ -15,7 +16,7 @@ function shortTime(value: string | null, zone: string) {
 
 export default async function StaffTimePage() {
   const access = await getManagementGardenContext();
-  if (!access.allowed) return <main className="card">אין הרשאה לצפות בשעות צוות. <Link href="/dashboard/garden/staff">חזרה לצוות</Link></main>;
+  if (!access.allowed) return <PermissionDeniedState backHref="/dashboard/garden/staff" description="דוחות שעות צוות זמינים רק לבעלי תפקיד מורשים בגן הפעיל." />;
   const role = access.session.profile.role === "owner" ? "owner" : "manager";
   const supabase = await createClient();
   const gardenResult = await supabase.from("gardens" as never).select("operational_timezone" as never).eq("id", access.gardenId).maybeSingle();

@@ -33,6 +33,7 @@ export default async function ParentCamerasPage({ searchParams }: { searchParams
   return (
     <DashboardShell role="parent" title="בטיחות ומצלמות" appHome>
       <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
+        <p className="sr-only">אין שידור חי ללא אימות יכולת והרשאה למדיניות המצלמה הפעילה.</p>
         <SafetyCamerasPlatform
           role="parent"
           cameras={cameras}

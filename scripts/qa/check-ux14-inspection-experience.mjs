@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(path, "utf8");
-const [wizard, report, detail, dashboard, due, history, trends, gardenHistory, ownerActions, inspectorActions, submitApi, draftApi, evidenceApi, engine, inspectionMigration, correctiveMigration, css, cameras] = await Promise.all([
+const [wizard, report, detail, dashboard, due, history, trends, gardenHistory, ownerActions, inspectorActions, submitApi, draftApi, evidenceApi, engine, inspectionMigration, correctiveMigration, css, cameras, safetyPlatform, safetyModel] = await Promise.all([
   read("components/inspector-inspection-wizard.tsx"),
   read("components/inspection-report-view.tsx"),
   read("app/dashboard/inspector/inspections/[id]/page.tsx"),
@@ -21,7 +21,9 @@ const [wizard, report, detail, dashboard, due, history, trends, gardenHistory, o
   read("supabase/migrations/20260913040000_management_monthly_inspection_workflow.sql"),
   read("supabase/migrations/20260913050000_management_corrective_actions.sql"),
   read("app/styles/ux-implement-14.css"),
-  read("app/dashboard/inspector/cameras/page.tsx")
+  read("app/dashboard/inspector/cameras/page.tsx"),
+  read("components/safety-cameras-platform.tsx"),
+  read("lib/management/safety-cameras.ts")
 ]);
 
 test("inspection routes reuse the canonical GB-M22 lifecycle", () => {
@@ -82,9 +84,11 @@ test("Inspector and Owner surfaces preserve tenant and role isolation", () => {
 });
 
 test("Safety and camera context stays truthful", () => {
-  assert.match(cameras, /inspectorLiveViewProductionVerified = false/);
-  assert.match(cameras, /צפייה חיה אינה מאומתת כרגע/);
+  assert.match(cameras, /SafetyCamerasPlatform/);
+  assert.match(cameras, /toSafetyCamera/);
   assert.match(cameras, /inspector_view_allowed/);
+  assert.match(safetyModel, /production_verification_required/);
+  assert.match(safetyPlatform, /Live אינו נפתח ללא הרשאה ואימות Production/);
   assert.doesNotMatch(wizard + report, /track_id|face match|shadow detection/i);
 });
 
