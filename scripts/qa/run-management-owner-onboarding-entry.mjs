@@ -58,11 +58,15 @@ try {
   results.push('Onboarding render does not prefetch logout');
 
   await page.locator('input[name=registrant_type][value=owner_only]').check();
+  await page.getByRole('button', { name: /^המשך/ }).click();
+  await page.locator('input[name=manager_id_number]').waitFor({ state: 'visible' });
+  await page.locator('input[name=manager_id_number]').fill('000000000');
+  await page.locator('input[name=manager_phone]').fill('0500000035');
+  await page.getByRole('button', { name: /^המשך/ }).click();
+  await page.locator('input[name=kindergarten_name]').waitFor({ state: 'visible' });
   await page.locator('input[name=kindergarten_name]').fill('GB-M35 QA Owner Journey D');
   await page.locator('select[name=city]').selectOption({ index: 1 });
   await page.locator('input[name=street]').fill('QA Synthetic Street');
-  await page.locator('input[name=manager_id_number]').fill('000000000');
-  await page.locator('input[name=manager_phone]').fill('0500000035');
   await page.locator('input[name=contact_phone]').fill('0500000035');
   await page.locator('.manager-registration-consent input[type=checkbox]').check();
   const createdResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/garden/manager-application');
