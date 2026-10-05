@@ -83,17 +83,41 @@
     "dependency_moderate": 2
   },
   "successor_candidate": {
+    "release_id": "qa-p38-health-gateway-event-loop-cleanup-rb77-83aaf23ce84e",
     "version": "0.2.79-p38-health",
     "build_sha": "cf279d83d3ebc1f685da8bf7d82c0fb13fb89d13",
     "artifact_sha256": "83aaf23ce84efa3c66c9d306592cd010839a7c0d8e3c5d9bc9642d68d72908cd",
     "artifact_bytes": 135873321,
-    "rollback_release_id": "qa-p38-health-gateway-owner-transport-release-41af624dacc7",
-    "protected_ci_run": 37334623617,
-    "protected_ci": "PASS_6_OF_6",
+    "failed_predecessor_release_id": "qa-p38-health-gateway-owner-transport-release-41af624dacc7",
+    "rollback_release_id": "qa-p38-health-gateway-device-identity-continuity-63cd90b08ec9",
+    "rollback_version": "0.2.77-p38-health",
+    "runtime_bytes_protected_ci_run": 37334623617,
+    "runtime_bytes_protected_ci": "PASS_6_OF_6",
+    "corrected_release_metadata_ci": "PENDING",
     "live_runtime_unchanged": true,
-    "release_signing": "PENDING",
-    "private_r2_round_trip": "PENDING",
+    "superseded_manifest_signing_run": 37337561743,
+    "superseded_manifest_artifact_id": 11356329354,
+    "corrected_release_signing": "PENDING",
+    "corrected_private_r2_round_trip": "PENDING",
     "exact_device_ota": "PENDING"
+  },
+  "post_failure_live_recovery": {
+    "observed_at": "2026-10-05T16:30:47.090Z",
+    "failed_release_id": "qa-p38-health-gateway-owner-transport-release-41af624dacc7",
+    "failed_version": "0.2.78-p38-health",
+    "failure_category": "EDGE_UPDATE_CRASH_LOOP",
+    "recovered_release_id": "qa-p38-health-gateway-device-identity-continuity-63cd90b08ec9",
+    "recovered_version": "0.2.77-p38-health",
+    "current_and_known_good_match": true,
+    "failed_release_quarantined": true,
+    "qualification_effect": "0.2.79 must be newly signed for exact 0.2.77 compatibility and rollback; the superseded 0.2.78-bound draft remains ineligible"
+  },
+  "parallel_shadow_diagnosis": {
+    "ch3_result": "FAIL_SHARED_SOURCE_WINDOW",
+    "ch4_result": "FAIL_TEST_INTERFERENCE_AND_LIVE_0.2.78_LIVENESS_LOSS",
+    "cleanup_failures": 0,
+    "candidate_health_responsive_during_live_0.2.78_unavailability": true,
+    "next_method": "CONTROLLED_LAUNCHD_PAUSE_WITH_FINALLY_RESTORE"
   },
   "github_artifact_11318981203": {
     "downloaded_to_restricted_evidence": true,
@@ -103,7 +127,7 @@
     "live_installed_trust_acceptance": true,
     "filesystem_mode": "0600"
   },
-  "next_gate": "SIGN_PRIVATE_R2_ROUND_TRIP_EXACT_DEVICE_OTA_CANARY_PRE_SOAK_NEW_V8",
+  "next_gate": "CORRECTED_METADATA_CI_SIGN_PRIVATE_R2_ISOLATED_SHADOW_EXACT_DEVICE_OTA_CANARY_PRE_SOAK_NEW_V8",
   "main": "UNCHANGED",
   "production": "UNCHANGED"
 }

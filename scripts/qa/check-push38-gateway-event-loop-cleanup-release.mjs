@@ -23,8 +23,11 @@ assert.equal(built.build_sha, "cf279d83d3ebc1f685da8bf7d82c0fb13fb89d13");
 assert.equal(built.artifact_sha256,
   "83aaf23ce84efa3c66c9d306592cd010839a7c0d8e3c5d9bc9642d68d72908cd");
 assert.equal(built.artifact_size, 135873321);
-assert.equal(built.compatibility.minimum_current_version, "0.2.78-p38-health");
-assert.equal(built.compatibility.maximum_current_version, "0.2.78-p38-health");
+assert.equal(built.compatibility.minimum_current_version, "0.2.77-p38-health");
+assert.equal(built.compatibility.maximum_current_version, "0.2.77-p38-health");
+assert.equal(release.supersedesVersion, "0.2.78-p38-health");
+assert.equal(release.supersededDraftReleaseId,
+  "qa-p38-health-gateway-event-loop-cleanup-83aaf23ce84e");
 assert.equal(built.rollout.cohort_percent, 0);
 assert.deepEqual(built.rollout.explicit_device_ids, [release.deviceId]);
 const managedGateway = { gateway_id: release.deviceId, deployment_profile: release.profile,

@@ -301,7 +301,7 @@ const artifact = eventLoopCleanup
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = eventLoopCleanup
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.79-event-loop-cleanup-package/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.79-event-loop-cleanup-package/r2-publication-rb77.json"
   : ownerTransportRelease
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.78-build-20261005T0230IDT/r2-publication.json"
   : deviceIdentityContinuity

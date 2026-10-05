@@ -232,7 +232,7 @@ const artifact = eventLoopCleanup
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = eventLoopCleanup
-  ? `${restrictedRoot}/push38-gateway-0.2.79-event-loop-cleanup-package/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-0.2.79-event-loop-cleanup-package/r2-publication-rb77.json`
   : ownerTransportRelease
   ? `${restrictedRoot}/push38-gateway-0.2.78-build-20261005T0230IDT/r2-publication.json`
   : deviceIdentityContinuity
@@ -346,7 +346,7 @@ const predecessorReleaseId = (eventLoopCleanup || ownerTransportRelease) ? item.
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
 const rolloutReleaseIdsToPause = eventLoopCleanup
-  ? [predecessorReleaseId]
+  ? [predecessorReleaseId, item.supersededDraftReleaseId]
   : ownerTransportRelease
   ? [predecessorReleaseId]
   : deviceIdentityContinuity

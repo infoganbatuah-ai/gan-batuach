@@ -1,5 +1,22 @@
 # PUSH 38 v8 readiness — NOT READY; 0.2.78 V8 FAILED AND SUCCESSOR REQUIRED
 
+2026-10-05 rollback-boundary update: while the signed 0.2.79 successor was
+being qualified side-by-side, the installed 0.2.78 watchdog independently
+detected another sustained liveness failure and automatically rolled back at
+`2026-10-05T16:30:47.090Z`. The exact current and known-good release is now
+signed Gateway `0.2.77-p38-health`; 0.2.78 is quarantined with
+`EDGE_UPDATE_CRASH_LOOP`. The first 0.2.79 manifest was never activated and is
+superseded because it required 0.2.78 as both its only compatible predecessor
+and rollback target. The immutable 0.2.79 runtime bytes are unchanged, but a
+new release identity must bind compatibility and rollback to the recovered
+0.2.77 known-good. Two parallel one-channel Shadows also showed recorder/test
+interference: CH3 failed in both live and candidate paths during the same
+source window, and the CH4 candidate remained responsive while live 0.2.78
+health was unavailable. The next real-DVR proof therefore uses the existing
+controlled launchd pause/finally-restore method rather than concurrent recorder
+sessions. No corrected release has been activated; canary, pre-soak and V8 have
+not restarted.
+
 2026-10-05 failure update: the V8 run started at
 `2026-10-05T09:53:54.087Z` and was stopped at `2026-10-05T13:40:58.708Z`
 after 228 checkpoints and 13,624,621 ms. None of that duration is reusable.

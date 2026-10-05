@@ -5,20 +5,24 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 // V8 on signed 0.2.78 proved that recursive HLS-generation cleanup could run
 // synchronously on the Gateway event loop after concurrent failed handoffs.
 // This exact-device successor moves runtime cleanup to the bounded serialized
-// asynchronous cleanup queue. Signed 0.2.78 remains the exact rollback target.
+// asynchronous cleanup queue. The live watchdog later proved 0.2.78 itself
+// crash-looped and automatically recovered to signed 0.2.77. Keep 0.2.78 as
+// the immutable failed-V8 predecessor evidence, but install this successor
+// only from and roll back only to the recovered signed 0.2.77 known-good.
 export const PUSH38_GATEWAY_EVENT_LOOP_CLEANUP = Object.freeze({
   role: "GATEWAY_EVENT_LOOP_CLEANUP",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-event-loop-cleanup-83aaf23ce84e",
+  releaseId: "qa-p38-health-gateway-event-loop-cleanup-rb77-83aaf23ce84e",
   version: "0.2.79-p38-health",
   buildSha: "cf279d83d3ebc1f685da8bf7d82c0fb13fb89d13",
   digest: "83aaf23ce84efa3c66c9d306592cd010839a7c0d8e3c5d9bc9642d68d72908cd",
   size: 135873321,
   profile: "PHYSICAL_GATEWAY",
-  rollbackReleaseId: "qa-p38-health-gateway-owner-transport-release-41af624dacc7",
-  rollbackVersion: "0.2.78-p38-health",
+  rollbackReleaseId: "qa-p38-health-gateway-device-identity-continuity-63cd90b08ec9",
+  rollbackVersion: "0.2.77-p38-health",
   supersedesReleaseId: "qa-p38-health-gateway-owner-transport-release-41af624dacc7",
   supersedesVersion: "0.2.78-p38-health",
+  supersededDraftReleaseId: "qa-p38-health-gateway-event-loop-cleanup-83aaf23ce84e",
   agentPredecessorReleaseId: "qa-p38-health-gateway-routine-provisional-6045266c007a",
   priorManagementArtifactSha256: "6045266c007a433f6e6398610d4f6d382a2bd8b8ac97505e0b0ece2dd8351a72",
   failedV8ResultSha256: "71d2254ff653544725682f92db306c1184f9819d1c566c3185b1f68687cbe1fd",
