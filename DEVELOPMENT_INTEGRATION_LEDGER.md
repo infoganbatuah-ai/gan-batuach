@@ -818,3 +818,14 @@ health 244/244 and release-contract validation. Digital Observer core diff is
 zero; no migration, paid provider, Production, `main`, customer data or live
 provider action is included. The unit is ready for its PR to
 `integration/development`; RELEASE-GAP-01 has not started.
+
+UX-VISUAL-REMEDIATION-FINAL Development integration receipt (2026-10-06): PR
+#176 passed all nine exact-head required and external checks at
+`9ee9fb9b4b8bac594420b5c6638a0b87e61ea896` and merged by ancestry as
+`f4b3f9f139ffdb5aeb3ea327a9c4e44a4b0fa472`. Post-merge Settings role and
+mutation isolation passed against the canonical local Development product. The
+Owner onboarding browser harness was then aligned with the canonical guided
+three-stage registration UI and passed all 9 checks at remotely preserved commit
+`13d6379198742669b05a985c4880b4ea0c6a9af8`; this QA-only follow-up is pending
+its exact-head integration receipt. Production and `main` remain untouched, and
+RELEASE-GAP-01 has not started.
