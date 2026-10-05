@@ -303,7 +303,7 @@ try {
     /activeRetriedPredecessorState = \(routineConfirmation \|\| sessionRenewal \|\| proactiveSuccessor\)/);
   assert.doesNotMatch(activation, /routine_confirmation_budget_fault_reproduced/);
   assert.match(activation,
-    /confirmedWarmHandoff:[^\n]+handoffOwnerContinuity \|\| ownerTransportRelease,[\s\S]*boundedWarmupFailure:[\s\S]*routineConfirmation/);
+    /confirmedWarmHandoff:[^\n]+handoffOwnerContinuity \|\| ownerTransportRelease \|\| eventLoopCleanup,[\s\S]*boundedWarmupFailure:[\s\S]*routineConfirmation/);
   assert.doesNotMatch(activation,
     /confirmedWarmHandoff:[^\n]+routineConfirmation/);
   assert.match(activation,
