@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-05T21:41:51Z",
+  "updatedAt": "2026-10-05T22:02:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10444,17 +10444,19 @@
       "owner": "UX-VISUAL-REMEDIATION-FINAL owner",
       "sourceBranch": "codex/ux-visual-remediation-final",
       "sourceCommits": [
-        "211851ac092eefb857511781736c83d164af65b4"
+        "211851ac092eefb857511781736c83d164af65b4",
+        "9ee9fb9b4b8bac594420b5c6638a0b87e61ea896"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-visual-remediation-final@211851ac092eefb857511781736c83d164af65b4"
+          "origin/codex/ux-visual-remediation-final@13d6379198742669b05a985c4880b4ea0c6a9af8",
+          "origin/integration/development@f4b3f9f139ffdb5aeb3ea327a9c4e44a4b0fa472"
         ],
-        "validatedSourceCommit": "211851ac092eefb857511781736c83d164af65b4",
-        "qualificationCommit": "211851ac092eefb857511781736c83d164af65b4",
-        "mergedHeadEvidenceCommit": null
+        "validatedSourceCommit": "9ee9fb9b4b8bac594420b5c6638a0b87e61ea896",
+        "qualificationCommit": "9ee9fb9b4b8bac594420b5c6638a0b87e61ea896",
+        "mergedHeadEvidenceCommit": "f4b3f9f139ffdb5aeb3ea327a9c4e44a4b0fa472"
       },
       "validation": {
         "status": "PASS_BRANCH_OWNER_VISUAL_REMEDIATION_FUNCTIONAL_SECURITY_RTL_ACCESSIBILITY_RESPONSIVE_BUILD_DOMAIN_MIGRATION_AND_RELEASE_CONTRACT",
@@ -10468,11 +10470,11 @@
         "limits": "Eight owner-identified mismatch domains were corrected and captured at 1440x1024 Desktop and 390x844 Mobile in eight side-by-side reference/actual boards. All eight are OWNER_APPROVED_CANDIDATE with zero VISUAL_MISMATCH or BROKEN results. Branch qualification passed focused UX-02 through UX-20 suites, authenticated Settings and onboarding checks, Manager/Parent 23/23, typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migration health 244/244 and release-contract validation. The 13 previously approved domains remain regression-qualified. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
       },
       "integration": {
-        "status": "READY_TO_INTEGRATE",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "pullRequest": null,
-        "requiredChecks": "PENDING_EXACT_HEAD_CI"
+        "commit": "f4b3f9f139ffdb5aeb3ea327a9c4e44a4b0fa472",
+        "pullRequest": 176,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
       },
       "dependencies": {
         "status": "UX_IMPLEMENT_20_INTEGRATED",
@@ -10483,11 +10485,59 @@
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_BRANCH_HEAD_211851AC_EIGHT_REMEDIATION_BOARDS_OWNER_APPROVED_CANDIDATE_8_VISUAL_MISMATCH_0_BROKEN_0_TYPECHECK_LINT_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_11_OF_11_MIGRATIONS_244_RELEASE_CONTRACT",
+      "releaseEligibility": "DEVELOPMENT_POST_MERGE_VERIFICATION_IN_PROGRESS_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Integrate the validated post-merge onboarding QA alignment, then regenerate and review the full 21-domain owner package from the final merged Development head. Production and main remain untouched; do not begin RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-visual-remediation-final-postmerge-qa",
+      "project": "Gan Batuach Management",
+      "title": "UX-VISUAL-REMEDIATION-FINAL Guided Onboarding Post-Merge QA Alignment",
+      "owner": "UX-VISUAL-REMEDIATION-FINAL owner",
+      "sourceBranch": "codex/ux-visual-remediation-final",
+      "sourceCommits": [
+        "13d6379198742669b05a985c4880b4ea0c6a9af8"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-visual-remediation-final@13d6379198742669b05a985c4880b4ea0c6a9af8"
+        ],
+        "validatedSourceCommit": "13d6379198742669b05a985c4880b4ea0c6a9af8",
+        "qualificationCommit": "13d6379198742669b05a985c4880b4ea0c6a9af8",
+        "mergedHeadEvidenceCommit": null
+      },
+      "validation": {
+        "status": "PASS_LOCAL_DEVELOPMENT_OWNER_ONBOARDING_ENTRY_9_OF_9",
+        "evidence": [
+          "scripts/qa/run-management-owner-onboarding-entry.mjs"
+        ],
+        "limits": "The browser QA now follows the canonical three-stage guided registration UI before validating draft creation, save/resume, all five setup stages and Garden-scoped Parent invitation. It passed 9/9 against merged Development f4b3f9f139ffdb5aeb3ea327a9c4e44a4b0fa472 using only isolated local QA identities and data. No product behavior, migration, Production, provider or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "READY_TO_INTEGRATE",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_EXACT_HEAD_CI"
+      },
+      "dependencies": {
+        "status": "VISUAL_REMEDIATION_INTEGRATED",
+        "units": [
+          "codex/ux-visual-remediation-final"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_MERGED_HEAD_F4B3F9F1_OWNER_ONBOARDING_ENTRY_9_OF_9",
       "releaseEligibility": "DEVELOPMENT_INTEGRATION_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Open and qualify the PR to integration/development, merge only after exact-head required checks pass, then regenerate and review the full 21-domain owner package from the merged Development head. Production and main remain untouched; do not begin RELEASE-GAP-01."
+      "nextAction": "Open and qualify the focused QA receipt PR to integration/development; after merge, regenerate the 21-domain owner package from the new exact merged head. Production and main remain untouched."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
