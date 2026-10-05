@@ -10325,6 +10325,61 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-18 is complete in Development. Stop before UX-IMPLEMENT-19; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-19-global-states",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-19 Global States, RTL, Accessibility and Responsive Closure",
+      "owner": "UX-IMPLEMENT-19 owner",
+      "sourceBranch": "codex/ux-implement-19-global-states",
+      "sourceCommits": [
+        "627bd6081969a441990f9b34559922b0cb40d6bc",
+        "3e1993e7e00394d5928c1d8b24304778b6ce2991"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-19-global-states@3e1993e7e00394d5928c1d8b24304778b6ce2991",
+          "origin/integration/development@769481fa88462877e8a75c19c1553626bc1b7b97"
+        ],
+        "validatedSourceCommit": "3e1993e7e00394d5928c1d8b24304778b6ce2991",
+        "qualificationCommit": "3e1993e7e00394d5928c1d8b24304778b6ce2991",
+        "mergedHeadEvidenceCommit": "769481fa88462877e8a75c19c1553626bc1b7b97"
+      },
+      "validation": {
+        "status": "PASS_EXACT_HEAD_CI_AND_MERGED_DEVELOPMENT_GLOBAL_STATES_VISUAL_ROLE_SHELL_RTL_ACCESSIBILITY_RESPONSIVE_BUILD_DOMAIN_SECURITY_MIGRATION_AND_RELEASE_CONTRACT",
+        "evidence": [
+          "GAN_BATUACH_UX19_GLOBAL_STATES_RTL_ACCESSIBILITY_RESPONSIVE_CLOSURE.md",
+          "qa-evidence/ux-implement-19/visual-qa-report.json",
+          "qa-evidence/ux-implement-19/evidence-manifest.json",
+          "qa-evidence/ux-implement-19/reference-comparison-board.webp",
+          "qa-evidence/ux-implement-19/contact-sheet-desktop.webp",
+          "qa-evidence/ux-implement-19/contact-sheet-mobile.webp"
+        ],
+        "limits": "Product PR #172 passed all nine required and external checks at exact head 3e1993e7e00394d5928c1d8b24304778b6ce2991 and merged by ancestry as 769481fa88462877e8a75c19c1553626bc1b7b97. Eighteen global-state concepts and six authenticated role shells produced 48 Desktop/Mobile captures, all OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Post-merge UX-19 focused 10/10, authenticated role-shell E2E 8/8, typecheck, zero-regression lint, 541-page Production build, migration health and Development drift 244/244 passed. Branch qualification also passed representative UX-01 through UX-18 and eighteen Management domain suites, Domain 30/30, Security 11/11 and release-contract validation. RTL, mixed-direction values, keyboard/focus, touch targets, labels/status and reduced motion remain canonical. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "769481fa88462877e8a75c19c1553626bc1b7b97",
+        "pullRequest": 172,
+        "requiredChecks": "PASS_EXACT_HEAD_ALL_9_REQUIRED_AND_EXTERNAL_CHECKS"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_18_INTEGRATED",
+        "units": [
+          "codex/ux-implement-18-settings-account-permissions"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_MERGED_HEAD_769481FA_DEVELOPMENT_INTEGRATION_UX19_FOCUSED_10_OF_10_AUTHENTICATED_ROLE_SHELL_E2E_8_OF_8_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_541_PAGES_MIGRATIONS_244_DEVELOPMENT_DRIFT_244_OF_244_VISUAL_48_OWNER_REVIEW_READY",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-19 is complete in Development. Verify the complete UX-01 through UX-19 visual reference inventory before beginning UX-IMPLEMENT-20; Production and main remain unchanged pending a separate explicit owner release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
