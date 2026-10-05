@@ -1,16 +1,37 @@
 {
   "contract": "digital-observer-push38-v8-qualification-matrix-v1",
   "status": "FROZEN",
-  "frozen_at": "2026-10-04T11:42:00Z",
+  "frozen_at": "2026-10-05T09:38:26Z",
   "candidate_branch": "codex/push-38t-qualification",
   "qualification_runtime": {
-    "gateway_version": "0.2.76-p38-health",
-    "gateway_build_sha": "591d5b97fa24a31ab540a7ceaef8ec9e5ad9335f",
-    "connector_version": "0.2.26-p38-health",
+    "gateway_version": "0.2.78-p38-health",
+    "gateway_build_sha": "b62b6c98fc15c41547282ae7ece53e8ff5cb8807",
+    "connector_version": "0.2.37-p38-health",
+    "connector_build_sha": "6ade377f467d91e50800a2161926cda3d31d8eab",
     "gateway_source_available": 9,
     "gateway_known_upstream_unavailable_channels": [8],
     "gateway_empty_slots": 6,
     "tapo_source_available": 1
+  },
+  "prerequisite_evidence": {
+    "canary": {
+      "status": "PASS",
+      "started_at": "2026-10-05T08:15:42.905Z",
+      "ended_at": "2026-10-05T08:30:46.251Z",
+      "elapsed_ms": 903346,
+      "checkpoints": 15,
+      "result_sha256": "1dd6d3b0e1cf94e82f803bf09a21ad99ee0956b86a0ff4102b8637b6cb4186be",
+      "checkpoints_sha256": "cd30d6901b0290861e0aeb282e87f8799a5d8504a20ca9c4eebba05229c334d8"
+    },
+    "pre_soak": {
+      "status": "PASS",
+      "started_at": "2026-10-05T08:32:36.821Z",
+      "ended_at": "2026-10-05T09:32:36.850Z",
+      "elapsed_ms": 3600029,
+      "checkpoints": 60,
+      "result_sha256": "79a72614b8fbc4c67e702d2e935e223371b68c66e0b91cc905418fb913c8448c",
+      "checkpoints_sha256": "570b8a9533ebfe3b2e2d452301bae1b9ffd7c253b69c71fbbd8fdb848f61b53a"
+    }
   },
   "rules": {
     "minimum_elapsed_ms": 86400000,
@@ -53,7 +74,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect signed CURRENT, KNOWN_GOOD, runtime PID, build identity, and OTA state.",
-      "pass_criteria": "Gateway stays on signed 0.2.76, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
+      "pass_criteria": "Gateway stays on signed 0.2.78, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
       "evidence_source": "V8 release snapshots, OTA state, and process telemetry"
     },
     {
@@ -62,7 +83,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect Connector release identity, supervision, runtime PID, and OTA state.",
-      "pass_criteria": "Connector remains on signed known-good 0.2.26, healthy, and free of crash loops or manual recovery.",
+      "pass_criteria": "Connector remains on signed known-good 0.2.37, healthy, and free of crash loops or manual recovery.",
       "evidence_source": "V8 release snapshots and process telemetry"
     },
     {

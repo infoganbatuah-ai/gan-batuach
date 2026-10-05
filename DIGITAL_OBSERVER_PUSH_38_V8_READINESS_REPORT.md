@@ -1,4 +1,18 @@
-# PUSH 38 v8 readiness — NOT READY
+# PUSH 38 v8 readiness — READY TO START
+
+2026-10-05 final start-gate update: Gateway `0.2.78-p38-health` is signed,
+installed, and promoted to CURRENT + KNOWN_GOOD; Connector
+`0.2.37-p38-health` remains signed CURRENT + KNOWN_GOOD. The new canary passed
+15/15 checkpoints over 903,346 ms and the new pre-soak passed 60/60
+checkpoints over 3,600,029 ms. Both runs recorded 100% availability for the
+nine source-available DVR cameras plus Tapo, zero component/source-unavailable
+checkpoints, zero stale-input events, zero process restarts, successful
+playback and AI probes, zero acknowledged data loss, zero duplicate Product
+effects, zero cross-tenant leakage, and zero manual intervention. CH8 remains
+truthfully excluded only as the independently verified upstream-unavailable
+DVR source; six slots remain empty. The 35-row V8 qualification matrix is
+refrozen against the exact live releases and immutable prerequisite hashes.
+The next permitted action is a new V8 run from zero for at least 86,400,000 ms.
 
 2026-10-05 update: Gateway `0.2.77-p38-health` and Connector
 `0.2.37-p38-health` passed a fresh canary, but the next fresh 60-minute
