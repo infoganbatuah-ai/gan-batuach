@@ -428,6 +428,14 @@ test("fresh recorder input with stalled VideoToolbox output enters one exclusive
   assert.match(server,
     /forcedHardwareOutputRescue[\s\S]*retainExclusivePlayback\(streamId, previous, "OUTPUT_RESCUE_EXCLUSIVE"\)[\s\S]*HARDWARE_OUTPUT_STALL_OWNER_RELEASE/,
   "the DVR's one-response boundary requires retained HLS before releasing the failed owner");
+  assert.equal(privateNvrExclusiveRescueContinuationStalled({
+    lastAdvanceObservedAt: now - PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+    maximumNoAdvanceMs: PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+    now
+  }), true, "a no-output software response must enter the bounded reopen before retained HLS expires");
+  assert.match(server,
+    /if \(!observation\) observation = await observeWarmReplacement\(replacement,[\s\S]*maximumNoAdvanceMs: forcedHardwareOutputRescue[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS : null/,
+  "the first hardware-rescue software response must use the existing three-second no-advance bound");
   assert.match(server,
     /rmSync\(join\(HLS_ROOT, "\.generations"\), \{ recursive: true, force: true \}\)/,
   "interrupted candidate generations must be scavenged on service startup");

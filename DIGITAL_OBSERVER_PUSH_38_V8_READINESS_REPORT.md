@@ -1,5 +1,32 @@
 # PUSH 38 v8 readiness — NOT READY; 0.2.78 V8 FAILED AND SUCCESSOR REQUIRED
 
+2026-10-06 canary update: the one evidence-bound exact-device retry installed
+and promoted signed Gateway `0.2.79-p38-health`, but its fresh 900,079 ms canary
+correctly failed at checkpoint 13. CH6 and CH10 briefly lost availability while
+their recorder inputs were fresh and their VideoToolbox outputs had stalled.
+Both hardware owners were correctly quarantined and released; however, the
+first exclusive software response still used the generic probation window
+before the already-bounded no-advance reopen. The roughly 54–55 second handoffs
+exhausted retained HLS, temporarily leaving the two sources without a media
+owner. Both recovered on libx264 at the next checkpoint without a Gateway or
+supervisor restart, authentication rejection, stale recorder input, playback
+failure, Tapo failure, or host resource saturation. The immutable canary passed
+30/30 playback samples, 3/3 AI probes and 15/15 Tapo samples, but camera sample
+availability was only 98.67%; it remains a failed, non-reusable run. Restricted
+result/checkpoint evidence SHA-256 values are
+`1f45728786eb022e753ca261dcff60440dd236638b8554dc0d869f6dd1820777` and
+`54d43daf62276fd643643e46b498965cf2a14acd59aec1e50053622e486855a6`.
+
+The smallest corrective change applies the existing three-second no-advance
+bound to the first software response only after fresh-input hardware-output
+failure has been independently proven and the hardware encoder quarantined.
+The unchanged promotion gate still requires four distinct advances over six
+seconds; freshness, transport/session, quality and rollback contracts are not
+relaxed. Focused relay/handoff QA passes 35/35. A new immutable successor,
+protected CI, AWS signing, private-R2 round trip, exact-device OTA, fresh canary
+and fresh pre-soak are required before any new V8. Main and Production remain
+unchanged.
+
 2026-10-05 live-successor update: exact-device Gateway `0.2.79-p38-health`
 passed protected CI 6/6 (run `37355404307`), AWS-protected signing, private-R2
 round trip, installed-live trust verification and preflight. Its normal OTA

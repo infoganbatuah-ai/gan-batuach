@@ -1,6 +1,6 @@
 {
   "contract": "digital-observer-push38-v8-liveness-failure-evidence-v1",
-  "recorded_at": "2026-10-05T15:38:21Z",
+  "recorded_at": "2026-10-05T22:45:04Z",
   "branch": "codex/push-38t-qualification",
   "source_parent_sha": "45134adf3e01f1c9763126584784437a3c08cb8c",
   "push38_status": "NOT_DONE",
@@ -149,6 +149,63 @@
     "restricted_preflight_evidence_sha256": "7dd368a9ddc3a83e07b72cbf2f4d2048648431f7b30d51913b448b3d0db46847",
     "restricted_apply_evidence_sha256": "388f0095f2f1a776d56c22ef791a008306e78ccd5e42484abcd69794454b4ff0"
   },
+  "successor_retry_canary": {
+    "run_id": "push38-gateway-0-2-79-canary-20261006T0126Z",
+    "release_id": "qa-p38-health-gateway-event-loop-cleanup-rb77-83aaf23ce84e",
+    "gateway_version": "0.2.79-p38-health",
+    "connector_version": "0.2.36-p38-health",
+    "started_at": "2026-10-05T22:26:16.016Z",
+    "ended_at": "2026-10-05T22:41:16.095Z",
+    "elapsed_ms": 900079,
+    "checkpoints": 15,
+    "status": "FAIL_NOT_REUSABLE",
+    "gate_failures": [
+      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT",
+      "COMPONENT_HEALTH_CHECK_FAILED"
+    ],
+    "camera_sample_availability": 0.9866666666666667,
+    "failed_checkpoint": {
+      "sequence": 13,
+      "sampled_at": "2026-10-05T22:38:16.511Z",
+      "affected_source_channels": [6, 10],
+      "progressing_source_available_dvr": 7,
+      "expected_source_available_dvr": 9,
+      "gateway_process_restarts": 0,
+      "gateway_supervisor_restarts": 0,
+      "active_relays": 7,
+      "live_relay_processes": 9,
+      "candidate_handoffs": 2
+    },
+    "playback": "PASS_30_OF_30_CAMERA_SAMPLES",
+    "ai": "PASS_3_OF_3",
+    "tapo": "PASS_15_OF_15",
+    "manual_interventions": 0,
+    "result_sha256": "1f45728786eb022e753ca261dcff60440dd236638b8554dc0d869f6dd1820777",
+    "checkpoints_sha256": "54d43daf62276fd643643e46b498965cf2a14acd59aec1e50053622e486855a6",
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.79-canary-20261006T0126Z",
+    "root_cause": {
+      "classification": "FIRST_EXCLUSIVE_SOFTWARE_RESPONSE_EXCEEDED_RETAINED_HLS_CONTINUITY_WINDOW",
+      "confidence": "CAUSALLY_NARROWED_PENDING_LIVE_SUCCESSOR_PROOF",
+      "summary": "CH6 and CH10 had fresh recorder input when VideoToolbox output stalled. The hardware owner was correctly quarantined and released, but the first exclusive software response used the generic probation window before the already-bounded no-advance reopen. The resulting roughly 54-55 second handoff exhausted retained HLS and temporarily left both sources without a media owner. Both then recovered on libx264 without process restart, authentication rejection or stale recorder input."
+    },
+    "excluded_primary_causes": [
+      "GATEWAY_PROCESS_RESTART",
+      "SUPERVISOR_RESTART",
+      "DVR_AUTHENTICATION_REJECTION",
+      "STALE_RECORDER_INPUT",
+      "CPU_OR_MEMORY_SATURATION"
+    ]
+  },
+  "successor_retry_remediation": {
+    "scope": "HARDWARE_OUTPUT_RESCUE_FIRST_SOFTWARE_RESPONSE_NO_ADVANCE_BOUND",
+    "maximum_no_advance_ms": 3000,
+    "promotion_requirement_changed": false,
+    "freshness_threshold_changed": false,
+    "transport_or_session_policy_changed": false,
+    "rollback_contract_changed": false,
+    "focused_relay_tests": "PASS_35_OF_35",
+    "live_successor_proof": "PENDING"
+  },
   "host_interference_after_successor_failure": {
     "classification": "STRONGLY_SUPPORTED_NOT_YET_CONCLUSIVE",
     "summary": "The restored signed 0.2.77 known-good also suffered liveness loss and child restarts while the host was under extreme development/UI/VM pressure. The stale CUA worker consumed roughly 1.5-1.7 GiB RSS and sustained CPU; after resetting it and stopping only the isolated PUSH 38 QA VM/control-plane workload, six consecutive Gateway liveness and health probes returned HTTP 200 while load average fell from approximately 185 to 31.92.",
@@ -172,7 +229,7 @@
     },
     "required_next_evidence": "ONE_EVIDENCE_BOUND_EXACT_RETRY_THEN_NEW_CANARY"
   },
-  "next_gate": "HOST_ISOLATION_MEDIA_PROOF_EVIDENCE_BOUND_EXACT_RETRY_CANARY_PRE_SOAK_NEW_V8",
+  "next_gate": "PROTECTED_CI_NEW_SIGNED_SUCCESSOR_NEW_CANARY_NEW_PRE_SOAK_NEW_V8",
   "main": "UNCHANGED",
   "production": "UNCHANGED"
 }

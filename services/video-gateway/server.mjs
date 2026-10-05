@@ -2343,7 +2343,17 @@ async function warmReplaceRelay(streamId, previous, {
       return false;
     }
     if (!observation) observation = await observeWarmReplacement(replacement, { handoffMode,
-      minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs });
+      minimumConfirmationMs, minimumOutputAdvances, maximumOutputIdleMs,
+      // The failed 0.2.79 canary captured two fresh-input VideoToolbox stalls
+      // whose first exclusive software responses made no HLS progress. Waiting
+      // the full generic probation consumed the retained playlist window before
+      // the already-bounded exclusive reopen could start. Hardware failure is
+      // independently proven and quarantined above, so use the existing
+      // three-second output-rescue no-advance bound for this first software
+      // response as well. Promotion still requires four advances over six
+      // seconds and every transport/session/freshness gate remains unchanged.
+      maximumNoAdvanceMs: forcedHardwareOutputRescue
+        ? PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS : null });
     // The 0.2.67 pre-soak proved that this recorder can keep a replacement
     // request open but withhold all media until the prior response closes.
     // Four serialized warm attempts consumed the one-minute prior-login
