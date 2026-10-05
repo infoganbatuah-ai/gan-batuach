@@ -1,0 +1,86 @@
+{
+  "auth-registration": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: the split image/form composition, brand hierarchy, RTL controls, CTA prominence and purpose-built mobile flow align with the approved Auth reference."
+  },
+  "owner-onboarding": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "The actual onboarding entry is branded, but most Desktop steps become sparse full-width forms with large unused areas; the approved reference keeps a compact guided rail, stronger imagery and a denser premium step composition."
+  },
+  "owner-dashboard": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "Actual Desktop uses an oversized central hero and lower information density; the approved reference uses a compact image banner, six simultaneous metrics, three operational panels and a visible quick-action rail. Mobile hierarchy also differs materially."
+  },
+  "children-classrooms": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "The routes and responsive layouts are present, but the current QA rendering replaces much of the reference avatar and classroom imagery with initials or pale placeholders and uses a substantially airier card/table composition than the approved reference."
+  },
+  "parent-assigned": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "The assigned Parent experience is functional and branded, but the dashboard/profile presentation lacks the reference's visible child portraits, camera imagery and compact multi-panel hierarchy; actual Desktop is materially sparser."
+  },
+  "parent-unassigned": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified in the intentional unassigned state: it explains the missing relationship, exposes safe enrollment/discovery actions, preserves role boundaries and uses purpose-built Desktop and Mobile compositions."
+  },
+  "parent-multi-child": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "The captured multi-child state presents one selected child through a dropdown and does not provide the reference's visible multi-child card selector and simultaneous child context; the role state is therefore not visually proven to the approved composition."
+  },
+  "attendance-pickup": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: the actual attendance and pickup workspaces retain the approved metric, filter, status and action hierarchy with separate, touch-oriented Mobile compositions."
+  },
+  "staff-full-platform": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified across the captured Staff dashboard, profile, shifts, clock actions, documents, tasks, messages and settings; shell, density, imagery and mobile navigation remain reference-aligned."
+  },
+  "candidate-recruitment": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: the candidate hero, progress states, job discovery, documents, applications and manager recruitment surfaces use the approved branded card system on Desktop and Mobile."
+  },
+  "inspector": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: the inspector shell, image-led assignment hero, metrics, findings, corrective actions and mobile flows preserve the approved Inspector hierarchy."
+  },
+  "finance": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: finance keeps clear tuition/subscription separation, strong metrics, status chips, bounded tables and purpose-built Mobile cards in the approved visual language."
+  },
+  "messaging-notifications": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified across thread lists, conversations, broadcasts, readiness states and notification preferences; the captured empty selection is an intentional state rather than a broken surface."
+  },
+  "documents": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: the document center, detail, preview, upload and lifecycle states preserve the reference's hierarchy, status language, privacy treatment and Mobile cards."
+  },
+  "tasks-complaints-corrective-actions": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: the three domains remain distinct while sharing the approved list/detail, status, deadline and action patterns across Desktop and Mobile."
+  },
+  "inspections": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified across dashboard, checklist, evidence, findings, report and remediation captures; the implementation extends the approved Inspector design system consistently."
+  },
+  "reports-analytics": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified: report selection, configuration, chart/table results, bounded export and Mobile views use the approved hierarchy and truthful data states."
+  },
+  "safety-cameras": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "The actual product correctly shows unavailable, denied and provider-readiness truth, but it cannot visually reproduce the reference's imagery-rich live camera grid/detail composition without verified Live capability. This is a material visual deviation required by capability truth."
+  },
+  "platform-admin": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "The canonical Admin areas and metrics are present, but the actual dashboard is materially airier than the reference and its Desktop navigation has a pale gradient region with weak contrast; the approved dense charts, activity column and consistently dark navy shell are not faithfully matched."
+  },
+  "settings-account-permissions": {
+    "status": "VISUAL_MISMATCH",
+    "materialDeviations": "Actual Settings uses a large hero, single side category rail and vertically stacked sections; the approved reference uses a compact four-column Desktop composition with profile, security, preferences, Garden and billing visible together. The hierarchy and density differ materially."
+  },
+  "global-states-rtl-accessibility": {
+    "status": "OWNER_APPROVED_CANDIDATE",
+    "materialDeviations": "No material deviation identified in the captured global treatments: status meaning is textual, focus is visible, state colors are consistent, touch layouts are purpose-built and mixed-direction values remain readable."
+  }
+}

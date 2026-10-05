@@ -1,0 +1,750 @@
+{
+  "sourceIntegrationSha": "eae08df1600ab7f2fb3049c765fa566edc66e8a0",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "requiredConcepts": 92,
+  "requiredScreenshots": 184,
+  "classifications": {
+    "OWNER_REVIEW_READY": 92,
+    "NEEDS_POLISH": 0,
+    "VISUAL_DRIFT": 0,
+    "BROKEN": 0
+  },
+  "inventory": [
+    {
+      "domain": "auth",
+      "screen": "Welcome / Splash",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/welcome-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/welcome-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Login",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/login-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/login-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Role selection",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/role-selection-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/role-selection-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Owner registration",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/owner-registration-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/owner-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Parent registration",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/parent-registration-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/parent-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Staff registration",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/staff-registration-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/staff-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Inspector registration",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/inspector-registration-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/inspector-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Email verification",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/email-verification-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/email-verification-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Registration success",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/registration-success-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/registration-success-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Forgot password",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/forgot-password-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/forgot-password-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Reset password",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/reset-password-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/reset-password-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Invitation entry / valid",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/invitation-valid-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/auth/screenshots/invitation-valid-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Onboarding entry",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/entry-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/entry-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Owner role mode",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/role-mode-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/role-mode-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Garden details",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/garden-details-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/garden-details-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Documents",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/documents-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Classrooms",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/classrooms-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/classrooms-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Staff setup",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/staff-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/staff-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Children setup",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/children-setup-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/children-setup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Parent invitation",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/parent-invitation-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/parent-invitation-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Safety / Cameras readiness",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/safety-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/safety-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Subscription readiness",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/subscription-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/subscription-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Review",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/review-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/review-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Activation success",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/success-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-onboarding/screenshots/success-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Owner dashboard",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-dashboard-standard-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-dashboard-standard-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Navigation",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-navigation-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-navigation-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Multi-Garden state",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-multi-garden-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/multi-garden-state-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Attendance summary",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/attendance-summary-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/attendance-summary-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Staff summary",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/staff-summary-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/staff-summary-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Finance summary",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/finance-summary-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/finance-summary-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Communication",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/communication-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/communication-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Tasks / action center",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-action-center-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-action-center-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Documents",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/documents-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Inspection / corrective action",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/inspection-corrective-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/inspection-corrective-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Safety / Cameras summary",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-safety-state-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/owner-dashboard/screenshots/owner-safety-state-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Children workspace",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/children-list-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/children-list-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Filtered Children",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/children-filtered-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/children-filtered-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Child profile",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-overview-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-overview-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Parents / Guardians tab",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-guardians-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-guardians-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Attendance tab",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-attendance-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Pickup tab",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-pickup-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Documents",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-documents-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Tuition",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-tuition-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-tuition-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "History",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-history-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/child-profile-history-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Classroom list",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/classrooms-list-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/classrooms-list-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Classroom detail",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/classroom-detail-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/classroom-detail-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Capacity state",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/capacity-state-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/capacity-state-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Enrollment requests",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/enrollment-requests-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/enrollment-requests-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Enrollment request detail",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/enrollment-detail-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/children-classrooms/screenshots/enrollment-detail-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Assigned Parent dashboard",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/parent-dashboard-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/parent-dashboard-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Unassigned Parent dashboard",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/parent-unassigned-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/parent-unassigned-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Multi-Child Parent",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/multi-child-parent-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/multi-child-parent-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Child switcher",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/child-switcher-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/child-switcher-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Garden discovery",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/garden-discovery-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/garden-discovery-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Garden detail",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/garden-detail-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/garden-detail-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Enrollment request",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/enrollment-request-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/enrollment-request-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Child profile",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/child-profile-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/child-profile-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Attendance",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/attendance-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Pickup",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/pickup-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Tuition",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/payments-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/payments-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Documents",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/documents-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Messages",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/messages-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/messages-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Notifications",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/notifications-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/notifications-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Safety / Cameras",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/cameras-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/cameras-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Settings",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/settings-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/parent/screenshots/settings-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Garden attendance",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/garden-attendance-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/garden-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Classroom attendance",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/classroom-attendance-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/staff-classroom-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Arrival",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/arrival-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/arrival-flow-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Departure",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/departure-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/release-workspace-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Child attendance history",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/child-attendance-history-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/child-attendance-history-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Authorized pickup",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/authorized-pickup-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/authorized-pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Release confirmation",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/release-workspace-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/staff-pickup-confirmation-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Revoked / unauthorized pickup",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/revoked-unauthorized-pickup-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/revoked-unauthorized-pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Release history",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/release-history-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/release-history-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Parent attendance view",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/parent-attendance-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/attendance-pickup/screenshots/parent-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff dashboard",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-dashboard-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-dashboard-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff list",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-list-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-list-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff profile",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-profile-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-profile-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Multi-Garden Staff",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/multi-garden-staff-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/multi-garden-staff-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Classroom assignment",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/classroom-assignment-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/classroom-assignment-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Shifts",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/schedule-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/schedule-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Current shift",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/current-shift-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/current-shift-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Clock in / out",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/clock-in-out-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/clock-in-out-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Time records",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-time-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-time-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff hours",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-hours-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-hours-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Missing clock-out",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/missing-clock-out-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/missing-clock-out-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Documents",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/documents-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Tasks",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/tasks-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-tasks-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Messaging",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/messaging-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-messages-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Notifications",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/notifications-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/notifications-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Safety / Cameras permission",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/safety-cameras-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/staff-camera-policy-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff settings",
+      "desktop": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/settings-desktop.webp",
+      "mobile": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/final-owner-visual-verification/qa-evidence/final-owner-visual-verification/ux01-07-fresh/staff/screenshots/settings-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    }
+  ]
+}

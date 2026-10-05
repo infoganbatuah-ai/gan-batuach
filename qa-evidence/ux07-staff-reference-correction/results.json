@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
   "base": "http://127.0.0.1:3000",
-  "capturedAt": "2026-09-28T01:18:12.514Z",
+  "capturedAt": "2026-10-05T13:44:09.715Z",
   "sourceIntegrationHead": "a9eda0abd371364feb147c558c326ff99b1ce26c",
   "reference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_STAFF_FULL_PLATFORM.png",
   "referenceSha256": "4026a8eb545dc27cb95dacb8a7375a539ba82e6aaa74b2fdb57266114bf9662b",
