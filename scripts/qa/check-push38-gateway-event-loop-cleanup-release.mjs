@@ -67,7 +67,7 @@ for (const [path, required] of [
   ]],
   ["scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", [
     "--gateway-event-loop-cleanup", "gateway_remediation_event_loop_cleanup.json",
-    "eventLoopCleanup \\? connectorAiModelPathItem"
+    "eventLoopCleanup \\? connectorDeviceIdentityContinuityItem"
   ]]
 ]) {
   const source = readFileSync(path, "utf8");

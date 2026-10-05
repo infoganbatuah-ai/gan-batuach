@@ -97,6 +97,8 @@ import { PUSH38_CONNECTOR_RTSP_CADENCE as connectorRtspCadenceItem
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
 import { PUSH38_CONNECTOR_AI_MODEL_PATH as connectorAiModelPathItem
 } from "../../services/video-gateway/push38-home-qa-connector-ai-model-path.mjs";
+import { PUSH38_CONNECTOR_DEVICE_IDENTITY_CONTINUITY as connectorDeviceIdentityContinuityItem
+} from "../../services/video-gateway/push38-home-qa-connector-device-identity-continuity.mjs";
 import { PUSH38_CONNECTOR_FINAL_STABILITY as connectorFinalStabilityItem
 } from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
 import { PUSH38_CONNECTOR_OUTPUT_RESCUE as connectorOutputRescueItem
@@ -205,7 +207,7 @@ const item = eventLoopCleanup ? PUSH38_GATEWAY_EVENT_LOOP_CLEANUP :
 // installed rollback state instead of requiring a quarantined release.
 const proactiveSuccessor = playbackSweep || proactiveExclusive || deviceIdentityContinuity ||
   ownerTransportRelease || eventLoopCleanup;
-const connectorItem = eventLoopCleanup ? connectorAiModelPathItem :
+const connectorItem = eventLoopCleanup ? connectorDeviceIdentityContinuityItem :
   ownerTransportRelease ? connectorAiModelPathItem :
   (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
   (sweepDeadline || handoffOwnerContinuity) ? connectorHandoffContinuityItem :
