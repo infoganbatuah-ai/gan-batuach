@@ -86,6 +86,8 @@
     { "name": "high-availability", "args": ["scripts/qa/check-digital-observer-high-availability.mjs"] },
     { "name": "reliability-qualification", "args": ["scripts/qa/check-digital-observer-reliability-qualification.mjs"] },
     { "name": "push38-gateway-event-loop-retry", "args": ["scripts/qa/check-push38-gateway-event-loop-retry.mjs"] },
+    { "name": "push38-gateway-hardware-rescue-deadline-release", "args": ["scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs"] },
+    { "name": "push38-gateway-failed-canary-rollback", "args": ["scripts/qa/check-push38-gateway-failed-canary-rollback.mjs"] },
     { "name": "north-star-ledger", "args": ["scripts/qa/check-north-star-completion-ledger.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }

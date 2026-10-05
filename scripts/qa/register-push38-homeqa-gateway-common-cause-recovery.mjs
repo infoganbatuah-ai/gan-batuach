@@ -79,6 +79,8 @@ import { PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE
 } from "../../services/video-gateway/push38-home-qa-gateway-owner-transport-release.mjs";
 import { PUSH38_GATEWAY_EVENT_LOOP_CLEANUP
 } from "../../services/video-gateway/push38-home-qa-gateway-event-loop-cleanup.mjs";
+import { PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE
+} from "../../services/video-gateway/push38-home-qa-gateway-hardware-rescue-deadline.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -115,16 +117,18 @@ const finiteResponseContinuity = process.argv.includes("--gateway-finite-respons
 const deviceIdentityContinuity = process.argv.includes("--gateway-device-identity-continuity");
 const ownerTransportRelease = process.argv.includes("--gateway-owner-transport-release");
 const eventLoopCleanup = process.argv.includes("--gateway-event-loop-cleanup");
+const hardwareRescueDeadline = process.argv.includes("--gateway-hardware-rescue-deadline");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity,
-  deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup]
+  deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = eventLoopCleanup ? PUSH38_GATEWAY_EVENT_LOOP_CLEANUP :
+const item = hardwareRescueDeadline ? PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE :
+  eventLoopCleanup ? PUSH38_GATEWAY_EVENT_LOOP_CLEANUP :
   ownerTransportRelease ? PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE :
   deviceIdentityContinuity ? PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUITY :
   finiteResponseContinuity ? PUSH38_GATEWAY_FINITE_RESPONSE_CONTINUITY :
@@ -162,7 +166,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = eventLoopCleanup
+const artifact = hardwareRescueDeadline
+  ? `${restrictedRoot}/push38-gateway-0.2.80-hardware-rescue-deadline-package/gateway-runtime.tar.gz`
+  : eventLoopCleanup
   ? `${restrictedRoot}/push38-gateway-0.2.79-event-loop-cleanup-package/gateway-runtime.tar.gz`
   : ownerTransportRelease
   ? `${restrictedRoot}/push38-gateway-0.2.78-build-20261005T0230IDT/gateway-runtime.tar.gz`
@@ -231,7 +237,9 @@ const artifact = eventLoopCleanup
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = eventLoopCleanup
+const publication = hardwareRescueDeadline
+  ? `${restrictedRoot}/push38-gateway-0.2.80-hardware-rescue-deadline-package/r2-publication.json`
+  : eventLoopCleanup
   ? `${restrictedRoot}/push38-gateway-0.2.79-event-loop-cleanup-package/r2-publication-rb77.json`
   : ownerTransportRelease
   ? `${restrictedRoot}/push38-gateway-0.2.78-build-20261005T0230IDT/r2-publication.json`
@@ -300,7 +308,8 @@ const publication = eventLoopCleanup
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = eventLoopCleanup ? "gateway_remediation_event_loop_cleanup.json"
+const bundleName = hardwareRescueDeadline ? "gateway_remediation_hardware_rescue_deadline.json"
+  : eventLoopCleanup ? "gateway_remediation_event_loop_cleanup.json"
   : ownerTransportRelease ? "gateway_remediation_owner_transport_release.json"
   : deviceIdentityContinuity ? "gateway_remediation_device_identity_continuity.json"
   : finiteResponseContinuity ? "gateway_remediation_finite_response_continuity.json"
@@ -335,7 +344,8 @@ const bundleName = eventLoopCleanup ? "gateway_remediation_event_loop_cleanup.js
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (eventLoopCleanup || ownerTransportRelease) ? item.supersedesReleaseId :
+const predecessorReleaseId = (hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
+  ? item.supersedesReleaseId :
   deviceIdentityContinuity ? item.rollbackReleaseId :
   (finiteResponseContinuity || playbackSweep || proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
   handoffContinuity ? item.rolloutPredecessorReleaseId :
@@ -345,7 +355,9 @@ const predecessorReleaseId = (eventLoopCleanup || ownerTransportRelease) ? item.
 // still have a one-shot diagnostic rollout. Pause both sources of eligibility so
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
-const rolloutReleaseIdsToPause = eventLoopCleanup
+const rolloutReleaseIdsToPause = hardwareRescueDeadline
+  ? [predecessorReleaseId, item.rollbackReleaseId]
+  : eventLoopCleanup
   ? [predecessorReleaseId, item.supersededDraftReleaseId]
   : ownerTransportRelease
   ? [predecessorReleaseId]
@@ -467,7 +479,9 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: eventLoopCleanup ? "GATEWAY_EVENT_LOOP_CLEANUP_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: hardwareRescueDeadline
+  ? "GATEWAY_HARDWARE_RESCUE_DEADLINE_REGISTERED_DRAFT" :
+  eventLoopCleanup ? "GATEWAY_EVENT_LOOP_CLEANUP_REGISTERED_DRAFT" :
   ownerTransportRelease ? "GATEWAY_OWNER_TRANSPORT_RELEASE_REGISTERED_DRAFT" :
   deviceIdentityContinuity ? "GATEWAY_DEVICE_IDENTITY_CONTINUITY_REGISTERED_DRAFT" :
   finiteResponseContinuity ? "GATEWAY_FINITE_RESPONSE_CONTINUITY_REGISTERED_DRAFT" :
