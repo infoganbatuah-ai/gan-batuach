@@ -64,6 +64,7 @@
     "qa:push38-gateway-recovery-continuity-release": "node scripts/qa/check-push38-gateway-recovery-continuity-release.mjs",
     "qa:push38-gateway-routine-confirmation-release": "node scripts/qa/check-push38-gateway-routine-confirmation-release.mjs",
     "qa:push38-gateway-owner-transport-release": "node scripts/qa/check-push38-gateway-owner-transport-release.mjs",
+    "qa:push38-gateway-event-loop-cleanup-release": "node scripts/qa/check-push38-gateway-event-loop-cleanup-release.mjs",
     "qa:push38-connector-handoff-continuity-release": "node scripts/qa/check-push38-connector-handoff-continuity-release.mjs",
     "qa:push38-connector-device-identity-continuity-release": "node scripts/qa/check-push38-connector-device-identity-continuity-release.mjs",
     "qa:digital-observer-real-home-soak": "node scripts/qa/run-real-home-soak.mjs --duration-ms=86400000 --interval-ms=60000 --deep-probe-ms=3600000",

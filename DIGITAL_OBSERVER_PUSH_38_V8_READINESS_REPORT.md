@@ -19,9 +19,13 @@ contains removal failures, and leaves startup crash scavenging unchanged.
 
 Focused relay QA passes 35/35, liveness/common-cause/OTA health tests pass, and
 all six local Digital Observer CI gates pass. This is not live success yet. The
-fix still requires exact-commit protected CI, immutable Gateway packaging,
-AWS signing, private-R2 round-trip verification, exact-device OTA, a fresh
-canary, a fresh pre-soak, and a completely new V8 from zero. Machine-readable
+fix commit `cf279d83d3ebc1f685da8bf7d82c0fb13fb89d13` passed all six protected
+GitHub CI gates in run `37334623617`. Immutable Gateway `0.2.79-p38-health`
+was built at 135,873,321 bytes with SHA-256
+`83aaf23ce84efa3c66c9d306592cd010839a7c0d8e3c5d9bc9642d68d72908cd`.
+It still requires AWS signing, private-R2 round-trip verification,
+exact-device OTA, a fresh canary, a fresh pre-soak, and a completely new V8
+from zero. Machine-readable
 evidence is in `DIGITAL_OBSERVER_PUSH_38_V8_LIVENESS_FAILURE_EVIDENCE.json`;
 restricted raw evidence remains outside Git under run ID
 `push38-v8-0.2.78-20261005T0953Z`.

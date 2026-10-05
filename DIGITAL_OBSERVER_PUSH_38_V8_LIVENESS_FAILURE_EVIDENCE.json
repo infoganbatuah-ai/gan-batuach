@@ -82,6 +82,19 @@
     "dependency_high_critical": 0,
     "dependency_moderate": 2
   },
+  "successor_candidate": {
+    "version": "0.2.79-p38-health",
+    "build_sha": "cf279d83d3ebc1f685da8bf7d82c0fb13fb89d13",
+    "artifact_sha256": "83aaf23ce84efa3c66c9d306592cd010839a7c0d8e3c5d9bc9642d68d72908cd",
+    "artifact_bytes": 135873321,
+    "rollback_release_id": "qa-p38-health-gateway-owner-transport-release-41af624dacc7",
+    "protected_ci_run": 37334623617,
+    "protected_ci": "PASS_6_OF_6",
+    "live_runtime_unchanged": true,
+    "release_signing": "PENDING",
+    "private_r2_round_trip": "PENDING",
+    "exact_device_ota": "PENDING"
+  },
   "github_artifact_11318981203": {
     "downloaded_to_restricted_evidence": true,
     "artifact_name": "push38-homeqa-gateway-owner-transport-release-37244678939",
@@ -90,7 +103,7 @@
     "live_installed_trust_acceptance": true,
     "filesystem_mode": "0600"
   },
-  "next_gate": "COMMIT_PUSH_EXACT_COMMIT_CI_BUILD_SIGN_PRIVATE_R2_ROUND_TRIP_EXACT_DEVICE_OTA_CANARY_PRE_SOAK_NEW_V8",
+  "next_gate": "SIGN_PRIVATE_R2_ROUND_TRIP_EXACT_DEVICE_OTA_CANARY_PRE_SOAK_NEW_V8",
   "main": "UNCHANGED",
   "production": "UNCHANGED"
 }
