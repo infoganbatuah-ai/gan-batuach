@@ -12,7 +12,7 @@ const chrome = process.env.GB_M35_CHROME ?? '/Applications/Google Chrome.app/Con
 const base = process.env.GB_M35_BASE_URL ?? 'http://127.0.0.1:3000';
 const target = new URL(base);
 assert.equal(target.hostname, '127.0.0.1');
-assert.ok(['3000', '3001'].includes(target.port));
+assert.ok(['3000', '3001', '3002'].includes(target.port));
 assert.equal(config.environment, 'DEVELOPMENT / INTEGRATION');
 assert.equal(config.productionAllowed, false);
 assert.equal(localCredentials().url, 'http://127.0.0.1:55421');

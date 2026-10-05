@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-05T12:30:00Z",
+  "updatedAt": "2026-10-05T21:41:51Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10436,6 +10436,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-20 is complete in Development. Stop before RELEASE-GAP-01. Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-visual-remediation-final",
+      "project": "Gan Batuach Management",
+      "title": "UX-VISUAL-REMEDIATION-FINAL Owner-Driven Visual Correction",
+      "owner": "UX-VISUAL-REMEDIATION-FINAL owner",
+      "sourceBranch": "codex/ux-visual-remediation-final",
+      "sourceCommits": [
+        "211851ac092eefb857511781736c83d164af65b4"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-visual-remediation-final@211851ac092eefb857511781736c83d164af65b4"
+        ],
+        "validatedSourceCommit": "211851ac092eefb857511781736c83d164af65b4",
+        "qualificationCommit": "211851ac092eefb857511781736c83d164af65b4",
+        "mergedHeadEvidenceCommit": null
+      },
+      "validation": {
+        "status": "PASS_BRANCH_OWNER_VISUAL_REMEDIATION_FUNCTIONAL_SECURITY_RTL_ACCESSIBILITY_RESPONSIVE_BUILD_DOMAIN_MIGRATION_AND_RELEASE_CONTRACT",
+        "evidence": [
+          "GAN_BATUACH_UX_VISUAL_REMEDIATION_FINAL.md",
+          "qa-evidence/ux-visual-remediation-final/owner-review-package/index.html",
+          "qa-evidence/ux-visual-remediation-final/owner-review-package/manifest.json",
+          "qa-evidence/ux-visual-remediation-final/owner-review-package/contact-sheets/desktop-master-contact-sheet.webp",
+          "qa-evidence/ux-visual-remediation-final/owner-review-package/contact-sheets/mobile-master-contact-sheet.webp"
+        ],
+        "limits": "Eight owner-identified mismatch domains were corrected and captured at 1440x1024 Desktop and 390x844 Mobile in eight side-by-side reference/actual boards. All eight are OWNER_APPROVED_CANDIDATE with zero VISUAL_MISMATCH or BROKEN results. Branch qualification passed focused UX-02 through UX-20 suites, authenticated Settings and onboarding checks, Manager/Parent 23/23, typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migration health 244/244 and release-contract validation. The 13 previously approved domains remain regression-qualified. No migration, paid provider, Production, main, customer data or Digital Observer core change is included."
+      },
+      "integration": {
+        "status": "READY_TO_INTEGRATE",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_EXACT_HEAD_CI"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_20_INTEGRATED",
+        "units": [
+          "codex/ux-implement-20-visual-regression"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_BRANCH_HEAD_211851AC_EIGHT_REMEDIATION_BOARDS_OWNER_APPROVED_CANDIDATE_8_VISUAL_MISMATCH_0_BROKEN_0_TYPECHECK_LINT_BUILD_541_PAGES_DOMAIN_30_OF_30_SECURITY_11_OF_11_MIGRATIONS_244_RELEASE_CONTRACT",
+      "releaseEligibility": "DEVELOPMENT_INTEGRATION_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Open and qualify the PR to integration/development, merge only after exact-head required checks pass, then regenerate and review the full 21-domain owner package from the merged Development head. Production and main remain untouched; do not begin RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

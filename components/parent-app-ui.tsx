@@ -66,7 +66,7 @@ export function ParentChildCard({
   const content = (
     <>
       <div className="parent-child-photo">
-        {image ? <img src={image} alt="" /> : <span>{name.slice(0, 1)}</span>}
+        {image ? <img src={image} alt="" /> : <Image className="parent-child-illustration" src="/assets/gan-batuach-child-avatar.webp" alt="" width={240} height={240} />}
       </div>
       <div>
         <h2>{name}</h2>
@@ -80,6 +80,35 @@ export function ParentChildCard({
   );
   if (href) return <Link className="parent-child-card parent-child-card-link" href={href}>{content}</Link>;
   return <section className="parent-child-card">{content}</section>;
+}
+
+export function ParentChildContextCard({
+  name,
+  garden,
+  status,
+  image,
+  href,
+  active
+}: {
+  name: string;
+  garden: string;
+  status: string;
+  image?: string | null;
+  href: string;
+  active?: boolean;
+}) {
+  return <Link className={`parent-child-context-card${active ? " is-active" : ""}`} href={href} aria-current={active ? "page" : undefined}>
+    <span className="parent-child-context-avatar">
+      {image ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="" />
+        </>
+      ) : <Image src="/assets/gan-batuach-child-avatar.webp" alt="" width={96} height={96} />}
+    </span>
+    <span className="parent-child-context-copy"><b>{name}</b><small>{garden}</small></span>
+    <span className="parent-child-context-state"><i aria-hidden="true" />{status}</span>
+  </Link>;
 }
 
 export function ParentMetricCard({ title, value, hint, icon: Icon, tone = "purple", href }: { title: string; value: ReactNode; hint?: string; icon: IconType; tone?: Tone; href?: string }) {

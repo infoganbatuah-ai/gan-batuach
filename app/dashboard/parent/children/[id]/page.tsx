@@ -72,7 +72,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
         <ParentHero title={childName} subtitle="כרטיס הילד, בריאות, מסמכים ועדכונים מהגן" />
       <div className="parent-experience-shell">
         <section className="parent-child-hero compact">
-          <div className="parent-child-photo"><Avatar name={childName} src={child.photo_url ?? child.face_image_url} size="lg" /></div>
+          <div className="parent-child-photo"><Avatar name={childName} src={child.photo_url ?? child.face_image_url} fallbackSrc="/assets/gan-batuach-child-avatar.webp" size="lg" /></div>
           <div>
             <p className="eyebrow">כרטיס ילד</p>
             <h1>{childName}</h1>

@@ -1,0 +1,259 @@
+/* Owner-driven visual remediation: reference-faithful composition without changing domain truth. */
+
+/* Shared management density and navigation */
+@media (min-width: 1025px) {
+  .role-app-shell.role-app-owner.gb-app-shell,
+  .role-app-shell.role-app-manager.gb-app-shell { grid-template-columns: 176px minmax(0, 1fr); }
+  .role-app-shell.role-app-owner .gb-app-shell-sidebar,
+  .role-app-shell.role-app-manager .gb-app-shell-sidebar { padding: 12px 10px 16px; }
+  .role-app-shell.role-app-owner .gb-sidebar-nav,
+  .role-app-shell.role-app-manager .gb-sidebar-nav { gap: 2px; min-height: calc(100dvh - 24px); padding: 9px; }
+  .role-app-shell.role-app-owner .gb-sidebar-nav-item,
+  .role-app-shell.role-app-manager .gb-sidebar-nav-item { min-height: 45px; padding: 7px 9px; }
+  .role-app-shell.role-app-owner .gb-sidebar-nav-item small,
+  .role-app-shell.role-app-manager .gb-sidebar-nav-item small { font-size: .58rem; }
+  .role-app-shell.role-app-owner .role-app-header,
+  .role-app-shell.role-app-manager .role-app-header { align-items: center; padding: 9px 18px !important; }
+  .role-app-shell.role-app-owner .role-app-title,
+  .role-app-shell.role-app-manager .role-app-title { display: none; }
+  .role-app-shell.role-app-owner .role-app-logo img:first-child,
+  .role-app-shell.role-app-manager .role-app-logo img:first-child { width: 45px; }
+  .role-app-shell.role-app-owner .role-app-logo img:nth-child(2),
+  .role-app-shell.role-app-manager .role-app-logo img:nth-child(2) { width: 146px; }
+  .role-app-shell.role-app-owner .role-app-icon-button,
+  .role-app-shell.role-app-owner .role-app-avatar,
+  .role-app-shell.role-app-manager .role-app-icon-button,
+  .role-app-shell.role-app-manager .role-app-avatar { width: 44px; height: 44px; flex-basis: 44px; }
+  .role-app-shell.role-app-owner .role-app-live-date,
+  .role-app-shell.role-app-manager .role-app-live-date { min-height: 46px; padding: 6px 11px; border-radius: 15px; }
+  .role-app-shell.role-app-owner .role-app-page,
+  .role-app-shell.role-app-manager .role-app-page { padding: 12px 16px 20px !important; }
+}
+
+/* 1. Owner onboarding: guided rail, compact progress and richer step identity */
+@media (min-width: 901px) {
+  .manager-live-onboarding { position: relative; min-height: 720px; padding-inline-end: 210px; }
+  .manager-live-onboarding::before { content: "גן בטוח\Aהקמת הגן שלך"; white-space: pre-line; position: absolute; inset-block: 0; inset-inline-end: 0; width: 190px; box-sizing: border-box; padding: 34px 22px; border-radius: 26px; color: #fff; background: radial-gradient(circle at 30% 12%, rgb(69 142 255 / 35%), transparent 28%), linear-gradient(180deg,#0a3b89,#061f55); box-shadow: 0 22px 54px rgb(6 39 91 / 22%); font-size: 1.02rem; font-weight: 950; line-height: 1.7; }
+  .manager-live-onboarding .manager-onboarding-steps { position: absolute; inset-block-start: 128px; inset-inline-end: 13px; width: 164px; grid-template-columns: 1fr; gap: 2px; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+  .manager-live-onboarding .manager-onboarding-steps button { grid-template-columns: 34px minmax(0,1fr); justify-items: start; align-items: center; min-height: 62px; padding: 7px; color: rgb(226 238 255 / 72%); text-align: start; }
+  .manager-live-onboarding .manager-onboarding-steps button > span { width: 30px; height: 30px; color: #dcecff; border-color: rgb(255 255 255 / 30%); background: rgb(255 255 255 / 10%); }
+  .manager-live-onboarding .manager-onboarding-steps button::after { inset-inline-start: 22px; inset-block-start: 45px; width: 2px; height: 31px; background: rgb(255 255 255 / 20%); }
+  .manager-live-onboarding .manager-onboarding-steps b { color: inherit; font-size: .78rem; }
+  .manager-live-onboarding .manager-onboarding-steps small { grid-column: 2; color: rgb(223 237 255 / 58%); font-size: .6rem; }
+  .manager-live-onboarding .manager-onboarding-steps .active,
+  .manager-live-onboarding .manager-onboarding-steps .done { color: #fff; }
+  .manager-live-onboarding .manager-onboarding-overview { min-height: 104px; padding: 16px 20px; }
+  .manager-live-onboarding .manager-stage-heading { padding: 2px 4px; }
+  .manager-live-onboarding .manager-stage-heading h2 { font-size: 1.38rem; }
+  .manager-live-onboarding .manager-stage-grid { grid-template-columns: minmax(0,1.2fr) minmax(280px,.8fr); gap: 14px; }
+  .manager-live-onboarding .card,
+  .manager-live-onboarding .manager-parent-invitation-panel,
+  .manager-live-onboarding .manager-optional-setup { padding: 18px; }
+  .manager-live-onboarding .manager-wizard-stage { gap: 12px; }
+  .manager-live-onboarding .manager-wizard-actions { padding: 10px 12px; }
+}
+
+/* 2. Owner dashboard: compact hero, six-metric row and first-viewport operations */
+@media (min-width: 901px) {
+  .manager-reference-dashboard { gap: 11px; }
+  .manager-command-hero { grid-template-columns: minmax(0,1.32fr) minmax(330px,.68fr); min-height: 156px; padding: 0 !important; border-radius: 18px; }
+  .manager-command-hero-copy { gap: 6px; padding: 17px 22px; }
+  .manager-command-hero h2 { font-size: clamp(1.75rem,2.4vw,2.45rem); }
+  .manager-command-hero p { font-size: .76rem; }
+  .manager-command-hero-actions a { min-height: 38px; padding: 7px 12px; }
+  .manager-command-hero-art { min-height: 156px; }
+  .manager-today-strip { gap: 8px; }
+  .manager-today-metric { min-height: 78px; gap: 8px; padding: 10px; border-radius: 14px; }
+  .manager-today-metric > span { width: 36px; height: 36px; }
+  .manager-today-metric strong { font-size: 1.28rem; }
+  .manager-operational-card { min-height: 226px; padding: 14px; }
+  .manager-reference-card,
+  .manager-reference-panel { border-radius: 16px; }
+  .manager-reference-quick { padding: 12px 14px; }
+  .manager-reference-quick > div > a { min-height: 70px; }
+}
+
+/* 3. Children and classrooms: stronger identities, image-led room cards and denser profiles */
+.avatar .avatar-illustration { object-position: center; transform: none; }
+.ux04-child-row .avatar,
+.ux04-mobile-child-card .avatar,
+.ux04-class-child .avatar { border: 2px solid #fff; box-shadow: 0 5px 13px rgb(20 74 142 / 18%); }
+.ux04-classroom-art { position: relative; isolation: isolate; overflow: hidden; place-content: end start; justify-items: start; padding: 12px; color: #fff !important; background-image: linear-gradient(180deg,transparent 28%,rgb(4 38 91 / 76%)), url('/assets/hero-control-center.png') !important; background-position: center, 100% 58% !important; background-size: cover, 215% auto !important; background-repeat: no-repeat !important; text-shadow: 0 1px 5px rgb(0 0 0 / 35%); }
+.ux04-classroom-card:nth-child(2) .ux04-classroom-art { background-position: center, 82% 58% !important; }
+.ux04-classroom-card:nth-child(3) .ux04-classroom-art { background-position: center, 68% 58% !important; }
+.ux04-classroom-card:nth-child(4) .ux04-classroom-art { background-position: center, 92% 72% !important; }
+.ux04-classroom-art::after { content: "מרחב הכיתה"; position: absolute; inset: auto; inset-block-start: 9px; inset-inline-end: 9px; z-index: 2; padding: 4px 7px; border-radius: 999px; color: #0e4b93; background: rgb(255 255 255 / 90%); font-size: .56rem; font-weight: 900; text-shadow: none; }
+.ux04-classroom-art > * { position: relative; z-index: 1; }
+@media (min-width: 901px) {
+  .ux04-domain-workspace { gap: 11px; }
+  .ux04-workspace-header { min-height: 86px; padding: 16px 20px; }
+  .ux04-summary-strip > span { min-height: 72px; }
+  .ux04-child-row { min-height: 61px; }
+  .ux04-classroom-card { gap: 8px; padding: 10px; }
+  .ux04-classroom-art { min-height: 130px; }
+  .ux04-profile-hero { padding: 15px 20px; }
+  .ux04-profile-grid { gap: 11px; }
+}
+
+/* 4–5. Parent assigned and multi-child: visual child context, dense overview and truthful imagery */
+.parent-child-photo { position: relative; overflow: hidden; }
+.parent-child-photo .parent-child-illustration { width: 100%; height: 100%; object-fit: cover; object-position: center; transform: none; }
+.parent-child-card-selector { display: grid; align-items: stretch; gap: 10px; padding: 12px; }
+.parent-child-selector-heading { display: flex; align-items: center; gap: 9px; color: #0d3b7b; }
+.parent-child-selector-heading > svg { padding: 8px; box-sizing: content-box; border-radius: 12px; color: #0874e9; background: #eaf4ff; }
+.parent-child-selector-heading span,
+.parent-child-context-copy { display: grid; gap: 2px; }
+.parent-child-selector-heading small,
+.parent-child-context-copy small { color: #7185a3; font-size: .7rem; }
+.parent-child-selector-track { display: flex; gap: 9px; overflow-x: auto; padding: 2px; scrollbar-width: thin; }
+.parent-child-context-card { display: grid; flex: 0 0 220px; grid-template-columns: 48px minmax(0,1fr); align-items: center; gap: 9px; min-height: 70px; padding: 9px; border: 1px solid #dbe7f5; border-radius: 16px; color: #153c74; background: #f9fcff; text-decoration: none; }
+.parent-child-context-card.is-active { border-color: #2784ec; background: linear-gradient(145deg,#eaf4ff,#fff); box-shadow: 0 0 0 3px rgb(22 115 229 / 9%); }
+.parent-child-context-avatar { grid-row: 1 / span 2; width: 48px; height: 48px; overflow: hidden; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 6px 14px rgb(16 72 141 / 16%); }
+.parent-child-context-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center; transform: none; }
+.parent-child-context-state { grid-column: 2; display: inline-flex; align-items: center; gap: 5px; width: fit-content; color: #09835e; font-size: .64rem; font-weight: 900; }
+.parent-child-context-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.parent-camera-preview { position: relative; isolation: isolate; overflow: hidden; color: #fff !important; background: linear-gradient(180deg,rgb(4 31 73 / 26%),rgb(4 31 73 / 78%)), url('/assets/hero-control-center.png') 72% 55% / cover !important; }
+.parent-camera-preview::after { content: "תמונת אזור להמחשה · ללא שידור חי"; position: absolute; inset-inline-start: 10px; inset-block-end: 9px; padding: 5px 8px; border-radius: 999px; color: #fff; background: rgb(3 29 70 / 74%); font-size: .58rem; font-weight: 850; }
+.parent-camera-preview > * { position: relative; z-index: 1; }
+@media (min-width: 901px) {
+  .parent-runtime-shell .parent-app-main { gap: 12px; }
+  .parent-runtime-shell .parent-hero { min-height: 112px; padding: 19px 24px; border-radius: 19px; }
+  .parent-runtime-shell .parent-hero h1 { font-size: 2rem; }
+  .parent-child-card { min-height: 156px; padding: 18px; }
+  .parent-child-photo { width: 118px; height: 118px; }
+  .parent-metrics-grid { gap: 9px; grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .parent-metric-card { min-height: 126px; padding: 13px 10px; }
+  .parent-section-card { padding: 15px; }
+  .parent-camera-card { min-height: 206px; }
+  .parent-action-grid { gap: 9px; }
+  .parent-action-tile { min-height: 78px; }
+}
+
+/* 6. Safety and cameras: image-rich area cards with explicit capability truth */
+.safety-camera-visual { isolation: isolate; background: #0b3f78; }
+.safety-camera-area-illustration { position: absolute; inset: 0; background-image: linear-gradient(180deg,rgb(5 35 76 / 12%),rgb(4 30 66 / 78%)), url('/assets/hero-control-center.png'); background-position: center, 88% 28%; background-size: cover, 245% 165%; background-repeat: no-repeat; filter: saturate(.86); transform: scale(1.02); }
+.safety-camera-card:nth-child(2) .safety-camera-area-illustration { background-position: center, 52% 28%; }
+.safety-camera-card:nth-child(3) .safety-camera-area-illustration { background-position: center, 16% 28%; }
+.safety-camera-card:nth-child(4) .safety-camera-area-illustration { background-position: center, 88% 88%; }
+.safety-camera-card:nth-child(5) .safety-camera-area-illustration { background-position: center, 52% 88%; }
+.safety-camera-card:nth-child(6) .safety-camera-area-illustration { background-position: center, 16% 88%; }
+.safety-camera-card.state-offline .safety-camera-area-illustration,
+.safety-camera-card.state-unavailable .safety-camera-area-illustration { filter: grayscale(.8) brightness(.56); }
+.safety-camera-card.state-degraded .safety-camera-area-illustration { filter: sepia(.34) saturate(.7) brightness(.7); }
+.safety-camera-grid-lines { z-index: 1; }
+.safety-camera-placeholder { z-index: 2; text-shadow: 0 2px 8px rgb(0 0 0 / 55%); }
+.safety-camera-placeholder svg { padding: 9px; box-sizing: content-box; border: 1px solid rgb(255 255 255 / 32%); border-radius: 50%; background: rgb(5 31 68 / 42%); backdrop-filter: blur(8px); }
+.safety-camera-placeholder small { color: #fff; }
+
+/* 7. Platform admin: navy shell, dense KPI/charts/activity hierarchy */
+@media (min-width: 1025px) {
+  .role-app-shell.admin-runtime-shell.gb-app-shell { grid-template-columns: 205px minmax(0,1fr); }
+  .role-app-shell.admin-runtime-shell .gb-app-shell-sidebar { padding: 10px 9px 14px; }
+  .role-app-shell.admin-runtime-shell .gb-sidebar-nav { min-height: calc(100dvh - 20px); border: 0; border-radius: 18px; padding: 7px; background: transparent; box-shadow: none; }
+  .role-app-shell.admin-runtime-shell .gb-sidebar-title { padding: 8px 6px 12px; color: #fff; }
+  .role-app-shell.admin-runtime-shell .role-app-sidebar-brand b,
+  .role-app-shell.admin-runtime-shell .role-app-sidebar-title b { color: #fff; }
+  .role-app-shell.admin-runtime-shell .role-app-sidebar-brand small,
+  .role-app-shell.admin-runtime-shell .role-app-sidebar-title span { color: rgb(224 239 255 / 72%); }
+  .role-app-shell.admin-runtime-shell .gb-sidebar-nav-item { min-height: 43px; }
+  .role-app-shell.admin-runtime-shell .role-app-header { align-items: center; padding-top: 10px; }
+  .role-app-shell.admin-runtime-shell .role-app-page { padding: 12px 15px 20px; }
+  .role-app-shell.admin-runtime-shell .admin-app-page { gap: 11px; }
+  .admin-reference-title { padding-block: 3px; }
+  .admin-reference-title h1 { font-size: 1.62rem; }
+  .admin-reference-kpis { gap: 8px !important; grid-template-columns: repeat(6,minmax(0,1fr)) !important; }
+  .admin-reference-kpis .gb-metric-card { min-height: 104px; padding: 12px; }
+  .admin-system-status-card { min-height: 92px; padding: 13px 16px !important; }
+  .platform-admin-chart-grid { gap: 10px !important; }
+  .platform-admin-chart { min-height: 205px; padding: 14px !important; }
+  .platform-admin-bar-chart { height: 112px; margin-top: 5px; }
+  .admin-quick-action-grid { gap: 8px !important; grid-template-columns: repeat(6,minmax(0,1fr)) !important; }
+  .admin-quick-action-grid .gb-action-card { min-height: 104px; padding: 12px; }
+}
+
+/* 8. Settings: four-column desktop composition, compact hero and balanced cards */
+@media (min-width: 1181px) {
+  .ux18-settings-header { min-height: 86px; margin-bottom: 12px; padding: 15px 20px; border-radius: 18px; }
+  .ux18-settings-header h2 { font-size: 1.75rem; }
+  .ux18-settings-shield { min-width: 190px; padding: 10px 12px; }
+  .ux18-settings-layout { grid-template-columns: 225px minmax(0,1fr); gap: 12px; }
+  .ux18-settings-content { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; align-items: start; }
+  .ux18-settings-content > .ux18-settings-status-grid { grid-column: 1 / -1; }
+  .ux18-settings-content > #profile { grid-column: 1; grid-row: 2; }
+  .ux18-settings-content > #permissions { grid-column: 2; grid-row: 2; }
+  .ux18-settings-content > #garden-profile { grid-column: 3; grid-row: 2 / span 3; }
+  .ux18-settings-content > #account-services { grid-column: 2; grid-row: 3; }
+  .ux18-settings-content > #privacy { grid-column: 1; grid-row: 3; }
+  .ux18-settings-navigation { border-radius: 18px; }
+  .ux18-settings-navigation-title { padding: 14px; }
+  .ux18-settings-navigation-list a { grid-template-columns: 32px minmax(0,1fr) 15px; min-height: 49px; padding: 7px 8px; }
+  .ux18-settings-navigation-list a > svg:first-child { width: 31px; height: 31px; padding: 7px; }
+  .ux18-settings-navigation-list b { font-size: .78rem; }
+  .ux18-settings-navigation-list small { font-size: .6rem; }
+  .ux18-settings-section { border-radius: 17px; }
+  .ux18-settings-section > header { grid-template-columns: 38px minmax(0,1fr); gap: 9px; padding: 12px; }
+  .ux18-settings-section-icon { width: 37px; height: 37px; border-radius: 12px; }
+  .ux18-settings-section h3 { font-size: .95rem; }
+  .ux18-settings-section header p { font-size: .69rem; }
+  .ux18-settings-section-action { grid-column: 1 / -1; }
+  .ux18-settings-section-action a { width: 100%; justify-content: center; }
+  .ux18-settings-section-body { padding: 11px 12px; }
+  .ux18-settings-status-grid { gap: 8px; }
+  .ux18-settings-status-card { min-height: 76px; padding: 9px; }
+  .ux18-verification-grid { grid-template-columns: 1fr; gap: 7px; }
+  .ux18-verification-grid article,
+  .ux18-verification-grid > a { min-height: 68px; padding: 9px; }
+  .ux18-settings-link-list > a { grid-template-columns: 32px minmax(0,1fr) 16px; min-height: 58px; padding: 8px 2px; }
+  .ux18-settings-link-list > a > svg:first-child { width: 31px; height: 31px; padding: 7px; }
+  .ux18-settings-link-list em { display: none; }
+  #garden-profile .settings-profile-form { grid-template-columns: 1fr !important; gap: 10px !important; }
+  #garden-profile .settings-profile-form .action-panel { padding: 12px; }
+  #garden-profile .settings-profile-form .profile-preview-image,
+  #garden-profile .settings-profile-form .empty-mini { width: 76px; height: 76px; min-height: 76px; }
+  #garden-profile .settings-profile-form label { gap: 4px; font-size: .69rem; }
+  #garden-profile .settings-profile-form input,
+  #garden-profile .settings-profile-form textarea { min-height: 37px; padding: 7px 9px; font-size: .74rem; }
+  #garden-profile .settings-profile-form textarea { min-height: 64px; }
+  #garden-profile .settings-profile-form .profile-actions { gap: 7px; }
+}
+
+@media (max-width: 760px) {
+  .role-app-shell.role-app-owner .role-app-header,
+  .role-app-shell.role-app-manager .role-app-header { grid-template-areas: "actions brand" "meta meta"; gap: 8px 10px; padding: max(10px,env(safe-area-inset-top,0px)) 14px 10px !important; }
+  .role-app-shell.role-app-owner .role-app-title,
+  .role-app-shell.role-app-manager .role-app-title,
+  .role-app-shell.role-app-owner .role-app-live-date,
+  .role-app-shell.role-app-manager .role-app-live-date { display: none; }
+  .role-app-shell.role-app-owner .role-app-header-meta,
+  .role-app-shell.role-app-manager .role-app-header-meta { display: flex; min-height: 46px; justify-content: center; }
+  .role-app-shell.role-app-owner .role-app-logo img:first-child,
+  .role-app-shell.role-app-manager .role-app-logo img:first-child { width: 39px; }
+  .role-app-shell.role-app-owner .role-app-logo img:nth-child(2),
+  .role-app-shell.role-app-manager .role-app-logo img:nth-child(2) { width: 112px; }
+  .role-app-shell.role-app-owner .role-app-icon-button,
+  .role-app-shell.role-app-owner .role-app-avatar,
+  .role-app-shell.role-app-manager .role-app-icon-button,
+  .role-app-shell.role-app-manager .role-app-avatar { width: 42px; height: 42px; flex-basis: 42px; }
+  .role-app-shell.role-app-owner .role-app-page,
+  .role-app-shell.role-app-manager .role-app-page { padding: 12px 14px calc(var(--dashboard-nav-height) + var(--dashboard-safe-bottom) + 22px) !important; }
+  .role-app-shell.role-app-owner .garden-context-switcher.compact,
+  .role-app-shell.role-app-manager .garden-context-switcher.compact { width: min(100%,210px); min-height: 44px; }
+  .role-app-shell.role-app-owner .manager-command-hero,
+  .role-app-shell.role-app-manager .manager-command-hero { min-height: 194px; padding: 0 !important; }
+  .role-app-shell.role-app-owner .manager-command-hero-art,
+  .role-app-shell.role-app-manager .manager-command-hero-art { min-height: 194px; }
+  .parent-child-card-selector { margin-inline: 0; }
+  .parent-child-selector-track { margin-inline: -2px; }
+  .parent-child-context-card { flex-basis: 186px; min-height: 66px; }
+  .parent-runtime-shell .parent-hero { min-height: 132px; }
+  .parent-child-photo { width: 92px; height: 92px; }
+  .safety-camera-placeholder small { max-width: 250px; line-height: 1.4; }
+  .manager-live-onboarding { padding-inline-end: 0; }
+  .manager-live-onboarding .manager-onboarding-steps { grid-template-columns: repeat(5,minmax(72px,1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parent-child-context-card,
+  .safety-camera-area-illustration,
+  .ux04-classroom-card { transition: none !important; }
+}

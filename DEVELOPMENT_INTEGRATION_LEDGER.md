@@ -802,3 +802,19 @@ zero-regression lint, the 541-page Production build, Domain 30/30, Security
 validation. Digital Observer core diff is zero; no migration, paid provider,
 Production, `main`, customer data or live provider action occurred. UX-20 closes
 Development UX/UI. RELEASE-GAP-01 has not started.
+
+UX-VISUAL-REMEDIATION-FINAL branch qualification (2026-10-06): the owner-driven
+remediation commit `211851ac092eefb857511781736c83d164af65b4` is remotely
+preserved on `origin/codex/ux-visual-remediation-final`. Eight material mismatch
+domains were corrected against their approved references: Owner Onboarding,
+Owner Dashboard, Children/Classrooms, Parent Assigned, Parent Multi-Child,
+Safety/Cameras, Platform Admin, and Settings/Account/Permissions. The fresh
+branch-head package contains eight side-by-side reference/Desktop/Mobile boards,
+all classified OWNER_APPROVED_CANDIDATE with zero VISUAL_MISMATCH or BROKEN
+results. Qualification passed focused UX-02 through UX-20 suites, authenticated
+Settings and onboarding checks, Manager/Parent 23/23, typecheck, zero-regression
+lint, the 541-page Production build, Domain 30/30, Security 11/11, migration
+health 244/244 and release-contract validation. Digital Observer core diff is
+zero; no migration, paid provider, Production, `main`, customer data or live
+provider action is included. The unit is ready for its PR to
+`integration/development`; RELEASE-GAP-01 has not started.

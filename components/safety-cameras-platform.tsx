@@ -93,12 +93,13 @@ function CameraTruthCard({ camera, base, filter, searchQuery }: { camera: Safety
   return (
     <article className={`safety-camera-card state-${camera.truthState}`}>
       <div className="safety-camera-visual" aria-label={`${camera.name}: ${camera.statusLabel}`}>
+        <div className="safety-camera-area-illustration" aria-hidden="true" />
         <div className="safety-camera-grid-lines" aria-hidden="true" />
         <span className={`safety-status-chip ${camera.truthState}`}><Icon size={14} /> {camera.statusLabel}</span>
         <div className="safety-camera-placeholder">
           {camera.truthState === "online" ? <Camera size={44} /> : <CameraOff size={44} />}
           <strong>{camera.liveLabel}</strong>
-          <small>לא מוצגת תמונה ללא מקור חתום ומורשה</small>
+          <small>תמונת אזור להמחשה · לא שידור חי ולא הקלטה</small>
         </div>
         <span className="safety-area-label"><MapPinned size={14} /> {camera.area}</span>
       </div>
