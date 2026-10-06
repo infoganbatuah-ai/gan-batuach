@@ -14,11 +14,13 @@ const exec = promisify(execFile);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
 const DVR_ASSIGNED_CHANNELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10, 11]);
 const unavailableArgument = String(args.get("dvr-upstream-unavailable") ?? "2,8").trim();
+const autoDetectSourceAvailability = unavailableArgument.toLowerCase() === "auto";
 // `none` is the explicit CLI representation for an empty exception set. The
 // generic argument parser intentionally represents a bare flag as `true`, so
 // `--dvr-upstream-unavailable=` cannot safely carry this state through the
 // durable launchd wrapper.
-const parsedUnavailable = unavailableArgument === "" || unavailableArgument.toLowerCase() === "none"
+const parsedUnavailable = autoDetectSourceAvailability || unavailableArgument === "" ||
+  unavailableArgument.toLowerCase() === "none"
   ? [] : unavailableArgument.split(",").map(Number);
 if (parsedUnavailable.some(value => !Number.isInteger(value)) ||
   new Set(parsedUnavailable).size !== parsedUnavailable.length ||
@@ -53,6 +55,40 @@ const dataRoots = {
 const logPaths = { gateway: join(homedir(), "Library", "Logs", "com.ganbatuach.video-gateway.err.log"), connector: join(homedir(), "Library", "Logs", "com.ganbatuach.software-connector.tapo.err.log") };
 const ffmpegCommand = [process.env.FFMPEG_PATH, "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"].find(value => value && existsSync(value));
 if (!ffmpegCommand) throw new Error("ffmpeg_runtime_unavailable");
+
+// A historical physical-source exception must never silently become the
+// denominator for a later qualification run after those sources recover. In
+// auto mode freeze the denominator only after three independent, read-only
+// health observations agree that every assigned DVR channel is progressing.
+// This is deliberately stricter than accepting a single aggregate 10/10.
+const sourceAvailabilityPreflight = autoDetectSourceAvailability
+  ? await (async () => {
+    const samples = [];
+    for (let index = 0; index < 3; index += 1) {
+      const probe = await probeLocalHealth(18082);
+      const discovery = probe.body?.lastDiscovery || {};
+      const inputs = new Map((probe.body?.mediaHeartbeat?.inputs || [])
+        .map(input => [Number(input.channel), input]));
+      const progressingChannels = DVR_ASSIGNED_CHANNELS.filter(channel =>
+        inputs.get(channel)?.progressing === true ||
+        inputs.get(channel)?.renewing === true && inputs.get(channel)?.playback_continuity === true);
+      const pass = probe.ok && probe.body?.status === "healthy" &&
+        discovery.assignedCount === 10 && discovery.connectedCount === 10 &&
+        discovery.failedAssignedCount === 0 && discovery.unassignedCount === 6 &&
+        progressingChannels.length === DVR_ASSIGNED_CHANNELS.length;
+      const sample = { observed_at: new Date().toISOString(), pass,
+        assigned: discovery.assignedCount ?? null, connected: discovery.connectedCount ?? null,
+        failed: discovery.failedAssignedCount ?? null, empty: discovery.unassignedCount ?? null,
+        progressing_channels: progressingChannels };
+      samples.push(sample);
+      if (!pass) throw new Error("soak_dvr_auto_availability_preflight_failed");
+      if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 5_000));
+    }
+    return { mode: "THREE_SAMPLE_READ_ONLY_FREEZE", samples,
+      expected_physical: 10, source_available: 10, upstream_unavailable: [] };
+  })()
+  : { mode: "OWNER_VERIFIED_EXPLICIT_EXCEPTION", samples: [], expected_physical: 10,
+    source_available: DVR_SOURCE_AVAILABLE, upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE };
 
 function atomicJson(path, value) { const temporary = `${path}.tmp`; writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); renameSync(temporary, path); }
 function safeStat(path) { try { return statSync(path).size; } catch { return null; } }
@@ -290,6 +326,7 @@ atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: 
   target_ended_at: new Date(startedAt + durationMs).toISOString(), duration_ms: durationMs,
   interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence,
   last_checkpoint_at: prior?.last_checkpoint_at ?? null, next_deep_probe_at: nextDeepProbeAt,
+  dvr_source_availability_preflight: sourceAvailabilityPreflight,
   output_root: outputRoot,
   monitor_process: { pid: process.pid, parent_pid: process.ppid, started_at: new Date().toISOString() } });
 const { sourceList, gatewayAiIdentity } = await sources();
@@ -334,7 +371,8 @@ const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").fil
 const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(),
   requiredDurationMs, dvrSourceAvailable: DVR_SOURCE_AVAILABLE,
   dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
-const stagedResult = { ...result, qualification_stage: stage };
+const stagedResult = { ...result, qualification_stage: stage,
+  dvr_source_availability_preflight: sourceAvailabilityPreflight };
 const termination = lifecycle.termination();
 const durableResult = termination ? { ...stagedResult, termination } : stagedResult;
 atomicJson(resultPath, durableResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: durableResult.status, ended_at: durableResult.ended_at, result_path: resultPath, gate_failures: durableResult.gate_failures, ...(termination ? { termination } : {}) });

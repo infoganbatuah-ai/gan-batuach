@@ -145,5 +145,11 @@ assert.match(aiRoutingProof, /export async function measureRealHomeAiRouting\(in
 const realHomeSoak = readFileSync("scripts/qa/run-real-home-soak.mjs", "utf8");
 assert.match(realHomeSoak, /await measureRealHomeAiRouting\(gatewayAiIdentity\)/,
   "the monitor must not create a second macOS Keychain authorization boundary for deep AI probes");
+assert.match(realHomeSoak, /autoDetectSourceAvailability/,
+  "a recovered DVR source denominator must be established from live evidence, not a stale exception");
+assert.match(realHomeSoak, /THREE_SAMPLE_READ_ONLY_FREEZE/,
+  "automatic source availability must preserve its multi-sample provenance");
+assert.match(realHomeSoak, /progressingChannels\.length === DVR_ASSIGNED_CHANNELS\.length/,
+  "aggregate 10\/10 alone must not freeze the qualification denominator");
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");
