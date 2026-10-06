@@ -859,6 +859,57 @@ let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 let failedV8LivenessEvidence = null;
 let endpointRecoveryEvidence = null;
+if (finiteResponseRecovery) {
+  const resultBytes = protectedFile(failedPreSoakEvidencePath);
+  const checkpointBytes = protectedFile(failedPreSoakCheckpointsPath);
+  const result = JSON.parse(resultBytes);
+  const checkpoints = checkpointBytes.toString("utf8").trim().split("\n")
+    .map(line => JSON.parse(line));
+  const before = checkpoints.find(point => point.sequence === 25);
+  const failed = checkpoints.find(point => point.sequence === 26);
+  const recovered = checkpoints.find(point => point.sequence === 27);
+  const endedInputs = (failed?.dvr?.inputs ?? []).filter(input =>
+    input.channel !== 10 && input.native_input_ended === true);
+  const continuingInput = (failed?.dvr?.inputs ?? []).find(input => input.channel === 10);
+  if (sha(resultBytes) !== "ed3dcb6d750e10fe79ee59251b1e241d1143d93bb1ee6fd3a181c711a991f928" ||
+    sha(checkpointBytes) !== "1a6e322edceda57ed21b94f8ceb38fe48e7a2d65f8f9dd6a723e4ebbadd50fe2" ||
+    result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "PRE_SOAK" || result.status !== "NOT_DONE" ||
+    result.checkpoints !== 60 || result.elapsed_ms !== 3600030 ||
+    result.dvr_source_available !== 10 || result.dvr_known_upstream_unavailable?.length !== 0 ||
+    result.release?.gateway?.software_version !== item.supersedesVersion ||
+    result.release?.gateway?.build_sha !== "cb8c52181bd0a4b3c28a37e428007d2149f48121" ||
+    result.release?.gateway?.known_good_version !== item.supersedesVersion ||
+    result.gateway?.source_degraded_checkpoints !== 1 ||
+    result.gateway?.unavailable_checkpoints !== 0 || result.gateway?.runtime_restarts !== 0 ||
+    result.gateway?.supervisor_restarts !== 0 || result.gateway?.recorder_auth_rejection_delta !== 0 ||
+    result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
+    JSON.stringify(result.gate_failures) !== JSON.stringify([
+      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) ||
+    checkpoints.length !== 60 || before?.dvr?.classification !== "PASS" ||
+    before?.dvr?.available !== 10 || before?.dvr?.progressing !== 10 ||
+    failed?.dvr?.classification !== "PRODUCT_FAILURE" || failed?.dvr?.available !== 1 ||
+    failed?.dvr?.progressing !== 1 || failed?.dvr?.stalled !== 9 ||
+    failed?.dvr?.relay_processes?.activeRelays !== 1 ||
+    failed?.dvr?.relay_processes?.liveRelayProcesses !== 10 || endedInputs.length !== 9 ||
+    endedInputs.some(input => input.owner_state !== "NONE" || input.media_owner_state !== "NONE" ||
+      input.progressing !== false || input.output_idle_ms < 40_000) ||
+    continuingInput?.progressing !== true || continuingInput?.owner_state !== "CURRENT" ||
+    failed?.dvr?.recorder_session?.failures !== 0 ||
+    failed?.dvr?.recorder_session?.authentication_rejected !== 0 ||
+    recovered?.dvr?.classification !== "PASS" || recovered?.dvr?.available !== 10 ||
+    recovered?.dvr?.progressing !== 10)
+    throw new Error("P38_GATEWAY_FINITE_RESPONSE_RECOVERY_FAILED_PRE_SOAK_PROOF_INVALID");
+  failedPreSoakEvidence = { result_sha256: sha(resultBytes),
+    checkpoints_sha256: sha(checkpointBytes), checkpoints: result.checkpoints,
+    duration_ms: result.elapsed_ms, release_id: item.supersedesReleaseId,
+    failure_sequence: failed.sequence, affected_channels: endedInputs.map(input => input.channel).sort((a, b) => a - b),
+    failure_class: "FINITE_RESPONSE_BODY_ENDED_BEFORE_DECODER_CLOSE_WITHOUT_IMMEDIATE_RECOVERY",
+    component_unavailable_checkpoints: result.gateway.unavailable_checkpoints,
+    source_degraded_checkpoints: result.gateway.source_degraded_checkpoints,
+    playback_failures: result.playback.failures, ai_failures: result.ai.failures,
+    live_recovery_required: true };
+}
 if (dvrEndpointRecovery) {
   const identityBytes = protectedFile(dvrIdentityBindingEvidencePath);
   const recoveryBytes = protectedFile(dvrLiveRecoveryEvidencePath);
