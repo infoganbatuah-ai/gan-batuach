@@ -12,19 +12,37 @@ export async function refreshDeviceCredentials({ gatewayId, cloudBaseUrl, readSe
   if (privateKeyPkcs8 && credentialVersion > 0) {
     const body = JSON.stringify({ action: "authenticate", gateway_id: gatewayId });
     const pathname = "/api/digital-observer/gateway-enrollment";
-    const proofState = await nextManagedDeviceProofState({ readSecret, writeSecret, prefix: "gateway" });
-    const response = await fetcher(`${cloudBaseUrl}${pathname}`, {
-      method: "POST",
-      headers: { "content-type": "application/json", ...createManagedDeviceProofHeaders({ method: "POST", pathname,
-        body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, ...proofState }) },
-      body,
-      signal: AbortSignal.timeout(timeoutMs)
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || payload.data?.authentication_protocol !== "ED25519_V1" || !payload.data?.access_token) {
+    let lastStatus = 0;
+    // The OTA agent and functional runtime deliberately share one managed
+    // device identity and monotonic proof sequence. A same-millisecond
+    // cross-process proof can therefore lose the ordering race even though
+    // both signatures are valid. Retry once with a newly persisted sequence;
+    // never turn a transient upstream failure into a durable relink lockout.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const proofState = await nextManagedDeviceProofState({ readSecret, writeSecret, prefix: "gateway" });
+      const response = await fetcher(`${cloudBaseUrl}${pathname}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...createManagedDeviceProofHeaders({ method: "POST", pathname,
+          body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, ...proofState }) },
+        body,
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload.data?.authentication_protocol === "ED25519_V1" && payload.data?.access_token) {
+        return { accessToken: String(payload.data.access_token),
+          expiresAt: Date.parse(String(payload.data.access_expires_at || "")) || Date.now() + 9 * 60 * 1000 };
+      }
+      lastStatus = response.status;
+      if (attempt === 0 && [401, 409].includes(response.status)) {
+        await new Promise(resolve => setTimeout(resolve, 5));
+        continue;
+      }
+      break;
+    }
+    if ([401, 403, 409].includes(lastStatus)) {
       throw Object.assign(new Error("Managed device authentication requires approval"), { code: "device_relink_required" });
     }
-    return { accessToken: String(payload.data.access_token), expiresAt: Date.parse(String(payload.data.access_expires_at || "")) || Date.now() + 9 * 60 * 1000 };
+    throw Object.assign(new Error("Managed device authentication is temporarily unavailable"), { code: "device_auth_unavailable" });
   }
   let pending;
   const raw = await readSecret(pendingDeviceRefreshAccount);
