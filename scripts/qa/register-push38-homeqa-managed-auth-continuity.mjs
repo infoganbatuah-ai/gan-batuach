@@ -16,7 +16,11 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const apply = process.argv.includes("--apply");
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const signedDir = resolve(option("signed-dir") || "");
-const paths = {
+const requestedComponent = option("component");
+const components = requestedComponent ? [requestedComponent] : ["connector", "gateway"];
+if (components.some(component => !PUSH38_MANAGED_AUTH_CONTINUITY[component]))
+  throw new Error("P38_MANAGED_AUTH_REGISTRATION_COMPONENT_INVALID");
+const allPaths = {
   connector: { manifest: join(signedDir, "connector_managed_auth_continuity.json"),
     artifact: resolve(option("connector-artifact") || ""),
     publication: resolve(option("connector-publication") || "") },
@@ -24,6 +28,7 @@ const paths = {
     artifact: resolve(option("gateway-artifact") || ""),
     publication: resolve(option("gateway-publication") || "") }
 };
+const paths = Object.fromEntries(components.map(component => [component, allPaths[component]]));
 
 for (const path of [signedDir, ...Object.values(paths).flatMap(value => Object.values(value))]) {
   const scoped = relative(restrictedRoot, path);
@@ -41,7 +46,7 @@ const hash = path => new Promise((accept, reject) => {
 const keys = loadPinnedEdgeReleaseKeys({
   registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const verified = {};
-for (const component of ["connector", "gateway"]) {
+for (const component of components) {
   const item = PUSH38_MANAGED_AUTH_CONTINUITY[component];
   const input = paths[component];
   const manifest = JSON.parse(readFileSync(input.manifest, "utf8"));
