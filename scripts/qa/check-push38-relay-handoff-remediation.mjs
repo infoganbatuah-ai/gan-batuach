@@ -53,7 +53,8 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
   privateNvrRoutineHandoffSchedule,
-  shouldBeginPrivateNvrFiniteResponseRecovery } from
+  shouldBeginPrivateNvrFiniteResponseRecovery,
+  shouldDeferCorrelatedPrivateNvrSilentResponseRescue } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
@@ -493,6 +494,28 @@ test("a silent open DVR response enters one exact-channel exclusive rescue", () 
   assert.match(server,
     /forcedSilentResponseRescue[\s\S]*silentResponseRescues \+= 1/,
   "health diagnostics must distinguish the new rescue from encoder failure");
+});
+
+test("a healthy recorder-wide silence cannot become parallel exact-channel rescues", () => {
+  assert.equal(shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+    silentResponseStalled: true, correlatedSourceCount: 6,
+    heartbeatConsecutiveFailures: 0
+  }), true, "the measured six-channel pause must retain its existing owners");
+  assert.equal(shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+    silentResponseStalled: true, correlatedSourceCount: 1,
+    heartbeatConsecutiveFailures: 0
+  }), false, "one stranded response remains eligible for exact-channel rescue");
+  assert.equal(shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+    silentResponseStalled: true, correlatedSourceCount: 6,
+    heartbeatConsecutiveFailures: 3
+  }), false, "corroborated heartbeat loss stays on the established recovery path");
+  assert.equal(shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+    silentResponseStalled: false, correlatedSourceCount: 6,
+    heartbeatConsecutiveFailures: 0
+  }), false, "source count alone is never a rescue signal");
+  assert.match(server,
+    /silentResponseCounts[\s\S]*correlatedSilentResponseSessions[\s\S]*correlated_silent_response_deferred_at[\s\S]*continue;/,
+  "the handoff scheduler must defer correlated silence before owner release");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {

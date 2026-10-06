@@ -360,6 +360,25 @@ export function privateNvrSilentResponseStalled(relay, now = Date.now(),
     && now - relay.lastOutputAt >= thresholdMs;
 }
 
+// A silent response is exact-channel evidence only while it is isolated. The
+// 0.2.84 Home canary captured six channels crossing the eight-second input and
+// output boundary together while the recorder heartbeat remained healthy.
+// Treating that shared pause as six independent failures released six owners
+// in succession and was followed by a four-channel availability gap. Preserve
+// all owners during a correlated healthy-session pause; an actual response end,
+// hardware-only output stall, or corroborated heartbeat failure still enters
+// the existing bounded recovery paths.
+export function shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+  silentResponseStalled = false,
+  correlatedSourceCount = 0,
+  heartbeatConsecutiveFailures = 0
+} = {}) {
+  return Boolean(silentResponseStalled
+    && Number(correlatedSourceCount || 0) >= PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES
+    && Number(heartbeatConsecutiveFailures || 0)
+      < PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
+}
+
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   if (!relay || relay.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;

@@ -48,6 +48,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrRoutineHandoffConfirmed, privateNvrRoutineHandoffRetryAllowed,
   privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
+  shouldDeferCorrelatedPrivateNvrSilentResponseRescue,
   shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
@@ -238,6 +239,7 @@ async function maintainPrivateNvrSessionRenewals() {
 
 async function maintainPrivateNvrRelayHandoffs() {
   const observedAt = Date.now();
+  const heartbeat = privateNvrHeartbeat.status();
   // The recorder's media response ends before its authenticated session. Keep
   // heartbeat and bounded idle-session recovery independent from the
   // potentially slow media handoff. Replace at most one channel per pass, so
@@ -245,6 +247,41 @@ async function maintainPrivateNvrRelayHandoffs() {
   const sessionSweep = [];
   const outputRescues = [];
   const routine = [];
+  // Take one immutable recorder-wide snapshot before choosing a rescue. A
+  // per-channel loop cannot distinguish one stranded response from the Home
+  // DVR's measured multi-channel pause and previously turned the same pause
+  // into six destructive owner releases.
+  const silentResponseCounts = new Map();
+  for (const [streamId, relay] of [...relays]) {
+    const source = streamSources.get(streamId);
+    if (!source?.sessionKey || relayWarmups.has(streamId)) continue;
+    const silent = privateNvrSilentResponseStalled({
+      startedAt: relay.startedAt,
+      lastInputAt: relay.lastInputAt,
+      lastOutputAt: relayPlaylistMtime(relay),
+      nativeInputEnded: relay.nativeInputEnded,
+      encoder: relay.encoder,
+      warming: relay.warming
+    }, observedAt);
+    if (silent) silentResponseCounts.set(source.sessionKey,
+      (silentResponseCounts.get(source.sessionKey) || 0) + 1);
+  }
+  const correlatedSilentResponseSessions = new Set(
+    [...silentResponseCounts.entries()]
+      .filter(([, correlatedSourceCount]) =>
+        shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+          silentResponseStalled: true, correlatedSourceCount,
+          heartbeatConsecutiveFailures: heartbeat.consecutive_failures
+        }))
+      .map(([sessionKey]) => sessionKey)
+  );
+  if (correlatedSilentResponseSessions.size) {
+    relayLifecycle.correlatedSilentResponsePasses += 1;
+    relayLifecycle.correlatedSilentResponseMaxSources = Math.max(
+      relayLifecycle.correlatedSilentResponseMaxSources,
+      ...[...correlatedSilentResponseSessions]
+        .map(sessionKey => silentResponseCounts.get(sessionKey) || 0));
+  }
   for (const [streamId, relay] of [...relays]) {
     const source = streamSources.get(streamId);
     if (!source?.sessionKey) continue;
@@ -284,6 +321,19 @@ async function maintainPrivateNvrRelayHandoffs() {
     const handoffMode = privateNvrRelayHandoffMode(handoffEvidence, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
       if (sessionRenewalPending) continue;
+      const correlatedSourceCount = silentResponseCounts.get(source.sessionKey) || 0;
+      if (shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
+        silentResponseStalled, correlatedSourceCount,
+        heartbeatConsecutiveFailures: heartbeat.consecutive_failures
+      })) {
+        relayLifecycle.correlatedSilentResponseDeferrals += 1;
+        relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+          correlated_silent_response_deferred_at: new Date(observedAt).toISOString(),
+          correlated_silent_response_sources: correlatedSourceCount,
+          correlated_silent_response_heartbeat_failures:
+            heartbeat.consecutive_failures });
+        continue;
+      }
       if (hardwareOutputStalled) {
         relay.hardwareOutputStalled = true;
         hardwareTranscoder.failed(streamId);
@@ -466,6 +516,9 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   directoryCleanupSkippedActive: 0, directoryCleanupFailures: 0,
   directoryCleanupMaxMs: 0,
   silentResponseRescues: 0,
+  correlatedSilentResponsePasses: 0,
+  correlatedSilentResponseDeferrals: 0,
+  correlatedSilentResponseMaxSources: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,
