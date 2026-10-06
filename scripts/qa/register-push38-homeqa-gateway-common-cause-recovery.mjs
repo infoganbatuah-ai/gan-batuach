@@ -81,6 +81,8 @@ import { PUSH38_GATEWAY_EVENT_LOOP_CLEANUP
 } from "../../services/video-gateway/push38-home-qa-gateway-event-loop-cleanup.mjs";
 import { PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE
 } from "../../services/video-gateway/push38-home-qa-gateway-hardware-rescue-deadline.mjs";
+import { PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-gateway-dvr-endpoint-recovery.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -118,16 +120,19 @@ const deviceIdentityContinuity = process.argv.includes("--gateway-device-identit
 const ownerTransportRelease = process.argv.includes("--gateway-owner-transport-release");
 const eventLoopCleanup = process.argv.includes("--gateway-event-loop-cleanup");
 const hardwareRescueDeadline = process.argv.includes("--gateway-hardware-rescue-deadline");
+const dvrEndpointRecovery = process.argv.includes("--gateway-dvr-endpoint-recovery");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
   rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity,
-  deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline]
+  deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline,
+  dvrEndpointRecovery]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = hardwareRescueDeadline ? PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE :
+const item = dvrEndpointRecovery ? PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY :
+  hardwareRescueDeadline ? PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE :
   eventLoopCleanup ? PUSH38_GATEWAY_EVENT_LOOP_CLEANUP :
   ownerTransportRelease ? PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE :
   deviceIdentityContinuity ? PUSH38_GATEWAY_DEVICE_IDENTITY_CONTINUITY :
@@ -166,7 +171,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = hardwareRescueDeadline
+const artifact = dvrEndpointRecovery
+  ? `${restrictedRoot}/push38-gateway-0.2.81-dvr-endpoint-recovery-package/gateway-runtime.tar.gz`
+  : hardwareRescueDeadline
   ? `${restrictedRoot}/push38-gateway-0.2.80-hardware-rescue-deadline-package/gateway-runtime.tar.gz`
   : eventLoopCleanup
   ? `${restrictedRoot}/push38-gateway-0.2.79-event-loop-cleanup-package/gateway-runtime.tar.gz`
@@ -237,7 +244,9 @@ const artifact = hardwareRescueDeadline
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = hardwareRescueDeadline
+const publication = dvrEndpointRecovery
+  ? `${restrictedRoot}/push38-gateway-0.2.81-dvr-endpoint-recovery-package/r2-publication.json`
+  : hardwareRescueDeadline
   ? `${restrictedRoot}/push38-gateway-0.2.80-hardware-rescue-deadline-package/r2-publication.json`
   : eventLoopCleanup
   ? `${restrictedRoot}/push38-gateway-0.2.79-event-loop-cleanup-package/r2-publication-rb77.json`
@@ -308,7 +317,8 @@ const publication = hardwareRescueDeadline
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = hardwareRescueDeadline ? "gateway_remediation_hardware_rescue_deadline.json"
+const bundleName = dvrEndpointRecovery ? "gateway_remediation_dvr_endpoint_recovery.json"
+  : hardwareRescueDeadline ? "gateway_remediation_hardware_rescue_deadline.json"
   : eventLoopCleanup ? "gateway_remediation_event_loop_cleanup.json"
   : ownerTransportRelease ? "gateway_remediation_owner_transport_release.json"
   : deviceIdentityContinuity ? "gateway_remediation_device_identity_continuity.json"
@@ -344,7 +354,7 @@ const bundleName = hardwareRescueDeadline ? "gateway_remediation_hardware_rescue
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
+const predecessorReleaseId = (dvrEndpointRecovery || hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
   ? item.supersedesReleaseId :
   deviceIdentityContinuity ? item.rollbackReleaseId :
   (finiteResponseContinuity || playbackSweep || proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
@@ -355,7 +365,9 @@ const predecessorReleaseId = (hardwareRescueDeadline || eventLoopCleanup || owne
 // still have a one-shot diagnostic rollout. Pause both sources of eligibility so
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
-const rolloutReleaseIdsToPause = hardwareRescueDeadline
+const rolloutReleaseIdsToPause = dvrEndpointRecovery
+  ? [predecessorReleaseId, item.rollbackReleaseId]
+  : hardwareRescueDeadline
   ? [predecessorReleaseId, item.rollbackReleaseId]
   : eventLoopCleanup
   ? [predecessorReleaseId, item.supersededDraftReleaseId]
@@ -479,7 +491,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: hardwareRescueDeadline
+console.log(JSON.stringify({ status: dvrEndpointRecovery
+  ? "GATEWAY_DVR_ENDPOINT_RECOVERY_REGISTERED_DRAFT" : hardwareRescueDeadline
   ? "GATEWAY_HARDWARE_RESCUE_DEADLINE_REGISTERED_DRAFT" :
   eventLoopCleanup ? "GATEWAY_EVENT_LOOP_CLEANUP_REGISTERED_DRAFT" :
   ownerTransportRelease ? "GATEWAY_OWNER_TRANSPORT_RELEASE_REGISTERED_DRAFT" :

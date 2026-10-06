@@ -45,6 +45,7 @@ import { buildPush38GatewayDeviceIdentityContinuityManifest } from "../../servic
 import { buildPush38GatewayOwnerTransportReleaseManifest } from "../../services/video-gateway/push38-home-qa-gateway-owner-transport-release.mjs";
 import { buildPush38GatewayEventLoopCleanupManifest } from "../../services/video-gateway/push38-home-qa-gateway-event-loop-cleanup.mjs";
 import { buildPush38GatewayHardwareRescueDeadlineManifest } from "../../services/video-gateway/push38-home-qa-gateway-hardware-rescue-deadline.mjs";
+import { buildPush38GatewayDvrEndpointRecoveryManifest } from "../../services/video-gateway/push38-home-qa-gateway-dvr-endpoint-recovery.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -163,17 +164,20 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
   recoveryContinuity = false, routineConfirmation = false, sessionRenewal = false,
   proactiveExclusive = false, playbackSweep = false,
   finiteResponseContinuity = false, deviceIdentityContinuity = false,
-  ownerTransportRelease = false, eventLoopCleanup = false, hardwareRescueDeadline = false }) {
+  ownerTransportRelease = false, eventLoopCleanup = false, hardwareRescueDeadline = false,
+  dvrEndpointRecovery = false }) {
   if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
     heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
     handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
     rescueCapacity, codecPreservation, handoffHardware, relayHandoff, handoffContinuity,
     handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
     sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity,
-    deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline]
+    deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline,
+    dvrEndpointRecovery]
     .filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = hardwareRescueDeadline ? buildPush38GatewayHardwareRescueDeadlineManifest :
+  const builder = dvrEndpointRecovery ? buildPush38GatewayDvrEndpointRecoveryManifest :
+    hardwareRescueDeadline ? buildPush38GatewayHardwareRescueDeadlineManifest :
     eventLoopCleanup ? buildPush38GatewayEventLoopCleanupManifest :
     ownerTransportRelease ? buildPush38GatewayOwnerTransportReleaseManifest :
     deviceIdentityContinuity ? buildPush38GatewayDeviceIdentityContinuityManifest :
@@ -255,7 +259,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: hardwareRescueDeadline ?
+    const result = { protocol: dvrEndpointRecovery ?
+      "observer-push38-gateway-dvr-endpoint-recovery-r2-publication-v1" : hardwareRescueDeadline ?
       "observer-push38-gateway-hardware-rescue-deadline-r2-publication-v1" : eventLoopCleanup ?
       "observer-push38-gateway-event-loop-cleanup-r2-publication-v1" : ownerTransportRelease ?
       "observer-push38-gateway-owner-transport-release-r2-publication-v1" : deviceIdentityContinuity ?
@@ -336,6 +341,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const ownerTransportRelease = process.argv.includes("--gateway-owner-transport-release");
     const eventLoopCleanup = process.argv.includes("--gateway-event-loop-cleanup");
     const hardwareRescueDeadline = process.argv.includes("--gateway-hardware-rescue-deadline");
+    const dvrEndpointRecovery = process.argv.includes("--gateway-dvr-endpoint-recovery");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
         "--maintenance-isolation", "--session-sweep", "--heartbeat-login",
@@ -350,7 +356,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--gateway-proactive-exclusive", "--gateway-playback-sweep",
         "--gateway-finite-response-continuity", "--gateway-device-identity-continuity",
         "--gateway-owner-transport-release", "--gateway-event-loop-cleanup",
-        "--gateway-hardware-rescue-deadline"]
+        "--gateway-hardware-rescue-deadline", "--gateway-dvr-endpoint-recovery"]
         .includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
@@ -364,7 +370,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity,
       routineConfirmation, sessionRenewal, proactiveExclusive, playbackSweep,
       finiteResponseContinuity, deviceIdentityContinuity, ownerTransportRelease,
-      eventLoopCleanup, hardwareRescueDeadline }) }));
+      eventLoopCleanup, hardwareRescueDeadline, dvrEndpointRecovery }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");
