@@ -41,6 +41,10 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { ...recoverabl
   release_id: "qa-unrelated" }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", recoverable), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.87-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.86-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
+  "GATEWAY_SESSION_RETIREMENT_CONTINUITY");
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [
@@ -70,7 +74,8 @@ try {
     GITHUB_REPOSITORY: "infoganbatuah-ai/gan-batuach",
     GITHUB_REF: "refs/heads/codex/push-38-aws-signing",
     GITHUB_SHA: "a".repeat(40),
-    PUSH38_CANDIDATE_SHA: PUSH38_MANAGED_AUTH_CONTINUITY.connector.buildSha,
+    PUSH38_CANDIDATE_SHA: PUSH38_MANAGED_AUTH_CONTINUITY.gateway.buildSha,
+    HOME_QA_COMPONENT: "gateway",
     RUNNER_TEMP: temporary,
     HOME_QA_OUTPUT_DIR: join(temporary, "out"),
     SIGNER_KEY_ARN: keyArn,
@@ -89,10 +94,11 @@ try {
       SigningAlgorithm: "ED25519_SHA_512" };
     throw new Error("unexpected operation");
   } });
-  assert.equal(result.length, 2);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].component, "gateway");
   assert.ok(result.every(item => item.signature_verified));
   assert.equal(lstatSync(join(temporary, "out")).isDirectory(), true);
-  for (const component of ["connector", "gateway"]) {
+  for (const component of ["gateway"]) {
     const document = buildPush38ManagedAuthContinuityManifest({ component,
       signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
       releasedAt: new Date().toISOString() }).document;

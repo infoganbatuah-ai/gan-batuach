@@ -14,7 +14,15 @@ const fail = code => { throw new Error(code); };
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 
 export async function issuePush38ManagedAuthContinuity({ env = process.env, call }) {
-  const candidate = PUSH38_MANAGED_AUTH_CONTINUITY.connector.buildSha;
+  const components = env.HOME_QA_COMPONENT
+    ? [env.HOME_QA_COMPONENT]
+    : ["connector", "gateway"];
+  if (components.some(component => !PUSH38_MANAGED_AUTH_CONTINUITY[component]))
+    fail("P38_MANAGED_AUTH_COMPONENT_INVALID");
+  const candidates = new Set(components.map(component =>
+    PUSH38_MANAGED_AUTH_CONTINUITY[component].buildSha));
+  if (candidates.size !== 1) fail("P38_MANAGED_AUTH_COMPONENT_REQUIRED");
+  const [candidate] = candidates;
   if (env.GITHUB_REPOSITORY !== "infoganbatuah-ai/gan-batuach" ||
     env.GITHUB_REF !== "refs/heads/codex/push-38-aws-signing" ||
     env.PUSH38_CANDIDATE_SHA !== candidate || !env.RUNNER_TEMP || !env.HOME_QA_OUTPUT_DIR)
@@ -32,7 +40,7 @@ export async function issuePush38ManagedAuthContinuity({ env = process.env, call
   if (digest(publicBytes) !== config.publicKeySha256) fail("P38_MANAGED_AUTH_PUBLIC_KEY_PIN_MISMATCH");
   mkdirSync(output, { mode: 0o700 });
   const issued = [];
-  for (const component of ["connector", "gateway"]) {
+  for (const component of components) {
     const item = buildPush38ManagedAuthContinuityManifest({ component, signingKeyId: config.keyId,
       artifactOrigin: env.HOME_QA_R2_ORIGIN, releasedAt: new Date().toISOString() });
     const result = await signRemoteEdgeDocument({ document: item.document, config, call });
