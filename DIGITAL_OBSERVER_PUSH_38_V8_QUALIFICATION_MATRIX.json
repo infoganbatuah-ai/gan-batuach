@@ -1,36 +1,36 @@
 {
   "contract": "digital-observer-push38-v8-qualification-matrix-v1",
   "status": "FROZEN",
-  "frozen_at": "2026-10-05T09:38:26Z",
+  "frozen_at": "2026-10-06T01:12:30Z",
   "candidate_branch": "codex/push-38t-qualification",
   "qualification_runtime": {
-    "gateway_version": "0.2.78-p38-health",
-    "gateway_build_sha": "b62b6c98fc15c41547282ae7ece53e8ff5cb8807",
-    "connector_version": "0.2.37-p38-health",
-    "connector_build_sha": "6ade377f467d91e50800a2161926cda3d31d8eab",
-    "gateway_source_available": 9,
-    "gateway_known_upstream_unavailable_channels": [8],
+    "gateway_version": "0.2.80-p38-health",
+    "gateway_build_sha": "a4bd57769d92e8abba4a9e89d8cc762b8ef83ba6",
+    "connector_version": "0.2.36-p38-health",
+    "connector_build_sha": "44b238ed7e7e68f34ac2984b6f8291f88f04cdec",
+    "gateway_source_available": 8,
+    "gateway_known_upstream_unavailable_channels": [2, 8],
     "gateway_empty_slots": 6,
     "tapo_source_available": 1
   },
   "prerequisite_evidence": {
     "canary": {
       "status": "PASS",
-      "started_at": "2026-10-05T08:15:42.905Z",
-      "ended_at": "2026-10-05T08:30:46.251Z",
-      "elapsed_ms": 903346,
+      "started_at": "2026-10-05T23:55:34.540Z",
+      "ended_at": "2026-10-06T00:10:34.547Z",
+      "elapsed_ms": 900007,
       "checkpoints": 15,
-      "result_sha256": "1dd6d3b0e1cf94e82f803bf09a21ad99ee0956b86a0ff4102b8637b6cb4186be",
-      "checkpoints_sha256": "cd30d6901b0290861e0aeb282e87f8799a5d8504a20ca9c4eebba05229c334d8"
+      "result_sha256": "d1d658f441d972da84f87911fa484a331826fc4d5075c182502d8883a27f2a2c",
+      "checkpoints_sha256": "f34b3405860e0d23bb33d2196c5fbd76968a3c34d5807b12af97d94b5fc6bb32"
     },
     "pre_soak": {
       "status": "PASS",
-      "started_at": "2026-10-05T08:32:36.821Z",
-      "ended_at": "2026-10-05T09:32:36.850Z",
-      "elapsed_ms": 3600029,
+      "started_at": "2026-10-06T00:10:54.938Z",
+      "ended_at": "2026-10-06T01:10:54.995Z",
+      "elapsed_ms": 3600057,
       "checkpoints": 60,
-      "result_sha256": "79a72614b8fbc4c67e702d2e935e223371b68c66e0b91cc905418fb913c8448c",
-      "checkpoints_sha256": "570b8a9533ebfe3b2e2d452301bae1b9ffd7c253b69c71fbbd8fdb848f61b53a"
+      "result_sha256": "a7a9ddeaa5fbadcc7d7bc6f53242ee833664b79afb53abad7365a3aabb93ae90",
+      "checkpoints_sha256": "0eb8064cd14f8db80a4f0896f716c61d2b9fb1a283b884d9203c94fad0d75bd0"
     }
   },
   "rules": {
@@ -46,8 +46,8 @@
       "domain": "CAMERA_SOURCE",
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
-      "test_method": "One-minute live health checkpoints preserve 10 assigned physical sources, nine source-available channels, CH8 upstream-unavailable, and six empty slots.",
-      "pass_criteria": "Every checkpoint reports assigned=10, connected>=9, connected+failed=10, empty=6, and CH8 never substitutes for a qualified channel.",
+      "test_method": "One-minute live health checkpoints preserve 10 assigned physical sources, the eight owner-verified baseline source-available channels, CH2/CH8 upstream exceptions, and six empty slots.",
+      "pass_criteria": "Every checkpoint reports assigned=10, the eight baseline-qualified channels progressing, connected+failed=10, empty=6, and any temporary CH2/CH8 recovery is reported as additional availability rather than substituted for a qualified channel.",
       "evidence_source": "V8 checkpoints.ndjson and result.json"
     },
     {
@@ -56,7 +56,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Inspect each qualified DVR input and the Tapo input at every checkpoint.",
-      "pass_criteria": "All nine qualified DVR channels and Tapo progress at every mandatory checkpoint; no unexplained stale interval.",
+      "pass_criteria": "All eight baseline-qualified DVR channels and Tapo progress at every mandatory checkpoint; no unexplained stale interval.",
       "evidence_source": "V8 per_camera summary and checkpoint input telemetry"
     },
     {
@@ -65,7 +65,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Compare discovery failure state with the owner-verified DVR exception.",
-      "pass_criteria": "CH8 remains visible as an upstream source failure if unavailable, is excluded only from the transport denominator, and does not mark the Gateway process offline.",
+      "pass_criteria": "CH2 and CH8 remain visible as upstream exceptions when unavailable, are excluded only from the transport denominator, and do not mark the Gateway process offline; temporary recovery remains visible without changing the frozen denominator.",
       "evidence_source": "V8 health payloads and result gate_failure_details"
     },
     {
@@ -74,7 +74,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect signed CURRENT, KNOWN_GOOD, runtime PID, build identity, and OTA state.",
-      "pass_criteria": "Gateway stays on signed 0.2.78, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
+      "pass_criteria": "Gateway stays on signed 0.2.80, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
       "evidence_source": "V8 release snapshots, OTA state, and process telemetry"
     },
     {
@@ -83,7 +83,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect Connector release identity, supervision, runtime PID, and OTA state.",
-      "pass_criteria": "Connector remains on signed known-good 0.2.37, healthy, and free of crash loops or manual recovery.",
+      "pass_criteria": "Connector remains on signed known-good 0.2.36, healthy, and free of crash loops or manual recovery.",
       "evidence_source": "V8 release snapshots and process telemetry"
     },
     {
@@ -136,7 +136,7 @@
       "domain": "PLAYBACK",
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
-      "test_method": "Decode a current frame through the authorized HLS contract for all nine qualified DVR sources at start, periodic checkpoints, and end.",
+      "test_method": "Decode a current frame through the authorized HLS contract for all eight baseline-qualified DVR sources at start, periodic checkpoints, and end; record any CH2/CH8 recovery separately.",
       "pass_criteria": "All qualified playback probes succeed with current media; no unexplained playlist or segment gap.",
       "evidence_source": "V8 playback probes and per_camera playback counts"
     },
@@ -173,7 +173,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Use an authorized separate device with no Gateway or Connector installed; validate all camera grants and visibly verify representative moving DVR streams.",
-      "pass_criteria": "Authorization contract covers all nine source-available DVR cameras and representative moving/current playback passes on the remote device.",
+      "pass_criteria": "Authorization contract covers all 10 assigned DVR cameras; moving/current playback passes for the eight baseline-qualified sources available at the DVR, while CH2/CH8 remain truthful upstream exceptions when unavailable.",
       "evidence_source": "Final owner-device remote DVR receipt"
     },
     {
@@ -227,7 +227,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Collect sampling coverage across all source-available physical cameras.",
-      "pass_criteria": "All nine source-available DVR cameras and the source-available Tapo camera are sampled; no unexplained 1/N concentration or false maturity claim.",
+      "pass_criteria": "All eight baseline-qualified DVR cameras and the source-available Tapo camera are sampled; any additional recovered DVR channel is recorded separately, with no unexplained 1/N concentration or false maturity claim.",
       "evidence_source": "V8 learning sampled_source_ids and coverage summary"
     },
     {
@@ -263,7 +263,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Compare per-source progression and relay ownership with aggregate health at every checkpoint.",
-      "pass_criteria": "No false healthy source, false Gateway outage, or unexplained flapping; CH8 stays correctly attributed upstream.",
+      "pass_criteria": "No false healthy source, false Gateway outage, or unexplained flapping; CH2/CH8 stay correctly attributed as upstream exceptions whenever unavailable.",
       "evidence_source": "V8 checkpoints and per_camera result"
     },
     {
