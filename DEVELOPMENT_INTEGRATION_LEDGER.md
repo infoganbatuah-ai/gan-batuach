@@ -862,3 +862,17 @@ updates only the lockfile to Capacitor Android/Core/iOS 8.5.2 and source-map-js
 1.2.2. A fresh locked install reports zero vulnerabilities; Security 11/11,
 typecheck, zero-regression lint and the 541-page Production build pass. No paid
 dependency, migration, Production or Digital Observer core change is included.
+
+UX-REFERENCE-RECONSTRUCTION-FINAL integration receipt (2026-10-06): PR #178
+passed all 9 exact-head checks at
+`a2f035ef3ccda7eddc3a09598d6c79b64822d083` and merged with preserved ancestry
+as `aea584782423652848ed4fdfe0204cc118bbf777` into
+`origin/integration/development`. Post-merge verification passed typecheck,
+zero-regression lint, the 541-page Production build, Domain 30/30, Security
+11/11, migration health, release-contract validation, and focused UX-03,
+UX-04, UX-05, UX-16, UX-17, UX-18, UX-19 and UX-20 suites. The merged-head V3
+package records 21 `REFERENCE_MATCH_CANDIDATE` domains, 326 Desktop and 326
+Mobile screenshots, 21 comparison boards, 21 overlays and 21 annotated boards,
+with zero `NEEDS_VISUAL_CORRECTION` and zero `BROKEN`. This label is internal
+and is not owner approval. Production, `main`, customer data, migrations,
+physical camera actions and Digital Observer core remain untouched.
