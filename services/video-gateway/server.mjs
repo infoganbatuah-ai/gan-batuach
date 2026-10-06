@@ -51,6 +51,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   shouldUsePrivateNvrExclusiveOutputRescue,
   shouldUsePrivateNvrExclusiveSessionSweep,
   shouldDeferPrivateNvrOutputRescueForSessionRenewal,
+  shouldBeginPrivateNvrFiniteResponseRecovery,
   shouldPrimePrivateNvrSessionForResponseRetirement,
   shouldRetainPrivateNvrOwnerOnDemand,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -437,7 +438,7 @@ const relayDiagnostics = new Map();
 const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   upstreamFailed: 0,
-  nativeInputEnds: 0,
+  nativeInputEnds: 0, immediateFiniteResponseRecoveries: 0,
   warmHandoffs: 0, warmHandoffFailures: 0,
   warmHandoffConfirmationFailures: 0, warmHandoffProbations: 0,
   warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
@@ -1902,6 +1903,33 @@ function retainFiniteResponsePlayback(streamId, relay, exitReason) {
   return true;
 }
 
+function beginPrivateNvrFiniteResponseRecovery(streamId, relay, source) {
+  if (!shouldBeginPrivateNvrFiniteResponseRecovery({
+    sourceKind: source?.kind,
+    sourceEnded: relay?.nativeInputEnded === true,
+    sustainedMedia: Number(relay?.inputBytes || 0) > 0,
+    ownerCurrent: relays.get(streamId) === relay,
+    ownerRunning: relayIsRunning(relay),
+    warming: relay?.warming === true,
+    stopping: Boolean(relay?.stopReason),
+    handoffInFlight: relayWarmups.has(streamId),
+    gatewayShuttingDown
+  })) return false;
+  // Preserve the current HLS generation first, then use the one canonical
+  // recovery timer and retry history. Releasing FFmpeg here prevents the
+  // measured 41-second buffered drain from postponing the recorder reopen;
+  // viewers keep the bounded retained playlist until the replacement emits.
+  retainFiniteResponsePlayback(streamId, relay, "SOURCE_STREAM_ENDED");
+  armRelayRecovery(streamId, relay, "SOURCE_STREAM_ENDED");
+  relayLifecycle.immediateFiniteResponseRecoveries += 1;
+  relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+    last_failure_reason: "SOURCE_STREAM_ENDED",
+    last_failure_at: new Date().toISOString(),
+    finite_response_recovery_started_at: new Date().toISOString() });
+  stopRelay(streamId, relay, "SOURCE_STREAM_ENDED");
+  return true;
+}
+
 function relayPlaylistMtime(relay) {
   if (!relay || !existsSync(relay.playlist)) return null;
   try { return statSync(relay.playlist).mtimeMs; } catch { return null; }
@@ -2747,6 +2775,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
       }
       relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
         last_native_input_end_at: new Date(relay.nativeInputEndedAt).toISOString() });
+      beginPrivateNvrFiniteResponseRecovery(streamId, relay, source);
     }).catch((error) => {
       const code = error?.cause?.code || error?.code;
       relay.lastInputErrorCode = safeInputCode(error);

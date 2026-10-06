@@ -49,7 +49,8 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrOutputRescueRetryAllowed,
   privateNvrProvisionalHandoffAllowed,
   privateNvrRoutineHandoffConfirmed,
-  privateNvrRoutineHandoffSchedule } from
+  privateNvrRoutineHandoffSchedule,
+  shouldBeginPrivateNvrFiniteResponseRecovery } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
@@ -903,6 +904,40 @@ test("clean native end is distinct from authentication and transport failure", (
   assert.equal(classifyRelayExit({ code: 1, stderr: "timed out" }), "SOURCE_TIMEOUT");
   assert.equal(classifyRelayExit({ code: 1, stderr: "401 unauthorized" }),
     "SOURCE_AUTH_REJECTED");
+});
+
+test("authoritative native response end enters canonical recovery before decoder drain", () => {
+  const eligible = {
+    sourceKind: "private_nvr_http_mp4",
+    sourceEnded: true,
+    sustainedMedia: true,
+    ownerCurrent: true,
+    ownerRunning: true,
+    warming: false,
+    stopping: false,
+    handoffInFlight: false,
+    gatewayShuttingDown: false
+  };
+  assert.equal(shouldBeginPrivateNvrFiniteResponseRecovery(eligible), true);
+  for (const override of [
+    { sourceKind: "rtsp" },
+    { sourceEnded: false },
+    { sustainedMedia: false },
+    { ownerCurrent: false },
+    { ownerRunning: false },
+    { warming: true },
+    { stopping: true },
+    { handoffInFlight: true },
+    { gatewayShuttingDown: true }
+  ]) assert.equal(shouldBeginPrivateNvrFiniteResponseRecovery({
+    ...eligible, ...override
+  }), false, "only the sustained current private-DVR owner may recover immediately");
+  assert.match(server,
+    /function beginPrivateNvrFiniteResponseRecovery[\s\S]*retainFiniteResponsePlayback\(streamId, relay, "SOURCE_STREAM_ENDED"\);[\s\S]*armRelayRecovery\(streamId, relay, "SOURCE_STREAM_ENDED"\);[\s\S]*stopRelay\(streamId, relay, "SOURCE_STREAM_ENDED"\);/,
+  "body completion must retain HLS and reuse the canonical recovery timer before releasing FFmpeg");
+  assert.match(server,
+    /last_native_input_end_at:[\s\S]*beginPrivateNvrFiniteResponseRecovery\(streamId, relay, source\);/,
+  "native completion must not wait for child.close or a consumer request");
 });
 
 test("source degradation does not falsely mark the Gateway component offline", () => {

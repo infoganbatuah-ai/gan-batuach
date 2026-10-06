@@ -382,6 +382,24 @@ export function shouldPrimePrivateNvrSessionForResponseRetirement({
     && minimumAgeMs > 0 && relayAgeMs >= minimumAgeMs);
 }
 
+// The recorder can finish a valid HTTP-MP4 response while FFmpeg remains alive
+// for tens of seconds draining buffered input. Waiting for the decoder's close
+// event leaves the source ownerless and makes recovery depend on a later
+// playback request. The authoritative ReadableStream completion is sufficient
+// to enter the existing bounded recovery lane only for the current, sustained
+// private-recorder owner. A warm handoff, empty response, planned stop, or
+// detached candidate must never start a competing lifecycle.
+export function shouldBeginPrivateNvrFiniteResponseRecovery({
+  sourceKind, sourceEnded = false, sustainedMedia = false,
+  ownerCurrent = false, ownerRunning = false, warming = false,
+  stopping = false, handoffInFlight = false,
+  gatewayShuttingDown = false
+} = {}) {
+  return Boolean(sourceKind === "private_nvr_http_mp4"
+    && sourceEnded && sustainedMedia && ownerCurrent && ownerRunning
+    && !warming && !stopping && !handoffInFlight && !gatewayShuttingDown);
+}
+
 // Playback, AI, learning, and health all converge on ensureRelay. None may
 // turn a bursty recorder pause into an independent relay lifecycle. Keep the
 // canonical owner while the actual response remains open and the recorder
