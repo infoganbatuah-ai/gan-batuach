@@ -27,6 +27,9 @@ for (const component of ["connector", "gateway"]) {
   assert.equal(built.rollout.cohort_percent, 0);
   assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 }
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.38-p38-health");
+assert.notEqual(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.37-p38-health",
+  "the immutable 0.2.37 Connector slot belongs to an earlier signed release");
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [
