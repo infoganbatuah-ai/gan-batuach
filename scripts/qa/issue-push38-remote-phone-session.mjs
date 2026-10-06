@@ -69,13 +69,13 @@ const dvr = assigned.filter(row => row.connector_type === "dvr")
 const tapo = assigned.filter(row => row.connector_type === "rtsp");
 const dvrAvailable = dvr.filter(row => row.status === "connected");
 const dvrUnavailable = dvr.filter(row => row.status !== "connected");
-if (dvr.length !== 10 || dvrAvailable.length !== 9 || dvrUnavailable.length !== 1 ||
-  Number(dvrUnavailable[0]?.metadata?.dvr_channel) !== 8 || tapo.length !== 1 || tapo[0].status !== "connected" ||
+if (dvr.length !== 10 || dvrAvailable.length !== 10 || dvrUnavailable.length !== 0 ||
+  tapo.length !== 1 || tapo[0].status !== "connected" ||
   empty.length !== 6) throw new Error("P38_REMOTE_PHONE_SOURCE_TRUTH_INVALID");
 const representativeChannels = new Set([1, 3, 11]);
 const sources = [...dvr.map(row => {
   const channel = Number(row.metadata.dvr_channel);
-  return { i: row.id, l: `DVR CH${channel}`, k: "DVR", e: channel === 8 ? "DENY" : "ALLOW",
+  return { i: row.id, l: `DVR CH${channel}`, k: "DVR", e: "ALLOW",
     p: representativeChannels.has(channel) };
 }), { i: tapo[0].id, l: "Tapo", k: "TAPO", e: "ALLOW", p: true }];
 const config = { t: accessToken, r: runtimeSecret.result_token, s: SITE_ID, c: sources };
@@ -90,7 +90,7 @@ writeFileSync(sessionPath, `${JSON.stringify({ protocol: "observer-push38-remote
   status: "READY", issued_at: new Date(now * 1000).toISOString(), expires_at: new Date(expires * 1000).toISOString(),
   client_class: "OWNER_PHONE_BROWSER", edge_software_required: false, source_authorizations: sources.length,
   dvr_authorizations: 10, dvr_visual_samples: [...representativeChannels], tapo_visual_samples: 1,
-  expected_dvr_denials: 1, empty_excluded: 6, url_logged: false, secrets_logged: false,
+  expected_dvr_denials: 0, empty_excluded: 6, url_logged: false, secrets_logged: false,
   qr_contains_short_lived_bearer: true, qr_encoding: "SHORT_SESSION_ID", payload_server_side: true,
   payload_path_logged: false }, null, 2)}\n`, { flag: "wx", mode: 0o600 });
 console.log(JSON.stringify({ status: "PASS", session: "SHORT_LIVED_RESTRICTED_QR", expires_at: new Date(expires * 1000).toISOString(),
