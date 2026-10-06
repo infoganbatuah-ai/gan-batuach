@@ -163,7 +163,8 @@ do $$ begin
 end $$;
 commit;`;
 docker(["exec", "-i", "supabase_db_gan-batuach-push38t", "psql", "-X", "-q",
-  "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], { input: sql });
+  "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
+{ input: sql, stdio: ["pipe", "pipe", "pipe"] });
 const result = { ...plan, activated_at: new Date().toISOString(), exact_rollout_active: true,
   broad_cohort: false, ota_agent_owns_install: true, runtime_writes: 0 };
 writeFileSync(outputPath, `${JSON.stringify(result, null, 2)}\n`, { flag: "wx", mode: 0o600 });
