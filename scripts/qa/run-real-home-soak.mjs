@@ -14,7 +14,12 @@ const exec = promisify(execFile);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
 const DVR_ASSIGNED_CHANNELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10, 11]);
 const unavailableArgument = String(args.get("dvr-upstream-unavailable") ?? "2,8").trim();
-const parsedUnavailable = unavailableArgument === "" ? [] : unavailableArgument.split(",").map(Number);
+// `none` is the explicit CLI representation for an empty exception set. The
+// generic argument parser intentionally represents a bare flag as `true`, so
+// `--dvr-upstream-unavailable=` cannot safely carry this state through the
+// durable launchd wrapper.
+const parsedUnavailable = unavailableArgument === "" || unavailableArgument.toLowerCase() === "none"
+  ? [] : unavailableArgument.split(",").map(Number);
 if (parsedUnavailable.some(value => !Number.isInteger(value)) ||
   new Set(parsedUnavailable).size !== parsedUnavailable.length ||
   parsedUnavailable.some(value => !DVR_ASSIGNED_CHANNELS.includes(value)))

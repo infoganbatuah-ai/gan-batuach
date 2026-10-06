@@ -87,6 +87,7 @@
     { "name": "reliability-qualification", "args": ["scripts/qa/check-digital-observer-reliability-qualification.mjs"] },
     { "name": "push38-gateway-event-loop-retry", "args": ["scripts/qa/check-push38-gateway-event-loop-retry.mjs"] },
     { "name": "push38-gateway-hardware-rescue-deadline-release", "args": ["scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs"] },
+    { "name": "push38-dvr-endpoint-recovery", "args": ["scripts/qa/check-push38-dvr-endpoint-recovery.mjs"] },
     { "name": "push38-gateway-failed-canary-rollback", "args": ["scripts/qa/check-push38-gateway-failed-canary-rollback.mjs"] },
     { "name": "north-star-ledger", "args": ["scripts/qa/check-north-star-completion-ledger.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },

@@ -15,6 +15,10 @@ import { connectorHeartbeatHealth, retainVerifiedChannels } from "../services/vi
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 import { createEdgeChildLivenessWatchdog } from "../services/video-gateway/edge-child-liveness-watchdog.mjs";
 import { runBoundedEdgeParentShutdown } from "../services/video-gateway/edge-parent-shutdown.mjs";
+import { discoverAuthorizedPrivateNvrEndpoint, parsePrivateNvrIdentityBinding,
+  PRIVATE_NVR_ENDPOINT_RECOVERY_PENDING_ACCOUNT, PRIVATE_NVR_IDENTITY_BINDING_ACCOUNT,
+  privateNvrEndpointWithHost, shouldAttemptPrivateNvrEndpointRecovery } from
+  "../services/video-gateway/private-nvr-endpoint-recovery.mjs";
 
 // Resolve the packaged runtime from this script, never from an interactive
 // shell's working directory or a developer-specific checkout.
@@ -50,6 +54,10 @@ const evidenceTestPollIntervalMs = evidenceTestCameraId ? 350 : undefined;
 const connectorChannelFilter = String(process.env.OBSERVER_EDGE_CHANNELS || "").split(",")
   .map((value) => Number(value.trim())).filter((value) => Number.isInteger(value) && value >= 1 && value <= 64);
 const streamNamespace = String(process.env.OBSERVER_EDGE_STREAM_NAMESPACE || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
+
+function sha256(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
+}
 
 function keychainSecret(account, service = gatewayKeychainService) { return service === dvrKeychainService ? dvrStore.read(account) : gatewayStore.read(account); }
 function storeKeychainSecret(account, value) { gatewayStore.write(account, value); }
@@ -104,6 +112,27 @@ const missingCloudConfiguration = [
   !devicePrivateKey && !deviceRefreshToken && !cloudSecret && "device_identity_or_cloud_discovery_secret"
 ].filter(Boolean);
 if (missingCloudConfiguration.length) throw new Error(`Persistent gateway cloud configuration is incomplete: ${missingCloudConfiguration.join(",")}`);
+
+let dvrIdentityBinding = null;
+const rawDvrIdentityBinding = edgeDeviceType === "PHYSICAL_GATEWAY"
+  ? dvrStore.read(PRIVATE_NVR_IDENTITY_BINDING_ACCOUNT) : "";
+if (rawDvrIdentityBinding) dvrIdentityBinding = parsePrivateNvrIdentityBinding(rawDvrIdentityBinding);
+let endpointRecoveryPending = null;
+const rawEndpointRecoveryPending = edgeDeviceType === "PHYSICAL_GATEWAY"
+  ? dvrStore.read(PRIVATE_NVR_ENDPOINT_RECOVERY_PENDING_ACCOUNT) : "";
+if (rawEndpointRecoveryPending) {
+  try {
+    const parsed = JSON.parse(rawEndpointRecoveryPending);
+    if (parsed?.contract !== "observer-private-nvr-endpoint-recovery-pending-v1"
+      || !parsed.old_profile || typeof parsed.old_profile !== "object"
+      || !/^[a-f0-9]{64}$/.test(parsed.old_profile_sha256)
+      || !/^[a-f0-9]{64}$/.test(parsed.new_profile_sha256)
+      || !Number.isFinite(Date.parse(parsed.created_at))) throw new Error("invalid");
+    endpointRecoveryPending = parsed;
+  } catch {
+    throw new Error("Private NVR endpoint recovery journal is invalid");
+  }
+}
 
 let configurations = [];
 if (discoveryEnabled) {
@@ -201,6 +230,87 @@ async function waitForGateway() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   throw new Error("Local gateway did not start");
+}
+
+async function localGatewayHealth() {
+  const response = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(5_000) });
+  if (!response.ok) throw new Error("LOCAL_GATEWAY_HEALTH_UNAVAILABLE");
+  return response.json();
+}
+
+async function acknowledgeEndpointRecoveryPending() {
+  if (!endpointRecoveryPending) return;
+  const currentProfile = dvrStore.read("dvr_profile_json");
+  if (!currentProfile || sha256(currentProfile) !== endpointRecoveryPending.new_profile_sha256) {
+    throw new Error("Private NVR endpoint recovery journal does not match the installed profile");
+  }
+  const health = await localGatewayHealth().catch(() => null);
+  const assigned = Number(health?.lastDiscovery?.assignedCount || 0);
+  const connected = Number(health?.lastDiscovery?.connectedCount || 0);
+  const recorderFailures = Number(health?.recorderSessionHeartbeat?.consecutive_failures || 0);
+  // A DVR profile can contain deliberately empty or independently failed
+  // physical channels. Recovery is acknowledged only when the replacement
+  // endpoint is serving at least one assigned channel and the shared recorder
+  // session is healthy; it must not compare the connected count with all 16
+  // recorder slots.
+  if (assigned > 0 && connected > 0 && recorderFailures === 0) {
+    dvrStore.remove(PRIVATE_NVR_ENDPOINT_RECOVERY_PENDING_ACCOUNT);
+    endpointRecoveryPending = null;
+    console.error(JSON.stringify({ level: "info", domain: "private_nvr_endpoint_recovery",
+      state: "IDENTITY_VERIFIED_ENDPOINT_ACTIVE", endpoint_exposed: false,
+      source_identity_changed: false }));
+  }
+}
+
+let endpointRecoveryOutageStartedAt = null;
+let endpointRecoveryLastAttemptAt = null;
+let endpointRecoveryRun = null;
+let endpointRecoveryRestartRequested = false;
+
+async function maintainPrivateNvrEndpoint() {
+  if (endpointRecoveryRestartRequested || edgeDeviceType !== "PHYSICAL_GATEWAY"
+    || !dvrIdentityBinding || configurations.length !== 1) return;
+  const health = await localGatewayHealth().catch(() => null);
+  if (!health) return;
+  if (endpointRecoveryPending) await acknowledgeEndpointRecoveryPending();
+  const decision = shouldAttemptPrivateNvrEndpointRecovery({ deviceType: edgeDeviceType,
+    health, outageStartedAt: endpointRecoveryOutageStartedAt,
+    lastAttemptAt: endpointRecoveryLastAttemptAt });
+  endpointRecoveryOutageStartedAt = decision.outageStartedAt;
+  if (!decision.ready) return;
+  endpointRecoveryLastAttemptAt = Date.now();
+  const rawProfile = dvrStore.read("dvr_profile_json");
+  const password = dvrStore.read("dvr_password");
+  if (!rawProfile || !password) throw new Error("Private NVR endpoint recovery configuration unavailable");
+  const profile = JSON.parse(rawProfile);
+  const discovered = await discoverAuthorizedPrivateNvrEndpoint({ profile, password,
+    binding: dvrIdentityBinding });
+  if (discovered.status !== "CHANGED") return;
+  const updated = { ...profile,
+    endpoint: privateNvrEndpointWithHost(profile.endpoint, discovered.host) };
+  const updatedRaw = JSON.stringify(updated);
+  if (updated.endpoint === profile.endpoint) return;
+  const pending = { contract: "observer-private-nvr-endpoint-recovery-pending-v1",
+    created_at: new Date().toISOString(), old_profile: profile,
+    old_profile_sha256: sha256(rawProfile), new_profile_sha256: sha256(updatedRaw),
+    identity_binding_sha256: sha256(JSON.stringify(dvrIdentityBinding)),
+    endpoint_exposed: false, credentials_exposed: false };
+  dvrStore.write(PRIVATE_NVR_ENDPOINT_RECOVERY_PENDING_ACCOUNT, JSON.stringify(pending));
+  try {
+    dvrStore.write("dvr_profile_json", updatedRaw);
+    if (dvrStore.read("dvr_profile_json") !== updatedRaw) {
+      throw new Error("Private NVR endpoint recovery persistence failed");
+    }
+  } catch (error) {
+    dvrStore.write("dvr_profile_json", rawProfile);
+    dvrStore.remove(PRIVATE_NVR_ENDPOINT_RECOVERY_PENDING_ACCOUNT);
+    throw error;
+  }
+  endpointRecoveryRestartRequested = true;
+  console.error(JSON.stringify({ level: "warning", domain: "private_nvr_endpoint_recovery",
+    state: "IDENTITY_VERIFIED_ENDPOINT_CHANGED", endpoint_exposed: false,
+    source_identity_changed: false, service_restart: "REQUESTED" }));
+  child.kill("SIGTERM");
 }
 
 let channels = [];
@@ -385,6 +495,7 @@ if (discoveryEnabled) {
   // discover() publishes the local channel set before awaiting cloud mapping,
   // so the next monitor cycle acquires leases even when cloud sync is slow.
   await discoverWithRetry("initial");
+  await acknowledgeEndpointRecoveryPending();
   releaseJournalOwner = acquireJournalOwnerLock();
   stopJournal = startJournalLoop({ gatewayUrl, gatewaySecret, databasePath: `${dataRoot}/journal-outbox.sqlite`,
     observerSiteId, deviceId: gatewayId, tenantId: observerSiteId,
@@ -408,6 +519,19 @@ await heartbeat().catch((error) => console.error(`initial connector heartbeat un
 setInterval(() => void heartbeat().catch((error) => console.error(`connector heartbeat unavailable: ${error instanceof Error ? error.message : "heartbeat_failed"}`)), 30_000).unref();
 childWatchdog.start();
 
+if (discoveryEnabled && edgeDeviceType === "PHYSICAL_GATEWAY" && dvrIdentityBinding) {
+  setInterval(() => {
+    if (!endpointRecoveryRun) {
+      endpointRecoveryRun = maintainPrivateNvrEndpoint()
+        .catch(error => console.error(JSON.stringify({ level: "warning",
+          domain: "private_nvr_endpoint_recovery", state: "RECOVERY_DEFERRED",
+          reason: String(error?.code || error?.name || "RECOVERY_FAILED"),
+          endpoint_exposed: false })))
+        .finally(() => { endpointRecoveryRun = null; });
+    }
+  }, 10_000).unref();
+}
+
 let shuttingDown = false;
 async function shutdown(exitCode = 0, terminateChild = true) {
   if (shuttingDown) return;
@@ -424,4 +548,7 @@ async function shutdown(exitCode = 0, terminateChild = true) {
 }
 process.on("SIGINT", () => void shutdown(0, true));
 process.on("SIGTERM", () => void shutdown(0, true));
-child.on("exit", (code) => void shutdown(code || 1, false));
+// Endpoint recovery deliberately hands control back to launchd after the
+// persisted endpoint-only change. Treat that one planned handoff as clean so
+// the OTA crash-loop guard cannot mistake it for a release failure.
+child.on("exit", (code) => void shutdown(endpointRecoveryRestartRequested ? 0 : code || 1, false));
