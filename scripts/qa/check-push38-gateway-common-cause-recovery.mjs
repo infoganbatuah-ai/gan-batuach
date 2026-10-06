@@ -338,9 +338,9 @@ test("healthy recorder responses are not replaced from age alone", () => {
     progressing: false,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
-    lastInputAt: now - 30_000, lastOutputAt: now - 20_000,
+    lastInputAt: now, lastOutputAt: now - 20_000,
     relayStaleMs: 20_000 }, now), null,
-  "hard-stale output alone cannot replace an authoritative recorder response");
+  "hard-stale output alone cannot replace a response while native input remains current");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     progressing: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,

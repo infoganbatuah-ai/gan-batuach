@@ -28,6 +28,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_RETRY_BACKOFF_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS,
+  PRIVATE_NVR_SILENT_RESPONSE_RESCUE_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
@@ -43,6 +44,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrHardwareOutputStalled,
+  privateNvrSilentResponseStalled,
   privateNvrRelayHandoffMode,
   privateNvrRetainedHlsContinuity,
   privateNvrExclusiveRescueContinuationStalled,
@@ -452,7 +454,7 @@ test("fresh recorder input with stalled VideoToolbox output enters one exclusive
     now
   }), true, "a no-output software response must enter the bounded reopen before retained HLS expires");
   assert.match(server,
-    /if \(!observation\) observation = await observeWarmReplacement\(replacement,[\s\S]*maximumNoAdvanceMs: forcedHardwareOutputRescue[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS : null/,
+    /if \(!observation\) observation = await observeWarmReplacement\(replacement,[\s\S]*maximumNoAdvanceMs: forcedExclusiveOutputRescue[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS : null/,
   "the first hardware-rescue software response must use the existing three-second no-advance bound");
   assert.match(server,
     /rmSync\(join\(HLS_ROOT, "\.generations"\), \{ recursive: true, force: true \}\)/,
@@ -460,6 +462,37 @@ test("fresh recorder input with stalled VideoToolbox output enters one exclusive
   assert.match(server,
     /gan-batuach-video-gateway-hls-\$\{PORT\}/,
   "Gateway, Connector and deterministic QA must not share one HLS namespace");
+});
+
+test("a silent open DVR response enters one exact-channel exclusive rescue", () => {
+  const now = 200_000;
+  const silent = {
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_SILENT_RESPONSE_RESCUE_MS,
+    lastOutputAt: now - PRIVATE_NVR_SILENT_RESPONSE_RESCUE_MS,
+    nativeInputEnded: false,
+    encoder: "videotoolbox",
+    progressing: true,
+    recoveryStable: true,
+    warming: false
+  };
+  assert.equal(privateNvrSilentResponseStalled(silent, now), true);
+  assert.equal(privateNvrRelayHandoffMode(silent, now), "OUTPUT_RESCUE");
+  assert.equal(privateNvrSilentResponseStalled({ ...silent,
+    lastInputAt: now - 100
+  }, now), false, "fresh native bytes remain the encoder-only path");
+  assert.equal(privateNvrSilentResponseStalled({ ...silent,
+    lastOutputAt: now - 100
+  }, now), false, "fresh HLS output is not a stranded response");
+  assert.equal(privateNvrSilentResponseStalled({ ...silent,
+    nativeInputEnded: true
+  }, now), false, "a closed response stays on finite-response recovery");
+  assert.match(server,
+    /silentResponseStalled[\s\S]*SILENT_RESPONSE_STALL_OWNER_RELEASE/,
+  "only the silent source owner is released before the confirmed replacement");
+  assert.match(server,
+    /forcedSilentResponseRescue[\s\S]*silentResponseRescues \+= 1/,
+  "health diagnostics must distinguish the new rescue from encoder failure");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {

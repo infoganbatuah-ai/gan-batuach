@@ -59,6 +59,13 @@ export const PRIVATE_NVR_ROUTINE_AGE_HANDOFF_ENABLED = false;
 // cannot be mistaken for an authoritative native response end.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
 export const PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS = 3_000;
+// A recorder response can remain open while both native bytes and rendered
+// HLS stop. Output-only silence is not sufficient authority because the Home
+// DVR has resumed after benign render pauses, but eight seconds with neither
+// native input nor output is a distinct stranded-response signal. It leaves
+// enough of the unchanged twenty-second HLS freshness budget for one
+// serialized exclusive reopen and its existing confirmation proof.
+export const PRIVATE_NVR_SILENT_RESPONSE_RESCUE_MS = 8_000;
 export const PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS = 4_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
 // A socket close is only the recorder's measured finite-response boundary
@@ -339,6 +346,20 @@ export function privateNvrHardwareOutputStalled(relay, now = Date.now()) {
     && outputIdleMs >= PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS;
 }
 
+export function privateNvrSilentResponseStalled(relay, now = Date.now(),
+  thresholdMs = PRIVATE_NVR_SILENT_RESPONSE_RESCUE_MS) {
+  if (!relay || relay.nativeInputEnded === true
+    || !Number.isFinite(relay.startedAt)
+    || !Number.isFinite(relay.lastInputAt)
+    || !Number.isFinite(relay.lastOutputAt)
+    || !Number.isFinite(now) || !Number.isFinite(thresholdMs)
+    || thresholdMs <= 0
+    || now - relay.startedAt < PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS)
+    return false;
+  return now - relay.lastInputAt >= thresholdMs
+    && now - relay.lastOutputAt >= thresholdMs;
+}
+
 export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   if (!relay || relay.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;
@@ -347,6 +368,7 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   const finiteResponseEnded = relay.nativeInputEnded === true
     && outputIdleMs >= PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS;
   const hardwareOutputStalled = privateNvrHardwareOutputStalled(relay, now);
+  const silentResponseStalled = privateNvrSilentResponseStalled(relay, now);
   // Rendered-output idle alone does not prove this recorder's response
   // retired: the real Home recorder resumed after soft and hard idle windows.
   // The only additional authority is the independently measured hardware
@@ -355,7 +377,7 @@ export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
   // the existing exclusive rescue/rollback machinery.
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
     && Number.isFinite(relay.lastOutputAt)
-    && (finiteResponseEnded || hardwareOutputStalled);
+    && (finiteResponseEnded || hardwareOutputStalled || silentResponseStalled);
   // Rendered-output loss is more urgent than the age-based finite-response
   // sweep. This also gives a genuinely stale older relay the separately
   // measured rescue acquisition budget instead of misclassifying it as a

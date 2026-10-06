@@ -36,6 +36,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
   privateNvrHardwareOutputStalled,
+  privateNvrSilentResponseStalled,
   privateNvrHealthEffectiveRelay,
   privateNvrRetainedHlsContinuity,
   privateNvrExclusiveRescueContinuationStalled,
@@ -278,6 +279,8 @@ async function maintainPrivateNvrRelayHandoffs() {
     };
     const hardwareOutputStalled =
       privateNvrHardwareOutputStalled(handoffEvidence, observedAt);
+    const silentResponseStalled =
+      privateNvrSilentResponseStalled(handoffEvidence, observedAt);
     const handoffMode = privateNvrRelayHandoffMode(handoffEvidence, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
       if (sessionRenewalPending) continue;
@@ -288,6 +291,13 @@ async function maintainPrivateNvrRelayHandoffs() {
           hardware_output_stalled_at: new Date(observedAt).toISOString(),
           hardware_output_stalled_input_idle_ms: observedAt - relay.lastInputAt,
           hardware_output_stalled_output_idle_ms: observedAt - lastOutputAt });
+      }
+      if (silentResponseStalled) {
+        relay.silentResponseStalled = true;
+        relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+          silent_response_stalled_at: new Date(observedAt).toISOString(),
+          silent_response_input_idle_ms: observedAt - relay.lastInputAt,
+          silent_response_output_idle_ms: observedAt - lastOutputAt });
       }
       const hardStale = Number.isFinite(lastOutputAt)
         && observedAt - lastOutputAt >= RELAY_STALE_MS;
@@ -455,6 +465,7 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   directoryCleanupsQueued: 0, directoryCleanupsCompleted: 0,
   directoryCleanupSkippedActive: 0, directoryCleanupFailures: 0,
   directoryCleanupMaxMs: 0,
+  silentResponseRescues: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,
@@ -2208,6 +2219,10 @@ async function warmReplaceRelay(streamId, previous, {
     let exclusiveOwnerReleased = true;
     const forcedHardwareOutputRescue = handoffMode === "OUTPUT_RESCUE"
       && previous?.hardwareOutputStalled === true;
+    const forcedSilentResponseRescue = handoffMode === "OUTPUT_RESCUE"
+      && previous?.silentResponseStalled === true;
+    const forcedExclusiveOutputRescue = forcedHardwareOutputRescue
+      || forcedSilentResponseRescue;
     let exclusiveSessionSweep = shouldUsePrivateNvrExclusiveSessionSweep({
       handoffMode, sourceKind: source?.kind,
       exclusiveBoundaryObserved: handoffMode === "SESSION_SWEEP_EXCLUSIVE",
@@ -2216,20 +2231,23 @@ async function warmReplaceRelay(streamId, previous, {
       relayEpoch: previous?.sessionEpoch,
       currentEpoch: currentSession?.epoch
     });
-    if (forcedHardwareOutputRescue) {
-      // The recorder response is still delivering current bytes, so a second
-      // response would test the DVR rather than repair the isolated encoder
-      // failure. Preserve the fresh HLS buffer, release exactly the failed
-      // hardware owner, and reopen through the existing confirmed rescue lane.
-      // The scheduler has already quarantined VideoToolbox for this source, so
-      // the replacement deterministically uses the software fallback.
+    if (forcedExclusiveOutputRescue) {
+      // Fresh native bytes with stale output isolate a hardware encoder stall;
+      // stale native bytes plus stale output isolate a stranded recorder
+      // response. Neither case is authority to rotate the shared login or
+      // disturb another source. Preserve the bounded HLS generation, release
+      // exactly this owner, and reopen through the same confirmed rescue lane.
       exclusiveRescue = true;
       relayLifecycle.exclusiveRescueTakeovers += 1;
       relayLifecycle.exclusiveRescueColdTakeovers += 1;
       relayLifecycle.exclusiveRescueReopens += 1;
+      if (forcedSilentResponseRescue)
+        relayLifecycle.silentResponseRescues += 1;
       retainExclusivePlayback(streamId, previous, "OUTPUT_RESCUE_EXCLUSIVE");
       exclusiveOwnerReleased = await stopRelayForExclusiveReplacement(streamId, previous,
-        "HARDWARE_OUTPUT_STALL_OWNER_RELEASE");
+        forcedHardwareOutputRescue
+          ? "HARDWARE_OUTPUT_STALL_OWNER_RELEASE"
+          : "SILENT_RESPONSE_STALL_OWNER_RELEASE");
       expectedCurrent = undefined;
     }
     if (exclusiveSessionSweep) {
@@ -2381,7 +2399,7 @@ async function warmReplaceRelay(streamId, previous, {
       // three-second output-rescue no-advance bound for this first software
       // response as well. Promotion still requires four advances over six
       // seconds and every transport/session/freshness gate remains unchanged.
-      maximumNoAdvanceMs: forcedHardwareOutputRescue
+      maximumNoAdvanceMs: forcedExclusiveOutputRescue
         ? PRIVATE_NVR_OUTPUT_RESCUE_TRIGGER_MS : null });
     // The 0.2.67 pre-soak proved that this recorder can keep a replacement
     // request open but withhold all media until the prior response closes.
