@@ -848,3 +848,9 @@ Production, `main`, customer data, physical camera action or Digital Observer
 core change occurred. The next action is exact-head commit/push, PR and merge to
 `integration/development`, followed by merged-head V3 regeneration; RELEASE-GAP-01
 has not started.
+
+UX-REFERENCE-RECONSTRUCTION-FINAL preservation receipt (2026-10-06): validated
+commit `eab97f61c632bf7f46c55215ec747bbe22ab5571` is verified on
+`origin/codex/ux-reference-reconstruction-final`. The next action is an
+exact-head PR to `integration/development`, required checks, ancestry-preserving
+merge and merged-head V3 regeneration. Production and `main` remain untouched.
