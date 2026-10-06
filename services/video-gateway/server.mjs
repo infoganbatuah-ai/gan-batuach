@@ -13,7 +13,8 @@ import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
-  projectHlsPlaybackPlaylist, summarizeRelayAvailability } from
+  projectHlsPlaybackPlaylist, relayRenewalRequiresComponentRecovery,
+  summarizeRelayAvailability } from
   "./hls-playback-continuity.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
@@ -3285,6 +3286,8 @@ async function handle(request, response) {
       [streamId, relayMediaContinuity(streamId)]);
     const { progressingRelays, renewingRelays, availableRelays, stalledRelays } =
       summarizeRelayAvailability(relayContinuity);
+    const renewalRequiresComponentRecovery =
+      relayRenewalRequiresComponentRecovery(relayContinuity);
     const observedAssigned = [...streamSources.values()].filter((source) => source.status !== "unassigned").length;
     const expectedAssigned = Math.max(observedAssigned, Number(lastDiscoverySummary.assignedCount || 0),
       edgeRuntimeIdentity.device_type === "SOFTWARE_CONNECTOR" ? Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 0) : 0);
@@ -3297,7 +3300,7 @@ async function handle(request, response) {
       observed_at: healthObservedAt,
       ok: mediaHealth.status === "HEALTHY",
       status: mediaHealth.status === "DEGRADED" ? "degraded"
-        : renewingRelays > 0 ? "recovering"
+        : renewalRequiresComponentRecovery ? "recovering"
         : supervision.state === "HEALTHY" ? "healthy" : supervision.state === "RECOVERING" ? "recovering" : "degraded",
       health_reason_codes: mediaHealth.errorCodes,
       provider: "custom",

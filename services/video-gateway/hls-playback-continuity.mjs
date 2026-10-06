@@ -26,6 +26,19 @@ export function summarizeRelayAvailability(relayContinuity) {
   };
 }
 
+export function relayRenewalRequiresComponentRecovery(relayContinuity) {
+  if (!Array.isArray(relayContinuity))
+    throw new Error("RELAY_RENEWAL_HEALTH_INPUT_INVALID");
+  const states = relayContinuity.map(entry => Array.isArray(entry) ? entry[1] : entry);
+  if (states.some(state => !state || typeof state !== "object"))
+    throw new Error("RELAY_RENEWAL_HEALTH_INPUT_INVALID");
+  // A bounded source renewal with retained HLS is source-level lifecycle
+  // telemetry, not a component outage. Escalate the component only when a
+  // renewing source has actually lost playback continuity.
+  return states.some(state => state.renewing === true &&
+    state.playbackContinuity !== true);
+}
+
 export function inspectHlsPlaybackPlaylist(playlist) {
   const lines = String(playlist || "").split(/\r?\n/);
   const mediaSequence = Number(MEDIA_SEQUENCE_LINE.exec(

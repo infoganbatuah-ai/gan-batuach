@@ -9,7 +9,8 @@ import { classifyBoundedOutputRescueRejection, classifyContainedOwnerRecovery,
 import { classifyRelayExit } from
   "../../services/video-gateway/relay-failure-reason.mjs";
 import { HLS_PLAYBACK_HOLDBACK_SEGMENTS, inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
-  projectHlsPlaybackPlaylist, summarizeRelayAvailability } from
+  projectHlsPlaybackPlaylist, relayRenewalRequiresComponentRecovery,
+  summarizeRelayAvailability } from
   "../../services/video-gateway/hls-playback-continuity.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   relayRetryDelayMs } from
@@ -176,6 +177,22 @@ test("health counts a renewing and progressing handoff as one available source",
     availableRelays: 2,
     stalledRelays: 1
   });
+});
+
+test("retained-HLS renewal remains source lifecycle rather than component recovery", () => {
+  assert.equal(relayRenewalRequiresComponentRecovery([
+    ["camera-1", { progressing: false, renewing: true,
+      playbackContinuity: true }],
+    ["camera-2", { progressing: true, renewing: false,
+      playbackContinuity: true }]
+  ]), false);
+  assert.equal(relayRenewalRequiresComponentRecovery([
+    ["camera-1", { progressing: false, renewing: true,
+      playbackContinuity: false }]
+  ]), true);
+  assert.match(server,
+    /status: mediaHealth\.status === "DEGRADED" \? "degraded"[\s\S]*: renewalRequiresComponentRecovery \? "recovering"/,
+    "component health must remain healthy through a continuity-preserving source renewal");
 });
 
 test("handoff capacity reserves a routine lane only while routine handoff is enabled", () => {
