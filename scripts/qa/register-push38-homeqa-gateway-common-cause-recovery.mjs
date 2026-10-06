@@ -89,6 +89,8 @@ import { PUSH38_GATEWAY_HEALTH_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-health-continuity.mjs";
 import { PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE
 } from "../../services/video-gateway/push38-home-qa-gateway-silent-response-rescue.mjs";
+import { PUSH38_GATEWAY_CORRELATED_SILENCE
+} from "../../services/video-gateway/push38-home-qa-gateway-correlated-silence.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -133,6 +135,8 @@ const healthContinuity =
   process.argv.includes("--gateway-health-continuity");
 const silentResponseRescue =
   process.argv.includes("--gateway-silent-response-rescue");
+const correlatedSilence =
+  process.argv.includes("--gateway-correlated-silence");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
@@ -140,10 +144,12 @@ if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenance
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity,
   deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline,
-  dvrEndpointRecovery, finiteResponseRecovery, healthContinuity, silentResponseRescue]
+  dvrEndpointRecovery, finiteResponseRecovery, healthContinuity, silentResponseRescue,
+  correlatedSilence]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = silentResponseRescue ? PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE :
+const item = correlatedSilence ? PUSH38_GATEWAY_CORRELATED_SILENCE :
+  silentResponseRescue ? PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE :
   healthContinuity ? PUSH38_GATEWAY_HEALTH_CONTINUITY :
   finiteResponseRecovery ? PUSH38_GATEWAY_FINITE_RESPONSE_RECOVERY :
   dvrEndpointRecovery ? PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY :
@@ -186,7 +192,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = silentResponseRescue
+const artifact = correlatedSilence
+  ? `${restrictedRoot}/push38-gateway-0.2.85-correlated-silence-package/gateway-runtime.tar.gz`
+  : silentResponseRescue
   ? `${restrictedRoot}/push38-gateway-0.2.84-silent-response-rescue-package/gateway-runtime.tar.gz`
   : healthContinuity
   ? `${restrictedRoot}/push38-gateway-0.2.83-health-continuity-package/gateway-runtime.tar.gz`
@@ -265,7 +273,9 @@ const artifact = silentResponseRescue
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = silentResponseRescue
+const publication = correlatedSilence
+  ? `${restrictedRoot}/push38-gateway-0.2.85-correlated-silence-package/r2-publication.json`
+  : silentResponseRescue
   ? `${restrictedRoot}/push38-gateway-0.2.84-silent-response-rescue-package/r2-publication.json`
   : healthContinuity
   ? `${restrictedRoot}/push38-gateway-0.2.83-health-continuity-package/r2-publication.json`
@@ -344,7 +354,9 @@ const publication = silentResponseRescue
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = silentResponseRescue
+const bundleName = correlatedSilence
+  ? "gateway_remediation_correlated_silence.json"
+  : silentResponseRescue
   ? "gateway_remediation_silent_response_rescue.json"
   : healthContinuity
   ? "gateway_remediation_health_continuity.json"
@@ -387,7 +399,7 @@ const bundleName = silentResponseRescue
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
+const predecessorReleaseId = (correlatedSilence || silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
   hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
   ? item.supersedesReleaseId :
   deviceIdentityContinuity ? item.rollbackReleaseId :
@@ -399,7 +411,9 @@ const predecessorReleaseId = (silentResponseRescue || healthContinuity || finite
 // still have a one-shot diagnostic rollout. Pause both sources of eligibility so
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
-const rolloutReleaseIdsToPause = silentResponseRescue
+const rolloutReleaseIdsToPause = correlatedSilence
+  ? [predecessorReleaseId, item.rollbackReleaseId]
+  : silentResponseRescue
   ? [predecessorReleaseId, item.rollbackReleaseId]
   : healthContinuity
   ? [predecessorReleaseId, item.rollbackReleaseId]
@@ -531,7 +545,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: silentResponseRescue
+console.log(JSON.stringify({ status: correlatedSilence
+  ? "GATEWAY_CORRELATED_SILENCE_REGISTERED_DRAFT" : silentResponseRescue
   ? "GATEWAY_SILENT_RESPONSE_RESCUE_REGISTERED_DRAFT" : healthContinuity
   ? "GATEWAY_HEALTH_CONTINUITY_REGISTERED_DRAFT" : finiteResponseRecovery
   ? "GATEWAY_FINITE_RESPONSE_RECOVERY_REGISTERED_DRAFT" : dvrEndpointRecovery

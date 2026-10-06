@@ -71,6 +71,7 @@
     "qa:push38-gateway-finite-response-recovery-release": "node scripts/qa/check-push38-gateway-finite-response-recovery-release.mjs",
     "qa:push38-gateway-health-continuity-release": "node scripts/qa/check-push38-gateway-health-continuity-release.mjs",
     "qa:push38-gateway-silent-response-rescue-release": "node scripts/qa/check-push38-gateway-silent-response-rescue-release.mjs",
+    "qa:push38-gateway-correlated-silence-release": "node scripts/qa/check-push38-gateway-correlated-silence-release.mjs",
     "qa:push38-gateway-failed-canary-rollback": "node scripts/qa/check-push38-gateway-failed-canary-rollback.mjs",
     "qa:push38-gateway-event-loop-retry": "node scripts/qa/check-push38-gateway-event-loop-retry.mjs",
     "qa:push38-connector-handoff-continuity-release": "node scripts/qa/check-push38-connector-handoff-continuity-release.mjs",

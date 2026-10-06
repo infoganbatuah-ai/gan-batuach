@@ -102,6 +102,9 @@ import { gatewayHealthContinuityBaselineAcceptable,
 import { gatewaySilentResponseRescueBaselineAcceptable,
   PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE
 } from "../../services/video-gateway/push38-home-qa-gateway-silent-response-rescue.mjs";
+import { gatewayCorrelatedSilenceBaselineAcceptable,
+  PUSH38_GATEWAY_CORRELATED_SILENCE
+} from "../../services/video-gateway/push38-home-qa-gateway-correlated-silence.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -179,6 +182,8 @@ const healthContinuity =
   process.argv.includes("--gateway-health-continuity");
 const silentResponseRescue =
   process.argv.includes("--gateway-silent-response-rescue");
+const correlatedSilence =
+  process.argv.includes("--gateway-correlated-silence");
 const explicitProactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 const proactiveExclusive = explicitProactiveExclusive || finiteResponseContinuity;
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
@@ -188,10 +193,12 @@ if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenance
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, explicitProactiveExclusive, playbackSweep, finiteResponseContinuity,
   deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline,
-  dvrEndpointRecovery, finiteResponseRecovery, healthContinuity, silentResponseRescue]
+  dvrEndpointRecovery, finiteResponseRecovery, healthContinuity, silentResponseRescue,
+  correlatedSilence]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = silentResponseRescue ? PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE :
+const item = correlatedSilence ? PUSH38_GATEWAY_CORRELATED_SILENCE :
+  silentResponseRescue ? PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE :
   healthContinuity ? PUSH38_GATEWAY_HEALTH_CONTINUITY :
   finiteResponseRecovery ? PUSH38_GATEWAY_FINITE_RESPONSE_RECOVERY :
   dvrEndpointRecovery ? PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY :
@@ -236,8 +243,8 @@ const item = silentResponseRescue ? PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE :
 // installed rollback state instead of requiring a quarantined release.
 const proactiveSuccessor = playbackSweep || proactiveExclusive || deviceIdentityContinuity ||
   ownerTransportRelease || eventLoopCleanup || hardwareRescueDeadline ||
-  finiteResponseRecovery || healthContinuity || silentResponseRescue;
-const connectorItem = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
+  finiteResponseRecovery || healthContinuity || silentResponseRescue || correlatedSilence;
+const connectorItem = (correlatedSilence || silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
   hardwareRescueDeadline || eventLoopCleanup) ? connectorDeviceIdentityContinuityItem :
   ownerTransportRelease ? connectorAiModelPathItem :
   (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
@@ -255,7 +262,7 @@ const connectorItem = (silentResponseRescue || healthContinuity || finiteRespons
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
+const predecessorReleaseId = (correlatedSilence || silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
   hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
   ? item.supersedesReleaseId :
   deviceIdentityContinuity ? item.rollbackReleaseId :
@@ -266,7 +273,9 @@ const predecessorReleaseId = (silentResponseRescue || healthContinuity || finite
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = silentResponseRescue
+const artifact = correlatedSilence
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.85-correlated-silence-package/gateway-runtime.tar.gz"
+  : silentResponseRescue
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.84-silent-response-rescue-package/gateway-runtime.tar.gz"
   : healthContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.83-health-continuity-package/gateway-runtime.tar.gz"
@@ -345,7 +354,9 @@ const artifact = silentResponseRescue
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = silentResponseRescue
+const publication = correlatedSilence
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.85-correlated-silence-package/r2-publication.json"
+  : silentResponseRescue
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.84-silent-response-rescue-package/r2-publication.json"
   : healthContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.83-health-continuity-package/r2-publication.json"
@@ -432,6 +443,10 @@ const shadowEvidencePath = option("shadow-evidence") ? resolve(option("shadow-ev
 const failedCanaryEvidencePath = option("failed-canary-evidence") ? resolve(option("failed-canary-evidence")) : "";
 const failedCanaryCheckpointsPath = option("failed-canary-checkpoints")
   ? resolve(option("failed-canary-checkpoints")) : "";
+const failedCanaryStatePath = option("failed-canary-state")
+  ? resolve(option("failed-canary-state")) : "";
+const failedCanaryRuntimeBundlePath = option("failed-canary-runtime-bundle")
+  ? resolve(option("failed-canary-runtime-bundle")) : "";
 const failedPreSoakEvidencePath = option("failed-pre-soak-evidence")
   ? resolve(option("failed-pre-soak-evidence")) : "";
 const failedPreSoakCheckpointsPath = option("failed-pre-soak-checkpoints")
@@ -671,6 +686,7 @@ if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  correlatedSilence ? "gateway_remediation_correlated_silence.json" :
   silentResponseRescue ? "gateway_remediation_silent_response_rescue.json" :
   healthContinuity ? "gateway_remediation_health_continuity.json" :
   finiteResponseRecovery ? "gateway_remediation_finite_response_recovery.json" :
@@ -860,8 +876,9 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
-const retainedFallbackTargetTruth = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) && gatewaySamples.every(sample =>
-  silentResponseRescue ? gatewaySilentResponseRescueBaselineAcceptable(sample) :
+const retainedFallbackTargetTruth = (correlatedSilence || silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) && gatewaySamples.every(sample =>
+  correlatedSilence ? gatewayCorrelatedSilenceBaselineAcceptable(sample) :
+    silentResponseRescue ? gatewaySilentResponseRescueBaselineAcceptable(sample) :
     healthContinuity ? gatewayHealthContinuityBaselineAcceptable(sample) :
     finiteResponseRecovery ? gatewayFiniteResponseRecoveryBaselineAcceptable(sample) :
     dvrEndpointRecovery ? gatewayDvrEndpointRecoveryBaselineAcceptable(sample) :
@@ -885,6 +902,69 @@ let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 let failedV8LivenessEvidence = null;
 let endpointRecoveryEvidence = null;
+if (correlatedSilence) {
+  const stateBytes = protectedFile(failedCanaryStatePath);
+  const checkpointBytes = protectedFile(failedCanaryCheckpointsPath);
+  const resultBytes = protectedFile(failedCanaryEvidencePath);
+  const runtimeBundleBytes = protectedFile(failedCanaryRuntimeBundlePath);
+  const state = JSON.parse(stateBytes);
+  const result = JSON.parse(resultBytes);
+  const checkpoints = checkpointBytes.toString("utf8").trim().split("\n")
+    .map(line => JSON.parse(line));
+  const before = checkpoints.find(point => point.sequence === 8);
+  const failed = checkpoints.find(point => point.sequence === 9);
+  const recovered = checkpoints.find(point => point.sequence === 10);
+  const missingOwners = (failed?.dvr?.inputs || [])
+    .filter(input => input?.owner_state === "NONE" &&
+      input?.media_owner_state === "NONE" && input?.progressing === false)
+    .map(input => input.channel).sort((left, right) => left - right);
+  if (sha(stateBytes) !== item.failedCanaryStateSha256 ||
+    sha(checkpointBytes) !== item.failedCanaryCheckpointsSha256 ||
+    sha(resultBytes) !== item.failedCanaryResultSha256 ||
+    sha(runtimeBundleBytes) !== item.failedCanaryRuntimeBundleSha256 ||
+    state.contract !== "observer-reliability-soak-state-v1" ||
+    state.run_id !== item.failedCanaryRunId ||
+    state.duration_ms !== 900_000 || state.interval_ms !== 60_000 ||
+    state.checkpoint_count !== 15 || checkpoints.length !== 15 ||
+    result.status !== "NOT_DONE" || result.checkpoints !== 15 ||
+    result.progressing_camera_samples !== 161 ||
+    result.expected_camera_samples !== 165 ||
+    JSON.stringify(result.gate_failures) !==
+      JSON.stringify(["EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) ||
+    result.gateway?.unavailable_checkpoints !== 0 ||
+    result.gateway?.source_degraded_checkpoints !== 1 ||
+    result.gateway?.supervisor_restarts !== 0 ||
+    result.gateway?.runtime_restarts !== 0 ||
+    result.gateway?.recorder_session_failure_delta !== 0 ||
+    result.gateway?.recorder_auth_rejection_delta !== 0 ||
+    result.playback?.failures !== 0 || result.ai?.failures !== 0 ||
+    before?.dvr?.classification !== "PASS" || before?.dvr?.progressing !== 10 ||
+    before?.dvr?.lifecycle?.silentResponseRescues !== 0 ||
+    failed?.release?.gateway?.software_version !== item.supersedesVersion ||
+    failed?.release?.gateway?.build_sha !==
+      "14369e39aa73bb7f1fc12ad440ba4561342ff90e" ||
+    failed?.dvr?.classification !== "PRODUCT_FAILURE" ||
+    failed?.dvr?.component_status !== "degraded" ||
+    failed?.dvr?.progressing !== 6 || failed?.dvr?.available !== 6 ||
+    failed?.dvr?.stalled !== 4 || failed?.dvr?.failed !== 0 ||
+    failed?.dvr?.lifecycle?.silentResponseRescues !== 6 ||
+    failed?.dvr?.recorder_session?.failures !== 0 ||
+    failed?.dvr?.recorder_session?.authentication_rejected !== 0 ||
+    JSON.stringify(missingOwners) !== JSON.stringify([1, 3, 5, 6]) ||
+    recovered?.dvr?.classification !== "PASS" ||
+    recovered?.dvr?.progressing !== 10 || recovered?.dvr?.available !== 10 ||
+    failed?.tapo?.classification !== "PASS")
+    throw new Error("P38_GATEWAY_CORRELATED_SILENCE_FAILED_CANARY_PROOF_INVALID");
+  failedCanaryEvidence = { state_sha256: sha(stateBytes),
+    checkpoints_sha256: sha(checkpointBytes), result_sha256: sha(resultBytes),
+    runtime_bundle_sha256: sha(runtimeBundleBytes), checkpoints: checkpoints.length,
+    release_id: item.supersedesReleaseId, failure_sequence: failed.sequence,
+    affected_channels: missingOwners,
+    failure_class: "CORRELATED_SILENT_RESPONSE_OWNER_RELEASE_GAP",
+    component_process_available: true, recorder_session_failures: 0,
+    recorder_auth_rejections: 0, adjacent_recovery_verified: true,
+    live_recovery_required: true };
+}
 if (silentResponseRescue) {
   const stateBytes = protectedFile(failedPreSoakEvidencePath);
   const checkpointBytes = protectedFile(failedPreSoakCheckpointsPath);
@@ -1728,7 +1808,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: silentResponseRescue ?
+const plan = { protocol: correlatedSilence ?
+  "observer-push38-gateway-correlated-silence-activation-v1" : silentResponseRescue ?
   "observer-push38-gateway-silent-response-rescue-activation-v1" : healthContinuity ?
   "observer-push38-gateway-health-continuity-activation-v1" : finiteResponseRecovery ?
   "observer-push38-gateway-finite-response-recovery-activation-v1" :
@@ -1779,7 +1860,8 @@ const plan = { protocol: silentResponseRescue ?
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (silentResponseRescue ?
+    retainedFallbackTargetTruth ? (correlatedSilence ?
+      "FAILED_CANARY_CORRELATED_SILENCE_SUCCESSOR_QUALIFIED" : silentResponseRescue ?
       "SILENT_RESPONSE_RESCUE_SUCCESSOR_QUALIFIED" : healthContinuity ?
       "HEALTH_CONTINUITY_SUCCESSOR_QUALIFIED" : finiteResponseRecovery ?
       "FINITE_RESPONSE_RECOVERY_SUCCESSOR_QUALIFIED" :
@@ -1844,7 +1926,8 @@ const plan = { protocol: silentResponseRescue ?
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: silentResponseRescue ?
+  console.log(JSON.stringify({ status: correlatedSilence ?
+    "GATEWAY_CORRELATED_SILENCE_PREFLIGHT_PASS" : silentResponseRescue ?
     "GATEWAY_SILENT_RESPONSE_RESCUE_PREFLIGHT_PASS" : healthContinuity ?
     "GATEWAY_HEALTH_CONTINUITY_PREFLIGHT_PASS" : finiteResponseRecovery ?
     "GATEWAY_FINITE_RESPONSE_RECOVERY_PREFLIGHT_PASS" :
@@ -1921,7 +2004,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: silentResponseRescue ?
+console.log(JSON.stringify({ status: correlatedSilence ?
+  "EXACT_GATEWAY_CORRELATED_SILENCE_ROLLOUT_ACTIVE" : silentResponseRescue ?
   "EXACT_GATEWAY_SILENT_RESPONSE_RESCUE_ROLLOUT_ACTIVE" : healthContinuity ?
   "EXACT_GATEWAY_HEALTH_CONTINUITY_ROLLOUT_ACTIVE" : finiteResponseRecovery ?
   "EXACT_GATEWAY_FINITE_RESPONSE_RECOVERY_ROLLOUT_ACTIVE" :
