@@ -99,6 +99,9 @@ import { gatewayFiniteResponseRecoveryBaselineAcceptable,
 import { gatewayHealthContinuityBaselineAcceptable,
   PUSH38_GATEWAY_HEALTH_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-gateway-health-continuity.mjs";
+import { gatewaySilentResponseRescueBaselineAcceptable,
+  PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE
+} from "../../services/video-gateway/push38-home-qa-gateway-silent-response-rescue.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
@@ -174,6 +177,8 @@ const finiteResponseRecovery =
   process.argv.includes("--gateway-finite-response-recovery");
 const healthContinuity =
   process.argv.includes("--gateway-health-continuity");
+const silentResponseRescue =
+  process.argv.includes("--gateway-silent-response-rescue");
 const explicitProactiveExclusive = process.argv.includes("--gateway-proactive-exclusive");
 const proactiveExclusive = explicitProactiveExclusive || finiteResponseContinuity;
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
@@ -183,10 +188,11 @@ if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenance
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, explicitProactiveExclusive, playbackSweep, finiteResponseContinuity,
   deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline,
-  dvrEndpointRecovery, finiteResponseRecovery, healthContinuity]
+  dvrEndpointRecovery, finiteResponseRecovery, healthContinuity, silentResponseRescue]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = healthContinuity ? PUSH38_GATEWAY_HEALTH_CONTINUITY :
+const item = silentResponseRescue ? PUSH38_GATEWAY_SILENT_RESPONSE_RESCUE :
+  healthContinuity ? PUSH38_GATEWAY_HEALTH_CONTINUITY :
   finiteResponseRecovery ? PUSH38_GATEWAY_FINITE_RESPONSE_RECOVERY :
   dvrEndpointRecovery ? PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY :
   hardwareRescueDeadline ? PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE :
@@ -230,8 +236,8 @@ const item = healthContinuity ? PUSH38_GATEWAY_HEALTH_CONTINUITY :
 // installed rollback state instead of requiring a quarantined release.
 const proactiveSuccessor = playbackSweep || proactiveExclusive || deviceIdentityContinuity ||
   ownerTransportRelease || eventLoopCleanup || hardwareRescueDeadline ||
-  finiteResponseRecovery || healthContinuity;
-const connectorItem = (healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
+  finiteResponseRecovery || healthContinuity || silentResponseRescue;
+const connectorItem = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
   hardwareRescueDeadline || eventLoopCleanup) ? connectorDeviceIdentityContinuityItem :
   ownerTransportRelease ? connectorAiModelPathItem :
   (proactiveSuccessor || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget) ? connectorRtspCadenceItem :
@@ -249,7 +255,7 @@ const connectorItem = (healthContinuity || finiteResponseRecovery || dvrEndpoint
   idleHandoff ? connectorRtspCadenceItem :
   heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
+const predecessorReleaseId = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery ||
   hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
   ? item.supersedesReleaseId :
   deviceIdentityContinuity ? item.rollbackReleaseId :
@@ -260,7 +266,9 @@ const predecessorReleaseId = (healthContinuity || finiteResponseRecovery || dvrE
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = healthContinuity
+const artifact = silentResponseRescue
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.84-silent-response-rescue-package/gateway-runtime.tar.gz"
+  : healthContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.83-health-continuity-package/gateway-runtime.tar.gz"
   : finiteResponseRecovery
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.82-finite-response-recovery-package/gateway-runtime.tar.gz"
@@ -337,7 +345,9 @@ const artifact = healthContinuity
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = healthContinuity
+const publication = silentResponseRescue
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.84-silent-response-rescue-package/r2-publication.json"
+  : healthContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.83-health-continuity-package/r2-publication.json"
   : finiteResponseRecovery
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.82-finite-response-recovery-package/r2-publication.json"
@@ -426,6 +436,8 @@ const failedPreSoakEvidencePath = option("failed-pre-soak-evidence")
   ? resolve(option("failed-pre-soak-evidence")) : "";
 const failedPreSoakCheckpointsPath = option("failed-pre-soak-checkpoints")
   ? resolve(option("failed-pre-soak-checkpoints")) : "";
+const failedPreSoakResultPath = option("failed-pre-soak-result")
+  ? resolve(option("failed-pre-soak-result")) : failedPreSoakEvidencePath;
 const failedV8EvidencePath = option("failed-v8-evidence")
   ? resolve(option("failed-v8-evidence")) : "";
 const failedV8CheckpointsPath = option("failed-v8-checkpoints")
@@ -659,6 +671,7 @@ if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  silentResponseRescue ? "gateway_remediation_silent_response_rescue.json" :
   healthContinuity ? "gateway_remediation_health_continuity.json" :
   finiteResponseRecovery ? "gateway_remediation_finite_response_recovery.json" :
   dvrEndpointRecovery ? "gateway_remediation_dvr_endpoint_recovery.json" :
@@ -847,8 +860,9 @@ const handoffProbationTargetTruth = handoffProbation && gatewaySamples.every(sam
   Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
   Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
   sample.rotations === 0);
-const retainedFallbackTargetTruth = (healthContinuity || finiteResponseRecovery || dvrEndpointRecovery || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) && gatewaySamples.every(sample =>
-  healthContinuity ? gatewayHealthContinuityBaselineAcceptable(sample) :
+const retainedFallbackTargetTruth = (silentResponseRescue || healthContinuity || finiteResponseRecovery || dvrEndpointRecovery || retainedFallback || continuousHandoff || routineProvisional || probationBudget || rescueCapacity || codecPreservation || handoffHardware || relayHandoff || handoffContinuity || handoffOwnerContinuity || sweepDeadline || deadlineBudget || recoveryContinuity || routineConfirmation || sessionRenewal || proactiveSuccessor) && gatewaySamples.every(sample =>
+  silentResponseRescue ? gatewaySilentResponseRescueBaselineAcceptable(sample) :
+    healthContinuity ? gatewayHealthContinuityBaselineAcceptable(sample) :
     finiteResponseRecovery ? gatewayFiniteResponseRecoveryBaselineAcceptable(sample) :
     dvrEndpointRecovery ? gatewayDvrEndpointRecoveryBaselineAcceptable(sample) :
     hardwareRescueDeadline ? gatewayHardwareRescueDeadlineBaselineAcceptable(sample) :
@@ -871,6 +885,57 @@ let failedCanaryEvidence = null;
 let failedPreSoakEvidence = null;
 let failedV8LivenessEvidence = null;
 let endpointRecoveryEvidence = null;
+if (silentResponseRescue) {
+  const stateBytes = protectedFile(failedPreSoakEvidencePath);
+  const checkpointBytes = protectedFile(failedPreSoakCheckpointsPath);
+  const resultBytes = protectedFile(failedPreSoakResultPath);
+  const state = JSON.parse(stateBytes);
+  const result = JSON.parse(resultBytes);
+  const checkpoints = checkpointBytes.toString("utf8").trim().split("\n")
+    .map(line => JSON.parse(line));
+  const before = checkpoints.find(point => point.sequence === 23);
+  const failed = checkpoints.find(point => point.sequence === 24);
+  const recovered = checkpoints.find(point => point.sequence === 25);
+  const failedInput = failed?.dvr?.inputs?.find(input => input.channel === 8);
+  if (sha(stateBytes) !== item.failedPreSoakStateSha256 ||
+    sha(checkpointBytes) !== item.failedPreSoakCheckpointsSha256 ||
+    sha(resultBytes) !== item.failedPreSoakResultSha256 ||
+    state.contract !== "observer-reliability-soak-state-v1" ||
+    state.run_id !== "push38-gateway-0.2.83-pre-soak-20261006T2122IDT" ||
+    state.duration_ms !== 3_600_000 || state.interval_ms !== 60_000 ||
+    state.checkpoint_count !== 60 || checkpoints.length !== 60 ||
+    result.status !== "NOT_DONE" || result.checkpoints !== 60 ||
+    result.progressing_camera_samples !== 659 ||
+    result.expected_camera_samples !== 660 ||
+    JSON.stringify(result.gate_failures) !==
+      JSON.stringify(["EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"]) ||
+    before?.dvr?.classification !== "PASS" || before?.dvr?.progressing !== 10 ||
+    failed?.release?.gateway?.software_version !== item.supersedesVersion ||
+    failed?.release?.gateway?.build_sha !==
+      "1298531e88653eb10bf05d5cd1c7e03f78f3b7e2" ||
+    failed?.dvr?.classification !== "PRODUCT_FAILURE" ||
+    failed?.dvr?.component_status !== "degraded" ||
+    failed?.dvr?.progressing !== 9 || failed?.dvr?.available !== 9 ||
+    failed?.dvr?.stalled !== 1 || failed?.dvr?.failed !== 0 ||
+    failedInput?.owner_state !== "NONE" ||
+    failedInput?.media_owner_state !== "NONE" ||
+    failedInput?.playback_continuity !== false ||
+    failed?.dvr?.recorder_session?.failures !== 0 ||
+    failed?.dvr?.recorder_session?.authentication_rejected !== 0 ||
+    failed?.resources?.gateway?.runtime_pid == null ||
+    recovered?.dvr?.classification !== "PASS" ||
+    recovered?.dvr?.progressing !== 10 || recovered?.dvr?.available !== 10 ||
+    failed?.tapo?.classification !== "PASS")
+    throw new Error("P38_GATEWAY_SILENT_RESPONSE_RESCUE_FAILED_PRE_SOAK_PROOF_INVALID");
+  failedPreSoakEvidence = { state_sha256: sha(stateBytes),
+    checkpoints_sha256: sha(checkpointBytes), result_sha256: sha(resultBytes),
+    checkpoints: checkpoints.length, release_id: item.supersedesReleaseId,
+    failure_sequence: failed.sequence, affected_channels: [8],
+    failure_class: "EXACT_CHANNEL_SILENT_RESPONSE_OWNER_GAP",
+    component_process_available: true, recorder_session_failures: 0,
+    recorder_auth_rejections: 0, adjacent_recovery_verified: true,
+    live_recovery_required: true };
+}
 if (healthContinuity) {
   const stateBytes = protectedFile(failedPreSoakEvidencePath);
   const checkpointBytes = protectedFile(failedPreSoakCheckpointsPath);
@@ -1663,7 +1728,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: healthContinuity ?
+const plan = { protocol: silentResponseRescue ?
+  "observer-push38-gateway-silent-response-rescue-activation-v1" : healthContinuity ?
   "observer-push38-gateway-health-continuity-activation-v1" : finiteResponseRecovery ?
   "observer-push38-gateway-finite-response-recovery-activation-v1" :
   dvrEndpointRecovery ? "observer-push38-gateway-dvr-endpoint-recovery-activation-v1" :
@@ -1713,7 +1779,8 @@ const plan = { protocol: healthContinuity ?
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   qualified_shadow_channel: shadowChannel,
   gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    retainedFallbackTargetTruth ? (healthContinuity ?
+    retainedFallbackTargetTruth ? (silentResponseRescue ?
+      "SILENT_RESPONSE_RESCUE_SUCCESSOR_QUALIFIED" : healthContinuity ?
       "HEALTH_CONTINUITY_SUCCESSOR_QUALIFIED" : finiteResponseRecovery ?
       "FINITE_RESPONSE_RECOVERY_SUCCESSOR_QUALIFIED" :
       dvrEndpointRecovery ? "DVR_ENDPOINT_RECOVERY_SUCCESSOR_QUALIFIED" :
@@ -1777,7 +1844,8 @@ const plan = { protocol: healthContinuity ?
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: healthContinuity ?
+  console.log(JSON.stringify({ status: silentResponseRescue ?
+    "GATEWAY_SILENT_RESPONSE_RESCUE_PREFLIGHT_PASS" : healthContinuity ?
     "GATEWAY_HEALTH_CONTINUITY_PREFLIGHT_PASS" : finiteResponseRecovery ?
     "GATEWAY_FINITE_RESPONSE_RECOVERY_PREFLIGHT_PASS" :
     dvrEndpointRecovery ? "GATEWAY_DVR_ENDPOINT_RECOVERY_PREFLIGHT_PASS" :
@@ -1853,7 +1921,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: healthContinuity ?
+console.log(JSON.stringify({ status: silentResponseRescue ?
+  "EXACT_GATEWAY_SILENT_RESPONSE_RESCUE_ROLLOUT_ACTIVE" : healthContinuity ?
   "EXACT_GATEWAY_HEALTH_CONTINUITY_ROLLOUT_ACTIVE" : finiteResponseRecovery ?
   "EXACT_GATEWAY_FINITE_RESPONSE_RECOVERY_ROLLOUT_ACTIVE" :
   dvrEndpointRecovery ? "EXACT_GATEWAY_DVR_ENDPOINT_RECOVERY_ROLLOUT_ACTIVE" :

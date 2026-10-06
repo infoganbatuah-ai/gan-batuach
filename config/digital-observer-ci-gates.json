@@ -91,6 +91,7 @@
     { "name": "push38-gateway-dvr-endpoint-recovery-release", "args": ["scripts/qa/check-push38-gateway-dvr-endpoint-recovery-release.mjs"] },
     { "name": "push38-gateway-finite-response-recovery-release", "args": ["scripts/qa/check-push38-gateway-finite-response-recovery-release.mjs"] },
     { "name": "push38-gateway-health-continuity-release", "args": ["scripts/qa/check-push38-gateway-health-continuity-release.mjs"] },
+    { "name": "push38-gateway-silent-response-rescue-release", "args": ["scripts/qa/check-push38-gateway-silent-response-rescue-release.mjs"] },
     { "name": "push38-gateway-failed-canary-rollback", "args": ["scripts/qa/check-push38-gateway-failed-canary-rollback.mjs"] },
     { "name": "north-star-ledger", "args": ["scripts/qa/check-north-star-completion-ledger.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
