@@ -3,11 +3,15 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileS
 import { homedir } from "node:os";
 import { dirname, resolve, sep } from "node:path";
 import { once } from "node:events";
-import { selectBoundedMediaIpv6 } from "../../services/video-gateway/push38-bounded-media-network.mjs";
+import {
+  selectBoundedMediaIpv6,
+  selectBoundedMediaIpv6WithoutUpnp
+} from "../../services/video-gateway/push38-bounded-media-network.mjs";
 
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const durationSeconds = Number(option("duration-seconds") || 1200);
 const port = Number(option("port") || 18443);
+const allowExternalProofWithoutUpnp = process.argv.includes("--allow-external-proof-without-upnp");
 if (!Number.isInteger(durationSeconds) || durationSeconds < 300 || durationSeconds > 1200 ||
   !Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error("P38_BOUNDED_MEDIA_WINDOW_INVALID");
@@ -53,9 +57,18 @@ const addPinhole = args => {
   }
 };
 const ifconfig = execFileSync("/sbin/ifconfig", ["en0"], { encoding: "utf8", timeout: 10_000 });
-const upnpStatus = runUpnp(["-6", "-m", "en0", "-s"], "P38_BOUNDED_MEDIA_UPNP_DISCOVERY_FAILED", 20_000);
-const address = selectBoundedMediaIpv6({ ifconfigOutput: ifconfig, upnpOutput: upnpStatus });
-if (!address) throw new Error("P38_BOUNDED_MEDIA_UPNP_IPV6_UNAVAILABLE");
+let upnpStatus = "";
+let upnpAvailable = true;
+try {
+  upnpStatus = runUpnp(["-6", "-m", "en0", "-s"], "P38_BOUNDED_MEDIA_UPNP_DISCOVERY_FAILED", 20_000);
+} catch (error) {
+  if (!allowExternalProofWithoutUpnp) throw error;
+  upnpAvailable = false;
+}
+const address = upnpAvailable
+  ? selectBoundedMediaIpv6({ ifconfigOutput: ifconfig, upnpOutput: upnpStatus })
+  : selectBoundedMediaIpv6WithoutUpnp(ifconfig);
+if (!address) throw new Error("P38_BOUNDED_MEDIA_ASSIGNED_IPV6_UNAVAILABLE");
 
 const cloudflarePem = readFileSync(`${homedir()}/.cloudflared/cert.pem`, "utf8");
 const encoded = cloudflarePem.split("\n").filter(line => line && !line.startsWith("-----")).join("");
@@ -92,7 +105,9 @@ const state = {
   private_camera_credentials_exposed: false,
   recurring_cost_introduced: false,
   address_redacted: true,
-  address_source: "UPNP_ACTIVE_LAN_MATCH",
+  address_source: upnpAvailable ? "UPNP_ACTIVE_LAN_MATCH" : "ASSIGNED_STABLE_GLOBAL_IPV6",
+  router_pinhole_available: upnpAvailable,
+  external_proof_required: !upnpAvailable,
   pinhole_id_recorded: false
 };
 writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`, { flag: "wx", mode: 0o600 });
@@ -146,18 +161,19 @@ try {
   for (const name of names) records.push(await api(`/zones/${credential.zoneID}/dns_records`, {
     method: "POST", body: JSON.stringify({ type: "AAAA", name, content: address, proxied: false, ttl: 60 })
   }));
-  const pinhole = addPinhole(["-6", "-m", "en0", "-A", "", "0", address,
-    String(port), "TCP", String(durationSeconds)]);
+  const pinhole = upnpAvailable ? addPinhole(["-6", "-m", "en0", "-A", "", "0", address,
+    String(port), "TCP", String(durationSeconds)]) : "";
   pinholeId = pinhole ? Number(/unique\s*ID\s*(?:is|:)\s*(\d+)/i.exec(pinhole)?.[1]) : null;
   if (pinhole && !Number.isInteger(pinholeId)) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
   const exposureStatus = pinholeId === null ? "PENDING_EXTERNAL_PROOF" : "ACTIVE";
   const startedAt = new Date(); const expiresAt = new Date(startedAt.getTime() + durationSeconds * 1000);
   writeFileSync(statePath, `${JSON.stringify({ ...state, status: exposureStatus, started_at: startedAt.toISOString(),
     expires_at: expiresAt.toISOString(), pinhole_id_recorded: pinholeId !== null,
-    firewall_path: pinholeId === null ? "PREEXISTING_REQUIRES_EXTERNAL_PROOF" : "MANAGED_TEMPORARY_PINHOLE" }, null, 2)}\n`, { mode: 0o600 });
+    firewall_path: !upnpAvailable ? "NO_UPNP_EXTERNAL_PROOF_REQUIRED" :
+      pinholeId === null ? "PREEXISTING_REQUIRES_EXTERNAL_PROOF" : "MANAGED_TEMPORARY_PINHOLE" }, null, 2)}\n`, { mode: 0o600 });
   console.log(JSON.stringify({ status: exposureStatus, duration_seconds: durationSeconds, hostnames: names,
     port, address_redacted: true, pinhole_managed: pinholeId !== null,
-    auto_cleanup: true, recurring_cost_introduced: false }));
+    external_proof_required: pinholeId === null, auto_cleanup: true, recurring_cost_introduced: false }));
   const timer = setTimeout(async () => process.exit(await cleanup("LEASE_EXPIRED") ? 0 : 1), durationSeconds * 1000);
   for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => {
     clearTimeout(timer); cleanup(signal).then(success => process.exit(success ? 0 : 1));

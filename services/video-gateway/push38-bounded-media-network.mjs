@@ -33,3 +33,14 @@ export function selectBoundedMediaIpv6({ ifconfigOutput, upnpOutput }) {
   if (!selected || !assigned.has(selected)) return "";
   return selected;
 }
+
+export function selectBoundedMediaIpv6WithoutUpnp(ifconfigOutput) {
+  let temporary = "";
+  for (const line of String(ifconfigOutput || "").split("\n")) {
+    const address = normalizeIpv6(/\binet6\s+([^\s]+)/.exec(line)?.[1]);
+    if (!isGlobalIpv6(address)) continue;
+    if (!/\btemporary\b/i.test(line)) return address;
+    if (!temporary) temporary = address;
+  }
+  return temporary;
+}

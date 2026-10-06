@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   assignedGlobalIpv6Addresses,
   selectBoundedMediaIpv6,
+  selectBoundedMediaIpv6WithoutUpnp,
   upnpLocalLanIpv6
 } from "../../services/video-gateway/push38-bounded-media-network.mjs";
 
@@ -36,4 +37,12 @@ test("accepts an interface zone suffix without leaking it into the bind address"
     ifconfigOutput: zoned,
     upnpOutput: `Local LAN ip address : ${stable}%en0\n`
   }), stable);
+});
+
+test("uses an assigned stable global address for externally proved no-UPnP exposure", () => {
+  assert.equal(selectBoundedMediaIpv6WithoutUpnp(interfaceState), stable);
+  assert.equal(selectBoundedMediaIpv6WithoutUpnp(
+    `  inet6 ${temporary} prefixlen 64 autoconf temporary\n`), temporary);
+  assert.equal(selectBoundedMediaIpv6WithoutUpnp(
+    "  inet6 fe80::1%en0 prefixlen 64 secured scopeid 0x7\n"), "");
 });
