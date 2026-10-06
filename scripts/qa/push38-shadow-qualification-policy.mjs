@@ -128,6 +128,7 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
 } = {}) {
   const outputFailures = Number(lifecycle.warmHandoffFailuresByMode?.outputRescue || 0);
   if (outputFailures === 0) return { pass: true, warning: null };
+  const recoveryStarts = Number(lifecycle.startsByReason?.recovery || 0);
   const startedAt = Date.parse(checkpoints?.[0]?.observed_at || "");
   const endedAt = Date.parse(checkpoints?.at(-1)?.observed_at || "");
   const boundedFailures = Number.isFinite(startedAt) && Number.isFinite(endedAt)
@@ -143,7 +144,14 @@ export function classifyBoundedOutputRescueRejection(checkpoints, lifecycle = {}
     lifecycle.warmHandoffRollbacks !== 0 ||
     lifecycle.staleInput !== 0 || lifecycle.stalePlaylist !== 0 || lifecycle.staleOnRequest !== 0 ||
     lifecycle.inputSocketError !== 0 || lifecycle.upstreamFailed !== 0 ||
-    Number(lifecycle.startsByReason?.recovery || 0) !== 0 ||
+    // A rejected OUTPUT_RESCUE candidate is launched through the canonical
+    // recovery entry point.  The start is still contained when every rejected
+    // candidate is accounted for here, the current owner and playback remain
+    // continuous at the exact failure checkpoint, and a later promotion is
+    // observed below.  More recovery starts than rejected candidates remain a
+    // restart storm and must fail qualification.
+    !Number.isInteger(recoveryStarts) || recoveryStarts < 0 ||
+    recoveryStarts > outputFailures ||
     Number(lifecycle.warmHandoffs || 0) <= outputFailures)
     return { pass: false, warning: null, reason: "UNBOUNDED_OUTPUT_RESCUE_FAILURE" };
   // Several source-level candidate rejections can complete inside one sampling
@@ -237,7 +245,7 @@ export function classifyContainedOwnerRecovery(checkpoints, { expectedProgressin
 // point so it cannot turn a reactive outage or a partial epoch drain into a
 // passing renewal.
 export function classifyContinuousSessionRenewal(checkpoints, lifecycle = {},
-  session = {}, { expectedProgressing = 1 } = {}) {
+  session = {}, { expectedProgressing = 1, containedOutputRescueFailures = 0 } = {}) {
   const rotations = Number(session.rotations || 0);
   if (rotations === 0) return { pass: true, warning: null, rotations: 0 };
   if (!Array.isArray(checkpoints) || checkpoints.length < 2 ||
@@ -249,13 +257,18 @@ export function classifyContinuousSessionRenewal(checkpoints, lifecycle = {},
   const finiteResponseRenewal = ["finite_response_reopen_rejected",
     "finite_response_socket_retired", "finite_response_body_retired"]
     .includes(session.last_rotation_reason);
+  const containedRecoveryStarts = Number(lifecycle.startsByReason?.recovery || 0);
+  const invalidContainedRecovery = !Number.isInteger(containedOutputRescueFailures) ||
+    containedOutputRescueFailures < 0 || !Number.isInteger(containedRecoveryStarts) ||
+    containedRecoveryStarts < 0 || containedRecoveryStarts > containedOutputRescueFailures ||
+    Number(lifecycle.warmHandoffFailuresByMode?.outputRescue || 0) < containedRecoveryStarts;
   const invalidModeCounters = proactiveRenewal ? (
     Number(session.proactive_attempts || 0) !== rotations ||
     Number(session.proactive_succeeded || 0) !== rotations ||
     Number(lifecycle.startsByReason?.sessionSweep || 0) !== expectedSweeps ||
     Number(lifecycle.warmHandoffsByMode?.sessionSweep || 0) !== expectedSweeps ||
     Number(lifecycle.warmHandoffFailuresByMode?.sessionSweep || 0) !== 0 ||
-    Number(lifecycle.startsByReason?.recovery || 0) !== 0 ||
+    invalidContainedRecovery ||
     Number(lifecycle.inputSocketError || 0) !== 0
   ) : finiteResponseRenewal ? (
     Number(session.proactive_attempts || 0) !== 0 ||

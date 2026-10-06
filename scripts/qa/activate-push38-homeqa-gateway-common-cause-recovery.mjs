@@ -643,7 +643,7 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
   const mediaContinuityProof = mediaContinuityResult.pass &&
     lifecycle.starts <= Math.ceil(value.duration_ms / 30_000) + 2 &&
     lifecycle.warmHandoffFailures <= lifecycle.starts &&
-    lifecycle.warmHandoffConfirmationFailures === lifecycle.warmHandoffFailures &&
+    lifecycle.warmHandoffConfirmationFailures <= lifecycle.warmHandoffFailures &&
     lifecycle.warmHandoffRollbacks === 0 &&
     lifecycle.staleInput <= Number(lifecycle.startsByReason?.recovery ?? -1) &&
     lifecycle.stalePlaylist === 0 && lifecycle.staleOnRequest <= 1 &&

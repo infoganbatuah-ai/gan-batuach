@@ -559,7 +559,9 @@ try {
     : { pass: true, reason: null };
   const sessionRenewalClassification = classifyContinuousSessionRenewal(
     qualificationCheckpoints, lifecycle, finalPoint?.shadow.recorder_session || {},
-    { expectedProgressing: channels.length });
+    { expectedProgressing: channels.length,
+      containedOutputRescueFailures: outputRescueClassification.pass
+        ? outputRescueFailures : 0 });
   const maximumBoundedRoutineFailures = Math.max(1,
     Math.ceil(evidence.duration_ms / PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS));
   if (!evidence.checkpoints.every((point) => point.shadow.http === 200

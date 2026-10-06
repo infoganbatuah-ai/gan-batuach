@@ -258,6 +258,43 @@ test("two-source Shadow preserves both media paths through a bounded rescue reje
   assert.equal(result.pass, true);
 });
 
+test("a contained acquisition retry does not invalidate an exact session sweep", () => {
+  const playback = { status: 200, playlist_status: 200, segment_status: 200,
+    segment_bytes: 1024 };
+  const point = (sequence, failures, handoffs) => ({ sequence,
+    observed_at: new Date(sequence * 60_000).toISOString(),
+    renewals: [{ channel: 1, playback }],
+    shadow: { http: 200, media: { progressing: 1, available: 1, stalled: 0,
+      inputs: [{ owner_state: "CURRENT", canonical_owner_progressing: true }],
+      lifecycle: { warmHandoffFailures: failures, warmHandoffs: handoffs } } } });
+  const checkpoints = [point(1, 0, 3), point(2, 1, 3), point(3, 1, 4)];
+  const lifecycle = { warmHandoffFailures: 1, warmHandoffConfirmationFailures: 0,
+    warmHandoffs: 4, warmHandoffRollbacks: 0, staleInput: 0, stalePlaylist: 0,
+    staleOnRequest: 0, inputSocketError: 0, upstreamFailed: 0,
+    startsByReason: { recovery: 1, sessionSweep: 4 },
+    warmHandoffsByMode: { sessionSweep: 4 },
+    warmHandoffFailuresByMode: { outputRescue: 1, sessionSweep: 0 } };
+  const contained = classifyBoundedOutputRescueRejection(checkpoints, lifecycle);
+  assert.equal(contained.pass, true,
+    "one accounted recovery start is safe only with continuous media and later promotion");
+  const session = { rotations: 4, login_succeeded: 5, proactive_attempts: 4,
+    proactive_succeeded: 4, logout_succeeded: 4, logout_failed: 0,
+    retired_session_backlog: 0,
+    last_rotation_reason: "proactive_nonexclusive_renewal" };
+  assert.equal(classifyContinuousSessionRenewal(checkpoints, lifecycle, session,
+    { expectedProgressing: 1, containedOutputRescueFailures: 1 }).pass, true);
+  assert.equal(classifyContinuousSessionRenewal(checkpoints, {
+    ...lifecycle, startsByReason: { recovery: 2, sessionSweep: 4 }
+  }, session, { expectedProgressing: 1, containedOutputRescueFailures: 1 }).reason,
+  "SESSION_SWEEP_COUNTERS_INVALID", "an extra recovery start remains a hard failure");
+  const gap = structuredClone(checkpoints);
+  gap[1].shadow.media.progressing = 0;
+  gap[1].shadow.media.available = 0;
+  gap[1].shadow.media.stalled = 1;
+  assert.equal(classifyBoundedOutputRescueRejection(gap, lifecycle).pass, false,
+    "the same counters cannot excuse a media gap");
+});
+
 test("proactive session renewal passes only with an exact continuous epoch drain", () => {
   const playback = { status: 200, playlist_status: 200, segment_status: 200,
     segment_bytes: 1024 };
