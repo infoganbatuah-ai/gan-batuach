@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { lstatSync, mkdtempSync, rmSync } from "node:fs";
+import { lstatSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildPush38ManagedAuthContinuityManifest,
@@ -26,6 +26,24 @@ for (const component of ["connector", "gateway"]) {
   assert.equal(built.compatibility.maximum_current_version, item.rollbackVersion);
   assert.equal(built.rollout.cohort_percent, 0);
   assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
+}
+
+for (const [path, required] of [
+  ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [
+    "observer-push38-managed-auth-continuity-r2-publication-v1",
+    "anonymous_access_denied: true", "expiresIn: 120"
+  ]],
+  ["scripts/qa/register-push38-homeqa-managed-auth-continuity.mjs", [
+    "MANAGED_AUTH_CONTINUITY_REGISTERED_DRAFT", "cohort_percent<>0",
+    "MANAGED_IDENTITY_VERIFIED"
+  ]],
+  ["scripts/qa/activate-push38-homeqa-managed-auth-continuity.mjs", [
+    "ota_agent_owns_install: true", "EXACT_MANAGED_AUTH_CONTINUITY_ROLLOUT_ACTIVE",
+    "rollback_release_id"
+  ]]
+]) {
+  const source = readFileSync(path, "utf8");
+  for (const value of required) assert.ok(source.includes(value), `${path}:${value}`);
 }
 
 const pair = generateKeyPairSync("ed25519");
