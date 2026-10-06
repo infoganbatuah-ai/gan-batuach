@@ -3,7 +3,7 @@ import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { lstatSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildPush38ManagedAuthContinuityManifest,
+import { buildPush38ManagedAuthContinuityManifest, push38ManagedAuthActivationStateAllows,
   PUSH38_MANAGED_AUTH_CONTINUITY } from
   "../../services/video-gateway/push38-home-qa-managed-auth-continuity.mjs";
 import { canonicalEdgeUpdateManifest, verifyEdgeUpdateManifest } from
@@ -30,6 +30,17 @@ for (const component of ["connector", "gateway"]) {
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.38-p38-health");
 assert.notEqual(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.37-p38-health",
   "the immutable 0.2.37 Connector slot belongs to an earlier signed release");
+const collision = PUSH38_MANAGED_AUTH_CONTINUITY.connector.recoverablePriorFailure;
+const recoverable = { state: "UPDATE_FAILED", current_unchanged: true,
+  release_id: collision.releaseId, target_version: collision.version,
+  failure_category: collision.category };
+assert.equal(push38ManagedAuthActivationStateAllows("connector", recoverable), true);
+assert.equal(push38ManagedAuthActivationStateAllows("connector", { ...recoverable,
+  current_unchanged: false }), false);
+assert.equal(push38ManagedAuthActivationStateAllows("connector", { ...recoverable,
+  release_id: "qa-unrelated" }), false);
+assert.equal(push38ManagedAuthActivationStateAllows("gateway", recoverable), false);
+assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [

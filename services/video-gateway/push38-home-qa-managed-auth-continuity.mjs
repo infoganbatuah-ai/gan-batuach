@@ -14,7 +14,12 @@ export const PUSH38_MANAGED_AUTH_CONTINUITY = Object.freeze({
     profile: "SOFTWARE_CONNECTOR",
     configVersion: 4,
     rollbackReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
-    rollbackVersion: "0.2.36-p38-health"
+    rollbackVersion: "0.2.36-p38-health",
+    recoverablePriorFailure: Object.freeze({
+      releaseId: "qa-p38-health-connector-managed-auth-694dcfc8c1a3",
+      version: "0.2.37-p38-health",
+      category: "EDGE_UPDATE_SLOT_ALREADY_EXISTS"
+    })
   }),
   gateway: Object.freeze({
     role: "GATEWAY_MANAGED_AUTH_CONTINUITY",
@@ -27,9 +32,20 @@ export const PUSH38_MANAGED_AUTH_CONTINUITY = Object.freeze({
     profile: "PHYSICAL_GATEWAY",
     configVersion: 1,
     rollbackReleaseId: "qa-p38-health-gateway-correlated-silence-879c233e40db",
-    rollbackVersion: "0.2.85-p38-health"
+    rollbackVersion: "0.2.85-p38-health",
+    recoverablePriorFailure: null
   })
 });
+
+export function push38ManagedAuthActivationStateAllows(component, state) {
+  const item = PUSH38_MANAGED_AUTH_CONTINUITY[component];
+  if (!item || !state || typeof state !== "object") return false;
+  if (["HEALTHY", "ROLLED_BACK"].includes(state.state)) return true;
+  const prior = item.recoverablePriorFailure;
+  return Boolean(prior && state.state === "UPDATE_FAILED" && state.current_unchanged === true &&
+    state.release_id === prior.releaseId && state.target_version === prior.version &&
+    state.failure_category === prior.category);
+}
 
 export function buildPush38ManagedAuthContinuityManifest({ component, signingKeyId,
   artifactOrigin, releasedAt }) {

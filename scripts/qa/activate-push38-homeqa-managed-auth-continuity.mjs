@@ -11,7 +11,7 @@ import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-upda
 import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from
   "../../services/video-gateway/edge-release-trust.mjs";
-import { PUSH38_MANAGED_AUTH_CONTINUITY } from
+import { push38ManagedAuthActivationStateAllows, PUSH38_MANAGED_AUTH_CONTINUITY } from
   "../../services/video-gateway/push38-home-qa-managed-auth-continuity.mjs";
 
 const restrictedRoot = `${realpathSync(
@@ -96,7 +96,7 @@ const config = localState("agent-config.json");
 if (current.release_id !== item.rollbackReleaseId || current.version !== item.rollbackVersion ||
   !knownGood.some(value => value.release_id === current.release_id &&
     value.artifact_sha256 === current.artifact_sha256) ||
-  !["HEALTHY", "ROLLED_BACK"].includes(updateState.state) || config.deviceId !== item.deviceId ||
+  !push38ManagedAuthActivationStateAllows(component, updateState) || config.deviceId !== item.deviceId ||
   config.profile !== item.profile || config.channel !== "HOME_QA")
   throw new Error("P38_MANAGED_AUTH_ACTIVATION_ROLLBACK_OR_IDENTITY_INVALID");
 const componentService = service(runtime.label), agentService = service(runtime.agentLabel);
@@ -128,6 +128,9 @@ const plan = { protocol: "observer-push38-managed-auth-continuity-activation-v1"
   target_artifact_sha256: item.digest, exact_device_id: item.deviceId, cohort_percent: 0,
   trust: "PASS", r2_round_trip: "PASS", rollback: "PASS", service_manager: "PASS",
   component_pid: componentService.pid, ota_agent_pid: agentService.pid,
+  prior_update_state: updateState.state,
+  prior_failure_category: updateState.failure_category || null,
+  prior_current_unchanged: updateState.current_unchanged === true,
   current_health_sha256: sha(Buffer.from(JSON.stringify(health))), database };
 if (mode === "PREFLIGHT") {
   writeFileSync(outputPath, `${JSON.stringify(plan, null, 2)}\n`, { flag: "wx", mode: 0o600 });
