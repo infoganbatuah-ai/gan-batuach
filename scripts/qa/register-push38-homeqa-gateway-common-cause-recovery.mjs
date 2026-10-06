@@ -83,6 +83,8 @@ import { PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE
 } from "../../services/video-gateway/push38-home-qa-gateway-hardware-rescue-deadline.mjs";
 import { PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-gateway-dvr-endpoint-recovery.mjs";
+import { PUSH38_GATEWAY_FINITE_RESPONSE_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-gateway-finite-response-recovery.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -121,6 +123,8 @@ const ownerTransportRelease = process.argv.includes("--gateway-owner-transport-r
 const eventLoopCleanup = process.argv.includes("--gateway-event-loop-cleanup");
 const hardwareRescueDeadline = process.argv.includes("--gateway-hardware-rescue-deadline");
 const dvrEndpointRecovery = process.argv.includes("--gateway-dvr-endpoint-recovery");
+const finiteResponseRecovery =
+  process.argv.includes("--gateway-finite-response-recovery");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
   heartbeatLogin, idleHandoff, bufferedOutput, outputRescue, confirmedHandoff, startupWindow,
   handoffProbation, retainedFallback, continuousHandoff, routineProvisional, probationBudget,
@@ -128,10 +132,11 @@ if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenance
   handoffOwnerContinuity, sweepDeadline, deadlineBudget, recoveryContinuity, routineConfirmation,
   sessionRenewal, proactiveExclusive, playbackSweep, finiteResponseContinuity,
   deviceIdentityContinuity, ownerTransportRelease, eventLoopCleanup, hardwareRescueDeadline,
-  dvrEndpointRecovery]
+  dvrEndpointRecovery, finiteResponseRecovery]
   .filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = dvrEndpointRecovery ? PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY :
+const item = finiteResponseRecovery ? PUSH38_GATEWAY_FINITE_RESPONSE_RECOVERY :
+  dvrEndpointRecovery ? PUSH38_GATEWAY_DVR_ENDPOINT_RECOVERY :
   hardwareRescueDeadline ? PUSH38_GATEWAY_HARDWARE_RESCUE_DEADLINE :
   eventLoopCleanup ? PUSH38_GATEWAY_EVENT_LOOP_CLEANUP :
   ownerTransportRelease ? PUSH38_GATEWAY_OWNER_TRANSPORT_RELEASE :
@@ -171,7 +176,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = dvrEndpointRecovery
+const artifact = finiteResponseRecovery
+  ? `${restrictedRoot}/push38-gateway-0.2.82-finite-response-recovery-package/gateway-runtime.tar.gz`
+  : dvrEndpointRecovery
   ? `${restrictedRoot}/push38-gateway-0.2.81-dvr-endpoint-recovery-package/gateway-runtime.tar.gz`
   : hardwareRescueDeadline
   ? `${restrictedRoot}/push38-gateway-0.2.80-hardware-rescue-deadline-package/gateway-runtime.tar.gz`
@@ -244,7 +251,9 @@ const artifact = dvrEndpointRecovery
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = dvrEndpointRecovery
+const publication = finiteResponseRecovery
+  ? `${restrictedRoot}/push38-gateway-0.2.82-finite-response-recovery-package/r2-publication.json`
+  : dvrEndpointRecovery
   ? `${restrictedRoot}/push38-gateway-0.2.81-dvr-endpoint-recovery-package/r2-publication.json`
   : hardwareRescueDeadline
   ? `${restrictedRoot}/push38-gateway-0.2.80-hardware-rescue-deadline-package/r2-publication.json`
@@ -317,7 +326,9 @@ const publication = dvrEndpointRecovery
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = dvrEndpointRecovery ? "gateway_remediation_dvr_endpoint_recovery.json"
+const bundleName = finiteResponseRecovery
+  ? "gateway_remediation_finite_response_recovery.json"
+  : dvrEndpointRecovery ? "gateway_remediation_dvr_endpoint_recovery.json"
   : hardwareRescueDeadline ? "gateway_remediation_hardware_rescue_deadline.json"
   : eventLoopCleanup ? "gateway_remediation_event_loop_cleanup.json"
   : ownerTransportRelease ? "gateway_remediation_owner_transport_release.json"
@@ -354,7 +365,8 @@ const bundleName = dvrEndpointRecovery ? "gateway_remediation_dvr_endpoint_recov
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const predecessorReleaseId = (dvrEndpointRecovery || hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
+const predecessorReleaseId = (finiteResponseRecovery || dvrEndpointRecovery ||
+  hardwareRescueDeadline || eventLoopCleanup || ownerTransportRelease)
   ? item.supersedesReleaseId :
   deviceIdentityContinuity ? item.rollbackReleaseId :
   (finiteResponseContinuity || playbackSweep || proactiveExclusive || sessionRenewal || routineConfirmation || recoveryContinuity || deadlineBudget || sweepDeadline || handoffOwnerContinuity) ? item.supersedesReleaseId :
@@ -365,7 +377,9 @@ const predecessorReleaseId = (dvrEndpointRecovery || hardwareRescueDeadline || e
 // still have a one-shot diagnostic rollout. Pause both sources of eligibility so
 // the OTA agent cannot repeatedly retry the baseline while the successor remains
 // DRAFT. Activation re-enables only the exact release selected by its pinned plan.
-const rolloutReleaseIdsToPause = dvrEndpointRecovery
+const rolloutReleaseIdsToPause = finiteResponseRecovery
+  ? [predecessorReleaseId, item.rollbackReleaseId]
+  : dvrEndpointRecovery
   ? [predecessorReleaseId, item.rollbackReleaseId]
   : hardwareRescueDeadline
   ? [predecessorReleaseId, item.rollbackReleaseId]
@@ -491,7 +505,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: dvrEndpointRecovery
+console.log(JSON.stringify({ status: finiteResponseRecovery
+  ? "GATEWAY_FINITE_RESPONSE_RECOVERY_REGISTERED_DRAFT" : dvrEndpointRecovery
   ? "GATEWAY_DVR_ENDPOINT_RECOVERY_REGISTERED_DRAFT" : hardwareRescueDeadline
   ? "GATEWAY_HARDWARE_RESCUE_DEADLINE_REGISTERED_DRAFT" :
   eventLoopCleanup ? "GATEWAY_EVENT_LOOP_CLEANUP_REGISTERED_DRAFT" :

@@ -101,6 +101,7 @@ const gatewayOwnerTransportRelease = "qa-p38-health-gateway-owner-transport-rele
 const gatewayEventLoopCleanup = "qa-p38-health-gateway-event-loop-cleanup-rb77-83aaf23ce84e";
 const gatewayHardwareRescueDeadline = "qa-p38-health-gateway-hardware-rescue-deadline-d8b7adb3f815";
 const gatewayDvrEndpointRecovery = "qa-p38-health-gateway-dvr-endpoint-recovery-667d1ba76d68";
+const gatewayFiniteResponseRecovery = "qa-p38-health-gateway-finite-response-recovery-aa3d561da937";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -156,7 +157,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayOwnerTransportRelease,
       gatewayEventLoopCleanup,
       gatewayHardwareRescueDeadline,
-      gatewayDvrEndpointRecovery].includes(manifest.release_id) &&
+      gatewayDvrEndpointRecovery,
+      gatewayFiniteResponseRecovery].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
