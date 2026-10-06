@@ -71,6 +71,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push38-dvr-endpoint-recovery`: `node scripts/qa/check-push38-dvr-endpoint-recovery.mjs`
 - `push38-gateway-dvr-endpoint-recovery-release`: `node scripts/qa/check-push38-gateway-dvr-endpoint-recovery-release.mjs`
 - `push38-gateway-finite-response-recovery-release`: `node scripts/qa/check-push38-gateway-finite-response-recovery-release.mjs`
+- `push38-gateway-health-continuity-release`: `node scripts/qa/check-push38-gateway-health-continuity-release.mjs`
 - `push38-gateway-failed-canary-rollback`: `node scripts/qa/check-push38-gateway-failed-canary-rollback.mjs`
 - `north-star-ledger`: `node scripts/qa/check-north-star-completion-ledger.mjs`
 - `watch-rules`: `node scripts/qa/check-digital-observer-watch-rule-compiler.mjs`
@@ -115,7 +116,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **407** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **408** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -299,6 +300,7 @@ Inventory count: **407** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-gateway-handoff-owner-continuity-release.mjs` | npm run qa:push38-gateway-handoff-owner-continuity-release | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-handoff-probation.mjs` | node scripts/qa/check-push38-gateway-handoff-probation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs` | npm run qa:push38-gateway-hardware-rescue-deadline-release | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-push38-gateway-health-continuity-release.mjs` | npm run qa:push38-gateway-health-continuity-release | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-heartbeat-login.mjs` | node scripts/qa/check-push38-gateway-heartbeat-login.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-idle-handoff.mjs` | node scripts/qa/check-push38-gateway-idle-handoff.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-maintenance-isolation.mjs` | node scripts/qa/check-push38-gateway-maintenance-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
