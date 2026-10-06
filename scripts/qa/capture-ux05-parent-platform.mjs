@@ -77,7 +77,13 @@ async function capture(page, name, viewport, path, referenceArea) {
   await page.setViewportSize(viewport);
   const response = await page.goto(`${base}${path}`, { waitUntil: "networkidle", timeout: 180_000 });
   assert.equal(response?.status(), 200, path);
-  await page.locator("main.dashboard-safe-state, main.loading-screen").first().waitFor({ state: "hidden", timeout: 180_000 });
+  const guardedState = page.locator("main.dashboard-safe-state, main.loading-screen").first();
+  try {
+    await guardedState.waitFor({ state: "hidden", timeout: 180_000 });
+  } catch (error) {
+    const guardedText = await guardedState.innerText().catch(() => "מצב שמור ללא טקסט");
+    throw new Error(`${path} remained in a guarded state: ${guardedText.replace(/\s+/g, " ").slice(0, 420)}`, { cause: error });
+  }
   await page.locator(".branded-splash").waitFor({ state: "detached", timeout: 10_000 });
   await page.evaluate(() => scrollTo(0, 0));
   await page.waitForTimeout(160);

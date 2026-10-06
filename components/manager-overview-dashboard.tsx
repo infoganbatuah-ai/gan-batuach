@@ -3,8 +3,8 @@ import Link from "next/link";
 import type { CSSProperties, ComponentType, ReactNode } from "react";
 import type { LucideProps } from "lucide-react";
 import {
-  Activity, Baby, BarChart3, Bell, Building2, CalendarDays, CheckCircle2,
-  ChevronLeft, CircleAlert, ClipboardCheck, Clock3, FileClock, GraduationCap,
+  Activity, Baby, BarChart3, Bell, Building2, CalendarDays, Camera, CheckCircle2,
+  ChevronLeft, CircleAlert, ClipboardCheck, FileClock, GraduationCap,
   Landmark, Megaphone, MessageCircle, ShieldCheck, UserRoundPlus, UsersRound,
   WalletCards
 } from "lucide-react";
@@ -62,12 +62,30 @@ export function ManagerOverviewDashboard({
       </section>
 
       <section className="manager-today-strip" aria-label="היום בגן">
-        <TodayMetric label="צפויים" value={attendance.total} hint="ילדים פעילים" icon={Baby} tone="blue" href="/dashboard/garden/children" />
-        <TodayMetric label="נוכחים" value={attendance.present} hint="בגן עכשיו" icon={CheckCircle2} tone="green" href="/dashboard/garden/attendance" />
-        <TodayMetric label="נעדרים" value={attendance.absent} hint="סומנו היום" icon={CircleAlert} tone="red" href="/dashboard/garden/attendance?filter=missing" />
-        <TodayMetric label="יצאו" value={attendance.departed} hint="שוחררו מהגן" icon={Clock3} tone="purple" href="/dashboard/garden/pickup" />
-        <TodayMetric label="צוות נוכח" value={`${staff.present}/${staff.active}`} hint={`${staff.scheduled} משובצים`} icon={UsersRound} tone="cyan" href="/dashboard/garden/staff" />
-        <TodayMetric label="לטיפול" value={actionTotal} hint="משימות ובקשות" icon={ClipboardCheck} tone="orange" href="/dashboard/garden/command-center" />
+        <TodayMetric label="ילדים נוכחים" value={`${attendance.present}/${attendance.total}`} hint={`${attendance.departed} כבר יצאו`} icon={Baby} tone="green" href="/dashboard/garden/attendance" />
+        <TodayMetric label="משימות פתוחות" value={operations.tasks} hint={`${operations.correctiveActions} דחופות`} icon={CircleAlert} tone="red" href="/dashboard/garden/tasks" />
+        <TodayMetric label="בקשות הרשמה" value={enrollment.open} hint={`${enrollment.informationRequired} ממתינות לאישור`} icon={FileClock} tone="purple" href="/dashboard/garden/enrollment-requests" />
+        <TodayMetric label="הודעות חדשות" value={unreadMessages} hint="מרכז התקשורת" icon={MessageCircle} tone="blue" href="/dashboard/garden/messages" />
+        <TodayMetric label="אירועי בטיחות" value={operations.correctiveActions} hint="דורש טיפול" icon={ShieldCheck} tone="orange" href="/dashboard/garden/corrective-actions" />
+        <TodayMetric label="מצלמות פעילות" value={`${safety.operationalCameras}/${safety.cameras}`} hint={safety.label} icon={Camera} tone="blue" href="/dashboard/garden/cameras" />
+      </section>
+
+      <section className="manager-reference-first-viewport" aria-label="היום, מצלמות ועדכונים">
+        <ReferencePanel title="היום בגן" icon={CalendarDays} href="/dashboard/garden/daily-journal" linkLabel="הצג הכל">
+          {schedule.length ? <div className="manager-schedule-list">{schedule.slice(0, 6).map((item) => { const Icon = item.icon ?? CalendarDays; return <article key={item.id}><Icon size={19} /><strong>{item.title}</strong><time>{item.time}</time></article>; })}</div> : <ReferenceEmpty text="עדיין לא פורסמו פעילויות להיום" />}
+        </ReferencePanel>
+        <article className="manager-reference-panel manager-reference-card manager-live-camera-card">
+          <header><span><Camera size={22} /> מצלמות בשידור חי</span><Link href="/dashboard/garden/cameras">הצג הכל <ChevronLeft size={16} /></Link></header>
+          <div className="manager-live-camera-scene">
+            <Image src="/assets/hero-control-center.png" alt="אזור מצלמות הגן" fill sizes="(max-width: 720px) 100vw, 36vw" />
+            <span className={`manager-camera-truth state-${safety.state}`}><i /> {safety.label}</span>
+            <div><ShieldCheck size={24} /><b>{safety.operationalCameras}/{safety.cameras}</b><small>מקורות במצב מאומת · Live מוצג רק לאחר אימות ספק</small></div>
+          </div>
+          <div className="manager-camera-thumbnails" aria-hidden="true"><span /><span /><span /><span /></div>
+        </article>
+        <ReferencePanel title="התראות ופעילות אחרונה" icon={Megaphone} href="/dashboard/garden/notifications" linkLabel="הצג הכל">
+          {updates.length ? <div className="manager-update-list">{updates.slice(0, 6).map((item) => <article key={item.id} className={item.tone ?? "purple"}><span /><div><strong>{item.title}</strong>{item.subtitle ? <small>{item.subtitle}</small> : null}</div>{item.time ? <time>{item.time}</time> : null}<ChevronLeft size={18} /></article>)}</div> : <ReferenceEmpty text="אין עדכונים חדשים כרגע" />}
+        </ReferencePanel>
       </section>
 
       <section className="manager-command-grid manager-command-grid-primary" aria-label="מצב תפעולי מרכזי">

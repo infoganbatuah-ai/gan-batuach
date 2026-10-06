@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-05T09:00:12.607Z",
+  "generatedAt": "2026-10-06T02:22:17.695Z",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3000",
+  "base": "http://127.0.0.1:3002",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_GLOBAL_STATES_RTL_ACCESSIBILITY_RESPONSIVE.png",
   "sourceReferenceSha256": "a03981972447f5b3ae5b6aeffec0ebfc79c280f302fa61ec1c688ba382a29761",
   "concepts": 18,
@@ -34,7 +34,7 @@
     {
       "screen": "loading",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/loading-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/loading-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=loading",
@@ -43,7 +43,7 @@
     {
       "screen": "loading",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/loading-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/loading-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=loading",
@@ -52,7 +52,7 @@
     {
       "screen": "empty",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/empty-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/empty-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=empty",
@@ -61,7 +61,7 @@
     {
       "screen": "empty",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/empty-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/empty-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=empty",
@@ -70,7 +70,7 @@
     {
       "screen": "error",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/error-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/error-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=error",
@@ -79,7 +79,7 @@
     {
       "screen": "error",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/error-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/error-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=error",
@@ -88,7 +88,7 @@
     {
       "screen": "permission-denied",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/permission-denied-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/permission-denied-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=permission-denied",
@@ -97,7 +97,7 @@
     {
       "screen": "permission-denied",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/permission-denied-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/permission-denied-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=permission-denied",
@@ -106,7 +106,7 @@
     {
       "screen": "unavailable",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/unavailable-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/unavailable-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=unavailable",
@@ -115,7 +115,7 @@
     {
       "screen": "unavailable",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/unavailable-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/unavailable-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=unavailable",
@@ -124,7 +124,7 @@
     {
       "screen": "offline-degraded",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/offline-degraded-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/offline-degraded-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=offline-degraded",
@@ -133,7 +133,7 @@
     {
       "screen": "offline-degraded",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/offline-degraded-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/offline-degraded-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=offline-degraded",
@@ -142,7 +142,7 @@
     {
       "screen": "success",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/success-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/success-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=success",
@@ -151,7 +151,7 @@
     {
       "screen": "success",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/success-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/success-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=success",
@@ -160,7 +160,7 @@
     {
       "screen": "destructive-confirmation",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/destructive-confirmation-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/destructive-confirmation-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=destructive-confirmation",
@@ -169,7 +169,7 @@
     {
       "screen": "destructive-confirmation",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/destructive-confirmation-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/destructive-confirmation-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=destructive-confirmation",
@@ -178,7 +178,7 @@
     {
       "screen": "validation",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/validation-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/validation-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=validation",
@@ -187,7 +187,7 @@
     {
       "screen": "validation",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/validation-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/validation-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=validation",
@@ -196,7 +196,7 @@
     {
       "screen": "status-variants",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/status-variants-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/status-variants-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=status-variants",
@@ -205,7 +205,7 @@
     {
       "screen": "status-variants",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/status-variants-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/status-variants-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=status-variants",
@@ -214,7 +214,7 @@
     {
       "screen": "calendar-date",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/calendar-date-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/calendar-date-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=calendar-date",
@@ -223,7 +223,7 @@
     {
       "screen": "calendar-date",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/calendar-date-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/calendar-date-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=calendar-date",
@@ -232,7 +232,7 @@
     {
       "screen": "select-dropdown",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/select-dropdown-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/select-dropdown-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=select-dropdown",
@@ -241,7 +241,7 @@
     {
       "screen": "select-dropdown",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/select-dropdown-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/select-dropdown-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=select-dropdown",
@@ -250,7 +250,7 @@
     {
       "screen": "toggles",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/toggles-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/toggles-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=toggles",
@@ -259,7 +259,7 @@
     {
       "screen": "toggles",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/toggles-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/toggles-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=toggles",
@@ -268,7 +268,7 @@
     {
       "screen": "search-filter",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/search-filter-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/search-filter-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=search-filter",
@@ -277,7 +277,7 @@
     {
       "screen": "search-filter",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/search-filter-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/search-filter-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=search-filter",
@@ -286,7 +286,7 @@
     {
       "screen": "settings",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/settings-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/settings-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=settings",
@@ -295,7 +295,7 @@
     {
       "screen": "settings",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/settings-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/settings-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=settings",
@@ -304,7 +304,7 @@
     {
       "screen": "modal-drawer",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/modal-drawer-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/modal-drawer-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=modal-drawer",
@@ -313,7 +313,7 @@
     {
       "screen": "modal-drawer",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/modal-drawer-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/modal-drawer-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=modal-drawer",
@@ -322,7 +322,7 @@
     {
       "screen": "mixed-direction",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/mixed-direction-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/mixed-direction-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=mixed-direction",
@@ -331,7 +331,7 @@
     {
       "screen": "mixed-direction",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/mixed-direction-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/mixed-direction-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=mixed-direction",
@@ -340,7 +340,7 @@
     {
       "screen": "accessibility",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/accessibility-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/accessibility-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=accessibility",
@@ -349,7 +349,7 @@
     {
       "screen": "accessibility",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/accessibility-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/accessibility-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Global state system",
       "route": "/ux19-system-states?view=accessibility",
@@ -358,7 +358,7 @@
     {
       "screen": "owner-shell",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/owner-shell-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/owner-shell-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/garden",
@@ -367,7 +367,7 @@
     {
       "screen": "owner-shell",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/owner-shell-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/owner-shell-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/garden",
@@ -376,7 +376,7 @@
     {
       "screen": "parent-shell",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/parent-shell-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/parent-shell-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/parent",
@@ -385,7 +385,7 @@
     {
       "screen": "parent-shell",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/parent-shell-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/parent-shell-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/parent",
@@ -394,7 +394,7 @@
     {
       "screen": "staff-shell",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/staff-shell-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/staff-shell-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/staff",
@@ -403,7 +403,7 @@
     {
       "screen": "staff-shell",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/staff-shell-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/staff-shell-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/staff",
@@ -412,7 +412,7 @@
     {
       "screen": "candidate-shell",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/candidate-shell-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/candidate-shell-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/staff/job-market",
@@ -421,7 +421,7 @@
     {
       "screen": "candidate-shell",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/candidate-shell-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/candidate-shell-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/staff/job-market",
@@ -430,7 +430,7 @@
     {
       "screen": "inspector-shell",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/inspector-shell-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/inspector-shell-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/inspector",
@@ -439,7 +439,7 @@
     {
       "screen": "inspector-shell",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/inspector-shell-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/inspector-shell-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/inspector",
@@ -448,7 +448,7 @@
     {
       "screen": "admin-shell",
       "viewport": "1440×1024",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/admin-shell-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/admin-shell-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/admin",
@@ -457,7 +457,7 @@
     {
       "screen": "admin-shell",
       "viewport": "390×844",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration/qa-evidence/ux-implement-19/screenshots/admin-shell-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/admin-shell-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "domain": "Role shell regression",
       "route": "/dashboard/admin",

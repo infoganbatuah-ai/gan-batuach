@@ -198,7 +198,13 @@ async function capture(name, route, user, viewport, label) {
   const context = await contextFor(user); const page = await context.newPage(); await page.setViewportSize(viewport);
   const response = await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 180_000 });
   assert.equal(response?.status(), 200, route); assert.doesNotMatch(page.url(), /\/login/);
-  await page.locator(".inspector-app-page").first().waitFor({ state: "visible", timeout: 30_000 });
+  const inspectorPage = page.locator(".inspector-app-page").first();
+  try {
+    await inspectorPage.waitFor({ state: "visible", timeout: 30_000 });
+  } catch {
+    await page.reload({ waitUntil: "networkidle", timeout: 180_000 });
+    await inspectorPage.waitFor({ state: "visible", timeout: 60_000 });
+  }
   await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(1200);
   const overflow = await page.evaluate(() => ({ detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
   assert.equal(overflow.detected, false, `${name} ${label} overflow: ${JSON.stringify(overflow)}`);

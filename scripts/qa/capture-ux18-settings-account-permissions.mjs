@@ -107,7 +107,9 @@ async function capture(name, route, user, selector, viewport) {
   assert.equal(response?.status(), 200, route);
   assert.doesNotMatch(page.url(), /\/login|\/onboarding|\/apply/);
   await page.locator(".role-app-shell, .app-shell").first().waitFor({ state: "visible", timeout: 60_000 });
-  if (selector && await page.locator(selector).count()) await page.locator(selector).first().scrollIntoViewIfNeeded();
+  if (selector && await page.locator(selector).count()) {
+    await page.locator(selector).first().evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" }));
+  }
   await page.waitForTimeout(450);
   const overflow = await page.evaluate(() => ({ detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
   assert.equal(overflow.detected, false, `${name} ${viewport.label} overflow: ${JSON.stringify(overflow)}`);

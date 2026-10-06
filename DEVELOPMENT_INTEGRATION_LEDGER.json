@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-05T22:02:00Z",
+  "updatedAt": "2026-10-06T04:20:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10538,6 +10538,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Open and qualify the focused QA receipt PR to integration/development; after merge, regenerate the 21-domain owner package from the new exact merged head. Production and main remain untouched."
+    },
+    {
+      "id": "codex/ux-reference-reconstruction-final",
+      "project": "Gan Batuach Management",
+      "title": "UX Reference Reconstruction Final — true reference composition and V3 owner evidence",
+      "owner": "UX-REFERENCE-RECONSTRUCTION-FINAL owner",
+      "sourceBranch": "codex/ux-reference-reconstruction-final",
+      "sourceCommits": [
+        "eab97f61c632bf7f46c55215ec747bbe22ab5571",
+        "1b6afea7be01f6a0a95db6fa279e4017b2d6a575"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-reference-reconstruction-final@1b6afea7be01f6a0a95db6fa279e4017b2d6a575"
+        ],
+        "validatedSourceCommit": "eab97f61c632bf7f46c55215ec747bbe22ab5571",
+        "qualificationCommit": "1b6afea7be01f6a0a95db6fa279e4017b2d6a575",
+        "mergedHeadEvidenceCommit": null
+      },
+      "validation": {
+        "status": "PASS_BRANCH_HEAD_REFERENCE_RECONSTRUCTION_21_DOMAINS_652_SCREENSHOTS",
+        "evidence": [
+          "GAN_BATUACH_REFERENCE_RECONSTRUCTION_SPEC.md",
+          "GAN_BATUACH_UX_REFERENCE_RECONSTRUCTION_FINAL.md",
+          "GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V3.md",
+          "qa-evidence/ux-implement-02 through qa-evidence/ux-implement-19",
+          "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/gan-batuach-final-owner-visual-verification-v3/owner-review-package"
+        ],
+        "limits": "Internal status is REFERENCE_MATCH_CANDIDATE, not owner approval. Exact merged-head SHA is written to the regenerated external V3 report after integration. The lockfile qualification commit updates Capacitor Android/Core/iOS to 8.5.2 and source-map-js to 1.2.2 after new high/critical advisories, with npm audit at zero findings. No Production, main, paid-provider, customer-data, physical-camera, or Digital Observer core action occurred."
+      },
+      "integration": {
+        "status": "READY_TO_INTEGRATE",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_EXACT_HEAD_CI"
+      },
+      "dependencies": {
+        "status": "VISUAL_REMEDIATION_AND_POSTMERGE_QA_INTEGRATED",
+        "units": [
+          "codex/ux-visual-remediation-final",
+          "codex/ux-visual-remediation-final-postmerge-qa"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_TYPECHECK_LINT_BUILD_DOMAIN_SECURITY_MIGRATIONS_RELEASE_CONTRACT_UX03_THROUGH_UX20",
+      "releaseEligibility": "DEVELOPMENT_INTEGRATION_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Open and qualify the PR to integration/development, merge it, regenerate V3 from the exact merged head, and stop before RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-04T04:12:47.859Z",
+  "generatedAt": "2026-10-06T01:28:16.688Z",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3016",
+  "base": "http://127.0.0.1:3002",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_SAFETY_CAMERAS_FULL_PLATFORM.png",
   "sourceReferenceSha256": "4e51efdbbb7d9dc49e96b2deadd2b9d975cbc8b29e6736488329c312f75e5b67",
   "concepts": 24,
@@ -23,7 +23,7 @@
       "screen": "safety-dashboard",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/safety-dashboard-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/safety-dashboard-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -33,7 +33,7 @@
       "screen": "safety-dashboard",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/safety-dashboard-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/safety-dashboard-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -43,7 +43,7 @@
       "screen": "camera-grid",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-grid-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-grid-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -53,7 +53,7 @@
       "screen": "camera-grid",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-grid-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-grid-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -63,7 +63,7 @@
       "screen": "camera-online",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?filter=online",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-online-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-online-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -73,7 +73,7 @@
       "screen": "camera-online",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?filter=online",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-online-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-online-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -83,7 +83,7 @@
       "screen": "camera-degraded",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?filter=degraded",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-degraded-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-degraded-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -93,7 +93,7 @@
       "screen": "camera-degraded",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?filter=degraded",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-degraded-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-degraded-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -103,7 +103,7 @@
       "screen": "camera-offline",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?filter=offline",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-offline-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-offline-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -113,7 +113,7 @@
       "screen": "camera-offline",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?filter=offline",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-offline-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-offline-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -123,7 +123,7 @@
       "screen": "camera-setup-required",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?filter=setup_required",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-setup-required-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-setup-required-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -133,7 +133,7 @@
       "screen": "camera-setup-required",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?filter=setup_required",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-setup-required-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-setup-required-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -143,7 +143,7 @@
       "screen": "camera-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?camera=98000000-0000-4000-8000-000000000001",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -153,7 +153,7 @@
       "screen": "camera-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?camera=98000000-0000-4000-8000-000000000001",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -163,7 +163,7 @@
       "screen": "permitted-context-live",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/cameras?camera=98000000-0000-4000-8000-000000000001",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/permitted-context-live-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/permitted-context-live-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -173,7 +173,7 @@
       "screen": "permitted-context-live",
       "viewport": "390×844",
       "route": "/dashboard/parent/cameras?camera=98000000-0000-4000-8000-000000000001",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/permitted-context-live-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/permitted-context-live-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -183,7 +183,7 @@
       "screen": "live-unavailable",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?camera=98000000-0000-4000-8000-000000000001",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/live-unavailable-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/live-unavailable-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -193,7 +193,7 @@
       "screen": "live-unavailable",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?camera=98000000-0000-4000-8000-000000000001",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/live-unavailable-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/live-unavailable-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -203,7 +203,7 @@
       "screen": "camera-setup-onboarding",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=setup",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-setup-onboarding-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-setup-onboarding-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -213,7 +213,7 @@
       "screen": "camera-setup-onboarding",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=setup",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-setup-onboarding-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-setup-onboarding-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -223,7 +223,7 @@
       "screen": "area-mapping",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=setup",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/area-mapping-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/area-mapping-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -233,7 +233,7 @@
       "screen": "area-mapping",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=setup",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/area-mapping-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/area-mapping-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -243,7 +243,7 @@
       "screen": "test-activation",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=setup",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/test-activation-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/test-activation-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -253,7 +253,7 @@
       "screen": "test-activation",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=setup",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/test-activation-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/test-activation-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -263,7 +263,7 @@
       "screen": "events",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=events",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/events-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/events-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -273,7 +273,7 @@
       "screen": "events",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=events",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/events-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/events-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -283,7 +283,7 @@
       "screen": "incident-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=events",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/incident-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/incident-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -293,7 +293,7 @@
       "screen": "incident-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=events",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/incident-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/incident-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -303,7 +303,7 @@
       "screen": "evidence",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=events",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/evidence-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/evidence-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -313,7 +313,7 @@
       "screen": "evidence",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=events",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/evidence-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/evidence-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -323,7 +323,7 @@
       "screen": "no-recording",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=readiness",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/no-recording-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/no-recording-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -333,7 +333,7 @@
       "screen": "no-recording",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=readiness",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/no-recording-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/no-recording-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -343,7 +343,7 @@
       "screen": "parent-camera-access",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/parent-camera-access-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/parent-camera-access-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -353,7 +353,7 @@
       "screen": "parent-camera-access",
       "viewport": "390×844",
       "route": "/dashboard/parent/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/parent-camera-access-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/parent-camera-access-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -363,7 +363,7 @@
       "screen": "parent-denied",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/parent-denied-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/parent-denied-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -373,7 +373,7 @@
       "screen": "parent-denied",
       "viewport": "390×844",
       "route": "/dashboard/parent/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/parent-denied-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/parent-denied-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -383,7 +383,7 @@
       "screen": "staff-camera-access",
       "viewport": "1440×1024",
       "route": "/dashboard/staff/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/staff-camera-access-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/staff-camera-access-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -393,7 +393,7 @@
       "screen": "staff-camera-access",
       "viewport": "390×844",
       "route": "/dashboard/staff/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/staff-camera-access-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/staff-camera-access-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -403,7 +403,7 @@
       "screen": "inspector-evidence-only",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/inspector-evidence-only-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/inspector-evidence-only-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -413,7 +413,7 @@
       "screen": "inspector-evidence-only",
       "viewport": "390×844",
       "route": "/dashboard/inspector/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/inspector-evidence-only-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/inspector-evidence-only-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -423,7 +423,7 @@
       "screen": "camera-permissions-policy",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=policy",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-permissions-policy-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-permissions-policy-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -433,7 +433,7 @@
       "screen": "camera-permissions-policy",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=policy",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/camera-permissions-policy-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/camera-permissions-policy-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -443,7 +443,7 @@
       "screen": "provider-unavailable",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/cameras?view=readiness",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/provider-unavailable-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/provider-unavailable-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -453,7 +453,7 @@
       "screen": "provider-unavailable",
       "viewport": "390×844",
       "route": "/dashboard/garden/cameras?view=readiness",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/provider-unavailable-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/provider-unavailable-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -463,7 +463,7 @@
       "screen": "empty-no-camera",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/empty-no-camera-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/empty-no-camera-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -473,7 +473,7 @@
       "screen": "empty-no-camera",
       "viewport": "390×844",
       "route": "/dashboard/parent/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/empty-no-camera-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/empty-no-camera-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -483,7 +483,7 @@
       "screen": "admin-safety-oversight",
       "viewport": "1440×1024",
       "route": "/dashboard/admin/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/admin-safety-oversight-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/admin-safety-oversight-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"
@@ -493,7 +493,7 @@
       "screen": "admin-safety-oversight",
       "viewport": "390×844",
       "route": "/dashboard/admin/cameras",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-16/qa-evidence/ux-implement-16/screenshots/admin-safety-oversight-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-16/screenshots/admin-safety-oversight-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "capabilityTruth": "Live unavailable until explicit canonical Production verification; no mock/shadow/sandbox claims",
       "referenceExtension": "camera imagery omitted when no canonical signed snapshot exists"

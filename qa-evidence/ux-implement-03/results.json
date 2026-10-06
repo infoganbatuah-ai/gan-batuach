@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3001",
-  "capturedAt": "2026-09-26T23:23:00.845Z",
+  "base": "http://127.0.0.1:3002",
+  "capturedAt": "2026-10-06T00:39:17.450Z",
   "viewports": {
     "desktop": {
       "width": 1440,
@@ -14,19 +14,19 @@
   },
   "persona": "synthetic multi-Garden Owner",
   "gardenContext": {
-    "authorizedOptions": 9,
+    "authorizedOptions": 6,
     "switched": true
   },
   "performance": {
     "samples": [
-      1179,
-      1053,
-      1052,
-      1102,
-      1097
+      6792,
+      4310,
+      2008,
+      1732,
+      1907
     ],
-    "p50": 1097,
-    "p95": 1179,
+    "p50": 2008,
+    "p95": 6792,
     "environment": "local Development; not a Production SLA"
   },
   "captures": [

@@ -143,9 +143,7 @@ assert.equal(rows.length, 92);
 function imagePath(domain, name) { return join(outputRoot, domain, "screenshots", `${name}.webp`); }
 function ensurePath(path) { mkdirSync(dirname(path), { recursive: true }); }
 function sourceRoot(sourceDomain) {
-  return sourceDomain === "07"
-    ? "qa-evidence/ux07-staff-reference-correction"
-    : `qa-evidence/ux-implement-${sourceDomain}`;
+  return `qa-evidence/ux-implement-${sourceDomain}`;
 }
 function copy(domain, name, sourceDomain, sourceName = name) {
   const source = resolve(`${sourceRoot(sourceDomain)}/screenshots/${sourceName}.webp`);
@@ -171,12 +169,8 @@ copy("owner-onboarding", "parent-invitation-desktop", "02", "children-parent-inv
 copy("owner-onboarding", "parent-invitation-mobile", "02", "children-parent-invitations-mobile");
 copy("children-classrooms", "capacity-state-desktop", "04", "classroom-detail-desktop");
 copy("children-classrooms", "capacity-state-mobile", "04", "classroom-detail-mobile");
-copy("staff", "staff-time-desktop", "07", "time-records-desktop");
-copy("staff", "staff-time-mobile", "07", "time-records-mobile");
-copy("staff", "documents-desktop", "07", "staff-documents-desktop");
-copy("staff", "tasks-desktop", "07", "staff-tasks-desktop");
-copy("staff", "messaging-desktop", "07", "staff-messages-desktop");
-copy("staff", "safety-cameras-desktop", "07", "staff-camera-policy-desktop");
+copy("staff", "staff-time-desktop", "07", "staff-time-desktop");
+copy("staff", "staff-time-mobile", "07", "staff-time-mobile");
 
 const keys = localCredentials();
 const identities = JSON.parse(readFileSync(resolve(config.runtimeRoot, "qa-identities.private.json"), "utf8"));

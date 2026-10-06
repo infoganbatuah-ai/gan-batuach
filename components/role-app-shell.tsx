@@ -14,6 +14,7 @@ import {
   Home,
   Menu,
   MessageCircle,
+  Search,
   Settings,
   ShieldCheck,
   UserRound,
@@ -243,6 +244,7 @@ export function RoleAppShell({
   const firstLetter = String(displayName).trim().slice(0, 1) || "ג";
   const todayLine = israelTodayDateLine();
   const isManagement = role === "manager" || role === "owner";
+  const search = roleSearchConfig(role);
   const header = (
     <header className="role-app-header">
       <div className="role-app-brand">
@@ -251,6 +253,11 @@ export function RoleAppShell({
           <Image src="/assets/company-name.png" alt="גן בטוח" width={620} height={210} style={{ height: "auto" }} priority />
         </Link>
       </div>
+      <form className="role-app-global-search" action={search.href} role="search">
+        <Search size={19} aria-hidden="true" />
+        <input name="q" aria-label={search.label} placeholder={search.placeholder} />
+        <kbd>⌘ K</kbd>
+      </form>
       <div className="role-app-header-meta">
         <div className="role-app-title">
           <h1>{title ?? config.label}</h1>
@@ -306,6 +313,15 @@ export function RoleAppShell({
       </ResponsivePage>
     </AppShell>
   );
+}
+
+function roleSearchConfig(role: RoleAppShellRole) {
+  if (role === "admin") return { href: "/dashboard/admin/kindergartens", label: "חיפוש במערכת", placeholder: "חיפוש גן, משתמש או בקשה..." };
+  if (role === "parent") return { href: "/dashboard/parent/discover-kindergartens", label: "חיפוש באזור ההורה", placeholder: "חיפוש גן, הודעה או מסמך..." };
+  if (role === "staff") return { href: "/dashboard/staff/tasks", label: "חיפוש באזור הצוות", placeholder: "חיפוש משימה, מסמך או הודעה..." };
+  if (role === "inspector") return { href: "/dashboard/inspector/control-center", label: "חיפוש באזור הפיקוח", placeholder: "חיפוש גן, ביקורת או ממצא..." };
+  if (role === "digital-observer") return { href: "/digital-observer/dashboard", label: "חיפוש במערכת התצפיתן", placeholder: "חיפוש אתר, מצלמה או התראה..." };
+  return { href: "/dashboard/garden/children", label: "חיפוש בניהול הגן", placeholder: "חיפוש ילד, הורה, מסמך או משימה..." };
 }
 
 export function createRoleAppShellAdapter(role: RoleAppShellRole) {

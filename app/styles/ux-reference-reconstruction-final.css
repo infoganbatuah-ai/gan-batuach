@@ -1,0 +1,563 @@
+/* UX-REFERENCE-RECONSTRUCTION-FINAL
+   Structural overrides are intentionally last: approved references define composition. */
+
+:root {
+  --ref-navy: #082e70;
+  --ref-navy-deep: #061f52;
+  --ref-blue: #0878ea;
+  --ref-ink: #0b2f70;
+  --ref-line: #dce8f5;
+  --ref-surface: #f4f9ff;
+  --ref-card-shadow: 0 7px 22px rgb(14 63 126 / 8%);
+}
+
+.role-app-global-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: min(100%, 440px);
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #dce7f5;
+  border-radius: 11px;
+  background: #f8fbff;
+  color: #4370b0;
+}
+.role-app-global-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #173d79; font: inherit; font-size: .76rem; }
+.role-app-global-search input::placeholder { color: #8297b7; }
+.role-app-global-search kbd { padding: 3px 7px; border: 1px solid #d7e3f2; border-radius: 7px; background: #fff; color: #6680a6; font: 700 .64rem/1 inherit; direction: ltr; }
+
+@media (min-width: 901px) {
+  /* All approved desktop boards place the product rail on the physical left. */
+  .role-app-shell.gb-app-shell {
+    --reference-sidebar: 158px;
+    display: grid !important;
+    grid-template-columns: var(--reference-sidebar) minmax(0, 1fr) !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    direction: ltr;
+    background: linear-gradient(135deg, #f7fbff 0%, #edf6ff 100%);
+  }
+  .role-app-shell.role-app-owner,
+  .role-app-shell.role-app-manager { --reference-sidebar: 158px; }
+  .role-app-shell.role-app-parent { --reference-sidebar: 142px; }
+  .role-app-shell.role-app-staff { --reference-sidebar: 136px; }
+  .role-app-shell.role-app-inspector { --reference-sidebar: 150px; }
+  .role-app-shell.role-app-admin { --reference-sidebar: 158px; }
+  .role-app-shell > .gb-app-shell-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    grid-column: 1;
+    grid-row: 1;
+    width: var(--reference-sidebar);
+    height: 100dvh;
+    padding: 9px 8px 12px !important;
+    overflow: hidden auto;
+    border: 0 !important;
+    border-radius: 0 0 16px 0;
+    background: radial-gradient(circle at 20% 7%, rgb(45 126 244 / 34%), transparent 25%), linear-gradient(180deg, #083a83 0%, #052b68 58%, #041f50 100%) !important;
+    box-shadow: 10px 0 30px rgb(4 35 82 / 12%) !important;
+    direction: rtl;
+  }
+  .role-app-shell > .gb-app-shell-main { grid-column: 2; grid-row: 1; min-width: 0; direction: rtl; }
+  .role-app-shell .gb-sidebar-nav { min-height: calc(100dvh - 21px) !important; gap: 2px !important; padding: 4px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+  .role-app-shell .gb-sidebar-title { padding: 4px 3px 10px !important; }
+  .role-app-shell .role-app-sidebar-heading { gap: 8px; }
+  .role-app-shell .role-app-sidebar-brand { display: grid; justify-items: center; gap: 3px; text-align: center; }
+  .role-app-shell .role-app-sidebar-brand > img { width: 48px; height: 48px; filter: brightness(0) invert(1) drop-shadow(0 7px 12px rgb(0 0 0 / 18%)); }
+  .role-app-shell .role-app-sidebar-brand > span { justify-items: center; }
+  .role-app-shell .role-app-sidebar-brand b { font-size: 1.02rem; }
+  .role-app-shell .role-app-sidebar-brand small { max-width: 17ch; color: rgb(235 244 255 / 78%); font-size: .54rem; line-height: 1.35; }
+  .role-app-shell .role-app-sidebar-title { display: none; }
+  .role-app-shell .gb-sidebar-nav-item { min-height: 40px !important; gap: 8px !important; padding: 6px 8px !important; border: 0 !important; border-radius: 8px !important; color: rgb(244 249 255 / 90%) !important; }
+  .role-app-shell .gb-sidebar-nav-item svg { width: 17px; height: 17px; color: #d4e7ff !important; }
+  .role-app-shell .gb-sidebar-nav-item b { font-size: .67rem !important; }
+  .role-app-shell .gb-sidebar-nav-item small { display: none; }
+  .role-app-shell .gb-sidebar-nav-item.active { background: linear-gradient(95deg, #1d88ef, #1767d3) !important; color: #fff !important; box-shadow: 0 8px 18px rgb(0 27 78 / 24%) !important; }
+
+  .role-app-shell .role-app-header {
+    display: grid !important;
+    grid-template-areas: "search meta actions" !important;
+    grid-template-columns: minmax(250px, 1fr) auto auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 58px;
+    margin: 0 !important;
+    padding: 7px 18px !important;
+    border-bottom: 1px solid #e3ecf7;
+    background: rgb(255 255 255 / 94%);
+    box-shadow: 0 3px 14px rgb(12 54 112 / 5%);
+    direction: ltr;
+  }
+  .role-app-shell .role-app-brand { display: none !important; }
+  .role-app-shell .role-app-global-search { grid-area: search; justify-self: start; }
+  .role-app-shell .role-app-header-meta { grid-area: meta; min-width: 0; direction: rtl; }
+  .role-app-shell .role-app-actions { grid-area: actions; direction: rtl; }
+  .role-app-shell .role-app-title { display: none; }
+  .role-app-shell .role-app-live-date { min-height: 40px !important; padding: 5px 9px !important; border-radius: 11px !important; }
+  .role-app-shell .role-app-live-date svg { width: 19px; }
+  .role-app-shell .role-app-icon-button,
+  .role-app-shell .role-app-avatar { width: 39px !important; height: 39px !important; flex-basis: 39px !important; border-radius: 50% !important; }
+  .role-app-shell .logout-button.compact { width: 39px; height: 39px; }
+  .role-app-shell .role-app-page { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 11px 14px 20px !important; }
+}
+
+/* Owner onboarding: approved left rail, compact context banner and a dense working stage. */
+@media (min-width: 901px) {
+  .kindergarten-app-onboarding { padding: 0 0 40px; background: linear-gradient(135deg, #f8fbff, #edf5ff); }
+  .kindergarten-app-onboarding-shell { width: min(1440px, 100%); }
+  .kindergarten-app-onboarding-header { min-height: 60px; margin: 0; padding: 7px 22px; border-bottom: 1px solid #e1eaf5; background: #fff; }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-hero,
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-hero { display: none !important; }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-shell {
+    position: relative;
+    min-height: 100dvh;
+    padding-left: 172px;
+  }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-shell::after {
+    position: absolute;
+    inset: 60px auto 0 0;
+    width: 156px;
+    padding: 42px 18px;
+    border-radius: 0 18px 0 0;
+    color: #fff;
+    background: radial-gradient(circle at 32% 9%,rgb(61 138 248 / 42%),transparent 28%),linear-gradient(180deg,#093d89,#052157);
+    box-shadow: 10px 0 28px rgb(4 37 91 / 16%);
+    content: "גן בטוח\Aילדים בטוחים\Aעתיד טוב יותר";
+    white-space: pre-line;
+    text-align: center;
+    font-size: .8rem;
+    font-weight: 900;
+    line-height: 1.8;
+  }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-header { margin-left: -172px; }
+  .manager-registration-entry-focused { gap: 10px !important; padding: 14px 16px 28px !important; }
+  .manager-registration-entry-focused .manager-registration-intro {
+    grid-template-columns: minmax(0,.92fr) minmax(360px,1.08fr) !important;
+    min-height: 285px !important;
+    padding: 0 !important;
+    overflow: hidden;
+    border: 1px solid #dce8f6;
+    border-radius: 16px !important;
+    background: #fff !important;
+    box-shadow: var(--ref-card-shadow) !important;
+    direction: rtl;
+  }
+  .manager-registration-entry-focused .manager-registration-intro > div:first-child { align-content: center; padding: 28px 34px; }
+  .manager-registration-entry-focused .manager-registration-intro h2 { color: var(--ref-ink); font-size: 2rem !important; }
+  .manager-registration-entry-focused .manager-registration-intro p { color: #58749a !important; font-size: .76rem !important; }
+  .manager-registration-entry-focused .manager-registration-icon { width: 56px; height: 56px; color: #fff; background: linear-gradient(145deg,#103d91,#0877e9); }
+  .manager-registration-entry-focused .manager-registration-visual {
+    min-height: 285px;
+    align-content: end;
+    justify-items: start;
+    padding: 24px;
+    color: #fff;
+    background: linear-gradient(0deg,rgb(4 31 72 / 54%),transparent 60%),url('/assets/gan-batuach-auth-hero.webp') center 43% / cover no-repeat !important;
+  }
+  .manager-registration-entry-focused .manager-registration-visual > svg { display: none; }
+  .manager-registration-entry-focused .manager-registration-visual span { color: #fff; font-size: 1rem; text-shadow: 0 2px 9px rgb(0 0 0 / 32%); }
+  .manager-registration-entry-focused .manager-entry-progress { min-height: 55px !important; padding: 6px 18px !important; border-radius: 12px !important; }
+  .manager-registration-entry-focused .manager-entry-stage { padding: 14px 18px !important; border-radius: 14px !important; }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-hero {
+    grid-template-columns: minmax(0,1fr) 250px;
+    min-height: 92px;
+    margin: 0 16px 12px;
+    padding: 13px 24px;
+    border-radius: 0 0 18px 18px;
+    color: var(--ref-ink);
+    background: linear-gradient(90deg, rgb(242 248 255 / 98%) 0 48%, rgb(231 243 255 / 72%) 67%, rgb(226 241 255 / 16%)), url('/assets/gan-batuach-auth-hero.webp') left 42% center / 360px auto no-repeat;
+    box-shadow: 0 10px 26px rgb(14 60 122 / 8%);
+  }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-hero h2 { margin: 4px 0 2px; color: var(--ref-ink); font-size: 1.55rem; }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-hero p { max-width: 660px; color: #58749a; font-size: .76rem; line-height: 1.45; }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-hero-visual { visibility: hidden; }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-badge { padding: 4px 9px; border-color: #bfdbfa; color: #1766c8; background: #e9f4ff; }
+  .manager-live-onboarding { min-height: 735px; gap: 10px; padding: 0 14px 0 204px !important; }
+  .manager-live-onboarding::before {
+    inset-inline: unset !important;
+    inset: 0 auto 0 14px !important;
+    width: 176px !important;
+    border-radius: 0 18px 18px 0 !important;
+    background: radial-gradient(circle at 35% 9%, rgb(57 135 249 / 40%), transparent 27%), linear-gradient(180deg,#093c89,#052157) !important;
+    box-shadow: 10px 0 28px rgb(4 37 91 / 17%) !important;
+  }
+  .manager-live-onboarding > * { direction: rtl; }
+  .manager-live-onboarding .manager-onboarding-steps {
+    inset-inline: unset !important;
+    inset: 128px auto auto 22px !important;
+    width: 158px !important;
+  }
+  .manager-live-onboarding .manager-onboarding-overview { min-height: 82px; padding: 12px 17px; border-radius: 14px; }
+  .manager-live-onboarding .manager-onboarding-overview h2 { font-size: 1.18rem; }
+  .manager-live-onboarding .manager-onboarding-overview p { font-size: .7rem; }
+  .manager-live-onboarding .manager-progress-value { min-width: 150px; }
+  .manager-live-onboarding .manager-stage-heading { min-height: 48px; padding: 0 3px; }
+  .manager-live-onboarding .manager-stage-heading > svg { width: 40px; height: 40px; padding: 10px; border-radius: 12px; }
+  .manager-live-onboarding .manager-stage-heading h2 { font-size: 1.22rem; }
+  .manager-live-onboarding .manager-stage-heading p { font-size: .72rem; }
+  .manager-live-onboarding .manager-stage-grid { grid-template-columns: minmax(0,1.45fr) minmax(270px,.55fr); gap: 10px; }
+  .manager-live-onboarding .manager-registration-card,
+  .manager-live-onboarding .manager-parent-invitation-panel,
+  .manager-live-onboarding .manager-optional-setup { padding: 14px; border-radius: 14px; box-shadow: var(--ref-card-shadow); }
+  .manager-live-onboarding .form-grid { gap: 9px 11px; }
+  .manager-live-onboarding input,
+  .manager-live-onboarding select,
+  .manager-live-onboarding textarea { min-height: 39px; padding: 7px 10px; border-radius: 9px; font-size: .74rem; }
+  .manager-live-onboarding textarea { min-height: 64px; }
+  .manager-live-onboarding label { gap: 4px; font-size: .7rem; }
+  .manager-live-onboarding .manager-media-grid { gap: 8px; }
+  .manager-live-onboarding .empty-mini { min-height: 76px; }
+  .manager-live-onboarding .manager-docs-card { max-height: 230px; overflow: auto; }
+  .manager-live-onboarding .manager-wizard-actions { min-height: 60px; padding: 8px 10px; border-radius: 14px; }
+}
+
+/* Owner dashboard: banner + six metrics + asymmetric three-panel first viewport. */
+.manager-reference-dashboard { counter-reset: ref-order; }
+.manager-command-hero { order: 1; }
+.manager-today-strip { order: 2; }
+.manager-reference-first-viewport { order: 3; }
+.manager-reference-quick { order: 4; }
+.manager-command-grid-primary { order: 5; }
+.manager-command-grid-secondary { order: 6; }
+.manager-finance-communication-grid { order: 7; }
+.manager-reference-split { order: 8; }
+.manager-reference-dashboard > :last-child { order: 9; }
+
+@media (min-width: 901px) {
+  .manager-reference-dashboard { gap: 9px !important; }
+  .manager-command-hero { grid-template-columns: minmax(290px,.75fr) minmax(0,1.25fr) !important; min-height: 132px !important; border-radius: 12px !important; direction: ltr; }
+  .manager-command-hero-copy { align-content: center; justify-items: start; padding: 14px 20px !important; direction: rtl; }
+  .manager-command-hero h2 { font-size: 1.72rem !important; }
+  .manager-command-hero p { font-size: .68rem !important; }
+  .manager-command-hero-actions { margin-top: 2px; }
+  .manager-command-hero-actions a { min-height: 32px !important; padding: 5px 9px !important; border-radius: 9px !important; font-size: .64rem; }
+  .manager-command-hero-art { min-height: 132px !important; direction: rtl; }
+  .manager-command-hero-art img { object-position: 66% 41%; }
+  .manager-command-hero-art::after { background: linear-gradient(90deg, #edf6ff 0, transparent 32%, transparent 72%, rgb(238 247 255 / 40%)); }
+  .manager-command-hero-art > span { right: 18px; bottom: 12px; padding: 6px 9px; border-radius: 9px; font-size: .65rem; }
+  .manager-today-strip { gap: 7px !important; }
+  .manager-today-metric { min-height: 68px !important; padding: 8px !important; border-radius: 10px !important; box-shadow: 0 5px 15px rgb(20 65 126 / 6%); }
+  .manager-today-metric > span { width: 34px !important; height: 34px !important; border-radius: 50% !important; }
+  .manager-today-metric strong { font-size: 1.17rem !important; }
+  .manager-today-metric b { font-size: .65rem; }
+  .manager-today-metric small { font-size: .54rem; }
+  .manager-reference-first-viewport { display: grid; grid-template-columns: minmax(230px,.9fr) minmax(330px,1.22fr) minmax(250px,.98fr); gap: 9px; direction: ltr; }
+  .manager-reference-first-viewport > * { direction: rtl; }
+  .manager-reference-first-viewport .manager-reference-panel { min-height: 238px; border-radius: 11px !important; }
+  .manager-reference-first-viewport .manager-reference-panel > header { min-height: 39px; padding: 8px 11px; }
+  .manager-reference-first-viewport .manager-reference-panel > header > span { font-size: .77rem; }
+  .manager-reference-first-viewport .manager-reference-panel-body { padding: 3px 10px; }
+  .manager-reference-first-viewport .manager-panel-link { min-height: 34px; font-size: .62rem; }
+  .manager-reference-first-viewport .manager-schedule-list article { min-height: 34px; font-size: .65rem; }
+  .manager-reference-first-viewport .manager-update-list article { min-height: 38px; }
+  .manager-reference-first-viewport .manager-update-list strong { font-size: .68rem; }
+  .manager-reference-first-viewport .manager-update-list small,
+  .manager-reference-first-viewport .manager-update-list time { font-size: .57rem; }
+  .manager-live-camera-card { overflow: hidden; }
+  .manager-live-camera-card > header { justify-content: space-between; }
+  .manager-live-camera-card > header a { display: inline-flex; align-items: center; gap: 3px; color: #1c66c8; font-size: .61rem; text-decoration: none; }
+  .manager-live-camera-scene { position: relative; min-height: 154px; overflow: hidden; background: #dbeafa; }
+  .manager-live-camera-scene > img { object-fit: cover; object-position: center 60%; }
+  .manager-live-camera-scene::after { position: absolute; inset: 0; background: linear-gradient(180deg,transparent 52%,rgb(4 28 65 / 68%)); content: ""; }
+  .manager-camera-truth { position: absolute; top: 9px; left: 9px; z-index: 2; display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 999px; color: #fff; background: rgb(8 48 102 / 78%); font-size: .55rem; font-weight: 900; direction: rtl; }
+  .manager-camera-truth i { width: 6px; height: 6px; border-radius: 50%; background: #2ed887; }
+  .manager-camera-truth.state-offline i,
+  .manager-camera-truth.state-unavailable i { background: #ff5c69; }
+  .manager-live-camera-scene > div { position: absolute; right: 12px; bottom: 9px; z-index: 2; display: grid; grid-template-columns: 28px auto; gap: 1px 8px; color: #fff; }
+  .manager-live-camera-scene > div svg { grid-row: 1 / 3; }
+  .manager-live-camera-scene > div b { font-size: .87rem; }
+  .manager-live-camera-scene > div small { font-size: .5rem; }
+  .manager-camera-thumbnails { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; padding: 6px; }
+  .manager-camera-thumbnails span { min-height: 30px; border-radius: 5px; background: url('/assets/hero-control-center.png') center / 260% auto; }
+  .manager-camera-thumbnails span:nth-child(2) { background-position: 35% 50%; }
+  .manager-camera-thumbnails span:nth-child(3) { background-position: 70% 58%; }
+  .manager-camera-thumbnails span:nth-child(4) { background-position: 95% 56%; }
+  .manager-reference-quick { padding: 0 !important; border-radius: 11px !important; }
+  .manager-reference-quick > header { display: none; }
+  .manager-reference-quick > div { grid-template-columns: repeat(6,minmax(0,1fr)) !important; gap: 6px !important; padding: 6px !important; }
+  .manager-reference-quick > div > a { min-height: 58px !important; grid-template-columns: 30px minmax(0,1fr); place-content: center start; justify-items: start; gap: 6px; border-radius: 8px !important; }
+  .manager-reference-quick > div > a > span { width: 30px !important; height: 30px !important; border-radius: 9px !important; }
+  .manager-reference-quick b { font-size: .64rem !important; }
+  .manager-command-grid-primary { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+  .manager-operational-card { min-height: 204px !important; padding: 12px !important; border-radius: 11px !important; }
+  .manager-staff-status-grid { margin: 13px 0 10px; }
+  .manager-staff-status-grid > span { min-height: 62px; }
+}
+
+/* Children, classrooms and enrollment: identity-led dense tables and image cards. */
+@media (min-width: 901px) {
+  .ux04-domain-workspace { gap: 8px !important; }
+  .ux04-workspace-header { min-height: 62px !important; padding: 8px 12px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+  .ux04-workspace-header h2 { font-size: 1.45rem; }
+  .ux04-workspace-header p { font-size: .68rem; }
+  .ux04-domain-tabs { width: fit-content; min-width: 410px; min-height: 38px; padding: 3px; border-radius: 8px; }
+  .ux04-domain-tabs a { min-height: 32px; padding: 5px 15px; border-radius: 7px; font-size: .66rem; }
+  .ux04-summary-strip { gap: 6px; grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .ux04-summary-strip > span { min-height: 54px !important; padding: 7px; border-radius: 9px; }
+  .ux04-summary-strip b { font-size: 1rem; }
+  .ux04-filter-bar { grid-template-columns: minmax(260px,1.6fr) repeat(2,minmax(140px,.65fr)) auto; min-height: 46px; padding: 6px; border-radius: 9px; }
+  .ux04-filter-bar input,
+  .ux04-filter-bar select { min-height: 34px; border-radius: 7px; font-size: .68rem; }
+  .ux04-list-surface { border-radius: 10px !important; box-shadow: var(--ref-card-shadow) !important; }
+  .ux04-table-head { min-height: 36px !important; padding: 0 12px !important; }
+  .ux04-child-row { min-height: 55px !important; padding: 5px 12px !important; }
+  .ux04-child-row .avatar { width: 38px !important; height: 38px !important; }
+  .ux04-child-identity b { font-size: .74rem; }
+  .ux04-child-identity small { font-size: .58rem; }
+  .ux04-classroom-grid { grid-template-columns: repeat(auto-fit,minmax(230px,1fr)) !important; gap: 8px !important; }
+  .ux04-classroom-card { padding: 8px !important; border-radius: 10px !important; }
+  .ux04-classroom-art { min-height: 118px !important; border-radius: 8px !important; }
+  .ux04-profile-hero { min-height: 116px; border-radius: 11px; }
+}
+
+/* Parent: Child identity dominates the first viewport; the camera card becomes a compact image panel. */
+@media (min-width: 901px) {
+  .role-app-shell.parent-runtime-shell .parent-app-main { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(280px,.55fr); gap: 8px !important; }
+  .parent-app-main > .parent-hero,
+  .parent-app-main > .dashboard-environment-notice,
+  .parent-app-main > .parent-invitations-live-panel,
+  .parent-app-main > .parent-child-card-selector { grid-column: 1 / -1; }
+  .parent-app-main > .parent-hero { min-height: 82px !important; padding: 12px 18px !important; border-radius: 11px !important; background-position: left 37% center !important; background-size: 260px auto !important; }
+  .parent-app-main > .parent-hero h1 { font-size: 1.55rem !important; }
+  .parent-app-main > .parent-hero p { font-size: .68rem; }
+  .parent-child-card-selector { grid-template-columns: 170px minmax(0,1fr); align-items: center; min-height: 82px; padding: 8px 10px; border-radius: 10px; background: #fff; box-shadow: var(--ref-card-shadow); }
+  .parent-child-selector-track { padding: 0; }
+  .parent-child-context-card { flex-basis: 190px; min-height: 62px; padding: 6px; border-radius: 9px; }
+  .parent-child-context-avatar { width: 43px; height: 43px; }
+  .parent-app-main > .parent-child-card { grid-column: 1; min-height: 126px !important; padding: 12px !important; border-radius: 11px !important; }
+  .parent-child-photo { width: 96px !important; height: 96px !important; border-width: 4px !important; }
+  .parent-child-card h2 { font-size: 1.45rem !important; }
+  .parent-app-main > .parent-metrics-grid { grid-column: 2; grid-row: span 2; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 6px !important; }
+  .parent-metric-card { min-height: 93px !important; padding: 8px !important; border-radius: 10px !important; }
+  .parent-metric-icon { width: 31px !important; height: 31px !important; }
+  .parent-metric-icon svg { width: 17px; }
+  .parent-metric-card > strong { font-size: 1rem !important; }
+  .parent-metric-card > b { font-size: .63rem; }
+  .parent-metric-card > small { font-size: .52rem; }
+  .parent-app-main > .parent-section-card:has(.parent-camera-card) { grid-column: 1; padding: 9px !important; border-radius: 11px !important; }
+  .parent-camera-card { grid-template-columns: minmax(0,1.45fr) minmax(210px,.55fr); min-height: 168px !important; border-radius: 9px; }
+  .role-app-shell .parent-camera-preview {
+    position: relative;
+    min-height: 168px;
+    overflow: hidden;
+    align-content: end;
+    justify-items: start;
+    padding: 16px !important;
+    color: #fff !important;
+    text-align: right;
+    background-image:
+      linear-gradient(180deg,rgb(6 35 78 / 4%) 26%,rgb(6 35 78 / 82%) 100%),
+      url('/assets/hero-control-center.png') !important;
+    background-position: center 60% !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-color: #174a7f !important;
+  }
+  .parent-camera-preview > * { position: relative; z-index: 1; }
+  .parent-camera-preview > svg { width: 32px; height: 32px; padding: 7px; border-radius: 50%; background: rgb(255 255 255 / 18%); }
+  .parent-camera-preview strong { font-size: .72rem; }
+  .parent-camera-preview span { color: #e5f0ff !important; font-size: .56rem; }
+  .parent-camera-card > div:last-child { padding: 12px; }
+  .parent-camera-card h3 { font-size: .78rem; }
+  .parent-camera-card p { font-size: .61rem; }
+  .parent-app-main > .parent-action-grid { grid-column: 1 / -1; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px !important; }
+  .parent-action-tile { min-height: 57px !important; grid-template-columns: 25px auto; border-radius: 9px !important; font-size: .65rem; }
+  .parent-action-tile svg { width: 21px; }
+  .parent-app-main > .parent-two-columns { grid-column: 1 / -1; gap: 8px; }
+  .parent-section-card { border-radius: 11px !important; box-shadow: var(--ref-card-shadow) !important; }
+}
+
+/* Safety: camera grid is the visual center; truth remains explicit in overlays and details. */
+@media (min-width: 901px) {
+  .safety-platform { gap: 8px !important; }
+  .safety-hero { min-height: 72px !important; grid-template-columns: minmax(0,1fr) 58px 260px !important; padding: 9px 13px !important; border-radius: 10px !important; }
+  .safety-hero h1 { margin: 2px 0; font-size: 1.35rem !important; }
+  .safety-hero p { font-size: .62rem !important; }
+  .safety-hero-mark img { width: 52px !important; height: 52px !important; }
+  .safety-hero-mark > span { width: 27px !important; height: 27px !important; }
+  .safety-hero-truth { padding: 8px !important; border-radius: 9px !important; }
+  .safety-tabs { min-height: 35px; padding: 3px; border-radius: 8px; }
+  .safety-tabs a { min-height: 29px; padding: 5px 12px; font-size: .62rem; }
+  .safety-metrics { gap: 6px !important; }
+  .safety-metrics article { min-height: 57px; padding: 7px !important; border-radius: 9px !important; }
+  .safety-metrics svg { width: 27px !important; height: 27px !important; }
+  .safety-metrics strong { font-size: 1rem !important; }
+  .safety-toolbar { min-height: 40px; padding: 4px 7px !important; border-radius: 8px !important; }
+  .safety-camera-grid { grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 7px !important; }
+  .safety-camera-card { border-radius: 9px !important; box-shadow: var(--ref-card-shadow) !important; }
+  .safety-camera-visual { min-height: 145px !important; }
+  .safety-camera-card-body { padding: 8px !important; }
+  .safety-camera-card dl { margin: 7px 0; }
+  .safety-camera-open { min-height: 28px; font-size: .58rem; }
+  .safety-overview-footer { gap: 7px !important; }
+  .safety-overview-footer article { min-height: 53px; padding: 7px !important; border-radius: 8px !important; }
+}
+
+/* Platform Admin: compact control center with the approved 70/30 weighting. */
+@media (min-width: 901px) {
+  .role-app-shell.admin-runtime-shell .admin-app-page { display: grid; grid-template-columns: minmax(0,2.7fr) minmax(310px,.92fr); grid-template-rows: auto 78px 190px 92px 70px auto; align-items: start; gap: 8px !important; direction: ltr; }
+  .role-app-shell.admin-runtime-shell .admin-app-page > * { direction: rtl; }
+  .admin-app-page > .error-banner,
+  .admin-app-page > .admin-reference-title { grid-column: 1 / -1; }
+  .admin-reference-title { min-height: 50px; }
+  .admin-reference-title h1 { font-size: 1.35rem !important; }
+  .admin-reference-title p { font-size: .66rem; }
+  .admin-app-page > .admin-reference-kpis {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(6,minmax(0,1fr)) !important;
+    grid-auto-rows: 78px !important;
+    gap: 6px !important;
+  }
+  .role-app-shell.admin-runtime-shell .admin-reference-kpis .gb-metric-card {
+    height: 78px !important;
+    min-height: 78px !important;
+    align-content: center !important;
+    padding: 7px 8px !important;
+    border-radius: 9px !important;
+  }
+  .role-app-shell.admin-runtime-shell .admin-reference-kpis .gb-metric-card > span { width: 30px !important; height: 30px !important; }
+  .role-app-shell.admin-runtime-shell .admin-reference-kpis .gb-metric-card > b { font-size: 1.18rem !important; line-height: 1 !important; }
+  .role-app-shell.admin-runtime-shell .admin-reference-kpis .gb-metric-card > small { font-size: .5rem !important; }
+  .admin-app-page > .platform-admin-chart-grid { grid-column: 1; grid-row: 3; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 7px !important; }
+  .platform-admin-chart { min-height: 176px !important; padding: 10px !important; border-radius: 9px !important; }
+  .platform-admin-bar-chart { height: 92px !important; }
+  .admin-app-page > .admin-system-status-card { grid-column: 1; grid-row: 4; min-height: 82px !important; padding: 10px 12px !important; border-radius: 9px !important; }
+  .admin-app-page > .admin-priority-column { grid-column: 2; grid-row: 3 / 6; grid-template-columns: 1fr !important; gap: 7px !important; height: 368px; min-height: 0; overflow: hidden; }
+  .admin-app-page > .admin-priority-column .admin-section-card { padding: 10px !important; border-radius: 9px !important; }
+  .admin-priority-column .admin-alert-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 6px !important; }
+  .admin-priority-column .gb-report-card { min-height: 72px !important; padding: 8px !important; }
+  .admin-priority-column .gb-report-card h3,
+  .admin-priority-column .gb-report-card b { overflow-wrap: normal; word-break: normal; }
+  .admin-priority-column .admin-list-stack { gap: 5px !important; }
+  .admin-priority-column .gb-list-row-card { min-height: 58px !important; padding: 7px !important; }
+  .admin-priority-column .gb-list-row-card strong { overflow-wrap: anywhere; font-size: .64rem; line-height: 1.25; }
+  .admin-app-page > .admin-reference-actions { grid-column: 1; grid-row: 5; }
+  .admin-reference-actions > .gb-section-header { display: none; }
+  .admin-quick-action-grid { grid-template-columns: repeat(6,minmax(0,1fr)) !important; gap: 6px !important; }
+  .admin-quick-action-grid .gb-action-card { min-height: 66px !important; padding: 7px !important; border-radius: 8px !important; }
+  .admin-quick-action-grid .gb-action-card p { display: none; }
+  .admin-quick-action-grid .gb-action-card h3 { font-size: .62rem; }
+  .admin-app-page > .admin-business-summary,
+  .admin-app-page > .admin-management-card,
+  .admin-app-page > .admin-two-column:not(.admin-priority-column),
+  .admin-app-page > .admin-ops-strip { grid-column: 1 / -1; }
+}
+
+/* Settings: exact four-column desktop family (product rail + local nav + three content columns). */
+@media (min-width: 1181px) {
+  .ux18-settings-header { display: none !important; }
+  .ux18-settings-layout { grid-template-columns: 220px minmax(0,1fr) !important; gap: 8px !important; direction: ltr; }
+  .ux18-settings-layout > aside,
+  .ux18-settings-content { direction: rtl; }
+  .ux18-settings-navigation { position: sticky; top: 68px; border-radius: 9px !important; box-shadow: var(--ref-card-shadow); }
+  .ux18-settings-navigation-title { padding: 10px !important; }
+  .ux18-settings-navigation-list { padding: 4px; }
+  .ux18-settings-navigation-list a { min-height: 43px !important; padding: 5px 6px !important; border-radius: 6px; }
+  .ux18-settings-content { display: grid; grid-template-columns: 1.02fr .94fr 1.08fr !important; align-items: start; gap: 8px !important; }
+  .ux18-reference-column { display: grid; grid-row: 1; align-content: start; gap: 8px; min-width: 0; }
+  .ux18-reference-profile-column { grid-column: 3; }
+  .ux18-reference-security-column { grid-column: 2; }
+  .ux18-reference-garden-column { grid-column: 1; }
+  .ux18-reference-garden-column > .ux18-settings-status-grid { grid-template-columns: 1fr !important; gap: 6px; }
+  .ux18-settings-section { border-radius: 9px !important; box-shadow: var(--ref-card-shadow); }
+  .ux18-settings-section > header { min-height: 55px; padding: 8px !important; }
+  .ux18-settings-section-body { padding: 8px 9px !important; }
+  .ux18-settings-status-card { min-height: 58px !important; padding: 7px !important; border-radius: 8px !important; }
+  .ux18-settings-link-list > a { min-height: 48px !important; padding: 6px 1px !important; }
+  .ux18-verification-grid article,
+  .ux18-verification-grid > a { min-height: 58px !important; padding: 7px !important; }
+  .ux18-settings-section h3 { font-size: .82rem !important; }
+  .ux18-settings-section header p { font-size: .59rem !important; }
+  .settings-profile-form .action-panel { padding: 9px !important; }
+  .ux18-reference-identity { display: grid; grid-template-columns: 82px minmax(0,1fr); align-items: start; gap: 12px; }
+  .ux18-reference-identity > img,
+  .ux18-reference-identity > span { width: 82px; height: 82px; border: 4px solid #e5f1ff; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: #eaf4ff; color: #0876f9; font-size: 1.6rem; font-weight: 900; }
+  .ux18-reference-identity dl { display: grid; gap: 5px; margin: 0; }
+  .ux18-reference-identity dl > div { display: grid; grid-template-columns: 72px minmax(0,1fr); gap: 7px; align-items: center; min-height: 31px; padding: 4px 7px; border: 1px solid #e0eaf6; border-radius: 7px; background: #fbfdff; }
+  .ux18-reference-identity dt { color: #6480a7; font-size: .56rem; }
+  .ux18-reference-identity dd { margin: 0; color: #0b3476; font-size: .65rem; font-weight: 800; overflow-wrap: anywhere; }
+  .ux18-reference-profile-column .ux18-verification-grid { grid-template-columns: 1fr !important; gap: 5px; margin-top: 9px; }
+  .ux18-reference-profile-column .ux18-verification-grid > * { min-height: 56px !important; padding: 6px !important; }
+  .ux18-reference-garden-summary { display: grid; grid-template-columns: 64px minmax(0,1fr); align-items: center; gap: 10px; margin-bottom: 5px; }
+  .ux18-reference-garden-summary > img,
+  .ux18-reference-garden-summary > span { width: 64px; height: 54px; border-radius: 8px; object-fit: cover; display: grid; place-items: center; background: #eaf4ff; color: #0876f9; }
+  .ux18-reference-garden-summary div { display: grid; gap: 3px; }
+  .ux18-reference-garden-summary b { color: #0b3476; font-size: .78rem; }
+  .ux18-reference-garden-summary small { color: #6b82a4; font-size: .58rem; }
+  .ux18-reference-editor { margin-top: 7px; border-top: 1px solid #e2ebf6; }
+  .ux18-reference-editor > summary { min-height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #0872e8; font-size: .64rem; font-weight: 900; }
+  .ux18-reference-editor[open] { grid-column: 1 / -1; }
+  .ux18-reference-editor:not([open]) > .settings-profile-form { display: none !important; }
+}
+
+@media (max-width: 900px) {
+  .role-app-global-search { display: none; }
+  .ux18-reference-column { display: contents; }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-hero,
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-hero { display: none !important; }
+  .manager-registration-entry-focused { gap: 9px !important; }
+  .manager-registration-entry-focused .manager-registration-intro { min-height: 292px !important; padding: 0 !important; overflow: hidden; border-radius: 20px !important; background: #fff !important; }
+  .manager-registration-entry-focused .manager-registration-intro > div:first-child { padding: 18px 17px 8px; }
+  .manager-registration-entry-focused .manager-registration-intro h2 { font-size: 1.42rem !important; }
+  .manager-registration-entry-focused .manager-registration-intro p { font-size: .68rem !important; }
+  .manager-registration-entry-focused .manager-registration-visual { min-height: 128px !important; padding: 12px; color: #fff; background: linear-gradient(0deg,rgb(5 31 73 / 48%),transparent),url('/assets/gan-batuach-auth-hero.webp') center 46% / cover no-repeat !important; }
+  .manager-registration-entry-focused .manager-registration-visual > svg { display: none; }
+  .role-app-shell .role-app-page { padding-inline: 12px !important; }
+  .manager-reference-dashboard { gap: 8px !important; }
+  .manager-command-hero { order: 1; grid-template-columns: minmax(0,1fr) 122px !important; min-height: 118px !important; border-radius: 14px !important; }
+  .manager-command-hero-copy { padding: 12px !important; }
+  .manager-command-eyebrow { min-height: 26px; padding: 3px 7px; font-size: .57rem; }
+  .manager-command-hero h2 { font-size: 1.28rem !important; }
+  .manager-command-hero p { font-size: .58rem !important; }
+  .manager-command-hero-actions { display: none !important; }
+  .manager-command-hero-art { min-height: 118px !important; }
+  .manager-today-strip { display: flex !important; gap: 6px !important; overflow-x: auto; scroll-snap-type: x mandatory; }
+  .manager-today-metric { flex: 0 0 105px; min-height: 68px !important; padding: 7px !important; scroll-snap-align: start; }
+  .manager-today-metric > span { width: 30px !important; height: 30px !important; }
+  .manager-today-metric strong { font-size: .95rem !important; }
+  .manager-reference-first-viewport { display: grid; gap: 8px; }
+  .manager-reference-first-viewport .manager-reference-panel { min-height: 0; border-radius: 12px !important; }
+  .manager-reference-first-viewport > :nth-child(3) { order: 1; }
+  .manager-reference-first-viewport .manager-live-camera-card { order: 2; }
+  .manager-reference-first-viewport > :nth-child(1) { order: 3; }
+  .manager-reference-first-viewport .manager-reference-empty { min-height: 92px; padding: 12px; }
+  .manager-reference-first-viewport .manager-panel-link { min-height: 42px; }
+  .manager-live-camera-scene { position: relative; min-height: 150px; overflow: hidden; }
+  .manager-live-camera-scene > img { object-fit: cover; }
+  .manager-live-camera-scene::after { position: absolute; inset: 0; background: linear-gradient(180deg,transparent,rgb(4 30 70 / 66%)); content: ""; }
+  .manager-live-camera-scene > div,
+  .manager-camera-truth { position: absolute; z-index: 2; }
+  .manager-live-camera-scene > div { right: 12px; bottom: 10px; color: #fff; }
+  .manager-camera-truth { top: 9px; left: 9px; padding: 4px 7px; border-radius: 999px; color: #fff; background: rgb(4 36 83 / 78%); font-size: .58rem; }
+  .manager-camera-thumbnails { display: none; }
+  .manager-reference-quick > div { grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 6px !important; padding: 7px !important; }
+  .manager-reference-quick > div > a { min-height: 70px !important; }
+  .parent-child-card-selector { padding: 8px; border-radius: 12px; }
+  .parent-child-selector-track { scroll-snap-type: x mandatory; }
+  .parent-child-context-card { flex-basis: 170px; scroll-snap-align: start; }
+  .parent-camera-card { border-radius: 12px; }
+  .ux04-workspace-header { min-height: 64px !important; padding: 8px 4px !important; }
+  .ux04-summary-strip { display: flex; overflow-x: auto; }
+  .ux04-summary-strip > span { flex: 0 0 108px; min-height: 58px !important; }
+  .safety-hero { min-height: 108px !important; padding: 12px !important; }
+  .safety-hero-truth { display: none !important; }
+  .safety-metrics { display: flex !important; overflow-x: auto; }
+  .safety-metrics article { flex: 0 0 104px; min-height: 66px !important; }
+  .safety-camera-grid { gap: 8px !important; }
+  .safety-camera-card { border-radius: 12px !important; }
+  .safety-camera-visual { min-height: 174px !important; }
+  .admin-reference-kpis { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 7px !important; }
+  .admin-reference-kpis .gb-metric-card { min-height: 94px !important; border-radius: 11px !important; }
+  .admin-quick-action-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .ux18-settings-header { min-height: 78px !important; padding: 11px 13px !important; border-radius: 12px !important; }
+  .ux18-settings-header h2 { font-size: 1.35rem !important; }
+  .ux18-settings-header p { font-size: .68rem !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manager-live-camera-scene *, .role-app-global-search *, .parent-child-context-card { animation: none !important; transition: none !important; }
+}
