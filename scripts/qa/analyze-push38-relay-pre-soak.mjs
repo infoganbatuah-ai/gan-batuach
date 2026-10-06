@@ -19,6 +19,11 @@ const checkpoints = checkpointsBytes.toString("utf8").trim().split("\n")
 const result = JSON.parse(resultBytes.toString("utf8"));
 const first = checkpoints[0], last = checkpoints.at(-1);
 const finite = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+const canonicalDvrChannels = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
+const upstreamUnavailable = new Set((result.dvr_known_upstream_unavailable ?? [])
+  .map(Number).filter(Number.isInteger));
+const qualifiedDvrChannels = canonicalDvrChannels
+  .filter(channel => !upstreamUnavailable.has(channel));
 const delta = (before, after, key) => Math.max(0,
   finite(after?.dvr?.lifecycle?.[key]) - finite(before?.dvr?.lifecycle?.[key]));
 
@@ -41,7 +46,6 @@ const timeline = checkpoints.map(point => {
   }
   const inputs = point.dvr?.inputs ?? [];
   const present = new Set(inputs.map(value => Number(value.channel)));
-  const qualified = [1, 2, 3, 4, 5, 6, 7, 10, 11];
   return {
     sequence: point.sequence,
     sampled_at: point.sampled_at,
@@ -52,7 +56,7 @@ const timeline = checkpoints.map(point => {
       .map(value => ({ channel: value.channel, relay_age_ms: value.relay_age_ms,
         input_idle_ms: value.input_idle_ms, output_idle_ms: value.output_idle_ms,
         encoder: value.encoder })),
-    missing_channels: qualified.filter(channel => !present.has(channel)),
+    missing_channels: qualifiedDvrChannels.filter(channel => !present.has(channel)),
     relay_processes: point.dvr?.relay_processes ?? null,
     lifecycle: point.dvr?.lifecycle ?? null,
     channel_activity: channelStarts,
