@@ -104,6 +104,13 @@ try {
   assert.ok([200, 201].includes((await createResponse).status()));
   await page.waitForURL(url => url.pathname === '/onboarding/kindergarten' && Boolean(url.searchParams.get('gardenId')), { timeout: 90_000 });
 
+  // A reusable synthetic owner can resume a later draft step. The visual pack
+  // must still capture the canonical first stage before advancing the flow.
+  if (!await page.locator('textarea[name=documents_summary]').isVisible()) {
+    await page.locator('.manager-onboarding-steps button').first().click();
+    await page.getByRole('heading', { name: 'שלב 1 מתוך 5' }).waitFor();
+  }
+
   await page.locator('textarea[name=documents_summary]').fill('רישיון עסק ואישורי בטיחות קיימים; אישור כבאות בהשלמה.');
   await page.locator('.manager-document-checks input').nth(0).check();
   await page.locator('.manager-document-checks input').nth(5).check();

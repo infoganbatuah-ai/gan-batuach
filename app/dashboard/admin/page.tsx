@@ -421,7 +421,7 @@ export default async function AdminDashboard() {
         </DashboardGrid>
       </section>
 
-      <DashboardGrid className="admin-two-column" columns={2}>
+      <DashboardGrid className="admin-two-column admin-priority-column" columns={2}>
         <PremiumCard className="admin-section-card" size="lg">
           <SectionHeader title="בטיחות ארצית" subtitle="תלונות, אירועים, פיקוח ותצפיתן לפי חומרה." icon={ShieldAlert} />
           <DashboardGrid className="admin-alert-grid" columns={4}>

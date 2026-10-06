@@ -829,3 +829,22 @@ three-stage registration UI and passed all 9 checks at remotely preserved commit
 `13d6379198742669b05a985c4880b4ea0c6a9af8`; this QA-only follow-up is pending
 its exact-head integration receipt. Production and `main` remain untouched, and
 RELEASE-GAP-01 has not started.
+
+UX-REFERENCE-RECONSTRUCTION-FINAL branch qualification (2026-10-06): the
+reference decomposition was written before implementation and all 21 canonical
+domains were re-audited against 19 approved reference files. The branch-head V3
+package contains 326 Desktop captures at 1440×1024, 326 Mobile captures at
+390×844, 21 comparison boards, 63 high-resolution domain boards, 21 alignment
+overlays and 21 annotated comparison boards. Internal status is
+REFERENCE_MATCH_CANDIDATE for all 21 domains, with zero
+NEEDS_VISUAL_CORRECTION and zero BROKEN; this is not owner approval. The
+reconstruction changes the Management shell, onboarding, Owner dashboard,
+Children/Classrooms, Parent, truthful Safety/Cameras, Platform Admin and
+Settings compositions while retaining canonical behavior and role boundaries.
+Qualification passed typecheck, zero-regression lint, the 541-page Production
+build, Domain, Security 11/11, migration health, release-contract validation
+and focused UX-03 through UX-20 suites. No migration, paid provider,
+Production, `main`, customer data, physical camera action or Digital Observer
+core change occurred. The next action is exact-head commit/push, PR and merge to
+`integration/development`, followed by merged-head V3 regeneration; RELEASE-GAP-01
+has not started.

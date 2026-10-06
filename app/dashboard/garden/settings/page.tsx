@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- profile and garden images are tenant-configured remote URLs; the existing media contract does not guarantee Next Image host metadata */
 import Link from "next/link";
 import { Bell, Building2, Camera, CreditCard, KeyRound, PlugZap, ShieldCheck, UsersRound } from "lucide-react";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
@@ -70,35 +71,65 @@ export default async function SettingsPage() {
   return <TeacherAppFrame role={role} title={`שלום, ${profile.full_name ?? "מנהלת הגן"}`} subtitle={`${garden?.name ?? "הגן הפעיל"} · הגדרות`} avatarUrl={profile.profile_image_url ?? null} active="more">
     <SettingsPlatformHeader role={role} title="הגדרות וחשבון" description="פרופיל אישי, הגדרות הגן, הרשאות, אבטחה, התראות ומנוי — לפי הגן הפעיל והרשאת השרת." />
     <SettingsPlatformLayout navigation={<SettingsPlatformNavigation role={role} activeHref="/dashboard/garden/settings" />}>
-      <SettingsStatusGrid>
-        <SettingsStatusCard label="גן פעיל" value={garden?.name ?? "לא נבחר"} detail={context.gardens.length > 1 ? `${context.gardens.length} גנים זמינים להחלפה` : "הקשר ניהול מאומת"} icon={Building2} tone="blue" />
-        <SettingsStatusCard label="הרשאות הוראה" value={`${activeAssignments.length} פעילות`} detail="בעלים־כגננת והאצלה נשמרים בנפרד" icon={UsersRound} tone="purple" href="/dashboard/garden/staff" />
-        <SettingsStatusCard label="מדיניות מצלמות" value={`${livePolicyCount} מקורות מורשים`} detail="לפי תפקיד, גן ויכולת מאומתת" icon={Camera} tone={livePolicyCount ? "green" : "orange"} href="/dashboard/garden/cameras" />
-      </SettingsStatusGrid>
-      <SettingsSection id="profile" title="פרופיל וחשבון" description="פרטי הקשר האישיים ואימות החשבון" icon={ShieldCheck}>
-        <AccountVerificationSummary email={profile.email ?? user.email} emailVerified={verification.emailVerified} phone={profile.phone} phoneVerified={verification.phoneVerified} />
-      </SettingsSection>
-      <SettingsSection id="garden-profile" title="הגן שלי" description="שדות פרופיל קנוניים של הגן הפעיל בלבד" icon={Building2} action={context.gardens.length > 1 ? <Link className="button secondary" href="/dashboard/garden/operations">החלפת גן פעיל</Link> : undefined}>
-        <ProfileSettingsForm profile={profile} garden={garden} roleLabel={role === "owner" ? "בעלים" : "מנהלת גן"} includeGarden requireProfilePhoto requireGardenLogo />
-      </SettingsSection>
-      <SettingsSection id="permissions" title="הרשאות ומבנה" description="אין כאן מנגנון RBAC נוסף; כל פעולה נשענת על ההרשאה הקנונית בצד השרת" icon={UsersRound}>
-        <SettingsLinkList items={[
-          { title: "צוות, תפקידים וכיתות", detail: `${classrooms.length} כיתות · שיוך צוות לפי העסקה פעילה`, href: "/dashboard/garden/staff", status: "לפי גן", icon: UsersRound },
-          { title: "בעלים כגננת / גננת מואצלת", detail: "הרשאת הוראה נפרדת מהרשאת ניהול", href: "/dashboard/garden/staff", status: `${activeAssignments.length} פעילות`, icon: ShieldCheck },
-          { title: "מדיניות מצלמות", detail: "גישה להורים, צוות ומפקחים לפי מקור ואזור", href: "/dashboard/garden/cameras", status: `${cameras.length} מקורות`, icon: Camera }
-        ]} />
-      </SettingsSection>
-      <SettingsSection id="account-services" title="התראות, מנוי ואינטגרציות" description="קישורים למקורות האמת הקיימים, עם מצב ספק אמיתי" icon={PlugZap}>
-        <SettingsLinkList items={[
-          { title: "העדפות התראות ושעות שקט", detail: "Push, Email וערוצים זמינים בלבד", href: "/dashboard/garden/notifications#preferences", status: "אישי", icon: Bell },
-          { title: "מנוי גן בטוח", detail: "מנוי הגן נשאר נפרד מתשלומי הורים", href: "/dashboard/garden/subscription", status: "גן ← פלטפורמה", icon: CreditCard },
-          { title: "מוכנות ספק תשלום", detail: "לא מוצג Checkout ללא אימות ייצור", href: "/dashboard/garden/subscription", status: providerLabel, icon: PlugZap },
-          { title: "אבטחה, MFA ו־Passkey", detail: "מכשירים, סשנים ופעולות רגישות", href: "/dashboard/security-settings", status: "אישי", icon: KeyRound }
-        ]} />
-      </SettingsSection>
-      <SettingsSection id="privacy" title="פרטיות והפרדת נתונים" description="הגדרות נשמרות לפי משתמש, גן פעיל ותפקיד" icon={ShieldCheck}>
-        <p className="settings-truth-note">החלפת גן מחליפה גם את הקשר ההרשאות. הרשאות מצלמה אינן מועתקות בין גנים, מנוי הפלטפורמה אינו חוב הורה, וסודות ספקים אינם מוצגים בממשק.</p>
-      </SettingsSection>
+      <div className="ux18-reference-column ux18-reference-profile-column">
+        <SettingsSection id="profile" title="פרופיל אישי" description="פרטי החשבון שלך" icon={ShieldCheck}>
+          <div className="ux18-reference-identity">
+            {profile.profile_image_url ? <img src={profile.profile_image_url} alt={`תמונת הפרופיל של ${profile.full_name ?? "מנהלת הגן"}`} /> : <span aria-hidden="true">{(profile.full_name ?? "מ").slice(0, 1)}</span>}
+            <dl>
+              <div><dt>שם מלא</dt><dd>{profile.full_name ?? "לא הוגדר"}</dd></div>
+              <div><dt>תפקיד</dt><dd>{role === "owner" ? "בעלת גן" : "מנהלת גן"}</dd></div>
+              <div><dt>דוא״ל</dt><dd dir="ltr">{profile.email ?? user.email ?? "לא הוגדר"}</dd></div>
+              <div><dt>טלפון</dt><dd dir="ltr">{profile.phone ?? "לא הוגדר"}</dd></div>
+            </dl>
+          </div>
+          <AccountVerificationSummary email={profile.email ?? user.email} emailVerified={verification.emailVerified} phone={profile.phone} phoneVerified={verification.phoneVerified} />
+        </SettingsSection>
+      </div>
+
+      <div className="ux18-reference-column ux18-reference-security-column">
+        <SettingsSection id="permissions" title="אבטחה והרשאות" description="גישה קנונית בצד השרת" icon={UsersRound}>
+          <SettingsLinkList items={[
+            { title: "צוות, תפקידים וכיתות", detail: `${classrooms.length} כיתות · שיוך לפי העסקה`, href: "/dashboard/garden/staff", status: "לפי גן", icon: UsersRound },
+            { title: "אבטחת חשבון", detail: "MFA, Passkey ומכשירים מחוברים", href: "/dashboard/security-settings", status: "אישי", icon: KeyRound },
+            { title: "מדיניות מצלמות", detail: "גישה לפי תפקיד ואזור", href: "/dashboard/garden/cameras", status: `${cameras.length} מקורות`, icon: Camera }
+          ]} />
+        </SettingsSection>
+        <SettingsSection id="privacy" title="העדפות ופרטיות" description="שפה, התראות והפרדת נתונים" icon={ShieldCheck}>
+          <SettingsLinkList items={[
+            { title: "התראות ושעות שקט", detail: "ערוצים זמינים בלבד", href: "/dashboard/garden/notifications#preferences", status: "אישי", icon: Bell },
+            { title: "פרטיות והרשאות", detail: "הקשר משתמש, גן ותפקיד", href: "/dashboard/security-settings", status: "מוגן", icon: ShieldCheck }
+          ]} />
+        </SettingsSection>
+      </div>
+
+      <div className="ux18-reference-column ux18-reference-garden-column">
+        <SettingsStatusGrid>
+          <SettingsStatusCard label="הגן שלי" value={garden?.name ?? "לא נבחר"} detail={context.gardens.length > 1 ? `${context.gardens.length} גנים זמינים` : "הקשר ניהול מאומת"} icon={Building2} tone="blue" />
+          <SettingsStatusCard label="הרשאות הוראה" value={`${activeAssignments.length} פעילות`} detail="בעלים־כגננת והאצלה נשמרים בנפרד" icon={UsersRound} tone="purple" href="/dashboard/garden/staff" />
+          <SettingsStatusCard label="מצלמות" value={`${livePolicyCount} מורשות`} detail="לפי תפקיד ויכולת" icon={Camera} tone={livePolicyCount ? "green" : "orange"} href="/dashboard/garden/cameras" />
+        </SettingsStatusGrid>
+        <SettingsSection id="garden-profile" title="הגן שלי" description="פרופיל והגדרות הגן הפעיל" icon={Building2} action={context.gardens.length > 1 ? <Link className="button secondary" href="/dashboard/garden/operations">החלפת גן</Link> : undefined}>
+          <div className="ux18-reference-garden-summary">
+            {garden?.image_url || garden?.logo_url ? <img src={garden.image_url ?? garden.logo_url ?? ""} alt={`תמונת ${garden.name ?? "הגן"}`} /> : <span aria-hidden="true"><Building2 /></span>}
+            <div><b>{garden?.name ?? "הגן הפעיל"}</b><small>{garden?.address ?? "כתובת הגן טרם הוגדרה"}</small></div>
+          </div>
+          <SettingsLinkList items={[
+            { title: "פרטי גן ושעות פעילות", detail: "שם, כתובת, קשר ולוח פעילות", href: "#garden-editor", status: "עריכה", icon: Building2 },
+            { title: "כיתות והרשאות", detail: `${classrooms.length} כיתות פעילות`, href: "/dashboard/garden/staff", status: "ניהול", icon: UsersRound },
+            { title: "מסמכים נדרשים", detail: "מסמכי גן וציות", href: "/dashboard/garden/documents", status: "בדיקה", icon: ShieldCheck }
+          ]} />
+          <details className="ux18-reference-editor" id="garden-editor">
+            <summary>עריכת פרטי חשבון וגן</summary>
+            <ProfileSettingsForm profile={profile} garden={garden} roleLabel={role === "owner" ? "בעלים" : "מנהלת גן"} includeGarden requireProfilePhoto requireGardenLogo />
+          </details>
+        </SettingsSection>
+        <SettingsSection id="account-services" title="מנוי, תשלומים ואינטגרציות" description="מצב ספק אמיתי בלבד" icon={PlugZap}>
+          <SettingsLinkList items={[
+            { title: "מנוי גן בטוח", detail: "מנוי הגן נשאר נפרד מתשלומי הורים", href: "/dashboard/garden/subscription", status: "גן ← פלטפורמה", icon: CreditCard },
+            { title: "מוכנות ספק תשלום", detail: "ללא Checkout עד אימות", href: "/dashboard/garden/subscription", status: providerLabel, icon: PlugZap }
+          ]} />
+        </SettingsSection>
+      </div>
     </SettingsPlatformLayout>
   </TeacherAppFrame>;
 }

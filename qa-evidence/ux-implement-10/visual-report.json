@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T07:05:26.709Z",
+  "generatedAt": "2026-10-06T01:59:25.087Z",
   "environment": "DEVELOPMENT / INTEGRATION",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_FINANCE_FULL_PLATFORM.png",
   "concepts": 14,
@@ -15,7 +15,7 @@
       "screen": "owner-finance-dashboard",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/finance",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/owner-finance-dashboard-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/owner-finance-dashboard-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -24,7 +24,7 @@
       "screen": "owner-finance-dashboard",
       "viewport": "390×844",
       "route": "/dashboard/garden/finance",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/owner-finance-dashboard-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/owner-finance-dashboard-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -33,7 +33,7 @@
       "screen": "tuition-ledger",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tuition-ledger",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/tuition-ledger-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/tuition-ledger-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -42,7 +42,7 @@
       "screen": "tuition-ledger",
       "viewport": "390×844",
       "route": "/dashboard/garden/tuition-ledger",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/tuition-ledger-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/tuition-ledger-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -51,7 +51,7 @@
       "screen": "child-tuition-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/children/00000000-0000-4000-8000-000000000901?tab=tuition",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/child-tuition-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/child-tuition-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -60,7 +60,7 @@
       "screen": "child-tuition-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/children/00000000-0000-4000-8000-000000000901?tab=tuition",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/child-tuition-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/child-tuition-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -69,7 +69,7 @@
       "screen": "parent-tuition",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/payments",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/parent-tuition-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/parent-tuition-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -78,7 +78,7 @@
       "screen": "parent-tuition",
       "viewport": "390×844",
       "route": "/dashboard/parent/payments",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/parent-tuition-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/parent-tuition-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -87,7 +87,7 @@
       "screen": "multi-child-finance",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/payments?child=00000000-0000-4000-8000-000000000803",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/multi-child-finance-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/multi-child-finance-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -96,7 +96,7 @@
       "screen": "multi-child-finance",
       "viewport": "390×844",
       "route": "/dashboard/parent/payments?child=00000000-0000-4000-8000-000000000803",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/multi-child-finance-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/multi-child-finance-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -105,7 +105,7 @@
       "screen": "payment-history",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/finance",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/payment-history-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/payment-history-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -114,7 +114,7 @@
       "screen": "payment-history",
       "viewport": "390×844",
       "route": "/dashboard/garden/finance",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/payment-history-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/payment-history-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -123,7 +123,7 @@
       "screen": "partial-payment",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/finance?status=partially_paid",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/partial-payment-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/partial-payment-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -132,7 +132,7 @@
       "screen": "partial-payment",
       "viewport": "390×844",
       "route": "/dashboard/garden/finance?status=partially_paid",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/partial-payment-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/partial-payment-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -141,7 +141,7 @@
       "screen": "overdue",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/finance?status=overdue",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/overdue-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/overdue-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -150,7 +150,7 @@
       "screen": "overdue",
       "viewport": "390×844",
       "route": "/dashboard/garden/finance?status=overdue",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/overdue-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/overdue-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -159,7 +159,7 @@
       "screen": "manual-settlement",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tuition-ledger",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/manual-settlement-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/manual-settlement-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -168,7 +168,7 @@
       "screen": "manual-settlement",
       "viewport": "390×844",
       "route": "/dashboard/garden/tuition-ledger",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/manual-settlement-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/manual-settlement-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -177,7 +177,7 @@
       "screen": "credit-adjustment",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/finance?status=reconciliation_required",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/credit-adjustment-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/credit-adjustment-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -186,7 +186,7 @@
       "screen": "credit-adjustment",
       "viewport": "390×844",
       "route": "/dashboard/garden/finance?status=reconciliation_required",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/credit-adjustment-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/credit-adjustment-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -195,7 +195,7 @@
       "screen": "reconciliation",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tuition-ledger",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/reconciliation-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/reconciliation-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -204,7 +204,7 @@
       "screen": "reconciliation",
       "viewport": "390×844",
       "route": "/dashboard/garden/tuition-ledger",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/reconciliation-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/reconciliation-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -213,7 +213,7 @@
       "screen": "platform-subscription",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/subscription",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/platform-subscription-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/platform-subscription-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -222,7 +222,7 @@
       "screen": "platform-subscription",
       "viewport": "390×844",
       "route": "/dashboard/garden/subscription",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/platform-subscription-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/platform-subscription-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -231,7 +231,7 @@
       "screen": "provider-unavailable",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/subscription",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/provider-unavailable-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/provider-unavailable-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -240,7 +240,7 @@
       "screen": "provider-unavailable",
       "viewport": "390×844",
       "route": "/dashboard/garden/subscription",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/provider-unavailable-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/provider-unavailable-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -249,7 +249,7 @@
       "screen": "admin-subscriptions",
       "viewport": "1440×1024",
       "route": "/dashboard/admin/subscriptions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/admin-subscriptions-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/admin-subscriptions-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     },
@@ -258,7 +258,7 @@
       "screen": "admin-subscriptions",
       "viewport": "390×844",
       "route": "/dashboard/admin/subscriptions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-10/qa-evidence/ux-implement-10/screenshots/admin-subscriptions-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-10/screenshots/admin-subscriptions-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; unsupported provider capabilities remain truthfully unavailable"
     }

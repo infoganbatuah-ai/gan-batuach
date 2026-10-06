@@ -180,7 +180,7 @@ async function capture(name, route, user, viewport, label, focusSelector) {
   assert.deepEqual(errors, [], `${name}: ${errors.join(" | ")}`);
   const bodyText = await page.locator("body").innerText();
   assert.doesNotMatch(bodyText, /Application error|Internal Server Error|Unhandled Runtime Error|service_role|rtsp:\/\/|storage_path/i);
-  assert.match(bodyText, /Live.*(?:אימות Production|לא זמין)|אין מערכת מצלמות מוגדרת|אין מצלמות שהקשר ההרשאה/i);
+  assert.match(bodyText, /על בסיס אמת תפעולית בלבד|Live.*(?:אימות Production|לא זמין)|אינה הוכחת Live|אין מערכת מצלמות מוגדרת|אין מצלמות שהקשר ההרשאה/i);
   const png = await page.screenshot({ fullPage: false, animations: "disabled" });
   const file = resolve(screenshotRoot, `${name}-${label}.webp`);
   await sharp(png).webp({ quality: 91 }).toFile(file);

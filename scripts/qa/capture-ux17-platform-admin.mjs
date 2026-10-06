@@ -90,7 +90,15 @@ async function capture(name, route, focusSelector, viewport) {
   const response = await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 180_000 });
   assert.equal(response?.status(), 200, route);
   assert.doesNotMatch(page.url(), /\/login|\/onboarding|\/apply/);
-  await page.locator(".role-app-admin, .app-shell").first().waitFor({ state: "visible", timeout: 60_000 });
+  try {
+    await page.locator(".role-app-admin, .app-shell").first().waitFor({ state: "visible", timeout: 60_000 });
+  } catch {
+    // Next dev may restart itself after a memory threshold while the long
+    // visual matrix is running. Reload once against the same local build;
+    // product errors still fail through the assertions below.
+    await page.reload({ waitUntil: "networkidle", timeout: 180_000 });
+    await page.locator(".role-app-admin, .app-shell").first().waitFor({ state: "visible", timeout: 60_000 });
+  }
   if (focusSelector && await page.locator(focusSelector).count()) await page.locator(focusSelector).first().scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
   const overflow = await page.evaluate(() => ({ detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));

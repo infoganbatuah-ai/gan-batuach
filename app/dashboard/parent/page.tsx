@@ -103,7 +103,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
   return (
     <DashboardShell role="parent" title="אזור הורה" appHome>
       <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
-        <ParentHero title="דשבורד הורים" subtitle="מעקב חכם אחר הילד והגן" />
+        <ParentHero title={`שלום, ${cleanSyntheticLabel(profile.full_name, "הורה")}`} subtitle="כיף לראות אתכם שוב · כל מה שחשוב על הילד והגן במקום אחד" />
 
         {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. נתוני ילדים והורים אמיתיים אינם מופעלים כאן.</div> : null}
 

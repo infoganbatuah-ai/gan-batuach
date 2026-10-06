@@ -25,11 +25,13 @@ assert.equal(keys.url, "http://127.0.0.1:55421");
 const identities = JSON.parse(readFileSync(resolve(config.runtimeRoot, "qa-identities.private.json"), "utf8"));
 const admin = createSupabaseClient(keys.url, keys.service, { auth: { persistSession: false, autoRefreshToken: false } });
 const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const activeEmployment = await admin.from("staff_kindergarten_employments").select("id").eq("staff_id", "00000000-0000-4000-8000-000000000b01").eq("garden_id", "00000000-0000-4000-8000-000000000601").eq("status", "active").single();
+assert.equal(activeEmployment.error, null, activeEmployment.error?.message);
 const currentShift = await admin.from("staff_shifts").upsert({
   id: "00000000-0000-4000-8000-000000000f01",
   staff_id: "00000000-0000-4000-8000-000000000b01",
   staff_profile_id: "00000000-0000-4000-8000-000000000301",
-  employment_id: "2bbfa6dd-7fc9-495d-99d2-00cd3ca0ac47",
+  employment_id: activeEmployment.data.id,
   garden_id: "00000000-0000-4000-8000-000000000601",
   classroom_id: "00000000-0000-4000-8000-000000000701",
   shift_date: today,

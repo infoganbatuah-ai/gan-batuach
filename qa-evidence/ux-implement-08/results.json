@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3008",
-  "capturedAt": "2026-09-27T22:02:29.224Z",
+  "base": "http://127.0.0.1:3002",
+  "capturedAt": "2026-10-06T01:47:07.479Z",
   "references": [
     "GB_UX_REF_STAFF_CANDIDATE_RECRUITMENT.png",
     "GB_UX_REF_STAFF_FULL_PLATFORM.png",

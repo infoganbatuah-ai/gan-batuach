@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T13:15:36.642Z",
+  "generatedAt": "2026-10-06T02:08:20.097Z",
   "environment": "DEVELOPMENT / INTEGRATION",
   "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_TASKS_COMPLAINTS_CORRECTIVE_ACTIONS.png",
   "concepts": 19,
@@ -15,7 +15,7 @@
       "screen": "tasks-list",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/tasks-list-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/tasks-list-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -24,7 +24,7 @@
       "screen": "tasks-list",
       "viewport": "390×844",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/tasks-list-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/tasks-list-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -33,7 +33,7 @@
       "screen": "task-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/task-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/task-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -42,7 +42,7 @@
       "screen": "task-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/task-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/task-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -51,7 +51,7 @@
       "screen": "task-create",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/task-create-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/task-create-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -60,7 +60,7 @@
       "screen": "task-create",
       "viewport": "390×844",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/task-create-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/task-create-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -69,7 +69,7 @@
       "screen": "task-edit",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/task-edit-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/task-edit-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -78,7 +78,7 @@
       "screen": "task-edit",
       "viewport": "390×844",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/task-edit-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/task-edit-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -87,7 +87,7 @@
       "screen": "overdue-task",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/overdue-task-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/overdue-task-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -96,7 +96,7 @@
       "screen": "overdue-task",
       "viewport": "390×844",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/overdue-task-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/overdue-task-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -105,7 +105,7 @@
       "screen": "complaints-list",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/complaints-list-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/complaints-list-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -114,7 +114,7 @@
       "screen": "complaints-list",
       "viewport": "390×844",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/complaints-list-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/complaints-list-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -123,7 +123,7 @@
       "screen": "complaint-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/complaint-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/complaint-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -132,7 +132,7 @@
       "screen": "complaint-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/complaint-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/complaint-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -141,7 +141,7 @@
       "screen": "escalated-complaint",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/escalated-complaint-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/escalated-complaint-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -150,7 +150,7 @@
       "screen": "escalated-complaint",
       "viewport": "390×844",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/escalated-complaint-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/escalated-complaint-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -159,7 +159,7 @@
       "screen": "resolved-complaint",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/resolved-complaint-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/resolved-complaint-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -168,7 +168,7 @@
       "screen": "resolved-complaint",
       "viewport": "390×844",
       "route": "/dashboard/garden/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/resolved-complaint-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/resolved-complaint-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -177,7 +177,7 @@
       "screen": "corrective-actions-list",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/corrective-actions-list-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/corrective-actions-list-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -186,7 +186,7 @@
       "screen": "corrective-actions-list",
       "viewport": "390×844",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/corrective-actions-list-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/corrective-actions-list-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -195,7 +195,7 @@
       "screen": "corrective-action-detail",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/corrective-action-detail-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/corrective-action-detail-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -204,7 +204,7 @@
       "screen": "corrective-action-detail",
       "viewport": "390×844",
       "route": "/dashboard/garden/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/corrective-action-detail-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/corrective-action-detail-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -213,7 +213,7 @@
       "screen": "evidence-submitted",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/evidence-submitted-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/evidence-submitted-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -222,7 +222,7 @@
       "screen": "evidence-submitted",
       "viewport": "390×844",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/evidence-submitted-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/evidence-submitted-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -231,7 +231,7 @@
       "screen": "awaiting-inspector-review",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/awaiting-inspector-review-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/awaiting-inspector-review-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -240,7 +240,7 @@
       "screen": "awaiting-inspector-review",
       "viewport": "390×844",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/awaiting-inspector-review-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/awaiting-inspector-review-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -249,7 +249,7 @@
       "screen": "verified-corrective-action",
       "viewport": "1440×1024",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/verified-corrective-action-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/verified-corrective-action-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -258,7 +258,7 @@
       "screen": "verified-corrective-action",
       "viewport": "390×844",
       "route": "/dashboard/inspector/corrective-actions",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/verified-corrective-action-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/verified-corrective-action-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -267,7 +267,7 @@
       "screen": "analytics-overview",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/work-center",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/analytics-overview-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/analytics-overview-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -276,7 +276,7 @@
       "screen": "analytics-overview",
       "viewport": "390×844",
       "route": "/dashboard/garden/work-center",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/analytics-overview-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/analytics-overview-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -285,7 +285,7 @@
       "screen": "parent-role-limited",
       "viewport": "1440×1024",
       "route": "/dashboard/parent/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/parent-role-limited-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/parent-role-limited-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -294,7 +294,7 @@
       "screen": "parent-role-limited",
       "viewport": "390×844",
       "route": "/dashboard/parent/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/parent-role-limited-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/parent-role-limited-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -303,7 +303,7 @@
       "screen": "staff-role-limited",
       "viewport": "1440×1024",
       "route": "/dashboard/staff/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/staff-role-limited-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/staff-role-limited-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -312,7 +312,7 @@
       "screen": "staff-role-limited",
       "viewport": "390×844",
       "route": "/dashboard/staff/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/staff-role-limited-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/staff-role-limited-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -321,7 +321,7 @@
       "screen": "admin-complaints",
       "viewport": "1440×1024",
       "route": "/dashboard/admin/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/admin-complaints-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/admin-complaints-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -330,7 +330,7 @@
       "screen": "admin-complaints",
       "viewport": "390×844",
       "route": "/dashboard/admin/complaints",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/admin-complaints-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/admin-complaints-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -339,7 +339,7 @@
       "screen": "empty-search-state",
       "viewport": "1440×1024",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/empty-search-state-desktop.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/empty-search-state-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     },
@@ -348,7 +348,7 @@
       "screen": "empty-search-state",
       "viewport": "390×844",
       "route": "/dashboard/garden/tasks",
-      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-13/qa-evidence/ux-implement-13/screenshots/empty-search-state-mobile.webp",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-13/screenshots/empty-search-state-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material; canonical domain and role boundaries preserved"
     }
