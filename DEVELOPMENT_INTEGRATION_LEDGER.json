@@ -10546,16 +10546,17 @@
       "owner": "UX-REFERENCE-RECONSTRUCTION-FINAL owner",
       "sourceBranch": "codex/ux-reference-reconstruction-final",
       "sourceCommits": [
-        "eab97f61c632bf7f46c55215ec747bbe22ab5571"
+        "eab97f61c632bf7f46c55215ec747bbe22ab5571",
+        "1b6afea7be01f6a0a95db6fa279e4017b2d6a575"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-reference-reconstruction-final@eab97f61c632bf7f46c55215ec747bbe22ab5571"
+          "origin/codex/ux-reference-reconstruction-final@1b6afea7be01f6a0a95db6fa279e4017b2d6a575"
         ],
         "validatedSourceCommit": "eab97f61c632bf7f46c55215ec747bbe22ab5571",
-        "qualificationCommit": "eab97f61c632bf7f46c55215ec747bbe22ab5571",
+        "qualificationCommit": "1b6afea7be01f6a0a95db6fa279e4017b2d6a575",
         "mergedHeadEvidenceCommit": null
       },
       "validation": {
@@ -10567,7 +10568,7 @@
           "qa-evidence/ux-implement-02 through qa-evidence/ux-implement-19",
           "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/gan-batuach-final-owner-visual-verification-v3/owner-review-package"
         ],
-        "limits": "Internal status is REFERENCE_MATCH_CANDIDATE, not owner approval. Exact merged-head SHA is written to the regenerated external V3 report after integration. No Production, main, paid-provider, customer-data, physical-camera, or Digital Observer core action occurred."
+        "limits": "Internal status is REFERENCE_MATCH_CANDIDATE, not owner approval. Exact merged-head SHA is written to the regenerated external V3 report after integration. The lockfile qualification commit updates Capacitor Android/Core/iOS to 8.5.2 and source-map-js to 1.2.2 after new high/critical advisories, with npm audit at zero findings. No Production, main, paid-provider, customer-data, physical-camera, or Digital Observer core action occurred."
       },
       "integration": {
         "status": "READY_TO_INTEGRATE",

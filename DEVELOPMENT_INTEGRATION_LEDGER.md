@@ -854,3 +854,11 @@ commit `eab97f61c632bf7f46c55215ec747bbe22ab5571` is verified on
 `origin/codex/ux-reference-reconstruction-final`. The next action is an
 exact-head PR to `integration/development`, required checks, ancestry-preserving
 merge and merged-head V3 regeneration. Production and `main` remain untouched.
+
+UX-REFERENCE-RECONSTRUCTION-FINAL dependency qualification (2026-10-06): the
+first PR head exposed newly published npm advisories for Capacitor 8.3.4 and
+source-map-js 1.2.1. Commit `1b6afea7be01f6a0a95db6fa279e4017b2d6a575`
+updates only the lockfile to Capacitor Android/Core/iOS 8.5.2 and source-map-js
+1.2.2. A fresh locked install reports zero vulnerabilities; Security 11/11,
+typecheck, zero-regression lint and the 541-page Production build pass. No paid
+dependency, migration, Production or Digital Observer core change is included.
