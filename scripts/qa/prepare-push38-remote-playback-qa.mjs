@@ -32,8 +32,8 @@ const gateway = await (await fetch("http://127.0.0.1:18082/health", { signal: Ab
 const connector = await (await fetch("http://127.0.0.1:18083/health", { signal: AbortSignal.timeout(5_000) })).json();
 const gatewayChannels = new Set((gateway.mediaHeartbeat?.inputs || []).filter(item => item.progressing || item.renewing)
   .map(item => Number(item.channel)));
-if (gateway.lastDiscovery?.assignedCount !== 10 || gateway.lastDiscovery?.connectedCount !== 9 ||
-  gateway.lastDiscovery?.failedAssignedCount !== 1 || gateway.lastDiscovery?.unassignedCount !== 6 ||
+if (gateway.lastDiscovery?.assignedCount !== 10 || gateway.lastDiscovery?.connectedCount !== 10 ||
+  gateway.lastDiscovery?.failedAssignedCount !== 0 || gateway.lastDiscovery?.unassignedCount !== 6 ||
   gatewayChannels.size !== availableChannels.size || [...availableChannels].some(channel => !gatewayChannels.has(channel)) ||
   connector.lastDiscovery?.connectedCount !== 1 || connector.mediaHeartbeat?.progressingRelays !== 1)
   throw new Error("P38_REMOTE_QA_LIVE_SOURCE_TRUTH_INVALID");
