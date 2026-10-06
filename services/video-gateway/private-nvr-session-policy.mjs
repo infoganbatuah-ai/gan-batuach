@@ -684,16 +684,21 @@ export function privateNvrRetiredSessionReady({ retiredEpoch,
     Number.isInteger(epoch) && epoch <= retiredEpoch);
 }
 
-// The recorder returns HTTP 400 with error_code "logout" or "expired" when a
-// token is already unusable. Bounded read-only live probes verified both: the
-// first after repeated Logout, the second after finite-response lazy session
-// migration. Either means the old session is retired; arbitrary 400s remain
-// failures and continue to block another login.
+// The recorder returns HTTP 400 with error_code "logout", "expired", or
+// "no_heartbeat" when a token is already unusable. Bounded live evidence from
+// the owned Home recorder repeatedly returned `no_heartbeat` only after every
+// media response from the superseded epoch had drained; the current epoch kept
+// answering heartbeat and media requests throughout. Keeping that already-dead
+// epoch in the retirement backlog blocked the next measured proactive renewal
+// and let five finite media responses expire together. Treat only this exact
+// recorder acknowledgement as retired. Arbitrary 400s remain failures and
+// continue to block another login.
 export function privateNvrLogoutResponseRetired({ httpStatus, result = null,
   errorCode = null }) {
   const status = Number(httpStatus || 0);
   if (status === 401 || status === 403) return true;
-  if (status === 400 && ["logout", "expired"].includes(errorCode)) return true;
+  if (status === 400 && ["logout", "expired", "no_heartbeat"].includes(errorCode))
+    return true;
   return status >= 200 && status < 300
     && !["failed", "error"].includes(String(result || "").toLowerCase());
 }

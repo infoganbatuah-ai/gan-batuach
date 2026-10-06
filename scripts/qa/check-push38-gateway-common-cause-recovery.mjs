@@ -217,6 +217,9 @@ test("superseded recorder login retires only after every media epoch drains", ()
     errorCode: "expired" }), true,
   "the verified post-migration response means the old session is already retired");
   assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 400,
+    errorCode: "no_heartbeat" }), true,
+  "a drained old epoch with no heartbeat is already retired and cannot block the next renewal");
+  assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 400,
     errorCode: "another_error" }), false);
   assert.equal(privateNvrLogoutResponseRetired({ httpStatus: 200,
     result: "failed" }), false);
