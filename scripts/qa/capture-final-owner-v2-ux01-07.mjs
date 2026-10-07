@@ -295,7 +295,7 @@ try {
   await ownerContext.close();
 
   const parentContext = await contextFor("parent-multi@integration.qa.invalid"); const parent = await parentContext.newPage();
-  await pair(parent, "parent", "multi-child-parent", "/dashboard/parent");
+  await pair(parent, "parent", "multi-child-parent", "/dashboard/parent", ".parent-child-selector");
   await pair(parent, "parent", "child-switcher", "/dashboard/parent", ".parent-child-selector");
   const discoveryRoute = "/dashboard/parent/discover-kindergartens?child=00000000-0000-4000-8000-000000000802";
   await pair(parent, "parent", "garden-discovery", discoveryRoute);
