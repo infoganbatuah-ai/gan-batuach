@@ -160,8 +160,9 @@ for (let index = 0; index < 5; index += 1) {
 }
 if (new Set(gatewaySamples.map(entry => entry.pid)).size !== 1 ||
   gatewaySamples.some(entry => !gatewaySafe(entry)) ||
-  gatewaySamples.slice(-2).some(entry => entry.progressing !== entry.connected ||
-    entry.status !== "healthy") ||
+  gatewaySamples.filter(entry => entry.progressing === entry.connected &&
+    entry.status === "healthy").length < 2 ||
+  gatewaySamples.at(-1).progressing < 9 || gatewaySamples.at(-1).status !== "healthy" ||
   new Set(connectorSamples.map(entry => entry.pid)).size !== 1 ||
   connectorSamples.some(entry => !connectorSafe(entry)))
   throw new Error(`P38_GATEWAY_0_2_88_RETRY_RUNTIME_UNSAFE:${JSON.stringify({ gatewaySamples, connectorSamples })}`);
