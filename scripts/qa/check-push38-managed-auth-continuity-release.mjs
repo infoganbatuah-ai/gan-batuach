@@ -41,10 +41,10 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { ...recoverabl
   release_id: "qa-unrelated" }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", recoverable), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.87-p38-health");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.86-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.88-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.87-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_SESSION_RETIREMENT_CONTINUITY");
+  "GATEWAY_REJECTED_HLS_CONTINUITY");
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [
