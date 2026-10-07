@@ -76,7 +76,11 @@ try {
   await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 90_000 });
 
   const entry = await page.goto(`${base}/onboarding/kindergarten?new=1`, { waitUntil: 'domcontentloaded', timeout: 90_000 });
-  assert.equal(entry?.status(), 200);
+  // Next may complete an authenticated client transition before Playwright
+  // returns the navigation response. The visible route remains the source of
+  // truth for the capture, while an available response must still be healthy.
+  if (entry) assert.equal(entry.status(), 200);
+  assert.equal(new URL(page.url()).pathname, '/onboarding/kindergarten');
   await page.waitForFunction(() => {
     const splash = document.querySelector('.branded-splash');
     return !splash || getComputedStyle(splash).pointerEvents === 'none';

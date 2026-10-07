@@ -14,13 +14,15 @@ export function ParentAppFrame({
   active = "home",
   activeHref,
   avatarUrl,
-  profileName
+  profileName,
+  contentClassName = ""
 }: {
   children: ReactNode;
   active?: "home" | "dashboard" | "calendar" | "alerts" | "more";
   activeHref?: string;
   avatarUrl?: string | null;
   profileName?: string | null;
+  contentClassName?: string;
 }) {
   const displayName = cleanSyntheticLabel(profileName, "הורה");
 
@@ -33,7 +35,7 @@ export function ParentAppFrame({
       profile={{ full_name: displayName, profile_image_url: avatarUrl }}
       className="parent-runtime-shell"
     >
-      <div className="parent-app-main dashboard-runtime-content">{children}</div>
+      <div className={`parent-app-main dashboard-runtime-content ${contentClassName}`.trim()}>{children}</div>
     </RoleAppShell>
   );
 }

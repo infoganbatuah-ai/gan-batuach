@@ -46,7 +46,9 @@ async function ensureRichVisualFixtures() {
   const secondClassroomId = "00000000-0000-4000-8000-000000000702";
   const classroomUpdate = await client.from("classrooms").upsert([
     { id: classroomId, garden_id: gardenId, name: "QA A1", age_group_key: "toddlers", capacity_limit: 16 },
-    { id: secondClassroomId, garden_id: gardenId, name: "QA A2", age_group_key: "toddlers", capacity_limit: 15 }
+    { id: secondClassroomId, garden_id: gardenId, name: "QA A2", age_group_key: "toddlers", capacity_limit: 15 },
+    { id: "20000000-0000-4000-8000-000000000703", garden_id: gardenId, name: "פרחים", age_group_key: "preschool", capacity_limit: 18 },
+    { id: "20000000-0000-4000-8000-000000000704", garden_id: gardenId, name: "חיפושיות", age_group_key: "preschool", capacity_limit: 20 }
   ], { onConflict: "id" });
   assert.equal(classroomUpdate.error, null, classroomUpdate.error?.message);
   const qaChildren = [

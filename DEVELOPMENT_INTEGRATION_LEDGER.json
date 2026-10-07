@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-06T04:20:00Z",
+  "updatedAt": "2026-10-07T00:00:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10595,6 +10595,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Merge the documentation-only integration receipt, regenerate the V3 package from the resulting exact Development head, and stop before RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-literal-reference-reconstruction",
+      "project": "Gan Batuach Management",
+      "title": "UX Literal Reference Reconstruction — final 1:1 visual lock and V4 evidence",
+      "owner": "UX-LITERAL-REFERENCE-RECONSTRUCTION owner",
+      "sourceBranch": "codex/ux-literal-reference-reconstruction",
+      "sourceCommits": [
+        "4a82277985bc859e5eba5b9c883c7c7755ff0b5f"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-literal-reference-reconstruction@4a82277985bc859e5eba5b9c883c7c7755ff0b5f"
+        ],
+        "validatedSourceCommit": "4a82277985bc859e5eba5b9c883c7c7755ff0b5f",
+        "qualificationCommit": "4a82277985bc859e5eba5b9c883c7c7755ff0b5f",
+        "mergedHeadEvidenceCommit": null
+      },
+      "validation": {
+        "status": "PASS_BRANCH_HEAD_LITERAL_RECONSTRUCTION_21_DOMAINS_652_SCREENSHOTS",
+        "evidence": [
+          "GAN_BATUACH_LITERAL_REFERENCE_SCAN.md",
+          "GAN_BATUACH_LITERAL_ELEMENT_MAPPING.md",
+          "GAN_BATUACH_UX_LITERAL_REFERENCE_RECONSTRUCTION.md",
+          "GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V4.md",
+          "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/gan-batuach-final-owner-visual-verification-v4/owner-review-package"
+        ],
+        "limits": "Internal status is REFERENCE_MATCH_CANDIDATE, not owner approval. All 21 domains were visually re-reviewed against approved references; 326 Desktop and 326 Mobile captures, comparison boards, aligned overlays and annotated boards show zero remaining material annotations. Typecheck, zero-regression lint, 541-page Production build, Domain 30/30, Security 11/11, migrations, release contract, UX-03 through UX-20 focused suites, Settings role isolation, and nine role-boundary assertions pass. Sharp is lockfile-qualified at 0.35.5 after a new High advisory. Production, main, providers and Digital Observer core remain untouched."
+      },
+      "integration": {
+        "status": "READY_TO_INTEGRATE",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_EXACT_HEAD_CI"
+      },
+      "dependencies": {
+        "status": "REFERENCE_RECONSTRUCTION_V3_INTEGRATED",
+        "units": [
+          "codex/ux-reference-reconstruction-final"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_SOURCE_AE283890_TYPECHECK_LINT_BUILD_541_DOMAIN_30_SECURITY_11_ROLE_BOUNDARIES_9_OF_9_UX03_THROUGH_UX20",
+      "releaseEligibility": "DEVELOPMENT_INTEGRATION_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Push the branch, open a PR to integration/development, pass exact-head checks, merge by preserved ancestry, then regenerate the V4 package from the exact merged Development head. Do not begin RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

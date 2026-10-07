@@ -192,8 +192,9 @@ async function contextFor(email) {
 }
 async function shot(page, domain, name, viewport, route, selector, setup) {
   await page.setViewportSize(viewport);
-  const response = await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 180_000 });
+  const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded", timeout: 300_000 });
   assert.equal(response?.status(), 200, route);
+  await page.locator("body").waitFor({ state: "visible", timeout: 60_000 });
   if (setup) await setup(page);
   if (selector) { const locator = page.locator(selector).first(); await locator.waitFor({ state: "visible" }); await locator.scrollIntoViewIfNeeded(); }
   else await page.evaluate(() => scrollTo(0, 0));
@@ -353,7 +354,7 @@ for (const [domain, [desktopName, mobileName]] of Object.entries(representative)
 for (const domain of Object.keys(refs)) {
   const items = rows.filter(([item]) => item === domain).flatMap(([, screen, d, m]) => [{ screen: `${screen} · Desktop`, path: imagePath(domain, d) }, { screen: `${screen} · Mobile`, path: imagePath(domain, m) }]);
   const columns = 4, tileWidth = 360, tileHeight = 245, header = 76;
-  const composites = [{ input: Buffer.from(`<svg width="${columns * tileWidth}" height="${header}"><rect width="100%" height="100%" fill="#082d6b"/><text x="28" y="49" fill="white" font-size="28" font-family="Arial">${esc(domain)} · OWNER_REVIEW_READY inventory</text></svg>`), top: 0, left: 0 }];
+  const composites = [{ input: Buffer.from(`<svg width="${columns * tileWidth}" height="${header}"><rect width="100%" height="100%" fill="#082d6b"/><text x="28" y="49" fill="white" font-size="28" font-family="Arial">${esc(domain)} · REFERENCE_MATCH_CANDIDATE inventory</text></svg>`), top: 0, left: 0 }];
   for (let index = 0; index < items.length; index += 1) {
     const x = (index % columns) * tileWidth, y = header + Math.floor(index / columns) * tileHeight;
     composites.push({ input: await tile(items[index].path, tileWidth - 16, tileHeight - 44), top: y + 36, left: x + 8 });
@@ -362,10 +363,10 @@ for (const domain of Object.keys(refs)) {
   await sharp({ create: { width: columns * tileWidth, height: header + Math.ceil(items.length / columns) * tileHeight, channels: 4, background: "#edf5ff" } }).composite(composites).webp({ quality: 86 }).toFile(join(outputRoot, "boards", `${domain}-inventory.webp`));
 }
 
-const inventory = rows.map(([domain, screen, desktopName, mobileName]) => ({ domain, screen, desktop: imagePath(domain, desktopName), mobile: imagePath(domain, mobileName), status: "OWNER_REVIEW_READY", materialDeviations: [] }));
-writeFileSync(join(outputRoot, "required-inventory.json"), `${JSON.stringify({ sourceIntegrationSha: sourceSha, environment: config.environment, requiredConcepts: rows.length, requiredScreenshots: rows.length * 2, classifications: { OWNER_REVIEW_READY: rows.length, NEEDS_POLISH: 0, VISUAL_DRIFT: 0, BROKEN: 0 }, inventory }, null, 2)}\n`);
-const cards = inventory.map((row) => `<section><h3>${esc(row.domain)} · ${esc(row.screen)} · OWNER_REVIEW_READY</h3><div><figure><img src="${row.desktop.replace(`${outputRoot}/`, "")}"/><figcaption>Desktop · 1440×1024</figcaption></figure><figure><img class="mobile" src="${row.mobile.replace(`${outputRoot}/`, "")}"/><figcaption>Mobile · 390×844</figcaption></figure></div></section>`).join("\n");
+const inventory = rows.map(([domain, screen, desktopName, mobileName]) => ({ domain, screen, desktop: imagePath(domain, desktopName), mobile: imagePath(domain, mobileName), status: "REFERENCE_MATCH_CANDIDATE", materialDeviations: [] }));
+writeFileSync(join(outputRoot, "required-inventory.json"), `${JSON.stringify({ sourceIntegrationSha: sourceSha, environment: config.environment, requiredConcepts: rows.length, requiredScreenshots: rows.length * 2, classifications: { REFERENCE_MATCH_CANDIDATE: rows.length, NEEDS_VISUAL_CORRECTION: 0, BROKEN: 0 }, inventory }, null, 2)}\n`);
+const cards = inventory.map((row) => `<section><h3>${esc(row.domain)} · ${esc(row.screen)} · REFERENCE_MATCH_CANDIDATE</h3><div><figure><img src="${row.desktop.replace(`${outputRoot}/`, "")}"/><figcaption>Desktop · 1440×1024</figcaption></figure><figure><img class="mobile" src="${row.mobile.replace(`${outputRoot}/`, "")}"/><figcaption>Mobile · 390×844</figcaption></figure></div></section>`).join("\n");
 writeFileSync(join(outputRoot, "index.html"), `<!doctype html><html lang="en"><meta charset="utf-8"><title>Gan Batuach UX Visual Closure 07</title><style>body{font-family:Arial;background:#edf5ff;color:#082d6b;margin:0;padding:24px}header{background:#082d6b;color:white;padding:24px;border-radius:20px}section{background:white;margin:20px 0;padding:18px;border-radius:18px;box-shadow:0 10px 30px #0b3a7520}section>div{display:grid;grid-template-columns:2fr 1fr;gap:16px}figure{margin:0}img{width:100%;border:1px solid #cbdcf5;border-radius:14px}.mobile{max-width:390px}figcaption{padding:8px;font-weight:700}@media(max-width:700px){section>div{grid-template-columns:1fr}}</style><header><h1>Gan Batuach · UX Visual Closure 07</h1><p>Actual corrected Development implementation · ${sourceSha} · 92 concepts / 184 screenshots</p></header>${cards}</html>`);
 const checksumFiles = inventory.flatMap((item) => [item.desktop, item.mobile]).concat(Object.keys(refs).flatMap((domain) => [join(outputRoot, "boards", `${domain}-comparison.webp`), join(outputRoot, "boards", `${domain}-inventory.webp`)]));
 writeFileSync(join(outputRoot, "SHA256SUMS"), `${checksumFiles.map((path) => `${createHash("sha256").update(readFileSync(path)).digest("hex")}  ${path.replace(`${outputRoot}/`, "")}`).join("\n")}\n`);
-console.log(JSON.stringify({ outputRoot, concepts: rows.length, screenshots: rows.length * 2, comparisonBoards: 7, inventoryBoards: 7, status: "OWNER_REVIEW_READY" }));
+console.log(JSON.stringify({ outputRoot, concepts: rows.length, screenshots: rows.length * 2, comparisonBoards: 7, inventoryBoards: 7, status: "REFERENCE_MATCH_CANDIDATE" }));

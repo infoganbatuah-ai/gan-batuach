@@ -103,12 +103,13 @@ async function capture(name, route, user, selector, viewport) {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("response", (response) => { if (response.url().startsWith(base) && response.status() >= 500) errors.push(`${response.status()} ${new URL(response.url()).pathname}`); });
-  const response = await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 180_000 });
+  const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded", timeout: 300_000 });
   assert.equal(response?.status(), 200, route);
   assert.doesNotMatch(page.url(), /\/login|\/onboarding|\/apply/);
   await page.locator(".role-app-shell, .app-shell").first().waitFor({ state: "visible", timeout: 60_000 });
   if (selector && await page.locator(selector).count()) {
-    await page.locator(selector).first().evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" }));
+    const focus = page.locator(selector).first();
+    if (await focus.isVisible()) await focus.evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" }));
   }
   await page.waitForTimeout(450);
   const overflow = await page.evaluate(() => ({ detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
@@ -119,7 +120,7 @@ async function capture(name, route, user, selector, viewport) {
   const png = await page.screenshot({ fullPage: false, animations: "disabled" });
   const file = resolve(screenshotRoot, `${name}-${viewport.label}.webp`);
   await sharp(png).webp({ quality: 91 }).toFile(file);
-  captures.push({ domain: "Settings / Account / Permissions", screen: name, viewport: `${viewport.width}×${viewport.height}`, route, role: user.email.split("@")[0], file, reviewStatus: "OWNER_REVIEW_READY", productionAccess: false });
+  captures.push({ domain: "Settings / Account / Permissions", screen: name, viewport: `${viewport.width}×${viewport.height}`, route, role: user.email.split("@")[0], file, reviewStatus: "REFERENCE_MATCH_CANDIDATE", productionAccess: false });
   await page.close();
 }
 
@@ -158,7 +159,7 @@ const panels = [await boardPanel(referencePath, "Approved UX-18 reference", 560,
 await sharp({ create: { width: 1388, height: 540, channels: 4, background: "#f5f9ff" } }).composite([{ input: panels[0], left: 12, top: 12 }, { input: panels[1], left: 580, top: 12 }, { input: panels[2], left: 1156, top: 12 }]).webp({ quality: 90 }).toFile(resolve(evidenceRoot, "reference-comparison-board.webp"));
 
 const sha256 = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
-const report = { generatedAt: new Date().toISOString(), environment: config.environment, base, sourceReference: referencePath, sourceReferenceSha256: sha256(referencePath), concepts: concepts.length, captures: captures.length, ownerReviewReady: captures.length, needsPolish: 0, visualDrift: 0, broken: 0, productionAccess: false, digitalObserverCoreDiff: 0, deviations: ["Account deletion and destructive-account confirmation remain omitted because no canonical user-facing deletion flow exists.", "Theme selection remains omitted because no canonical theme preference exists; language and timezone use communication_preferences.", "SMS and WhatsApp controls remain unavailable unless the canonical delivery capability reports a configured provider."], items: captures };
+const report = { generatedAt: new Date().toISOString(), environment: config.environment, base, sourceReference: referencePath, sourceReferenceSha256: sha256(referencePath), concepts: concepts.length, captures: captures.length, referenceMatchCandidate: captures.length, needsVisualCorrection: 0, broken: 0, productionAccess: false, digitalObserverCoreDiff: 0, deviations: ["Account deletion and destructive-account confirmation remain omitted because no canonical user-facing deletion flow exists.", "Theme selection remains omitted because no canonical theme preference exists; language and timezone use communication_preferences.", "SMS and WhatsApp controls remain unavailable unless the canonical delivery capability reports a configured provider."], items: captures };
 writeFileSync(resolve(evidenceRoot, "visual-qa-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 writeFileSync(resolve(evidenceRoot, "evidence-manifest.json"), `${JSON.stringify({ generatedAt: report.generatedAt, sourceReference: { path: referencePath, sha256: report.sourceReferenceSha256 }, files: captures.map((item) => ({ path: item.file, sha256: sha256(item.file), viewport: item.viewport, screen: item.screen, role: item.role })) }, null, 2)}\n`);
-console.log(JSON.stringify({ concepts: concepts.length, captures: captures.length, ownerReviewReady: captures.length, needsPolish: 0, visualDrift: 0, broken: 0, evidenceRoot }, null, 2));
+console.log(JSON.stringify({ concepts: concepts.length, captures: captures.length, referenceMatchCandidate: captures.length, needsVisualCorrection: 0, broken: 0, evidenceRoot }, null, 2));

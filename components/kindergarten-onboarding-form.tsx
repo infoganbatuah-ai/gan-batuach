@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -168,6 +169,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
     <form ref={formRef} className="manager-registration-entry manager-registration-entry-focused" onSubmit={submit} aria-describedby="manager-registration-guidance">
       <section className="manager-registration-intro">
         <div>
+          <Image className="manager-registration-brand" src="/assets/gan-batuach-brand-mark-official.png" alt="גן בטוח" width={108} height={108} priority />
           <span className="manager-registration-icon"><ShieldCheck /></span>
           <p className="eyebrow">פתיחת גן חדש</p>
           <h2>ברוכה הבאה למסע הקמת הגן</h2>
@@ -178,7 +180,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
             <span><Sparkles /> הפעלה מודרכת</span>
           </div>
         </div>
-        <div className="manager-registration-visual" aria-hidden="true"><Building2 /><Sparkles /><span>הגן שלך מתחיל כאן</span></div>
+        <div className="manager-registration-visual" aria-hidden="true"><Building2 /><Sparkles /><span>יחד בונים סביבה בטוחה לילדים</span></div>
       </section>
 
       <nav className="manager-entry-progress" aria-label="שלבי פתיחת גן">
@@ -419,6 +421,11 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
 
       <section className={`manager-wizard-stage ${step === 1 ? "is-active" : ""}`} aria-hidden={step !== 1}>
         <div className="manager-stage-heading"><Building2 /><div><h2>פרטי הגן</h2><p>המידע שיופיע בכרטיס הגן ולצוות הניהול.</p></div></div>
+        <div className="manager-literal-garden-banner">
+          <Image src={imageUrl || "/assets/hero-control-center.png"} alt={imageUrl ? `תמונת ${garden.name ?? "הגן"}` : "תמונת אזור הגן"} fill sizes="(max-width: 900px) 100vw, 760px" />
+          <span><Building2 size={18} /> {garden.name || "הגן שלך"}</span>
+          <b>{imageUrl ? "תמונת הגן שנבחרה" : "אפשר להעלות תמונת גן אישית"}</b>
+        </div>
         <div className="manager-stage-grid">
           <article className="manager-registration-card">
             <h3>פרטי קשר וכתובת</h3>

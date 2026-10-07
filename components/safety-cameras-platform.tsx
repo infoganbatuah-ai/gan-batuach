@@ -93,10 +93,11 @@ function CameraTruthCard({ camera, base, filter, searchQuery }: { camera: Safety
   return (
     <article className={`safety-camera-card state-${camera.truthState}`}>
       <div className="safety-camera-visual" aria-label={`${camera.name}: ${camera.statusLabel}`}>
+        <Image className="safety-camera-reference-image" src="/assets/hero-control-center.png" alt="" fill sizes="(max-width: 900px) 100vw, 28vw" />
         <div className="safety-camera-area-illustration" aria-hidden="true" />
         <div className="safety-camera-grid-lines" aria-hidden="true" />
         <span className={`safety-status-chip ${camera.truthState}`}><Icon size={14} /> {camera.statusLabel}</span>
-        <div className="safety-camera-placeholder">
+        <div className="safety-camera-placeholder safety-camera-truth-overlay">
           {camera.truthState === "online" ? <Camera size={44} /> : <CameraOff size={44} />}
           <strong>{camera.liveLabel}</strong>
           <small>תמונת אזור להמחשה · לא שידור חי ולא הקלטה</small>
@@ -348,7 +349,20 @@ export function SafetyCamerasPlatform({
             {filtered.length ? filtered.map((camera) => <CameraTruthCard camera={camera} base={base} filter={filter} searchQuery={searchQuery} key={camera.id} />) : <div className="safety-empty"><CameraOff size={42} /><strong>{cameras.length ? "אין מצלמות במסנן או בחיפוש" : "אין מערכת מצלמות מוגדרת"}</strong><span>{cameras.length ? "אפשר לשנות את החיפוש או לבחור מצב אחר." : role === "owner" || role === "manager" || role === "admin" ? "אפשר לעבור להקמה ולחבר מקור נתמך." : "אין מצלמות שהקשר ההרשאה הנוכחי מאפשר להציג."}</span>{role === "owner" || role === "manager" || role === "admin" ? <Link href={`${base}?view=setup`}><Plus size={17} /> מעבר להקמה</Link> : null}</div>}
           </section>
           {selected ? <CameraDetail camera={selected} base={base} role={role} /> : null}
+          {!selected && (role === "owner" || role === "manager" || role === "admin") ? <aside className="safety-operations-rail" aria-label="פעולות מצלמות">
+            <h2>פעולות מהירות</h2>
+            <Link href={`${base}?view=setup`}><Plus size={18} /> הוספת מצלמה</Link>
+            <Link href={`${base}?view=readiness`}><RadioTower size={18} /> בדיקת מוכנות</Link>
+            <Link href={`${base}?view=events`}><FileLock2 size={18} /> אירועים וראיות</Link>
+            <Link href={`${base}?view=policy`}><ShieldCheck size={18} /> הרשאות צפייה</Link>
+            <div><LockKeyhole size={20} /><span><b>Live לא מאומת</b><small>הכרטיסים מציגים תמונת אזור סטטית ומצב מקור בלבד.</small></span></div>
+          </aside> : null}
         </div>
+
+        <section className="safety-recent-checks" aria-label="בדיקות מצלמה אחרונות">
+          <header><strong>בדיקות אחרונות</strong><Link href={`${base}?view=readiness`}>הצג הכל <ArrowLeft size={14} /></Link></header>
+          <div>{cameras.slice(0, 4).map((camera) => <article key={`check-${camera.id}`}><span className={`safety-status-dot ${camera.truthState}`} /><div><b>{camera.name}</b><small>{camera.area} · {formatDate(camera.lastCheck)}</small></div></article>)}</div>
+        </section>
 
         <section className="safety-overview-footer">
           <article><ShieldCheck size={24} /><div><strong>בידוד גן ותפקיד</strong><span>רק מצלמות בהקשר הפעיל והמאומת מוצגות.</span></div><Link href={`${base}?view=policy`}>מדיניות</Link></article>
