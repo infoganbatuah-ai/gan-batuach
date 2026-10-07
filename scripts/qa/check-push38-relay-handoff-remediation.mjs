@@ -753,6 +753,11 @@ test("finite and exclusive DVR recovery reuse bounded media acquisition deadline
   }), PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS);
   assert.equal(privateNvrMediaHeaderTimeoutMs({
     defaultTimeoutMs: 3_500,
+    previousRelayExitReason: "EXCLUSIVE_RESCUE_ACQUISITION_FAILED"
+  }), PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
+  "a retry after the old owner was released keeps the exclusive rescue acquisition budget");
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500,
     handoffMode: "OUTPUT_RESCUE",
     exclusiveAcquisition: true
   }), PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
@@ -770,6 +775,9 @@ test("finite and exclusive DVR recovery reuse bounded media acquisition deadline
   assert.match(server,
     /exclusiveAcquisition: forcedExclusiveOutputRescue \|\| exclusiveSessionSweep/,
   "only a released initial owner receives the exclusive acquisition budget");
+  assert.match(server,
+    /armRelayRecovery\(streamId, previous,\s*"EXCLUSIVE_RESCUE_ACQUISITION_FAILED"\)/,
+  "a failed exclusive rescue must preserve owner-release provenance for the retry");
   assert.match(server,
     /last_response_header_timeout_ms: responseHeaderTimeoutMs/,
   "live diagnostics must expose the exact bounded acquisition decision");

@@ -179,7 +179,8 @@ export function privateNvrMediaHeaderTimeoutMs({
 } = {}) {
   if (!Number.isFinite(defaultTimeoutMs) || defaultTimeoutMs < 1)
     throw new Error("PRIVATE_NVR_HEADER_TIMEOUT_INVALID");
-  if (["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+  if (["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED",
+    "EXCLUSIVE_RESCUE_ACQUISITION_FAILED"]
     .includes(previousRelayExitReason)) {
     return Math.max(defaultTimeoutMs, PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS);
   }

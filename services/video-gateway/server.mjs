@@ -2450,7 +2450,15 @@ async function warmReplaceRelay(streamId, previous, {
         last_handoff_path: exclusiveRescue
           ? "EXCLUSIVE_OUTPUT_RESCUE"
           : exclusiveSessionSweep ? "EXCLUSIVE_SESSION_SWEEP" : "CONCURRENT_WARM" });
-      if (exclusiveRescue) armRelayRecovery(streamId, previous);
+      // The old owner has already been released and the recorder withheld the
+      // first exclusive response beyond the generic read-only probe timeout.
+      // Preserve that exact provenance for the canonical recovery loop so its
+      // next (still single-owner) acquisition keeps the qualified 14-second
+      // output-rescue header budget. Without this marker the retry fell back
+      // to 3.5 seconds and could leave CH3 ownerless through repeated loops.
+      if (exclusiveRescue)
+        armRelayRecovery(streamId, previous,
+          "EXCLUSIVE_RESCUE_ACQUISITION_FAILED");
       else if (exclusiveSessionSweep)
         armRelayRecovery(streamId, replacement || previous);
       if (handoffMode === "OUTPUT_RESCUE" && relays.get(streamId) === previous
