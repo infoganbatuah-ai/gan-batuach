@@ -53,6 +53,12 @@ for (const [path, required] of [
   ["scripts/qa/activate-push38-homeqa-managed-auth-continuity.mjs", [
     "ota_agent_owns_install: true", "EXACT_MANAGED_AUTH_CONTINUITY_ROLLOUT_ACTIVE",
     "rollback_release_id"
+  ]],
+  ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
+    "--connector-runtime-liveness-upgrade", "--gateway-session-age-stability-upgrade",
+    PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
+    PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
+    "connector_managed_auth_continuity.json", "gateway_managed_auth_continuity.json"
   ]]
 ]) {
   const source = readFileSync(path, "utf8");
