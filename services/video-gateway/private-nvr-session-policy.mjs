@@ -139,6 +139,14 @@ export const PRIVATE_NVR_ROUTINE_HANDOFF_RETRY_BACKOFF_MS = 180_000;
 // concurrency or relax the evidence required for ownership promotion.
 export const PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS = 14_000;
 export const PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS = 21_000;
+// The live 0.2.92 pre-soak captured a stranded CH3 response where releasing
+// the silent owner before the replacement request reached the recorder left
+// the channel without an owner for the full acquisition timeout. Register one
+// bounded replacement request first, then release only that channel's silent
+// owner. This is request ordering, not extra concurrency: the candidate is
+// still non-authoritative and the unchanged acquisition/freshness deadlines
+// continue to fail closed.
+export const PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS = 500;
 // A rejected rescue candidate can leave the original owner healthy and
 // progressing. Do not immediately open another recorder response in that
 // case: the signed Home shadow proved that such back-to-back probes add churn

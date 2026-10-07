@@ -17,12 +17,15 @@ import { nextRelayRecovery, relayRecoveryIsStable, relayRecoveryShouldResume,
   "../../services/video-gateway/relay-recovery-policy.mjs";
 import { awaitRelayTransportRelease } from
   "../../services/video-gateway/relay-transport-release.mjs";
+import { preacquireExclusiveRelayReplacement } from
+  "../../services/video-gateway/relay-exclusive-preacquire.mjs";
 import { createRelayDirectoryCleanupQueue } from
   "../../services/video-gateway/relay-directory-cleanup.mjs";
 import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_NATIVE_RESPONSE_END_OUTPUT_GRACE_MS,
+  PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS,
@@ -169,6 +172,54 @@ test("exclusive DVR replacement fails closed when transport release times out", 
   assert.equal(result.released, false);
   assert.match(server, /OWNER_TRANSPORT_RELEASE_TIMEOUT/);
   assert.match(server, /exclusiveOwnerReleaseTimeouts/);
+});
+
+test("exclusive rescue registers one candidate before releasing its owner", async () => {
+  const order = [];
+  let settleCandidate;
+  const candidate = new Promise(resolve => { settleCandidate = resolve; });
+  const resultPromise = preacquireExclusiveRelayReplacement({
+    startCandidate: () => { order.push("candidate-requested"); return candidate; },
+    releaseOwner: () => {
+      order.push("owner-released");
+      settleCandidate({ id: "next" });
+      return true;
+    },
+    stopCandidate: () => { order.push("candidate-stopped"); },
+    graceMs: 500,
+    wait: async () => { order.push("registration-grace"); }
+  });
+  const result = await resultPromise;
+  assert.deepEqual(order, ["candidate-requested", "registration-grace", "owner-released"]);
+  assert.deepEqual(result, { candidate: { id: "next" }, ownerReleased: true,
+    readyBeforeRelease: false, ownerReleaseSkipped: false });
+});
+
+test("exclusive rescue preserves the owner after an immediate acquisition rejection", async () => {
+  let releaseCalled = false;
+  const result = await preacquireExclusiveRelayReplacement({
+    startCandidate: async () => null,
+    releaseOwner: async () => { releaseCalled = true; return true; },
+    graceMs: 500,
+    wait: async () => new Promise(() => {})
+  });
+  assert.equal(releaseCalled, false);
+  assert.deepEqual(result, { candidate: null, ownerReleased: false,
+    readyBeforeRelease: false, ownerReleaseSkipped: true });
+});
+
+test("exclusive rescue discards its candidate when owner release fails", async () => {
+  const stopped = [];
+  const result = await preacquireExclusiveRelayReplacement({
+    startCandidate: async () => ({ id: "candidate" }),
+    releaseOwner: async () => false,
+    stopCandidate: candidate => stopped.push(candidate.id),
+    graceMs: 500,
+    wait: async () => new Promise(() => {})
+  });
+  assert.deepEqual(stopped, ["candidate"]);
+  assert.deepEqual(result, { candidate: null, ownerReleased: false,
+    readyBeforeRelease: true, ownerReleaseSkipped: false });
 });
 
 test("health counts a renewing and progressing handoff as one available source", () => {
@@ -734,6 +785,8 @@ test("routine probation stays scheduler-bounded while rescue has its own bounded
 });
 
 test("finite and exclusive DVR recovery reuse bounded media acquisition deadlines", () => {
+  assert.equal(PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS, 500,
+    "the replacement request gets a bounded registration head start without extending freshness");
   assert.equal(privateNvrMediaHeaderTimeoutMs({
     defaultTimeoutMs: 3_500
   }), 3_500, "ordinary probes retain the generic bounded timeout");
@@ -773,8 +826,11 @@ test("finite and exclusive DVR recovery reuse bounded media acquisition deadline
     /privateNvrStreamResponse\(url,[\s\S]*headerTimeoutMs: responseHeaderTimeoutMs/,
   "the selected deadline must reach the actual response-header abort controller");
   assert.match(server,
-    /exclusiveAcquisition: forcedExclusiveOutputRescue \|\| exclusiveSessionSweep/,
-  "only a released initial owner receives the exclusive acquisition budget");
+    /preacquireExclusiveRelayReplacement\(\{[\s\S]*startCandidate:[\s\S]*exclusiveAcquisition: true[\s\S]*releaseOwner:[\s\S]*stopRelayForExclusiveReplacement[\s\S]*graceMs: PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS/,
+  "a forced rescue must register one bounded replacement before releasing the stranded owner");
+  assert.match(server,
+    /if \(!forcedExclusiveOutputRescue\)[\s\S]*exclusiveAcquisition: exclusiveSessionSweep/,
+  "non-rescue and session-sweep acquisitions retain their existing ownership order");
   assert.match(server,
     /armRelayRecovery\(streamId, previous,\s*"EXCLUSIVE_RESCUE_ACQUISITION_FAILED"\)/,
   "a failed exclusive rescue must preserve owner-release provenance for the retry");

@@ -20,6 +20,7 @@ import { inspectHlsPlaybackPlaylist, nextHlsPlaybackOffset,
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
+  PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
@@ -81,6 +82,8 @@ import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 import { createPrivateNvrCommandRuntime } from "./private-nvr-command-runtime.mjs";
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
 import { awaitRelayTransportRelease } from "./relay-transport-release.mjs";
+import { preacquireExclusiveRelayReplacement } from
+  "./relay-exclusive-preacquire.mjs";
 import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs,
   shouldQuarantineHardwareTranscoder } from "./hardware-transcoder.mjs";
 import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
@@ -508,6 +511,8 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   warmHandoffRollbacks: 0, exclusiveRescueTakeovers: 0,
   exclusiveRescueColdTakeovers: 0, exclusiveRescueReopens: 0,
   exclusiveRescueReopenFailures: 0,
+  exclusiveRescuePreacquireAttempts: 0,
+  exclusiveRescuePreacquireReadyBeforeRelease: 0,
   exclusiveOwnerReleaseWaits: 0,
   exclusiveOwnerReleaseTimeouts: 0,
   exclusiveOwnerReleaseWaitMs: 0,
@@ -2283,6 +2288,7 @@ async function warmReplaceRelay(streamId, previous, {
     let expectedCurrent = previous;
     let exclusiveRescue = false;
     let exclusiveOwnerReleased = true;
+    let replacement = null;
     const forcedHardwareOutputRescue = handoffMode === "OUTPUT_RESCUE"
       && previous?.hardwareOutputStalled === true;
     const forcedSilentResponseRescue = handoffMode === "OUTPUT_RESCUE"
@@ -2310,11 +2316,30 @@ async function warmReplaceRelay(streamId, previous, {
       if (forcedSilentResponseRescue)
         relayLifecycle.silentResponseRescues += 1;
       retainExclusivePlayback(streamId, previous, "OUTPUT_RESCUE_EXCLUSIVE");
-      exclusiveOwnerReleased = await stopRelayForExclusiveReplacement(streamId, previous,
-        forcedHardwareOutputRescue
-          ? "HARDWARE_OUTPUT_STALL_OWNER_RELEASE"
-          : "SILENT_RESPONSE_STALL_OWNER_RELEASE");
-      expectedCurrent = undefined;
+      // The owned recorder serializes productive responses per channel. The
+      // 0.2.92 live pre-soak proved that opening the replacement only after
+      // aborting a stranded response can miss the recorder's release edge and
+      // spend the full fourteen-second header budget ownerless. Put exactly
+      // one non-authoritative request in flight first; after a short bounded
+      // registration grace, release only the silent owner and continue to
+      // await this same request. No second recovery lane is created.
+      relayLifecycle.exclusiveRescuePreacquireAttempts += 1;
+      const preacquisition = await preacquireExclusiveRelayReplacement({
+        startCandidate: () => startRelay(streamId, { warming: true,
+          previousRelay: previous, handoffMode, exclusiveAcquisition: true }),
+        releaseOwner: () => stopRelayForExclusiveReplacement(streamId, previous,
+          forcedHardwareOutputRescue
+            ? "HARDWARE_OUTPUT_STALL_OWNER_RELEASE"
+            : "SILENT_RESPONSE_STALL_OWNER_RELEASE"),
+        stopCandidate: candidate => stopRelay(streamId, candidate,
+          "EXCLUSIVE_PREACQUIRE_OWNER_RELEASE_FAILED"),
+        graceMs: PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS
+      });
+      if (preacquisition.readyBeforeRelease)
+        relayLifecycle.exclusiveRescuePreacquireReadyBeforeRelease += 1;
+      exclusiveOwnerReleased = preacquisition.ownerReleased;
+      replacement = preacquisition.candidate;
+      if (!preacquisition.ownerReleaseSkipped) expectedCurrent = undefined;
     }
     if (exclusiveSessionSweep) {
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
@@ -2323,11 +2348,13 @@ async function warmReplaceRelay(streamId, previous, {
         "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
     }
-    let replacement = exclusiveOwnerReleased
-      ? await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode,
-        exclusiveAcquisition: forcedExclusiveOutputRescue || exclusiveSessionSweep })
-      : null;
+    if (!forcedExclusiveOutputRescue) {
+      replacement = exclusiveOwnerReleased
+        ? await startRelay(streamId, { warming: true,
+          previousRelay: previous, handoffMode,
+          exclusiveAcquisition: exclusiveSessionSweep })
+        : null;
+    }
     let candidateStartFailure = replacement ? null
       : exclusiveOwnerReleased
         ? relayDiagnostics.get(streamId)?.last_failure_reason || null
