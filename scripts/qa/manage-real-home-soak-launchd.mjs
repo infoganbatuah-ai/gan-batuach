@@ -3,6 +3,9 @@ import { createHash } from "node:crypto";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve, join } from "node:path";
+import { evaluateQualificationHostReadiness,
+  inspectQualificationHost } from "./qualification-host-readiness.mjs";
+import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const args = new Map(process.argv.slice(2).map(value => {
   const [key, ...rest] = value.replace(/^--/, "").split("=");
@@ -22,6 +25,7 @@ const runtimeRoot = join(outputRoot, "runtime");
 const runtimeFiles = Object.freeze([
   "scripts/qa/run-real-home-soak.mjs",
   "scripts/qa/soak-health-probe.mjs",
+  "scripts/qa/qualification-host-readiness.mjs",
   "scripts/qa/measure-real-home-ai-routing.mjs",
   "lib/domain/digital-observer/reliability-qualification.mjs",
   "lib/domain/digital-observer/qualification-monitor-lifecycle.mjs",
@@ -114,6 +118,23 @@ if (action === "cleanup") {
 if (action !== "start" && action !== "dry-run") throw new Error("durable_soak_action_invalid");
 if (existsSync(resultPath)) throw new Error("durable_soak_terminal_result_exists");
 if (serviceState().loaded) throw new Error("durable_soak_service_already_loaded");
+const hostReadinessSamples = [];
+for (let sampleIndex = 0; sampleIndex < 5; sampleIndex += 1) {
+  const [host, gateway, connector] = await Promise.all([
+    inspectQualificationHost(), probeLocalHealth(18082), probeLocalHealth(18083)
+  ]);
+  hostReadinessSamples.push({ host,
+    gateway: { ok: gateway.ok, latency_ms: gateway.latency_ms, status: gateway.body?.status ?? null },
+    connector: { ok: connector.ok, latency_ms: connector.latency_ms, status: connector.body?.status ?? null } });
+  if (sampleIndex < 4) await new Promise(resolveWait => setTimeout(resolveWait, 1_000));
+}
+const hostReadiness = evaluateQualificationHostReadiness(hostReadinessSamples);
+if (hostReadiness.status !== "PASS") {
+  const error = new Error("durable_soak_host_readiness_failed");
+  error.cause = hostReadiness;
+  console.error(JSON.stringify(hostReadiness, null, 2));
+  throw error;
+}
 mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
 const runtimeBundle = buildRuntimeBundle();
 const forwarded = [
@@ -148,6 +169,7 @@ const controller = {
   execution_owner: "MACOS_LAUNCHD_USER_DOMAIN",
   terminal_session_independent: true,
   auto_restart: false,
+  host_readiness: hostReadiness,
   label,
   service,
   stage,

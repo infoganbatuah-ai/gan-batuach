@@ -8,6 +8,7 @@ import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 import { measureRealHomeAiRouting } from "./measure-real-home-ai-routing.mjs";
+import { inspectQualificationHost } from "./qualification-host-readiness.mjs";
 import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
@@ -337,12 +338,17 @@ while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
   if (lifecycle.stopped() || Date.now() - startedAt >= durationMs) break;
   const scheduledAt = startedAt + sequence * intervalMs;
   const sampledAt = Date.now();
-  const [gateway, connector, gatewayResource, connectorResource] = await Promise.all([probeLocalHealth(18082), probeLocalHealth(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
+  const [gateway, connector, gatewayResource, connectorResource, host] = await Promise.all([
+    probeLocalHealth(18082), probeLocalHealth(18083),
+    processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs"),
+    inspectQualificationHost()
+  ]);
   const probeCompletedAt = Date.now();
   const point = { contract: "observer-reliability-checkpoint-v1", qualification_stage: stage,
     run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
     scheduled_at: new Date(scheduledAt).toISOString(), drift_ms: sampledAt - scheduledAt, probe_duration_ms: probeCompletedAt - sampledAt, interval_ms: intervalMs,
     expected_physical_cameras: 11, source_available_physical_cameras: DVR_SOURCE_AVAILABLE + 1, empty_dvr_slots: 6,
+    host,
     dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: DVR_SOURCE_AVAILABLE, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, renewing: gateway.body?.mediaHeartbeat?.renewingRelays ?? 0, available: gateway.body?.mediaHeartbeat?.availableRelays ?? gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, relay_processes: gateway.body?.mediaHeartbeat ? Object.fromEntries(["activeRelays", "liveRelayProcesses", "candidateHandoffs", "provisionalHandoffs"].map(key => [key, gateway.body.mediaHeartbeat[key] ?? null])) : null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
       session_lifecycle: gateway.body?.recorderSessionLifecycle ?? null, relay_diagnostics: gateway.body?.mediaHeartbeat?.source_diagnostics ?? null,
       inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "renewing", "playback_continuity", "owner_state", "media_owner_state", "canonical_owner_progressing", "candidate_progressing", "native_input_ended", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "relay_age_ms", "output_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },

@@ -4,7 +4,43 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.80 SIGNED/SHADOW-QUALIFIED; PRIVATE R2 PUBLICATION PENDING COST CEILING`
+`NOT DONE — 0.2.90 V8 FAILED/STOPPED; HOST-ISOLATED REQUALIFICATION PENDING`
+
+## 2026-10-07 0.2.90 V8 HOST-INTERFERENCE FAILURE AND QUALIFICATION GUARD
+
+Gateway `0.2.90-p38-health` and Connector `0.2.40-p38-health` entered a new
+V8 at `2026-10-07T05:54:58.652Z`. The run was stopped and frozen after
+16,536,135 ms / 276 checkpoints. It is failed and none of its duration is
+reusable. Checkpoint 264 timed out on both Gateway health and liveness while
+the same supervisor/runtime PIDs remained present. The prior checkpoint had
+already slowed to 2,282 ms; the next checkpoint recovered without restart to
+10/10 DVR progression, while the recorded event-loop maximum increased from
+6,371.148 ms to 16,978.543 ms. Playback passed 55/55 probes, AI passed 55/55,
+Tapo passed 276/276, and no Gateway/Connector process restart occurred.
+
+Read-only host diagnosis found the shared developer Mac saturated by unrelated
+development/UI/VM work: the worst sample had no idle CPU, load near 42 and
+very high disk traffic while the Gateway itself used little CPU. Stopping only
+the two nonessential Development Next servers and two nonqualification `gbi`
+VM profiles was fully reversible and left the Gateway, Connector, HOME_QA
+control plane and dedicated `push38t` qualification database running. The next
+20 Gateway probes all passed at 10/10 with no relay renewal; maximum health
+latency fell to 63 ms and most samples completed in 1–5 ms.
+
+The cause is therefore narrowed to qualification-host CPU/I/O contention with
+relay freshness/rescue amplification, not DVR authentication, session rotation,
+socket failure or a process crash at the incident. Because the failed monitor
+did not yet record host telemetry per checkpoint, the run remains a Product
+qualification failure rather than being excused after the fact. The durable
+monitor now fails closed before launch when forbidden development workloads,
+saturated normalized load or unstable health latency are present, records host
+pressure at every checkpoint, and reports host interference separately without
+weakening any camera, playback, AI or component-health gate. Its five-sample
+live dry-run passed with no forbidden workload, normalized one-minute load
+0.8023–0.8287, Gateway health p95 22 ms and Connector p95 8 ms. Machine-readable
+evidence is in `DIGITAL_OBSERVER_PUSH_38_V8_HOST_INTERFERENCE_EVIDENCE.json`.
+Exact-commit CI, a new canary and a new pre-soak are required before a new V8.
+`main` and Production remain unchanged.
 
 ## 2026-10-06 0.2.79 CANARY FAILURE AND 0.2.80 SUCCESSOR
 

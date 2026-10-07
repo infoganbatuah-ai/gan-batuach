@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
+import { evaluateQualificationHostReadiness,
+  summarizeQualificationHostEvidence } from "./qualification-host-readiness.mjs";
 
 const start = Date.parse("2026-09-12T00:00:00.000Z");
 const channels = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
@@ -151,5 +153,32 @@ assert.match(realHomeSoak, /THREE_SAMPLE_READ_ONLY_FREEZE/,
   "automatic source availability must preserve its multi-sample provenance");
 assert.match(realHomeSoak, /progressingChannels\.length === DVR_ASSIGNED_CHANNELS\.length/,
   "aggregate 10\/10 alone must not freeze the qualification denominator");
+
+const readyHostSample = (latency = 10) => ({
+  host: { pressure: "NORMAL", normalized_load_1m: 0.4, forbidden_workloads: [] },
+  gateway: { ok: true, latency_ms: latency }, connector: { ok: true, latency_ms: latency }
+});
+const readyHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => readyHostSample()));
+assert.equal(readyHost.status, "PASS");
+const busyHost = evaluateQualificationHostReadiness([
+  ...Array.from({ length: 4 }, () => readyHostSample()),
+  { ...readyHostSample(1_100), host: { pressure: "SATURATED", normalized_load_1m: 2.1,
+    forbidden_workloads: ["NEXT_DEVELOPMENT_SERVER"] } }
+]);
+assert.equal(busyHost.status, "FAIL");
+assert.ok(busyHost.failures.includes("FORBIDDEN_DEVELOPMENT_WORKLOAD_ACTIVE"));
+assert.ok(busyHost.failures.includes("HOST_LOAD_SATURATED"));
+assert.ok(busyHost.failures.includes("EDGE_HEALTH_LATENCY_SAMPLE_EXCEEDED"));
+const hostEvidence = summarizeQualificationHostEvidence([
+  { host: readyHostSample().host, probe_duration_ms: 10,
+    dvr: { classification: "PASS" }, tapo: { classification: "PASS" } },
+  { host: busyHost.samples.at(-1).host, probe_duration_ms: 1_100,
+    dvr: { classification: "PRODUCT_FAILURE" }, tapo: { classification: "PASS" } }
+]);
+assert.equal(hostEvidence.qualification_interference_checkpoints, 1);
+assert.match(durableLauncher, /host_readiness: hostReadiness/,
+  "the durable launcher must preserve the host-isolation preflight");
+assert.match(realHomeSoak, /inspectQualificationHost\(\)/,
+  "every live checkpoint must preserve host-pressure and forbidden-workload evidence");
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");

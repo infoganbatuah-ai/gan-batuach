@@ -1,4 +1,24 @@
-# PUSH 38 v8 readiness — NOT READY; 0.2.80 SIGNED/SHADOW-QUALIFIED, PUBLICATION PENDING
+# PUSH 38 v8 readiness — NOT READY; 0.2.90 V8 FAILED UNDER HOST INTERFERENCE
+
+2026-10-07 host-isolation update: the `0.2.90-p38-health` V8 run started at
+`2026-10-07T05:54:58.652Z` and was frozen failed after 16,536,135 ms / 276
+checkpoints. One Gateway health/liveness checkpoint timed out while the exact
+same supervisor and runtime PIDs remained present; the event-loop maximum
+increased to 16,978.543 ms and the next checkpoint recovered to 10/10 without
+a restart. Playback passed 55/55, AI passed 55/55 and Tapo passed 276/276.
+
+The shared Mac was concurrently saturated by unrelated Development servers,
+two nonqualification VMs and UI/automation work. After stopping only the two
+Development Next servers and two `gbi` VMs, 20/20 read-only Gateway probes
+passed at 10/10, with maximum latency 63 ms and no relay renewal. The dedicated
+PUSH 38 database, HOME_QA services, Gateway and Connector remained active.
+The durable qualification launcher now fails closed on forbidden development
+workloads, saturated normalized host load and unstable health latency; every
+checkpoint records host pressure so host interference cannot be silently
+conflated with a Product failure. The five-sample live dry-run passed. A new
+exact-commit CI, 15-minute canary and 60-minute pre-soak must pass before a new
+V8 begins from zero. The failed duration is not reusable. Main and Production
+remain unchanged.
 
 2026-10-06 signed-Shadow update: protected exact-commit CI passed all six
 gates in run `37386032992`, and protected AWS signing run `37386419906`
