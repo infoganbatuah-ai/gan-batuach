@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: eb5d196a48eaa625bed731b66bcd706a162b87f5
+          ref: eb5d196a5fad11370523ec5163d15adefb56b8ca
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "eb5d196a48eaa625bed731b66bcd706a162b87f5"
+        run: test "$(git rev-parse HEAD)" = "eb5d196a5fad11370523ec5163d15adefb56b8ca"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable paired release contract
