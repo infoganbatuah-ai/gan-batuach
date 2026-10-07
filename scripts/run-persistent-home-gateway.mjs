@@ -11,7 +11,7 @@ import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner
 import { connectorRuntimeIdentity, createInstallationId, validateConnectorConfigSnapshot } from "../services/video-gateway/edge-runtime-contract.mjs";
 import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret-store-sync.mjs";
 import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
-import { connectorHeartbeatHealth, retainVerifiedChannels } from "../services/video-gateway/connector-health-recovery.mjs";
+import { connectorHeartbeatHealth, connectorSourceRecoveryRequired, retainVerifiedChannels } from "../services/video-gateway/connector-health-recovery.mjs";
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 import { createEdgeChildLivenessWatchdog } from "../services/video-gateway/edge-child-liveness-watchdog.mjs";
 import { runBoundedEdgeParentShutdown } from "../services/video-gateway/edge-parent-shutdown.mjs";
@@ -38,6 +38,7 @@ const dvrStore = createEdgeSecretStoreSync({ keychainService: dvrKeychainService
 const discoveryEnabled = process.env.GAN_BATUACH_GATEWAY_DISCOVERY === "1";
 const DISCOVERY_RETRY_DELAY_MS = 20_000;
 const DISCOVERY_RETRY_ATTEMPTS = 2;
+const DISCOVERY_STARTUP_RECOVERY_INTERVAL_MS = 30_000;
 const EMPTY_DISCOVERY_CONFIRMATIONS = 3;
 const VERIFIED_CONNECTED_COUNT_KEY = "last_verified_connected_channel_count";
 const CLOUD_REQUEST_TIMEOUT_MS = 30_000;
@@ -495,6 +496,17 @@ if (discoveryEnabled) {
   // discover() publishes the local channel set before awaiting cloud mapping,
   // so the next monitor cycle acquires leases even when cloud sync is slow.
   await discoverWithRetry("initial");
+  // The initial three attempts intentionally finish quickly so local liveness
+  // is never held hostage by one source. If an RTSP camera is still releasing
+  // its previous session, retry locally at a bounded cadence until a source is
+  // connected instead of leaving the Connector degraded for the normal
+  // fifteen-minute discovery interval.
+  const startupDiscoveryRecovery = setInterval(() => {
+    if (connectorSourceRecoveryRequired(channels)) {
+      void discoverWithRetry("startup-recovery");
+    }
+  }, DISCOVERY_STARTUP_RECOVERY_INTERVAL_MS);
+  startupDiscoveryRecovery.unref();
   await acknowledgeEndpointRecoveryPending();
   releaseJournalOwner = acquireJournalOwnerLock();
   stopJournal = startJournalLoop({ gatewayUrl, gatewaySecret, databasePath: `${dataRoot}/journal-outbox.sqlite`,

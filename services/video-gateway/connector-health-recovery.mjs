@@ -8,6 +8,15 @@ export function retainVerifiedChannels(previous, discovered) {
     : previous.some(channel => channel.status === "connected") ? previous : discovered;
 }
 
+// The startup probe can exhaust its short bounded retry window while a small
+// RTSP appliance is still releasing the previous supervised session. Keep a
+// fast recovery cadence only while no source has ever connected; normal
+// connected operation continues to use the slower periodic discovery cycle.
+export function connectorSourceRecoveryRequired(channels) {
+  if (!Array.isArray(channels)) throw new TypeError("channels_required");
+  return !channels.some(channel => channel?.status === "connected");
+}
+
 export function connectorHeartbeatHealth(localHealth, expectedAssigned) {
   const expected = Number.isInteger(expectedAssigned) && expectedAssigned >= 0 ? expectedAssigned : 0;
   const progressing = Number(localHealth?.mediaHeartbeat?.progressingRelays ?? 0);

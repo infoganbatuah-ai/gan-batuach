@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { connectorHeartbeatHealth, retainVerifiedChannels } from "../../services/video-gateway/connector-health-recovery.mjs";
+import { connectorHeartbeatHealth, connectorSourceRecoveryRequired, retainVerifiedChannels } from "../../services/video-gateway/connector-health-recovery.mjs";
 
 const prior = [{ channel: 1, status: "connected", gateway_stream_id: "same-source" }];
 const failed = [{ channel: 1, status: "unavailable", gateway_stream_id: "same-source" }];
@@ -8,6 +8,10 @@ assert.deepEqual(retainVerifiedChannels(prior, failed), prior,
   "a failed probe may not erase the local monitor's verified source");
 assert.deepEqual(retainVerifiedChannels(prior, [{ ...prior[0], status: "connected" }]), prior);
 assert.deepEqual(retainVerifiedChannels([], failed), failed);
+assert.equal(connectorSourceRecoveryRequired([]), true);
+assert.equal(connectorSourceRecoveryRequired(failed), true);
+assert.equal(connectorSourceRecoveryRequired(prior), false);
+assert.throws(() => connectorSourceRecoveryRequired(null), /channels_required/);
 
 const stalled = connectorHeartbeatHealth({ ok: true, failedStreamCount: 1,
   mediaHeartbeat: { activeRelays: 0, progressingRelays: 0, stalledRelays: 0 } }, 1);
@@ -33,8 +37,12 @@ assert.match(runner, /channels: discovered, metadata:/);
 assert.match(runner, /status: mediaHealth\.status/);
 assert.match(runner, /streaming_count: mediaHealth\.streamingCount/);
 assert.match(runner, /edgeDeviceType === "SOFTWARE_CONNECTOR" \? expectedChannelCount : connectorChannelFilter\.length/);
+assert.match(runner, /DISCOVERY_STARTUP_RECOVERY_INTERVAL_MS = 30_000/);
+assert.match(runner, /connectorSourceRecoveryRequired\(channels\)/);
+assert.match(runner, /discoverWithRetry\("startup-recovery"\)/);
+assert.match(runner, /startupDiscoveryRecovery\.unref\(\)/);
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
 assert.match(server, /ok: mediaHealth\.status === "HEALTHY"/);
 assert.match(server, /health_reason_codes: mediaHealth\.errorCodes/);
 assert.match(server, /edgeRuntimeIdentity\.device_type === "SOFTWARE_CONNECTOR"/);
-console.log(JSON.stringify({ status: "PASS", cases: 13, liveRuntimeChanged: false }));
+console.log(JSON.stringify({ status: "PASS", cases: 21, liveRuntimeChanged: false }));
