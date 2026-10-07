@@ -69,6 +69,7 @@ for (const [path, required] of [
     "--connector-startup-recovery-upgrade", "--gateway-media-acquisition-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
+    "qa-p38-health-gateway-session-age-stability-26644a5e5900",
     "connector_managed_auth_continuity.json", "gateway_managed_auth_continuity.json"
   ]]
 ]) {

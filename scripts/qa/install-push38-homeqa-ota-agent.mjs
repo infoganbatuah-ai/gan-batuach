@@ -237,8 +237,12 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
   priorManagement: gatewayMediaAcquisitionUpgrade ? {
-    release_id: "qa-p38-health-gateway-ai-evidence-448b16ec54ff",
-    artifact_sha256: "448b16ec54ffeb77b41d33ce17eeeb030cbe6b32bd4edf0a520634aad622091c" } :
+    // Runtime 0.2.90 was installed by the independently signed 0.2.89
+    // management agent. Pin the management predecessor that is actually
+    // installed; runtime compatibility and rollback remain bound to 0.2.90
+    // by the signed release manifest above.
+    release_id: "qa-p38-health-gateway-session-age-stability-26644a5e5900",
+    artifact_sha256: "26644a5e590098a17bd38f336521a86bf5da6ea1921fd1f916b8e1c7c7f628b6" } :
     gatewayAiEvidenceUpgrade ? {
     release_id: "qa-p38-health-gateway-session-age-stability-26644a5e5900",
     artifact_sha256: "26644a5e590098a17bd38f336521a86bf5da6ea1921fd1f916b8e1c7c7f628b6" } :
