@@ -4,8 +4,14 @@ import { homedir } from "node:os";
 import { dirname, resolve, sep } from "node:path";
 import { once } from "node:events";
 import {
+  ipv6FirewallSoapEnvelope,
+  parseIpv6FirewallStatus,
+  parseIpv6PinholeUniqueId,
+  parseUpnpSoapErrorCode,
   selectBoundedMediaIpv6,
-  selectBoundedMediaIpv6WithoutUpnp
+  selectBoundedMediaIpv6WithoutUpnp,
+  upnpDeviceDescriptionUrl,
+  wanIpv6FirewallControl
 } from "../../services/video-gateway/push38-bounded-media-network.mjs";
 
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
@@ -56,14 +62,51 @@ const addPinhole = args => {
     throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ADD_FAILED");
   }
 };
+const directFirewallRequest = async (firewall, action, argumentsByName = {}) => {
+  const response = await fetch(firewall.controlUrl, {
+    method: "POST",
+    headers: {
+      "content-type": "text/xml; charset=\"utf-8\"",
+      soapaction: `\"${firewall.serviceType}#${action}\"`
+    },
+    body: ipv6FirewallSoapEnvelope(action, argumentsByName),
+    signal: AbortSignal.timeout(15_000)
+  });
+  const body = await response.text();
+  const errorCode = parseUpnpSoapErrorCode(body);
+  if (!response.ok || errorCode !== null) {
+    const error = new Error("P38_BOUNDED_MEDIA_IPV6_FIREWALL_REQUEST_FAILED");
+    error.upnpCode = errorCode;
+    throw error;
+  }
+  return body;
+};
+const discoverDirectIpv6Firewall = async () => {
+  let discovery;
+  try {
+    discovery = execFileSync("/opt/homebrew/bin/upnpc", ["-s"], {
+      encoding: "utf8", timeout: 20_000, stdio: ["ignore", "pipe", "pipe"]
+    });
+  } catch { return null; }
+  const descriptionUrl = upnpDeviceDescriptionUrl(discovery);
+  if (!descriptionUrl) return null;
+  const descriptionResponse = await fetch(descriptionUrl, { signal: AbortSignal.timeout(10_000) });
+  if (!descriptionResponse.ok) return null;
+  const firewall = wanIpv6FirewallControl(await descriptionResponse.text(), descriptionUrl);
+  if (!firewall) return null;
+  const status = parseIpv6FirewallStatus(await directFirewallRequest(firewall, "GetFirewallStatus"));
+  return status?.firewallEnabled && status.inboundPinholeAllowed ? firewall : null;
+};
 const ifconfig = execFileSync("/sbin/ifconfig", ["en0"], { encoding: "utf8", timeout: 10_000 });
 let upnpStatus = "";
 let upnpAvailable = true;
+let directIpv6Firewall = null;
 try {
   upnpStatus = runUpnp(["-6", "-m", "en0", "-s"], "P38_BOUNDED_MEDIA_UPNP_DISCOVERY_FAILED", 20_000);
 } catch (error) {
-  if (!allowExternalProofWithoutUpnp) throw error;
   upnpAvailable = false;
+  directIpv6Firewall = await discoverDirectIpv6Firewall();
+  if (!directIpv6Firewall && !allowExternalProofWithoutUpnp) throw error;
 }
 const address = upnpAvailable
   ? selectBoundedMediaIpv6({ ifconfigOutput: ifconfig, upnpOutput: upnpStatus })
@@ -89,6 +132,7 @@ for (const name of names) if ((await list(name)).length) throw new Error("P38_BO
 
 const records = [];
 let pinholeId = null;
+let pinholeMethod = null;
 let cleaned = false;
 let media = null;
 const state = {
@@ -106,8 +150,8 @@ const state = {
   recurring_cost_introduced: false,
   address_redacted: true,
   address_source: upnpAvailable ? "UPNP_ACTIVE_LAN_MATCH" : "ASSIGNED_STABLE_GLOBAL_IPV6",
-  router_pinhole_available: upnpAvailable,
-  external_proof_required: !upnpAvailable,
+  router_pinhole_available: upnpAvailable || Boolean(directIpv6Firewall),
+  external_proof_required: !upnpAvailable && !directIpv6Firewall,
   pinhole_id_recorded: false
 };
 writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`, { flag: "wx", mode: 0o600 });
@@ -125,8 +169,12 @@ async function cleanup(reason) {
   let pinholeRemoved = pinholeId === null;
   if (pinholeId !== null) {
     try {
-      runUpnp(["-6", "-m", "en0", "-D", String(pinholeId)],
-        "P38_BOUNDED_MEDIA_PINHOLE_REMOVE_FAILED", 20_000);
+      if (pinholeMethod === "DIRECT_WAN_IPV6_FIREWALL_CONTROL") {
+        await directFirewallRequest(directIpv6Firewall, "DeletePinhole", { UniqueID: pinholeId });
+      } else {
+        runUpnp(["-6", "-m", "en0", "-D", String(pinholeId)],
+          "P38_BOUNDED_MEDIA_PINHOLE_REMOVE_FAILED", 20_000);
+      }
       pinholeRemoved = true;
     } catch { pinholeRemoved = false; }
   }
@@ -161,16 +209,33 @@ try {
   for (const name of names) records.push(await api(`/zones/${credential.zoneID}/dns_records`, {
     method: "POST", body: JSON.stringify({ type: "AAAA", name, content: address, proxied: false, ttl: 60 })
   }));
-  const pinhole = upnpAvailable ? addPinhole(["-6", "-m", "en0", "-A", "", "0", address,
-    String(port), "TCP", String(durationSeconds)]) : "";
-  pinholeId = pinhole ? Number(/unique\s*ID\s*(?:is|:)\s*(\d+)/i.exec(pinhole)?.[1]) : null;
-  if (pinhole && !Number.isInteger(pinholeId)) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
+  if (upnpAvailable) {
+    const pinhole = addPinhole(["-6", "-m", "en0", "-A", "", "0", address,
+      String(port), "TCP", String(durationSeconds)]);
+    pinholeId = pinhole ? Number(/unique\s*ID\s*(?:is|:)\s*(\d+)/i.exec(pinhole)?.[1]) : null;
+    if (pinhole && !Number.isInteger(pinholeId)) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
+    if (pinholeId !== null) pinholeMethod = "MINIUPNPC";
+  } else if (directIpv6Firewall) {
+    try {
+      pinholeId = parseIpv6PinholeUniqueId(await directFirewallRequest(directIpv6Firewall, "AddPinhole", {
+        RemoteHost: "", RemotePort: 0, InternalClient: address, InternalPort: port,
+        Protocol: 6, LeaseTime: durationSeconds
+      }));
+      if (pinholeId === null) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
+      pinholeMethod = "DIRECT_WAN_IPV6_FIREWALL_CONTROL";
+    } catch (error) {
+      if (error?.upnpCode !== 701) throw error;
+      pinholeId = null;
+    }
+  }
   const exposureStatus = pinholeId === null ? "PENDING_EXTERNAL_PROOF" : "ACTIVE";
   const startedAt = new Date(); const expiresAt = new Date(startedAt.getTime() + durationSeconds * 1000);
   writeFileSync(statePath, `${JSON.stringify({ ...state, status: exposureStatus, started_at: startedAt.toISOString(),
     expires_at: expiresAt.toISOString(), pinhole_id_recorded: pinholeId !== null,
-    firewall_path: !upnpAvailable ? "NO_UPNP_EXTERNAL_PROOF_REQUIRED" :
-      pinholeId === null ? "PREEXISTING_REQUIRES_EXTERNAL_PROOF" : "MANAGED_TEMPORARY_PINHOLE" }, null, 2)}\n`, { mode: 0o600 });
+    external_proof_required: pinholeId === null,
+    firewall_path: pinholeId === null ? "PREEXISTING_REQUIRES_EXTERNAL_PROOF" :
+      pinholeMethod === "DIRECT_WAN_IPV6_FIREWALL_CONTROL" ?
+        "MANAGED_TEMPORARY_WAN_IPV6_FIREWALL_PINHOLE" : "MANAGED_TEMPORARY_PINHOLE" }, null, 2)}\n`, { mode: 0o600 });
   console.log(JSON.stringify({ status: exposureStatus, duration_seconds: durationSeconds, hostnames: names,
     port, address_redacted: true, pinhole_managed: pinholeId !== null,
     external_proof_required: pinholeId === null, auto_cleanup: true, recurring_cost_introduced: false }));
