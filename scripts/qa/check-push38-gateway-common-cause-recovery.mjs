@@ -544,7 +544,7 @@ test("a hard-stale owner can reopen once after the recorder rejects the concurre
     /replacement\.previousDirectories = \[\.\.\.new Set\([\s\S]*previous\.directory[\s\S]*observeWarmReplacement\(replacement/,
   "the exclusive response must retain old HLS while proving fresh output");
   assert.match(gateway,
-    /EXCLUSIVE_RESCUE_ACQUISITION_FAILED[\s\S]*armRelayRecovery\(streamId, previous\)/,
+    /armRelayRecovery\(streamId, previous,[\s\S]*EXCLUSIVE_RESCUE_ACQUISITION_FAILED/,
   "a failed exclusive continuation must fall back to the existing recovery machinery");
 });
 
