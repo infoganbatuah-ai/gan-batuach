@@ -20,6 +20,21 @@ const FORBIDDEN_WORKLOADS = Object.freeze([
   ["NON_QUALIFICATION_COLIMA_GBI", /(?:\.colima|colima)[^\n]*\bgbi\b/]
 ]);
 
+function isInspectionOnlyCommand(command) {
+  const value = String(command || "").trim();
+  const executable = value.split(/\s+/, 1)[0] || "";
+  if (/(?:^|\/)(?:rg|grep)$/.test(executable)) return true;
+  return /(?:^|\/)(?:zsh|bash|sh)\s+-lc\b/.test(value) &&
+    /\bps\s+-axo\b/.test(value) && /\b(?:rg|grep)\b/.test(value);
+}
+
+export function classifyForbiddenWorkloads(command) {
+  if (isInspectionOnlyCommand(command)) return [];
+  return FORBIDDEN_WORKLOADS
+    .filter(([, pattern]) => pattern.test(String(command || "")))
+    .map(([classification]) => classification);
+}
+
 const percentile = (values, fraction) => {
   const sorted = values.filter(Number.isFinite).sort((left, right) => left - right);
   return sorted.length ? sorted[Math.min(sorted.length - 1,
@@ -46,9 +61,7 @@ export async function inspectQualificationHost() {
       const match = /^\s*(\d+)\s+(.+)$/.exec(line);
       if (!match) return [];
       const command = match[2];
-      const classifications = FORBIDDEN_WORKLOADS
-        .filter(([, pattern]) => pattern.test(command))
-        .map(([classification]) => classification);
+      const classifications = classifyForbiddenWorkloads(command);
       return classifications.length ? [{ pid: Number(match[1]), classifications }] : [];
     });
   } catch {

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
-import { evaluateQualificationHostReadiness,
+import { classifyForbiddenWorkloads, evaluateQualificationHostReadiness,
   summarizeQualificationHostEvidence } from "./qualification-host-readiness.mjs";
 
 const start = Date.parse("2026-09-12T00:00:00.000Z");
@@ -160,6 +160,16 @@ const readyHostSample = (latency = 10) => ({
 });
 const readyHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => readyHostSample()));
 assert.equal(readyHost.status, "PASS");
+assert.deepEqual(classifyForbiddenWorkloads(
+  "/opt/homebrew/bin/rg -i (horizontal|queue).*?(benchmark|throughput)"), [],
+"the process audit must not classify its own search expression as a running benchmark");
+assert.deepEqual(classifyForbiddenWorkloads(
+  "/bin/zsh -lc ps -axo pid=,command= | rg -i '(horizontal|queue).*?(benchmark|throughput)'"), [],
+"a bounded read-only process inspection wrapper must not invalidate qualification");
+assert.deepEqual(classifyForbiddenWorkloads(
+  "/usr/local/bin/node scripts/qa/run-horizontal-worker-throughput-benchmark.mjs"),
+["SYNTHETIC_SCALE_BENCHMARK"],
+"a real synthetic scale benchmark must remain forbidden during qualification");
 const busyHost = evaluateQualificationHostReadiness([
   ...Array.from({ length: 4 }, () => readyHostSample()),
   { ...readyHostSample(1_100), host: { pressure: "SATURATED", normalized_load_1m: 2.1,
