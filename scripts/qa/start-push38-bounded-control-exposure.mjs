@@ -37,9 +37,7 @@ writeFileSync(scopedConfig, `tunnel: ${tunnel}\ncredentials-file: ${credentials}
   `  - hostname: gateway.ganbatuach.com\n    path: ^/push38/remote-playback(/result)?$\n` +
   `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
   `  - hostname: gateway.ganbatuach.com\n    path: ^/api/digital-observer/dvr-gateway$\n` +
-  `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
-  `  - hostname: gateway.ganbatuach.com\n    path: ^/api/video-gateway/playback-grant$\n` +
-  `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
+    `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
   `  - service: http_status:404\n`, { flag: "wx", mode: 0o600 });
 execFileSync(cloudflared, ["--config", scopedConfig, "tunnel", "ingress", "validate"],
   { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
@@ -50,7 +48,7 @@ const state = {
   duration_seconds: durationSeconds,
   hostname: "gateway.ganbatuach.com",
   allowed_routes: ["/push38/remote-playback", "/push38/remote-playback/result",
-    "/api/digital-observer/dvr-gateway", "/api/video-gateway/playback-grant"],
+    "/api/digital-observer/dvr-gateway"],
   default_deny: true,
   local_origin: "TLS_LOOPBACK_3101",
   secrets_logged: false,
