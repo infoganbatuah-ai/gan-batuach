@@ -4,35 +4,31 @@ import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
 
 export const PUSH38_MANAGED_AUTH_CONTINUITY = Object.freeze({
   connector: Object.freeze({
-    role: "CONNECTOR_MANAGED_AUTH_CONTINUITY",
+    role: "CONNECTOR_RUNTIME_LIVENESS",
     deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
-    releaseId: "qa-p38-health-connector-managed-auth-60c0ade74168",
-    version: "0.2.38-p38-health",
-    buildSha: "dbd187f5f8f6f474d118858da48e72c3d13fb781",
-    digest: "60c0ade7416888ac420b5df4ba21a53214cc1976c98c50b42928f2da79670c2f",
-    size: 147507082,
+    releaseId: "qa-p38-health-connector-runtime-liveness-376c06c2434f",
+    version: "0.2.39-p38-health",
+    buildSha: "40df4ac36515126982a2f970b9b5dc62487295b1",
+    digest: "376c06c2434f84e3ce55d68fdec2d3d053701873e5efd70a84460452471ffaa4",
+    size: 147517607,
     profile: "SOFTWARE_CONNECTOR",
     configVersion: 4,
     rollbackReleaseId: "qa-p38-health-connector-device-identity-continuity-c439a2c097bc",
     rollbackVersion: "0.2.36-p38-health",
-    recoverablePriorFailure: Object.freeze({
-      releaseId: "qa-p38-health-connector-managed-auth-694dcfc8c1a3",
-      version: "0.2.37-p38-health",
-      category: "EDGE_UPDATE_SLOT_ALREADY_EXISTS"
-    })
+    recoverablePriorFailure: null
   }),
   gateway: Object.freeze({
-    role: "GATEWAY_REJECTED_HLS_CONTINUITY",
+    role: "GATEWAY_SESSION_AGE_STABILITY",
     deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-    releaseId: "qa-p38-health-gateway-rejected-hls-continuity-9e07e63a5e3e",
-    version: "0.2.88-p38-health",
-    buildSha: "25b9affba6fad2c019c56b8d49ef3c2c25f554e4",
-    digest: "9e07e63a5e3e27f64712986fe1ffcd1c485f258ce614af00e93050046ef1e8e8",
-    size: 135893428,
+    releaseId: "qa-p38-health-gateway-session-age-stability-26644a5e5900",
+    version: "0.2.89-p38-health",
+    buildSha: "40df4ac36515126982a2f970b9b5dc62487295b1",
+    digest: "26644a5e590098a17bd38f336521a86bf5da6ea1921fd1f916b8e1c7c7f628b6",
+    size: 135893743,
     profile: "PHYSICAL_GATEWAY",
     configVersion: 1,
-    rollbackReleaseId: "qa-p38-health-gateway-session-retirement-4409dc49c483",
-    rollbackVersion: "0.2.87-p38-health",
+    rollbackReleaseId: "qa-p38-health-gateway-rejected-hls-continuity-9e07e63a5e3e",
+    rollbackVersion: "0.2.88-p38-health",
     recoverablePriorFailure: null
   })
 });

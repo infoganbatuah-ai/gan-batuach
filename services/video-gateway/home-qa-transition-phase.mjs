@@ -30,6 +30,7 @@ const connectorHandoffContinuity = "qa-p38-health-connector-handoff-continuity-3
 const connectorDeviceIdentityContinuity = "qa-p38-health-connector-device-identity-continuity-c439a2c097bc";
 const connectorAiModelPath = "qa-p38-health-connector-ai-model-path-34408b2cc48e";
 const connectorManagedAuthContinuity = "qa-p38-health-connector-managed-auth-60c0ade74168";
+const connectorRuntimeLiveness = "qa-p38-health-connector-runtime-liveness-376c06c2434f";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
@@ -110,6 +111,8 @@ const gatewayManagedAuthContinuity = "qa-p38-health-gateway-managed-auth-555ee52
 const gatewaySessionRetirement = "qa-p38-health-gateway-session-retirement-4409dc49c483";
 const gatewayRejectedHlsContinuity =
   "qa-p38-health-gateway-rejected-hls-continuity-9e07e63a5e3e";
+const gatewaySessionAgeStability =
+  "qa-p38-health-gateway-session-age-stability-26644a5e5900";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -136,7 +139,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       connectorOutputRescue, connectorGenericRtsp, connectorLivenessIsolation,
       connectorCodecPreservation, connectorHandoffContinuity,
       connectorDeviceIdentityContinuity, connectorAiModelPath,
-      connectorManagedAuthContinuity]
+      connectorManagedAuthContinuity, connectorRuntimeLiveness]
       .includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")
@@ -173,7 +176,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayCorrelatedSilence,
       gatewayManagedAuthContinuity,
       gatewaySessionRetirement,
-      gatewayRejectedHlsContinuity].includes(manifest.release_id) &&
+      gatewayRejectedHlsContinuity,
+      gatewaySessionAgeStability].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }

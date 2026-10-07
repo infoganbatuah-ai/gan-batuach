@@ -27,24 +27,19 @@ for (const component of ["connector", "gateway"]) {
   assert.equal(built.rollout.cohort_percent, 0);
   assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 }
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.38-p38-health");
-assert.notEqual(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.37-p38-health",
-  "the immutable 0.2.37 Connector slot belongs to an earlier signed release");
-const collision = PUSH38_MANAGED_AUTH_CONTINUITY.connector.recoverablePriorFailure;
-const recoverable = { state: "UPDATE_FAILED", current_unchanged: true,
-  release_id: collision.releaseId, target_version: collision.version,
-  failure_category: collision.category };
-assert.equal(push38ManagedAuthActivationStateAllows("connector", recoverable), true);
-assert.equal(push38ManagedAuthActivationStateAllows("connector", { ...recoverable,
-  current_unchanged: false }), false);
-assert.equal(push38ManagedAuthActivationStateAllows("connector", { ...recoverable,
-  release_id: "qa-unrelated" }), false);
-assert.equal(push38ManagedAuthActivationStateAllows("gateway", recoverable), false);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.39-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.rollbackVersion, "0.2.36-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.role,
+  "CONNECTOR_RUNTIME_LIVENESS");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.recoverablePriorFailure, null);
+assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLED_BACK" }), true);
+assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
+  current_unchanged: true }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.88-p38-health");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.87-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.89-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.88-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_REJECTED_HLS_CONTINUITY");
+  "GATEWAY_SESSION_AGE_STABILITY");
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [

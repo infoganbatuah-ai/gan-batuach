@@ -37,6 +37,9 @@ const gatewaySessionRenewalRescue = "qa-p38-health-gateway-renewal-rescue-89071b
 const gatewaySessionRetirement = "qa-p38-health-gateway-session-retirement-4409dc49c483";
 const gatewayRejectedHlsContinuity =
   "qa-p38-health-gateway-rejected-hls-continuity-9e07e63a5e3e";
+const connectorRuntimeLiveness = "qa-p38-health-connector-runtime-liveness-376c06c2434f";
+const gatewaySessionAgeStability =
+  "qa-p38-health-gateway-session-age-stability-26644a5e5900";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
   channel: "HOME_QA", platform: "darwin", architecture: "arm64", profile,
   rollout: { stage: "INTERNAL_QA", cohort_percent: 0, explicit_device_ids: [deviceId] } });
@@ -73,6 +76,10 @@ const gatewaySessionRenewalRescueRemediation = manifest(gatewaySessionRenewalRes
 const gatewaySessionRetirementRemediation = manifest(gatewaySessionRetirement, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayRejectedHlsContinuityRemediation =
   manifest(gatewayRejectedHlsContinuity, gatewayId, "PHYSICAL_GATEWAY");
+const connectorRuntimeLivenessRemediation =
+  manifest(connectorRuntimeLiveness, connectorId, "SOFTWARE_CONNECTOR");
+const gatewaySessionAgeStabilityRemediation =
+  manifest(gatewaySessionAgeStability, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
 assert.equal(HOME_QA_PHASE.PENDING, "MANAGED_IDENTITY_PENDING_PROOF");
 const connector = { gateway_id: connectorId, deployment_profile: "SOFTWARE_CONNECTOR",
@@ -95,6 +102,8 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connect
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorRtspHandoffRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorHealthObservationRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorFinalStabilityRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector,
+  manifest: connectorRuntimeLivenessRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayAuthRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewaySessionRemediation }), true);
@@ -116,6 +125,8 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
   manifest: gatewaySessionRetirementRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
   manifest: gatewayRejectedHlsContinuityRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
+  manifest: gatewaySessionAgeStabilityRemediation }), true);
 for (const bad of [
   { ...connector, identity_scheme: "LEGACY_HMAC" },
   { ...connector, credential_version: 0 },
