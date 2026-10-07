@@ -41,15 +41,15 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLE
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
   current_unchanged: true }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.90-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.91-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.buildSha,
-  "7012a2c22ad080a3eb3cb3fe2b01241629073f87");
+  "17439a2dea1d7c9b9386f2bc1a3b0e10ebdb24af");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.digest,
-  "448b16ec54ffeb77b41d33ce17eeeb030cbe6b32bd4edf0a520634aad622091c");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135896001);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.89-p38-health");
+  "e9244d50c7251b0010ea1af656a690b4da477eb1e580c5a2e0f2b4f1c28944c6");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135897285);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.90-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_AI_EVIDENCE_IO_ISOLATION");
+  "GATEWAY_MEDIA_ACQUISITION_CONTINUITY");
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [
@@ -66,7 +66,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-startup-recovery-upgrade", "--gateway-ai-evidence-upgrade",
+    "--connector-startup-recovery-upgrade", "--gateway-media-acquisition-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "connector_managed_auth_continuity.json", "gateway_managed_auth_continuity.json"
