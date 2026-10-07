@@ -9,17 +9,15 @@ export function reuseMatchingPrivateNvrSession(existing, input) {
 export const PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES = 3;
 export const PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES = 2;
 // The signed 0.2.66 Home Shadow measured the second productive response stop
-// at 237.446 seconds of relay age. The live 0.2.67 pre-soak then proved that a
-// new login can keep per-channel replacement requests open without media until
-// the prior response closes. A complete nine-source serialized sweep therefore
-// needs ten bounded acquisition slots: one concurrent observation, one reuse
-// after releasing that owner, and eight direct exclusive replacements. Start
-// renewal at two minutes so the measured response horizon leaves 117 seconds:
-// 90 seconds for those slots plus 10 seconds for scheduler/Login jitter, with a
-// final 17-second evidence margin. This changes lifecycle scheduling only; it
-// does not relax freshness, health, or handoff-confirmation requirements.
+// at 237.446 seconds of relay age. Later live evidence proved that this is a
+// media-response boundary, not a shared-login expiry: heartbeat stayed healthy
+// while age-driven login rotation itself created the relay churn. Keep two
+// minutes only as the minimum age before a recorder-wide, three-heartbeat-loss
+// recovery may replace the login. Healthy active media never uses this timer.
 export const PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS = 237_000;
 export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 2 * 60 * 1000;
+// Historical upper bound for an already-authorized exclusive epoch drain. It
+// remains a fail-closed scheduler budget, not authority to initiate a drain.
 export const PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS = 90_000;
 export const PRIVATE_NVR_SESSION_SWEEP_CONTROL_MARGIN_MS = 10_000;
 // Retain the historical two-minute cadence as a measured scheduling datum.
@@ -655,18 +653,15 @@ export function shouldDeferPrivateNvrStaleOwnerTeardown({ handoffInFlight,
 }
 
 // Login/Heartbeat is the recorder's supported session-maintenance contract.
-// The earlier nine-source proof failed because it first opened concurrent
-// same-channel responses and learned the recorder's one-productive-response
-// boundary only after several acquisition windows. The unthrottled Home-DVR
-// proof then exposed the complementary truth: a healthy response can pause
-// rendered media near its finite boundary before the socket closes, so waiting
-// for body/socket retirement creates a real HLS gap. Once Range proves
-// non-exclusive logins, renew the shared login at the measured two-minute
-// deadline and drain the prior epoch through the already-bounded *exclusive*
-// session sweep. This is not generic per-relay age churn: one login rotation
-// owns one serialized sweep, and another rotation is blocked until every prior
-// epoch relay and retired login is settled. Repeated heartbeat loss while all
-// media is idle retains the same bounded recovery authority.
+// A media-response lifetime is not a login lifetime. The signed 0.2.88 live
+// canary kept recorder heartbeat/authentication healthy while the two-minute
+// age rule caused seven needless login rotations, sixty-four relay starts, and
+// one real source-availability gap. Finite HTTP-MP4 responses already enter the
+// per-channel bounded recovery path and may prime a successor login at their
+// authoritative body/socket boundary. Never rotate a healthy shared login
+// merely because media responses are old. Refresh here only after recorder-wide
+// heartbeat loss is corroborated while media is idle, and only after the prior
+// epoch has completely settled.
 export function shouldProactivelyRefreshPrivateNvrSession(session, evidence = {},
   now = Date.now()) {
   const activeProgressingRelays = Number(evidence.activeProgressingRelays || 0);
@@ -680,15 +675,11 @@ export function shouldProactivelyRefreshPrivateNvrSession(session, evidence = {}
   const corroboratedIdleExpiry = activeProgressingRelays === 0
     && heartbeatConsecutiveFailures >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES
     && priorEpochSettled;
-  const measuredActiveFiniteBoundary = activeProgressingRelays > 0
-    && heartbeatConsecutiveFailures === 0
-    && Number(evidence.heartbeatResponsesOk || 0) > 0
-    && priorEpochSettled;
   return Boolean(session?.loginExclusivity === false
     && !session.refreshPromise
     && Number.isFinite(session.updatedAt)
     && now - session.updatedAt >= PRIVATE_NVR_PROACTIVE_RENEWAL_MS
-    && (measuredActiveFiniteBoundary || corroboratedIdleExpiry));
+    && corroboratedIdleExpiry);
 }
 
 // The recorder web contract exposes Logout for retiring an authenticated

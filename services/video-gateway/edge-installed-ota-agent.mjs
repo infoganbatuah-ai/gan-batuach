@@ -19,6 +19,7 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
   trustRegistryPath = PROTECTED_EDGE_TRUST_REGISTRY_PATH, qaRootPinPath = "", qaIsolationRoot = "",
   download, intervalMs = 5000, onEvent = () => {} }) {
   if (typeof adapter?.restart !== "function" || typeof adapter?.runtimePid !== "function" ||
+    typeof adapter?.liveness !== "function" ||
     typeof cloudRequest !== "function" || typeof healthCheck !== "function" || intervalMs < 1000)
     fail("EDGE_OTA_AGENT_CONFIG_INVALID");
   if (qaRootPinPath || qaIsolationRoot) {
@@ -104,8 +105,17 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
         return result;
       }
       const service = adapter.status();
+      // Late rollback protects against a dead/crashing supervised runtime, not
+      // a briefly expensive rich health aggregation. During the 0.2.38 Home
+      // canary three sparse /health misses accumulated over sixty seconds even
+      // though the independent child watchdog observed a healthy /health/live
+      // response between every miss and the launchd owner never restarted.
+      // Use the deliberately minimal liveness contract for crash-loop state;
+      // rich camera/source health remains mandatory below and in install-time
+      // promotion, so this does not weaken release or media readiness gates.
+      const live = await adapter.liveness({ timeoutMs: 1500 });
       const observed = await adapter.health({ timeoutMs: 1500 });
-      const crash = await guard.observe({ runtimePid: adapter.runtimePid(), healthy: observed.ok && service.running });
+      const crash = await guard.observe({ runtimePid: adapter.runtimePid(), healthy: live.ok && service.running });
       if (["ROLLED_BACK", "ACTION_REQUIRED"].includes(crash.action)) {
         onEvent({ state: crash.action, reason: manager.status().failure_category || null });
         await reportLateFailure(manager);

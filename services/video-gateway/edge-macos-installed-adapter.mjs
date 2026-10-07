@@ -209,6 +209,21 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     }
     return { ok: false, service: service() };
   }
+  async function liveness({ timeoutMs = 1_500 } = {}) {
+    const until = Date.now() + timeoutMs;
+    while (Date.now() < until) {
+      try {
+        const response = await fetch(`http://127.0.0.1:${port}/health/live`, {
+          signal: AbortSignal.timeout(Math.min(1_000, Math.max(250, until - Date.now())))
+        });
+        const body = response.ok ? await response.json().catch(() => ({})) : {};
+        if (response.ok && body.contract === "observer-edge-liveness-v1" && body.ok === true)
+          return { ok: true, body, service: service() };
+      } catch {}
+      await new Promise(resolveWait => setTimeout(resolveWait, 100));
+    }
+    return { ok: false, service: service() };
+  }
   async function restart({ slot, manifest, bootstrap = false }) {
     const release = manifest || JSON.parse(readFileSync(join(resolve(slot), "release.json"), "utf8"));
     requireMutation(release);
@@ -269,5 +284,5 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     run("/bin/launchctl", ["bootstrap", domain, plistPath]);
     return service();
   }
-  return { plan, status: service, runtimePid, verifyInstalled, verifyLegacyInstalled, stageBaseline: unpack, install: unpack, restart, restoreLegacy, health };
+  return { plan, status: service, runtimePid, verifyInstalled, verifyLegacyInstalled, stageBaseline: unpack, install: unpack, restart, restoreLegacy, health, liveness };
 }

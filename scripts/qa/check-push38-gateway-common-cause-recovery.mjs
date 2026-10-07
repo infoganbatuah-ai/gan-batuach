@@ -141,17 +141,14 @@ test("intentional relay handoff never quarantines the hardware encoder", () => {
   assert.equal(shouldQuarantineHardwareTranscoder({ exitCode: 1 }), true);
 });
 
-test("measured finite-response session renewal owns one exclusive epoch sweep", () => {
+test("healthy media age cannot rotate the shared recorder login", () => {
   const now = Date.now();
   assert.equal(PRIVATE_NVR_PROACTIVE_RENEWAL_MS, 2 * 60 * 1000);
   assert.equal(PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS,
     PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS * 10,
-  "nine sources include one concurrent observation plus nine exclusive acquisitions");
-  assert.ok(PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS
-    - PRIVATE_NVR_PROACTIVE_RENEWAL_MS
-    - PRIVATE_NVR_EXCLUSIVE_SESSION_SWEEP_BUDGET_MS
-    - PRIVATE_NVR_SESSION_SWEEP_CONTROL_MARGIN_MS >= 17_000,
-  "renewal must fit the complete serialized sweep before measured response retirement");
+  "an already-authorized drain remains bounded to ten acquisition slots");
+  assert.ok(PRIVATE_NVR_SESSION_SWEEP_CONTROL_MARGIN_MS > 0,
+  "the historical exclusive drain retains a positive control margin");
   const eligible = { loginExclusivity: false,
     updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS };
   const idleAfterHeartbeatLoss = { activeProgressingRelays: 0,
@@ -161,8 +158,19 @@ test("measured finite-response session renewal owns one exclusive epoch sweep", 
   const activeBeforeHardExpiry = { activeProgressingRelays: 9,
     heartbeatConsecutiveFailures: 0, heartbeatResponsesOk: 1 };
   assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible,
-    activeBeforeHardExpiry, now), true,
-  "the measured finite-response boundary and healthy heartbeat authorize one bounded epoch sweep");
+    activeBeforeHardExpiry, now), false,
+  "finite media-response age must not be mistaken for shared-login expiry");
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
+    updatedAt: now - PRIVATE_NVR_OBSERVED_MEDIA_RESPONSE_RETIREMENT_MS * 2 },
+  activeBeforeHardExpiry, now), false,
+  "even old productive responses retain a heartbeat-healthy shared login");
+  for (let rotationOpportunity = 1; rotationOpportunity <= 7;
+    rotationOpportunity += 1) {
+    assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
+      updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS * rotationOpportunity },
+    activeBeforeHardExpiry, now), false,
+    "the failed-canary age cadence cannot recreate seven login rotations");
+  }
   for (const blocked of [
     { pendingRetiredSessions: 1 },
     { staleEpochRelays: 1 },
@@ -170,7 +178,7 @@ test("measured finite-response session renewal owns one exclusive epoch sweep", 
     { recoveryBacklog: 1 }
   ]) {
     assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
-      ...activeBeforeHardExpiry, ...blocked
+      ...idleAfterHeartbeatLoss, ...blocked
     }, now), false,
     "another renewal must wait for complete prior-epoch drain and retirement");
   }

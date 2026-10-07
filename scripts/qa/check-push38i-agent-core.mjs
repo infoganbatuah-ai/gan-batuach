@@ -49,7 +49,7 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
       root_public_key: rootPublic }), { mode: 0o600 });
     let pid = 101, restarts = 0;
     const adapter = { plan: () => ({ qa: true }), status: () => ({ running: true, pid: 99 }), runtimePid: () => pid,
-      health: async () => ({ ok: true }), verifyInstalled: async () => true,
+      health: async () => ({ ok: true }), liveness: async () => ({ ok: true }), verifyInstalled: async () => true,
       stageBaseline: async ({ staging }) => writeFileSync(join(staging, "runtime"), "qa"),
       install: async ({ staging }) => writeFileSync(join(staging, "runtime"), "qa"),
       restart: async () => { restarts++; pid++; } };
@@ -79,6 +79,14 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
     // The agent process can be replaced without touching the camera process.
     const restartedAgent = createInstalledEdgeOtaAgent(options);
     assert.equal((await restartedAgent.tick()).state, "HEALTHY");
+    // Sparse rich-health timeouts pause update discovery without accumulating
+    // as a crash while minimal process liveness and the owner PID are stable.
+    const transientRichHealth = createInstalledEdgeOtaAgent({ ...options,
+      adapter: { ...adapter, health: async () => ({ ok: false }), liveness: async () => ({ ok: true }) } });
+    for (let n = 0; n < 3; n++)
+      assert.deepEqual(await transientRichHealth.tick(), { state: "RUNTIME_UNHEALTHY", reason: "HEALTH_PROBE_FAILED" });
+    assert.equal(manager.status().state, "HEALTHY",
+      "rich-health misses with continuous process liveness must not trigger crash-loop rollback");
     for (let n = 0; n < 3; n++) { pid++; await restartedAgent.tick(); }
     assert.equal(manager.status().state, "ROLLED_BACK");
     assert.equal(manager.current().version, "1.0.0");
