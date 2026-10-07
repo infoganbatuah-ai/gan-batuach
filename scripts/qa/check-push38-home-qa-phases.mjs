@@ -42,6 +42,8 @@ const connectorStartupDiscoveryRecovery =
   "qa-p38-health-connector-startup-recovery-2537bbb1007f";
 const gatewaySessionAgeStability =
   "qa-p38-health-gateway-session-age-stability-26644a5e5900";
+const gatewayAiEvidenceIoIsolation =
+  "qa-p38-health-gateway-ai-evidence-448b16ec54ff";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
   channel: "HOME_QA", platform: "darwin", architecture: "arm64", profile,
   rollout: { stage: "INTERNAL_QA", cohort_percent: 0, explicit_device_ids: [deviceId] } });
@@ -84,6 +86,8 @@ const connectorStartupDiscoveryRecoveryRemediation =
   manifest(connectorStartupDiscoveryRecovery, connectorId, "SOFTWARE_CONNECTOR");
 const gatewaySessionAgeStabilityRemediation =
   manifest(gatewaySessionAgeStability, gatewayId, "PHYSICAL_GATEWAY");
+const gatewayAiEvidenceIoIsolationRemediation =
+  manifest(gatewayAiEvidenceIoIsolation, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
 assert.equal(HOME_QA_PHASE.PENDING, "MANAGED_IDENTITY_PENDING_PROOF");
 const connector = { gateway_id: connectorId, deployment_profile: "SOFTWARE_CONNECTOR",
@@ -133,6 +137,8 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
   manifest: gatewayRejectedHlsContinuityRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
   manifest: gatewaySessionAgeStabilityRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway,
+  manifest: gatewayAiEvidenceIoIsolationRemediation }), true);
 for (const bad of [
   { ...connector, identity_scheme: "LEGACY_HMAC" },
   { ...connector, credential_version: 0 },
