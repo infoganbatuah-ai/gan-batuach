@@ -23,6 +23,7 @@ import "./styles/ux-implement-18.css";
 import "./styles/ux-implement-19.css";
 import "./styles/ux-visual-remediation-final.css";
 import "./styles/ux-reference-reconstruction-final.css";
+import "./styles/ux-literal-reference-reconstruction.css";
 
 export const metadata: Metadata = {
   verification: {

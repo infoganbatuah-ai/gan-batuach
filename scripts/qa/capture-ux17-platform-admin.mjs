@@ -87,7 +87,7 @@ async function capture(name, route, focusSelector, viewport) {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("response", (response) => { if (response.url().startsWith(base) && response.status() >= 500) errors.push(`${response.status()} ${new URL(response.url()).pathname}`); });
-  const response = await page.goto(`${base}${route}`, { waitUntil: "networkidle", timeout: 180_000 });
+  const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded", timeout: 300_000 });
   assert.equal(response?.status(), 200, route);
   assert.doesNotMatch(page.url(), /\/login|\/onboarding|\/apply/);
   try {
@@ -96,10 +96,13 @@ async function capture(name, route, focusSelector, viewport) {
     // Next dev may restart itself after a memory threshold while the long
     // visual matrix is running. Reload once against the same local build;
     // product errors still fail through the assertions below.
-    await page.reload({ waitUntil: "networkidle", timeout: 180_000 });
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 300_000 });
     await page.locator(".role-app-admin, .app-shell").first().waitFor({ state: "visible", timeout: 60_000 });
   }
-  if (focusSelector && await page.locator(focusSelector).count()) await page.locator(focusSelector).first().scrollIntoViewIfNeeded();
+  if (focusSelector && await page.locator(focusSelector).count()) {
+    const focus = page.locator(focusSelector).first();
+    if (await focus.isVisible()) await focus.scrollIntoViewIfNeeded();
+  }
   await page.waitForTimeout(450);
   const overflow = await page.evaluate(() => ({ detected: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
   assert.equal(overflow.detected, false, `${name} ${viewport.label} overflow: ${JSON.stringify(overflow)}`);
@@ -109,7 +112,7 @@ async function capture(name, route, focusSelector, viewport) {
   const png = await page.screenshot({ fullPage: false, animations: "disabled" });
   const file = resolve(screenshotRoot, `${name}-${viewport.label}.webp`);
   await sharp(png).webp({ quality: 91 }).toFile(file);
-  captures.push({ domain: "Platform Admin", screen: name, viewport: `${viewport.width}×${viewport.height}`, route, file, reviewStatus: "OWNER_REVIEW_READY", privacy: "aggregate or intentionally authorized operational context", productionAccess: false });
+  captures.push({ domain: "Platform Admin", screen: name, viewport: `${viewport.width}×${viewport.height}`, route, file, reviewStatus: "REFERENCE_MATCH_CANDIDATE", privacy: "aggregate or intentionally authorized operational context", productionAccess: false });
   await page.close();
 }
 

@@ -40,7 +40,8 @@ export function ManagerOverviewDashboard({
     { title: "הזמנת הורה", href: "/dashboard/garden/parents", icon: UsersRound, tone: "purple" },
     { title: "הזמנת צוות", href: "/dashboard/garden/staff-applications", icon: GraduationCap, tone: "cyan" },
     { title: "שליחת הודעה", href: "/dashboard/garden/messages?compose=1#message-workbench", icon: MessageCircle, tone: "blue" },
-    { title: "יצירת משימה", href: "/dashboard/garden/tasks", icon: CheckCircle2, tone: "orange" }
+    { title: "יצירת משימה", href: "/dashboard/garden/tasks", icon: CheckCircle2, tone: "orange" },
+    { title: "צפייה במצלמות", href: "/dashboard/garden/cameras", icon: Camera, tone: "cyan" }
   ];
 
   return (

@@ -1,0 +1,612 @@
+/* UX-LITERAL-REFERENCE-RECONSTRUCTION
+   These rules are the final, route-scoped geometry layer. The approved boards
+   define the first-viewport silhouette; canonical data and permissions remain
+   in the existing components. */
+
+:root {
+  --literal-navy: #06316f;
+  --literal-navy-deep: #041f50;
+  --literal-blue: #0878ea;
+  --literal-ink: #0a3375;
+  --literal-muted: #637e9f;
+  --literal-line: #d9e7f5;
+  --literal-canvas: #f2f8ff;
+  --literal-card: #ffffff;
+  --literal-shadow: 0 5px 18px rgb(10 53 112 / 8%);
+}
+
+@media (min-width: 901px) {
+  /* Literal common desktop frame. */
+  .role-app-shell.gb-app-shell {
+    --reference-sidebar: 154px;
+    min-height: 100dvh;
+    background: linear-gradient(135deg, #f7fbff 0%, #edf6ff 100%) !important;
+  }
+  .role-app-shell > .gb-app-shell-sidebar {
+    border-radius: 0 !important;
+    background: linear-gradient(180deg, #073b82 0%, #052d69 55%, #041f50 100%) !important;
+  }
+  .role-app-shell .role-app-header {
+    min-height: 56px !important;
+    padding: 6px 17px !important;
+  }
+  .role-app-shell .role-app-page {
+    padding: 10px 13px 18px !important;
+  }
+
+  /* Owner onboarding: reference welcome split and reference task rail. */
+  .kindergarten-app-onboarding:has(.manager-registration-entry) {
+    min-height: 100dvh;
+    padding: 0 !important;
+  }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-shell {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh;
+    padding: 0 0 0 118px !important;
+  }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-shell::after {
+    inset: 56px auto 0 0 !important;
+    width: 118px !important;
+    padding: 78px 12px 0 !important;
+    border-radius: 0 !important;
+    background: radial-gradient(circle at 45% 9%, rgb(72 143 243 / 42%), transparent 26%), linear-gradient(180deg,#073d87,#041f51) !important;
+    font-size: .72rem !important;
+  }
+  .kindergarten-app-onboarding:has(.manager-registration-entry) .kindergarten-app-onboarding-header {
+    min-height: 56px !important;
+    margin: 0 0 0 -118px !important;
+    padding: 6px 22px !important;
+  }
+  .manager-registration-entry-focused {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.06fr) minmax(420px, .94fr);
+    grid-template-areas:
+      "intro progress"
+      "intro stage"
+      "intro actions"
+      "intro message";
+    align-content: center;
+    gap: 9px 12px !important;
+    min-height: calc(100dvh - 56px);
+    padding: 26px 32px !important;
+    direction: ltr;
+  }
+  .manager-registration-entry-focused > * { direction: rtl; }
+  .manager-registration-entry-focused .manager-registration-intro {
+    grid-area: intro;
+    position: relative;
+    display: grid !important;
+    grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr) !important;
+    min-height: 620px !important;
+    max-height: 760px;
+    border-radius: 18px !important;
+  }
+  .manager-registration-entry-focused .manager-registration-intro > div:first-child {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    padding: 38px 32px !important;
+    text-align: center;
+  }
+  .manager-registration-brand {
+    width: 104px;
+    height: 104px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+  .manager-registration-entry-focused .manager-registration-icon { display: none !important; }
+  .manager-registration-entry-focused .manager-registration-intro h2 {
+    max-width: 12ch;
+    margin: 4px auto 10px;
+    font-size: 2.1rem !important;
+    line-height: 1.12;
+  }
+  .manager-registration-entry-focused .manager-registration-intro p:not(.eyebrow) {
+    max-width: 43ch;
+    font-size: .82rem !important;
+    line-height: 1.65;
+  }
+  .manager-registration-entry-focused .manager-entry-benefits {
+    justify-content: center;
+    margin-top: 18px;
+  }
+  .manager-registration-entry-focused .manager-registration-visual {
+    min-height: 620px !important;
+    padding: 28px !important;
+    background: linear-gradient(0deg,rgb(5 31 73 / 58%),transparent 62%),url('/assets/gan-batuach-auth-hero.webp') center / cover no-repeat !important;
+  }
+  .manager-registration-entry-focused .manager-registration-visual span {
+    max-width: 14ch;
+    font-size: 1.35rem !important;
+    line-height: 1.28;
+  }
+  .manager-registration-entry-focused .manager-entry-progress { grid-area: progress; align-self: end; }
+  .manager-registration-entry-focused .manager-entry-stage { grid-area: stage; min-height: 310px; align-self: stretch; }
+  .manager-registration-entry-focused .manager-entry-actions { grid-area: actions; }
+  .manager-registration-entry-focused > .payment-action-message,
+  .manager-registration-entry-focused > .error-text { grid-area: message; }
+
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) {
+    padding: 0 !important;
+  }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-shell {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .kindergarten-app-onboarding:has(.manager-live-onboarding) .kindergarten-app-onboarding-header {
+    min-height: 56px !important;
+  }
+  .manager-live-onboarding {
+    position: relative;
+    min-height: calc(100dvh - 56px) !important;
+    padding: 20px 28px 18px 212px !important;
+    gap: 9px !important;
+  }
+  .manager-live-onboarding::before {
+    inset: 0 auto 0 0 !important;
+    width: 184px !important;
+    border-radius: 0 !important;
+  }
+  .manager-live-onboarding .manager-onboarding-steps {
+    inset: 90px auto auto 18px !important;
+    width: 150px !important;
+  }
+  .manager-live-onboarding .manager-onboarding-overview {
+    min-height: 58px !important;
+    padding: 8px 13px !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .manager-live-onboarding .manager-onboarding-overview > div:first-child > p:last-of-type,
+  .manager-live-onboarding .manager-autosave-state { display: none; }
+  .manager-live-onboarding .manager-stage-heading { min-height: 52px; }
+  .manager-literal-garden-banner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 122px;
+    border: 1px solid #d6e5f4;
+    border-radius: 13px;
+    color: #fff;
+    background: #cbdff4;
+    box-shadow: var(--literal-shadow);
+  }
+  .manager-literal-garden-banner::after { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg,rgb(5 38 83 / 82%),rgb(5 38 83 / 5%) 68%); content: ""; }
+  .manager-literal-garden-banner img { z-index: -2; object-fit: cover; object-position: center 60%; }
+  .manager-literal-garden-banner span,
+  .manager-literal-garden-banner b { position: relative; display: flex; align-items: center; gap: 7px; width: max-content; margin-inline: 18px; }
+  .manager-literal-garden-banner span { margin-top: 28px; font-size: .72rem; font-weight: 850; }
+  .manager-literal-garden-banner b { margin-top: 5px; font-size: 1.12rem; }
+  .manager-live-onboarding .manager-stage-grid { grid-template-columns: minmax(0,1.55fr) minmax(250px,.55fr) !important; }
+  .manager-live-onboarding .manager-docs-card { grid-column: 1 / -1; }
+  .manager-live-onboarding .manager-wizard-actions { position: sticky; bottom: 8px; z-index: 8; }
+
+  /* Owner dashboard: same first-viewport silhouette as Owner Core. */
+  .manager-reference-dashboard { gap: 7px !important; }
+  .manager-command-hero {
+    grid-template-columns: minmax(310px,.82fr) minmax(0,1.18fr) !important;
+    min-height: 146px !important;
+    max-height: 146px;
+  }
+  .manager-command-hero-copy { padding: 16px 24px !important; }
+  .manager-command-hero h2 { font-size: 1.82rem !important; }
+  .manager-command-hero-art { min-height: 146px !important; }
+  .manager-today-strip { grid-template-columns: repeat(6,minmax(0,1fr)) !important; }
+  .manager-today-metric { min-height: 72px !important; }
+  .manager-reference-first-viewport {
+    grid-template-columns: minmax(230px,.9fr) minmax(350px,1.25fr) minmax(260px,1fr) !important;
+  }
+  .manager-reference-first-viewport .manager-reference-panel { min-height: 230px !important; max-height: 230px; }
+  .manager-live-camera-card { min-height: 230px !important; max-height: 230px; }
+  .manager-live-camera-scene { min-height: 150px !important; }
+  .manager-reference-quick > div { grid-template-columns: repeat(7,minmax(0,1fr)) !important; }
+  .manager-command-grid-primary { margin-top: 1px; }
+
+  /* Children and classrooms: human identity first, no KPI dashboard above the list. */
+  .ux04-domain-workspace { gap: 7px !important; }
+  .ux04-workspace-header { min-height: 56px !important; }
+  .ux04-domain-tabs { margin-inline-start: auto; }
+  .ux04-summary-strip-secondary {
+    order: 20;
+    margin-top: 2px;
+  }
+  .ux04-domain-tabs + .ux04-summary-strip-secondary,
+  .ux04-source-error + .ux04-summary-strip-secondary { display: none !important; }
+  .ux04-filter-bar {
+    grid-template-columns: minmax(260px,1fr) 150px 150px auto !important;
+    width: 100%;
+    max-width: none;
+    margin-inline-start: 0;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .ux04-list-surface { width: 100%; max-width: none; margin-inline-start: 0; }
+  .ux04-child-row { min-height: 61px !important; }
+  .ux04-child-row .avatar { width: 44px !important; height: 44px !important; }
+  .ux04-child-identity { gap: 10px !important; }
+  .ux04-classroom-grid { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
+  .ux04-classroom-card { min-height: 272px; }
+  .ux04-classroom-art {
+    position: relative;
+    isolation: isolate;
+    min-height: 128px !important;
+    align-content: end !important;
+    overflow: hidden;
+    padding: 10px !important;
+    color: #fff !important;
+  }
+  .ux04-classroom-photo {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: url('/assets/hero-control-center.png') 12% 60% / 220% auto no-repeat;
+  }
+  .ux04-classroom-card:nth-child(2) .ux04-classroom-photo { background-position: 38% 60%; }
+  .ux04-classroom-card:nth-child(3) .ux04-classroom-photo { background-position: 66% 60%; }
+  .ux04-classroom-card:nth-child(4) .ux04-classroom-photo { background-position: 92% 60%; }
+  .ux04-classroom-art::after { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg,transparent 45%,rgb(3 34 76 / 76%)); content: ""; }
+  .ux04-classroom-art > svg { display: none; }
+  .ux04-classroom-art > span:last-child { color: #fff !important; text-shadow: 0 2px 7px rgb(0 0 0 / 35%); }
+
+  /* Parent dashboard: child selector, identity, camera and metrics form one compact overview. */
+  .role-app-shell.parent-runtime-shell .parent-dashboard-home {
+    grid-template-columns: repeat(12,minmax(0,1fr)) !important;
+    align-items: start;
+    gap: 7px !important;
+  }
+  .parent-dashboard-home > .parent-hero,
+  .parent-dashboard-home > .dashboard-environment-notice,
+  .parent-dashboard-home > .parent-invitations-live-panel,
+  .parent-dashboard-home > .parent-child-card-selector { grid-column: 1 / -1; }
+  .parent-dashboard-home > .parent-hero { grid-row: 1 !important; }
+  .parent-dashboard-home > .dashboard-environment-notice { grid-row: 2 !important; }
+  .parent-dashboard-home > .parent-invitations-live-panel { grid-row: 3 !important; }
+  .parent-dashboard-home > .parent-child-card-selector { grid-row: 4 !important; }
+  .parent-dashboard-home > .parent-hero {
+    min-height: 88px !important;
+    background-size: 300px auto !important;
+    background-position: left 42% center !important;
+  }
+  .parent-child-card-selector {
+    display: grid !important;
+    grid-template-columns: 150px minmax(0,1fr) !important;
+    min-height: 74px;
+  }
+  .parent-child-context-card { flex-basis: 205px; }
+  .parent-dashboard-home > .parent-child-card {
+    grid-column: 1 / 5 !important;
+    grid-row: 5 !important;
+    min-height: 172px !important;
+  }
+  .parent-child-photo { width: 118px !important; height: 118px !important; }
+  .parent-dashboard-home > .parent-section-card:has(.parent-camera-card) {
+    grid-column: 5 / 10 !important;
+    grid-row: 5 !important;
+    min-height: 172px;
+  }
+  .parent-camera-card {
+    grid-template-columns: minmax(0,1.35fr) minmax(175px,.65fr) !important;
+    min-height: 142px !important;
+  }
+  .role-app-shell .parent-camera-preview { min-height: 142px !important; }
+  .parent-dashboard-home > .parent-metrics-grid {
+    grid-column: 10 / 13 !important;
+    grid-row: 5 !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  .parent-metric-card { min-height: 83px !important; }
+  .parent-dashboard-home > .parent-action-grid {
+    grid-column: 1 / -1 !important;
+    grid-row: 6 !important;
+    grid-template-columns: repeat(5,minmax(0,1fr)) !important;
+  }
+  .parent-dashboard-home > .parent-two-columns { grid-column: 1 / -1 !important; grid-row: 7 !important; }
+  .parent-dashboard-home > .parent-management-section { grid-column: 1 / -1 !important; grid-row: 8 !important; }
+  .parent-dashboard-home > .parent-management-section + .parent-section-card { grid-column: 1 / -1 !important; grid-row: 9 !important; }
+  .parent-child-card h2 { font-size: 1.55rem !important; }
+
+  /* Safety / cameras: reference 3x2 monitoring grid, right rail and event strip. */
+  .safety-platform { gap: 7px !important; }
+  .safety-hero { min-height: 62px !important; }
+  .safety-camera-workspace:not(.has-detail) {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) 206px;
+    gap: 8px;
+    direction: ltr;
+  }
+  .safety-camera-workspace:not(.has-detail) > * { direction: rtl; }
+  .safety-camera-grid { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  .safety-camera-card { min-height: 216px; }
+  .safety-camera-visual { position: relative; min-height: 112px !important; }
+  .safety-camera-reference-image {
+    z-index: 0;
+    object-fit: cover;
+    object-position: 12% 58%;
+  }
+  .safety-camera-card:nth-child(2) .safety-camera-reference-image { object-position: 38% 58%; }
+  .safety-camera-card:nth-child(3) .safety-camera-reference-image { object-position: 68% 58%; }
+  .safety-camera-card:nth-child(4) .safety-camera-reference-image { object-position: 92% 58%; }
+  .safety-camera-card:nth-child(5) .safety-camera-reference-image { object-position: 22% 30%; }
+  .safety-camera-card:nth-child(6) .safety-camera-reference-image { object-position: 78% 30%; }
+  .safety-camera-area-illustration { display: none !important; }
+  .safety-camera-grid-lines { z-index: 1; background: linear-gradient(180deg,rgb(2 22 52 / 4%),rgb(2 22 52 / 54%)) !important; }
+  .safety-status-chip,
+  .safety-area-label,
+  .safety-camera-truth-overlay { z-index: 2 !important; }
+  .safety-camera-truth-overlay {
+    inset: auto 10px 9px 10px !important;
+    display: grid !important;
+    grid-template-columns: 22px 1fr;
+    align-items: center;
+    justify-items: start;
+    padding: 6px 8px !important;
+    border-radius: 8px;
+    color: #fff;
+    background: rgb(3 29 70 / 68%);
+    backdrop-filter: blur(4px);
+  }
+  .safety-camera-truth-overlay svg { width: 20px; height: 20px; grid-row: 1 / 3; }
+  .safety-camera-truth-overlay strong { font-size: .58rem; }
+  .safety-camera-truth-overlay small { font-size: .45rem; }
+  .safety-camera-card-body { padding: 7px 8px !important; }
+  .safety-camera-card dl { display: none !important; }
+  .safety-camera-open { min-height: 25px; margin-top: 5px; }
+  .safety-operations-rail {
+    display: grid;
+    align-content: start;
+    gap: 5px;
+    min-height: 100%;
+    padding: 9px;
+    border: 1px solid var(--literal-line);
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: var(--literal-shadow);
+  }
+  .safety-operations-rail h2 { margin: 1px 2px 6px; color: var(--literal-ink); font-size: .78rem; }
+  .safety-operations-rail > a { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 6px 8px; border: 1px solid #e5eef8; border-radius: 7px; color: #174d91; background: #f8fbff; font-size: .6rem; font-weight: 850; text-decoration: none; }
+  .safety-operations-rail > div { display: flex; align-items: flex-start; gap: 7px; margin-top: 3px; padding: 8px; border-radius: 8px; color: #664f17; background: #fff7df; }
+  .safety-operations-rail span { display: grid; gap: 2px; }
+  .safety-operations-rail b { font-size: .6rem; }
+  .safety-operations-rail small { font-size: .48rem; line-height: 1.4; }
+  .safety-recent-checks {
+    display: grid;
+    gap: 5px;
+    padding: 7px 9px;
+    border: 1px solid var(--literal-line);
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: var(--literal-shadow);
+  }
+  .safety-recent-checks > header { display: flex; justify-content: space-between; align-items: center; }
+  .safety-recent-checks > header strong { color: var(--literal-ink); font-size: .72rem; }
+  .safety-recent-checks > header a { display: inline-flex; align-items: center; color: #1870d9; font-size: .56rem; text-decoration: none; }
+  .safety-recent-checks > div { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+  .safety-recent-checks article { display: flex; gap: 7px; min-width: 0; padding: 6px; border-radius: 7px; background: #f5f9fe; }
+  .safety-recent-checks article div { display: grid; min-width: 0; }
+  .safety-recent-checks b { overflow: hidden; color: #173d75; font-size: .57rem; text-overflow: ellipsis; white-space: nowrap; }
+  .safety-recent-checks small { overflow: hidden; color: #7890ad; font-size: .47rem; text-overflow: ellipsis; white-space: nowrap; }
+  .safety-status-dot { width: 8px; height: 8px; flex: 0 0 auto; margin-top: 4px; border-radius: 50%; background: #8797aa; }
+  .safety-status-dot.online { background: #10ae7a; }
+  .safety-status-dot.degraded { background: #ee9a18; }
+  .safety-status-dot.offline,
+  .safety-status-dot.unavailable { background: #ef4d5e; }
+  .safety-status-dot.setup_required { background: #7656cf; }
+  .safety-overview-footer { display: none !important; }
+
+  /* Platform Admin: literal control center. */
+  .role-app-shell.admin-runtime-shell .admin-app-page {
+    display: block !important;
+    direction: rtl !important;
+  }
+  .admin-literal-dashboard { display: grid; gap: 8px; }
+  .admin-literal-dashboard ~ * { display: none !important; }
+  .admin-literal-heading { display: flex; align-items: end; justify-content: space-between; min-height: 45px; padding: 0 3px; }
+  .admin-literal-heading h1 { margin: 0; color: var(--literal-ink); font-size: 1.45rem; }
+  .admin-literal-heading p { margin: 2px 0 0; color: #6881a2; font-size: .64rem; }
+  .admin-literal-heading > a,
+  .admin-literal-dashboard header a { color: #1471dc; font-size: .58rem; font-weight: 850; text-decoration: none; }
+  .admin-literal-kpis { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 7px; }
+  .admin-literal-kpis > a { display: grid; grid-template-columns: 34px 1fr auto; grid-template-rows: auto auto; align-items: center; gap: 2px 7px; min-height: 73px; padding: 8px; border: 1px solid var(--literal-line); border-radius: 9px; color: inherit; background: #fff; box-shadow: var(--literal-shadow); text-decoration: none; }
+  .admin-literal-kpis span { display: grid; place-items: center; width: 34px; height: 34px; grid-row: 1 / 3; border-radius: 50%; color: #0d73df; background: #e9f4ff; }
+  .admin-literal-kpis span svg { width: 18px; }
+  .admin-literal-kpis span.green { color: #098d68; background: #e2f8ef; }
+  .admin-literal-kpis span.red { color: #e5455a; background: #ffebee; }
+  .admin-literal-kpis span.purple { color: #7650d0; background: #f0eaff; }
+  .admin-literal-kpis span.cyan { color: #0983a7; background: #e6f8fc; }
+  .admin-literal-kpis small { color: #355a88; font-size: .55rem; font-weight: 850; }
+  .admin-literal-kpis b { color: #072f70; font-size: 1.16rem; line-height: 1; }
+  .admin-literal-kpis em { grid-column: 2 / 4; color: #758aa5; font-size: .47rem; font-style: normal; }
+  .admin-literal-upper-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(250px,.82fr) minmax(250px,.78fr); gap: 7px; direction: ltr; }
+  .admin-literal-upper-grid > * { direction: rtl; }
+  .admin-literal-chart,
+  .admin-literal-health,
+  .admin-literal-activity,
+  .admin-literal-lower-grid > article { min-width: 0; overflow: hidden; border: 1px solid var(--literal-line); border-radius: 9px; background: #fff; box-shadow: var(--literal-shadow); }
+  .admin-literal-chart > header,
+  .admin-literal-health > header,
+  .admin-literal-activity > header,
+  .admin-literal-lower-grid article > header { display: flex; align-items: center; justify-content: space-between; min-height: 35px; padding: 7px 9px; border-bottom: 1px solid #eef3f9; }
+  .admin-literal-dashboard h2 { margin: 0; color: var(--literal-ink); font-size: .72rem; }
+  .admin-literal-line-chart { position: relative; height: 157px; padding: 8px 10px 3px; }
+  .admin-literal-line-chart svg { width: 100%; height: 118px; border-bottom: 1px solid #dfe9f4; }
+  .admin-literal-line-chart > div { display: flex; justify-content: space-between; color: #7087a5; font-size: .46rem; }
+  .admin-literal-line-chart > b { position: absolute; top: 14px; left: 14px; padding: 5px 7px; border: 1px solid #d9e7f5; border-radius: 6px; color: #0b4a9b; background: #fff; font-size: .56rem; }
+  .admin-literal-grouped-bars { display: flex; align-items: end; justify-content: space-evenly; height: 157px; padding: 15px 10px 11px; }
+  .admin-literal-grouped-bars > span { display: grid; grid-template-columns: 10px 10px; align-items: end; gap: 3px; width: 42px; height: 122px; }
+  .admin-literal-grouped-bars i { display: block; min-height: 8px; border-radius: 3px 3px 0 0; background: linear-gradient(#46a1f8,#1979e7); }
+  .admin-literal-grouped-bars i + i { background: linear-gradient(#8b68e8,#6843c8); }
+  .admin-literal-grouped-bars b { grid-column: 1 / 3; color: #6e84a0; font-size: .48rem; text-align: center; }
+  .admin-literal-health { padding-bottom: 5px; }
+  .admin-literal-health > div { display: flex; align-items: center; justify-content: space-between; min-height: 31px; margin: 0 8px; border-bottom: 1px solid #eef3f8; color: #557191; font-size: .54rem; }
+  .admin-literal-health span { display: flex; align-items: center; gap: 6px; }
+  .admin-literal-health i { width: 8px; height: 8px; border-radius: 50%; background: #7890aa; }
+  .admin-literal-health i.good { background: #0cb17b; }
+  .admin-literal-health i.warn { background: #f29c18; }
+  .admin-literal-health b { color: #0e9b6c; font-size: .51rem; }
+  .admin-literal-activity-list { display: grid; }
+  .admin-literal-activity-list > a { display: grid; grid-template-columns: 30px minmax(0,1fr) auto; align-items: center; gap: 6px; min-height: 43px; padding: 6px 8px; border-bottom: 1px solid #edf3f9; color: inherit; text-decoration: none; }
+  .admin-literal-activity-list > a > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #1475e2; background: #e9f4ff; }
+  .admin-literal-activity-list span.red { color: #df4054; background: #ffebee; }
+  .admin-literal-activity-list svg { width: 15px; }
+  .admin-literal-activity-list div { display: grid; min-width: 0; }
+  .admin-literal-activity-list b { overflow: hidden; color: #163e77; font-size: .56rem; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-literal-activity-list small,
+  .admin-literal-activity-list time { color: #8193aa; font-size: .44rem; }
+  .admin-literal-activity-list > p { padding: 22px 12px; color: #7187a3; font-size: .55rem; text-align: center; }
+  .admin-literal-lower-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+  .admin-literal-lower-grid > article { min-height: 128px; }
+  .admin-literal-lower-grid article > a,
+  .admin-literal-subscription-row { display: grid; grid-template-columns: 1fr .72fr auto; align-items: center; min-height: 29px; padding: 4px 9px; border-bottom: 1px solid #eef3f8; color: inherit; font-size: .5rem; text-decoration: none; }
+  .admin-literal-lower-grid article > a b,
+  .admin-literal-subscription-row b { color: #173e76; }
+  .admin-literal-lower-grid article > a span,
+  .admin-literal-subscription-row span { color: #7288a5; }
+  .admin-literal-lower-grid em { padding: 3px 6px; border-radius: 999px; color: #a66b06; background: #fff1d7; font-size: .44rem; font-style: normal; }
+  .admin-literal-lower-grid em.good { color: #087c5b; background: #ddf7ec; }
+  .admin-literal-lower-grid em.warn { color: #b46c07; background: #fff0d2; }
+  .admin-literal-dashboard ~ .admin-reference-title,
+  .admin-literal-dashboard ~ .admin-reference-kpis,
+  .admin-literal-dashboard ~ .admin-system-status-card,
+  .admin-literal-dashboard ~ .platform-admin-chart-grid,
+  .admin-literal-dashboard ~ .admin-reference-actions,
+  .admin-literal-dashboard ~ .admin-priority-column { display: none !important; }
+  .admin-literal-dashboard ~ .admin-business-summary { margin-top: 9px; }
+
+  /* Settings: physical left-to-right nav/profile/security/garden columns. */
+  .ux18-settings-layout {
+    grid-template-columns: 214px minmax(0,1fr) !important;
+    direction: ltr !important;
+  }
+  .ux18-settings-layout > aside { direction: rtl; }
+  .ux18-settings-content {
+    grid-template-columns: minmax(0,1.02fr) minmax(0,.96fr) minmax(0,1.08fr) !important;
+    direction: ltr !important;
+  }
+  .ux18-settings-content > * { direction: rtl; }
+  .ux18-reference-profile-column { grid-column: 1; }
+  .ux18-reference-security-column { grid-column: 2; }
+  .ux18-reference-garden-column { grid-column: 3; display: flex !important; flex-direction: column; }
+  .ux18-reference-garden-column > #garden-profile { order: 1; }
+  .ux18-reference-garden-column > #account-services { order: 2; }
+  .ux18-reference-garden-column > .ux18-settings-status-grid { order: 3; }
+  .ux18-reference-identity { grid-template-columns: 112px minmax(0,1fr) !important; align-items: start; }
+  .ux18-reference-identity > img,
+  .ux18-reference-identity > span { width: 106px !important; height: 106px !important; border-radius: 50% !important; object-fit: cover; }
+  .ux18-reference-garden-summary { grid-template-columns: 82px minmax(0,1fr) !important; }
+  .ux18-reference-garden-summary > img,
+  .ux18-reference-garden-summary > span { width: 82px !important; height: 64px !important; border-radius: 8px !important; object-fit: cover; }
+  .ux18-settings-status-grid { margin-top: 0; }
+}
+
+@media (max-width: 900px) {
+  /* Mobile remains a separate composition. */
+  .manager-registration-brand { width: 72px; height: 72px; object-fit: contain; margin-inline: auto; }
+  .manager-registration-entry-focused .manager-registration-icon { display: none !important; }
+  .manager-registration-entry-focused .manager-registration-intro > div:first-child { text-align: center; }
+  .manager-registration-entry-focused .manager-entry-benefits { justify-content: center; }
+  .manager-registration-entry-focused .manager-registration-visual { min-height: 178px !important; }
+  .manager-literal-garden-banner { position: relative; isolation: isolate; overflow: hidden; min-height: 118px; border-radius: 14px; color: #fff; }
+  .manager-literal-garden-banner img { z-index: -2; object-fit: cover; }
+  .manager-literal-garden-banner::after { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg,transparent,rgb(3 29 69 / 78%)); content: ""; }
+  .manager-literal-garden-banner span,
+  .manager-literal-garden-banner b { position: relative; display: flex; align-items: center; gap: 6px; width: max-content; margin-inline: 12px; }
+  .manager-literal-garden-banner span { margin-top: 66px; font-size: .66rem; }
+  .manager-literal-garden-banner b { margin-top: 3px; font-size: .8rem; }
+  .manager-reference-quick > div { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; }
+  .manager-reference-quick > div > a { flex: 0 0 94px; scroll-snap-align: start; }
+  .manager-reference-dashboard > * { order: 10; }
+  .manager-reference-dashboard > .manager-command-hero {
+    display: contents !important;
+  }
+  .manager-command-hero-copy {
+    order: 1;
+    min-height: 82px;
+    padding: 12px 14px !important;
+    border: 1px solid #d8e7f5;
+    border-radius: 15px;
+    background: linear-gradient(135deg,#eff7ff,#ffffff);
+    box-shadow: var(--literal-shadow);
+  }
+  .manager-command-hero-copy .manager-command-eyebrow { font-size: .62rem; }
+  .manager-command-hero-copy h2 { font-size: 1.32rem !important; }
+  .manager-command-hero-copy p { font-size: .58rem !important; }
+  .manager-today-strip { order: 2; }
+  .manager-command-hero-art {
+    order: 3;
+    min-height: 104px !important;
+    border: 1px solid #d8e7f5;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--literal-shadow);
+  }
+  .manager-reference-first-viewport { order: 4 !important; }
+  .manager-today-strip {
+    display: grid !important;
+    grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+    gap: 5px !important;
+    overflow: visible !important;
+  }
+  .manager-today-metric { min-width: 0 !important; min-height: 76px !important; padding: 7px 4px !important; }
+  .manager-today-metric:nth-child(n+5) { display: none !important; }
+  .manager-today-metric > span:first-child { width: 28px !important; height: 28px !important; }
+  .manager-today-metric b { font-size: .86rem !important; }
+  .manager-today-metric small { font-size: .52rem !important; }
+  .ux04-summary-strip-secondary { display: none !important; }
+  .ux04-filter-bar { margin-top: 1px !important; }
+  .ux04-mobile-child-card .avatar { width: 52px !important; height: 52px !important; }
+  .ux04-classroom-art { position: relative; isolation: isolate; overflow: hidden; min-height: 96px !important; color: #fff !important; }
+  .ux04-classroom-photo { position: absolute; inset: 0; z-index: -2; background: url('/assets/hero-control-center.png') center 60% / cover no-repeat; }
+  .ux04-classroom-art::after { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg,transparent,rgb(4 31 72 / 70%)); content: ""; }
+  .parent-dashboard-home > .parent-hero { min-height: 120px !important; }
+  .parent-dashboard-home > * { grid-row: auto !important; }
+  .parent-child-card-selector { position: relative; display: grid !important; gap: 7px; }
+  .parent-child-selector-heading { min-height: 36px; }
+  .parent-child-context-card { flex-basis: 172px; }
+  .parent-child-context-avatar { width: 48px; height: 48px; }
+  .parent-dashboard-home > .parent-child-card { min-height: 136px !important; }
+  .parent-child-photo { width: 86px !important; height: 86px !important; }
+  .parent-metrics-grid { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .parent-metric-card:nth-child(n+3) { display: none; }
+  .parent-camera-card { display: block !important; }
+  .role-app-shell .parent-camera-preview { min-height: 188px !important; }
+  .safety-camera-reference-image { z-index: 0; object-fit: cover; object-position: center 60%; }
+  .safety-camera-area-illustration { display: none !important; }
+  .safety-camera-grid-lines { z-index: 1; background: linear-gradient(180deg,rgb(2 22 52 / 4%),rgb(2 22 52 / 54%)) !important; }
+  .safety-camera-truth-overlay,
+  .safety-status-chip,
+  .safety-area-label { z-index: 2 !important; }
+  .safety-operations-rail { display: none; }
+  .safety-recent-checks { display: none; }
+  .admin-literal-dashboard { display: grid; gap: 8px; }
+  .admin-literal-heading { padding: 4px 1px; }
+  .admin-literal-heading h1 { margin: 0; color: var(--literal-ink); font-size: 1.4rem; }
+  .admin-literal-heading p { margin: 3px 0 0; color: #7187a2; font-size: .67rem; }
+  .admin-literal-heading > a { display: none; }
+  .admin-literal-kpis { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+  .admin-literal-kpis > a { display: grid; grid-template-columns: 34px 1fr; gap: 4px 7px; min-height: 92px; padding: 10px; border: 1px solid var(--literal-line); border-radius: 12px; color: inherit; background: #fff; text-decoration: none; }
+  .admin-literal-kpis span { display: grid; place-items: center; width: 34px; height: 34px; grid-row: 1 / 3; border-radius: 50%; color: #0875e4; background: #e9f4ff; }
+  .admin-literal-kpis span svg { width: 18px; }
+  .admin-literal-kpis small { color: #46668c; font-size: .58rem; font-weight: 850; }
+  .admin-literal-kpis b { color: var(--literal-ink); font-size: 1.3rem; }
+  .admin-literal-kpis em { grid-column: 1 / -1; color: #8091a7; font-size: .48rem; font-style: normal; }
+  .admin-literal-upper-grid,
+  .admin-literal-lower-grid { display: none; }
+  .admin-literal-dashboard ~ * { display: none !important; }
+  .admin-literal-dashboard ~ .admin-reference-title,
+  .admin-literal-dashboard ~ .admin-reference-kpis,
+  .admin-literal-dashboard ~ .admin-system-status-card,
+  .admin-literal-dashboard ~ .platform-admin-chart-grid,
+  .admin-literal-dashboard ~ .admin-reference-actions,
+  .admin-literal-dashboard ~ .admin-priority-column { display: none !important; }
+  .ux18-reference-identity > img { width: 96px !important; height: 96px !important; margin-inline: auto; border-radius: 50%; object-fit: cover; }
+  .ux18-reference-garden-summary > img { width: 76px !important; height: 62px !important; border-radius: 9px; object-fit: cover; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-literal-dashboard *,
+  .manager-literal-garden-banner *,
+  .safety-recent-checks * { animation: none !important; transition: none !important; }
+}

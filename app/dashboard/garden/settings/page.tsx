@@ -74,7 +74,7 @@ export default async function SettingsPage() {
       <div className="ux18-reference-column ux18-reference-profile-column">
         <SettingsSection id="profile" title="פרופיל אישי" description="פרטי החשבון שלך" icon={ShieldCheck}>
           <div className="ux18-reference-identity">
-            {profile.profile_image_url ? <img src={profile.profile_image_url} alt={`תמונת הפרופיל של ${profile.full_name ?? "מנהלת הגן"}`} /> : <span aria-hidden="true">{(profile.full_name ?? "מ").slice(0, 1)}</span>}
+            <img src={profile.profile_image_url ?? "/assets/teacher-avatar.svg"} alt={`תמונת הפרופיל של ${profile.full_name ?? "מנהלת הגן"}`} />
             <dl>
               <div><dt>שם מלא</dt><dd>{profile.full_name ?? "לא הוגדר"}</dd></div>
               <div><dt>תפקיד</dt><dd>{role === "owner" ? "בעלת גן" : "מנהלת גן"}</dd></div>
@@ -110,7 +110,7 @@ export default async function SettingsPage() {
         </SettingsStatusGrid>
         <SettingsSection id="garden-profile" title="הגן שלי" description="פרופיל והגדרות הגן הפעיל" icon={Building2} action={context.gardens.length > 1 ? <Link className="button secondary" href="/dashboard/garden/operations">החלפת גן</Link> : undefined}>
           <div className="ux18-reference-garden-summary">
-            {garden?.image_url || garden?.logo_url ? <img src={garden.image_url ?? garden.logo_url ?? ""} alt={`תמונת ${garden.name ?? "הגן"}`} /> : <span aria-hidden="true"><Building2 /></span>}
+            <img src={garden?.image_url ?? garden?.logo_url ?? "/assets/hero-control-center.png"} alt={`תמונת ${garden?.name ?? "הגן"}`} />
             <div><b>{garden?.name ?? "הגן הפעיל"}</b><small>{garden?.address ?? "כתובת הגן טרם הוגדרה"}</small></div>
           </div>
           <SettingsLinkList items={[
