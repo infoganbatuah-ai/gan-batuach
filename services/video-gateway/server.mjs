@@ -36,6 +36,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrMediaHeaderTimeoutMs,
   privateNvrHardwareOutputStalled,
   privateNvrSilentResponseStalled,
   privateNvrHealthEffectiveRelay,
@@ -1258,11 +1259,14 @@ function mergePrivateNvrCapabilityEvidence(media, discovered) {
   ) }));
 }
 
-async function privateNvrStreamResponse(url, token, cookie, signal, reportFailure = () => {}) {
+async function privateNvrStreamResponse(url, token, cookie, signal,
+  reportFailure = () => {}, { headerTimeoutMs = PROBE_TIMEOUT_MS } = {}) {
   // Bound only the response headers, not the lifetime of a healthy live body.
   // An unanswered channel must not poison its shared relay-start promise.
   const headerDeadline = new AbortController();
-  const timer = setTimeout(() => headerDeadline.abort(), Math.max(2000, PROBE_TIMEOUT_MS));
+  const boundedHeaderTimeoutMs = Math.max(2_000,
+    Number.isFinite(headerTimeoutMs) ? headerTimeoutMs : PROBE_TIMEOUT_MS);
+  const timer = setTimeout(() => headerDeadline.abort(), boundedHeaderTimeoutMs);
   const response = await fetch(url, {
     headers: {
       "X-csrftoken": token,
@@ -1674,14 +1678,19 @@ function relayDirectory(streamId) {
 }
 
 async function privateNvrRelayResponse(source, reportFailure = () => {},
-  { previousRelayExitReason = null } = {}) {
+  { previousRelayExitReason = null,
+    responseHeaderTimeoutMs = PROBE_TIMEOUT_MS } = {}) {
   let session = privateNvrSessions.get(source.sessionKey);
   if (!session) return null;
   if (session.refreshPromise) session = await session.refreshPromise;
   const url = privateNvrLiveUrl(session, source.channel, session.input.stream_quality);
   const controller = new AbortController();
   let failure = "source_unavailable";
-  let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal, (reason) => { failure = reason; reportFailure(reason); });
+  let response = await privateNvrStreamResponse(url, session.token,
+    session.cookie, controller.signal, (reason) => {
+      failure = reason;
+      reportFailure(reason);
+    }, { headerTimeoutMs: responseHeaderTimeoutMs });
   if (response) return { response, controller, sessionToken: session.token,
     sessionEpoch: session.epoch, sessionKey: source.sessionKey };
   controller.abort();
@@ -1711,7 +1720,9 @@ async function privateNvrRelayResponse(source, reportFailure = () => {},
   if (!refreshed) return null;
   const retryController = new AbortController();
   const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);
-  response = await privateNvrStreamResponse(retryUrl, refreshed.token, refreshed.cookie, retryController.signal, reportFailure);
+  response = await privateNvrStreamResponse(retryUrl, refreshed.token,
+    refreshed.cookie, retryController.signal, reportFailure,
+    { headerTimeoutMs: responseHeaderTimeoutMs });
   return response ? { response, controller: retryController, sessionToken: refreshed.token,
     sessionEpoch: refreshed.epoch, sessionKey: source.sessionKey } : null;
 }
@@ -2314,7 +2325,8 @@ async function warmReplaceRelay(streamId, previous, {
     }
     let replacement = exclusiveOwnerReleased
       ? await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode })
+        previousRelay: previous, handoffMode,
+        exclusiveAcquisition: forcedExclusiveOutputRescue || exclusiveSessionSweep })
       : null;
     let candidateStartFailure = replacement ? null
       : exclusiveOwnerReleased
@@ -2354,7 +2366,8 @@ async function warmReplaceRelay(streamId, previous, {
           "OUTPUT_RESCUE_OWNER_RELEASE");
       expectedCurrent = undefined;
       replacement = ownerReleased ? await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode }) : null;
+        previousRelay: previous, handoffMode,
+        exclusiveAcquisition: true }) : null;
       if (!replacement) candidateStartFailure =
         relayDiagnostics.get(streamId)?.last_failure_reason || candidateStartFailure;
       if (replacement) {
@@ -2396,7 +2409,8 @@ async function warmReplaceRelay(streamId, previous, {
         "SESSION_SWEEP_OWNER_RELEASE");
       expectedCurrent = undefined;
       replacement = ownerReleased ? await startRelay(streamId, { warming: true,
-        previousRelay: previous, handoffMode }) : null;
+        previousRelay: previous, handoffMode,
+        exclusiveAcquisition: true }) : null;
       if (!replacement) candidateStartFailure =
         relayDiagnostics.get(streamId)?.last_failure_reason || candidateStartFailure;
       if (replacement) {
@@ -2521,7 +2535,8 @@ async function warmReplaceRelay(streamId, previous, {
       expectedCurrent = undefined;
       const endedCandidate = replacement;
       replacement = await startRelay(streamId, { warming: true,
-        previousRelay: endedCandidate, handoffMode });
+        previousRelay: endedCandidate, handoffMode,
+        exclusiveAcquisition: true });
       if (replacement) {
         replacement.previousDirectories = [...new Set([
           endedCandidate?.directory, ...(endedCandidate?.previousDirectories || []),
@@ -2579,7 +2594,8 @@ async function warmReplaceRelay(streamId, previous, {
         const released = await stopRelayForExclusiveReplacement(streamId,
           stranded, "EXCLUSIVE_RESCUE_REOPEN");
         replacement = released ? await startRelay(streamId, { warming: true,
-          previousRelay: stranded, handoffMode }) : null;
+          previousRelay: stranded, handoffMode,
+          exclusiveAcquisition: true }) : null;
         if (replacement) {
           replacement.previousDirectories = [...new Set([
             stranded.directory, ...(stranded.previousDirectories || []),
@@ -2737,7 +2753,7 @@ async function warmReplaceDirectRtspRelay(streamId, previous) {
 }
 
 async function startRelay(streamId, { warming = false, previousRelay = null,
-  handoffMode = null } = {}) {
+  handoffMode = null, exclusiveAcquisition = false } = {}) {
   const source = streamSources.get(streamId);
   if (!source) return null;
   const generation = randomUUID();
@@ -2799,12 +2815,21 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   ];
   let startFailure = "SOURCE_OPEN_FAILED";
   const recovery = relayRecovery.get(streamId);
+  const responseHeaderTimeoutMs = privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: PROBE_TIMEOUT_MS,
+    previousRelayExitReason: recovery?.previous_relay_exit_reason || null,
+    handoffMode,
+    exclusiveAcquisition
+  });
   const relaySource = source.kind === "private_nvr_http_mp4"
     ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }, {
-      previousRelayExitReason: recovery?.previous_relay_exit_reason || null
+      previousRelayExitReason: recovery?.previous_relay_exit_reason || null,
+      responseHeaderTimeoutMs
     }) : null;
   if (!relaySource && !directRtsp) {
-    relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), last_failure_reason: startFailure, last_failure_at: new Date().toISOString() });
+    relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+      last_failure_reason: startFailure, last_failure_at: new Date().toISOString(),
+      last_response_header_timeout_ms: responseHeaderTimeoutMs });
     return null;
   }
   const response = relaySource?.response;
@@ -2834,6 +2859,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   relayLifecycle.startsByReason[startReason] += 1;
   relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), starts: (relayDiagnostics.get(streamId)?.starts || 0) + 1, last_start_at: new Date(relay.startedAt).toISOString(),
     last_start_reason: startReason,
+    last_response_header_timeout_ms: responseHeaderTimeoutMs,
     ...(handoffMode ? { last_handoff_mode: handoffMode } : {}) });
   if (!warming) relays.set(streamId, relay);
   if (response?.body && child.stdin) {

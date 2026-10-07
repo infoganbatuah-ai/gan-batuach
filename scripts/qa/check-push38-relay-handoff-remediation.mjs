@@ -43,6 +43,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrHandoffCapacityAllowed,
   privateNvrHandoffProbationDeadline,
   privateNvrHandoffMediaContinuity,
+  privateNvrMediaHeaderTimeoutMs,
   privateNvrHardwareOutputStalled,
   privateNvrSilentResponseStalled,
   privateNvrRelayHandoffMode,
@@ -730,6 +731,48 @@ test("routine probation stays scheduler-bounded while rescue has its own bounded
   assert.match(server, /privateNvrHandoffProbationDeadline\(\{ handoffMode,/);
   assert.match(server,
     /relayWarmupModes\.get\(streamId\) === "OUTPUT_RESCUE"[\s\S]*PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS/);
+});
+
+test("finite and exclusive DVR recovery reuse bounded media acquisition deadlines", () => {
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500
+  }), 3_500, "ordinary probes retain the generic bounded timeout");
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500,
+    handoffMode: "OUTPUT_RESCUE",
+    exclusiveAcquisition: false
+  }), 3_500, "a concurrent rescue probe cannot claim the exclusive budget");
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500,
+    previousRelayExitReason: "SOURCE_STREAM_ENDED"
+  }), PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
+  "an authoritative finite response end receives the existing rescue acquisition budget");
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500,
+    previousRelayExitReason: "SOURCE_RESPONSE_RETIRED"
+  }), PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS);
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500,
+    handoffMode: "OUTPUT_RESCUE",
+    exclusiveAcquisition: true
+  }), PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
+  "a released owner lets one exclusive response use the existing rescue budget");
+  assert.equal(privateNvrMediaHeaderTimeoutMs({
+    defaultTimeoutMs: 3_500,
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE",
+    exclusiveAcquisition: true
+  }), PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS);
+  assert.throws(() => privateNvrMediaHeaderTimeoutMs({ defaultTimeoutMs: 0 }),
+    /PRIVATE_NVR_HEADER_TIMEOUT_INVALID/);
+  assert.match(server,
+    /privateNvrStreamResponse\(url,[\s\S]*headerTimeoutMs: responseHeaderTimeoutMs/,
+  "the selected deadline must reach the actual response-header abort controller");
+  assert.match(server,
+    /exclusiveAcquisition: forcedExclusiveOutputRescue \|\| exclusiveSessionSweep/,
+  "only a released initial owner receives the exclusive acquisition budget");
+  assert.match(server,
+    /last_response_header_timeout_ms: responseHeaderTimeoutMs/,
+  "live diagnostics must expose the exact bounded acquisition decision");
 });
 
 test("playback can use a progressing rescue candidate without promoting ownership", () => {

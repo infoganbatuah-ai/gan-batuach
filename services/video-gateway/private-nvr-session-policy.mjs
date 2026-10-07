@@ -160,6 +160,37 @@ export const PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS = 8_000;
 // move all sixteen possible channels inside that measured overlap window.
 export const PRIVATE_NVR_RELAY_HANDOFF_TICK_MS = 1_000;
 
+// Fetch resolves only after response headers arrive. The Home recorder can
+// keep that header boundary closed for longer than the generic 3.5 s read-only
+// probe timeout while it retires the prior per-channel media response. V8 on
+// 0.2.90 proved that treating that bounded wait as `source_timeout` caused
+// repeated ownerless CH3 recovery loops: every failed acquisition ended at
+// the generic timeout even though the shared login heartbeat stayed healthy.
+// Reuse the already-qualified handoff acquisition budgets only after an
+// authoritative finite-response boundary or after the old owner has been
+// released by an exclusive handoff. Ordinary concurrent probes keep the
+// generic timeout, so this cannot create a second long-lived response or hide
+// an unrelated unreachable recorder.
+export function privateNvrMediaHeaderTimeoutMs({
+  defaultTimeoutMs,
+  previousRelayExitReason = null,
+  handoffMode = null,
+  exclusiveAcquisition = false
+} = {}) {
+  if (!Number.isFinite(defaultTimeoutMs) || defaultTimeoutMs < 1)
+    throw new Error("PRIVATE_NVR_HEADER_TIMEOUT_INVALID");
+  if (["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED"]
+    .includes(previousRelayExitReason)) {
+    return Math.max(defaultTimeoutMs, PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS);
+  }
+  if (!exclusiveAcquisition) return defaultTimeoutMs;
+  if (handoffMode === "OUTPUT_RESCUE")
+    return Math.max(defaultTimeoutMs, PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS);
+  if (["SESSION_SWEEP", "SESSION_SWEEP_EXCLUSIVE"].includes(handoffMode))
+    return Math.max(defaultTimeoutMs, PRIVATE_NVR_ROUTINE_HANDOFF_ACQUISITION_MS);
+  return defaultTimeoutMs;
+}
+
 export function privateNvrProvisionalHandoffAllowed({ activeProbations,
   replacingExistingProbation = false,
   handoffMode = "ROUTINE_FINITE_RESPONSE",

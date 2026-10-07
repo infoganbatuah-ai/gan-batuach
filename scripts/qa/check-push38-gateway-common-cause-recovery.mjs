@@ -652,7 +652,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /!relayIsProgressing\(previous\)[\s\S]*!relayEligibleForHandoff\(streamId, previous\)/,
     "a warm handoff must satisfy the shared stability or output-rescue gate");
   assert.match(gateway,
-    /startRelay\(streamId, \{ warming: true,[\s\S]*previousRelay: previous, handoffMode \}\)/);
+    /startRelay\(streamId, \{ warming: true,[\s\S]*previousRelay: previous, handoffMode,[\s\S]*exclusiveAcquisition:/,
+  "owner-release handoffs must carry the exclusive acquisition boundary into the recorder fetch");
   assert.match(gateway,
     /async function observeWarmReplacement[\s\S]*let firstOutputAt = null;[\s\S]*outputAt > lastObservedOutputAt[\s\S]*outputConfirmed = minimumConfirmationMs/,
   "a warm replacement must advance HLS after its first playlist write before promotion");
