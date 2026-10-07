@@ -262,6 +262,38 @@ test("high-bitrate RTSP playback history keeps only the bounded event prebuffer"
   store.release(prepared.lease_id);
 });
 
+test("AI evidence preparation yields while bounded segments are read", async () => {
+  const segmentBytes = Buffer.alloc(1024, 7);
+  const segments = Array.from({ length: 4 }, (_, index) => ({
+    name: `segment-${String(index).padStart(6, "0")}.ts`,
+    sequence: index,
+    discontinuity: 0,
+    duration_seconds: 1
+  }));
+  const store = createEventEvidenceStore();
+  store.updateManifest({ monitoring_enabled: true, observer_site_id: "site-safe", gateway_id: "gateway-safe", cameras: [{
+    stream_id: "rtsp-safe", camera_id: "camera-safe", monitoring_enabled: true, object_analysis_enabled: true,
+    status: "connected", zone_type: "OTHER", supported_event_types: ["person_detected"],
+    allowed_event_types: ["person_detected"], verified_event_types: ["person_detected"]
+  }] });
+  let livenessTicks = 0;
+  const timer = setInterval(() => { livenessTicks += 1; }, 1);
+  const prepared = await store.prepareAsync({
+    streamId: "rtsp-safe",
+    sourceGeneration: "generation-safe",
+    sequenceFloor: 0,
+    playlistText: evidencePlaylist(segments, false),
+    readSegment: async () => {
+      await new Promise(resolve => setTimeout(resolve, 5));
+      return segmentBytes;
+    }
+  });
+  clearInterval(timer);
+  assert.equal(prepared.status, "prepared");
+  assert.ok(livenessTicks > 0, "segment I/O must yield to loopback liveness work");
+  store.release(prepared.lease_id);
+});
+
 test("connector cloud handoff keeps camera secrets out of files and logs", () => {
   const cloud = source("services/video-gateway/software-connector-cloud.mjs");
   const discovery = source("scripts/discover-software-connector-cameras.mjs");

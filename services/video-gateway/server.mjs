@@ -2,6 +2,7 @@ import "./http-runtime.mjs";
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { spawn } from "node:child_process";
 import { closeSync, constants as fsConstants, createReadStream, existsSync, fstatSync, mkdirSync, openSync, readFileSync, readSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { open as openFile, readFile as readFileAsync } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { monitorEventLoopDelay } from "node:perf_hooks";
@@ -3052,6 +3053,36 @@ function readEvidenceSegment(streamId, name) {
   } finally { closeSync(fd); }
 }
 
+async function readEvidenceSegmentAsync(streamId, name) {
+  if (!/^segment-[0-9]{1,18}\.ts$/.test(name)) throw Error("invalid_segment_name");
+  const relay = relays.get(streamId);
+  if (!relay?.directory) throw Error("relay_unavailable");
+  const candidates = [relay.directory, ...(relay.previousDirectories || [])]
+    .map(directory => normalize(join(directory, name)))
+    .filter(candidate => candidate.startsWith(`${normalize(HLS_ROOT)}/`));
+  for (const candidate of candidates) {
+    let file;
+    try {
+      file = await openFile(candidate, fsConstants.O_RDONLY | fsConstants.O_NOFOLLOW);
+      const initial = await file.stat();
+      if (!initial.isFile() || initial.size < 1 || initial.size > EVENT_CLIP_MAX_BYTES) throw Error("invalid_segment_size");
+      const bytes = Buffer.alloc(initial.size);
+      let offset = 0;
+      while (offset < bytes.length) {
+        const { bytesRead } = await file.read(bytes, offset, bytes.length - offset, null);
+        if (!bytesRead) throw Error("incomplete_segment");
+        offset += bytesRead;
+      }
+      const final = await file.stat();
+      if (final.size !== initial.size || final.mtimeMs !== initial.mtimeMs) throw Error("segment_changed");
+      return bytes;
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    } finally { await file?.close().catch(() => undefined); }
+  }
+  throw Error("segment_unavailable");
+}
+
 async function analyzeRelayObjectSample(streamId) {
   if (!eventEvidence.binding(streamId)) return null;
   if (!objectInference.status().available) { void objectInference.start(); return null; }
@@ -3059,9 +3090,9 @@ async function analyzeRelayObjectSample(streamId) {
   if (!relay || !(await waitForFile(relay.playlist))) return null;
   let prepared;
   try {
-    prepared = eventEvidence.prepare({ streamId, sourceGeneration: relay.generation,
-      sequenceFloor: relay.firstEvidenceSequence, playlistText: readFileSync(relay.playlist, "utf8"),
-      readSegment: name => readEvidenceSegment(streamId, name) });
+    prepared = await eventEvidence.prepareAsync({ streamId, sourceGeneration: relay.generation,
+      sequenceFloor: relay.firstEvidenceSequence, playlistText: await readFileAsync(relay.playlist, "utf8"),
+      readSegment: name => readEvidenceSegmentAsync(streamId, name) });
     if (prepared.status !== "prepared") return null;
     const frame = await decodeAnchoredFrame(prepared.bytes, { signal: prepared.signal });
     if (!frame) return null;
