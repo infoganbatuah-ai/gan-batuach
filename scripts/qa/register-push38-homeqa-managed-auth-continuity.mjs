@@ -109,6 +109,10 @@ insert into public.observer_edge_rollouts (release_id,stage,status,cohort_percen
 select id,'INTERNAL_QA','DRAFT',0,jsonb_build_object('explicit_device_ids',jsonb_build_array('${item.deviceId}'))
 from public.observer_edge_releases r where r.release_id='${item.releaseId}'
 and not exists(select 1 from public.observer_edge_rollouts existing where existing.release_id=r.id);
+update public.observer_edge_rollouts set status='DRAFT',paused_reason=null,updated_at=now()
+where release_id=(select id from public.observer_edge_releases where release_id='${item.releaseId}')
+  and status='PAUSED' and cohort_percent=0
+  and target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}');
 update public.observer_edge_rollouts set status='PAUSED',updated_at=now()
 where release_id in (select id from public.observer_edge_releases
   where deployment_profile='${item.profile}' and release_id<>'${item.releaseId}')

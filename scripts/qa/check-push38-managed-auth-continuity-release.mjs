@@ -53,7 +53,8 @@ for (const [path, required] of [
   ]],
   ["scripts/qa/register-push38-homeqa-managed-auth-continuity.mjs", [
     "MANAGED_AUTH_CONTINUITY_REGISTERED_DRAFT", "cohort_percent<>0",
-    "MANAGED_IDENTITY_VERIFIED"
+    "MANAGED_IDENTITY_VERIFIED", "status='PAUSED' and cohort_percent=0",
+    "target_filters->'explicit_device_ids'=jsonb_build_array"
   ]],
   ["scripts/qa/activate-push38-homeqa-managed-auth-continuity.mjs", [
     "ota_agent_owns_install: true", "EXACT_MANAGED_AUTH_CONTINUITY_ROLLOUT_ACTIVE",
