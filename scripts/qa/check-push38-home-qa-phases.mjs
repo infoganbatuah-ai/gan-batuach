@@ -38,6 +38,8 @@ const gatewaySessionRetirement = "qa-p38-health-gateway-session-retirement-4409d
 const gatewayRejectedHlsContinuity =
   "qa-p38-health-gateway-rejected-hls-continuity-9e07e63a5e3e";
 const connectorRuntimeLiveness = "qa-p38-health-connector-runtime-liveness-376c06c2434f";
+const connectorStartupDiscoveryRecovery =
+  "qa-p38-health-connector-startup-recovery-2537bbb1007f";
 const gatewaySessionAgeStability =
   "qa-p38-health-gateway-session-age-stability-26644a5e5900";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
@@ -78,6 +80,8 @@ const gatewayRejectedHlsContinuityRemediation =
   manifest(gatewayRejectedHlsContinuity, gatewayId, "PHYSICAL_GATEWAY");
 const connectorRuntimeLivenessRemediation =
   manifest(connectorRuntimeLiveness, connectorId, "SOFTWARE_CONNECTOR");
+const connectorStartupDiscoveryRecoveryRemediation =
+  manifest(connectorStartupDiscoveryRecovery, connectorId, "SOFTWARE_CONNECTOR");
 const gatewaySessionAgeStabilityRemediation =
   manifest(gatewaySessionAgeStability, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
@@ -104,6 +108,8 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connect
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorFinalStabilityRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector,
   manifest: connectorRuntimeLivenessRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector,
+  manifest: connectorStartupDiscoveryRecoveryRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayAuthRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewaySessionRemediation }), true);
