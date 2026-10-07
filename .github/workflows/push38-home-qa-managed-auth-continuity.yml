@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 504855fee34b82940b46671ba3565c3e7b68eb29
+          ref: cde018f7e234543e4dee42fcb1fdbb09eee2b3fb
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "504855fee34b82940b46671ba3565c3e7b68eb29"
+        run: test "$(git rev-parse HEAD)" = "cde018f7e234543e4dee42fcb1fdbb09eee2b3fb"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable paired release contract
@@ -55,7 +55,7 @@ jobs:
           SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
           SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
-          PUSH38_CANDIDATE_SHA: 88d192f45ae12fc8215d6e0d9a83be00904d4a45
+          PUSH38_CANDIDATE_SHA: 07c4195ff1d99a584dd2719f9cd145d421cb2150
           HOME_QA_COMPONENT: gateway
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
           HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-managed-auth-continuity
