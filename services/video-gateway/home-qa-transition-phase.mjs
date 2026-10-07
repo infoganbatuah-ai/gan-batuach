@@ -117,6 +117,8 @@ const gatewaySessionAgeStability =
   "qa-p38-health-gateway-session-age-stability-26644a5e5900";
 const gatewayAiEvidenceIoIsolation =
   "qa-p38-health-gateway-ai-evidence-448b16ec54ff";
+const gatewayMediaAcquisition =
+  "qa-p38-health-gateway-media-acquisition-e9244d50c725";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -183,7 +185,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewaySessionRetirement,
       gatewayRejectedHlsContinuity,
       gatewaySessionAgeStability,
-      gatewayAiEvidenceIoIsolation].includes(manifest.release_id) &&
+      gatewayAiEvidenceIoIsolation,
+      gatewayMediaAcquisition].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }

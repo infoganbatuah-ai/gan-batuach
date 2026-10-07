@@ -8,6 +8,8 @@ import { buildPush38ManagedAuthContinuityManifest, push38ManagedAuthActivationSt
   "../../services/video-gateway/push38-home-qa-managed-auth-continuity.mjs";
 import { canonicalEdgeUpdateManifest, verifyEdgeUpdateManifest } from
   "../../services/video-gateway/edge-update-contract.mjs";
+import { homeQaManagedPhaseAllows } from
+  "../../services/video-gateway/home-qa-transition-phase.mjs";
 import { issuePush38ManagedAuthContinuity } from
   "../release/issue-push38-home-qa-managed-auth-continuity.mjs";
 
@@ -50,6 +52,19 @@ assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135897285);
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.90-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
   "GATEWAY_MEDIA_ACQUISITION_CONTINUITY");
+const gateway = PUSH38_MANAGED_AUTH_CONTINUITY.gateway;
+const gatewayManifest = buildPush38ManagedAuthContinuityManifest({ component: "gateway",
+  signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
+  releasedAt: new Date().toISOString() }).document;
+assert.equal(homeQaManagedPhaseAllows({ enrollment: {
+  gateway_id: gateway.deviceId,
+  deployment_profile: gateway.profile,
+  identity_scheme: "ED25519_V1",
+  credential_version: 1,
+  metadata: { home_qa_phase: "MANAGED_IDENTITY_VERIFIED",
+    home_qa_proof_sha256: "a".repeat(64),
+    home_qa_known_good_release_id: "qa-legacy-gateway-91bf6814075f" }
+}, manifest: gatewayManifest }), true);
 
 for (const [path, required] of [
   ["scripts/release/publish-push38-managed-auth-continuity-r2.mjs", [
