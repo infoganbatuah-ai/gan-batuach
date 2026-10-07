@@ -27,10 +27,15 @@ for (const component of ["connector", "gateway"]) {
   assert.equal(built.rollout.cohort_percent, 0);
   assert.deepEqual(built.rollout.explicit_device_ids, [item.deviceId]);
 }
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.39-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.version, "0.2.40-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.buildSha,
+  "d80fb794f0dac331191ff7620b757449dc260b74");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.digest,
+  "2537bbb1007fd8698b059985888c5a1a7d613944cec79b5e72d7ae22165e5566");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.size, 147508278);
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.rollbackVersion, "0.2.36-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.role,
-  "CONNECTOR_RUNTIME_LIVENESS");
+  "CONNECTOR_STARTUP_DISCOVERY_RECOVERY");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.connector.recoverablePriorFailure, null);
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLED_BACK" }), true);
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
@@ -55,7 +60,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-runtime-liveness-upgrade", "--gateway-session-age-stability-upgrade",
+    "--connector-startup-recovery-upgrade", "--gateway-session-age-stability-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "connector_managed_auth_continuity.json", "gateway_managed_auth_continuity.json"
