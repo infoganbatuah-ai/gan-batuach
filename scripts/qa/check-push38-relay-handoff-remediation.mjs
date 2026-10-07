@@ -54,7 +54,8 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrRoutineHandoffConfirmed,
   privateNvrRoutineHandoffSchedule,
   shouldBeginPrivateNvrFiniteResponseRecovery,
-  shouldDeferCorrelatedPrivateNvrSilentResponseRescue } from
+  shouldDeferCorrelatedPrivateNvrSilentResponseRescue,
+  shouldRetainPrivateNvrRejectedCandidateHls } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const server = readFileSync("services/video-gateway/server.mjs", "utf8");
@@ -891,6 +892,29 @@ test("retained HLS may bridge only its explicitly advertised playback buffer", (
     point(0, 20), point(1, 21), point(7.1, 21, "RENEWING")
   ]).reason, "PLAYLIST_FRESHNESS_EXCEEDED",
   "retained playback must still fail closed after its advertised buffer is exhausted");
+});
+
+test("a rejected exclusive candidate retains fresh HLS without gaining ownership", () => {
+  const now = 100_000;
+  assert.equal(shouldRetainPrivateNvrRejectedCandidateHls({
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", outputAdvanceCount: 3,
+    retainedOutputAt: now - 500, relayStaleMs: 20_000, now
+  }), true, "the measured three-advance CH3 generation remains bounded playback");
+  assert.equal(shouldRetainPrivateNvrRejectedCandidateHls({
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", outputAdvanceCount: 0,
+    retainedOutputAt: now - 500, relayStaleMs: 20_000, now
+  }), false, "a first playlist write without an advance is not continuity proof");
+  assert.equal(shouldRetainPrivateNvrRejectedCandidateHls({
+    handoffMode: "SESSION_SWEEP_EXCLUSIVE", outputAdvanceCount: 3,
+    retainedOutputAt: now - 20_000, relayStaleMs: 20_000, now
+  }), false, "rejected media cannot extend the existing freshness deadline");
+  assert.equal(shouldRetainPrivateNvrRejectedCandidateHls({
+    handoffMode: "SESSION_SWEEP", outputAdvanceCount: 3,
+    retainedOutputAt: now - 500, relayStaleMs: 20_000, now
+  }), false, "ordinary warm candidates never create a second fallback contract");
+  assert.match(server,
+    /shouldRetainPrivateNvrRejectedCandidateHls\(\{[\s\S]*retainExclusivePlayback\(streamId, replacement,[\s\S]*armRelayRecovery\(streamId, replacement \|\| previous\)/,
+    "fresh rejected HLS must be retained before canonical recovery starts");
 });
 
 test("a progressing candidate preserves health without early ownership promotion", () => {

@@ -607,6 +607,24 @@ export function privateNvrRetainedHlsContinuity({ handoffInFlight,
     && now >= retainedOutputAt && now - retainedOutputAt < relayStaleMs);
 }
 
+// A replacement can publish real current HLS and still miss the stronger
+// four-advance/six-second ownership proof when its finite DVR response ends.
+// It must never become the canonical relay in that state, but discarding its
+// already-rendered segments creates an avoidable playback/health gap while the
+// one canonical recovery timer opens the next response. Retain only a fresh
+// generation that advanced at least once, and only for an exclusive handoff;
+// the unchanged HLS freshness deadline remains the hard fail-closed bound.
+export function shouldRetainPrivateNvrRejectedCandidateHls({ handoffMode,
+  outputAdvanceCount = 0, retainedOutputAt = null, relayStaleMs,
+  now = Date.now() }) {
+  return Boolean(["SESSION_SWEEP_EXCLUSIVE", "OUTPUT_RESCUE_EXCLUSIVE"]
+    .includes(handoffMode)
+    && Number.isInteger(outputAdvanceCount) && outputAdvanceCount > 0
+    && Number.isFinite(retainedOutputAt) && Number.isFinite(relayStaleMs)
+    && relayStaleMs > 0 && Number.isFinite(now)
+    && now >= retainedOutputAt && now - retainedOutputAt < relayStaleMs);
+}
+
 // Health is sampled independently from relay acquisition. A candidate can be
 // registered before it has produced current media, while the finite prior
 // owner has already exited. In that bounded state there is deliberately no

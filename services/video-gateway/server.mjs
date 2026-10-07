@@ -56,6 +56,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   shouldDeferPrivateNvrOutputRescueForSessionRenewal,
   shouldBeginPrivateNvrFiniteResponseRecovery,
   shouldPrimePrivateNvrSessionForResponseRetirement,
+  shouldRetainPrivateNvrRejectedCandidateHls,
   shouldRetainPrivateNvrOwnerOnDemand,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession,
@@ -2648,6 +2649,16 @@ async function warmReplaceRelay(streamId, previous, {
       if (handoffMode === "OUTPUT_RESCUE" && !exclusiveRescue
         && relays.get(streamId) === previous && relayIsProgressing(previous))
         previous.lastOutputRescueFailureAt = Date.now();
+      const rejectedCandidateHandoffMode = exclusiveRescue
+        ? "OUTPUT_RESCUE_EXCLUSIVE"
+        : exclusiveSessionSweep ? "SESSION_SWEEP_EXCLUSIVE" : null;
+      if (shouldRetainPrivateNvrRejectedCandidateHls({
+        handoffMode: rejectedCandidateHandoffMode,
+        outputAdvanceCount: observation.outputAdvanceCount,
+        retainedOutputAt: relayPlaylistMtime(replacement),
+        relayStaleMs: RELAY_STALE_MS
+      })) retainExclusivePlayback(streamId, replacement,
+        rejectedCandidateHandoffMode);
       if (exclusiveRescue) armRelayRecovery(streamId, replacement || previous);
       else if (exclusiveSessionSweep)
         armRelayRecovery(streamId, replacement || previous);
