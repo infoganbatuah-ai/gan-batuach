@@ -96,6 +96,31 @@ export function wanIpv6FirewallControl(descriptionXml, descriptionUrl) {
   } catch { return null; }
 }
 
+export function ipv6DefaultGateway(routeOutput, interfaceName) {
+  if (!/^[A-Za-z0-9]+$/.test(String(interfaceName || ""))) return "";
+  const gateway = /^\s*gateway:\s*(fe80:[0-9a-f:]+)%([A-Za-z0-9]+)\s*$/mi
+    .exec(String(routeOutput || ""));
+  if (!gateway || gateway[2] !== interfaceName || isIP(gateway[1]) !== 6) return "";
+  return gateway[1].toLowerCase();
+}
+
+export function ipv6FirewallRequestTarget(firewall, routeOutput, interfaceName, localAddress) {
+  const gateway = ipv6DefaultGateway(routeOutput, interfaceName);
+  const source = normalizeIpv6(localAddress);
+  if (!firewall?.controlUrl || !gateway || !isGlobalIpv6(source)) return null;
+  try {
+    const control = new URL(firewall.controlUrl);
+    if (control.protocol !== "http:" || !privateIpv4(control.hostname) ||
+      control.username || control.password) return null;
+    return {
+      hostname: `${gateway}%${interfaceName}`,
+      port: Number(control.port || 80),
+      path: `${control.pathname}${control.search}`,
+      localAddress: source
+    };
+  } catch { return null; }
+}
+
 export function ipv6FirewallSoapEnvelope(action, argumentsByName = {}) {
   if (!["GetFirewallStatus", "AddPinhole", "DeletePinhole", "CheckPinholeWorking"]
     .includes(action)) throw new Error("P38_IPV6_FIREWALL_ACTION_INVALID");

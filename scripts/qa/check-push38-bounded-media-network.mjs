@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   assignedGlobalIpv6Addresses,
+  ipv6DefaultGateway,
+  ipv6FirewallRequestTarget,
   ipv6FirewallSoapEnvelope,
   parseIpv6FirewallStatus,
   parseIpv6PinholeUniqueId,
@@ -66,6 +68,23 @@ test("discovers the router IPv6 firewall service without trusting a public contr
     controlUrl: "http://192.168.1.1:1900/ctl/IP6FCtl"
   });
   assert.equal(wanIpv6FirewallControl(description, "https://example.com/rootDesc.xml"), null);
+});
+
+test("binds firewall control to the default link-local router and approved global source", () => {
+  const route = `   route to: ::\n       mask: default\n    gateway: fe80::1234%en0\n  interface: en0\n`;
+  assert.equal(ipv6DefaultGateway(route, "en0"), "fe80::1234");
+  assert.deepEqual(ipv6FirewallRequestTarget({
+    controlUrl: "http://192.168.1.1:1900/ctl/IP6FCtl"
+  }, route, "en0", stable), {
+    hostname: "fe80::1234%en0",
+    port: 1900,
+    path: "/ctl/IP6FCtl",
+    localAddress: stable
+  });
+  assert.equal(ipv6FirewallRequestTarget({
+    controlUrl: "https://example.com/ctl/IP6FCtl"
+  }, route, "en0", stable), null);
+  assert.equal(ipv6DefaultGateway(route, "en1"), "");
 });
 
 test("builds and parses bounded IPv6 firewall SOAP messages", () => {

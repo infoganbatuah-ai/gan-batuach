@@ -3,7 +3,9 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileS
 import { homedir } from "node:os";
 import { dirname, resolve, sep } from "node:path";
 import { once } from "node:events";
+import { request as httpRequest } from "node:http";
 import {
+  ipv6FirewallRequestTarget,
   ipv6FirewallSoapEnvelope,
   parseIpv6FirewallStatus,
   parseIpv6PinholeUniqueId,
@@ -62,19 +64,38 @@ const addPinhole = args => {
     throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ADD_FAILED");
   }
 };
-const directFirewallRequest = async (firewall, action, argumentsByName = {}) => {
-  const response = await fetch(firewall.controlUrl, {
-    method: "POST",
-    headers: {
+const directFirewallRequest = async (firewall, action, argumentsByName = {}, target = null) => {
+  const envelope = ipv6FirewallSoapEnvelope(action, argumentsByName);
+  const control = new URL(firewall.controlUrl);
+  const requestOptions = target ? {
+    hostname: target.hostname,
+    port: target.port,
+    path: target.path,
+    localAddress: target.localAddress
+  } : {
+    hostname: control.hostname,
+    port: Number(control.port || 80),
+    path: `${control.pathname}${control.search}`
+  };
+  const { statusCode, body } = await new Promise((resolveRequest, rejectRequest) => {
+    const request = httpRequest({ ...requestOptions, method: "POST", headers: {
       "content-type": "text/xml; charset=\"utf-8\"",
+      "content-length": Buffer.byteLength(envelope),
       soapaction: `\"${firewall.serviceType}#${action}\"`
-    },
-    body: ipv6FirewallSoapEnvelope(action, argumentsByName),
-    signal: AbortSignal.timeout(15_000)
+    } }, response => {
+      const chunks = [];
+      response.on("data", chunk => chunks.push(chunk));
+      response.on("end", () => resolveRequest({
+        statusCode: response.statusCode || 0,
+        body: Buffer.concat(chunks).toString("utf8")
+      }));
+    });
+    request.setTimeout(15_000, () => request.destroy(new Error("P38_BOUNDED_MEDIA_IPV6_FIREWALL_TIMEOUT")));
+    request.on("error", rejectRequest);
+    request.end(envelope);
   });
-  const body = await response.text();
   const errorCode = parseUpnpSoapErrorCode(body);
-  if (!response.ok || errorCode !== null) {
+  if (statusCode < 200 || statusCode >= 300 || errorCode !== null) {
     const error = new Error("P38_BOUNDED_MEDIA_IPV6_FIREWALL_REQUEST_FAILED");
     error.upnpCode = errorCode;
     throw error;
@@ -112,6 +133,20 @@ const address = upnpAvailable
   ? selectBoundedMediaIpv6({ ifconfigOutput: ifconfig, upnpOutput: upnpStatus })
   : selectBoundedMediaIpv6WithoutUpnp(ifconfig);
 if (!address) throw new Error("P38_BOUNDED_MEDIA_ASSIGNED_IPV6_UNAVAILABLE");
+if (directIpv6Firewall) {
+  const route = execFileSync("/sbin/route", ["-n", "get", "-inet6", "default"], {
+    encoding: "utf8", timeout: 10_000
+  });
+  directIpv6Firewall.requestTarget = ipv6FirewallRequestTarget(
+    directIpv6Firewall, route, "en0", address
+  );
+  if (!directIpv6Firewall.requestTarget) throw new Error("P38_BOUNDED_MEDIA_IPV6_CONTROL_TARGET_INVALID");
+  const status = parseIpv6FirewallStatus(await directFirewallRequest(
+    directIpv6Firewall, "GetFirewallStatus", {}, directIpv6Firewall.requestTarget
+  ));
+  if (!status?.firewallEnabled || !status.inboundPinholeAllowed)
+    throw new Error("P38_BOUNDED_MEDIA_IPV6_FIREWALL_UNAVAILABLE");
+}
 
 const cloudflarePem = readFileSync(`${homedir()}/.cloudflared/cert.pem`, "utf8");
 const encoded = cloudflarePem.split("\n").filter(line => line && !line.startsWith("-----")).join("");
@@ -170,7 +205,8 @@ async function cleanup(reason) {
   if (pinholeId !== null) {
     try {
       if (pinholeMethod === "DIRECT_WAN_IPV6_FIREWALL_CONTROL") {
-        await directFirewallRequest(directIpv6Firewall, "DeletePinhole", { UniqueID: pinholeId });
+        await directFirewallRequest(directIpv6Firewall, "DeletePinhole", { UniqueID: pinholeId },
+          directIpv6Firewall.requestTarget);
       } else {
         runUpnp(["-6", "-m", "en0", "-D", String(pinholeId)],
           "P38_BOUNDED_MEDIA_PINHOLE_REMOVE_FAILED", 20_000);
@@ -220,7 +256,7 @@ try {
       pinholeId = parseIpv6PinholeUniqueId(await directFirewallRequest(directIpv6Firewall, "AddPinhole", {
         RemoteHost: "", RemotePort: 0, InternalClient: address, InternalPort: port,
         Protocol: 6, LeaseTime: durationSeconds
-      }));
+      }, directIpv6Firewall.requestTarget));
       if (pinholeId === null) throw new Error("P38_BOUNDED_MEDIA_PINHOLE_ID_MISSING");
       pinholeMethod = "DIRECT_WAN_IPV6_FIREWALL_CONTROL";
     } catch (error) {
