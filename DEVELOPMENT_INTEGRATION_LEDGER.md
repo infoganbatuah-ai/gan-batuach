@@ -876,3 +876,21 @@ Mobile screenshots, 21 comparison boards, 21 overlays and 21 annotated boards,
 with zero `NEEDS_VISUAL_CORRECTION` and zero `BROKEN`. This label is internal
 and is not owner approval. Production, `main`, customer data, migrations,
 physical camera actions and Digital Observer core remain untouched.
+
+UX-LITERAL-REFERENCE-RECONSTRUCTION branch qualification (2026-10-07):
+validated product commit `4a82277985bc859e5eba5b9c883c7c7755ff0b5f`
+reconstructs the 21 Management domains from the approved reference blueprints.
+The fresh V4 package contains 326 Desktop captures at 1440×1024, 326 Mobile
+captures at 390×844, 21 comparison boards, 21 aligned overlays and 21 annotated
+boards. All domains are internally classified `REFERENCE_MATCH_CANDIDATE`; this
+is not owner approval. `NEEDS_VISUAL_CORRECTION` and `BROKEN` are zero. Local
+qualification passed typecheck, zero-regression lint, the 541-page Production
+build, Domain 30/30, Security 11/11, migration health, release-contract checks,
+UX-03 through UX-20 focused suites, Settings role/mutation isolation and nine
+role-boundary assertions. The lockfile updates only Sharp and its native Libvips
+artifacts to 0.35.5/1.3.4 after a newly published High advisory; `npm audit`
+reports zero findings. No migration, paid provider, Production, `main`, customer
+data, physical-camera action or Digital Observer core change occurred. The next
+action is exact-head PR qualification and merge into `integration/development`,
+followed by V4 regeneration from the exact merged head. RELEASE-GAP-01 has not
+started.
