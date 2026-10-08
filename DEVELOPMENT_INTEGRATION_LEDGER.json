@@ -10658,15 +10658,16 @@
       "sourceBranch": "codex/push-38t-qualification",
       "sourceCommits": [
         "d4b5264e6687e59bf944216082ae19a8ab19638f",
-        "514515e27d35f47f926e32146e2415dc3bee38a8"
+        "514515e27d35f47f926e32146e2415dc3bee38a8",
+        "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/push-38t-qualification@514515e27d35f47f926e32146e2415dc3bee38a8"
+          "origin/codex/push-38t-qualification@e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
         ],
-        "qualificationCommit": "514515e27d35f47f926e32146e2415dc3bee38a8"
+        "qualificationCommit": "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
       },
       "validation": {
         "status": "LOCAL_SECURITY_AND_MEDIA_PATH_PASS_REMOTE_PHONE_PENDING",
@@ -10676,13 +10677,13 @@
           "scripts/qa/check-remote-playback-boundary.mjs",
           "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T195149Z"
         ],
-        "limits": "TypeScript, focused lint, private-R2 media-contract QA, route/default-deny QA and isolated playback-boundary QA pass. A desktop browser result was explicitly rejected as phone evidence after server-side mobile-client classification was added. The real owner-phone result and exact-head six-gate CI remain pending. V8 remains running from 2026-10-08T10:49:29.554Z and is not complete before 2026-10-09T10:49:29.554Z."
+        "limits": "TypeScript, focused lint, private-R2 media-contract QA, route/default-deny QA and isolated playback-boundary QA pass. A desktop browser result was explicitly rejected as phone evidence after server-side mobile-client classification was added. The first 52-object private-R2 window was fully deleted after expiry; the second partial 29-object attempt rolled back fully. The latest exact-head correction captures a consistent rolling-HLS snapshot with a bounded three-attempt acquisition retry. The real owner-phone result and exact-head six-gate CI remain pending. V8 remains running from 2026-10-08T10:49:29.554Z and is not complete before 2026-10-09T10:49:29.554Z."
       },
       "integration": {
         "status": "PRESERVED_PENDING_INTEGRATION",
         "base": "integration/development",
         "commit": null,
-        "requiredChecks": "PENDING_EXACT_HEAD_514515E2"
+        "requiredChecks": "PENDING_EXACT_HEAD_E51B74F7"
       },
       "dependencies": {
         "status": "PUSH38_QUALIFICATION_INCOMPLETE",

@@ -6,8 +6,8 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
-PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`
-and `514515e2` are remotely preserved on
+PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`,
+`514515e2` and `e51b74f7` are remotely preserved on
 `origin/codex/push-38t-qualification`. The bounded
 qualification path verifies the local Product playback grant, acquires exact
 authorized Edge HLS through the protected local interface, stores only a
@@ -19,6 +19,11 @@ phone evidence; server-side client classification now rejects a desktop PASS.
 The follow-up releases each native phone video decoder before opening the next
 source after the real iPhone proved two DVR streams and then exhausted its
 concurrent decoder capacity on the third.
+The latest correction captures one complete, internally consistent rolling-HLS
+snapshot before any upload and retries a bounded three times when playlist
+segments rotate during acquisition. The first 52-object proof window was
+deleted in full after expiry, and the partial 29-object second attempt rolled
+back in full before publication.
 The real owner-phone result and exact-head six-gate CI remain pending, and V8
 continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
 at `2026-10-09T10:49:29.554Z`. This unit is
