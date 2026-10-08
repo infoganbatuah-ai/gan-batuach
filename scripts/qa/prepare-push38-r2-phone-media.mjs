@@ -70,6 +70,7 @@ if (corsManageable && (previousCors || []).some(rule => rule.ID === corsRule.ID)
 const appliedCors = corsManageable ? [...(previousCors || []), corsRule] : null;
 const uploaded = [];
 let totalBytes = 0;
+let snapshotRetries = 0;
 let corsApplied = false;
 let cleanupCreated = false;
 const cleanupState = { protocol: "observer-push38-r2-phone-media-cleanup-v1", status: "PENDING",
@@ -110,6 +111,33 @@ const restoreCors = async () => {
     CORSConfiguration: { CORSRules: previousCors } }));
   corsApplied = false;
 };
+const captureSnapshot = async (hls, kind) => {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const playlistResponse = await fetch(hls, {
+      headers: { origin: "https://gateway.ganbatuach.com" }, cache: "no-store",
+      signal: AbortSignal.timeout(20_000)
+    });
+    if (playlistResponse.ok) {
+      const parsed = parsePush38HlsSnapshot(await playlistResponse.text(), hls);
+      const segments = [];
+      for (const item of parsed.segments) {
+        const response = await fetch(item.url, {
+          headers: { origin: "https://gateway.ganbatuach.com" }, cache: "no-store",
+          signal: AbortSignal.timeout(20_000)
+        });
+        const body = Buffer.from(await response.arrayBuffer());
+        if (!response.ok || body.length < 1024) break;
+        segments.push(body);
+      }
+      if (segments.length === parsed.segments.length) {
+        snapshotRetries += attempt - 1;
+        return { parsed, segments };
+      }
+    }
+    if (attempt < 3) await new Promise(resolveWait => setTimeout(resolveWait, 250));
+  }
+  throw new Error(`P38_R2_MEDIA_SNAPSHOT_${kind}_FAILED`);
+};
 try {
   if (corsManageable) {
     await client.send(new PutBucketCorsCommand({ Bucket: PUSH38_R2_BUCKET,
@@ -146,20 +174,11 @@ try {
     if (hls.protocol !== "http:" ||
       hls.hostname !== "127.0.0.1" || Number(hls.port) !== port)
       throw new Error(`P38_R2_MEDIA_CLAIM_${source.k}_FAILED`);
-    const playlistResponse = await fetch(hls, { headers: { origin: "https://gateway.ganbatuach.com" },
-      cache: "no-store", signal: AbortSignal.timeout(20_000) });
-    if (!playlistResponse.ok) throw new Error(`P38_R2_MEDIA_PLAYLIST_${source.k}_FAILED`);
-    const parsed = parsePush38HlsSnapshot(await playlistResponse.text(), hls);
+    const { parsed, segments } = await captureSnapshot(hls, source.k);
     const sourceKey = `${prefix}/${source.k.toLowerCase()}-${source.i}`;
     const segmentUrls = [];
-    for (let index = 0; index < parsed.segments.length; index += 1) {
-      const segmentResponse = await fetch(parsed.segments[index].url, {
-        headers: { origin: "https://gateway.ganbatuach.com" }, cache: "no-store",
-        signal: AbortSignal.timeout(20_000)
-      });
-      const segment = Buffer.from(await segmentResponse.arrayBuffer());
-      if (!segmentResponse.ok || segment.length < 1024)
-        throw new Error(`P38_R2_MEDIA_SEGMENT_${source.k}_FAILED`);
+    for (let index = 0; index < segments.length; index += 1) {
+      const segment = segments[index];
       const key = `${sourceKey}/segment-${index + 1}.ts`;
       await put(key, segment, "video/mp2t");
       segmentUrls.push(await getSignedUrl(client,
@@ -187,6 +206,7 @@ try {
     cors_managed: corsManageable, native_hls_required: !corsManageable,
     capability_seconds: capabilitySeconds, credentials_exposed: false, private_camera_credentials_exposed: false,
     media_bytes_through_control_plane: false, cleanup_required: true,
+    consistent_snapshot_retries: snapshotRetries,
     objects: uploaded.map(item => ({ bytes: item.bytes, sha256: item.sha256, content_type: item.content_type })) };
   writeFileSync(payloadOutput, `${JSON.stringify(payload, null, 2)}\n`, { flag: "wx", mode: 0o600 });
   writeFileSync(evidenceOutput, `${JSON.stringify(evidence, null, 2)}\n`, { flag: "wx", mode: 0o600 });
