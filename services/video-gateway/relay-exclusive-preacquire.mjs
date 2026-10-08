@@ -3,18 +3,26 @@ const sleep = milliseconds => new Promise(resolve => {
   timer.unref?.();
 });
 
-/** Register exactly one replacement request before releasing a stranded relay
- * owner. The candidate never becomes authoritative here; the caller retains
- * the existing media confirmation and promotion contract. */
+/** Register one replacement request before releasing a stranded relay owner.
+ * If the recorder leaves that request pending after release, cancel it after a
+ * bounded grace and optionally open one fresh post-release request. A candidate
+ * never becomes authoritative here; the caller retains the existing media
+ * confirmation and promotion contract. */
 export async function preacquireExclusiveRelayReplacement({
   startCandidate,
   releaseOwner,
   stopCandidate = () => {},
+  cancelCandidate = () => {},
+  startFreshCandidate = null,
   graceMs,
+  postReleaseGraceMs = graceMs,
   wait = sleep
 } = {}) {
   if (typeof startCandidate !== "function" || typeof releaseOwner !== "function" ||
-    typeof stopCandidate !== "function" || !Number.isFinite(graceMs) || graceMs < 1 ||
+    typeof stopCandidate !== "function" || typeof cancelCandidate !== "function" ||
+    startFreshCandidate !== null && typeof startFreshCandidate !== "function" ||
+    !Number.isFinite(graceMs) || graceMs < 1 ||
+    !Number.isFinite(postReleaseGraceMs) || postReleaseGraceMs < 1 ||
     typeof wait !== "function") {
     throw new Error("RELAY_EXCLUSIVE_PREACQUIRE_CONFIG_INVALID");
   }
@@ -31,14 +39,41 @@ export async function preacquireExclusiveRelayReplacement({
   // retained owner. Let the existing bounded scheduler retry later.
   if (registration.settled && !registration.candidate) {
     return { candidate: null, ownerReleased: false,
-      readyBeforeRelease: false, ownerReleaseSkipped: true };
+      readyBeforeRelease: false, ownerReleaseSkipped: true,
+      postReleaseExpired: false, freshPostReleaseAttempted: false,
+      freshPostReleaseSucceeded: false };
   }
 
   const ownerReleased = Boolean(await releaseOwner());
-  const candidate = registration.settled
-    ? registration.candidate : await candidatePromise;
+  if (!ownerReleased && !registration.settled) await cancelCandidate();
+  let postReleaseExpired = false;
+  let freshPostReleaseAttempted = false;
+  let freshPostReleaseSucceeded = false;
+  let candidate = registration.candidate;
+  if (!registration.settled && ownerReleased) {
+    const postRelease = await Promise.race([
+      candidatePromise.then(value => ({ settled: true, candidate: value })),
+      wait(postReleaseGraceMs).then(() => ({ settled: false, candidate: null }))
+    ]);
+    if (postRelease.settled) candidate = postRelease.candidate;
+    else {
+      postReleaseExpired = true;
+      await cancelCandidate();
+      candidate = await candidatePromise;
+      if (candidate) await stopCandidate(candidate);
+      candidate = null;
+      if (startFreshCandidate) {
+        freshPostReleaseAttempted = true;
+        candidate = await startFreshCandidate();
+        freshPostReleaseSucceeded = Boolean(candidate);
+      }
+    }
+  } else if (!registration.settled) {
+    candidate = await candidatePromise;
+  }
   if (!ownerReleased && candidate) await stopCandidate(candidate);
   return { candidate: ownerReleased ? candidate : null, ownerReleased,
     readyBeforeRelease: Boolean(registration.settled && registration.candidate),
-    ownerReleaseSkipped: false };
+    ownerReleaseSkipped: false, postReleaseExpired,
+    freshPostReleaseAttempted, freshPostReleaseSucceeded };
 }

@@ -147,6 +147,15 @@ export const PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS = 21_000;
 // still non-authoritative and the unchanged acquisition/freshness deadlines
 // continue to fail closed.
 export const PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS = 500;
+// The 0.2.93 V8 failure proved that a request registered while the old
+// per-channel response is still open can remain poisoned after that owner is
+// released: CH3's preacquired request consumed the full fourteen-second
+// header deadline, then a fresh request recovered. Give the registered request
+// one short LAN-local post-release opportunity, then cancel it and let the
+// same serialized handoff open exactly one fresh post-release request. This
+// bounds the ownerless interval without adding concurrency or relaxing the
+// sustained-output promotion proof.
+export const PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_POST_RELEASE_GRACE_MS = 1_000;
 // A rejected rescue candidate can leave the original owner healthy and
 // progressing. Do not immediately open another recorder response in that
 // case: the signed Home shadow proved that such back-to-back probes add churn

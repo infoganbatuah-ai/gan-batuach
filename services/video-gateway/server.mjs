@@ -21,6 +21,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS,
+  PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_POST_RELEASE_GRACE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
@@ -513,6 +514,10 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   exclusiveRescueReopenFailures: 0,
   exclusiveRescuePreacquireAttempts: 0,
   exclusiveRescuePreacquireReadyBeforeRelease: 0,
+  exclusiveRescuePreacquirePostReleaseExpirations: 0,
+  exclusiveRescuePostReleaseRetries: 0,
+  exclusiveRescuePostReleaseRetrySucceeded: 0,
+  exclusiveRescuePostReleaseRetryFailed: 0,
   exclusiveOwnerReleaseWaits: 0,
   exclusiveOwnerReleaseTimeouts: 0,
   exclusiveOwnerReleaseWaitMs: 0,
@@ -1280,7 +1285,8 @@ async function privateNvrStreamResponse(url, token, cookie, signal,
     },
     signal: signal ? AbortSignal.any([signal, headerDeadline.signal]) : headerDeadline.signal
   }).catch((error) => {
-    reportFailure(error?.name === "AbortError" || error?.name === "TimeoutError" ? "source_timeout"
+    reportFailure(signal?.aborted ? "acquisition_cancelled"
+      : error?.name === "AbortError" || error?.name === "TimeoutError" ? "source_timeout"
       : error?.cause?.code === "ENETUNREACH" ? "host_network_unreachable"
       : error?.cause?.code === "ECONNREFUSED" ? "source_connection_refused"
       : error?.cause?.code === "UND_ERR_SOCKET" ? "upstream_socket_closed" : "source_transport_error");
@@ -1684,15 +1690,18 @@ function relayDirectory(streamId) {
 
 async function privateNvrRelayResponse(source, reportFailure = () => {},
   { previousRelayExitReason = null,
-    responseHeaderTimeoutMs = PROBE_TIMEOUT_MS } = {}) {
+    responseHeaderTimeoutMs = PROBE_TIMEOUT_MS,
+    acquisitionSignal = null } = {}) {
   let session = privateNvrSessions.get(source.sessionKey);
   if (!session) return null;
   if (session.refreshPromise) session = await session.refreshPromise;
   const url = privateNvrLiveUrl(session, source.channel, session.input.stream_quality);
   const controller = new AbortController();
   let failure = "source_unavailable";
+  const responseSignal = acquisitionSignal
+    ? AbortSignal.any([controller.signal, acquisitionSignal]) : controller.signal;
   let response = await privateNvrStreamResponse(url, session.token,
-    session.cookie, controller.signal, (reason) => {
+    session.cookie, responseSignal, (reason) => {
       failure = reason;
       reportFailure(reason);
     }, { headerTimeoutMs: responseHeaderTimeoutMs });
@@ -1725,8 +1734,10 @@ async function privateNvrRelayResponse(source, reportFailure = () => {},
   if (!refreshed) return null;
   const retryController = new AbortController();
   const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);
+  const retrySignal = acquisitionSignal
+    ? AbortSignal.any([retryController.signal, acquisitionSignal]) : retryController.signal;
   response = await privateNvrStreamResponse(retryUrl, refreshed.token,
-    refreshed.cookie, retryController.signal, reportFailure,
+    refreshed.cookie, retrySignal, reportFailure,
     { headerTimeoutMs: responseHeaderTimeoutMs });
   return response ? { response, controller: retryController, sessionToken: refreshed.token,
     sessionEpoch: refreshed.epoch, sessionKey: source.sessionKey } : null;
@@ -2321,25 +2332,49 @@ async function warmReplaceRelay(streamId, previous, {
       // aborting a stranded response can miss the recorder's release edge and
       // spend the full fourteen-second header budget ownerless. Put exactly
       // one non-authoritative request in flight first; after a short bounded
-      // registration grace, release only the silent owner and continue to
-      // await this same request. No second recovery lane is created.
+      // registration grace, release only the silent owner. Give that exact
+      // request one short post-release opportunity; if the recorder poisoned
+      // it at registration time, cancel it and open one fresh request inside
+      // this same serialized handoff. No second recovery lane is created.
       relayLifecycle.exclusiveRescuePreacquireAttempts += 1;
+      const preacquisitionController = new AbortController();
       const preacquisition = await preacquireExclusiveRelayReplacement({
         startCandidate: () => startRelay(streamId, { warming: true,
-          previousRelay: previous, handoffMode, exclusiveAcquisition: true }),
+          previousRelay: previous, handoffMode, exclusiveAcquisition: true,
+          acquisitionSignal: preacquisitionController.signal }),
         releaseOwner: () => stopRelayForExclusiveReplacement(streamId, previous,
           forcedHardwareOutputRescue
             ? "HARDWARE_OUTPUT_STALL_OWNER_RELEASE"
             : "SILENT_RESPONSE_STALL_OWNER_RELEASE"),
         stopCandidate: candidate => stopRelay(streamId, candidate,
           "EXCLUSIVE_PREACQUIRE_OWNER_RELEASE_FAILED"),
-        graceMs: PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS
+        cancelCandidate: () => preacquisitionController.abort(),
+        startFreshCandidate: () => startRelay(streamId, { warming: true,
+          previousRelay: previous, handoffMode, exclusiveAcquisition: true }),
+        graceMs: PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS,
+        postReleaseGraceMs:
+          PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_POST_RELEASE_GRACE_MS
       });
       if (preacquisition.readyBeforeRelease)
         relayLifecycle.exclusiveRescuePreacquireReadyBeforeRelease += 1;
       exclusiveOwnerReleased = preacquisition.ownerReleased;
       replacement = preacquisition.candidate;
       if (!preacquisition.ownerReleaseSkipped) expectedCurrent = undefined;
+      // A request registered against the still-open owner can be ignored by
+      // this recorder even after release. V8 proved that waiting its full
+      // fourteen-second deadline creates the avoidable ownerless gap. Cancel
+      // that one poisoned request after the bounded post-release grace and
+      // immediately open exactly one fresh request while this same serialized
+      // handoff still owns recovery and retained HLS continuity.
+      if (preacquisition.postReleaseExpired) {
+        relayLifecycle.exclusiveRescuePreacquirePostReleaseExpirations += 1;
+      }
+      if (preacquisition.freshPostReleaseAttempted) {
+        relayLifecycle.exclusiveRescuePostReleaseRetries += 1;
+        if (preacquisition.freshPostReleaseSucceeded)
+          relayLifecycle.exclusiveRescuePostReleaseRetrySucceeded += 1;
+        else relayLifecycle.exclusiveRescuePostReleaseRetryFailed += 1;
+      }
     }
     if (exclusiveSessionSweep) {
       relayLifecycle.exclusiveSessionSweepTakeovers += 1;
@@ -2788,7 +2823,8 @@ async function warmReplaceDirectRtspRelay(streamId, previous) {
 }
 
 async function startRelay(streamId, { warming = false, previousRelay = null,
-  handoffMode = null, exclusiveAcquisition = false } = {}) {
+  handoffMode = null, exclusiveAcquisition = false,
+  acquisitionSignal = null } = {}) {
   const source = streamSources.get(streamId);
   if (!source) return null;
   const generation = randomUUID();
@@ -2859,7 +2895,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
   const relaySource = source.kind === "private_nvr_http_mp4"
     ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }, {
       previousRelayExitReason: recovery?.previous_relay_exit_reason || null,
-      responseHeaderTimeoutMs
+      responseHeaderTimeoutMs, acquisitionSignal
     }) : null;
   if (!relaySource && !directRtsp) {
     relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
