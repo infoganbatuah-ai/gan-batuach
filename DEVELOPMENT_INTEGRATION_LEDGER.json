@@ -10670,20 +10670,22 @@
         "qualificationCommit": "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
       },
       "validation": {
-        "status": "LOCAL_SECURITY_AND_MEDIA_PATH_PASS_REMOTE_PHONE_PENDING",
+        "status": "REAL_OWNER_PHONE_AND_EXACT_HEAD_CI_PASS_V8_PENDING",
         "evidence": [
           "scripts/qa/check-push38-r2-phone-media.mjs",
           "scripts/qa/check-push38t-ingress.mjs",
           "scripts/qa/check-remote-playback-boundary.mjs",
-          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T195149Z"
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T195149Z",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T201358Z",
+          "GitHub Actions run 37837717396: PASS 6/6 plus canonical quality gate"
         ],
-        "limits": "TypeScript, focused lint, private-R2 media-contract QA, route/default-deny QA and isolated playback-boundary QA pass. A desktop browser result was explicitly rejected as phone evidence after server-side mobile-client classification was added. The first 52-object private-R2 window was fully deleted after expiry; the second partial 29-object attempt rolled back fully. The latest exact-head correction captures a consistent rolling-HLS snapshot with a bounded three-attempt acquisition retry. The real owner-phone result and exact-head six-gate CI remain pending. V8 remains running from 2026-10-08T10:49:29.554Z and is not complete before 2026-10-09T10:49:29.554Z."
+        "limits": "TypeScript, focused lint, private-R2 media-contract QA, route/default-deny QA and isolated playback-boundary QA pass. A desktop browser result was explicitly rejected as phone evidence. The real owner iPhone passed 10/10 DVR authorization plus moving CH1/CH3/CH11 and Tapo playback over HTTPS with localhost absent and no client Edge software. All 52 temporary objects were deleted immediately after PASS, bounded ingress closed and original Cloudflare service restored. Exact-head run 37837717396 passed all six CI gates plus the canonical quality gate. V8 remains running from 2026-10-08T10:49:29.554Z and is not complete before 2026-10-09T10:49:29.554Z."
       },
       "integration": {
         "status": "PRESERVED_PENDING_INTEGRATION",
         "base": "integration/development",
         "commit": null,
-        "requiredChecks": "PENDING_EXACT_HEAD_E51B74F7"
+        "requiredChecks": "PASS_6_OF_6_EXACT_HEAD_E51B74F7_RUN_37837717396"
       },
       "dependencies": {
         "status": "PUSH38_QUALIFICATION_INCOMPLETE",
@@ -10694,11 +10696,11 @@
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_TYPECHECK_FOCUSED_LINT_R2_MEDIA_INGRESS_DEFAULT_DENY_PLAYBACK_BOUNDARY",
-      "releaseEligibility": "BLOCKED_UNTIL_REAL_PHONE_AND_V8_PASS",
+      "releaseEligibility": "BLOCKED_UNTIL_V8_PASS",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Complete the real owner-phone R2 playback proof, remove all temporary R2 media objects and bounded ingress, obtain exact-head six-gate CI, then allow the already-running V8 to reach its full 24-hour gate. Do not integrate incomplete PUSH 38, merge main, deploy Production or begin PUSH 39."
+      "nextAction": "Allow the already-running V8 to reach its full 24-hour gate, evaluate every frozen matrix row, preserve the final evidence and only then decide PUSH 38 completion. Do not integrate incomplete PUSH 38, merge main, deploy Production or begin PUSH 39."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

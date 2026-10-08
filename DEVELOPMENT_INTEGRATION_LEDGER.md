@@ -24,7 +24,12 @@ snapshot before any upload and retries a bounded three times when playlist
 segments rotate during acquisition. The first 52-object proof window was
 deleted in full after expiry, and the partial 29-object second attempt rolled
 back in full before publication.
-The real owner-phone result and exact-head six-gate CI remain pending, and V8
+The third window passed on the real owner iPhone: 10/10 DVR authorization,
+moving CH1/CH3/CH11 and Tapo video, HTTPS-only media, no localhost, and no Edge
+software on the client. All 52 temporary objects were then deleted immediately,
+the bounded ingress closed, and the original Cloudflare service was restored.
+Exact-head CI run `37837717396` passed all six gates plus the canonical quality
+gate for `e51b74f7`. V8
 continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
 at `2026-10-09T10:49:29.554Z`. This unit is
 `PRESERVED_PENDING_INTEGRATION`; PUSH 38 is not done, main/Production are
