@@ -942,3 +942,36 @@ cannot record the transient loading state. This status is not owner approval.
 Production, `main`, customer data, migrations, provider state, physical camera
 actions and Digital Observer core remain untouched. The only remaining action is
 external owner review; RELEASE-GAP-01 has not started.
+
+PUSH 38 Gateway 0.2.95 V8 start receipt (2026-10-08): the scoped
+pre-release-probe settlement remediation is remotely preserved at
+`5907b6ff0708b3c1084ad91b20f8feac8d253ae7`; its exact qualification candidate
+is `be93e5f6578e5852a3de18d0c746aaec8fcfc92b` on
+`origin/codex/push-38t-qualification`. Exact-head GitHub Actions run
+`37840811624` passed all six CI gates plus the canonical quality gate, and AWS
+protected-signing run `37840867628` passed from signing-workflow commit
+`6aa0949179038785340ed58c3d1b6518955e08e9`. The exact-device private-R2
+artifact was round-trip verified and activated as Gateway
+`0.2.95-p38-health`; Connector remains `0.2.40-p38-health`. Broad eligibility
+is disabled, both managed services are healthy/current/known-good, and no new
+fixed provider was introduced.
+
+The valid canary `push38-gateway-0.2.95-canary-20261008T212408Z` passed 15
+minutes and 15/15 checkpoints; the valid pre-soak
+`push38-gateway-0.2.95-pre-soak-20261008T214031Z` passed 60 minutes and 60/60
+checkpoints. Both recorded DVR 10/10, Tapo 1/1, zero Gateway/Connector
+unavailability, zero stale-input failures, playback and AI PASS, zero data
+loss, duplicate effects, cross-tenant leakage or manual intervention. The real
+owner-iPhone remote proof remains PASS at the protected
+`push38-r2-phone-proof-20261008T201358Z` evidence location.
+
+The frozen 35-row V8 matrix source has SHA-256
+`4c710bc4c3ef8b369b205a6080b7bbc0ade7353953283061d137e1f6502e1ebb`; the
+candidate-binding freeze receipt has SHA-256
+`9db1f47da323fda0d68df8677b1758edc85327c62dba60e2dfabf85a57e15c70`.
+Fresh V8 run `push38-gateway-0.2.95-v8-20261008T224318Z` started at
+`2026-10-08T22:43:44.325Z` and cannot complete validly before
+`2026-10-09T22:43:44.325Z`. The prior 0.2.94 V8 failure remains immutable and
+its duration is not reused. This unit is `PRESERVED_PENDING_INTEGRATION` and
+`BLOCKED_UNTIL_V8_PASS`; PUSH 38 is not done. Main and Production remain
+unchanged, and PUSH 39 has not started.
