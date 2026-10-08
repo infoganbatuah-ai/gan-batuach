@@ -6,6 +6,21 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commit `d4b5264e`
+is remotely preserved on `origin/codex/push-38t-qualification`. The bounded
+qualification path verifies the local Product playback grant, acquires exact
+authorized Edge HLS through the protected local interface, stores only a
+short-lived 11.97 MB snapshot under an exact private R2 prefix, and returns
+presigned playlist/segment capabilities without proxying media through the
+control plane. Focused TypeScript, lint, R2, ingress/default-deny and playback
+boundary checks pass. A desktop-browser run was deliberately not accepted as
+phone evidence; server-side client classification now rejects a desktop PASS.
+The real owner-phone result and exact-head six-gate CI remain pending, and V8
+continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
+at `2026-10-09T10:49:29.554Z`. This unit is
+`PRESERVED_PENDING_INTEGRATION`; PUSH 38 is not done, main/Production are
+unchanged, and PUSH 39 has not started.
+
 PUSH 38 relay-probation checkpoint (2026-10-02): the failed live 0.2.56
 HLS-window canary completed 15 minutes and recorded a strict source-availability
 failure at CH10 checkpoint 4 and CH4 checkpoint 11. Gateway liveness remained
