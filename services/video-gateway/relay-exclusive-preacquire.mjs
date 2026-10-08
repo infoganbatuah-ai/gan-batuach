@@ -3,11 +3,13 @@ const sleep = milliseconds => new Promise(resolve => {
   timer.unref?.();
 });
 
-/** Register one replacement request before releasing a stranded relay owner.
- * If the recorder leaves that request pending after release, cancel it after a
- * bounded grace and optionally open one fresh post-release request. A candidate
- * never becomes authoritative here; the caller retains the existing media
- * confirmation and promotion contract. */
+/** Probe one replacement request while retaining a stranded relay owner.
+ * A recorder may poison a request registered against the old per-channel
+ * response. If the probe has not acquired headers inside the bounded grace,
+ * cancel and settle it before releasing the owner. Only after the old owner is
+ * transport-closed and a bounded quiescence has elapsed may one fresh request
+ * be opened. A candidate never becomes authoritative here; the caller retains
+ * the existing media confirmation and promotion contract. */
 export async function preacquireExclusiveRelayReplacement({
   startCandidate,
   releaseOwner,
@@ -15,14 +17,14 @@ export async function preacquireExclusiveRelayReplacement({
   cancelCandidate = () => {},
   startFreshCandidate = null,
   graceMs,
-  postReleaseGraceMs = graceMs,
+  postReleaseQuiescenceMs = graceMs,
   wait = sleep
 } = {}) {
   if (typeof startCandidate !== "function" || typeof releaseOwner !== "function" ||
     typeof stopCandidate !== "function" || typeof cancelCandidate !== "function" ||
     startFreshCandidate !== null && typeof startFreshCandidate !== "function" ||
     !Number.isFinite(graceMs) || graceMs < 1 ||
-    !Number.isFinite(postReleaseGraceMs) || postReleaseGraceMs < 1 ||
+    !Number.isFinite(postReleaseQuiescenceMs) || postReleaseQuiescenceMs < 1 ||
     typeof wait !== "function") {
     throw new Error("RELAY_EXCLUSIVE_PREACQUIRE_CONFIG_INVALID");
   }
@@ -40,40 +42,40 @@ export async function preacquireExclusiveRelayReplacement({
   if (registration.settled && !registration.candidate) {
     return { candidate: null, ownerReleased: false,
       readyBeforeRelease: false, ownerReleaseSkipped: true,
-      postReleaseExpired: false, freshPostReleaseAttempted: false,
+      preacquireCancelledBeforeRelease: false,
+      freshPostReleaseAttempted: false,
       freshPostReleaseSucceeded: false };
   }
 
+  let preacquireCancelledBeforeRelease = false;
+  let candidate = registration.candidate;
+  if (!registration.settled) {
+    // V8 on 0.2.94 proved that releasing the owner while this request was
+    // still registered left CH3's recorder slot poisoned: 16/22 immediate
+    // fresh requests then exhausted the unchanged fourteen-second budget.
+    // Settle the losing probe first so owner release presents one clean edge.
+    preacquireCancelledBeforeRelease = true;
+    await cancelCandidate();
+    candidate = await candidatePromise;
+    if (candidate) await stopCandidate(candidate);
+    candidate = null;
+  }
+
   const ownerReleased = Boolean(await releaseOwner());
-  if (!ownerReleased && !registration.settled) await cancelCandidate();
-  let postReleaseExpired = false;
   let freshPostReleaseAttempted = false;
   let freshPostReleaseSucceeded = false;
-  let candidate = registration.candidate;
-  if (!registration.settled && ownerReleased) {
-    const postRelease = await Promise.race([
-      candidatePromise.then(value => ({ settled: true, candidate: value })),
-      wait(postReleaseGraceMs).then(() => ({ settled: false, candidate: null }))
-    ]);
-    if (postRelease.settled) candidate = postRelease.candidate;
-    else {
-      postReleaseExpired = true;
-      await cancelCandidate();
-      candidate = await candidatePromise;
-      if (candidate) await stopCandidate(candidate);
-      candidate = null;
-      if (startFreshCandidate) {
-        freshPostReleaseAttempted = true;
-        candidate = await startFreshCandidate();
-        freshPostReleaseSucceeded = Boolean(candidate);
-      }
-    }
-  } else if (!registration.settled) {
-    candidate = await candidatePromise;
+  if (ownerReleased && preacquireCancelledBeforeRelease && startFreshCandidate) {
+    // awaitRelayTransportRelease has already confirmed the old owner locally.
+    // This small quiet period gives the recorder the same bounded close edge;
+    // it is request ordering, not an increased acquisition/stale threshold.
+    await wait(postReleaseQuiescenceMs);
+    freshPostReleaseAttempted = true;
+    candidate = await startFreshCandidate();
+    freshPostReleaseSucceeded = Boolean(candidate);
   }
   if (!ownerReleased && candidate) await stopCandidate(candidate);
   return { candidate: ownerReleased ? candidate : null, ownerReleased,
     readyBeforeRelease: Boolean(registration.settled && registration.candidate),
-    ownerReleaseSkipped: false, postReleaseExpired,
+    ownerReleaseSkipped: false, preacquireCancelledBeforeRelease,
     freshPostReleaseAttempted, freshPostReleaseSucceeded };
 }

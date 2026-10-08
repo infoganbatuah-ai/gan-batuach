@@ -21,7 +21,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MAX_ROUTINE_PROBATIONS,
   PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS,
-  PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_POST_RELEASE_GRACE_MS,
+  PRIVATE_NVR_EXCLUSIVE_POST_RELEASE_QUIESCENCE_MS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   PRIVATE_NVR_OUTPUT_RESCUE_OWNER_GRACE_MS,
@@ -515,6 +515,7 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   exclusiveRescuePreacquireAttempts: 0,
   exclusiveRescuePreacquireReadyBeforeRelease: 0,
   exclusiveRescuePreacquirePostReleaseExpirations: 0,
+  exclusiveRescuePreacquireCancelledBeforeRelease: 0,
   exclusiveRescuePostReleaseRetries: 0,
   exclusiveRescuePostReleaseRetrySucceeded: 0,
   exclusiveRescuePostReleaseRetryFailed: 0,
@@ -2333,9 +2334,11 @@ async function warmReplaceRelay(streamId, previous, {
       // spend the full fourteen-second header budget ownerless. Put exactly
       // one non-authoritative request in flight first; after a short bounded
       // registration grace, release only the silent owner. Give that exact
-      // request one short post-release opportunity; if the recorder poisoned
-      // it at registration time, cancel it and open one fresh request inside
-      // this same serialized handoff. No second recovery lane is created.
+      // request one short registration opportunity. If the recorder leaves it
+      // pending, cancel and settle it before releasing the owner; after the
+      // exact old transport is closed, observe one bounded recorder quiet
+      // period and open one fresh request inside this same serialized handoff.
+      // No second recovery lane is created.
       relayLifecycle.exclusiveRescuePreacquireAttempts += 1;
       const preacquisitionController = new AbortController();
       const preacquisition = await preacquireExclusiveRelayReplacement({
@@ -2352,23 +2355,21 @@ async function warmReplaceRelay(streamId, previous, {
         startFreshCandidate: () => startRelay(streamId, { warming: true,
           previousRelay: previous, handoffMode, exclusiveAcquisition: true }),
         graceMs: PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_GRACE_MS,
-        postReleaseGraceMs:
-          PRIVATE_NVR_EXCLUSIVE_PREACQUIRE_POST_RELEASE_GRACE_MS
+        postReleaseQuiescenceMs:
+          PRIVATE_NVR_EXCLUSIVE_POST_RELEASE_QUIESCENCE_MS
       });
       if (preacquisition.readyBeforeRelease)
         relayLifecycle.exclusiveRescuePreacquireReadyBeforeRelease += 1;
       exclusiveOwnerReleased = preacquisition.ownerReleased;
       replacement = preacquisition.candidate;
       if (!preacquisition.ownerReleaseSkipped) expectedCurrent = undefined;
-      // A request registered against the still-open owner can be ignored by
-      // this recorder even after release. V8 proved that waiting its full
-      // fourteen-second deadline creates the avoidable ownerless gap. Cancel
-      // that one poisoned request after the bounded post-release grace and
-      // immediately open exactly one fresh request while this same serialized
-      // handoff still owns recovery and retained HLS continuity.
-      if (preacquisition.postReleaseExpired) {
-        relayLifecycle.exclusiveRescuePreacquirePostReleaseExpirations += 1;
-      }
+      // A request registered against the still-open owner can poison the
+      // recorder's per-channel slot. V8 proved that cancelling only after
+      // owner release still left 16/22 immediate fresh requests blocked. The
+      // probe is now settled before owner release and the same serialized
+      // handoff opens exactly one fresh request after bounded quiescence.
+      if (preacquisition.preacquireCancelledBeforeRelease)
+        relayLifecycle.exclusiveRescuePreacquireCancelledBeforeRelease += 1;
       if (preacquisition.freshPostReleaseAttempted) {
         relayLifecycle.exclusiveRescuePostReleaseRetries += 1;
         if (preacquisition.freshPostReleaseSucceeded)
