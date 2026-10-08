@@ -942,3 +942,17 @@ cannot record the transient loading state. This status is not owner approval.
 Production, `main`, customer data, migrations, provider state, physical camera
 actions and Digital Observer core remain untouched. The only remaining action is
 external owner review; RELEASE-GAP-01 has not started.
+
+UX-V4 PRIMARY-SCREEN CORRECTION preservation receipt (2026-10-09): scoped
+implementation and V5 tooling are remotely preserved at
+`origin/codex/ux-v4-primary-screen-correction@b9dac699`. Static qualification
+passes typecheck, zero-regression lint, Domain 30/30, Security 11/11, migration
+health 244/244, release-contract validation, Owner 6/6, Parent 7/7, Platform
+Admin 9/9, Settings 9/9 and Manager/Parent 23/23. Fresh V5 capture, visual
+comparison, build and local full-stack verification remain intentionally
+blocked because PUSH 38 began a new 24-hour host-isolation window on 2026-10-09
+at 01:43:44 Asia/Jerusalem; starting Next or `gbi` before explicit release can
+invalidate that qualification. Read-only heartbeat `ux-v5` monitors release of
+the host and performs no code, Git, PR or merge action. No visual PASS, owner
+approval or Development integration is claimed. Production, `main` and
+RELEASE-GAP-01 remain untouched.

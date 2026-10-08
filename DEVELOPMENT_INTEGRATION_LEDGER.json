@@ -10708,6 +10708,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Allow the already-running V8 to reach its full 24-hour gate, evaluate every frozen matrix row, preserve the final evidence and only then decide PUSH 38 completion. Do not integrate incomplete PUSH 38, merge main, deploy Production or begin PUSH 39."
+    },
+    {
+      "id": "codex/ux-v4-primary-screen-correction",
+      "project": "Gan Batuach Management",
+      "title": "UX V4 primary-screen correction — five owner-blocking primary routes and V5 evidence",
+      "owner": "UX-V4 primary-screen correction owner",
+      "sourceBranch": "codex/ux-v4-primary-screen-correction",
+      "sourceCommits": [
+        "b9dac699"
+      ],
+      "state": "BLOCKED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v4-primary-screen-correction@b9dac699"
+        ],
+        "implementationCommit": "b9dac699",
+        "handoff": "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md"
+      },
+      "validation": {
+        "status": "PASS_STATIC_GATES_VISUAL_EVIDENCE_BLOCKED_BY_PUSH38_HOST_ISOLATION",
+        "evidence": [
+          "GAN_BATUACH_V4_PRIMARY_SCREEN_MAP.md",
+          "GAN_BATUACH_V4_PRIMARY_GEOMETRY.json",
+          "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md",
+          "qa-evidence/v4-primary-reference-crops",
+          "qa-evidence/v4-primary-screen-correction"
+        ],
+        "limits": "Fresh V5 screenshots, visual comparison, build and local full-stack verification are intentionally pending. PUSH 38 began a new 24-hour host-isolation window on 2026-10-09 01:43:44 Asia/Jerusalem; starting Next or gbi before explicit release can invalidate that qualification. Internal visual status and owner acceptance are not claimed."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_AFTER_V5_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "BLOCKED_BY_PUSH38_HOST_ISOLATION",
+        "units": [
+          "codex/push-38t-private-r2-phone-proof-20261008"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_TYPECHECK_LINT_REGRESSION_DOMAIN_30_SECURITY_11_MIGRATIONS_244_RELEASE_CONTRACT_OWNER_6_PARENT_7_ADMIN_9_SETTINGS_9_MANAGER_PARENT_23",
+      "releaseEligibility": "BLOCKED_PENDING_FRESH_V5_VISUAL_EVIDENCE_BUILD_AND_EXACT_HEAD_CI",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "After PUSH 38 explicitly releases host isolation, reconcile the latest integration head, run the isolated Development stack, capture and inspect V5, finish all gates, update this ledger entry, then open and merge the PR to integration/development only. Do not touch main or Production and do not begin RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
