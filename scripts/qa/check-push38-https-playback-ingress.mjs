@@ -10,6 +10,9 @@ import { join } from "node:path";
 const temporary = mkdtempSync(join(tmpdir(), "push38-media-ingress-"));
 const gatewayHost = "gateway-media-homeqa.ganbatuach.com";
 const connectorHost = "connector-media-homeqa.ganbatuach.com";
+const generation = "11111111-1111-4111-8111-111111111111";
+const token = "a".repeat(32);
+const segmentPath = `/hls/stream/segment-1.ts?generation=${generation}&revision=1&token=${token}`;
 const keyPath = join(temporary, "key.pem"), certPath = join(temporary, "cert.pem");
 execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1",
   "-subj", "/CN=gateway-media-homeqa.ganbatuach.com",
@@ -68,6 +71,9 @@ try {
   assert.equal((await request(gatewayHost, "/admin")).status, 404);
   assert.equal((await request("foreign.ganbatuach.com", "/playback/claim", "POST", '{"grant":"test"}')).status, 404);
   assert.equal((await request(gatewayHost, "/hls/stream/index.m3u8")).status, 404);
+  assert.equal((await request(gatewayHost, segmentPath)).status, 200);
+  assert.equal((await request(connectorHost, segmentPath)).status, 200);
+  assert.equal((await request(gatewayHost, `${segmentPath}&admin=1`)).status, 404);
   console.log("PUSH 38 HTTPS playback ingress QA PASS");
 } finally {
   child.kill("SIGTERM");

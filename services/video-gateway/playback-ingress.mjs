@@ -6,10 +6,30 @@ import { Readable } from "node:stream";
 export function playbackIngressAllows(method, pathname, search = "") {
   if (pathname === "/playback/claim") return (method === "POST" || method === "OPTIONS") && !search;
   if (method !== "GET" && method !== "OPTIONS") return false;
-  if (!/^\/hls\/[A-Za-z0-9_-]+\/(?:index\.m3u8|segment-\d+\.ts)$/.test(pathname)) return false;
+  const media = /^\/hls\/[A-Za-z0-9_-]+\/(index\.m3u8|segment-\d+\.ts)$/.exec(pathname);
+  if (!media) return false;
   if (method === "OPTIONS") return !search;
   const params = new URLSearchParams(search);
-  return [...params.keys()].length === 1 && /^[A-Za-z0-9_-]{32}$/.test(params.get("token") || "");
+  const keys = [...params.keys()];
+  const tokenValid = params.getAll("token").length === 1 &&
+    /^[A-Za-z0-9_-]{32}$/.test(params.get("token") || "");
+  if (!tokenValid) return false;
+  if (media[1] === "index.m3u8")
+    return keys.length === 1 && keys[0] === "token";
+  // Gateway playlists pin every segment to the exact relay generation and
+  // continuity revision that produced it. The remote ingress used to allow
+  // only `token`, so it admitted the playlist and then rejected every
+  // canonical segment URL with 404. Accept precisely the handoff-aware
+  // segment contract while continuing to reject arbitrary query keys,
+  // duplicate parameters and unscoped media requests.
+  const generation = params.get("generation") || "";
+  const revision = params.get("revision") || "";
+  return keys.length === 3 && new Set(keys).size === 3 &&
+    params.getAll("generation").length === 1 &&
+    params.getAll("revision").length === 1 &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(generation) &&
+    /^(?:0|[1-9]\d{0,9})$/.test(revision) &&
+    keys.every(key => ["generation", "revision", "token"].includes(key));
 }
 
 function loopbackAddress(value) {

@@ -23,11 +23,20 @@ assert.match(route, /if \(!localPlaybackAllowed\(request\.url, process\.env\.NOD
   "legacy channel-only playback may escape to a remote viewer");
 
 const token = "a".repeat(32);
+const generation = "11111111-1111-4111-8111-111111111111";
+const segmentQuery = `generation=${generation}&revision=7&token=${token}`;
 assert.equal(playbackIngressAllows("POST", "/playback/claim"), true);
 assert.equal(playbackIngressAllows("GET", "/hls/stream/index.m3u8", `?token=${token}`), true);
+assert.equal(playbackIngressAllows("GET", "/hls/stream/segment-1.ts", `?${segmentQuery}`), true);
 for (const [method, path, search] of [["GET", "/", ""], ["GET", "/admin", ""],
   ["GET", "/api/video-gateway/edge-updates", ""], ["GET", "/hls/stream/index.m3u8", ""],
-  ["GET", "/hls/stream/index.m3u8", `?token=${token}&next=/admin`], ["POST", "/hls/stream/index.m3u8", `?token=${token}`]])
+  ["GET", "/hls/stream/index.m3u8", `?token=${token}&next=/admin`],
+  ["GET", "/hls/stream/segment-1.ts", `?token=${token}`],
+  ["GET", "/hls/stream/segment-1.ts", `?generation=${generation}&revision=7&token=${token}&x=1`],
+  ["GET", "/hls/stream/segment-1.ts", `?generation=invalid&revision=7&token=${token}`],
+  ["GET", "/hls/stream/segment-1.ts", `?generation=${generation}&revision=-1&token=${token}`],
+  ["GET", "/hls/stream/segment-1.ts", `?generation=${generation}&revision=7&token=${token}&token=${token}`],
+  ["POST", "/hls/stream/index.m3u8", `?token=${token}`]])
   assert.equal(playbackIngressAllows(method, path, search), false);
 
 const origin = createServer((request, response) => {
@@ -56,13 +65,13 @@ try {
     headers: { origin: "https://ganbatuach.com", "content-type": "application/json" }, body: '{"grant":"test"}' });
   assert.equal(repeatedClaim.status, 429);
   assert.equal(repeatedClaim.headers.get("retry-after"), "60");
-  const media = await fetch(`${base}/hls/stream/segment-1.ts?token=${token}`);
+  const media = await fetch(`${base}/hls/stream/segment-1.ts?${segmentQuery}`);
   assert.equal(media.status, 200);
   assert.equal(await media.text(), "segment");
-  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?token=${token}`)).status, 200);
-  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?token=${token}`)).status, 429);
+  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?${segmentQuery}`)).status, 200);
+  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?${segmentQuery}`)).status, 429);
   assert.equal((await fetch(`${base}/admin`)).status, 404);
-  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?token=${token}&x=1`)).status, 404);
+  assert.equal((await fetch(`${base}/hls/stream/segment-1.ts?${segmentQuery}&x=1`)).status, 404);
 } finally {
   ingress.close(); origin.close();
 }
