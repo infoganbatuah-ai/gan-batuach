@@ -30,6 +30,7 @@ const allowed = [
   ["POST", "/api/video-gateway/cloud-event-media"],
   ["POST", "/api/digital-observer/dvr-gateway"],
   ["GET", "/push38/remote-playback"],
+  ["GET", "/push38/remote-playback/hls.js"],
   ["POST", "/push38/remote-playback/authorize"],
   ["POST", "/push38/remote-playback/result"]
 ];
@@ -159,7 +160,7 @@ try {
   assert.equal(audit.some(event => event.pathname === "/api/video-gateway/playback-grant" &&
     event.outcome === "FORWARDED" && event.status === 401), true);
   const boundedExposure = readFileSync("scripts/qa/start-push38-bounded-control-exposure.mjs", "utf8");
-  assert.match(boundedExposure, /\/push38\/remote-playback\(\/authorize\|\/result\)\?/);
+  assert.match(boundedExposure, /\/push38\/remote-playback\(\/authorize\|\/result\|\/hls\\\\\.js\)\?/);
   assert.doesNotMatch(boundedExposure, /path: \^\/api\/digital-observer\/dvr-gateway/);
   console.log(JSON.stringify({ status: "PASS", allowedRoutes: allowed.length,
     dashboard: "DENY", admin: "DENY", unrelatedApi: "DENY", supabase: "DENY", anonymousPrivileged: "DENY" }));

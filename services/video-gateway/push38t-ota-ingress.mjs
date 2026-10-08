@@ -21,6 +21,7 @@ const routes = new Set([
   "POST /api/video-gateway/cloud-event-media",
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
+  "GET /push38/remote-playback/hls.js",
   "POST /push38/remote-playback/authorize",
   "POST /push38/remote-playback/result"
 ]);
@@ -37,6 +38,7 @@ const forwardHeaders = new Set([
 const remoteQualificationRoutes = new Set([
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
+  "GET /push38/remote-playback/hls.js",
   "POST /push38/remote-playback/authorize",
   "POST /push38/remote-playback/result"
 ]);
@@ -122,10 +124,17 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       }
       onAudit({ method: request.method, pathname: url.pathname, outcome: "QUALIFICATION_CLIENT", status: 200 });
       response.writeHead(200, { "cache-control": "private, no-store", "content-type": "text/html; charset=utf-8",
-        "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https:; media-src https:; img-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+        "content-security-policy": "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https:; media-src https:; img-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
         "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" })
         .end(push38RemotePlaybackPage(remoteSession
           ? { ...remoteSession.config, sid: remoteSession.session_id } : null));
+      return;
+    }
+    if (url.pathname === "/push38/remote-playback/hls.js" && request.method === "GET") {
+      const player = readFileSync(resolve("node_modules/hls.js/dist/hls.min.js"));
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "QUALIFICATION_PLAYER", status: 200 });
+      response.writeHead(200, { "cache-control": "private, no-store", "content-type": "text/javascript; charset=utf-8",
+        "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" }).end(player);
       return;
     }
     try {

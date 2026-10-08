@@ -20,11 +20,12 @@ const html = String.raw`<!doctype html>
   <div id="summary" class="status">ממתין להפעלה</div>
   <div id="videos" class="grid"></div>
   <p><small>ההרשאות והקישורים קצרים בזמן ואינם כוללים פרטי DVR, ‏RTSP או מצלמה.</small></p>
-</main><script>
+</main><script src="/push38/remote-playback/hls.js"></script><script>
 const summary=document.getElementById("summary"),videos=document.getElementById("videos"),run=document.getElementById("run");
 const embeddedConfig=__PUSH38_REMOTE_CONFIG__;
 const decodeFragment=()=>{if(embeddedConfig)return embeddedConfig;const raw=location.hash.slice(1).replace(/-/g,"+").replace(/_/g,"/");return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(raw+"=".repeat((4-raw.length%4)%4)),c=>c.charCodeAt(0))))};
 const wait=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
+const bounded=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))]);
 const safeRemote=url=>{const value=new URL(url);return value.protocol==="https:"&&!(["localhost","127.0.0.1","::1"].includes(value.hostname)||value.hostname.endsWith(".local"))};
 async function authorize(config,source){
   const response=await fetch("/push38/remote-playback/authorize",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+config.accessToken,"x-push38-session-id":config.sessionId},body:JSON.stringify({observer_site_id:config.siteId,camera_source_id:source.id,mode:"live"}),cache:"no-store"});
@@ -33,12 +34,17 @@ async function authorize(config,source){
 }
 async function claim(source,playback){
   if(!safeRemote(playback.claim_url))throw new Error("REMOTE_CLAIM_URL_INVALID");
-  const response=await fetch(playback.claim_url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({grant:playback.grant}),cache:"no-store"});
+  const response=await fetch(playback.claim_url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({grant:playback.grant}),cache:"no-store",signal:AbortSignal.timeout(20000)});
   const body=await response.json().catch(()=>({}));
   if(!response.ok||!safeRemote(body.playback?.hls_url))throw new Error("REMOTE_MEDIA_CLAIM_FAILED");
   const card=document.createElement("section");card.className="card";const title=document.createElement("strong");title.textContent=source.label;card.append(title);
-  const video=document.createElement("video");video.controls=true;video.muted=true;video.playsInline=true;video.src=body.playback.hls_url;card.append(video);videos.append(card);
-  await video.play();const before=video.currentTime;await wait(12000);const advanced=video.currentTime>before+1&&video.videoWidth>0;
+  const video=document.createElement("video");video.controls=true;video.muted=true;video.autoplay=true;video.playsInline=true;card.append(video);videos.append(card);
+  let hls=null;
+  if(video.canPlayType("application/vnd.apple.mpegurl")){video.src=body.playback.hls_url}
+  else if(globalThis.Hls?.isSupported()){hls=new globalThis.Hls({enableWorker:true});hls.loadSource(body.playback.hls_url);hls.attachMedia(video);
+    await bounded(new Promise((resolve,reject)=>{hls.once(globalThis.Hls.Events.MANIFEST_PARSED,resolve);hls.once(globalThis.Hls.Events.ERROR,(_,data)=>{if(data?.fatal)reject(new Error("REMOTE_HLS_FATAL"))})}),20000,"REMOTE_HLS_MANIFEST_TIMEOUT")}
+  else throw new Error("REMOTE_HLS_UNSUPPORTED");
+  await bounded(video.play(),10000,"REMOTE_MEDIA_PLAY_TIMEOUT");const before=video.currentTime;await wait(12000);const advanced=video.currentTime>before+1&&video.videoWidth>0;hls?.destroy();
   return {hls_https:true,localhost_absent:true,moving:advanced,width:video.videoWidth,height:video.videoHeight};
 }
 async function report(config,result){
