@@ -6,8 +6,9 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
-PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commit `d4b5264e`
-is remotely preserved on `origin/codex/push-38t-qualification`. The bounded
+PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`
+and `514515e2` are remotely preserved on
+`origin/codex/push-38t-qualification`. The bounded
 qualification path verifies the local Product playback grant, acquires exact
 authorized Edge HLS through the protected local interface, stores only a
 short-lived 11.97 MB snapshot under an exact private R2 prefix, and returns
@@ -15,6 +16,9 @@ presigned playlist/segment capabilities without proxying media through the
 control plane. Focused TypeScript, lint, R2, ingress/default-deny and playback
 boundary checks pass. A desktop-browser run was deliberately not accepted as
 phone evidence; server-side client classification now rejects a desktop PASS.
+The follow-up releases each native phone video decoder before opening the next
+source after the real iPhone proved two DVR streams and then exhausted its
+concurrent decoder capacity on the third.
 The real owner-phone result and exact-head six-gate CI remain pending, and V8
 continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
 at `2026-10-09T10:49:29.554Z`. This unit is
