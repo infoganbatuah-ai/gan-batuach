@@ -73,6 +73,7 @@ run.addEventListener("click",async()=>{
     await report(config,result);summary.className="status "+(pass?"ok":"bad");summary.textContent=pass?"PASS — הצפייה המרוחקת מתקדמת":"FAIL — אחת מבדיקות ההרשאה או הווידאו נכשלה";
   }catch(error){const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,pass:false,error:String(error?.message||"REMOTE_CLIENT_FAILED").slice(0,120),results:[]};if(config)await report(config,result);summary.className="status bad";summary.textContent="FAIL — הבדיקה לא הושלמה"}
 });
+setTimeout(()=>run.click(),0);
 </script></body></html>`;
 
 export function push38RemotePlaybackPage(config = null) {
