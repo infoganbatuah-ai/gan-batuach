@@ -43,15 +43,15 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLE
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
   current_unchanged: true }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.93-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.94-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.buildSha,
-  "07c4195ff1d99a584dd2719f9cd145d421cb2150");
+  "6cbad4b0717406266de6893df6c0836449804c28");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.digest,
-  "454c21cd03f952ae10915a7f5d19ad6db1131c9c0d286fbaba8ee25c7de9b99c");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135896930);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.92-p38-health");
+  "da073ca6a4e39d48422dcf965d0c789898917315f404559feaab0862000b9c99");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135897032);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.93-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_PREACQUIRE_RESCUE_CONTINUITY");
+  "GATEWAY_POST_RELEASE_REACQUISITION_CONTINUITY");
 const gateway = PUSH38_MANAGED_AUTH_CONTINUITY.gateway;
 const gatewayManifest = buildPush38ManagedAuthContinuityManifest({ component: "gateway",
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
@@ -81,7 +81,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-startup-recovery-upgrade", "--gateway-preacquire-rescue-upgrade",
+    "--connector-startup-recovery-upgrade", "--gateway-post-release-reacquisition-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "qa-p38-health-gateway-session-age-stability-26644a5e5900",
