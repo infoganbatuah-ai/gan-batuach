@@ -34,10 +34,8 @@ if (!tunnel || !credentials || !realpathSync(credentials).startsWith(`${homedir(
 const scopedConfig = resolve(dirname(statePath), "cloudflared-scoped.yml");
 if (existsSync(scopedConfig)) throw new Error("P38_BOUNDED_CONTROL_SCOPED_CONFIG_EXISTS");
 writeFileSync(scopedConfig, `tunnel: ${tunnel}\ncredentials-file: ${credentials}\n\ningress:\n` +
-  `  - hostname: gateway.ganbatuach.com\n    path: ^/push38/remote-playback(/result)?$\n` +
+  `  - hostname: gateway.ganbatuach.com\n    path: ^/push38/remote-playback(/authorize|/result)?$\n` +
   `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
-  `  - hostname: gateway.ganbatuach.com\n    path: ^/api/digital-observer/dvr-gateway$\n` +
-    `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
   `  - service: http_status:404\n`, { flag: "wx", mode: 0o600 });
 execFileSync(cloudflared, ["--config", scopedConfig, "tunnel", "ingress", "validate"],
   { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
@@ -47,8 +45,8 @@ const state = {
   status: "STARTING",
   duration_seconds: durationSeconds,
   hostname: "gateway.ganbatuach.com",
-  allowed_routes: ["/push38/remote-playback", "/push38/remote-playback/result",
-    "/api/digital-observer/dvr-gateway"],
+  allowed_routes: ["/push38/remote-playback", "/push38/remote-playback/authorize",
+    "/push38/remote-playback/result"],
   default_deny: true,
   local_origin: "TLS_LOOPBACK_3101",
   secrets_logged: false,

@@ -21,6 +21,7 @@ const routes = new Set([
   "POST /api/video-gateway/cloud-event-media",
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
+  "POST /push38/remote-playback/authorize",
   "POST /push38/remote-playback/result"
 ]);
 const forwardHeaders = new Set([
@@ -36,6 +37,7 @@ const forwardHeaders = new Set([
 const remoteQualificationRoutes = new Set([
   "POST /api/digital-observer/dvr-gateway",
   "GET /push38/remote-playback",
+  "POST /push38/remote-playback/authorize",
   "POST /push38/remote-playback/result"
 ]);
 
@@ -82,6 +84,12 @@ function safeEqual(left, right) {
   return a.length === b.length && a.length >= 32 && timingSafeEqual(a, b);
 }
 
+function exactEqual(left, right) {
+  const a = Buffer.from(String(left || ""));
+  const b = Buffer.from(String(right || ""));
+  return a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
+}
+
 export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null,
   remoteResultToken = "", remoteResultExpiresAt = 0, remoteSession = null, now = Date.now,
   onRemoteResult = () => {}, onAudit = () => {} } = {}) {
@@ -116,7 +124,8 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       response.writeHead(200, { "cache-control": "private, no-store", "content-type": "text/html; charset=utf-8",
         "content-security-policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https:; media-src https:; img-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
         "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" })
-        .end(push38RemotePlaybackPage(remoteSession?.config ?? null));
+        .end(push38RemotePlaybackPage(remoteSession
+          ? { ...remoteSession.config, sid: remoteSession.session_id } : null));
       return;
     }
     try {
@@ -144,10 +153,33 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
           .end('{"accepted":true}');
         return;
       }
+      let upstreamPath = url.pathname + url.search;
+      if (url.pathname === "/push38/remote-playback/authorize") {
+        const authorization = request.headers.authorization;
+        const sessionId = request.headers["x-push38-session-id"];
+        let input = null;
+        try { input = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { /* fail closed below */ }
+        const keys = input && typeof input === "object" && !Array.isArray(input)
+          ? Object.keys(input).sort() : [];
+        const source = remoteSession?.config?.c?.find(item => item?.i === input?.camera_source_id);
+        const inScope = remoteSession && exactEqual(sessionId, remoteSession.session_id) &&
+          safeEqual(authorization, `Bearer ${remoteSession.config?.t || ""}`) &&
+          keys.join(",") === "camera_source_id,mode,observer_site_id" &&
+          input.observer_site_id === remoteSession.config?.s && input.mode === "live" &&
+          source?.e === "ALLOW";
+        if (!inScope) {
+          const status = authorization ? 404 : 401;
+          onAudit({ method: request.method, pathname: url.pathname,
+            outcome: "QUALIFICATION_SCOPE_DENIED", status });
+          response.writeHead(status, { "cache-control": "no-store" }).end();
+          return;
+        }
+        upstreamPath = "/api/digital-observer/dvr-gateway";
+      }
       const headers = new Headers();
       for (const [name, value] of Object.entries(request.headers))
         if (forwardHeaders.has(name) && typeof value === "string") headers.set(name, value);
-      const upstream = await fetch(new URL(url.pathname + url.search, target), {
+      const upstream = await fetch(new URL(upstreamPath, target), {
         method: request.method, headers, body: request.method === "GET" ? undefined : Buffer.concat(chunks),
         // The cumulative QA route performs bounded eligibility, revocation and
         // audit checks before it mints the capability. Keep the route bounded,

@@ -27,7 +27,7 @@ const decodeFragment=()=>{if(embeddedConfig)return embeddedConfig;const raw=loca
 const wait=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
 const safeRemote=url=>{const value=new URL(url);return value.protocol==="https:"&&!(["localhost","127.0.0.1","::1"].includes(value.hostname)||value.hostname.endsWith(".local"))};
 async function authorize(config,source){
-  const response=await fetch("/api/digital-observer/dvr-gateway",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+config.accessToken},body:JSON.stringify({observer_site_id:config.siteId,camera_source_id:source.id,mode:"live"}),cache:"no-store"});
+  const response=await fetch("/push38/remote-playback/authorize",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+config.accessToken,"x-push38-session-id":config.sessionId},body:JSON.stringify({observer_site_id:config.siteId,camera_source_id:source.id,mode:"live"}),cache:"no-store"});
   const body=await response.json().catch(()=>({}));
   return {status:response.status,body};
 }
@@ -46,11 +46,11 @@ async function report(config,result){
 }
 run.addEventListener("click",async()=>{
   run.disabled=true;summary.textContent="הבדיקה פועלת…";const startedAt=new Date().toISOString();let config;
-  try{const raw=decodeFragment();config={accessToken:raw.accessToken||raw.t,resultToken:raw.resultToken||raw.r,siteId:raw.siteId||raw.s,
+  try{const raw=decodeFragment();config={accessToken:raw.accessToken||raw.t,resultToken:raw.resultToken||raw.r,siteId:raw.siteId||raw.s,sessionId:raw.sessionId||raw.sid,
     sources:(raw.sources||raw.c||[]).map(source=>({id:source.id||source.i,label:source.label||source.l,kind:source.kind||source.k,
       expect:source.expect||source.e,play:source.play===true||source.p===true}))};history.replaceState(null,"",location.pathname);
     const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if(config.accessToken.split(".").length!==3||!/^[A-Za-z0-9_-]{43}$/.test(config.resultToken)||!uuid.test(config.siteId)||
+    if(config.accessToken.split(".").length!==3||!/^[A-Za-z0-9_-]{43}$/.test(config.resultToken)||!uuid.test(config.siteId)||!/^[A-Za-z0-9_-]{22}$/.test(config.sessionId)||
       !Array.isArray(config.sources)||config.sources.length!==11||new Set(config.sources.map(source=>source.id)).size!==11||
       config.sources.some(source=>!uuid.test(source.id)||!["DVR","TAPO"].includes(source.kind)||!["ALLOW","DENY"].includes(source.expect)))
       throw new Error("QUALIFICATION_INPUT_INVALID");

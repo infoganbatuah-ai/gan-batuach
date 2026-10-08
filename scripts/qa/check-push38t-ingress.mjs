@@ -25,6 +25,7 @@ const allowed = [
   ["POST", "/api/video-gateway/cloud-event-media"],
   ["POST", "/api/digital-observer/dvr-gateway"],
   ["GET", "/push38/remote-playback"],
+  ["POST", "/push38/remote-playback/authorize"],
   ["POST", "/push38/remote-playback/result"]
 ];
 for (const [method, path] of allowed) assert.equal(push38tIngressAllows(method, path), true);
@@ -49,9 +50,12 @@ const audit = [];
 const remoteResults = [];
 const remoteQualificationDeadline = Date.now() + 60_000;
 let qualificationNow = remoteQualificationDeadline - 1;
+const remoteAccessToken = "header-value-0000.payload-value-0000.signature-value-0000";
+const remoteSourceId = "00000000-0000-4000-8000-000000000002";
 const remoteSession = { session_id: "short-session-id-1234", expires_at_ms: remoteQualificationDeadline,
-  config: { t: "header.payload.signature", r: "qualification-result-token-00000000000000000000",
-    s: "00000000-0000-4000-8000-000000000001", c: [] } };
+  config: { t: remoteAccessToken, r: "qualification-result-token-00000000000000000000",
+    s: "00000000-0000-4000-8000-000000000001",
+    c: [{ i: remoteSourceId, e: "ALLOW", l: "DVR CH1", k: "DVR", p: true }] } };
 const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}`,
   remoteResultToken: "qualification-result-token-00000000000000000000",
   remoteResultExpiresAt: remoteQualificationDeadline,
@@ -78,6 +82,20 @@ try {
   const page = await fetch(base + `/push38/remote-playback?session=${remoteSession.session_id}`);
   assert.equal(page.status, 200);
   assert.equal((await page.text()).includes("accessToken"), true);
+  const authorizeBody = JSON.stringify({ observer_site_id: remoteSession.config.s,
+    camera_source_id: remoteSourceId, mode: "live" });
+  const authorizeHeaders = { "content-type": "application/json", authorization: `Bearer ${remoteAccessToken}`,
+    "x-push38-session-id": remoteSession.session_id };
+  assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
+    headers: authorizeHeaders, body: authorizeBody })).status, 401);
+  assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
+    headers: { ...authorizeHeaders, "x-push38-session-id": "wrong-session-id-12345" },
+    body: authorizeBody })).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
+    headers: authorizeHeaders, body: JSON.stringify({ observer_site_id: remoteSession.config.s,
+      camera_source_id: "00000000-0000-4000-8000-000000000099", mode: "live" }) })).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
+    headers: { ...authorizeHeaders, authorization: "" }, body: authorizeBody })).status, 401);
   const resultPayload = { protocol: "observer-push38-remote-client-proof-v1",
     started_at: "2026-10-03T00:00:00.000Z", completed_at: "2026-10-03T00:00:12.000Z",
     client_class: "OWNER_PHONE_BROWSER", edge_software_installed: false, pass: true,
@@ -108,6 +126,8 @@ try {
   assert.equal(deviceGrant.status, 401);
   assert.equal((await fetch(base + "/api/digital-observer/dvr-gateway", { method: "POST",
     headers: { "content-type": "application/json" }, body: "{}" })).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
+    headers: authorizeHeaders, body: authorizeBody })).status, 404);
   assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
     headers: { "content-type": "application/json",
       "x-push38-result-token": "qualification-result-token-00000000000000000000" },
@@ -133,6 +153,9 @@ try {
     event.outcome === "FORWARDED" && event.status === 401).length, 5);
   assert.equal(audit.some(event => event.pathname === "/api/video-gateway/playback-grant" &&
     event.outcome === "FORWARDED" && event.status === 401), true);
+  const boundedExposure = readFileSync("scripts/qa/start-push38-bounded-control-exposure.mjs", "utf8");
+  assert.match(boundedExposure, /\/push38\/remote-playback\(\/authorize\|\/result\)\?/);
+  assert.doesNotMatch(boundedExposure, /path: \^\/api\/digital-observer\/dvr-gateway/);
   console.log(JSON.stringify({ status: "PASS", allowedRoutes: allowed.length,
     dashboard: "DENY", admin: "DENY", unrelatedApi: "DENY", supabase: "DENY", anonymousPrivileged: "DENY" }));
 } finally {
