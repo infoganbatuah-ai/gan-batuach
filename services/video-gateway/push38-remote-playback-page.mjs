@@ -47,14 +47,15 @@ async function claim(source,playback){
   else if(globalThis.Hls?.isSupported()){hls=new globalThis.Hls({enableWorker:true});hls.loadSource(body.playback.hls_url);hls.attachMedia(video);
     await bounded(new Promise((resolve,reject)=>{hls.once(globalThis.Hls.Events.MANIFEST_PARSED,resolve);hls.once(globalThis.Hls.Events.ERROR,(_,data)=>{if(data?.fatal)reject(new Error("REMOTE_HLS_FATAL"))})}),20000,"REMOTE_HLS_MANIFEST_TIMEOUT")}
   else throw new Error("REMOTE_HLS_UNSUPPORTED");
-  await bounded(video.play(),10000,"REMOTE_MEDIA_PLAY_TIMEOUT");const before=video.currentTime;await wait(12000);const advanced=video.currentTime>before+1&&video.videoWidth>0;hls?.destroy();
-  return {hls_https:true,localhost_absent:true,moving:advanced,width:video.videoWidth,height:video.videoHeight};
+  try{await bounded(video.play(),10000,"REMOTE_MEDIA_PLAY_TIMEOUT");const before=video.currentTime;await wait(12000);const advanced=video.currentTime>before+1&&video.videoWidth>0;
+    return {hls_https:true,localhost_absent:true,moving:advanced,width:video.videoWidth,height:video.videoHeight}}
+  finally{video.pause();video.removeAttribute("src");video.load();hls?.destroy()}
 }
 async function report(config,result){
   await fetch("/push38/remote-playback/result",{method:"POST",headers:{"content-type":"application/json","x-push38-result-token":config.resultToken},body:JSON.stringify(result),cache:"no-store"}).catch(()=>null);
 }
 run.addEventListener("click",async()=>{
-  run.disabled=true;summary.textContent="הבדיקה פועלת…";const startedAt=new Date().toISOString();let config;
+  run.disabled=true;summary.textContent="הבדיקה פועלת…";const startedAt=new Date().toISOString();let config;const results=[];
   try{const raw=decodeFragment();config={accessToken:raw.accessToken||raw.t,resultToken:raw.resultToken||raw.r,siteId:raw.siteId||raw.s,sessionId:raw.sessionId||raw.sid,
     sources:(raw.sources||raw.c||[]).map(source=>({id:source.id||source.i,label:source.label||source.l,kind:source.kind||source.k,
       expect:source.expect||source.e,play:source.play===true||source.p===true,qualificationPlaylist:source.qualificationPlaylist||source.q||"",
@@ -64,7 +65,6 @@ run.addEventListener("click",async()=>{
       !Array.isArray(config.sources)||config.sources.length!==11||new Set(config.sources.map(source=>source.id)).size!==11||
       config.sources.some(source=>!uuid.test(source.id)||!["DVR","TAPO"].includes(source.kind)||!["ALLOW","DENY"].includes(source.expect)))
       throw new Error("QUALIFICATION_INPUT_INVALID");
-    const results=[];
     for(const source of config.sources){
       const auth=await authorize(config,source);const allowed=auth.status===200&&auth.body?.data?.playback;
       const expected=source.expect==="ALLOW"?Boolean(allowed):!allowed;
@@ -75,7 +75,7 @@ run.addEventListener("click",async()=>{
     const pass=results.every(item=>item.authorization_expected&&item.localhost_absent!==false&&(!item.media||item.media.moving));
     const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,results,pass};
     await report(config,result);summary.className="status "+(pass?"ok":"bad");summary.textContent=pass?"PASS — הצפייה המרוחקת מתקדמת":"FAIL — אחת מבדיקות ההרשאה או הווידאו נכשלה";
-  }catch(error){const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,pass:false,error:String(error?.message||"REMOTE_CLIENT_FAILED").slice(0,120),results:[]};if(config)await report(config,result);summary.className="status bad";summary.textContent="FAIL — הבדיקה לא הושלמה"}
+  }catch(error){const result={protocol:"observer-push38-remote-client-proof-v1",started_at:startedAt,completed_at:new Date().toISOString(),client_class:"OWNER_PHONE_BROWSER",edge_software_installed:false,pass:false,error:String(error?.message||"REMOTE_CLIENT_FAILED").slice(0,120),results};if(config)await report(config,result);summary.className="status bad";summary.textContent="FAIL — הבדיקה לא הושלמה"}
 });
 setTimeout(()=>run.click(),0);
 </script></body></html>`;
