@@ -29,7 +29,9 @@ moving CH1/CH3/CH11 and Tapo video, HTTPS-only media, no localhost, and no Edge
 software on the client. All 52 temporary objects were then deleted immediately,
 the bounded ingress closed, and the original Cloudflare service was restored.
 Exact-head CI run `37837717396` passed all six gates plus the canonical quality
-gate for `e51b74f7`. V8
+gate for `e51b74f7`. The protected owner-phone result checksum is
+`79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f`.
+V8
 continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
 at `2026-10-09T10:49:29.554Z`. This unit is
 `PRESERVED_PENDING_INTEGRATION`; PUSH 38 is not done, main/Production are

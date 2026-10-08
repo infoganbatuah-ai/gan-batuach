@@ -10679,6 +10679,13 @@
           "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T201358Z",
           "GitHub Actions run 37837717396: PASS 6/6 plus canonical quality gate"
         ],
+        "evidenceChecksums": {
+          "remotePhoneResultSha256": "79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f",
+          "r2EvidenceSha256": "d66615336079533dc043955bfefee8ddc6acdfcf1e6b85af7ccfba072da4e0ce",
+          "r2CleanupSha256": "02464ae008368685f8bc23585f374b001236b30b81c0b803c5776c85f717fd37",
+          "controlExposureSha256": "9f23c7796f20697ffb0cab6be55137d3d22e6678cc027be055efeac8098868c9",
+          "supplierCostLedgerSha256": "d6e4efe9a006c2ed29f59a29a578f26e5105a24f37691ea66f87696807f2fa98"
+        },
         "limits": "TypeScript, focused lint, private-R2 media-contract QA, route/default-deny QA and isolated playback-boundary QA pass. A desktop browser result was explicitly rejected as phone evidence. The real owner iPhone passed 10/10 DVR authorization plus moving CH1/CH3/CH11 and Tapo playback over HTTPS with localhost absent and no client Edge software. All 52 temporary objects were deleted immediately after PASS, bounded ingress closed and original Cloudflare service restored. Exact-head run 37837717396 passed all six CI gates plus the canonical quality gate. V8 remains running from 2026-10-08T10:49:29.554Z and is not complete before 2026-10-09T10:49:29.554Z."
       },
       "integration": {
