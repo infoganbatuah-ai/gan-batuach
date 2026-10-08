@@ -120,7 +120,7 @@ for (const source of assigned) {
   });
   const body = await response.json().catch(() => ({}));
   const channel = Number(source.metadata?.dvr_channel || 0);
-  const expectedAllowed = source.connector_type === "rtsp" || channel !== 8;
+  const expectedAllowed = source.status === "connected";
   if (expectedAllowed !== (response.status === 200) ||
     (expectedAllowed && (!body.data?.playback?.grant || body.data?.private_source_hidden !== true))) {
     const category = String(body.error || body.code || "FAILED").replace(/[^\p{L}\p{N}_ -]/gu, "").slice(0, 80);

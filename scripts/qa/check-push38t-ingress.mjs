@@ -9,6 +9,11 @@ import { classifyPush38tIngressResponse, createPush38tIngress,
   push38tIngressAllows, push38tIngressRequestLimit
 } from "../../services/video-gateway/push38t-ota-ingress.mjs";
 
+const remoteIngressLauncher = readFileSync("scripts/qa/start-push38-remote-control-ingress.mjs", "utf8");
+assert.match(remoteIngressLauncher,
+  /session\.config\?\.r !== secrets\.result_token[\s\S]*PUSH38T_REMOTE_SESSION_PATH = sessionPath[\s\S]*PUSH38T_REMOTE_RESULT_EXPIRES_AT = String\(remoteResultExpiresAt\)/,
+"the protected launcher must bind the result token and exact expiry to the same phone session");
+
 const allowed = [
   ["POST", "/api/digital-observer/gateway-enrollment"],
   ["GET", "/api/video-gateway/edge-updates"],
