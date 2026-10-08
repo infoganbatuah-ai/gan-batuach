@@ -56,6 +56,8 @@ const gatewayExclusiveRecoveryUpgrade = process.argv.includes("--gateway-exclusi
 const gatewayPreacquireRescueUpgrade = process.argv.includes("--gateway-preacquire-rescue-upgrade");
 const gatewayPostReleaseReacquisitionUpgrade =
   process.argv.includes("--gateway-post-release-reacquisition-upgrade");
+const gatewayPreReleaseProbeSettlementUpgrade =
+  process.argv.includes("--gateway-pre-release-probe-settlement-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
@@ -65,6 +67,7 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
   gatewayRoutineProvisionalUpgrade, gatewaySessionAgeStabilityUpgrade, gatewayAiEvidenceUpgrade,
   gatewayMediaAcquisitionUpgrade, gatewayExclusiveRecoveryUpgrade, gatewayPreacquireRescueUpgrade,
   gatewayPostReleaseReacquisitionUpgrade,
+  gatewayPreReleaseProbeSettlementUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
@@ -81,7 +84,7 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   gatewayHandoffProbationUpgrade || gatewayRetainedFallbackUpgrade || gatewayContinuousHandoffUpgrade ||
   gatewayRoutineProvisionalUpgrade || gatewaySessionAgeStabilityUpgrade || gatewayAiEvidenceUpgrade ||
   gatewayMediaAcquisitionUpgrade || gatewayExclusiveRecoveryUpgrade || gatewayPreacquireRescueUpgrade ||
-  gatewayPostReleaseReacquisitionUpgrade ||
+  gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
   connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
@@ -98,7 +101,7 @@ if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayRetainedFallbackUpgrade && !gatewayContinuousHandoffUpgrade &&
   !gatewayRoutineProvisionalUpgrade && !gatewaySessionAgeStabilityUpgrade && !gatewayAiEvidenceUpgrade &&
   !gatewayMediaAcquisitionUpgrade && !gatewayExclusiveRecoveryUpgrade && !gatewayPreacquireRescueUpgrade &&
-  !gatewayPostReleaseReacquisitionUpgrade)
+  !gatewayPostReleaseReacquisitionUpgrade && !gatewayPreReleaseProbeSettlementUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
   gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade ||
@@ -107,7 +110,7 @@ if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayComm
   gatewayRetainedFallbackUpgrade || gatewayContinuousHandoffUpgrade || gatewayRoutineProvisionalUpgrade ||
   gatewaySessionAgeStabilityUpgrade || gatewayAiEvidenceUpgrade || gatewayMediaAcquisitionUpgrade ||
   gatewayExclusiveRecoveryUpgrade || gatewayPreacquireRescueUpgrade ||
-  gatewayPostReleaseReacquisitionUpgrade) &&
+  gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -207,7 +210,9 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayPostReleaseReacquisitionUpgrade
+  remediationRelease: gatewayPreReleaseProbeSettlementUpgrade
+    ? "qa-p38-health-gateway-pre-release-probe-settlement-64728222dd50" :
+    gatewayPostReleaseReacquisitionUpgrade
     ? "qa-p38-health-gateway-post-release-reacquisition-da073ca6a4e3" :
     gatewayPreacquireRescueUpgrade
     ? "qa-p38-health-gateway-preacquire-rescue-454c21cd03f9" :
@@ -233,7 +238,8 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayPostReleaseReacquisitionUpgrade ? "gateway_managed_auth_continuity.json" :
+  bundleName: gatewayPreReleaseProbeSettlementUpgrade ? "gateway_managed_auth_continuity.json" :
+    gatewayPostReleaseReacquisitionUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayPreacquireRescueUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayExclusiveRecoveryUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayMediaAcquisitionUpgrade ? "gateway_managed_auth_continuity.json" :
@@ -254,7 +260,10 @@ const spec = connector ? {
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayPostReleaseReacquisitionUpgrade ? {
+  priorManagement: gatewayPreReleaseProbeSettlementUpgrade ? {
+    release_id: "qa-p38-health-gateway-post-release-reacquisition-da073ca6a4e3",
+    artifact_sha256: "da073ca6a4e39d48422dcf965d0c789898917315f404559feaab0862000b9c99" } :
+    gatewayPostReleaseReacquisitionUpgrade ? {
     release_id: "qa-p38-health-gateway-preacquire-rescue-454c21cd03f9",
     artifact_sha256: "454c21cd03f952ae10915a7f5d19ad6db1131c9c0d286fbaba8ee25c7de9b99c" } :
     gatewayPreacquireRescueUpgrade ? {
@@ -327,7 +336,7 @@ const spec = connector ? {
     gatewayHandoffProbationUpgrade || gatewayRetainedFallbackUpgrade || gatewayContinuousHandoffUpgrade ||
     gatewayRoutineProvisionalUpgrade || gatewaySessionAgeStabilityUpgrade || gatewayAiEvidenceUpgrade ||
     gatewayMediaAcquisitionUpgrade || gatewayExclusiveRecoveryUpgrade || gatewayPreacquireRescueUpgrade ||
-    gatewayPostReleaseReacquisitionUpgrade
+    gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade
       ? 9 : 8, configured: 10
 };
 const root = join(homedir(), "Library/Application Support/Digital Observer", spec.rootName, "ota");
@@ -401,6 +410,8 @@ const bundle = resolve(bundleOverride || (connectorStartupRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewayPreReleaseProbeSettlementUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-pre-release-probe-settlement.zip"
   : gatewayPostReleaseReacquisitionUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-post-release-reacquisition.zip"
   : gatewayPreacquireRescueUpgrade
