@@ -16,9 +16,10 @@ type TaskItem = { id: string; title: string; subtitle?: string; href: string };
 type ClassroomItem = { id: string; name: string; assigned: number; capacity: number | null };
 
 export function ManagerOverviewDashboard({
-  garden, attendance, staff, safety, classrooms, enrollment, schedule, updates,
+  managerName, garden, attendance, staff, safety, classrooms, enrollment, schedule, updates,
   tasks, unreadMessages, finance, operations
 }: {
+  managerName: string;
   garden: { name: string; city: string; dateLabel: string };
   attendance: { present: number; absent: number; departed: number; total: number; notRecorded: number; completion: number };
   staff: { active: number; present: number; scheduled: number; missingClockOut: number };
@@ -49,8 +50,8 @@ export function ManagerOverviewDashboard({
       <section className="manager-command-hero" aria-labelledby="manager-command-title">
         <div className="manager-command-hero-copy">
           <span className="manager-command-eyebrow"><Building2 size={18} /> {garden.name}{garden.city ? ` · ${garden.city}` : ""}</span>
-          <h2 id="manager-command-title">מה קורה היום בגן?</h2>
-          <p>{garden.dateLabel} · תמונת מצב תפעולית ממקורות הגן המאומתים</p>
+          <h2 id="manager-command-title">בוקר טוב, {managerName}!</h2>
+          <p>כל יום הוא הזדמנות לגדול בביטחון · {garden.dateLabel}</p>
           <div className="manager-command-hero-actions">
             <Link href="/dashboard/garden/attendance">פתיחת נוכחות</Link>
             <Link href="/dashboard/garden/command-center">כל מה שדורש טיפול <span>{actionTotal}</span></Link>

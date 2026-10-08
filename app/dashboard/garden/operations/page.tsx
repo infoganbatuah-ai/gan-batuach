@@ -73,6 +73,7 @@ export default async function GardenOperationsPage() {
       {syntheticSession ? <div className="dashboard-environment-notice manager-demo-notice" role="status">סביבת בדיקה · נתונים סינתטיים בלבד</div> : null}
       {sourceErrors ? <div className="error-banner" role="alert">{sourceErrors} מקורות נתונים אינם זמינים כרגע. הכרטיסים האחרים ממשיכים להציג מידע מאומת.</div> : null}
       <ManagerOverviewDashboard
+        managerName={managerDisplayName}
         garden={{ name: cleanSyntheticLabel(String(garden?.name ?? ""), "הגן"), city: cleanSyntheticLabel(String(garden?.city ?? ""), ""), dateLabel }}
         attendance={{ present: attendance.present, absent: attendance.absent, departed: attendance.departed, total: attendance.expected, notRecorded: Math.max(0, attendance.expected - attendance.recorded), completion: attendance.completion }}
         staff={{ active: employmentRes.count ?? 0, scheduled: shifts.length, present: shifts.filter(row => row.actual_start && !row.actual_end).length, missingClockOut: shifts.filter(row => ["missing_clock_out", "correction_required"].includes(String(row.status))).length }}

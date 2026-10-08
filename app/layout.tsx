@@ -24,6 +24,7 @@ import "./styles/ux-implement-19.css";
 import "./styles/ux-visual-remediation-final.css";
 import "./styles/ux-reference-reconstruction-final.css";
 import "./styles/ux-literal-reference-reconstruction.css";
+import "./styles/ux-v4-primary-screen-correction.css";
 
 export const metadata: Metadata = {
   verification: {

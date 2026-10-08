@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "sourceDevelopmentSha": "5635988133ca8690aa28c8797d1c54ef6ca1e8e3",
+  "coordinateSystem": "normalized x/y/w/h in the extracted primary panel, values 0..1",
+  "materialTolerance": {
+    "position": 0.04,
+    "size": 0.06,
+    "note": "A larger delta requires correction or an explicit accessibility/capability-truth explanation."
+  },
+  "screens": {
+    "owner-dashboard": {
+      "referenceFile": "qa-evidence/v4-primary-reference-crops/owner-dashboard-primary.png",
+      "referencePixels": { "width": 1211, "height": 671 },
+      "reference": {
+        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.118, "h": 1.0 },
+        "header": { "x": 0.118, "y": 0.0, "w": 0.882, "h": 0.086 },
+        "hero": { "x": 0.118, "y": 0.086, "w": 0.882, "h": 0.218 },
+        "kpiRegion": { "x": 0.126, "y": 0.315, "w": 0.86, "h": 0.119 },
+        "primaryContent": { "x": 0.126, "y": 0.449, "w": 0.86, "h": 0.405 },
+        "quickActions": { "x": 0.126, "y": 0.873, "w": 0.86, "h": 0.111 }
+      },
+      "actual": null
+    },
+    "parent-assigned": {
+      "referenceFile": "qa-evidence/v4-primary-reference-crops/parent-assigned-primary.png",
+      "referencePixels": { "width": 560, "height": 309 },
+      "reference": {
+        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.17, "h": 1.0 },
+        "header": { "x": 0.17, "y": 0.0, "w": 0.83, "h": 0.14 },
+        "childSelector": { "x": 0.18, "y": 0.105, "w": 0.44, "h": 0.145 },
+        "primaryContent": { "x": 0.18, "y": 0.27, "w": 0.8, "h": 0.46 },
+        "quickActions": { "x": 0.18, "y": 0.77, "w": 0.8, "h": 0.2 }
+      },
+      "actual": null
+    },
+    "parent-multi-child": {
+      "referenceFile": "qa-evidence/v4-primary-reference-crops/parent-multi-child-primary.png",
+      "referencePixels": { "width": 560, "height": 309 },
+      "reference": {
+        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.17, "h": 1.0 },
+        "header": { "x": 0.17, "y": 0.0, "w": 0.83, "h": 0.14 },
+        "childSelector": { "x": 0.18, "y": 0.105, "w": 0.44, "h": 0.145 },
+        "primaryContent": { "x": 0.18, "y": 0.27, "w": 0.8, "h": 0.46 },
+        "quickActions": { "x": 0.18, "y": 0.77, "w": 0.8, "h": 0.2 }
+      },
+      "actual": null
+    },
+    "platform-admin": {
+      "referenceFile": "qa-evidence/v4-primary-reference-crops/platform-admin-primary.png",
+      "referencePixels": { "width": 1516, "height": 518 },
+      "reference": {
+        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.098, "h": 1.0 },
+        "header": { "x": 0.103, "y": 0.0, "w": 0.79, "h": 0.1 },
+        "kpiRegion": { "x": 0.108, "y": 0.11, "w": 0.675, "h": 0.15 },
+        "primaryContent": { "x": 0.108, "y": 0.28, "w": 0.675, "h": 0.42 },
+        "secondaryRegion": { "x": 0.79, "y": 0.0, "w": 0.205, "h": 0.7 },
+        "lowerOperational": { "x": 0.108, "y": 0.72, "w": 0.887, "h": 0.27 }
+      },
+      "actual": null
+    },
+    "settings": {
+      "referenceFile": "qa-evidence/v4-primary-reference-crops/settings-primary-desktop.png",
+      "referencePixels": { "width": 1516, "height": 544 },
+      "reference": {
+        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.095, "h": 1.0 },
+        "header": { "x": 0.095, "y": 0.0, "w": 0.905, "h": 0.095 },
+        "navigationColumn": { "x": 0.1, "y": 0.1, "w": 0.162, "h": 0.88 },
+        "profileColumn": { "x": 0.268, "y": 0.1, "w": 0.245, "h": 0.88 },
+        "securityColumn": { "x": 0.52, "y": 0.1, "w": 0.225, "h": 0.88 },
+        "gardenColumn": { "x": 0.752, "y": 0.1, "w": 0.243, "h": 0.88 }
+      },
+      "actual": null
+    }
+  }
+}
