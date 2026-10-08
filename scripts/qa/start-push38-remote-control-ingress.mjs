@@ -14,7 +14,8 @@ const keyPath = checked("tls-key");
 const certPath = checked("tls-cert");
 const secrets = JSON.parse(readFileSync(secretPath, "utf8"));
 if (secrets.protocol !== "observer-push38-remote-runtime-secrets-v1" ||
-  !/^[A-Za-z0-9_-]{43}$/.test(secrets.result_token || ""))
+  !/^[A-Za-z0-9_-]{43}$/.test(secrets.result_token || "") ||
+  !/^[A-Za-z0-9_-]{64}$/.test(secrets.cloud_discovery_secret || ""))
   throw new Error("P38_REMOTE_INGRESS_SECRET_INVALID");
 const sessionOption = option("session");
 let remoteResultExpiresAt = Date.now() + 20 * 60_000;
@@ -31,6 +32,7 @@ if (sessionOption) {
 }
 process.env.PUSH38T_REMOTE_RESULT_TOKEN = secrets.result_token;
 process.env.PUSH38T_REMOTE_RESULT_EXPIRES_AT = String(remoteResultExpiresAt);
+process.env.PUSH38T_VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET = secrets.cloud_discovery_secret;
 process.env.PUSH38T_TLS_KEY_PATH = keyPath;
 process.env.PUSH38T_TLS_CERT_PATH = certPath;
 await import("./start-push38t-ingress.mjs");

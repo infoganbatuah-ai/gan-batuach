@@ -34,7 +34,7 @@ if (!tunnel || !credentials || !realpathSync(credentials).startsWith(`${homedir(
 const scopedConfig = resolve(dirname(statePath), "cloudflared-scoped.yml");
 if (existsSync(scopedConfig)) throw new Error("P38_BOUNDED_CONTROL_SCOPED_CONFIG_EXISTS");
 writeFileSync(scopedConfig, `tunnel: ${tunnel}\ncredentials-file: ${credentials}\n\ningress:\n` +
-  `  - hostname: gateway.ganbatuach.com\n    path: ^/push38/remote-playback(/authorize|/result|/hls\\.js)?$\n` +
+  `  - hostname: gateway.ganbatuach.com\n    path: ^/push38/remote-playback(/authorize|/media-claim|/result|/hls\\.js)?$\n` +
   `    service: https://127.0.0.1:3101\n    originRequest:\n      noTLSVerify: true\n` +
   `  - service: http_status:404\n`, { flag: "wx", mode: 0o600 });
 execFileSync(cloudflared, ["--config", scopedConfig, "tunnel", "ingress", "validate"],
@@ -46,7 +46,8 @@ const state = {
   duration_seconds: durationSeconds,
   hostname: "gateway.ganbatuach.com",
   allowed_routes: ["/push38/remote-playback", "/push38/remote-playback/authorize",
-    "/push38/remote-playback/result", "/push38/remote-playback/hls.js"],
+    "/push38/remote-playback/media-claim", "/push38/remote-playback/result",
+    "/push38/remote-playback/hls.js"],
   default_deny: true,
   local_origin: "TLS_LOOPBACK_3101",
   secrets_logged: false,

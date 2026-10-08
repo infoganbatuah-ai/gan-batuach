@@ -4,6 +4,8 @@ import { lstatSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { timingSafeEqual } from "node:crypto";
 import { push38RemotePlaybackPage, sanitizePush38RemotePlaybackResult } from "./push38-remote-playback-page.mjs";
+import { assertPush38R2MediaCapability } from "./push38-r2-phone-media.mjs";
+import { verifyGatewayPlaybackGrant } from "../../lib/domain/gateway-device-enrollment.ts";
 
 const routes = new Set([
   "POST /api/digital-observer/gateway-enrollment",
@@ -23,6 +25,7 @@ const routes = new Set([
   "GET /push38/remote-playback",
   "GET /push38/remote-playback/hls.js",
   "POST /push38/remote-playback/authorize",
+  "POST /push38/remote-playback/media-claim",
   "POST /push38/remote-playback/result"
 ]);
 const forwardHeaders = new Set([
@@ -40,6 +43,7 @@ const remoteQualificationRoutes = new Set([
   "GET /push38/remote-playback",
   "GET /push38/remote-playback/hls.js",
   "POST /push38/remote-playback/authorize",
+  "POST /push38/remote-playback/media-claim",
   "POST /push38/remote-playback/result"
 ]);
 
@@ -92,13 +96,24 @@ function exactEqual(left, right) {
   return a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
 }
 
+export function push38RemoteClientClass(userAgent) {
+  const value = String(userAgent || "");
+  if (/\b(?:iPhone|iPad|iPod)\b/i.test(value)) return "IOS_PHONE_OR_TABLET";
+  if (/\bAndroid\b/i.test(value) && /\bMobile\b/i.test(value)) return "ANDROID_PHONE";
+  return "NON_PHONE_CLIENT";
+}
+
 export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null,
   remoteResultToken = "", remoteResultExpiresAt = 0, remoteSession = null, now = Date.now,
+  playbackGrantSecret = "",
   onRemoteResult = () => {}, onAudit = () => {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
     throw new Error("QA_INGRESS_ORIGIN_NOT_LOOPBACK");
   if (tls && (!tls.keyPath || !tls.certPath)) throw new Error("QA_INGRESS_TLS_MATERIAL_REQUIRED");
+  if (remoteSession && (typeof playbackGrantSecret !== "string" || playbackGrantSecret.length < 43 ||
+    playbackGrantSecret.length > 512 || /\s/.test(playbackGrantSecret)))
+    throw new Error("QA_INGRESS_PLAYBACK_GRANT_SECRET_INVALID");
   const handler = async (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
     const remoteSessionMatch = request.method === "GET" && url.pathname === "/push38/remote-playback" &&
@@ -155,11 +170,60 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
           return;
         }
         const result = sanitizePush38RemotePlaybackResult(JSON.parse(Buffer.concat(chunks).toString("utf8")));
-        onRemoteResult(result);
+        const verifiedClientClass = push38RemoteClientClass(request.headers["user-agent"]);
+        if (result.pass && verifiedClientClass === "NON_PHONE_CLIENT") {
+          onAudit({ method: request.method, pathname: url.pathname,
+            outcome: "REMOTE_RESULT_NON_PHONE_DENIED", status: 422 });
+          response.writeHead(422, { "cache-control": "no-store" }).end();
+          return;
+        }
+        onRemoteResult({ ...result, verified_client_class: verifiedClientClass });
         onAudit({ method: request.method, pathname: url.pathname, outcome: "REMOTE_RESULT", status: 202,
-          responseClass: result.pass ? "PASS" : "FAIL" });
+          responseClass: result.pass ? `PASS:${verifiedClientClass}` : `FAIL:${verifiedClientClass}` });
         response.writeHead(202, { "cache-control": "no-store", "content-type": "application/json" })
           .end('{"accepted":true}');
+        return;
+      }
+      if (url.pathname === "/push38/remote-playback/media-claim") {
+        const authorization = request.headers.authorization;
+        const sessionId = request.headers["x-push38-session-id"];
+        let input = null;
+        try { input = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { /* fail closed below */ }
+        const keys = input && typeof input === "object" && !Array.isArray(input)
+          ? Object.keys(input).sort() : [];
+        const source = remoteSession?.config?.c?.find(item => item?.i === input?.camera_source_id);
+        const playlist = String(source?.q || "");
+        let playlistValid = false;
+        try { assertPush38R2MediaCapability(playlist, remoteSession?.session_id); playlistValid = true; }
+        catch { /* fail closed below */ }
+        const inScope = remoteSession && exactEqual(sessionId, remoteSession.session_id) &&
+          safeEqual(authorization, `Bearer ${remoteSession.config?.t || ""}`) &&
+          keys.join(",") === "camera_source_id,grant" && source?.e === "ALLOW" && source?.p === true &&
+          typeof input.grant === "string" && input.grant.length >= 32 && input.grant.length <= 8192 &&
+          playlistValid;
+        if (!inScope) {
+          const status = authorization ? 404 : 401;
+          onAudit({ method: request.method, pathname: url.pathname,
+            outcome: "QUALIFICATION_MEDIA_SCOPE_DENIED", status });
+          response.writeHead(status, { "cache-control": "no-store" }).end();
+          return;
+        }
+        const grant = verifyGatewayPlaybackGrant(input.grant, playbackGrantSecret);
+        const expectedGatewayId = source.k === "DVR"
+          ? "62df97e2-3c0b-427f-9108-bde029bc10e7"
+          : source.k === "TAPO" ? "db267b52-6282-4944-bcee-5d4857698fb0" : "";
+        if (!grant || grant.camera_source_id !== source.i ||
+          grant.observer_site_id !== remoteSession.config.s || grant.gateway_id !== expectedGatewayId) {
+          onAudit({ method: request.method, pathname: url.pathname,
+            outcome: "QUALIFICATION_MEDIA_GRANT_REJECTED", status: 403 });
+          response.writeHead(403, { "cache-control": "no-store" }).end();
+          return;
+        }
+        onAudit({ method: request.method, pathname: url.pathname,
+          outcome: "QUALIFICATION_MEDIA_GRANTED", status: 200, responseClass: source.k });
+        response.writeHead(200, { "cache-control": "private, no-store", "content-type": "application/json",
+          "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" })
+          .end(JSON.stringify({ private_source_hidden: true, playback: { hls_url: playlist } }));
         return;
       }
       let upstreamPath = url.pathname + url.search;

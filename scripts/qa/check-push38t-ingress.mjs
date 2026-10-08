@@ -6,12 +6,13 @@ import { request as secureRequest } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { classifyPush38tIngressResponse, createPush38tIngress,
-  push38tIngressAllows, push38tIngressRequestLimit
+  push38RemoteClientClass, push38tIngressAllows, push38tIngressRequestLimit
 } from "../../services/video-gateway/push38t-ota-ingress.mjs";
+import { issueGatewayPlaybackGrant } from "../../lib/domain/gateway-device-enrollment.ts";
 
 const remoteIngressLauncher = readFileSync("scripts/qa/start-push38-remote-control-ingress.mjs", "utf8");
 assert.match(remoteIngressLauncher,
-  /session\.config\?\.r !== secrets\.result_token[\s\S]*PUSH38T_REMOTE_SESSION_PATH = sessionPath[\s\S]*PUSH38T_REMOTE_RESULT_EXPIRES_AT = String\(remoteResultExpiresAt\)/,
+  /session\.config\?\.r !== secrets\.result_token[\s\S]*PUSH38T_REMOTE_SESSION_PATH = sessionPath[\s\S]*PUSH38T_REMOTE_RESULT_EXPIRES_AT = String\(remoteResultExpiresAt\)[\s\S]*PUSH38T_VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET = secrets\.cloud_discovery_secret/,
 "the protected launcher must bind the result token and exact expiry to the same phone session");
 
 const allowed = [
@@ -32,6 +33,7 @@ const allowed = [
   ["GET", "/push38/remote-playback"],
   ["GET", "/push38/remote-playback/hls.js"],
   ["POST", "/push38/remote-playback/authorize"],
+  ["POST", "/push38/remote-playback/media-claim"],
   ["POST", "/push38/remote-playback/result"]
 ];
 for (const [method, path] of allowed) assert.equal(push38tIngressAllows(method, path), true);
@@ -49,6 +51,12 @@ assert.equal(push38tIngressRequestLimit("POST", "/api/video-gateway/device-heart
 assert.equal(push38tIngressRequestLimit("POST", "/api/video-gateway/cloud-event-media"),
   8 * 1024 * 1024 + 64 * 1024);
 assert.equal(push38tIngressRequestLimit("GET", "/api/video-gateway/cloud-discovery"), 8192);
+assert.equal(push38RemoteClientClass("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)"),
+  "IOS_PHONE_OR_TABLET");
+assert.equal(push38RemoteClientClass("Mozilla/5.0 (Linux; Android 15; Pixel) AppleWebKit Mobile"),
+  "ANDROID_PHONE");
+assert.equal(push38RemoteClientClass("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"),
+  "NON_PHONE_CLIENT");
 const origin = createServer((request, response) => response.writeHead(401, { "content-type": "application/json",
   "set-cookie": "should-not-forward=1" }).end(JSON.stringify({ denied: true, path: request.url })));
 await new Promise(resolve => origin.listen(0, "127.0.0.1", resolve));
@@ -58,14 +66,18 @@ const remoteQualificationDeadline = Date.now() + 60_000;
 let qualificationNow = remoteQualificationDeadline - 1;
 const remoteAccessToken = "header-value-0000.payload-value-0000.signature-value-0000";
 const remoteSourceId = "00000000-0000-4000-8000-000000000002";
-const remoteSession = { session_id: "short-session-id-1234", expires_at_ms: remoteQualificationDeadline,
+const remoteSessionId = "short-session-id-12345";
+const playbackGrantSecret = "qualification-playback-secret-00000000000000000000000000000000";
+const remoteGatewayId = "62df97e2-3c0b-427f-9108-bde029bc10e7";
+const remoteSession = { session_id: remoteSessionId, expires_at_ms: remoteQualificationDeadline,
   config: { t: remoteAccessToken, r: "qualification-result-token-00000000000000000000",
     s: "00000000-0000-4000-8000-000000000001",
-    c: [{ i: remoteSourceId, e: "ALLOW", l: "DVR CH1", k: "DVR", p: true }] } };
+    c: [{ i: remoteSourceId, e: "ALLOW", l: "DVR CH1", k: "DVR", p: true,
+      q: `https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com/digital-observer-releases/home-qa-media/${remoteSessionId}/test/index.m3u8?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=test&X-Amz-Date=20261008T000000Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=${"b".repeat(64)}` }] } };
 const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}`,
   remoteResultToken: "qualification-result-token-00000000000000000000",
   remoteResultExpiresAt: remoteQualificationDeadline,
-  remoteSession,
+  remoteSession, playbackGrantSecret,
   now: () => qualificationNow,
   onRemoteResult: result => remoteResults.push(result),
   onAudit: event => audit.push(event) });
@@ -102,6 +114,25 @@ try {
       camera_source_id: "00000000-0000-4000-8000-000000000099", mode: "live" }) })).status, 404);
   assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
     headers: { ...authorizeHeaders, authorization: "" }, body: authorizeBody })).status, 401);
+  const validMediaGrant = issueGatewayPlaybackGrant({ gateway_id: remoteGatewayId,
+    observer_site_id: remoteSession.config.s, camera_source_id: remoteSourceId,
+    gateway_stream_id: "test-stream" }, playbackGrantSecret);
+  const mediaClaimBody = JSON.stringify({ camera_source_id: remoteSourceId, grant: validMediaGrant });
+  assert.equal((await fetch(base + "/push38/remote-playback/media-claim", { method: "POST",
+    headers: { ...authorizeHeaders, "x-push38-session-id": "wrong-session-id-12345" },
+    body: mediaClaimBody })).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback/media-claim", { method: "POST",
+    headers: { "content-type": "application/json", "x-push38-session-id": remoteSession.session_id },
+    body: mediaClaimBody })).status, 401);
+  const mediaClaim = await fetch(base + "/push38/remote-playback/media-claim", { method: "POST",
+    headers: authorizeHeaders, body: mediaClaimBody });
+  assert.equal(mediaClaim.status, 200);
+  const mediaClaimResult = await mediaClaim.json();
+  assert.equal(mediaClaimResult.private_source_hidden, true);
+  assert.equal(mediaClaimResult.playback.hls_url, remoteSession.config.c[0].q);
+  assert.equal((await fetch(base + "/push38/remote-playback/media-claim", { method: "POST",
+    headers: authorizeHeaders, body: JSON.stringify({ camera_source_id: remoteSourceId,
+      grant: `${validMediaGrant.slice(0, -1)}x` }) })).status, 403);
   const resultPayload = { protocol: "observer-push38-remote-client-proof-v1",
     started_at: "2026-10-03T00:00:00.000Z", completed_at: "2026-10-03T00:00:12.000Z",
     client_class: "OWNER_PHONE_BROWSER", edge_software_installed: false, pass: true,
@@ -113,14 +144,23 @@ try {
     body: JSON.stringify(resultPayload) })).status, 401);
   assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
     headers: { "content-type": "application/json",
-      "x-push38-result-token": "qualification-result-token-00000000000000000000" },
+      "x-push38-result-token": "qualification-result-token-00000000000000000000",
+      "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" },
     body: JSON.stringify(resultPayload) })).status, 202);
   assert.equal(remoteResults.length, 1);
   assert.equal(remoteResults[0].pass, true);
+  assert.equal(remoteResults[0].verified_client_class, "IOS_PHONE_OR_TABLET");
+  assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
+    headers: { "content-type": "application/json",
+      "x-push38-result-token": "qualification-result-token-00000000000000000000",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" },
+    body: JSON.stringify(resultPayload) })).status, 422);
+  assert.equal(remoteResults.length, 1);
   const failedPayload = { ...resultPayload, pass: false, error: "REMOTE_CLIENT_FAILED", results: [] };
   assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
     headers: { "content-type": "application/json",
-      "x-push38-result-token": "qualification-result-token-00000000000000000000" },
+      "x-push38-result-token": "qualification-result-token-00000000000000000000",
+      "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" },
     body: JSON.stringify(failedPayload) })).status, 202);
   assert.equal(remoteResults.length, 2);
   assert.equal(remoteResults[1].pass, false);
@@ -134,6 +174,8 @@ try {
     headers: { "content-type": "application/json" }, body: "{}" })).status, 404);
   assert.equal((await fetch(base + "/push38/remote-playback/authorize", { method: "POST",
     headers: authorizeHeaders, body: authorizeBody })).status, 404);
+  assert.equal((await fetch(base + "/push38/remote-playback/media-claim", { method: "POST",
+    headers: authorizeHeaders, body: mediaClaimBody })).status, 404);
   assert.equal((await fetch(base + "/push38/remote-playback/result", { method: "POST",
     headers: { "content-type": "application/json",
       "x-push38-result-token": "qualification-result-token-00000000000000000000" },
@@ -159,8 +201,10 @@ try {
     event.outcome === "FORWARDED" && event.status === 401).length, 5);
   assert.equal(audit.some(event => event.pathname === "/api/video-gateway/playback-grant" &&
     event.outcome === "FORWARDED" && event.status === 401), true);
+  assert.equal(audit.some(event => event.pathname === "/push38/remote-playback/media-claim" &&
+    event.outcome === "QUALIFICATION_MEDIA_GRANTED" && event.status === 200), true);
   const boundedExposure = readFileSync("scripts/qa/start-push38-bounded-control-exposure.mjs", "utf8");
-  assert.match(boundedExposure, /\/push38\/remote-playback\(\/authorize\|\/result\|\/hls\\\\\.js\)\?/);
+  assert.match(boundedExposure, /\/push38\/remote-playback\(\/authorize\|\/media-claim\|\/result\|\/hls\\\\\.js\)\?/);
   assert.doesNotMatch(boundedExposure, /path: \^\/api\/digital-observer\/dvr-gateway/);
   console.log(JSON.stringify({ status: "PASS", allowedRoutes: allowed.length,
     dashboard: "DENY", admin: "DENY", unrelatedApi: "DENY", supabase: "DENY", anonymousPrivileged: "DENY" }));

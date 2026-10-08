@@ -9,6 +9,7 @@ const certPath = process.env.PUSH38T_TLS_CERT_PATH;
 if (!keyPath || !certPath) throw new Error("QA_INGRESS_TLS_MATERIAL_REQUIRED");
 const remoteResultToken = process.env.PUSH38T_REMOTE_RESULT_TOKEN || "";
 const remoteResultExpiresAt = Number(process.env.PUSH38T_REMOTE_RESULT_EXPIRES_AT || 0);
+const playbackGrantSecret = process.env.PUSH38T_VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
 const remoteSessionPath = process.env.PUSH38T_REMOTE_SESSION_PATH || "";
 let remoteSession = null;
 if (remoteSessionPath) {
@@ -26,7 +27,7 @@ if (remoteSessionPath) {
   remoteSession = { session_id: payload.session_id, expires_at_ms: expiresAt, config: payload.config };
 }
 const server = createPush38tIngress({ tls: { keyPath, certPath },
-  remoteResultToken, remoteResultExpiresAt, remoteSession,
+  remoteResultToken, remoteResultExpiresAt, remoteSession, playbackGrantSecret,
   onRemoteResult: result => process.stdout.write(`${JSON.stringify({ at: new Date().toISOString(),
     event: "PUSH38_REMOTE_CLIENT_RESULT", result })}\n`),
   onAudit: event => process.stdout.write(`${JSON.stringify({ at: new Date().toISOString(), ...event })}\n`) });

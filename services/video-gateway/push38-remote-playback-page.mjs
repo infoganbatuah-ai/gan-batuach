@@ -34,13 +34,16 @@ async function authorize(config,source){
 }
 async function claim(source,playback){
   if(!safeRemote(playback.claim_url))throw new Error("REMOTE_CLAIM_URL_INVALID");
-  const response=await fetch(playback.claim_url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({grant:playback.grant}),cache:"no-store",signal:AbortSignal.timeout(20000)});
+  const qualification=typeof source.qualificationPlaylist==="string"&&source.qualificationPlaylist.length>0;
+  const claimUrl=qualification?"/push38/remote-playback/media-claim":playback.claim_url;
+  const response=await fetch(claimUrl,{method:"POST",headers:{"content-type":"application/json",...(qualification?{"authorization":"Bearer "+source.accessToken,"x-push38-session-id":source.sessionId}:{})},body:JSON.stringify(qualification?{camera_source_id:source.id,grant:playback.grant}:{grant:playback.grant}),cache:"no-store",signal:AbortSignal.timeout(20000)});
   const body=await response.json().catch(()=>({}));
   if(!response.ok||!safeRemote(body.playback?.hls_url))throw new Error("REMOTE_MEDIA_CLAIM_FAILED");
   const card=document.createElement("section");card.className="card";const title=document.createElement("strong");title.textContent=source.label;card.append(title);
   const video=document.createElement("video");video.controls=true;video.muted=true;video.autoplay=true;video.playsInline=true;card.append(video);videos.append(card);
   let hls=null;
   if(video.canPlayType("application/vnd.apple.mpegurl")){video.src=body.playback.hls_url}
+  else if(qualification&&source.nativeOnly)throw new Error("REMOTE_NATIVE_HLS_REQUIRED");
   else if(globalThis.Hls?.isSupported()){hls=new globalThis.Hls({enableWorker:true});hls.loadSource(body.playback.hls_url);hls.attachMedia(video);
     await bounded(new Promise((resolve,reject)=>{hls.once(globalThis.Hls.Events.MANIFEST_PARSED,resolve);hls.once(globalThis.Hls.Events.ERROR,(_,data)=>{if(data?.fatal)reject(new Error("REMOTE_HLS_FATAL"))})}),20000,"REMOTE_HLS_MANIFEST_TIMEOUT")}
   else throw new Error("REMOTE_HLS_UNSUPPORTED");
@@ -54,7 +57,8 @@ run.addEventListener("click",async()=>{
   run.disabled=true;summary.textContent="הבדיקה פועלת…";const startedAt=new Date().toISOString();let config;
   try{const raw=decodeFragment();config={accessToken:raw.accessToken||raw.t,resultToken:raw.resultToken||raw.r,siteId:raw.siteId||raw.s,sessionId:raw.sessionId||raw.sid,
     sources:(raw.sources||raw.c||[]).map(source=>({id:source.id||source.i,label:source.label||source.l,kind:source.kind||source.k,
-      expect:source.expect||source.e,play:source.play===true||source.p===true}))};history.replaceState(null,"",location.pathname);
+      expect:source.expect||source.e,play:source.play===true||source.p===true,qualificationPlaylist:source.qualificationPlaylist||source.q||"",
+      nativeOnly:source.nativeOnly===true||source.n===true}))};history.replaceState(null,"",location.pathname);
     const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if(config.accessToken.split(".").length!==3||!/^[A-Za-z0-9_-]{43}$/.test(config.resultToken)||!uuid.test(config.siteId)||!/^[A-Za-z0-9_-]{22}$/.test(config.sessionId)||
       !Array.isArray(config.sources)||config.sources.length!==11||new Set(config.sources.map(source=>source.id)).size!==11||
@@ -65,7 +69,7 @@ run.addEventListener("click",async()=>{
       const auth=await authorize(config,source);const allowed=auth.status===200&&auth.body?.data?.playback;
       const expected=source.expect==="ALLOW"?Boolean(allowed):!allowed;
       const item={label:source.label,kind:source.kind,authorization_status:auth.status,authorization_expected:expected};
-      if(allowed){item.remote_url_https=safeRemote(auth.body.data.playback.claim_url);item.localhost_absent=item.remote_url_https;if(source.play)item.media=await claim(source,auth.body.data.playback)}
+      if(allowed){item.remote_url_https=safeRemote(auth.body.data.playback.claim_url);item.localhost_absent=item.remote_url_https;if(source.play)item.media=await claim({...source,accessToken:config.accessToken,sessionId:config.sessionId},auth.body.data.playback)}
       results.push(item);
     }
     const pass=results.every(item=>item.authorization_expected&&item.localhost_absent!==false&&(!item.media||item.media.moving));
