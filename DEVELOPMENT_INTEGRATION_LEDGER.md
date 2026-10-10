@@ -975,3 +975,32 @@ Fresh V8 run `push38-gateway-0.2.95-v8-20261008T224318Z` started at
 its duration is not reused. This unit is `PRESERVED_PENDING_INTEGRATION` and
 `BLOCKED_UNTIL_V8_PASS`; PUSH 38 is not done. Main and Production remain
 unchanged, and PUSH 39 has not started.
+
+Owner-authorized consolidated Production release receipt (2026-10-11): the
+owner explicitly authorized the frozen non-PUSH-38 candidate, its required
+Production configuration, one main merge/deployment sequence and the 17
+reviewed Supabase migrations. PR #182 merged the consolidated candidate as
+`3848f7fcc8a0c9be6364bedb9add1e9d5cd35b89`; its first Vercel build exposed
+the missing dedicated hash-pepper prerequisite and did not become the final
+current deployment. The narrowly scoped compatibility fix in PR #183 passed
+all required checks at
+`5846c9d726eb456c8c25dd75581df00612542491` and merged to main as
+`2da8f75abce610a9a979eecd752d7a6a1011641e`. Vercel deployment
+`GneHPHF1NyWZYrrepnL7rw4JEFrr` is `Ready`, `Production` and `Current` for
+`ganbatuach.com`; `/`, `/login`, `/forgot-password`,
+`/digital-observer/login` and `/api/health` returned HTTP 200, and health
+reported both application and Supabase `ok`.
+
+Supabase Production applied the 17 reviewed migrations in two dependency-
+ordered phases and linked remote history was verified through
+`20260928010000`. Post-apply checks preserved one real Auth/profile identity,
+two active device slots, one membership and 17 cameras. No user was deleted,
+no Auth password was changed and no email was sent. Migration
+`20260920170000` removed only the legacy plaintext `temporary_password`
+column; 23 non-secret credential-history rows remained. The latest observed
+Vercel cycle showed `$0.30 / $20.00` included credit used, with the Pro base
+subscription unchanged. No paid add-on or plan upgrade was activated. PUSH 38
+and its draft/qualification branches were expressly excluded and untouched.
+The one-time Production authorization is consumed; future main merges,
+Production deployments or Production migrations again require a new explicit
+owner instruction.
