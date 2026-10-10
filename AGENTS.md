@@ -114,6 +114,13 @@ This contract supersedes all per-PUSH main merges, daily release PRs, midnight r
 
 ### Explicit owner release only
 
+#### Pre-launch monthly consolidation
+
+- While the Product is still explicitly in Development/Pre-Revenue, the owner may authorize one consolidated monthly merge of all validated eligible Development work to `main` in order to preserve a complete baseline and trigger at most one Vercel deployment. This is a code/deployment consolidation, not a declaration of commercial launch, paying-user readiness or general availability.
+- The monthly consolidation still requires an exact frozen candidate, required CI on that candidate, exclusion of BLOCKED/incomplete work, one PR, one merge and verification of the resulting deployment. It does not require inventing a paying-user denominator when there are no paying users; instead record the fixed pre-revenue burn and projected break-even user count.
+- Database migration execution remains a separate explicit operation. A merge may preserve reviewed migration files in Git without applying them to Production. Never run an irreversible or customer-impacting migration merely because the monthly code consolidation was authorized; record unapplied migrations and compatibility limitations truthfully.
+- PUSH 38 and any other explicitly excluded stream remain outside the monthly candidate even when their tracking documents or PRs exist. No automatic release timer is created by this exception.
+
 1. Begin only after a new explicit owner instruction such as “Release to Production”, “Merge everything approved to main and deploy”, or “Deploy the current integration state”. Record the instruction and selection: all READY work or selected READY work. Never silently include BLOCKED/incomplete work.
 2. Establish one release owner and no overlapping release. Freeze the exact integration/release-candidate SHA; later development must not enter it silently. Record base main, source commits, release ID, migration order, rollback revision and target Vercel project.
 3. Reconcile development/migration ledgers against remote feature branches and candidate ancestry/diffs. Enumerate INCLUDED, EXCLUDED+reason, BLOCKED+reason. Audit orphan branches, worktrees, stashes and uncommitted work; intended Product work must not remain only local.

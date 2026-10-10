@@ -2,9 +2,9 @@
 
 ## Decision
 
-`BLOCKED BEFORE MAIN — NO PRODUCTION MUTATION`
+`AUTHORIZED MONTHLY PRE-LAUNCH CONSOLIDATION — DATABASE MIGRATIONS REMAIN SEPARATE`
 
-The owner explicitly authorized a consolidated release on 2026-10-10. The release candidate was frozen, validated and kept separate from PUSH 38. Mandatory live preflight gates still block the merge, migrations and deployment, so `main`, Supabase Production schema and the current Vercel Production deployment remain unchanged.
+The owner explicitly authorized a consolidated release on 2026-10-10 and clarified that this is a monthly pre-launch code consolidation while the Product remains in Development/Pre-Revenue. The release candidate was frozen, validated and kept separate from PUSH 38. The authorized action is one PR, one merge to `main` and at most one Vercel deployment. Supabase Production migration execution remains a separate operation; irreversible migration 12 is not authorized by the code merge.
 
 ## Frozen release identity
 
@@ -44,13 +44,13 @@ The owner explicitly authorized a consolidated release on 2026-10-10. The releas
 - Production migration history remains at `20260913194000`.
 - Seventeen reviewed local migrations are pending Production, including the later `20260928010000_management_staff_candidate_manager_review.sql`. No migration was applied.
 
-## Blocking release gates
+## Gates deferred to commercial launch or a separately authorized database operation
 
 1. The last verified credential inventory still has 22 legitimate legacy accounts without independent canonical recovery proof and one synthetic QA record. Migration 12 irreversibly drops the plaintext field and remains prohibited until the recovery/customer-communication workflow is completed and re-audited.
 2. The five required Vercel Production settings listed above are not configured.
 3. A current physical database backup exists, but a non-destructive provider restore has not been proven and a durable private-Storage recovery target/retention decision is not recorded.
-4. The all-in maximum of ₪15 per active paying user is not certified. The live Supabase denominator is only one monthly active user, while the project already has at least the Vercel Pro and Supabase Pro fixed commitments; the active-paying-user denominator and complete supplier invoice allocation remain unavailable.
+4. There are currently zero paying users because the Product is still in Development. Cost per paying user is therefore undefined; record fixed pre-revenue burn and the projected break-even count instead of treating the absence of paying users as a failed monthly code-consolidation gate.
 
 ## Required next action
 
-Keep the RC preserved without opening or merging the consolidated Production PR. Obtain explicit owner decisions for customer recovery communication, the temporary restore cost/alternative, private-Storage recovery retention, and the verified active-paying-user/supplier allocation. Then configure the five zero-fixed-cost Production settings, re-run the live credential and recovery gates, refresh the RC evidence, and only then open the single consolidated PR to `main`.
+Open one consolidated PR to `main`, wait for the exact-head required checks, merge once, and verify that Vercel creates no more than the single expected deployment. Do not apply the 17 pending Supabase migrations, send recovery communication, create a paid restore target or claim commercial-launch readiness as part of this monthly consolidation.
