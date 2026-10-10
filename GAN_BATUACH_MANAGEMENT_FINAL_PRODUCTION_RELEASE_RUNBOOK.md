@@ -59,7 +59,7 @@ Re-read the migration ledger and schema. If the application-compatible phase-1 s
 3. Record deployment ID, built commit, build result, domain alias/TLS state and health.
 4. Verify the new application is serving before phase 2. If it fails while the phase-1 schema remains backward compatible, roll back to the recorded previous Vercel deployment and stop.
 
-## Phase D — migrations 12–16
+## Phase D — migrations 12–17
 
 **POINT OF NO RETURN: immediately before migration 12.** Reassert `LEGACY CREDENTIAL REMEDIATION COMPLETE`, current backup/restore acceptance, new app health and exact migration order. If any is false, ABORT.
 
@@ -70,6 +70,7 @@ Re-read the migration ledger and schema. If the application-compatible phase-1 s
 | 14 | `20260922100000_management_enrollment_audit_role_fix.sql` | enrollment decision audit actor preserved | reapply prior RPC/forward fix |
 | 15 | `20260922110000_management_enrollment_activation_audit_role_fix.sql` | activation audit actor preserved; no unsolicited payment mutation | reapply prior RPC/forward fix |
 | 16 | `20260922120000_management_parent_notification_category_fix.sql` | parent notification taxonomy/constraint valid | rollback/forward fix |
+| 17 | `20260928010000_management_staff_candidate_manager_review.sql` | candidate profile SELECT policy permits only the candidate, Admin, or a manager linked through an application to a Garden they manage | rollback the policy transaction or apply a reviewed forward policy fix |
 
 After migration 12 commits, never blindly roll back to the old Production application. Database rollback means coordinated provider recovery or a reviewed forward repair, with Auth and Storage consistency assessed.
 

@@ -1,13 +1,13 @@
 {
   "schemaVersion": "gan-batuach-management-release-manifest-v1",
-  "generatedAt": "2026-09-23",
+  "generatedAt": "2026-10-10",
   "qualificationState": "BLOCKED_OWNER_ACTIONS_REQUIRED",
-  "sourceIntegrationSha": "3c2398647e5bfabbc3f4f5e03c9ad3a5f14c2dad",
-  "rcCommitSha": null,
-  "rcFreezeReason": "A Production-releasable RC cannot be frozen until credential remediation, required Production configuration and provider restore acceptance are complete.",
+  "sourceIntegrationSha": "2f8ed2b892201049731a810d118ec15317302692",
+  "rcCommitSha": "408a7ef1e8829cc462c673e688b861416df99447",
+  "rcFreezeReason": "The exact consolidated RC is frozen and locally validated, but Production release is blocked until credential remediation, required Production configuration, recovery acceptance and the all-in cost gate are complete.",
   "targetProductionSha": "8113d0607e4282dc8778540aa58c1502367f4221",
   "productionMigrationHeadObserved": "20260913194000",
-  "expectedFinalMigrationCount": 243,
+  "expectedFinalMigrationCount": 244,
   "pendingMigrations": [
     "20260913210000_management_canonical_messaging_threads.sql",
     "20260913211000_management_messaging_qa_hardening.sql",
@@ -24,12 +24,13 @@
     "20260921150000_management_staff_candidate_private_documents.sql",
     "20260922100000_management_enrollment_audit_role_fix.sql",
     "20260922110000_management_enrollment_activation_audit_role_fix.sql",
-    "20260922120000_management_parent_notification_category_fix.sql"
+    "20260922120000_management_parent_notification_category_fix.sql",
+    "20260928010000_management_staff_candidate_manager_review.sql"
   ],
   "migrationPhases": {
     "phase1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     "applicationDeploy": "Deploy the exact owner-authorized compatible RC after phase 1.",
-    "phase2": [12, 13, 14, 15, 16],
+    "phase2": [12, 13, 14, 15, 16, 17],
     "pointOfNoReturn": "Before migration 12. After its commit, do not roll back to the old Production application."
   },
   "requiredConfiguration": [
@@ -68,7 +69,7 @@
     "external_push_or_transactional_email_when_not_provider_verified"
   ],
   "backupRequirements": {
-    "databaseDailyPhysicalBackups": "VERIFIED_PRESENT_8_CONSECUTIVE_DAYS",
+    "databaseDailyPhysicalBackups": "VERIFIED_PRESENT_THROUGH_2026_10_10",
     "databaseProviderRestore": "NOT_PROVED_NON_DESTRUCTIVELY",
     "databaseSyntheticLogicalRestore": "PASS",
     "privateStorageSyntheticExportRestore": "PASS",
@@ -76,6 +77,7 @@
     "pitr": "DISABLED"
   },
   "credentialRemediation": {
+    "lastVerifiedAt": "2026-09-23",
     "populatedRecords": 23,
     "requiresUserRecovery": 22,
     "syntheticQa": 1,
@@ -87,7 +89,7 @@
     "required Production URL, deep-health, cron and hash-pepper configuration is not complete",
     "provider-managed database restore and durable private Storage recovery are not accepted/proven",
     "current all-in cost per active paying user is not certified",
-    "no exact RC/window/main/migration/deployment authorization exists"
+    "owner release authorization was recorded on 2026-10-10; remaining abort gates still block mutation"
   ],
   "releaseAbortGates": [
     "exact RC or main baseline mismatch",
