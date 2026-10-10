@@ -60,6 +60,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   privateNvrRoutineHandoffSchedule,
   shouldRefreshPrivateNvrSession,
   shouldBeginPrivateNvrFiniteResponseRecovery,
+  shouldBeginCorrelatedPrivateNvrHardwareRecovery,
   shouldDeferCorrelatedPrivateNvrSilentResponseRescue,
   shouldRetainPrivateNvrRejectedCandidateHls } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
@@ -674,6 +675,32 @@ test("a healthy recorder-wide silence cannot become parallel exact-channel rescu
   assert.match(server,
     /silentResponseCounts[\s\S]*correlatedSilentResponseSessions[\s\S]*correlated_silent_response_deferred_at[\s\S]*continue;/,
   "the handoff scheduler must defer correlated silence before owner release");
+});
+
+test("a proven correlated hardware stall uses retained-HLS canonical recovery", () => {
+  assert.equal(shouldBeginCorrelatedPrivateNvrHardwareRecovery({
+    hardwareOutputStalled: true, correlatedHardwareStallCount: 9,
+    heartbeatConsecutiveFailures: 0
+  }), true, "the measured nine-channel VideoToolbox stall must recover before HLS hard stale");
+  assert.equal(shouldBeginCorrelatedPrivateNvrHardwareRecovery({
+    hardwareOutputStalled: true, correlatedHardwareStallCount: 2,
+    heartbeatConsecutiveFailures: 0
+  }), false, "the two recorder-safe rescue lanes keep isolated stalls on warm handoff");
+  assert.equal(shouldBeginCorrelatedPrivateNvrHardwareRecovery({
+    hardwareOutputStalled: false, correlatedHardwareStallCount: 9,
+    heartbeatConsecutiveFailures: 0
+  }), false, "correlated silence without fresh-input hardware evidence stays deferred");
+  assert.equal(shouldBeginCorrelatedPrivateNvrHardwareRecovery({
+    hardwareOutputStalled: true, correlatedHardwareStallCount: 9,
+    heartbeatConsecutiveFailures: 3
+  }), false, "corroborated recorder failure must not be mislabeled as encoder failure");
+  assert.equal(privateNvrMediaHeaderTimeoutMs({ defaultTimeoutMs: 3_500,
+    previousRelayExitReason: "CORRELATED_HARDWARE_OUTPUT_STALL" }),
+  PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
+  "the canonical recovery keeps the qualified private-recorder acquisition bound");
+  assert.match(server,
+    /hardwareOutputStalls[\s\S]*hardwareOutputStallCounts[\s\S]*shouldBeginCorrelatedPrivateNvrHardwareRecovery[\s\S]*retainExclusivePlayback\(streamId, relay, "OUTPUT_RESCUE_EXCLUSIVE"\);[\s\S]*armRelayRecovery\(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL"\);[\s\S]*stopRelay\(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL"\);/,
+  "proven correlated encoder stalls must retain HLS and reuse one canonical recovery lane");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {

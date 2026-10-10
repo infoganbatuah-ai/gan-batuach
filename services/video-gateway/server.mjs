@@ -53,6 +53,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   privateNvrRoutineHandoffSchedule,
   shouldDeferPrivateNvrStaleOwnerTeardown,
   shouldDeferCorrelatedPrivateNvrSilentResponseRescue,
+  shouldBeginCorrelatedPrivateNvrHardwareRecovery,
   shouldRetryPrivateNvrExclusiveRescueAfterCandidateExit,
   shouldRetryPrivateNvrExclusiveRescueAfterAcquisitionRejection,
   shouldUsePrivateNvrExclusiveOutputRescue,
@@ -259,6 +260,8 @@ async function maintainPrivateNvrRelayHandoffs() {
   // DVR's measured multi-channel pause and previously turned the same pause
   // into six destructive owner releases.
   const silentResponseCounts = new Map();
+  const hardwareOutputStalls = new Set();
+  const hardwareOutputStallCounts = new Map();
   for (const [streamId, relay] of [...relays]) {
     const source = streamSources.get(streamId);
     if (!source?.sessionKey || relayWarmups.has(streamId)) continue;
@@ -272,6 +275,19 @@ async function maintainPrivateNvrRelayHandoffs() {
     }, observedAt);
     if (silent) silentResponseCounts.set(source.sessionKey,
       (silentResponseCounts.get(source.sessionKey) || 0) + 1);
+    const hardwareStalled = privateNvrHardwareOutputStalled({
+      startedAt: relay.startedAt,
+      lastInputAt: relay.lastInputAt,
+      lastOutputAt: relayPlaylistMtime(relay),
+      nativeInputEnded: relay.nativeInputEnded,
+      encoder: relay.encoder,
+      warming: relay.warming
+    }, observedAt);
+    if (hardwareStalled) {
+      hardwareOutputStalls.add(streamId);
+      hardwareOutputStallCounts.set(source.sessionKey,
+        (hardwareOutputStallCounts.get(source.sessionKey) || 0) + 1);
+    }
   }
   const correlatedSilentResponseSessions = new Set(
     [...silentResponseCounts.entries()]
@@ -321,13 +337,36 @@ async function maintainPrivateNvrRelayHandoffs() {
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
     };
-    const hardwareOutputStalled =
-      privateNvrHardwareOutputStalled(handoffEvidence, observedAt);
+    const hardwareOutputStalled = relay.hardwareOutputStalled === true
+      || hardwareOutputStalls.has(streamId)
+      || privateNvrHardwareOutputStalled(handoffEvidence, observedAt);
     const silentResponseStalled =
       privateNvrSilentResponseStalled(handoffEvidence, observedAt);
     const handoffMode = privateNvrRelayHandoffMode(handoffEvidence, observedAt);
     if (handoffMode === "OUTPUT_RESCUE") {
       if (sessionRenewalPending) continue;
+      const correlatedHardwareStallCount =
+        hardwareOutputStallCounts.get(source.sessionKey) || 0;
+      if (shouldBeginCorrelatedPrivateNvrHardwareRecovery({
+        hardwareOutputStalled, correlatedHardwareStallCount,
+        heartbeatConsecutiveFailures: heartbeat.consecutive_failures
+      })) {
+        relay.hardwareOutputStalled = true;
+        hardwareTranscoder.failed(streamId);
+        relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+          hardware_output_stalled_at: new Date(observedAt).toISOString(),
+          hardware_output_stalled_input_idle_ms: observedAt - relay.lastInputAt,
+          hardware_output_stalled_output_idle_ms: observedAt - lastOutputAt,
+          correlated_hardware_stall_sources: correlatedHardwareStallCount });
+        retainExclusivePlayback(streamId, relay, "OUTPUT_RESCUE_EXCLUSIVE");
+        armRelayRecovery(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL");
+        relayLifecycle.correlatedHardwareStallRecoveries += 1;
+        relayLifecycle.correlatedHardwareStallMaxSources = Math.max(
+          relayLifecycle.correlatedHardwareStallMaxSources,
+          correlatedHardwareStallCount);
+        stopRelay(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL");
+        continue;
+      }
       const correlatedSourceCount = silentResponseCounts.get(source.sessionKey) || 0;
       if (shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
         silentResponseStalled, correlatedSourceCount,
@@ -533,6 +572,8 @@ const relayLifecycle = { starts: 0, upstreamEnded: 0, responseRetired: 0,
   correlatedSilentResponsePasses: 0,
   correlatedSilentResponseDeferrals: 0,
   correlatedSilentResponseMaxSources: 0,
+  correlatedHardwareStallRecoveries: 0,
+  correlatedHardwareStallMaxSources: 0,
   staleInput: 0,
   stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0,
   inputAborted: 0, inputOtherError: 0,

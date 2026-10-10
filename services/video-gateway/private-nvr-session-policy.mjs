@@ -198,7 +198,7 @@ export function privateNvrMediaHeaderTimeoutMs({
   if (!Number.isFinite(defaultTimeoutMs) || defaultTimeoutMs < 1)
     throw new Error("PRIVATE_NVR_HEADER_TIMEOUT_INVALID");
   if (["SOURCE_STREAM_ENDED", "SOURCE_RESPONSE_RETIRED",
-    "EXCLUSIVE_RESCUE_ACQUISITION_FAILED"]
+    "EXCLUSIVE_RESCUE_ACQUISITION_FAILED", "CORRELATED_HARDWARE_OUTPUT_STALL"]
     .includes(previousRelayExitReason)) {
     return Math.max(defaultTimeoutMs, PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS);
   }
@@ -423,6 +423,29 @@ export function shouldDeferCorrelatedPrivateNvrSilentResponseRescue({
 } = {}) {
   return Boolean(silentResponseStalled
     && Number(correlatedSourceCount || 0) >= PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES
+    && Number(heartbeatConsecutiveFailures || 0)
+      < PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
+}
+
+// A recorder-wide native pause and a recorder-wide VideoToolbox stall look the
+// same after stdin backpressure has aged past the input-freshness window. The
+// latter has stronger per-channel evidence captured before that boundary:
+// native bytes were current while rendered HLS stopped. If more channels than
+// the recorder-safe probation capacity carry that exact evidence together,
+// keeping the old hardware encoders until their responses end lets the retained
+// playlists cross hard stale. Reuse the canonical retained-HLS cold-recovery
+// lane for those proven channels: each old response is closed before its
+// replacement opens, so this does not consume the recorder's bounded warm-
+// probation capacity. A healthy heartbeat prevents any shared-login rotation,
+// and an ordinary correlated DVR pause remains deferred.
+export function shouldBeginCorrelatedPrivateNvrHardwareRecovery({
+  hardwareOutputStalled = false,
+  correlatedHardwareStallCount = 0,
+  heartbeatConsecutiveFailures = 0
+} = {}) {
+  return Boolean(hardwareOutputStalled
+    && Number(correlatedHardwareStallCount || 0)
+      > PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS
     && Number(heartbeatConsecutiveFailures || 0)
       < PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
 }
