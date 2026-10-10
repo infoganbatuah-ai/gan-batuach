@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-07T00:00:00Z",
+  "updatedAt": "2026-10-08T22:44:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10649,6 +10649,174 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Present the merged-head V4 package for external owner review. Do not begin RELEASE-GAP-01, merge to main or deploy Production."
+    },
+    {
+      "id": "codex/push-38t-private-r2-phone-proof-20261008",
+      "project": "Digital Observer",
+      "title": "PUSH 38 private R2 remote-client playback qualification path",
+      "owner": "PUSH 38 qualification owner",
+      "sourceBranch": "codex/push-38t-qualification",
+      "sourceCommits": [
+        "d4b5264e6687e59bf944216082ae19a8ab19638f",
+        "514515e27d35f47f926e32146e2415dc3bee38a8",
+        "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-38t-qualification@e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
+        ],
+        "qualificationCommit": "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
+      },
+      "validation": {
+        "status": "REAL_OWNER_PHONE_AND_EXACT_HEAD_CI_PASS_V8_PENDING",
+        "evidence": [
+          "scripts/qa/check-push38-r2-phone-media.mjs",
+          "scripts/qa/check-push38t-ingress.mjs",
+          "scripts/qa/check-remote-playback-boundary.mjs",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T195149Z",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T201358Z",
+          "GitHub Actions run 37837717396: PASS 6/6 plus canonical quality gate"
+        ],
+        "evidenceChecksums": {
+          "remotePhoneResultSha256": "79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f",
+          "r2EvidenceSha256": "d66615336079533dc043955bfefee8ddc6acdfcf1e6b85af7ccfba072da4e0ce",
+          "r2CleanupSha256": "02464ae008368685f8bc23585f374b001236b30b81c0b803c5776c85f717fd37",
+          "controlExposureSha256": "9f23c7796f20697ffb0cab6be55137d3d22e6678cc027be055efeac8098868c9",
+          "supplierCostLedgerSha256": "d6e4efe9a006c2ed29f59a29a578f26e5105a24f37691ea66f87696807f2fa98"
+        },
+        "limits": "TypeScript, focused lint, private-R2 media-contract QA, route/default-deny QA and isolated playback-boundary QA pass. A desktop browser result was explicitly rejected as phone evidence. The real owner iPhone passed 10/10 DVR authorization plus moving CH1/CH3/CH11 and Tapo playback over HTTPS with localhost absent and no client Edge software. All 52 temporary objects were deleted immediately after PASS, bounded ingress closed and original Cloudflare service restored. Exact-head run 37837717396 passed all six CI gates plus the canonical quality gate. V8 remains running from 2026-10-08T10:49:29.554Z and is not complete before 2026-10-09T10:49:29.554Z."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "commit": null,
+        "requiredChecks": "PASS_6_OF_6_EXACT_HEAD_E51B74F7_RUN_37837717396"
+      },
+      "dependencies": {
+        "status": "PUSH38_QUALIFICATION_INCOMPLETE",
+        "units": [
+          "codex/push-38t-qualification-relay-probation-20261002"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_TYPECHECK_FOCUSED_LINT_R2_MEDIA_INGRESS_DEFAULT_DENY_PLAYBACK_BOUNDARY",
+      "releaseEligibility": "BLOCKED_UNTIL_V8_PASS",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Historical receipt only: the referenced 0.2.94 V8 failed and remains immutable evidence. Use the superseding 0.2.95 V8 receipt below. Do not integrate incomplete PUSH 38, merge main, deploy Production or begin PUSH 39."
+    },
+    {
+      "id": "codex/push-38t-gateway-0.2.95-v8-20261008",
+      "project": "Digital Observer",
+      "title": "PUSH 38 Gateway 0.2.95 pre-release probe settlement remediation and new V8 qualification",
+      "owner": "PUSH 38 qualification owner",
+      "sourceBranch": "codex/push-38t-qualification",
+      "sourceCommits": [
+        "5907b6ff0708b3c1084ad91b20f8feac8d253ae7",
+        "be93e5f6578e5852a3de18d0c746aaec8fcfc92b"
+      ],
+      "supportingBranches": [
+        {
+          "branch": "codex/push-38-aws-signing",
+          "commit": "6aa0949179038785340ed58c3d1b6518955e08e9",
+          "purpose": "Protected AWS signing workflow and exact-device release evidence"
+        }
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-38t-qualification@be93e5f6578e5852a3de18d0c746aaec8fcfc92b",
+          "origin/codex/push-38-aws-signing@6aa0949179038785340ed58c3d1b6518955e08e9"
+        ],
+        "qualificationCommit": "be93e5f6578e5852a3de18d0c746aaec8fcfc92b"
+      },
+      "validation": {
+        "status": "CANARY_PASS_PRE_SOAK_PASS_V8_RUNNING",
+        "evidence": [
+          "GitHub Actions run 37840811624: PASS 6/6 plus canonical quality gate at exact head be93e5f6578e5852a3de18d0c746aaec8fcfc92b",
+          "AWS protected signing run 37840867628: PASS",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.95-canary-20261008T212408Z",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.95-pre-soak-20261008T214031Z",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.95-v8-readiness-20261008T224126Z/v8-matrix-freeze.json",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-0.2.95-v8-20261008T224318Z",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-r2-phone-proof-20261008T201358Z",
+          "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md"
+        ],
+        "evidenceChecksums": {
+          "canaryResultSha256": "c5995df1c0ef41c195d8e645f1ada4b7ef0cadf3ba6b960ff4ebec10b0025074",
+          "canaryCheckpointsSha256": "5684f6a744bad26f7a6b72114b5487e107fc38394f23a3e430a236717eacaf80",
+          "preSoakResultSha256": "6ebe8bb0254d612c99179f1782e7478404294de35ef946a4c36d6a1d65564c70",
+          "preSoakCheckpointsSha256": "f8c3690c270fa2c29e3e0a05609ed72e74597c23d776e4c299844001b8c8b34e",
+          "v8MatrixSourceSha256": "4c710bc4c3ef8b369b205a6080b7bbc0ade7353953283061d137e1f6502e1ebb",
+          "v8MatrixFreezeReceiptSha256": "9db1f47da323fda0d68df8677b1758edc85327c62dba60e2dfabf85a57e15c70",
+          "remotePhoneResultSha256": "79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f",
+          "supplierCostLedgerSha256": "f55df361088ab749c84e2b34e144cdb2a78aa64b6fd4d2d677e2e6fb0bfc805c"
+        },
+        "release": {
+          "gatewayVersion": "0.2.95-p38-health",
+          "gatewayBuildCommit": "5907b6ff0708b3c1084ad91b20f8feac8d253ae7",
+          "connectorVersion": "0.2.40-p38-health",
+          "r2Object": "home-qa/qa-p38-health-gateway-pre-release-probe-settlement-64728222dd50/64728222dd50fd3d2fe80169e8e794aed8c128100b0bf92b448892f24f42a0f7.tar.gz",
+          "artifactSha256": "64728222dd50fd3d2fe80169e8e794aed8c128100b0bf92b448892f24f42a0f7",
+          "artifactBytes": 135900344,
+          "signedManifestSha256": "8c56f2f06eb81a80ed3845011842577e289f18f183c734e3d01c8023da062c52",
+          "exactDeviceOnly": true,
+          "broadCohortDisabled": true
+        },
+        "qualificationRuns": {
+          "canary": {
+            "runId": "push38-gateway-0.2.95-canary-20261008T212408Z",
+            "status": "PASS",
+            "durationMs": 900012,
+            "checkpoints": 15
+          },
+          "preSoak": {
+            "runId": "push38-gateway-0.2.95-pre-soak-20261008T214031Z",
+            "status": "PASS",
+            "durationMs": 3600030,
+            "checkpoints": 60
+          },
+          "v8": {
+            "runId": "push38-gateway-0.2.95-v8-20261008T224318Z",
+            "status": "RUNNING",
+            "startedAt": "2026-10-08T22:43:44.325Z",
+            "earliestValidCompletion": "2026-10-09T22:43:44.325Z",
+            "requiredDurationMs": 86400000
+          }
+        },
+        "limits": "PUSH 38 remains incomplete until the fresh V8 reaches at least 24 continuous hours and every mandatory frozen-matrix row passes. The prior 0.2.94 V8 failure remains immutable evidence and its duration is not reused. Main and Production remain unchanged."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "commit": null,
+        "requiredChecks": "PASS_6_OF_6_EXACT_HEAD_BE93E5F_RUN_37840811624"
+      },
+      "dependencies": {
+        "status": "PUSH38_QUALIFICATION_INCOMPLETE",
+        "units": [
+          "codex/push-38t-private-r2-phone-proof-20261008"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_EXACT_HEAD_CI_AWS_SIGNING_LIVE_OTA_CANARY_PRE_SOAK_REMOTE_PHONE_V8_STARTED",
+      "releaseEligibility": "BLOCKED_UNTIL_V8_PASS",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringUsdBeforeTax": 0,
+        "r2IncrementalMonthlyProjectionUsdBeforeTax": 0.002039,
+        "r2CurrentStorageProjectionUsdBeforeTax": 0.073575,
+        "allSupplierPerPayingUserTarget": "NOT_YET_MEASURABLE"
+      },
+      "nextAction": "Monitor only the exact fresh V8 run push38-gateway-0.2.95-v8-20261008T224318Z through no earlier than 2026-10-09T22:43:44.325Z, preserve terminal evidence, evaluate every mandatory frozen-matrix row and only then decide PUSH 38 completion. If PASS, finalize the completed PUSH 38 development unit and reconcile it into integration/development without merging main, deploying Production or beginning PUSH 39."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

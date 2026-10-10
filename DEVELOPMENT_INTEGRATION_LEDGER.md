@@ -6,6 +6,37 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`,
+`514515e2` and `e51b74f7` are remotely preserved on
+`origin/codex/push-38t-qualification`. The bounded
+qualification path verifies the local Product playback grant, acquires exact
+authorized Edge HLS through the protected local interface, stores only a
+short-lived 11.97 MB snapshot under an exact private R2 prefix, and returns
+presigned playlist/segment capabilities without proxying media through the
+control plane. Focused TypeScript, lint, R2, ingress/default-deny and playback
+boundary checks pass. A desktop-browser run was deliberately not accepted as
+phone evidence; server-side client classification now rejects a desktop PASS.
+The follow-up releases each native phone video decoder before opening the next
+source after the real iPhone proved two DVR streams and then exhausted its
+concurrent decoder capacity on the third.
+The latest correction captures one complete, internally consistent rolling-HLS
+snapshot before any upload and retries a bounded three times when playlist
+segments rotate during acquisition. The first 52-object proof window was
+deleted in full after expiry, and the partial 29-object second attempt rolled
+back in full before publication.
+The third window passed on the real owner iPhone: 10/10 DVR authorization,
+moving CH1/CH3/CH11 and Tapo video, HTTPS-only media, no localhost, and no Edge
+software on the client. All 52 temporary objects were then deleted immediately,
+the bounded ingress closed, and the original Cloudflare service was restored.
+Exact-head CI run `37837717396` passed all six gates plus the canonical quality
+gate for `e51b74f7`. The protected owner-phone result checksum is
+`79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f`.
+V8
+continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
+at `2026-10-09T10:49:29.554Z`. This unit is
+`PRESERVED_PENDING_INTEGRATION`; PUSH 38 is not done, main/Production are
+unchanged, and PUSH 39 has not started.
+
 PUSH 38 relay-probation checkpoint (2026-10-02): the failed live 0.2.56
 HLS-window canary completed 15 minutes and recorded a strict source-availability
 failure at CH10 checkpoint 4 and CH4 checkpoint 11. Gateway liveness remained
@@ -911,3 +942,65 @@ cannot record the transient loading state. This status is not owner approval.
 Production, `main`, customer data, migrations, provider state, physical camera
 actions and Digital Observer core remain untouched. The only remaining action is
 external owner review; RELEASE-GAP-01 has not started.
+
+PUSH 38 Gateway 0.2.95 V8 start receipt (2026-10-08): the scoped
+pre-release-probe settlement remediation is remotely preserved at
+`5907b6ff0708b3c1084ad91b20f8feac8d253ae7`; its exact qualification candidate
+is `be93e5f6578e5852a3de18d0c746aaec8fcfc92b` on
+`origin/codex/push-38t-qualification`. Exact-head GitHub Actions run
+`37840811624` passed all six CI gates plus the canonical quality gate, and AWS
+protected-signing run `37840867628` passed from signing-workflow commit
+`6aa0949179038785340ed58c3d1b6518955e08e9`. The exact-device private-R2
+artifact was round-trip verified and activated as Gateway
+`0.2.95-p38-health`; Connector remains `0.2.40-p38-health`. Broad eligibility
+is disabled, both managed services are healthy/current/known-good, and no new
+fixed provider was introduced.
+
+The valid canary `push38-gateway-0.2.95-canary-20261008T212408Z` passed 15
+minutes and 15/15 checkpoints; the valid pre-soak
+`push38-gateway-0.2.95-pre-soak-20261008T214031Z` passed 60 minutes and 60/60
+checkpoints. Both recorded DVR 10/10, Tapo 1/1, zero Gateway/Connector
+unavailability, zero stale-input failures, playback and AI PASS, zero data
+loss, duplicate effects, cross-tenant leakage or manual intervention. The real
+owner-iPhone remote proof remains PASS at the protected
+`push38-r2-phone-proof-20261008T201358Z` evidence location.
+
+The frozen 35-row V8 matrix source has SHA-256
+`4c710bc4c3ef8b369b205a6080b7bbc0ade7353953283061d137e1f6502e1ebb`; the
+candidate-binding freeze receipt has SHA-256
+`9db1f47da323fda0d68df8677b1758edc85327c62dba60e2dfabf85a57e15c70`.
+Fresh V8 run `push38-gateway-0.2.95-v8-20261008T224318Z` started at
+`2026-10-08T22:43:44.325Z` and cannot complete validly before
+`2026-10-09T22:43:44.325Z`. The prior 0.2.94 V8 failure remains immutable and
+its duration is not reused. This unit is `PRESERVED_PENDING_INTEGRATION` and
+`BLOCKED_UNTIL_V8_PASS`; PUSH 38 is not done. Main and Production remain
+unchanged, and PUSH 39 has not started.
+
+Owner-authorized consolidated Production release receipt (2026-10-11): the
+owner explicitly authorized the frozen non-PUSH-38 candidate, its required
+Production configuration, one main merge/deployment sequence and the 17
+reviewed Supabase migrations. PR #182 merged the consolidated candidate as
+`3848f7fcc8a0c9be6364bedb9add1e9d5cd35b89`; its first Vercel build exposed
+the missing dedicated hash-pepper prerequisite and did not become the final
+current deployment. The narrowly scoped compatibility fix in PR #183 passed
+all required checks at
+`5846c9d726eb456c8c25dd75581df00612542491` and merged to main as
+`2da8f75abce610a9a979eecd752d7a6a1011641e`. Vercel deployment
+`GneHPHF1NyWZYrrepnL7rw4JEFrr` is `Ready`, `Production` and `Current` for
+`ganbatuach.com`; `/`, `/login`, `/forgot-password`,
+`/digital-observer/login` and `/api/health` returned HTTP 200, and health
+reported both application and Supabase `ok`.
+
+Supabase Production applied the 17 reviewed migrations in two dependency-
+ordered phases and linked remote history was verified through
+`20260928010000`. Post-apply checks preserved one real Auth/profile identity,
+two active device slots, one membership and 17 cameras. No user was deleted,
+no Auth password was changed and no email was sent. Migration
+`20260920170000` removed only the legacy plaintext `temporary_password`
+column; 23 non-secret credential-history rows remained. The latest observed
+Vercel cycle showed `$0.30 / $20.00` included credit used, with the Pro base
+subscription unchanged. No paid add-on or plan upgrade was activated. PUSH 38
+and its draft/qualification branches were expressly excluded and untouched.
+The one-time Production authorization is consumed; future main merges,
+Production deployments or Production migrations again require a new explicit
+owner instruction.
