@@ -29,7 +29,7 @@ function playbackFailureReason(error: unknown) {
   if (code === "cloud_403") return "אין הרשאת צפייה במקור הזה";
   if (code === "cloud_409") return "מיפוי המצלמה ל־Gateway אינו תואם";
   if (code === "cloud_503") return "זהות ה־Gateway עדיין לא סונכרנה למקור";
-  if (code === "local_unreachable") return "הדפדפן לא הצליח להגיע ל־Gateway המקומי";
+  if (code === "local_unreachable") return "הדפדפן לא הצליח להגיע לרכיב ה־Edge";
   if (code === "local_claim_401") return "אימות המכשיר המקומי פג";
   if (code === "local_claim_409") return "הרשאת הצפייה החד־פעמית כבר נוצלה";
   if (code === "local_claim_503") return "ה־Gateway המקומי לא הצליח לאשר את הצפייה";
@@ -71,14 +71,19 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
       }
       let candidate = payload?.data?.playback?.hls_url;
       const claimUrl = payload?.data?.playback?.claim_url;
+      const allowedOrigin = payload?.data?.playback?.allowed_origin;
       const grant = payload?.data?.playback?.grant;
       if (typeof claimUrl === "string" && typeof grant === "string") {
+        if (typeof allowedOrigin !== "string" || new URL(claimUrl).origin !== allowedOrigin
+          || new URL(claimUrl).pathname !== "/playback/claim") throw new PlaybackFlowError("playback_origin_invalid");
         let claimResponse: Response;
         try {
           claimResponse = await fetch(claimUrl, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ grant })
+            body: JSON.stringify({ grant }),
+            redirect: "error",
+            referrerPolicy: "no-referrer"
           });
         } catch {
           throw new PlaybackFlowError("local_unreachable");
@@ -86,6 +91,8 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
         const claimPayload = await claimResponse.json().catch(() => ({}));
         if (!claimResponse.ok) throw new PlaybackFlowError(`local_claim_${claimResponse.status}`);
         candidate = claimPayload?.playback?.hls_url;
+        if (typeof candidate !== "string" || new URL(candidate).origin !== allowedOrigin
+          || !new URL(candidate).pathname.startsWith("/hls/")) throw new PlaybackFlowError("playback_origin_invalid");
       }
       if (typeof candidate === "string" && candidate) {
         playbackUrl = candidate;
@@ -178,7 +185,12 @@ export function ObserverLivePlayer({
         await videoElement.play().catch(() => undefined);
       } else if (Hls.isSupported()) {
         hls = new Hls({
-          liveSyncDurationCount: 2,
+          // Match the Gateway's signed HLS holdback contract. The Home DVR
+          // allows one productive response per channel, so a managed session
+          // renewal briefly drains retained segments while the replacement
+          // starts. Six one-second segments preserve moving playback without
+          // weakening the Gateway's source-freshness deadline.
+          liveSyncDurationCount: 6,
           liveMaxLatencyDurationCount: 12,
           // A worker per thumbnail is expensive and requires a blob worker CSP.
           // Parsing these short local playlists on the main thread keeps the

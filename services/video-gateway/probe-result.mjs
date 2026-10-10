@@ -12,6 +12,7 @@ export function parseProbeResult(output) {
     const audio = parsed.streams.find(item => item?.codec_type === "audio");
     return {
       ok: Boolean(video), reason: video ? "video_stream_found" : "no_video_stream",
+      codec: video?.codec_name ?? null,
       audio: Boolean(audio), audio_codec: audio?.codec_name ?? null,
       width: video?.width ?? null, height: video?.height ?? null
     };
