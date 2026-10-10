@@ -10,7 +10,7 @@ The owner explicitly authorized a consolidated release on 2026-10-10. The releas
 
 - Production/main baseline: `8113d0607e4282dc8778540aa58c1502367f4221`.
 - Included integration state: `2f8ed2b892201049731a810d118ec15317302692`.
-- Exact release branch head after the release-preflight buffer fix: `408a7ef1e8829cc462c673e688b861416df99447`.
+- Exact frozen application/code candidate after the release-preflight buffer fix: `408a7ef1e8829cc462c673e688b861416df99447`. Later commits on the release branch contain release-audit documentation only and do not change the runtime candidate.
 - Release branch: `codex/release-20261010-consolidated`.
 - PUSH 38 code and its open PRs are excluded and untouched. The six later integration commits are PUSH 38 tracking documents only and are not in this RC.
 
