@@ -3,8 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 import type { UserRole } from "@/lib/roles";
 import { writeAdminActionEvent } from "@/lib/security/audit-log-service";
+import { authCallbackUrl } from "@/lib/domain/auth-flow";
 
-const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
 export class DuplicateContactError extends Error {
   field: string;
@@ -28,18 +28,6 @@ export function normalizeOptionalPhone(phone?: string | null) {
   return normalized || undefined;
 }
 
-export function generateTemporaryPassword() {
-  const values = crypto.getRandomValues(new Uint32Array(14));
-  const body = Array.from(values, (value) => alphabet[value % alphabet.length]).join("");
-  return body + "1!";
-}
-
-export function generateSystemEmail(prefix: string) {
-  const values = crypto.getRandomValues(new Uint32Array(6));
-  const suffix = Array.from(values, (value) => alphabet[value % alphabet.length]).join("").toLowerCase();
-  return prefix + "." + suffix + "@ganbatuach.local";
-}
-
 function provisioningDebugLogsEnabled() {
   return process.env.NODE_ENV !== "production";
 }
@@ -47,8 +35,7 @@ function provisioningDebugLogsEnabled() {
 export const provisionedUserSchema = z.object({
   full_name: z.string().min(2),
   email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email().optional()),
-  phone: z.preprocess((value) => normalizeOptionalPhone(value as string | null), z.string().optional()),
-  temporary_password: z.string().min(8).optional()
+  phone: z.preprocess((value) => normalizeOptionalPhone(value as string | null), z.string().optional())
 });
 
 type ProvisionUserInput = {
@@ -57,7 +44,6 @@ type ProvisionUserInput = {
   fullName: string;
   email?: string | null;
   phone?: string | null;
-  temporaryPassword?: string;
   createdBy?: string | null;
   conflictField?: string;
 };
@@ -99,17 +85,14 @@ export async function checkEmailConflict({
 export async function provisionAuthUser(input: ProvisionUserInput) {
   const supabase = createAdminClient();
   const requestedEmail = normalizeOptionalEmail(input.email);
-  const email = requestedEmail || generateSystemEmail(input.role);
-  const temporaryPassword = input.temporaryPassword ?? generateTemporaryPassword();
+  if (!requestedEmail) throw new Error("נדרש מייל לקבלת הזמנה מאובטחת.");
+  const email = requestedEmail;
   const conflict = await checkEmailConflict({ supabase, email: requestedEmail, field: input.conflictField ?? `${input.role}_email` });
   if (conflict) throw conflict;
 
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password: temporaryPassword,
-    email_confirm: true,
-    app_metadata: { role: input.role },
-    user_metadata: { full_name: input.fullName, phone: input.phone ?? null }
+  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: authCallbackUrl("gan_batuach", "/dashboard", "verify"),
+    data: { full_name: input.fullName, phone: input.phone ?? null, role: input.role }
   });
 
   if (error || !data.user) {
@@ -121,6 +104,14 @@ export async function provisionAuthUser(input: ProvisionUserInput) {
     throw new Error(authMessage || "Could not create Supabase Auth user");
   }
 
+  const roleUpdate = await supabase.auth.admin.updateUserById(data.user.id, {
+    app_metadata: { role: input.role }
+  });
+  if (roleUpdate.error) {
+    await supabase.auth.admin.deleteUser(data.user.id);
+    throw new Error("לא ניתן להגדיר את תפקיד החשבון המוזמן.");
+  }
+
   const profile: Record<string, unknown> = {
     id: data.user.id,
     role: input.role,
@@ -128,7 +119,7 @@ export async function provisionAuthUser(input: ProvisionUserInput) {
     full_name: input.fullName,
     phone: input.phone ?? null,
     active: true,
-    must_change_password: true,
+    must_change_password: false,
     username: email,
     email,
     created_by: input.createdBy ?? null
@@ -141,24 +132,12 @@ export async function provisionAuthUser(input: ProvisionUserInput) {
     throw new Error("המשתמש נוצר ב-Auth אך יצירת הפרופיל נכשלה: " + profileError.message);
   }
 
-  const { error: credentialsError } = await supabase.from("generated_credentials").insert({
-    user_id: data.user.id,
-    username: email,
-    temporary_password: temporaryPassword,
-    created_by: input.createdBy ?? null
-  });
-  if (credentialsError) {
-    await supabase.auth.admin.deleteUser(data.user.id);
-    throw new Error("המשתמש נוצר אך שמירת פרטי ההתחברות לאדמין נכשלה: " + credentialsError.message);
-  }
-
   return {
     supabase,
     user: data.user,
     oneTimeCredentials: {
       username: email,
-      email,
-      temporary_password: temporaryPassword
+      email
     }
   };
 }

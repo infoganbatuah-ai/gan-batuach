@@ -3,7 +3,12 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 function git(cwd, ...args) {
-  return execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return execFileSync("git", args, {
+    cwd,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe"]
+  }).trim();
 }
 
 export function validateProductionReleaseSnapshot({ cwd = process.cwd(), expectedProject = "gan-batuach" } = {}) {

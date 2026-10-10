@@ -97,6 +97,12 @@ function writeAuditLog(request: NextRequest, responseStatus: number, requestId: 
 }
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
+  // The UX-19 visual harness is deliberately Development-only and has no data
+  // contract. Skip session I/O so its global states remain testable when the
+  // isolated local database is unavailable; the route itself 404s in Production.
+  if (process.env.NODE_ENV !== "production" && request.nextUrl.pathname === "/ux19-system-states") {
+    return NextResponse.next();
+  }
   const requestId = crypto.randomUUID();
   const response = await updateSession(request);
   const routedResponse = rewriteForDigitalObserverHost(request, response);

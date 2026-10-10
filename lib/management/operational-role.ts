@@ -9,7 +9,6 @@ import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment
 
 type OperationalDenial = "session" | "role" | "inactive" | "contact_verification" | "staff_record" | "staff_employment" | "inspector_approval" | "inspector_assignment" | "authority_unavailable";
 type QueryResult<T> = { data: T | null; error: unknown };
-type InspectorApplication = { id: string; status: string; activated_at: string | null };
 type IdRow = { id: string };
 
 function denied(reason: OperationalDenial, status: 401 | 403 | 503 = 403) {
@@ -65,15 +64,14 @@ export async function getOperationalRoleContext(allowedRoles: UserRole[]) {
       return { allowed: true as const, session, gardenIds: [employment.garden_id], employment };
     }
 
-    const [application, inspector, assignment] = await Promise.all([
-      supabase.from("inspector_applications" as never).select("id, status, activated_at").eq("profile_id", profile.id).maybeSingle(),
-      supabase.from("inspectors" as never).select("id").eq("id", profile.id).maybeSingle(),
+    const [approval, assignment] = await Promise.all([
+      supabase.rpc("current_inspector_approved" as never),
       supabase.from("gardens" as never).select("id").eq("inspector_id", profile.id).limit(1).maybeSingle()
-    ]) as unknown as [QueryResult<InspectorApplication>, QueryResult<IdRow>, QueryResult<IdRow>];
-    if (application.error || inspector.error || assignment.error) return denied("authority_unavailable", 503);
-    if (!application.data || application.data.status !== "approved" || !application.data.activated_at || !inspector.data) {
-      return denied("inspector_approval");
-    }
+    ]) as unknown as [QueryResult<boolean>, QueryResult<IdRow>];
+    if (approval.error || assignment.error) return denied("authority_unavailable", 503);
+    // The security-definer RPC verifies the approved application and Inspector
+    // identity without broadening direct RLS reads of the private inspectors row.
+    if (approval.data !== true) return denied("inspector_approval");
     if (!assignment.data) return denied("inspector_assignment");
     return { allowed: true as const, session, gardenIds: [assignment.data.id], employment: null };
   } catch {

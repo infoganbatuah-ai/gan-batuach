@@ -63,8 +63,21 @@ export function decryptField(value: string | null | undefined) {
 export function hashForLookup(value: string | null | undefined) {
   const normalized = String(value ?? "").replace(/\s+/g, "").trim();
   if (!normalized) return null;
-  const pepper = process.env.FIELD_HASH_PEPPER || process.env.FIELD_ENCRYPTION_KEY_CURRENT || process.env.FIELD_ENCRYPTION_KEY || "";
-  if (!pepper) throw new Error("FIELD_HASH_PEPPER or FIELD_ENCRYPTION_KEY_CURRENT is required for lookup hashes");
+  const appEnvironment = String(process.env.APP_ENV || process.env.NEXT_PUBLIC_APP_ENV || "demo").toLowerCase();
+  const production = appEnvironment === "production";
+  const dedicatedPepper = process.env.FIELD_HASH_PEPPER || "";
+  const legacyDevelopmentFallback =
+    production
+      ? ""
+      : process.env.FIELD_ENCRYPTION_KEY_CURRENT || process.env.FIELD_ENCRYPTION_KEY || "";
+  const pepper = dedicatedPepper || legacyDevelopmentFallback;
+  if (!pepper) {
+    throw new Error(
+      production
+        ? "FIELD_HASH_PEPPER is required for Production lookup hashes"
+        : "FIELD_HASH_PEPPER or a Development field-encryption key is required for lookup hashes"
+    );
+  }
   return crypto.createHmac("sha256", pepper).update(normalized).digest("hex");
 }
 

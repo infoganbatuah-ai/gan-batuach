@@ -1,0 +1,52 @@
+{
+  "contract": "push38s-home-qa-integration-graph-v1",
+  "sourceBranch": "codex/push-38q-r2-auth",
+  "targetBranch": "integration/development",
+  "minimumControlPlaneSlice": [
+    "app/api/video-gateway/edge-updates/route.ts",
+    "app/api/video-gateway/edge-updates/download/route.ts",
+    "services/video-gateway/edge-update-contract.mjs",
+    "services/video-gateway/edge-update-contract.d.mts",
+    "services/video-gateway/edge-release-object.mjs",
+    "services/video-gateway/edge-release-object.d.mts",
+    "services/video-gateway/edge-r2-download.mjs",
+    "services/video-gateway/edge-r2-download.d.mts",
+    "services/video-gateway/edge-home-qa-publication.mjs",
+    "package.json",
+    "package-lock.json",
+    "supabase/migrations/20260913020000_edge_private_release_delivery.sql",
+    "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
+    "scripts/qa/check-push38o-home-qa-publication.mjs",
+    "scripts/qa/check-push38q-r2-download.mjs"
+  ],
+  "existingIntegrationPrerequisites": [
+    "lib/domain/gateway-device-enrollment.ts",
+    "supabase/migrations/20260909010000_edge_ota_rollout.sql",
+    "app/api/video-gateway/edge-updates/route.ts"
+  ],
+  "edges": [
+    ["HOME_QA discovery route", "PUSH18 cryptographic device session"],
+    ["HOME_QA discovery route", "release/rollout tables and exact-device signed scope"],
+    ["HOME_QA discovery route", "HOME_QA channel migration"],
+    ["download authorization route", "PUSH18 cryptographic device session"],
+    ["download authorization route", "published release, active rollout and current update state"],
+    ["download authorization route", "Ed25519 manifest trust and revocation"],
+    ["download authorization route", "immutable R2 object reference and scoped presigner"],
+    ["download authorization route", "private-download audit schema"],
+    ["download authorization route", "rate limiting and downgrade policy"],
+    ["device-side verified staging", "installed OTA agent and protected trust registry"]
+  ],
+  "migrationOrder": [
+    "20260909010000_edge_ota_rollout.sql (already in integration)",
+    "20260913020000_edge_private_release_delivery.sql (pending; includes an unused Supabase bucket that needs review)",
+    "20260919190000_edge_home_qa_channel.sql (pending)"
+  ],
+  "securityBoundary": {
+    "developmentDatabase": "synthetic identities only; real Home private identity must not be copied",
+    "ingress": "not implemented; local application remains loopback-only",
+    "liveDeviceEnrollment": "not designed/qualified; fail closed",
+    "runtimeActivation": "prohibited in PUSH 38S"
+  },
+  "status": "REVIEWED_NOT_YET_SAFE_TO_INTEGRATE",
+  "reason": "Control-plane slice depends on a real-device QA enrollment boundary and a scoped HTTPS ingress; the unreleased migration also creates an unnecessary Supabase storage bucket despite R2 being the approved data plane. These must be resolved before Development application or external exposure."
+}

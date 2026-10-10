@@ -1,0 +1,91 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3002",
+  "capturedAt": "2026-10-06T00:39:17.450Z",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "persona": "synthetic multi-Garden Owner",
+  "gardenContext": {
+    "authorizedOptions": 6,
+    "switched": true
+  },
+  "performance": {
+    "samples": [
+      6792,
+      4310,
+      2008,
+      1732,
+      1907
+    ],
+    "p50": 2008,
+    "p95": 6792,
+    "environment": "local Development; not a Production SLA"
+  },
+  "captures": [
+    {
+      "name": "owner-dashboard-standard-desktop",
+      "viewport": "1440x1024",
+      "selector": "page-top",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-dashboard-standard-desktop.webp"
+    },
+    {
+      "name": "owner-navigation-desktop",
+      "viewport": "1440x1024",
+      "selector": ".owner-command-sidebar",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-navigation-desktop.webp"
+    },
+    {
+      "name": "owner-multi-garden-desktop",
+      "viewport": "1440x1024",
+      "selector": "page-top",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-multi-garden-desktop.webp"
+    },
+    {
+      "name": "owner-action-center-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-attention-grid",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-action-center-desktop.webp"
+    },
+    {
+      "name": "owner-safety-state-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-safety-card",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-safety-state-desktop.webp"
+    },
+    {
+      "name": "owner-dashboard-standard-mobile",
+      "viewport": "390x844",
+      "selector": "page-top",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-dashboard-standard-mobile.webp"
+    },
+    {
+      "name": "owner-action-center-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-attention-grid",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-action-center-mobile.webp"
+    },
+    {
+      "name": "owner-safety-state-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-safety-card",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-safety-state-mobile.webp"
+    },
+    {
+      "name": "owner-navigation-mobile",
+      "viewport": "390x844",
+      "selector": ".role-app-bottom-nav",
+      "path": "qa-evidence/ux-implement-03/screenshots/owner-navigation-mobile.webp"
+    }
+  ],
+  "serverErrors": [],
+  "consoleErrors": [],
+  "status": "PASS"
+}

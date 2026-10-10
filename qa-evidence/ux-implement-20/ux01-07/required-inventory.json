@@ -1,0 +1,750 @@
+{
+  "sourceIntegrationSha": "270c4fe27df78daf71b422de13b801224b8c73d7",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "requiredConcepts": 92,
+  "requiredScreenshots": 184,
+  "classifications": {
+    "OWNER_REVIEW_READY": 92,
+    "NEEDS_POLISH": 0,
+    "VISUAL_DRIFT": 0,
+    "BROKEN": 0
+  },
+  "inventory": [
+    {
+      "domain": "auth",
+      "screen": "Welcome / Splash",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/welcome-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/welcome-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Login",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/login-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/login-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Role selection",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/role-selection-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/role-selection-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Owner registration",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/owner-registration-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/owner-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Parent registration",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/parent-registration-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/parent-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Staff registration",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/staff-registration-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/staff-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Inspector registration",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/inspector-registration-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/inspector-registration-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Email verification",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/email-verification-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/email-verification-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Registration success",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/registration-success-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/registration-success-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Forgot password",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/forgot-password-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/forgot-password-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Reset password",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/reset-password-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/reset-password-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "auth",
+      "screen": "Invitation entry / valid",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/invitation-valid-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/auth/screenshots/invitation-valid-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Onboarding entry",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/entry-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/entry-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Owner role mode",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/role-mode-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/role-mode-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Garden details",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/garden-details-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/garden-details-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Documents",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/documents-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Classrooms",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/classrooms-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/classrooms-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Staff setup",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/staff-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/staff-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Children setup",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/children-setup-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/children-setup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Parent invitation",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/parent-invitation-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/parent-invitation-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Safety / Cameras readiness",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/safety-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/safety-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Subscription readiness",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/subscription-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/subscription-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Review",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/review-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/review-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-onboarding",
+      "screen": "Activation success",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/success-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-onboarding/screenshots/success-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Owner dashboard",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-dashboard-standard-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-dashboard-standard-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Navigation",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-navigation-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-navigation-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Multi-Garden state",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-multi-garden-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/multi-garden-state-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Attendance summary",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/attendance-summary-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/attendance-summary-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Staff summary",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/staff-summary-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/staff-summary-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Finance summary",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/finance-summary-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/finance-summary-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Communication",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/communication-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/communication-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Tasks / action center",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-action-center-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-action-center-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Documents",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/documents-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Inspection / corrective action",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/inspection-corrective-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/inspection-corrective-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "owner-dashboard",
+      "screen": "Safety / Cameras summary",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-safety-state-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/owner-dashboard/screenshots/owner-safety-state-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Children workspace",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/children-list-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/children-list-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Filtered Children",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/children-filtered-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/children-filtered-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Child profile",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-overview-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-overview-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Parents / Guardians tab",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-guardians-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-guardians-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Attendance tab",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-attendance-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Pickup tab",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-pickup-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Documents",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-documents-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Tuition",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-tuition-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-tuition-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "History",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-history-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/child-profile-history-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Classroom list",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/classrooms-list-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/classrooms-list-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Classroom detail",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/classroom-detail-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/classroom-detail-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Capacity state",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/capacity-state-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/capacity-state-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Enrollment requests",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/enrollment-requests-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/enrollment-requests-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "children-classrooms",
+      "screen": "Enrollment request detail",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/enrollment-detail-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/children-classrooms/screenshots/enrollment-detail-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Assigned Parent dashboard",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/parent-dashboard-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/parent-dashboard-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Unassigned Parent dashboard",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/parent-unassigned-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/parent-unassigned-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Multi-Child Parent",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/multi-child-parent-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/multi-child-parent-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Child switcher",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/child-switcher-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/child-switcher-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Garden discovery",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/garden-discovery-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/garden-discovery-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Garden detail",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/garden-detail-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/garden-detail-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Enrollment request",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/enrollment-request-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/enrollment-request-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Child profile",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/child-profile-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/child-profile-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Attendance",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/attendance-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Pickup",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/pickup-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Tuition",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/payments-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/payments-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Documents",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/documents-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Messages",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/messages-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/messages-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Notifications",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/notifications-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/notifications-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Safety / Cameras",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/cameras-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/cameras-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "parent",
+      "screen": "Settings",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/settings-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/parent/screenshots/settings-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Garden attendance",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/garden-attendance-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/garden-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Classroom attendance",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/classroom-attendance-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/staff-classroom-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Arrival",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/arrival-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/arrival-flow-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Departure",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/departure-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/release-workspace-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Child attendance history",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/child-attendance-history-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/child-attendance-history-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Authorized pickup",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/authorized-pickup-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/authorized-pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Release confirmation",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/release-workspace-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/staff-pickup-confirmation-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Revoked / unauthorized pickup",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/revoked-unauthorized-pickup-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/revoked-unauthorized-pickup-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Release history",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/release-history-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/release-history-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "attendance-pickup",
+      "screen": "Parent attendance view",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/parent-attendance-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/attendance-pickup/screenshots/parent-attendance-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff dashboard",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-dashboard-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-dashboard-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff list",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-list-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-list-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff profile",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-profile-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-profile-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Multi-Garden Staff",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/multi-garden-staff-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/multi-garden-staff-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Classroom assignment",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/classroom-assignment-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/classroom-assignment-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Shifts",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/schedule-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/schedule-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Current shift",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/current-shift-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/current-shift-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Clock in / out",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/clock-in-out-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/clock-in-out-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Time records",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-time-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-time-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff hours",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-hours-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-hours-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Missing clock-out",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/missing-clock-out-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/missing-clock-out-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Documents",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/documents-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-documents-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Tasks",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/tasks-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-tasks-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Messaging",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/messaging-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-messages-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Notifications",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/notifications-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/notifications-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Safety / Cameras permission",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/safety-cameras-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/staff-camera-policy-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    },
+    {
+      "domain": "staff",
+      "screen": "Staff settings",
+      "desktop": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/settings-desktop.webp",
+      "mobile": "qa-evidence/ux-implement-20/ux01-07/staff/screenshots/settings-mobile.webp",
+      "status": "OWNER_REVIEW_READY",
+      "materialDeviations": []
+    }
+  ]
+}

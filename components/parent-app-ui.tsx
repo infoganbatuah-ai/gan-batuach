@@ -12,26 +12,30 @@ type IconType = ComponentType<LucideProps>;
 export function ParentAppFrame({
   children,
   active = "home",
+  activeHref,
   avatarUrl,
-  profileName
+  profileName,
+  contentClassName = ""
 }: {
   children: ReactNode;
   active?: "home" | "dashboard" | "calendar" | "alerts" | "more";
+  activeHref?: string;
   avatarUrl?: string | null;
   profileName?: string | null;
+  contentClassName?: string;
 }) {
   const displayName = cleanSyntheticLabel(profileName, "הורה");
 
   return (
     <RoleAppShell
       role="parent"
-      activeHref={active === "calendar" ? "/dashboard/parent/schedule" : active === "alerts" ? "/dashboard/parent/notifications" : active === "more" ? "/dashboard/parent/settings" : active === "home" ? "/dashboard/parent/family-home" : "/dashboard/parent"}
+      activeHref={activeHref ?? (active === "calendar" ? "/dashboard/parent/schedule" : active === "alerts" ? "/dashboard/parent/notifications" : active === "more" ? "/dashboard/parent/settings" : active === "home" ? "/dashboard/parent/family-home" : "/dashboard/parent")}
       title="דשבורד הורים"
       subtitle="מעקב חכם אחר הילד והגן"
       profile={{ full_name: displayName, profile_image_url: avatarUrl }}
       className="parent-runtime-shell"
     >
-      <div className="parent-app-main dashboard-runtime-content">{children}</div>
+      <div className={`parent-app-main dashboard-runtime-content ${contentClassName}`.trim()}>{children}</div>
     </RoleAppShell>
   );
 }
@@ -64,7 +68,7 @@ export function ParentChildCard({
   const content = (
     <>
       <div className="parent-child-photo">
-        {image ? <img src={image} alt="" /> : <span>{name.slice(0, 1)}</span>}
+        {image ? <img src={image} alt="" /> : <Image className="parent-child-illustration" src="/assets/gan-batuach-child-avatar.webp" alt="" width={240} height={240} />}
       </div>
       <div>
         <h2>{name}</h2>
@@ -78,6 +82,35 @@ export function ParentChildCard({
   );
   if (href) return <Link className="parent-child-card parent-child-card-link" href={href}>{content}</Link>;
   return <section className="parent-child-card">{content}</section>;
+}
+
+export function ParentChildContextCard({
+  name,
+  garden,
+  status,
+  image,
+  href,
+  active
+}: {
+  name: string;
+  garden: string;
+  status: string;
+  image?: string | null;
+  href: string;
+  active?: boolean;
+}) {
+  return <Link className={`parent-child-context-card${active ? " is-active" : ""}`} href={href} aria-current={active ? "page" : undefined}>
+    <span className="parent-child-context-avatar">
+      {image ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="" />
+        </>
+      ) : <Image src="/assets/gan-batuach-child-avatar.webp" alt="" width={96} height={96} />}
+    </span>
+    <span className="parent-child-context-copy"><b>{name}</b><small>{garden}</small></span>
+    <span className="parent-child-context-state"><i aria-hidden="true" />{status}</span>
+  </Link>;
 }
 
 export function ParentMetricCard({ title, value, hint, icon: Icon, tone = "purple", href }: { title: string; value: ReactNode; hint?: string; icon: IconType; tone?: Tone; href?: string }) {

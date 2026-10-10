@@ -1,0 +1,3474 @@
+{
+  "generatedAt": "2026-10-05T12:56:28.994Z",
+  "sourceIntegrationSha": "7d7c9acc7ef72a315080b39be13641e6ec2db20a",
+  "finalIntegrationSha": "270c4fe27df78daf71b422de13b801224b8c73d7",
+  "files": [
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/welcome-splash-desktop.webp",
+      "sha256": "8cedf38942ba59286901600a9dd3c9ddd9cf1a315c9a2cc55ecaee7467f078b6",
+      "bytes": 114254
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/welcome-splash-mobile.webp",
+      "sha256": "48cefb63c32daabfae8b4b889e2620c55a098b1ad0ce222edd911f7f4e1ce1b5",
+      "bytes": 47278
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/login-desktop.webp",
+      "sha256": "cd957afab1d54e8ed390c514c2a33ac6a87c120b4ea4a2ed883fe5559ca42c56",
+      "bytes": 86366
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/login-mobile.webp",
+      "sha256": "cc035d64fa7444c5182a3a4cf5a2ae5e1e75db0e2fccc9f37ba03b6827c54eef",
+      "bytes": 18418
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/role-selection-desktop.webp",
+      "sha256": "0f27ea522c97aa4f07a3b5c10703c8d5bb59759d32ec60d65a0d5f031a1b534b",
+      "bytes": 93602
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/role-selection-mobile.webp",
+      "sha256": "37590be0e29ef53b1f40bebc8666ebab3afa41cbc9875213b7fa442ed112251d",
+      "bytes": 24754
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/owner-registration-desktop.webp",
+      "sha256": "41ddd7b5018c97f266591b19c9227b9233438b74336418c532e6ce28b165d74b",
+      "bytes": 99050
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/owner-registration-mobile.webp",
+      "sha256": "eebda13c4ea7679c64da7fe171691e05f42da401eccb6c102fe82c9055db41a9",
+      "bytes": 22504
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/parent-registration-desktop.webp",
+      "sha256": "1145161089d54421cd0feaac9065d94aa554e51e7d99d3efbe9f6038a509aedf",
+      "bytes": 98292
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/parent-registration-mobile.webp",
+      "sha256": "ae3877e7cba326430e31a50829fb2afc0b2260a8bcf857db345df08b62872191",
+      "bytes": 22134
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/staff-registration-desktop.webp",
+      "sha256": "872f0528b70c8f7b2e29b25840cef640e7eb0858de18508dfa285e118300a7c5",
+      "bytes": 99946
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/staff-registration-mobile.webp",
+      "sha256": "30e05d60e3c318d046a2c5da9a812e923fcab38755ad3dd49c544d42b1508897",
+      "bytes": 22860
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/inspector-registration-desktop.webp",
+      "sha256": "22132da6188b96e7a6dc6eb113af93468060d7c6363c726bfa1be7cf59389066",
+      "bytes": 98934
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/inspector-registration-mobile.webp",
+      "sha256": "4f65d7ad748579c18d8403f7908268e2ea85d20638de6371664536c2244de912",
+      "bytes": 22254
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/email-verification-desktop.webp",
+      "sha256": "9b70d59e5324517c8c0d6b490b460cc8567b7c89301fdc5677ee9c2d91052876",
+      "bytes": 93794
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/email-verification-mobile.webp",
+      "sha256": "9acdd67af1719b8348bcd3ffe61cb2ce446afe59f19c284b1232d829c6a849f3",
+      "bytes": 24628
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/registration-success-desktop.webp",
+      "sha256": "13c9d3ec703d85551953228992c8771fd7104414df65c9d6b9e90afea2c9d926",
+      "bytes": 86198
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/registration-success-mobile.webp",
+      "sha256": "c00ded5aa08cc9f62b1035a00e74747307891795f40c249b4a9585805798445d",
+      "bytes": 23412
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/forgot-password-desktop.webp",
+      "sha256": "4a491ae202687590faa90cd0a9e60310231de387ae5573f875f0156886d01706",
+      "bytes": 85608
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/forgot-password-mobile.webp",
+      "sha256": "769d681089be4f2716ae6fe4df3392be4132df2d44060c925a896be0e1ff5af2",
+      "bytes": 19792
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/reset-password-desktop.webp",
+      "sha256": "94bb2d090def2f99992e67502db1362913f673b5f725dbcea494267df454d11c",
+      "bytes": 86318
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/reset-password-mobile.webp",
+      "sha256": "2e66f195a23ad1deb64b79c508a30fd39fee7870b97a129d4f77c5b5d0821eec",
+      "bytes": 22168
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/invitation-entry-valid-desktop.webp",
+      "sha256": "285e7965bb38a6a20821921829dfda27376a6a025f81d8841fcaaa8e02a6f060",
+      "bytes": 86924
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux01/invitation-entry-valid-mobile.webp",
+      "sha256": "e5b20a1e7201a81928287820dbb871e80329dc0b7a35d9ffbaf6a8696a0f076f",
+      "bytes": 24392
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/onboarding-entry-desktop.webp",
+      "sha256": "1a282a16f854c2cd55883b05168d75d0e54bab2f13e3e53ec4e2ac02b2b5607b",
+      "bytes": 54078
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/onboarding-entry-mobile.webp",
+      "sha256": "71493e0da945e170acea9a729605f4f30c081781f07d0671de11e3734c1aff63",
+      "bytes": 27442
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/owner-role-mode-desktop.webp",
+      "sha256": "41cb615afb09f44d62a44f16b185e4bf676de450a9e5f1cdc5c6f02d5af71de2",
+      "bytes": 48302
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/owner-role-mode-mobile.webp",
+      "sha256": "78a499fe63e60d8dd269f6e7ebce14100179e188bafdd59aff60e85353e7bf36",
+      "bytes": 26658
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/garden-details-desktop.webp",
+      "sha256": "5885dfec8e6bb079a1f423d4960e6ca786b1edc41f76a3580ba74072ca6bec02",
+      "bytes": 48952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/garden-details-mobile.webp",
+      "sha256": "3e42845d866076a122e35ea8badaa4f7a0d210c89576cccadebf86d129a5cdf8",
+      "bytes": 19888
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/documents-desktop.webp",
+      "sha256": "13612a62ec50cb0bad2a2e17e1d536194aca325d8dc22d112f61708f3ab6742f",
+      "bytes": 47842
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/documents-mobile.webp",
+      "sha256": "4c894752ce75f873ed0b68061175b6ff9a9b0bc4a509559d97d5fa121f892f63",
+      "bytes": 21252
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/classrooms-desktop.webp",
+      "sha256": "56eb9b2cde891b579e9c151736c542bd9e257bc52daa19fc5eecb471c8e5d258",
+      "bytes": 51670
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/classrooms-mobile.webp",
+      "sha256": "9c1bb0f097bf8032ea42a2e22933853e6c7d8201225b5f80f6933647e173817d",
+      "bytes": 15294
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/staff-setup-desktop.webp",
+      "sha256": "805a99b05ec8ee0749a82c937ce023123d6cdad9213dfc85007bbeb58c50aaf0",
+      "bytes": 42032
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/staff-setup-mobile.webp",
+      "sha256": "2a1fb7aac0fc960216ce21cca3cf0036d6fb9fe2ea94e14076f870af3ae0870d",
+      "bytes": 17134
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/children-setup-desktop.webp",
+      "sha256": "c1e05f97e48d9a042810968684819ed2a8d17d3b86af5846ecf2091b9932c0dc",
+      "bytes": 46546
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/children-setup-mobile.webp",
+      "sha256": "26891836695321d1873782d3b04bdf1241c9a03d0f37efc813d86cf6ba3b8a3b",
+      "bytes": 20846
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/parent-invitation-desktop.webp",
+      "sha256": "c1e05f97e48d9a042810968684819ed2a8d17d3b86af5846ecf2091b9932c0dc",
+      "bytes": 46546
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/parent-invitation-mobile.webp",
+      "sha256": "26891836695321d1873782d3b04bdf1241c9a03d0f37efc813d86cf6ba3b8a3b",
+      "bytes": 20846
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/safety-cameras-readiness-desktop.webp",
+      "sha256": "805a99b05ec8ee0749a82c937ce023123d6cdad9213dfc85007bbeb58c50aaf0",
+      "bytes": 42032
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/safety-cameras-readiness-mobile.webp",
+      "sha256": "531fadce24057dfe956245dde2e13989ca6c6d001e8595f2b35f222ff879309d",
+      "bytes": 17246
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/subscription-readiness-desktop.webp",
+      "sha256": "282686935bd2e8aa5d39b0c7c2a94a8044db3df68ddb62763b74c580818d1949",
+      "bytes": 42404
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/subscription-readiness-mobile.webp",
+      "sha256": "ce4a36e6f097718e9a1a79f74204003bb01600b41eec90ecee87ee38ebccf5af",
+      "bytes": 21548
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/review-desktop.webp",
+      "sha256": "6f0f9d5f7f93d1c2f552dbc66d4d0bd2b6a6238e0e82482662a508f41ac7db5d",
+      "bytes": 57118
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/review-mobile.webp",
+      "sha256": "b043a82faf65d2ee71954d3adcf688e84ed4ae833a7d519bbad7bb12c8b7de32",
+      "bytes": 23724
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/activation-success-desktop.webp",
+      "sha256": "15839ff563cf449505fd461b39225949980592d6ec137910493b770d953efc1b",
+      "bytes": 39912
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux02/activation-success-mobile.webp",
+      "sha256": "e190427cbaac42a24ad134be3c12018bf5bc4b45fdbb2346750f98a7336ada7f",
+      "bytes": 20268
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/owner-dashboard-desktop.webp",
+      "sha256": "5d3c5d92b939af89fea38d8a07553a88cdb78b35b2d46c76dc16702a5f700c4c",
+      "bytes": 81110
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/owner-dashboard-mobile.webp",
+      "sha256": "9ed01c54b4cacc091029baa8f7526ce0ed5ab7eff44686fec833710dd5215094",
+      "bytes": 26214
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/navigation-desktop.webp",
+      "sha256": "52e7f97f70a7fa58703b93dd3bed0edb83ba991e8d6145f486058d95c07d7a96",
+      "bytes": 80630
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/navigation-mobile.webp",
+      "sha256": "00ebd3891a58ac5ed8b75834a03486f160af066f7c2dd684009129363d04dcd3",
+      "bytes": 19190
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/multi-garden-state-desktop.webp",
+      "sha256": "4b15dad77e107fd087b2ad6cd726ae2a51777ac3c7dfde5498997650342e7cf6",
+      "bytes": 80494
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/multi-garden-state-mobile.webp",
+      "sha256": "b20baed70506bd953b0dd1ea74124fd6eb58335cba3bbc88bf976c880221a1b2",
+      "bytes": 29842
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/attendance-summary-desktop.webp",
+      "sha256": "a94bb9eba1d588fe264d4806db2b8356fc87ff70da5f2704cafcb79333bb052e",
+      "bytes": 89368
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/attendance-summary-mobile.webp",
+      "sha256": "e11d7fdcfaf41704178fda719cdb119d09b34d2088ad49c1d5a0bd09f8d897a5",
+      "bytes": 29842
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/staff-summary-desktop.webp",
+      "sha256": "caefb41b60790e2d3f9567920d238ae2d26ab82d4c3ba39283f7bf195d1b3079",
+      "bytes": 72688
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/staff-summary-mobile.webp",
+      "sha256": "29a2f38d43f9326108836c04479e51be84292a30ddc904689bd77dfd68ad21b1",
+      "bytes": 24920
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/finance-summary-desktop.webp",
+      "sha256": "4c1f0f1f0c4a11bf1256daf50b4186a84bd4f09c5a9d913bb0201b045efebd26",
+      "bytes": 96972
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/finance-summary-mobile.webp",
+      "sha256": "94413c53e055b07ed44577da27fd7f359c5d5ed56579a7ba68ed9f32f8acb5a3",
+      "bytes": 29294
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/communication-desktop.webp",
+      "sha256": "f5853076278f628f8b6d0ed316bc44c922826b01decade8102edcdc6c544a827",
+      "bytes": 57260
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/communication-mobile.webp",
+      "sha256": "f81e75e929f22e4cad519016896c5f430301e21c5be1f19f80d2d044dadef20a",
+      "bytes": 23544
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/tasks-action-center-desktop.webp",
+      "sha256": "519e3cf03dedc8482d1eb5e2bb9613f99fa087926c6e3d57f4d371683af3bf46",
+      "bytes": 40492
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/tasks-action-center-mobile.webp",
+      "sha256": "62e0402a1a8952233026cac24ab5778658c47354b9fa662dcbc09236b2b3ba6a",
+      "bytes": 13920
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/documents-desktop.webp",
+      "sha256": "b47110680890868c38d7d76e5264a0dbb9ba4ad5fdad8c5c7ca8fedb0624f978",
+      "bytes": 90000
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/documents-mobile.webp",
+      "sha256": "73e4961a97be3d8c18423b141be24e4802d1a05be678e1370dc52b8bdda8f691",
+      "bytes": 32042
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/inspection-corrective-action-desktop.webp",
+      "sha256": "576178b13698664cc4858d12020a80bd323133f0f100689a5236054dc823e010",
+      "bytes": 66810
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/inspection-corrective-action-mobile.webp",
+      "sha256": "3ef4b166c16e9399ce7a9677ec617df8656dbfe87896f33b2f655c217b811a66",
+      "bytes": 24608
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/safety-cameras-summary-desktop.webp",
+      "sha256": "ab6b2b2a12d47607e8dfb505af22ad16b2621d367fa946a2da27dd618cd0f79e",
+      "bytes": 43222
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux03/safety-cameras-summary-mobile.webp",
+      "sha256": "00ebd3891a58ac5ed8b75834a03486f160af066f7c2dd684009129363d04dcd3",
+      "bytes": 19190
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/children-workspace-desktop.webp",
+      "sha256": "bb9dee36151e0e01eafe33cc698fbb0546746d9531df416fe82fe2ca4f9e9d7a",
+      "bytes": 56284
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/children-workspace-mobile.webp",
+      "sha256": "6b832cf3fa7aed9cefc76d3fd7f8973dfcf03686101e5b197de74e11a4ee98f5",
+      "bytes": 21218
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/filtered-children-desktop.webp",
+      "sha256": "3cbb1cb81b27346cb863ec8ba4368716eb2eaf101626c2d91c8c7a313106541e",
+      "bytes": 52238
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/filtered-children-mobile.webp",
+      "sha256": "e50c4082a1f530e8c72a45c42d86ac1b294c688664191cca0e3e6bd4640d218a",
+      "bytes": 20682
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/child-profile-desktop.webp",
+      "sha256": "f99b1410963016946335ad1a53a1b5b4ccf304b0d482166cf362f33c5979ad5d",
+      "bytes": 58946
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/child-profile-mobile.webp",
+      "sha256": "d42a41a7fcf5657c5c2942a4b1694dd5f11c45e3e873ebc2a1e4c651914a76df",
+      "bytes": 23944
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/parents-guardians-tab-desktop.webp",
+      "sha256": "7cb339ab6b199624915e3440eddfa677647f333020b2fc21f73be48c9c2ba774",
+      "bytes": 52636
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/parents-guardians-tab-mobile.webp",
+      "sha256": "ec60716e7369c867781de3d35b27220534719069fb09bffcd718778723ab5fa9",
+      "bytes": 25144
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/attendance-tab-desktop.webp",
+      "sha256": "9a042c96735207382dfed153ab1ebd8004e3f62b6a738fd5a2882bbf101c46db",
+      "bytes": 50680
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/attendance-tab-mobile.webp",
+      "sha256": "97a6ab6bb317b3d49871c5276efa5c0ef269b454a8201abc1525c598c563583d",
+      "bytes": 23952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/pickup-tab-desktop.webp",
+      "sha256": "07d9c0cc79bae3a06ad22c39ec3cc665aa51d93d3c3248a42210f70515766d66",
+      "bytes": 55952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/pickup-tab-mobile.webp",
+      "sha256": "102dca57144d43aec25aaa9bc66723ac3aa375665ec5be1f24d67f49eb756685",
+      "bytes": 24376
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/documents-desktop.webp",
+      "sha256": "e1fecefc1aa56dd80ac71173560a156211c1f33a3a6895e4ceeb9b02d7e0ebff",
+      "bytes": 50812
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/documents-mobile.webp",
+      "sha256": "b2b986bb17326cd56298d037c725cd21b989a376e8d2654a760ee1c568321428",
+      "bytes": 23470
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/tuition-desktop.webp",
+      "sha256": "b87a72dce4045f26bf96d8830e3a4de197cc9c5ee66e65c3ec16fce06ba407f7",
+      "bytes": 63748
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/tuition-mobile.webp",
+      "sha256": "fbaebbc53ff5a3ad711211c82fb6214bf97b778015c76ff9e636cad4a2093a00",
+      "bytes": 23286
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/history-desktop.webp",
+      "sha256": "fd1fc431880a0b8845ac70bc754cae31b74b79deabf7d1eb6eb69daddda4d5f3",
+      "bytes": 58340
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/history-mobile.webp",
+      "sha256": "8365df3c2acd94b4a0374180dde1c5648d8a3ef28867b2f0f34d176229785f2f",
+      "bytes": 25532
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/classroom-list-desktop.webp",
+      "sha256": "256d3984b4c397a52adc3c1326bab9c560e476a68a79588b634d908b1c98615d",
+      "bytes": 65424
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/classroom-list-mobile.webp",
+      "sha256": "e2dbe5e079066638784e7273ae9b97ef707a46ea95af68d6e665d277a7a4808c",
+      "bytes": 30078
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/classroom-detail-desktop.webp",
+      "sha256": "4d05b5819a0f59c58bb4fe14fa9eeebce2e2960e57f91aed11686daac54f212c",
+      "bytes": 75870
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/classroom-detail-mobile.webp",
+      "sha256": "f7f885119e8484f0881c3682325118f51146359dadcc599080aa7f065bd73746",
+      "bytes": 30020
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/capacity-state-desktop.webp",
+      "sha256": "4d05b5819a0f59c58bb4fe14fa9eeebce2e2960e57f91aed11686daac54f212c",
+      "bytes": 75870
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/capacity-state-mobile.webp",
+      "sha256": "f7f885119e8484f0881c3682325118f51146359dadcc599080aa7f065bd73746",
+      "bytes": 30020
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/enrollment-requests-desktop.webp",
+      "sha256": "c490ec20c05debc77e4c0f3385890fe1aec157d4418d81068df55614723f3b7e",
+      "bytes": 71834
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/enrollment-requests-mobile.webp",
+      "sha256": "e12d9552fd8065f7a63c3875c4735f340d201a577326d7d5c84a9596fb4822af",
+      "bytes": 22718
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/enrollment-request-detail-desktop.webp",
+      "sha256": "392908e0364fd191d18e09aa6c3c84829bd86add2098b644ef35dcec590a846a",
+      "bytes": 47134
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux04/enrollment-request-detail-mobile.webp",
+      "sha256": "95e412cff4c5bd8f8f98b1db6cc1c5706f4308e109d1917a83281725a01c5e20",
+      "bytes": 24176
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/assigned-parent-dashboard-desktop.webp",
+      "sha256": "c56bf007583a86bdffd34d43f099ca97566a37bdc6ea9677785be05a024ac446",
+      "bytes": 66838
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/assigned-parent-dashboard-mobile.webp",
+      "sha256": "f77768cd1a07f86a0ba15c6cbdc62d2d43cad722de383d6902dcd8b70e3dd030",
+      "bytes": 26052
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/unassigned-parent-dashboard-desktop.webp",
+      "sha256": "65518cd20ca8e1040a76edd5f55a1d37e676aef0573ba583ef0830b49b31f095",
+      "bytes": 76458
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/unassigned-parent-dashboard-mobile.webp",
+      "sha256": "370460cd33e5a6f1dd438ae7e59554da7faa8cc5d488a9394ea51ecfa99b0269",
+      "bytes": 29750
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/multi-child-parent-desktop.webp",
+      "sha256": "0010b4ec695a59ac2022220341838ed2c464b48b9feaec02c7e3258a290345b3",
+      "bytes": 69558
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/multi-child-parent-mobile.webp",
+      "sha256": "1ba16b3c02280e63541b8646e3ec19705dc5f41fd51da61c76c77cec46c1f9d4",
+      "bytes": 27168
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/child-switcher-desktop.webp",
+      "sha256": "0010b4ec695a59ac2022220341838ed2c464b48b9feaec02c7e3258a290345b3",
+      "bytes": 69558
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/child-switcher-mobile.webp",
+      "sha256": "1ba16b3c02280e63541b8646e3ec19705dc5f41fd51da61c76c77cec46c1f9d4",
+      "bytes": 27168
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/garden-discovery-desktop.webp",
+      "sha256": "3328c474527f83165bceba9c547aa16b55bb4cb4eb9b4696a840603d9059772a",
+      "bytes": 86670
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/garden-discovery-mobile.webp",
+      "sha256": "ff99edca21bd655d258b8bd7aabc0c32a4ddca7393ea09c5ad3d53beb71fca98",
+      "bytes": 26526
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/garden-detail-desktop.webp",
+      "sha256": "44e0c705479545e87097c720d506e21473250a933f83f325e31404cd049fd200",
+      "bytes": 68728
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/garden-detail-mobile.webp",
+      "sha256": "e6342a061996c2df997c2ff1f84631c45fe19473ce65dd0a9a84347f1c1be1a8",
+      "bytes": 36542
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/enrollment-request-desktop.webp",
+      "sha256": "82915c6fc8ec73bcdb4ec6296d0ceaa59b9e1ce0c81177c377af59be598a924b",
+      "bytes": 83028
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/enrollment-request-mobile.webp",
+      "sha256": "003997f1e036136e498310ade00366e264f77c11ee2bdb708480fa90c3f58468",
+      "bytes": 40250
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/child-profile-desktop.webp",
+      "sha256": "e53d16e05f8f5705148686c262ee656d882025234415e2c3bd28a535cf0a28e9",
+      "bytes": 72028
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/child-profile-mobile.webp",
+      "sha256": "3325cd4fb4cf7f2bc5a8f5bdb06128cf549a42f36aec6c9298e4e458775e9046",
+      "bytes": 22644
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/attendance-desktop.webp",
+      "sha256": "e61c2b1d99abae1762b4cb00ae0e6e1dee487aa7bb9a1a5177c7545c7ce795d5",
+      "bytes": 75290
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/attendance-mobile.webp",
+      "sha256": "a93692f39cc74cbc1bf0dde3db17c7e78af136a64023eefe4d2f24939f7de4a7",
+      "bytes": 28400
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/pickup-desktop.webp",
+      "sha256": "03c89c10e31afd918b34c2f495400912a92e00a418b524445efe837a17601d89",
+      "bytes": 73408
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/pickup-mobile.webp",
+      "sha256": "dbe7bf469eb90b5a64345f473d566496b85a333e7d415201cd969fbd4982a6d3",
+      "bytes": 30028
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/tuition-desktop.webp",
+      "sha256": "5f35dff15fef48d55ebf54c0f68cf6e38be7930bd48c4e9d839b25ccb02afd86",
+      "bytes": 85984
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/tuition-mobile.webp",
+      "sha256": "da1b1666d0753ea86ad47cd7ac3e59af6e9f1159a683385ff23c8ff82bf97089",
+      "bytes": 28924
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/documents-desktop.webp",
+      "sha256": "26c96f1041c303f0a09075f48c9d54d9f6fd77e452507e52150db4320d1ceae5",
+      "bytes": 57468
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/documents-mobile.webp",
+      "sha256": "b9176f1c293b3f77831de0684a1b64fd5349ede533a34666688425dcbb493ed0",
+      "bytes": 25478
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/messages-desktop.webp",
+      "sha256": "84f0b7b4e5457851cdb91c27cb052e8cbfa97125a9b3a425307583528372ceef",
+      "bytes": 34024
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/messages-mobile.webp",
+      "sha256": "65855b83bc3a6746453b2d926028a889d734b6cb1e6f1295447f494a6827a6bb",
+      "bytes": 19256
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/notifications-desktop.webp",
+      "sha256": "02ead6bf21f921192ff1d0027562172670375bab7ed064b4382ef8d2c8884ed6",
+      "bytes": 81594
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/notifications-mobile.webp",
+      "sha256": "e913431b58e9ea9446264f8ef5821efe8aceb8a41a5f887c82ca184407ba6f26",
+      "bytes": 34524
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/safety-cameras-desktop.webp",
+      "sha256": "dd828cf66fa64cbd80895c3a7bdb09a494388b0d9425776a62167e054cd29f86",
+      "bytes": 63520
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/safety-cameras-mobile.webp",
+      "sha256": "13c6774b38ff7c65d7a07ead1a4be9e1185bf9f6f367e3facecbce8a72588648",
+      "bytes": 26726
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/settings-desktop.webp",
+      "sha256": "e12ca2cdb068e8dfde9a0377e525ac7b35ae572cbc265da5cc9e2105e36729f0",
+      "bytes": 85470
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux05/settings-mobile.webp",
+      "sha256": "cd8f3c7e21da5b9b0dba9b41be1bd8bec02e0837583b2fd4c9ec2f4e8e55e7b4",
+      "bytes": 27454
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/garden-attendance-desktop.webp",
+      "sha256": "9a7dae1b34367fa0edcd2227d5b4bd9e9a1b3449e1b2bada360ea79e15b5b6f4",
+      "bytes": 62972
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/garden-attendance-mobile.webp",
+      "sha256": "15c7769088108f2a5958e1093b0870b1c63ff23410db73d625559fc20b6461cf",
+      "bytes": 24118
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/classroom-attendance-desktop.webp",
+      "sha256": "60aa3863a1fb178b4ace20a900de3f7c6341f479b4bdd00f29ce2d7178ce2c7f",
+      "bytes": 59532
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/classroom-attendance-mobile.webp",
+      "sha256": "1e7aab2b72028aaeebf70ef6d873a2eaf7721d5a39498c5ec5378c0d13768e47",
+      "bytes": 22256
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/arrival-desktop.webp",
+      "sha256": "a067dd52c37bf2c18246895839a41419c11c09c7f1c4576f1de65391bb12c4d5",
+      "bytes": 65628
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/arrival-mobile.webp",
+      "sha256": "858400ef32681c4e9c25b0a9eb443d7f63b67147657043351f4de7e5fdd086d0",
+      "bytes": 24076
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/departure-desktop.webp",
+      "sha256": "a6e7c49ecb527b7ced71318b5ebde3e1ad4ac1eebb96918621ad1c51f40e60b0",
+      "bytes": 49480
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/departure-mobile.webp",
+      "sha256": "89ed8094f8e7538c84fee72b39e637be32a6a7d2162d5bc264804f31098a0b68",
+      "bytes": 21912
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/child-attendance-history-desktop.webp",
+      "sha256": "6e27b7319df66da18ceef8e588f99e487c9a714e4d0cbe17b2ffa69b9e1803b9",
+      "bytes": 58768
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/child-attendance-history-mobile.webp",
+      "sha256": "cafa340a5d377fe141d293be8c1afcb24ba4a20e59e7d4425b161abad2b206f5",
+      "bytes": 26658
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/authorized-pickup-desktop.webp",
+      "sha256": "03c89c10e31afd918b34c2f495400912a92e00a418b524445efe837a17601d89",
+      "bytes": 73408
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/authorized-pickup-mobile.webp",
+      "sha256": "7b803bf2aef14b903408b6378b6ba56da5ef39b379f729b136906061172fdbc5",
+      "bytes": 28910
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/release-confirmation-desktop.webp",
+      "sha256": "b474fd2902e1227bd7cb50acf62d72ff491bd20185117dfdee36900eec237a47",
+      "bytes": 34478
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/release-confirmation-mobile.webp",
+      "sha256": "cf7a423f4811ae419d24cf2fbd5f3deba748fc4176eb074be7e3fed0c8f5ccfe",
+      "bytes": 26894
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/revoked-unauthorized-pickup-desktop.webp",
+      "sha256": "ce7f93f1cd3522ce0df1ae250664f3a23799d6eaa8fabc6875269dd80e83c7ce",
+      "bytes": 45046
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/revoked-unauthorized-pickup-mobile.webp",
+      "sha256": "10a74241fcbf940621fc8fbf91651a37b62738b874da2b8f3fae8a158acd2cf1",
+      "bytes": 23232
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/release-history-desktop.webp",
+      "sha256": "3c833c4798aa10d29f25a18c76468027603d77c877991c2782af3b86b281208e",
+      "bytes": 45736
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/release-history-mobile.webp",
+      "sha256": "245c8e6da34e72a700050e89ba3404dc148c5192871ed7d00430aad3e1053db0",
+      "bytes": 19906
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/parent-attendance-view-desktop.webp",
+      "sha256": "2ab1f8b099deadcc2c24b04c9bf838b02f5fe301d2be548e5fdd11e5872c579d",
+      "bytes": 69244
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux06/parent-attendance-view-mobile.webp",
+      "sha256": "308c954cd7ad34379ff338b130e0be99ef22e2f312605cae6837ed88620f0858",
+      "bytes": 28490
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-dashboard-desktop.webp",
+      "sha256": "343bb3fdfe6f878eaea4fd2cb3d2f82d804ebe0bb6278b518cd3ee59295ac793",
+      "bytes": 64786
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-dashboard-mobile.webp",
+      "sha256": "e2ce80cb015035f84c9203c63f6a75d1ceca7bca89a25265f6daf6146c90111e",
+      "bytes": 26466
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-list-desktop.webp",
+      "sha256": "5f3068e9a492f9f06e000cff810f25ac8f7cd291821e28cf5bbd6fc6447e46b3",
+      "bytes": 70630
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-list-mobile.webp",
+      "sha256": "fe030b97141fd1602fdc0916f3f338ba97d410792566ee1eaf8efff15da409f2",
+      "bytes": 23808
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-profile-desktop.webp",
+      "sha256": "681a562fdd423e9c0b89c224570f1c18dac2598a2b29574318214e966b6ca28d",
+      "bytes": 78996
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-profile-mobile.webp",
+      "sha256": "92de42ef5cac8cf40522e6a3c27464a6e3394bcfee4846d768f7706d70fd2bb2",
+      "bytes": 23788
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/multi-garden-staff-desktop.webp",
+      "sha256": "7ea96f40d3c24c62bab67af5a0f333963b2e586cac4879f0719f8b0329bab34c",
+      "bytes": 62850
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/multi-garden-staff-mobile.webp",
+      "sha256": "cc67176f99b42928fa09b661b64c5dbd0d3a5ff8c21dc497c4ec75cc8d8ff0f8",
+      "bytes": 20744
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/classroom-assignment-desktop.webp",
+      "sha256": "676acd57e56c470217a2acdffe4265164fbbb4a40bc0a6c3f73d239fbe4a71ac",
+      "bytes": 81732
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/classroom-assignment-mobile.webp",
+      "sha256": "c71c6a6cbba0c1bc2f910b52bbf171eceeb98b44129637aa838ea7720a22c140",
+      "bytes": 24802
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/shifts-desktop.webp",
+      "sha256": "cfd2617327382df7e46a05a71df0d58f8e30b4b9dc502f2edd3bc8f4fffd53da",
+      "bytes": 59118
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/shifts-mobile.webp",
+      "sha256": "d4b0d0db6ecd962154587c923a38ca994fe88699dcfb426723a2b5c730e97717",
+      "bytes": 26520
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/current-shift-desktop.webp",
+      "sha256": "498cc57f3ad3aea6e1ab1433f40db7c2c38f7f2789b183d5fc5c7b1f95e6b06d",
+      "bytes": 66976
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/current-shift-mobile.webp",
+      "sha256": "06b3b4a62f3c827f1720719df6cc1f3ef6ddc132d8a0acb75635b36ef3e0ef8f",
+      "bytes": 28072
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/clock-in-out-desktop.webp",
+      "sha256": "3eb2496adfc903cab374e96724a895bb7c24cdd0588484f2b95ce6e7ede173fa",
+      "bytes": 59298
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/clock-in-out-mobile.webp",
+      "sha256": "7f0646024e8cf54c846f910c46217b6d38f96180cd118e0d625a7b2c11723fe0",
+      "bytes": 26420
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/time-records-desktop.webp",
+      "sha256": "b6abf5fa597bc6fc15323c42fa3be3f7b184eabcb654fe26be9bcddc78c7fc87",
+      "bytes": 33074
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/time-records-mobile.webp",
+      "sha256": "e8b929f6f4add37da06bbd07d1dfc282fb74480700a73ad2920f489b8f8e1fc9",
+      "bytes": 20558
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-hours-desktop.webp",
+      "sha256": "ba011dad1d27a05e839fd47dfa0353262e47d926de2b40833e78d929a35898bc",
+      "bytes": 62154
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-hours-mobile.webp",
+      "sha256": "18da1e4f2d046866a8784f6a03098a7ff034d6799ad3c3088afebc43b1f5cf39",
+      "bytes": 27468
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/missing-clock-out-desktop.webp",
+      "sha256": "ba011dad1d27a05e839fd47dfa0353262e47d926de2b40833e78d929a35898bc",
+      "bytes": 62154
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/missing-clock-out-mobile.webp",
+      "sha256": "18da1e4f2d046866a8784f6a03098a7ff034d6799ad3c3088afebc43b1f5cf39",
+      "bytes": 27468
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/documents-desktop.webp",
+      "sha256": "e86cd1bf99f64fc4954f4d868a5a89db82c4f6ce8692aa100a1102b97e2be7ca",
+      "bytes": 76704
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/documents-mobile.webp",
+      "sha256": "28f029d6d370ea2f0503c6bc7573c1ae8f3d6e67eb8ce88b66a17b165f72d9fa",
+      "bytes": 29204
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/tasks-desktop.webp",
+      "sha256": "6cbba61a1efa8aaa8762bc289479b3a2e9d8ce5f2e54014fbea48cc0aa9cf13c",
+      "bytes": 51562
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/tasks-mobile.webp",
+      "sha256": "f59e6edc099c1f7cee7bf33f92df1bc7738aeac5b1dd1eaed16b05c26b73f061",
+      "bytes": 25866
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/messaging-desktop.webp",
+      "sha256": "35a7701aedcca53629965d7e6491323b4aa88cf2694ccdc9dcd9c53559ca932d",
+      "bytes": 60032
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/messaging-mobile.webp",
+      "sha256": "3b8c2c80bf9157ab1d559e55b3924323a5635de084f9721ee52dd8f24240216f",
+      "bytes": 26502
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/notifications-desktop.webp",
+      "sha256": "29fa6e2b2cfb2878c6051f3568a792abdc2e93042bbf9df021ef4dc1d414d62c",
+      "bytes": 61696
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/notifications-mobile.webp",
+      "sha256": "fed402bd9633b91a5febb82fb12d99bf48becfa559ff007b960a7dbe7b796045",
+      "bytes": 29816
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/safety-cameras-permission-desktop.webp",
+      "sha256": "d5dc1b74e26b82c273d57e3a809fa221d81cb11717597a0302709cdb68d81150",
+      "bytes": 76178
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/safety-cameras-permission-mobile.webp",
+      "sha256": "2cce64885ca7564476262dc89bdf099360864411e3ed5586ecf6c5f2d4d9e4a3",
+      "bytes": 27634
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-settings-desktop.webp",
+      "sha256": "676acd57e56c470217a2acdffe4265164fbbb4a40bc0a6c3f73d239fbe4a71ac",
+      "bytes": 81732
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux07/staff-settings-mobile.webp",
+      "sha256": "c71c6a6cbba0c1bc2f910b52bbf171eceeb98b44129637aa838ea7720a22c140",
+      "bytes": 24802
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/candidate-dashboard-desktop.webp",
+      "sha256": "9b2b90e1a23562935c0a6fe35fcc98a54f5a8c29ae799c24f5410a7fd72f8622",
+      "bytes": 105184
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/candidate-dashboard-mobile.webp",
+      "sha256": "1b6bc39b29ea2ab0ab6e8f78f60cdaf80a79e530b9ba83de065b9aed1ef098d3",
+      "bytes": 34768
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/candidate-profile-desktop.webp",
+      "sha256": "09e2e7e8d4711ebae3982b650354d7e8630cf9e9fd03ecdb4349ddbe0d6c7f5b",
+      "bytes": 80628
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/candidate-profile-mobile.webp",
+      "sha256": "150c24f09f13149e2595cc89581f1c0190fb7b6e933f84626a7d4ca9a0294a69",
+      "bytes": 26440
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/profile-completeness-desktop.webp",
+      "sha256": "09e2e7e8d4711ebae3982b650354d7e8630cf9e9fd03ecdb4349ddbe0d6c7f5b",
+      "bytes": 80628
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/profile-completeness-mobile.webp",
+      "sha256": "150c24f09f13149e2595cc89581f1c0190fb7b6e933f84626a7d4ca9a0294a69",
+      "bytes": 26440
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/documents-certificates-desktop.webp",
+      "sha256": "f60e053e8b2f1005043ce8be645a21c9876e37388156d9b1e2d757d1aaf53b1b",
+      "bytes": 86574
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/documents-certificates-mobile.webp",
+      "sha256": "02028675fc54fdadd47d2dd4b5352027e996f0c0c0dd4c85cbcc9334f82a89c2",
+      "bytes": 39996
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/opportunity-discovery-desktop.webp",
+      "sha256": "9b2b90e1a23562935c0a6fe35fcc98a54f5a8c29ae799c24f5410a7fd72f8622",
+      "bytes": 105184
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/opportunity-discovery-mobile.webp",
+      "sha256": "1b6bc39b29ea2ab0ab6e8f78f60cdaf80a79e530b9ba83de065b9aed1ef098d3",
+      "bytes": 34768
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/job-detail-desktop.webp",
+      "sha256": "9a289bb947c28edc9a49dbcbef08028184d1519f24e2a0a98f7b4abfd14af7a9",
+      "bytes": 88860
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/job-detail-mobile.webp",
+      "sha256": "c8ab3b537d77ac18e5afa2fb8bfad22efe76452b44946752a9931ef9e95f3e44",
+      "bytes": 29520
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/application-submit-desktop.webp",
+      "sha256": "9a289bb947c28edc9a49dbcbef08028184d1519f24e2a0a98f7b4abfd14af7a9",
+      "bytes": 88860
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/application-submit-mobile.webp",
+      "sha256": "c8ab3b537d77ac18e5afa2fb8bfad22efe76452b44946752a9931ef9e95f3e44",
+      "bytes": 29520
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/application-detail-desktop.webp",
+      "sha256": "d9b615952d87e6e581965aceab641819f1a0fbf5db6ea694944f8d5361e8d989",
+      "bytes": 57576
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/application-detail-mobile.webp",
+      "sha256": "ac02382678226cd9ea8c5865258698659d7318122f3c1930f1b47a2fb8686357",
+      "bytes": 26310
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/information-required-desktop.webp",
+      "sha256": "7772f1514347dbb20eee170e188e2eebe4ec5e31ffdd99ed6e22b1ae9016c551",
+      "bytes": 61584
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/information-required-mobile.webp",
+      "sha256": "5d6044cfad9e5fa2acb7c8bcb7a407dffdf7e00325d4682a0e143137becee7db",
+      "bytes": 25714
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/activation-ready-desktop.webp",
+      "sha256": "960312cd414d7d12bb7b1a10086874c4aca319ecb593dd37d312b315b9f1e2c9",
+      "bytes": 60658
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/activation-ready-mobile.webp",
+      "sha256": "35ecd4fc71432371042d77d7502707f70fa5c63ed01d63d5271c10aec31672bb",
+      "bytes": 26716
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/rejected-state-desktop.webp",
+      "sha256": "13cf5f2bce16408a03496a6ba0901ede3be8610037ecb10e9fa3041a347471ff",
+      "bytes": 61742
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/rejected-state-mobile.webp",
+      "sha256": "bc430a87699c87a8b07fab509a7f6a4cf74e55939e7a1c39bce5fe105026629e",
+      "bytes": 26416
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/invitation-desktop.webp",
+      "sha256": "20659b51295dcaa8116293a17dd9e477a4eb38858507727ef41f4551de77c0fd",
+      "bytes": 94990
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/invitation-mobile.webp",
+      "sha256": "776a3602a33fcbd106bdfe1680937f06fd08d3bd4ae1f08ab1a596c4a5da817b",
+      "bytes": 25668
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/recruitment-notifications-desktop.webp",
+      "sha256": "6dfbae9b97c989312673f9618d6e9286a747e00ec82dfe25b0f1746f777aeaca",
+      "bytes": 69372
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/recruitment-notifications-mobile.webp",
+      "sha256": "d5ce6a07c7afec5ee625c92252f5a39d66e47b355ff8d30ec17a9acbf677fc49",
+      "bytes": 32414
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/manager-recruitment-hub-desktop.webp",
+      "sha256": "a37b32c1211c76052313b8db6a9fa06772e5feb8d817dcee838c6a7356ea4bcd",
+      "bytes": 92858
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/manager-recruitment-hub-mobile.webp",
+      "sha256": "fb6ce107b8a7d9a1e1902bf2d9cd2da09e792056fd890308ab46e70424bc751f",
+      "bytes": 34624
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/manager-candidate-list-desktop.webp",
+      "sha256": "a37b32c1211c76052313b8db6a9fa06772e5feb8d817dcee838c6a7356ea4bcd",
+      "bytes": 92858
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/manager-candidate-list-mobile.webp",
+      "sha256": "fb6ce107b8a7d9a1e1902bf2d9cd2da09e792056fd890308ab46e70424bc751f",
+      "bytes": 34624
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/manager-candidate-detail-desktop.webp",
+      "sha256": "a54bbbea1b05e4c20fab5623b7f2d64ea0f573789761f84ecad9e8280d47ef47",
+      "bytes": 82262
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/manager-candidate-detail-mobile.webp",
+      "sha256": "7f98e5b25e465e01e23c1a21df7603b3a196c6a8055f87974d9855f729b827f0",
+      "bytes": 25600
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/job-post-creation-desktop.webp",
+      "sha256": "c75e8e63f6f9d485c1d9e79896f96b7eae05f55e6c5bc8ebae4b6d9c1f7759cc",
+      "bytes": 91858
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux08/job-post-creation-mobile.webp",
+      "sha256": "dfc975d6d9e7ea9870eb023dfda08893840863252605274b8fe7181f09469cf9",
+      "bytes": 33884
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/inspector-dashboard-desktop.webp",
+      "sha256": "c0317400bff4c6eece23dc64ca9356cb80f248050f173a636b04e14b72a9f359",
+      "bytes": 88402
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/inspector-dashboard-mobile.webp",
+      "sha256": "64ad14a7b5bb1e402fa0456832bc99cff2557612405257305e9019596639c0e5",
+      "bytes": 29244
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/approved-unassigned-desktop.webp",
+      "sha256": "d385333bf86c488c3a18fd977eb731f843e9d442ee3a3ae39fcffb0bad2f6b6e",
+      "bytes": 70358
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/approved-unassigned-mobile.webp",
+      "sha256": "d3ef6845a9da044647bae6888662c99fa4cf6a870bc3910cc482ec0beda4ffb2",
+      "bytes": 29602
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/garden-portfolio-desktop.webp",
+      "sha256": "5566551643c121526c554dda7e7e4d0b1d4b1c401a2516f5cb8a39ae613f4c81",
+      "bytes": 85224
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/garden-portfolio-mobile.webp",
+      "sha256": "5dc1823272cfed614adac97ceeeb30abec84f1e33cd604fd3bb40585f612ec2d",
+      "bytes": 27530
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/garden-detail-desktop.webp",
+      "sha256": "3a64dddb5cc6ab58420f7f84b39ef9e664fa7e10b926bd01818f37871105563f",
+      "bytes": 82212
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/garden-detail-mobile.webp",
+      "sha256": "2b435248c485c87991ad024cb62d5a5bb0a5629e300621f85e216f807a517849",
+      "bytes": 28002
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/monthly-inspection-desktop.webp",
+      "sha256": "f0141abf0534ad76530a72c2f73bf1105a25b6b2ff1acfcfc006666560f0a6b6",
+      "bytes": 64226
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/monthly-inspection-mobile.webp",
+      "sha256": "99c764726e191e9ea681e8390c20938d13b322007282412d1657436a98834318",
+      "bytes": 25578
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/checklist-desktop.webp",
+      "sha256": "f0141abf0534ad76530a72c2f73bf1105a25b6b2ff1acfcfc006666560f0a6b6",
+      "bytes": 64226
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/checklist-mobile.webp",
+      "sha256": "06940d2a545f1834b20526ba0be7fe458b6053ade59b4a2ad2d29918c3a822e0",
+      "bytes": 25552
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/draft-resume-desktop.webp",
+      "sha256": "24842220c0a6e8af3d761cceb0ec0bbf8e52dce873acd9af2a23beb7203e27e2",
+      "bytes": 71270
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/draft-resume-mobile.webp",
+      "sha256": "4525a7880b8aa1474d7307fee4cb573ee6d9f00f322654e3c4388ad0c704e57c",
+      "bytes": 29948
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/evidence-desktop.webp",
+      "sha256": "446dd3b87d285dc11a6f3ace28e0dfbb114b500915255e207f8a8b48a0629470",
+      "bytes": 69780
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/evidence-mobile.webp",
+      "sha256": "a9d075f9a6efcae5acac26f161fc12b1fa380ee991679fe786adbecb4251e8c2",
+      "bytes": 27328
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/findings-desktop.webp",
+      "sha256": "f27369191b0c550b03aee655009b84e62a1416487a1d2b4596d52aedf1470ef8",
+      "bytes": 76780
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/findings-mobile.webp",
+      "sha256": "039ef38ba1ed6457c114407a45d761319cd0679b70934266adf57786c7e8520c",
+      "bytes": 29140
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/report-desktop.webp",
+      "sha256": "8bc1aa4256128f5a3b0dc4b3978894761e99b5c35c59d7032747284535b284fd",
+      "bytes": 75948
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/report-mobile.webp",
+      "sha256": "28025389ac7e82be49302ed10d368646917bae102a1f090a33c7f37c3755ef9d",
+      "bytes": 32076
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/corrective-actions-desktop.webp",
+      "sha256": "db880da786de238147b4ef4bc750d6f17bf14d1f1aa4161d2c5775dfbd0e19e8",
+      "bytes": 76352
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/corrective-actions-mobile.webp",
+      "sha256": "76aa2db628885085a4d951cc506110753fbba8a1b72058e93734f3cafed8443d",
+      "bytes": 32554
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/remediation-review-desktop.webp",
+      "sha256": "446dd3b87d285dc11a6f3ace28e0dfbb114b500915255e207f8a8b48a0629470",
+      "bytes": 69780
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/remediation-review-mobile.webp",
+      "sha256": "a9d075f9a6efcae5acac26f161fc12b1fa380ee991679fe786adbecb4251e8c2",
+      "bytes": 27328
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/complaints-desktop.webp",
+      "sha256": "0bc44158f3688c9dcf05e961dd94d7769cb0c2a3747bbf8aff7e1ac2db0fb5ae",
+      "bytes": 71350
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/complaints-mobile.webp",
+      "sha256": "d629a948090e4de86f1ed0322e00e0d850a96676a665e731362560d33fb9cd54",
+      "bytes": 30160
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/tasks-desktop.webp",
+      "sha256": "1e315a9bbc962eb07bdeed3a08f5a500419b8b9b75e745a5d5edce6d607fd744",
+      "bytes": 79590
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/tasks-mobile.webp",
+      "sha256": "80604eb572bd9aaeccc804f29ab5de1c31a285a0d9b6877037d960178d402976",
+      "bytes": 29616
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/trends-history-desktop.webp",
+      "sha256": "53a6d38527eba41264ebd523f78da3bfc2575494517dac4a0776e67dbfeb4452",
+      "bytes": 70022
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/trends-history-mobile.webp",
+      "sha256": "4993b5f0c9509dcd56393d05f4f4bc6b5e84cc07a2a659670d92838889685cb5",
+      "bytes": 28668
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/preliminary-garden-desktop.webp",
+      "sha256": "e85c48b5156390ab8604bad8cb54a46326a4099ebd9849e442b251c80186fc3b",
+      "bytes": 72528
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/preliminary-garden-mobile.webp",
+      "sha256": "f344ed2fa6411761d6e3099e6ea524d281bbd270f101eaffb61f41e2eb718019",
+      "bytes": 35090
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/owner-teacher-invite-desktop.webp",
+      "sha256": "e85c48b5156390ab8604bad8cb54a46326a4099ebd9849e442b251c80186fc3b",
+      "bytes": 72528
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/owner-teacher-invite-mobile.webp",
+      "sha256": "f344ed2fa6411761d6e3099e6ea524d281bbd270f101eaffb61f41e2eb718019",
+      "bytes": 35090
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/safety-cameras-desktop.webp",
+      "sha256": "adc25647c1a03fecfee2a699e4d41d1da4e3d891cb21f489e96faa30f753a391",
+      "bytes": 86440
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/safety-cameras-mobile.webp",
+      "sha256": "ca0618cc2d8e09172c61d4db76125ca2b613280868dfd58f16b4310273ccd558",
+      "bytes": 27556
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/suspended-desktop.webp",
+      "sha256": "bc1dd672dd1e0e4d9084cfa847415e055697a1b4df8a40dd262ff420cd7ac05d",
+      "bytes": 71040
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux09/suspended-mobile.webp",
+      "sha256": "01ce9ba72f18cd521460e903521b79d5023d5cc0eb4e1b6722fbd745471ab3e7",
+      "bytes": 27158
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/owner-finance-dashboard-desktop.webp",
+      "sha256": "d7a5cc055f6c9d4d0d50147c904bcd03c157a27e205feaba73f8ec3bbdf03943",
+      "bytes": 101646
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/owner-finance-dashboard-mobile.webp",
+      "sha256": "84712d5dc218ca004d88364c73e8c5c0f1bc82d0643af3aacd54c1710c1c4101",
+      "bytes": 31220
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/tuition-ledger-desktop.webp",
+      "sha256": "56d6b979ce20647e2d94c4b7f3c815ffec7c67d9ffb41ea33b8d4b553ecb569e",
+      "bytes": 91500
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/tuition-ledger-mobile.webp",
+      "sha256": "b0b610b5a07ee95d6a4f76b0da6d1d378b7bf6fc987ca3f6d14ad7d837d703a6",
+      "bytes": 30000
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/child-tuition-detail-desktop.webp",
+      "sha256": "b4fb49e956476a1509b4b8e9d406716e1345f63a4402c39978822d648989209c",
+      "bytes": 72614
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/child-tuition-detail-mobile.webp",
+      "sha256": "54ee7e334d415068ea143caec9bd9df619361c557ff6d806cc13a0f10910c5b3",
+      "bytes": 26974
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/parent-tuition-desktop.webp",
+      "sha256": "8face71b520764ddc5f045b049fd1b5ce1aaea61665628da62c98553b13e4ab5",
+      "bytes": 108726
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/parent-tuition-mobile.webp",
+      "sha256": "bb124231909595141fd7d49068cfe5a7468bcd63d41a0d40e0f5c3903b4e3db0",
+      "bytes": 33688
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/multi-child-finance-desktop.webp",
+      "sha256": "6ffee7e5365fc6c418bf292509f591fff207af54f210fae11781bb8d262c307c",
+      "bytes": 104216
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/multi-child-finance-mobile.webp",
+      "sha256": "10fcfa849320b02e13b84961020d40c96c6c75ef09c62f13b7667c878eb2976f",
+      "bytes": 32286
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/payment-history-desktop.webp",
+      "sha256": "b43e7979b166c3ae6a11322758e0f8c58307ab80a7af6f345c213d5e3d52d44a",
+      "bytes": 68668
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/payment-history-mobile.webp",
+      "sha256": "938418b4be5923b0fdd5392508cedcb532c84346433d562949c329957e06f27e",
+      "bytes": 29406
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/partial-payment-desktop.webp",
+      "sha256": "a8645f10ea29eabaa409214450a29f504433955275aaee7c434bba2375299587",
+      "bytes": 93450
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/partial-payment-mobile.webp",
+      "sha256": "962e9fdad801929e0a1d60556a028a371dc4d0291fbffe4a873a9db548e6f55b",
+      "bytes": 31284
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/overdue-desktop.webp",
+      "sha256": "d3e6a604fe7aab93bb1c7a52446e2324dfc5f5ee5d3efa8d8f0a17f61f1f0093",
+      "bytes": 92828
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/overdue-mobile.webp",
+      "sha256": "962e9fdad801929e0a1d60556a028a371dc4d0291fbffe4a873a9db548e6f55b",
+      "bytes": 31284
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/manual-settlement-desktop.webp",
+      "sha256": "3ff6e929d0579dcec5c38fad93fbd960ee00ad5146a13c4be2348379fc1097fa",
+      "bytes": 64466
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/manual-settlement-mobile.webp",
+      "sha256": "86dd95de87be1b079137d5c747f22550fce30f739ec625c943de479851064483",
+      "bytes": 20978
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/credit-adjustment-desktop.webp",
+      "sha256": "c88d4e0afa56e75068e91f2ca8d4591b44b74925e6b7f8d5121070e05813fe0a",
+      "bytes": 93138
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/credit-adjustment-mobile.webp",
+      "sha256": "3929961de49561ec019b58c8b8623aeb29d2a4a9d26f238fbef10f03e968bc40",
+      "bytes": 31316
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/reconciliation-desktop.webp",
+      "sha256": "29577273fa8b6a33819d86e5edf9944228bbbc0020508ba9c5baad2291a1bbfe",
+      "bytes": 85686
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/reconciliation-mobile.webp",
+      "sha256": "188145b2a8e1ee6b802d54f2165e3edf053b1e2867ef2a21dff4cd40015748e8",
+      "bytes": 26634
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/platform-subscription-desktop.webp",
+      "sha256": "b9843cbdcee4357c5d9be28ca926bf79a1b263d224028fcceec6ef59292600fc",
+      "bytes": 94006
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/platform-subscription-mobile.webp",
+      "sha256": "64a399b29a9d78e8184e3581dfa9494416efda232e7f1c7babb8e8bd4891e878",
+      "bytes": 30164
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/provider-unavailable-desktop.webp",
+      "sha256": "ab458ecb3aeed49948cad538508a1c1800ee86343a087df545c778d053cc03aa",
+      "bytes": 68960
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/provider-unavailable-mobile.webp",
+      "sha256": "1356fc5cd6c6f4bc3cd0132db3d01a4c936db7ff94b703d6ab86b1d5fab7f425",
+      "bytes": 32482
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/admin-subscriptions-desktop.webp",
+      "sha256": "a40ee50144c5b95b6ad7eb20faab73f7fff144c985661557fa4f43009d0bfcb4",
+      "bytes": 73956
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux10/admin-subscriptions-mobile.webp",
+      "sha256": "0a1bf12a8beb675ba687d60a3ac99617a9eb9b39651b2a57ae6817c3fa0c30c5",
+      "bytes": 30230
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/message-thread-list-desktop.webp",
+      "sha256": "9e73681ee2256186010c1f389aa6459007e08b68c10c1b151e49bf57e4e53146",
+      "bytes": 39794
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/message-thread-list-mobile.webp",
+      "sha256": "e73e07a2d6c5d1b038776842b668b5ae21dc2d7594cefd65395fc86f0910a288",
+      "bytes": 23394
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/thread-detail-desktop.webp",
+      "sha256": "3f079691ffc7f21de9b40cb0715e61e02acb2657fa0c96bad60c6a2bf01641bd",
+      "bytes": 50070
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/thread-detail-mobile.webp",
+      "sha256": "ba0ae1bc14adde113150c6661c6620a00a75f92a7665b14a8ae2639352620c20",
+      "bytes": 23508
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/composer-desktop.webp",
+      "sha256": "cba0fba5803d60baee703bd71e54ecbe012562ca6ff6225f9d50127bbc69f595",
+      "bytes": 34914
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/composer-mobile.webp",
+      "sha256": "845217738cd5f5457e52e30787c818515e75960f766635384d537669a0f3ea4e",
+      "bytes": 22832
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/attachment-desktop.webp",
+      "sha256": "cba0fba5803d60baee703bd71e54ecbe012562ca6ff6225f9d50127bbc69f595",
+      "bytes": 34914
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/attachment-mobile.webp",
+      "sha256": "845217738cd5f5457e52e30787c818515e75960f766635384d537669a0f3ea4e",
+      "bytes": 22832
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/parent-messaging-desktop.webp",
+      "sha256": "1132bbbdfdcf3a79ee7e54121c12ea1216505aa1ca954ece77b605e42ae79d60",
+      "bytes": 94288
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/parent-messaging-mobile.webp",
+      "sha256": "5546d7172847c9901bc6219ff818665c08f9faa80c313620917b56a3bdbd4965",
+      "bytes": 19092
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/staff-messaging-desktop.webp",
+      "sha256": "6e0248e6793af2ef9beae5336778301b4db435d367491416b0cf564e3036377c",
+      "bytes": 57986
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/staff-messaging-mobile.webp",
+      "sha256": "8768a8a1fc6324de1551a5925f175e50d8c3845d81707c4114d6fa2d0e1d9f89",
+      "bytes": 17536
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/owner-messaging-desktop.webp",
+      "sha256": "9e73681ee2256186010c1f389aa6459007e08b68c10c1b151e49bf57e4e53146",
+      "bytes": 39794
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/owner-messaging-mobile.webp",
+      "sha256": "97fe3da98a295d5c3ecb5fb84cda7036cff292c9f9ab468ef7d6b52046fff3fb",
+      "bytes": 23402
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/inspector-limited-desktop.webp",
+      "sha256": "a97ca610df5331738fc91a65524999b9bb7298d02c1d75f9dd03b44edbc439ca",
+      "bytes": 72554
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/inspector-limited-mobile.webp",
+      "sha256": "6e4a5c3dea4740d4bcc72e43ffa121f828112741bee9026ca60d24969736a74c",
+      "bytes": 28552
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/broadcast-creation-desktop.webp",
+      "sha256": "326d392ea289a04b5e5bea8d415ab51ce568e82dc1714861bdde2a47d863e37c",
+      "bytes": 46350
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/broadcast-creation-mobile.webp",
+      "sha256": "f0c081fdf66cff29771f4cc7f86db3be497f68a49622d4602418ff1a9d02d2dc",
+      "bytes": 24562
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/broadcast-preview-desktop.webp",
+      "sha256": "af3daed601eead973b5c155e8fde77752e78ba29e5582b4fe0f271e4eaffb600",
+      "bytes": 43638
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/broadcast-preview-mobile.webp",
+      "sha256": "126c2394fdae76ee4ff28c531819833cbc9815b3a16680a09f375bcdc8101b4d",
+      "bytes": 25210
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/broadcast-history-desktop.webp",
+      "sha256": "d9c51b206a94ac4423ccf198eaf5c57cd22873576c7f1df20688b8d65e3d6347",
+      "bytes": 49750
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/broadcast-history-mobile.webp",
+      "sha256": "6f13b7efd2e4c8c9924d227de3041765fc4d5d2e3fcfa58000dd905ebffdd643",
+      "bytes": 30718
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/notification-center-desktop.webp",
+      "sha256": "e15bc98c96f9df5e62ec22b50a31e6779b48b4cbd5a3333b90927374f51b8542",
+      "bytes": 55676
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/notification-center-mobile.webp",
+      "sha256": "be66a195e355f7ef6ee1cc2fd261a0ef5cfcc4c15e57b3ec1e11879388d77a55",
+      "bytes": 38442
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/notification-detail-desktop.webp",
+      "sha256": "83791bfd95308ba6a32f3094b3fed55e9f8656b289e6392f44aa77317174f6f9",
+      "bytes": 61090
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/notification-detail-mobile.webp",
+      "sha256": "81a9ffb3e86a17e6760d7b0283463159feeef49470cb38a65f4d31181a56f3c8",
+      "bytes": 17006
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/preferences-desktop.webp",
+      "sha256": "985d72328c3b7b61f9de9c025022f12ce3d17a934160e2205667a3e9fc332cc2",
+      "bytes": 84006
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/preferences-mobile.webp",
+      "sha256": "3d1516ca4e1e88c467489eec4b89c1fd21b40f61e2fd154436f9fe7adf893920",
+      "bytes": 28650
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/quiet-hours-desktop.webp",
+      "sha256": "f1df86c778fbbe2f684d096a08dca17612ac52de2c995ec1991e49538b820e6e",
+      "bytes": 91340
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/quiet-hours-mobile.webp",
+      "sha256": "65223696141e71394e4a98559bf3a9f761b01e618731fb93d167cf8f0c416a8e",
+      "bytes": 27128
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/provider-unavailable-desktop.webp",
+      "sha256": "b8c54f38cf49c49d5005402d8b1dbcdd00a19e76efb7fcdcd6f81ef48ff2fd8d",
+      "bytes": 91364
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/provider-unavailable-mobile.webp",
+      "sha256": "cef74ece69fa4e9ac2f5f67f282cacac420bd745a26e72bbb70465d9e2f24423",
+      "bytes": 29522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/push-readiness-desktop.webp",
+      "sha256": "b8c54f38cf49c49d5005402d8b1dbcdd00a19e76efb7fcdcd6f81ef48ff2fd8d",
+      "bytes": 91364
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/push-readiness-mobile.webp",
+      "sha256": "cef74ece69fa4e9ac2f5f67f282cacac420bd745a26e72bbb70465d9e2f24423",
+      "bytes": 29522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/email-readiness-desktop.webp",
+      "sha256": "b8c54f38cf49c49d5005402d8b1dbcdd00a19e76efb7fcdcd6f81ef48ff2fd8d",
+      "bytes": 91364
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/email-readiness-mobile.webp",
+      "sha256": "cef74ece69fa4e9ac2f5f67f282cacac420bd745a26e72bbb70465d9e2f24423",
+      "bytes": 29522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/whatsapp-unavailable-desktop.webp",
+      "sha256": "b8c54f38cf49c49d5005402d8b1dbcdd00a19e76efb7fcdcd6f81ef48ff2fd8d",
+      "bytes": 91364
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/whatsapp-unavailable-mobile.webp",
+      "sha256": "cef74ece69fa4e9ac2f5f67f282cacac420bd745a26e72bbb70465d9e2f24423",
+      "bytes": 29522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/sms-unavailable-desktop.webp",
+      "sha256": "b8c54f38cf49c49d5005402d8b1dbcdd00a19e76efb7fcdcd6f81ef48ff2fd8d",
+      "bytes": 91364
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux11/sms-unavailable-mobile.webp",
+      "sha256": "cef74ece69fa4e9ac2f5f67f282cacac420bd745a26e72bbb70465d9e2f24423",
+      "bytes": 29522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/documents-center-desktop.webp",
+      "sha256": "935caab63d4731b01ca6e2997d85d75fefcba0db9039b0f219c4bb633d698a73",
+      "bytes": 98064
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/documents-center-mobile.webp",
+      "sha256": "2f18d73f8f5de84a1b3c84bf398f69bf2e5aa0f0f00dc67480a4fcc381958062",
+      "bytes": 36824
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/document-list-desktop.webp",
+      "sha256": "8bd12195f778fc08d55496475c265cd887344114d928dfc71cdde180da176824",
+      "bytes": 81668
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/document-list-mobile.webp",
+      "sha256": "90c49ccd08787b75341828be23192894c334de16c7f57910c91ac251aab83fb8",
+      "bytes": 33654
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/document-detail-desktop.webp",
+      "sha256": "afae9db54fcea956c2a769625bbbfc91a8793385731f9ae93c9e2cda063b798c",
+      "bytes": 79910
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/document-detail-mobile.webp",
+      "sha256": "ca74ed2a8f3bd62620641791d5d12031c8f5a16413a94cfeecb1d1e7dff8d3aa",
+      "bytes": 28850
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/secure-preview-desktop.webp",
+      "sha256": "8a5dbaef88f0cc9eb8caf80916834e46d08e118cf06e1866012c5a4295a8eafd",
+      "bytes": 96540
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/secure-preview-mobile.webp",
+      "sha256": "02a28c42143f950e746f1b151fe713399bafd2507153a561d3ce0e33a5357144",
+      "bytes": 28982
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/upload-desktop.webp",
+      "sha256": "65bab4276f51089d61cabf19d777e85f00b2dc46baf1ebd16393d9e67bbac1de",
+      "bytes": 39468
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/upload-mobile.webp",
+      "sha256": "312dbbc975f2e4e1c179cf358971415c3687d58f432b49b95d804b1dfe55af48",
+      "bytes": 21182
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/replace-desktop.webp",
+      "sha256": "56edc0cd050bda76d81739acf2c8bd6790467b3b2810797793c2dacb181c5d2c",
+      "bytes": 35542
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/replace-mobile.webp",
+      "sha256": "bba2d30b12d797f6f99ec68db56725dacf2cb9590d9427709a020a8e3056fb0a",
+      "bytes": 20472
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/verified-state-desktop.webp",
+      "sha256": "9057f1f3195d827f940db2a2f7340ccd2c1538b66db80c5290232acef8ae9e4f",
+      "bytes": 77078
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/verified-state-mobile.webp",
+      "sha256": "e7112878a79c090679c5246d2d941e568ea16e826c2ec7fe746b666757966e90",
+      "bytes": 29180
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/pending-state-desktop.webp",
+      "sha256": "afae9db54fcea956c2a769625bbbfc91a8793385731f9ae93c9e2cda063b798c",
+      "bytes": 79910
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/pending-state-mobile.webp",
+      "sha256": "ca74ed2a8f3bd62620641791d5d12031c8f5a16413a94cfeecb1d1e7dff8d3aa",
+      "bytes": 28850
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/rejected-state-desktop.webp",
+      "sha256": "53e19d804e9a45772c2608fe2169dbfdeb85070be638522887de15c6911d060d",
+      "bytes": 100636
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/rejected-state-mobile.webp",
+      "sha256": "02e9de02d919a2251eb2626c1a496ff2141ea696044a0b0fce85cfa9e6114378",
+      "bytes": 29040
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/expired-state-desktop.webp",
+      "sha256": "62a184b35ae2d8e02faaccb3077623d3cb21601d55b0bc0f0af1a03dc3c54e3e",
+      "bytes": 76520
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/expired-state-mobile.webp",
+      "sha256": "95533e5bf6ea94444fde423ea8acdddb75615e748fad62aa82881db076f95aa0",
+      "bytes": 29930
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/replacement-required-desktop.webp",
+      "sha256": "56edc0cd050bda76d81739acf2c8bd6790467b3b2810797793c2dacb181c5d2c",
+      "bytes": 35542
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/replacement-required-mobile.webp",
+      "sha256": "bba2d30b12d797f6f99ec68db56725dacf2cb9590d9427709a020a8e3056fb0a",
+      "bytes": 20472
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/child-documents-desktop.webp",
+      "sha256": "0b428b71e0e85d25de011ea3b5844e08d737c0db241176f3d334bc27289de6ef",
+      "bytes": 63788
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/child-documents-mobile.webp",
+      "sha256": "53e203412bbee0b2e9ddb0886a93db8dd6b7725540ae1789cea997cb586eeeb8",
+      "bytes": 21142
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/parent-documents-desktop.webp",
+      "sha256": "c40631a8ddf439788e22b1961a17367e77cb84323d2a4e45c10fc3073cf78c19",
+      "bytes": 89258
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/parent-documents-mobile.webp",
+      "sha256": "f20ce23b336d915d72cc396b3fe3c951eca1385832e3bbb5927efec9b8c1c77c",
+      "bytes": 32330
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/staff-documents-desktop.webp",
+      "sha256": "9c0db0c766eed04eba34bb49e8f0e5ba8cba7abde240ea7c0432ec9efa56d835",
+      "bytes": 83204
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/staff-documents-mobile.webp",
+      "sha256": "41569509fe00bb08b64424957cc536a9613806ffa54c46a53d26ae87499c8097",
+      "bytes": 29276
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/garden-documents-desktop.webp",
+      "sha256": "96709d72a2c15cb87655f73abdc91971531207b594417346f14eb1f298711f09",
+      "bytes": 73600
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/garden-documents-mobile.webp",
+      "sha256": "d28613150adbcbce92f76ac57dd5b70a97970a514d2ce72965b0e7a65c6644f4",
+      "bytes": 30496
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/inspector-limited-desktop.webp",
+      "sha256": "f94a421650cea644ea75c9bdfe675a3cc3058483d9fd5abe9a0b4378fb591ca8",
+      "bytes": 98986
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/inspector-limited-mobile.webp",
+      "sha256": "fc5cc75d7c56125d79a3cf516dbd15de269104bf5ff1879baa743dfd7d8755b5",
+      "bytes": 37298
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/admin-verification-desktop.webp",
+      "sha256": "9226f33be4c0eb363f8fca82d7053b940ade7e5f891d6b462ce056e92b69351a",
+      "bytes": 78122
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/admin-verification-mobile.webp",
+      "sha256": "0b99cd4bbe02a3277705db82a3a9e5d438f8a7094ab622f6ec54b45bdd7c29ae",
+      "bytes": 34780
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/categories-desktop.webp",
+      "sha256": "8a5dbaef88f0cc9eb8caf80916834e46d08e118cf06e1866012c5a4295a8eafd",
+      "bytes": 96540
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/categories-mobile.webp",
+      "sha256": "c135764e65f275ec77b2b936999ab11ef8c6fdeca7809ecd411a2a3e216e6e04",
+      "bytes": 34354
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/search-filter-desktop.webp",
+      "sha256": "0c1c1cfa35eb0e019c4c304b8e5707f3c58abedf9bdf055f853599a1be3abf47",
+      "bytes": 70020
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/search-filter-mobile.webp",
+      "sha256": "876063cf9489b93ceebdf42f97efb2d5dbef8db9631acbbf6abe84acc497c6b2",
+      "bytes": 25064
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/empty-state-desktop.webp",
+      "sha256": "4c8533570ba503a65ad50aca15ab93c861f188a20bd9cb07e0ecdc712f44bec3",
+      "bytes": 73356
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux12/empty-state-mobile.webp",
+      "sha256": "d28f4198c35203d9d472215a365e8136b84611488f985635c5391035ed469e30",
+      "bytes": 28682
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/tasks-list-desktop.webp",
+      "sha256": "1bcf5bbbba73af1ded2a1dc83575663b687863f565d9e4b34fbc014e6c270d50",
+      "bytes": 73562
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/tasks-list-mobile.webp",
+      "sha256": "38867262889403a0f4a01487e8c25b1219ff6d09bd5b40111d18ddfcbd392043",
+      "bytes": 36476
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/task-detail-desktop.webp",
+      "sha256": "1bcf5bbbba73af1ded2a1dc83575663b687863f565d9e4b34fbc014e6c270d50",
+      "bytes": 73562
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/task-detail-mobile.webp",
+      "sha256": "e9a764656017f1a1f141305ccd4015b5bb599d37d2d2f120da582eef4da789b7",
+      "bytes": 27220
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/task-create-desktop.webp",
+      "sha256": "49ef979ed3ea9c6c7217b6f072252fe1445eb33a09b495412d81717dffed560e",
+      "bytes": 27090
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/task-create-mobile.webp",
+      "sha256": "524fd76415ba99f00aa1e4a2c22b9ef9f583a466f0c07fd24e37211fd95ab587",
+      "bytes": 13764
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/task-edit-desktop.webp",
+      "sha256": "841d3f94c6cca4db8529a2593c8969b974b83651a3f4cbb6b3d0c63dcdaa0c01",
+      "bytes": 31312
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/task-edit-mobile.webp",
+      "sha256": "8e01560569faafeee2dc8a412f8a1e715f1a2340ad2516ccdbbe197ef71bd155",
+      "bytes": 17974
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/overdue-task-desktop.webp",
+      "sha256": "944960b719572bd60ecfd772563121adf59ce689d7ba25a9e4da1d015db51239",
+      "bytes": 59896
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/overdue-task-mobile.webp",
+      "sha256": "5cc5cdfeaa89e5031db6d1313663c6511d4e7736ea7228972fc1d55a35339efc",
+      "bytes": 31952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/complaints-list-desktop.webp",
+      "sha256": "006505b580743d04ec5282560a8daed3a0ea33d5da78b2024027cda00dbb111e",
+      "bytes": 59506
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/complaints-list-mobile.webp",
+      "sha256": "872c7b808c5409c0aa0952533cc55ed5453e7053238157eeacf8bff6def21361",
+      "bytes": 34832
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/complaint-detail-desktop.webp",
+      "sha256": "82c40b65b283d03aea838e226f1762bbcc4ab06e062689cbb424589dcd176180",
+      "bytes": 54496
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/complaint-detail-mobile.webp",
+      "sha256": "03e6ca9d728db2ae19f46cdfacb02f20f3ca11c6fd0a1984a0cfa1e41b2f07f5",
+      "bytes": 23850
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/escalated-complaint-desktop.webp",
+      "sha256": "9a147c2fd349edbadc523a884abead6fa78a10331eb3d2a4b680901c38088c22",
+      "bytes": 55080
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/escalated-complaint-mobile.webp",
+      "sha256": "8297405443a5594ef23aab8049f5a14e3b79158a32727ad5505f665edd6d9a60",
+      "bytes": 23560
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/resolved-complaint-desktop.webp",
+      "sha256": "098ef145534f6267cfedad291d2b938815d1feb387abdc51677718ef39591c80",
+      "bytes": 51996
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/resolved-complaint-mobile.webp",
+      "sha256": "ae55481def7c72be9ad27aafc3eb0d50760e1f9954b63049d9db303c3950d212",
+      "bytes": 23732
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/corrective-actions-list-desktop.webp",
+      "sha256": "6b884fd18dace5a1e76be74b1488135d0659f3af317f9768e867df2b68305133",
+      "bytes": 74178
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/corrective-actions-list-mobile.webp",
+      "sha256": "bc224d10b95f6975b09e56133226fa770cb07f2519be73f8220721919a5810c2",
+      "bytes": 33220
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/corrective-action-detail-desktop.webp",
+      "sha256": "2747838e3a84dd8be9a39cb7017ff765bd9c8f0bda918b2dc3aff4e71826c64b",
+      "bytes": 62488
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/corrective-action-detail-mobile.webp",
+      "sha256": "05d48e30ae21e3417d77b2f4aac1b8a5da9c9ceca0748e4a22cd67d0d5c32aa0",
+      "bytes": 26488
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/evidence-submitted-desktop.webp",
+      "sha256": "891566037ce46c24a7998f806494447b39225aee5e70372e3d9501d6039df0ba",
+      "bytes": 63680
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/evidence-submitted-mobile.webp",
+      "sha256": "eb5ff94fc350feaacd54a2fc71a6762d50c655d04452a9ce416d7462963aa598",
+      "bytes": 28570
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/awaiting-inspector-review-desktop.webp",
+      "sha256": "ca9a266865245ef8b9744d0a8d152132fbc184822de731cae47c36143bf5ad16",
+      "bytes": 60356
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/awaiting-inspector-review-mobile.webp",
+      "sha256": "f96ad73638e4e541acf3b42149d0f6b713006c13f17d58c9cf3986b6bddc0f42",
+      "bytes": 23978
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/verified-corrective-action-desktop.webp",
+      "sha256": "877548e1ef7182a390873c06b00555cae0bcee79fc13d3b5d4099e3ec42b3ed6",
+      "bytes": 62962
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/verified-corrective-action-mobile.webp",
+      "sha256": "1d95a7305e08d7edc9b8f430573d3024c5eb6fb7d807b5f591f65f265327d347",
+      "bytes": 25122
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/analytics-overview-desktop.webp",
+      "sha256": "e5c8ca32e27f85d3fc3c32498ec595fb87d1f9587971cefe995da339379d715f",
+      "bytes": 60804
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/analytics-overview-mobile.webp",
+      "sha256": "ada62f02845dbc647db59993c2bbe3389ff8d78dad71c531f6cbcd4b3d752345",
+      "bytes": 26336
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/parent-role-limited-desktop.webp",
+      "sha256": "4f131c8168080cac4d0f9887abceb17b9ea1ef11b32139690f5c6ff544c92a24",
+      "bytes": 81734
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/parent-role-limited-mobile.webp",
+      "sha256": "4576d112bf0fd5bd73708e4f7f0456172aa65ad67c6dd0a9e1b085ae7c516134",
+      "bytes": 34464
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/staff-role-limited-desktop.webp",
+      "sha256": "44071f5296b11a249ba589c14e6496502c6ee0ef2417f90b84992559d87427af",
+      "bytes": 76824
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/staff-role-limited-mobile.webp",
+      "sha256": "8ed8c991dd7ff8b4c901e1c828f5a7b19e364f1dab9976560d060613d02d80b3",
+      "bytes": 32774
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/admin-complaints-desktop.webp",
+      "sha256": "07dde535e18103e3abe31ac69ae96c0ccf50646f8bbe9ec57b142f5b447dcf4f",
+      "bytes": 73522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/admin-complaints-mobile.webp",
+      "sha256": "7778ae8d674460100ce702b5436e4bc45d93cbaace49fbadc9757499aabbbc08",
+      "bytes": 34192
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/empty-search-state-desktop.webp",
+      "sha256": "8083557c2fe4b4872644c09d58968dc5b8de53b52932bc72ecb7c92bb551b912",
+      "bytes": 58556
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux13/empty-search-state-mobile.webp",
+      "sha256": "6eb5a74ae63ee0092aa65c28a568a98019500bafe6517596436a51e69c435634",
+      "bytes": 27048
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-dashboard-desktop.webp",
+      "sha256": "3f0a0af7504292b35cc3ce0e2a42cac4dbf3cf5fccefd4f78b5ed8da45d011dd",
+      "bytes": 87754
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-dashboard-mobile.webp",
+      "sha256": "296c53425a5d20477072ed9b23f2281fdd88d39daede730838bc708993b0eade",
+      "bytes": 29254
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-list-calendar-desktop.webp",
+      "sha256": "492384d2fce9b77520c8971220556235f1ccbfd1afeae4bd52a8f9c2de02f017",
+      "bytes": 42396
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-list-calendar-mobile.webp",
+      "sha256": "99344023cb4c1aaff9bcf286e8668d4b899d98addb25e41ab48d38e44d598cb6",
+      "bytes": 21426
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-detail-desktop.webp",
+      "sha256": "724e313b2a5935c510af31ed29780f1d7495b348a9d2dbbf95fa94e2f754f887",
+      "bytes": 53680
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-detail-mobile.webp",
+      "sha256": "36775c8e8ef371aadc853e52f7653fc602454667ab0f0b2e1b1288960ac7dcf5",
+      "bytes": 26936
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/draft-resume-desktop.webp",
+      "sha256": "724e313b2a5935c510af31ed29780f1d7495b348a9d2dbbf95fa94e2f754f887",
+      "bytes": 53680
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/draft-resume-mobile.webp",
+      "sha256": "bb60c6085eccf45ba7e430e90c2d8f8b894cf51e8a3a11c021eeaf8e753e2da2",
+      "bytes": 25986
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/checklist-desktop.webp",
+      "sha256": "504da2485e010c4729da9aed612f071f1c54143c54556b652e9744423dbb5409",
+      "bytes": 42346
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/checklist-mobile.webp",
+      "sha256": "4151e8db48b7b6558798f1f8ebf3eb9ebf5b492093c555f800b96fac88e0b8f9",
+      "bytes": 21042
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/checklist-evidence-desktop.webp",
+      "sha256": "94ad267581df94c046f8e09a834ecf22200177a3bd2ff760de4c5bb1ca72242e",
+      "bytes": 49220
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/checklist-evidence-mobile.webp",
+      "sha256": "183374f859b8eb10e2904aea502f516059109f5240e28e59a4e56f9a26d5b525",
+      "bytes": 18770
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/finding-detail-desktop.webp",
+      "sha256": "2037198211064c537bd23c8bf5d5c71a1741a834453f4958d4208977a5fd0acf",
+      "bytes": 63768
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/finding-detail-mobile.webp",
+      "sha256": "4e4cdaea095844018e67aae7f7615078aa9606ae3e38657a3501aec881179949",
+      "bytes": 22536
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/review-before-submission-desktop.webp",
+      "sha256": "51241d0f852f52d0e2e067516cd88a287b43032863a72bdcdd900298ddff366a",
+      "bytes": 38162
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/review-before-submission-mobile.webp",
+      "sha256": "bc787b6bf518339377585affe9d7fd2ddaeb2d34cfd19829bedd3a8f61d68e8e",
+      "bytes": 23328
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/submitted-report-desktop.webp",
+      "sha256": "72605931020790a9b7db6551ae4d8f9f1bc9ae16c0dd8ff584dfba06b9325b8d",
+      "bytes": 59982
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/submitted-report-mobile.webp",
+      "sha256": "9bd6c38b6591b0fc665100649de47d4f7c61759fd5174b7da578f82bd8b0fcbd",
+      "bytes": 30662
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-history-desktop.webp",
+      "sha256": "8acfad1506d49241472c86fb4bb42144b468db81f3f61ac4d9a698b4b0ffd5dc",
+      "bytes": 36418
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspection-history-mobile.webp",
+      "sha256": "95be98e46915e696a29614dc9b825105f1227328842f21a6641fa0edd60efbc6",
+      "bytes": 18680
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/owner-inspection-view-desktop.webp",
+      "sha256": "5471c6d1898cc354cff2387ebe18ff87cb5aaac9e20dbcb8f4cd66d16f40cb73",
+      "bytes": 58404
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/owner-inspection-view-mobile.webp",
+      "sha256": "6189b867d8810de8ac9d0f6c282854177e7a87dbb63712f1e7f779f49988fe37",
+      "bytes": 22890
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/corrective-action-desktop.webp",
+      "sha256": "b30187bcfa882b32e3ee5ad3562b52936ad1cace3c8f234b57653b982140ef51",
+      "bytes": 60476
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/corrective-action-mobile.webp",
+      "sha256": "a929294793ac7958af7b844523f76a687d06478ec1392160f0e5302b38316c16",
+      "bytes": 25622
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/owner-remediation-desktop.webp",
+      "sha256": "fec83e6e5131ac630cd5b3174a9d46b9f4b792de6a63702625b7f17ec2859056",
+      "bytes": 45932
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/owner-remediation-mobile.webp",
+      "sha256": "067982cbce34ea1426cb7bbb8de1dd20f4bc8a6c745aa6b428b380bdff8d5ffc",
+      "bytes": 24056
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspector-remediation-review-desktop.webp",
+      "sha256": "a8d4c51159d0dfd5a251bcced09e632b549cf0ae6b22fb10b2f61bdab13d5a76",
+      "bytes": 52836
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/inspector-remediation-review-mobile.webp",
+      "sha256": "29cc341a15aff9c8a572da80d36e5a21afd99eb8006b40923be71559750a1214",
+      "bytes": 23094
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/closed-remediation-desktop.webp",
+      "sha256": "4569713314af824665b1fc5fc0f636c1542d220d89f2719775722e6223851b50",
+      "bytes": 45994
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/closed-remediation-mobile.webp",
+      "sha256": "6e5b438f6d3bf0d1d856e45fb87af7d079066c565cf7bfefb22edec38513ad6d",
+      "bytes": 22802
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/empty-state-desktop.webp",
+      "sha256": "25ac62409427bf0d48b00443f96f29ec3ac047e9bbcf6ce049239f7fb4eb6214",
+      "bytes": 72216
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/empty-state-mobile.webp",
+      "sha256": "04fa98decf73e516e2a84825020e0fa062dafaa86cec954b58184d6a1e4f184f",
+      "bytes": 27200
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/camera-safety-limited-desktop.webp",
+      "sha256": "edaf2e18ef8abfd08c31220dc24f759cd98e30aecee4bace27cc006a5619110c",
+      "bytes": 86366
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux14/camera-safety-limited-mobile.webp",
+      "sha256": "ca0618cc2d8e09172c61d4db76125ca2b613280868dfd58f16b4310273ccd558",
+      "bytes": 27556
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/reports-center-desktop.webp",
+      "sha256": "1b575b263cd967b50ec7c6c56182603002976c5f1336f01cdff35467f0c0cefa",
+      "bytes": 88334
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/reports-center-mobile.webp",
+      "sha256": "1a4b1f8b3bd042cfd778a35aa837fc42edb0f6da9a133812e3ea29618931a4b0",
+      "bytes": 33820
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/report-configuration-desktop.webp",
+      "sha256": "85a7018f5a2ee2ea3ed5deacbaef6108cf5d5b7f8fc82d04a6f1901f96ffc5d0",
+      "bytes": 98150
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/report-configuration-mobile.webp",
+      "sha256": "e0f193d2cb0e7f41de01bca9f09cf48594c3203f921f32e24613ebfca2306601",
+      "bytes": 32580
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/attendance-report-desktop.webp",
+      "sha256": "733d2c37b2ec0a6fa3b4d73017b5be50872574324ae83badadaba1b1069413a0",
+      "bytes": 85628
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/attendance-report-mobile.webp",
+      "sha256": "737bc592d0803ff3f014fc56d1acebdc776888d35fd300bac38d6fd13d382ea0",
+      "bytes": 23636
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/pickup-report-desktop.webp",
+      "sha256": "a31b33b4e6b3e9a0c3f3a752e2b868294e688a2c0e1ffe915740e6707bfb6cff",
+      "bytes": 85500
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/pickup-report-mobile.webp",
+      "sha256": "9c71528a54f5764f050992b0c3576e4f7996879ee4c8b9c5fa3066f925c8c06c",
+      "bytes": 24894
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/staff-hours-report-desktop.webp",
+      "sha256": "dca127118a0882b4bc89e95ee7a6bfb8106fdc8286d3cd982d9becbab0318d7b",
+      "bytes": 74912
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/staff-hours-report-mobile.webp",
+      "sha256": "a9eedc1e58dc435017a9b6f663f7db6133e9599159859d36d6cff4cd4ac57a3f",
+      "bytes": 25432
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/tuition-report-desktop.webp",
+      "sha256": "ba16bfdb77c24cea5c6dbbf62d3d0069fb9d8145a611f50d7fbd33fbdd3668be",
+      "bytes": 73858
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/tuition-report-mobile.webp",
+      "sha256": "0d6739ce7251252bd3b34f46d201e1c79087c212f38de18a95efa8ab153e439b",
+      "bytes": 23064
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/subscription-report-desktop.webp",
+      "sha256": "007c47be589d20faf4d136fcffcd107089855fd56206003d49d082253f0cc233",
+      "bytes": 66474
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/subscription-report-mobile.webp",
+      "sha256": "77876a9509f286c35cc6d20faa19840b9dfb8776763ae2c6d9603f98b8d32d31",
+      "bytes": 23020
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/enrollment-funnel-desktop.webp",
+      "sha256": "5b57200f2048a1e59d4d062d0f286f2a1bce308958fecc87627ca38ca8b418e7",
+      "bytes": 74856
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/enrollment-funnel-mobile.webp",
+      "sha256": "2af2e8a7b92daedf5695bb6ec53d76e49f62aedca8af778d02220dc0505d06ab",
+      "bytes": 29522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/capacity-report-desktop.webp",
+      "sha256": "489dadcf831fdc4f21975d83401180e78f4f37c606ab3644d4eee963324bacce",
+      "bytes": 68126
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/capacity-report-mobile.webp",
+      "sha256": "5fb27d20b4b94c6f49d0b45788469dbb2138c1331ea946ccfca4a0aa3d244543",
+      "bytes": 22892
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/document-report-desktop.webp",
+      "sha256": "cbfe1990d24fe33db8a48491c16c2c6bf112d95ab72c79a9404cefb876db0eba",
+      "bytes": 63282
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/document-report-mobile.webp",
+      "sha256": "ab79394c0cf65a4aab4fffda26e4071733b1001b85eeaadcca8a2a62678602ed",
+      "bytes": 26766
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/inspection-report-desktop.webp",
+      "sha256": "e043e762bb600d8d20216520e469a5aa203f0b68b5d9d973b6d0a52b9d8919e4",
+      "bytes": 50522
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/inspection-report-mobile.webp",
+      "sha256": "ccea31a46a8c1280d556da676c4d1c1f30093d7e13b40331d8e996ab6e287cbc",
+      "bytes": 23868
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/complaint-report-desktop.webp",
+      "sha256": "082f978aa9971284df8052972dc5f7c6384b6ccdd3ed9779e87b29604b99713c",
+      "bytes": 62112
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/complaint-report-mobile.webp",
+      "sha256": "ebff5a063ee17cffb538b733f95f1564f785b96c2ed4dfe2a0118d705865d11a",
+      "bytes": 24080
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/task-report-desktop.webp",
+      "sha256": "100de475b85276389c486c86d0fa0ea631c09ae04194211236bb2ef8adaff747",
+      "bytes": 75234
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/task-report-mobile.webp",
+      "sha256": "5720d4283c6a20190a2f01fceed10dcd2a36872d6e08e4a64638e1b5a3d6b28d",
+      "bytes": 24192
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/report-detail-desktop.webp",
+      "sha256": "733d2c37b2ec0a6fa3b4d73017b5be50872574324ae83badadaba1b1069413a0",
+      "bytes": 85628
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/report-detail-mobile.webp",
+      "sha256": "737bc592d0803ff3f014fc56d1acebdc776888d35fd300bac38d6fd13d382ea0",
+      "bytes": 23636
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/chart-heavy-view-desktop.webp",
+      "sha256": "4adc8cf3837b0323cba60fd3d5f85e274c07e6b5c652eed51a417fcf9ae8e2a2",
+      "bytes": 86100
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/chart-heavy-view-mobile.webp",
+      "sha256": "a3497f723b7bdf161343688f3f01e64ff98d75dc8481ef295e90105562702b9d",
+      "bytes": 23346
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/table-heavy-view-desktop.webp",
+      "sha256": "d4c1d51e7847da5905c14feae8796ed3903f9b6f1ab7c6f5df0adab9ab3dae21",
+      "bytes": 70458
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/table-heavy-view-mobile.webp",
+      "sha256": "c85f9e17dd53089d2c407f66a5ebcfca8cee4d1e3b46ad65949c2399380ba5d0",
+      "bytes": 27238
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/bounded-export-desktop.webp",
+      "sha256": "af9dae4908079bb1e561d8115f0c6653ea4d7ddf633b6648d811634fcbdd469d",
+      "bytes": 96576
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/bounded-export-mobile.webp",
+      "sha256": "21394085418ee84ee9d4d2a4e6c97ee88b26e1c9e41aebbde049852490d6cd2d",
+      "bytes": 21956
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/empty-no-data-desktop.webp",
+      "sha256": "c32a697a82e62e094673e2e8be97247779a936f39c4ebcdc92b695460ce9b21f",
+      "bytes": 87824
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/empty-no-data-mobile.webp",
+      "sha256": "f26fea048e187c698ad6976196bfa3c3251524fb81497bd1cfbf090acf772b82",
+      "bytes": 25806
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/permission-limited-role-desktop.webp",
+      "sha256": "b0cd70c68efa4d8c93a0318edc5cfc58715e88775038e172f38d706583bb5b04",
+      "bytes": 71492
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/permission-limited-role-mobile.webp",
+      "sha256": "c037d12c06f0919d3712a26c5ba01a5592888c966efe1d9e778e2f59e4842a25",
+      "bytes": 19688
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/admin-platform-summary-desktop.webp",
+      "sha256": "2ae8629eb0e37f19e529ad4139b3daa6f56b5bd73c3434b8961feaae6cbdb99d",
+      "bytes": 68286
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux15/admin-platform-summary-mobile.webp",
+      "sha256": "87d97f389ad00749025ba7c0bf1397c5553e0a890f41a731a5866e215b5dbcc4",
+      "bytes": 24890
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/safety-dashboard-desktop.webp",
+      "sha256": "f7222c46fc356b46dcd8b7aac1a4d3cd9ea51c62beeb8bdb549cbfd6d8d1a92a",
+      "bytes": 91702
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/safety-dashboard-mobile.webp",
+      "sha256": "e25f987abdf6a4c86d3c38f5b36af6b5ac1f8f2c3e351786a2bf546a6a15a653",
+      "bytes": 29022
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-grid-desktop.webp",
+      "sha256": "6b9883a8d51d064f48b326ebb540fc76ae118bf24165c66e68deed447808011d",
+      "bytes": 78392
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-grid-mobile.webp",
+      "sha256": "543d9811bf476611310d64881f6868b47f60e181d1fddd5ad69beccc7e37a380",
+      "bytes": 22358
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-online-desktop.webp",
+      "sha256": "cd36d71f91a31b97d4bbaba1ad8efdc91503b98a5d40b093e9e3325360e3e834",
+      "bytes": 68100
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-online-mobile.webp",
+      "sha256": "fb5a35d53312558f676946aa596a4773cfe69e5485d3647d0687688099998a8b",
+      "bytes": 25222
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-degraded-desktop.webp",
+      "sha256": "b4b4766f7fb15e52190373050e094cec682f33fac59560b3af2cc6ba93b91bbf",
+      "bytes": 68058
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-degraded-mobile.webp",
+      "sha256": "c33f48b39fef9608886a784fc3867b00f6f7d928667b3b6a6a65293c96a344cc",
+      "bytes": 25262
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-offline-desktop.webp",
+      "sha256": "9dbadaf8e09c65d8280e8315d49b981afee0a7dc1d3764721baf4fb0d5c964f5",
+      "bytes": 77032
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-offline-mobile.webp",
+      "sha256": "63553b96f7613795c06dd7aace7be0b2879b4795d14d7f195b9d295265bca5cb",
+      "bytes": 24020
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-setup-required-desktop.webp",
+      "sha256": "42dcaf27ee86849426f139081eb85fe5340dc8829ee848918922064f4371ddc6",
+      "bytes": 67190
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-setup-required-mobile.webp",
+      "sha256": "67060e40279ff2b17b3624125282f6b91f0568713c84b65bef46f076c81cbeb4",
+      "bytes": 24350
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-detail-desktop.webp",
+      "sha256": "ee7032abee0ca95ba3ce70fb375855080f24f4a79c05dca9f489b9d756ad7c0a",
+      "bytes": 88730
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-detail-mobile.webp",
+      "sha256": "0e8a075031f6c4c53afd290225b33b9a3f6e252a1fb536bcefe2317730e5551f",
+      "bytes": 22726
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/permitted-context-live-desktop.webp",
+      "sha256": "4459767f8641b24b315828d7f88fd3a3286905bdbad10bc752cfc4e0ca060d18",
+      "bytes": 79446
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/permitted-context-live-mobile.webp",
+      "sha256": "7356ede54da73c1b6131030d5006ba19d009b97bf7c3365e948358c1e2fa50bf",
+      "bytes": 24570
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/live-unavailable-desktop.webp",
+      "sha256": "775114502cc4a37ba44163bfdeb85b39f9651af4af29a1febd247fd18aad7ce4",
+      "bytes": 92360
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/live-unavailable-mobile.webp",
+      "sha256": "b02ddd272a2acadb548aa66e6cc335717a9631e775d93789eba88843566c3513",
+      "bytes": 23572
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-setup-onboarding-desktop.webp",
+      "sha256": "e425b7af18932ee02eaca007dd58dd81eaca64807f7d9bb4ce4178f22cc18f94",
+      "bytes": 67550
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-setup-onboarding-mobile.webp",
+      "sha256": "045990279cf36026de69094175e63caead7d3f92ee750fa854fb8ddacdd74649",
+      "bytes": 28302
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/area-mapping-desktop.webp",
+      "sha256": "e425b7af18932ee02eaca007dd58dd81eaca64807f7d9bb4ce4178f22cc18f94",
+      "bytes": 67550
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/area-mapping-mobile.webp",
+      "sha256": "0b4ec4a733cca1ec257989507e5c34d48a82c7d8052ee2ae0a53dd3869b910f7",
+      "bytes": 30868
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/test-activation-desktop.webp",
+      "sha256": "e425b7af18932ee02eaca007dd58dd81eaca64807f7d9bb4ce4178f22cc18f94",
+      "bytes": 67550
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/test-activation-mobile.webp",
+      "sha256": "11b08bed569d8ffd1ed3ec1e94689f26c715f0b2f43763343da8b784de1ba8c0",
+      "bytes": 18260
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/events-desktop.webp",
+      "sha256": "1bbd763ddcef457039eaa319fc2a82671ba1d825165291aeb03ccf5b4dc9541e",
+      "bytes": 72346
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/events-mobile.webp",
+      "sha256": "e2c446b04cc6c360399359f9149e2ad46047eb0bc389f44aa59e8cdf9c5dcfde",
+      "bytes": 30788
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/incident-detail-desktop.webp",
+      "sha256": "1bbd763ddcef457039eaa319fc2a82671ba1d825165291aeb03ccf5b4dc9541e",
+      "bytes": 72346
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/incident-detail-mobile.webp",
+      "sha256": "eb50a0dd52d39edcafbba5980c82e77c8b967a33042c521c3ffb0d60f5e507ac",
+      "bytes": 25772
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/evidence-desktop.webp",
+      "sha256": "7b8e451666d582b47d181bd18337b292c9311082e8acb26989915a0737d93ce3",
+      "bytes": 73462
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/evidence-mobile.webp",
+      "sha256": "272a13bd918a522982d7e26c5ca472bdb64962097036cafd72484bf515011d5e",
+      "bytes": 18778
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/no-recording-desktop.webp",
+      "sha256": "0ec674e49ca3a75d50300b95d451a9337f28bae1b9541251a703b9fb7fa0f402",
+      "bytes": 77670
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/no-recording-mobile.webp",
+      "sha256": "99272c5e403c3f7236306a61b5dbd818d18deafe7df544edb4a83f5ad710255c",
+      "bytes": 31228
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/parent-camera-access-desktop.webp",
+      "sha256": "6db7a8f7bbb7303d769960fdfd3048a748104e9eaad4ba754af67e512883c428",
+      "bytes": 69174
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/parent-camera-access-mobile.webp",
+      "sha256": "058e0bd97c206fa870719c62aa3ec6782eb9ea98c87495900c6616a8faa95c5d",
+      "bytes": 30140
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/parent-denied-desktop.webp",
+      "sha256": "8cd6a760fa06cb28b62de7aae591b323eeffd00581952b9846253c33f16bde31",
+      "bytes": 75712
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/parent-denied-mobile.webp",
+      "sha256": "6e4836fdc88a6c06a8d67873f100e14e53e317080f190e48e79fd9486aaeaff3",
+      "bytes": 24906
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/staff-camera-access-desktop.webp",
+      "sha256": "42325c9db7b57db0b8a75cb6ed7503428eefd769cc385847f020bb17abdedabb",
+      "bytes": 73624
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/staff-camera-access-mobile.webp",
+      "sha256": "9fa769e216af5d213245a6e85214ef507477dce576aa67e7829fe8efed329bf8",
+      "bytes": 30712
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/inspector-evidence-only-desktop.webp",
+      "sha256": "94ccb205a076077a981cea3a5a2370a58c8f8e1cb6d3fd393bf5c0b5c7c5af68",
+      "bytes": 91194
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/inspector-evidence-only-mobile.webp",
+      "sha256": "cf543cb397c1bc009ed24c3ee0b754bbf3e438d27e8d6051bf0aa093cfe30938",
+      "bytes": 28806
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-permissions-policy-desktop.webp",
+      "sha256": "bfcb54a81c244c741c2956dea9daa4d5560191c15aa4e85ede98488b5cafbb52",
+      "bytes": 69746
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/camera-permissions-policy-mobile.webp",
+      "sha256": "797c441bb5982ddcc5d1e11d1e30cb0108e76759cb1e3df267158b780792c573",
+      "bytes": 27028
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/provider-unavailable-desktop.webp",
+      "sha256": "0ec674e49ca3a75d50300b95d451a9337f28bae1b9541251a703b9fb7fa0f402",
+      "bytes": 77670
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/provider-unavailable-mobile.webp",
+      "sha256": "f651de9373e5ee025451c756ae3487b3975ecad2712921264df6ae449517436a",
+      "bytes": 34316
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/empty-no-camera-desktop.webp",
+      "sha256": "8cd6a760fa06cb28b62de7aae591b323eeffd00581952b9846253c33f16bde31",
+      "bytes": 75712
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/empty-no-camera-mobile.webp",
+      "sha256": "6e4836fdc88a6c06a8d67873f100e14e53e317080f190e48e79fd9486aaeaff3",
+      "bytes": 24906
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/admin-safety-oversight-desktop.webp",
+      "sha256": "046578381161816b95761f5c80b857bdb3c71e98544361d80553d3109acc382c",
+      "bytes": 76382
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux16/admin-safety-oversight-mobile.webp",
+      "sha256": "dc07632b10513483de0eee1fa53aad85956fc62ba3a9f5d02c92be4c3db4151b",
+      "bytes": 29676
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/admin-dashboard-desktop.webp",
+      "sha256": "e6e4067a347ce9e4c7bd0fbc23955f65680cfd4a9b6bd111995c04ee396cb90c",
+      "bytes": 69552
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/admin-dashboard-mobile.webp",
+      "sha256": "bf8b8d8d250ee3e0d4d11ec69ba2684564ea395a754e06ebe6ae114cbc1f6a4e",
+      "bytes": 30590
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/gardens-list-desktop.webp",
+      "sha256": "6fea04a4c1d677a43f999f188038c6bbd2b289397046bdf26edf519b59a20d4e",
+      "bytes": 61104
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/gardens-list-mobile.webp",
+      "sha256": "cbf514308f6c6e3e64364bb4f947abd0b6b3beeea35c4cf8a09db5e430ab9b2d",
+      "bytes": 24304
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/garden-detail-desktop.webp",
+      "sha256": "3388e95faef9a2f889fe129c2c373bc0794c42835f921a3bffeb27f2d3ebcbaf",
+      "bytes": 74708
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/garden-detail-mobile.webp",
+      "sha256": "d0aff210362e1251502b4d4f9c22b2d44ae537a1ee9f91d4bff6adb1a78fe4a3",
+      "bytes": 27366
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/pending-garden-approval-desktop.webp",
+      "sha256": "39095f061952a968ae90f446ed02185d5c240617798c517bcae6f41615d00967",
+      "bytes": 50740
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/pending-garden-approval-mobile.webp",
+      "sha256": "15ab7f028514f9d4251ac3f522f06f451963fd583beeb37013482de7e29a1f50",
+      "bytes": 21650
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/users-list-desktop.webp",
+      "sha256": "ef5377a89a4b72dbf1a14f0495c1a7446011ab50d1d3ade2ac4328edcd780f2f",
+      "bytes": 64958
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/users-list-mobile.webp",
+      "sha256": "3bc314e5107e3fde166cf063a76ce7864d62c334c7dfae63a50089ac0ca8382c",
+      "bytes": 23276
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/user-detail-desktop.webp",
+      "sha256": "b2627914af91e5f7881753d6fa5ddc197781b639580a3d7e550ec11b3290c6ca",
+      "bytes": 63872
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/user-detail-mobile.webp",
+      "sha256": "7e6a95f24af9a59e7fc45f14eacac162f1b3ab5632fb7e0b59ed85230113f083",
+      "bytes": 22552
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/roles-permissions-desktop.webp",
+      "sha256": "cf3a7ab26ede4b8679774732aaa626d61452f6dbbc3f3c1bb6cc735ade80e122",
+      "bytes": 68992
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/roles-permissions-mobile.webp",
+      "sha256": "5cde4837b674f514174f6ce9c70a09b0fa42c34dc7a98a251a521e013bd4eb92",
+      "bytes": 29040
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/inspector-approvals-desktop.webp",
+      "sha256": "8258142a3f33b954ace8cf45dc95b4fd837614a601d71bf52e63933fca9c76c1",
+      "bytes": 44324
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/inspector-approvals-mobile.webp",
+      "sha256": "f35410e8b763c2791fe1c8fbe5414a5f05010c7cf898ba09463385a4072269d4",
+      "bytes": 22804
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/subscriptions-desktop.webp",
+      "sha256": "df016ac1070390415a41107e6b1ca4311d6b98825c6e25bf925d7183a289ad9d",
+      "bytes": 73460
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/subscriptions-mobile.webp",
+      "sha256": "c14b30ee17b90d8bc91397156014a0c2e5350193ae03cd69bcb0b2f1b6d3452a",
+      "bytes": 33516
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/provider-unavailable-desktop.webp",
+      "sha256": "7c56d83ffce8bd7cb7237db0e1138933676e66344f07bb0c70778d422391a7ab",
+      "bytes": 63740
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/provider-unavailable-mobile.webp",
+      "sha256": "f595916a003c731f35d798d9b551608ffd392623b01143d25d22c037d867fb18",
+      "bytes": 23338
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/complaints-desktop.webp",
+      "sha256": "d8e962be5de1fae2eb034d9415cbaf36c76e9c7f956165a9bf59f6bd8facdc89",
+      "bytes": 69498
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/complaints-mobile.webp",
+      "sha256": "7d32bd966f2eee6d35570b5f29fedea0e6bf0de395b55f2359d43937c12e4d2c",
+      "bytes": 35588
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/escalated-complaint-desktop.webp",
+      "sha256": "d8e962be5de1fae2eb034d9415cbaf36c76e9c7f956165a9bf59f6bd8facdc89",
+      "bytes": 69498
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/escalated-complaint-mobile.webp",
+      "sha256": "7d32bd966f2eee6d35570b5f29fedea0e6bf0de395b55f2359d43937c12e4d2c",
+      "bytes": 35588
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/system-status-desktop.webp",
+      "sha256": "eb66ccd439a818eb5cfa71cccf2367bb527ab566ae06b9bb6532378285b9880a",
+      "bytes": 74830
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/system-status-mobile.webp",
+      "sha256": "ffc9e360bd763dd7eb03412af126163a1bb37554fdbc03fd6ab1e6aa2bdeba86",
+      "bytes": 27114
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/audit-desktop.webp",
+      "sha256": "6102334087d68af209478a23a9b43e3d1a4d85d38823f5c5daffd73e7e9d8bc9",
+      "bytes": 51608
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/audit-mobile.webp",
+      "sha256": "266afec1a498bfa2bbea4a719702566d58f63fa45bbddb8129c9797f27d05ce2",
+      "bytes": 21480
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/reports-entry-desktop.webp",
+      "sha256": "bb88e4bdbdca26de7558b2884d8687639aa7ca8f59a0785636a8ce03f15fff98",
+      "bytes": 77876
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/reports-entry-mobile.webp",
+      "sha256": "3f5c95bdbfc67e820a273203ae3a5a2c34ff14f6bd4a00484ab6aee09b582a38",
+      "bytes": 24886
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/settings-desktop.webp",
+      "sha256": "b4041551d2922782eb7262ea15e9473bd555cbc6dc718c196d32fff49f65ba4e",
+      "bytes": 55812
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/settings-mobile.webp",
+      "sha256": "cdf74d645858cc63e94ef7cfd5efbceb5de00b5cb0cb584b4ce21f072b6df805",
+      "bytes": 34272
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/recent-activity-desktop.webp",
+      "sha256": "595b415638c2b6f0c6a8e480da027f677948a034a013c89e3e736f8b65915800",
+      "bytes": 66124
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/recent-activity-mobile.webp",
+      "sha256": "7b6581e4d5dfae2d4b9b3866bde39912e6ff11a53a09ca0b9a87ab783d83b3ff",
+      "bytes": 28416
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/empty-action-center-desktop.webp",
+      "sha256": "1f00787464d9c05ba63ed70f2308f9d6540a694624e01d5c9c59424801275ebc",
+      "bytes": 59918
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/empty-action-center-mobile.webp",
+      "sha256": "f224a376bb10662c20a119d244467bb3446c097d8531cb6682d894528117e8e2",
+      "bytes": 31794
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/degraded-state-desktop.webp",
+      "sha256": "eb66ccd439a818eb5cfa71cccf2367bb527ab566ae06b9bb6532378285b9880a",
+      "bytes": 74830
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux17/degraded-state-mobile.webp",
+      "sha256": "ffc9e360bd763dd7eb03412af126163a1bb37554fdbc03fd6ab1e6aa2bdeba86",
+      "bytes": 27114
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/settings-home-desktop.webp",
+      "sha256": "59ea1f581aac7493d411c2c63d9f3c4131f8540c6307b17d2245060fc93adac7",
+      "bytes": 99848
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/settings-home-mobile.webp",
+      "sha256": "e1ff7b2bd458c120ff6f175f052ce89ad564d4f4a30cdd9cc163054ba3a60600",
+      "bytes": 27326
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/personal-profile-desktop.webp",
+      "sha256": "81739ae4fd77cf503448a86f3a3b3013b6b988fbe35c25659db7786c7cb4cf1a",
+      "bytes": 45480
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/personal-profile-mobile.webp",
+      "sha256": "39cd4fd1e63c84183ec49f8faae0beb758e4d08673116a53e54ec627d483ca30",
+      "bytes": 18546
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/security-desktop.webp",
+      "sha256": "2307d54d9302440ace837f2f608716e966495ffdc8161ddd647105e4b7bf9605",
+      "bytes": 95856
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/security-mobile.webp",
+      "sha256": "24d5c03ef065c1aae00128cd56c182c727de34f0d9936698fc463e69d81aaf23",
+      "bytes": 28648
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/email-phone-verification-desktop.webp",
+      "sha256": "644ee208ef8395287a1765475f5dc6f1f41b43de2a6ff695b32dce56fcaeed55",
+      "bytes": 67882
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/email-phone-verification-mobile.webp",
+      "sha256": "35da309c2840a58633d09f547c36e751ea553faf51698bb4ad4180a0f8b91e8f",
+      "bytes": 25880
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/notification-preferences-desktop.webp",
+      "sha256": "0bf716ef1b0848ffaf42082623b377bac0d310239e42be52017adb0c77268312",
+      "bytes": 61484
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/notification-preferences-mobile.webp",
+      "sha256": "99335be606a04218d0dc2abd9f2721923367e86247073a07a64cbcb989d7cb57",
+      "bytes": 29612
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/quiet-hours-desktop.webp",
+      "sha256": "3ce480ff6afa58c459f5e486a16e8f6a5830504245a2a7bde8222a40448f9e4e",
+      "bytes": 67248
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/quiet-hours-mobile.webp",
+      "sha256": "17a600e91740b9eb705baadc7395ce19ce85a26275dbf50bf5531c27990a7b3e",
+      "bytes": 27606
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/garden-settings-desktop.webp",
+      "sha256": "58ea8708168e7ce5f9cd29bab71722c8d32a2be3780c8e1232822e991ab2c5d1",
+      "bytes": 50232
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/garden-settings-mobile.webp",
+      "sha256": "d73408fe852f0d2d078de0f3ca8dc74e16386c089adaa65abf30ca05b34a7e45",
+      "bytes": 20338
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/multi-garden-desktop.webp",
+      "sha256": "ab51a59bafad6f07ac7ef00b4c357746d5d1d4dbcb1cc134d6ca9f620a197ce7",
+      "bytes": 102860
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/multi-garden-mobile.webp",
+      "sha256": "9f11577d9cd1009b8d7e833671cf8d24a046ad96a6e5dad0efa560b769f6c2e1",
+      "bytes": 28988
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/permissions-desktop.webp",
+      "sha256": "3e4b0d1de089d31f275e5466515a22ac8abc6218cf2440c4c54b6e138dc7aba2",
+      "bytes": 54514
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/permissions-mobile.webp",
+      "sha256": "a0bf4a7d45518775fab873d27ab3affe09bfbdab3852b4fbb931854fb36364ac",
+      "bytes": 38582
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/staff-permissions-desktop.webp",
+      "sha256": "7db6ba5039047bca478d3a07358abc20491c9fadb70108325205d7587d52b14b",
+      "bytes": 51876
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/staff-permissions-mobile.webp",
+      "sha256": "a0bf4a7d45518775fab873d27ab3affe09bfbdab3852b4fbb931854fb36364ac",
+      "bytes": 38582
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/camera-permissions-desktop.webp",
+      "sha256": "835c9680a0d0a653d600929f2c889322f47a5df1df067815bf02ad181dc095f1",
+      "bytes": 69612
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/camera-permissions-mobile.webp",
+      "sha256": "8c2338ce18d2b972c998fa5a2fc72578ee8fa78fa46f00fdf5d85781fc99299d",
+      "bytes": 26984
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/subscription-desktop.webp",
+      "sha256": "88eee783e38bad69244014aedc23333fbffb03456c4ac21ec12c444b3dc64014",
+      "bytes": 97732
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/subscription-mobile.webp",
+      "sha256": "f7f8f56744717cc5061db85e75574e83e8c15ba3ead0b76e04f0e70abe6d7133",
+      "bytes": 37872
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/billing-readiness-desktop.webp",
+      "sha256": "46d14ba72beeb2ee97e0bc60f0caee3e59ef6cfe0d3c8a51c48f8b11718f0374",
+      "bytes": 71186
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/billing-readiness-mobile.webp",
+      "sha256": "b21e516ca2704f1e9ecc8b8a0178540f47b18b44e67884f1003e9535f6736e1c",
+      "bytes": 33254
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/integrations-desktop.webp",
+      "sha256": "a5c24fdc50af6e6f2c684aaadbc50b4c6ec364a417c56a7e68bacc98ab164cbb",
+      "bytes": 53952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/integrations-mobile.webp",
+      "sha256": "bc1999fe1a9fe56c83546259b3104dfb0d736ab7e5fa3b79edbee1515c778c9e",
+      "bytes": 35580
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/provider-unavailable-desktop.webp",
+      "sha256": "46d14ba72beeb2ee97e0bc60f0caee3e59ef6cfe0d3c8a51c48f8b11718f0374",
+      "bytes": 71186
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/provider-unavailable-mobile.webp",
+      "sha256": "b21e516ca2704f1e9ecc8b8a0178540f47b18b44e67884f1003e9535f6736e1c",
+      "bytes": 33254
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/language-timezone-desktop.webp",
+      "sha256": "b499c1dd8f6b0a7018b45fa968e8f594627d25befb338a290dc36e78fd064533",
+      "bytes": 59384
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/language-timezone-mobile.webp",
+      "sha256": "99335be606a04218d0dc2abd9f2721923367e86247073a07a64cbcb989d7cb57",
+      "bytes": 29612
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/privacy-desktop.webp",
+      "sha256": "a5c24fdc50af6e6f2c684aaadbc50b4c6ec364a417c56a7e68bacc98ab164cbb",
+      "bytes": 53952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/privacy-mobile.webp",
+      "sha256": "a4298f4b1fffcbb5f711c6841fc2e06a9908183c0b35b0d2d52477ddcbda6fb4",
+      "bytes": 26018
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/parent-role-limited-desktop.webp",
+      "sha256": "230d4227cf628d575f4cee49bf18d54f6d4ef41f54741767020632d1e5935437",
+      "bytes": 74108
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/parent-role-limited-mobile.webp",
+      "sha256": "55ce8be29c97ec9fd787feed3de9f932376a1e229d6ed25edfd899121963e5d8",
+      "bytes": 24104
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/staff-role-limited-desktop.webp",
+      "sha256": "44b09f1d1fa9d76a56a9406fe76a5fea7cb43642bcd4d673c954ae089faca4f2",
+      "bytes": 90572
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/staff-role-limited-mobile.webp",
+      "sha256": "cb0d0243ac638f32364eaf455f43cb8b8ac335cfa36338c8a7a58ab114b858ec",
+      "bytes": 24416
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/inspector-role-limited-desktop.webp",
+      "sha256": "eee8a992eaed4d3233cb2deba13c1b30d40b2694a75a32a3e42eb23e12cbc397",
+      "bytes": 73596
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/inspector-role-limited-mobile.webp",
+      "sha256": "472201f9411e6415316e572a39ddae73e7117c2daf73b8b7430a99bd8cfb3303",
+      "bytes": 23444
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/admin-role-limited-desktop.webp",
+      "sha256": "3cbb49dcc4a0aaa04bad370c5104574fe08398b9fae8140f747db5ce0d1837f9",
+      "bytes": 71586
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux18/admin-role-limited-mobile.webp",
+      "sha256": "9e7110b94a07d401c83602486d2cf77021773d6c711dee5c2a9dba74f9734a8f",
+      "bytes": 25784
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/loading-desktop.webp",
+      "sha256": "98d2e3a7e745c6a1738fd5812a3c988ae2996aeb30e8e0ed9974798f31f083d9",
+      "bytes": 35220
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/loading-mobile.webp",
+      "sha256": "85ce371a48c223d81081307145067c88c45f1d0b5dd99e5ba6722159b30e1975",
+      "bytes": 12960
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/empty-desktop.webp",
+      "sha256": "23598d355ae889eb2aa54517c3e6e93c68ee3ca9890630dfdfe3f9c1919e3812",
+      "bytes": 35372
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/empty-mobile.webp",
+      "sha256": "aa14081ea64ca39052f2c965c99cc0be0ecc4d82ea338875b7ac82671f8d5975",
+      "bytes": 13248
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/error-desktop.webp",
+      "sha256": "c902f0d5e1c8c164e18569b96d07bc1a4d11f550ba32d875d7348b4241ec44d4",
+      "bytes": 38530
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/error-mobile.webp",
+      "sha256": "93d883812bfd27d6b5a2e6d05941b75f4cab4974c6b83f2925c04208116ff1e6",
+      "bytes": 15728
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/permission-denied-desktop.webp",
+      "sha256": "d3c419ae3c082c16d0eac331f624aa978d644f4e7cc6e22a6333784777db191b",
+      "bytes": 40170
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/permission-denied-mobile.webp",
+      "sha256": "a3be015f765ef627d1be3aeab0e5f324af135038f4a2ccba4c3163cf540eb81e",
+      "bytes": 16824
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/unavailable-desktop.webp",
+      "sha256": "d58dba5cd455e85b6cac0d4c05d94fb428ffc94c8a1c5aca6907b7ab626da0e3",
+      "bytes": 38146
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/unavailable-mobile.webp",
+      "sha256": "b03409825a597f9d3f140f11b94844f20adce0724f101bdce66136224f8f82d0",
+      "bytes": 14904
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/offline-degraded-desktop.webp",
+      "sha256": "061ba98cc823c5b6710b5ee44b3c194f572bf1a8b024f3f8dc1eb2bcc2fe10a9",
+      "bytes": 46896
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/offline-degraded-mobile.webp",
+      "sha256": "ce7d489f77640ae48a4fedacbf1304a2f5b07aeb55e56b8df5f050a79f2a037d",
+      "bytes": 22018
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/success-desktop.webp",
+      "sha256": "561daeda9e15d5c38f2943feb9495751f3fcaea8673af114f9a185ed7052448f",
+      "bytes": 34814
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/success-mobile.webp",
+      "sha256": "445d4079e3d073a4da9a1ee18ad5e721be10783364a51e273c229452a8250bc3",
+      "bytes": 12842
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/destructive-confirmation-desktop.webp",
+      "sha256": "6ce61b465479b17c820767447254761e9f74b1240768b4b6e5bf4bfbf6315904",
+      "bytes": 20752
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/destructive-confirmation-mobile.webp",
+      "sha256": "8011157a1987fd4d351517273389faff7ddde3820b11c17123859a60eecdb4c3",
+      "bytes": 13420
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/validation-desktop.webp",
+      "sha256": "5264bb61390205f25cb03593fc2533b76a6786ef0357365e80be5df1325aa714",
+      "bytes": 39768
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/validation-mobile.webp",
+      "sha256": "125a6131fa50dc9366ecdb6b790db13e2fd04b23e4ae682e0ac689487881f9e7",
+      "bytes": 19124
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/status-variants-desktop.webp",
+      "sha256": "6c55232e5f7d0647f27d6d9d4437a4236be8dcc37364b885a261aef33a7db451",
+      "bytes": 40714
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/status-variants-mobile.webp",
+      "sha256": "3eaa90ecd6d5d9cf3b706223984e983771c5350507d5e59410f450c77caeca19",
+      "bytes": 18120
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/calendar-date-desktop.webp",
+      "sha256": "d0c2134e2fdd9c396cf56f477b31addd014fb9a6b9f957cfe3fd3470b7e14bbd",
+      "bytes": 42264
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/calendar-date-mobile.webp",
+      "sha256": "947372468feedd290e4235655537fabdb91851050280254d55e46105c7f7c4cf",
+      "bytes": 21102
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/select-dropdown-desktop.webp",
+      "sha256": "eb23ed26c138d40909d4627ead1ca80925b3a8e3a0facca45b64c155595a41fa",
+      "bytes": 35526
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/select-dropdown-mobile.webp",
+      "sha256": "16341572cac00fcf0f32ee50f509f35788c2091490732a0fc351f9d5f15ab193",
+      "bytes": 13934
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/toggles-desktop.webp",
+      "sha256": "5bf594346406ad0117f8b5840e2eac69a2b16e21f874e7444e395c0a1f839d7d",
+      "bytes": 37518
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/toggles-mobile.webp",
+      "sha256": "deb4db2a82a80b5023941ca4ad8241b6fbdbd0751864d753ad75f2c58fd4f803",
+      "bytes": 16504
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/search-filter-desktop.webp",
+      "sha256": "79c205b7820e6cbe0628df234c78d38895f1c954185333f0f0f8dd5066dfd847",
+      "bytes": 36510
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/search-filter-mobile.webp",
+      "sha256": "87e3bdc9e424e2cbe82fb820dc68b7dc24c4fdfde038579fa473dff435386eaa",
+      "bytes": 14868
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/settings-desktop.webp",
+      "sha256": "d95c00ac1b81918f01647fac1bab7d1bc1553c2f5a7a29f3208e3dc7bd8789c7",
+      "bytes": 37106
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/settings-mobile.webp",
+      "sha256": "7ddd77515f80e73f032fc84e87505ccd8b253dbd4d5a28c84dbd76ba4f709aae",
+      "bytes": 15402
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/modal-drawer-desktop.webp",
+      "sha256": "1a7b9d07609faf983e8a1f9f360415b789403ff5f6ad79f462da79e991e2e16b",
+      "bytes": 13010
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/modal-drawer-mobile.webp",
+      "sha256": "d1443069e2e52ef2993f94f1a71a8441431e5b81a4b8448da190832e05bee650",
+      "bytes": 7734
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/mixed-direction-desktop.webp",
+      "sha256": "4d1480e9039eb67958f873411daba00eb40d5db0a430cc5a3562b4341e9acf70",
+      "bytes": 44282
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/mixed-direction-mobile.webp",
+      "sha256": "32a5aa2efeb95670b83b49650e4445915892e3b01bdb8dfbee6d24c3e4dcaf7e",
+      "bytes": 22516
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/accessibility-desktop.webp",
+      "sha256": "796d24821f6c4b0550df63c04ee94ba0215a4e27f4c5c0dd6610948bc425c20a",
+      "bytes": 37108
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/accessibility-mobile.webp",
+      "sha256": "5bcb92fe86ce5bf5be6d90cbee123845eba418ef90b1df8c8cca8002bb90d7e9",
+      "bytes": 16046
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/owner-shell-desktop.webp",
+      "sha256": "efffcf1fbe760ce38fcc54ad40ab0f1979d2140229b0d7ad346d5675a85b70d7",
+      "bytes": 99966
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/owner-shell-mobile.webp",
+      "sha256": "b4aa9332daeb0491924a49cf427423d02bd1c02a2c9917ab61b55af3947207fc",
+      "bytes": 32540
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/parent-shell-desktop.webp",
+      "sha256": "7df3eddddad821fad23bd09df546e51444c625ec5e3fad30ef6e201990a7ef48",
+      "bytes": 76142
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/parent-shell-mobile.webp",
+      "sha256": "49318804596d876ead0de702b2ca2151310d75c0b2cdb29c6d40b564837d2488",
+      "bytes": 29770
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/staff-shell-desktop.webp",
+      "sha256": "600ff568930504db34c698357b67511f0b9598e5060ffacb400523df3b8be7f3",
+      "bytes": 74210
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/staff-shell-mobile.webp",
+      "sha256": "8445a6b05b60cea92e877081a545a7a5e04846a8c5bb331f67396ec470e75ce2",
+      "bytes": 30468
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/candidate-shell-desktop.webp",
+      "sha256": "2bd32ce3a0c58929f83afb913cfbca3069dd9ba2178dd76a84b37be6b73c6450",
+      "bytes": 110234
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/candidate-shell-mobile.webp",
+      "sha256": "70e7266dd6b0ce3b134382f6a30346c2d37dc4d764121740293216b3665f06de",
+      "bytes": 35972
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/inspector-shell-desktop.webp",
+      "sha256": "e863bb9dd1afedf9e2d98aabb2a9311f11efaa75cd393b023fa5a3a6e93dde4d",
+      "bytes": 100268
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/inspector-shell-mobile.webp",
+      "sha256": "ba7fbca72f1e25d2b69108ac682d87c5393460f4b00b6b8d79825a4e6ca0d8f2",
+      "bytes": 33310
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/admin-shell-desktop.webp",
+      "sha256": "28092173460d42421f8a1bd6c9c8756ee61bf8e9379aa606864a56132b090c7d",
+      "bytes": 69252
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/screenshots/ux19/admin-shell-mobile.webp",
+      "sha256": "15d0a81375833aa77fc8af3e539e4e92ad2e0fcbc452d5ba35075ea2cbc14724",
+      "bytes": 30482
+    }
+  ],
+  "boards": [
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/all-domains-desktop.webp",
+      "sha256": "a14ff5c394cce3d6a320a15017ba20882b835d9f32620bb1d531c75093ba0b1a",
+      "bytes": 173140
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/all-domains-mobile.webp",
+      "sha256": "d47f814ad3846f2ebf49ac20720096e9881cdfba367188dc1a01ea8bc6644845",
+      "bytes": 169338
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/attendance-pickup-desktop.webp",
+      "sha256": "2c6df091fd1324ed0aedd2fb38ef35342c7f038578d89c198c50200fd7ff8864",
+      "bytes": 77560
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/attendance-pickup-mobile.webp",
+      "sha256": "feaac1a5fc802b59bdee5fe9595c2d6e86e605357b7c35208cbe1c30be505a63",
+      "bytes": 85674
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/auth-registration-desktop.webp",
+      "sha256": "a7d13d8d138fda5ab92e6edd2f9dd562c35f403515135d1a7fce6d12b2f489a4",
+      "bytes": 131016
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/auth-registration-mobile.webp",
+      "sha256": "216c0424c246e5d41b5feccfce533ec597539bb855ffefd01530dea3ed6c5884",
+      "bytes": 100280
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/candidate-recruitment-desktop.webp",
+      "sha256": "e2d1b4d3c89efa90818a72b39712c9468d3fda67bec441e9d7ca4e85bf16ab43",
+      "bytes": 164216
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/candidate-recruitment-mobile.webp",
+      "sha256": "7395fbfd8a694bcc6943765d0845a37d286cfef4a5a0d25bed19457bef42b209",
+      "bytes": 159952
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/children-classrooms-desktop.webp",
+      "sha256": "57f5629003bf802d8230cfc7555c8e99d94a2be9e42e79af96dc2296ca75b454",
+      "bytes": 107482
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/children-classrooms-mobile.webp",
+      "sha256": "9bbf908545de80ad69f3d85f28c743d487acaa603c6a7d62de82451b96045308",
+      "bytes": 119020
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/documents-desktop.webp",
+      "sha256": "5f45abc64c28ee8e0385a46dc8c90c7a24d3491b723c202569f41f30eda12b57",
+      "bytes": 157804
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/documents-mobile.webp",
+      "sha256": "3279cc2d5d908d8e566d6e2c94e8fbdf8abbc115da828175ad38aa8e27a1b5ef",
+      "bytes": 159580
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/finance-desktop.webp",
+      "sha256": "c5213474e0fce27c2d427c79fb3cc42954b605d146e31331e3b934653c3c9814",
+      "bytes": 130092
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/finance-mobile.webp",
+      "sha256": "37e1e5e603b290c1c9498d4bc84ee666c4e38db606c9745dd77e14dc69b834db",
+      "bytes": 125098
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/global-states-desktop.webp",
+      "sha256": "0033aaa09ba082b03e1ae05d89983ad983013d307481c25b64c990f0d42b0493",
+      "bytes": 143278
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/global-states-mobile.webp",
+      "sha256": "4d5608669960884ced3a2b14ef5f9d48323f74c819886149f7e3e27d28d31c49",
+      "bytes": 144280
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/inspections-desktop.webp",
+      "sha256": "539f1d5451ecc259ae9574105512d7c302155af9f9de01d18076db99f636a8c6",
+      "bytes": 123094
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/inspections-mobile.webp",
+      "sha256": "5df3cde27282783f32f9a3feda3146cbfe039dc69c803e8d9265fd73cbc47e5c",
+      "bytes": 136742
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/inspector-desktop.webp",
+      "sha256": "3967f99b82ed967ba7bbf17aed79b8f0ec348e1b1aa2cd6a476a5821ce3b58b8",
+      "bytes": 177528
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/inspector-mobile.webp",
+      "sha256": "2ec92bbf33ddc4004c92cf6ac19a2a693101e7e0b207f2cc29f46646f22421c1",
+      "bytes": 177936
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/messaging-notifications-desktop.webp",
+      "sha256": "d0deb0e70758bbfb8e6bfdf7a1635b348ce767e7bfa2d8752c6f2753fc88bfe5",
+      "bytes": 142332
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/messaging-notifications-mobile.webp",
+      "sha256": "ef9a36f5d328d84c2adf4bace19053e205995185ecda08f1564ac8e1a9157b5e",
+      "bytes": 153160
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/owner-dashboard-desktop.webp",
+      "sha256": "f8428fc0fedbe28d66fbb9b58da9a4c272dd7b713084ff1c6cabc6a2444072b8",
+      "bytes": 107346
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/owner-dashboard-mobile.webp",
+      "sha256": "3aa3890788f2514e8e998c85668b7b8f4876eb4848195ee8338fc18f4f48919e",
+      "bytes": 93804
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/owner-onboarding-desktop.webp",
+      "sha256": "2fcc5b521d453462ef47e2a27c5da80186d49ec3ea2a86065c8b9dd4d13beb5f",
+      "bytes": 85500
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/owner-onboarding-mobile.webp",
+      "sha256": "b365043ac5c3e2838c196803512d92237c0fe726e6c6f4c4817632207df079ce",
+      "bytes": 96454
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/parent-desktop.webp",
+      "sha256": "ec8f3630133d436b58405215a0fe4485ecbc0401fb4802c2c14378a003a7aa41",
+      "bytes": 136570
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/parent-mobile.webp",
+      "sha256": "b98dc97763df05169842775823f8daf16844ace0a28d58a29b39beb17c699f94",
+      "bytes": 141900
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/platform-admin-desktop.webp",
+      "sha256": "d9c555607e6aef6391b799ec92884969a6124de04007e5ef9453c619033f45bf",
+      "bytes": 137488
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/platform-admin-mobile.webp",
+      "sha256": "7b5789c1f9e85f5a8b11f9519a97af10eec8cac1240d08530710b29d4c9d9247",
+      "bytes": 148344
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/reference-comparison-board.webp",
+      "sha256": "77d791ec011d9e20851ef3e2ff4fbb65f4bc3472bd421f2a24bd5991a960b53c",
+      "bytes": 87316
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/reports-desktop.webp",
+      "sha256": "82df58fdebdb313c6c1e42b574ef9f283a4a9b68850fcee7a022cb897ac9c3d7",
+      "bytes": 160832
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/reports-mobile.webp",
+      "sha256": "90ec57d3ce72226e49d8996dad6ffb3400f8f496a38134fe3c46737f7478aea4",
+      "bytes": 144618
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/safety-cameras-desktop.webp",
+      "sha256": "519365aaf68061371e5c8c536bb30746006305113164d3e29ecd23d1fd166c1f",
+      "bytes": 193448
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/safety-cameras-mobile.webp",
+      "sha256": "9be4515c8da682eb8ae9e4e849b57d273067497c0decc0fda16cad32c6687e6f",
+      "bytes": 173554
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/settings-desktop.webp",
+      "sha256": "5e852c01135da304612dc2331ac63e5a8f42fa2ca11232f096fd68425e6f1c74",
+      "bytes": 150284
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/settings-mobile.webp",
+      "sha256": "1d588d5d4abac3adef68f0d7ef6271fa6d6395d63de2e92aa655858c12d4b54e",
+      "bytes": 166416
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/staff-desktop.webp",
+      "sha256": "cc0d0cba5f76db776b1ea518180bc183a582db2a9fd38c59394b81217da168cc",
+      "bytes": 135808
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/staff-mobile.webp",
+      "sha256": "fd0485853085065b5f41fac7245331fc3b4a14c2a89236ffc3b8245cd666f6b7",
+      "bytes": 143782
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/tasks-complaints-corrective-actions-desktop.webp",
+      "sha256": "0d5371a0f9926134c52a45b0bbccbbeadd9b640066f58e8ecdfe3e91ed8c08f2",
+      "bytes": 132182
+    },
+    {
+      "path": "qa-evidence/ux-implement-20/owner-pack/boards/tasks-complaints-corrective-actions-mobile.webp",
+      "sha256": "eeb49548d3f022d6c458e19b65ecb7a25231f0f0776e2e7534888fdb8f9a8883",
+      "bytes": 151248
+    }
+  ]
+}

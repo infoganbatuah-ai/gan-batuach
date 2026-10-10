@@ -8,7 +8,7 @@ type AdminClient = ReturnType<typeof createAdminClient>;
 export async function activateKindergartenEnrollment(admin: AdminClient, request: any, actor: { id: string }, options: { assigned_age_group?: string | null; assigned_class_id?: string | null; source?: string; invitation_status?: string } = {}) {
   const contact = await adminManagementContactVerification(admin, request.parent_id);
   if (!contact.available) throw new Error("לא ניתן לבדוק את אימות פרטי הקשר של ההורה.");
-  if (!contact.state.complete) throw new Error("ההורה חייב להשלים אימות דוא״ל וטלפון לפני הפעלת רישום.");
+  if (!contact.state.complete) throw new Error("ההורה חייב להשלים אימות דוא״ל לפני הפעלת רישום.");
   const [childFileRes, parentProfileRes] = await Promise.all([
     admin.from("permanent_child_files" as any).select("*").eq("id", request.child_profile_id).maybeSingle(),
     admin.from("profiles" as any).select("id, full_name, phone, email").eq("id", request.parent_id).maybeSingle()

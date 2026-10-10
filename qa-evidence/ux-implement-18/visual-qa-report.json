@@ -1,0 +1,442 @@
+{
+  "generatedAt": "2026-10-06T03:28:03.076Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3002",
+  "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_SETTINGS_ACCOUNT_PERMISSIONS_FULL_PLATFORM.png",
+  "sourceReferenceSha256": "58a4ae7af9050b0b45d8c2c4a094df15f581418612ae76142fb7e4fb436129a1",
+  "concepts": 21,
+  "captures": 42,
+  "ownerReviewReady": 42,
+  "needsPolish": 0,
+  "visualDrift": 0,
+  "broken": 0,
+  "productionAccess": false,
+  "digitalObserverCoreDiff": 0,
+  "deviations": [
+    "Account deletion and destructive-account confirmation remain omitted because no canonical user-facing deletion flow exists.",
+    "Theme selection remains omitted because no canonical theme preference exists; language and timezone use communication_preferences.",
+    "SMS and WhatsApp controls remain unavailable unless the canonical delivery capability reports a configured provider."
+  ],
+  "items": [
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "settings-home",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/settings-home-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "settings-home",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/settings-home-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "personal-profile",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#garden-profile",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/personal-profile-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "personal-profile",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#garden-profile",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/personal-profile-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "security",
+      "viewport": "1440×1024",
+      "route": "/dashboard/security-settings",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/security-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "security",
+      "viewport": "390×844",
+      "route": "/dashboard/security-settings",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/security-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "email-phone-verification",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#profile",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/email-phone-verification-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "email-phone-verification",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#profile",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/email-phone-verification-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "notification-preferences",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/notifications#preferences",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/notification-preferences-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "notification-preferences",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/notifications#preferences",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/notification-preferences-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "quiet-hours",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/notifications#preferences",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/quiet-hours-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "quiet-hours",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/notifications#preferences",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/quiet-hours-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "garden-settings",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#garden-profile",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/garden-settings-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "garden-settings",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#garden-profile",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/garden-settings-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "multi-garden",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings",
+      "role": "owner-ab",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/multi-garden-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "multi-garden",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings",
+      "role": "owner-ab",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/multi-garden-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "permissions",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#permissions",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/permissions-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "permissions",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#permissions",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/permissions-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "staff-permissions",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#permissions",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/staff-permissions-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "staff-permissions",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#permissions",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/staff-permissions-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "camera-permissions",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/cameras?view=policy",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/camera-permissions-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "camera-permissions",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/cameras?view=policy",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/camera-permissions-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "subscription",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/subscription",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/subscription-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "subscription",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/subscription",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/subscription-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "billing-readiness",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/subscription",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/billing-readiness-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "billing-readiness",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/subscription",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/billing-readiness-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "integrations",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#account-services",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/integrations-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "integrations",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#account-services",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/integrations-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "provider-unavailable",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/subscription",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/provider-unavailable-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "provider-unavailable",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/subscription",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/provider-unavailable-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "language-timezone",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/notifications#preferences",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/language-timezone-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "language-timezone",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/notifications#preferences",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/language-timezone-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "privacy",
+      "viewport": "1440×1024",
+      "route": "/dashboard/garden/settings#privacy",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/privacy-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "privacy",
+      "viewport": "390×844",
+      "route": "/dashboard/garden/settings#privacy",
+      "role": "owner-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/privacy-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "parent-role-limited",
+      "viewport": "1440×1024",
+      "route": "/dashboard/parent/settings",
+      "role": "parent-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/parent-role-limited-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "parent-role-limited",
+      "viewport": "390×844",
+      "route": "/dashboard/parent/settings",
+      "role": "parent-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/parent-role-limited-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "staff-role-limited",
+      "viewport": "1440×1024",
+      "route": "/dashboard/staff/settings",
+      "role": "staff-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/staff-role-limited-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "staff-role-limited",
+      "viewport": "390×844",
+      "route": "/dashboard/staff/settings",
+      "role": "staff-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/staff-role-limited-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "inspector-role-limited",
+      "viewport": "1440×1024",
+      "route": "/dashboard/inspector/settings",
+      "role": "inspector-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/inspector-role-limited-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "inspector-role-limited",
+      "viewport": "390×844",
+      "route": "/dashboard/inspector/settings",
+      "role": "inspector-a",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/inspector-role-limited-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "admin-role-limited",
+      "viewport": "1440×1024",
+      "route": "/dashboard/admin/settings",
+      "role": "admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/admin-role-limited-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    },
+    {
+      "domain": "Settings / Account / Permissions",
+      "screen": "admin-role-limited",
+      "viewport": "390×844",
+      "route": "/dashboard/admin/settings",
+      "role": "admin",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-18/screenshots/admin-role-limited-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "productionAccess": false
+    }
+  ]
+}

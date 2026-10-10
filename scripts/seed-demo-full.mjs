@@ -17,6 +17,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceRoleKey) throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for seed:demo-full");
 if (supabaseUrl.includes("sample.supabase.co") || serviceRoleKey.includes("replace-with")) throw new Error("Set real Supabase credentials before seeding demo data");
+const seedTarget = new URL(supabaseUrl);
+if (process.env.NODE_ENV === "production" || process.env.ALLOW_SYNTHETIC_QA_SEED !== "yes" || !["127.0.0.1", "localhost", "::1"].includes(seedTarget.hostname)) {
+  throw new Error("Synthetic demo seed is restricted to an explicitly enabled loopback QA environment");
+}
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
 const now = new Date();
@@ -103,10 +107,6 @@ async function upsertUser([email, password, role, full_name, phone]) {
     id: user.id, role, full_name: demoName(full_name), phone, username: email, email, active: true, must_change_password: false, profile_image_url: avatar(full_name)
   }), { onConflict: "id" });
   if (profileError) throw profileError;
-  if (role !== "parent") {
-    await supabase.from("generated_credentials").delete().eq("user_id", user.id);
-    await supabase.from("generated_credentials").insert(demoRow({ user_id: user.id, username: email, temporary_password: password, created_by: user.id }));
-  }
   return user.id;
 }
 

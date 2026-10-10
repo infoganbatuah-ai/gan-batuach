@@ -26,7 +26,7 @@ export function SandboxModeBanner() {
   const copy = labels[environment] ?? labels.demo;
 
   return (
-    <div className="sandbox-mode-banner">
+    <div className="sandbox-mode-banner" role="status" aria-label={`${copy.title}. ${copy.detail}`} title={`${copy.title}. ${copy.detail}`}>
       <FlaskConical size={18} />
       <div>
         <strong>{copy.title}</strong>

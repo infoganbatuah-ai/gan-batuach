@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import type { Database } from "@/lib/supabase/types";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -58,7 +58,9 @@ export async function POST(request: Request) {
   const createdAuthUserIds: string[] = [];
   let createdGardenId: string | null = null;
   try {
-    const { profile } = await requireRole(["admin"]);
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות.", 401);
+    if (profile.role !== "admin") return fail("אין הרשאת מנהל מערכת.", 403);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
     const ownershipType = payload.garden.ownership_type ?? "teacher_only";
@@ -89,12 +91,12 @@ export async function POST(request: Request) {
     }
 
     const manager = ownershipType !== "owner_only" && payload.manager
-      ? await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: managerEmail, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id, conflictField: "manager_email" })
+      ? await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: managerEmail, phone: payload.manager.phone, createdBy: profile.id, conflictField: "manager_email" })
       : null;
     if (manager) createdAuthUserIds.push(manager.user.id);
 
     const owner = (ownershipType === "separate_owner" || ownershipType === "owner_only") && payload.owner?.full_name && ownerEmail
-      ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: ownerEmail, phone: payload.owner.phone, temporaryPassword: payload.owner.temporary_password, createdBy: profile.id, conflictField: "owner_email" })
+      ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: ownerEmail, phone: payload.owner.phone, createdBy: profile.id, conflictField: "owner_email" })
       : null;
     if (owner) createdAuthUserIds.push(owner.user.id);
 

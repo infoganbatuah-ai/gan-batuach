@@ -1,0 +1,1879 @@
+{
+  "contract": "push38s-integration-inventory-v1",
+  "source": "codex/push-38q-r2-auth",
+  "target": "integration/development",
+  "merge_base": "2217bb21d26ad463026c599f777eed719aa3c1aa",
+  "source_head": "2175a5e9273f0f348838b6686cad514d3764aa68",
+  "target_head": "3acfd366affef60358b78f06e90a04801349d873",
+  "total_files": 124,
+  "by_state": {
+    "PRESERVED_PENDING_INTEGRATION": 92,
+    "EVIDENCE_ONLY_REMOTE_PRESERVED": 32
+  },
+  "by_domain": {
+    "release signing / trust": 11,
+    "documentation / configuration": 17,
+    "tests": 25,
+    "evidence": 32,
+    "R2 delivery / HOME_QA authorization": 5,
+    "OTA / update lifecycle": 14,
+    "observability / qualification": 4,
+    "dependencies": 2,
+    "health / runtime": 9,
+    "HOME_QA rollout": 2,
+    "migrations": 3
+  },
+  "files": [
+    {
+      "change": "A",
+      "path": ".github/workflows/kms-custody-proof.yml",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "0867b890c4b59b80289db7f78341e1d0d5215d72",
+      "target_blob": null,
+      "origin_commit": "164df7dd003c3a5d1f043ce2be3aeb92666f537a",
+      "origin_subject": "test(release): add owner-gated live KMS custody proof",
+      "latest_commit": "164df7dd003c3a5d1f043ce2be3aeb92666f537a",
+      "commits": [
+        "164df7dd003c3a5d1f043ce2be3aeb92666f537a"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "DIGITAL_OBSERVER_CANONICAL_MASTER_ROADMAP.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "1a055f7aefd2f0eb0401f35676b8cabf8e790a1e",
+      "target_blob": "0d8a8076a87d1aaffe618359626a18c504c9333b",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_CAPACITY_QUALIFICATION.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "1ab91f3d27f92fc2208e61c01d9b7131e030154e",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_CHAOS_TEST_MATRIX.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "6bacefc65fbbea2889c3e29e429ca45d48c59aa1",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "DIGITAL_OBSERVER_CI_TEST_MANIFEST.md",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "8d3bf84dcb810d27e7b5489f9617f3915a3025de",
+      "target_blob": "5054408ae96e38c214b55e8f13ac114cc68b83e1",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_COMMERCIAL_RELEASE_CUSTODY.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c2c6844a1860b2c893cda0f5acca1bf91a93a6e9",
+      "target_blob": null,
+      "origin_commit": "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9",
+      "origin_subject": "PUSH 38: record commercial signing custody activation gate",
+      "latest_commit": "b64e9f743bb3c25c303b7f5c60bfe512245b9c11",
+      "commits": [
+        "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9",
+        "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74",
+        "b64e9f743bb3c25c303b7f5c60bfe512245b9c11"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "DIGITAL_OBSERVER_CURRENT_EXECUTION_QUEUE.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "f2ebade5d4d741b9c6c18f0f195faff47724425b",
+      "target_blob": "5ca16db70e8b86f0f44af343f54a17267e083e90",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "DIGITAL_OBSERVER_NORTH_STAR_COMPLETION_MATRIX.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "23b2692603ae698a17b001f237ce79b8e05fced8",
+      "target_blob": "d68d68ba98db5b4f601dafdaa010b8a58fdf892b",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38C_PRE_SOAK_CLOSURE.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "6bf7488b73c505cab81f2c3cdeb3fe80b3315499",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38D_DEPLOYMENT_GATE_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "ea81726ecb1927cac52e493c3b78a2a68403e3eb",
+      "target_blob": null,
+      "origin_commit": "a1c652de6489ab8ad6721fabc369ad9f2dbde000",
+      "origin_subject": "PUSH 38D: record trusted deployment preflight blocker",
+      "latest_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "commits": [
+        "a1c652de6489ab8ad6721fabc369ad9f2dbde000",
+        "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+        "e27ee2d48d1e756a476be3f1c511178309224b55"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38F_QA_EVIDENCE.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "93f9804c44e0bf95c1e3ea349169b0e52322833e",
+      "target_blob": null,
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38G_MANAGED_RELEASE_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "e5367d07d60192ac729d3f77d2da85e1f2a1f6ec",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38G_QA_EVIDENCE.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "cbaa17a0617b06782ee5af0dbb04812e889e7918",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38H_QA_EVIDENCE.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "d92818da2d2c61d830ecf2dabf639d63d9c41245",
+      "target_blob": null,
+      "origin_commit": "da9a0427d1520af47cb3e0ebab44097f17743edd",
+      "origin_subject": "PUSH 38H: record isolated final releases and open live-bootstrap gates",
+      "latest_commit": "da9a0427d1520af47cb3e0ebab44097f17743edd",
+      "commits": [
+        "da9a0427d1520af47cb3e0ebab44097f17743edd"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38H_SUPERVISOR_BOOTSTRAP_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "5bc9b4ad0409461a2cee305a25b75e13ce574eb8",
+      "target_blob": null,
+      "origin_commit": "da9a0427d1520af47cb3e0ebab44097f17743edd",
+      "origin_subject": "PUSH 38H: record isolated final releases and open live-bootstrap gates",
+      "latest_commit": "da9a0427d1520af47cb3e0ebab44097f17743edd",
+      "commits": [
+        "da9a0427d1520af47cb3e0ebab44097f17743edd"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38I_INSTALLED_OTA_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "b23e6ec05e9e9b4d9064e03930b312288b1f99aa",
+      "target_blob": null,
+      "origin_commit": "c08c24d8c5014545733a57c8cbf3b2262fa3163f",
+      "origin_subject": "Record PUSH 38I installed OTA QA and live baseline drift",
+      "latest_commit": "0e347bcc889957b194670d2e6c5639c92652ba2f",
+      "commits": [
+        "c08c24d8c5014545733a57c8cbf3b2262fa3163f",
+        "0e347bcc889957b194670d2e6c5639c92652ba2f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38I_QA_EVIDENCE.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "9eb6105a4496b9ffedb13b2be3a155c00b273724",
+      "target_blob": null,
+      "origin_commit": "c08c24d8c5014545733a57c8cbf3b2262fa3163f",
+      "origin_subject": "Record PUSH 38I installed OTA QA and live baseline drift",
+      "latest_commit": "c08c24d8c5014545733a57c8cbf3b2262fa3163f",
+      "commits": [
+        "c08c24d8c5014545733a57c8cbf3b2262fa3163f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38J_BASELINE_RECONCILIATION_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "46a6d12d5d7886715bbbf904ddf051e31acd014f",
+      "target_blob": null,
+      "origin_commit": "b92aa948f450aed25a38ba417655fa8f50edfdf0",
+      "origin_subject": "Record PUSH 38J live Gateway baseline provenance blocker",
+      "latest_commit": "19bf166ad96ec42645308e147253dc201c38b111",
+      "commits": [
+        "b92aa948f450aed25a38ba417655fa8f50edfdf0",
+        "19bf166ad96ec42645308e147253dc201c38b111"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38K_DEPLOYMENT_GATE_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "008934bc05cd2a6992027c9454bd7890de466096",
+      "target_blob": null,
+      "origin_commit": "f27138d7a4beb76db6f8b09929cdef3f90cf0059",
+      "origin_subject": "docs: record PUSH 38K rollback safety stop",
+      "latest_commit": "f27138d7a4beb76db6f8b09929cdef3f90cf0059",
+      "commits": [
+        "f27138d7a4beb76db6f8b09929cdef3f90cf0059"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38L_TRANSITION_LEDGER.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "19d7aa145f3a6480168ff72382b925e928df2ad4",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38L_TRANSITION_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "8fd6b158604e8499329a84af90f318cc2546b734",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38M_PREWRITE_GATE_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "b4354cce13f9f74ed1e91400a0ff0697f113dfb6",
+      "target_blob": null,
+      "origin_commit": "21c176b46724a9de4550d6d4adaefa96d27788ec",
+      "origin_subject": "PUSH 38M: record failed Home pre-write gate",
+      "latest_commit": "21c176b46724a9de4550d6d4adaefa96d27788ec",
+      "commits": [
+        "21c176b46724a9de4550d6d4adaefa96d27788ec"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38N_DEPLOYMENT_GATE_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "c0b38d58b3af189e4a4dbf8515d1b242b83c582d",
+      "target_blob": null,
+      "origin_commit": "8a2f0794b784f8e124ac7cd79bd9056cecb36025",
+      "origin_subject": "PUSH 38N: record degraded-baseline gate and release blockers",
+      "latest_commit": "8a2f0794b784f8e124ac7cd79bd9056cecb36025",
+      "commits": [
+        "8a2f0794b784f8e124ac7cd79bd9056cecb36025"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38O_RELEASE_DELIVERY_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "5d0ff65ea63c0cdc06979b880ac08b50487db90b",
+      "target_blob": null,
+      "origin_commit": "e249323ee4555a66672ab55c3bccda863bd47cf8",
+      "origin_subject": "PUSH 38O: guard Home QA release targeting and record delivery blockers",
+      "latest_commit": "e249323ee4555a66672ab55c3bccda863bd47cf8",
+      "commits": [
+        "e249323ee4555a66672ab55c3bccda863bd47cf8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38P_DELIVERY_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "0ac8e0fc440c5d6bfcfed913353210d9a4da5585",
+      "target_blob": null,
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38Q_BLOCKER_REPAIR_20260919.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "7dba4e3152fa50a41c56b8688a80066cdb3f2e45",
+      "target_blob": null,
+      "origin_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "origin_subject": "fix(ota): authorize exact-device HOME_QA R2 downloads",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38R_QA_CONTROL_PLANE_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "899c449ebb208ba0a94292f632ceb8e81ae18c3d",
+      "target_blob": null,
+      "origin_commit": "e5dab5cf4a157858dd092b56353ad670607e9963",
+      "origin_subject": "docs(push38): record QA control-plane integration blockers",
+      "latest_commit": "e5dab5cf4a157858dd092b56353ad670607e9963",
+      "commits": [
+        "e5dab5cf4a157858dd092b56353ad670607e9963"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_KNOWN_GOOD_BASELINES.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "00cf8ce78281051e324035be9f81fb585419de50",
+      "target_blob": null,
+      "origin_commit": "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+      "origin_subject": "PUSH 38E: capture unsigned legacy baseline candidates and block unsafe OTA bootstrap",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_LEGACY_BASELINE_CANDIDATES.json",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "8d5f2ae526d31c0fc42f08d1db807749d7576205",
+      "target_blob": null,
+      "origin_commit": "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+      "origin_subject": "PUSH 38E: capture unsigned legacy baseline candidates and block unsafe OTA bootstrap",
+      "latest_commit": "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+      "commits": [
+        "0b39fb11ebbca48440fc030ffc18f9b4b5670732"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_OTA_BOOTSTRAP_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "d82c7c3f1c5de30e7e9f370a37cd8fee694da9b5",
+      "target_blob": null,
+      "origin_commit": "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+      "origin_subject": "PUSH 38E: capture unsigned legacy baseline candidates and block unsafe OTA bootstrap",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_R2_CONTINUATION_20260919.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "0dd71ebb2571010e2be91974b7c9569e37b78bda",
+      "target_blob": null,
+      "origin_commit": "db26a31425bc46e3a24edeb99fc52ae196ce10be",
+      "origin_subject": "docs(push38): preserve R2 artifact preflight and credential handoff",
+      "latest_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "commits": [
+        "db26a31425bc46e3a24edeb99fc52ae196ce10be",
+        "b5d2bf821933cae923e2cb25066de0c81379db2c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_RELIABILITY_QUALIFICATION_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "feab07033eb1284b54f2e88c693bc7cb00208704",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "8a2f0794b784f8e124ac7cd79bd9056cecb36025",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "2f629f41b236295c02f160a6f15c0428b28c0e5c",
+        "036767a6ba775a78a26943c1dc11fd7cce5d8b65",
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+        "a1c652de6489ab8ad6721fabc369ad9f2dbde000",
+        "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f",
+        "da9a0427d1520af47cb3e0ebab44097f17743edd",
+        "c08c24d8c5014545733a57c8cbf3b2262fa3163f",
+        "b92aa948f450aed25a38ba417655fa8f50edfdf0",
+        "19bf166ad96ec42645308e147253dc201c38b111",
+        "f27138d7a4beb76db6f8b09929cdef3f90cf0059",
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+        "21c176b46724a9de4550d6d4adaefa96d27788ec",
+        "8a2f0794b784f8e124ac7cd79bd9056cecb36025"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_ROOT_CAUSE_REGISTER.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9cf8bd350d6adac86007b509d19526e9fd71fc53",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "cc48ba5945f4bbccdebf8cf44ede3274715a0282",
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_V7_FAILURE_ANALYSIS.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "df854903c2972faff688c71ba0a898b7c93744bd",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "cc48ba5945f4bbccdebf8cf44ede3274715a0282",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "cc48ba5945f4bbccdebf8cf44ede3274715a0282"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_PUSH_38_V8_READINESS_REPORT.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "91549f934280573f4009c7f0f44af89be50e0605",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "8a2f0794b784f8e124ac7cd79bd9056cecb36025",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "cc48ba5945f4bbccdebf8cf44ede3274715a0282",
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+        "a1c652de6489ab8ad6721fabc369ad9f2dbde000",
+        "0b39fb11ebbca48440fc030ffc18f9b4b5670732",
+        "da9a0427d1520af47cb3e0ebab44097f17743edd",
+        "c08c24d8c5014545733a57c8cbf3b2262fa3163f",
+        "b92aa948f450aed25a38ba417655fa8f50edfdf0",
+        "19bf166ad96ec42645308e147253dc201c38b111",
+        "f27138d7a4beb76db6f8b09929cdef3f90cf0059",
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+        "21c176b46724a9de4550d6d4adaefa96d27788ec",
+        "8a2f0794b784f8e124ac7cd79bd9056cecb36025"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_RELIABILITY_RESULT_SCHEMA.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "13acf848a9932c3e758f7ae61a19682f7f4502b2",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "036767a6ba775a78a26943c1dc11fd7cce5d8b65",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "2f629f41b236295c02f160a6f15c0428b28c0e5c",
+        "036767a6ba775a78a26943c1dc11fd7cce5d8b65"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "DIGITAL_OBSERVER_ROADMAP_TRACEABILITY_MATRIX.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "35b8b52ca7744ed0ded9257e71b8ecba2108aa34",
+      "target_blob": "bc3242ff6350cc27684590e5c6e9e6533a070c88",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_SCALE_QUALIFICATION_PROFILE.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "f7b23c2cc6ba7b0df61ec5c8185d15a9df2720d5",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "DIGITAL_OBSERVER_SOAK_TEST_PLAN.md",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9caa6025ecce2729ea8ffcbdd9f172ff6703b885",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "036767a6ba775a78a26943c1dc11fd7cce5d8b65",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "2f629f41b236295c02f160a6f15c0428b28c0e5c",
+        "036767a6ba775a78a26943c1dc11fd7cce5d8b65"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "app/api/video-gateway/edge-updates/download/route.ts",
+      "domain": "R2 delivery / HOME_QA authorization",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "0eca699d2c590615b4c20406c70552db19b57844",
+      "target_blob": null,
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "app/api/video-gateway/edge-updates/route.ts",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "81e398cd12e9c33041e8781961a7b3e383ffc17c",
+      "target_blob": "9e73213c88b96a3bbf9ec66af87cb8dfa61caeaa",
+      "origin_commit": "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+      "origin_subject": "PUSH 38I: persist late rollback status and terminal recovery",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "config/digital-observer-ci-gates.json",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "7e27c29e5993ea1f5b2946ee24e9c514ace64c20",
+      "target_blob": "9464e2bb828c49e453a93f2bab35dd6efb40957a",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "lib/domain/digital-observer/reliability-qualification.mjs",
+      "domain": "observability / qualification",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "69f1b2162db928ad1b300ebfd4d36a774cea5be4",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "2f629f41b236295c02f160a6f15c0428b28c0e5c",
+        "036767a6ba775a78a26943c1dc11fd7cce5d8b65",
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "package-lock.json",
+      "domain": "dependencies",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "8c55731760a4bdb5854e23940e4ae0f4aa1345c8",
+      "target_blob": "9e4abb65a95defbfb5e5b6cc00364936b794070a",
+      "origin_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "origin_subject": "fix(ota): authorize exact-device HOME_QA R2 downloads",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "package.json",
+      "domain": "dependencies",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "58a728ca6f9910fa4c249a83c79f7a783a671c07",
+      "target_blob": "247d73cbb888dc0ed6959be1fd407328bae65921",
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/preliminary-load-chaos.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "d61a01675c672207330385dce19f840fa2f5076d",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/push38-smoke/checkpoints.ndjson",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "5a5d9d47c307bb084536694b4a441bc49e5f1610",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/push38-smoke/result.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "ccf9a31f717f6f86982aaa77152313142b4b6b16",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/push38-smoke/state.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "dca3100b55569afb213ce05ba1f6e85d0e56e809",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/EVIDENCE_MANIFEST.md",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "5e4750c9d02c266c484b84881a87be624360b33e",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/checkpoints.ndjson",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "e93e040b98cf62d91d25ea47124baf86eb36aff8",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/failure-timeline.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "a57fa0dcb599cd1a34c25d2487fc017bc411de88",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/real-home-24h-v7-runner.err",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/real-home-24h-v7-runner.out",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "fee9c5a732aea4eaf32f147b6620585b7f7bed73",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/result.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "0d2c2f71a69e1c09e8fa78ea351e3fbbcce4d112",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "qa-evidence/push-38/v7-frozen-20260913/state.json",
+      "domain": "evidence",
+      "state": "EVIDENCE_ONLY_REMOTE_PRESERVED",
+      "source_blob": "92a8aab0487769cb698f22afa6c96d2fb913f357",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "scripts/build-connector-macos.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c1e3e33945b184b1d0627fce960f2a6de038d0ec",
+      "target_blob": "afe396fdad08d382458409794897257eaa2d2485",
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "b63942bd714f1af920dde5e18fabe8f701701ddd",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "06a65267dffa75826c3b89dc71376fc57360a091",
+        "b63942bd714f1af920dde5e18fabe8f701701ddd"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/install-edge-release-trust-registry.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "f21e95fa549b65233b23b94f41bac2965b2b0c85",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/install-edge-release-trust-root.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "ab52590ef85c29c9e672aec364953981f9db3b31",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/analyze-push38-v7.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "db46886b5261b0da554c08f2ff2d09cca82210a2",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/authorize-push38-baselines.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "40d8ba026b065797b0b3198964572e68bd9c2955",
+      "target_blob": null,
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "19bf166ad96ec42645308e147253dc201c38b111",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "19bf166ad96ec42645308e147253dc201c38b111"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/authorize-push38g-release.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "6209683fa3115f20f7b7fbb14b3b829ee6183276",
+      "target_blob": null,
+      "origin_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+      "origin_subject": "PUSH 38G: add exact-revision QA release and launchd trust contracts",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "06a65267dffa75826c3b89dc71376fc57360a091",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/authorize-push38l-connector-transition.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "de876000739d0b8896715cc78a9152595be8aa4e",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/authorize-resigned-legacy-connector.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c6767b2656aaa7e1a18e64ee2b07dbbfd3361cff",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/bind-push38l-live-transition.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "db427eb7f6b02487f759dbd3094950dccbd020c2",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/build-push38g-gateway-package.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "f0d1b937187a63a0bb9db3187b9ce4762d249136",
+      "target_blob": null,
+      "origin_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+      "origin_subject": "PUSH 38G: add exact-revision QA release and launchd trust contracts",
+      "latest_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+      "commits": [
+        "06a65267dffa75826c3b89dc71376fc57360a091"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/capture-push38j-gateway-baseline.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "21c90425e88cbe947e66b7bcb9b98aff945004b0",
+      "target_blob": null,
+      "origin_commit": "19bf166ad96ec42645308e147253dc201c38b111",
+      "origin_subject": "qa: reconcile PUSH 38J live Gateway baseline",
+      "latest_commit": "19bf166ad96ec42645308e147253dc201c38b111",
+      "commits": [
+        "19bf166ad96ec42645308e147253dc201c38b111"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-digital-observer-reliability-qualification.mjs",
+      "domain": "observability / qualification",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "2d32fd100e5e23fcc727713c94b4d52f39f16f35",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "2175a5e9273f0f348838b6686cad514d3764aa68",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "2f629f41b236295c02f160a6f15c0428b28c0e5c",
+        "036767a6ba775a78a26943c1dc11fd7cce5d8b65",
+        "2175a5e9273f0f348838b6686cad514d3764aa68"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "scripts/qa/check-edge-ota-update.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "038b82e207defef57c0855158fa789327d9be325",
+      "target_blob": "d14548e2e54fbc9272b323e137c47008606fd5e1",
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-edge-release-trust.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "d5f6c743dd5c06010ce5055d268b207d811d974e",
+      "target_blob": null,
+      "origin_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+      "origin_subject": "PUSH 38G: add exact-revision QA release and launchd trust contracts",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "06a65267dffa75826c3b89dc71376fc57360a091",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-live-kms-custody.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9c5efec6845a52f7bb4d28250f187b55aef8c22d",
+      "target_blob": null,
+      "origin_commit": "164df7dd003c3a5d1f043ce2be3aeb92666f537a",
+      "origin_subject": "test(release): add owner-gated live KMS custody proof",
+      "latest_commit": "164df7dd003c3a5d1f043ce2be3aeb92666f537a",
+      "commits": [
+        "164df7dd003c3a5d1f043ce2be3aeb92666f537a"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38b-monitor-accuracy.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "a7df20fbfd097f9939e665ab4d6c9959aec730ed",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38b-relay-recovery.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "abb6fd9e43aaf3a657909028a64ca21b0aab4c6d",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38c-health-probe.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "87e7048409baa0a1ceafbe3e75059edc022e41e5",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38c-relay-reasons.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c5ae8b6cc23d28bef007de1257daa865f7225164",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38c-session-policy.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "3b4994c0275bb8bc81e46602bc800aa9e6873e3f",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38f-legacy-slots.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "1f5fd747c8e52fe9e9ac4378749e05612ac05ffc",
+      "target_blob": null,
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38g-managed-lifecycle.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "fcd0ccd30b52d751ed2738c83d35e9c63ee018bb",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f",
+        "936378a361b6eef764d35d7bd4ed451bca3baee3",
+        "269b00e589465e93a52670fd94a2ded946ed5959",
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "e7747be1860501fea1db7aef0404b3e98194691e",
+        "118ce632be464332aa0df2b5dde37bd6bd716677",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+        "9703d21fdc1774b352185594dd70336fd854a7f2",
+        "19bf166ad96ec42645308e147253dc201c38b111",
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38g-release-negatives.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "0be17fe6448c72fccc2dabe0215e91270444c5ec",
+      "target_blob": null,
+      "origin_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "origin_subject": "PUSH 38G: record isolated managed rollback and pin release trust",
+      "latest_commit": "269b00e589465e93a52670fd94a2ded946ed5959",
+      "commits": [
+        "8a857e77a41df483eeac0b267fdc30b3acac125f",
+        "269b00e589465e93a52670fd94a2ded946ed5959"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38h-live-dry-run.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "765dafd6c6262f9686d1de2592064e290b927e50",
+      "target_blob": null,
+      "origin_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "origin_subject": "PUSH 38H: qualify installed-slot bootstrap and full supervisors",
+      "latest_commit": "19bf166ad96ec42645308e147253dc201c38b111",
+      "commits": [
+        "936378a361b6eef764d35d7bd4ed451bca3baee3",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+        "19bf166ad96ec42645308e147253dc201c38b111"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38h-supervisor-smoke.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "6436ba3e011145a7cbed908a23980f9eee3d647d",
+      "target_blob": null,
+      "origin_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "origin_subject": "PUSH 38H: qualify installed-slot bootstrap and full supervisors",
+      "latest_commit": "269b00e589465e93a52670fd94a2ded946ed5959",
+      "commits": [
+        "936378a361b6eef764d35d7bd4ed451bca3baee3",
+        "269b00e589465e93a52670fd94a2ded946ed5959"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38h-supervisor-workdir.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "4526afeea78e1d356b9f71781f2bcce3de584496",
+      "target_blob": null,
+      "origin_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "origin_subject": "PUSH 38H: qualify installed-slot bootstrap and full supervisors",
+      "latest_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "commits": [
+        "936378a361b6eef764d35d7bd4ed451bca3baee3"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38i-agent-core.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "6647b12d6f0ce66cdb7ab2c8412c6fa4ebbd1413",
+      "target_blob": null,
+      "origin_commit": "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+      "origin_subject": "PUSH 38I: add isolated installed OTA agent and crash-loop rollback foundation",
+      "latest_commit": "069c91593f8b1f74519f8ac2f85b80d4002f9166",
+      "commits": [
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+        "069c91593f8b1f74519f8ac2f85b80d4002f9166"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38l-live-dry-run.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "3506ffea12ffa33bfde62730f06a4e1365238b5c",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38l-transition-policy.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "11aac12fdf98551a680a2bfcdd6f24260b9c4ac6",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38o-home-qa-publication.mjs",
+      "domain": "HOME_QA rollout",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "d52ba5ffed9feca852584df5becdb1f83a8044f3",
+      "target_blob": null,
+      "origin_commit": "e249323ee4555a66672ab55c3bccda863bd47cf8",
+      "origin_subject": "PUSH 38O: guard Home QA release targeting and record delivery blockers",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "e249323ee4555a66672ab55c3bccda863bd47cf8",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38p-release-delivery.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9f733573e8bd37e27ab69dfd2293081297ad5615",
+      "target_blob": null,
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-push38q-r2-download.mjs",
+      "domain": "R2 delivery / HOME_QA authorization",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "e966566b24c330fa434a93801aa18df8286dbcc8",
+      "target_blob": null,
+      "origin_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "origin_subject": "fix(ota): authorize exact-device HOME_QA R2 downloads",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-r2-keychain.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "73c9a9a5a71aeccdc89e31d2d1d134ffcaaa0ab9",
+      "target_blob": null,
+      "origin_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "origin_subject": "fix(release): decode keychain output and preserve R2 round-trip evidence",
+      "latest_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "commits": [
+        "b5d2bf821933cae923e2cb25066de0c81379db2c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/check-remote-edge-signer.mjs",
+      "domain": "tests",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "e244ad88af9d332b11c60b1dd88bda3de05b6958",
+      "target_blob": null,
+      "origin_commit": "4a063874f4f68d472c1b36b8b40d8aedec46407e",
+      "origin_subject": "PUSH 38: add remote Ed25519 KMS signer contract and QA",
+      "latest_commit": "4a063874f4f68d472c1b36b8b40d8aedec46407e",
+      "commits": [
+        "4a063874f4f68d472c1b36b8b40d8aedec46407e"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "scripts/qa/check-software-connector.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "432ccc0fbff7cc8f592fcb635f453472088932e4",
+      "target_blob": "bb0ef1d9a10d98c76259eb51f5afa0bf3328515e",
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/run-real-home-soak.mjs",
+      "domain": "observability / qualification",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "1861419dcf4cd458c52b9785f7d0d13bec89c028",
+      "target_blob": null,
+      "origin_commit": "3d59be78790e236097a0be73c66adb3c9ba99942",
+      "origin_subject": "feat: add push 38 reliability qualification harness",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "3d59be78790e236097a0be73c66adb3c9ba99942",
+        "2f629f41b236295c02f160a6f15c0428b28c0e5c",
+        "036767a6ba775a78a26943c1dc11fd7cce5d8b65",
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/qa/soak-health-probe.mjs",
+      "domain": "observability / qualification",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9a9f0019f317e8281b6ad9e90d1e3d2ba45b6b2c",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/release/macos-r2-keychain.mjs",
+      "domain": "R2 delivery / HOME_QA authorization",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "b4decfddea6c951bb6125214992b1af80cc50d6a",
+      "target_blob": null,
+      "origin_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "origin_subject": "fix(release): decode keychain output and preserve R2 round-trip evidence",
+      "latest_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "commits": [
+        "b5d2bf821933cae923e2cb25066de0c81379db2c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/release/remote-ed25519-signer.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "f2d1be911b020decec251d738f03efa7963a734b",
+      "target_blob": null,
+      "origin_commit": "4a063874f4f68d472c1b36b8b40d8aedec46407e",
+      "origin_subject": "PUSH 38: add remote Ed25519 KMS signer contract and QA",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "4a063874f4f68d472c1b36b8b40d8aedec46407e",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "scripts/release/sign-edge-document-kms.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "2bf77416ffbffd3d47fe4419f88a8c754a3bc9d1",
+      "target_blob": null,
+      "origin_commit": "4a063874f4f68d472c1b36b8b40d8aedec46407e",
+      "origin_subject": "PUSH 38: add remote Ed25519 KMS signer contract and QA",
+      "latest_commit": "4a063874f4f68d472c1b36b8b40d8aedec46407e",
+      "commits": [
+        "4a063874f4f68d472c1b36b8b40d8aedec46407e"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "scripts/run-persistent-home-gateway.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "8298ece94af95d176f66eb3ae5806f5aa793c353",
+      "target_blob": "e2662e80814b93c7b41156ff4da3aae3b761bfee",
+      "origin_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "origin_subject": "PUSH 38H: qualify installed-slot bootstrap and full supervisors",
+      "latest_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "commits": [
+        "936378a361b6eef764d35d7bd4ed451bca3baee3"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-connector-legacy-transition.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "cd811cb004a2d8fd7493d45ca629e33ae28a6b4a",
+      "target_blob": null,
+      "origin_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "origin_subject": "PUSH 38L: qualify Connector legacy-to-managed transition",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-crash-loop-guard.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "567002c3d5295c65d29874c0c6925c9e29c0adf8",
+      "target_blob": null,
+      "origin_commit": "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+      "origin_subject": "PUSH 38I: add isolated installed OTA agent and crash-loop rollback foundation",
+      "latest_commit": "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+      "commits": [
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-home-qa-publication.mjs",
+      "domain": "HOME_QA rollout",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "96f378baba92359bf5662b170a44636ab24ed019",
+      "target_blob": null,
+      "origin_commit": "e249323ee4555a66672ab55c3bccda863bd47cf8",
+      "origin_subject": "PUSH 38O: guard Home QA release targeting and record delivery blockers",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "e249323ee4555a66672ab55c3bccda863bd47cf8",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-installed-bootstrap.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c993fd6a57494371376eb4eb6089e82fc17edabb",
+      "target_blob": null,
+      "origin_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "origin_subject": "PUSH 38H: qualify installed-slot bootstrap and full supervisors",
+      "latest_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "commits": [
+        "936378a361b6eef764d35d7bd4ed451bca3baee3"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-installed-ota-agent.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "a63cd5f9a58bcc3b151e1545f34bbe6010e16edd",
+      "target_blob": null,
+      "origin_commit": "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+      "origin_subject": "PUSH 38I: add isolated installed OTA agent and crash-loop rollback foundation",
+      "latest_commit": "069c91593f8b1f74519f8ac2f85b80d4002f9166",
+      "commits": [
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+        "069c91593f8b1f74519f8ac2f85b80d4002f9166"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-installed-ota-installer.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c28db3a126f93e19f809feb96c1b854eec67ca36",
+      "target_blob": null,
+      "origin_commit": "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+      "origin_subject": "PUSH 38I: add isolated installed OTA agent and crash-loop rollback foundation",
+      "latest_commit": "069c91593f8b1f74519f8ac2f85b80d4002f9166",
+      "commits": [
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "9703d21fdc1774b352185594dd70336fd854a7f2",
+        "069c91593f8b1f74519f8ac2f85b80d4002f9166"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-installed-ota-service.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "676edd3fb1c2e9c7ef20a0b89e2d97d1a0969c31",
+      "target_blob": null,
+      "origin_commit": "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+      "origin_subject": "PUSH 38I: add isolated installed OTA agent and crash-loop rollback foundation",
+      "latest_commit": "069c91593f8b1f74519f8ac2f85b80d4002f9166",
+      "commits": [
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "e7747be1860501fea1db7aef0404b3e98194691e",
+        "118ce632be464332aa0df2b5dde37bd6bd716677",
+        "069c91593f8b1f74519f8ac2f85b80d4002f9166"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-macos-installed-adapter.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9dc97840e87c3ce2dcf62b97c7b0766b23044a32",
+      "target_blob": null,
+      "origin_commit": "936378a361b6eef764d35d7bd4ed451bca3baee3",
+      "origin_subject": "PUSH 38H: qualify installed-slot bootstrap and full supervisors",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "936378a361b6eef764d35d7bd4ed451bca3baee3",
+        "269b00e589465e93a52670fd94a2ded946ed5959",
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-r2-download.d.mts",
+      "domain": "R2 delivery / HOME_QA authorization",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "dbf0925d9dbe59c3771727f54b5890daec02c6d3",
+      "target_blob": null,
+      "origin_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "origin_subject": "fix(ota): authorize exact-device HOME_QA R2 downloads",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-r2-download.mjs",
+      "domain": "R2 delivery / HOME_QA authorization",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "b23250e21cb18e13afb9864c98bf17035a029653",
+      "target_blob": null,
+      "origin_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "origin_subject": "fix(ota): authorize exact-device HOME_QA R2 downloads",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "services/video-gateway/edge-readiness.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "b94877b647f3ef67d06e8fd3f3d5861493d0cd48",
+      "target_blob": "1064967b06ce90f6c5cb2efb30f20454e4cf7c09",
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-release-object.d.mts",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "340dc02e7296b9526a102be5f39f1dcb88eba573",
+      "target_blob": null,
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-release-object.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "fa3a8f99f2cca387cc1deba48b22026d7fc79351",
+      "target_blob": null,
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-release-trust.mjs",
+      "domain": "release signing / trust",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "87f2837c68600a44f47ac90fc9a5f3d6bf22f90f",
+      "target_blob": null,
+      "origin_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+      "origin_subject": "PUSH 38G: add exact-revision QA release and launchd trust contracts",
+      "latest_commit": "8a857e77a41df483eeac0b267fdc30b3acac125f",
+      "commits": [
+        "06a65267dffa75826c3b89dc71376fc57360a091",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "services/video-gateway/edge-update-agent.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "1e3a9082251ad032ce48aa5c921993685de46ab1",
+      "target_blob": "f765e666c1bf456cc19bd019a75c0539d7969b77",
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f",
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "services/video-gateway/edge-update-contract.d.mts",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9715af8d1800d9c703664a81cd660e8f871d81da",
+      "target_blob": "c7633aaddf6db98abc0d196db657c07cd0f1b024",
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "services/video-gateway/edge-update-contract.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "fbc7bf9963d2e48a6b65c6dc345a64c6ed044f39",
+      "target_blob": "a47098f3496c5a2bff275169f868c469f4cfd6d6",
+      "origin_commit": "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+      "origin_subject": "PUSH 38I: add isolated installed OTA agent and crash-loop rollback foundation",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/edge-update-launchd-adapter.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "31f9c4d166e0d4234949d7bf5f01d8afb12e1927",
+      "target_blob": null,
+      "origin_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+      "origin_subject": "PUSH 38G: add exact-revision QA release and launchd trust contracts",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "06a65267dffa75826c3b89dc71376fc57360a091",
+        "8a857e77a41df483eeac0b267fdc30b3acac125f",
+        "936378a361b6eef764d35d7bd4ed451bca3baee3",
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "services/video-gateway/edge-update-manager.mjs",
+      "domain": "OTA / update lifecycle",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "424eae9faa7fd9a9a54153e50d4586b78484dfd9",
+      "target_blob": "f668cf71ec694947578ef6aa80b365902eb855ba",
+      "origin_commit": "e27ee2d48d1e756a476be3f1c511178309224b55",
+      "origin_subject": "PUSH 38F: verify legacy QA baselines and harden OTA bootstrap trust",
+      "latest_commit": "57027167d1baa0790c4d002cd30c7f9aa2bc666c",
+      "commits": [
+        "e27ee2d48d1e756a476be3f1c511178309224b55",
+        "936378a361b6eef764d35d7bd4ed451bca3baee3",
+        "6c759148ccc3fdb724325b32cbcfcad32669a6e2",
+        "069c91593f8b1f74519f8ac2f85b80d4002f9166",
+        "57027167d1baa0790c4d002cd30c7f9aa2bc666c"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/private-nvr-session-policy.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "62d6530939bd394a6fae019b5b04cd961588d8ab",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/relay-failure-reason.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "c646611ad488101e9d98cd6e5c816999a697ac65",
+      "target_blob": null,
+      "origin_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "origin_subject": "PUSH 38C: instrument relay and health failures, protect shared DVR session",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "services/video-gateway/relay-recovery-policy.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "fe47ed7a97cc65df9b8860b8b212b7f498f19854",
+      "target_blob": null,
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "services/video-gateway/server.mjs",
+      "domain": "health / runtime",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "f8e42d50674349a9995817eca71601cf789293df",
+      "target_blob": "5afd922401dcd56e71b30b031f56bd73b6fe2d4d",
+      "origin_commit": "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+      "origin_subject": "push38b: preserve v7 failure ledger and bound relay recovery",
+      "latest_commit": "604afd48d5ae19f915cf813a534ffb20c7569ba8",
+      "commits": [
+        "a7dabd051bd88bf74b28af8a8af6817a35ed7c86",
+        "604afd48d5ae19f915cf813a534ffb20c7569ba8"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "supabase/migrations/20260913010000_edge_ota_terminal_recovery.sql",
+      "domain": "migrations",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "9f7ee0a22c9cc40ef95edddeaac688b388e927af",
+      "target_blob": null,
+      "origin_commit": "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+      "origin_subject": "PUSH 38I: persist late rollback status and terminal recovery",
+      "latest_commit": "fda573d9470e5bc917b9dbbb244f65f11c81a26d",
+      "commits": [
+        "fda573d9470e5bc917b9dbbb244f65f11c81a26d"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "supabase/migrations/20260913020000_edge_private_release_delivery.sql",
+      "domain": "migrations",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "6dd41b4b624b3149ab8ffa6e6028fba1a806e815",
+      "target_blob": null,
+      "origin_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "origin_subject": "PUSH 38P: record cap-blocked private OTA delivery draft",
+      "latest_commit": "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685",
+      "commits": [
+        "ae0fc7145fcab4e6ffe79aee83afc5a5d5ee8685"
+      ]
+    },
+    {
+      "change": "A",
+      "path": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
+      "domain": "migrations",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "35fba8809f8c1dd17116145f5f074f2ba03cc9b2",
+      "target_blob": null,
+      "origin_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "origin_subject": "fix(ota): authorize exact-device HOME_QA R2 downloads",
+      "latest_commit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+      "commits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001"
+      ]
+    },
+    {
+      "change": "M",
+      "path": "vercel.json",
+      "domain": "documentation / configuration",
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "source_blob": "36a49a59a253c2022db8c8257c3ac005ab0ef1b4",
+      "target_blob": "a78a740cd4bdf6c5c8cf3bb16fccc7e04912d3c5",
+      "origin_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "origin_subject": "fix(release): decode keychain output and preserve R2 round-trip evidence",
+      "latest_commit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+      "commits": [
+        "b5d2bf821933cae923e2cb25066de0c81379db2c"
+      ]
+    }
+  ]
+}

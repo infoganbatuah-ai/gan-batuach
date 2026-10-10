@@ -16,7 +16,7 @@ export default async function AdminUsersPage() {
     const supabase = await createClient();
     const [usersRes, credentialsRes, logsRes] = await Promise.all([
       supabase.from("profiles" as any).select("id, role, garden_id, full_name, phone, active, must_change_password, last_login_at, created_at, created_by, username, email, profile_image_url, gardens:garden_id(id,name,city,inspector_id)").order("created_at", { ascending: false }).limit(500),
-      supabase.from("generated_credentials" as any).select("id,user_id,username,temporary_password,created_at,password_changed_at,reset_sent_at").order("created_at", { ascending: false }).limit(1000),
+      supabase.from("generated_credentials" as any).select("id,user_id,username,created_at,password_changed_at,reset_sent_at").order("created_at", { ascending: false }).limit(1000),
       supabase.from("audit_logs" as any).select("id, actor_id, actor_role, entity_type, entity_id, action, created_at").order("created_at", { ascending: false }).limit(30)
     ]);
     logSupabaseError("ניהול משתמשים", usersRes.error ?? credentialsRes.error ?? logsRes.error);
@@ -33,9 +33,9 @@ export default async function AdminUsersPage() {
   return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/users" title="ניהול משתמשים" subtitle="חשבונות, הרשאות, שיוכים ופעולות זהירות במקום אחד." badge="משתמשים">
     <PremiumCard size="lg" className="admin-section-card">
       <SectionHeader eyebrow="משתמשים" title="ניהול חשבונות והרשאות" subtitle="מנהלות, הורים, צוות, מפקחים ואדמין, עם Audit ושיוך גן ברור." icon={UsersRound} />
-      <StatusChip tone={configured ? "success" : "danger"}>{configured ? "מוכן לפעולות אדמין" : "נדרשת הגדרת Service Role"}</StatusChip>
+      <StatusChip tone={configured ? "success" : "danger"}>{configured ? "מוכן לפעולות אדמין" : "שירות ניהול החשבונות אינו זמין"}</StatusChip>
     </PremiumCard>
-    {!configured ? <div className="error-banner">SUPABASE_SERVICE_ROLE_KEY חסר. יצירת משתמשים ואיפוס סיסמה דורשים להגדיר אותו ב-Vercel Environment Variables.</div> : null}
+    {!configured ? <div className="error-banner">יצירת משתמשים ואיפוס סיסמה אינם זמינים כרגע. יש לפנות לבעל הרשאת תשתית.</div> : null}
     <AdminDataError message={result.error ?? result.data.queryError} />
     <AdminUsersManagement users={result.data.users} auditLogs={result.data.auditLogs} />
   </AdminAppFrame>;

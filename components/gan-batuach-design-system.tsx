@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useId } from "react";
 import type {
   ComponentType,
   CSSProperties,
@@ -8,7 +9,9 @@ import type {
   TextareaHTMLAttributes
 } from "react";
 import type { LucideProps } from "lucide-react";
-import { Check, ChevronLeft, Upload } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, ChevronLeft, Circle, Clock3, Upload } from "lucide-react";
+import { GlobalStatePanel } from "@/components/global-state-system";
+import { canonicalStatusLabel, canonicalStatusTone } from "@/lib/ui/canonical-status";
 
 type IconType = ComponentType<LucideProps>;
 type Tone = "default" | "primary" | "success" | "warning" | "danger" | "info" | "muted";
@@ -258,10 +261,13 @@ export function StatusChip({
   tone?: Tone;
   icon?: IconType;
 }) {
+  const normalizedTone = tone === "default" && typeof children === "string" ? canonicalStatusTone(children) : tone;
+  const visibleLabel = typeof children === "string" ? canonicalStatusLabel(children) : children;
+  const ToneIcon = Icon ?? (normalizedTone === "success" ? CheckCircle2 : normalizedTone === "danger" ? AlertCircle : normalizedTone === "warning" ? Clock3 : Circle);
   return (
-    <span className={cx("gb-status-chip", `gb-tone-${tone}`)}>
-      {Icon ? <Icon size={16} /> : null}
-      {children}
+    <span className={cx("gb-status-chip", `gb-tone-${normalizedTone}`)} role="status">
+      <ToneIcon size={16} aria-hidden="true" />
+      {visibleLabel}
     </span>
   );
 }
@@ -304,22 +310,27 @@ export function FormField({
   as?: "input" | "textarea" | "select";
   className?: string;
 } & (InputHTMLAttributes<HTMLInputElement> | TextareaHTMLAttributes<HTMLTextAreaElement> | SelectHTMLAttributes<HTMLSelectElement>)) {
+  const generatedId = useId();
+  const controlId = String(props.id ?? generatedId);
+  const hintId = hint ? `${controlId}-hint` : undefined;
+  const errorId = error ? `${controlId}-error` : undefined;
+  const describedBy = [props["aria-describedby"], hintId, errorId].filter(Boolean).join(" ") || undefined;
   const controlClass = cx("gb-form-control", Icon && "has-icon");
   return (
-    <label className={cx("gb-form-field", className)}>
+    <label className={cx("gb-form-field", Boolean(error) && "has-error", className)} htmlFor={controlId}>
       <span>{label}</span>
       <div className="gb-form-control-wrap">
         {Icon ? <Icon size={20} /> : null}
         {as === "textarea" ? (
-          <textarea className={controlClass} {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)} />
+          <textarea className={controlClass} {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)} id={controlId} aria-invalid={Boolean(error)} aria-describedby={describedBy} />
         ) : as === "select" ? (
-          <select className={controlClass} {...(props as SelectHTMLAttributes<HTMLSelectElement>)} />
+          <select className={controlClass} {...(props as SelectHTMLAttributes<HTMLSelectElement>)} id={controlId} aria-invalid={Boolean(error)} aria-describedby={describedBy} />
         ) : (
-          <input className={controlClass} {...(props as InputHTMLAttributes<HTMLInputElement>)} />
+          <input className={controlClass} {...(props as InputHTMLAttributes<HTMLInputElement>)} id={controlId} aria-invalid={Boolean(error)} aria-describedby={describedBy} />
         )}
       </div>
-      {hint ? <small>{hint}</small> : null}
-      {error ? <em>{error}</em> : null}
+      {hint ? <small id={hintId}>{hint}</small> : null}
+      {error ? <em id={errorId} role="alert">{error}</em> : null}
     </label>
   );
 }
@@ -565,12 +576,5 @@ export function EmptyState({
   icon?: IconType;
   action?: ReactNode;
 }) {
-  return (
-    <div className="gb-empty-state">
-      {Icon ? <span><Icon size={32} /></span> : null}
-      <b>{title}</b>
-      {text ? <p>{text}</p> : null}
-      {action}
-    </div>
-  );
+  return <GlobalStatePanel kind="empty" title={title} description={text} icon={Icon} action={action} compact className="gb-empty-state" />;
 }

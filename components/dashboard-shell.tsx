@@ -13,9 +13,6 @@ import { NotificationBell } from "@/components/notification-bell";
 import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
 import { FloatingActionCenter } from "@/components/floating-action-center";
 import { FcmPushRegistration } from "@/components/fcm-push-registration";
-import { GardenContextSwitcher } from "@/components/garden-context-switcher";
-import { getSessionProfile } from "@/lib/auth";
-import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 
 const roleLabels: Record<UserRole, string> = {
   admin: "אדמין",
@@ -29,111 +26,18 @@ const roleLabels: Record<UserRole, string> = {
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
-    { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
-    { href: "/dashboard/admin/enterprise", label: "ניהול ארגוני", hint: "רשתות ואזורים" },
-    { href: "/dashboard/admin/analytics-center", label: "מרכז אנליטיקה", hint: "מגמות והשוואות" },
-    { href: "/dashboard/admin/growth", label: "צמיחה", hint: "ביקוש והמרות" },
-    { href: "/dashboard/admin/commercial-launch", label: "השקה מסחרית", hint: "מכירות וחידושים" },
-    { href: "/dashboard/admin/commercial-rollout", label: "רולאאוט מסחרי", hint: "10–25 גנים" },
-    { href: "/dashboard/admin/regional-scale-up", label: "סקייל אזורי", hint: "50–100 גנים" },
-    { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
-    { href: "/dashboard/admin/kindergarten-activation", label: "הפעלת גנים", hint: "אישור, אשף ותשלום" },
-    { href: "/dashboard/admin/service-charter", label: "אמנת שירות", hint: "תוכן רישום" },
-    { href: "/dashboard/admin/articles", label: "כתבות ותוכן", hint: "מגזין ו-SEO" },
-    { href: "/dashboard/admin/users", label: "הוספת משתמשים", hint: "גנים ופקחים" },
-    { href: "/dashboard/admin/requests", label: "בקשות משתמשים", hint: "הרשמה ושיוכים" },
-    { href: "/dashboard/admin/inspector-applications", label: "בקשות מפקחים", hint: "אישור ושיוך" },
-    { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "פרופילים וסטטוס" },
-    { href: "/dashboard/admin/kindergarten-analytics", label: "אנליטיקת גנים", hint: "עיר, מחוז וסטטוס" },
-    { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "ערים ושיוך" },
-    { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
-    { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
-    { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
-    { href: "/dashboard/admin/regulatory", label: "רגולציה", hint: "ישראל ופרטיות" },
-    { href: "/dashboard/admin/legal-review", label: "סקירה משפטית", hint: "חבילת בודקים" },
-    { href: "/dashboard/admin/attendance-compliance", label: "ציות נוכחות", hint: "GPS ואיסוף" },
-    { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "חיבורים והרשאות" },
-    { href: "/dashboard/admin/camera-compliance", label: "ציות מצלמות", hint: "צפייה חוקית" },
-    { href: "/dashboard/admin/camera-deployment", label: "פריסת מצלמות", hint: "חיבור שידור וניסיון ביתי" },
-    { href: "/dashboard/admin/camera-infrastructure", label: "תשתית מצלמות", hint: "בריאות ואחסון" },
-    { href: "/dashboard/admin/camera-gateway", label: "Camera Gateway", hint: "DVR/NVR ופיילוט בית" },
-    { href: "/dashboard/admin/video-gateway", label: "שרת וידאו", hint: "חיבור שידורים" },
-    { href: "/dashboard/admin/camera-audit", label: "בדיקת מצלמות", hint: "מוכנות שידור" },
-    { href: "/dashboard/admin/ai-events", label: "אירועי תצפיתן", hint: "אירועים לבדיקה" },
-    { href: "/dashboard/admin/vision-ai", label: "זיהוי חזותי", hint: "בדיקה וכיול" },
-    { href: "/dashboard/admin/audio-events", label: "אינדיקציות שמע", hint: "שמע לבדיקה" },
-    { href: "/dashboard/admin/correlated-events", label: "צירי זמן", hint: "אירועים מקושרים" },
-    { href: "/dashboard/admin/observer-intelligence", label: "סיכומי תצפיתן", hint: "מה לבדוק" },
-    { href: "/dashboard/admin/observer-test-center", label: "בדיקות תצפיתן", hint: "בדיקה שקטה וכיול" },
-    { href: "/dashboard/admin/observer-calibration", label: "כיול תצפיתן", hint: "דיוק ובשלות" },
-    { href: "/dashboard/admin/observer-pilot", label: "פיילוט תצפיתן", hint: "Shadow וכיול" },
-    { href: "/dashboard/admin/digital-observer-core", label: "Observer Core", hint: "יכולות וורטיקלים" },
-    { href: "/dashboard/admin/capability-legal-review", label: "בדיקת יכולות", hint: "מטריצה משפטית" },
-    { href: "/dashboard/admin/skeleton-analytics", label: "Skeleton Analytics", hint: "שלד ותנועה" },
-    { href: "/dashboard/admin/ai-platform", label: "פלטפורמת AI", hint: "מודלים, כיול ובקרה" },
-    { href: "/dashboard/admin/ai-governance", label: "ממשל AI", hint: "DPIA וביקורת" },
-    { href: "/dashboard/admin/risk-intelligence", label: "מודיעין סיכון", hint: "חיזוי ומניעה" },
-    { href: "/dashboard/admin/predictive-safety", label: "בטיחות חזויה", hint: "מניעה מוקדמת" },
-    { href: "/dashboard/admin/observer-replay", label: "סקירת תצפיתן", hint: "בדיקת אירועים" },
-    { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
-    { href: "/dashboard/admin/observer-learning-advanced", label: "למידה מתקדמת", hint: "שגרה ומוכנות" },
-    { href: "/dashboard/admin/observer-watch", label: "בקשות מעקב", hint: "מה לבדוק" },
-    { href: "/dashboard/admin/observer-platform", label: "פלטפורמת תצפיתן", hint: "מוצר עתידי" },
-    { href: "/dashboard/admin/observer-packages", label: "חבילות תצפיתן", hint: "מוצר עתידי" },
-    { href: "/dashboard/admin/observer-billing", label: "חיוב תצפיתן", hint: "מוצר עתידי" },
-    { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
-    { href: "/dashboard/admin/integrations", label: "אינטגרציות", hint: "הפעלת ייצור" },
-    { href: "/dashboard/admin/communications", label: "ערוצי תקשורת", hint: "הודעות, מייל ונייד" },
-    { href: "/dashboard/admin/communication", label: "לוג תקשורת", hint: "הודעות ותבניות" },
-    { href: "/dashboard/admin/sms", label: "מסרונים", hint: "בדיקות ושליחה" },
-    { href: "/dashboard/admin/whatsapp", label: "WhatsApp", hint: "תבניות ומסירה" },
-    { href: "/dashboard/admin/push", label: "התראות לנייד", hint: "מכשירים ואפליקציה" },
-    { href: "/dashboard/admin/push-production", label: "התראות פעילות", hint: "בדיקות ושליחה" },
-    { href: "/dashboard/admin/email-production", label: "מיילים פעילים", hint: "תבניות ושליחה" },
-    { href: "/dashboard/admin/billing", label: "חיוב והכנסות", hint: "מנויים, תשלומים וחשבוניות" },
-    { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "חיוב ותוכניות" },
-    { href: "/dashboard/admin/workflows", label: "מרכז עבודה", hint: "תהליכים ואוטומציה" },
-    { href: "/dashboard/admin/migrations", label: "מיגרציות", hint: "יבוא, בדיקה ושחזור" },
-    { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות במקום אחד" },
-    { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
-    { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "זמן טיפול ודחיפות" },
-    { href: "/dashboard/admin/incident-center", label: "תיקי אירוע", hint: "חקירה וראיות" },
-    { href: "/dashboard/admin/document-center", label: "מרכז מסמכים", hint: "ראיות ורשומות" },
-    { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
-    { href: "/dashboard/admin/security-center", label: "מרכז אבטחה", hint: "בדיקה חיצונית" },
-    { href: "/dashboard/admin/security-review", label: "בדיקת חדירה", hint: "PT חיצוני" },
-    { href: "/dashboard/admin/external-validation", label: "אימות חיצוני", hint: "משפטי, PT ו-ISO" },
-    { href: "/dashboard/admin/final-production-launch", label: "השקה סופית", hint: "Go/No-Go וחסמים" },
-    { href: "/dashboard/admin/company-operations", label: "תפעול חברה", hint: "ריליסים, תמיכה וצמיחה" },
-    { href: "/dashboard/admin/security", label: "אבטחה", hint: "מוכנות ייצור" },
-    { href: "/dashboard/admin/database-integrity", label: "שלמות DB", hint: "מיגרציות ו-RLS" },
-    { href: "/dashboard/admin/iso-readiness", label: "מוכנות ISO", hint: "27001, 27017, 27701" },
-    { href: "/dashboard/admin/iso-evidence", label: "ראיות ISO", hint: "מדיניות ותיק ביקורת" },
-    { href: "/dashboard/admin/iso-certification-handoff", label: "מסירת ISO", hint: "יועץ ומבקר" },
-    { href: "/dashboard/admin/business-continuity", label: "המשכיות", hint: "גיבוי והתאוששות" },
-    { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
-    { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
-    { href: "/dashboard/admin/mobile-platform", label: "אפליקציות מובייל", hint: "iOS, Android ו-Push" },
-    { href: "/dashboard/admin/mobile-release", label: "הגשה לחנויות", hint: "App Store ו-Google Play" },
-    { href: "/dashboard/admin/mobile-submission", label: "הגשה בפועל", hint: "TestFlight ו-Play Console" },
-    { href: "/dashboard/admin/mobile-audit", label: "בדיקת מובייל", hint: "חוויית טלפון" },
-    { href: "/dashboard/admin/customer-success", label: "הצלחת לקוחות", hint: "אימוץ ותמיכה" },
-    { href: "/dashboard/admin/pilot-center", label: "מרכז פיילוט", hint: "לקוחות ראשונים" },
-    { href: "/dashboard/admin/first-pilot", label: "פיילוט ראשון", hint: "גן אמיתי מבוקר" },
-    { href: "/dashboard/admin/pilot-health", label: "בריאות פיילוט", hint: "גן ראשון" },
-    { href: "/dashboard/admin/launch-readiness", label: "מוכנות השקה", hint: "עלייה לאוויר" },
-    { href: "/dashboard/admin/final-compliance-review", label: "סקירת ציות סופית", hint: "רגולציה והשקה" },
-    { href: "/dashboard/admin/master-qa", label: "Master QA", hint: "בדיקות וחסמים" },
-    { href: "/dashboard/admin/pilot-readiness", label: "מוכנות פיילוט", hint: "משוב וחסמים" },
-    { href: "/dashboard/admin/duplicates", label: "כפילויות", hint: "תעודות זהות" },
-    { href: "/dashboard/admin/user-journey-audit", label: "בדיקת מסעות", hint: "זרימות משתמש" },
-    { href: "/dashboard/admin/smart-engine-audit", label: "בדיקת תובנות", hint: "מנוע המלצות" },
-    { href: "/dashboard/admin/audit-logs", label: "יומן פעולות", hint: "מעקב מערכת" },
-    { href: "/dashboard/admin/demo-control", label: "נתוני ניסיון", hint: "בדיקות בטוחות" },
-    { href: "/dashboard/admin/qa-checklist", label: "רשימת בדיקה", hint: "בדיקות תפעול" },
-    { href: "/dashboard/admin/simplicity-audit", label: "בדיקת פשטות", hint: "פשטות שימוש" },
-    { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
-    { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
+    { href: "/dashboard/admin", label: "ראשי", hint: "תמונת מצב ופעולות" },
+    { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "מחזור חיים ומוכנות" },
+    { href: "/dashboard/admin/users", label: "משתמשים", hint: "חשבונות והרשאות" },
+    { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "אישור, שיוך ופיקוח" },
+    { href: "/dashboard/admin/kindergarten-applications", label: "אישורים", hint: "גנים, מפקחים ומסמכים" },
+    { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "גן אל גן בטוח" },
+    { href: "/dashboard/admin/complaints", label: "תלונות", hint: "SLA והסלמות" },
+    { href: "/dashboard/admin/provider-production", label: "ספקים ותמיכה", hint: "מוכנות ושירות" },
+    { href: "/dashboard/admin/system-health", label: "מצב מערכת", hint: "בריאות ושירותים" },
+    { href: "/dashboard/admin/audit-logs", label: "Audit ואבטחה", hint: "פעולות רגישות" },
+    { href: "/dashboard/admin/reports", label: "דוחות", hint: "אנליטיקה מצרפית" },
+    { href: "/dashboard/admin/settings", label: "הגדרות", hint: "תצורה ומדיניות" }
   ],
   network_manager: [
     { href: "/dashboard/admin/enterprise", label: "מרכז רשת", hint: "גנים, אזורים וביצועים" },
@@ -157,6 +61,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/notifications", label: "התראות", hint: "פיקוח ומשימות" },
     { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
+    { href: "/dashboard/inspector/complaints", label: "תלונות", hint: "בתחום השיוך" },
+    { href: "/dashboard/inspector/corrective-actions", label: "פעולות תיקון", hint: "ראיות ואימות" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" },
     { href: "/dashboard/inspector/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ],
@@ -173,6 +79,9 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "ביקורות ופעולות" },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל הגן" },
     { href: "/dashboard/tasks", label: "משימות", hint: "כל מה שפתוח" },
+    { href: "/dashboard/garden/work-center", label: "מרכז עבודה", hint: "משימות, תלונות ותיקונים" },
+    { href: "/dashboard/garden/complaints", label: "תלונות", hint: "טיפול ויעדים" },
+    { href: "/dashboard/garden/corrective-actions", label: "פעולות תיקון", hint: "ראיות ואימות" },
     { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" },
     { href: "/dashboard/garden/trust-center", label: "אמון הורים", hint: "שקיפות וקהילה" }
   ],
@@ -189,6 +98,9 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "ביקורות ופעולות" },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל הגן" },
     { href: "/dashboard/tasks", label: "משימות", hint: "כל מה שפתוח" },
+    { href: "/dashboard/garden/work-center", label: "מרכז עבודה", hint: "משימות, תלונות ותיקונים" },
+    { href: "/dashboard/garden/complaints", label: "תלונות", hint: "טיפול ויעדים" },
+    { href: "/dashboard/garden/corrective-actions", label: "פעולות תיקון", hint: "ראיות ואימות" },
     { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" },
     { href: "/dashboard/garden/trust-center", label: "אמון הורים", hint: "שקיפות וקהילה" }
   ],
@@ -253,11 +165,11 @@ const profileHrefByRole: Record<UserRole, string> = {
 
 const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
-    { href: "/dashboard/admin", label: "בית", hint: "שליטה" },
+    { href: "/dashboard/admin", label: "ראשי", hint: "שליטה" },
     { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "ניהול" },
-    { href: "/dashboard/admin/users", label: "משתמשים", hint: "ניהול" },
-    { href: "/dashboard/admin/notifications", label: "התראות", hint: "חשוב" },
-    { href: "/dashboard/tasks", label: "משימות", hint: "עבודה" }
+    { href: "/dashboard/admin/users", label: "משתמשים", hint: "הרשאות" },
+    { href: "/dashboard/admin/kindergarten-applications", label: "אישורים", hint: "פעולות" },
+    { href: "/dashboard/admin/settings", label: "עוד", hint: "כל האזורים" }
   ],
   network_manager: [
     { href: "/dashboard/admin/enterprise", label: "בית", hint: "רשת" },
@@ -376,11 +288,6 @@ export async function DashboardShell({
   const mobileNav = mobileNavByRole[role];
   const navGroups = groupedNav(role);
   const isAppHome = appHome || role === "manager" || role === "owner";
-  let gardenContext: Awaited<ReturnType<typeof resolveManagementGardenContext>> | null = null;
-  if (role === "manager" || role === "owner") {
-    const session = await getSessionProfile();
-    if (session.profile) gardenContext = await resolveManagementGardenContext(session.profile);
-  }
   return (
     <>
       <div className={`dashboard-layout responsive-dashboard-shell dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
@@ -433,7 +340,6 @@ export async function DashboardShell({
           )}
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
-          {gardenContext?.available ? <GardenContextSwitcher gardens={gardenContext.gardens} initialActiveId={gardenContext.activeGarden?.id ?? null} /> : null}
           {isAppHome ? null : <OnboardingGuideControls role={role} />}
           {isAppHome ? null : <RoleOnboardingGuide role={role} />}
           {role === "admin" && !isAppHome ? <AdminGlobalSearch /> : null}

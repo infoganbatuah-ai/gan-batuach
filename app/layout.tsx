@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { DevelopmentIdentity } from "@/components/development-identity";
 import { AppMotionShell, MobilePublicTabs } from "@/components/app-motion-shell";
 import { DashboardLiveExperience } from "@/components/dashboard-live-experience";
 import "./globals.css";
@@ -9,6 +10,20 @@ import "./styles/dashboard-runtime.css";
 import "./styles/live-experience.css";
 import "./styles/manager-onboarding-live.css";
 import "./styles/digital-observer-product.css";
+import "./styles/ux-implement-01.css";
+import "./styles/visual-closure-07.css";
+import "./styles/ux-implement-08.css";
+import "./styles/ux-implement-12.css";
+import "./styles/ux-implement-13.css";
+import "./styles/ux-implement-14.css";
+import "./styles/ux-implement-15.css";
+import "./styles/ux-implement-16.css";
+import "./styles/ux-implement-17.css";
+import "./styles/ux-implement-18.css";
+import "./styles/ux-implement-19.css";
+import "./styles/ux-visual-remediation-final.css";
+import "./styles/ux-reference-reconstruction-final.css";
+import "./styles/ux-literal-reference-reconstruction.css";
 
 export const metadata: Metadata = {
   verification: {
@@ -47,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="rtl" data-scroll-behavior="smooth">
       <body>
+        <DevelopmentIdentity />
         <AppMotionShell>{children}</AppMotionShell>
         <DashboardLiveExperience />
         <MobilePublicTabs />

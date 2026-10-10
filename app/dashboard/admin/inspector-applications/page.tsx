@@ -1,5 +1,5 @@
 import { ClipboardCheck, MapPin, ShieldCheck } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { RoleMetricCard } from "@/components/premium-dashboard";
 import { ApplicationDecisionForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
@@ -28,17 +28,17 @@ const actions = [
 ];
 
 export default async function AdminInspectorApplicationsPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const supabase = await createClient();
   const rows = ((await supabase.from("inspector_applications" as any).select("*, profiles(full_name,phone,email,active)").order("created_at", { ascending: false }).limit(150)).data ?? []) as any[];
 
   return (
-    <DashboardShell role="admin" title="בקשות מפקחים">
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/kindergarten-applications" title="אישורי מפקחים" subtitle="אישור מועמדות והמשך לשיוך נפרד ומפורש." badge={`${rows.length} בקשות`}>
       <section className="dashboard-hero-card admin-hero-card">
         <div>
           <p className="eyebrow">בקשות מפקחים</p>
           <h1>אישור מועמדים למערך המפקחים.</h1>
-          <p>מועמד מפקח לא רואה גנים עד אישור אדמין ושיוך מפורש.</p>
+          <p>מועמד מפקח לא רואה גנים עד אישור אדמין ושיוך מפורש. אישור מועמדות אינו שיוך לגן.</p>
         </div>
         <span className={rows.some((row) => row.status !== "approved") ? "pill warn" : "pill good"}>{rows.length} בקשות</span>
       </section>
@@ -67,6 +67,6 @@ export default async function AdminInspectorApplicationsPage() {
         ))}
         {rows.length === 0 ? <div className="empty-state"><ClipboardCheck /><strong>אין בקשות מפקחים</strong><span>כאשר מועמד יגיש בקשה, היא תופיע כאן.</span></div> : null}
       </section>
-    </DashboardShell>
+    </AdminAppFrame>
   );
 }

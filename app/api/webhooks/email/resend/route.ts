@@ -79,6 +79,17 @@ export async function POST(request: Request) {
   if (!messageId) return ok({ accepted: true, ignored: true });
 
   const admin = createAdminClient();
+  const normalizedStatus = event.type === "email.delivered" ? "delivered"
+    : event.type === "email.bounced" ? "bounced"
+    : event.type === "email.failed" || event.type === "email.suppressed" || event.type === "email.complained" ? "failed_permanent"
+    : event.type === "email.sent" ? "accepted_by_provider" : null;
+  if (normalizedStatus) {
+    const receipt = await admin.rpc("apply_management_delivery_receipt" as never, {
+      p_provider: "resend", p_event_id: id, p_provider_message_id: messageId,
+      p_status: normalizedStatus, p_occurred_at: event.created_at
+    } as never);
+    if (receipt.error) return fail("Could not record verified delivery receipt.", 500);
+  }
   const { data, error } = await admin
     .from("email_delivery_logs")
     .update(updateForEvent(event))

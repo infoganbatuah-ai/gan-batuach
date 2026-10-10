@@ -1,0 +1,467 @@
+{
+  "generatedAt": "2026-10-06T02:22:17.695Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3002",
+  "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_GLOBAL_STATES_RTL_ACCESSIBILITY_RESPONSIVE.png",
+  "sourceReferenceSha256": "a03981972447f5b3ae5b6aeffec0ebfc79c280f302fa61ec1c688ba382a29761",
+  "concepts": 18,
+  "roleShells": 6,
+  "captures": 48,
+  "counts": {
+    "OWNER_REVIEW_READY": 48,
+    "NEEDS_POLISH": 0,
+    "VISUAL_DRIFT": 0,
+    "BROKEN": 0
+  },
+  "accessibility": {
+    "visibleFocus": "PASS",
+    "touchTargets": "PASS",
+    "labels": "PASS",
+    "reducedMotion": "PASS"
+  },
+  "responsive": {
+    "desktop": "PASS",
+    "mobile": "PASS",
+    "horizontalOverflow": 0
+  },
+  "productionAccess": false,
+  "digitalObserverCoreDiff": 0,
+  "deviations": [
+    "The visual harness is available only in Development and resolves to not-found in Production.",
+    "Formal WCAG certification is outside this batch; the keyboard, focus, label, status, touch-target, reduced-motion and contrast baseline was verified."
+  ],
+  "items": [
+    {
+      "screen": "loading",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/loading-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=loading",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "loading",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/loading-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=loading",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "empty",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/empty-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=empty",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "empty",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/empty-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=empty",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "error",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/error-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=error",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "error",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/error-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=error",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "permission-denied",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/permission-denied-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=permission-denied",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "permission-denied",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/permission-denied-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=permission-denied",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "unavailable",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/unavailable-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=unavailable",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "unavailable",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/unavailable-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=unavailable",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "offline-degraded",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/offline-degraded-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=offline-degraded",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "offline-degraded",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/offline-degraded-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=offline-degraded",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "success",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/success-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=success",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "success",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/success-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=success",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "destructive-confirmation",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/destructive-confirmation-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=destructive-confirmation",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "destructive-confirmation",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/destructive-confirmation-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=destructive-confirmation",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "validation",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/validation-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=validation",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "validation",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/validation-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=validation",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "status-variants",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/status-variants-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=status-variants",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "status-variants",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/status-variants-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=status-variants",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "calendar-date",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/calendar-date-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=calendar-date",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "calendar-date",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/calendar-date-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=calendar-date",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "select-dropdown",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/select-dropdown-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=select-dropdown",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "select-dropdown",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/select-dropdown-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=select-dropdown",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "toggles",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/toggles-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=toggles",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "toggles",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/toggles-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=toggles",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "search-filter",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/search-filter-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=search-filter",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "search-filter",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/search-filter-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=search-filter",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "settings",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/settings-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=settings",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "settings",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/settings-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=settings",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "modal-drawer",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/modal-drawer-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=modal-drawer",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "modal-drawer",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/modal-drawer-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=modal-drawer",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "mixed-direction",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/mixed-direction-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=mixed-direction",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "mixed-direction",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/mixed-direction-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=mixed-direction",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "accessibility",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/accessibility-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=accessibility",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "accessibility",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/accessibility-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Global state system",
+      "route": "/ux19-system-states?view=accessibility",
+      "role": "Development visual harness"
+    },
+    {
+      "screen": "owner-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/owner-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/garden",
+      "role": "owner-a"
+    },
+    {
+      "screen": "owner-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/owner-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/garden",
+      "role": "owner-a"
+    },
+    {
+      "screen": "parent-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/parent-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/parent",
+      "role": "parent-a"
+    },
+    {
+      "screen": "parent-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/parent-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/parent",
+      "role": "parent-a"
+    },
+    {
+      "screen": "staff-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/staff-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff",
+      "role": "staff-a"
+    },
+    {
+      "screen": "staff-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/staff-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff",
+      "role": "staff-a"
+    },
+    {
+      "screen": "candidate-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/candidate-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff/job-market",
+      "role": "staff-candidate"
+    },
+    {
+      "screen": "candidate-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/candidate-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/staff/job-market",
+      "role": "staff-candidate"
+    },
+    {
+      "screen": "inspector-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/inspector-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/inspector",
+      "role": "inspector-a"
+    },
+    {
+      "screen": "inspector-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/inspector-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/inspector",
+      "role": "inspector-a"
+    },
+    {
+      "screen": "admin-shell",
+      "viewport": "1440×1024",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/admin-shell-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/admin",
+      "role": "admin"
+    },
+    {
+      "screen": "admin-shell",
+      "viewport": "390×844",
+      "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-reference-reconstruction-final/qa-evidence/ux-implement-19/screenshots/admin-shell-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "domain": "Role shell regression",
+      "route": "/dashboard/admin",
+      "role": "admin"
+    }
+  ]
+}

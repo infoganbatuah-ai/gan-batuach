@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { AlertTriangle, HeartPulse, Pill } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
-import { uploadFiles } from "@/lib/client-upload";
+import { uploadManagementDocument } from "@/lib/client-upload";
 
 export function HealthMedicineManager({ gardenId, children, records }: { gardenId: string; children: any[]; records: any[] }) {
   const [selectedChildId, setSelectedChildId] = useState(children[0]?.id ?? "");
@@ -15,9 +15,19 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
 
   async function save(formData: FormData) {
     setMessage("");
-    let approvals: string[] = [];
+    let approvalUrl = "";
     try {
-      approvals = await uploadFiles(formData.getAll("medication_approval_file").filter((item): item is File => item instanceof File && item.size > 0), "documents", "medical-approvals");
+      const approval = formData.get("medication_approval_file");
+      if (approval instanceof File && approval.size > 0) {
+        const created = await uploadManagementDocument(approval, {
+          garden_id: gardenId,
+          owner_id: String(formData.get("child_id") || ""),
+          document_type: "medical_approval",
+          name: "אישור תרופה",
+          expires_at: String(formData.get("medication_approval_expires_at") || "")
+        });
+        approvalUrl = created.file_url;
+      }
     } catch (error) {
       console.error("Medical approval upload failed", error);
       setMessage("לא ניתן להעלות אישור תרופה כרגע. כרטיס הבריאות לא נשמר כדי למנוע מידע חלקי.");
@@ -35,7 +45,7 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
       sensitivities: String(formData.get("sensitivities") ?? ""),
       medications: String(formData.get("medications") ?? ""),
       emergency_contacts,
-      medication_approval_url: approvals[0] ?? String(formData.get("medication_approval_url") ?? ""),
+      medication_approval_url: approvalUrl || String(formData.get("medication_approval_url") ?? ""),
       medication_approval_expires_at: String(formData.get("medication_approval_expires_at") ?? ""),
       medical_notes: String(formData.get("medical_notes") ?? ""),
       medication_due_at: String(formData.get("medication_due_at") ?? "") || undefined

@@ -29,7 +29,7 @@ function releaseFiles(directory = ".", prefix = "") {
 }
 
 const files = existsSync(".git")
-  ? execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split("\n").filter(Boolean)
+  ? execFileSync("git", ["ls-files"], { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }).trim().split("\n").filter(Boolean)
   : releaseFiles();
 for (const required of ["package-lock.json", "Dockerfile", ".env.example", "supabase/migrations/20260910040000_digital_observer_storage_portability.sql", "services/video-gateway/portable-inference-worker.mjs"]) assert(files.includes(required), `${required} must be tracked`);
 const runtimeFiles = files.filter((file) => /^(app|components|lib|services)\//.test(file) || /^scripts\/(?!qa\/|visual-match|local-dvr-onboarding-session|prepare-|stage-)/.test(file));

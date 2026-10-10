@@ -95,7 +95,7 @@ test("tasks, messages, children and cameras use only verified selected Garden", 
   for (const name of ["tasks", "messages", "child-journal", "cameras"]) {
     const content = source(`app/dashboard/staff/${name}/page.tsx`);
     assert.match(content, /requireOperationalRole\(\["staff"\]\)/);
-    assert.match(content, /profile\.garden_id/);
+    assert.match(content, /profile\.garden_id|employment\?\.garden_id/);
   }
   assert.match(source("lib/management/operational-role.ts"), /session\.profile\.garden_id = employment\.garden_id/);
 });

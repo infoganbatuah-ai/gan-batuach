@@ -59,7 +59,7 @@ export function ContactVerificationForm({ initialStatus, nextPath = "/dashboard"
         method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ phone })
       });
       setCodeSent(true);
-      setMessage("קוד חד־פעמי נשלח למספר הטלפון.");
+      setMessage("בקשת קוד האימות התקבלה. המסירה תלויה בזמינות ספק הטלפון.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "לא ניתן לשלוח קוד.");
     } finally { setBusy(false); }
@@ -83,7 +83,7 @@ export function ContactVerificationForm({ initialStatus, nextPath = "/dashboard"
 
   if (status?.complete) return (
     <div className="do-page-stack">
-      <div className="do-notice good"><CheckCircle2 /><span>הדוא״ל והטלפון מאומתים. אפשר להמשיך למערכת.</span></div>
+      <div className="do-notice good"><CheckCircle2 /><span>הדוא״ל מאומת. אפשר להמשיך למערכת.</span></div>
       <Link className="do-button primary full" href={nextPath}>המשך</Link>
     </div>
   );

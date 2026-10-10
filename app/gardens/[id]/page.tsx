@@ -22,6 +22,7 @@ import {
 } from "@/components/gan-batuach-design-system";
 import { ParentRegistrationJourney } from "@/components/parent-registration-journey";
 import { parentTrustTone, trustBadgeLabel } from "@/lib/domain/parent-trust";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -78,6 +79,9 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
   const trust = trustRes.data as any;
   const badge = badgeRes.data as any;
   const trustTone = parentTrustTone(Number(trust?.trust_score ?? 0));
+  const gardenName = cleanSyntheticLabel(garden.name, "גן ילדים");
+  const gardenCity = cleanSyntheticLabel(garden.city, "");
+  const managerName = cleanSyntheticLabel(garden.manager?.full_name ?? garden.owner_name, "מנהלת הגן");
 
   return (
     <>
@@ -86,8 +90,8 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
         <section className="gb-garden-profile-hero">
           <div>
             <StatusChip tone="primary" icon={ShieldCheck}>פרופיל גן ציבורי</StatusChip>
-            <h1>{garden.name}</h1>
-            <p><MapPin size={18} /> {garden.city} · {garden.address ?? "כתובת כללית לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p>
+            <h1>{gardenName}</h1>
+            <p><MapPin size={18} /> {gardenCity} · {garden.address ?? "כתובת כללית לפי הרשאת הגן"} · מנהלת: {managerName}</p>
             <div className="gb-public-hero-actions">
               <Link className="gb-public-button primary large" href="#registration">בקשת הצטרפות</Link>
               <Link className="gb-public-button soft large" href={`/app/login?gardenId=${garden.id}&audience=parent`}>התחברות הורה</Link>
@@ -95,7 +99,7 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
             </div>
           </div>
           <div className="gb-garden-profile-art">
-            {garden.image_url ? <img src={garden.image_url} alt={garden.name} /> : <Building2 size={64} />}
+            {garden.image_url ? <img src={garden.image_url} alt={gardenName} /> : <Building2 size={64} />}
           </div>
         </section>
 

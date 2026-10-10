@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "expected": 228,
+  "baselineIncluded": 227,
+  "postBaselineApplied": 1,
+  "missing": [],
+  "errors": [],
+  "historicalReplayClaim": false,
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "observedAt": "2026-09-19T16:57:36.782Z",
+  "integrationCommit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
+  "productionAccess": false
+}

@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - master
+      - integration/development
   workflow_dispatch:
 
 permissions:
@@ -38,6 +39,12 @@ jobs:
         run: npm run typecheck
       - name: Full lint baseline and canonical zero-error scope
         run: npm run lint:ci
+      - name: Development workflow and ledger guards
+        run: |
+          npm run qa:integration-workflow
+          npm run qa:integration-ledger
+          npm run qa:development-drift-contract
+          npm run qa:development-baseline
 
   build:
     name: Gate 2 — Production build

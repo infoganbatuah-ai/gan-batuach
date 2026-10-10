@@ -1,18 +1,24 @@
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
+import { handleSafeRouteError } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getPasskeyContext, toAuthenticatorTransports } from "@/lib/passkeys";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  try {
+  assertTrustedMutationOrigin(request);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user?.email) {
     return NextResponse.json({ error: "יש להתחבר עם סיסמה לפני הפעלת Passkey." }, { status: 401 });
   }
+  await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers, userId: user.id }), "management:passkey-register-options", 10, 10 * 60);
 
   const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).single();
   const admin = createAdminClient();
@@ -49,4 +55,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ options });
+  } catch (error) {
+    return handleSafeRouteError(error);
+  }
 }

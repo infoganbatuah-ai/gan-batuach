@@ -3,12 +3,16 @@ import { z } from "zod";
 import { handleRouteError, ok } from "@/lib/api";
 import { authCallbackUrl } from "@/lib/domain/auth-flow";
 import { createClient } from "@/lib/supabase/server";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({ email: z.string().trim().toLowerCase().email() });
 
 export async function POST(request: Request) {
   try {
-    const { email } = schema.parse(await request.json());
+    assertTrustedMutationOrigin(request);
+    await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:email-verification-resend", 10, 10 * 60);
+    const { email } = schema.parse(await parseBoundedJson(request, 4 * 1024));
     const cookieStore = await cookies();
     cookieStore.set("auth_callback_product", "gan_batuach", {
       httpOnly: false,

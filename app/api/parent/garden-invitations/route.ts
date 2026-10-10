@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       ]);
       return ok({ status: "rejected" });
     }
-    if (canonicalInvitation && !managementContactVerification(user, profile).complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני אישור ההזמנה.", 403);
+    if (canonicalInvitation && !managementContactVerification(user, profile).complete) return fail("יש להשלים אימות דוא״ל לפני אישור ההזמנה.", 403);
     if (!payload.child_profile_id) return fail("יש לבחור ילד לפני אישור ההצטרפות.", 422);
     if (!await guardianCanAccessChild(admin, profile.id, payload.child_profile_id)) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
     const child = await admin.from("permanent_child_files" as any).select("id,full_name,duplicate_flags").eq("id", payload.child_profile_id).maybeSingle();

@@ -1,0 +1,57 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "appliedAt": "2026-09-19T16:44:31.415Z",
+  "contracts": [
+    {
+      "file": "supabase/migrations/20260523001000_production_engines.sql",
+      "table": "storage.buckets",
+      "ordinal": 52,
+      "sha256": "321da8cd4fd71ded68e1258a850a003ecd4c6ab60c3c8c116adbf39e24880aaa",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    },
+    {
+      "file": "supabase/migrations/20260602002000_security_hardening_rls_storage.sql",
+      "table": "storage.buckets",
+      "ordinal": 3,
+      "sha256": "1bcde8e196055735ccafbe0ece7a04521ac424f816b0567e8d8d24135b906032",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    },
+    {
+      "file": "supabase/migrations/20260827000100_digital_observer_event_media_evidence.sql",
+      "table": "storage.buckets",
+      "ordinal": 2,
+      "sha256": "b3a79804274ca687692ad59537d83027c99a9e22a93308cf0a5635cd68487cb5",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    },
+    {
+      "file": "supabase/migrations/20260913150000_editorial_articles.sql",
+      "table": "storage.buckets",
+      "ordinal": 6,
+      "sha256": "9c0945fcff6f7bb9a298398945f71855d588854faf9aac6884ca5aafc6785c9f",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    },
+    {
+      "file": "supabase/migrations/20260820010000_digital_observer_product_runtime.sql",
+      "table": "public.observer_monitoring_packages",
+      "ordinal": 5,
+      "sha256": "449fda0e1511abf442ac97db53d02a44c3fbebb7ad20e663f2c282d42bfba1ef",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    },
+    {
+      "file": "supabase/migrations/20260913040000_management_monthly_inspection_workflow.sql",
+      "table": "public.inspection_product_settings",
+      "ordinal": 2,
+      "sha256": "c51d05418826afe8494cdabe5563e96de18aff1a1c3415d6ddf9d1f1219b25ef",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    },
+    {
+      "file": "supabase/migrations/20260913190000_management_platform_subscription_lifecycle.sql",
+      "table": "public.subscription_plans",
+      "ordinal": 17,
+      "sha256": "47fcc06eb6968fe48af193d502a5acc74a74cc3acce1b212a65bead15774ee25",
+      "sourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+    }
+  ],
+  "productionAccess": false,
+  "externalBillingOrDeliveryActivated": false
+}

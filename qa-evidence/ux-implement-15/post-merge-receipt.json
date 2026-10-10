@@ -1,0 +1,61 @@
+{
+  "observedAt": "2026-10-04T02:40:56Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "productionAccess": false,
+  "sourceIntegrationHead": "644f57a0e65f2c3b0e0095bb496a73672525c190",
+  "productCommit": "c2397724e850ffa16a5dd9066147409f95f60525",
+  "qualificationCommit": "611ea52e17cceeae38a9ad81d13200deae2fdcc3",
+  "productPullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/164",
+  "mergedProductHead": "4a1cbacbfb239cb6e918a611e7f0cfea257f12ae",
+  "server": {
+    "url": "http://127.0.0.1:3000",
+    "environment": "Development/Integration",
+    "commit": "4a1cbacbfb239cb6e918a611e7f0cfea257f12ae",
+    "backend": "LOCAL_SUPABASE",
+    "production": false,
+    "health": {
+      "app": "ok",
+      "supabase": "ok"
+    }
+  },
+  "requiredChecks": {
+    "head": "611ea52e17cceeae38a9ad81d13200deae2fdcc3",
+    "status": "PASS",
+    "count": 9,
+    "checks": [
+      "Gate 1 — Static Quality",
+      "Gate 2 — Production Build",
+      "Gate 3 — Domain Regression",
+      "Gate 4 — Security / Isolation",
+      "Gate 5 — Migration Health",
+      "Gate 6 — Release Contract Preflight",
+      "Canonical Quality Gate",
+      "management-context",
+      "Snyk"
+    ]
+  },
+  "postMergeValidation": {
+    "ux15Focused": "PASS (9/9)",
+    "gbM36Regression": "PASS (7/7)",
+    "parentManagerContract": "PASS (23/23)",
+    "roleIsolation": "PASS (27/27)",
+    "typecheck": "PASS",
+    "integrationLedger": "PASS (151 units)",
+    "migrationAudit": "PASS (244/244)",
+    "developmentMigrations": "none",
+    "mainModified": false,
+    "productionModified": false
+  },
+  "visual": {
+    "referenceSha256": "479de16dc2684ea4e3c44ab827fd9ef45051ebdfd840f63362c962acdb03e14a",
+    "concepts": 20,
+    "captures": 40,
+    "ownerReviewReady": 40,
+    "needsPolish": 0,
+    "visualDrift": 0,
+    "broken": 0,
+    "generatedAt": "2026-10-04T02:38:28.502Z"
+  },
+  "digitalObserverCoreDiff": 0,
+  "monthlyFixedCostDeltaIls": 0
+}
