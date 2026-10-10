@@ -3,8 +3,16 @@ import { readFileSync } from "node:fs";
 import ts from "typescript";
 
 const helper = readFileSync(new URL("../../lib/security/field-encryption.ts", import.meta.url), "utf8");
+const observerAccessRoute = readFileSync(new URL("../../app/api/digital-observer/access-settings/route.ts", import.meta.url), "utf8");
 if (helper.includes("SUPABASE_SERVICE_ROLE_KEY")) {
   throw new Error("Management field protection must not use the Supabase service-role key");
+}
+if (
+  !observerAccessRoute.includes("hashForLegacyLookup")
+  || !observerAccessRoute.includes('.in("device_reference_hash", candidateHashes)')
+  || observerAccessRoute.includes("process.env.FIELD_HASH_PEPPER || process.env.FIELD_ENCRYPTION_KEY_CURRENT")
+) {
+  throw new Error("Digital Observer device registration must lazily migrate legacy hashes without writing with the encryption key");
 }
 
 const cleanEnv = { ...process.env };
@@ -48,6 +56,22 @@ const second = runModule(
 );
 if (second.status !== 0 || first.stdout === second.stdout) {
   throw new Error(`Changing the dedicated pepper did not change the lookup hash: ${second.stderr}`);
+}
+
+const legacy = runModule(
+  'const { hashForLegacyLookup, hashForLookup } = await import(__MODULE_URL__); const current = hashForLookup("device-reference"); const previous = hashForLegacyLookup("device-reference"); if (!previous || previous === current) process.exit(1); process.stdout.write(previous);',
+  { APP_ENV: "production", FIELD_ENCRYPTION_KEY_CURRENT: "legacy-encryption-key", FIELD_HASH_PEPPER: "dedicated-pepper" }
+);
+if (legacy.status !== 0 || legacy.stdout.length !== 64) {
+  throw new Error(`Legacy lookup compatibility hash failed: ${legacy.stderr}`);
+}
+
+const noLegacyReuse = runModule(
+  'const { hashForLegacyLookup } = await import(__MODULE_URL__); if (hashForLegacyLookup("device-reference") !== null) process.exit(1);',
+  { APP_ENV: "production", FIELD_ENCRYPTION_KEY_CURRENT: "same-secret", FIELD_HASH_PEPPER: "same-secret" }
+);
+if (noLegacyReuse.status !== 0) {
+  throw new Error(`Legacy lookup compatibility must not duplicate the current hash: ${noLegacyReuse.stderr}`);
 }
 
 const validation = spawnSync(process.execPath, ["scripts/validate-environment-safety.mjs"], {
