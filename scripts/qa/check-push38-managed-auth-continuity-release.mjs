@@ -43,15 +43,15 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLE
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
   current_unchanged: true }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.95-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.96-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.buildSha,
-  "5907b6ff0708b3c1084ad91b20f8feac8d253ae7");
+  "c6652a22521d9168756bf93ce9f40fbd17ba486f");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.digest,
-  "64728222dd50fd3d2fe80169e8e794aed8c128100b0bf92b448892f24f42a0f7");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135900344);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.94-p38-health");
+  "23a169d65624ca7524c45802a0827d921e11b061d5d6afad54650362c2cb2c1f");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135901729);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.95-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_PRE_RELEASE_PROBE_SETTLEMENT_CONTINUITY");
+  "GATEWAY_CORRELATED_HARDWARE_STALL_RECOVERY");
 const gateway = PUSH38_MANAGED_AUTH_CONTINUITY.gateway;
 const gatewayManifest = buildPush38ManagedAuthContinuityManifest({ component: "gateway",
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
@@ -81,7 +81,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-startup-recovery-upgrade", "--gateway-pre-release-probe-settlement-upgrade",
+    "--connector-startup-recovery-upgrade", "--gateway-correlated-hardware-stall-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "qa-p38-health-gateway-session-age-stability-26644a5e5900",
