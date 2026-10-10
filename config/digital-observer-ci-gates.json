@@ -22,6 +22,7 @@
     "services/video-gateway/postgres-ai-queue-contract.mjs",
     "services/control-plane/ha-coordination-store.mjs",
     "lib/domain/digital-observer/high-availability.mjs",
+    "lib/domain/digital-observer/reliability-qualification.mjs",
     "services/video-gateway/portable-inference-worker.mjs",
     "services/video-gateway/ai-routing-policy.mjs",
     "services/video-gateway/cost-intelligence.mjs",
@@ -79,6 +80,7 @@
     { "name": "portable-deployment", "args": ["scripts/qa/check-digital-observer-portable-deployment.mjs"] },
     { "name": "horizontal-ai-scale", "args": ["scripts/qa/check-digital-observer-horizontal-scale.mjs"] },
     { "name": "high-availability", "args": ["scripts/qa/check-digital-observer-high-availability.mjs"] },
+    { "name": "reliability-qualification", "args": ["scripts/qa/check-digital-observer-reliability-qualification.mjs"] },
     { "name": "north-star-ledger", "args": ["scripts/qa/check-north-star-completion-ledger.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }

@@ -1,0 +1,68 @@
+{
+  "protocol": "observer-push38g-qa-evidence-v1",
+  "classification": "ISOLATED_LOCAL_MACOS_LAUNCHD_QA",
+  "result": "NOT_READY_FOR_LIVE_BOOTSTRAP",
+  "live_home_touched": false,
+  "pr_28_must_remain_draft_unmerged": true,
+  "pre_soak_started": false,
+  "v8_started": false,
+  "signer_key_id": "qa-p38f-ed25519-20260913",
+  "source_commit": "06a65267dffa75826c3b89dc71376fc57360a091",
+  "profiles": [
+    {
+      "profile": "PHYSICAL_GATEWAY",
+      "baseline_release": "qa-legacy-gateway-aa57572e8736",
+      "baseline_sha256": "aa57572e873662d65faf241fb503eaec070c444bdcbff751dafe0fa4be89d2ae",
+      "remediation_release": "qa-p38g-gateway-06a65267dffa",
+      "remediation_version": "0.2.0-p38g",
+      "remediation_sha256": "ee2e1c803a925f394e55eddc93060a83d29926dbfc2a38529b9172c941e08c14",
+      "launchd_qa_service_start": "PASS",
+      "signed_bad_update_health_gate": "FAILED_AS_EXPECTED",
+      "managed_rollback_restart": "PASS",
+      "known_good_artifact_integrity": "PASS",
+      "remediation_upgrade": "PASS",
+      "health_contract": "observer-edge-health-v1",
+      "persistent_fixture_identity_config_queue_source_map": "UNCHANGED"
+    },
+    {
+      "profile": "SOFTWARE_CONNECTOR",
+      "baseline_release": "qa-legacy-connector-resigned-6e7988808b05",
+      "baseline_sha256": "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
+      "remediation_release": "qa-p38g-connector-06a65267dffa",
+      "remediation_version": "0.2.0-p38g",
+      "remediation_sha256": "e020613085d001af92d7ebda3f02049a0ab017b1e1e10889c4998b71b5b96db2",
+      "connector_strict_signature_after_packaging": "PASS",
+      "connector_post_sign_mutation_rejected": "PASS",
+      "launchd_qa_service_start": "PASS",
+      "signed_bad_update_health_gate": "FAILED_AS_EXPECTED",
+      "managed_rollback_restart": "PASS",
+      "known_good_artifact_integrity": "PASS",
+      "remediation_upgrade": "PASS",
+      "health_contract": "observer-edge-health-v1",
+      "persistent_fixture_identity_config_queue_source_map": "UNCHANGED"
+    }
+  ],
+  "trust_qa": {
+    "registry_protocol": "observer-edge-trust-registry-v1",
+    "root_pinned": "QA_ONLY",
+    "rotation_epochs": [1, 2, 3],
+    "revoked_old_release_rejected": true,
+    "forged_root_or_registry_rejected": true,
+    "epoch_replay_rejected": true,
+    "update_agent_unpinned_key_injection_rejected": true
+  },
+  "negative_release_qa_both_profiles": [
+    "UNSIGNED_REJECTED", "UNTRUSTED_OR_REVOKED_KEY_REJECTED",
+    "TAMPERED_MANIFEST_REJECTED", "TAMPERED_ARTIFACT_REJECTED",
+    "WRONG_PROFILE_REJECTED", "WRONG_ARCHITECTURE_REJECTED",
+    "UNAUTHORIZED_DOWNGRADE_REJECTED"
+  ],
+  "evidence_limitations": [
+    "QA launchd starts server.mjs, not the complete installed profile supervisor chain",
+    "signed remediation archives predate the latest trust-agent hardening and require rebuild/re-sign/retest before live use",
+    "QA archives have non-deployable qa.invalid URLs and QA-only signer",
+    "no production release custody or Apple distribution signing/notarization",
+    "no live-safe installed-slot adapter or real Home trust bootstrap executed",
+    "no real camera, identity or Keychain data used in QA"
+  ]
+}

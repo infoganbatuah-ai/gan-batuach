@@ -1,0 +1,89 @@
+name: PUSH 38 Home QA public trust issuance
+
+on:
+  push:
+    branches: [codex/push-38-aws-signing]
+    paths:
+      - .github/workflows/push38-home-qa-public-trust.yml
+      - scripts/release/issue-home-qa-trust-registry.mjs
+
+permissions: {}
+concurrency:
+  group: push38-home-qa-public-trust
+  cancel-in-progress: false
+
+jobs:
+  release-public-key:
+    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38-aws-signing'
+    environment: HOME_QA_SIGNING
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      public_key_spki: ${{ steps.public.outputs.public_key_spki }}
+      public_key_sha256: ${{ steps.public.outputs.public_key_sha256 }}
+      key_id: ${{ steps.public.outputs.key_id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Assume exact release-verification key role
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+          role-duration-seconds: 900
+          role-session-name: homeqa-public-${{ github.run_id }}
+          mask-aws-account-id: true
+          retry-max-attempts: 2
+          unset-current-credentials: true
+      - id: public
+        name: Verify and emit PUBLIC release verification key
+        env:
+          SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
+          SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
+          SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
+        run: node scripts/release/issue-home-qa-trust-registry.mjs emit-release-public
+
+  root-authorized-registry:
+    needs: release-public-key
+    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38-aws-signing'
+    environment: ROOT_TRUST_SIGNING
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Assume exact root-registry signing role
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+          role-duration-seconds: 900
+          role-session-name: homeqa-root-${{ github.run_id }}
+          mask-aws-account-id: true
+          retry-max-attempts: 2
+          unset-current-credentials: true
+      - name: Issue and verify fixed-scope PUBLIC trust registry
+        env:
+          SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
+          SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
+          SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
+          RELEASE_KEY_ID: ${{ needs.release-public-key.outputs.key_id }}
+          RELEASE_PUBLIC_KEY_SPKI: ${{ needs.release-public-key.outputs.public_key_spki }}
+          RELEASE_PUBLIC_KEY_SHA256: ${{ needs.release-public-key.outputs.public_key_sha256 }}
+          TRUST_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-trust
+        run: node scripts/release/issue-home-qa-trust-registry.mjs issue-root-registry
+      - name: Preserve public-only issuance bundle for owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: push38-homeqa-public-trust-${{ github.sha }}
+          path: ${{ runner.temp }}/push38-homeqa-trust/
+          if-no-files-found: error
+          retention-days: 7

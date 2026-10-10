@@ -1,0 +1,40 @@
+{
+  "contract": "observer-legacy-baseline-candidate-v1",
+  "captured_at": "2026-09-12T22:36:55Z",
+  "status": "UNSIGNED_UNTRUSTED_NOT_REGISTERED",
+  "source_revision": null,
+  "platform": "darwin",
+  "architecture": "arm64",
+  "artifacts": [
+    {
+      "baseline_id": "legacy-gateway-aa57572e8736",
+      "profile": "PHYSICAL_GATEWAY",
+      "artifact_name": "gateway-runtime.tar.gz",
+      "artifact_sha256": "aa57572e873662d65faf241fb503eaec070c444bdcbff751dafe0fa4be89d2ae",
+      "artifact_size": 135687841,
+      "reported_runtime_version": "development",
+      "reported_build_sha": "unknown",
+      "health_contract_version": null,
+      "runtime_dependencies": ["Node.js 24.16.0", "Undici 8.10.2", "onnxruntime-node 1.29.0", "FFmpeg 9.0.1", "ssd_mobilenet_v1_10.onnx", "vision-edge-worker"],
+      "signature": null,
+      "signing_key_id": null,
+      "known_good_registered": false
+    },
+    {
+      "baseline_id": "legacy-connector-ee82c20a77ac",
+      "profile": "SOFTWARE_CONNECTOR",
+      "artifact_name": "connector-app.tar.gz",
+      "artifact_sha256": "ee82c20a77acb7fd8caf692682569ad53581e9c057b11724845c6d947c5a982a",
+      "artifact_size": 146777857,
+      "reported_runtime_version": "development",
+      "reported_build_sha": "unknown",
+      "package_version": "0.1.0",
+      "package_build": "1",
+      "health_contract_version": null,
+      "runtime_dependencies": ["bundled Node.js 24.16.0", "onnxruntime-node 1.29.0", "bundled FFmpeg 9.0.1", "ssd_mobilenet_v1_10.onnx"],
+      "signature": null,
+      "signing_key_id": null,
+      "known_good_registered": false
+    }
+  ]
+}
