@@ -285,8 +285,12 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
   priorManagement: gatewayBoundedCorrelatedRecoveryUpgrade ? {
-    release_id: "qa-p38-health-gateway-correlated-hardware-stall-23a169d65624",
-    artifact_sha256: "23a169d65624ca7524c45802a0827d921e11b061d5d6afad54650362c2cb2c1f" } :
+    // Runtime 0.2.96 was installed by the independently signed 0.2.94
+    // management agent. Pin the management predecessor that is actually
+    // installed; runtime compatibility and rollback remain bound to 0.2.96
+    // by the signed release manifest above.
+    release_id: "qa-p38-health-gateway-pre-release-probe-settlement-64728222dd50",
+    artifact_sha256: "64728222dd50fd3d2fe80169e8e794aed8c128100b0bf92b448892f24f42a0f7" } :
     gatewayCorrelatedHardwareStallUpgrade ? {
     release_id: "qa-p38-health-gateway-pre-release-probe-settlement-64728222dd50",
     artifact_sha256: "64728222dd50fd3d2fe80169e8e794aed8c128100b0bf92b448892f24f42a0f7" } :
@@ -409,7 +413,10 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
-const bundle = resolve(bundleOverride || (connectorStartupRecoveryUpgrade
+const bundle = resolve(bundleOverride || (connectorRtspRecoveryContinuityUpgrade ||
+  gatewayBoundedCorrelatedRecoveryUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-managed-auth-continuity-38126650393.zip"
+  : connectorStartupRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup-recovery.zip"
   : connectorHealthObservationUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-health-observation.zip"
@@ -504,7 +511,7 @@ function managedRuntimeSeed(store) {
   if (!connectorDeviceSessionUpgrade && !connectorLivenessContinuityUpgrade &&
     !connectorRelayBackoffUpgrade && !connectorRestartGraceUpgrade && !connectorRtspHandoffUpgrade &&
     !connectorDeviceIdentityContinuityUpgrade && !connectorRuntimeLivenessUpgrade &&
-    !connectorStartupRecoveryUpgrade) return null;
+    !connectorStartupRecoveryUpgrade && !connectorRtspRecoveryContinuityUpgrade) return null;
   const sql = `select json_build_object(
     'gateway_id',e.gateway_id,
     'runtime_instance_id',e.active_runtime_instance_id,
@@ -539,7 +546,8 @@ function managedRuntimeSeed(store) {
 const sessionStore = connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
   connectorRtspHandoffUpgrade || connectorDeviceIdentityContinuityUpgrade ||
-  connectorRuntimeLivenessUpgrade || connectorStartupRecoveryUpgrade
+  connectorRuntimeLivenessUpgrade || connectorStartupRecoveryUpgrade ||
+  connectorRtspRecoveryContinuityUpgrade
   ? createEdgeSecretStoreSync({ secretDir: secrets }) : null;
 const sessionSeed = sessionStore ? managedRuntimeSeed(sessionStore) : null;
 if (dryRun) {
