@@ -33,6 +33,8 @@ const connectorManagedAuthContinuity = "qa-p38-health-connector-managed-auth-60c
 const connectorRuntimeLiveness = "qa-p38-health-connector-runtime-liveness-376c06c2434f";
 const connectorStartupDiscoveryRecovery =
   "qa-p38-health-connector-startup-recovery-2537bbb1007f";
+const connectorRtspRecoveryContinuity =
+  "qa-p38-health-connector-rtsp-recovery-continuity-d612f4855281";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
@@ -129,6 +131,8 @@ const gatewayPreReleaseProbeSettlement =
   "qa-p38-health-gateway-pre-release-probe-settlement-64728222dd50";
 const gatewayCorrelatedHardwareStallRecovery =
   "qa-p38-health-gateway-correlated-hardware-stall-23a169d65624";
+const gatewayBoundedCorrelatedRecovery =
+  "qa-p38-health-gateway-bounded-correlated-recovery-b53cb51b8663";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -156,7 +160,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       connectorCodecPreservation, connectorHandoffContinuity,
       connectorDeviceIdentityContinuity, connectorAiModelPath,
       connectorManagedAuthContinuity, connectorRuntimeLiveness,
-      connectorStartupDiscoveryRecovery]
+      connectorStartupDiscoveryRecovery, connectorRtspRecoveryContinuity]
       .includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")
@@ -201,7 +205,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayPreacquireRescue,
       gatewayPostReleaseReacquisition,
       gatewayPreReleaseProbeSettlement,
-      gatewayCorrelatedHardwareStallRecovery].includes(manifest.release_id) &&
+      gatewayCorrelatedHardwareStallRecovery,
+      gatewayBoundedCorrelatedRecovery].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
