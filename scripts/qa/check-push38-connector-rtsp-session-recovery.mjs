@@ -28,6 +28,7 @@ assert.match(source, /active_relay_verified/);
 assert.match(source, /function protectedRtspInput/);
 assert.doesNotMatch(source, /spawn\([^\n]+(?:source\.url|source\.rtspUrl)/);
 const now = Date.now();
+assert.equal(DIRECT_RTSP_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 8_000);
 const eligible = { progressing: true, recoveryStable: true, warming: false,
   startedAt: now - DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS };
 assert.equal(shouldProactivelyHandoffDirectRtspRelay(eligible, now), true);

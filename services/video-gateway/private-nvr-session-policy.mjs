@@ -662,17 +662,18 @@ export function privateNvrHandoffMediaContinuity({ currentProgressing,
 }
 
 // The Home recorder permits only one productive HTTP response per channel.
-// During an exclusive handoff, or after a measured finite response ends, the
-// prior HLS generation remains a valid bounded playback buffer while the one
-// canonical replacement starts. This is not frame-progression evidence and it
-// never extends the normal freshness deadline: once the retained playlist
-// crosses the existing hard-stale boundary, playback and health fail closed.
+// During an exclusive handoff, after a measured finite response ends, or while
+// one direct RTSP owner is being recovered, the prior HLS generation remains a
+// valid bounded playback buffer while the one canonical replacement starts.
+// This is not frame-progression evidence and it never extends the normal
+// freshness deadline: once the retained playlist crosses the existing
+// hard-stale boundary, playback and health fail closed.
 export function privateNvrRetainedHlsContinuity({ handoffInFlight,
   recoveryInFlight = false, handoffMode = null, retainedOutputAt = null, relayStaleMs,
   now = Date.now() }) {
   return Boolean((handoffInFlight || recoveryInFlight)
     && ["SESSION_SWEEP_EXCLUSIVE", "OUTPUT_RESCUE_EXCLUSIVE",
-      "FINITE_RESPONSE_RECOVERY"].includes(handoffMode)
+      "FINITE_RESPONSE_RECOVERY", "DIRECT_RTSP_RECOVERY"].includes(handoffMode)
     && Number.isFinite(retainedOutputAt) && Number.isFinite(relayStaleMs)
     && relayStaleMs > 0 && Number.isFinite(now)
     && now >= retainedOutputAt && now - retainedOutputAt < relayStaleMs);

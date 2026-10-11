@@ -351,20 +351,30 @@ async function maintainPrivateNvrRelayHandoffs() {
         hardwareOutputStalled, correlatedHardwareStallCount,
         heartbeatConsecutiveFailures: heartbeat.consecutive_failures
       })) {
+        const newlyClassified = relay.hardwareOutputStalled !== true;
         relay.hardwareOutputStalled = true;
-        hardwareTranscoder.failed(streamId);
-        relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
-          hardware_output_stalled_at: new Date(observedAt).toISOString(),
-          hardware_output_stalled_input_idle_ms: observedAt - relay.lastInputAt,
-          hardware_output_stalled_output_idle_ms: observedAt - lastOutputAt,
-          correlated_hardware_stall_sources: correlatedHardwareStallCount });
-        retainExclusivePlayback(streamId, relay, "OUTPUT_RESCUE_EXCLUSIVE");
-        armRelayRecovery(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL");
-        relayLifecycle.correlatedHardwareStallRecoveries += 1;
+        if (newlyClassified) {
+          hardwareTranscoder.failed(streamId);
+          relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}),
+            hardware_output_stalled_at: new Date(observedAt).toISOString(),
+            hardware_output_stalled_input_idle_ms: observedAt - relay.lastInputAt,
+            hardware_output_stalled_output_idle_ms: observedAt - lastOutputAt,
+            correlated_hardware_stall_sources: correlatedHardwareStallCount,
+            correlated_hardware_recovery_state: "QUEUED" });
+          relayLifecycle.correlatedHardwareStallRecoveries += 1;
+        }
         relayLifecycle.correlatedHardwareStallMaxSources = Math.max(
           relayLifecycle.correlatedHardwareStallMaxSources,
           correlatedHardwareStallCount);
-        stopRelay(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL");
+        // The 0.2.96 V8 proved that stopping every correlated hardware owner
+        // in this discovery loop creates an eight-channel recovery herd. The
+        // recorder then withheld all replacement media, its heartbeat failed,
+        // and one encoder fault became a recorder-wide outage. Queue every
+        // proven source through the existing bounded OUTPUT_RESCUE scheduler
+        // instead. It admits at most the recorder-qualified probation capacity,
+        // preserves each canonical owner until its exact serialized handoff,
+        // and reuses the same retained-HLS/rollback machinery below.
+        outputRescues.push([streamId, relay, handoffMode, lastOutputAt]);
         continue;
       }
       const correlatedSourceCount = silentResponseCounts.get(source.sessionKey) || 0;
@@ -2039,6 +2049,19 @@ function retainFiniteResponsePlayback(streamId, relay, exitReason) {
   return true;
 }
 
+function retainDirectRtspRecoveryPlayback(streamId, relay, source) {
+  if (gatewayShuttingDown || source?.kind !== "rtsp" ||
+    relay?.stopReason === "WARM_HANDOFF") return false;
+  const outputAt = relayPlaylistMtime(relay);
+  if (!relay || !Number.isFinite(outputAt) ||
+    Date.now() - outputAt >= RELAY_STALE_MS) return false;
+  relayRetainedPlayback.set(streamId, {
+    relay, handoffMode: "DIRECT_RTSP_RECOVERY", retainedAt: Date.now()
+  });
+  relayLifecycle.retainedHlsContinuityWindows += 1;
+  return true;
+}
+
 function beginPrivateNvrFiniteResponseRecovery(streamId, relay, source) {
   if (!shouldBeginPrivateNvrFiniteResponseRecovery({
     sourceKind: source?.kind,
@@ -3109,8 +3132,10 @@ async function startRelay(streamId, { warming = false, previousRelay = null,
     // The next start validates HTTP authentication. A decoder error alone
     // must never rotate the recorder session shared by unrelated cameras.
     const wasCurrent = relays.get(streamId) === relay;
-    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF")
+    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF") {
       retainFiniteResponsePlayback(streamId, relay, exitReason);
+      retainDirectRtspRecoveryPlayback(streamId, relay, source);
+    }
     if (wasCurrent) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.

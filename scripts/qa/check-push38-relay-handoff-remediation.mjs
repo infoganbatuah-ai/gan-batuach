@@ -572,6 +572,34 @@ test("simultaneous finite-response recovery retains every fresh DVR source", () 
   "health must report both retained renewal and explicit stalled source rows");
 });
 
+test("one direct RTSP recovery retains only fresh HLS and stays fail-closed", () => {
+  const now = 100_000;
+  assert.equal(privateNvrRetainedHlsContinuity({
+    recoveryInFlight: true,
+    handoffMode: "DIRECT_RTSP_RECOVERY",
+    retainedOutputAt: now - 7_000,
+    relayStaleMs: 20_000,
+    now
+  }), true, "a fresh Tapo playlist bridges one canonical recovery");
+  assert.equal(privateNvrRetainedHlsContinuity({
+    recoveryInFlight: true,
+    handoffMode: "DIRECT_RTSP_RECOVERY",
+    retainedOutputAt: now - 20_000,
+    relayStaleMs: 20_000,
+    now
+  }), false, "direct RTSP continuity must fail closed at hard stale");
+  assert.equal(privateNvrRetainedHlsContinuity({
+    recoveryInFlight: false,
+    handoffMode: "DIRECT_RTSP_RECOVERY",
+    retainedOutputAt: now - 1_000,
+    relayStaleMs: 20_000,
+    now
+  }), false, "retained Tapo media without canonical recovery is not availability");
+  assert.match(server,
+    /retainDirectRtspRecoveryPlayback\(streamId, relay, source\);[\s\S]*relays\.delete\(streamId\)/,
+  "fresh Tapo HLS must be retained before canonical ownership is removed");
+});
+
 test("fresh recorder input with stalled VideoToolbox output enters one exclusive software rescue", () => {
   const now = 100_000;
   const stalledHardware = {
@@ -698,9 +726,39 @@ test("a proven correlated hardware stall uses retained-HLS canonical recovery", 
     previousRelayExitReason: "CORRELATED_HARDWARE_OUTPUT_STALL" }),
   PRIVATE_NVR_OUTPUT_RESCUE_ACQUISITION_MS,
   "the canonical recovery keeps the qualified private-recorder acquisition bound");
+  const branchStart = server.indexOf(
+    "if (shouldBeginCorrelatedPrivateNvrHardwareRecovery({");
+  const branchEnd = server.indexOf("const correlatedSourceCount", branchStart);
+  assert.ok(branchStart >= 0 && branchEnd > branchStart,
+    "the correlated hardware recovery branch must remain explicit");
+  const correlatedBranch = server.slice(branchStart, branchEnd);
+  assert.match(correlatedBranch,
+    /correlated_hardware_recovery_state: "QUEUED"[\s\S]*outputRescues\.push\(\[streamId, relay, handoffMode, lastOutputAt\]\)/,
+  "proven correlated encoder stalls must enter the bounded canonical rescue scheduler");
+  assert.doesNotMatch(correlatedBranch,
+    /stopRelay\(|armRelayRecovery\(|retainExclusivePlayback\(/,
+  "correlated discovery must not release every recorder owner before capacity admission");
+
+  let activeProbations = 0;
+  let admitted = 0;
+  for (let candidate = 0; candidate < 8; candidate += 1) {
+    const allowed = privateNvrHandoffCapacityAllowed({
+      activeProbations,
+      activeRoutineProbations: 0,
+      activeRescueProbations: activeProbations,
+      handoffMode: "OUTPUT_RESCUE"
+    });
+    if (!allowed) continue;
+    activeProbations += 1;
+    admitted += 1;
+  }
+  assert.equal(admitted, PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
+    "an eight-source correlated stall may admit only the recorder-safe bounded rescue count");
+  assert.equal(activeProbations, 2,
+    "the remaining correlated sources must stay queued with their owners intact");
   assert.match(server,
-    /hardwareOutputStalls[\s\S]*hardwareOutputStallCounts[\s\S]*shouldBeginCorrelatedPrivateNvrHardwareRecovery[\s\S]*retainExclusivePlayback\(streamId, relay, "OUTPUT_RESCUE_EXCLUSIVE"\);[\s\S]*armRelayRecovery\(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL"\);[\s\S]*stopRelay\(streamId, relay, "CORRELATED_HARDWARE_OUTPUT_STALL"\);/,
-  "proven correlated encoder stalls must retain HLS and reuse one canonical recovery lane");
+    /const candidateRows = \[[\s\S]*candidateRows\.find\([\s\S]*privateNvrHandoffCapacityAvailable/,
+  "each scheduler pass must choose one capacity-authorized rescue, not launch the full queue");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {
