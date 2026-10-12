@@ -64,6 +64,8 @@ const gatewayCorrelatedHardwareStallUpgrade =
   process.argv.includes("--gateway-correlated-hardware-stall-upgrade");
 const gatewayBoundedCorrelatedRecoveryUpgrade =
   process.argv.includes("--gateway-bounded-correlated-recovery-upgrade");
+const gatewayExclusiveHandoffRetentionUpgrade =
+  process.argv.includes("--gateway-exclusive-handoff-retention-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
@@ -76,6 +78,7 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
   gatewayPreReleaseProbeSettlementUpgrade,
   gatewayCorrelatedHardwareStallUpgrade,
   gatewayBoundedCorrelatedRecoveryUpgrade,
+  gatewayExclusiveHandoffRetentionUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
@@ -95,6 +98,7 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   gatewayMediaAcquisitionUpgrade || gatewayExclusiveRecoveryUpgrade || gatewayPreacquireRescueUpgrade ||
   gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
   gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade ||
+  gatewayExclusiveHandoffRetentionUpgrade ||
   connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
@@ -112,7 +116,8 @@ if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayRoutineProvisionalUpgrade && !gatewaySessionAgeStabilityUpgrade && !gatewayAiEvidenceUpgrade &&
   !gatewayMediaAcquisitionUpgrade && !gatewayExclusiveRecoveryUpgrade && !gatewayPreacquireRescueUpgrade &&
   !gatewayPostReleaseReacquisitionUpgrade && !gatewayPreReleaseProbeSettlementUpgrade &&
-  !gatewayCorrelatedHardwareStallUpgrade && !gatewayBoundedCorrelatedRecoveryUpgrade)
+  !gatewayCorrelatedHardwareStallUpgrade && !gatewayBoundedCorrelatedRecoveryUpgrade &&
+  !gatewayExclusiveHandoffRetentionUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
   gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade ||
@@ -122,7 +127,8 @@ if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayComm
   gatewaySessionAgeStabilityUpgrade || gatewayAiEvidenceUpgrade || gatewayMediaAcquisitionUpgrade ||
   gatewayExclusiveRecoveryUpgrade || gatewayPreacquireRescueUpgrade ||
   gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
-  gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade) &&
+  gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade ||
+  gatewayExclusiveHandoffRetentionUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -228,7 +234,9 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayBoundedCorrelatedRecoveryUpgrade
+  remediationRelease: gatewayExclusiveHandoffRetentionUpgrade
+    ? "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4" :
+    gatewayBoundedCorrelatedRecoveryUpgrade
     ? "qa-p38-health-gateway-bounded-correlated-recovery-b53cb51b8663" :
     gatewayCorrelatedHardwareStallUpgrade
     ? "qa-p38-health-gateway-correlated-hardware-stall-23a169d65624" :
@@ -260,7 +268,8 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayBoundedCorrelatedRecoveryUpgrade ? "gateway_managed_auth_continuity.json" :
+  bundleName: gatewayExclusiveHandoffRetentionUpgrade ? "gateway_managed_auth_continuity.json" :
+    gatewayBoundedCorrelatedRecoveryUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayCorrelatedHardwareStallUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayPreReleaseProbeSettlementUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayPostReleaseReacquisitionUpgrade ? "gateway_managed_auth_continuity.json" :
@@ -284,7 +293,10 @@ const spec = connector ? {
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayBoundedCorrelatedRecoveryUpgrade ? {
+  priorManagement: gatewayExclusiveHandoffRetentionUpgrade ? {
+    release_id: "qa-p38-health-gateway-bounded-correlated-recovery-b53cb51b8663",
+    artifact_sha256: "b53cb51b8663c8ae983125ec16e202a5c847b3114d5120d3cf8338a01ed8ddda" } :
+    gatewayBoundedCorrelatedRecoveryUpgrade ? {
     // Runtime 0.2.96 was installed by the independently signed 0.2.94
     // management agent. Pin the management predecessor that is actually
     // installed; runtime compatibility and rollback remain bound to 0.2.96
@@ -448,6 +460,8 @@ const bundle = resolve(bundleOverride || (connectorRtspRecoveryContinuityUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewayExclusiveHandoffRetentionUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-exclusive-handoff-retention.zip"
   : gatewayCorrelatedHardwareStallUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-correlated-hardware-stall.zip"
   : gatewayPreReleaseProbeSettlementUpgrade

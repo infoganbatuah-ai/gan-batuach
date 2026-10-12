@@ -133,6 +133,8 @@ const gatewayCorrelatedHardwareStallRecovery =
   "qa-p38-health-gateway-correlated-hardware-stall-23a169d65624";
 const gatewayBoundedCorrelatedRecovery =
   "qa-p38-health-gateway-bounded-correlated-recovery-b53cb51b8663";
+const gatewayExclusiveHandoffRetention =
+  "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -206,7 +208,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayPostReleaseReacquisition,
       gatewayPreReleaseProbeSettlement,
       gatewayCorrelatedHardwareStallRecovery,
-      gatewayBoundedCorrelatedRecovery].includes(manifest.release_id) &&
+      gatewayBoundedCorrelatedRecovery,
+      gatewayExclusiveHandoffRetention].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
