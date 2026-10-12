@@ -2055,7 +2055,7 @@
 .do-site-template-grid button.selected { border-color: var(--do-teal); background: #eefbf9; box-shadow: inset 0 0 0 1px var(--do-teal); }
 
 .do-route-state { min-height: 100dvh; padding: max(32px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); background: #f4f8fb; color: var(--do-ink); display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; }
-.do-route-state h1 { margin: 0; font-size: clamp(24px, 4vw, 38px); }
+.do-route-state h1, .do-route-state-title { margin: 0; font-size: clamp(24px, 4vw, 38px); }
 .do-route-state p { margin: 0; max-width: 560px; color: var(--do-muted); line-height: 1.7; }
 .do-route-state-mark { width: 72px; height: 72px; border-radius: 50%; background: var(--do-navy); color: #fff; display: grid; place-items: center; position: relative; }
 .do-route-state-mark > svg { width: 30px; height: 30px; }

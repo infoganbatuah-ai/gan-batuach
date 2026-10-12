@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Headphones, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
 import { ObserverAuthDevicePreview } from "@/components/digital-observer/observer-auth-device-preview";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { digitalObserverMetadata } from "@/lib/seo/digital-observer-metadata";
+
+export const metadata = digitalObserverMetadata("/digital-observer/start", "בחירת מסלול ביתי או עסקי | תצפיתן דיגיטלי", "בחרו מסלול לתצפיתן דיגיטלי לבית פרטי או לעסק והמשיכו לפתיחת חשבון נפרד ממערכת גן בטוח.");
 
 export default function DigitalObserverStartPage() {
   return <main className="do-auth-page light" dir="rtl">
