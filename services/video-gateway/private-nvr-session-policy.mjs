@@ -679,6 +679,16 @@ export function privateNvrRetainedHlsContinuity({ handoffInFlight,
     && now >= retainedOutputAt && now - retainedOutputAt < relayStaleMs);
 }
 
+// Resource observation runs independently from an exclusive handoff. A
+// released owner can remain inside the ordinary progression window for a few
+// ticks after its HLS generation has been retained. Stable historical progress
+// is not authority to discard that fallback while the replacement is still
+// proving itself.
+export function shouldClearPrivateNvrRetainedPlayback({ relayProgressing,
+  recoveryStable, handoffInFlight }) {
+  return Boolean(relayProgressing && recoveryStable && !handoffInFlight);
+}
+
 // A replacement can publish real current HLS and still miss the stronger
 // four-advance/six-second ownership proof when its finite DVR response ends.
 // It must never become the canonical relay in that state, but discarding its

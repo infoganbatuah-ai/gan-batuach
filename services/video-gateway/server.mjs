@@ -61,6 +61,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   shouldDeferPrivateNvrOutputRescueForSessionRenewal,
   shouldBeginPrivateNvrFiniteResponseRecovery,
   shouldPrimePrivateNvrSessionForResponseRetirement,
+  shouldClearPrivateNvrRetainedPlayback,
   shouldRetainPrivateNvrRejectedCandidateHls,
   shouldRetainPrivateNvrOwnerOnDemand,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -2184,7 +2185,17 @@ function observeLocalResources() {
       frameProgressing: continuity.progressing || continuity.renewing,
       lastFrameAt: continuity.effective?.lastInputAt || continuity.retainedOutputAt,
       dimension: continuity.renewing ? "relay_renewing" : "relay" });
-    if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) {
+    // The exclusive output-rescue path retains the old HLS generation before
+    // releasing its canonical owner. Its playlist can still satisfy the
+    // ordinary progression window for a few monitor ticks even though the
+    // handoff deliberately has no owner yet. Do not let this housekeeping
+    // pass erase the only retained playback reference while the bounded
+    // replacement is still proving itself.
+    if (relay && shouldClearPrivateNvrRetainedPlayback({
+      relayProgressing: relayIsProgressing(relay),
+      recoveryStable: relayRecoveryIsStable(relay),
+      handoffInFlight: relayWarmups.has(streamId)
+    })) {
       relayRecovery.delete(streamId);
       relayRetainedPlayback.delete(streamId);
     } else if (relayRetainedPlayback.has(streamId) && !continuity.renewing &&

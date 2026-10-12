@@ -61,6 +61,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   shouldRefreshPrivateNvrSession,
   shouldBeginPrivateNvrFiniteResponseRecovery,
   shouldBeginCorrelatedPrivateNvrHardwareRecovery,
+  shouldClearPrivateNvrRetainedPlayback,
   shouldDeferCorrelatedPrivateNvrSilentResponseRescue,
   shouldRetainPrivateNvrRejectedCandidateHls } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
@@ -1274,6 +1275,19 @@ test("stale request waits through bounded backoff and handoff media wakes demand
   assert.match(shadow,
     /PRIVATE_NVR_OUTPUT_RESCUE_PROBATION_MS \+ 2_000[\s\S]*consecutiveSettled >= 2/,
   "shadow settlement must remain bounded and require consecutive settled observations");
+});
+
+test("resource observation cannot erase retained HLS during an exclusive handoff", () => {
+  assert.equal(shouldClearPrivateNvrRetainedPlayback({
+    relayProgressing: true, recoveryStable: true, handoffInFlight: true
+  }), false,
+  "a still-fresh released owner must remain the bounded playback fallback until handoff settlement");
+  assert.equal(shouldClearPrivateNvrRetainedPlayback({
+    relayProgressing: true, recoveryStable: true, handoffInFlight: false
+  }), true, "stable progress may clear retained playback only after settlement");
+  assert.match(server,
+    /shouldClearPrivateNvrRetainedPlayback\(\{[\s\S]*handoffInFlight: relayWarmups\.has\(streamId\)/,
+  "resource observation must use the deterministic handoff-aware cleanup policy");
 });
 
 test("brief progress cannot clear recovery history", () => {
