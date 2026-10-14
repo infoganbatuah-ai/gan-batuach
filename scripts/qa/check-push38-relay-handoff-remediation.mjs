@@ -1298,6 +1298,14 @@ test("brief progress cannot clear recovery history", () => {
 
 test("clean native end is distinct from authentication and transport failure", () => {
   assert.equal(classifyRelayExit({ code: 0 }), "SOURCE_STREAM_ENDED");
+  assert.equal(classifyRelayExit({ code: 0, stderr: "HTTP 401 Unauthorized",
+    sustainedMedia: true, responseRetirementEligible: true }),
+  "SOURCE_STREAM_ENDED",
+  "successful sustained media completion must outrank stale stderr authentication text");
+  assert.equal(classifyRelayExit({ code: 0, stderr: "HTTP 401 Unauthorized",
+    sustainedMedia: false, responseRetirementEligible: false }),
+  "SOURCE_AUTH_REJECTED",
+  "an unauthenticated startup with no sustained media must still fail closed");
   assert.equal(classifyRelayExit({ code: 0, inputErrorCode: "UND_ERR_SOCKET" }),
     "SOURCE_STREAM_ENDED",
   "a recorder response-boundary close with a successful decoder exit is a finite stream end");

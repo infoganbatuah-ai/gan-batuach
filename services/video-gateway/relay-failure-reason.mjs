@@ -8,6 +8,11 @@ export function safeInputCode(error) {
 export function classifyRelayExit({ stopReason, inputErrorCode, stderr = "", code,
   sustainedMedia = false, responseRetirementEligible = false } = {}) {
   if (stopReason) return stopReason;
+  // A decoder that exits successfully after sustained media consumed the
+  // recorder's finite response. Historical/non-terminal stderr can still
+  // contain an HTTP status token; it must not override the authoritative
+  // successful response boundary and suppress retained-HLS recovery.
+  if (code === 0 && sustainedMedia) return "SOURCE_STREAM_ENDED";
   if (/network is unreachable/i.test(stderr)) return "HOST_NETWORK_UNREACHABLE";
   if (/connection refused/i.test(stderr)) return "SOURCE_CONNECTION_REFUSED";
   if (/(?:401|403|unauthorized)/i.test(stderr)) return "SOURCE_AUTH_REJECTED";
