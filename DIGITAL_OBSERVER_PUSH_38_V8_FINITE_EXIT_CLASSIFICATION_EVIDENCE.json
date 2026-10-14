@@ -1,0 +1,94 @@
+{
+  "contract": "digital-observer-push38-v8-finite-exit-classification-evidence-v1",
+  "recorded_at": "2026-10-14T18:03:15Z",
+  "push38_status": "NOT_DONE",
+  "qualification": {
+    "run_id": "push38-gateway-0.2.98-exclusive-handoff-retention-v8-durable-20261013T175028Z",
+    "status": "NOT_DONE",
+    "started_at": "2026-10-13T17:51:11.987Z",
+    "ended_at": "2026-10-14T17:51:12.138Z",
+    "elapsed_ms": 86400151,
+    "required_elapsed_complete": true,
+    "checkpoints": 1440,
+    "missing_checkpoints": 0,
+    "delayed_checkpoints": 0,
+    "duplicate_checkpoints": 0,
+    "camera_sample_availability": 0.9999368686868687,
+    "progressing_camera_samples": 15839,
+    "expected_camera_samples": 15840,
+    "gate_failures": [
+      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"
+    ],
+    "result_sha256": "7ae7ae1e66d958bfb9000655d650c6e8a6f64ed815c083521cf26c3532fa6b4c",
+    "checkpoints_sha256": "438aae11137364e50392546fe4fac6b2b94524426c07a0a6d9d154f1bdb87978",
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.98-exclusive-handoff-retention-v8-durable-20261013T175028Z"
+  },
+  "failure": {
+    "checkpoint": 337,
+    "sampled_at": "2026-10-13T23:27:11.966Z",
+    "source": "dvr-8",
+    "available_samples": 1439,
+    "expected_samples": 1440,
+    "host_pressure": "NORMAL",
+    "forbidden_workload_processes": 0,
+    "component_liveness": true,
+    "component_status": "degraded",
+    "observed_owner_state": "NONE",
+    "observed_media_owner_state": "NONE",
+    "observed_playback_continuity": false,
+    "reported_exit_reason": "SOURCE_AUTH_REJECTED",
+    "last_exit_code": 0,
+    "last_runtime_ms": 302023,
+    "prior_checkpoint_input_bytes": 14728783,
+    "prior_checkpoint_input_chunks": 9976,
+    "recorder_heartbeat_authentication_rejected": 0,
+    "recorder_heartbeat_consecutive_failures": 0,
+    "recovered_by_checkpoint": 338,
+    "manual_intervention": false
+  },
+  "causal_finding": {
+    "classification": "AUTHORITATIVE_FINITE_RESPONSE_EXIT_MISCLASSIFIED_BY_HISTORICAL_STDERR",
+    "summary": "The DVR relay consumed sustained media for about 302 seconds and exited successfully, but historical 401 text in its bounded stderr summary was evaluated before exit code 0. The exit was therefore labeled SOURCE_AUTH_REJECTED instead of SOURCE_STREAM_ENDED. Finite-response retained-HLS continuity accepts SOURCE_STREAM_ENDED/SOURCE_RESPONSE_RETIRED, so this false label removed CH8 from the one-minute availability sample while the other nine DVR channels remained available through retained HLS.",
+    "not_attributed_to": [
+      "HOST_SATURATION",
+      "FORBIDDEN_DEVELOPMENT_WORKLOAD",
+      "GATEWAY_PROCESS_RESTART",
+      "CONNECTOR_PROCESS_RESTART",
+      "SHARED_RECORDER_HEARTBEAT_AUTH_REJECTION",
+      "MANUAL_INTERVENTION"
+    ],
+    "duration_reusable": false
+  },
+  "correction": {
+    "commit": "627662852e8ec94e66b2b39aa68db71166b708a3",
+    "branch": "codex/push-38t-qualification",
+    "remote_preserved": true,
+    "behavior": "A successful decoder exit after sustained media is classified as SOURCE_STREAM_ENDED before historical stderr tokens are considered. A 401/403 before sustained media remains SOURCE_AUTH_REJECTED and fails closed.",
+    "security_boundary_weakened": false,
+    "availability_gate_weakened": false
+  },
+  "targeted_validation": {
+    "relay_reason_classification": "PASS",
+    "relay_handoff_remediation": {
+      "status": "PASS",
+      "tests": 51
+    },
+    "finite_response_recovery_release": "PASS",
+    "finite_response_continuity_release": "PASS"
+  },
+  "remaining_gates": [
+    "EXACT_COMMIT_CI",
+    "IMMUTABLE_SIGNED_SUCCESSOR",
+    "EXACT_DEVICE_HOME_QA_ACTIVATION_WITH_ROLLBACK",
+    "FRESH_15_MINUTE_CANARY",
+    "FRESH_60_MINUTE_PRE_SOAK",
+    "FRESH_24_HOUR_V8_FROM_ZERO",
+    "FINAL_FROZEN_MATRIX_RECONCILIATION"
+  ],
+  "prohibited": [
+    "REUSE_FAILED_V8_DURATION",
+    "START_PUSH_39",
+    "MERGE_MAIN",
+    "DEPLOY_PRODUCTION"
+  ]
+}
