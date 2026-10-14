@@ -18,17 +18,17 @@ export const PUSH38_MANAGED_AUTH_CONTINUITY = Object.freeze({
     recoverablePriorFailure: null
   }),
   gateway: Object.freeze({
-    role: "GATEWAY_EXCLUSIVE_HANDOFF_RETENTION",
+    role: "GATEWAY_FINITE_EXIT_CLASSIFICATION",
     deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-    releaseId: "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4",
-    version: "0.2.98-p38-health",
-    buildSha: "e2d51e585b2aab379f294398ecc5f24416aad9c4",
-    digest: "1fb10cf04dd4d4e4273c7fd92d40a1351e22ff59ab40449503f84a40d2d1e3ac",
-    size: 135902554,
+    releaseId: "qa-p38-health-gateway-finite-exit-classification-38529461e719",
+    version: "0.2.99-p38-health",
+    buildSha: "165f730547fbdde12c6fe446159b88028b661782",
+    digest: "38529461e7196515381c0cb16ab7afdfc902c938d7757efc4b3da7a2b2fe8886",
+    size: 135902535,
     profile: "PHYSICAL_GATEWAY",
     configVersion: 1,
-    rollbackReleaseId: "qa-p38-health-gateway-bounded-correlated-recovery-b53cb51b8663",
-    rollbackVersion: "0.2.97-p38-health",
+    rollbackReleaseId: "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4",
+    rollbackVersion: "0.2.98-p38-health",
     recoverablePriorFailure: null
   })
 });

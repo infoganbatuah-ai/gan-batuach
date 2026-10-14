@@ -43,15 +43,15 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLE
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
   current_unchanged: true }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.98-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.99-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.buildSha,
-  "e2d51e585b2aab379f294398ecc5f24416aad9c4");
+  "165f730547fbdde12c6fe446159b88028b661782");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.digest,
-  "1fb10cf04dd4d4e4273c7fd92d40a1351e22ff59ab40449503f84a40d2d1e3ac");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135902554);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.97-p38-health");
+  "38529461e7196515381c0cb16ab7afdfc902c938d7757efc4b3da7a2b2fe8886");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135902535);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.98-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_EXCLUSIVE_HANDOFF_RETENTION");
+  "GATEWAY_FINITE_EXIT_CLASSIFICATION");
 const gateway = PUSH38_MANAGED_AUTH_CONTINUITY.gateway;
 const gatewayManifest = buildPush38ManagedAuthContinuityManifest({ component: "gateway",
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
@@ -81,7 +81,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-rtsp-recovery-continuity-upgrade", "--gateway-exclusive-handoff-retention-upgrade",
+    "--connector-rtsp-recovery-continuity-upgrade", "--gateway-finite-exit-classification-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "qa-p38-health-gateway-session-age-stability-26644a5e5900",
