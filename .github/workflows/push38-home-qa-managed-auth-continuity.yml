@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 23f6371dbcb96d7e1d1970a341735e15be253dc1
+          ref: 5f848c05a484c9446e7436daab21fe2989dbf760
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "23f6371dbcb96d7e1d1970a341735e15be253dc1"
+        run: test "$(git rev-parse HEAD)" = "5f848c05a484c9446e7436daab21fe2989dbf760"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable exact-device release contract
