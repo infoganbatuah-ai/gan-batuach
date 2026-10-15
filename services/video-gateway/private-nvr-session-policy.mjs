@@ -326,8 +326,14 @@ export function comparePrivateNvrHandoffPriority(left, right) {
 // drains this bounded set without inserting another scheduler-tick delay
 // between channels.
 export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
-  currentEpoch, relayProgressing = false, preserveRelayEpochsThrough = null }) {
-  const preservedProgressingOwner = relayProgressing
+  currentEpoch, relayProgressing = false, nativeInputEnded = false,
+  preserveRelayEpochsThrough = null }) {
+  // A fresh retained HLS window is still useful playback, but once the native
+  // response ended it is no longer a productive owner. If a newer authenticated
+  // session already exists, preserving that stale epoch until HLS hard-stale
+  // creates a synchronized recorder-wide gap. Move the ended response into the
+  // existing bounded session-sweep while its retained HLS is still fresh.
+  const preservedProgressingOwner = relayProgressing && !nativeInputEnded
     && Number.isInteger(preserveRelayEpochsThrough)
     && Number.isInteger(relayEpoch)
     && relayEpoch <= preserveRelayEpochsThrough;

@@ -9,6 +9,8 @@ import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 import { measureRealHomeAiRouting } from "./measure-real-home-ai-routing.mjs";
 import { inspectQualificationHost } from "./qualification-host-readiness.mjs";
+import { assertQualificationRunnerStart, qualificationCadenceAbort } from
+  "./qualification-run-guard.mjs";
 import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
@@ -47,6 +49,11 @@ const runId = String(args.get("run-id") || `push38-${new Date().toISOString().re
 const outputRoot = resolve(String(args.get("output-dir") || join(process.cwd(), "qa-evidence", "push-38", runId)));
 mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
 const checkpointsPath = join(outputRoot, "checkpoints.ndjson"), statePath = join(outputRoot, "state.json"), resultPath = join(outputRoot, "result.json");
+const resumeRequested = Boolean(args.get("resume"));
+const runGuard = assertQualificationRunnerStart({ outputRoot, runId,
+  resume: resumeRequested,
+  expectedStartedAt: args.get("resume-started-at") || null,
+  expectedSequence: args.get("resume-sequence") || null });
 const gatewayService = "com.ganbatuach.video-gateway.runtime";
 const connectorSecrets = process.env.OBSERVER_CONNECTOR_SECRET_DIR || join(homedir(), "Library", "Application Support", "Digital Observer", "Tapo Connector", "secrets");
 const dataRoots = {
@@ -74,6 +81,7 @@ const sourceAvailabilityPreflight = autoDetectSourceAvailability
         inputs.get(channel)?.progressing === true ||
         inputs.get(channel)?.renewing === true && inputs.get(channel)?.playback_continuity === true);
       const pass = probe.ok && probe.body?.status === "healthy" &&
+        probe.body?.deviceAuthorization?.status === "ready" &&
         discovery.assignedCount === 10 && discovery.connectedCount === 10 &&
         discovery.failedAssignedCount === 0 && discovery.unassignedCount === 6 &&
         progressingChannels.length === DVR_ASSIGNED_CHANNELS.length;
@@ -125,6 +133,7 @@ function logSignals(path) {
 function classifyCheckpoint(probe, resource, expected) {
   const available = Number(probe.body?.mediaHeartbeat?.availableRelays ??
     probe.body?.mediaHeartbeat?.progressingRelays);
+  if (probe.body?.deviceAuthorization?.status !== "ready") return "PRODUCT_FAILURE";
   if (probe.ok && (available < expected || probe.body?.status !== "healthy")) return "PRODUCT_FAILURE";
   if (resource?.inspection_ok === false && probe.ok) return "MONITOR_FAILURE";
   if (probe.ok && available === expected && probe.body?.status === "healthy") return "PASS";
@@ -148,6 +157,7 @@ function classifyGatewayCheckpoint(probe, resource) {
   const expectedHealthPayload = probe.http_status === 200 &&
     probe.body?.contract === "observer-edge-health-v1" && probe.body?.status === expectedStatus;
   if (resource?.inspection_ok === false && (probe.ok || expectedHealthPayload)) return "MONITOR_FAILURE";
+  if (probe.body?.deviceAuthorization?.status !== "ready") return "PRODUCT_FAILURE";
   if ((!probe.ok && !expectedHealthPayload) || !resource?.runtime_pid) return "PRODUCT_FAILURE";
   // The owner-verified physical exception is a conservative denominator. A
   // previously unavailable source may recover during qualification, but that
@@ -307,9 +317,9 @@ async function deepProbe(sourceList, gatewayAiIdentity) {
     learning: { expected: 9, sampled: sampled.length, sampled_source_ids: sampled } };
 }
 
-const prior = existsSync(statePath) && args.get("resume") ? JSON.parse(readFileSync(statePath, "utf8")) : null;
+const prior = existsSync(statePath) && resumeRequested ? JSON.parse(readFileSync(statePath, "utf8")) : null;
 const startedAt = prior?.started_at_ms || Date.now(); let sequence = prior?.checkpoint_count || 0, nextDeepProbeAt = prior?.next_deep_probe_at || startedAt;
-let deepProbeInFlight = false, completedDeepProbe = null;
+let deepProbeInFlight = false, completedDeepProbe = null, cadenceAbort = null;
 if (!existsSync(checkpointsPath)) writeFileSync(checkpointsPath, "", { mode: 0o600 });
 const lifecycle = createQualificationMonitorLifecycle({
   onStop: termination => atomicJson(statePath, {
@@ -328,6 +338,7 @@ atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: 
   interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence,
   last_checkpoint_at: prior?.last_checkpoint_at ?? null, next_deep_probe_at: nextDeepProbeAt,
   dvr_source_availability_preflight: sourceAvailabilityPreflight,
+  run_guard: runGuard,
   output_root: outputRoot,
   monitor_process: { pid: process.pid, parent_pid: process.ppid, started_at: new Date().toISOString() } });
 const { sourceList, gatewayAiIdentity } = await sources();
@@ -338,6 +349,8 @@ while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
   if (lifecycle.stopped() || Date.now() - startedAt >= durationMs) break;
   const scheduledAt = startedAt + sequence * intervalMs;
   const sampledAt = Date.now();
+  cadenceAbort = qualificationCadenceAbort({ scheduledAt, sampledAt, intervalMs });
+  if (cadenceAbort) break;
   const [gateway, connector, gatewayResource, connectorResource, host] = await Promise.all([
     probeLocalHealth(18082), probeLocalHealth(18083),
     processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs"),
@@ -371,14 +384,21 @@ while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
     }).finally(() => { deepProbeInFlight = false; });
   }
   appendFileSync(checkpointsPath, `${JSON.stringify(point)}\n`, { mode: 0o600 });
-  atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: runId, status: "RUNNING", started_at: new Date(startedAt).toISOString(), started_at_ms: startedAt, target_ended_at: new Date(startedAt + durationMs).toISOString(), duration_ms: durationMs, interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence, last_checkpoint_at: point.sampled_at, next_deep_probe_at: nextDeepProbeAt, output_root: outputRoot });
+  atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")),
+    status: "RUNNING", checkpoint_count: sequence, last_checkpoint_at: point.sampled_at,
+    next_deep_probe_at: nextDeepProbeAt });
 }
 const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
 const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(),
   requiredDurationMs, dvrSourceAvailable: DVR_SOURCE_AVAILABLE,
   dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
-const stagedResult = { ...result, qualification_stage: stage,
-  dvr_source_availability_preflight: sourceAvailabilityPreflight };
+const stagedResult = { ...result,
+  ...(cadenceAbort ? { status: "NOT_DONE",
+    gate_failures: [...new Set([...result.gate_failures, "HOST_SLEEP_OR_MONITOR_PAUSE"])],
+    cadence_abort: cadenceAbort } : {}),
+  qualification_stage: stage,
+  dvr_source_availability_preflight: sourceAvailabilityPreflight,
+  run_guard: runGuard };
 const termination = lifecycle.termination();
 const durableResult = termination ? { ...stagedResult, termination } : stagedResult;
 atomicJson(resultPath, durableResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: durableResult.status, ended_at: durableResult.ended_at, result_path: resultPath, gate_failures: durableResult.gate_failures, ...(termination ? { termination } : {}) });

@@ -603,6 +603,10 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     currentEpoch: 4, relayProgressing: true,
     preserveRelayEpochsThrough: 3 }), false,
   "a progressing prior-epoch owner migrates lazily instead of joining a recorder-wide sweep");
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 3,
+    currentEpoch: 4, relayProgressing: true, nativeInputEnded: true,
+    preserveRelayEpochsThrough: 3 }), true,
+  "an ended finite response must sweep to the authenticated epoch before retained HLS expires");
   assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 4,
     currentEpoch: 4 }), false);
   const sessionSweepBoundary = { handoffMode: "SESSION_SWEEP",

@@ -314,6 +314,7 @@ async function maintainPrivateNvrRelayHandoffs() {
       relayEpoch: relay.sessionEpoch,
       currentEpoch: session?.epoch,
       relayProgressing: relayIsProgressing(relay),
+      nativeInputEnded: relay.nativeInputEnded === true,
       preserveRelayEpochsThrough: session?.preserveRelayEpochsThrough
     })) {
       sessionSweep.push([streamId, relay]);
@@ -1822,6 +1823,7 @@ async function ensureRelay(streamId) {
       relayEpoch: existing?.sessionEpoch,
       currentEpoch: recorderSession?.epoch,
       relayProgressing: relayIsProgressing(existing),
+      nativeInputEnded: existing?.nativeInputEnded === true,
       preserveRelayEpochsThrough: recorderSession?.preserveRelayEpochsThrough
     }));
   if (shouldRetainPrivateNvrOwnerOnDemand({

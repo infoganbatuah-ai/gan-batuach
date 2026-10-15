@@ -48,6 +48,14 @@ export function classifyHostPressure(normalizedLoad1m) {
   return "NORMAL";
 }
 
+export function parseQualificationPowerState({ pmset = "", ioreg = "" } = {}) {
+  const source = /Now drawing from 'AC Power'/i.test(pmset) ? "AC_POWER"
+    : /Now drawing from 'Battery Power'/i.test(pmset) ? "BATTERY_POWER" : "UNKNOWN";
+  const clamshell = /"AppleClamshellState"\s*=\s*(Yes|No)/i.exec(ioreg)?.[1];
+  return { power_source: source,
+    clamshell_closed: clamshell ? clamshell.toLowerCase() === "yes" : null };
+}
+
 export async function inspectQualificationHost() {
   const logicalCpus = Math.max(1, availableParallelism());
   const loads = loadavg();
@@ -67,6 +75,16 @@ export async function inspectQualificationHost() {
   } catch {
     processRows = [{ pid: null, classifications: ["PROCESS_INSPECTION_UNAVAILABLE"] }];
   }
+  let power = { power_source: "UNKNOWN", clamshell_closed: null };
+  try {
+    const [battery, rootDomain] = await Promise.all([
+      exec("/usr/bin/pmset", ["-g", "batt"], { timeout: 3_000, maxBuffer: 64 * 1024 }),
+      exec("/usr/sbin/ioreg", ["-r", "-k", "AppleClamshellState", "-d", "4"], {
+        timeout: 3_000, maxBuffer: 2 * 1024 * 1024
+      })
+    ]);
+    power = parseQualificationPowerState({ pmset: battery.stdout, ioreg: rootDomain.stdout });
+  } catch {}
   const classifications = [...new Set(processRows.flatMap(row => row.classifications))].sort();
   const normalizedLoad1m = loads[0] / logicalCpus;
   return {
@@ -77,6 +95,7 @@ export async function inspectQualificationHost() {
     pressure: classifyHostPressure(normalizedLoad1m),
     free_memory_ratio: Number((freemem() / Math.max(1, totalmem())).toFixed(4)),
     uptime_seconds: Math.floor(uptime()),
+    ...power,
     forbidden_workloads: classifications,
     forbidden_workload_processes: processRows.length
   };
@@ -92,8 +111,15 @@ export function evaluateQualificationHostReadiness(samples, limits = QUALIFICATI
   if (forbidden.length) failures.push("FORBIDDEN_DEVELOPMENT_WORKLOAD_ACTIVE");
   if ((samples || []).some(sample => sample.host?.pressure === "SATURATED"))
     failures.push("HOST_LOAD_SATURATED");
+  if ((samples || []).some(sample => sample.host?.power_source !== "AC_POWER"))
+    failures.push("HOST_AC_POWER_REQUIRED");
+  if ((samples || []).some(sample => sample.host?.clamshell_closed !== false))
+    failures.push("HOST_CLAMSHELL_OPEN_REQUIRED");
   if ((samples || []).some(sample => sample.gateway?.ok !== true || sample.connector?.ok !== true))
     failures.push("EDGE_HEALTH_PREFLIGHT_FAILED");
+  if ((samples || []).some(sample => sample.gateway?.authorization !== "ready" ||
+    sample.connector?.authorization !== "ready"))
+    failures.push("EDGE_AUTHORIZATION_NOT_READY");
   const healthLatencies = [...gatewayLatencies, ...connectorLatencies];
   if (percentile(healthLatencies, 0.95) > limits.maximum_health_p95_ms)
     failures.push("EDGE_HEALTH_LATENCY_P95_EXCEEDED");
@@ -124,6 +150,8 @@ export function summarizeQualificationHostEvidence(checkpoints) {
   const saturated = hosts.filter(host => host.pressure === "SATURATED").length;
   const interference = (checkpoints || []).filter(point => {
     if ((point.host?.forbidden_workloads || []).length) return true;
+    if (point.host?.power_source && point.host.power_source !== "AC_POWER") return true;
+    if (point.host?.clamshell_closed === true) return true;
     if (point.host?.pressure !== "SATURATED") return false;
     return point.probe_duration_ms > QUALIFICATION_HOST_LIMITS.maximum_health_sample_ms ||
       point.dvr?.classification !== "PASS" || point.tapo?.classification !== "PASS";

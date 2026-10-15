@@ -63,6 +63,7 @@ import { PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   shouldBeginCorrelatedPrivateNvrHardwareRecovery,
   shouldClearPrivateNvrRetainedPlayback,
   shouldDeferCorrelatedPrivateNvrSilentResponseRescue,
+  shouldPrioritizePrivateNvrSessionHandoff,
   shouldRetainPrivateNvrRejectedCandidateHls } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
@@ -760,6 +761,16 @@ test("a proven correlated hardware stall uses retained-HLS canonical recovery", 
   assert.match(server,
     /const candidateRows = \[[\s\S]*candidateRows\.find\([\s\S]*privateNvrHandoffCapacityAvailable/,
   "each scheduler pass must choose one capacity-authorized rescue, not launch the full queue");
+});
+
+test("a finite response from a stale login epoch is swept before retained HLS expires", () => {
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({
+    relayEpoch: 38, currentEpoch: 39, relayProgressing: true,
+    nativeInputEnded: true, preserveRelayEpochsThrough: 38
+  }), true);
+  assert.match(server,
+    /relayProgressing: relayIsProgressing\(relay\),\s+nativeInputEnded: relay\.nativeInputEnded === true/,
+  "the maintenance scheduler must distinguish fresh retained HLS from a live native owner");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {

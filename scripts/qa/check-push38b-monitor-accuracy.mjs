@@ -4,6 +4,7 @@ import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 import { classifyForbiddenWorkloads, evaluateQualificationHostReadiness,
+  parseQualificationPowerState,
   summarizeQualificationHostEvidence } from "./qualification-host-readiness.mjs";
 
 const start = Date.parse("2026-09-12T00:00:00.000Z");
@@ -12,9 +13,9 @@ function point(minute, { stalledChannel = null, tapoDown = false, deepProbeError
   return {
     sampled_at: new Date(start + minute * 60_000).toISOString(), interval_ms: 60_000,
     empty_dvr_slots: 6,
-    dvr: { health_ok: true, progressing: stalledChannel === null ? 10 : 9,
+    dvr: { health_ok: true, auth: "ready", progressing: stalledChannel === null ? 10 : 9,
       inputs: channels.map(channel => ({ channel, progressing: channel !== stalledChannel })) },
-    tapo: { health_ok: true, progressing: tapoDown ? 0 : 1,
+    tapo: { health_ok: true, auth: "ready", progressing: tapoDown ? 0 : 1,
       inputs: [{ channel: 1, progressing: !tapoDown }] },
     resources: { gateway: { runtime_pid: 11, supervisor_pid: 1 }, connector: { runtime_pid: 22, supervisor_pid: 2 } },
     ...(deepProbeError ? { deep_probe_error: "TimeoutError" } : {})
@@ -45,6 +46,13 @@ assert.ok(missing.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
 const probe = summarizeRealHomeSoak([point(0), point(1, { deepProbeError: true })], { startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000 });
 assert.ok(probe.gate_failures.includes("DEEP_PROBE_MONITOR_FAILURE"));
 
+const authorizationLost = point(0);
+authorizationLost.dvr.auth = "approval_required";
+const unauthorized = summarizeRealHomeSoak([authorizationLost], {
+  startedAt: start, endedAt: start + 60_000, requiredDurationMs: 60_000 });
+assert.ok(unauthorized.gate_failures.includes("EDGE_AUTHORIZATION_NOT_READY"));
+assert.equal(unauthorized.health_dimensions.authorization.not_ready_checkpoints, 1);
+
 const legacy = point(0);
 delete legacy.dvr.inputs[0].progressing;
 const unproven = summarizeRealHomeSoak([legacy], { startedAt: start, endedAt: start + 60_000, requiredDurationMs: 60_000 });
@@ -55,7 +63,8 @@ assert.ok(unproven.gate_failures.includes("PER_CAMERA_PROGRESSION_EVIDENCE_MISSI
 const available = [1, 3, 4, 5, 6, 7, 10, 11];
 const upstreamPoint = minute => ({ ...point(minute),
   source_available_physical_cameras: 9,
-  dvr: { health_ok: false, classification: "PASS", component_status: "degraded", expected: 10, source_available: 8,
+  dvr: { health_ok: false, classification: "PASS", component_status: "degraded",
+    auth: "ready", expected: 10, source_available: 8,
     known_upstream_unavailable: [2, 8], progressing: 8,
     inputs: available.map(channel => ({ channel, progressing: true })) },
   playback: { verified: 9, failed: 0 } });
@@ -155,11 +164,16 @@ assert.match(realHomeSoak, /progressingChannels\.length === DVR_ASSIGNED_CHANNEL
   "aggregate 10\/10 alone must not freeze the qualification denominator");
 
 const readyHostSample = (latency = 10) => ({
-  host: { pressure: "NORMAL", normalized_load_1m: 0.4, forbidden_workloads: [] },
-  gateway: { ok: true, latency_ms: latency }, connector: { ok: true, latency_ms: latency }
+  host: { pressure: "NORMAL", normalized_load_1m: 0.4, forbidden_workloads: [],
+    power_source: "AC_POWER", clamshell_closed: false },
+  gateway: { ok: true, latency_ms: latency, authorization: "ready" },
+  connector: { ok: true, latency_ms: latency, authorization: "ready" }
 });
 const readyHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => readyHostSample()));
 assert.equal(readyHost.status, "PASS");
+assert.deepEqual(parseQualificationPowerState({
+  pmset: "Now drawing from 'AC Power'", ioreg: '"AppleClamshellState" = No'
+}), { power_source: "AC_POWER", clamshell_closed: false });
 assert.deepEqual(classifyForbiddenWorkloads(
   "/opt/homebrew/bin/rg -i (horizontal|queue).*?(benchmark|throughput)"), [],
 "the process audit must not classify its own search expression as a running benchmark");
@@ -179,6 +193,17 @@ assert.equal(busyHost.status, "FAIL");
 assert.ok(busyHost.failures.includes("FORBIDDEN_DEVELOPMENT_WORKLOAD_ACTIVE"));
 assert.ok(busyHost.failures.includes("HOST_LOAD_SATURATED"));
 assert.ok(busyHost.failures.includes("EDGE_HEALTH_LATENCY_SAMPLE_EXCEEDED"));
+const sleepingHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), host: { ...readyHostSample().host,
+    power_source: "BATTERY_POWER", clamshell_closed: true }
+})));
+assert.ok(sleepingHost.failures.includes("HOST_AC_POWER_REQUIRED"));
+assert.ok(sleepingHost.failures.includes("HOST_CLAMSHELL_OPEN_REQUIRED"));
+const unauthorizedHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), gateway: { ...readyHostSample().gateway,
+    authorization: "approval_required" }
+})));
+assert.ok(unauthorizedHost.failures.includes("EDGE_AUTHORIZATION_NOT_READY"));
 const hostEvidence = summarizeQualificationHostEvidence([
   { host: readyHostSample().host, probe_duration_ms: 10,
     dvr: { classification: "PASS" }, tapo: { classification: "PASS" } },
