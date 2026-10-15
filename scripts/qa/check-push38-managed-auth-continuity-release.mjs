@@ -91,6 +91,15 @@ for (const [path, required] of [
   const source = readFileSync(path, "utf8");
   for (const value of required) assert.ok(source.includes(value), `${path}:${value}`);
 }
+const installerSource = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
+const staleEpochPrior = installerSource.slice(
+  installerSource.indexOf("priorManagement: gatewayStaleEpochFiniteSweepUpgrade ? {"),
+  installerSource.indexOf("gatewayFiniteExitClassificationUpgrade ? {",
+    installerSource.indexOf("priorManagement: gatewayStaleEpochFiniteSweepUpgrade ? {")));
+assert.ok(staleEpochPrior.includes(
+  'release_id: "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4"'));
+assert.ok(staleEpochPrior.includes(
+  'artifact_sha256: "1fb10cf04dd4d4e4273c7fd92d40a1351e22ff59ab40449503f84a40d2d1e3ac"'));
 
 const pair = generateKeyPairSync("ed25519");
 const publicDer = pair.publicKey.export({ format: "der", type: "spki" });
