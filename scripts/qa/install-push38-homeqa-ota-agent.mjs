@@ -68,6 +68,8 @@ const gatewayExclusiveHandoffRetentionUpgrade =
   process.argv.includes("--gateway-exclusive-handoff-retention-upgrade");
 const gatewayFiniteExitClassificationUpgrade =
   process.argv.includes("--gateway-finite-exit-classification-upgrade");
+const gatewayStaleEpochFiniteSweepUpgrade =
+  process.argv.includes("--gateway-stale-epoch-finite-sweep-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
@@ -82,6 +84,7 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
   gatewayBoundedCorrelatedRecoveryUpgrade,
   gatewayExclusiveHandoffRetentionUpgrade,
   gatewayFiniteExitClassificationUpgrade,
+  gatewayStaleEpochFiniteSweepUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
@@ -102,6 +105,7 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
   gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade ||
   gatewayExclusiveHandoffRetentionUpgrade || gatewayFiniteExitClassificationUpgrade ||
+  gatewayStaleEpochFiniteSweepUpgrade ||
   connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
@@ -120,7 +124,8 @@ if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayMediaAcquisitionUpgrade && !gatewayExclusiveRecoveryUpgrade && !gatewayPreacquireRescueUpgrade &&
   !gatewayPostReleaseReacquisitionUpgrade && !gatewayPreReleaseProbeSettlementUpgrade &&
   !gatewayCorrelatedHardwareStallUpgrade && !gatewayBoundedCorrelatedRecoveryUpgrade &&
-  !gatewayExclusiveHandoffRetentionUpgrade && !gatewayFiniteExitClassificationUpgrade)
+  !gatewayExclusiveHandoffRetentionUpgrade && !gatewayFiniteExitClassificationUpgrade &&
+  !gatewayStaleEpochFiniteSweepUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
   gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade ||
@@ -131,7 +136,8 @@ if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayComm
   gatewayExclusiveRecoveryUpgrade || gatewayPreacquireRescueUpgrade ||
   gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
   gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade ||
-  gatewayExclusiveHandoffRetentionUpgrade || gatewayFiniteExitClassificationUpgrade) &&
+  gatewayExclusiveHandoffRetentionUpgrade || gatewayFiniteExitClassificationUpgrade ||
+  gatewayStaleEpochFiniteSweepUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -237,7 +243,9 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayFiniteExitClassificationUpgrade
+  remediationRelease: gatewayStaleEpochFiniteSweepUpgrade
+    ? "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1" :
+    gatewayFiniteExitClassificationUpgrade
     ? "qa-p38-health-gateway-finite-exit-classification-38529461e719" :
     gatewayExclusiveHandoffRetentionUpgrade
     ? "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4" :
@@ -273,7 +281,8 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayFiniteExitClassificationUpgrade ? "gateway_managed_auth_continuity.json" :
+  bundleName: gatewayStaleEpochFiniteSweepUpgrade ? "gateway_managed_auth_continuity.json" :
+    gatewayFiniteExitClassificationUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayExclusiveHandoffRetentionUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayBoundedCorrelatedRecoveryUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayCorrelatedHardwareStallUpgrade ? "gateway_managed_auth_continuity.json" :
@@ -299,7 +308,10 @@ const spec = connector ? {
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayFiniteExitClassificationUpgrade ? {
+  priorManagement: gatewayStaleEpochFiniteSweepUpgrade ? {
+    release_id: "qa-p38-health-gateway-finite-exit-classification-38529461e719",
+    artifact_sha256: "38529461e7196515381c0cb16ab7afdfc902c938d7757efc4b3da7a2b2fe8886" } :
+    gatewayFiniteExitClassificationUpgrade ? {
     release_id: "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4",
     artifact_sha256: "1fb10cf04dd4d4e4273c7fd92d40a1351e22ff59ab40449503f84a40d2d1e3ac" } :
     gatewayExclusiveHandoffRetentionUpgrade ? {
@@ -469,6 +481,8 @@ const bundle = resolve(bundleOverride || (connectorRtspRecoveryContinuityUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewayStaleEpochFiniteSweepUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-stale-epoch-finite-sweep.zip"
   : gatewayFiniteExitClassificationUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-finite-exit-classification.zip"
   : gatewayExclusiveHandoffRetentionUpgrade

@@ -137,6 +137,8 @@ const gatewayExclusiveHandoffRetention =
   "qa-p38-health-gateway-exclusive-handoff-retention-1fb10cf04dd4";
 const gatewayFiniteExitClassification =
   "qa-p38-health-gateway-finite-exit-classification-38529461e719";
+const gatewayStaleEpochFiniteSweep =
+  "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -212,7 +214,8 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       gatewayCorrelatedHardwareStallRecovery,
       gatewayBoundedCorrelatedRecovery,
       gatewayExclusiveHandoffRetention,
-      gatewayFiniteExitClassification].includes(manifest.release_id) &&
+      gatewayFiniteExitClassification,
+      gatewayStaleEpochFiniteSweep].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
