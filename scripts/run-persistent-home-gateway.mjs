@@ -15,6 +15,7 @@ import { connectorHeartbeatHealth, connectorSourceRecoveryRequired, retainVerifi
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 import { createEdgeChildLivenessWatchdog } from "../services/video-gateway/edge-child-liveness-watchdog.mjs";
 import { runBoundedEdgeParentShutdown } from "../services/video-gateway/edge-parent-shutdown.mjs";
+import { writeBestEffortStatusJson } from "../services/video-gateway/best-effort-status-file.mjs";
 import { discoverAuthorizedPrivateNvrEndpoint, parsePrivateNvrIdentityBinding,
   PRIVATE_NVR_ENDPOINT_RECOVERY_PENDING_ACCOUNT, PRIVATE_NVR_IDENTITY_BINDING_ACCOUNT,
   privateNvrEndpointWithHost, shouldAttemptPrivateNvrEndpointRecovery } from
@@ -48,6 +49,16 @@ const evidenceTestCameraId = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.te
   ? process.env.GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID
   : null;
 const spatialTraceEnabled = process.env.GAN_BATUACH_GATEWAY_SPATIAL_TRACE === "1";
+let lastStatusWriteWarningAt = 0;
+function writeRuntimeStatus(destination, status, scope) {
+  const result = writeBestEffortStatusJson(destination, status);
+  if (!result.ok && Date.now() - lastStatusWriteWarningAt >= 60_000) {
+    lastStatusWriteWarningAt = Date.now();
+    console.error(JSON.stringify({ level: "warning", domain: "edge_runtime_status",
+      scope, reason: result.error_code, live_media_continues: true }));
+  }
+  return result.ok;
+}
 // A one-camera evidence verification may safely sample more often without
 // changing the normal multi-camera monitoring budget or Journal semantics.
 // It remains opt-in and is removed with the diagnostic launchd setting.
@@ -486,9 +497,7 @@ if (discoveryEnabled) {
     getChannels: () => channels,
     report: (status) => {
       const destination = `${dataRoot}/continuous-monitor-status.json`;
-      const temporary = `${destination}.${process.pid}.${crypto.randomUUID()}.tmp`;
-      writeFileSync(temporary, `${JSON.stringify(status, null, 2)}\n`, { mode: 0o600 });
-      renameSync(temporary, destination);
+      writeRuntimeStatus(destination, status, "continuous_monitor");
     }
   });
   await continuousMonitor.start();
@@ -518,7 +527,8 @@ if (discoveryEnabled) {
       const loadRatio = loadavg()[0] / Math.max(1, cpus().length);
       return freeRatio < 0.05 || loadRatio > 1.5 ? "CRITICAL" : freeRatio < 0.12 || loadRatio > 1 ? "CONSTRAINED" : "NORMAL";
     },
-    report: (status) => writeFileSync(`${dataRoot}/journal-status.json`, JSON.stringify(status), { mode: 0o600 }) });
+    report: (status) => writeRuntimeStatus(`${dataRoot}/journal-status.json`, status,
+      "journal") });
   await learn().catch((error) => {
     // Cloud identity rotation or learning upload must never own the local live
     // process lifecycle. Keep relays available and retry learning on schedule.

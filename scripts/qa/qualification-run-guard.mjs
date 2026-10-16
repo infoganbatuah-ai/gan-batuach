@@ -107,7 +107,8 @@ export function qualificationCadenceAbort({ scheduledAt, sampledAt, intervalMs,
 function firstFailure(checkpoints) {
   return checkpoints.find(point => point?.dvr?.classification !== "PASS" ||
     point?.tapo?.classification !== "PASS" ||
-    (point?.host?.forbidden_workloads || []).length > 0) || null;
+    (point?.host?.forbidden_workloads || []).length > 0 ||
+    point?.host?.disk_qualification_ready === false) || null;
 }
 
 export function buildQualificationFailureBlocker({ runId, stage, resultPath,
@@ -133,6 +134,9 @@ export function buildQualificationFailureBlocker({ runId, stage, resultPath,
       tapo_progressing: first.tapo?.progressing ?? null,
       tapo_auth: first.tapo?.auth ?? null,
       host_pressure: first.host?.pressure ?? null,
+      host_disk_free_bytes: first.host?.disk_free_bytes ?? null,
+      host_disk_qualification_ready:
+        first.host?.disk_qualification_ready ?? null,
       forbidden_workloads: first.host?.forbidden_workloads ?? []
     } : null,
     gate_failures: [...(result.gate_failures || [])].sort()

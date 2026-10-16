@@ -4,7 +4,7 @@ import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 import { classifyForbiddenWorkloads, evaluateQualificationHostReadiness,
-  parseQualificationPowerState,
+  parseQualificationPowerState, QUALIFICATION_HOST_LIMITS,
   summarizeQualificationHostEvidence } from "./qualification-host-readiness.mjs";
 
 const start = Date.parse("2026-09-12T00:00:00.000Z");
@@ -45,6 +45,19 @@ assert.ok(missing.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
 
 const probe = summarizeRealHomeSoak([point(0), point(1, { deepProbeError: true })], { startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000 });
 assert.ok(probe.gate_failures.includes("DEEP_PROBE_MONITOR_FAILURE"));
+
+const diskPressurePoint = { ...point(0), host: {
+  pressure: "NORMAL", forbidden_workloads: [], power_source: "AC_POWER",
+  clamshell_closed: false,
+  disk_free_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes - 1,
+  disk_qualification_ready: false
+} };
+const diskPressure = summarizeRealHomeSoak([diskPressurePoint], {
+  startedAt: start, endedAt: start + 60_000, requiredDurationMs: 60_000 });
+assert.ok(diskPressure.gate_failures.includes("HOST_QUALIFICATION_INTERFERENCE"));
+assert.equal(diskPressure.host_qualification.low_disk_checkpoints, 1);
+assert.equal(diskPressure.host_qualification.minimum_disk_free_bytes,
+  QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes - 1);
 
 const authorizationLost = point(0);
 authorizationLost.dvr.auth = "approval_required";
@@ -162,10 +175,16 @@ assert.match(realHomeSoak, /THREE_SAMPLE_READ_ONLY_FREEZE/,
   "automatic source availability must preserve its multi-sample provenance");
 assert.match(realHomeSoak, /progressingChannels\.length === DVR_ASSIGNED_CHANNELS\.length/,
   "aggregate 10\/10 alone must not freeze the qualification denominator");
+assert.match(realHomeSoak, /HOST_DISK_CAPACITY_BELOW_QUALIFICATION_MINIMUM/,
+  "a qualification run must fail closed as soon as disk headroom is lost");
+assert.match(realHomeSoak, /QUALIFICATION_HOST_LIMITS\.minimum_free_disk_bytes/,
+  "the runtime abort and readiness preflight must share one disk threshold");
 
 const readyHostSample = (latency = 10) => ({
   host: { pressure: "NORMAL", normalized_load_1m: 0.4, forbidden_workloads: [],
-    power_source: "AC_POWER", clamshell_closed: false },
+    power_source: "AC_POWER", clamshell_closed: false,
+    disk_free_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes * 2,
+    disk_qualification_ready: true },
   gateway: { ok: true, latency_ms: latency, authorization: "ready" },
   connector: { ok: true, latency_ms: latency, authorization: "ready" }
 });
@@ -204,6 +223,18 @@ const unauthorizedHost = evaluateQualificationHostReadiness(Array.from({ length:
     authorization: "approval_required" }
 })));
 assert.ok(unauthorizedHost.failures.includes("EDGE_AUTHORIZATION_NOT_READY"));
+const lowDiskHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), host: { ...readyHostSample().host,
+    disk_free_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes - 1,
+    disk_qualification_ready: false }
+})));
+assert.ok(lowDiskHost.failures.includes(
+  "HOST_DISK_CAPACITY_BELOW_QUALIFICATION_MINIMUM"));
+const missingDiskEvidence = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), host: { ...readyHostSample().host,
+    disk_free_bytes: null, disk_qualification_ready: false }
+})));
+assert.ok(missingDiskEvidence.failures.includes("HOST_DISK_INSPECTION_REQUIRED"));
 const hostEvidence = summarizeQualificationHostEvidence([
   { host: readyHostSample().host, probe_duration_ms: 10,
     dvr: { classification: "PASS" }, tapo: { classification: "PASS" } },
@@ -211,6 +242,7 @@ const hostEvidence = summarizeQualificationHostEvidence([
     dvr: { classification: "PRODUCT_FAILURE" }, tapo: { classification: "PASS" } }
 ]);
 assert.equal(hostEvidence.qualification_interference_checkpoints, 1);
+assert.equal(hostEvidence.low_disk_checkpoints, 0);
 assert.match(durableLauncher, /host_readiness: hostReadiness/,
   "the durable launcher must preserve the host-isolation preflight");
 assert.match(realHomeSoak, /inspectQualificationHost\(\)/,

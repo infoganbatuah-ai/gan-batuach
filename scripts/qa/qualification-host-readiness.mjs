@@ -1,11 +1,15 @@
 import { execFile } from "node:child_process";
+import { statfsSync } from "node:fs";
 import { availableParallelism, freemem, loadavg, totalmem, uptime } from "node:os";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 
 const exec = promisify(execFile);
 
 export const QUALIFICATION_HOST_LIMITS = Object.freeze({
   minimum_samples: 5,
+  minimum_free_disk_bytes: 8 * 1024 * 1024 * 1024,
   maximum_normalized_load_1m: 1.5,
   maximum_health_p95_ms: 500,
   maximum_health_sample_ms: 1_000
@@ -87,6 +91,18 @@ export async function inspectQualificationHost() {
   } catch {}
   const classifications = [...new Set(processRows.flatMap(row => row.classifications))].sort();
   const normalizedLoad1m = loads[0] / logicalCpus;
+  let disk = { disk_free_bytes: null, disk_capacity_bytes: null,
+    disk_free_ratio: null, disk_qualification_ready: false };
+  try {
+    const filesystem = statfsSync(join(homedir(), "Library", "Application Support",
+      "Digital Observer"));
+    const freeBytes = Number(filesystem.bavail) * Number(filesystem.bsize);
+    const capacityBytes = Number(filesystem.blocks) * Number(filesystem.bsize);
+    disk = { disk_free_bytes: freeBytes, disk_capacity_bytes: capacityBytes,
+      disk_free_ratio: Number((freeBytes / Math.max(1, capacityBytes)).toFixed(4)),
+      disk_qualification_ready:
+        freeBytes >= QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes };
+  } catch {}
   return {
     observed_at: new Date().toISOString(),
     logical_cpus: logicalCpus,
@@ -95,6 +111,7 @@ export async function inspectQualificationHost() {
     pressure: classifyHostPressure(normalizedLoad1m),
     free_memory_ratio: Number((freemem() / Math.max(1, totalmem())).toFixed(4)),
     uptime_seconds: Math.floor(uptime()),
+    ...disk,
     ...power,
     forbidden_workloads: classifications,
     forbidden_workload_processes: processRows.length
@@ -115,6 +132,12 @@ export function evaluateQualificationHostReadiness(samples, limits = QUALIFICATI
     failures.push("HOST_AC_POWER_REQUIRED");
   if ((samples || []).some(sample => sample.host?.clamshell_closed !== false))
     failures.push("HOST_CLAMSHELL_OPEN_REQUIRED");
+  if ((samples || []).some(sample => !Number.isFinite(sample.host?.disk_free_bytes)))
+    failures.push("HOST_DISK_INSPECTION_REQUIRED");
+  else if ((samples || []).some(sample =>
+    sample.host.disk_free_bytes < limits.minimum_free_disk_bytes ||
+    sample.host?.disk_qualification_ready !== true))
+    failures.push("HOST_DISK_CAPACITY_BELOW_QUALIFICATION_MINIMUM");
   if ((samples || []).some(sample => sample.gateway?.ok !== true || sample.connector?.ok !== true))
     failures.push("EDGE_HEALTH_PREFLIGHT_FAILED");
   if ((samples || []).some(sample => sample.gateway?.authorization !== "ready" ||
@@ -148,10 +171,12 @@ export function summarizeQualificationHostEvidence(checkpoints) {
   const hosts = (checkpoints || []).map(point => point.host).filter(Boolean);
   const forbidden = hosts.filter(host => (host.forbidden_workloads || []).length > 0).length;
   const saturated = hosts.filter(host => host.pressure === "SATURATED").length;
+  const lowDisk = hosts.filter(host => host.disk_qualification_ready === false).length;
   const interference = (checkpoints || []).filter(point => {
     if ((point.host?.forbidden_workloads || []).length) return true;
     if (point.host?.power_source && point.host.power_source !== "AC_POWER") return true;
     if (point.host?.clamshell_closed === true) return true;
+    if (point.host?.disk_qualification_ready === false) return true;
     if (point.host?.pressure !== "SATURATED") return false;
     return point.probe_duration_ms > QUALIFICATION_HOST_LIMITS.maximum_health_sample_ms ||
       point.dvr?.classification !== "PASS" || point.tapo?.classification !== "PASS";
@@ -165,10 +190,16 @@ export function summarizeQualificationHostEvidence(checkpoints) {
       saturated
     },
     forbidden_workload_checkpoints: forbidden,
+    low_disk_checkpoints: lowDisk,
     qualification_interference_checkpoints: interference,
     normalized_load_1m: {
       p95: percentile(ratios, 0.95),
       max: ratios.length ? Math.max(...ratios) : null
+    },
+    disk_free_bytes: {
+      minimum: hosts.map(host => host.disk_free_bytes).filter(Number.isFinite).length
+        ? Math.min(...hosts.map(host => host.disk_free_bytes).filter(Number.isFinite)) : null,
+      required_minimum: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes
     }
   };
 }

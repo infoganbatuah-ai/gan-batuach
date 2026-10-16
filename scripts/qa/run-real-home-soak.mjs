@@ -8,7 +8,8 @@ import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
 import { measureRealHomeAiRouting } from "./measure-real-home-ai-routing.mjs";
-import { inspectQualificationHost } from "./qualification-host-readiness.mjs";
+import { inspectQualificationHost, QUALIFICATION_HOST_LIMITS } from
+  "./qualification-host-readiness.mjs";
 import { assertQualificationRunnerStart, qualificationCadenceAbort } from
   "./qualification-run-guard.mjs";
 import { probeLocalHealth } from "./soak-health-probe.mjs";
@@ -387,6 +388,19 @@ while (!lifecycle.stopped() && Date.now() - startedAt < durationMs) {
   atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")),
     status: "RUNNING", checkpoint_count: sequence, last_checkpoint_at: point.sampled_at,
     next_deep_probe_at: nextDeepProbeAt });
+  if (host.disk_qualification_ready === false) {
+    const diskInspectionAvailable = Number.isFinite(host.disk_free_bytes);
+    cadenceAbort = {
+      contract: "observer-qualification-host-capacity-abort-v1",
+      reason: diskInspectionAvailable
+        ? "HOST_DISK_CAPACITY_BELOW_QUALIFICATION_MINIMUM"
+        : "HOST_DISK_INSPECTION_REQUIRED",
+      detected_at: point.sampled_at,
+      disk_free_bytes: host.disk_free_bytes,
+      minimum_free_disk_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes
+    };
+    break;
+  }
 }
 const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
 const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(),
@@ -394,7 +408,7 @@ const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now
   dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
 const stagedResult = { ...result,
   ...(cadenceAbort ? { status: "NOT_DONE",
-    gate_failures: [...new Set([...result.gate_failures, "HOST_SLEEP_OR_MONITOR_PAUSE"])],
+    gate_failures: [...new Set([...result.gate_failures, cadenceAbort.reason])],
     cadence_abort: cadenceAbort } : {}),
   qualification_stage: stage,
   dvr_source_availability_preflight: sourceAvailabilityPreflight,
