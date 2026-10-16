@@ -18,9 +18,9 @@ export const PUSH38_MANAGED_AUTH_CONTINUITY = Object.freeze({
     recoverablePriorFailure: null
   }),
   gateway: Object.freeze({
-    role: "GATEWAY_DISK_PRESSURE_RESILIENCE",
+    role: "GATEWAY_STORAGE_PRESSURE_RESILIENCE",
     deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-    releaseId: "qa-p38-health-gateway-disk-pressure-resilience-9cf3aa53cde8",
+    releaseId: "qa-p38-health-gateway-storage-pressure-resilience-9cf3aa53cde8",
     version: "0.2.101-p38-health",
     buildSha: "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
     digest: "9cf3aa53cde89f76ec28e6b96c1be2acc9bed38642bd478f13244c0418cfa6a0",

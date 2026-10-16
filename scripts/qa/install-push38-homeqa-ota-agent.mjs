@@ -70,8 +70,8 @@ const gatewayFiniteExitClassificationUpgrade =
   process.argv.includes("--gateway-finite-exit-classification-upgrade");
 const gatewayStaleEpochFiniteSweepUpgrade =
   process.argv.includes("--gateway-stale-epoch-finite-sweep-upgrade");
-const gatewayDiskPressureResilienceUpgrade =
-  process.argv.includes("--gateway-disk-pressure-resilience-upgrade");
+const gatewayStoragePressureResilienceUpgrade =
+  process.argv.includes("--gateway-storage-pressure-resilience-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
@@ -87,7 +87,7 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
   gatewayExclusiveHandoffRetentionUpgrade,
   gatewayFiniteExitClassificationUpgrade,
   gatewayStaleEpochFiniteSweepUpgrade,
-  gatewayDiskPressureResilienceUpgrade,
+  gatewayStoragePressureResilienceUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
@@ -108,7 +108,7 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
   gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade ||
   gatewayExclusiveHandoffRetentionUpgrade || gatewayFiniteExitClassificationUpgrade ||
-  gatewayStaleEpochFiniteSweepUpgrade || gatewayDiskPressureResilienceUpgrade ||
+  gatewayStaleEpochFiniteSweepUpgrade || gatewayStoragePressureResilienceUpgrade ||
   connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
@@ -128,7 +128,7 @@ if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayPostReleaseReacquisitionUpgrade && !gatewayPreReleaseProbeSettlementUpgrade &&
   !gatewayCorrelatedHardwareStallUpgrade && !gatewayBoundedCorrelatedRecoveryUpgrade &&
   !gatewayExclusiveHandoffRetentionUpgrade && !gatewayFiniteExitClassificationUpgrade &&
-  !gatewayStaleEpochFiniteSweepUpgrade && !gatewayDiskPressureResilienceUpgrade)
+  !gatewayStaleEpochFiniteSweepUpgrade && !gatewayStoragePressureResilienceUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
   gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade ||
@@ -140,7 +140,7 @@ if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayComm
   gatewayPostReleaseReacquisitionUpgrade || gatewayPreReleaseProbeSettlementUpgrade ||
   gatewayCorrelatedHardwareStallUpgrade || gatewayBoundedCorrelatedRecoveryUpgrade ||
   gatewayExclusiveHandoffRetentionUpgrade || gatewayFiniteExitClassificationUpgrade ||
-  gatewayStaleEpochFiniteSweepUpgrade || gatewayDiskPressureResilienceUpgrade) &&
+  gatewayStaleEpochFiniteSweepUpgrade || gatewayStoragePressureResilienceUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -246,8 +246,8 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayDiskPressureResilienceUpgrade
-    ? "qa-p38-health-gateway-disk-pressure-resilience-9cf3aa53cde8" :
+  remediationRelease: gatewayStoragePressureResilienceUpgrade
+    ? "qa-p38-health-gateway-storage-pressure-resilience-9cf3aa53cde8" :
     gatewayStaleEpochFiniteSweepUpgrade
     ? "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1" :
     gatewayFiniteExitClassificationUpgrade
@@ -286,7 +286,7 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayDiskPressureResilienceUpgrade ? "gateway_managed_auth_continuity.json" :
+  bundleName: gatewayStoragePressureResilienceUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayStaleEpochFiniteSweepUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayFiniteExitClassificationUpgrade ? "gateway_managed_auth_continuity.json" :
     gatewayExclusiveHandoffRetentionUpgrade ? "gateway_managed_auth_continuity.json" :
@@ -314,7 +314,7 @@ const spec = connector ? {
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayDiskPressureResilienceUpgrade ? {
+  priorManagement: gatewayStoragePressureResilienceUpgrade ? {
     release_id: "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1",
     artifact_sha256: "2ea87aca47a1cf28fbc63f7186df6b0adc90d6bd12ce11fb9c9f6a4657a59201" } :
     gatewayStaleEpochFiniteSweepUpgrade ? {
@@ -493,8 +493,8 @@ const bundle = resolve(bundleOverride || (connectorRtspRecoveryContinuityUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
-  : gatewayDiskPressureResilienceUpgrade
-    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-disk-pressure-resilience.zip"
+  : gatewayStoragePressureResilienceUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-storage-pressure-resilience.zip"
   : gatewayStaleEpochFiniteSweepUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-stale-epoch-finite-sweep.zip"
   : gatewayFiniteExitClassificationUpgrade

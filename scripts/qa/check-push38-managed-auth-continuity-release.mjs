@@ -51,7 +51,7 @@ assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.digest,
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135903197);
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.100-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_DISK_PRESSURE_RESILIENCE");
+  "GATEWAY_STORAGE_PRESSURE_RESILIENCE");
 const gateway = PUSH38_MANAGED_AUTH_CONTINUITY.gateway;
 const gatewayManifest = buildPush38ManagedAuthContinuityManifest({ component: "gateway",
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
@@ -81,7 +81,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-rtsp-recovery-continuity-upgrade", "--gateway-disk-pressure-resilience-upgrade",
+    "--connector-rtsp-recovery-continuity-upgrade", "--gateway-storage-pressure-resilience-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "qa-p38-health-gateway-session-age-stability-26644a5e5900",
@@ -92,13 +92,13 @@ for (const [path, required] of [
   for (const value of required) assert.ok(source.includes(value), `${path}:${value}`);
 }
 const installerSource = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
-const diskPressurePrior = installerSource.slice(
-  installerSource.indexOf("priorManagement: gatewayDiskPressureResilienceUpgrade ? {"),
+const storagePressurePrior = installerSource.slice(
+  installerSource.indexOf("priorManagement: gatewayStoragePressureResilienceUpgrade ? {"),
   installerSource.indexOf("gatewayStaleEpochFiniteSweepUpgrade ? {",
-    installerSource.indexOf("priorManagement: gatewayDiskPressureResilienceUpgrade ? {")));
-assert.ok(diskPressurePrior.includes(
+    installerSource.indexOf("priorManagement: gatewayStoragePressureResilienceUpgrade ? {")));
+assert.ok(storagePressurePrior.includes(
   'release_id: "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1"'));
-assert.ok(diskPressurePrior.includes(
+assert.ok(storagePressurePrior.includes(
   'artifact_sha256: "2ea87aca47a1cf28fbc63f7186df6b0adc90d6bd12ce11fb9c9f6a4657a59201"'));
 
 const pair = generateKeyPairSync("ed25519");
