@@ -97,9 +97,9 @@ const finiteResponseEpochDrainPrior = installerSource.slice(
   installerSource.indexOf("gatewayStoragePressureResilienceUpgrade ? {",
     installerSource.indexOf("priorManagement: gatewayFiniteResponseEpochDrainUpgrade ? {")));
 assert.ok(finiteResponseEpochDrainPrior.includes(
-  'release_id: "qa-p38-health-gateway-storage-pressure-resilience-9cf3aa53cde8"'));
+  'release_id: "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1"'));
 assert.ok(finiteResponseEpochDrainPrior.includes(
-  'artifact_sha256: "9cf3aa53cde89f76ec28e6b96c1be2acc9bed38642bd478f13244c0418cfa6a0"'));
+  'artifact_sha256: "2ea87aca47a1cf28fbc63f7186df6b0adc90d6bd12ce11fb9c9f6a4657a59201"'));
 
 const pair = generateKeyPairSync("ed25519");
 const publicDer = pair.publicKey.export({ format: "der", type: "spki" });

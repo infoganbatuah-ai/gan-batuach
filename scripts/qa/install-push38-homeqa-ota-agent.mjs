@@ -324,8 +324,11 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
   priorManagement: gatewayFiniteResponseEpochDrainUpgrade ? {
-    release_id: "qa-p38-health-gateway-storage-pressure-resilience-9cf3aa53cde8",
-    artifact_sha256: "9cf3aa53cde89f76ec28e6b96c1be2acc9bed38642bd478f13244c0418cfa6a0" } :
+    // Runtime 0.2.101 was installed by the independently signed 0.2.100
+    // management agent. Runtime compatibility and rollback remain bound to
+    // 0.2.101 by the signed release manifest above.
+    release_id: "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1",
+    artifact_sha256: "2ea87aca47a1cf28fbc63f7186df6b0adc90d6bd12ce11fb9c9f6a4657a59201" } :
     gatewayStoragePressureResilienceUpgrade ? {
     release_id: "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1",
     artifact_sha256: "2ea87aca47a1cf28fbc63f7186df6b0adc90d6bd12ce11fb9c9f6a4657a59201" } :
