@@ -65,6 +65,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `portable-deployment`: `node scripts/qa/check-digital-observer-portable-deployment.mjs`
 - `horizontal-ai-scale`: `node scripts/qa/check-digital-observer-horizontal-scale.mjs`
 - `high-availability`: `node scripts/qa/check-digital-observer-high-availability.mjs`
+- `reliability-qualification`: `node scripts/qa/check-digital-observer-reliability-qualification.mjs`
 - `north-star-ledger`: `node scripts/qa/check-north-star-completion-ledger.mjs`
 - `watch-rules`: `node scripts/qa/check-digital-observer-watch-rule-compiler.mjs`
 - `investigation`: `node --test scripts/qa/check-digital-observer-investigation.mjs`
@@ -78,7 +79,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **165** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **167** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -120,6 +121,7 @@ Inventory count: **165** files. Classifications are conservative; environment-de
 | `scripts/qa/check-digital-observer-portable-deployment.mjs` | npm run qa:digital-observer-portable-deployment | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-product.mjs` | npm run qa:digital-observer-product | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/check-digital-observer-quality-benchmark.mjs` | npm run qa:digital-observer-quality-benchmark | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-reliability-qualification.mjs` | npm run qa:digital-observer-reliability-qualification | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-risk-decision.mjs` | npm run qa:digital-observer-risk | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | RISK / DECISION | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-storage-portability.mjs` | npm run qa:digital-observer-storage-portability | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-watch-rule-compiler.mjs` | npm run qa:digital-observer-watch-rules | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | WATCH RULES | CANONICAL CI | none known |
@@ -230,6 +232,7 @@ Inventory count: **165** files. Classifications are conservative; environment-de
 | `scripts/qa/run-clean-environment-proof.mjs` | npm run qa:digital-observer-clean-environment | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-completion-role-boundary-probes.mjs` | npm run qa:probe-role-boundaries | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-guard-preview-learning.mjs` | node scripts/qa/run-guard-preview-learning.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CONTEXT / BASELINE | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-real-home-soak.mjs` | npm run qa:digital-observer-real-home-soak | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/seed-digital-observer-reference-data.mjs` | node scripts/qa/seed-digital-observer-reference-data.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | MOCK / SHADOW ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/seed-digital-observer-runtime.sql` | SQL fixture (not directly executable) | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | MOCK / SHADOW ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/send-digital-observer-admin-set-password.mjs` | node scripts/qa/send-digital-observer-admin-set-password.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |

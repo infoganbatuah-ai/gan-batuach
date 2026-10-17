@@ -153,12 +153,15 @@ test("temporary cloud-sync failure preserves an existing secure local camera con
 test("generic RTSP discovery registers a relay source instead of probe-only readiness", () => {
   const gateway = source("services/video-gateway/server.mjs");
   const inference = source("services/video-gateway/object-inference-client.mjs");
+  const readiness = source("services/video-gateway/edge-readiness.mjs");
   assert.match(gateway, /kind: "rtsp"/);
   assert.match(gateway, /directRtsp/);
   assert.match(gateway, /-rtsp_transport/);
   assert.match(gateway, /controller\?\.abort\(\)/);
   assert.match(gateway, /relay\.process\.stdin\?\.writableNeedDrain/);
   assert.match(inference, /VIDEO_GATEWAY_OBJECT_WORKER_PATH/);
+  assert.match(readiness, /const warmup = setTimeout\(\(\) => \{[\s\S]*?void objectInference\.start\(\)/);
+  assert.doesNotMatch(readiness.slice(readiness.indexOf("function objectWorkerSelfTest()"), readiness.indexOf("function baseReadiness()")), /objectInference\.start\(/);
 });
 
 test("high-bitrate RTSP playback history keeps only the bounded event prebuffer", () => {
@@ -216,6 +219,11 @@ test("local software runtime reports its type and rejects arbitrary command", as
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.equal(health?.edgeRuntime?.device_type, "SOFTWARE_CONNECTOR");
+  assert.equal(health?.contract, "observer-edge-health-v1");
+  assert.ok(Number.isFinite(Date.parse(health?.observed_at)));
+  const liveness = await fetch(`http://127.0.0.1:${port}/health/live`).then(response => response.json());
+  assert.equal(liveness.contract, "observer-edge-liveness-v1");
+  assert.equal(liveness.ok, true);
   assert.equal(health?.edgeRuntime?.build_sha, "qa-sha");
   const now = Date.now();
   const valid = await fetch(`http://127.0.0.1:${port}/connector/command`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": "qa-signing-secret-1234567890" }, body: JSON.stringify({ id: "command-health-1234", command: "HEALTH_PROBE", issued_at: new Date(now).toISOString(), expires_at: new Date(now + 30_000).toISOString() }) });

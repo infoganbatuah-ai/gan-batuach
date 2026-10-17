@@ -1,0 +1,23 @@
+{
+  "contract": "observer-reliability-soak-state-v1",
+  "run_id": "push38-real-home-24h-v7",
+  "status": "NOT_DONE",
+  "started_at": "2026-09-11T21:08:41.574Z",
+  "started_at_ms": 1789160921574,
+  "target_ended_at": "2026-09-12T21:08:41.574Z",
+  "duration_ms": 86400000,
+  "interval_ms": 60000,
+  "deep_probe_ms": 3600000,
+  "checkpoint_count": 1418,
+  "last_checkpoint_at": "2026-09-12T21:08:03.922Z",
+  "next_deep_probe_at": 1789247869339,
+  "output_root": "/private/tmp/gan-batuach-push38/qa-evidence/push-38/real-home-24h-v7",
+  "ended_at": "2026-09-12T21:08:41.678Z",
+  "result_path": "/private/tmp/gan-batuach-push38/qa-evidence/push-38/real-home-24h-v7/result.json",
+  "gate_failures": [
+    "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT",
+    "COMPONENT_HEALTH_CHECK_FAILED",
+    "AI_PROGRESS_PROBE_FAILED",
+    "CHECKPOINT_COVERAGE_GAP"
+  ]
+}

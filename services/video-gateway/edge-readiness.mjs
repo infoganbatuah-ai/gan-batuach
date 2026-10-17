@@ -31,9 +31,8 @@ function visionWorkerSelfTest() {
 }
 
 function objectWorkerSelfTest() {
-  // Readiness and inference share the same living process. A timed-out or
-  // crashed worker immediately revokes capability instead of caching success.
-  void objectInference.start();
+  // Health reads the existing worker state; it must not start expensive work.
+  // Startup and the inference request path own worker recovery.
   return objectInference.status();
 }
 
@@ -109,7 +108,7 @@ export function warmLocalEdgeReadiness() {
   // The readiness contract remains disabled until this real self-test passes.
   const warmup = setTimeout(() => {
     baseReadiness();
-    objectWorkerSelfTest();
+    void objectInference.start();
   }, 30_000);
   warmup.unref();
 }
