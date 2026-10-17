@@ -43,15 +43,15 @@ assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "ROLLE
 assert.equal(push38ManagedAuthActivationStateAllows("connector", { state: "UPDATE_FAILED",
   current_unchanged: true }), false);
 assert.equal(push38ManagedAuthActivationStateAllows("gateway", { state: "HEALTHY" }), true);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.101-p38-health");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.version, "0.2.102-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.buildSha,
-  "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952");
+  "eb0dcd9744ad165aa840d65ba3b267844be6546c");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.digest,
-  "9cf3aa53cde89f76ec28e6b96c1be2acc9bed38642bd478f13244c0418cfa6a0");
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135903197);
-assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.100-p38-health");
+  "650e70e152b0aad9fc10801ad18676e3ea65e9ed576721375b234cfb114f64ec");
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.size, 135903718);
+assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.rollbackVersion, "0.2.101-p38-health");
 assert.equal(PUSH38_MANAGED_AUTH_CONTINUITY.gateway.role,
-  "GATEWAY_STORAGE_PRESSURE_RESILIENCE");
+  "GATEWAY_FINITE_RESPONSE_EPOCH_DRAIN");
 const gateway = PUSH38_MANAGED_AUTH_CONTINUITY.gateway;
 const gatewayManifest = buildPush38ManagedAuthContinuityManifest({ component: "gateway",
   signingKeyId: "observer-kms-release-v1", artifactOrigin: origin,
@@ -81,7 +81,7 @@ for (const [path, required] of [
     "rollback_release_id"
   ]],
   ["scripts/qa/install-push38-homeqa-ota-agent.mjs", [
-    "--connector-rtsp-recovery-continuity-upgrade", "--gateway-storage-pressure-resilience-upgrade",
+    "--connector-rtsp-recovery-continuity-upgrade", "--gateway-finite-response-epoch-drain-upgrade",
     PUSH38_MANAGED_AUTH_CONTINUITY.connector.releaseId,
     PUSH38_MANAGED_AUTH_CONTINUITY.gateway.releaseId,
     "qa-p38-health-gateway-session-age-stability-26644a5e5900",
@@ -92,14 +92,14 @@ for (const [path, required] of [
   for (const value of required) assert.ok(source.includes(value), `${path}:${value}`);
 }
 const installerSource = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
-const storagePressurePrior = installerSource.slice(
-  installerSource.indexOf("priorManagement: gatewayStoragePressureResilienceUpgrade ? {"),
-  installerSource.indexOf("gatewayStaleEpochFiniteSweepUpgrade ? {",
-    installerSource.indexOf("priorManagement: gatewayStoragePressureResilienceUpgrade ? {")));
-assert.ok(storagePressurePrior.includes(
-  'release_id: "qa-p38-health-gateway-stale-epoch-finite-sweep-2ea87aca47a1"'));
-assert.ok(storagePressurePrior.includes(
-  'artifact_sha256: "2ea87aca47a1cf28fbc63f7186df6b0adc90d6bd12ce11fb9c9f6a4657a59201"'));
+const finiteResponseEpochDrainPrior = installerSource.slice(
+  installerSource.indexOf("priorManagement: gatewayFiniteResponseEpochDrainUpgrade ? {"),
+  installerSource.indexOf("gatewayStoragePressureResilienceUpgrade ? {",
+    installerSource.indexOf("priorManagement: gatewayFiniteResponseEpochDrainUpgrade ? {")));
+assert.ok(finiteResponseEpochDrainPrior.includes(
+  'release_id: "qa-p38-health-gateway-storage-pressure-resilience-9cf3aa53cde8"'));
+assert.ok(finiteResponseEpochDrainPrior.includes(
+  'artifact_sha256: "9cf3aa53cde89f76ec28e6b96c1be2acc9bed38642bd478f13244c0418cfa6a0"'));
 
 const pair = generateKeyPairSync("ed25519");
 const publicDer = pair.publicKey.export({ format: "der", type: "spki" });
