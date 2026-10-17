@@ -771,6 +771,12 @@ test("a finite response from a stale login epoch is swept before retained HLS ex
   assert.match(server,
     /relayProgressing: relayIsProgressing\(relay\),\s+nativeInputEnded: relay\.nativeInputEnded === true/,
   "the maintenance scheduler must distinguish fresh retained HLS from a live native owner");
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({
+    relayEpoch: 131, currentEpoch: 132, relayProgressing: true,
+    nativeInputEnded: false, preserveRelayEpochsThrough: 131,
+    rotationReason: "finite_response_reopen_rejected"
+  }), true,
+  "the V8 finite-boundary race must not strand a productive recovery cohort on the retired epoch");
 });
 
 test("qualification counts bounded retained playback without inventing frame progression", () => {

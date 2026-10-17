@@ -603,6 +603,11 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     currentEpoch: 4, relayProgressing: true,
     preserveRelayEpochsThrough: 3 }), false,
   "a progressing prior-epoch owner migrates lazily instead of joining a recorder-wide sweep");
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 131,
+    currentEpoch: 132, relayProgressing: true,
+    preserveRelayEpochsThrough: 131,
+    rotationReason: "finite_response_reopen_rejected" }), true,
+  "a progressing response recovered onto the old epoch must drain after an exact finite-response rotation");
   assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 3,
     currentEpoch: 4, relayProgressing: true, nativeInputEnded: true,
     preserveRelayEpochsThrough: 3 }), true,
@@ -640,6 +645,12 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*requiresExclusiveMediaHandoff[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
     "a renewed-session sweep drains stale epochs and reuses the proven exclusive boundary");
+  assert.match(gateway,
+    /lastRotationReason: reason/,
+    "the exact rotation reason must follow the session into stale-epoch sweep selection");
+  assert.match(gateway,
+    /rotationReason: session\?\.lastRotationReason/,
+    "the stale-epoch scheduler must consume the session's exact rotation reason");
   assert.match(gateway,
     /shouldUsePrivateNvrExclusiveSessionSweep\([\s\S]*SESSION_SWEEP_OWNER_RELEASE[\s\S]*requiresExclusiveMediaHandoff = true/,
     "the first withheld candidate must teach the serialized sweep without opening a third response");

@@ -327,13 +327,24 @@ export function comparePrivateNvrHandoffPriority(left, right) {
 // between channels.
 export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
   currentEpoch, relayProgressing = false, nativeInputEnded = false,
-  preserveRelayEpochsThrough = null }) {
+  preserveRelayEpochsThrough = null, rotationReason = null }) {
   // A fresh retained HLS window is still useful playback, but once the native
   // response ended it is no longer a productive owner. If a newer authenticated
   // session already exists, preserving that stale epoch until HLS hard-stale
   // creates a synchronized recorder-wide gap. Move the ended response into the
   // existing bounded session-sweep while its retained HLS is still fresh.
-  const preservedProgressingOwner = relayProgressing && !nativeInputEnded
+  // The 0.2.101 V8 proved that a reactive finite-response rotation can race
+  // in-flight recoveries: all replacements may become productive on the old
+  // epoch, then reach the recorder's next finite-response boundary together.
+  // Keep those owners valid for request continuity, but do not let the lazy
+  // preservation boundary suppress the already-bounded epoch sweep. This is
+  // deliberately limited to an authoritative finite-response rotation; an
+  // unrelated progressing prior-epoch owner keeps the historical lazy rule.
+  const finiteResponseEpochDrain = ["finite_response_reopen_rejected",
+    "finite_response_socket_retired", "finite_response_body_retired"]
+    .includes(rotationReason);
+  const preservedProgressingOwner = !finiteResponseEpochDrain
+    && relayProgressing && !nativeInputEnded
     && Number.isInteger(preserveRelayEpochsThrough)
     && Number.isInteger(relayEpoch)
     && relayEpoch <= preserveRelayEpochsThrough;

@@ -315,7 +315,8 @@ async function maintainPrivateNvrRelayHandoffs() {
       currentEpoch: session?.epoch,
       relayProgressing: relayIsProgressing(relay),
       nativeInputEnded: relay.nativeInputEnded === true,
-      preserveRelayEpochsThrough: session?.preserveRelayEpochsThrough
+      preserveRelayEpochsThrough: session?.preserveRelayEpochsThrough,
+      rotationReason: session?.lastRotationReason
     })) {
       sessionSweep.push([streamId, relay]);
       continue;
@@ -1257,12 +1258,16 @@ async function refreshPrivateNvrSession(sessionKey, failedToken = null, reason =
     const refreshed = { ...current, ...session, epoch: (current.epoch || 0) + 1,
       updatedAt: Date.now(), refreshPromise: null,
       retiredSessions,
+      lastRotationReason: reason,
       // The Home recorder permits multiple logins but only one productive
       // response per channel. A proactive finite-boundary renewal therefore
       // starts with the already-proven exclusive sweep instead of spending a
       // concurrent acquisition window relearning that recorder contract. The
       // old HLS generation remains available until the new response proves
-      // output; reactive finite-response renewal keeps its lazy-survival rule.
+      // output. Reactive finite-response renewal keeps the old owners valid
+      // for request continuity, while its exact rotation reason moves them
+      // through the same bounded stale-epoch scheduler instead of leaving an
+      // in-flight recovery cohort on the retired epoch.
       requiresExclusiveMediaHandoff: proactive
         ? true : current.requiresExclusiveMediaHandoff,
       preserveRelayEpochsThrough: proactive
@@ -1824,7 +1829,8 @@ async function ensureRelay(streamId) {
       currentEpoch: recorderSession?.epoch,
       relayProgressing: relayIsProgressing(existing),
       nativeInputEnded: existing?.nativeInputEnded === true,
-      preserveRelayEpochsThrough: recorderSession?.preserveRelayEpochsThrough
+      preserveRelayEpochsThrough: recorderSession?.preserveRelayEpochsThrough,
+      rotationReason: recorderSession?.lastRotationReason
     }));
   if (shouldRetainPrivateNvrOwnerOnDemand({
     sourceKind: source?.kind,
