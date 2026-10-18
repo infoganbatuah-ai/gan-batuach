@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-capability-push-ownership-v1",
-  "generatedAt": "2026-10-18T00:00:00+03:00",
+  "generatedAt": "2026-10-18T06:00:00+03:00",
   "canonicalRoadmapPushCount": 52,
   "originalCapabilityCount": 190,
   "addedCapabilityCount": 7,
@@ -14,12 +14,12 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 67,
+    "FOUNDATION": 64,
     "DONE + REAL PROOF": 24,
-    "PARTIAL": 18,
+    "PARTIAL": 22,
     "EXTERNAL COVERAGE GAP": 1,
-    "IMPLEMENTED — NEEDS REAL PROOF": 36,
-    "NOT STARTED": 51
+    "IMPLEMENTED — NEEDS REAL PROOF": 42,
+    "NOT STARTED": 44
   },
   "ownershipRules": {
     "oneImplementationOwnerPerCapability": true,
@@ -1005,7 +1005,7 @@
       "sourceRow": 16,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Presets",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "FOUNDATION",
       "historicalContributorPushes": [
         22,
         39
@@ -1067,7 +1067,7 @@
       "sourceRow": 17,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Speaker",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "FOUNDATION",
       "historicalContributorPushes": [
         22,
         39
@@ -1129,7 +1129,7 @@
       "sourceRow": 18,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Siren",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "FOUNDATION",
       "historicalContributorPushes": [
         39,
         45
@@ -1191,7 +1191,7 @@
       "sourceRow": 19,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Spotlight/light",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "FOUNDATION",
       "historicalContributorPushes": [
         39
       ],
@@ -1247,7 +1247,7 @@
       "sourceRow": 20,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Vendor-agnostic action capability mapping",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         14,
         17,
@@ -2982,7 +2982,7 @@
       "sourceRow": 48,
       "section": "DECISION / AUTONOMY",
       "capabilityName": "Recommended actions",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         9,
         12,
@@ -3104,7 +3104,7 @@
       "sourceRow": 50,
       "section": "DECISION / AUTONOMY",
       "capabilityName": "Escalation",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         10,
         39
@@ -3160,7 +3160,7 @@
       "sourceRow": 51,
       "section": "DECISION / AUTONOMY",
       "capabilityName": "Emergency workflows",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         39,
         44,
@@ -3226,7 +3226,7 @@
       "sourceRow": 52,
       "section": "DECISION / AUTONOMY",
       "capabilityName": "Human verification boundaries",
-      "canonicalStatus": "PARTIAL",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         10,
         11,
@@ -3292,7 +3292,7 @@
       "sourceRow": 53,
       "section": "DECISION / AUTONOMY",
       "capabilityName": "Action authorization/policy",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         18,
         25,
@@ -3407,7 +3407,7 @@
       "sourceRow": 55,
       "section": "NATURAL LANGUAGE",
       "capabilityName": "Personalized monitoring instructions",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         12,
         39,
@@ -3516,7 +3516,7 @@
       "sourceRow": 57,
       "section": "NATURAL LANGUAGE",
       "capabilityName": "Conversational control",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         12,
         13,
@@ -3581,7 +3581,7 @@
       "sourceRow": 58,
       "section": "NATURAL LANGUAGE",
       "capabilityName": "Natural-language camera/action commands",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         12,
         22,
@@ -6268,7 +6268,7 @@
       "sourceRow": 101,
       "section": "ENTERPRISE INVESTIGATION & INTELLIGENCE",
       "capabilityName": "Alert when person/vehicle appears",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         12,
         28,
@@ -7270,7 +7270,7 @@
       "sourceRow": 118,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Result delivery",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         39,
         42

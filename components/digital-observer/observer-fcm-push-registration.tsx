@@ -81,7 +81,7 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
           icon: "/assets/digital-observer/app-icon.svg"
         });
       });
-      setState({ busy: false, registered: true, message: "המכשיר מחובר ל־Firebase Push.", error: "" });
+      setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כבויה עד אישור הפעלה נפרד.", error: "" });
     } catch (error) {
       setState({ busy: false, registered: false, message: "", error: error instanceof Error ? error.message : "לא ניתן לרשום את המכשיר." });
     }
@@ -105,7 +105,7 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
       {state.busy ? <LoaderCircle className="do-spin" /> : <Smartphone />} הפעלת Push במכשיר הזה
     </button>
     <button className="do-button primary" type="button" onClick={sendTest} disabled={testing || !state.registered}>
-      {testing ? <LoaderCircle className="do-spin" /> : <Send />} שליחת Push לבדיקה
+      {testing ? <LoaderCircle className="do-spin" /> : <Send />} בדיקת חוזה Push ללא שליחה
     </button>
     {state.message ? <p className="do-notice success"><BellRing /> {state.message}</p> : null}
     {state.error ? <p className="do-notice warn"><BellRing /> {state.error}</p> : null}

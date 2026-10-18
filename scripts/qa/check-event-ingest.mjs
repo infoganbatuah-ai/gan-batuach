@@ -46,14 +46,14 @@ class Query {
 }
 let uploads=0;
 const db={from:table=>new Query(table),storage:{from:()=>({upload:async()=>{uploads++;return {error:null};}})}};
-let pushCalls=0, pushStatus="sent";
+let pushCalls=0;
 const audits=[];
 const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   ok:(data,status=200)=>Response.json({data},{status}),fail:(error,status=400)=>Response.json({error},{status}),handleRouteError:()=>Response.json({error:"route_failure"},{status:500})
 },"@/lib/domain/digital-observer/storage-contract.mjs":{
   createStorageObjectId:({tenantId,siteId,evidenceId,variant,extension})=>`${tenantId}/${siteId}/${evidenceId}/${variant}.${extension}`,
   createSupabaseStorageBackend:({client})=>({write:async({objectId,bytes,contentType})=>{const result=await client.storage.from("digital-observer-event-media").upload(objectId,bytes,{contentType,upsert:true});if(result.error)throw new Error("storage_write_failed");return {object_id:objectId};}})
-},"@/lib/domain/push-service":{preparePushForNotification:async()=>{pushCalls++;return {logs:pushStatus?[{status:pushStatus}]:[],error:null};}},
+},"@/lib/domain/push-service":{preparePushForNotification:async()=>{pushCalls++;return {logs:[{status:"sent"}],error:null};}},
 "@/lib/security/audit-log-service":{writeAuditEvent:async input=>{
   const result=await db.from("immutable_audit_events").insert(input);
   if(result.error){immutableAuditFailures++;return;}
@@ -154,22 +154,8 @@ assert.equal(pushCalls,0,"Push requires explicit recipient/channel opt-in");
 tables.observer_alert_channel_settings.push({observer_site_id:siteId,member_profile_id:owner,channel:"push",enabled:true,severity_levels:["critical"]});
 await send(critical);
 await send(critical);
-assert.equal(pushCalls,1,"Repeated delivery requests must not resend an accepted Push");
-assert.equal(tables.digital_observer_notification_deliveries.filter(d=>d.channel==="push"&&d.delivery_status==="sent").length,1);
-pushStatus="sent_mock";
-await send({...critical,event_id:randomUUID()});
-assert.equal(tables.digital_observer_notification_deliveries.filter(d=>d.channel==="push"&&d.delivery_status==="mocked"&&d.sent_at===null).length,1,"Mock provider acceptance cannot appear as a real sent notification");
-pushStatus="";
-const failedPushEvent={...critical,event_id:randomUUID()};
-const failedPushSaved=(await (await send(failedPushEvent)).json()).data;
-assert.equal(failedPushSaved.notifications_pending,true);
-const failedDelivery=tables.digital_observer_notification_deliveries.find(d=>d.signal_id===failedPushSaved.signal_id&&d.channel==="push");
-failedDelivery.next_retry_at=null;
-assert.equal((await (await send(failedPushEvent)).json()).data.notifications_pending,true);
-failedDelivery.next_retry_at=null;
-assert.equal((await (await send(failedPushEvent)).json()).data.notifications_pending,false);
-assert.equal(failedDelivery.attempt_count,3);
-assert.equal(failedDelivery.delivery_status,"failed");
+assert.equal(pushCalls,0,"A recipient preference cannot activate external Push without an authorized PUSH 39 action intent and provider gate");
+assert.equal(tables.digital_observer_notification_deliveries.filter(d=>d.channel==="push").length,0,"Raw Event ingestion never bypasses the canonical external-delivery flow");
 tables.observer_sites[0].metadata.observer_monitoring_consent=false;
 assert.equal((await send({...offHours,event_id:randomUUID()})).status,403,"Off-hours compatibility never bypasses site monitoring consent");
 tables.observer_sites[0].metadata.observer_monitoring_consent=true;
@@ -178,5 +164,5 @@ assert.equal((await send({...offHours,event_id:randomUUID()})).status,403,"Off-h
 tables.digital_observer_camera_sources[0].metadata.monitoring_enabled=true;
 tables.video_gateway_device_enrollments[0].status="revoked";
 assert.equal((await send(event)).status,401);
-assert.equal(tables.observer_intelligence_signals.length,8);
+assert.equal(tables.observer_intelligence_signals.length,6);
 console.log("Event ingestion checks passed: token validation, revocation, scope, consent, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");
