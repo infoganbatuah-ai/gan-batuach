@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-19T12:30:00.000Z",
+  "observedAt": "2026-10-18T23:44:00.000Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7633,18 +7633,18 @@
       "sourceCommit": "be485dab83546c1acd550d9bd9c89b555d1d1e6b",
       "sourceHead": "be485dab83546c1acd550d9bd9c89b555d1d1e6b",
       "remoteBranch": "origin/codex/push-41-enterprise-identity",
-      "integrationCommit": null,
+      "integrationCommit": "2d581c9acd60f811cdb210ac019eaf537e390c3a",
       "inGit": true,
-      "inIntegration": false,
-      "inclusion": "PUSHED_REMOTE_PENDING_INTEGRATION",
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20261019020000",
       "requiredPredecessor": "20261019010000_digital_observer_push40_commercial_billing.sql",
       "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
-      "developmentApproval": "BRANCH_VALIDATED_PENDING_EXACT_HEAD_CI_AND_INTEGRATION",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": [
         "20261019010000"
       ],
-      "developmentApprovalEvidence": "Source commit be485dab83546c1acd550d9bd9c89b555d1d1e6b passed branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 251, release contract, focused PUSH 41 QA and PUSH 39/40 regressions. Application is allowed only after exact-head required CI and Development integration.",
+      "developmentApprovalEvidence": "PR #201 exact head 2a9b7084219144e9cf4dadbca8ba5a28d6e728ef passed all nine required checks and merged with preserved ancestry as 2d581c9acd60f811cdb210ac019eaf537e390c3a. Branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 251, release contract, focused PUSH 41 QA and PUSH 39/40 regressions passed. Isolated Development pre-apply custom-format backup /private/tmp/push41-development-pre-migration.dump has SHA-256 80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99 and a verified pg_restore archive listing. No Production access.",
       "developmentApplied": "NO",
       "developmentAppliedAt": null,
       "developmentEvidence": null,
@@ -7652,11 +7652,11 @@
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
       "recovery": "Forward-only additive Enterprise identity schema. Before isolated Development application, take and verify a recoverable backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit the migration after application.",
-      "developmentStatusReason": "Remote-preserved branch migration awaits exact-head CI, Development integration, backup and isolated Development application",
+      "developmentStatusReason": "Exact-head CI, ancestry-preserving Development integration and pre-apply backup passed; approved only for canonical isolated Development application",
       "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 250,
+  "developmentExpected": 251,
   "developmentAppliedVerified": 250,
   "blockers": [],
   "localObservations": [
