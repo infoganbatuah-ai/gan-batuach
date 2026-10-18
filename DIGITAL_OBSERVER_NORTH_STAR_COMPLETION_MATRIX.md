@@ -11,6 +11,9 @@ This register maps every requested North-Star capability to an existing canonica
 
 | Capability | Previous Status | New Status | PUSH / reason | Evidence added, removed or reinterpreted |
 |---|---|---|---|---|
+| PUSH 39 provider delivery / escalation group (DO-NS-020, 048, 050, 052, 053, 118) | FOUNDATION or PARTIAL | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 deterministic closure | Provider-neutral disabled/sandbox adapters, durable attempts, bounded retry/dead-letter, delivery-time authorization, acknowledgements, bounded escalation, human action gates and minimized audit contracts are implemented. No external provider sandbox or Production receipt is claimed. |
+| PUSH 39 physical-action contract group (DO-NS-016–019) | Previous: NOT STARTED | FOUNDATION | PUSH 39 fail-closed capability mapping | Preset, speaker, siren and light are explicitly mapped to live capability checks and human confirmation. Unsupported actions are rejected; no real execution proof exists. |
+| PUSH 39 interaction group (DO-NS-051, 055, 057, 058, 101) | NOT STARTED or FOUNDATION | PARTIAL | PUSH 39 action-intent boundary | Structured natural-language proposals, recipient preferences, Watch Rule provenance gating and emergency/legal blocks exist. Provider pilots, session continuity, real-device execution and lawful identity/vehicle watch proof remain absent. |
 | Reliability qualification ledger | Previous: no PUSH 38 execution evidence | New: preliminary harness evidence only; no capability status change | PUSH 38 start | Full 10/100/1,000 synthetic workloads and canonical fault suites pass, but the required 24-hour real-Home soak has not elapsed. Counts remain unchanged and no long-duration capability is promoted early. |
 | Fleet Management count ledger | Reported aggregate: `22 DONE / 15 implemented / 70 foundation / 18 partial / 64 not started / 1 external` | Matrix truth retained: `24 / 20 / 69 / 17 / 59 / 1` | PUSH 23 reconciliation | PUSH 22 report arithmetic did not match its committed 190-row matrix. No row-level transition supported the reported regression, so no capability was silently downgraded. |
 | Camera Health | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 23 canonical health contract | Added bounded dimensions, expiry, expected/capacity denominator, common-cause root cause, flapping, API/UI and nine deterministic failure cases. Real destructive fault proof remains outstanding. |
@@ -61,11 +64,11 @@ This register maps every requested North-Star capability to an existing canonica
 | Universal Camera Controls | FOUNDATION | Capability and command allow-list foundations | 14, 22, 39 | Vendor-agnostic control execution and policy | Real authorized controls across two vendors |
 | PTZ | FOUNDATION | Capability representation only | 14, 22, 39 | Implement supported adapter controls | Real pan, tilt and stop with authorization/audit |
 | Zoom | FOUNDATION | Capability representation only | 14, 22, 39 | Implement optical/digital capability mapping | Real supported zoom action and fallback proof |
-| Presets | NOT STARTED | No real preset execution proof | 22, 39 | Preset discovery, validation and execution | Real preset recall with tenant/action policy |
-| Speaker | NOT STARTED | No real two-way audio proof | 22, 39 | Audio capability, consent and transport | Authorized real-device audio proof |
-| Siren | NOT STARTED | No real siren action proof | 39, 45 | Safety policy, consent and adapter | Real bounded action with audit and cancellation |
-| Spotlight/light | NOT STARTED | No real light action proof | 39 | Capability mapping and adapter execution | Real bounded action with failure recovery |
-| Vendor-agnostic action capability mapping | FOUNDATION | Registry and strategy capability model | 14, 17, 39 | Add action schema and vendor implementations | Conformance tests plus two real vendors |
+| Presets | FOUNDATION | PUSH 39 maps presets to PTZ capability plus a discovered allow-list and rejects absent presets | 22, 39 | Vendor discovery and execution adapter | Real preset recall with tenant/action policy |
+| Speaker | FOUNDATION | PUSH 39 maps speaker to two-way-audio capability and requires reviewed content, legal gate and human confirmation | 22, 39 | Approved audio consent, transport and adapter | Authorized real-device audio proof |
+| Siren | FOUNDATION | PUSH 39 action intent and physical capability contract fail closed behind legal and immediate human gates | 39, 45 | Approved adapter and lawful pilot | Real bounded action with audit and cancellation |
+| Spotlight/light | FOUNDATION | PUSH 39 action intent and capability mapping reject unsupported or unconfirmed light actions | 39 | Vendor adapter execution | Real bounded action with failure recovery |
+| Vendor-agnostic action capability mapping | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 maps PTZ, zoom, preset, speaker, siren and light to normalized capability gates with unsupported-action rejection | 14, 17, 39 | Vendor implementations and real conformance | Conformance tests plus two real vendors |
 
 ## OBSERVER INTELLIGENCE
 
@@ -103,22 +106,22 @@ This register maps every requested North-Star capability to an existing canonica
 | Verification | DONE + REAL PROOF | Independent verification state in decision flow | 10 | More signals and time-to-verification data | Real representative false-alarm reduction |
 | Decision | DONE + REAL PROOF | Canonical auditable decision persisted | 9, 10 | Action policies and external outcomes | Real decision-to-action pilot |
 | Predictive risk | FOUNDATION | Baseline and risk primitives exist | 8, 9, 28, 32 | Prospective models and guardrails | Time-separated validated real dataset |
-| Recommended actions | FOUNDATION | Decision/rule output can represent guidance | 9, 12, 39 | Action catalog and policy | Real operator acceptance/effectiveness proof |
+| Recommended actions | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 structured action intents reuse canonical Decision/Watch Rule provenance and never execute a proposal directly | 9, 12, 39 | Operator-effectiveness evidence | Real operator acceptance/effectiveness proof |
 | Autonomous camera actions | NOT STARTED | No autonomous physical action claim | 22, 39, 45 | Authorization, safeguards and adapters | Real reversible action with audit and fail-safe |
-| Escalation | FOUNDATION | Decision and provider boundaries exist | 10, 39 | Production provider workflows | Real acknowledged escalation pilot |
-| Emergency workflows | NOT STARTED | No production emergency integration | 39, 44, 45, 46 | Legal, provider and human-response design | Approved real drill with failure handling |
-| Human verification boundaries | PARTIAL | Feedback/review and verification separation | 10, 11, 39, 45 | Define mandatory human gates by action | Policy audit plus real workflow proof |
-| Action authorization/policy | FOUNDATION | RBAC and command allow-list controls | 18, 25, 39, 41 | Fine-grained action policy engine | Cross-role negative tests and real action audit |
+| Escalation | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 bounded chains, acknowledgement timers, duplicate-step rejection, cancellation/closure and concurrency guard | 10, 39 | External provider workflow and operator pilot | Real acknowledged escalation pilot |
+| Emergency workflows | PARTIAL | PUSH 39 provides emergency intent, explicit confirmation and lawful-use gates; providers and legal approval remain disabled | 39, 44, 45, 46 | Legal, provider and human-response activation | Approved real drill with failure handling |
+| Human verification boundaries | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 requires immediate confirmation for physical/emergency actions and disables persistent-policy execution | 10, 11, 39, 45 | Cross-role and real operator workflow proof | Policy audit plus real workflow proof |
+| Action authorization/policy | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 delivery-time tenant/Site/member/preference/legal checks, provenance gates, action audit and fail-closed provider modes | 18, 25, 39, 41 | External assessment and real action audit | Cross-role negative tests and real action audit |
 
 ## NATURAL LANGUAGE
 
 | Capability | Current Status | Existing Proof | Owning Canonical PUSH | Remaining Work | Final Proof Required |
 |---|---|---|---|---|---|
 | Watch Rule Compiler | DONE + REAL PROOF | Hebrew intent compiled, confirmed and matched real Event | 12 | Expand language and ambiguity evidence | Real tenant-safe rule suite |
-| Personalized monitoring instructions | FOUNDATION | Structured rules and scoped feedback | 12, 39, 45 | Preference model and consent | Real user-controlled longitudinal pilot |
+| Personalized monitoring instructions | PARTIAL | PUSH 39 adds recipient channel preferences, quiet hours, timezone, localization, consent/legal basis and revocation checks | 12, 39, 45 | Longitudinal monitoring preference model and legal review | Real user-controlled longitudinal pilot |
 | Investigation | DONE + REAL PROOF | Tenant-safe real Event/Incident/Evidence search | 13 | Broader enterprise data and latency | External user investigation benchmark |
-| Conversational control | FOUNDATION | NL compiler/search boundaries exist | 12, 13, 39, 42 | Session, authorization and confirmation UX | Real bounded conversation with negative tests |
-| Natural-language camera/action commands | NOT STARTED | No physical command execution proof | 12, 22, 39 | Intent-to-policy/action pipeline | Authorized real-device command with confirmation/audit |
+| Conversational control | PARTIAL | PUSH 39 provides a one-turn natural-language proposal and explicit confirmation UI; no conversational session is claimed | 12, 13, 39, 42 | Session continuity and external proof | Real bounded conversation with negative tests |
+| Natural-language camera/action commands | PARTIAL | PUSH 39 compiles bounded proposals into non-executing action intents with policy/human gates; real-device execution is absent | 12, 22, 39 | Connect approved intents to supported real-device adapters | Authorized real-device command with confirmation/audit |
 
 ## IDENTITY / BIOMETRICS
 
@@ -176,7 +179,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Current/live investigation | FOUNDATION | Recent event search and live view exist | 13, 18, 27, 42, 48 | Live query subscription and scale | Real ongoing incident operator test |
 | Continuous Watch | FOUNDATION | Watch rules exist | 12, 39, 48 | Persistent cross-camera targets and alerts | Real long-running watch pilot |
 | Watch Targets | FOUNDATION | Rule model can target scoped resources | 12, 39, 45, 48 | Identity/vehicle/object target governance | Authorized real target workflow |
-| Alert when person/vehicle appears | NOT STARTED | No lawful identity/vehicle watch proof | 12, 28, 39, 45, 48 | Matching, consent and escalation | Approved real alert proof |
+| Alert when person/vehicle appears | PARTIAL | PUSH 39 accepts only confirmed Watch Rules bound to REAL_CAMERA_AI signals before creating a non-executing action intent | 12, 28, 39, 45, 48 | Lawful matching, provider delivery and real pilot | Approved real alert proof |
 | Behavioral Watch Targets | FOUNDATION | Rules, context and risk primitives | 8, 9, 12, 28, 48 | Behavior models and quality | Real representative behavior pilot |
 | Investigation Reports | FOUNDATION | Grounded result and evidence references | 13, 42, 48, 50 | Export, provenance and review | External operator-generated report |
 | Evidence references | DONE + REAL PROOF | Signed private evidence links in Product | 7, 13, 42 | External API references | Independent API consumer proof |
@@ -198,7 +201,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Event callbacks | FOUNDATION | Outbox and provider primitives | 4, 39, 42 | Public callback contract | Real external consumer delivery proof |
 | Investigation API | NOT STARTED | Product investigation API is not public platform | 13, 42 | Scoped public contract | Independent consumer query proof |
 | Watch API | NOT STARTED | Product watch rules are not public platform | 12, 42 | Scoped public rule lifecycle | Independent consumer conformance proof |
-| Result delivery | FOUNDATION | Notifications/outbox architecture | 39, 42 | Public delivery providers and audit | External end-to-end receipt proof |
+| Result delivery | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 durable delivery state, six provider-neutral channels, idempotency, retry/dead-letter, signed callback, acknowledgement and cost attribution | 39, 42 | Real external sandbox/provider receipts | External end-to-end receipt proof |
 | Evidence references for integrations | FOUNDATION | Authorized evidence references exist internally | 7, 42 | External scoped reference lifecycle | Independent consumer opens authorized evidence |
 | Deep-link/open-camera in customer VMS | NOT STARTED | No customer VMS deep-link proof | 42, 43, 47 | Vendor-specific deep-link mapping | Real VMS integration proof |
 | Embedded Intelligence | FOUNDATION | Observer Core/domain separation exists | 31, 32, 43 | Supported embedding contract | External-host sample app |
@@ -304,10 +307,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 36 |
-| `FOUNDATION` | 64 |
-| `PARTIAL` | 18 |
-| `NOT STARTED` | 47 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 42 |
+| `FOUNDATION` | 61 |
+| `PARTIAL` | 22 |
+| `NOT STARTED` | 40 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 
@@ -336,10 +339,10 @@ Seven later canonical requirements were not represented as distinct capabilities
 | Status | Original 190 | Additions | Reconciled total |
 |---|---:|---:|---:|
 | `DONE + REAL PROOF` | 24 | 0 | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 36 | 0 | 36 |
-| `FOUNDATION` | 64 | 3 | 67 |
-| `PARTIAL` | 18 | 0 | 18 |
-| `NOT STARTED` | 47 | 4 | 51 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 42 | 0 | 42 |
+| `FOUNDATION` | 61 | 3 | 64 |
+| `PARTIAL` | 22 | 0 | 22 |
+| `NOT STARTED` | 40 | 4 | 44 |
 | `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
 | **TOTAL** | **190** | **7** | **197** |
 

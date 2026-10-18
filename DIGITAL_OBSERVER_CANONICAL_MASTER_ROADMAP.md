@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-10 (PUSH 34 storage-portability closure; original reconciliation retained below)
+Date: 2026-10-18 (PUSH 39 branch-validation update; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,8 +10,8 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential scope: **PUSH 38 — Reliability, Load, Soak and Chaos Qualification — IN PROGRESS**. The repeatable harness and preliminary local load/chaos qualification exist; canonical completion still requires the full real 24-hour Home soak, final gates, PR merge and verified `origin/main`.
-PUSH 24/25/27 remain DONE EARLY and dependency-valid. PUSH 39 remains not started.
+PUSH 38 is **DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS**. The owner acceptance does not rewrite the failed V7/pre-soak evidence, 0.2.100/0.2.101 `NOT_DONE` history, 0.2.102 limitations or the missing uninterrupted 24-hour proof; those obligations remain assigned to future proof owners.
+Current sequential scope: **PUSH 39 — External Notifications, Actions and Escalation — VALIDATED ON FEATURE BRANCH / NOT DONE**. Internal implementation and deterministic branch-local gates pass at commit `48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0`; Development integration, migration application, cumulative full-stack verification and external provider sandbox receipts remain open. PUSH 24/25/27 remain DONE EARLY and dependency-valid.
 
 ## Status semantics
 
@@ -46,8 +46,8 @@ PUSH 34     DONE ON VERIFIED PR MERGE — storage abstraction, local/NAS provide
 PUSH 35     DONE ON VERIFIED PR MERGE — clean tracked deployment, portable restore and no-office runtime contract
 PUSH 36     DONE ON VERIFIED PR MERGE — local multi-process horizontal foundation; no multi-host claim
 PUSH 37     DONE ON VERIFIED PR MERGE — local multi-node HA/fencing plus production-ready shared queue contract; no zone/provider claim
-PUSH 38     IN PROGRESS — mandatory 24-hour real-Home evidence running
-PUSH 39     NOT STARTED
+PUSH 38     DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS; strict proof gaps retained
+PUSH 39     VALIDATED ON FEATURE BRANCH — NOT DONE; integration, Development migration and external proof pending
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
@@ -247,8 +247,8 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 35 | Portable Deployment and No-Office Dependency | Run core services on reproducible dedicated/cloud infrastructure without office dependency. | 52/41; T16/11; DF45/43 | PUSH 17,24,34; connector/Gateway hardening | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Clean tracked environment installs, builds, restores representative canonical state, verifies the model artifact, starts Web health and contains no critical office/developer-machine runtime dependency. |
 | 36 | Horizontal Queue and Worker Scale Foundation | Partition tenants/cameras and scale stateless processing horizontally. | 52/40,45; T16/11; DF45/40,44 | PUSH 31,35; scale foundation | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Four local processes share one durable queue without duplicate effects; 4 workers improve identical-workload throughput 3.19× with queue-age/fairness/worker-loss evidence. SQLite is explicitly single-host; Production multi-host proof remains PUSH 37–38. |
 | 37 | High Availability, Load Balancing and Failover | Eliminate single points of failure across API, workers, DB, storage and device control. | 52/41,45; T16/11; DF45/44 | PUSH 35–36; scale foundation | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Health-aware local multi-node routing, worker/queue recovery, bounded DB/storage failure behavior and fenced device ownership pass with zero acknowledged loss/duplicate effects. Postgres shared-queue contract exists; multi-host/zone/provider evidence remains explicit. |
-| 38 | Reliability, Load, Soak and Chaos Qualification | Prove 24/7 behavior at 10, 100 and 1,000-camera milestones. | 52/45–46; S16/15; T16/15 | PUSH 23,31,36–37; scale foundation | SEQUENTIAL | IN PROGRESS — SOAK EVIDENCE INCOMPLETE | Repeatable harness, full local 10/100/1,000 synthetic workloads and canonical fault suites pass preliminarily; canonical completion waits for at least 24 actual elapsed real-Home hours and final PR merge. |
-| 39 | External Notifications, Actions and Escalation | Activate provider-isolated push/email/SMS/WhatsApp/webhook/phone workflows safely. | 52/35; S16/13; DF45/44 | PUSH 10,25,27; provider sandboxes | SEQUENTIAL | NOT STARTED | Each enabled provider passes sandbox retry/dedupe/ack/quiet-hours/failure tests; production activation is explicit and reversible. |
+| 38 | Reliability, Load, Soak and Chaos Qualification | Prove 24/7 behavior at 10, 100 and 1,000-camera milestones. | 52/45–46; S16/15; T16/15 | PUSH 23,31,36–37; scale foundation | SEQUENTIAL | DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS | The owner accepted the Development closure without an uninterrupted 24-hour PASS. Failed V7/pre-soak evidence, 0.2.100/0.2.101 `NOT_DONE`, 0.2.102 limitations and all assigned future proof obligations remain immutable and are not upgraded to real proof. |
+| 39 | External Notifications, Actions and Escalation | Activate provider-isolated push/email/SMS/WhatsApp/webhook/phone workflows safely. | 52/35; S16/13; DF45/44 | PUSH 10,25,27; provider sandboxes | SEQUENTIAL | VALIDATED ON FEATURE BRANCH — NOT DONE | Provider-neutral orchestration, durable delivery/retry/ack/escalation, recipient revalidation, human action gates, signed-webhook contracts and Product UI pass deterministic branch-local gates at `48a7c4d8`. Development integration/migration/full-stack gates and real provider sandbox receipts remain open; Production modes remain disabled. |
 | 40 | Billing, Subscription and Entitlement Production | Activate payment/invoice lifecycle and camera/AI entitlements. | 52/44,50; S16/15 | PUSH 25,39; provider/legal approval | SEQUENTIAL | NOT STARTED | Sandbox then limited production checkout, webhook idempotency, refund/failure/grace and entitlement reconciliation pass. |
 | 41 | Enterprise Tenancy, RBAC, SSO and Service Accounts | Support organizations, multi-site policy, monitoring teams and machine identities. | 52/6–7,47,49; S16/5; T16/13 | PUSH 25–26,36; scale foundation | SEQUENTIAL | NOT STARTED | External tenant-isolation test, role matrix, SSO and scoped service-account flows pass across multiple organizations/sites. |
 | 42 | External API and Webhook Platform | Publish versioned tenant-scoped API with auth, limits, audit and docs. | 52/49; S16/14; T16/14 | PUSH 25,26,41 | SEQUENTIAL | NOT STARTED | Independent consumer completes camera/status/event/evidence integration from published docs and conformance tests. |

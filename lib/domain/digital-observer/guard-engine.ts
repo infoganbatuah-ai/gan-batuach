@@ -255,11 +255,14 @@ export function authorizeAutonomousGuardAction(input: {
     || policy.sirenDurationMs !== 1000)) return blocked("siren_requires_critical_line_crossing");
   if (!capabilityDecision.allowed || capabilityDecision.action !== action
     || capabilityDecision.state !== "pending_human_confirmation") return blocked("live_capability_unavailable");
+  // PUSH 39 supersedes persistent-policy execution for sensitive physical
+  // effects. A policy and a verified event may recommend an action, but they
+  // cannot substitute for an immediate, explicit human confirmation.
   return {
-    state: "authorized_by_persistent_policy" as const,
-    dispatch_allowed: true as const,
-    requires_human_confirmation: false as const,
-    authorization_kind: "digital_guard_policy" as const,
+    state: "pending_human_confirmation" as const,
+    dispatch_allowed: false as const,
+    requires_human_confirmation: true as const,
+    authorization_kind: "explicit_human_confirmation_required" as const,
     policy_id: policy.id,
     event_id: event.id,
     action,
@@ -270,7 +273,8 @@ export function authorizeAutonomousGuardAction(input: {
     channel: capabilityDecision.channel,
     source_generation: capabilityDecision.source_generation,
     binding_generation: capabilityDecision.binding_generation,
-    evidence_id: capabilityDecision.evidence_id
+    evidence_id: capabilityDecision.evidence_id,
+    reason: "push39_explicit_human_confirmation_required" as const
   };
 }
 
