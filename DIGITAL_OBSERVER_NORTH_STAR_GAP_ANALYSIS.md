@@ -79,4 +79,4 @@ One hundred seventy-three rows are not DONE + REAL PROOF. Some require implement
 
 ## Validation outcome
 
-All 197 IDs are unique and accounted for. All 52 PUSHes are accounted for. No capability has more than one accountable implementation owner. No PUSH 38 failure or exception is removed. The audit makes no source-code, migration, main or Production change.
+All 197 IDs are unique and accounted for. All 52 PUSHes are accounted for. No capability has more than one accountable implementation owner. No PUSH 38 failure or exception is removed. The audit makes no application-source, migration, main or Production change. Its only workflow change corrects the secret scanner's `sk-` token boundary so canonical `disk-pressure` evidence is preserved without weakening detection of actual key-shaped tokens.

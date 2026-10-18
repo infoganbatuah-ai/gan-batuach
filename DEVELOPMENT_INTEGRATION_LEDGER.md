@@ -1044,8 +1044,12 @@ the owner-approved acceptance exception while retaining both failed V8
 histories, the shortened recovery exceptions and every outstanding proof
 obligation. Validation passed the North-Star ledger guard, the 197-row
 ownership/52-PUSH reconciliation guard, typecheck, zero-regression lint,
-migration health for 247 files and release-contract checks. No source code,
-migration, provider, paid capacity, `main` or Production state changed. This
-unit is `PRESERVED_PENDING_INTEGRATION`; scoped PR #184 targets
+migration health for 247 files and release-contract checks. The PR's first
+security run exposed a pre-existing false positive where the scanner treated
+`sk-` inside canonical `disk-pressure` evidence as a key prefix; its token
+boundary was corrected without excluding the evidence or weakening standalone
+key-shape detection. No application source, migration, provider, paid capacity,
+`main` or Production state changed. This unit is
+`PRESERVED_PENDING_INTEGRATION`; scoped PR #184 targets
 `integration/development` and remains open pending exact-head checks and
 review. It must not be merged to `main` or treated as Production authorization.

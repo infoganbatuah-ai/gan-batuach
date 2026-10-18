@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T10:36:25Z",
+  "updatedAt": "2026-10-18T10:41:29Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10937,9 +10937,10 @@
           "DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json",
           "North-Star ledger validator PASS: original 190 capability identities and statuses preserved",
           "Reconciliation validator PASS: 197 unique capability IDs, 197 implementation owners, 197 proof owners, and 52 roadmap PUSHes",
-          "Typecheck PASS; zero-regression lint PASS; migration health PASS for 247 files; release-contract PASS"
+          "Typecheck PASS; zero-regression lint PASS; migration health PASS for 247 files; release-contract PASS",
+          "Secret-scan boundary regression PASS: canonical disk-pressure evidence is not a token; standalone sk-prefixed key shapes remain detected"
         ],
-        "limits": "Documentation-only reconciliation. No continuous 24-hour PUSH38 PASS is claimed; the 0.2.100 and 0.2.101 V8 failures and the 0.2.102 three-hour exceptions remain preserved. No implementation PUSH, main change, Production deployment, Production migration, provider mutation or paid capacity change occurred."
+        "limits": "Documentation reconciliation plus one scoped CI scanner-boundary correction. No continuous 24-hour PUSH38 PASS is claimed; the 0.2.100 and 0.2.101 V8 failures and the 0.2.102 three-hour exceptions remain preserved. No application implementation PUSH, main change, Production deployment, Production migration, provider mutation or paid capacity change occurred."
       },
       "integration": {
         "status": "PRESERVED_PENDING_INTEGRATION",
@@ -10956,7 +10957,7 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_MATRIX_197_OWNER_197_ROADMAP_52_TYPECHECK_LINT_MIGRATIONS_RELEASE_CONTRACT",
+      "localVerification": "PASS_MATRIX_197_OWNER_197_ROADMAP_52_TYPECHECK_LINT_MIGRATIONS_RELEASE_CONTRACT_SECRET_SCAN_BOUNDARY",
       "releaseEligibility": "DOCUMENTATION_ONLY_PENDING_DEVELOPMENT_PR_REVIEW",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
