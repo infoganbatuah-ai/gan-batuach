@@ -1,7 +1,9 @@
 # DIGITAL OBSERVER — PUSH 40 SUPPLIER RECONCILIATION
 
-Date: 2026-10-19  
-Scope: read-only supplier/account/integration/cost reconciliation; no provider activation, live message, real payment, Production change or main change  
+Date: 2026-10-19
+
+Scope: read-only supplier/account/integration/cost reconciliation; no provider activation, live message, real payment, Production change or main change
+
 Canonical financial record: restricted `exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md` (this report is a redacted status/evidence pointer, not a second cost ledger)
 
 ## Result
