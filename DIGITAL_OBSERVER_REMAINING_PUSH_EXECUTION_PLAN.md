@@ -2,13 +2,13 @@
 
 Date: 2026-10-18
 Scope: canonical PUSH 39–52 only
-This document does not start PUSH 39 and does not replace existing PUSH definitions.
+PUSH 39 implementation has started under the separately authorized canonical task. This document does not replace existing PUSH definitions and does not authorize PUSH 40, main or Production.
 
 ## Sequence and acceptance reconciliation
 
 | PUSH | Existing objective | Actual status | Primary capability ownership | Dependencies | Reconciled acceptance and real proof |
 |---:|---|---|---|---|---|
-| 39 | External Notifications, Actions and Escalation | NOT STARTED | Providers, callbacks, actions, escalation, quiet hours, acknowledgement | 10, 25, 27; provider sandboxes | Sandbox retry/dedupe/ack/failure; explicit reversible activation; no automatic sensitive action |
+| 39 | External Notifications, Actions and Escalation | VALIDATED ON FEATURE BRANCH — NOT DONE | Providers, callbacks, actions, escalation, quiet hours, acknowledgement | 10, 25, 27; provider sandboxes | Deterministic implementation gates pass at `48a7c4d8`; Development integration/migration/full-stack verification and real provider sandbox retry/dedupe/ack/failure receipts remain open; explicit reversible activation; no automatic sensitive action |
 | 40 | Billing, Subscription and Entitlement Production | NOT STARTED; schemas/auth/package foundation exists | Live checkout, invoices, entitlements, partner metering, self-service activation | 25, 39; payment/invoice/legal approval | Sandbox then limited authorized production; webhook idempotency, refunds, grace, cancellation and usage reconciliation |
 | 41 | Enterprise Tenancy, RBAC, SSO and Service Accounts | NOT STARTED; tenant/Site/RLS foundations exist | Organizations, multi-Site roles, SSO/SCIM, service accounts, SLA/access policy | 25, 26, 36 | Independent multi-organization isolation, role matrix, credential rotation and audit |
 | 42 | External API and Webhook Platform | NOT STARTED; internal APIs only | Public API, Gan Batuach contract, VMS/source integrations, webhooks, sandbox/docs | 25, 26, 41 | Independent consumer conformance; versioning, rate limits, idempotency, signed webhooks and authorized Evidence |
@@ -39,4 +39,4 @@ Every PUSH uses an isolated branch, exact-head CI, risk-specific tests, remote p
 
 ## Next canonical PUSH
 
-PUSH 39 is next because the roadmap is sequential after the owner-accepted Development closure of PUSH 38. It unlocks provider-safe notifications/actions needed by billing, mobile and pilots. This reconciliation stops before implementation.
+PUSH 40 is the next readiness target only after PUSH 39 closes its Development integration, isolated migration and cumulative local Product gates. PUSH 40 is not started here. PUSH 39 external-provider, real-action and legally sensitive proof remains explicitly assigned to PUSH 45/46 and the provider-specific release gates; it is not converted into real proof by deterministic implementation.
