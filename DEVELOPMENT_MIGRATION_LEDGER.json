@@ -7532,6 +7532,35 @@
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "58c13ddbe5d3675c1343e13513d8e90bc33fc80d06de7180999c90f579e8a712",
       "developmentSchemaFingerprint": "2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6"
+    },
+    {
+      "file": "supabase/migrations/20261018010000_digital_observer_push39_orchestration.sql",
+      "blob": "569c7211d7f516fe5df37b0e94994d5bb786507a",
+      "version": "20261018010000",
+      "sourceTask": "PUSH 39",
+      "sourceCommit": "48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0",
+      "sourceHead": "5fe182eacf1bc73450ab8837c86b689376070ef0",
+      "remoteBranch": "origin/codex/push-39-external-actions",
+      "integrationCommit": "6236718c1cd05b084d3827526f6fc43980a2cb7b",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261018010000",
+      "requiredPredecessor": "20260928010000_management_staff_candidate_manager_review.sql",
+      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20260928010000"
+      ],
+      "developmentApprovalEvidence": "PR #186 exact head 5fe182eacf1bc73450ab8837c86b689376070ef0 passed all nine required checks and merged with preserved ancestry as 6236718c1cd05b084d3827526f6fc43980a2cb7b. Branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 248 and focused orchestration QA passed. Isolated Development pre-apply custom-format backup /private/tmp/push39-dev-pre-migration.dump has SHA-256 7087464dd8eb376f1640b121c8d5daf413567d7aff86af885e04a2f46cb0d362 and a verified pg_restore archive listing. No Production access.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "NO",
+      "productionEvidence": "Production application was not authorized and was not attempted.",
+      "recovery": "Additive orchestration schema with default-disabled provider rows plus explicit revocation of autonomous physical execution. Restore the verified isolated Development backup if verification fails, or use a reviewed forward-only corrective migration; do not edit this migration after application.",
+      "developmentStatusReason": "Integrated and exact-head CI validated; awaiting canonical isolated Development application. Production remains unchanged."
     }
   ],
   "developmentExpected": 247,
@@ -12749,35 +12778,6 @@
       "integrationCommit": null,
       "inclusion": "LOCAL_OBSERVATION_NOT_A_GIT_VARIANT",
       "developmentApplied": "NO"
-    },
-    {
-      "file": "supabase/migrations/20261018010000_digital_observer_push39_orchestration.sql",
-      "blob": "569c7211d7f516fe5df37b0e94994d5bb786507a",
-      "version": "20261018010000",
-      "sourceTask": "PUSH 39",
-      "sourceCommit": "48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0",
-      "sourceHead": "b4e33cb6f3119def8e78816ac9a65f4b0273aa31",
-      "remoteBranch": "origin/codex/push-39-external-actions",
-      "integrationCommit": null,
-      "inGit": true,
-      "inIntegration": false,
-      "inclusion": "READY_TO_INTEGRATE",
-      "releaseOrder": "20261018010000",
-      "requiredPredecessor": "20260928010000_management_staff_candidate_manager_review.sql",
-      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
-      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": [
-        "20260928010000"
-      ],
-      "developmentApprovalEvidence": "PUSH 39 branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 248 and focused orchestration QA PASS at implementation commit 48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0. Approval is limited to canonical isolated Development after remote integration and exact-head CI.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
-      "productionApplied": "NO",
-      "productionEvidence": "Production application was not authorized and was not attempted.",
-      "recovery": "Additive orchestration schema with default-disabled provider rows plus explicit revocation of autonomous physical execution. Apply only after a fresh isolated Development backup. If verification fails, restore that protected Development backup or use a reviewed forward-only corrective migration; do not edit this migration after application.",
-      "developmentStatusReason": "Validated branch migration awaiting remote integration and canonical isolated Development application. Production remains unchanged."
     },
     {
       "task": "POST_PUSH38_CANONICAL_CLOSURE_PR184",
