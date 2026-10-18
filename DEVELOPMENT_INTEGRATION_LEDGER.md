@@ -1102,6 +1102,8 @@ for the canonical isolated Development database after remote integration; it
 has not been applied yet. Real provider sandbox receipts for Push, email, SMS,
 WhatsApp, webhook and phone remain unavailable, all provider modes remain
 disabled, and no external recipient or physical action was contacted. The
-unit remains `VALIDATED_ON_BRANCH` pending remote preservation, exact-head CI,
-Development integration/migration and cumulative local full-stack proof.
+unit is remotely preserved through ledger commit
+`b4e33cb6f3119def8e78816ac9a65f4b0273aa31` and is `PUSHED_REMOTE`, pending
+the scoped PR, exact-head CI, Development integration/migration and cumulative
+local full-stack proof.
 PUSH 38 exceptions remain unchanged; main and Production remain unchanged.
