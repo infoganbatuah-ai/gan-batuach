@@ -1,6 +1,16 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
-  "updatedAt": "2026-10-19",
+  "updatedAt": "2026-10-19T00:00:00+03:00",
+  "supplierReconciliation": {
+    "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
+    "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
+    "rules": [
+      "Account existence is not operational integration",
+      "Configured integration is not real provider proof",
+      "Provider dashboards and invoices remain authoritative for account status, usage and cost",
+      "No provider activation, purchase, upgrade, live customer contact or Production mutation is authorized by this register"
+    ]
+  },
   "canonicalOwner": "integration/development",
   "principles": {
     "defaultState": "DISABLED",
@@ -14,22 +24,22 @@
       "id": "payment-providers",
       "owner": "PUSH 40 implementation; provider-specific release gate",
       "dependencies": ["approved commercial plan prices", "provider contract", "legal/tax process", "PUSH 39 customer notifications"],
-      "currentState": "provider-neutral contracts implemented; default DISABLED; no provider selected",
+      "currentState": "NOT_CONFIGURED — provider-neutral contracts implemented and default DISABLED; no verified Digital Observer merchant-provider connection. An existing Morning / Green Invoice business account is ACCOUNT_EXISTS_NOT_CONNECTED and must be evaluated before adding a separate payment or invoice supplier.",
       "requiredApproval": "owner approval for supplier, spend, sandbox credentials and later Production activation",
-      "sandboxProof": "OPEN — no approved provider credentials or receipts",
+      "sandboxProof": "OPEN — no approved Digital Observer payment-provider credentials, checkout receipt, callback receipt, refund receipt or reconciliation proof",
       "realProof": "OPEN — no real customer payment, invoice, refund or reconciliation",
-      "costImpact": "UNKNOWN until provider fees, taxes, currency and volume are approved and measured",
+      "costImpact": "UNKNOWN — current Morning renewal/API-tier cost and all candidate payment fees remain unverified; no new provider usage was incurred",
       "activationGate": "sandbox checkout/webhook/failure/refund/reconciliation PASS, legal invoice process, cost ceiling, explicit Production release"
     },
     {
       "id": "notification-providers",
       "owner": "PUSH 39; external proof gates PUSH 45/46",
       "dependencies": ["provider accounts", "recipient authorization", "consent/legal basis", "cost caps"],
-      "currentState": "Development complete; external channels disabled",
+      "currentState": "Development complete. Email is CONNECTED_NOT_PROVEN through the existing Resend account/configuration. Push is ACCOUNT_EXISTS_NOT_CONNECTED through an existing Firebase project. SMS, WhatsApp and phone are ACCOUNT_EXISTS_NOT_CONNECTED through an existing Twilio account whose current channel eligibility is unresolved. Signed webhooks are CONFIGURED_INACTIVE. No external Production channel is activated by PUSH 39.",
       "requiredApproval": "owner approval per provider and channel",
-      "sandboxProof": "OPEN for Push, Email, SMS, WhatsApp and Phone",
+      "sandboxProof": "OPEN for Push, Email, SMS, WhatsApp, signed Webhook and Phone. Existing accounts reduce supplier-selection work but do not satisfy provider receipt proof.",
       "realProof": "OPEN for every external channel",
-      "costImpact": "UNKNOWN; message and retry costs must be measured",
+      "costImpact": "Email last verified on a $0 Free plan; Firebase FCM service itself is no-cost; Twilio usage last evidenced at $0 with a stored balance. Current plans, account eligibility, message/conversation/minute rates, retries and surrounding infrastructure remain UNKNOWN.",
       "activationGate": "authenticated sandbox receipts, privacy review, quotas, cost alerts and explicit activation"
     },
     {
@@ -47,11 +57,11 @@
       "id": "mobile-push",
       "owner": "PUSH 39; mobile proof PUSH 44/46",
       "dependencies": ["mobile app credentials", "device registration", "notification provider approval"],
-      "currentState": "adapter and registration foundations present; external delivery disabled",
+      "currentState": "ACCOUNT_EXISTS_NOT_CONNECTED — Firebase project/account evidence exists and adapter/registration foundations are present; deployed credential, registered-device delivery and receipt proof are absent; external delivery remains disabled",
       "requiredApproval": "owner approval for platform credentials and sandbox/Development send",
       "sandboxProof": "OPEN",
       "realProof": "OPEN",
-      "costImpact": "UNKNOWN until provider/platform usage is measured",
+      "costImpact": "FCM service itself is documented as no-cost; mobile application, egress, support and any alternate platform-provider costs remain unmeasured",
       "activationGate": "real Development device receipt, revocation, tenant isolation and cost evidence"
     },
     {

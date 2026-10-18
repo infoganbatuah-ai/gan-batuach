@@ -78,3 +78,15 @@ These gaps remain owned by the existing proof owners in the North-Star map, incl
 ## Cost
 
 No provider was contacted or activated. Actual incremental external-provider usage is 0 and actual incremental provider cost is ₪0. External unit costs and monthly projections remain unmeasured until supplier rates are approved. This does not establish compliance with either canonical ₪15 denominator.
+
+## 2026-10-19 supplier reconciliation addendum
+
+The earlier statement that external proof is unavailable remains true, but it must not be read as a claim that supplier accounts are absent. The canonical read-only supplier reconciliation established:
+
+- Email: existing Resend account, verified sending-domain/configuration and webhook readiness are `CONNECTED_NOT_PROVEN`; a controlled provider receipt is still missing.
+- Push: an existing Firebase project is `ACCOUNT_EXISTS_NOT_CONNECTED`; no deployed credential/device receipt is proven.
+- SMS, WhatsApp and phone: an existing Twilio account is `ACCOUNT_EXISTS_NOT_CONNECTED`; current channel eligibility, sender/WABA/template state and receipts remain unresolved.
+- Signed webhook: the Product contract is `CONFIGURED_INACTIVE`; no external allowlisted destination receipt exists.
+- Sentry is `CONNECTED_AND_VERIFIED` for monitoring events, but monitoring does not satisfy any PUSH 39 delivery-channel proof.
+
+No external send was performed. No row is promoted to `DONE + REAL PROOF`. The detailed provider/cost evidence and duplicate-supplier controls are in `DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md` and the canonical external-activation register.

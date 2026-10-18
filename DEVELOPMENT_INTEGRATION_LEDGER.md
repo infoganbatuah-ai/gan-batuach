@@ -1228,3 +1228,23 @@ does not create a trial, subscription, payment or entitlement. The Master
 Roadmap status is reconciled to `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING
 — NOT DONE`; the open provider, legal, commercial, cost and real-world proof
 gates are unchanged.
+
+PUSH 40 supplier-reconciliation receipt (2026-10-19): source commit
+`7bfd869d7ccbd9d7344d1da5569235154fca4859` is remotely preserved on
+`codex/push40-supplier-reconciliation`; scoped PR #198 targets only
+`integration/development`. The read-only review confirms paid/operational
+Vercel, Supabase, Cloudflare DNS/R2 and AWS signing dependencies and real
+Sentry monitoring. Resend is connected but lacks a controlled provider
+receipt; Firebase and Twilio accounts exist but are not operational channel
+proof; Morning / Green Invoice exists but is not connected to the Digital
+Observer payment/invoice lifecycle. The existing Morning account must be
+evaluated before adding payment or invoice suppliers, and the existing Twilio
+account before adding a WhatsApp supplier. No provider was purchased,
+upgraded, activated or contacted; no message, payment, invoice, migration,
+main or Production mutation occurred. The sole restricted supplier ledger was
+updated in place and remains outside Git at SHA-256
+`cc1b3ca6a7837f5118e717560d010c8963b6b1c22cc9c11047656019c134967f`.
+Known bounded base is $54.8717–$55.9167/month before tax/FX, while exact all-in
+exposure and both canonical user ratios remain unmeasurable. PR #198 exact-head
+CI and Development integration are pending; PUSH 39 and PUSH 40 remain
+canonically NOT DONE and all prior proof obligations remain open.
