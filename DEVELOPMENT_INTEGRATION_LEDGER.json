@@ -11023,7 +11023,7 @@
         "limits": "No real Push, email, SMS, WhatsApp, webhook or phone provider sandbox receipt is available. No Production delivery, paid provider activation, emergency drill or physical camera/device action is claimed. PUSH38 acceptance exceptions and proof obligations remain unchanged."
       },
       "integration": {
-        "status": "CORRECTIVE_MIGRATION_PENDING_INTEGRATION",
+        "status": "CORRECTIVE_MIGRATION_INTEGRATED_PENDING_DEVELOPMENT_APPLY",
         "base": "integration/development",
         "commit": "369968977a3c5fa4c874e7db997501ec7c3af7bb",
         "ancestryMergeCommit": "6236718c1cd05b084d3827526f6fc43980a2cb7b",
@@ -11040,6 +11040,13 @@
           "url": "https://github.com/infoganbatuah-ai/gan-batuach/pull/187",
           "state": "MERGED",
           "sourceSha": "33a76dc0fc8dd42536ac6d2148308a10792389c8"
+        },
+        "deliveryReadCorrectionPullRequest": {
+          "number": 189,
+          "url": "https://github.com/infoganbatuah-ai/gan-batuach/pull/189",
+          "state": "MERGED",
+          "sourceSha": "78ca3eabac28af18c57b65e058145cdb7814a932",
+          "mergeSha": "f1ed86d15707e1ec551f1cfb04621bdb5250876f"
         },
         "requiredChecks": "PASS_9_OF_9_AT_5FE182EACF1BC73450AB8837C86B689376070EF0_AND_33A76DC0FC8DD42536AC6D2148308A10792389C8"
       },
@@ -11069,7 +11076,7 @@
         "externalProjection": "UNMEASURED_PENDING_APPROVED_SUPPLIER_RATES",
         "productionActivation": false
       },
-      "nextAction": "Merge the scoped column-read corrective migration after exact-head CI, apply it only to canonical isolated Development, then rerun cumulative and PUSH 39 local full-stack verification. External provider/action proof remains explicitly open. Do not touch main or Production."
+      "nextAction": "Apply the integrated scoped column-read corrective migration only to canonical isolated Development, then rerun cumulative and PUSH 39 local full-stack verification. External provider/action proof remains explicitly open. Do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

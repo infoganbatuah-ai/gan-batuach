@@ -1135,4 +1135,8 @@ destination or policy snapshots, and grants no writes. Migration health passes
 249 ordered files and a transaction-scoped privilege test passed before
 rollback. The correction remains pending exact-head CI, Development integration
 and isolated Development application; no provider, main or Production access
-occurred.
+occurred. PR #189 then passed all 9 required checks at exact head
+`78ca3eabac28af18c57b65e058145cdb7814a932` and merged with preserved ancestry
+as `f1ed86d15707e1ec551f1cfb04621bdb5250876f`. The migration is approved only
+for the canonical isolated Development database; application and full-stack
+retry remain pending.
