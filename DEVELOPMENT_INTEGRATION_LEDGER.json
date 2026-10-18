@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T22:22:30Z",
+  "updatedAt": "2026-10-18T22:31:16Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11222,13 +11222,15 @@
       "owner": "PUSH 40 supplier reconciliation owner",
       "sourceBranch": "codex/push40-supplier-reconciliation",
       "sourceCommits": [
-        "7bfd869d7ccbd9d7344d1da5569235154fca4859"
+        "7bfd869d7ccbd9d7344d1da5569235154fca4859",
+        "2742d3daf2284e3c4c09bcfebb96ca1e4a50d4ac",
+        "4c8de7725a4bca129e392d30278ec1cf0f606114"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/push40-supplier-reconciliation@7bfd869d7ccbd9d7344d1da5569235154fca4859"
+          "origin/codex/push40-supplier-reconciliation@4c8de7725a4bca129e392d30278ec1cf0f606114"
         ],
         "restrictedEvidence": {
           "path": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
@@ -11237,30 +11239,32 @@
         }
       },
       "validation": {
-        "status": "PASS_LOCAL_DOCUMENT_AND_CONTRACT_VALIDATION_CI_PENDING",
+        "status": "PASS_EXACT_HEAD_CI_AND_DEVELOPMENT_INTEGRATION",
         "evidence": [
           "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
           "PUSH 39 deterministic QA PASS",
           "PUSH 40 deterministic QA PASS",
           "Activation register and canonical ledgers JSON parse PASS",
           "197 unique North-Star capability IDs preserved in the ownership map",
-          "No migration or source-code change"
+          "No migration or source-code change",
+          "PR #198 exact head 4c8de7725a4bca129e392d30278ec1cf0f606114 PASS 9/9 and ancestry merge 3e9a6301ac443cef36120b25c527c138851282d8"
         ],
         "limits": "Provider account/configuration evidence is reconciled without exposing secrets. Resend lacks a controlled receipt; Firebase and Twilio accounts are not operational channel proof; Morning lacks Digital Observer API/payment/invoice proof. Exact all-in monthly exposure and both canonical user ratios remain unmeasurable."
       },
       "integration": {
-        "status": "PENDING_EXACT_HEAD_CI_AND_MERGE",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
+        "commit": "3e9a6301ac443cef36120b25c527c138851282d8",
         "pullRequest": {
           "number": 198,
           "url": "https://github.com/infoganbatuah-ai/gan-batuach/pull/198",
-          "state": "OPEN",
+          "state": "MERGED",
           "base": "integration/development",
           "source": "codex/push40-supplier-reconciliation",
-          "sourceSha": "7bfd869d7ccbd9d7344d1da5569235154fca4859"
+          "sourceSha": "4c8de7725a4bca129e392d30278ec1cf0f606114",
+          "mergeSha": "3e9a6301ac443cef36120b25c527c138851282d8"
         },
-        "requiredChecks": "PENDING_EXACT_HEAD"
+        "requiredChecks": "PASS_9_OF_9_AT_4C8DE7725A4BCA129E392D30278EC1CF0F606114"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_RECONCILIATION",
@@ -11271,7 +11275,7 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_PUSH39_AND_PUSH40_DETERMINISTIC_QA_JSON_PARSE_197_UNIQUE_CAPABILITY_IDS_DIFF_CHECK",
+      "localVerification": "PASS_PUSH39_AND_PUSH40_DETERMINISTIC_QA_JSON_PARSE_197_UNIQUE_CAPABILITY_IDS_DIFF_CHECK_DOCUMENTATION_ONLY_NO_RUNTIME_DELTA",
       "releaseEligibility": "DOCUMENTATION_RECONCILIATION_ONLY_CANONICAL_PUSH39_AND_PUSH40_REMAIN_NOT_DONE",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
@@ -11284,7 +11288,7 @@
         "exactMonthlyExposure": "UNMEASURABLE_MISSING_CURRENT_SUPPLIER_TOTALS_TAX_FX_AND_USER_DENOMINATORS",
         "productionActivation": false
       },
-      "nextAction": "Complete exact-head CI and integrate the reconciliation to integration/development. Do not activate a new supplier: evaluate the existing Morning account first for payment+invoice and the existing Twilio account first for WhatsApp. Preserve all PUSH 38/39/40 proof gaps; do not touch main or Production."
+      "nextAction": "Do not activate a new supplier: evaluate the existing Morning account first for payment+invoice and the existing Twilio account first for WhatsApp. Preserve all PUSH 38/39/40 proof gaps; do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

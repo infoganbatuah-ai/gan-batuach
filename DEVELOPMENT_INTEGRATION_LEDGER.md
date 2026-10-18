@@ -1229,10 +1229,11 @@ Roadmap status is reconciled to `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING
 — NOT DONE`; the open provider, legal, commercial, cost and real-world proof
 gates are unchanged.
 
-PUSH 40 supplier-reconciliation receipt (2026-10-19): source commit
-`7bfd869d7ccbd9d7344d1da5569235154fca4859` is remotely preserved on
-`codex/push40-supplier-reconciliation`; scoped PR #198 targets only
-`integration/development`. The read-only review confirms paid/operational
+PUSH 40 supplier-reconciliation receipt (2026-10-19): exact source head
+`4c8de7725a4bca129e392d30278ec1cf0f606114` is remotely preserved on
+`codex/push40-supplier-reconciliation`; scoped PR #198 passed all 9 required
+checks and merged with preserved ancestry to `integration/development` as
+`3e9a6301ac443cef36120b25c527c138851282d8`. The read-only review confirms paid/operational
 Vercel, Supabase, Cloudflare DNS/R2 and AWS signing dependencies and real
 Sentry monitoring. Resend is connected but lacks a controlled provider
 receipt; Firebase and Twilio accounts exist but are not operational channel
@@ -1245,6 +1246,5 @@ main or Production mutation occurred. The sole restricted supplier ledger was
 updated in place and remains outside Git at SHA-256
 `cc1b3ca6a7837f5118e717560d010c8963b6b1c22cc9c11047656019c134967f`.
 Known bounded base is $54.8717–$55.9167/month before tax/FX, while exact all-in
-exposure and both canonical user ratios remain unmeasurable. PR #198 exact-head
-CI and Development integration are pending; PUSH 39 and PUSH 40 remain
-canonically NOT DONE and all prior proof obligations remain open.
+exposure and both canonical user ratios remain unmeasurable. PUSH 39 and PUSH
+40 remain canonically NOT DONE and all prior proof obligations remain open.
