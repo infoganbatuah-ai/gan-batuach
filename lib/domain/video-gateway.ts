@@ -384,6 +384,16 @@ async function upsertDigitalObserverCameraSource(
   const sourceStatus = !assigned ? "disabled" : values.connected ? "connected" : unavailable ? "offline" : "ready_to_test";
   const healthStatus = !assigned ? "unknown" : values.connected ? "healthy" : unavailable ? "failed" : "unknown";
   const softwareConnector = values.edgeDeviceType === "SOFTWARE_CONNECTOR";
+  const unavailableCode = softwareConnector
+    ? "SOFTWARE_CONNECTOR_SOURCE_OFFLINE"
+    : values.connectorType === "dvr" || values.connectorType === "nvr"
+      ? "DVR_CHANNEL_OFFLINE"
+      : "CAMERA_SOURCE_OFFLINE";
+  const unavailableMessage = softwareConnector
+    ? "מקור מצלמת ה-IP לא החזיר וידאו דרך ה-Software Connector בבדיקת הקריאה האחרונה."
+    : values.connectorType === "dvr" || values.connectorType === "nvr"
+      ? "ערוץ ה-DVR לא החזיר וידאו בבדיקת הקריאה האחרונה."
+      : "מקור המצלמה לא החזיר וידאו בבדיקת הקריאה האחרונה.";
   const canonicalCapabilities: CameraConnectionCapability[] = [
     "LIVE_STREAM",
     "CHANNEL_DISCOVERY",
@@ -443,8 +453,8 @@ async function upsertDigitalObserverCameraSource(
     monitoring_targets: assigned ? ["person", "entry_exit", "camera_obstruction", "after_hours"] : [],
     last_health_check_at: now,
     last_seen_at: values.connected ? now : null,
-    last_error_code: !assigned || values.connected ? null : unavailable ? "DVR_CHANNEL_OFFLINE" : "GATEWAY_CHANNELS_PENDING",
-    last_error_message: !assigned || values.connected ? null : unavailable ? "ערוץ ה-DVR לא החזיר וידאו בבדיקת הקריאה האחרונה." : "חיבור DVR נשמר; ערוץ ממתין לאישור Gateway.",
+    last_error_code: !assigned || values.connected ? null : unavailable ? unavailableCode : "GATEWAY_CHANNELS_PENDING",
+    last_error_message: !assigned || values.connected ? null : unavailable ? unavailableMessage : "חיבור מקור נשמר; הערוץ ממתין לאישור רכיב Edge.",
     secret_reference: values.connectionId ? `video_gateway_connections:${values.connectionId}` : null,
     metadata: {
       product: "digital_observer",

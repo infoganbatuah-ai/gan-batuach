@@ -11,6 +11,7 @@ config/integration.local.env
 !.env.qa-demo.example
 .vercel/
 supabase/.temp/
+supabase/.branches/
 __MACOSX/
 .DS_Store
 .git/

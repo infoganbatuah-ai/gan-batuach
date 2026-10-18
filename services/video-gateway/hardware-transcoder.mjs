@@ -27,6 +27,19 @@ function runBounded(args, input, timeoutMs) {
 export const hardwareDecodeArgs = ["-hwaccel", "videotoolbox", "-hwaccel_output_format", "videotoolbox"];
 export const hardwareEncodeArgs = ["-c:v", "h264_videotoolbox", "-allow_sw", "0", "-realtime", "1", "-b:v", "1500k", "-g", "30", "-bf", "0"];
 
+// A supervisor-initiated SIGKILL is the expected final step of a warm relay
+// handoff. It is not evidence that VideoToolbox failed. Quarantining a channel
+// after that intentional stop forced its next finite-response replacement onto
+// the slower software encoder and created a short false outage during live
+// qualification. Only an unexpected non-zero encoder exit may start cooldown;
+// output-stall detection records a real hardware failure before stopping the
+// child, and upstream input failures remain transport evidence.
+export function shouldQuarantineHardwareTranscoder({ exitCode, inputFailed = false,
+  stopReason = null } = {}) {
+  return Number.isInteger(exitCode) && exitCode !== 0
+    && inputFailed !== true && !stopReason;
+}
+
 export function createHardwareTranscoder({ platform = process.platform, run = runBounded, now = Date.now, cooldownMs = 10 * 60_000 } = {}) {
   let pending, state = { available: false, reason: "not_tested", tested_at: null };
   const failures = new Map();
