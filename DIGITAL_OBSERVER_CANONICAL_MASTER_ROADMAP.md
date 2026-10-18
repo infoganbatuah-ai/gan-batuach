@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-10-18 (PUSH 39 branch-validation update; original reconciliation retained below)
+Date: 2026-10-18 (PUSH 39 Development-completion update; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -11,7 +11,7 @@ Digital Observer has completed the canonical product path from audit through Dig
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
 PUSH 38 is **DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS**. The owner acceptance does not rewrite the failed V7/pre-soak evidence, 0.2.100/0.2.101 `NOT_DONE` history, 0.2.102 limitations or the missing uninterrupted 24-hour proof; those obligations remain assigned to future proof owners.
-Current sequential scope: **PUSH 39 — External Notifications, Actions and Escalation — CORRECTIVE MIGRATION INTEGRATED / NOT DONE**. PRs #186, #187 and #189 passed 9/9 exact-head checks and merged with preserved ancestry; isolated Development orchestration migration and 248/248 drift passed. Cumulative local full-stack verification then exposed a scoped column-level read-grant gap. Corrective migration `20261018204500` is integrated after rollback-only testing and remains pending isolated Development application plus full-stack retry. External provider sandbox receipts remain open. PUSH 24/25/27 remain DONE EARLY and dependency-valid.
+Current sequential scope: **PUSH 39 — External Notifications, Actions and Escalation — DEVELOPMENT COMPLETE / NOT DONE**. PRs #186–#191 passed 9/9 exact-head checks and merged with preserved ancestry. Both additive migrations are applied only to canonical isolated Development; drift is 249/249 PASS. The cumulative Product passed 18/18 canonical probes and PUSH 39 passed 24/24 bounded full-stack probes at `d31c2651f89e6135d36be91fc2138a712e2b3061`. External provider sandbox receipts, real-device actions and legally approved emergency/sensitive workflow proofs remain open, so `DONE + REAL PROOF` is not claimed. PUSH 24/25/27 remain DONE EARLY and dependency-valid.
 
 ## Status semantics
 
@@ -47,7 +47,7 @@ PUSH 35     DONE ON VERIFIED PR MERGE — clean tracked deployment, portable res
 PUSH 36     DONE ON VERIFIED PR MERGE — local multi-process horizontal foundation; no multi-host claim
 PUSH 37     DONE ON VERIFIED PR MERGE — local multi-node HA/fencing plus production-ready shared queue contract; no zone/provider claim
 PUSH 38     DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS; strict proof gaps retained
-PUSH 39     CORRECTIVE MIGRATION INTEGRATED — NOT DONE; Development apply, cumulative full-stack and external proof pending
+PUSH 39     DEVELOPMENT COMPLETE — NOT DONE; external provider, real-action and legally approved sensitive-workflow proof pending
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 

@@ -1,12 +1,12 @@
 {
-  "observedAt": "2026-10-18T11:21:47.066Z",
+  "observedAt": "2026-10-18T20:38:50.275Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "1bcd11b0a5f632f13805d63bc6e027080081db83",
+  "integrationCommit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
   "version": {
     "environment": "DEVELOPMENT / INTEGRATION",
-    "commit": "1bcd11b0a5f632f13805d63bc6e027080081db83",
-    "startedAt": "2026-10-18T11:20:34.854Z",
+    "commit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
+    "startedAt": "2026-10-18T20:38:26.551Z",
     "backend": "LOCAL_SUPABASE",
     "production": false
   },

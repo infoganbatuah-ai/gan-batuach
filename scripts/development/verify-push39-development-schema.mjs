@@ -24,8 +24,11 @@ const productionProviders=Number(scalar("select count(*) from public.digital_obs
 const enabledAutomationPolicies=Number(scalar('select count(*) from public.digital_observer_camera_automation_policies where enabled;'));
 const serviceRoleCanAutonomouslyExecute=scalar("select has_function_privilege('service_role','public.enqueue_digital_guard_camera_command_v1(uuid,text,jsonb,text)','EXECUTE');")==='t';
 const externalQaAttempts=Number(scalar("select count(*) from public.digital_observer_delivery_attempts where provider_key <> 'digital-observer-in-app' and created_at >= now() - interval '2 hours';"));
-const migrationPresent=scalar("select exists(select 1 from supabase_migrations.schema_migrations where version='20261018010000');")==='t';
-const deliveryGrantMigrationPresent=scalar("select exists(select 1 from supabase_migrations.schema_migrations where version='20261018204500');")==='t';
+// The isolated Development baseline intentionally records only post-baseline
+// applications in its own receipt table. It does not replay or depend on the
+// Supabase CLI migration-history table used by fresh projects.
+const migrationPresent=scalar("select exists(select 1 from development_metadata.migrations where version='20261018010000');")==='t';
+const deliveryGrantMigrationPresent=scalar("select exists(select 1 from development_metadata.migrations where version='20261018204500');")==='t';
 const authenticatedCanReadPush39Status=scalar("select has_column_privilege('authenticated','public.digital_observer_notification_deliveries','action_intent_id','SELECT') and has_column_privilege('authenticated','public.digital_observer_notification_deliveries','priority','SELECT') and has_column_privilege('authenticated','public.digital_observer_notification_deliveries','expires_at','SELECT');")==='t';
 
 assert.equal(productionProviders,0);
