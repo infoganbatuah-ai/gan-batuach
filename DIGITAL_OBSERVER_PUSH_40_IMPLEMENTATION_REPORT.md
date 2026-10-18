@@ -26,7 +26,12 @@ Release boundary: `integration/development` only; main and Production unchanged
 - PUSH 40 deterministic billing/security QA: PASS.
 - PUSH 39 regression: PASS.
 - Migration ordering/safety: PASS; 250 migrations, no new destructive migration, no duplicate timestamp.
-- Canonical lint, build, domain/security/release gates, exact-head CI, isolated Development migration and cumulative local full-stack verification remain merge gates and are recorded only after they run on the final commit. This report does not pre-claim them.
+- Canonical lint, Production build without deployment, domain/security/release gates and focused PUSH 39 regression: PASS.
+- PR #193 exact-head CI: PASS 9/9; ancestry merge `8dee58999c322041691e19d61a7b22a90dd8fb68`.
+- PR #194 Development-approval CI: PASS 9/9; merge `3108ab242ddd0660dd85674f778eb6c6258bfe13`.
+- Isolated Development migration: PASS at `2026-10-18T21:50:20.392211+00:00`; schema fingerprint `497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed`.
+- Development drift: PASS 250/250 with zero missing; PUSH 40 schema/RLS/default-disabled verifier PASS.
+- Cumulative local full-stack verification remains pending until the application receipt and verifier correction are remotely integrated. This report does not pre-claim it.
 
 ## North-Star truth
 

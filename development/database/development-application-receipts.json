@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-10-18T20:32:47.926Z",
-  "integrationCommit": "5e62fe4bf56047eaddc00cd8f7f6099b6e8a45e6",
+  "observedAt": "2026-10-18T21:51:37.472Z",
+  "integrationCommit": "3108ab242ddd0660dd85674f778eb6c6258bfe13",
   "migrations": [
     {
       "version": "20260919170000",
@@ -178,6 +178,14 @@
       "source_commit": "5e62fe4bf56047eaddc00cd8f7f6099b6e8a45e6",
       "schema_fingerprint": "9c8b5f3613c7ed13abde011c3ec768d1b433a6d3e639f8097d124919bcd392dd",
       "applied_at": "2026-10-18T20:32:36.153866+00:00"
+    },
+    {
+      "version": "20261019010000",
+      "filename": "supabase/migrations/20261019010000_digital_observer_push40_commercial_billing.sql",
+      "source_digest": "01ff312ab12125815133374fa9a053c9826770c6161a7fc68ded4399de8513bd",
+      "source_commit": "3108ab242ddd0660dd85674f778eb6c6258bfe13",
+      "schema_fingerprint": "497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed",
+      "applied_at": "2026-10-18T21:50:20.392211+00:00"
     }
   ],
   "productionAccess": false
