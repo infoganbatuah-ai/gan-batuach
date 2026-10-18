@@ -59,3 +59,15 @@ Reconciled counts: 24 `DONE + REAL PROOF`, 43 `IMPLEMENTED — NEEDS REAL PROOF`
 ## Completion decision
 
 PUSH 40 is **DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING**. Its mandatory internal gates passed: exact-head CI, ancestry-preserving integration, isolated Development migration, role-negative RLS proof, 250/250 drift and exact-SHA cumulative local full stack. The canonical PUSH remains **NOT DONE** until approved provider sandbox and real commercial proof are added under the activation register. No completion exception is claimed.
+
+## 2026-10-19 supplier reconciliation addendum
+
+The owner clarification is confirmed: Vercel, Supabase, Cloudflare DNS/R2 and AWS signing are paid/operational dependencies, while Sentry is operational monitoring. Existing supplier accounts also exist for Resend, Firebase, Twilio and Morning / Green Invoice, but account existence is not operational Product proof.
+
+- Digital Observer payment processing remains `NOT_CONFIGURED`; no merchant provider receipt exists.
+- Morning / Green Invoice is `ACCOUNT_EXISTS_NOT_CONNECTED` for Digital Observer invoice/payment use. Its current Basic-plan renewal and API/webhook entitlement are not verified.
+- Morning must be evaluated first as a possible single payment+invoice supplier before adding another payment processor or invoice provider. No capability or legal compliance is inferred from public product descriptions.
+- Resend is `CONNECTED_NOT_PROVEN`; Firebase and Twilio are `ACCOUNT_EXISTS_NOT_CONNECTED` for the relevant PUSH 39 channels.
+- No provider was purchased, upgraded, activated or used in this reconciliation.
+
+The known bounded supplier base is $54.87–$55.92/month before tax/FX, but the all-in cost and both canonical ₪15 ratios remain unmeasurable because current Morning/Sentry/GitHub/AI-tool allocations, taxes/FX and authoritative user denominators are incomplete. Details and evidence boundaries are recorded in `DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md`; the restricted supplier-cost ledger remains the sole canonical financial ledger.
