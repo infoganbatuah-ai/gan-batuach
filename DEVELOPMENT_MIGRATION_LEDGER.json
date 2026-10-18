@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-18T20:45:00Z",
+  "observedAt": "2026-10-18T20:32:45.511Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "PUSH39_DELIVERY_READ_GRANT_PENDING_INTEGRATION",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
@@ -7571,7 +7571,7 @@
       "sourceCommit": "df8f7594c2020fcc454c6c17545f8b32966d6411",
       "sourceHead": "78ca3eabac28af18c57b65e058145cdb7814a932",
       "remoteBranch": "origin/codex/push-39-final-closure",
-      "integrationCommit": "f1ed86d15707e1ec551f1cfb04621bdb5250876f",
+      "integrationCommit": "5e62fe4bf56047eaddc00cd8f7f6099b6e8a45e6",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7583,24 +7583,20 @@
         "20261018010000"
       ],
       "developmentApprovalEvidence": "Canonical local full-stack probe found authenticated delivery-history HTTP 503. Direct authenticated local Supabase evidence isolated SQLSTATE 42501: the existing column-level SELECT grant did not include PUSH 39 status columns. Migration health passed 249 files and a transaction-scoped grant test returned true before rollback. PR #189 exact head 78ca3eabac28af18c57b65e058145cdb7814a932 passed all nine required checks and merged with preserved ancestry as f1ed86d15707e1ec551f1cfb04621bdb5250876f. No database mutation, provider contact or Production access occurred.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-18T20:32:36.153866+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "1adce4d72edfc68c305bfe47aa1dcb3ffad33f6c774a70d5725ee6cfc99369b8",
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
       "recovery": "Privilege-only additive migration. Recovery is a reviewed forward migration revoking only the listed new column SELECT privileges; RLS remains mandatory and no write privilege is granted.",
-      "developmentStatusReason": "Integrated and validated; pending application only to the canonical isolated Development database before local full-stack retry."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "9c8b5f3613c7ed13abde011c3ec768d1b433a6d3e639f8097d124919bcd392dd"
     }
   ],
   "developmentExpected": 249,
-  "developmentAppliedVerified": 248,
-  "blockers": [
-    {
-      "version": "20261018204500",
-      "reason": "Scoped PUSH 39 authenticated delivery-history read grant is integrated and pending isolated Development application."
-    }
-  ],
+  "developmentAppliedVerified": 249,
+  "blockers": [],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
