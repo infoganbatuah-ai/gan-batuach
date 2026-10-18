@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-18T20:32:45.511Z",
+  "observedAt": "2026-10-18T21:51:34.836Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7602,7 +7602,7 @@
       "sourceCommit": "0230e526c9965ae7ea484378ba0624ee4783b7c2",
       "sourceHead": "0230e526c9965ae7ea484378ba0624ee4783b7c2",
       "remoteBranch": "origin/codex/push-40-commercial-billing",
-      "integrationCommit": "8dee58999c322041691e19d61a7b22a90dd8fb68",
+      "integrationCommit": "3108ab242ddd0660dd85674f778eb6c6258bfe13",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7614,19 +7614,19 @@
         "20261018204500"
       ],
       "developmentApprovalEvidence": "PR #193 exact head 0230e526c9965ae7ea484378ba0624ee4783b7c2 passed all nine required checks and merged with preserved ancestry as 8dee58999c322041691e19d61a7b22a90dd8fb68. Branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 250, release contract, focused PUSH 40 QA and PUSH 39 regression passed. Isolated Development pre-apply custom-format backup /private/tmp/push40-development-pre-migration.dump has SHA-256 4a80f2f79a319e745f65f0e9afc990e243e6612572b07d46533248213e1978b7 and a verified pg_restore archive listing. No Production access.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-18T21:50:20.392211+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "01ff312ab12125815133374fa9a053c9826770c6161a7fc68ded4399de8513bd",
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
       "recovery": "Additive commercial billing schema with default-disabled provider contracts, fail-closed tenant/partner RLS and no raw card data. Restore the verified isolated Development backup if verification fails, or use a reviewed forward-only corrective migration; do not edit this migration after application.",
-      "developmentStatusReason": "Validated and remotely integrated; approved only for the canonical isolated Development database. Application and exact-SHA local Product verification remain pending.",
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed"
     }
   ],
   "developmentExpected": 250,
-  "developmentAppliedVerified": 249,
+  "developmentAppliedVerified": 250,
   "blockers": [],
   "localObservations": [
     {

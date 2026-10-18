@@ -1180,3 +1180,21 @@ Development database. A verified pre-apply custom-format backup is protected at
 valid `pg_restore` archive listing. Development application and exact-SHA
 cumulative local full-stack proof remain pending. PUSH 38 exceptions and PUSH
 39 external proof obligations remain unchanged.
+
+PUSH 40 isolated Development migration receipt (2026-10-19): PR #194 exact
+head `e6510447c272d208b0b4d4c18cd27b59fdd5410e` passed all 9 required checks
+and merged as `3108ab242ddd0660dd85674f778eb6c6258bfe13`. Migration
+`20261019010000_digital_observer_push40_commercial_billing.sql` applied only to
+the canonical isolated Development database at
+`2026-10-18T21:50:20.392211+00:00`, producing schema fingerprint
+`497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed`.
+Development drift is 250/250 PASS: 227 baseline, 23 post-baseline and zero
+missing. The bounded schema verifier confirms RLS on all 10 commercial tables,
+excludes the billing-only role from operational access, denies anonymous
+payment reads and authenticated payment mutations, and observes zero Production
+checkout/payment rows. Its initial run exposed only verifier assumptions (a
+printed `set_config` result and a non-empty-subscription assertion while the
+isolated database truthfully has zero subscriptions); the corrected verifier
+does not fabricate data and now passes. Exact-SHA cumulative Product startup
+remains gated until this application receipt and verifier correction are merged.
+No provider, real payment, main or Production access occurred.
