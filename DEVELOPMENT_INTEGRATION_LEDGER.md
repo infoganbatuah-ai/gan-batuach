@@ -1123,3 +1123,16 @@ The reviewed migration then applied only to canonical isolated Development:
 `e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd`,
 Production access false. Cumulative local full-stack proof remains pending;
 real provider/action proof remains unavailable and is not claimed.
+
+PUSH 39 local full-stack blocker receipt (2026-10-18): the cumulative Product
+started correctly from integration `e79d5a4c7d5499b927655dbb5301b908711b9371`,
+but the first authenticated delivery-history probe returned HTTP 503. A direct
+authenticated local Supabase read isolated SQLSTATE 42501: historical
+column-level SELECT privileges did not include the new bounded PUSH 39 status
+columns. Corrective migration `20261018204500_digital_observer_push39_delivery_read_grant.sql`
+grants only those read fields, preserves Site-scoped RLS, exposes no credential,
+destination or policy snapshots, and grants no writes. Migration health passes
+249 ordered files and a transaction-scoped privilege test passed before
+rollback. The correction remains pending exact-head CI, Development integration
+and isolated Development application; no provider, main or Production access
+occurred.
