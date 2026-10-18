@@ -1107,3 +1107,19 @@ unit is remotely preserved through ledger commit
 the scoped PR, exact-head CI, Development integration/migration and cumulative
 local full-stack proof.
 PUSH 38 exceptions remain unchanged; main and Production remain unchanged.
+
+PUSH 39 Development-migration receipt (2026-10-18): PR #186 exact head
+`5fe182eacf1bc73450ab8837c86b689376070ef0` passed 9/9 and merged with
+preserved ancestry as `6236718c1cd05b084d3827526f6fc43980a2cb7b`. The
+first isolated Development apply attempt failed closed before mutation because
+the migration row was misplaced under historical observations. PR #187 moved
+only that exact row into the canonical migration array, passed 9/9 at
+`33a76dc0fc8dd42536ac6d2148308a10792389c8` and merged as
+`369968977a3c5fa4c874e7db997501ec7c3af7bb`. A verified pre-apply custom dump
+has SHA-256
+`7087464dd8eb376f1640b121c8d5daf413567d7aff86af885e04a2f46cb0d362`.
+The reviewed migration then applied only to canonical isolated Development:
+248/248 drift PASS, 21 post-baseline migrations, schema fingerprint
+`e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd`,
+Production access false. Cumulative local full-stack proof remains pending;
+real provider/action proof remains unavailable and is not claimed.

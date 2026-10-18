@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-18T19:54:31Z",
+  "observedAt": "2026-10-18T20:05:35.773Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7541,7 +7541,7 @@
       "sourceCommit": "48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0",
       "sourceHead": "5fe182eacf1bc73450ab8837c86b689376070ef0",
       "remoteBranch": "origin/codex/push-39-external-actions",
-      "integrationCommit": "6236718c1cd05b084d3827526f6fc43980a2cb7b",
+      "integrationCommit": "369968977a3c5fa4c874e7db997501ec7c3af7bb",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7553,18 +7553,19 @@
         "20260928010000"
       ],
       "developmentApprovalEvidence": "PR #186 exact head 5fe182eacf1bc73450ab8837c86b689376070ef0 passed all nine required checks and merged with preserved ancestry as 6236718c1cd05b084d3827526f6fc43980a2cb7b. Branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 248 and focused orchestration QA passed. Isolated Development pre-apply custom-format backup /private/tmp/push39-dev-pre-migration.dump has SHA-256 7087464dd8eb376f1640b121c8d5daf413567d7aff86af885e04a2f46cb0d362 and a verified pg_restore archive listing. No Production access.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-18T20:05:22.770433+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "dea3352cdc584d87fbbf1b0c33c389ea5103202fcbedc26ec41f66bd3b5df0b5",
       "productionApplied": "NO",
       "productionEvidence": "Production application was not authorized and was not attempted.",
       "recovery": "Additive orchestration schema with default-disabled provider rows plus explicit revocation of autonomous physical execution. Restore the verified isolated Development backup if verification fails, or use a reviewed forward-only corrective migration; do not edit this migration after application.",
-      "developmentStatusReason": "Integrated and exact-head CI validated; awaiting canonical isolated Development application. Production remains unchanged."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd"
     }
   ],
-  "developmentExpected": 247,
-  "developmentAppliedVerified": 247,
+  "developmentExpected": 248,
+  "developmentAppliedVerified": 248,
   "blockers": [],
   "localObservations": [
     {
