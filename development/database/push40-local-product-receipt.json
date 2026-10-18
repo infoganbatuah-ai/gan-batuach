@@ -1,0 +1,84 @@
+{
+  "observedAt": "2026-10-18T21:58:39.328Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
+    "startedAt": "2026-10-18T21:57:25.536Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "path": "/digital-observer/billing",
+      "method": "GET",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/billing?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/billing?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "method": "GET",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/billing?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "unauthenticated",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/billing",
+      "method": "POST",
+      "actor": "unapproved price checkout denied",
+      "status": 409,
+      "expected": 409,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/payment-provider-callbacks",
+      "method": "POST",
+      "actor": "provider callback disabled",
+      "status": 503,
+      "expected": 503,
+      "pass": true,
+      "serverError": false
+    }
+  ],
+  "productionAccess": false,
+  "providerContact": false,
+  "realPaymentCollected": false,
+  "commercialFixtureState": "NO_SUBSCRIPTION_NO_ENTITLEMENTS",
+  "proofClassification": {
+    "deterministicContract": "PASS",
+    "localFullStack": "PASS",
+    "paymentSandbox": "NOT_AVAILABLE",
+    "productionPayment": "NOT_RUN"
+  },
+  "limitations": [
+    "Synthetic isolated Development identities/data",
+    "No provider credentials, card data, charge, tax invoice or refund receipt",
+    "Unapproved catalog prices are deliberately rejected"
+  ]
+}

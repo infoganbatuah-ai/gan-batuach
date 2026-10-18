@@ -31,7 +31,9 @@ Release boundary: `integration/development` only; main and Production unchanged
 - PR #194 Development-approval CI: PASS 9/9; merge `3108ab242ddd0660dd85674f778eb6c6258bfe13`.
 - Isolated Development migration: PASS at `2026-10-18T21:50:20.392211+00:00`; schema fingerprint `497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed`.
 - Development drift: PASS 250/250 with zero missing; PUSH 40 schema/RLS/default-disabled verifier PASS.
-- Cumulative local full-stack verification remains pending until the application receipt and verifier correction are remotely integrated. This report does not pre-claim it.
+- PR #195 application/verifier CI: PASS 9/9; merge `869e1d5c91944d1ee5f76069f57a8f3310e98054`.
+- Exact-SHA cumulative local Product: PASS 18/18 at `http://127.0.0.1:3000`, `LOCAL_SUPABASE`, Production false.
+- PUSH 40 local full stack: PASS 6/6 for billing UI, authorized Site, cross-Site denial, anonymous denial, unapproved checkout denial and disabled callback. The isolated fixture truthfully has no subscription/entitlements; no trial or payment data was fabricated.
 
 ## North-Star truth
 
@@ -54,4 +56,4 @@ Reconciled counts: 24 `DONE + REAL PROOF`, 43 `IMPLEMENTED — NEEDS REAL PROOF`
 
 ## Completion decision
 
-PUSH 40 may be considered Development-complete only after its exact-head CI, integration merge, isolated Development migration, role-negative RLS proof and exact-SHA local full-stack verification pass. Even then the canonical PUSH remains **NOT DONE** until approved provider sandbox and real commercial proof are added under the activation register. No completion exception is claimed.
+PUSH 40 is **DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING**. Its mandatory internal gates passed: exact-head CI, ancestry-preserving integration, isolated Development migration, role-negative RLS proof, 250/250 drift and exact-SHA cumulative local full stack. The canonical PUSH remains **NOT DONE** until approved provider sandbox and real commercial proof are added under the activation register. No completion exception is claimed.
