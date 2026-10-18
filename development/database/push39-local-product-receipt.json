@@ -1,0 +1,246 @@
+{
+  "observedAt": "2026-10-18T20:39:32.873Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
+    "startedAt": "2026-10-18T20:38:26.551Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "path": "/digital-observer/settings",
+      "method": "GET",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "method": "GET",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "unauthenticated",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/escalations?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/escalations?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "method": "GET",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/escalations?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "unauthenticated",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/provider-channels",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/provider-channels",
+      "method": "POST",
+      "actor": "production activation rejected",
+      "status": 422,
+      "expected": 422,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 201,
+      "expected": 201,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents/87350c70-61d9-4486-9e19-e76953d1b736",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 201,
+      "expected": 201,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications",
+      "method": "POST",
+      "actor": "observer-a duplicate",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications/c207cb67-dfd6-4df9-b9a8-48ae0a961b60",
+      "method": "POST",
+      "actor": "observer-a recipient",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/escalations",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 201,
+      "expected": 201,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/escalations/560255a5-4eeb-400c-b7ba-9f4c8ddaa17c",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/escalations/560255a5-4eeb-400c-b7ba-9f4c8ddaa17c",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 201,
+      "expected": 201,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents/8c56e1d7-3acc-46e7-b0b6-b1587652a9be",
+      "method": "POST",
+      "actor": "lawful-use gate",
+      "status": 409,
+      "expected": 409,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents/8c56e1d7-3acc-46e7-b0b6-b1587652a9be",
+      "method": "POST",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents",
+      "method": "POST",
+      "actor": "unsupported natural-language action rejected",
+      "status": 422,
+      "expected": 422,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents",
+      "method": "POST",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/action-intents",
+      "method": "POST",
+      "actor": "unauthenticated",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/provider-callbacks",
+      "method": "POST",
+      "actor": "provider callback fail-closed",
+      "status": 503,
+      "expected": 503,
+      "pass": true,
+      "serverError": false
+    }
+  ],
+  "productionAccess": false,
+  "externalProviderContact": false,
+  "physicalActionExecuted": false,
+  "proofClassification": {
+    "deterministicContract": "PASS",
+    "localFullStack": "PASS",
+    "providerSandbox": "NOT_AVAILABLE",
+    "productionDelivery": "NOT_RUN"
+  },
+  "limitations": [
+    "Synthetic isolated Development identities and data only",
+    "In-app adapter only; no external provider credentials or receipts",
+    "No emergency or physical action was executed",
+    "PUSH 45 lawful-use approval remains required for sensitive actions"
+  ]
+}
