@@ -11234,7 +11234,7 @@
         ],
         "restrictedEvidence": {
           "path": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
-          "sha256": "cc1b3ca6a7837f5118e717560d010c8963b6b1c22cc9c11047656019c134967f",
+          "sha256": "75b65c245ee1e6d80bb078c7baa319fa522618ba92171247edd7629459e439f4",
           "publishContents": false
         }
       },
@@ -11284,7 +11284,7 @@
         "newFixedRecurringCost": 0,
         "actualIncrementalProviderCostIls": 0,
         "knownBoundedBaseUsdBeforeTax": "$54.8717-$55.9167",
-        "illustrativeKnownBaseIlsBeforeTax": "₪169.47-₪172.70 at USD/ILS 3.0890 on 2026-10-16",
+        "illustrativeKnownBaseIlsBeforeTax": "₪169.50-₪172.73 at USD/ILS 3.0890 on 2026-10-16",
         "exactMonthlyExposure": "UNMEASURABLE_MISSING_CURRENT_SUPPLIER_TOTALS_TAX_FX_AND_USER_DENOMINATORS",
         "productionActivation": false
       },
