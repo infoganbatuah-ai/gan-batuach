@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-08T22:44:00Z",
+  "updatedAt": "2026-10-18T01:47:07Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10816,7 +10816,85 @@
         "r2CurrentStorageProjectionUsdBeforeTax": 0.073575,
         "allSupplierPerPayingUserTarget": "NOT_YET_MEASURABLE"
       },
-      "nextAction": "Monitor only the exact fresh V8 run push38-gateway-0.2.95-v8-20261008T224318Z through no earlier than 2026-10-09T22:43:44.325Z, preserve terminal evidence, evaluate every mandatory frozen-matrix row and only then decide PUSH 38 completion. If PASS, finalize the completed PUSH 38 development unit and reconcile it into integration/development without merging main, deploying Production or beginning PUSH 39."
+      "nextAction": "Historical receipt only. PUSH 38 was later closed and integrated by the superseding owner-acceptance unit; preserve this failed predecessor evidence without reuse."
+    },
+    {
+      "id": "codex/push-38-final-owner-exception-20261018",
+      "project": "Digital Observer",
+      "title": "PUSH 38 final camera reliability qualification and finite-response epoch recovery",
+      "owner": "PUSH 38 qualification owner",
+      "sourceBranch": "codex/push-38t-qualification",
+      "sourceCommits": [
+        "eb0dcd9744ad165aa840d65ba3b267844be6546c",
+        "fd30e9335dbcacb2f06f5536a5ca08b2f8473974",
+        "f4fc7ff2d40d93704050114752b4c9007d5f4467"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-38t-qualification@f4fc7ff2d40d93704050114752b4c9007d5f4467",
+          "origin/integration/development@dd4df868d173984462c6936f94de8067a415a1e5"
+        ],
+        "qualificationCommit": "fd30e9335dbcacb2f06f5536a5ca08b2f8473974",
+        "closureCommit": "f4fc7ff2d40d93704050114752b4c9007d5f4467"
+      },
+      "validation": {
+        "status": "PASS_WITH_OWNER_ACCEPTANCE_EXCEPTION_STRICT_NOT_DONE_RETAINED",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_38_FINITE_EPOCH_DRAIN_CLOSURE_EVIDENCE.json",
+          "GitHub Actions run 39073985404: PASS 6/6 plus canonical quality gate at exact candidate fd30e9335dbcacb2f06f5536a5ca08b2f8473974",
+          "AWS protected signing run 39072658442: PASS",
+          "Protected 0.2.101 V8: NOT_DONE at 77,623,617 ms / 1,294 checkpoints",
+          "Protected 0.2.102 Canary: PASS 15/15, camera 165/165, playback 33/33, AI 33/33",
+          "Protected 0.2.102 recovery validation: strict NOT_DONE retained; DVR 1,800/1,800 and DVR playback 60/60; Tapo 176/180 and AI 65/66 retained as exceptions",
+          "Integration conflict QA: vendored braces guards PASS, HA suite PASS, migration health PASS 247 files"
+        ],
+        "evidenceChecksums": {
+          "failedV8ResultSha256": "c30fc0a99943adf7dc1d1f2b07b9e6d203af1b120743149392c040c7e208c5f1",
+          "failedV8CheckpointsSha256": "2e0415f8ceea8fce38e608cdf12a09597ad761554e5b59c67378b3a9fb2439be",
+          "canaryResultSha256": "21e01e3c790c03b0e254b6dd5ee3e86d44cc7e2471f94d762e247f6cf0b3aeae",
+          "canaryCheckpointsSha256": "d44bcc929f260337e52ac3eb11d55e5888ab8ef0e49170090f3bcb72b8278d46",
+          "recoveryResultSha256": "ca594ffb7a65a45c032613079460acc55f3ee4166562a04ff205f2fa8bd7e795",
+          "recoveryCheckpointsSha256": "4e023e0099d0d3c19eece505b6bdd0c3445cf43ab8a50b4c999e700be5eaff10",
+          "failureClosureSha256": "62e13f9ec0b904af8e3fa73f11725e05312c5d6db159436bf458cd88f5dad44d",
+          "developmentPreApplyBackupSha256": "84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4"
+        },
+        "limits": "The owner explicitly accepted the shortened evidence path. No continuous 24-hour PASS is claimed. The 0.2.100 and 0.2.101 V8 results remain NOT_DONE; the three-hour 0.2.102 aggregate remains NOT_DONE and its Tapo/AI failures are not rewritten."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "dd4df868d173984462c6936f94de8067a415a1e5",
+        "requiredChecks": "PASS_6_OF_6_EXACT_CANDIDATE_FD30E933_RUN_39073985404_PLUS_CONFLICT_QA"
+      },
+      "dependencies": {
+        "status": "SATISFIED_FOR_DEVELOPMENT",
+        "units": [
+          "codex/push-38t-private-r2-phone-proof-20261008"
+        ]
+      },
+      "migrations": [
+        "20260919171000_edge_ota_terminal_recovery.sql",
+        "20260919172000_edge_private_release_delivery_audit.sql",
+        "20260919190000_edge_home_qa_channel.sql"
+      ],
+      "migrationOrder": [
+        "20260919171000",
+        "20260919172000",
+        "20260919190000"
+      ],
+      "conflictsResolution": "Ancestry-preserving merge. Package/dependency conflicts retained newer compatible versions; the two braces depth guards were combined without diagnostic runtime output; deterministic logical-time HA recovery was retained. All focused conflict checks passed.",
+      "localVerification": "MERGE_CONFLICT_QA_PASS_DEVELOPMENT_MIGRATIONS_PENDING_IMMEDIATE_APPLY",
+      "releaseEligibility": "DEVELOPMENT_ACCEPTED_OWNER_EXCEPTION_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "productionActivation": false
+      },
+      "nextAction": "Apply the three reviewed migrations in order to the canonical isolated DEVELOPMENT database, verify schema/RLS/application compatibility, update receipts and stop before main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
