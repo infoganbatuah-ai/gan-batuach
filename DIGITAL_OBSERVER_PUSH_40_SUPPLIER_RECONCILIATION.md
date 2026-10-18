@@ -77,7 +77,7 @@ Morning is the first supplier to evaluate because an account already exists and 
 
 ## Cost truth
 
-The safely bounded known monthly base before tax/FX is **$54.87–$55.92**: Vercel $20, Supabase $25, Cloudflare registrar allocation about $0.87, R2 $0–$0.045 and the owner-approved AWS account planning envelope $9–$10. At the Bank of Israel representative rate used for this reconciliation (USD/ILS 3.0890, 2026-10-16), that is approximately **₪169.47–₪172.70/month before tax**.
+The safely bounded known monthly base before tax/FX is **$54.87–$55.92**: Vercel $20, Supabase $25, Cloudflare registrar allocation about $0.87, R2 $0–$0.045 and the owner-approved AWS account planning envelope $9–$10. At the Bank of Israel representative rate used for this reconciliation (USD/ILS 3.0890, 2026-10-16), that is approximately **₪169.50–₪172.73/month before tax**.
 
 This is not the complete all-in monthly cost and not an exact exposure. The exact remaining exposure is **UNMEASURABLE** until current invoices/usage are obtained for Morning, Sentry, GitHub/CI, Codex/ChatGPT and any shared allocations, together with taxes, card FX and the authoritative registered-user and active-paying-user denominators. With no verified active paying Digital Observer users in the Development billing state, the all-in per-paying-user ratio is undefined and the ₪15 ceiling cannot be marked PASS.
 
@@ -92,7 +92,7 @@ This is not the complete all-in monthly cost and not an exact exposure. The exac
 
 ## Evidence references
 
-- Canonical restricted supplier-cost ledger: `exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md` (owner-only; post-reconciliation SHA-256 `cc1b3ca6a7837f5118e717560d010c8963b6b1c22cc9c11047656019c134967f`).
+- Canonical restricted supplier-cost ledger: `exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md` (owner-only; post-reconciliation SHA-256 `75b65c245ee1e6d80bb078c7baa319fa522618ba92171247edd7629459e439f4`).
 - Historical provider inventory: `exports/provider-audit-2026-09-07/` (restricted/historical, not the canonical cost ledger).
 - Production provider configuration evidence: `PROVIDER_PRODUCTION_ACTIVATION_FINAL_REPORT.md` and provider activation migrations.
 - PUSH 39 internal truth: `DIGITAL_OBSERVER_PUSH_39_IMPLEMENTATION_REPORT.md`.

@@ -1244,7 +1244,8 @@ account before adding a WhatsApp supplier. No provider was purchased,
 upgraded, activated or contacted; no message, payment, invoice, migration,
 main or Production mutation occurred. The sole restricted supplier ledger was
 updated in place and remains outside Git at SHA-256
-`cc1b3ca6a7837f5118e717560d010c8963b6b1c22cc9c11047656019c134967f`.
-Known bounded base is $54.8717–$55.9167/month before tax/FX, while exact all-in
+`75b65c245ee1e6d80bb078c7baa319fa522618ba92171247edd7629459e439f4`.
+Known bounded base is $54.8717–$55.9167/month before tax/FX (approximately
+₪169.50–₪172.73 at the reconciliation rate), while exact all-in
 exposure and both canonical user ratios remain unmeasurable. PUSH 39 and PUSH
 40 remain canonically NOT DONE and all prior proof obligations remain open.
