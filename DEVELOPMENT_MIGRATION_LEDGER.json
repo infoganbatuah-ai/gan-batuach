@@ -7592,9 +7592,40 @@
       "recovery": "Privilege-only additive migration. Recovery is a reviewed forward migration revoking only the listed new column SELECT privileges; RLS remains mandatory and no write privilege is granted.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentSchemaFingerprint": "9c8b5f3613c7ed13abde011c3ec768d1b433a6d3e639f8097d124919bcd392dd"
+    },
+    {
+      "file": "supabase/migrations/20261019010000_digital_observer_push40_commercial_billing.sql",
+      "blob": "616c2c03641abf2d9900674eca9a8ff0cc6b1ba4",
+      "sha256": "01ff312ab12125815133374fa9a053c9826770c6161a7fc68ded4399de8513bd",
+      "version": "20261019010000",
+      "sourceTask": "PUSH 40",
+      "sourceCommit": "0230e526c9965ae7ea484378ba0624ee4783b7c2",
+      "sourceHead": "0230e526c9965ae7ea484378ba0624ee4783b7c2",
+      "remoteBranch": "origin/codex/push-40-commercial-billing",
+      "integrationCommit": "8dee58999c322041691e19d61a7b22a90dd8fb68",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261019010000",
+      "requiredPredecessor": "20261018204500_digital_observer_push39_delivery_read_grant.sql",
+      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261018204500"
+      ],
+      "developmentApprovalEvidence": "PR #193 exact head 0230e526c9965ae7ea484378ba0624ee4783b7c2 passed all nine required checks and merged with preserved ancestry as 8dee58999c322041691e19d61a7b22a90dd8fb68. Branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 250, release contract, focused PUSH 40 QA and PUSH 39 regression passed. Isolated Development pre-apply custom-format backup /private/tmp/push40-development-pre-migration.dump has SHA-256 4a80f2f79a319e745f65f0e9afc990e243e6612572b07d46533248213e1978b7 and a verified pg_restore archive listing. No Production access.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "NO",
+      "productionEvidence": "Production application is not authorized and was not attempted.",
+      "recovery": "Additive commercial billing schema with default-disabled provider contracts, fail-closed tenant/partner RLS and no raw card data. Restore the verified isolated Development backup if verification fails, or use a reviewed forward-only corrective migration; do not edit this migration after application.",
+      "developmentStatusReason": "Validated and remotely integrated; approved only for the canonical isolated Development database. Application and exact-SHA local Product verification remain pending.",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 249,
+  "developmentExpected": 250,
   "developmentAppliedVerified": 249,
   "blockers": [],
   "localObservations": [

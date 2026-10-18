@@ -1162,3 +1162,21 @@ canonically `NOT DONE`: Push, email, SMS, WhatsApp, signed-webhook and phone
 sandbox receipts, real-device actions and approved emergency/sensitive workflow
 proof remain open. PUSH 38 exceptions are unchanged. PUSH 40 is readiness-only
 and has not started. Main and Production remain unchanged.
+
+PUSH 40 Development-integration and migration-approval receipt (2026-10-19):
+PR #193 exact head `0230e526c9965ae7ea484378ba0624ee4783b7c2`
+passed all 9 required checks and merged with preserved ancestry as
+`8dee58999c322041691e19d61a7b22a90dd8fb68`. The provider-neutral commercial
+billing domain, subscriptions, server-side entitlements, checkout, invoice and
+refund lifecycle, partner allocation, webhook ordering/idempotency, financial
+reconciliation, existing-Product UI and activation register are integrated.
+All payment-provider modes remain disabled; no provider, real payment, paid
+resource, main or Production system was contacted. The additive migration
+`20261019010000_digital_observer_push40_commercial_billing.sql` passed migration
+health across 250 ordered files and is approved only for the canonical isolated
+Development database. A verified pre-apply custom-format backup is protected at
+`/private/tmp/push40-development-pre-migration.dump`, SHA-256
+`4a80f2f79a319e745f65f0e9afc990e243e6612572b07d46533248213e1978b7`, with a
+valid `pg_restore` archive listing. Development application and exact-SHA
+cumulative local full-stack proof remain pending. PUSH 38 exceptions and PUSH
+39 external proof obligations remain unchanged.
