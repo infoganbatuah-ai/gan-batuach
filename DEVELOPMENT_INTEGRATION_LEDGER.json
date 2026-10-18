@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T10:35:24Z",
+  "updatedAt": "2026-10-18T10:36:25Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10521,7 +10521,11 @@
         "status": "READY_TO_INTEGRATE",
         "base": "integration/development",
         "commit": null,
-        "pullRequest": null,
+        "pullRequest": {
+          "number": 184,
+          "url": "https://github.com/infoganbatuah-ai/gan-batuach/pull/184",
+          "state": "OPEN"
+        },
         "requiredChecks": "PENDING_EXACT_HEAD_CI"
       },
       "dependencies": {
