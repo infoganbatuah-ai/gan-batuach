@@ -104,7 +104,24 @@
   "protected_closure": {
     "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.102-finite-epoch-drain-closure-20261017T220912Z",
     "failure_closure_sha256": "62e13f9ec0b904af8e3fa73f11725e05312c5d6db159436bf458cd88f5dad44d",
-    "recovery_validation_failure_fingerprint_sha256": "73e0cc524f50557ad63f5591daafb445004ad8a0888068e19fdc8d07309c39de"
+    "recovery_validation_failure_fingerprint_sha256": "73e0cc524f50557ad63f5591daafb445004ad8a0888068e19fdc8d07309c39de",
+    "development_application_closure_path_class": "exports/restricted/push38-gateway-0.2.102-finite-epoch-drain-closure-20261017T220912Z/development-application-closure.json",
+    "development_application_closure_sha256": "23778d9c04cff7fcbf631446ba346364f60d548cb55653b558581954bc677371"
+  },
+  "development_closure": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "integration_source_commit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
+    "migration_versions": [
+      "20260919171000",
+      "20260919172000",
+      "20260919190000"
+    ],
+    "development_applied": "YES_3_OF_3",
+    "final_schema_fingerprint": "7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080",
+    "schema_rls_verification": "PASS",
+    "focused_application_compatibility": "PASS",
+    "application_receipts_sha256": "afb081c6396c257f4580e34ddaf8d3ea2dc48b24eb3442e34f0bed53c945148e",
+    "production_access": false
   },
   "acceptance_exception": {
     "authorized": true,

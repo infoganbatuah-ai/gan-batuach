@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T01:47:07Z",
+  "updatedAt": "2026-10-18T01:52:40Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10829,12 +10829,12 @@
         "fd30e9335dbcacb2f06f5536a5ca08b2f8473974",
         "f4fc7ff2d40d93704050114752b4c9007d5f4467"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/push-38t-qualification@f4fc7ff2d40d93704050114752b4c9007d5f4467",
-          "origin/integration/development@dd4df868d173984462c6936f94de8067a415a1e5"
+          "origin/integration/development@d4b91ff1adf2b56a66b1bda5ce40d400662a020a"
         ],
         "qualificationCommit": "fd30e9335dbcacb2f06f5536a5ca08b2f8473974",
         "closureCommit": "f4fc7ff2d40d93704050114752b4c9007d5f4467"
@@ -10848,7 +10848,10 @@
           "Protected 0.2.101 V8: NOT_DONE at 77,623,617 ms / 1,294 checkpoints",
           "Protected 0.2.102 Canary: PASS 15/15, camera 165/165, playback 33/33, AI 33/33",
           "Protected 0.2.102 recovery validation: strict NOT_DONE retained; DVR 1,800/1,800 and DVR playback 60/60; Tapo 176/180 and AI 65/66 retained as exceptions",
-          "Integration conflict QA: vendored braces guards PASS, HA suite PASS, migration health PASS 247 files"
+          "Integration conflict QA: vendored braces guards PASS, HA suite PASS, migration health PASS 247 files",
+          "Canonical isolated DEVELOPMENT: three reviewed PUSH38 migrations applied in order; final schema fingerprint 7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080",
+          "Post-apply schema/RLS verification: ACTION_REQUIRED and HOME_QA constraints PASS; private authorization audit table RLS/grants/FKs/checks/index PASS",
+          "Post-apply application compatibility: HOME_QA enrollment, trust, managed phase, R2 authorization and Edge OTA focused QA PASS"
         ],
         "evidenceChecksums": {
           "failedV8ResultSha256": "c30fc0a99943adf7dc1d1f2b07b9e6d203af1b120743149392c040c7e208c5f1",
@@ -10858,14 +10861,17 @@
           "recoveryResultSha256": "ca594ffb7a65a45c032613079460acc55f3ee4166562a04ff205f2fa8bd7e795",
           "recoveryCheckpointsSha256": "4e023e0099d0d3c19eece505b6bdd0c3445cf43ab8a50b4c999e700be5eaff10",
           "failureClosureSha256": "62e13f9ec0b904af8e3fa73f11725e05312c5d6db159436bf458cd88f5dad44d",
-          "developmentPreApplyBackupSha256": "84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4"
+          "developmentPreApplyBackupSha256": "84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4",
+          "developmentApplicationReceiptsSha256": "afb081c6396c257f4580e34ddaf8d3ea2dc48b24eb3442e34f0bed53c945148e",
+          "developmentApplicationClosureSha256": "23778d9c04cff7fcbf631446ba346364f60d548cb55653b558581954bc677371"
         },
         "limits": "The owner explicitly accepted the shortened evidence path. No continuous 24-hour PASS is claimed. The 0.2.100 and 0.2.101 V8 results remain NOT_DONE; the three-hour 0.2.102 aggregate remains NOT_DONE and its Tapo/AI failures are not rewritten."
       },
       "integration": {
-        "status": "INTEGRATED_DEVELOPMENT",
+        "status": "LOCAL_VERIFIED",
         "base": "integration/development",
-        "commit": "dd4df868d173984462c6936f94de8067a415a1e5",
+        "commit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
+        "ancestryMergeCommit": "dd4df868d173984462c6936f94de8067a415a1e5",
         "requiredChecks": "PASS_6_OF_6_EXACT_CANDIDATE_FD30E933_RUN_39073985404_PLUS_CONFLICT_QA"
       },
       "dependencies": {
@@ -10885,7 +10891,7 @@
         "20260919190000"
       ],
       "conflictsResolution": "Ancestry-preserving merge. Package/dependency conflicts retained newer compatible versions; the two braces depth guards were combined without diagnostic runtime output; deterministic logical-time HA recovery was retained. All focused conflict checks passed.",
-      "localVerification": "MERGE_CONFLICT_QA_PASS_DEVELOPMENT_MIGRATIONS_PENDING_IMMEDIATE_APPLY",
+      "localVerification": "PASS_ISOLATED_DEVELOPMENT_MIGRATIONS_3_OF_3_SCHEMA_RLS_AND_FOCUSED_APPLICATION_COMPATIBILITY",
       "releaseEligibility": "DEVELOPMENT_ACCEPTED_OWNER_EXCEPTION_PRODUCTION_NOT_AUTHORIZED",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
@@ -10894,7 +10900,7 @@
         "newFixedRecurringCost": 0,
         "productionActivation": false
       },
-      "nextAction": "Apply the three reviewed migrations in order to the canonical isolated DEVELOPMENT database, verify schema/RLS/application compatibility, update receipts and stop before main or Production."
+      "nextAction": "PUSH38 is complete in Development under the explicit owner acceptance exception. Preserve all strict NOT_DONE evidence and await a separate explicit owner release instruction; do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

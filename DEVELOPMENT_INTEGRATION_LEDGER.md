@@ -20,8 +20,17 @@ gate. Integration conflict QA passed the combined braces-depth guards, the HA
 suite and migration health for 247 files. A recoverable isolated DEVELOPMENT
 pre-apply backup is protected outside Git with SHA-256
 `84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4`.
-The three reviewed PUSH 38 migrations are approved for immediate isolated
-DEVELOPMENT application in order; main and Production remain unchanged.
+The three reviewed PUSH 38 migrations were applied in order only to canonical
+isolated DEVELOPMENT from remote commit `d4b91ff1`; migration receipts, the
+`ACTION_REQUIRED` and `HOME_QA` constraints, the private authorization-audit
+table RLS/grants/FKs/checks/index and focused application compatibility all
+passed. The final DEVELOPMENT schema fingerprint is
+`7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080`.
+The protected application-closure evidence SHA-256 is
+`23778d9c04cff7fcbf631446ba346364f60d548cb55653b558581954bc677371`.
+PUSH 38 is `LOCAL_VERIFIED` and complete for Development under the explicit
+owner exception. Main and Production remain unchanged; a future release still
+requires a separate explicit owner instruction.
 
 PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`,
 `514515e2` and `e51b74f7` are remotely preserved on

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-18T01:47:07Z",
+  "observedAt": "2026-10-18T01:51:30.031Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "PUSH38_MIGRATIONS_APPROVED_PENDING_ISOLATED_DEVELOPMENT_APPLY",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
@@ -13,7 +13,7 @@
       "sourceCommit": "e05a772c4f261a95261a3a0e1b404e1e1fac96bb",
       "sourceHead": "f4fc7ff2d40d93704050114752b4c9007d5f4467",
       "remoteBranch": "origin/codex/push-38t-qualification",
-      "integrationCommit": "dd4df868d173984462c6936f94de8067a415a1e5",
+      "integrationCommit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
       "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20260919171000",
       "requiredPredecessor": "20260909010000_edge_ota_rollout.sql",
@@ -23,16 +23,17 @@
         "20260909010000"
       ],
       "developmentApprovalEvidence": "Network-isolated baseline application PASS in DIGITAL_OBSERVER_PUSH_38_BLOCKER_CLOSURE_EVIDENCE.json; exact candidate CI run 39073985404 passed all six required gates and the canonical quality gate. Pre-apply DEVELOPMENT backup SHA-256 84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4 is protected outside Git.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-18T01:49:21.765879+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "dd3ad57b23e2b9ea5cadfa7c504bed0b1e10383f049a27fd2db5a661b04a59c3",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Constraint replacement only. Restore the protected isolated DEVELOPMENT pre-apply dump if verification fails. No Production application is authorized.",
       "inGit": true,
       "inIntegration": true,
-      "developmentStatusReason": "Integrated with preserved ancestry; validated and approved for immediate isolated DEVELOPMENT application."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "0d68f4093cbeb61105d5e1505c6ae872cca2c6f9b5eeee4b3ecaaf06c7757df0"
     },
     {
       "file": "supabase/migrations/20260919172000_edge_private_release_delivery_audit.sql",
@@ -42,7 +43,7 @@
       "sourceCommit": "e05a772c4f261a95261a3a0e1b404e1e1fac96bb",
       "sourceHead": "f4fc7ff2d40d93704050114752b4c9007d5f4467",
       "remoteBranch": "origin/codex/push-38t-qualification",
-      "integrationCommit": "dd4df868d173984462c6936f94de8067a415a1e5",
+      "integrationCommit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
       "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20260919172000",
       "requiredPredecessor": "20260909010000_edge_ota_rollout.sql",
@@ -53,16 +54,17 @@
         "20260909010000"
       ],
       "developmentApprovalEvidence": "Network-isolated baseline application, private audit-table RLS and zero-policy posture PASS in DIGITAL_OBSERVER_PUSH_38_BLOCKER_CLOSURE_EVIDENCE.json; exact candidate CI run 39073985404 passed all six required gates and the canonical quality gate. Pre-apply DEVELOPMENT backup SHA-256 84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4 is protected outside Git.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-18T01:49:23.023867+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "c2ae8f8f94c7ecaa82ff0e1479d1ac67d9b0b9342de5ac18227514279cfedc42",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive metadata-only audit table with RLS and service-role-only grants. Restore the protected isolated DEVELOPMENT pre-apply dump if verification fails. No Production application is authorized.",
       "inGit": true,
       "inIntegration": true,
-      "developmentStatusReason": "Integrated with preserved ancestry; validated and approved for immediate isolated DEVELOPMENT application."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "7a1f819078b4103a6daef77418fb0d11f2f7c95ed11e6bc5e1831c8eadbd8003"
     },
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -72,7 +74,7 @@
       "sourceCommit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
       "sourceHead": "f4fc7ff2d40d93704050114752b4c9007d5f4467",
       "remoteBranch": "origin/codex/push-38t-qualification",
-      "integrationCommit": "dd4df868d173984462c6936f94de8067a415a1e5",
+      "integrationCommit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
       "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20260919190000",
       "requiredPredecessor": "20260919172000_edge_private_release_delivery_audit.sql",
@@ -83,16 +85,17 @@
         "20260919172000"
       ],
       "developmentApprovalEvidence": "Network-isolated baseline application and HOME_QA channel constraint PASS in DIGITAL_OBSERVER_PUSH_38_BLOCKER_CLOSURE_EVIDENCE.json; exact candidate CI run 39073985404 passed all six required gates and the canonical quality gate. Pre-apply DEVELOPMENT backup SHA-256 84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4 is protected outside Git.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-18T01:49:24.659352+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "f2c4e050c92b308d116016ac6fb3639adc00951f691424cd664da3109bf58ac6",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Constraint replacement adding HOME_QA while retaining existing values. Restore the protected isolated DEVELOPMENT pre-apply dump if verification fails. No Production application is authorized.",
       "inGit": true,
       "inIntegration": true,
-      "developmentStatusReason": "Integrated with preserved ancestry; validated and approved for immediate isolated DEVELOPMENT application."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080"
     },
     {
       "file": "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql",
@@ -102,7 +105,7 @@
       "sourceCommit": "23673011936f53fb52dd51a12aa95505df7cd740",
       "sourceHead": "f3bb525a7308a9f01df1241b2b3168383a6fed2e",
       "remoteBranch": "origin/codex/gb-m29-messaging-threads",
-      "integrationCommit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20260913211000",
       "requiredPredecessor": "20260913210000_management_canonical_messaging_threads.sql",
@@ -113,7 +116,7 @@
       ],
       "developmentApprovalEvidence": "GB-M29 isolated QA report at source f3bb525a; exact-head GitHub Actions 35458935002 and 35458934974 passed. Canonical rollback-only compatibility plus separate clean baseline clone role/attachment HTTP E2E. This authorizes only the isolated DEVELOPMENT database.",
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T18:12:26.213808+00:00",
+      "developmentAppliedAt": "2026-09-28T00:57:58.131583+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "developmentHistoryDigest": "0999ea1f2c2643d77db104398e9ad66483ebb2604f470e6beb7406dfadd470bc",
       "productionApplied": "YES",
@@ -122,7 +125,7 @@
       "recovery": "No Production application authorized; future Production history/upgrade check is separate; retained source and baseline support isolated rebuild",
       "inGit": true,
       "inIntegration": true,
-      "developmentSchemaFingerprint": "2532c5d4860069ff35f025ebcee930efa645fd6c4352d990ed038f6d0bee99bc",
+      "developmentSchemaFingerprint": "345c40a8645d0853eb654339f9d77e679c449afd168a034da8d44efab22d983c",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7041,9 +7044,9 @@
       "sourceCommit": "e3822c20dfb611cf7e1ade2f22860a4b1e5c1d05",
       "remoteBranch": "origin/codex/gb-m29-messaging-threads",
       "sourceHead": "f3bb525a7308a9f01df1241b2b3168383a6fed2e",
-      "integrationCommit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T18:12:19.34552+00:00",
+      "developmentAppliedAt": "2026-09-28T00:57:56.109585+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "developmentHistoryDigest": "ddf9298ebdeda47aee58bfbb13a3312f60e78662b0be8d04f6c8a4ec2dfde5ab",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
@@ -7051,7 +7054,7 @@
       "inGit": true,
       "inIntegration": true,
       "diagnosticQaEvidence": "GB-M29 task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a, 2026-09-19: one BEGIN/ROLLBACK, original three migrations, all role/scope checks and private attachment metadata visibility PASS; no persistent apply",
-      "developmentSchemaFingerprint": "99d8cbd724de61426e8e956f34c633de1320a9d25eda0044f1b68cfd28969ab6"
+      "developmentSchemaFingerprint": "71943787d5a612203b797c0bb834a8886891f08d346ab9dab49e4868ee18e228"
     },
     {
       "file": "supabase/migrations/20260913020000_edge_private_release_delivery.sql",
@@ -7087,13 +7090,13 @@
       "sourceCommit": "52e9534115042aa36e9d949b30b417f4f7e710fe",
       "sourceHead": "52e9534115042aa36e9d949b30b417f4f7e710fe",
       "remoteBranch": "origin/codex/development-database-baseline-20260919",
-      "integrationCommit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inclusion": "INTEGRATED_DEVELOPMENT",
       "historyClass": "POST_BASELINE_MIGRATION",
       "inGit": true,
       "inIntegration": true,
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T16:51:06.476648+00:00",
+      "developmentAppliedAt": "2026-09-28T00:57:53.892048+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "developmentHistoryDigest": "3b25e47269022a960e1ba6ccca82b07be51c97f9eab8131d7212290da196be02",
       "productionApplied": "YES",
@@ -7107,7 +7110,7 @@
       "requiredPredecessor": "20260911040000_management_canonical_classrooms.sql",
       "recovery": "Function-only repair; preserve migration and history; no data rewrite or Production apply. Rollback requires restoring prior function only after dependency review.",
       "validation": "Rollback-only local transaction: both trigger variants, cross-garden rejection, parent/manager/staff/candidate/revoked/inspector/admin and Observer Site boundaries PASS",
-      "developmentSchemaFingerprint": "b4146be33847a903f6f6f7d0d46024506481dfe8390c6badd96514e5952b6af8",
+      "developmentSchemaFingerprint": "295764a6d74b37573a4f93860e1db441fe47600ca5be35cf700beb96e66b556c",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7123,9 +7126,9 @@
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
-      "integrationCommit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T18:12:32.192001+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:00.123203+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "releaseOrder": "20260913212000",
       "dependencyStatus": "ISOLATED_FULL_STACK_QA_PASS_PENDING_CANONICAL_APPLY",
@@ -7137,7 +7140,7 @@
       "diagnosticQaEvidence": "GB-M29 task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a, 2026-09-19: one BEGIN/ROLLBACK, original three migrations, all role/scope checks and private attachment metadata visibility PASS; no persistent apply",
       "recovery": "No Production application authorized; future Production history/upgrade check is separate; retained source and baseline support isolated rebuild",
       "developmentHistoryDigest": "11c3ab542a9287e3ded1c37cbf7944aaf85d25b25ed40ac8fe10a292dadf098d",
-      "developmentSchemaFingerprint": "6fa15c1f0c45405e49fa313b0b7ce3f49962ac6b0e4f0f8cc2be98ba268284d9",
+      "developmentSchemaFingerprint": "df6c90ba13a9e0763143aa8c9a04b224f84ccd762bf695cb136dac011d576d09",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7148,7 +7151,7 @@
       "sourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
       "sourceHead": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
       "remoteBranch": "origin/codex/gb-m30-notification-pipeline",
-      "integrationCommit": "04323b209a8c2694843d78e52e8906ad3540403c",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7160,7 +7163,7 @@
         "20260913212000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T20:15:38.666705+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:02.327686+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7168,7 +7171,7 @@
       "developmentApprovalEvidence": "PR #66 exact head e96b62a passed 9/9; integration merge 4217b3c; canonical migration audit PASS. Guarded local DEVELOPMENT baseline development-c0cf2de7-20260919-v1 and GB-M29 predecessor verified. Synthetic pre-migration pg_dump archive at /private/tmp/gb-m30-dev-pre-migration.dump, SHA-256 4fd65a7aade384544bd4220c7dc17dd74facfc9dfbcca8c0f3578d34205030ec; pg_restore archive listing verified. No Production access.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "0950704c85102f8842337feee5d509586957c4c17907ef444c5c0b3ee5f6351a",
-      "developmentSchemaFingerprint": "48df6f0c972f23aa66c47af3783bbede87c3ceb5692501f0e8927e9dae1aaa60"
+      "developmentSchemaFingerprint": "6c4a5e994b789be602436a41bc567a396f4ffc75abebecca8f201ec2507b3b79"
     },
     {
       "file": "supabase/migrations/20260920110000_management_email_first_verification.sql",
@@ -7178,7 +7181,7 @@
       "sourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5",
       "sourceHead": "bf93be20dd859cae735dc35892429fc3788816a5",
       "remoteBranch": "origin/codex/gb-m31-external-delivery",
-      "integrationCommit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7190,14 +7193,14 @@
         "20260919180000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T21:50:49.840368+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:04.305413+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
       "recovery": "Forward-only helper and five current RPC replacements; preserve isolated backup before Development application. No historical migration edit or Production application.",
       "developmentApprovalEvidence": "PR #67 exact head 593d829de9f3a82168f3ec20f744a43002522002 required checks 9/9 PASS; ancestry merge 3556cb9a; rollback-only synthetic SQL/RLS PASS; guarded DEVELOPMENT target gan-batuach-integration verified. Synthetic pre-migration pg_dump archive /private/tmp/gb-m31-dev-pre-migration.dump, SHA-256 fa1a880c03279502438950adbb1ffa2f30106d1069cf9103d72e6f40c9ac382d; pg_restore listing verified. No Production access.",
       "developmentHistoryDigest": "9071ef0384719b6c8e39e74235c411603127d870bd480e214dbab664c6f0a2ba",
-      "developmentSchemaFingerprint": "4947e75053f908796e31cbee7fc3abdb7868c7b5e19b5d522baef469e81a1778",
+      "developmentSchemaFingerprint": "ba7ecdb74ef7b21673e926fcdecf9bc5f530f495017cff58a6eed8a3e21c54fd",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7208,7 +7211,7 @@
       "sourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5",
       "sourceHead": "bf93be20dd859cae735dc35892429fc3788816a5",
       "remoteBranch": "origin/codex/gb-m31-external-delivery",
-      "integrationCommit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7220,14 +7223,14 @@
         "20260920110000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-19T21:51:03.171544+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:06.926326+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
       "recovery": "Additive lease/cost metadata and minimal verified receipt index, narrow service-only RPCs and trigger replacement; isolated backup preserved. No Production application.",
       "developmentApprovalEvidence": "PR #67 exact head 593d829de9f3a82168f3ec20f744a43002522002 required checks 9/9 PASS; ancestry merge 3556cb9a; rollback-only synthetic SQL/RLS PASS; guarded DEVELOPMENT target gan-batuach-integration verified. Synthetic pre-migration pg_dump archive /private/tmp/gb-m31-dev-pre-migration.dump, SHA-256 fa1a880c03279502438950adbb1ffa2f30106d1069cf9103d72e6f40c9ac382d; pg_restore listing verified. No Production access.",
       "developmentHistoryDigest": "a36b0cdd98e5df9287566e2f26d1979e056e12ad0a51be18b13463539e0fdc3a",
-      "developmentSchemaFingerprint": "784d9838e667f69dbd424dcf9e7217821e1eab438cdcf94851df6045b715fa8e",
+      "developmentSchemaFingerprint": "134a327b8c34ec118fec6d5039de85cabd27b8cb20364dcdad38e36c9340d4f3",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7238,7 +7241,7 @@
       "sourceCommit": "40b938fd317917fa702e82bae1702a26133b4792",
       "sourceHead": "40b938fd317917fa702e82bae1702a26133b4792",
       "remoteBranch": "origin/codex/gb-m32-documents",
-      "integrationCommit": "950f64483f2bc475da0329a7955532cfb2cf4429",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7250,14 +7253,14 @@
         "20260920120000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-20T00:02:48.007701+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:09.109142+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
       "recovery": "Forward-only table extension, strict storage policy and guarded RPCs; legacy rows retained. Constraint validation and retention FK locks require isolated backup, lock-timeout review and a tested restore before any Production release. No Production application is authorized.",
       "developmentApprovalEvidence": "PR #69 exact head 40b938fd317917fa702e82bae1702a26133b4792 required checks 9/9 PASS; ancestry merge 94d7376a191930481ff714b0bf9f4f004f78d04b; rollback-only synthetic SQL/RLS PASS on guarded isolated Development Postgres. Local pre-apply backup required.",
       "developmentHistoryDigest": "e733a39d92bdfd9d95bf10a9bd2dc9b98500e38bcfdb20640579d25d0d705725",
-      "developmentSchemaFingerprint": "80831b96f07af3e5f5e34e8b5497f776d05ce2af83ac26a11e0b9a8f5344359f",
+      "developmentSchemaFingerprint": "a36db7fbb4631c75f1f431f7b567b9ce84869dd078058a32973378622fcda03f",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7268,7 +7271,7 @@
       "sourceCommit": "40b671c95b7a2402fb2c414118fad5789c34ef4f",
       "sourceHead": "40b671c95b7a2402fb2c414118fad5789c34ef4f",
       "remoteBranch": "origin/codex/gb-m33-attendance-pickup",
-      "integrationCommit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7280,14 +7283,14 @@
         "20260920130000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-20T01:59:26.144251+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:11.128763+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
       "recovery": "Forward-only attendance/pickup constraints and security-definer RPCs preserve historical rows. Read-only duplicate-day preflight, isolated backup and lock-timeout review precede application. No Production application or customer-data remediation is authorized.",
       "developmentApprovalEvidence": "PR #77 exact head 40b671c95b7a2402fb2c414118fad5789c34ef4f required checks 9/9 PASS; ancestry merge ef9af8443fd09952b1eb645f35f06ac0ebc93a06; rollback-only synthetic Parent/Guardian/Staff/Manager/Inspector/Admin RLS matrix PASS on guarded isolated Development database.",
       "developmentHistoryDigest": "f2b2faa58529493724bfc2054423cb006bef175862b77c9eca4d47d998a2dc4b",
-      "developmentSchemaFingerprint": "8122836e01001d39663c7298b3ccf2e58c69b4dbad9f592787a4b40534e7eaff",
+      "developmentSchemaFingerprint": "bbb895d63f8027fb1ceb06ef244cf78bd879e9f9c6e863a05eba91b1fc80ece9",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7298,7 +7301,7 @@
       "sourceCommit": "0acb70a8428d82c38dd7b61805d33cb9a298dfa7",
       "sourceHead": "0acb70a8428d82c38dd7b61805d33cb9a298dfa7",
       "remoteBranch": "origin/codex/gb-m34-staff-time",
-      "integrationCommit": "89dc2d98f4d6f88d57b4ab49487edaab15481cc9",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7310,14 +7313,14 @@
         "20260920140000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-20T04:08:09.323901+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:13.234876+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
       "recovery": "Forward-only Staff shift extension, rate/correction tables and RLS/RPC narrowing preserve historical rows. Confirm no duplicate open profile sessions, take and test isolated Development backup, and use guarded lock/statement timeout before apply. Production history, cost headroom and backup/restore require separate owner release review; no Production apply authorized.",
       "developmentApprovalEvidence": "PR #81 exact head 0acb70a8428d82c38dd7b61805d33cb9a298dfa7 required checks 9/9 PASS; ancestry merge 9fe30d6a82c8111542bf16002910aa77a14bb914; rollback-only synthetic RLS/ledger matrix and separate-connection races PASS. Digital Observer repair PR #83 head 251274482432fcc7fe6eebf21b056ac69517b097 required checks PASS and merge 63b45d0b7edcf5bf1a5cee3cd9ad23fdfcc944bf. PR #82 repaired baseline head 502c1346f24dedd044a2c9d54723077deb07d860 required checks PASS. This permission is for isolated Development only after final PR #82 exact-head checks and remote merge; no Production authorization.",
       "developmentHistoryDigest": "a83ec1cba11be3c5aedb3a74ae5f02f9f8c0f5ffb0e65945d40075bcba797731",
-      "developmentSchemaFingerprint": "8f019d4c92264c205eda39e9ff2fe60e2e83655be43cb943114aeb6961b018ed",
+      "developmentSchemaFingerprint": "9d9232684241b70f56b91217889a918704dc4cd32de65e75868c12c2dde830c2",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7328,7 +7331,7 @@
       "sourceCommit": "208f544b618762800b15d54c9361f8ba8c5185f5",
       "sourceHead": "208f544b618762800b15d54c9361f8ba8c5185f5",
       "remoteBranch": "origin/codex/gb-m35-tuition-audit-role-fix",
-      "integrationCommit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7340,14 +7343,14 @@
         "20260920150000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-20T07:17:48.247747+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:15.779505+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
       "recovery": "Forward-only replacement of three tuition RPC bodies to retain the typed app_role audit actor; no balance rewrite or backfill. Isolated rollback-only role tests passed. Apply after prior Development migrations with schema drift guard; Production requires separate owner release and recovery review.",
       "developmentApprovalEvidence": "PR #88 exact head 208f544b618762800b15d54c9361f8ba8c5185f5: Digital Observer CI seven gates and Management context PASS; ancestry merge 740e32d631576733ac8bdf5d43fb8127e845a66b; isolated rollback-only synthetic Manager RPC/audit checks PASS; qa:migrations 238/238 PASS. Isolated Development only.",
       "developmentHistoryDigest": "a073194e6d2b440c1b0182b1595aa669b988897c79fefb0dbfb360cbbc2d7bb8",
-      "developmentSchemaFingerprint": "c13f9902ec6ddfce8523262754c722c8a5a265716e68edd830632898387dea42",
+      "developmentSchemaFingerprint": "577b21ed4b725b625ce83e0b74a09c96017391090a42da81ff3f345c1dbae674",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
@@ -7358,7 +7361,7 @@
       "sourceCommit": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3",
       "sourceHead": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3",
       "remoteBranch": "origin/codex/gb-m35-retire-plaintext-credentials",
-      "integrationCommit": "e7ba4b227c0eaeac61da08a68f417488c66b7fdc",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7370,7 +7373,7 @@
         "20260920160000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-20T15:46:37.131742+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:17.938492+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7378,7 +7381,7 @@
       "developmentApprovalEvidence": "PR #98 exact source head: 9/9 required CI PASS; isolated disposable Auth clone migration plus synthetic invitation/email confirmation and security negatives PASS; migration audit 239/239; no Production write.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "3ec638213ee2eaca52a2f93016f9ad2a225e33d851a73c1fa345086e3ef3c38b",
-      "developmentSchemaFingerprint": "820ceaa3c1d0ab198a8b58a6a4b633518f36d1a597083b407b9e4770a53ed075"
+      "developmentSchemaFingerprint": "8f90dbdcfe8a81cab5139999092dd5686de07701ba6970bd88072f58dcc91373"
     },
     {
       "file": "supabase/migrations/20260921150000_management_staff_candidate_private_documents.sql",
@@ -7388,7 +7391,7 @@
       "sourceCommit": "a0090b2ce2b66428e3f2bfaca51d22a3f0ee7dd8",
       "sourceHead": "a0090b2ce2b66428e3f2bfaca51d22a3f0ee7dd8",
       "remoteBranch": "origin/codex/gb-m35-p1-candidate-documents",
-      "integrationCommit": "513dc53e2277aa810a12614870a331fb6d16bb00",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7400,7 +7403,7 @@
         "20260920170000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-20T23:58:56.917211+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:20.062611+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7408,7 +7411,7 @@
       "developmentApprovalEvidence": "PR #106 exact head a0090b2 completed all 9 required checks; disposable synthetic Auth/Storage QA clone migration, private upload/read, direct owner RLS and anonymous/Owner denial PASS. No Production access.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "e9e6defbe6319ea0b36d61266d0a9bfdad820f7ce2280ccb8402b423fd556adb",
-      "developmentSchemaFingerprint": "7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b"
+      "developmentSchemaFingerprint": "88f7c3b1e0e1ac5323ae891b7cfc9a351c28d95f974dba33045286b5bf04d2c6"
     },
     {
       "file": "supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql",
@@ -7418,7 +7421,7 @@
       "sourceCommit": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7",
       "sourceHead": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7",
       "remoteBranch": "origin/codex/gb-m35e-enrollment-audit-role-fix",
-      "integrationCommit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7430,7 +7433,7 @@
         "20260921150000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-22T01:18:38.563865+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:22.193726+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7438,7 +7441,7 @@
       "developmentApprovalEvidence": "PR #109 merged only after required checks passed; healthy isolated Auth QA reproduced the Parent Enrollment decision path and focused audit-role regression passed. No Production access.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "9e499a15934de38aacce653ef434cecd99647892c696caff90b76ec1d5257338",
-      "developmentSchemaFingerprint": "2d7f47853c26b8e6c22471cfc7b8929faf546d2746e7fd65031ce253ce92d5f8"
+      "developmentSchemaFingerprint": "8a8638863fc51916bf79a62ea0f604d2ec091f95a17dc27c98ae069a4f428b84"
     },
     {
       "file": "supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql",
@@ -7448,7 +7451,7 @@
       "sourceCommit": "f15dccb46f1c0fcca33ee43263652e127a0c0130",
       "sourceHead": "f15dccb46f1c0fcca33ee43263652e127a0c0130",
       "remoteBranch": "origin/codex/gb-m35e-enrollment-activation-audit-role-fix",
-      "integrationCommit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7460,7 +7463,7 @@
         "20260922100000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-22T01:18:42.592919+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:24.507763+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7468,7 +7471,7 @@
       "developmentApprovalEvidence": "PR #110 exact head f15dccb46f1c0fcca33ee43263652e127a0c0130 passed 10/10 checks and merged as d001f37c2a030a371adb7267f1a428c670f758c8. Healthy isolated Auth QA Parent Enrollment journey 19/19 PASS; focused activation 8/8, migration audit 242, domain 30/30, security 7/7, typecheck, lint, release contract and production build PASS. No Production access.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "65f86104dc20d00953ae2b0ac390e9ed88037ef541f4234aba03e2c24a79ac18",
-      "developmentSchemaFingerprint": "673fc0d82df2c0a160390e99654b48bf0e3abc28b19201d6734765aca26956b2"
+      "developmentSchemaFingerprint": "234547677d76b4760d785514d66f80463af75e52233feb94332e115206d505e4"
     },
     {
       "file": "supabase/migrations/20260922120000_management_parent_notification_category_fix.sql",
@@ -7478,7 +7481,7 @@
       "sourceCommit": "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693",
       "sourceHead": "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693",
       "remoteBranch": "origin/codex/gb-m35e-notification-preference-category-fix",
-      "integrationCommit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7490,7 +7493,7 @@
         "20260922110000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-22T02:32:54.951193+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:27.052+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7508,7 +7511,7 @@
       "sourceCommit": "02d738305f3541b9ead2944c76f11cea4caaad25",
       "sourceHead": "1889d8ddfcfc2d4f9ee88379438ce31160615cce",
       "remoteBranch": "origin/codex/ux-implement-08-staff-recruitment",
-      "integrationCommit": "8ce4a818ab3c29d9b85db3bbce4db23c6321f8f9",
+      "integrationCommit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7520,7 +7523,7 @@
         "20260922120000"
       ],
       "developmentApplied": "YES",
-      "developmentAppliedAt": "2026-09-27T22:44:25.024757+00:00",
+      "developmentAppliedAt": "2026-09-28T00:58:29.538223+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "YES",
       "productionEvidence": "Owner-authorized Production release 2026-10-11: linked Supabase CLI push succeeded in two reviewed phases; remote migration history verified through 20260928010000. Post-apply checks preserved 1 Auth/profile, 2 active device slots, 1 membership and 17 cameras; the plaintext temporary_password column was removed while non-secret history remained.",
@@ -7532,7 +7535,7 @@
     }
   ],
   "developmentExpected": 247,
-  "developmentAppliedVerified": 244,
+  "developmentAppliedVerified": 247,
   "blockers": [],
   "localObservations": [
     {
