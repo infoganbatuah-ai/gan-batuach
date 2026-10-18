@@ -1272,3 +1272,15 @@ verified isolated backup, Development application/schema proof and exact-SHA
 cumulative local Product verification remain pending. No IdP/provider was
 activated, no supplier cost was added, and main and Production remain
 unchanged. PUSH 42 is readiness-only and has not started.
+
+PUSH 41 Development-integration and migration-approval receipt (2026-10-19):
+PR #201 exact head `2a9b7084219144e9cf4dadbca8ba5a28d6e728ef`
+passed all 9 required checks and merged with preserved ancestry as
+`2d581c9acd60f811cdb210ac019eaf537e390c3a`. The additive migration is now
+approved only for the canonical isolated Development database. A verified
+pre-apply custom-format backup is protected at
+`/private/tmp/push41-development-pre-migration.dump`, SHA-256
+`80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99`, with a
+valid `pg_restore` archive listing. Development application, schema/RLS proof
+and exact-SHA cumulative local full-stack proof remain pending. No external
+provider, main or Production system was contacted.

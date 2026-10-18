@@ -8,7 +8,7 @@ Production authorization: **none**
 
 ## Result classification
 
-PUSH 41 implements the internal Enterprise identity and authorization foundation. Until exact-head CI, Development integration, isolated Development migration application and cumulative local Product verification finish, the unit is `IMPLEMENTED — INTEGRATION PENDING — NOT DONE`. External organization SSO/SCIM, independent service-account use, real multi-site operation and Production scale remain proof obligations even after internal Development closure.
+PUSH 41 implements the internal Enterprise identity and authorization foundation. Exact-head CI and Development integration have passed; until isolated Development migration application and cumulative local Product verification finish, the unit is `INTEGRATED — DEVELOPMENT VERIFICATION PENDING — NOT DONE`. External organization SSO/SCIM, independent service-account use, real multi-site operation and Production scale remain proof obligations even after internal Development closure.
 
 ## Implemented contracts
 
@@ -49,6 +49,8 @@ The migration is approved only for the canonical isolated Development database a
 - PUSH 41 deterministic QA: PASS.
 - PUSH 39 notification/action regression: PASS.
 - PUSH 40 billing/entitlement regression: PASS.
+- PR #201 exact-head CI: PASS 9/9; ancestry-preserving merge `2d581c9acd60f811cdb210ac019eaf537e390c3a`.
+- Isolated Development pre-apply backup: PASS; custom archive SHA-256 `80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99`, with a valid `pg_restore` listing.
 
 The first security run was blocked by the filesystem sandbox from binding a loopback test port; the exact same suite passed outside that sandbox restriction. The first build was blocked by an out-of-root temporary dependency symlink; a local dependency copy completed the exact build. Neither was a Product-code failure.
 

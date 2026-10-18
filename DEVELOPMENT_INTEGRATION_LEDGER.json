@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-19T12:30:00Z",
+  "updatedAt": "2026-10-18T23:44:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11297,18 +11297,20 @@
       "owner": "PUSH 41 implementation owner",
       "sourceBranch": "codex/push-41-enterprise-identity",
       "sourceCommits": [
-        "be485dab83546c1acd550d9bd9c89b555d1d1e6b"
+        "be485dab83546c1acd550d9bd9c89b555d1d1e6b",
+        "3612749d87f627755ffadde3adb2957006ce3cf0",
+        "2a9b7084219144e9cf4dadbca8ba5a28d6e728ef"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/push-41-enterprise-identity@be485dab83546c1acd550d9bd9c89b555d1d1e6b"
+          "origin/codex/push-41-enterprise-identity@2a9b7084219144e9cf4dadbca8ba5a28d6e728ef"
         ],
-        "qualificationCommit": "be485dab83546c1acd550d9bd9c89b555d1d1e6b"
+        "qualificationCommit": "2a9b7084219144e9cf4dadbca8ba5a28d6e728ef"
       },
       "validation": {
-        "status": "PASS_BRANCH_INTERNAL_GATES_INTEGRATION_AND_EXTERNAL_PROOF_PENDING",
+        "status": "PASS_EXACT_HEAD_INTERNAL_GATES_INTEGRATED_MIGRATION_AND_EXTERNAL_PROOF_PENDING",
         "evidence": [
           "DIGITAL_OBSERVER_PUSH_41_IMPLEMENTATION_REPORT.md",
           "TypeScript PASS; scoped ESLint PASS; canonical lint PASS with zero canonical regressions",
@@ -11318,15 +11320,19 @@
           "Migration health PASS 251 files; release-contract PASS with Production mutation false",
           "PUSH 41 deterministic organization/Site/RBAC/SSO/SCIM/service-account/session/SMS-policy QA PASS",
           "PUSH 39 notification/action and PUSH 40 billing/entitlement regressions PASS",
-          "197 unique North-Star identities preserved; seven PUSH 41 rows promoted only to IMPLEMENTED — NEEDS REAL PROOF"
+          "197 unique North-Star identities preserved; seven PUSH 41 rows promoted only to IMPLEMENTED — NEEDS REAL PROOF",
+          "PR #201 exact head 2a9b7084219144e9cf4dadbca8ba5a28d6e728ef required checks PASS 9/9; ancestry-preserving merge 2d581c9acd60f811cdb210ac019eaf537e390c3a",
+          "Verified isolated Development pre-apply backup SHA-256 80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99"
         ],
-        "limits": "Exact-head protected CI, Development integration, isolated Development migration application/schema verification and exact-SHA cumulative local Product verification remain pending. No external IdP, SCIM directory, enterprise customer, WhatsApp provider or Production-scale proof is claimed."
+        "limits": "Isolated Development migration application/schema verification and exact-SHA cumulative local Product verification remain pending. No external IdP, SCIM directory, enterprise customer, WhatsApp provider or Production-scale proof is claimed."
       },
       "integration": {
-        "status": "PENDING_SCOPED_PR_AND_EXACT_HEAD_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "requiredChecks": "PENDING"
+        "commit": "2d581c9acd60f811cdb210ac019eaf537e390c3a",
+        "sourceHead": "2a9b7084219144e9cf4dadbca8ba5a28d6e728ef",
+        "pullRequest": 201,
+        "requiredChecks": "PASS_9_OF_9"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_BRANCH_IMPLEMENTATION",
@@ -11343,7 +11349,7 @@
       ],
       "conflictsResolution": "Built from current origin/integration/development at de292b65d52c885b378eb7cd4daec9afac6be305 with PUSH 39 and PUSH 40 ancestry verified. Existing tenant/Site, Event/Incident, billing and notification domains are reused; no parallel authorization domain was introduced.",
       "localVerification": "PENDING_EXACT_MERGED_INTEGRATION_SHA",
-      "releaseEligibility": "NOT_READY_INTEGRATION_MIGRATION_LOCAL_FULL_STACK_AND_EXTERNAL_ENTERPRISE_PROOF_PENDING",
+      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_LOCAL_FULL_STACK_AND_EXTERNAL_ENTERPRISE_PROOF_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
@@ -11353,7 +11359,7 @@
         "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
         "productionActivation": false
       },
-      "nextAction": "Open a scoped PR to integration/development, require exact-head CI, preserve ancestry, then apply only the reviewed PUSH 41 migration to isolated Development and run exact-SHA cumulative local Product/schema QA. Keep external SSO/SCIM/service-account/multi-site proof open. Do not start PUSH 42 or touch main/Production."
+      "nextAction": "After this approval receipt passes exact-head CI and integrates, apply only the reviewed PUSH 41 migration to isolated Development, record its receipt, and run exact-SHA cumulative local Product/schema QA. Keep external SSO/SCIM/service-account/multi-site proof open. Do not start PUSH 42 or touch main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
