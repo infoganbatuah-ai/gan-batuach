@@ -17,6 +17,11 @@ export async function getObserverSiteAccess(
   observerSiteId: string,
   options: { manage?: boolean; billing?: boolean } = {}
 ) {
+  if (options.billing) {
+    const { data } = await supabase.rpc("digital_observer_billing_site_summary" as never, { target_site_id: observerSiteId } as never);
+    const safeSite = Array.isArray(data) ? data[0] : null;
+    if (safeSite) return safeSite;
+  }
   const { data: siteResult } = await supabase
     .from("observer_sites" as any)
     .select("id,name,site_type,owner_profile_id,garden_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
@@ -27,9 +32,7 @@ export async function getObserverSiteAccess(
   if (!site || site.site_type === "kindergarten" || site.garden_id) return null;
   if (profile.role === "admin" || site.owner_profile_id === profile.id) return site;
 
-  const allowedRoles = options.billing
-    ? ["owner", "admin", "billing"]
-    : options.manage
+  const allowedRoles = options.manage
       ? ["owner", "admin", "operator"]
       : ["owner", "admin", "operator", "viewer"];
   const { data: membership } = await supabase

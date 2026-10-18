@@ -4,6 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { dispatchQueuedDelivery, queueAuthorizedDelivery } from "@/lib/domain/digital-observer/notification-delivery-service";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 
 export const runtime = "nodejs";
 const schema = z.object({ observer_site_id: z.string().uuid(), action_intent_id: z.string().uuid(), recipient_profile_id: z.string().uuid(),
@@ -38,6 +39,8 @@ export async function POST(request: Request) {
     const site = await getObserverSiteAccess(session.supabase, session.profile, input.observer_site_id, { manage: true });
     if (!site) return fail("The Site is unavailable or not manageable by this user.", 403);
     const admin = createAdminClient() as any;
+    try { await assertCommercialEntitlement(admin, { siteId: input.observer_site_id, key: "notifications" }); }
+    catch (error) { return fail(error instanceof Error ? error.message : "NOTIFICATION_ENTITLEMENT_DENIED", 403); }
     const queued = await queueAuthorizedDelivery(admin, { actionIntentId: input.action_intent_id, observerSiteId: input.observer_site_id,
       recipientProfileId: input.recipient_profile_id, channel: input.channel, severity: input.severity, priority: input.priority,
       title: input.title, body: input.body, productPath: input.product_path, ttlSeconds: input.ttl_seconds });

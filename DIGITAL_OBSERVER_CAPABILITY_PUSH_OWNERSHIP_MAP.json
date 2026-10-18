@@ -14,12 +14,12 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 64,
+    "FOUNDATION": 63,
     "DONE + REAL PROOF": 24,
-    "PARTIAL": 22,
+    "PARTIAL": 23,
     "EXTERNAL COVERAGE GAP": 1,
-    "IMPLEMENTED — NEEDS REAL PROOF": 42,
-    "NOT STARTED": 44
+    "IMPLEMENTED — NEEDS REAL PROOF": 43,
+    "NOT STARTED": 43
   },
   "ownershipRules": {
     "oneImplementationOwnerPerCapability": true,
@@ -11806,7 +11806,7 @@
       "sourceRow": 195,
       "section": "AI INFRASTRUCTURE / ECONOMICS",
       "capabilityName": "Partner usage metering and commercial settlement",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         40
       ],
@@ -11819,31 +11819,31 @@
         "id": 49
       },
       "codeOwnership": [
-        "lib/domain/digital-observer/ai-job-queue*.ts",
-        "ai-routing*.ts",
-        "cost*.ts"
+        "lib/domain/digital-observer/commercial-billing*.ts",
+        "lib/domain/digital-observer/cost-intelligence*.ts"
       ],
       "databaseOwnership": [
-        "AI queue/routing/usage/rate/cost records"
+        "digital_observer_partner_billing_accounts",
+        "digital_observer_commercial_usage_events",
+        "digital_observer_reconciliation_runs"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/admin/costs",
-        "internal worker contracts"
+        "app/api/digital-observer/billing",
+        "future PUSH 42 partner API contracts"
       ],
       "uiOwnership": [
-        "app/digital-observer/admin/costs",
-        "quality/operations surfaces"
+        "app/digital-observer/billing",
+        "future PUSH 43 partner reporting"
       ],
       "testCoverage": [
-        "check-digital-observer-ai-job-queue.mjs",
-        "check-digital-observer-ai-routing.mjs",
+        "check-digital-observer-push40.mjs",
         "check-digital-observer-cost-engine.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Operational cost attribution is not partner usage billing or settlement"
+        "summary": "Partner account, usage-classification and reconciliation foundations are implemented; partner hierarchy, contractual settlement and external proof remain"
       },
-      "unresolvedLimitations": "Meter partner/customer usage, entitlements and auditable settlement without controlling partner retail pricing",
+      "unresolvedLimitations": "Complete PUSH 42 API identity, PUSH 43 partner hierarchy/provisioning and contract-backed settlement without controlling partner retail pricing",
       "dependencies": [
         {
           "type": "PUSH",
@@ -11932,7 +11932,7 @@
       "sourceRow": 197,
       "section": "SCALE",
       "capabilityName": "Consumer and SMB self-service commercial activation",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         40
       ],
@@ -11945,32 +11945,33 @@
         "id": 47
       },
       "codeOwnership": [
-        "lib/domain/digital-observer/ai-job-queue*.ts",
-        "horizontal-scale*.ts",
-        "high-availability*.ts",
-        "fleet*.ts"
+        "lib/domain/digital-observer/commercial-billing*.ts",
+        "app/api/digital-observer/billing",
+        "app/api/digital-observer/onboarding"
       ],
       "databaseOwnership": [
-        "queue/fleet/health state and shared-backend contracts"
+        "observer_site_subscriptions",
+        "digital_observer_checkout_intents/payment_events/entitlement_grants/refunds"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/admin/fleet",
-        "health/admin APIs"
+        "app/api/digital-observer/billing",
+        "app/api/digital-observer/payment-provider-callbacks",
+        "app/api/digital-observer/onboarding"
       ],
       "uiOwnership": [
-        "app/digital-observer/admin/fleet",
-        "health dashboards"
+        "app/digital-observer/billing",
+        "existing Digital Observer onboarding"
       ],
       "testCoverage": [
-        "check-digital-observer-horizontal-scale.mjs",
-        "check-digital-observer-high-availability.mjs",
-        "check-edge-fleet-control-plane.mjs"
+        "check-digital-observer-push40.mjs",
+        "verify-push40-development-schema.mjs",
+        "verify-push40-local-product.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Account/auth/trial/package flows are real; payment, entitlement activation and live-provider operations are disabled"
+        "summary": "Self-service trial, approved-plan checkout intent, provider callback, entitlement, cancellation/refund and billing-history contracts are implemented; external provider and customer proof are absent"
       },
-      "unresolvedLimitations": "Complete checkout, entitlement, support, cancellation/refund and least-intrusive connection activation",
+      "unresolvedLimitations": "Approved provider/prices/legal process, sandbox receipts, support operations and real least-intrusive external activation remain",
       "dependencies": [
         {
           "type": "PUSH",
