@@ -8,7 +8,7 @@ Production: unchanged
 
 ## Result classification
 
-Internal implementation is complete and branch-local deterministic validation passes at implementation commit `48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0`. Exact-head remote CI, Development integration, isolated Development migration application and cumulative local full-stack verification remain open. Canonical completion therefore remains `NOT DONE`. External provider sandbox and Production delivery proofs are not available and are not claimed.
+Internal implementation is complete. PR #186 passed 9/9 exact-head checks and merged with preserved ancestry as `6236718c1cd05b084d3827526f6fc43980a2cb7b`; the fail-closed ledger correction in PR #187 passed 9/9 and merged as `369968977a3c5fa4c874e7db997501ec7c3af7bb`. The reviewed migration was then applied only to canonical isolated Development, yielding 248/248 drift PASS and schema fingerprint `e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd`. Cumulative local full-stack verification remains open. Canonical completion therefore remains `NOT DONE`. External provider sandbox and Production delivery proofs are not available and are not claimed.
 
 ## Implemented scope
 
@@ -50,6 +50,7 @@ Internal implementation is complete and branch-local deterministic validation pa
 - Release contract, integration workflow, development-baseline and development-drift contracts: PASS.
 - PUSH 39 notification, escalation, action-authorization, webhook-security, queue/retry/idempotency and legacy raw-Event/Digital-Guard regression checks: PASS.
 - No provider, external recipient, camera action, main branch, Production deployment or Production database was contacted or changed.
+- Isolated Development migration: PASS after verified pre-apply backup; 248/248 drift, zero missing, Production access false.
 
 ## North-Star truth
 
