@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
-  "updatedAt": "2026-10-19T00:00:00+03:00",
+  "updatedAt": "2026-10-19T12:00:00+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
@@ -17,7 +17,13 @@
     "productionActivationRequiresOwnerAuthorization": true,
     "sandboxProofIsNotProductionProof": true,
     "realProofCannotBeInferredFromDeterministicQA": true,
-    "costDenominatorsRemainDistinct": true
+    "costDenominatorsRemainDistinct": true,
+    "smsAuthenticationDisabled": true,
+    "automaticSmsAuthenticationFallbackDisabled": true,
+    "twilioSmsAuthenticationDisabled": true,
+    "emailAuthenticationPreserved": true,
+    "whatsAppCannotBeSoleRecoveryFactor": true,
+    "evaluateDirectMetaWhatsAppBeforePaidIntermediary": true
   },
   "items": [
     {
@@ -35,12 +41,34 @@
       "id": "notification-providers",
       "owner": "PUSH 39; external proof gates PUSH 45/46",
       "dependencies": ["provider accounts", "recipient authorization", "consent/legal basis", "cost caps"],
-      "currentState": "Development complete. Email is CONNECTED_NOT_PROVEN through the existing Resend account/configuration. Push is ACCOUNT_EXISTS_NOT_CONNECTED through an existing Firebase project. SMS, WhatsApp and phone are ACCOUNT_EXISTS_NOT_CONNECTED through an existing Twilio account whose current channel eligibility is unresolved. Signed webhooks are CONFIGURED_INACTIVE. No external Production channel is activated by PUSH 39.",
+      "currentState": "Development complete. Email is CONNECTED_NOT_PROVEN through the existing Resend account/configuration. Push is ACCOUNT_EXISTS_NOT_CONNECTED through an existing Firebase project. Generic PUSH 39 SMS delivery contracts and historical records are preserved, but SMS user authentication, automatic SMS fallback and Twilio SMS authentication are disabled by owner policy. WhatsApp and phone are ACCOUNT_EXISTS_NOT_CONNECTED through an existing Twilio account whose current channel eligibility is unresolved; direct Meta WhatsApp Business Platform must be evaluated before adding a paid intermediary. Signed webhooks are CONFIGURED_INACTIVE. No external Production channel is activated by PUSH 39 or PUSH 41.",
       "requiredApproval": "owner approval per provider and channel",
       "sandboxProof": "OPEN for Push, Email, SMS, WhatsApp, signed Webhook and Phone. Existing accounts reduce supplier-selection work but do not satisfy provider receipt proof.",
       "realProof": "OPEN for every external channel",
       "costImpact": "Email last verified on a $0 Free plan; Firebase FCM service itself is no-cost; Twilio usage last evidenced at $0 with a stored balance. Current plans, account eligibility, message/conversation/minute rates, retries and surrounding infrastructure remain UNKNOWN.",
       "activationGate": "authenticated sandbox receipts, privacy review, quotas, cost alerts and explicit activation"
+    },
+    {
+      "id": "enterprise-sso-scim",
+      "owner": "PUSH 41 implementation; external organization proof PUSH 48",
+      "dependencies": ["approved enterprise identity provider", "verified issuer and metadata", "organization mapping", "legal/privacy review", "cost approval"],
+      "currentState": "CONNECTED_NOT_PROVEN is not claimed. OIDC, SAML 2.0 and SCIM foundations are implemented for DISABLED/SANDBOX configuration only, with issuer/audience/redirect/state/nonce contracts, trusted group mapping, deprovisioning and fail-closed Production activation. No external IdP is connected.",
+      "requiredApproval": "owner approval for a specific enterprise IdP, sandbox credentials, metadata and later Production activation",
+      "sandboxProof": "OPEN — deterministic contract and negative-path QA only",
+      "realProof": "OPEN — no external organization SSO, MFA or SCIM lifecycle proof",
+      "costImpact": "UNKNOWN — no IdP subscription or metered provisioning cost was activated",
+      "activationGate": "external sandbox login and provisioning lifecycle, cross-organization isolation, deprovisioning revocation, audit, recovery and approved cost"
+    },
+    {
+      "id": "enterprise-service-accounts",
+      "owner": "PUSH 41 implementation; public API conformance PUSH 42",
+      "dependencies": ["organization authorization", "site-scoped permissions", "credential rotation policy", "PUSH 42 rate limits and public API contracts"],
+      "currentState": "Development implementation complete: one-time credentials are HMAC-hashed, organization/Site scoped, permission bounded, expiring, rotatable, revocable and audited. No external API consumer proof is claimed.",
+      "requiredApproval": "authorized Development integration consumer; separate owner approval for any Production credential",
+      "sandboxProof": "OPEN — deterministic rotation, expiry and cross-organization denial QA only",
+      "realProof": "OPEN — no independent consumer has completed the supported lifecycle",
+      "costImpact": "No new supplier cost; API traffic and support cost remain unmeasured",
+      "activationGate": "PUSH 42 public API rate limits, consumer conformance, rotation/revocation exercise, usage monitoring and approved Production release"
     },
     {
       "id": "real-device-actions",

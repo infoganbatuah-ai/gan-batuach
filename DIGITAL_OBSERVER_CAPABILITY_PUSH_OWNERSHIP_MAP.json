@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-capability-push-ownership-v1",
-  "generatedAt": "2026-10-18T06:00:00+03:00",
+  "generatedAt": "2026-10-19T12:00:00+03:00",
   "canonicalRoadmapPushCount": 52,
   "originalCapabilityCount": 190,
   "addedCapabilityCount": 7,
@@ -14,11 +14,11 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 63,
+    "FOUNDATION": 58,
     "DONE + REAL PROOF": 24,
-    "PARTIAL": 23,
+    "PARTIAL": 21,
     "EXTERNAL COVERAGE GAP": 1,
-    "IMPLEMENTED — NEEDS REAL PROOF": 43,
+    "IMPLEMENTED — NEEDS REAL PROOF": 50,
     "NOT STARTED": 43
   },
   "ownershipRules": {
@@ -2265,7 +2265,7 @@
       "sourceRow": 36,
       "section": "OBSERVER INTELLIGENCE",
       "capabilityName": "Site topology",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         5,
         8,
@@ -2280,35 +2280,16 @@
         "type": "PUSH",
         "id": 41
       },
-      "codeOwnership": [
-        "lib/domain/observer-engine/**",
-        "lib/domain/digital-observer/ai-*.ts"
-      ],
-      "databaseOwnership": [
-        "observer_intelligence_signals",
-        "site_behavior_baselines",
-        "digital_observer_ai_*"
-      ],
-      "apiOwnership": [
-        "app/api/digital-observer/event-journal",
-        "events/review",
-        "incidents"
-      ],
-      "uiOwnership": [
-        "app/digital-observer/events",
-        "app/digital-observer/incidents",
-        "app/digital-observer/rules"
-      ],
-      "testCoverage": [
-        "scripts/qa/check-object-inference.mjs",
-        "check-event-tracker-configuration.mjs",
-        "check-digital-observer-quality-benchmark.mjs"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity.ts", "lib/domain/digital-observer/access.ts"],
+      "databaseOwnership": ["digital_observer_organizations", "digital_observer_organization_memberships", "digital_observer_organization_member_sites", "digital_observer_sites"],
+      "apiOwnership": ["app/api/digital-observer/enterprise"],
+      "uiOwnership": ["app/digital-observer/enterprise", "components/digital-observer/enterprise-identity-center.tsx"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "scripts/development/verify-push41-development-schema.mjs", "scripts/development/verify-push41-local-product.mjs"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Tenant, Site, camera and zone relationships"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Organization/Site membership, delegated scope and bounded 1/10/100/1,000-Site synthetic isolation are implemented; no external multi-site deployment is claimed"
       },
-      "unresolvedLimitations": "Spatial graph and enterprise hierarchy",
+      "unresolvedLimitations": "External multi-site organization topology and sustained operational scale remain unproven",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7584,7 +7565,7 @@
       "sourceRow": 124,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Service accounts",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         18,
         41,
@@ -7598,27 +7579,16 @@
         "type": "PUSH",
         "id": 41
       },
-      "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
-      ],
-      "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
-      ],
-      "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
-      ],
-      "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
-      ],
-      "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity.ts", "lib/domain/digital-observer/enterprise-identity-service.ts"],
+      "databaseOwnership": ["digital_observer_service_accounts", "digital_observer_service_account_sites", "digital_observer_service_account_credentials", "digital_observer_enterprise_audit_events"],
+      "apiOwnership": ["app/api/digital-observer/enterprise"],
+      "uiOwnership": ["app/digital-observer/enterprise"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "scripts/development/verify-push41-development-schema.mjs"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Device principals exist; enterprise accounts do not"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Scoped expiring credentials, one-time issuance, HMAC storage, rotation, revocation and audit are implemented with deterministic negative tests"
       },
-      "unresolvedLimitations": "Scoped enterprise machine identities",
+      "unresolvedLimitations": "PUSH 42 public API rate limits and independent external consumer proof remain",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7638,7 +7608,7 @@
       "sourceRow": 125,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Enterprise auth",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         25,
         41
@@ -7651,27 +7621,16 @@
         "type": "PUSH",
         "id": 48
       },
-      "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
-      ],
-      "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
-      ],
-      "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
-      ],
-      "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
-      ],
-      "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity.ts", "lib/domain/digital-observer/enterprise-identity-service.ts"],
+      "databaseOwnership": ["digital_observer_auth_policies", "digital_observer_sso_connections", "digital_observer_sso_transactions", "digital_observer_scim_connections", "digital_observer_enterprise_sessions"],
+      "apiOwnership": ["app/api/digital-observer/enterprise", "app/api/digital-observer/enterprise/scim/v2/Users"],
+      "uiOwnership": ["app/digital-observer/enterprise"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "scripts/development/verify-push41-development-schema.mjs", "scripts/development/verify-push41-local-product.mjs"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Current RBAC/tenant controls"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Canonical RBAC, invitations, sessions and DISABLED/SANDBOX OIDC/SAML/SCIM contracts are implemented; SMS authentication is disabled by policy"
       },
-      "unresolvedLimitations": "SSO, SCIM/session policy",
+      "unresolvedLimitations": "No approved external IdP, SCIM directory, passkey/TOTP integration or Production activation proof",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7687,7 +7646,7 @@
       "sourceRow": 126,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Enterprise audit",
-      "canonicalStatus": "PARTIAL",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         25,
         41,
@@ -7702,27 +7661,16 @@
         "type": "PUSH",
         "id": 48
       },
-      "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
-      ],
-      "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
-      ],
-      "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
-      ],
-      "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
-      ],
-      "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity-service.ts"],
+      "databaseOwnership": ["digital_observer_enterprise_audit_events"],
+      "apiOwnership": ["app/api/digital-observer/enterprise"],
+      "uiOwnership": ["app/digital-observer/enterprise"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "scripts/development/verify-push41-development-schema.mjs"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Security-sensitive audit coverage exists"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Append-only enterprise audit records cover actor, organization, tenant, Site, resource, action, authorization decision, result and correlation metadata"
       },
-      "unresolvedLimitations": "Complete enterprise action/export audit",
+      "unresolvedLimitations": "Public API/action/export coverage and independent trace exercise remain",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7866,7 +7814,7 @@
       "sourceRow": 129,
       "section": "SCALE",
       "capabilityName": "Multi-site business",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         41,
         47
@@ -7879,33 +7827,16 @@
         "type": "PUSH",
         "id": 47
       },
-      "codeOwnership": [
-        "lib/domain/digital-observer/ai-job-queue*.ts",
-        "horizontal-scale*.ts",
-        "high-availability*.ts",
-        "fleet*.ts"
-      ],
-      "databaseOwnership": [
-        "queue/fleet/health state and shared-backend contracts"
-      ],
-      "apiOwnership": [
-        "app/api/digital-observer/admin/fleet",
-        "health/admin APIs"
-      ],
-      "uiOwnership": [
-        "app/digital-observer/admin/fleet",
-        "health dashboards"
-      ],
-      "testCoverage": [
-        "check-digital-observer-horizontal-scale.mjs",
-        "check-digital-observer-high-availability.mjs",
-        "check-edge-fleet-control-plane.mjs"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity.ts", "lib/domain/digital-observer/access.ts"],
+      "databaseOwnership": ["digital_observer_organizations", "digital_observer_organization_memberships", "digital_observer_organization_member_sites", "digital_observer_sites"],
+      "apiOwnership": ["app/api/digital-observer/enterprise"],
+      "uiOwnership": ["app/digital-observer/enterprise"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "scripts/development/verify-push41-local-product.mjs"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Tenant/Site schema and RBAC"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Organization membership, delegated Site scope and bounded 1/10/100/1,000-Site synthetic isolation profiles are implemented"
       },
-      "unresolvedLimitations": "Multi-site policy and operations",
+      "unresolvedLimitations": "Real multi-site customer operations, support and sustained scale remain unproven",
       "dependencies": [
         {
           "type": "PUSH",
@@ -10999,7 +10930,7 @@
       "sourceRow": 181,
       "section": "SECURITY / PRIVACY / DD",
       "capabilityName": "Audit",
-      "canonicalStatus": "PARTIAL",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         18,
         25,
@@ -11015,33 +10946,16 @@
         "type": "PUSH",
         "id": 41
       },
-      "codeOwnership": [
-        "access/RBAC/media authorization",
-        "release/security policy and CI"
-      ],
-      "databaseOwnership": [
-        "RLS policies",
-        "audit",
-        "retention/legal hold",
-        "managed identity"
-      ],
-      "apiOwnership": [
-        "tenant-scoped routes and signed media endpoints"
-      ],
-      "uiOwnership": [
-        "admin/security/privacy/legal-review surfaces"
-      ],
-      "testCoverage": [
-        "security/isolation CI",
-        "migration health",
-        "secret/dependency scans",
-        "release-contract preflight"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity-service.ts", "release/security policy and CI"],
+      "databaseOwnership": ["digital_observer_enterprise_audit_events", "RLS policies", "retention/legal hold", "managed identity"],
+      "apiOwnership": ["app/api/digital-observer/enterprise", "tenant-scoped routes and signed media endpoints"],
+      "uiOwnership": ["app/digital-observer/enterprise", "admin/security/privacy/legal-review surfaces"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "security/isolation CI", "migration health", "secret/dependency scans", "release-contract preflight"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Security-sensitive audit coverage"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Enterprise invitation, SSO/SCIM, session and service-account lifecycle decisions are append-only and tenant/organization scoped"
       },
-      "unresolvedLimitations": "Complete enterprise/action/export coverage",
+      "unresolvedLimitations": "Complete public API/action/export coverage and independent traceability review remain",
       "dependencies": [
         {
           "type": "PUSH",
@@ -11189,7 +11103,7 @@
       "sourceRow": 184,
       "section": "SECURITY / PRIVACY / DD",
       "capabilityName": "Enterprise access control",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         25,
         41
@@ -11202,33 +11116,16 @@
         "type": "PUSH",
         "id": 48
       },
-      "codeOwnership": [
-        "access/RBAC/media authorization",
-        "release/security policy and CI"
-      ],
-      "databaseOwnership": [
-        "RLS policies",
-        "audit",
-        "retention/legal hold",
-        "managed identity"
-      ],
-      "apiOwnership": [
-        "tenant-scoped routes and signed media endpoints"
-      ],
-      "uiOwnership": [
-        "admin/security/privacy/legal-review surfaces"
-      ],
-      "testCoverage": [
-        "security/isolation CI",
-        "migration health",
-        "secret/dependency scans",
-        "release-contract preflight"
-      ],
+      "codeOwnership": ["lib/domain/digital-observer/enterprise-identity.ts", "lib/domain/digital-observer/enterprise-identity-service.ts", "lib/domain/digital-observer/access.ts"],
+      "databaseOwnership": ["digital_observer_organization_memberships", "digital_observer_organization_member_sites", "digital_observer_auth_policies", "digital_observer_enterprise_invitations", "RLS policies"],
+      "apiOwnership": ["app/api/digital-observer/enterprise", "app/api/digital-observer/enterprise/scim/v2/Users"],
+      "uiOwnership": ["app/digital-observer/enterprise"],
+      "testCoverage": ["scripts/qa/check-digital-observer-push41.mjs", "scripts/development/verify-push41-development-schema.mjs", "security/isolation CI"],
       "realWorldEvidence": {
-        "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Tenant RBAC baseline"
+        "classification": "IMPLEMENTATION_WITH_INCOMPLETE_REAL_PROOF",
+        "summary": "Canonical organization/Site roles, granular server permissions, delegated-grant ceilings, invitations, session revalidation and billing/operational separation are implemented"
       },
-      "unresolvedLimitations": "SSO, service accounts and multi-site roles",
+      "unresolvedLimitations": "External IdP/customer deployment and independent enterprise penetration proof remain",
       "dependencies": [
         {
           "type": "PUSH",
