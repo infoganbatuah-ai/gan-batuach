@@ -312,3 +312,35 @@ The counts below are generated from the rows above during closure QA. They descr
 | **TOTAL** | **190** |
 
 Canonical owner coverage: **190/190**; capabilities without an owning canonical PUSH: **0**.
+
+## POST-PUSH-38 ADDITIVE CAPABILITY REGISTER
+
+Reconciliation date: 2026-10-18.
+
+The original 190 rows above remain unchanged and retain their historical names, statuses and evidence. Stable machine identities `DO-NS-001` through `DO-NS-190` are assigned in their existing row order by `DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json`; this does not rename or reorder the original capabilities.
+
+Seven later canonical requirements were not represented as distinct capabilities. They are added below only where separation is materially required for truthful ownership or proof. Requirements already covered by an existing row remain acceptance criteria of that row and are not duplicated.
+
+| Stable ID | Capability | Current Status | Existing Proof | One Canonical Implementation Owner | Dependencies | Remaining Work | Final Proof Required |
+|---|---|---|---|---:|---|---|---|
+| `DO-NS-191` | Face detection | NOT STARTED | Person detection does not prove a face detector; no supported face-detection benchmark exists | 48 | PUSH 45 legal/privacy decision; PUSH 28 quality contract | Implement a purpose-limited detector separately from recognition, matching and identity | Approved representative benchmark with false-positive/false-negative and human-review evidence |
+| `DO-NS-192` | Vehicle re-identification | NOT STARTED | Vehicle detection, LPR and vehicle search do not prove cross-camera vehicle Re-ID | 48 | PUSH 45 policy; PUSH 28 quality contract | Implement uncertainty-aware cross-camera vehicle similarity and correlation | Authorized multi-camera benchmark with false-match handling |
+| `DO-NS-193` | Gan Batuach Management integration contract | FOUNDATION | Product boundary and truthful Management camera UI exist; runtime integration is explicitly disabled | 42 | PUSH 41 cross-product authorization; PUSH 45 kindergarten privacy | Publish and implement the audited server-to-server capability/event/evidence contract without merging authorization domains | Isolated Garden/Site role matrix, negative tests, reviewed Event and authorized playback/investigation E2E |
+| `DO-NS-194` | OEM partner and end-customer hierarchy/provisioning | NOT STARTED | Internal integration-client registry is not a partner tenancy/provisioning product | 43 | PUSH 41 enterprise hierarchy; PUSH 42 public API | Implement partner tenant, customer hierarchy, provisioning, branding and support ownership | Independent partner provisions isolated customers through supported contracts |
+| `DO-NS-195` | Partner usage metering and commercial settlement | NOT STARTED | Operational cost attribution is not partner usage billing or settlement | 40 | PUSH 42 API usage identity; PUSH 43 partner model; PUSH 49 reconciled economics | Meter partner/customer usage, entitlements and auditable commercial settlement without controlling partner resale pricing | Sandbox reconciliation followed by limited authorized partner billing proof |
+| `DO-NS-196` | All-in monthly cost ceiling compliance | FOUNDATION | Resource attribution exists; invoices, shared allocation, taxes, FX and active-paying-user denominator are not reconciled | 49 | PUSH 33 cost engine; PUSH 40 billing; PUSH 46–48 pilot telemetry | Reconcile every attributable supplier and real active-paying-user denominator; enforce the canonical maximum of ₪15 per active paying user | Dated invoice-backed cohort result, peak forecast, caps/alerts and break-even evidence |
+| `DO-NS-197` | Consumer and SMB self-service commercial activation | FOUNDATION | Account/auth/trial/package flows are real; payment, entitlement activation and live-provider operations are disabled | 40 | PUSH 39 notifications; PUSH 45 legal; PUSH 46–47 pilots | Complete checkout, entitlement, support, cancellation/refund and least-intrusive connection activation | Authorized limited production customer completes signup-to-monitored-site journey with support and billing reconciliation |
+
+### Reconciled counts
+
+| Status | Original 190 | Additions | Reconciled total |
+|---|---:|---:|---:|
+| `DONE + REAL PROOF` | 24 | 0 | 24 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 36 | 0 | 36 |
+| `FOUNDATION` | 64 | 3 | 67 |
+| `PARTIAL` | 18 | 0 | 18 |
+| `NOT STARTED` | 47 | 4 | 51 |
+| `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
+| **TOTAL** | **190** | **7** | **197** |
+
+Canonical implementation-owner coverage after reconciliation: **197/197**. Remaining proof ownership is defined row by row in `DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json`.
