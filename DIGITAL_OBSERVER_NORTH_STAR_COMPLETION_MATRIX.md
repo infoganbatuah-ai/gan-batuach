@@ -11,6 +11,7 @@ This register maps every requested North-Star capability to an existing canonica
 
 | Capability | Previous Status | New Status | PUSH / reason | Evidence added, removed or reinterpreted |
 |---|---|---|---|---|
+| PUSH 41 enterprise identity group (DO-NS-036, 124–126, 129, 181, 184) | FOUNDATION or PARTIAL | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 deterministic closure | Canonical organization/Site memberships, server-enforced role and permission policy, delegated administration, expiring scoped invitations, DISABLED/SANDBOX OIDC/SAML/SCIM contracts, scoped expiring service accounts, session revocation, enterprise audit and bounded scale/isolation QA are implemented. No external IdP, SCIM directory, enterprise customer or Production-scale proof is claimed. |
 | PUSH 39 provider delivery / escalation group (DO-NS-020, 048, 050, 052, 053, 118) | FOUNDATION or PARTIAL | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 deterministic closure | Provider-neutral disabled/sandbox adapters, durable attempts, bounded retry/dead-letter, delivery-time authorization, acknowledgements, bounded escalation, human action gates and minimized audit contracts are implemented. No external provider sandbox or Production receipt is claimed. |
 | PUSH 39 physical-action contract group (DO-NS-016–019) | Previous: NOT STARTED | FOUNDATION | PUSH 39 fail-closed capability mapping | Preset, speaker, siren and light are explicitly mapped to live capability checks and human confirmation. Unsupported actions are rejected; no real execution proof exists. |
 | PUSH 39 interaction group (DO-NS-051, 055, 057, 058, 101) | NOT STARTED or FOUNDATION | PARTIAL | PUSH 39 action-intent boundary | Structured natural-language proposals, recipient preferences, Watch Rule provenance gating and emergency/legal blocks exist. Provider pilots, session continuity, real-device execution and lawful identity/vehicle watch proof remain absent. |
@@ -89,7 +90,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Room/area understanding | FOUNDATION | Site and zone context exists | 5, 8 | Add area relationships and validation | Real-site semantic topology proof |
 | Semantic camera naming suggestions | FOUNDATION | Friendly-name onboarding and registry metadata | 15, 17, 28 | Suggestion model and confirmation UX | Real onboarding usability proof |
 | Zones | DONE + REAL PROOF | Real zone/line crossing and safe normalization | 5 | Multi-layout QA | Real entry/exit regression across layouts |
-| Site topology | FOUNDATION | Tenant, Site, camera and zone relationships | 5, 8, 17, 41 | Spatial graph and enterprise hierarchy | Real multi-site topology and access proof |
+| Site topology | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 preserves tenant/Site/camera IDs and adds organization membership, delegated Site scope and fail-closed cross-organization/Site authorization | 5, 8, 17, 41 | Real organization topology, operational scale and external access review | Real multi-site topology and access proof |
 | Context/Baseline | DONE + REAL PROOF | Real-only baseline input and maturity state | 8 | Longer external-site learning | Real pilot stability and drift proof |
 | Site learning | PARTIAL | Site/camera baseline aggregation exists | 8, 11, 28, 46 | External cohort and seasonality | Long-running real-site evaluation |
 | User-specific learning | FOUNDATION | Feedback and reviewed ground truth are scoped | 11, 25, 45 | Consent, controls and personalization proof | User-controlled pilot with deletion/export |
@@ -207,9 +208,9 @@ This register maps every requested North-Star capability to an existing canonica
 | Embedded Intelligence | FOUNDATION | Observer Core/domain separation exists | 31, 32, 43 | Supported embedding contract | External-host sample app |
 | OEM | NOT STARTED | No external OEM proof | 43, 50, 51 | Packaging, contracts and support | Signed partner integration |
 | White-label | NOT STARTED | No white-label deployment proof | 43, 50, 51 | Branding/isolation/upgrade contract | External branded deployment |
-| Service accounts | FOUNDATION | Device principals exist; enterprise accounts do not | 18, 41, 42 | Scoped enterprise machine identities | Cross-tenant negative and rotation tests |
-| Enterprise auth | FOUNDATION | Current RBAC/tenant controls | 25, 41 | SSO, SCIM/session policy | External organization SSO proof |
-| Enterprise audit | PARTIAL | Security-sensitive audit coverage exists | 25, 41, 42, 45 | Complete enterprise action/export audit | Independent audit trace exercise |
+| Service accounts | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 adds organization-owned, Site-scoped, least-privilege machine identities with one-time HMAC-hashed credentials, expiry, rotation, revocation and audit | 18, 41, 42 | PUSH 42 public API rate limits/consumer contract and independent lifecycle exercise | External consumer cross-tenant denial, rotation and revocation proof |
+| Enterprise auth | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 adds canonical roles/permissions, delegated administration, scoped invitations, session revocation and DISABLED/SANDBOX OIDC/SAML/SCIM foundations; SMS authentication and automatic SMS fallback are disabled | 25, 41 | Approved external IdP/SCIM directory, MFA/account-recovery integration and Production activation review | External organization SSO/MFA/provisioning and deprovisioning proof |
+| Enterprise audit | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 adds append-only enterprise authorization/audit records with actor, organization, tenant, Site, resource, action, decision, result and correlation metadata | 25, 41, 42, 45 | Extend public API/action/export coverage and independently exercise integrity/retrieval | Independent audit trace exercise |
 
 ## SCALE
 
@@ -217,7 +218,7 @@ This register maps every requested North-Star capability to an existing canonica
 |---|---|---|---|---|---|
 | Home | DONE + REAL PROOF | One real home with 11 physical cameras | 16, 17, 18, 46 | External non-team pilot | Sustained consented external home proof |
 | SMB | FOUNDATION | Site/tenant/product architecture | 41, 47 | Real business workflows | External business pilot |
-| Multi-site business | FOUNDATION | Tenant/Site schema and RBAC | 41, 47 | Multi-site policy and operations | Real multi-site customer proof |
+| Multi-site business | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 implements organization membership, delegated Site scope, role ceilings and bounded 1/10/100/1,000-Site synthetic isolation profiles | 41, 47 | External multi-site operations, support workflow and sustained scale | Real multi-site customer proof |
 | Mall | NOT STARTED | No mall-scale deployment | 36, 37, 38, 48 | Scale/operator workflows | Real or representative 100+ camera proof |
 | Campus | NOT STARTED | No campus deployment | 36, 37, 38, 48 | Distributed topology and policy | Representative campus-scale pilot |
 | Hospital/industrial | NOT STARTED | No regulated industrial pilot | 37, 38, 45, 48 | Domain safety/compliance | Approved sector pilot |
@@ -289,10 +290,10 @@ This register maps every requested North-Star capability to an existing canonica
 | Zero-install security | FOUNDATION | Deterministic hard gates and no public RTSP | 17, 25, 42 | Real vendor integrations | Security review of real direct/account path |
 | Biometrics governance | PARTIAL | Restrictive privacy boundary and non-claim | 25, 45 | Formal jurisdiction/consent program | External legal/privacy approval |
 | Encryption | IMPLEMENTED — NEEDS REAL PROOF | Dedicated field key and encrypted credential path | 2, 25 | Rotation exercise and independent review | Production-like rotation/recovery proof |
-| Audit | PARTIAL | Security-sensitive audit coverage | 18, 25, 41, 42, 45 | Complete enterprise/action/export coverage | Independent traceability exercise |
+| Audit | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 extends security-sensitive audit to enterprise invitations, memberships, SSO/SCIM configuration, sessions and service-account lifecycle using append-only records | 18, 25, 41, 42, 45 | Complete public API/action/export coverage and independent integrity review | Independent traceability exercise |
 | Retention | IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 provider-independent retention, legal hold, delete-before-tombstone and backend-failure retry QA | 7, 25, 34, 45 | Approved legal periods, all-domain enforcement and Production deletion evidence | Policy-approved real deletion/retention test |
 | Evidence authorization | DONE + REAL PROOF | Real private signed playback with tenant scope | 7, 25 | External API consumer coverage | Wrong-tenant/expired/deleted real-object proof |
-| Enterprise access control | FOUNDATION | Tenant RBAC baseline | 25, 41 | SSO, service accounts and multi-site roles | External enterprise negative test |
+| Enterprise access control | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 adds canonical organization/Site roles, granular server permissions, delegated-grant ceilings, invitation policy, session revalidation and billing/operational separation | 25, 41 | External IdP/organization deployment, independent penetration testing and real role operations | External enterprise negative test |
 | Privacy | PARTIAL | Sensitive-data register and minimization controls | 25, 45 | Formal notices, consent, deletion/export | External privacy/legal review |
 | Compliance readiness | FOUNDATION | Control matrices and roadmap ownership | 25, 45, 50 | Jurisdictional decisions and evidence | Independent compliance readiness review |
 | Dependency/license inventory | PARTIAL | Dependency/security scans and CI foundations | 24, 25, 50 | SBOM, licenses and remediation evidence | Reproducible clean inventory review |
@@ -307,9 +308,9 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 42 |
-| `FOUNDATION` | 61 |
-| `PARTIAL` | 22 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 49 |
+| `FOUNDATION` | 56 |
+| `PARTIAL` | 20 |
 | `NOT STARTED` | 40 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
@@ -339,9 +340,9 @@ Seven later canonical requirements were not represented as distinct capabilities
 | Status | Original 190 | Additions | Reconciled total |
 |---|---:|---:|---:|
 | `DONE + REAL PROOF` | 24 | 0 | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 42 | 1 | 43 |
-| `FOUNDATION` | 61 | 2 | 63 |
-| `PARTIAL` | 22 | 1 | 23 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 49 | 1 | 50 |
+| `FOUNDATION` | 56 | 2 | 58 |
+| `PARTIAL` | 20 | 1 | 21 |
 | `NOT STARTED` | 40 | 3 | 43 |
 | `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
 | **TOTAL** | **190** | **7** | **197** |

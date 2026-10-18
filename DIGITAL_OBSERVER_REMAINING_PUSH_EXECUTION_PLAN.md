@@ -2,7 +2,7 @@
 
 Date: 2026-10-19
 Scope: canonical PUSH 39–52 only
-PUSH 39 is Development-complete under the separately authorized canonical task, but remains canonically NOT DONE while external provider and real-action proof is unavailable. PUSH 40 is Development-complete after its internal gates and remains canonically NOT DONE while payment-provider sandbox and real commercial proof are unavailable. This document does not replace existing PUSH definitions and does not authorize PUSH 41, main or Production.
+PUSH 39 is Development-complete under the separately authorized canonical task, but remains canonically NOT DONE while external provider and real-action proof is unavailable. PUSH 40 is Development-complete after its internal gates and remains canonically NOT DONE while payment-provider sandbox and real commercial proof are unavailable. PUSH 41 is implemented and branch-validated but remains canonically NOT DONE until exact-head CI, Development integration/migration/full-stack and external enterprise proof close. This document does not replace existing PUSH definitions and does not authorize PUSH 42, main or Production.
 
 ## Sequence and acceptance reconciliation
 
@@ -10,7 +10,7 @@ PUSH 39 is Development-complete under the separately authorized canonical task, 
 |---:|---|---|---|---|---|
 | 39 | External Notifications, Actions and Escalation | DEVELOPMENT COMPLETE — NOT DONE | Providers, callbacks, actions, escalation, quiet hours, acknowledgement | 10, 25, 27; provider sandboxes | PRs #186–#191 exact-head gates, isolated Development migrations, 249/249 drift, canonical Product 18/18 and PUSH 39 full-stack 24/24 pass; real provider sandbox retry/dedupe/ack/failure receipts and real authorized actions remain open; explicit reversible activation; no automatic sensitive action |
 | 40 | Billing, Subscription and Entitlement Production | DEVELOPMENT COMPLETE — NOT DONE | Provider-neutral checkout, subscriptions, internal invoices, entitlements, partner metering foundation, self-service activation | 25, 39; payment/invoice/legal approval | Internal deterministic/RLS/migration/full-stack gates; approved provider sandbox then limited authorized real proof, legal invoice process and cost reconciliation remain open |
-| 41 | Enterprise Tenancy, RBAC, SSO and Service Accounts | NOT STARTED; tenant/Site/RLS foundations exist | Organizations, multi-Site roles, SSO/SCIM, service accounts, SLA/access policy | 25, 26, 36 | Independent multi-organization isolation, role matrix, credential rotation and audit |
+| 41 | Enterprise Tenancy, RBAC, SSO and Service Accounts | IMPLEMENTED — INTEGRATION PENDING — NOT DONE | Organizations, multi-Site roles, SSO/SCIM, service accounts, SLA/access policy | 25, 26, 36 | Internal deterministic/RLS/build gates pass; exact-head CI, Development migration/full-stack and independent multi-organization/IdP/service-account proof remain |
 | 42 | External API and Webhook Platform | NOT STARTED; internal APIs only | Public API, Gan Batuach contract, VMS/source integrations, webhooks, sandbox/docs | 25, 26, 41 | Independent consumer conformance; versioning, rate limits, idempotency, signed webhooks and authorized Evidence |
 | 43 | SDK, OEM and White-Label Proof | NOT STARTED | SDK, embedded components, OEM hierarchy/provisioning, branding and upgrade contract | 42 | External sample/partner provisions isolated customer and embeds/branded flow without first-party UI |
 | 44 | Native Mobile Production Readiness | NOT STARTED; contracts/store preparation only | Signed iOS/Android, push, deep links, mobile onboarding and personal-safety client | 25, 39 | Real-device supported matrix, permissions/background/resume/push and store policy review |
@@ -39,4 +39,4 @@ Every PUSH uses an isolated branch, exact-head CI, risk-specific tests, remote p
 
 ## Next canonical PUSH
 
-PUSH 41 is the next readiness target after PUSH 40 closes its exact-head CI, Development integration, isolated migration and cumulative local Product gates. PUSH 41 is not started here. PUSH 38 reliability exceptions, PUSH 39 external-provider/real-action proof and PUSH 40 payment-provider/legal/commercial proof remain explicitly open; deterministic or isolated-Development implementation does not convert them into real proof.
+PUSH 42 is readiness-only after PUSH 41 closes exact-head CI, Development integration, isolated migration and cumulative local Product gates. PUSH 42 has not started. PUSH 38 reliability exceptions, PUSH 39 external-provider/real-action proof, PUSH 40 payment-provider/legal/commercial proof and PUSH 41 external enterprise identity proof remain explicitly open; deterministic or isolated-Development implementation does not convert them into real proof.

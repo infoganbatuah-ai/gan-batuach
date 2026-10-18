@@ -50,13 +50,13 @@ The original 190 identities are preserved in order and assigned stable IDs DO-NS
 6. DO-NS-196 Monthly cost ceiling compliance with both canonical denominators reported separately.
 7. DO-NS-197 Consumer and SMB self-service commercial activation.
 
-Reconciled status counts are 24 DONE + REAL PROOF, 36 IMPLEMENTED — NEEDS REAL PROOF, 67 FOUNDATION, 18 PARTIAL, 51 NOT STARTED and one EXTERNAL COVERAGE GAP. Therefore 173 capabilities still require implementation, broader proof, external coverage or a combination. All 197 have one canonical implementation owner and one proof owner/release gate in DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json.
+Current post-PUSH-41 branch status counts are 24 DONE + REAL PROOF, 50 IMPLEMENTED — NEEDS REAL PROOF, 58 FOUNDATION, 21 PARTIAL, 43 NOT STARTED and one EXTERNAL COVERAGE GAP. Therefore 173 capabilities still require implementation, broader proof, external coverage or a combination. All 197 have one canonical implementation owner and one proof owner/release gate in DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json. The earlier audit counts are historical snapshots; these updates do not convert deterministic Development implementation into real proof.
 
 ## Canonical roadmap decision
 
 No new PUSH is required. The missing requirements fit the existing 39–52 architecture without replacing their objectives. They become explicit acceptance criteria: providers/actions in 39; billing and partner metering in 40; enterprise hierarchy in 41; public and Gan Batuach contracts in 42; OEM/white-label hierarchy and SDK proof in 43; legal/biometric governance in 45; zero-install and home reliability proof in 46; business/VMS proof in 47; cross-camera/Re-ID and 100+ scale in 48; quality and all-in economics in 49; DD in 50; commercial partner proof in 51; final strategic process in 52.
 
-The next canonical implementation PUSH remains PUSH 39 — External Notifications, Actions and Escalation. It is the sequential successor to the accepted Development closure of PUSH 38 and is a dependency for billing, pilots and commercial activation. This audit does not start it.
+The next canonical implementation PUSH after PUSH 41 Development closure is PUSH 42 — External API and Webhook Platform. PUSH 42 remains readiness-only until PUSH 41 exact-head CI, isolated Development migration and cumulative local Product gates close. This reconciliation does not start PUSH 42.
 
 ## Cost denominator reconciliation
 

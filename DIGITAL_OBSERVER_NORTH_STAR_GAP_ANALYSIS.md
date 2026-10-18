@@ -7,17 +7,17 @@ Result: PARTIAL
 
 The audit compared canonical requirements with repository implementation, migrations, APIs, UI surfaces, deterministic QA and real-world evidence. Documentation-only claims were not treated as implementation, synthetic load was not treated as Production proof, and accepted PUSH completion did not automatically promote capability rows.
 
-Stable IDs DO-NS-001 through DO-NS-190 preserve the original matrix order. Seven additive IDs are recorded in the matrix addendum and machine-readable ownership map. No original row was deleted, renamed, merged or status-upgraded.
+Stable IDs DO-NS-001 through DO-NS-190 preserve the original matrix order. Seven additive IDs are recorded in the matrix addendum and machine-readable ownership map. No original row was deleted, renamed or merged. Later status changes are recorded only when implementation evidence is added; PUSH 41 promotes seven rows to `IMPLEMENTED — NEEDS REAL PROOF` without claiming real proof.
 
 ## Reconciled status ledger
 
 | Status | Count | Interpretation |
 |---|---:|---|
 | DONE + REAL PROOF | 24 | Implemented with qualifying real evidence for the bounded claim |
-| IMPLEMENTED — NEEDS REAL PROOF | 36 | Executable implementation exists, but representative or external proof is missing |
-| FOUNDATION | 67 | Contracts, schemas or partial surfaces exist; end-to-end capability is not complete |
-| PARTIAL | 18 | A meaningful subset works, but required scope is incomplete |
-| NOT STARTED | 51 | No qualifying implementation for the stated capability |
+| IMPLEMENTED — NEEDS REAL PROOF | 50 | Executable implementation exists, but representative or external proof is missing |
+| FOUNDATION | 58 | Contracts, schemas or partial surfaces exist; end-to-end capability is not complete |
+| PARTIAL | 21 | A meaningful subset works, but required scope is incomplete |
+| NOT STARTED | 43 | No qualifying implementation for the stated capability |
 | EXTERNAL COVERAGE GAP | 1 | Vendor authorization/adapter coverage is absent |
 | Total | 197 | 190 preserved + 7 justified additions |
 
@@ -29,11 +29,11 @@ Twenty-four capabilities are DONE + REAL PROOF. They include the bounded real Co
 
 ### B. Requirements partially covered
 
-One hundred twenty-one capabilities are IMPLEMENTED — NEEDS REAL PROOF, FOUNDATION or PARTIAL. The largest concentrations are enterprise investigation, camera interoperability, reliability, scale, AI infrastructure/economics and security/privacy. These rows have useful reusable architecture, but cannot be described as complete.
+One hundred twenty-nine capabilities are IMPLEMENTED — NEEDS REAL PROOF, FOUNDATION or PARTIAL. The largest concentrations are enterprise investigation, camera interoperability, reliability, scale, AI infrastructure/economics and security/privacy. These rows have useful reusable architecture, but cannot be described as complete.
 
 ### C. Requirements missing
 
-Fifty-one capabilities are NOT STARTED. They include sensitive identity functions, many guardian/mobile workflows, advanced reference search, SDK/OEM/white-label proof, large-site operational profiles, 24/7 stability and the new distinct face-detection, vehicle-Re-ID, partner hierarchy and partner settlement capabilities.
+Forty-three capabilities are NOT STARTED. They include sensitive biometric identity functions, many guardian/mobile workflows, advanced reference search, SDK/OEM/white-label proof, large-site operational profiles, 24/7 stability and the distinct face-detection, vehicle-Re-ID and partner-hierarchy capabilities.
 
 ### D. Requirements with no canonical owner
 

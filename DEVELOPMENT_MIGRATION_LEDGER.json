@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-18T21:51:34.836Z",
+  "observedAt": "2026-10-19T12:30:00.000Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7623,6 +7623,37 @@
       "recovery": "Additive commercial billing schema with default-disabled provider contracts, fail-closed tenant/partner RLS and no raw card data. Restore the verified isolated Development backup if verification fails, or use a reviewed forward-only corrective migration; do not edit this migration after application.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentSchemaFingerprint": "497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed"
+    },
+    {
+      "file": "supabase/migrations/20261019020000_digital_observer_push41_enterprise_identity.sql",
+      "blob": "b548a0e4517d5c3a327a1b890117a325ce26460a",
+      "sha256": "bd0369b5567db55e57ddbe08a3d116ba592a3c9bcce028bf79af4d1d2b2c79da",
+      "version": "20261019020000",
+      "sourceTask": "PUSH 41",
+      "sourceCommit": "be485dab83546c1acd550d9bd9c89b555d1d1e6b",
+      "sourceHead": "be485dab83546c1acd550d9bd9c89b555d1d1e6b",
+      "remoteBranch": "origin/codex/push-41-enterprise-identity",
+      "integrationCommit": null,
+      "inGit": true,
+      "inIntegration": false,
+      "inclusion": "PUSHED_REMOTE_PENDING_INTEGRATION",
+      "releaseOrder": "20261019020000",
+      "requiredPredecessor": "20261019010000_digital_observer_push40_commercial_billing.sql",
+      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
+      "developmentApproval": "BRANCH_VALIDATED_PENDING_EXACT_HEAD_CI_AND_INTEGRATION",
+      "developmentDependsOn": [
+        "20261019010000"
+      ],
+      "developmentApprovalEvidence": "Source commit be485dab83546c1acd550d9bd9c89b555d1d1e6b passed branch-local TypeScript, canonical lint, Production build without deployment, domain 41/41, security/isolation 42/42, migration health 251, release contract, focused PUSH 41 QA and PUSH 39/40 regressions. Application is allowed only after exact-head required CI and Development integration.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "NO",
+      "productionEvidence": "Production application is not authorized and was not attempted.",
+      "recovery": "Forward-only additive Enterprise identity schema. Before isolated Development application, take and verify a recoverable backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit the migration after application.",
+      "developmentStatusReason": "Remote-preserved branch migration awaits exact-head CI, Development integration, backup and isolated Development application",
+      "developmentSchemaFingerprint": null
     }
   ],
   "developmentExpected": 250,

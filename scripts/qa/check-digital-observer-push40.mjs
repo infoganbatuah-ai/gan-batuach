@@ -137,10 +137,12 @@ assert(billingPage.includes("רשומות מסחריות פנימיות בלבד
 
 assert.equal(activationRegister.principles.defaultState, "DISABLED");
 assert.equal(activationRegister.principles.productionActivationRequiresOwnerAuthorization, true);
-assert.deepEqual(new Set(activationRegister.items.map((item) => item.id)), new Set([
+const requiredPush40ActivationItems = new Set([
   "payment-providers", "notification-providers", "real-device-actions", "mobile-push", "oem-integrations",
   "zero-install", "external-pilots", "legal-privacy-approvals", "production-deployment"
-]));
+]);
+const activationItemIds = new Set(activationRegister.items.map((item) => item.id));
+assert([...requiredPush40ActivationItems].every((id) => activationItemIds.has(id)), "PUSH 40 activation-register items must remain present when later PUSHes add proof gates.");
 assert(activationRegister.items.every((item) => item.owner && item.dependencies && item.currentState && item.requiredApproval && item.sandboxProof && item.realProof && item.costImpact && item.activationGate));
 
 console.log("PUSH 40 deterministic QA passed: plan approval, checkout/provider fail-closed behavior, lifecycle/trials/change policy, server entitlements, webhook signature/replay/idempotency contracts, reconciliation, partner isolation schema, dual cost denominators and 100-100000 user unknown-safe projections.");
