@@ -1249,3 +1249,26 @@ Known bounded base is $54.8717–$55.9167/month before tax/FX (approximately
 ₪169.50–₪172.73 at the reconciliation rate), while exact all-in
 exposure and both canonical user ratios remain unmeasurable. PUSH 39 and PUSH
 40 remain canonically NOT DONE and all prior proof obligations remain open.
+
+PUSH 41 branch-preservation receipt (2026-10-19): source implementation commit
+`be485dab83546c1acd550d9bd9c89b555d1d1e6b` is remotely preserved on
+`codex/push-41-enterprise-identity`, built
+from integration baseline `de292b65d52c885b378eb7cd4daec9afac6be305` after
+verifying the required PUSH 39 and PUSH 40 ancestry. Canonical organization and
+Site membership, RBAC, delegated administration, expiring invitations,
+DISABLED/SANDBOX OIDC/SAML/SCIM, scoped expiring service accounts, sessions,
+append-only Enterprise audit, Product UI and bounded scale profiles are
+implemented. SMS user authentication, automatic SMS fallback and Twilio SMS
+authentication now fail closed; email remains enabled and generic PUSH 39 SMS
+delivery history/contracts are preserved. WhatsApp remains unactivated and
+cannot be the sole recovery factor.
+
+Branch-local TypeScript, canonical zero-regression lint, Production build
+without deployment, domain 41/41, security/isolation 42/42, migration health
+251, release contract, focused PUSH 41 QA and PUSH 39/40 regressions pass. The
+additive migration `20261019020000_digital_observer_push41_enterprise_identity.sql`
+is validated but not applied: exact-head protected CI, Development integration,
+verified isolated backup, Development application/schema proof and exact-SHA
+cumulative local Product verification remain pending. No IdP/provider was
+activated, no supplier cost was added, and main and Production remain
+unchanged. PUSH 42 is readiness-only and has not started.

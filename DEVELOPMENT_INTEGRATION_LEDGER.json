@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T22:31:16Z",
+  "updatedAt": "2026-10-19T12:30:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11289,6 +11289,71 @@
         "productionActivation": false
       },
       "nextAction": "Do not activate a new supplier: evaluate the existing Morning account first for payment+invoice and the existing Twilio account first for WhatsApp. Preserve all PUSH 38/39/40 proof gaps; do not touch main or Production."
+    },
+    {
+      "id": "codex/push-41-enterprise-identity-20261019",
+      "project": "Digital Observer",
+      "title": "PUSH 41 enterprise tenancy, RBAC, SSO and service accounts",
+      "owner": "PUSH 41 implementation owner",
+      "sourceBranch": "codex/push-41-enterprise-identity",
+      "sourceCommits": [
+        "be485dab83546c1acd550d9bd9c89b555d1d1e6b"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-41-enterprise-identity@be485dab83546c1acd550d9bd9c89b555d1d1e6b"
+        ],
+        "qualificationCommit": "be485dab83546c1acd550d9bd9c89b555d1d1e6b"
+      },
+      "validation": {
+        "status": "PASS_BRANCH_INTERNAL_GATES_INTEGRATION_AND_EXTERNAL_PROOF_PENDING",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_41_IMPLEMENTATION_REPORT.md",
+          "TypeScript PASS; scoped ESLint PASS; canonical lint PASS with zero canonical regressions",
+          "Production build without deployment PASS on Next.js 16.3.8",
+          "Digital Observer domain regression PASS 41/41",
+          "Security/isolation regression PASS 42/42",
+          "Migration health PASS 251 files; release-contract PASS with Production mutation false",
+          "PUSH 41 deterministic organization/Site/RBAC/SSO/SCIM/service-account/session/SMS-policy QA PASS",
+          "PUSH 39 notification/action and PUSH 40 billing/entitlement regressions PASS",
+          "197 unique North-Star identities preserved; seven PUSH 41 rows promoted only to IMPLEMENTED — NEEDS REAL PROOF"
+        ],
+        "limits": "Exact-head protected CI, Development integration, isolated Development migration application/schema verification and exact-SHA cumulative local Product verification remain pending. No external IdP, SCIM directory, enterprise customer, WhatsApp provider or Production-scale proof is claimed."
+      },
+      "integration": {
+        "status": "PENDING_SCOPED_PR_AND_EXACT_HEAD_CI",
+        "base": "integration/development",
+        "commit": null,
+        "requiredChecks": "PENDING"
+      },
+      "dependencies": {
+        "status": "SATISFIED_FOR_BRANCH_IMPLEMENTATION",
+        "units": [
+          "codex/push-39-external-actions-20261018",
+          "codex/push-40-commercial-billing-20261019"
+        ]
+      },
+      "migrations": [
+        "20261019020000_digital_observer_push41_enterprise_identity.sql"
+      ],
+      "migrationOrder": [
+        "20261019020000"
+      ],
+      "conflictsResolution": "Built from current origin/integration/development at de292b65d52c885b378eb7cd4daec9afac6be305 with PUSH 39 and PUSH 40 ancestry verified. Existing tenant/Site, Event/Incident, billing and notification domains are reused; no parallel authorization domain was introduced.",
+      "localVerification": "PENDING_EXACT_MERGED_INTEGRATION_SHA",
+      "releaseEligibility": "NOT_READY_INTEGRATION_MIGRATION_LOCAL_FULL_STACK_AND_EXTERNAL_ENTERPRISE_PROOF_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "actualIncrementalProviderCostIls": 0,
+        "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
+        "productionActivation": false
+      },
+      "nextAction": "Open a scoped PR to integration/development, require exact-head CI, preserve ancestry, then apply only the reviewed PUSH 41 migration to isolated Development and run exact-SHA cumulative local Product/schema QA. Keep external SSO/SCIM/service-account/multi-site proof open. Do not start PUSH 42 or touch main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
