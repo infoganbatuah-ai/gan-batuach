@@ -11103,6 +11103,83 @@
         "productionActivation": false
       },
       "nextAction": "Keep PUSH 39 external provider sandbox receipts, real-device action proof, approved emergency drill and legally sensitive workflow proof open under their assigned PUSH 45/46 and provider release gates. PUSH 40 is readiness-only and must not start without a separate instruction. Do not touch main or Production."
+    },
+    {
+      "id": "codex/push-40-commercial-billing-20261019",
+      "project": "Digital Observer",
+      "title": "PUSH 40 billing, subscriptions, entitlements and commercial activation",
+      "owner": "PUSH 40 implementation owner",
+      "sourceBranch": "codex/push-40-commercial-billing",
+      "sourceCommits": [
+        "0230e526c9965ae7ea484378ba0624ee4783b7c2"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-40-commercial-billing@0230e526c9965ae7ea484378ba0624ee4783b7c2"
+        ],
+        "qualificationCommit": "0230e526c9965ae7ea484378ba0624ee4783b7c2"
+      },
+      "validation": {
+        "status": "PASS_BRANCH_AND_EXACT_HEAD_CI_DEVELOPMENT_MIGRATION_AND_LOCAL_FULL_STACK_PENDING",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_40_COMMERCIAL_BILLING_ARCHITECTURE.md",
+          "DIGITAL_OBSERVER_PUSH_40_IMPLEMENTATION_REPORT.md",
+          "PUSH 40 deterministic billing, entitlement, partner-isolation, webhook, reconciliation and cost-limit QA PASS",
+          "TypeScript PASS; canonical lint PASS; Production build without deployment PASS",
+          "Digital Observer domain regression PASS 41/41",
+          "Security/isolation regression PASS 42/42 plus tracked-source secret guards",
+          "Migration health PASS 250 files; release-contract and focused PUSH 39 regression PASS",
+          "PR #193 exact head 0230e526c9965ae7ea484378ba0624ee4783b7c2 PASS 9/9 and ancestry merge 8dee58999c322041691e19d61a7b22a90dd8fb68",
+          "Verified isolated Development pre-apply backup /private/tmp/push40-development-pre-migration.dump SHA-256 4a80f2f79a319e745f65f0e9afc990e243e6612572b07d46533248213e1978b7; pg_restore archive listing verified",
+          "All payment provider modes remain disabled; provider sandbox receipts and Production payment proof are unavailable and not claimed"
+        ],
+        "limits": "Canonical Development migration application and exact-SHA cumulative local full-stack proof remain pending. No payment provider was contacted, no real payment or refund occurred, no paid resource was activated, and no Production access occurred. PUSH 38 exceptions and PUSH 39 external proof obligations remain unchanged."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT_MIGRATION_APPROVAL_PENDING_REMOTE_MERGE",
+        "base": "integration/development",
+        "commit": "8dee58999c322041691e19d61a7b22a90dd8fb68",
+        "ancestryMergeCommit": "8dee58999c322041691e19d61a7b22a90dd8fb68",
+        "pullRequest": {
+          "number": 193,
+          "url": "https://github.com/infoganbatuah-ai/gan-batuach/pull/193",
+          "state": "MERGED",
+          "base": "integration/development",
+          "source": "codex/push-40-commercial-billing",
+          "sourceSha": "0230e526c9965ae7ea484378ba0624ee4783b7c2",
+          "mergeSha": "8dee58999c322041691e19d61a7b22a90dd8fb68"
+        },
+        "requiredChecks": "PASS_9_OF_9_FOR_PR_193"
+      },
+      "dependencies": {
+        "status": "SATISFIED_FOR_DEVELOPMENT_INTEGRATION",
+        "units": [
+          "codex/push-39-external-actions-20261018"
+        ]
+      },
+      "migrations": [
+        "20261019010000_digital_observer_push40_commercial_billing.sql"
+      ],
+      "migrationOrder": [
+        "20261019010000"
+      ],
+      "conflictsResolution": "PR #193 merged into the current integration/development target with preserved ancestry after all nine required checks passed. No unrelated source, Management, Production configuration or historical qualification evidence was changed.",
+      "localVerification": "PENDING_CANONICAL_DEVELOPMENT_MIGRATION_AND_EXACT_INTEGRATION_SHA_RUNTIME",
+      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_LOCAL_FULL_STACK_AND_EXTERNAL_PROVIDER_PROOF_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "actualIncrementalProviderCostIls": 0,
+        "infrastructureCostPerRegisteredUser": "UNMEASURED_REQUIRES_VERIFIED_INVOICES_AND_REGISTERED_USER_DENOMINATOR",
+        "allInCostPerActivePayingUser": "UNMEASURED_REQUIRES_VERIFIED_INVOICES_AND_ACTIVE_PAYING_USER_DENOMINATOR",
+        "externalProjection": "UNMEASURED_PENDING_APPROVED_PROVIDER_RATES",
+        "productionActivation": false
+      },
+      "nextAction": "Merge this scoped Development-approval receipt, apply only migration 20261019010000 to the canonical isolated Development database, record its receipt, and run exact-SHA cumulative local full-stack verification. Keep all providers disabled; do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -11121,7 +11198,7 @@
     "push39SchemaReceipt": "development/database/push39-schema-receipt.json",
     "observedAt": "2026-10-18T20:39:46.800Z"
   },
-  "observedAt": "2026-10-18T20:39:46.800Z",
+  "observedAt": "2026-10-18T21:46:00.000Z",
   "reconciliationReport": "DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json",
   "openPullRequests": [
     {
