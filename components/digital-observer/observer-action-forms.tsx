@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
+import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, RotateCcw, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import {
   classifyObserverPairingPayload,
@@ -535,7 +535,28 @@ export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: {
 }
 
 export function ObserverPlanButton({ siteId, packageId, billingCycle = "monthly" }: { siteId: string; packageId: string; billingCycle?: "monthly" | "annual" }) {
-  return <ObserverQuickAction endpoint="/api/digital-observer/billing" body={{ observer_site_id: siteId, package_id: packageId, billing_cycle: billingCycle }}><ShieldCheck /> בחירת החבילה במצב הדגמה</ObserverQuickAction>;
+  const [idempotencyKey] = useState(() => globalThis.crypto?.randomUUID?.() ?? `${siteId}-${packageId}-${Date.now()}`);
+  return <ObserverQuickAction endpoint="/api/digital-observer/billing" body={{ action: "change_plan", observer_site_id: siteId, package_id: packageId, billing_cycle: billingCycle, idempotency_key: idempotencyKey }}><ShieldCheck /> בקשת שינוי מסלול</ObserverQuickAction>;
+}
+
+export function ObserverCancelSubscriptionButton({ siteId }: { siteId: string }) {
+  const [idempotencyKey] = useState(() => globalThis.crypto?.randomUUID?.() ?? `${siteId}-cancel-${Date.now()}`);
+  return <ObserverQuickAction endpoint="/api/digital-observer/billing" body={{ action: "cancel", observer_site_id: siteId, reason: "Customer self-service cancellation", idempotency_key: idempotencyKey }} confirmText="לתזמן את ביטול המנוי לסוף התקופה?"><Trash2 /> תזמון ביטול</ObserverQuickAction>;
+}
+
+export function ObserverRefundButton({ siteId, paymentEventId, amountMinor, currency }: {
+  siteId: string;
+  paymentEventId: string;
+  amountMinor: number;
+  currency: string;
+}) {
+  const [idempotencyKey] = useState(() => globalThis.crypto?.randomUUID?.() ?? `${siteId}-${paymentEventId}-refund-${Date.now()}`);
+  return <ObserverQuickAction
+    endpoint="/api/digital-observer/billing"
+    body={{ action: "refund", observer_site_id: siteId, payment_event_id: paymentEventId, amount_minor: amountMinor,
+      currency, reason: "Customer requested full refund review", idempotency_key: idempotencyKey }}
+    confirmText="לבקש בדיקה ואישור להחזר מלא? ההחזר לא ייחשב כמושלם עד אישור ספק התשלום."
+  ><RotateCcw /> בקשת החזר</ObserverQuickAction>;
 }
 
 export function ObserverDeletePersonButton({ id }: { id: string }) {

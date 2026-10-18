@@ -330,19 +330,19 @@ Seven later canonical requirements were not represented as distinct capabilities
 | `DO-NS-192` | Vehicle re-identification | NOT STARTED | Vehicle detection, LPR and vehicle search do not prove cross-camera vehicle Re-ID | 48 | PUSH 45 policy; PUSH 28 quality contract | Implement uncertainty-aware cross-camera vehicle similarity and correlation | Authorized multi-camera benchmark with false-match handling |
 | `DO-NS-193` | Gan Batuach Management integration contract | FOUNDATION | Product boundary and truthful Management camera UI exist; runtime integration is explicitly disabled | 42 | PUSH 41 cross-product authorization; PUSH 45 kindergarten privacy | Publish and implement the audited server-to-server capability/event/evidence contract without merging authorization domains | Isolated Garden/Site role matrix, negative tests, reviewed Event and authorized playback/investigation E2E |
 | `DO-NS-194` | OEM partner and end-customer hierarchy/provisioning | NOT STARTED | Internal integration-client registry is not a partner tenancy/provisioning product | 43 | PUSH 41 enterprise hierarchy; PUSH 42 public API | Implement partner tenant, customer hierarchy, provisioning, branding and support ownership | Independent partner provisions isolated customers through supported contracts |
-| `DO-NS-195` | Partner usage metering and commercial settlement | NOT STARTED | Operational cost attribution is not partner usage billing or settlement | 40 | PUSH 42 API usage identity; PUSH 43 partner model; PUSH 49 reconciled economics | Meter partner/customer usage, entitlements and auditable commercial settlement without controlling partner resale pricing | Sandbox reconciliation followed by limited authorized partner billing proof |
+| `DO-NS-195` | Partner usage metering and commercial settlement | PARTIAL | PUSH 40 adds partner billing accounts, tenant/Site/customer attribution, measured/allocated/estimated/unknown usage classes and reconciliation records without controlling partner resale pricing; no partner hierarchy, API identity, contractual rates or settlement proof exists | 40 | PUSH 42 API usage identity; PUSH 43 partner model; PUSH 49 reconciled economics | Complete partner/customer hierarchy, contractual wholesale rates, API attribution and settlement operations | Sandbox reconciliation followed by limited authorized partner billing proof |
 | `DO-NS-196` | Monthly cost ceiling compliance | FOUNDATION | Resource attribution exists; invoices, shared allocation, taxes, FX, registered-user denominator and active-paying-user denominator are not reconciled | 49 | PUSH 33 cost engine; PUSH 40 billing; PUSH 46–48 pilot telemetry | Calculate separately: infrastructure cost / registered users and all-in attributable cost / active paying users; do not substitute either metric; retain owner decision on their final relationship | Dated invoice-backed results for both ₪15 ratios, denominator definitions, peak forecasts, caps/alerts and break-even evidence |
-| `DO-NS-197` | Consumer and SMB self-service commercial activation | FOUNDATION | Account/auth/trial/package flows are real; payment, entitlement activation and live-provider operations are disabled | 40 | PUSH 39 notifications; PUSH 45 legal; PUSH 46–47 pilots | Complete checkout, entitlement, support, cancellation/refund and least-intrusive connection activation | Authorized limited production customer completes signup-to-monitored-site journey with support and billing reconciliation |
+| `DO-NS-197` | Consumer and SMB self-service commercial activation | IMPLEMENTED — NEEDS REAL PROOF | PUSH 40 implements bounded trial, approved-plan checkout intent, signed/idempotent provider callback, server entitlements, upgrades/downgrades, cancellation/refund requests, history UI and fail-closed self-service flow; provider remains disabled and historical prices remain unapproved | 40 | PUSH 39 notifications; PUSH 45 legal; PUSH 46–47 pilots | Approve provider/prices/legal process, obtain sandbox receipts, complete support operations and least-intrusive external activation | Authorized limited production customer completes signup-to-monitored-site journey with support and billing reconciliation |
 
 ### Reconciled counts
 
 | Status | Original 190 | Additions | Reconciled total |
 |---|---:|---:|---:|
 | `DONE + REAL PROOF` | 24 | 0 | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 42 | 0 | 42 |
-| `FOUNDATION` | 61 | 3 | 64 |
-| `PARTIAL` | 22 | 0 | 22 |
-| `NOT STARTED` | 40 | 4 | 44 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 42 | 1 | 43 |
+| `FOUNDATION` | 61 | 2 | 63 |
+| `PARTIAL` | 22 | 1 | 23 |
+| `NOT STARTED` | 40 | 3 | 43 |
 | `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
 | **TOTAL** | **190** | **7** | **197** |
 

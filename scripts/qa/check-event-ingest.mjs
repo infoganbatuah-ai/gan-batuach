@@ -18,6 +18,7 @@ const siteId=randomUUID(),cameraId=randomUUID(),gatewayId=randomUUID(),deviceId=
 const tables={
   video_gateway_device_enrollments:[{id:deviceId,gateway_id:gatewayId,observer_site_id:siteId,status:"delivered"}],
   observer_sites:[{id:siteId,garden_id:null,site_type:"home",monitoring_enabled:true,metadata:{observer_monitoring_consent:true}}],
+  observer_site_subscriptions:[{id:randomUUID(),observer_site_id:siteId,commercial_state:"active",entitlement_snapshot:{ai_processing:true,evidence_storage:true,video_retention:24},trial_end:null,grace_period_ends_at:null}],
   digital_observer_camera_sources:[{id:cameraId,observer_site_id:siteId,display_name:"כניסה",status:"connected",source_mode:"gateway_test",metadata:{gateway_id:gatewayId,gateway_stream_id:"stream",zone_type:"ENTRANCE"}}],
   observer_monitoring_schedules:[{observer_site_id:siteId,status:"active",timezone:"UTC",schedule:{quiet_hours:{start:"00:00",end:"06:00"}}}],
   observer_intelligence_signals:[], digital_observer_authorized_recipients:[], observer_alert_channel_settings:[],

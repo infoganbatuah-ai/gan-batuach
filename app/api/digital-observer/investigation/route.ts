@@ -6,6 +6,8 @@ import { guardHistoryPrivacyRestricted } from "@/lib/domain/event-engine/guard-j
 import { compileInvestigationQuery, validateInvestigationQuery, type InvestigationCameraResource } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
 import type { InvestigationSource } from "@/lib/domain/digital-observer/investigation-results";
+import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,6 +70,8 @@ export async function POST(request: Request) {
         .eq("id", payload.observer_site_id).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle()).data
       : await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, { manage: false });
     if (!site) return fail("אין הרשאה לחקור את האתר הזה.", 403);
+    try { await assertCommercialEntitlement(createAdminClient(), { siteId: payload.observer_site_id, key: "investigation" }); }
+    catch (error) { return fail(error instanceof Error ? error.message : "INVESTIGATION_ENTITLEMENT_DENIED", 403); }
     if (guardHistoryPrivacyRestricted(site)) return fail("חקירת היסטוריית מצלמות אינה זמינה באתר הזה תחת מדיניות הפרטיות הנוכחית.", 403);
 
     const camerasResult = await dataClient.from("digital_observer_camera_sources" as never)

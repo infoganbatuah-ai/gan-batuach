@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "digital-observer-external-activation-proof-register-v1",
+  "updatedAt": "2026-10-19",
+  "canonicalOwner": "integration/development",
+  "principles": {
+    "defaultState": "DISABLED",
+    "productionActivationRequiresOwnerAuthorization": true,
+    "sandboxProofIsNotProductionProof": true,
+    "realProofCannotBeInferredFromDeterministicQA": true,
+    "costDenominatorsRemainDistinct": true
+  },
+  "items": [
+    {
+      "id": "payment-providers",
+      "owner": "PUSH 40 implementation; provider-specific release gate",
+      "dependencies": ["approved commercial plan prices", "provider contract", "legal/tax process", "PUSH 39 customer notifications"],
+      "currentState": "provider-neutral contracts implemented; default DISABLED; no provider selected",
+      "requiredApproval": "owner approval for supplier, spend, sandbox credentials and later Production activation",
+      "sandboxProof": "OPEN — no approved provider credentials or receipts",
+      "realProof": "OPEN — no real customer payment, invoice, refund or reconciliation",
+      "costImpact": "UNKNOWN until provider fees, taxes, currency and volume are approved and measured",
+      "activationGate": "sandbox checkout/webhook/failure/refund/reconciliation PASS, legal invoice process, cost ceiling, explicit Production release"
+    },
+    {
+      "id": "notification-providers",
+      "owner": "PUSH 39; external proof gates PUSH 45/46",
+      "dependencies": ["provider accounts", "recipient authorization", "consent/legal basis", "cost caps"],
+      "currentState": "Development complete; external channels disabled",
+      "requiredApproval": "owner approval per provider and channel",
+      "sandboxProof": "OPEN for Push, Email, SMS, WhatsApp and Phone",
+      "realProof": "OPEN for every external channel",
+      "costImpact": "UNKNOWN; message and retry costs must be measured",
+      "activationGate": "authenticated sandbox receipts, privacy review, quotas, cost alerts and explicit activation"
+    },
+    {
+      "id": "real-device-actions",
+      "owner": "PUSH 39; physical proof PUSH 46",
+      "dependencies": ["supported device", "lawful use", "human confirmation", "device acknowledgement"],
+      "currentState": "contracts and fail-safe unknown-outcome handling implemented; execution not activated",
+      "requiredApproval": "owner authorization for controlled real-device test",
+      "sandboxProof": "deterministic contracts only",
+      "realProof": "OPEN for PTZ, zoom, presets, speaker, siren and lights",
+      "costImpact": "UNKNOWN device/site support cost",
+      "activationGate": "controlled hardware proof with non-retryable ambiguous outcome and complete audit"
+    },
+    {
+      "id": "mobile-push",
+      "owner": "PUSH 39; mobile proof PUSH 44/46",
+      "dependencies": ["mobile app credentials", "device registration", "notification provider approval"],
+      "currentState": "adapter and registration foundations present; external delivery disabled",
+      "requiredApproval": "owner approval for platform credentials and sandbox/Development send",
+      "sandboxProof": "OPEN",
+      "realProof": "OPEN",
+      "costImpact": "UNKNOWN until provider/platform usage is measured",
+      "activationGate": "real Development device receipt, revocation, tenant isolation and cost evidence"
+    },
+    {
+      "id": "oem-integrations",
+      "owner": "PUSH 43",
+      "dependencies": ["PUSH 40 partner billing contracts", "PUSH 42 API/SDK identity and metering", "partner agreement"],
+      "currentState": "commercial account/usage attribution foundation only",
+      "requiredApproval": "owner-approved partner, contract, data-processing terms and sandbox",
+      "sandboxProof": "OPEN",
+      "realProof": "OPEN",
+      "costImpact": "UNKNOWN wholesale and support economics",
+      "activationGate": "partner isolation, provisioning, API metering, settlement and limited partner pilot"
+    },
+    {
+      "id": "zero-install",
+      "owner": "PUSH 46",
+      "dependencies": ["PUSH 38 reliability obligations", "PUSH 42 integration contracts", "compatible vendor connectivity"],
+      "currentState": "architecture requirement preserved; managed Gateway evidence does not qualify",
+      "requiredApproval": "authorized compatible external site/system",
+      "sandboxProof": "NOT APPLICABLE — requires real system",
+      "realProof": "OPEN",
+      "costImpact": "UNKNOWN remote ingestion, AI, bandwidth and support cost",
+      "activationGate": "no customer computer/Gateway, secure enrollment, ingestion, AI/Event, playback/investigation, recovery and measured cost"
+    },
+    {
+      "id": "external-pilots",
+      "owner": "PUSH 46–48",
+      "dependencies": ["reliability", "privacy/legal approvals", "support and monitoring", "commercial gate"],
+      "currentState": "no qualifying paid Home/Business commercial pilot recorded",
+      "requiredApproval": "owner-approved pilot scope and participants",
+      "sandboxProof": "NOT APPLICABLE",
+      "realProof": "OPEN",
+      "costImpact": "UNKNOWN until pilot usage and support are measured",
+      "activationGate": "bounded pilot, consent/contracts, rollback, telemetry, support and reconciled unit economics"
+    },
+    {
+      "id": "legal-privacy-approvals",
+      "owner": "PUSH 45",
+      "dependencies": ["feature purpose", "jurisdiction", "retention", "roles", "provider agreements"],
+      "currentState": "technical controls do not constitute legal approval",
+      "requiredApproval": "qualified legal/privacy review plus owner activation decision",
+      "sandboxProof": "NOT APPLICABLE",
+      "realProof": "OPEN for sensitive child, biometric and identification workflows",
+      "costImpact": "UNKNOWN external review and compliance cost",
+      "activationGate": "documented lawful basis, notices, purpose limits, retention, access, audit and prohibited-use controls"
+    },
+    {
+      "id": "production-deployment",
+      "owner": "explicit owner-controlled release only",
+      "dependencies": ["READY_FOR_OWNER_RELEASE ledger state", "all included migrations Development-applied", "cumulative local Product PASS", "backups/recovery", "cost preflight"],
+      "currentState": "NOT AUTHORIZED; main and Production unchanged",
+      "requiredApproval": "new explicit owner Production release instruction",
+      "sandboxProof": "Development validation only",
+      "realProof": "OPEN",
+      "costImpact": "must be recalculated from verified supplier data before release",
+      "activationGate": "frozen release candidate, protected CI, migration reconciliation, owner approval, verified deployment and Production smoke"
+    }
+  ]
+}
