@@ -1048,8 +1048,11 @@ migration health for 247 files and release-contract checks. The PR's first
 security run exposed a pre-existing false positive where the scanner treated
 `sk-` inside canonical `disk-pressure` evidence as a key prefix; its token
 boundary was corrected without excluding the evidence or weakening standalone
-key-shape detection. No application source, migration, provider, paid capacity,
-`main` or Production state changed. This unit is
-`PRESERVED_PENDING_INTEGRATION`; scoped PR #184 targets
-`integration/development` and remains open pending exact-head checks and
-review. It must not be merged to `main` or treated as Production authorization.
+key-shape detection. Exact-head commit
+`9fa2422478ecfacb4674cc98bb71d81209d09066` then passed all nine PR checks:
+the six deterministic Digital Observer gates, canonical quality gate,
+Management tenant-context workflow and Snyk. No application source, migration,
+provider, paid capacity, `main` or Production state changed. This unit is
+`PRESERVED_PENDING_INTEGRATION_CHECKS_PASS`; scoped PR #184 targets
+`integration/development` and remains open for review. It must not be merged to
+`main` or treated as Production authorization.
