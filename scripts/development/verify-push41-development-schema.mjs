@@ -39,7 +39,7 @@ const roleBoundary = JSON.parse(scalar(`begin;
   insert into public.digital_observer_organization_memberships(organization_id,profile_id,enterprise_role,active,all_sites,accepted_at)
     values('00000000-0000-4000-8000-000000000d49','00000000-0000-4000-8000-000000000f02','billing_admin',true,true,now());
   set local role authenticated;
-  select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000f02',true);
+  set local "request.jwt.claim.sub" = '00000000-0000-4000-8000-000000000f02';
   select json_build_object(
     'camera',public.digital_observer_has_org_permission('00000000-0000-4000-8000-000000000d49','camera.live.view','00000000-0000-4000-8000-000000000e01'),
     'billing',public.digital_observer_has_org_permission('00000000-0000-4000-8000-000000000d49','billing.read','00000000-0000-4000-8000-000000000e01'),
