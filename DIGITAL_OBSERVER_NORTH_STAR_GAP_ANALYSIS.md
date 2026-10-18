@@ -45,7 +45,7 @@ External decisions are mandatory for vendor Cloud/P2P integrations, payment/invo
 
 ### F. Real-world proof required
 
-One hundred seventy-three rows are not DONE + REAL PROOF. Some require implementation first; all require the final proof stated in the ownership map. Critical proof cohorts are one zero-install home, one external business/VMS, one 100+ camera/monitoring center deployment, representative quality datasets, real multi-host failure recovery and invoice-backed economics.
+One hundred seventy-three rows are not DONE + REAL PROOF. Some require implementation first; all require the final proof stated in the ownership map. Critical proof cohorts are one zero-install home, one external business/VMS, one 100+ camera/monitoring center deployment, representative quality datasets, real multi-host failure recovery and invoice-backed economics calculated separately for infrastructure cost per registered user and all-in cost per active paying user.
 
 ## Status corrections and non-corrections
 

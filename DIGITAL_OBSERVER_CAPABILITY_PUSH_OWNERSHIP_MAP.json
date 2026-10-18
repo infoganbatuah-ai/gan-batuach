@@ -11862,7 +11862,7 @@
       "source": "POST_PUSH38_ADDITION",
       "sourceRow": 196,
       "section": "AI INFRASTRUCTURE / ECONOMICS",
-      "capabilityName": "All-in monthly cost ceiling compliance",
+      "capabilityName": "Monthly cost ceiling compliance",
       "canonicalStatus": "FOUNDATION",
       "historicalContributorPushes": [
         49
@@ -11898,9 +11898,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Resource attribution exists; invoices, shared allocation, taxes, FX and active-paying-user denominator are not reconciled"
+        "summary": "Resource attribution exists; invoices, shared allocation, taxes, FX, registered-user denominator and active-paying-user denominator are not reconciled"
       },
-      "unresolvedLimitations": "Reconcile every attributable supplier and real active-paying-user denominator; enforce maximum ₪15 per active paying user",
+      "unresolvedLimitations": "Calculate separately the historical infrastructure-cost/registered-user target and current all-in/active-paying-user ceiling; neither may substitute for the other, and their final relationship requires owner decision",
       "dependencies": [
         {
           "type": "PUSH",
@@ -11923,7 +11923,7 @@
           "id": 48
         }
       ],
-      "completionRequirements": "Invoice-backed cohort result, peak forecast, caps/alerts and break-even evidence",
+      "completionRequirements": "Invoice-backed results for both ₪15 ratios, explicit numerator/denominator definitions, peak forecasts, caps/alerts and break-even evidence",
       "externalApprovalRequired": true
     },
     {

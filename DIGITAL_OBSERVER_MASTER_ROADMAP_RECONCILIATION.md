@@ -36,7 +36,7 @@ Supporting architecture and product sources include DIGITAL_OBSERVER_CANONICAL_D
 | Public API/OEM/white-label | FOUNDATION / NOT STARTED | Internal first-party APIs and an admin-only integration-client registry | No supported public versioned API, SDK, sandbox, partner hierarchy, embedded sample or branded deployment |
 | Commercial | FOUNDATION | Real auth/trial/package flows and subscription schemas | Live charging, invoices, entitlement reconciliation, refunds, support operations and paying-customer proof absent |
 | Gan Batuach integration | FOUNDATION, disabled | Explicit product boundary and truthful Management safety-camera UI | Audited server-to-server integration is inactive; reviewed Event/Evidence/investigation E2E absent |
-| Cost | MEASURED RESOURCES / UNMEASURED ALL-IN COST | Cost attribution engine and bounded 11-camera resource observations | No authorized full supplier invoice reconciliation, taxes/FX, active-paying-user denominator or peak cohort |
+| Cost | MEASURED RESOURCES / BOTH CANONICAL RATIOS UNMEASURED | Cost attribution engine and bounded 11-camera resource observations | No authorized full supplier invoice reconciliation, taxes/FX, registered-user denominator, active-paying-user denominator or peak cohort |
 
 ## North-Star reconciliation
 
@@ -47,7 +47,7 @@ The original 190 identities are preserved in order and assigned stable IDs DO-NS
 3. DO-NS-193 Gan Batuach Management integration contract.
 4. DO-NS-194 OEM partner and end-customer hierarchy/provisioning.
 5. DO-NS-195 Partner usage metering and commercial settlement.
-6. DO-NS-196 All-in monthly cost ceiling compliance.
+6. DO-NS-196 Monthly cost ceiling compliance with both canonical denominators reported separately.
 7. DO-NS-197 Consumer and SMB self-service commercial activation.
 
 Reconciled status counts are 24 DONE + REAL PROOF, 36 IMPLEMENTED — NEEDS REAL PROOF, 67 FOUNDATION, 18 PARTIAL, 51 NOT STARTED and one EXTERNAL COVERAGE GAP. Therefore 173 capabilities still require implementation, broader proof, external coverage or a combination. All 197 have one canonical implementation owner and one proof owner/release gate in DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json.
@@ -57,6 +57,15 @@ Reconciled status counts are 24 DONE + REAL PROOF, 36 IMPLEMENTED — NEEDS REAL
 No new PUSH is required. The missing requirements fit the existing 39–52 architecture without replacing their objectives. They become explicit acceptance criteria: providers/actions in 39; billing and partner metering in 40; enterprise hierarchy in 41; public and Gan Batuach contracts in 42; OEM/white-label hierarchy and SDK proof in 43; legal/biometric governance in 45; zero-install and home reliability proof in 46; business/VMS proof in 47; cross-camera/Re-ID and 100+ scale in 48; quality and all-in economics in 49; DD in 50; commercial partner proof in 51; final strategic process in 52.
 
 The next canonical implementation PUSH remains PUSH 39 — External Notifications, Actions and Escalation. It is the sequential successor to the accepted Development closure of PUSH 38 and is a dependency for billing, pilots and commercial activation. This audit does not start it.
+
+## Cost denominator reconciliation
+
+Two different owner requirements remain canonical and must be reported separately until the owner explicitly decides their relationship:
+
+1. Historical Product target: infrastructure cost divided by all registered users must be at or below ₪15 per registered user per month.
+2. Current operating ceiling: all project-attributable monthly cost divided by distinct real active paying users must be at or below ₪15 per active paying user per month.
+
+The numerators and denominators are not equivalent. Neither result may substitute for, dilute or be presented as proof of the other. PUSH 49 owns invoice-backed measurement of both ratios, denominator definitions, exclusions, break-even and current/2×/5× forecasts. Whether the historical target remains an independent release gate, becomes a subordinate diagnostic metric or is superseded requires an explicit owner decision. Until then both are mandatory reported metrics and compliance is unproven.
 
 ## Twenty-two roadmap gap clusters
 
@@ -85,4 +94,4 @@ The next canonical implementation PUSH remains PUSH 39 — External Notification
 
 ## Final completion rule
 
-Numbered PUSH completion is necessary but insufficient. Final Product completion requires all mandatory capabilities implemented, all mandatory real-proof gates passed, external/legal gaps truthfully closed or explicitly blocked, commercial self-service and support operational, zero-install proven, enterprise/OEM integration independently consumable, advanced investigation bounded and auditable, Gan Batuach integrated without authorization leakage, and all-in cost proven at or below the canonical ceiling.
+Numbered PUSH completion is necessary but insufficient. Final Product completion requires all mandatory capabilities implemented, all mandatory real-proof gates passed, external/legal gaps truthfully closed or explicitly blocked, commercial self-service and support operational, zero-install proven, enterprise/OEM integration independently consumable, advanced investigation bounded and auditable, Gan Batuach integrated without authorization leakage, and both canonical cost ratios measured separately and proven at or below their respective ceilings unless the owner explicitly reconciles their relationship.

@@ -18,7 +18,7 @@ This document does not start PUSH 39 and does not replace existing PUSH definiti
 | 46 | Real External Home Pilot | NOT STARTED | Profile A zero-install proof, PUSH 38 home obligations, external quality/support | 16, 23, 25, 28, 38, 39, 45 | Non-team consented home; agreed duration; direct path where compatible; reliability, quality, support and cost log |
 | 47 | Real External Business Pilot | NOT STARTED | SMB/multi-Site, VMS/NVR/recording integration, operations and customer value | 41, 45, 46 | Paying or contractually committed external business with notices, zones, support and referenceable exit result |
 | 48 | 100+ Camera / Monitoring-Center Pilot | NOT STARTED | Multi-camera tracking/correlation, advanced investigation, person/vehicle Re-ID, real scale/DR | 37–43, 45, 47 | Real 100+ deployment, operator load, failover, cross-camera quality and authorized investigation case |
-| 49 | Production Economics and KPI Proof | NOT STARTED; cost/quality engines exist | Quality cohort, SLA/KPI, all-in ₪15 ceiling, unit economics and drift | 28, 33, 38, 46–48 | Sustained auditable metrics reconciled to all invoices, taxes/FX, active paying users and revenue |
+| 49 | Production Economics and KPI Proof | NOT STARTED; cost/quality engines exist | Quality cohort, SLA/KPI, historical infrastructure/registered-user ₪15 target, all-in/active-paying-user ₪15 ceiling, unit economics and drift | 28, 33, 38, 46–48 | Sustained auditable metrics reconcile invoices, taxes/FX and revenue; calculate both ratios separately with explicit denominator rules and no substitution pending owner decision |
 | 50 | Acquisition Technical DD and Data Room | Documentation-only preparation allowed; final NOT STARTED | Architecture/security/test/IP/license/runbook/evidence reconciliation | Final closure of 24–49 | Independent reader reproduces claims; no unresolved ownership or hidden evidence gap |
 | 51 | Paying Customers, Growth, Funding and Strategic Partnerships | LATE STAGE | Repeatable revenue, retention, support, partner/OEM commercial proof | 46–49 | Multiple paying customers and at least one measured strategic/partner integration outcome |
 | 52 | Acquisition Process and Exit Readiness | LATE STAGE | Competitive buyer process and final readiness | 43, 49–51 | Complete DD, ownership/contract readiness and multiple qualified buyer paths |
@@ -30,7 +30,7 @@ This document does not start PUSH 39 and does not replace existing PUSH definiti
 - DO-NS-193 Gan Batuach integration → PUSH 42, with PUSH 41 and 45 dependencies; operational proof in PUSH 47.
 - DO-NS-194 OEM hierarchy/provisioning → PUSH 43, dependent on 41–42.
 - DO-NS-195 Partner metering/settlement → PUSH 40, dependent on 42–43; economics proof in 49.
-- DO-NS-196 All-in cost ceiling → PUSH 49.
+- DO-NS-196 Dual-denominator cost ceiling evidence → PUSH 49; final relationship between the historical registered-user target and current active-paying-user ceiling requires owner decision.
 - DO-NS-197 Consumer/SMB self-service activation → PUSH 40; external proof in 46–47.
 
 ## Execution gates
