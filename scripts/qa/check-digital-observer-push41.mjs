@@ -27,6 +27,8 @@ const push39Migration = readFileSync(new URL("../../supabase/migrations/20261018
 const push40Migration = readFileSync(new URL("../../supabase/migrations/20261019010000_digital_observer_push40_commercial_billing.sql", import.meta.url), "utf8");
 const phoneRequestRoute = readFileSync(new URL("../../app/api/auth/verification/phone/request/route.ts", import.meta.url), "utf8");
 const phoneConfirmRoute = readFileSync(new URL("../../app/api/auth/verification/phone/confirm/route.ts", import.meta.url), "utf8");
+const developmentFixtures = readFileSync(new URL("../../development/database/qa-fixtures.sql", import.meta.url), "utf8");
+const push41FixtureSeeder = readFileSync(new URL("../development/seed-push41-fixtures.mjs", import.meta.url), "utf8");
 
 assert.equal(identity.enterpriseRoles.length, 9);
 assert.equal(new Set(identity.enterpriseRoles).size, 9);
@@ -130,5 +132,15 @@ assert(enterpriseUi.includes("SMS / Twilio לאימות") && enterpriseUi.includ
 
 for (const preserved of ["push", "email", "sms", "whatsapp", "webhook", "phone"]) assert(push39Migration.includes(`'${preserved}'`));
 for (const preserved of ["digital_observer_plan_versions", "digital_observer_entitlement_grants", "digital_observer_partner_billing_accounts"]) assert(push40Migration.includes(preserved));
+for (const fixtureSource of [developmentFixtures, push41FixtureSeeder]) {
+  assert(fixtureSource.includes("00000000-0000-4000-8000-000000000d41"));
+  assert(fixtureSource.includes("payment_provider_mode"));
+  assert(fixtureSource.includes("'disabled'"));
+  assert(fixtureSource.includes('"real_charge_performed":false'));
+  assert(fixtureSource.includes('"provider_contacted":false'));
+  assert(fixtureSource.includes("'notifications'"));
+}
+assert(push41FixtureSeeder.includes("synthetic QA must not overwrite it"));
+assert(push41FixtureSeeder.includes("config.productionAllowed, false"));
 
 console.log("PUSH 41 deterministic QA passed: org/Site isolation, least-privilege RBAC, delegated-admin denial, expiring invitations, OIDC/SAML guards, governed SCIM/deprovisioning, hashed expiring service credentials, session revocation decisions, billing separation, SMS-auth disablement, bounded synthetic scale and PUSH 39/40 preservation.");

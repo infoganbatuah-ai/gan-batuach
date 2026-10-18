@@ -132,6 +132,7 @@
     "qa:development-schema-push40": "node scripts/development/verify-push40-development-schema.mjs",
     "qa:local-push41": "node scripts/development/verify-push41-local-product.mjs",
     "qa:development-schema-push41": "node scripts/development/verify-push41-development-schema.mjs",
+    "qa:development-fixtures-push41": "node scripts/development/seed-push41-fixtures.mjs",
     "qa:push38-relay-handoff-remediation": "node --test scripts/qa/check-push38-relay-handoff-remediation.mjs",
     "qa:push38-gateway-playback-sweep-release": "node scripts/qa/check-push38-gateway-playback-sweep-serialization-release.mjs",
     "qa:push38-gateway-finite-response-continuity-release": "node scripts/qa/check-push38-gateway-finite-response-continuity-release.mjs",
