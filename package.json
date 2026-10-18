@@ -124,6 +124,8 @@
     "qa:digital-observer-high-availability": "node scripts/qa/check-digital-observer-high-availability.mjs",
     "qa:digital-observer-reliability-qualification": "node scripts/qa/check-digital-observer-reliability-qualification.mjs",
     "qa:digital-observer-push39": "node scripts/qa/check-digital-observer-push39.mjs",
+    "qa:local-push39": "node scripts/development/verify-push39-local-product.mjs",
+    "qa:development-schema-push39": "node scripts/development/verify-push39-development-schema.mjs",
     "qa:push38-relay-handoff-remediation": "node --test scripts/qa/check-push38-relay-handoff-remediation.mjs",
     "qa:push38-gateway-playback-sweep-release": "node scripts/qa/check-push38-gateway-playback-sweep-serialization-release.mjs",
     "qa:push38-gateway-finite-response-continuity-release": "node scripts/qa/check-push38-gateway-finite-response-continuity-release.mjs",
