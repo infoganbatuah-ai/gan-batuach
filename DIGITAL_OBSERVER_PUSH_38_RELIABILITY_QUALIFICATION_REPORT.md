@@ -4,7 +4,137 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — 0.2.90 V8 FAILED/STOPPED; HOST-ISOLATED REQUALIFICATION PENDING`
+`DONE FOR DEVELOPMENT — OWNER-APPROVED ACCEPTANCE EXCEPTION; NO 24H CONTINUOUS PASS CLAIM`
+
+## 2026-10-18 FINAL PUSH 38 DEVELOPMENT CLOSURE
+
+PUSH 38 is closed for `integration/development` under the owner's explicit
+shortened, evidence-based acceptance path. This is **not** a claim that any
+Gateway successor completed a clean continuous 24-hour V8. The earlier
+`0.2.100-p38-health` V8 remains NOT_DONE with fingerprint
+`97a070ab83f6e94f7e09d861c01df05738271351659306708dd37dc8c1229f14`, and
+none of its time was reused.
+
+The fresh `0.2.101-p38-health` V8 preserved 77,623,617 ms and 1,294 anchored
+checkpoints before closing NOT_DONE. Checkpoint 906 exposed an internal stale
+finite recorder-response epoch: one DVR channel advanced to epoch 132 while
+nine siblings remained pinned to epoch 131 until the native response ended.
+Checkpoint 1294 was a separate external DVR/network/power event: all 10 DVR
+sources disappeared together while Tapo stayed healthy, the host reported
+`BATTERY_POWER`, authorization and disk stayed ready, and neither Edge runtime
+restarted. The sealed failure fingerprint is
+`59375aec1df4fadbe585e728601c332e9d98d2fa39ed8c0d7fb54a3ae0e42f52`.
+
+Commit `eb0dcd9744ad165aa840d65ba3b267844be6546c` drains every stale finite
+response-epoch owner after shared-recorder recovery. Focused regression passes
+76/76. The immutable Gateway successor is `0.2.102-p38-health`, artifact
+SHA-256 `650e70e152b0aad9fc10801ad18676e3ea65e9ed576721375b234cfb114f64ec`;
+Connector remains `0.2.41-p38-health` at build
+`c14ac38bf7b1e2313b8509a5204aee23c8c4e9aa`. Exact-candidate CI passed all
+six required gates plus the canonical quality gate, signing/R2/HOME_QA/OTA
+passed, and both installed versions were exact and known-good.
+
+The `0.2.102` Canary passed 900,012 ms, 15/15 checkpoints and 165/165 camera
+samples, with playback 33/33, AI 33/33, no authorization, disk or host
+interference failures, and no restarts. The owner-approved three-hour recovery
+validation then proved the repaired DVR path for 10,800,032 ms: all 10 DVR
+sources were available at all 180 checkpoints (1,800/1,800 DVR samples), all
+60 DVR playback samples passed, recorder authentication failures/rejections
+were zero, and Gateway supervisor/runtime restarts were zero.
+
+The strict aggregate result of that three-hour run is retained as NOT_DONE;
+it is not relabeled. Four isolated Tapo relay samples failed at checkpoints
+39, 144, 147 and 169 (`DECODER_OR_RELAY_EXIT`) and recovered without a
+Connector restart or authorization failure, yielding 176/180 Tapo samples.
+One first-minute AI sample for DVR-8 failed; all five later full AI probes
+passed, yielding 65/66 AI samples. Playback remained 66/66, host interference
+was empty, forbidden workloads and low-disk checkpoints were zero, and exact
+runtime identity held throughout. These unrelated strict failures are covered
+only by the explicit owner acceptance exception together with the fully green
+Canary; they are not represented as a clean soak PASS.
+
+The redacted evidence index is
+`DIGITAL_OBSERVER_PUSH_38_FINITE_EPOCH_DRAIN_CLOSURE_EVIDENCE.json`. Protected
+evidence retains both NOT_DONE results, exact fingerprints and hashes, the
+green Canary, regression and CI receipts, and the final acceptance record.
+`main` and Production were not changed.
+
+## 2026-10-14 0.2.98 DURABLE V8 FINITE-EXIT CLASSIFICATION FAILURE
+
+The terminal-independent launchd-owned `0.2.98-p38-health` V8 completed the
+full required duration from `2026-10-13T17:51:11.987Z` through
+`2026-10-14T17:51:12.138Z`: 86,400,151 ms and all 1,440 anchored checkpoints,
+with zero missing, delayed or duplicate checkpoints. It is nevertheless
+**NOT_DONE** and none of its duration is reusable. One mandatory sample failed:
+CH8 was unavailable at checkpoint 337 (`2026-10-13T23:27:11.966Z`), producing
+15,839/15,840 camera samples (99.9936869%) and the strict
+`EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT` gate failure.
+
+The evidence isolates a classification defect rather than a host, process or
+shared-authentication outage. CH8 had delivered 14,728,783 bytes / 9,976 input
+chunks at the preceding checkpoint and then completed after 302,023 ms with
+exit code 0. The bounded stderr summary still contained `401` text, which the
+exit classifier evaluated before the authoritative successful decoder exit.
+It therefore labeled the completed finite response `SOURCE_AUTH_REJECTED`
+instead of `SOURCE_STREAM_ENDED`. That false label bypassed the existing
+finite-response retained-HLS path; the other nine simultaneous DVR response
+ends remained available through retained HLS. Recorder heartbeat stayed ready
+with zero authentication rejections and zero consecutive failures, host
+pressure was NORMAL, forbidden workload count was zero, and CH8 recovered by
+the next checkpoint without manual intervention.
+
+The smallest fail-closed correction is remotely preserved at
+`627662852e8ec94e66b2b39aa68db71166b708a3`: a successful decoder exit after
+sustained media now outranks historical stderr text, while a 401/403 before
+sustained media remains an authentication failure. Relay-reason QA, 51/51
+relay/handoff tests, finite-response recovery QA and finite-response continuity
+QA pass. Protected result/checkpoint SHA-256 values are
+`7ae7ae1e66d958bfb9000655d650c6e8a6f64ed815c083521cf26c3532fa6b4c` and
+`438aae11137364e50392546fe4fac6b2b94524426c07a0a6d9d154f1bdb87978`;
+the redacted evidence index is
+`DIGITAL_OBSERVER_PUSH_38_V8_FINITE_EXIT_CLASSIFICATION_EVIDENCE.json`.
+
+The required successor sequence remains exact-commit CI, immutable signed
+Gateway successor, exact-device HOME_QA activation with rollback, a fresh
+15-minute canary, a fresh 60-minute pre-soak and a new 24-hour V8 from zero.
+Gateway `0.2.98-p38-health` and Connector `0.2.41-p38-health` remain
+CURRENT+KNOWN_GOOD until those gates authorize a successor. `main`, Production
+and PUSH 39 remain unchanged.
+
+## 2026-10-07 0.2.90 V8 EXCLUSIVE MEDIA ACQUISITION FAILURE
+
+The host-isolated `0.2.90-p38-health` V8 successor ran from
+`2026-10-07T12:24:40.839Z` until it was frozen failed at
+`2026-10-07T19:16:54.157Z`: 24,733,318 ms / 413 checkpoints. Its duration is
+not reusable. Camera sample availability was 99.5818%; Gateway source health
+was degraded at nine checkpoints, while the Gateway component itself remained
+available and neither the supervisor nor runtime restarted. Playback passed
+77/77 samples, AI passed 77/77, and recorder authentication rejections were
+zero. The run is also independently invalid because it recorded 110
+forbidden-development-workload checkpoints and 20 saturated-host checkpoints.
+
+CH3 failed at checkpoints 236, 250 and 251 before forbidden workloads first
+appeared at checkpoint 302, and failed again at 307, 327, 336, 380 and 381.
+Every captured failure followed the same causal path:
+`EXCLUSIVE_OUTPUT_RESCUE` released the prior owner, the sole replacement
+response then expired at the generic 3.5-second probe deadline, and diagnostics
+reported `EXCLUSIVE_RESCUE_ACQUISITION_FAILED` / `source_timeout`. The measured
+handoff duration was about 3.511 seconds. The shared recorder heartbeat stayed
+healthy, authentication remained accepted and CH3 recovered only after five
+to eight retries. Host interference is therefore not a sufficient explanation
+for this internal acquisition defect.
+
+The correction reuses the already-qualified 14-second output-rescue and
+9-second session-sweep acquisition budgets only after an authoritative finite
+response boundary or exact old-owner release. Ordinary and concurrent probes
+retain the 3.5-second limit; no duplicate response owner or relaxed promotion
+gate is introduced. Diagnostics now expose the selected response-header
+deadline. Focused relay, common-cause, session and owner-transport QA passes
+72/72. Machine-readable evidence and restricted evidence hashes are in
+`DIGITAL_OBSERVER_PUSH_38_V8_MEDIA_ACQUISITION_EVIDENCE.json`. A full regression,
+immutable AWS-signed successor, exact-device OTA, new canary and new pre-soak
+are required before a new V8 begins from zero. `main` and Production remain
+unchanged.
 
 ## 2026-10-07 0.2.90 V8 HOST-INTERFERENCE FAILURE AND QUALIFICATION GUARD
 

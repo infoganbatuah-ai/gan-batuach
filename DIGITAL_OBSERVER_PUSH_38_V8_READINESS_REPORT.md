@@ -1,4 +1,77 @@
-# PUSH 38 v8 readiness — NOT READY; 0.2.90 V8 FAILED UNDER HOST INTERFERENCE
+# PUSH 38 v8 readiness — CLOSED BY OWNER ACCEPTANCE EXCEPTION
+
+Final development decision, 2026-10-18: PUSH 38 is accepted for
+`integration/development` on the owner's explicit shortened evidence path. No
+continuous 24-hour PASS is claimed. The 0.2.100 V8 remains NOT_DONE and
+non-reusable. The 0.2.101 successor preserved 77,623,617 ms / 1,294
+checkpoints, exposed the stale finite response-epoch defect at checkpoint 906,
+and ended on a separately classified external all-DVR event at checkpoint
+1294. Its sealed fingerprint is
+`59375aec1df4fadbe585e728601c332e9d98d2fa39ed8c0d7fb54a3ae0e42f52`.
+
+Gateway `0.2.102-p38-health` at
+`eb0dcd9744ad165aa840d65ba3b267844be6546c` contains the narrow epoch-drain
+fix. Focused QA is 76/76; exact-candidate CI, signing, R2 publication,
+HOME_QA activation and OTA are PASS. Its Canary is fully green: 15/15
+checkpoints, 165/165 camera samples, playback 33/33 and AI 33/33.
+
+The owner-approved three-hour validation retained a strict NOT_DONE aggregate
+because Tapo missed four isolated samples and the first AI probe missed DVR-8.
+Those facts remain explicit. The changed Gateway DVR path nevertheless passed
+all 180 checkpoints for all 10 DVR channels (1,800/1,800), all 60 DVR playback
+samples, zero recorder auth failures/rejections and zero Gateway restarts. All
+five later full AI probes passed. The strict Tapo/AI exceptions are accepted
+only through the owner's recorded exception plus the preceding fully green
+Canary, never by rewriting the monitor result.
+
+Development evidence is indexed by
+`DIGITAL_OBSERVER_PUSH_38_FINITE_EPOCH_DRAIN_CLOSURE_EVIDENCE.json`. Main and
+Production remain unchanged and require a separate owner release instruction.
+
+2026-10-14 durable V8 update: `0.2.98-p38-health` completed 86,400,151 ms
+and all 1,440 anchored checkpoints under launchd ownership, but it is NOT_DONE
+and no duration is reusable. DVR CH8 missed checkpoint 337, leaving
+15,839/15,840 camera samples and failing the frozen 100% source-availability
+criterion. Playback passed 264/264 camera probes, AI passed 264/264, both Edge
+components had zero unavailable checkpoints or restarts, and integrity,
+cross-tenant leakage, duplicate-effect and manual-intervention counters stayed
+zero; those passes do not override the failed camera-source row.
+
+CH8 had carried sustained media for about 302 seconds and exited with code 0,
+but historical `401` text in its bounded stderr summary was classified before
+the successful finite-response boundary. The resulting false
+`SOURCE_AUTH_REJECTED` label suppressed retained-HLS continuity for that one
+sample. Recorder heartbeat itself remained auth-ready with zero authentication
+rejections; the host was NORMAL with no forbidden workload. Commit
+`627662852e8ec94e66b2b39aa68db71166b708a3` gives successful sustained-media
+completion precedence while preserving fail-closed startup authentication.
+Focused QA passes. Exact-commit CI, an immutable signed successor, fresh
+canary, fresh pre-soak and a fresh V8 from zero remain mandatory. Evidence is
+indexed by `DIGITAL_OBSERVER_PUSH_38_V8_FINITE_EXIT_CLASSIFICATION_EVIDENCE.json`.
+Main and Production remain unchanged.
+
+2026-10-07 successor update: the second `0.2.90-p38-health` V8 ran for
+24,733,318 ms / 413 checkpoints and is frozen failed and non-reusable. The
+Gateway component did not become unavailable and did not restart, while
+playback passed 77/77 and AI passed 77/77. CH3 nevertheless lost its sole media
+owner at eight completed checkpoints. The exact failure path was an exclusive
+output rescue whose replacement response was still constrained by the generic
+3.5-second probe deadline after the prior owner had already been released.
+Each captured failed handoff ended at about 3.511 seconds with
+`EXCLUSIVE_RESCUE_ACQUISITION_FAILED` / `source_timeout`; recorder heartbeat
+remained healthy and authentication rejections were zero. Three occurrences
+predated the independently disqualifying host interference, so contention is
+not the sole cause.
+
+The successor correction uses the existing 14-second rescue and 9-second
+session-sweep acquisition budgets only at an authoritative finite/exclusive
+boundary. Ordinary and concurrent probes remain at 3.5 seconds, ownership and
+promotion rules are unchanged, and the selected deadline is now observable.
+Focused QA passes 72/72. A full regression, immutable signed successor, fresh
+15-minute canary and fresh 60-minute pre-soak must pass before V8 can restart
+from zero. Evidence is in
+`DIGITAL_OBSERVER_PUSH_38_V8_MEDIA_ACQUISITION_EVIDENCE.json`. Main and
+Production remain unchanged.
 
 2026-10-07 host-isolation update: the `0.2.90-p38-health` V8 run started at
 `2026-10-07T05:54:58.652Z` and was frozen failed after 16,536,135 ms / 276

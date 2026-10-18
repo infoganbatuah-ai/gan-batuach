@@ -1,37 +1,65 @@
 {
   "contract": "digital-observer-push38-v8-qualification-matrix-v1",
-  "status": "FROZEN",
+  "status": "CLOSED_OWNER_ACCEPTANCE_EXCEPTION",
   "frozen_at": "2026-10-06T01:12:30Z",
+  "closed_at": "2026-10-18T01:37:18Z",
   "candidate_branch": "codex/push-38t-qualification",
   "qualification_runtime": {
-    "gateway_version": "0.2.80-p38-health",
-    "gateway_build_sha": "a4bd57769d92e8abba4a9e89d8cc762b8ef83ba6",
-    "connector_version": "0.2.36-p38-health",
-    "connector_build_sha": "44b238ed7e7e68f34ac2984b6f8291f88f04cdec",
-    "gateway_source_available": 8,
-    "gateway_known_upstream_unavailable_channels": [2, 8],
+    "gateway_version": "0.2.102-p38-health",
+    "gateway_build_sha": "eb0dcd9744ad165aa840d65ba3b267844be6546c",
+    "connector_version": "0.2.41-p38-health",
+    "connector_build_sha": "c14ac38bf7b1e2313b8509a5204aee23c8c4e9aa",
+    "gateway_source_available": 10,
+    "gateway_known_upstream_unavailable_channels": [],
     "gateway_empty_slots": 6,
     "tapo_source_available": 1
   },
   "prerequisite_evidence": {
     "canary": {
       "status": "PASS",
-      "started_at": "2026-10-05T23:55:34.540Z",
-      "ended_at": "2026-10-06T00:10:34.547Z",
-      "elapsed_ms": 900007,
+      "started_at": "2026-10-17T22:16:53.265Z",
+      "ended_at": "2026-10-17T22:31:53.277Z",
+      "elapsed_ms": 900012,
       "checkpoints": 15,
-      "result_sha256": "d1d658f441d972da84f87911fa484a331826fc4d5075c182502d8883a27f2a2c",
-      "checkpoints_sha256": "f34b3405860e0d23bb33d2196c5fbd76968a3c34d5807b12af97d94b5fc6bb32"
+      "camera_samples": "165/165",
+      "playback_samples": "33/33",
+      "ai_samples": "33/33",
+      "result_sha256": "21e01e3c790c03b0e254b6dd5ee3e86d44cc7e2471f94d762e247f6cf0b3aeae",
+      "checkpoints_sha256": "d44bcc929f260337e52ac3eb11d55e5888ab8ef0e49170090f3bcb72b8278d46"
     },
     "pre_soak": {
-      "status": "PASS",
-      "started_at": "2026-10-06T00:10:54.938Z",
-      "ended_at": "2026-10-06T01:10:54.995Z",
-      "elapsed_ms": 3600057,
-      "checkpoints": 60,
-      "result_sha256": "a7a9ddeaa5fbadcc7d7bc6f53242ee833664b79afb53abad7365a3aabb93ae90",
-      "checkpoints_sha256": "0eb8064cd14f8db80a4f0896f716c61d2b9fb1a283b884d9203c94fad0d75bd0"
+      "status": "NOT_DONE_RETAINED_STRICT_RESULT",
+      "purpose": "OWNER_APPROVED_3H_GATEWAY_DVR_RECOVERY_VALIDATION",
+      "started_at": "2026-10-17T22:34:47.585Z",
+      "ended_at": "2026-10-18T01:34:47.617Z",
+      "elapsed_ms": 10800032,
+      "checkpoints": 180,
+      "dvr_samples": "1800/1800",
+      "tapo_samples": "176/180",
+      "playback_samples": "66/66",
+      "ai_samples": "65/66",
+      "gate_failures": [
+        "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT",
+        "AI_PROGRESS_PROBE_FAILED"
+      ],
+      "result_sha256": "ca594ffb7a65a45c032613079460acc55f3ee4166562a04ff205f2fa8bd7e795",
+      "checkpoints_sha256": "4e023e0099d0d3c19eece505b6bdd0c3445cf43ab8a50b4c999e700be5eaff10"
     }
+  },
+  "closure": {
+    "decision": "PASS_WITH_OWNER_ACCEPTANCE_EXCEPTION",
+    "continuous_24h_pass_claimed": false,
+    "previous_v8_elapsed_ms": 77623617,
+    "previous_v8_checkpoints": 1294,
+    "targeted_gateway_dvr_recovery": "PASS_1800_OF_1800",
+    "strict_recovery_result_rewritten": false,
+    "accepted_strict_exceptions": [
+      "TAPO_4_OF_180_TRANSIENT_RELAY_SAMPLES",
+      "FIRST_AI_PROBE_DVR8_1_OF_66_SAMPLE"
+    ],
+    "evidence_index": "DIGITAL_OBSERVER_PUSH_38_FINITE_EPOCH_DRAIN_CLOSURE_EVIDENCE.json",
+    "main_changed": false,
+    "production_changed": false
   },
   "rules": {
     "minimum_elapsed_ms": 86400000,
@@ -46,8 +74,8 @@
       "domain": "CAMERA_SOURCE",
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
-      "test_method": "One-minute live health checkpoints preserve 10 assigned physical sources, the eight owner-verified baseline source-available channels, CH2/CH8 upstream exceptions, and six empty slots.",
-      "pass_criteria": "Every checkpoint reports assigned=10, the eight baseline-qualified channels progressing, connected+failed=10, empty=6, and any temporary CH2/CH8 recovery is reported as additional availability rather than substituted for a qualified channel.",
+      "test_method": "One-minute live health checkpoints preserve all 10 assigned and currently source-available physical DVR cameras plus six empty slots.",
+      "pass_criteria": "Every checkpoint reports assigned=10, progressing=10, connected=10, failed=0, and empty=6; any future source loss remains visible and cannot silently reduce the frozen denominator.",
       "evidence_source": "V8 checkpoints.ndjson and result.json"
     },
     {
@@ -56,7 +84,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Inspect each qualified DVR input and the Tapo input at every checkpoint.",
-      "pass_criteria": "All eight baseline-qualified DVR channels and Tapo progress at every mandatory checkpoint; no unexplained stale interval.",
+      "pass_criteria": "All 10 DVR channels and Tapo progress at every mandatory checkpoint; no unexplained stale interval.",
       "evidence_source": "V8 per_camera summary and checkpoint input telemetry"
     },
     {
@@ -64,8 +92,8 @@
       "domain": "CAMERA_SOURCE",
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
-      "test_method": "Compare discovery failure state with the owner-verified DVR exception.",
-      "pass_criteria": "CH2 and CH8 remain visible as upstream exceptions when unavailable, are excluded only from the transport denominator, and do not mark the Gateway process offline; temporary recovery remains visible without changing the frozen denominator.",
+      "test_method": "Compare any discovery failure state with the frozen 10-source live baseline.",
+      "pass_criteria": "The qualification denominator remains 10; any future upstream loss is explicitly attributed and cannot mark the Gateway process offline or silently change the denominator.",
       "evidence_source": "V8 health payloads and result gate_failure_details"
     },
     {
@@ -74,7 +102,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Continuously inspect signed CURRENT, KNOWN_GOOD, runtime PID, build identity, and OTA state.",
-      "pass_criteria": "Gateway stays on signed 0.2.80, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
+      "pass_criteria": "Gateway stays on signed 0.2.81, KNOWN_GOOD remains trusted, no crash loop, and no manual intervention.",
       "evidence_source": "V8 release snapshots, OTA state, and process telemetry"
     },
     {
@@ -136,7 +164,7 @@
       "domain": "PLAYBACK",
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
-      "test_method": "Decode a current frame through the authorized HLS contract for all eight baseline-qualified DVR sources at start, periodic checkpoints, and end; record any CH2/CH8 recovery separately.",
+      "test_method": "Decode a current frame through the authorized HLS contract for all 10 DVR sources at start, periodic checkpoints, and end.",
       "pass_criteria": "All qualified playback probes succeed with current media; no unexplained playlist or segment gap.",
       "evidence_source": "V8 playback probes and per_camera playback counts"
     },
@@ -173,7 +201,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Use an authorized separate device with no Gateway or Connector installed; validate all camera grants and visibly verify representative moving DVR streams.",
-      "pass_criteria": "Authorization contract covers all 10 assigned DVR cameras; moving/current playback passes for the eight baseline-qualified sources available at the DVR, while CH2/CH8 remain truthful upstream exceptions when unavailable.",
+      "pass_criteria": "Authorization contract covers all 10 assigned DVR cameras and moving/current playback passes for the representative remote DVR samples while all 10 grants remain correctly scoped.",
       "evidence_source": "Final owner-device remote DVR receipt"
     },
     {
@@ -227,7 +255,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Collect sampling coverage across all source-available physical cameras.",
-      "pass_criteria": "All eight baseline-qualified DVR cameras and the source-available Tapo camera are sampled; any additional recovered DVR channel is recorded separately, with no unexplained 1/N concentration or false maturity claim.",
+      "pass_criteria": "All 10 DVR cameras and the source-available Tapo camera are sampled, with no unexplained 1/N concentration or false maturity claim.",
       "evidence_source": "V8 learning sampled_source_ids and coverage summary"
     },
     {
@@ -263,7 +291,7 @@
       "owner_push": "PUSH_38",
       "expected_in_push38": true,
       "test_method": "Compare per-source progression and relay ownership with aggregate health at every checkpoint.",
-      "pass_criteria": "No false healthy source, false Gateway outage, or unexplained flapping; CH2/CH8 stay correctly attributed as upstream exceptions whenever unavailable.",
+      "pass_criteria": "No false healthy source, false Gateway outage, unexplained flapping, or silent reduction from the frozen 10-source denominator.",
       "evidence_source": "V8 checkpoints and per_camera result"
     },
     {
