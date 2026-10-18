@@ -693,7 +693,7 @@
         "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb"
       ],
       "commitsNotInMain": [],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -11117,12 +11117,14 @@
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/push-40-commercial-billing@0230e526c9965ae7ea484378ba0624ee4783b7c2"
+          "origin/codex/push-40-commercial-billing@0230e526c9965ae7ea484378ba0624ee4783b7c2",
+          "origin/codex/push-40-development-approval@e6510447c272d208b0b4d4c18cd27b59fdd5410e",
+          "origin/codex/push-40-schema-verifier-fix@52541707d22a8a7fb890692d2147be37b764944f"
         ],
         "qualificationCommit": "0230e526c9965ae7ea484378ba0624ee4783b7c2"
       },
       "validation": {
-        "status": "PASS_DEVELOPMENT_INTEGRATED_AND_MIGRATION_APPLIED_LOCAL_FULL_STACK_PENDING",
+        "status": "PASS_DEVELOPMENT_COMPLETE_EXTERNAL_PROVIDER_AND_REAL_COMMERCIAL_PROOF_PENDING",
         "evidence": [
           "DIGITAL_OBSERVER_PUSH_40_COMMERCIAL_BILLING_ARCHITECTURE.md",
           "DIGITAL_OBSERVER_PUSH_40_IMPLEMENTATION_REPORT.md",
@@ -11137,14 +11139,18 @@
           "Canonical isolated Development migration applied at 2026-10-18T21:50:20.392211+00:00; schema fingerprint 497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed",
           "Development migration drift PASS 250/250; 227 baseline and 23 post-baseline; zero missing; Production access false",
           "PUSH 40 schema/RLS verifier PASS: ten commercial tables have RLS, billing-only role excluded from operational access, anonymous payment reads and authenticated payment mutations denied, Production checkout/payment counts zero",
+          "PR #195 exact head 52541707d22a8a7fb890692d2147be37b764944f PASS 9/9 and Development application/verifier merge 869e1d5c91944d1ee5f76069f57a8f3310e98054",
+          "Canonical cumulative local Product PASS 18/18 at exact runtime 869e1d5c91944d1ee5f76069f57a8f3310e98054, http://127.0.0.1:3000, LOCAL_SUPABASE, Production false",
+          "PUSH 40 bounded local full-stack PASS 6/6: billing UI and authorized Site 200, other Site 403, anonymous 401, unapproved checkout 409, provider callback disabled 503",
+          "Local commercial fixture truth is NO_SUBSCRIPTION_NO_ENTITLEMENTS; no synthetic trial, charge, subscription, payment or entitlement was fabricated",
           "All payment provider modes remain disabled; provider sandbox receipts and Production payment proof are unavailable and not claimed"
         ],
-        "limits": "Exact-SHA cumulative local full-stack proof remains pending. No payment provider was contacted, no real payment or refund occurred, no paid resource was activated, and no Production access occurred. PUSH 38 exceptions and PUSH 39 external proof obligations remain unchanged."
+        "limits": "No approved payment supplier or sandbox receipt is available. No real payment, refund, tax invoice, commercial customer activation or Production payment proof is claimed. Both canonical cost ratios remain unmeasured without verified invoices and denominators. PUSH 38 exceptions and PUSH 39 external proof obligations remain unchanged."
       },
       "integration": {
-        "status": "INTEGRATED_DEVELOPMENT_MIGRATIONS_APPLIED_LOCAL_VERIFICATION_PENDING",
+        "status": "INTEGRATED_DEVELOPMENT_MIGRATIONS_APPLIED_LOCAL_VERIFIED",
         "base": "integration/development",
-        "commit": "3108ab242ddd0660dd85674f778eb6c6258bfe13",
+        "commit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
         "ancestryMergeCommit": "8dee58999c322041691e19d61a7b22a90dd8fb68",
         "pullRequest": {
           "number": 193,
@@ -11162,7 +11168,14 @@
           "sourceSha": "e6510447c272d208b0b4d4c18cd27b59fdd5410e",
           "mergeSha": "3108ab242ddd0660dd85674f778eb6c6258bfe13"
         },
-        "requiredChecks": "PASS_9_OF_9_FOR_PRS_193_194"
+        "developmentApplicationPullRequest": {
+          "number": 195,
+          "url": "https://github.com/infoganbatuah-ai/gan-batuach/pull/195",
+          "state": "MERGED",
+          "sourceSha": "52541707d22a8a7fb890692d2147be37b764944f",
+          "mergeSha": "869e1d5c91944d1ee5f76069f57a8f3310e98054"
+        },
+        "requiredChecks": "PASS_9_OF_9_FOR_PRS_193_194_195"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_DEVELOPMENT_INTEGRATION",
@@ -11176,9 +11189,9 @@
       "migrationOrder": [
         "20261019010000"
       ],
-      "conflictsResolution": "PR #193 merged into the current integration/development target with preserved ancestry after all nine required checks passed. No unrelated source, Management, Production configuration or historical qualification evidence was changed.",
-      "localVerification": "PENDING_CANONICAL_DEVELOPMENT_MIGRATION_AND_EXACT_INTEGRATION_SHA_RUNTIME",
-      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_LOCAL_FULL_STACK_AND_EXTERNAL_PROVIDER_PROOF_PENDING",
+      "conflictsResolution": "PR #193 merged into the current integration/development target with preserved ancestry after all nine required checks passed. PRs #194-#195 approved and recorded the isolated Development migration and corrected only truthful Development verifiers. No unrelated source, Management, Production configuration or historical qualification evidence was changed.",
+      "localVerification": "PASS_CANONICAL_PRODUCT_18_OF_18_PUSH40_6_OF_6_SCHEMA_RLS_DEFAULT_DISABLED_AND_MIGRATION_DRIFT_250_OF_250_AT_869E1D5C91944D1EE5F76069F57A8F3310E98054",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_CANONICAL_NOT_DONE_EXTERNAL_PROVIDER_REAL_COMMERCIAL_LEGAL_COST_AND_ZERO_INSTALL_PROOF_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
@@ -11190,7 +11203,7 @@
         "externalProjection": "UNMEASURED_PENDING_APPROVED_PROVIDER_RATES",
         "productionActivation": false
       },
-      "nextAction": "Merge this Development application receipt and verifier correction, then run exact-SHA cumulative local full-stack verification from the canonical integration worktree. Keep all providers disabled; do not touch main or Production."
+      "nextAction": "Keep payment-provider sandbox/receipt, legal tax-invoice/refund, verified-cost, real customer, OEM/white-label, Zero-Install and Production activation gates open in the canonical activation register. PUSH 41 is readiness-only and must not start without a separate instruction. Do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -11202,14 +11215,16 @@
     "2026-10-18 post-PUSH38 closure: PR #184 merged to integration/development as 1bcd11b0a5f632f13805d63bc6e027080081db83 from remotely preserved source c00034507fdaa3ea7760f3bca6b968fb818f5d95 after 9/9 exact-head checks. The canonical local Product passed 247/247 migration drift and 18/18 scoped full-stack probes at that runtime SHA; owner-a browser login passed. The broader dashboard-role harness remains stale because it expects removed selector #dashboard-child; direct current-contract browser proof found four authorized child cards. This is test-harness drift, not a hidden Product PASS claim. Existing open PRs, branches, worktrees and stash remain untouched; main and Production remain unchanged."
   ],
   "integrationVerification": {
-    "commit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
-    "status": "PASS_LOCAL_FULL_STACK_18_ROUTE_PROBES_PUSH39_24_OF_24_SCHEMA_RLS_DEFAULT_DISABLED_AND_249_OF_249_MIGRATION_DRIFT",
+    "commit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
+    "status": "PASS_LOCAL_FULL_STACK_18_ROUTE_PROBES_PUSH40_6_OF_6_SCHEMA_RLS_DEFAULT_DISABLED_AND_250_OF_250_MIGRATION_DRIFT",
     "receipt": "development/database/local-product-receipt.json",
     "push39Receipt": "development/database/push39-local-product-receipt.json",
     "push39SchemaReceipt": "development/database/push39-schema-receipt.json",
-    "observedAt": "2026-10-18T20:39:46.800Z"
+    "push40Receipt": "development/database/push40-local-product-receipt.json",
+    "push40SchemaReceipt": "development/database/push40-schema-receipt.json",
+    "observedAt": "2026-10-18T21:59:00.000Z"
   },
-  "observedAt": "2026-10-18T21:52:00.000Z",
+  "observedAt": "2026-10-18T21:59:00.000Z",
   "reconciliationReport": "DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json",
   "openPullRequests": [
     {

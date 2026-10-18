@@ -1,8 +1,8 @@
 {
-  "observedAt": "2026-10-18T21:52:25.606Z",
+  "observedAt": "2026-10-18T21:58:49.845Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "3108ab242ddd0660dd85674f778eb6c6258bfe13",
+  "integrationCommit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
   "migration": "20261019010000_digital_observer_push40_commercial_billing.sql",
   "migrationPresent": true,
   "tables": [

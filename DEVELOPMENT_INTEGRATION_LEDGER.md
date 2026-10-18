@@ -1198,3 +1198,21 @@ isolated database truthfully has zero subscriptions); the corrected verifier
 does not fabricate data and now passes. Exact-SHA cumulative Product startup
 remains gated until this application receipt and verifier correction are merged.
 No provider, real payment, main or Production access occurred.
+
+PUSH 40 cumulative Development completion receipt (2026-10-19): PR #195 exact
+head `52541707d22a8a7fb890692d2147be37b764944f` passed all 9 required checks
+and merged as `869e1d5c91944d1ee5f76069f57a8f3310e98054`. The canonical cumulative
+Product started from that exact integration SHA at `http://127.0.0.1:3000`
+with `DEVELOPMENT / INTEGRATION`, `LOCAL_SUPABASE` and Production false. The
+existing Product suite passed 18/18. PUSH 40 passed 6/6 bounded probes: billing
+UI and authorized Site 200, cross-Site 403, anonymous 401, unapproved-price
+checkout 409 and provider callback 503 while disabled. The isolated fixture
+truthfully has no subscription or entitlement; the verifier proves that state
+without creating a trial, charge, subscription or payment. Schema/RLS proof and
+250/250 migration drift remain PASS. PUSH 40 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`: approved provider sandbox,
+real payment/refund/tax-invoice, commercial customer, cost, legal, OEM,
+Zero-Install and Production activation proof remain open in the canonical
+activation register. PUSH 38 exceptions and PUSH 39 external proof remain
+unchanged. PUSH 41 is readiness-only and has not started. Main and Production
+remain unchanged.

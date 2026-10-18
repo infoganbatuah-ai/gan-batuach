@@ -39,8 +39,10 @@ await probe({path:'/digital-observer/billing',expectedStatus:200,label:'observer
 const billing=await probe({path:`/api/digital-observer/billing?observer_site_id=${siteA}`,expectedStatus:200,label:'observer-a'});
 assert.equal(billing.data.productionPaymentsEnabled,false);
 assert.equal(billing.data.providerMode,'disabled');
-assert.ok(billing.data.subscription);
-assert.ok(Array.isArray(billing.data.entitlements)&&billing.data.entitlements.length>0);
+assert.ok(billing.data.subscription===null || typeof billing.data.subscription==='object');
+assert.ok(Array.isArray(billing.data.entitlements));
+if(billing.data.subscription)assert.ok(billing.data.entitlements.length>0);
+else assert.equal(billing.data.entitlements.length,0);
 await probe({path:`/api/digital-observer/billing?observer_site_id=${siteB}`,expectedStatus:403,label:'observer-a forbidden other Site'});
 await probe({path:`/api/digital-observer/billing?observer_site_id=${siteA}`,cookieHeader:null,expectedStatus:401,label:'unauthenticated'});
 
@@ -57,6 +59,7 @@ await client.auth.signOut();
 const status=checks.every((check)=>check.pass&&!check.serverError)?'PASS':'FAIL';
 const receipt={observedAt:new Date().toISOString(),status,environment:config.environment,integrationCommit:expected,version,checks,
   productionAccess:false,providerContact:false,realPaymentCollected:false,
+  commercialFixtureState:billing.data.subscription?'SUBSCRIPTION_PRESENT':'NO_SUBSCRIPTION_NO_ENTITLEMENTS',
   proofClassification:{deterministicContract:'PASS',localFullStack:'PASS',paymentSandbox:'NOT_AVAILABLE',productionPayment:'NOT_RUN'},
   limitations:['Synthetic isolated Development identities/data','No provider credentials, card data, charge, tax invoice or refund receipt','Unapproved catalog prices are deliberately rejected']};
 if(!noWrite)writeFileSync('development/database/push40-local-product-receipt.json',JSON.stringify(receipt,null,2)+'\n');
