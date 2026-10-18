@@ -1216,3 +1216,15 @@ Zero-Install and Production activation proof remain open in the canonical
 activation register. PUSH 38 exceptions and PUSH 39 external proof remain
 unchanged. PUSH 41 is readiness-only and has not started. Main and Production
 remain unchanged.
+
+PUSH 40 exact-integration verification addendum (2026-10-19): PR #196 exact
+head `4414d4d47bd9e1e2713b392407dff652c716baf2` passed all 9 required checks
+and merged as `d7a1960796e2b02c7695b758a884a99111bcc8c7`. The cumulative Product was
+restarted from that exact integration SHA and passed the existing 18/18 Product
+suite, PUSH 40 6/6 bounded full-stack probes and 250/250 Development migration
+drift with `LOCAL_SUPABASE` and Production false. The verifier accepts the
+truthful zero-subscription fixture only when entitlements are also empty; it
+does not create a trial, subscription, payment or entitlement. The Master
+Roadmap status is reconciled to `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING
+— NOT DONE`; the open provider, legal, commercial, cost and real-world proof
+gates are unchanged.

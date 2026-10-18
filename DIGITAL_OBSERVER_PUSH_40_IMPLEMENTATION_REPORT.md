@@ -34,6 +34,8 @@ Release boundary: `integration/development` only; main and Production unchanged
 - PR #195 application/verifier CI: PASS 9/9; merge `869e1d5c91944d1ee5f76069f57a8f3310e98054`.
 - Exact-SHA cumulative local Product: PASS 18/18 at `http://127.0.0.1:3000`, `LOCAL_SUPABASE`, Production false.
 - PUSH 40 local full stack: PASS 6/6 for billing UI, authorized Site, cross-Site denial, anonymous denial, unapproved checkout denial and disabled callback. The isolated fixture truthfully has no subscription/entitlements; no trial or payment data was fabricated.
+- PR #196 local-verifier CI: PASS 9/9; merge `d7a1960796e2b02c7695b758a884a99111bcc8c7`.
+- Post-merge exact-SHA recheck at `d7a1960796e2b02c7695b758a884a99111bcc8c7`: existing Product 18/18, PUSH 40 6/6 and Development drift 250/250 PASS; `LOCAL_SUPABASE`, Production false.
 
 ## North-Star truth
 
