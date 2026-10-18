@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T23:44:00Z",
+  "updatedAt": "2026-10-18T23:50:30Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -6499,7 +6499,7 @@
       "commitsNotInMain": [
         "86a8cbb7fd88ecc61b00b94fee4640e88eeaee89"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -11322,9 +11322,11 @@
           "PUSH 39 notification/action and PUSH 40 billing/entitlement regressions PASS",
           "197 unique North-Star identities preserved; seven PUSH 41 rows promoted only to IMPLEMENTED — NEEDS REAL PROOF",
           "PR #201 exact head 2a9b7084219144e9cf4dadbca8ba5a28d6e728ef required checks PASS 9/9; ancestry-preserving merge 2d581c9acd60f811cdb210ac019eaf537e390c3a",
-          "Verified isolated Development pre-apply backup SHA-256 80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99"
+          "Verified isolated Development pre-apply backup SHA-256 80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99",
+          "PR #202 migration approval required checks PASS 9/9; merge fd4adf6a13bedf75917e124a4025042c37749463",
+          "Isolated Development migration applied at 2026-10-18T23:49:11.410164+00:00; schema/RLS verifier PASS; migration drift PASS 251/251"
         ],
-        "limits": "Isolated Development migration application/schema verification and exact-SHA cumulative local Product verification remain pending. No external IdP, SCIM directory, enterprise customer, WhatsApp provider or Production-scale proof is claimed."
+        "limits": "Exact-SHA cumulative local Product verification remains pending. No external IdP, SCIM directory, enterprise customer, WhatsApp provider or Production-scale proof is claimed."
       },
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
@@ -11332,7 +11334,9 @@
         "commit": "2d581c9acd60f811cdb210ac019eaf537e390c3a",
         "sourceHead": "2a9b7084219144e9cf4dadbca8ba5a28d6e728ef",
         "pullRequest": 201,
-        "requiredChecks": "PASS_9_OF_9"
+        "requiredChecks": "PASS_9_OF_9",
+        "migrationApprovalPullRequest": 202,
+        "migrationApprovalMerge": "fd4adf6a13bedf75917e124a4025042c37749463"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_BRANCH_IMPLEMENTATION",
@@ -11348,8 +11352,8 @@
         "20261019020000"
       ],
       "conflictsResolution": "Built from current origin/integration/development at de292b65d52c885b378eb7cd4daec9afac6be305 with PUSH 39 and PUSH 40 ancestry verified. Existing tenant/Site, Event/Incident, billing and notification domains are reused; no parallel authorization domain was introduced.",
-      "localVerification": "PENDING_EXACT_MERGED_INTEGRATION_SHA",
-      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_LOCAL_FULL_STACK_AND_EXTERNAL_ENTERPRISE_PROOF_PENDING",
+      "localVerification": "SCHEMA_RLS_AND_MIGRATION_DRIFT_PASS_251_OF_251_EXACT_SHA_CUMULATIVE_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_LOCAL_FULL_STACK_AND_EXTERNAL_ENTERPRISE_PROOF_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
@@ -11359,7 +11363,7 @@
         "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
         "productionActivation": false
       },
-      "nextAction": "After this approval receipt passes exact-head CI and integrates, apply only the reviewed PUSH 41 migration to isolated Development, record its receipt, and run exact-SHA cumulative local Product/schema QA. Keep external SSO/SCIM/service-account/multi-site proof open. Do not start PUSH 42 or touch main/Production."
+      "nextAction": "Integrate the Development application and verifier receipt, then run the exact merged integration SHA through cumulative local Product and PUSH 39/40/41 full-stack QA. Keep external SSO/SCIM/service-account/multi-site proof open. Do not start PUSH 42 or touch main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

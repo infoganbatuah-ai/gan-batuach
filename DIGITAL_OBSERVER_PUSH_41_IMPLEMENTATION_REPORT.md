@@ -8,7 +8,7 @@ Production authorization: **none**
 
 ## Result classification
 
-PUSH 41 implements the internal Enterprise identity and authorization foundation. Exact-head CI and Development integration have passed; until isolated Development migration application and cumulative local Product verification finish, the unit is `INTEGRATED — DEVELOPMENT VERIFICATION PENDING — NOT DONE`. External organization SSO/SCIM, independent service-account use, real multi-site operation and Production scale remain proof obligations even after internal Development closure.
+PUSH 41 implements the internal Enterprise identity and authorization foundation. Exact-head CI, Development integration and isolated Development migration/schema verification have passed; until cumulative local Product verification finishes, the unit is `DEVELOPMENT MIGRATION VERIFIED — LOCAL PRODUCT PENDING — NOT DONE`. External organization SSO/SCIM, independent service-account use, real multi-site operation and Production scale remain proof obligations even after internal Development closure.
 
 ## Implemented contracts
 
@@ -51,6 +51,10 @@ The migration is approved only for the canonical isolated Development database a
 - PUSH 40 billing/entitlement regression: PASS.
 - PR #201 exact-head CI: PASS 9/9; ancestry-preserving merge `2d581c9acd60f811cdb210ac019eaf537e390c3a`.
 - Isolated Development pre-apply backup: PASS; custom archive SHA-256 `80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99`, with a valid `pg_restore` listing.
+- PR #202 migration-approval CI: PASS 9/9; merge `fd4adf6a13bedf75917e124a4025042c37749463`.
+- Isolated Development application: PASS at `2026-10-18T23:49:11.410164+00:00`; schema fingerprint `4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73`.
+- Development schema/RLS verifier: PASS; all 15 Enterprise tables have RLS, billing-only role cannot view cameras or operate a Site, audit is immutable, SMS auth is disabled and Production SSO/SCIM rows are zero.
+- Development migration drift: PASS 251/251 with zero missing migrations.
 
 The first security run was blocked by the filesystem sandbox from binding a loopback test port; the exact same suite passed outside that sandbox restriction. The first build was blocked by an out-of-root temporary dependency symlink; a local dependency copy completed the exact build. Neither was a Product-code failure.
 

@@ -1284,3 +1284,20 @@ pre-apply custom-format backup is protected at
 valid `pg_restore` archive listing. Development application, schema/RLS proof
 and exact-SHA cumulative local full-stack proof remain pending. No external
 provider, main or Production system was contacted.
+
+PUSH 41 isolated Development migration receipt (2026-10-19): PR #202 exact
+head `f9fdb3ff51a08fe54e97ecc1a5522d29517924ba` passed all 9 required checks
+and merged as `fd4adf6a13bedf75917e124a4025042c37749463`. Migration
+`20261019020000_digital_observer_push41_enterprise_identity.sql` applied only to
+the canonical isolated Development database at
+`2026-10-18T23:49:11.410164+00:00`, producing schema fingerprint
+`4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73`.
+Development drift is 251/251 PASS: 227 baseline, 24 post-baseline and zero
+missing. The bounded verifier confirms RLS on all 15 Enterprise tables,
+billing-only denial of camera/operational access, anonymous and authenticated
+credential denials, immutable audit, zero Production SSO/SCIM rows and zero
+enabled SMS-auth policies. Its first run exposed only verifier output framing:
+`set_config` printed the synthetic subject before the JSON result. Replacing it
+with a non-output `SET LOCAL` made the same role-boundary proof pass without
+changing schema or data. Exact-SHA cumulative Product startup remains pending.
+No provider, main or Production access occurred.

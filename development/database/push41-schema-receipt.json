@@ -1,0 +1,95 @@
+{
+  "observedAt": "2026-10-18T23:49:58.790Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "fd4adf6a13bedf75917e124a4025042c37749463",
+  "migration": "20261019020000_digital_observer_push41_enterprise_identity.sql",
+  "migrationPresent": true,
+  "tables": [
+    {
+      "table": "digital_observer_auth_policies",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_enterprise_audit_events",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_enterprise_invitations",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_enterprise_sessions",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_organization_member_sites",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_organization_memberships",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_scim_connections",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_scim_event_receipts",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_scim_subjects",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_service_account_credentials",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_service_account_sites",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_service_accounts",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_slo_policies",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_sso_connections",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_sso_transactions",
+      "rls": true
+    }
+  ],
+  "smsEnabled": 0,
+  "productionSso": 0,
+  "productionScim": 0,
+  "anonymousMembershipRead": false,
+  "authenticatedCredentialRead": false,
+  "authenticatedMembershipMutation": false,
+  "auditTrigger": true,
+  "orgPermissionFunction": true,
+  "organizationUpdateGrants": {
+    "status": false,
+    "owner": false,
+    "name": true
+  },
+  "roleBoundary": {
+    "camera": false,
+    "billing": true,
+    "manage": false,
+    "operational": false
+  },
+  "productionAccess": false,
+  "limitations": [
+    "Isolated Development schema and synthetic role-boundary proof",
+    "No external IdP/SCIM provider or Production environment contacted",
+    "No real enterprise scale claim"
+  ]
+}
