@@ -117,7 +117,8 @@
     { "name": "push39-notification-actions", "args": ["scripts/qa/check-digital-observer-push39.mjs"] },
     { "name": "push40-commercial-entitlements", "args": ["scripts/qa/check-digital-observer-push40.mjs"] },
     { "name": "push42-external-api-contract", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
-    { "name": "push43-oem-sdk-contract", "args": ["scripts/qa/check-digital-observer-push43.mjs"] }
+    { "name": "push43-oem-sdk-contract", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
+    { "name": "push44-mobile-runtime-contract", "args": ["scripts/qa/check-digital-observer-push44.mjs"] }
   ],
   "security": [
     { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
@@ -164,6 +165,7 @@
     { "name": "push39-notification-security", "args": ["scripts/qa/check-digital-observer-push39.mjs"] },
     { "name": "push41-enterprise-identity-security", "args": ["scripts/qa/check-digital-observer-push41.mjs"] },
     { "name": "push42-external-api-security", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
-    { "name": "push43-partner-isolation", "args": ["scripts/qa/check-digital-observer-push43.mjs"] }
+    { "name": "push43-partner-isolation", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
+    { "name": "push44-mobile-authorization", "args": ["scripts/qa/check-digital-observer-push44.mjs"] }
   ]
 }

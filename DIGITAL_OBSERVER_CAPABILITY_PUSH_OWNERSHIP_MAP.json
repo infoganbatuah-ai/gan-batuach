@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-capability-push-ownership-v1",
-  "generatedAt": "2026-10-19T18:00:00+03:00",
+  "generatedAt": "2026-10-19T21:30:00+03:00",
   "canonicalRoadmapPushCount": 52,
   "originalCapabilityCount": 190,
   "addedCapabilityCount": 7,
@@ -14,9 +14,9 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 52,
+    "FOUNDATION": 51,
     "DONE + REAL PROOF": 24,
-    "PARTIAL": 21,
+    "PARTIAL": 22,
     "EXTERNAL COVERAGE GAP": 1,
     "IMPLEMENTED — NEEDS REAL PROOF": 64,
     "NOT STARTED": 35
@@ -167,7 +167,7 @@
       "sourceRow": 3,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Mobile-assisted onboarding",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "PARTIAL",
       "historicalContributorPushes": [
         17,
         44
@@ -183,7 +183,9 @@
       "codeOwnership": [
         "lib/domain/digital-observer/camera-*.ts",
         "services/video-gateway/**",
-        "services/software-connector/**"
+        "services/software-connector/**",
+        "components/digital-observer/observer-mobile-runtime.tsx",
+        "lib/domain/digital-observer/mobile-runtime.ts"
       ],
       "databaseOwnership": [
         "camera_streams",
@@ -197,23 +199,26 @@
         "camera-health",
         "connection-assessment",
         "dvr-gateway",
-        "software-connector"
+        "software-connector",
+        "mobile/runtime"
       ],
       "uiOwnership": [
         "app/digital-observer/onboarding",
         "app/digital-observer/dashboard",
-        "app/digital-observer/admin"
+        "app/digital-observer/admin",
+        "existing Capacitor iOS/Android shell"
       ],
       "testCoverage": [
         "scripts/qa/check-digital-observer-camera-connection-layer.mjs",
         "check-digital-observer-camera-onboarding.mjs",
-        "check-digital-observer-camera-health.mjs"
+        "check-digital-observer-camera-health.mjs",
+        "scripts/qa/check-digital-observer-push44.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Mobile discovery and cross-device contracts"
+        "summary": "Native lifecycle/network/session/deep-link/resync implementation plus mobile discovery and cross-device contracts; no native build or real-device proof"
       },
-      "unresolvedLimitations": "Native implementation and OS validation",
+      "unresolvedLimitations": "Native compilation, OS camera discovery integration, signed real-device onboarding and external Push/remote-media proof",
       "dependencies": [
         {
           "type": "PUSH",
