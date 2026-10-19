@@ -11452,6 +11452,87 @@
         "productionActivation": false
       },
       "nextAction": "Retain external partner, signed-webhook receiver, VMS/DVR/NVR/vendor, Gan Batuach operational adapter, penetration, scale/SLA, real-traffic cost and Production proof as open. Prepare PUSH 43 readiness only; do not start PUSH 43 or touch main or Production."
+    },
+    {
+      "id": "codex/push-43-oem-sdk-white-label-20261019",
+      "project": "Digital Observer",
+      "title": "PUSH 43 SDK, OEM and white-label integration platform",
+      "owner": "PUSH 43 implementation owner",
+      "sourceBranch": "codex/push-43-oem-sdk-white-label",
+      "sourceCommits": [
+        "08b716bd1ad4e84b9473334d4577f69b9201daa6",
+        "daf34f459438c99b97c9adb43e0da079d741b7d3",
+        "9c92bf8b4835129dc1e17ce7f27f3aa21a9c8b2c",
+        "8b0700d1e67c21e0e21c7d2c234d79d7b22fca9b",
+        "b8f949a60bafc028827655f6fd5414dfa21ce633"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-43-oem-sdk-white-label@08b716bd1ad4e84b9473334d4577f69b9201daa6",
+          "origin/codex/push-43-embedded-dashboard-canonical-data@b8f949a60bafc028827655f6fd5414dfa21ce633",
+          "origin/integration/development@42a680218005403c6501ce4264e7e5a5cc4e201d"
+        ],
+        "implementationCommit": "08b716bd1ad4e84b9473334d4577f69b9201daa6"
+      },
+      "validation": {
+        "status": "PASS_INTERNAL_DEVELOPMENT_COMPLETE_EXTERNAL_PROOF_PENDING",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_43_IMPLEMENTATION_REPORT.md",
+          "PR #210 exact head 08b716bd1ad4e84b9473334d4577f69b9201daa6 PASS 9/9; merged as 7e0df3a2ad105145af42057837b4e3a21a7146d1",
+          "PRs #211 through #218 each passed 9/9 exact-head checks and merged only to integration/development",
+          "TypeScript, canonical lint, Production build without deployment, domain, security/isolation, migration and release-contract gates PASS",
+          "PUSH 43 deterministic SDK/OEM/white-label QA PASS",
+          "Three additive PUSH 43 migrations applied only to isolated Development; schema/RLS verification PASS; drift PASS 255/255",
+          "Final pre-apply Development backup SHA-256 3beeb65c099e342c59ea0e1a57b9b0ef9752d0dec758fc71649ff1297583a45d; pg_restore archive listing PASS",
+          "Exact runtime 42a680218005403c6501ce4264e7e5a5cc4e201d: cumulative Product 18/18, PUSH 39 24/24, PUSH 40 6/6, PUSH 41 7/7, PUSH 42 10/10",
+          "Independent public-SDK partner application PASS 15/15 with idempotent provisioning, customer/Site isolation, branded embed, origin denial, revocation and measured usage attribution",
+          "197 unique North-Star capability identities preserved; five existing PUSH 43 rows remain IMPLEMENTED — NEEDS REAL PROOF and none was promoted to DONE + REAL PROOF"
+        ],
+        "limits": "Independent proof uses isolated synthetic Development data. Real OEM/white-label partner, custom domain, partner SSO, external webhook, vendor/VMS, settlement, support, legal/privacy and Production proof remain pending."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "42a680218005403c6501ce4264e7e5a5cc4e201d",
+        "sourceHead": "08b716bd1ad4e84b9473334d4577f69b9201daa6",
+        "pullRequest": 210,
+        "requiredChecks": "PASS_9_OF_9_EXACT_HEAD",
+        "followUpPullRequests": [211, 212, 213, 214, 215, 216, 217, 218]
+      },
+      "dependencies": {
+        "status": "SATISFIED_FOR_INTERNAL_DEVELOPMENT",
+        "units": [
+          "codex/push-39-external-actions-20261018",
+          "codex/push-40-commercial-billing-20261019",
+          "codex/push-41-enterprise-identity-20261019",
+          "codex/push-42-external-api-20261019"
+        ]
+      },
+      "migrations": [
+        "20261019040000_digital_observer_push43_oem_sdk.sql",
+        "20261019041000_digital_observer_push43_delegated_usage.sql",
+        "20261019042000_digital_observer_push43_embed_origin_constraint.sql"
+      ],
+      "migrationOrder": [
+        "20261019040000",
+        "20261019041000",
+        "20261019042000"
+      ],
+      "conflictsResolution": "Built cumulatively on PUSH 39–42. Existing notification/action, billing/entitlement, Enterprise identity/service-account and external API/webhook contracts are reused. Embedded reads were corrected to the canonical Camera, Event, Incident and Evidence stores; no parallel domain or authorization engine remains.",
+      "localVerification": "PASS_EXACT_42A68021_PRODUCT_18_OF_18_PUSH39_24_OF_24_PUSH40_6_OF_6_PUSH41_7_OF_7_PUSH42_10_OF_10_PUSH43_INDEPENDENT_PARTNER_APP_15_OF_15_AND_DRIFT_255_OF_255",
+      "releaseEligibility": "NOT_READY_REAL_OEM_PARTNER_CUSTOM_DOMAIN_SSO_WEBHOOK_VENDOR_VMS_SETTLEMENT_LEGAL_SUPPORT_AND_PRODUCTION_PROOF_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "actualIncrementalProviderCostIls": 0,
+        "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
+        "productionActivation": false
+      },
+      "nextAction": "Retain real OEM/white-label partner, custom-domain, partner SSO, external webhook, vendor/VMS, settlement, support, legal/privacy and Production proof as open. Prepare PUSH 44 readiness only; do not start PUSH 44 or touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -11463,8 +11544,8 @@
     "2026-10-18 post-PUSH38 closure: PR #184 merged to integration/development as 1bcd11b0a5f632f13805d63bc6e027080081db83 from remotely preserved source c00034507fdaa3ea7760f3bca6b968fb818f5d95 after 9/9 exact-head checks. The canonical local Product passed 247/247 migration drift and 18/18 scoped full-stack probes at that runtime SHA; owner-a browser login passed. The broader dashboard-role harness remains stale because it expects removed selector #dashboard-child; direct current-contract browser proof found four authorized child cards. This is test-harness drift, not a hidden Product PASS claim. Existing open PRs, branches, worktrees and stash remain untouched; main and Production remain unchanged."
   ],
   "integrationVerification": {
-    "commit": "8c284a72e0174ef9dd4308220882d6f284ee9dc5",
-    "status": "PASS_LOCAL_FULL_STACK_18_OF_18_PUSH39_24_OF_24_PUSH40_6_OF_6_PUSH41_7_OF_7_PUSH42_INDEPENDENT_CONFORMANCE_10_OF_10_SCHEMA_RLS_AND_252_OF_252_MIGRATION_DRIFT",
+    "commit": "42a680218005403c6501ce4264e7e5a5cc4e201d",
+    "status": "PASS_LOCAL_FULL_STACK_18_OF_18_PUSH39_24_OF_24_PUSH40_6_OF_6_PUSH41_7_OF_7_PUSH42_10_OF_10_PUSH43_INDEPENDENT_PARTNER_APP_15_OF_15_SCHEMA_RLS_AND_255_OF_255_MIGRATION_DRIFT",
     "receipt": "development/database/local-product-receipt.json",
     "push39Receipt": "development/database/push39-local-product-receipt.json",
     "push39SchemaReceipt": "development/database/push39-schema-receipt.json",
@@ -11474,9 +11555,10 @@
     "push41SchemaReceipt": "development/database/push41-schema-receipt.json",
     "push42Receipt": "development/database/push42-local-product-receipt.json",
     "push42SchemaReceipt": "development/database/push42-schema-receipt.json",
-    "observedAt": "2026-10-19T01:11:19.175Z"
+    "push43Receipt": "development/database/push43-local-product-receipt.json",
+    "observedAt": "2026-10-19T11:06:37.417Z"
   },
-  "observedAt": "2026-10-19T01:11:19.175Z",
+  "observedAt": "2026-10-19T11:06:37.417Z",
   "reconciliationReport": "DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json",
   "openPullRequests": [
     {

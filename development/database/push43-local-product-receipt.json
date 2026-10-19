@@ -1,0 +1,121 @@
+{
+  "observedAt": "2026-10-19T11:06:24.111Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "42a680218005403c6501ce4264e7e5a5cc4e201d",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "42a680218005403c6501ce4264e7e5a5cc4e201d",
+    "startedAt": "2026-10-19T11:06:01.156Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "label": "/digital-observer/partners",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "/api/digital-observer/partners?organization_id=00000000-0000-4000-8000-000000000d41",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "/api/digital-observer/partners?organization_id=00000000-0000-4000-8000-000000000d42",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "label": "anonymous partner administration denied",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "label": "partner authentication/profile",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "partner customer inventory",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "customer provisioning baseline",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "idempotent customer provisioning",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "independent sample partner application",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "cross-customer Site denied",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "label": "short-lived embedded session",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "embedded branded UI contract",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "embedded origin denial",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "label": "embedded session revocation",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "label": "partner customer usage attribution",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "measuredRequests": 9
+    }
+  ],
+  "productionAccess": false,
+  "providerContact": false,
+  "realCustomerData": false,
+  "longLivedBrowserSecret": false,
+  "proofClassification": {
+    "deterministicContract": "PASS",
+    "independentPartnerApp": "PASS",
+    "syntheticMultiCustomerIsolation": "PASS",
+    "realOemPartner": "NOT_AVAILABLE",
+    "production": "NOT_CLAIMED"
+  },
+  "limitations": [
+    "Independent app and two partner customers use isolated synthetic Development data",
+    "No real OEM, VMS, custom domain, provider or Production system"
+  ]
+}

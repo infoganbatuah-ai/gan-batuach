@@ -107,12 +107,12 @@
       "id": "oem-integrations",
       "owner": "PUSH 43",
       "dependencies": ["PUSH 40 partner billing contracts", "PUSH 42 API/SDK identity and metering", "partner agreement"],
-      "currentState": "PUSH 43 partner/customer/Site hierarchy, signed SDK/API, canonical entitlement links, delegated service identities, brand profile and short-lived embedded session foundations implemented in Development; real partner remains NOT_PROVEN",
+      "currentState": "PUSH 43 DEVELOPMENT COMPLETE / EXTERNAL PROOF PENDING / CANONICAL NOT DONE. Partner/customer/Site hierarchy, signed public SDK/API, canonical entitlement links, delegated service identities, branding, short-lived embedded sessions and measured usage attribution pass isolated synthetic Development proof at integration commit 42a680218005403c6501ce4264e7e5a5cc4e201d; real partner remains NOT_PROVEN.",
       "requiredApproval": "owner-approved partner, contract, data-processing terms and sandbox",
-      "sandboxProof": "OPEN",
+      "sandboxProof": "INTERNAL DEVELOPMENT PASS — independent public-SDK partner app 15/15 with two synthetic partner customers, idempotent provisioning, cross-customer denial, branded embed, origin/audience/session-revocation controls and usage attribution. External partner sandbox remains OPEN.",
       "realProof": "OPEN",
-      "costImpact": "UNKNOWN wholesale and support economics",
-      "activationGate": "partner isolation, provisioning, API metering, settlement and limited partner pilot"
+      "costImpact": "Incremental Development supplier cost ₪0; real wholesale, vendor, custom-domain, traffic and support economics remain UNKNOWN.",
+      "activationGate": "owner-approved real partner agreement and sandbox; external provisioning/isolation, partner SSO, custom-domain, webhook receipt, vendor/VMS compatibility where applicable, API metering, settlement, legal/privacy and support ownership; then explicit Production release"
     },
     {
       "id": "zero-install",
