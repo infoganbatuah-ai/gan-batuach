@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
-  "updatedAt": "2026-10-19T12:00:00+03:00",
+  "updatedAt": "2026-10-19T18:00:00+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
@@ -69,6 +69,17 @@
       "realProof": "OPEN — no independent consumer has completed the supported lifecycle",
       "costImpact": "No new supplier cost; API traffic and support cost remain unmeasured",
       "activationGate": "PUSH 42 public API rate limits, consumer conformance, rotation/revocation exercise, usage monitoring and approved Production release"
+    },
+    {
+      "id": "external-api-webhooks-integrations",
+      "owner": "PUSH 42 implementation; external partner/vendor proof PUSH 43/47/48",
+      "dependencies": ["PUSH 41 service accounts", "PUSH 40 api_access entitlement", "PUSH 39 durable webhook delivery", "approved partner or vendor sandbox", "PUSH 45 privacy/legal approval for sensitive workflows"],
+      "currentState": "Development implementation includes a versioned signed Service Account API, tenant/organization/Site/resource authorization, bounded Camera/Event/Incident/Evidence/Investigation/Watch contracts, signed webhook subscription lifecycle, usage metering, truthful VMS/DVR/NVR/vendor capability registry, federation fail-closed behavior and a separate-domain Gan Batuach contract. Provider modes remain DISABLED/SANDBOX; no external destination, vendor adapter or Production credential is active.",
+      "requiredApproval": "owner approval for each external consumer, webhook destination, VMS/vendor adapter, Gan Batuach runtime link and any Production credential",
+      "sandboxProof": "INTERNAL DEVELOPMENT PROOF PENDING FINAL INTEGRATION — deterministic contract QA and an independent local consumer are implemented; external partner, webhook receipt and vendor sandbox proof remain OPEN",
+      "realProof": "OPEN — no external partner consumer, real webhook receiver, VMS/DVR/NVR vendor, federated source or Gan Batuach operational runtime proof",
+      "costImpact": "No new supplier or fixed recurring cost. API traffic, support, webhook delivery and vendor-specific usage costs remain unmeasured; hourly Development usage attribution is implemented.",
+      "activationGate": "exact-head CI, isolated Development migration/RLS and independent local conformance PASS; then approved external sandbox consumer, signed webhook receipt/rotation/revocation, rate/usage evidence, vendor-specific proof, privacy/legal review where applicable, bounded cost and explicit Production release"
     },
     {
       "id": "real-device-actions",

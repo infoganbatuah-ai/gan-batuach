@@ -36,6 +36,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 | Feedback / calibration | lib/domain/digital-observer/feedback-calibration.ts | /api/digital-observer/incidents/feedback | digital_observer_feedback_revisions; digital_observer_calibration_samples | qa:digital-observer-feedback | PUSH 11 | GATE 3 |
 | Watch rules | lib/domain/digital-observer/watch-rule-compiler.ts | /api/digital-observer/watch-rules | observer_watch_requests; digital_observer_watch_rule_versions | qa:digital-observer-watch-rules | PUSH 12 | GATE 3 |
 | Investigation | lib/domain/digital-observer/investigation-search-service.ts | /api/digital-observer/investigation | canonical Event/Incident/Evidence projections | qa:digital-observer-investigation | PUSH 13 | GATE 3 |
+| External API / webhooks | lib/domain/digital-observer/external-api-service.ts | /api/digital-observer/external/v1/* | service accounts; external API receipts/usage; webhook endpoints; integration sources | qa:digital-observer-push42 | PUSH 42 independent consumer and external provider proof pending | GATE 3 + GATE 4 |
 
 ## TIER 1 CANONICAL SUITES
 
@@ -59,6 +60,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `native-preprocessing`: `node scripts/qa/check-digital-observer-native-preprocessing.mjs`
 - `adaptive-sampling`: `node scripts/qa/check-digital-observer-adaptive-sampling.mjs`
 - `durable-ai-job-queue`: `node scripts/qa/check-digital-observer-ai-job-queue.mjs`
+- `queue-terminal-race`: `node scripts/qa/check-digital-observer-queue-terminal-race.mjs`
 - `hybrid-ai-routing`: `node scripts/qa/check-digital-observer-ai-routing.mjs`
 - `cost-intelligence`: `node scripts/qa/check-digital-observer-cost-engine.mjs`
 - `storage-portability`: `node scripts/qa/check-digital-observer-storage-portability.mjs`
@@ -78,6 +80,9 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `north-star-ledger`: `node scripts/qa/check-north-star-completion-ledger.mjs`
 - `watch-rules`: `node scripts/qa/check-digital-observer-watch-rule-compiler.mjs`
 - `investigation`: `node --test scripts/qa/check-digital-observer-investigation.mjs`
+- `push39-notification-actions`: `node scripts/qa/check-digital-observer-push39.mjs`
+- `push40-commercial-entitlements`: `node scripts/qa/check-digital-observer-push40.mjs`
+- `push42-external-api-contract`: `node scripts/qa/check-digital-observer-push42.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-relay-handoff-remediation`: `node --test scripts/qa/check-push38-relay-handoff-remediation.mjs`
@@ -109,16 +114,23 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `remote-playback-boundary`: `node scripts/qa/check-remote-playback-boundary.mjs`
 - `remote-playback-https-ingress`: `node scripts/qa/check-push38-https-playback-ingress.mjs`
 - `environment-safety`: `node scripts/validate-environment-safety.mjs`
+- `vendored-braces-depth-guard`: `node scripts/qa/check-vendored-braces-security.mjs`
+- `management-production-hardening`: `node scripts/qa/check-management-production-hardening.mjs`
+- `management-crypto-configuration`: `node scripts/qa/check-management-crypto-configuration.mjs`
+- `management-credential-remediation`: `node scripts/qa/check-production-credential-remediation.mjs`
 - `encryption-separation`: `node scripts/qa/check-encryption-key-separation.mjs`
 - `storage-policy`: `node scripts/qa/check-storage-policy-safety.mjs`
 - `observer-engine-separation`: `node scripts/qa/check-observer-engine-separation.mjs`
 - `canonical-api-error-boundary`: `node scripts/qa/check-canonical-api-error-boundary.mjs`
 - `tenant-privacy-boundary`: `node --test scripts/qa/digital-guard-tenant-boundary.test.mjs`
 - `mock-shadow-isolation`: `node scripts/qa/check-product-observer-real-source.mjs`
+- `push39-notification-security`: `node scripts/qa/check-digital-observer-push39.mjs`
+- `push41-enterprise-identity-security`: `node scripts/qa/check-digital-observer-push41.mjs`
+- `push42-external-api-security`: `node scripts/qa/check-digital-observer-push42.mjs`
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **418** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **547** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -134,6 +146,8 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/analyze-push38-relay-pre-soak.mjs` | node scripts/qa/analyze-push38-relay-pre-soak.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/analyze-push38-v7.mjs` | node scripts/qa/analyze-push38-v7.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/audit-digital-observer-functional-reality.mjs` | node scripts/qa/audit-digital-observer-functional-reality.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/augment-literal-reference-reconstruction-v4.mjs` | node scripts/qa/augment-literal-reference-reconstruction-v4.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
+| `scripts/qa/augment-reference-reconstruction-v3.mjs` | node scripts/qa/augment-reference-reconstruction-v3.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
 | `scripts/qa/authorize-push38-baselines.mjs` | node scripts/qa/authorize-push38-baselines.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | SUPPORTING | none known |
 | `scripts/qa/authorize-push38-homeqa-gateway-signed-recovery.mjs` | node scripts/qa/authorize-push38-homeqa-gateway-signed-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/authorize-push38g-release.mjs` | node scripts/qa/authorize-push38g-release.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
@@ -145,17 +159,44 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/bind-push38l-live-transition.mjs` | node scripts/qa/bind-push38l-live-transition.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/build-ci-test-manifest.mjs` | node scripts/qa/build-ci-test-manifest.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/build-digital-observer-reference-comparisons.mjs` | node scripts/qa/build-digital-observer-reference-comparisons.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
+| `scripts/qa/build-final-owner-visual-verification-v2.mjs` | node scripts/qa/build-final-owner-visual-verification-v2.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | VERIFICATION | SUPPORTING | none known |
+| `scripts/qa/build-literal-reference-reconstruction-v4.mjs` | node scripts/qa/build-literal-reference-reconstruction-v4.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
 | `scripts/qa/build-push38-gateway-management-recovery.mjs` | node scripts/qa/build-push38-gateway-management-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/build-push38g-gateway-package.mjs` | node scripts/qa/build-push38g-gateway-package.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/build-push38s-inventory.mjs` | node scripts/qa/build-push38s-inventory.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/build-reference-reconstruction-v3.mjs` | node scripts/qa/build-reference-reconstruction-v3.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
+| `scripts/qa/build-ux-visual-remediation-final.mjs` | node scripts/qa/build-ux-visual-remediation-final.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | SUPPORTING | none known |
+| `scripts/qa/build-ux20-owner-pack.mjs` | npm run qa:ux20-pack | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/camera-gateway-contract.test.mjs` | node scripts/qa/camera-gateway-contract.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/camera-queue-production-preflight.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/camera-queue-schema.test.mjs` | node scripts/qa/camera-queue-schema.test.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-digital-observer-admin.mjs` | node scripts/qa/capture-digital-observer-admin.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-digital-observer-ai-experience.mjs` | node scripts/qa/capture-digital-observer-ai-experience.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-digital-observer-reference-flows.mjs` | node scripts/qa/capture-digital-observer-reference-flows.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-final-owner-v2-ux01-07.mjs` | node scripts/qa/capture-final-owner-v2-ux01-07.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-live-object-diagnostic-sample.mjs` | node scripts/qa/capture-live-object-diagnostic-sample.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | AI / INFERENCE | SUPPORTING | none known |
 | `scripts/qa/capture-push38-home-dvr-prewrite.mjs` | node scripts/qa/capture-push38-home-dvr-prewrite.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-push38j-gateway-baseline.mjs` | node scripts/qa/capture-push38j-gateway-baseline.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux-visual-closure-07.mjs` | node scripts/qa/capture-ux-visual-closure-07.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux02-owner-onboarding.mjs` | node scripts/qa/capture-ux02-owner-onboarding.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux03-owner-command-center.mjs` | npm run qa:ux03-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux04-children-classrooms-profile.mjs` | npm run qa:ux04-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux05-parent-platform.mjs` | npm run qa:ux05-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux06-attendance-pickup.mjs` | npm run qa:ux06-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux07-staff-platform.mjs` | npm run qa:ux07-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux07-staff-reference-correction.mjs` | npm run qa:ux07-reference-correction-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux08-staff-recruitment-candidate.mjs` | npm run qa:ux08-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux09-inspector-platform.mjs` | npm run qa:ux09-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux10-finance-platform.mjs` | npm run qa:ux10-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux11-messaging-notifications.mjs` | npm run qa:ux11-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux12-documents-platform.mjs` | npm run qa:ux12-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux13-work-management.mjs` | npm run qa:ux13-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux14-inspection-experience.mjs` | npm run qa:ux14-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux15-reports-analytics.mjs` | npm run qa:ux15-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux16-safety-cameras.mjs` | npm run qa:ux16-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux17-platform-admin.mjs` | npm run qa:ux17-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux18-settings-account-permissions.mjs` | npm run qa:ux18-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/capture-ux19-global-states.mjs` | npm run qa:ux19-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/check-braces-depth-backport.mjs` | npm run qa:ci:security | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-canonical-api-error-boundary.mjs` | node scripts/qa/check-canonical-api-error-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-cloud-discovery-observer-persistence.mjs` | node scripts/qa/check-cloud-discovery-observer-persistence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -164,6 +205,8 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-connector-health-recovery.mjs` | node scripts/qa/check-connector-health-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-connector-install-intents-db.mjs` | node scripts/qa/check-connector-install-intents-db.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-continuous-monitor.mjs` | node scripts/qa/check-continuous-monitor.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-development-baseline.mjs` | npm run qa:development-baseline | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | SUPPORTING | none known |
+| `scripts/qa/check-development-migration-drift.mjs` | npm run qa:development-drift-contract | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | SUPPORTING | none known |
 | `scripts/qa/check-digital-guard-public-readiness.mjs` | node scripts/qa/check-digital-guard-public-readiness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-digital-observer-adaptive-sampling.mjs` | npm run qa:digital-observer-adaptive-sampling | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-ai-job-queue.mjs` | npm run qa:digital-observer-ai-job-queue | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -183,7 +226,12 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-digital-observer-native-preprocessing.mjs` | npm run qa:digital-observer-native-preprocessing | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-portable-deployment.mjs` | npm run qa:digital-observer-portable-deployment | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-product.mjs` | npm run qa:digital-observer-product | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/check-digital-observer-push39.mjs` | npm run qa:digital-observer-push39 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-push40.mjs` | npm run qa:digital-observer-push40 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-push41.mjs` | npm run qa:digital-observer-push41 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-push42.mjs` | npm run qa:digital-observer-push42 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-quality-benchmark.mjs` | npm run qa:digital-observer-quality-benchmark | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-queue-terminal-race.mjs` | npm run qa:digital-observer-queue-terminal-race | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-reliability-qualification.mjs` | npm run qa:digital-observer-reliability-qualification | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-risk-decision.mjs` | npm run qa:digital-observer-risk | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | RISK / DECISION | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-storage-portability.mjs` | npm run qa:digital-observer-storage-portability | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -196,6 +244,7 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-edge-release-trust.mjs` | node scripts/qa/check-edge-release-trust.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-edge-runtime-liveness.mjs` | node scripts/qa/check-edge-runtime-liveness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-edge-self-healing.mjs` | node scripts/qa/check-edge-self-healing.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-editorial-production.mjs` | node scripts/qa/check-editorial-production.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-encryption-key-separation.mjs` | npm run qa:encryption-key-separation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-eslint-baseline.mjs` | npm run lint:ci | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | SUPPORTING | none known |
 | `scripts/qa/check-event-backend.mjs` | node scripts/qa/check-event-backend.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | EVENT / JOURNAL | INTEGRATION / SUPPORT | none known |
@@ -215,6 +264,7 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-home-qa-trust-issuance.mjs` | node scripts/qa/check-home-qa-trust-issuance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-immutable-audit-pgcrypto.mjs` | node scripts/qa/check-immutable-audit-pgcrypto.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-installed-ota-health-truth.mjs` | node scripts/qa/check-installed-ota-health-truth.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-integration-workflow.mjs` | npm run qa:integration-workflow | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-journal-owner-lock.mjs` | node scripts/qa/check-journal-owner-lock.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVENT / JOURNAL | CANONICAL CI | none known |
 | `scripts/qa/check-legacy-identity-bridge.mjs` | node scripts/qa/check-legacy-identity-bridge.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
 | `scripts/qa/check-live-kms-custody.mjs` | node scripts/qa/check-live-kms-custody.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -222,14 +272,49 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-managed-device-identity.mjs` | node scripts/qa/check-managed-device-identity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-managed-device-runtime-session.mjs` | node scripts/qa/check-managed-device-runtime-session.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-atomic-onboarding.mjs` | node scripts/qa/check-management-atomic-onboarding.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-canonical-classrooms.mjs` | node scripts/qa/check-management-canonical-classrooms.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-canonical-family-linking.mjs` | node scripts/qa/check-management-canonical-family-linking.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-child-attendance-pickup.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-child-discovery.mjs` | npm run qa:management-child-discovery | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-classroom-capacity.mjs` | npm run qa:management-classroom-capacity | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-complaints-sla.mjs` | node scripts/qa/check-management-complaints-sla.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-contact-verification.mjs` | node scripts/qa/check-management-contact-verification.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | VERIFICATION | SUPPORTING | none known |
+| `scripts/qa/check-management-credential-retirement.mjs` | node scripts/qa/check-management-credential-retirement.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
+| `scripts/qa/check-management-crypto-configuration.mjs` | npm run qa:management-crypto-configuration | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-management-documents-rls.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-documents.mjs` | npm run qa:management-documents | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-enrollment-activation-audit-role-fix.mjs` | node scripts/qa/check-management-enrollment-activation-audit-role-fix.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-enrollment-activation.mjs` | npm run qa:management-enrollment-activation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-enrollment-audit-role-fix.mjs` | node scripts/qa/check-management-enrollment-audit-role-fix.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-enrollment-lifecycle.mjs` | npm run qa:management-enrollment-lifecycle | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-external-delivery.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-garden-context.mjs` | node scripts/qa/check-management-garden-context.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | SUPPORTING | none known |
+| `scripts/qa/check-management-inspector-approval.mjs` | npm run qa:management-inspector-approval | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-inspector-garden-bootstrap.mjs` | node scripts/qa/check-management-inspector-garden-bootstrap.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-legacy-consolidation.mjs` | npm run qa:management-legacy-consolidation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
+| `scripts/qa/check-management-messaging-threads.mjs` | node scripts/qa/check-management-messaging-threads.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-multi-garden-owner-context.mjs` | node scripts/qa/check-management-multi-garden-owner-context.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | SUPPORTING | none known |
+| `scripts/qa/check-management-multi-garden-staff.mjs` | npm run qa:management-multi-garden-staff | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-notification-broadcast.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-notification-pipeline.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-notification-role-matrix.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-operational-role.mjs` | node scripts/qa/check-management-operational-role.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-owner-teacher-semantics.mjs` | node scripts/qa/check-management-owner-teacher-semantics.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-parent-invitation-acceptance.mjs` | node scripts/qa/check-management-parent-invitation-acceptance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-parent-notification-category-fix.mjs` | node scripts/qa/check-management-parent-notification-category-fix.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-parent-tuition-ledger.mjs` | npm run qa:management-parent-tuition | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-payment-provider.mjs` | npm run qa:management-payment-provider | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-platform-subscriptions.mjs` | npm run qa:management-platform-subscriptions | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-production-hardening.mjs` | node scripts/qa/check-management-production-hardening.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-management-reporting-rls.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-reporting.mjs` | npm run qa:management-reporting | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-role-dashboards.mjs` | npm run qa:management-dashboards | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-signed-invitations.mjs` | node scripts/qa/check-management-signed-invitations.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-staff-candidate-job-discovery.mjs` | npm run qa:management-staff-candidate-job-discovery | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-staff-hiring-lifecycle.mjs` | npm run qa:management-staff-hiring-lifecycle | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-staff-time.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-staffing-policy.mjs` | npm run qa:management-staffing-policy | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-task-workflows.mjs` | npm run qa:management-task-workflows | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-manager-parent-live-contract.mjs` | npm run qa:manager-parent-live-contract | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-migration-health.mjs` | npm run qa:migrations | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | SUPPORTING | none known |
 | `scripts/qa/check-north-star-completion-ledger.mjs` | node scripts/qa/check-north-star-completion-ledger.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -243,6 +328,7 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-post-push18-live-view.mjs` | node scripts/qa/check-post-push18-live-view.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs` | node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVIDENCE | CANONICAL CI | none known |
 | `scripts/qa/check-product-observer-real-source.mjs` | npm run qa:product-observer-real-source | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-production-credential-remediation.mjs` | npm run qa:management-credential-remediation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-production-release-contract.mjs` | npm run qa:release-contract | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | PRODUCTION RELEASE | SUPPORTING | none known |
 | `scripts/qa/check-production-release-snapshot.mjs` | npm run release:production:preflight | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | PRODUCTION RELEASE | SUPPORTING | none known |
 | `scripts/qa/check-push17d-closure.mjs` | npm run qa:digital-observer-push17d | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -348,9 +434,11 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-live-dvr-truth-playlist.mjs` | node scripts/qa/check-push38-live-dvr-truth-playlist.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-managed-auth-continuity-release.mjs` | node scripts/qa/check-push38-managed-auth-continuity-release.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
 | `scripts/qa/check-push38-quarantined-release-retry.mjs` | node scripts/qa/check-push38-quarantined-release-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push38-r2-phone-media.mjs` | node scripts/qa/check-push38-r2-phone-media.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-relay-handoff-remediation.mjs` | npm run qa:push38-relay-handoff-remediation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38-remote-client-ipv6.mjs` | node scripts/qa/check-push38-remote-client-ipv6.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-remote-media-external.mjs` | node scripts/qa/check-push38-remote-media-external.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push38-runtime-disk-pressure.mjs` | npm run qa:push38-runtime-disk-pressure | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-tapo-endpoint-reconciliation.mjs` | node scripts/qa/check-push38-tapo-endpoint-reconciliation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38b-monitor-accuracy.mjs` | node scripts/qa/check-push38b-monitor-accuracy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38b-relay-recovery.mjs` | node scripts/qa/check-push38b-relay-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -368,7 +456,6 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38l-transition-policy.mjs` | node scripts/qa/check-push38l-transition-policy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38o-home-qa-publication.mjs` | node scripts/qa/check-push38o-home-qa-publication.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38p-release-delivery.mjs` | node scripts/qa/check-push38p-release-delivery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
-| `scripts/qa/check-digital-observer-push39.mjs` | node scripts/qa/check-digital-observer-push39.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | PRIMARY | External provider sandboxes require separate credentials and receipts; deterministic sandbox is not live-provider proof. |
 | `scripts/qa/check-push38q-r2-download.mjs` | node scripts/qa/check-push38q-r2-download.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38t-ingress.mjs` | node scripts/qa/check-push38t-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-r2-keychain.mjs` | node scripts/qa/check-r2-keychain.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -376,13 +463,35 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/check-real-event-context-baseline.mjs` | node scripts/qa/check-real-event-context-baseline.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
 | `scripts/qa/check-remote-edge-signer.mjs` | node scripts/qa/check-remote-edge-signer.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-remote-playback-boundary.mjs` | node scripts/qa/check-remote-playback-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-single-use-auth-code.mjs` | node scripts/qa/check-single-use-auth-code.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
 | `scripts/qa/check-software-connector.mjs` | npm run qa:software-connector | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-spatial-entry-geometry.mjs` | node scripts/qa/check-spatial-entry-geometry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | TRACKING / ZONES | CANONICAL CI | none known |
 | `scripts/qa/check-storage-policy-safety.mjs` | npm run qa:storage-policy-safety | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-universal-connectivity.mjs` | node scripts/qa/check-universal-connectivity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux03-owner-command-center.mjs` | npm run qa:ux03-owner-command-center | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux04-children-classrooms-profile.mjs` | npm run qa:ux04-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux05-parent-platform.mjs` | npm run qa:ux05-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux06-attendance-pickup.mjs` | npm run qa:ux06-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux07-staff-platform.mjs` | npm run qa:ux07-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux08-staff-recruitment-candidate.mjs` | npm run qa:ux08-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux09-inspector-platform.mjs` | npm run qa:ux09-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux10-finance-platform.mjs` | npm run qa:ux10-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux11-messaging-notifications.mjs` | npm run qa:ux11-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux12-documents-platform.mjs` | npm run qa:ux12-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux13-work-management.mjs` | npm run qa:ux13-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux14-inspection-experience.mjs` | npm run qa:ux14-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux15-reports-analytics.mjs` | npm run qa:ux15-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux16-safety-cameras.mjs` | npm run qa:ux16-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-ux17-platform-admin.mjs` | npm run qa:ux17-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux18-settings-account-permissions.mjs` | npm run qa:ux18-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux18-settings-functional.mjs` | npm run qa:ux18-functional | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux19-global-states.mjs` | npm run qa:ux19-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ux20-full-product.mjs` | npm run qa:ux20-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-vendored-braces-security.mjs` | npm run qa:ci:security; npm run qa:vendored-braces-security | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-vercel-deployment-package.mjs` | node scripts/qa/check-vercel-deployment-package.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-video-gateway-activity-insights.mjs` | node scripts/qa/check-video-gateway-activity-insights.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-zero-install-product-policy.mjs` | node scripts/qa/check-zero-install-product-policy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/cleanup-push38-r2-phone-media.mjs` | node scripts/qa/cleanup-push38-r2-phone-media.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/cloud-discovery-capability-contract.test.mjs` | node scripts/qa/cloud-discovery-capability-contract.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/compare-object-model.mjs` | node scripts/qa/compare-object-model.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | AI / INFERENCE | SUPPORTING | none known |
 | `scripts/qa/compare-object-session-startup.mjs` | node scripts/qa/compare-object-session-startup.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | AI / INFERENCE | SUPPORTING | none known |
@@ -413,6 +522,10 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/drive-push38-gateway-stable-handoff-health.mjs` | node scripts/qa/drive-push38-gateway-stable-handoff-health.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/enroll-push38t-devices.mjs` | node scripts/qa/enroll-push38t-devices.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/gateway-device-refresh.test.mjs` | node scripts/qa/gateway-device-refresh.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/gb-m22-rollback-probe.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/gb-m23-rollback-probe.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/gb-m25-complaint-rollback-probe.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/gb-m26-subscription-rollback-probe.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/initialize-push38-remote-runtime-secrets.mjs` | node scripts/qa/initialize-push38-remote-runtime-secrets.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/inspect-event-camera-sources.mjs` | node scripts/qa/inspect-event-camera-sources.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/inspect-live-dvr-network-mode.mjs` | node scripts/qa/inspect-live-dvr-network-mode.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
@@ -442,6 +555,7 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/plan-push38-homeqa-live.mjs` | node scripts/qa/plan-push38-homeqa-live.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/preflight-push38-homeqa-connector-liveness-agent.mjs` | node scripts/qa/preflight-push38-homeqa-connector-liveness-agent.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/prepare-journal-source-release.mjs` | node scripts/qa/prepare-journal-source-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | EVENT / JOURNAL | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/prepare-push38-r2-phone-media.mjs` | node scripts/qa/prepare-push38-r2-phone-media.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/prepare-push38-remote-playback-qa.mjs` | node scripts/qa/prepare-push38-remote-playback-qa.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/private-nvr-lighting-pulse.test.mjs` | node scripts/qa/private-nvr-lighting-pulse.test.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/probe-admin-dashboard-schema.mjs` | node scripts/qa/probe-admin-dashboard-schema.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | DATABASE / MIGRATIONS | INTEGRATION / SUPPORT | none known |
@@ -458,6 +572,8 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/push38-qualification-runtime.test.mjs` | node scripts/qa/push38-qualification-runtime.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/push38-shadow-qualification-policy.mjs` | node scripts/qa/push38-shadow-qualification-policy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | MOCK / SHADOW ISOLATION | SUPPORTING | none known |
 | `scripts/qa/qualification-host-readiness.mjs` | node scripts/qa/qualification-host-readiness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/qualification-run-guard.mjs` | node scripts/qa/qualification-run-guard.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/qualification-run-guard.test.mjs` | node scripts/qa/qualification-run-guard.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/reconcile-live-gateway-dvr-endpoint.mjs` | node scripts/qa/reconcile-live-gateway-dvr-endpoint.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/reconcile-live-tapo-endpoint.mjs` | node scripts/qa/reconcile-live-tapo-endpoint.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/reconcile-push38-home-identity.mjs` | node scripts/qa/reconcile-push38-home-identity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -508,6 +624,30 @@ Inventory count: **418** files. Classifications are conservative; environment-de
 | `scripts/qa/run-clean-environment-proof.mjs` | npm run qa:digital-observer-clean-environment | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-completion-role-boundary-probes.mjs` | npm run qa:probe-role-boundaries | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-guard-preview-learning.mjs` | node scripts/qa/run-guard-preview-learning.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CONTEXT / BASELINE | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-attendance-pickup-e2e.mjs` | node scripts/qa/run-management-attendance-pickup-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-camera-face-boundary-e2e.mjs` | node scripts/qa/run-management-camera-face-boundary-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-complaint-role-e2e.mjs` | node scripts/qa/run-management-complaint-role-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-dashboard-role-e2e.mjs` | npm run qa:management-dashboard-e2e | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-document-private-e2e.mjs` | node scripts/qa/run-management-document-private-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-document-replacement-race.mjs` | node scripts/qa/run-management-document-replacement-race.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-inspection-corrective-e2e.mjs` | node scripts/qa/run-management-inspection-corrective-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-inspection-private-evidence-e2e.mjs` | node scripts/qa/run-management-inspection-private-evidence-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | EVIDENCE | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-message-attachment-e2e.mjs` | node scripts/qa/run-management-message-attachment-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-notification-concurrency.mjs` | node scripts/qa/run-management-notification-concurrency.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-owner-onboarding-entry.mjs` | node scripts/qa/run-management-owner-onboarding-entry.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-parent-mobile-interaction.mjs` | node scripts/qa/run-management-parent-mobile-interaction.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-reporting-role-e2e.mjs` | node scripts/qa/run-management-reporting-role-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-reporting-scale-e2e.mjs` | node scripts/qa/run-management-reporting-scale-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-role-api-matrix.mjs` | node scripts/qa/run-management-role-api-matrix.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-role-browser-smoke.mjs` | node scripts/qa/run-management-role-browser-smoke.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-role-domain-smoke.mjs` | node scripts/qa/run-management-role-domain-smoke.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-role-route-sweep.mjs` | node scripts/qa/run-management-role-route-sweep.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-staff-time-races.mjs` | node scripts/qa/run-management-staff-time-races.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-staff-time-role-e2e.mjs` | node scripts/qa/run-management-staff-time-role-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-storage-recovery-proof.mjs` | npm run qa:management-storage-recovery | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-task-completion-race.mjs` | node scripts/qa/run-management-task-completion-race.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-tuition-audit-role-fix.mjs` | node scripts/qa/run-management-tuition-audit-role-fix.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/run-management-tuition-role-e2e.mjs` | node scripts/qa/run-management-tuition-role-e2e.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-connector-liveness-shadow.mjs` | node scripts/qa/run-push38-connector-liveness-shadow.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-dvr-shadow-isolated.mjs` | node scripts/qa/run-push38-dvr-shadow-isolated.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/run-push38-dvr-shadow.mjs` | node scripts/qa/run-push38-dvr-shadow.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |

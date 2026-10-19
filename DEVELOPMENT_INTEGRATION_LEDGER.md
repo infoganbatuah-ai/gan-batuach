@@ -1322,3 +1322,23 @@ WhatsApp provider, payment provider, real charge, message, physical action,
 main or Production system was contacted. PUSH 41 is `DEVELOPMENT COMPLETE —
 EXTERNAL PROOF PENDING` and canonically `NOT DONE`. PUSH 42 is readiness-only
 and has not started.
+
+PUSH 42 branch-validation receipt (2026-10-19): implementation commit
+`ae79986940522136745967924739eeb3aa17b57a` on
+`codex/push-42-external-api` adds the versioned external API, PUSH 41 signed
+Service Account authorization, tenant/organization/Site/resource isolation,
+PUSH 40 `api_access` enforcement, bounded Camera/Event/Incident/Evidence/
+Investigation/Watch contracts, PUSH 39 signed webhook lifecycle, measured
+usage, truthful VMS/DVR/NVR/vendor/federation state, a separate-domain Gan
+Batuach contract, public documentation and an independent consumer. The
+additive migration is validated and not yet applied.
+
+Branch-local TypeScript, canonical zero-regression lint, Production build
+without deployment, domain 43/43, security/isolation 44/44, migration health
+252, release contract, dependency audit, focused PUSH 42 QA and PUSH 39/40/41
+regressions pass. All 197 capability identities remain and no capability was
+promoted to `DONE + REAL PROOF`. Exact-head hosted CI, remote integration,
+verified isolated Development backup/application/schema proof and exact-SHA
+local independent-consumer proof remain pending. No external partner, webhook
+receiver, VMS/DVR/NVR provider, Gan Batuach runtime, supplier, customer data,
+main or Production system was contacted.

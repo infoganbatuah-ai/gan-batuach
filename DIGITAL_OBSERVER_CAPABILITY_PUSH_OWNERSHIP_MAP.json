@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-capability-push-ownership-v1",
-  "generatedAt": "2026-10-19T12:00:00+03:00",
+  "generatedAt": "2026-10-19T18:00:00+03:00",
   "canonicalRoadmapPushCount": 52,
   "originalCapabilityCount": 190,
   "addedCapabilityCount": 7,
@@ -14,12 +14,12 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 58,
+    "FOUNDATION": 53,
     "DONE + REAL PROOF": 24,
     "PARTIAL": 21,
     "EXTERNAL COVERAGE GAP": 1,
-    "IMPLEMENTED — NEEDS REAL PROOF": 50,
-    "NOT STARTED": 43
+    "IMPLEMENTED — NEEDS REAL PROOF": 59,
+    "NOT STARTED": 39
   },
   "ownershipRules": {
     "oneImplementationOwnerPerCapability": true,
@@ -5061,7 +5061,7 @@
       "sourceRow": 83,
       "section": "ENTERPRISE INVESTIGATION & INTELLIGENCE",
       "capabilityName": "Integration without replacing VMS",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         34,
         42,
@@ -5386,7 +5386,7 @@
       "sourceRow": 88,
       "section": "ENTERPRISE INVESTIGATION & INTELLIGENCE",
       "capabilityName": "Federated investigation",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "FOUNDATION",
       "historicalContributorPushes": [
         13,
         32,
@@ -6959,7 +6959,7 @@
       "sourceRow": 112,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "API",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         42
       ],
@@ -6989,9 +6989,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Internal tenant-scoped APIs exist"
+        "summary": "PUSH 42 versioned Service-Account API, signed request contract, replay/idempotency/rate controls, OpenAPI and independent HTTP-only client"
       },
-      "unresolvedLimitations": "Public versioning, auth, limits and docs",
+      "unresolvedLimitations": "Exact merged Development consumer and external adopter proof",
       "dependencies": [],
       "completionRequirements": "Independent consumer conformance proof",
       "externalApprovalRequired": false
@@ -7045,7 +7045,7 @@
       "sourceRow": 114,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Webhooks",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         25,
         39,
@@ -7077,9 +7077,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Signed provider/webhook boundaries"
+        "summary": "PUSH 42 allowlisted DISABLED/SANDBOX subscriptions and versioned HMAC reference-only payload contract over PUSH 39 delivery semantics"
       },
-      "unresolvedLimitations": "Public delivery, replay and lifecycle",
+      "unresolvedLimitations": "Real external receiver retry, idempotency and acknowledgement receipts",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7099,7 +7099,7 @@
       "sourceRow": 115,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Event callbacks",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         4,
         39,
@@ -7131,9 +7131,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Outbox and provider primitives"
+        "summary": "PUSH 42 stable signed Event/Incident/Evidence/health callback types over the durable PUSH 39 outbox foundation"
       },
-      "unresolvedLimitations": "Public callback contract",
+      "unresolvedLimitations": "Real sandbox callback delivery and acknowledgement",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7153,7 +7153,7 @@
       "sourceRow": 116,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Investigation API",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         13,
         42
@@ -7184,9 +7184,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Product investigation API is not public platform"
+        "summary": "PUSH 42 exposes the existing grounded Investigation compiler and retained canonical search through scoped Service-Account authorization"
       },
-      "unresolvedLimitations": "Scoped public contract",
+      "unresolvedLimitations": "Exact merged independent consumer and representative retained-data proof",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7202,7 +7202,7 @@
       "sourceRow": 117,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Watch API",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         12,
         42
@@ -7233,9 +7233,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Product watch rules are not public platform"
+        "summary": "PUSH 42 bounded Watch Rule read, compile-preview and state controls; external compilation cannot activate rules or actions"
       },
-      "unresolvedLimitations": "Scoped public rule lifecycle",
+      "unresolvedLimitations": "Independent consumer and human-confirmed lifecycle proof",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7300,7 +7300,7 @@
       "sourceRow": 119,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Evidence references for integrations",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         7,
         42
@@ -7331,9 +7331,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Authorized evidence references exist internally"
+        "summary": "PUSH 42 minimized Evidence metadata and a reauthorized 60-second private media redirect without embedded media"
       },
-      "unresolvedLimitations": "External scoped reference lifecycle",
+      "unresolvedLimitations": "Exact merged consumer and real-object wrong-tenant/expiry proof",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7349,7 +7349,7 @@
       "sourceRow": 120,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Deep-link/open-camera in customer VMS",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         42,
         43,
@@ -7381,9 +7381,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "No customer VMS deep-link proof"
+        "summary": "PUSH 42 configured HTTPS deep-link expansion tied to an authorized connected source without exposing credentials"
       },
-      "unresolvedLimitations": "Vendor-specific deep-link mapping",
+      "unresolvedLimitations": "Vendor-specific configuration and real VMS exercise",
       "dependencies": [
         {
           "type": "PUSH",
@@ -11599,7 +11599,7 @@
       "sourceRow": 193,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Gan Batuach Management integration contract",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         42
       ],
@@ -11629,9 +11629,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Product boundary and truthful Management camera UI exist; runtime integration is explicitly disabled"
+        "summary": "PUSH 42 publishes the separate-domain role/capability contract and preserves the dedicated disabled-by-default Site-status adapter"
       },
-      "unresolvedLimitations": "Implement audited server-to-server capability, Event and Evidence contracts without merging authorization domains",
+      "unresolvedLimitations": "Exercise isolated Garden/Site role matrix and authorized Evidence/Investigation path after PUSH 45 approval",
       "dependencies": [
         {
           "type": "PUSH",
