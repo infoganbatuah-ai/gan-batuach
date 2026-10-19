@@ -11702,6 +11702,22 @@
         "sourceSettings": "Preserve root-selected Debug/Release team; retain canonical APNs entitlement",
         "productionChanged": false
       },
+      "personalTeamQa": {
+        "date": "2026-10-20",
+        "pr": 232,
+        "sourceBranch": "codex/push44-ios-personal-team-install",
+        "codeCommit": "ef5f6930",
+        "configuration": "PersonalTeamQA only; QA APNs entitlement absent; canonical Debug/Release APNs preserved",
+        "device": "Daniel Sun Deri 2; iPhone 13 Pro; iOS 27.0.1",
+        "signedBuild": "PASS_DEVELOPMENT_PERSONAL_TEAM_27G7ZP4U3Q",
+        "installation": "PASS_COM_GANBATUACH_APP_QA_1_0_1",
+        "launch": "PASS_COREDEVICE_PROCESS_RUNNING_OWNER_CONFIRMED_OFFLINE_QA_UI",
+        "authenticatedProduct": "BLOCKED_NO_APPROVED_HTTPS_DEVELOPMENT_APP_ENDPOINT",
+        "cellularPlayback": "BLOCKED_NO_APPROVED_HTTPS_DEVELOPMENT_MEDIA_PATH",
+        "realPush": "BLOCKED_PERSONAL_TEAM_NO_APNS_CAPABILITY",
+        "canonicalStatus": "PARTIAL_NOT_DONE",
+        "productionChanged": false
+      },
       "runtimeRecovery": {
         "date": "2026-10-20",
         "sourceBranch": "codex/push44-ios-runtime-recovery",

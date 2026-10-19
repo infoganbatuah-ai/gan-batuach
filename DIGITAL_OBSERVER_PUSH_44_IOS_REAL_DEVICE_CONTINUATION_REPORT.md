@@ -1,5 +1,37 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Personal Team QA installation — 2026-10-20
+
+PR #232, branch `codex/push44-ios-personal-team-install`, code commit
+`ef5f6930` add the isolated `PersonalTeamQA` build configuration. The
+Development-signed `com.ganbatuach.app.qa` / `Digital Observer QA` 1.0 (1)
+build installed on the connected **Daniel Sun Deri 2**, iPhone 13 Pro,
+iOS 27.0.1, using Personal Team `27G7ZP4U3Q`. After the owner trusted the
+developer identity, CoreDevice launched the app and the process remained
+running. The owner confirmed that the Hebrew `Digital Observer QA` screen and
+its `מצב / גישה / התראות` tabs actually appeared. This is real-device
+**installation and offline-safe QA UI proof**, not authenticated Product UI.
+
+The effective app signature and embedded provisioning profile contain no
+`aps-environment`; the QA bundle omits native Push registration and the
+canonical deep-link URL claim. The QA WebView uses a bundled local status page
+with no remote URL, credentials or Production fallback. It truthfully labels
+login, Sites, cameras, Events, remote playback and real Push unavailable.
+Canonical Debug/Release retain their APNs entitlements, native callback bridge,
+Push plugin, notification backend and product experience. The separate `.qa`
+bundle ID avoids replacing the Gan Batuach app, whose shared canonical bundle
+ID and landing page remain a product-branding issue for future resolution.
+
+The isolated Development database already passed 256/256 migration/schema
+readiness and basic simulator landing rendering. No approved authenticated
+HTTPS application/media endpoint exists for this physical device; authenticated
+Observer journeys and cellular camera playback remain **BLOCKED/NOT RUN**.
+Personal Team cannot provision APNs, so real Push receipt remains **BLOCKED**.
+No Production, provider, customer, migration, store or PUSH 46 action occurred.
+PUSH 44 stays **PARTIAL / CANONICAL NOT DONE**. Earlier failed signing and
+runtime observations below remain historical evidence, not current device
+status.
+
 ## Signing follow-up — 2026-10-20
 
 A valid Apple Development identity and Personal Team `27G7ZP4U3Q` are now
