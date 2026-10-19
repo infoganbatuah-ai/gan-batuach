@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-10-19T10:37:50.566Z",
-  "integrationCommit": "4253c557d54b82b64c219683f977c46bfb378195",
+  "observedAt": "2026-10-19T10:53:13.320Z",
+  "integrationCommit": "fd86e065c2678e6a1e2ee4ea52808ba424699203",
   "migrations": [
     {
       "version": "20260919170000",
@@ -218,6 +218,14 @@
       "source_commit": "4253c557d54b82b64c219683f977c46bfb378195",
       "schema_fingerprint": "19ba40fd278a0528412b1c30d3ea09a4e4a19b48e7f48e9cdef57b0270d74ea8",
       "applied_at": "2026-10-19T10:37:05.764184+00:00"
+    },
+    {
+      "version": "20261019042000",
+      "filename": "supabase/migrations/20261019042000_digital_observer_push43_embed_origin_constraint.sql",
+      "source_digest": "d337c04b8f4ba5453e2d3ce7a5d76343907844ad8f7240535066f97d41212fc6",
+      "source_commit": "fd86e065c2678e6a1e2ee4ea52808ba424699203",
+      "schema_fingerprint": "1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1",
+      "applied_at": "2026-10-19T10:53:02.658741+00:00"
     }
   ],
   "productionAccess": false
