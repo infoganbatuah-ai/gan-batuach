@@ -16,6 +16,22 @@ Scope: Development only; no store submission, provider activation or Production 
 
 ## Current matrix
 
+Personal Team QA update (2026-10-20), source code commit `ef5f6930`:
+**NATIVE BUILD PASS** for the signed `PersonalTeamQA` iPhone target,
+**REAL DEVICE PASS limited to installation, launch and bundled offline-safe QA
+UI** on Daniel Sun Deri 2 (iPhone 13 Pro, iOS 27.0.1). The owner observed the
+Hebrew QA screen and its status/access/notifications tabs after developer trust;
+CoreDevice confirmed installation, launch and a live app process. The QA app
+has no APNs entitlement, remote server URL or native Push registration. This
+does **not** prove authenticated Digital Observer UI, remote playback or real
+Push. Previous signing and simulator rows below are historical snapshots.
+
+| Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
+|---|---|---|---|---|---|---|---|
+| Daniel Sun Deri 2 / iPhone 13 Pro | iOS 27.0.1 | `ef5f6930`, `com.ganbatuach.app.qa` 1.0 (1) | USB; bundled local UI | Personal Team signed install, launch, offline QA screen | 2026-10-20 02:19 Asia/Jerusalem | CoreDevice install/launch and running process; owner visual confirmation | REAL DEVICE PASS — limited offline-safe QA UI; no authenticated Product UI claim |
+| Daniel Sun Deri 2 / iPhone 13 Pro | iOS 27.0.1 | `ef5f6930` | Cellular | Authorized remote live/playback, expiry, revocation, cross-tenant denial | 2026-10-20 | No approved authenticated HTTPS app/media endpoint | BLOCKED / NOT RUN |
+| Daniel Sun Deri 2 / iPhone 13 Pro | iOS 27.0.1 | `ef5f6930` | APNs Development | Token, real receipt, tap, revocation | 2026-10-20 | Personal Team QA profile cannot carry APNs entitlement; no send attempted | BLOCKED / NOT RUN |
+
 Recovery update (2026-10-20), runtime SHA
 `31db906863984a35ad48d492457afaef07cac421`: **SIMULATOR PASS for basic
 Development landing rendering only**, screenshot

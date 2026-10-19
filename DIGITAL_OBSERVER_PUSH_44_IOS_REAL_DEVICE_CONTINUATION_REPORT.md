@@ -1,5 +1,58 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Personal Team QA installation — 2026-10-20
+
+PR #232, branch `codex/push44-ios-personal-team-install`, code commit
+`ef5f6930` add the isolated `PersonalTeamQA` build configuration. The
+Development-signed `com.ganbatuach.app.qa` / `Digital Observer QA` 1.0 (1)
+build installed on the connected **Daniel Sun Deri 2**, iPhone 13 Pro,
+iOS 27.0.1, using Personal Team `27G7ZP4U3Q`. After the owner trusted the
+developer identity, CoreDevice launched the app and the process remained
+running. The owner confirmed that the Hebrew `Digital Observer QA` screen and
+its `מצב / גישה / התראות` tabs actually appeared. This is real-device
+**installation and offline-safe QA UI proof**, not authenticated Product UI.
+
+The effective app signature and embedded provisioning profile contain no
+`aps-environment`; the QA bundle omits native Push registration and the
+canonical deep-link URL claim. The QA WebView uses a bundled local status page
+with no remote URL, credentials or Production fallback. It truthfully labels
+login, Sites, cameras, Events, remote playback and real Push unavailable.
+Canonical Debug/Release retain their APNs entitlements, native callback bridge,
+Push plugin, notification backend and product experience. The separate `.qa`
+bundle ID avoids replacing the Gan Batuach app, whose shared canonical bundle
+ID and landing page remain a product-branding issue for future resolution.
+
+The isolated Development database already passed 256/256 migration/schema
+readiness and basic simulator landing rendering. No approved authenticated
+HTTPS application/media endpoint exists for this physical device; authenticated
+Observer journeys and cellular camera playback remain **BLOCKED/NOT RUN**.
+Personal Team cannot provision APNs, so real Push receipt remains **BLOCKED**.
+No Production, provider, customer, migration, store or PUSH 46 action occurred.
+PUSH 44 stays **PARTIAL / CANONICAL NOT DONE**. Earlier failed signing and
+runtime observations below remain historical evidence, not current device
+status.
+
+## Signing follow-up — 2026-10-20
+
+A valid Apple Development identity and Personal Team `27G7ZP4U3Q` are now
+verified. The root checkout's Debug/Release team selections are preserved on
+`codex/push44-ios-personal-team-install`; unrelated root changes are untouched.
+Automatic signing and canonical APNs settings remain intact.
+
+The canonical source `10d088574f96a7479ab5e3bd947198842649ac34` was built
+for the verified connected iPhone using that team as a build override, with
+outputs on external storage. **Signed build FAIL / installation BLOCKED**:
+Personal Team provisioning cannot support Push Notifications; its profile lacks
+that capability and `aps-environment`. A second local build with an empty
+entitlement-file override also failed on the required Push capability. No app
+was installed. No canonical capability was removed to bypass qualification.
+
+Next prerequisite: an existing authorized Apple Developer Program team/profile
+supporting Push, or an explicit owner choice for a separate no-Push QA build
+configuration. No paid enrollment, APNs send or store publication occurred.
+Earlier missing-identity observations below are historical; the remaining
+signing issue is Personal Team capability support.
+
 ## Current recovery receipt — 2026-10-20
 
 Runtime/source: `31db906863984a35ad48d492457afaef07cac421`.
