@@ -11691,6 +11691,22 @@
       "id": "codex/push-44-ios-real-device-continuation-20261019",
       "project": "Digital Observer",
       "title": "PUSH 44 targeted iOS real-device qualification continuation",
+      "runtimeRecovery": {
+        "date": "2026-10-20",
+        "sourceBranch": "codex/push44-ios-runtime-recovery",
+        "runtimeSha": "31db906863984a35ad48d492457afaef07cac421",
+        "database": "PASS_256_OF_256_NO_DATA_OR_SCHEMA_CHANGE",
+        "cause": "Reproduced sandbox denial on local Docker socket; verifier passes with authorized access",
+        "simulator": "PASS_BASIC_DEVELOPMENT_LANDING_ONLY",
+        "mobileAuthorization": "PASS_5_OF_5",
+        "physicalDevice": "iPhone 13 Pro; iOS 27.0.1; paired; Developer Mode enabled; DDI available",
+        "signing": "BLOCKED_ZERO_VALID_IDENTITIES_NO_TEAM",
+        "httpsQa": "PROPOSAL_ONLY_OWNER_AUTHORIZATION_REQUIRED",
+        "physicalInstallation": "NOT_RUN",
+        "remotePlayback": "NOT_RUN",
+        "apnsReceipt": "NOT_RUN",
+        "productionChanged": false
+      },
       "owner": "PUSH 44 mobile qualification owner",
       "sourceBranch": "codex/push-44-ios-kingston-qualification",
       "sourceCommits": [

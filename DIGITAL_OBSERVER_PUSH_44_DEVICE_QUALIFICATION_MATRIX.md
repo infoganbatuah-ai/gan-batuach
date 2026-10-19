@@ -16,6 +16,15 @@ Scope: Development only; no store submission, provider activation or Production 
 
 ## Current matrix
 
+Recovery update (2026-10-20), runtime SHA
+`31db906863984a35ad48d492457afaef07cac421`: **SIMULATOR PASS for basic
+Development landing rendering only**, screenshot
+`/private/tmp/push44-runtime-recovery-loaded.png`. Authenticated Observer UI
+remains untested in the simulator. Mobile API authorization passes 5/5;
+database drift passes 256/256 without data/schema changes. The connected iPhone
+13 Pro reports iOS 27.0.1, Developer Mode enabled, paired and DDI available.
+Signing and installation remain BLOCKED. Earlier rows are historical evidence.
+
 | Platform | Version/device | Build | Auth/session | Deep link | Playback/network | Push | Background/resume | Evidence |
 |---|---|---|---|---|---|---|---|---|
 | iOS | Minimum deployment target 15.0; iPhone 13 Pro / iOS 18.7.8 paired; iPhone 17 Pro / iOS 26.3 simulator | NATIVE BUILD PASS — simulator and unsigned generic iOS arm64 Debug targets at `9c886315` | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS for APNs project entitlement; REAL PUSH RECEIPT PASS not claimed | DETERMINISTIC PASS; physical NOT RUN | PUSH 44 QA, iOS continuation and Xcode storage reports |

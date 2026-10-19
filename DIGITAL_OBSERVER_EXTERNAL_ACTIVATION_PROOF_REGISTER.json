@@ -1,5 +1,17 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
+  "mobileRuntimeRecovery": {
+    "observedOn": "2026-10-20",
+    "runtimeSha": "31db906863984a35ad48d492457afaef07cac421",
+    "databaseReadiness": "PASS_256_OF_256",
+    "simulator": "PASS_BASIC_LANDING_RENDER_ONLY",
+    "device": "iPhone 13 Pro; iOS 27.0.1; Developer Mode enabled; paired; DDI ready",
+    "installation": "BLOCKED_SIGNING_IDENTITY_AND_TEAM",
+    "httpsQa": "OWNER_AUTHORIZATION_REQUIRED_PROPOSAL_ONLY",
+    "apns": "BLOCKED_CREDENTIAL_TOKEN_AND_SEND_APPROVAL",
+    "realRemotePlayback": "NOT_RUN",
+    "history": "Earlier mobile entries preserve prior observations; this receipt supersedes runtime/device-readiness facts only"
+  },
   "updatedAt": "2026-10-20T00:40:00+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",

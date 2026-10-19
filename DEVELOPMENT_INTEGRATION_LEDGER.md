@@ -1583,3 +1583,14 @@ commits remain ancestors. This records Development integration only; the local
 full stack, signed iPhone installation, cellular playback, real Push receipt,
 TestFlight and Android campaign remain blocked or not run. Main, Production,
 providers, stores, customer data and PUSH 46 remain unchanged.
+
+2026-10-20 runtime recovery on `31db906863984a35ad48d492457afaef07cac421`:
+256/256 Development migration/schema verification PASS after granting access
+to the dedicated local Docker socket. No database changes were required.
+Canonical runtime and basic simulator landing rendering recovered; mobile
+authorization probes PASS 5/5. iPhone 13 Pro reports iOS 27.0.1, Developer Mode
+enabled, paired and DDI available. Signing remains blocked by zero valid
+identities and no project team. HTTPS QA is a proposal awaiting authorization;
+physical installation, cellular media and APNs receipt are untested. Scoped
+evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
+failures and external proof obligations remain intact.
