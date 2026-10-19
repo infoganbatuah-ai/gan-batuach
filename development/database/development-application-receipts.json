@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-10-18T23:49:51.171Z",
-  "integrationCommit": "fd4adf6a13bedf75917e124a4025042c37749463",
+  "observedAt": "2026-10-19T10:37:50.566Z",
+  "integrationCommit": "4253c557d54b82b64c219683f977c46bfb378195",
   "migrations": [
     {
       "version": "20260919170000",
@@ -194,6 +194,30 @@
       "source_commit": "fd4adf6a13bedf75917e124a4025042c37749463",
       "schema_fingerprint": "4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73",
       "applied_at": "2026-10-18T23:49:11.410164+00:00"
+    },
+    {
+      "version": "20261019030000",
+      "filename": "supabase/migrations/20261019030000_digital_observer_push42_external_api.sql",
+      "source_digest": "09090ea72ca9565fc06bf27f7993f8c55b5226ba179461f5f97e465a7940a935",
+      "source_commit": "1782df60ca25866866aef78fede49b48fcd26781",
+      "schema_fingerprint": "bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797",
+      "applied_at": "2026-10-19T00:50:52.875136+00:00"
+    },
+    {
+      "version": "20261019040000",
+      "filename": "supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql",
+      "source_digest": "7b06e3eb9be3235ddfd8d2a30c126ecba300b9bd76e1ea46e3840b8b0ef252ad",
+      "source_commit": "987c39d46fce227fae95496da86509215cb00dbf",
+      "schema_fingerprint": "82f2cd428c720f04717eaa56b3766d71c253c7bed487216993115d9323b334d6",
+      "applied_at": "2026-10-19T10:04:29.084519+00:00"
+    },
+    {
+      "version": "20261019041000",
+      "filename": "supabase/migrations/20261019041000_digital_observer_push43_delegated_usage.sql",
+      "source_digest": "88b531ffb780b06b51a835dc7120f7b09fa03e7d92a4a094b59b8dc6e7cd97a7",
+      "source_commit": "4253c557d54b82b64c219683f977c46bfb378195",
+      "schema_fingerprint": "19ba40fd278a0528412b1c30d3ea09a4e4a19b48e7f48e9cdef57b0270d74ea8",
+      "applied_at": "2026-10-19T10:37:05.764184+00:00"
     }
   ],
   "productionAccess": false
