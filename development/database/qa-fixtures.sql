@@ -76,6 +76,23 @@ insert into public.digital_observer_organization_memberships(organization_id,pro
 insert into public.digital_observer_auth_policies(organization_id,updated_by) values
 ('00000000-0000-4000-8000-000000000d41','00000000-0000-4000-8000-000000000f01'),
 ('00000000-0000-4000-8000-000000000d42','00000000-0000-4000-8000-000000000f02');
+insert into public.observer_site_subscriptions(
+  id,observer_site_id,status,subscription_status,trial_start,trial_end,entitlement_status,
+  payment_provider,payment_provider_mode,provider_outcome,commercial_state,
+  entitlement_snapshot,package_limits_snapshot,metadata
+) values (
+  '00000000-0000-4000-8000-000000000c41','00000000-0000-4000-8000-000000000e01','trial','trial',now(),'2099-01-01T00:00:00Z','trial',
+  'mock','disabled','none','trial','{"notifications":true}'::jsonb,'{"notifications":true}'::jsonb,
+  '{"environment":"DEVELOPMENT","synthetic":true,"push":41,"real_charge_performed":false,"provider_contacted":false}'::jsonb
+);
+insert into public.digital_observer_entitlement_grants(
+  id,stable_grant_id,observer_site_id,subscription_id,entitlement_key,boolean_value,grant_status,effective_until,metadata
+) values (
+  '00000000-0000-4000-8000-000000000c42','development:push41:site-a:notifications',
+  '00000000-0000-4000-8000-000000000e01','00000000-0000-4000-8000-000000000c41',
+  'notifications',true,'active','2099-01-01T00:00:00Z',
+  '{"environment":"DEVELOPMENT","synthetic":true,"push":41,"external_proof":false}'::jsonb
+);
 insert into public.observer_site_memberships(observer_site_id,profile_id,member_role,active) values
 ('00000000-0000-4000-8000-000000000e01','00000000-0000-4000-8000-000000000f01','owner',true),
 ('00000000-0000-4000-8000-000000000e02','00000000-0000-4000-8000-000000000f02','owner',true);
