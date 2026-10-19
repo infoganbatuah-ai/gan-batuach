@@ -13012,7 +13012,7 @@
     {
       "task": "PUSH44_NATIVE_MOBILE_READINESS",
       "sourceCommit": "f4079c7f29308b59c49d441e742a01089f5bf98f",
-      "integrationCommit": null,
+      "integrationCommit": "8a75613bea5018dcecd323a959d0cd2aa6ec4ac5",
       "pullRequest": 220,
       "migrationFilesInChange": 0,
       "migrationHealth": "PASS_255_FILES",

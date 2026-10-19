@@ -1,0 +1,62 @@
+{
+  "observedAt": "2026-10-19T18:04:28.234Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "8a75613bea5018dcecd323a959d0cd2aa6ec4ac5",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "8a75613bea5018dcecd323a959d0cd2aa6ec4ac5",
+    "startedAt": "2026-10-19T18:04:01.180Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "label": "anonymous mobile runtime denied",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "label": "authorized mobile runtime",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "authorized investigation deep link",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "cross-Site deep link denied",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "label": "forged HTTPS deep link denied",
+      "status": 400,
+      "expected": 400,
+      "pass": true
+    }
+  ],
+  "productionAccess": false,
+  "externalProviderContact": false,
+  "realDeviceUsed": false,
+  "realRemotePlaybackUsed": false,
+  "proofClassification": {
+    "deterministicContract": "PASS",
+    "localFullStack": "PASS",
+    "nativeBuild": "BLOCKED_TOOLCHAIN_UNAVAILABLE",
+    "signedRealDevice": "NOT_AVAILABLE",
+    "providerReceipt": "NOT_AVAILABLE",
+    "production": "NOT_CLAIMED"
+  },
+  "limitations": [
+    "Synthetic isolated Development identity and data only",
+    "No Android SDK or full Xcode on the validation host",
+    "No signed real device, external Push receipt, real remote playback or store review"
+  ]
+}

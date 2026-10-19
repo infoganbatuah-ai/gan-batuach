@@ -11542,9 +11542,11 @@
       "sourceBranch": "codex/push-44-mobile-readiness",
       "sourceCommits": [
         "f4079c7f29308b59c49d441e742a01089f5bf98f",
-        "5d3d03c2903beab952028015f0d68565230f5d51"
+        "5d3d03c2903beab952028015f0d68565230f5d51",
+        "b65b0d96858aba7419521c39257297dd2a437da2",
+        "c3ff106c517fa85f59a4686eac84fb00098e7a8b"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -11563,17 +11565,19 @@
           "Migration health PASS 255 files with no new PUSH 44 migration",
           "Release-contract preflight PASS with Production mutation false",
           "PUSH 39 through PUSH 43 deterministic regression suites PASS",
-          "Capacitor sync PASS for iOS and Android with App, Device, Network, Preferences and Push Notifications plugins"
+          "Capacitor sync PASS for iOS and Android with App, Device, Network, Preferences and Push Notifications plugins",
+          "PR #220 exact head c3ff106c517fa85f59a4686eac84fb00098e7a8b passed all 9 required checks and merged as 8a75613bea5018dcecd323a959d0cd2aa6ec4ac5",
+          "Exact merged local Product PASS: migration drift 255/255, cumulative Product 18/18, PUSH 39 24/24, PUSH 40 6/6, PUSH 41 7/7, PUSH 42 10/10, PUSH 43 15/15 and PUSH 44 5/5"
         ],
         "limits": "Android SDK and full Xcode are absent from the validation host. Native release builds, simulator, signed real-device, provider receipt, real remote playback, store review and Production proof remain unverified."
       },
       "integration": {
-        "status": "PENDING_PR_AND_EXACT_HEAD_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "sourceHead": "5d3d03c2903beab952028015f0d68565230f5d51",
+        "commit": "8a75613bea5018dcecd323a959d0cd2aa6ec4ac5",
+        "sourceHead": "c3ff106c517fa85f59a4686eac84fb00098e7a8b",
         "pullRequest": 220,
-        "requiredChecks": "PENDING_EXACT_HEAD"
+        "requiredChecks": "PASS_9_OF_9_EXACT_HEAD"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_INTERNAL_IMPLEMENTATION",
@@ -11588,7 +11592,7 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Built from origin/integration/development@5d7d2215f3a216bedf0e5ea9aa3e3bdadcf6d477. Existing camera/media, notification/action, billing/entitlement, Enterprise identity, external API and OEM/SDK contracts are reused; no parallel Product or database domain was created.",
-      "localVerification": "PASS_BRANCH_SOURCE_F4079C7F_DOMAIN_45_OF_45_SECURITY_46_OF_46_PUSH39_THROUGH_PUSH43_REGRESSIONS_AND_CAPACITOR_SYNC_NATIVE_BUILD_BLOCKED",
+      "localVerification": "PASS_EXACT_8A75613B_DRIFT_255_OF_255_PRODUCT_18_OF_18_PUSH39_24_OF_24_PUSH40_6_OF_6_PUSH41_7_OF_7_PUSH42_10_OF_10_PUSH43_15_OF_15_PUSH44_5_OF_5_NATIVE_BUILD_BLOCKED",
       "releaseEligibility": "NOT_READY_NATIVE_BUILD_SIGNED_REAL_DEVICE_REMOTE_PLAYBACK_PUSH_RECEIPT_STORE_PRIVACY_AND_PRODUCTION_PROOF_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
@@ -11599,7 +11603,7 @@
         "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
         "productionActivation": false
       },
-      "nextAction": "Preserve the branch remotely, obtain exact-head CI and integrate only to integration/development. Keep native build, signed real-device, remote-playback, push-receipt, store, privacy and Production proof open. Prepare PUSH 45 readiness only; do not start PUSH 45 or touch main or Production."
+      "nextAction": "Keep native build, signed real-device, remote-playback, push-receipt, store, privacy and Production proof open. Prepare PUSH 45 readiness only; do not start PUSH 45 or touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -11611,8 +11615,8 @@
     "2026-10-18 post-PUSH38 closure: PR #184 merged to integration/development as 1bcd11b0a5f632f13805d63bc6e027080081db83 from remotely preserved source c00034507fdaa3ea7760f3bca6b968fb818f5d95 after 9/9 exact-head checks. The canonical local Product passed 247/247 migration drift and 18/18 scoped full-stack probes at that runtime SHA; owner-a browser login passed. The broader dashboard-role harness remains stale because it expects removed selector #dashboard-child; direct current-contract browser proof found four authorized child cards. This is test-harness drift, not a hidden Product PASS claim. Existing open PRs, branches, worktrees and stash remain untouched; main and Production remain unchanged."
   ],
   "integrationVerification": {
-    "commit": "42a680218005403c6501ce4264e7e5a5cc4e201d",
-    "status": "PASS_LOCAL_FULL_STACK_18_OF_18_PUSH39_24_OF_24_PUSH40_6_OF_6_PUSH41_7_OF_7_PUSH42_10_OF_10_PUSH43_INDEPENDENT_PARTNER_APP_15_OF_15_SCHEMA_RLS_AND_255_OF_255_MIGRATION_DRIFT",
+    "commit": "8a75613bea5018dcecd323a959d0cd2aa6ec4ac5",
+    "status": "PASS_LOCAL_FULL_STACK_18_OF_18_PUSH39_24_OF_24_PUSH40_6_OF_6_PUSH41_7_OF_7_PUSH42_10_OF_10_PUSH43_INDEPENDENT_PARTNER_APP_15_OF_15_PUSH44_MOBILE_RUNTIME_5_OF_5_SCHEMA_RLS_AND_255_OF_255_MIGRATION_DRIFT",
     "receipt": "development/database/local-product-receipt.json",
     "push39Receipt": "development/database/push39-local-product-receipt.json",
     "push39SchemaReceipt": "development/database/push39-schema-receipt.json",
@@ -11623,9 +11627,10 @@
     "push42Receipt": "development/database/push42-local-product-receipt.json",
     "push42SchemaReceipt": "development/database/push42-schema-receipt.json",
     "push43Receipt": "development/database/push43-local-product-receipt.json",
-    "observedAt": "2026-10-19T11:06:37.417Z"
+    "push44Receipt": "development/database/push44-local-product-receipt.json",
+    "observedAt": "2026-10-19T18:04:28.234Z"
   },
-  "observedAt": "2026-10-19T11:06:37.417Z",
+  "observedAt": "2026-10-19T18:04:28.234Z",
   "reconciliationReport": "DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json",
   "openPullRequests": [
     {
