@@ -14,12 +14,12 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 53,
+    "FOUNDATION": 52,
     "DONE + REAL PROOF": 24,
     "PARTIAL": 21,
     "EXTERNAL COVERAGE GAP": 1,
-    "IMPLEMENTED — NEEDS REAL PROOF": 59,
-    "NOT STARTED": 39
+    "IMPLEMENTED — NEEDS REAL PROOF": 64,
+    "NOT STARTED": 35
   },
   "ownershipRules": {
     "oneImplementationOwnerPerCapability": true,

@@ -309,10 +309,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 49 |
-| `FOUNDATION` | 56 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 61 |
+| `FOUNDATION` | 51 |
 | `PARTIAL` | 20 |
-| `NOT STARTED` | 40 |
+| `NOT STARTED` | 33 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 

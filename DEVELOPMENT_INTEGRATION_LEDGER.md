@@ -1386,3 +1386,41 @@ penetration, real scale/SLA, real-traffic cost and Production evidence remain
 open. All PUSH 38–41 proof obligations remain unchanged. No provider,
 customer, main or Production system was contacted. PUSH 43 remains
 readiness-only and has not started.
+
+PUSH 43 Development-completion receipt (2026-10-19): implementation PR #210
+passed 9/9 exact-head checks and merged with preserved ancestry as
+`7e0df3a2ad105145af42057837b4e3a21a7146d1`. Scoped follow-up PRs #211–#218
+each passed 9/9 exact-head checks and preserved the migration receipts,
+runtime-secret isolation, delegated partner usage, embedded-origin constraint
+and canonical embedded Camera/Event/Incident/Evidence reads. The final bounded
+runtime fix merged as `42a680218005403c6501ce4264e7e5a5cc4e201d`.
+
+The additive migrations `20261019040000_digital_observer_push43_oem_sdk.sql`,
+`20261019041000_digital_observer_push43_delegated_usage.sql` and
+`20261019042000_digital_observer_push43_embed_origin_constraint.sql` are
+applied only to the canonical isolated Development database. Development
+drift is 255/255 with schema fingerprint
+`1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1`.
+The final migration pre-apply custom-format backup is readable by `pg_restore`
+and has SHA-256
+`3beeb65c099e342c59ea0e1a57b9b0ef9752d0dec758fc71649ff1297583a45d`.
+Production access was false.
+
+At exact runtime `42a680218005403c6501ce4264e7e5a5cc4e201d`, labeled
+`DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, the cumulative Product
+passes 18/18, PUSH 39 passes 24/24, PUSH 40 passes 6/6, PUSH 41 passes 7/7
+and PUSH 42 passes 10/10. The independent public-SDK partner application
+passes 15/15 using isolated synthetic data: partner auth, idempotent customer
+provisioning, customer/Site isolation, Camera/Event/Incident access, branded
+embedding, wrong-origin denial, session revocation and measured usage
+attribution. It imports no private Digital Observer server module.
+
+PUSH 43 is `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING` and canonically
+`NOT DONE`. A real OEM/white-label partner, custom-domain verification,
+partner SSO, real webhook receipt, vendor/VMS integration where applicable,
+commercial settlement, support ownership, legal/privacy and Production proof
+remain open. Five existing North-Star rows are `IMPLEMENTED — NEEDS REAL
+PROOF`; all 197 IDs remain and no row was promoted to `DONE + REAL PROOF`.
+Incremental supplier cost is ₪0. PUSH 38–42 obligations are preserved. No
+provider, real customer, main or Production system was contacted. PUSH 44 is
+readiness-only and has not started.

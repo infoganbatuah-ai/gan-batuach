@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-10-19 (PUSH 42 Development-completion update; original reconciliation retained below)
+Date: 2026-10-19 (PUSH 43 Development-completion update; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -11,7 +11,7 @@ Digital Observer has completed the canonical product path from audit through Dig
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
 PUSH 38 is **DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS**. The owner acceptance does not rewrite the failed V7/pre-soak evidence, 0.2.100/0.2.101 `NOT_DONE` history, 0.2.102 limitations or the missing uninterrupted 24-hour proof; those obligations remain assigned to future proof owners.
-Current sequential scope: **PUSH 43 — SDK, OEM and White-Label Proof — DEVELOPMENT IMPLEMENTATION IN VALIDATION / NOT DONE**. PUSH 42 remains Development-complete with all external proof obligations open. PUSH 43 adds only the canonical partner overlay, published SDK surfaces and independent synthetic sample; exact-head CI, isolated Development migration/RLS/drift, remote integration and cumulative exact-SHA local Product verification are required before Development closure. No real partner, customer, vendor system, main or Production activation is claimed.
+Current sequential scope: **PUSH 43 — SDK, OEM and White-Label Proof — DEVELOPMENT COMPLETE / EXTERNAL PROOF PENDING / CANONICAL NOT DONE**. PUSH 43 reuses PUSH 39–42 engines, preserves all 197 capability identities, passes exact-head CI, 255/255 isolated Development migration drift, cumulative exact-SHA Product regression and independent public-SDK partner-app proof. Real OEM/white-label partner, custom-domain, partner SSO, vendor/VMS, settlement and Production proof remain open. PUSH 44 is readiness-only and has not started. No real partner, customer, vendor system, main or Production activation is claimed.
 
 ## Status semantics
 
