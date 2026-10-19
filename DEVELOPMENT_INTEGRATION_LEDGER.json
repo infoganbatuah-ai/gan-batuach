@@ -10500,7 +10500,7 @@
       "sourceCommits": [
         "13d6379198742669b05a985c4880b4ea0c6a9af8"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -11700,7 +11700,8 @@
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/push-44-ios-real-device@d0e6be0ac0961cb36693b7f52c409d1b55cd17ac"
+          "PR #227 exact head a4708653c1515458607f2c26c72cc27b975036f1",
+          "origin/integration/development@dd5e4fc8c7cbcef40c7676d0e146e3518b574406"
         ],
         "implementationCommit": "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac"
       },
@@ -11721,12 +11722,12 @@
         "limits": "Native build, simulator, physical installation, real-device authentication/UI, cellular remote playback, real Push receipt, network transitions, performance and TestFlight were not run. iPhone model and iOS version remain unknown."
       },
       "integration": {
-        "status": "PR_OPEN",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "sourceHead": "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac",
+        "commit": "dd5e4fc8c7cbcef40c7676d0e146e3518b574406",
+        "sourceHead": "a4708653c1515458607f2c26c72cc27b975036f1",
         "pullRequest": 227,
-        "requiredChecks": "PENDING_EXACT_HEAD"
+        "requiredChecks": "PASS_9_OF_9_EXACT_HEAD"
       },
       "dependencies": {
         "status": "BLOCKED_EXTERNAL_OWNER_PREREQUISITES",

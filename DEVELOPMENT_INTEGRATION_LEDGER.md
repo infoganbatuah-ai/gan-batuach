@@ -1543,3 +1543,12 @@ performance and TestFlight are not run. PUSH 44 remains `PARTIAL` and
 canonically `NOT DONE`; all 197 North-Star identities and PUSH 38–45 obligations
 remain unchanged. PUSH 45 legal gates are closed, PUSH 46 is not started, and
 main and Production are unchanged.
+
+PUSH 44 targeted iOS continuation integration receipt (2026-10-19): PR #227
+exact head `a4708653c1515458607f2c26c72cc27b975036f1` passed all nine required
+checks and merged with preserved ancestry only to `integration/development` as
+`dd5e4fc8c7cbcef40c7676d0e146e3518b574406`. Implementation commit
+`d0e6be0ac0961cb36693b7f52c409d1b55cd17ac` is an ancestor. The merge does not
+change the truthful qualification result: physical iPhone execution and every
+dependent native/external gate remain blocked or not run. No migration,
+provider, main, Production, store, customer or PUSH 46 state changed.
