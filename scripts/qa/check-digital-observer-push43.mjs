@@ -14,6 +14,7 @@ const { DigitalObserverServerClient, verifyWebhook } = await import("../../packa
 const { DigitalObserverEmbeddedClient } = await import("../../packages/digital-observer-sdk/src/browser.ts");
 const migration = readFileSync(new URL("../../supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql", import.meta.url), "utf8");
 const delegatedUsageMigration = readFileSync(new URL("../../supabase/migrations/20261019041000_digital_observer_push43_delegated_usage.sql", import.meta.url), "utf8");
+const embedOriginMigration = readFileSync(new URL("../../supabase/migrations/20261019042000_digital_observer_push43_embed_origin_constraint.sql", import.meta.url), "utf8");
 const service = readFileSync(new URL("../../lib/domain/digital-observer/partner-platform-service.ts", import.meta.url), "utf8");
 const partnerRoute = readFileSync(new URL("../../app/api/digital-observer/partner/v1/[...segments]/route.ts", import.meta.url), "utf8");
 const embeddedRoute = readFileSync(new URL("../../app/api/digital-observer/embed/v1/dashboard/route.ts", import.meta.url), "utf8");
@@ -54,6 +55,9 @@ for (const required of ["record_digital_observer_external_api_usage", "digital_o
   assert(delegatedUsageMigration.includes(required), `missing delegated usage guard ${required}`);
 }
 assert(!delegatedUsageMigration.match(/card_number|cvv|camera_password|rtsp_url|raw_video/i));
+assert(embedOriginMigration.includes("127[.]0[.]0[.]1"));
+assert(embedOriginMigration.includes("validate constraint do_embedded_session_origin_check"));
+assert(!embedOriginMigration.includes("127\\\\.0\\\\.0\\\\.1"));
 
 for (const required of ["authorizePartnerDelegatedSite", "PARTNER_CUSTOMER_SITE_SCOPE_DENIED", "PARTNER_CUSTOMER_ENTITLEMENT_DENIED",
   "PARTNER_IDEMPOTENCY_CONFLICT", "digital_observer_partner_provisioning_receipts", "digital_observer_partner_customer_sites",
