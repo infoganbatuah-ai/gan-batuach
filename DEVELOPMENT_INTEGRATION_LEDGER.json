@@ -11533,6 +11533,70 @@
         "productionActivation": false
       },
       "nextAction": "Retain real OEM/white-label partner, custom-domain, partner SSO, external webhook, vendor/VMS, settlement, support, legal/privacy and Production proof as open. Prepare PUSH 44 readiness only; do not start PUSH 44 or touch main or Production."
+    },
+    {
+      "id": "codex/push-44-mobile-readiness-20261019",
+      "project": "Digital Observer",
+      "title": "PUSH 44 native mobile production readiness",
+      "owner": "PUSH 44 implementation owner",
+      "sourceBranch": "codex/push-44-mobile-readiness",
+      "sourceCommits": [
+        "f4079c7f29308b59c49d441e742a01089f5bf98f"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "implementationCommit": "f4079c7f29308b59c49d441e742a01089f5bf98f"
+      },
+      "validation": {
+        "status": "PARTIAL_INTERNAL_RUNTIME_PASS_NATIVE_BUILD_AND_EXTERNAL_PROOF_BLOCKED",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_44_IMPLEMENTATION_REPORT.md",
+          "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
+          "TypeScript, canonical lint and Production build without deployment PASS",
+          "Domain gate PASS 45/45 including PUSH 44 mobile runtime contract",
+          "Security/isolation gate PASS 46/46 including PUSH 44 mobile authorization",
+          "Migration health PASS 255 files with no new PUSH 44 migration",
+          "Release-contract preflight PASS with Production mutation false",
+          "PUSH 39 through PUSH 43 deterministic regression suites PASS",
+          "Capacitor sync PASS for iOS and Android with App, Device, Network, Preferences and Push Notifications plugins"
+        ],
+        "limits": "Android SDK and full Xcode are absent from the validation host. Native release builds, simulator, signed real-device, provider receipt, real remote playback, store review and Production proof remain unverified."
+      },
+      "integration": {
+        "status": "PENDING_PR_AND_EXACT_HEAD_CI",
+        "base": "integration/development",
+        "commit": null,
+        "sourceHead": "f4079c7f29308b59c49d441e742a01089f5bf98f",
+        "pullRequest": null,
+        "requiredChecks": "PENDING"
+      },
+      "dependencies": {
+        "status": "SATISFIED_FOR_INTERNAL_IMPLEMENTATION",
+        "units": [
+          "codex/push-39-external-actions-20261018",
+          "codex/push-40-commercial-billing-20261019",
+          "codex/push-41-enterprise-identity-20261019",
+          "codex/push-42-external-api-20261019",
+          "codex/push-43-oem-sdk-white-label-20261019"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "Built from origin/integration/development@5d7d2215f3a216bedf0e5ea9aa3e3bdadcf6d477. Existing camera/media, notification/action, billing/entitlement, Enterprise identity, external API and OEM/SDK contracts are reused; no parallel Product or database domain was created.",
+      "localVerification": "PASS_BRANCH_SOURCE_F4079C7F_DOMAIN_45_OF_45_SECURITY_46_OF_46_PUSH39_THROUGH_PUSH43_REGRESSIONS_AND_CAPACITOR_SYNC_NATIVE_BUILD_BLOCKED",
+      "releaseEligibility": "NOT_READY_NATIVE_BUILD_SIGNED_REAL_DEVICE_REMOTE_PLAYBACK_PUSH_RECEIPT_STORE_PRIVACY_AND_PRODUCTION_PROOF_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "actualIncrementalProviderCostIls": 0,
+        "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
+        "productionActivation": false
+      },
+      "nextAction": "Preserve the branch remotely, obtain exact-head CI and integrate only to integration/development. Keep native build, signed real-device, remote-playback, push-receipt, store, privacy and Production proof open. Prepare PUSH 45 readiness only; do not start PUSH 45 or touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

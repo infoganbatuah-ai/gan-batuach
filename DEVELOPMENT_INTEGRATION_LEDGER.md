@@ -1424,3 +1424,23 @@ PROOF`; all 197 IDs remain and no row was promoted to `DONE + REAL PROOF`.
 Incremental supplier cost is ₪0. PUSH 38–42 obligations are preserved. No
 provider, real customer, main or Production system was contacted. PUSH 44 is
 readiness-only and has not started.
+
+PUSH 44 branch-validation receipt (2026-10-19): implementation commit
+`f4079c7f29308b59c49d441e742a01089f5bf98f` on
+`codex/push-44-mobile-readiness` adds the canonical Capacitor mobile runtime,
+server-authorized deep links, native lifecycle and network revalidation,
+privacy-minimized native Push registration, bounded non-sensitive offline
+recovery, remote-playback grant renewal, iOS privacy declarations and Android
+permission hardening. TypeScript, canonical lint, Production build without
+deployment, release-contract, migration health, PUSH 39–43 regressions and
+Capacitor sync pass. The canonical domain gate passes 45/45 and the
+security/isolation gate passes 46/46 with PUSH 44 included in both.
+
+No PUSH 44 migration or paid provider activation exists; the 255 canonical
+migrations are unchanged and Production access is false. Android native build
+is blocked because the validation host has no Android SDK; iOS native build is
+blocked because full Xcode is absent. Signed real-device, mobile Push receipt,
+real remote playback, store privacy review, App Store/Google Play and
+Production proof remain open. PUSH 44 is `PARTIAL` and canonically `NOT DONE`;
+one existing North-Star row, DO-NS-003, moves from `FOUNDATION` to `PARTIAL`,
+all 197 identities remain, and no capability becomes `DONE + REAL PROOF`.
