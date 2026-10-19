@@ -9,7 +9,8 @@ source code commit `ef5f6930` adds a separate signed no-APNs QA configuration
 without changing canonical Debug/Release Push. The owner's iPhone 13 Pro on
 iOS 27.0.1 installed and launched `Digital Observer QA`; the owner confirmed
 the bundled offline-safe Hebrew QA screen. This is real-device installation/UI
-proof only. Authenticated Product, cellular playback and real Push remain
+proof only; the owner also confirmed that the access and notifications QA tabs
+switch content. Authenticated Product, cellular playback and real Push remain
 blocked by the absent approved HTTPS app/media path and Personal Team APNs
 capability. PUSH 44 stays PARTIAL / NOT DONE; no migration, main or Production
 change. Earlier signing failure below is preserved as historical evidence.
