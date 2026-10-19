@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-19T00:51:06.395Z",
+  "observedAt": "2026-10-19T10:30:39Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED_FEATURE_MIGRATION_PENDING",
   "migrations": [
     {
       "file": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
@@ -7716,9 +7716,40 @@
       "recovery": "Forward-only additive partner, customer mapping, branding, service-account delegation, provisioning-receipt and short-lived embedded-session schema. If isolated Development verification fails, restore the verified backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentSchemaFingerprint": "82f2cd428c720f04717eaa56b3766d71c253c7bed487216993115d9323b334d6"
+    },
+    {
+      "file": "supabase/migrations/20261019041000_digital_observer_push43_delegated_usage.sql",
+      "blob": "b4c3d48909044a29759e3ecd0aafec4eda96e0a1",
+      "sha256": "88b531ffb780b06b51a835dc7120f7b09fa03e7d92a4a094b59b8dc6e7cd97a7",
+      "version": "20261019041000",
+      "sourceTask": "PUSH 43",
+      "sourceCommit": "9c92bf8b4835129dc1e17ce7f27f3aa21a9c8b2c",
+      "sourceHead": "9c92bf8b4835129dc1e17ce7f27f3aa21a9c8b2c",
+      "remoteBranch": "origin/codex/push-43-local-e2e-fix",
+      "integrationCommit": null,
+      "inGit": true,
+      "inIntegration": false,
+      "inclusion": "PRESERVED_PENDING_INTEGRATION",
+      "releaseOrder": "20261019041000",
+      "requiredPredecessor": "20261019040000_digital_observer_push43_oem_sdk.sql",
+      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261019040000"
+      ],
+      "developmentApprovalEvidence": "Source commit 9c92bf8b4835129dc1e17ce7f27f3aa21a9c8b2c passed branch-local TypeScript, migration health for 254 ordered migrations and focused PUSH 43 deterministic QA. The migration only replaces the existing server-only hourly usage function so an explicitly mapped, active OEM customer Site can be metered; no payload, credential, media or personal data is added. Exact-head CI and isolated Development application remain required before integration closure.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "NO",
+      "productionEvidence": "Production application is not authorized and was not attempted.",
+      "recovery": "Forward-only function replacement. Before isolated Development application, take and verify a recoverable custom-format backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
+      "developmentStatusReason": "Validated feature migration pending remote integration and isolated Development application",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 253,
+  "developmentExpected": 254,
   "developmentAppliedVerified": 253,
   "blockers": [],
   "localObservations": [
