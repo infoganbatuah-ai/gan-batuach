@@ -162,12 +162,12 @@ This register maps every requested North-Star capability to an existing canonica
 | Capability | Current Status | Existing Proof | Owning Canonical PUSH | Remaining Work | Final Proof Required |
 |---|---|---|---|---|---|
 | Existing VMS/NVR/camera estate integration | PARTIAL | Real DVR retained and integrated | 14, 17, 34, 42, 47 | VMS APIs and recording access | External enterprise integration pilot |
-| Integration without replacing VMS | FOUNDATION | Intelligence-layer architecture preserves current DVR | 34, 42, 43, 47 | Deep links, APIs and customer-hosted access | Customer VMS remains primary viewer in real pilot |
+| Integration without replacing VMS | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 publishes a versioned intelligence API, truthful integration-capability registry and credential-free HTTPS deep-link contract while leaving the customer VMS primary | 34, 42, 43, 47 | Approved vendor adapters and customer-hosted authorization | Customer VMS remains primary viewer in real pilot |
 | Enterprise Edge | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 41 | Packaging, policy and scale | Customer-hosted real deployment |
 | Customer-hosted video access | FOUNDATION | Source/storage abstraction direction | 34, 35, 42, 47 | Connectors and policy | Real customer-hosted stream authorization proof |
 | Customer-hosted recording access | FOUNDATION | `observer-source-recording-reference-v1` safely binds customer-owned archive media without credentials or forced copying | 34, 42, 47 | Implement authorized DVR/NVR/VMS retrieval adapters and retention mapping | Real customer-hosted recording retrieval |
 | Metadata-first processing | PARTIAL | PUSH 29 vendor-agnostic candidate contract and real local-frame-difference path; native DVR/Tapo metadata unverified | 29, 31, 32, 47 | Verified native vendor/VMS adapters and representative quality QA | Real reduced-video workload with quality proof |
-| Federated investigation | NOT STARTED | Investigation is current-platform scoped | 13, 32, 42, 48 | Federated query and authorization | Cross-system external pilot |
+| Federated investigation | FOUNDATION | PUSH 42 adds authorization, source scope, bounded query and observed-versus-inferred response contracts; execution fails truthfully as NOT_EXECUTED until an approved adapter exists | 13, 32, 42, 48 | Implement approved source adapters and cross-system correlation | Cross-system external pilot |
 | Image upload search | NOT STARTED | No production image-reference search | 13, 28, 32, 42, 45 | Privacy and matching pipeline | Authorized real benchmark |
 | Video-reference search | NOT STARTED | No production video-reference search | 13, 28, 31, 32, 42 | Feature extraction and policy | Authorized real benchmark |
 | Person search | FOUNDATION | NL investigation exists; identity is refused | 13, 28, 32, 45, 48 | Lawful appearance/ReID search | Approved representative pilot |
@@ -196,15 +196,15 @@ This register maps every requested North-Star capability to an existing canonica
 
 | Capability | Current Status | Existing Proof | Owning Canonical PUSH | Remaining Work | Final Proof Required |
 |---|---|---|---|---|---|
-| API | FOUNDATION | Internal tenant-scoped APIs exist | 42 | Public versioning, auth, limits and docs | Independent consumer conformance proof |
+| API | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 adds versioned Service-Account API, HMAC request signing, replay/idempotency/rate guards, tenant/Site/entitlement enforcement, pagination, audit, usage attribution, OpenAPI documentation and an independent HTTP-only consumer | 42 | Exact merged Development consumer exercise and external adopter proof | Independent consumer conformance proof |
 | SDK | NOT STARTED | No public supported SDK | 43 | Package, examples and support contract | Independent integration from docs |
-| Webhooks | FOUNDATION | Signed provider/webhook boundaries | 25, 39, 42 | Public delivery, replay and lifecycle | External receiver retry/idempotency proof |
-| Event callbacks | FOUNDATION | Outbox and provider primitives | 4, 39, 42 | Public callback contract | Real external consumer delivery proof |
-| Investigation API | NOT STARTED | Product investigation API is not public platform | 13, 42 | Scoped public contract | Independent consumer query proof |
-| Watch API | NOT STARTED | Product watch rules are not public platform | 12, 42 | Scoped public rule lifecycle | Independent consumer conformance proof |
+| Webhooks | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 exposes allowlisted HTTPS DISABLED/SANDBOX subscriptions with versioned HMAC payloads, replay windows, Service-Account ownership and PUSH 39 retry/receipt semantics | 25, 39, 42 | Real external receiver retry/idempotency receipts | External receiver retry/idempotency proof |
+| Event callbacks | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 publishes stable callback event types and signed reference-only payloads over the existing durable delivery foundation | 4, 39, 42 | Real sandbox callback delivery and acknowledgement | Real external consumer delivery proof |
+| Investigation API | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 exposes the existing grounded compiler and canonical retained Event/Incident/Evidence search through scoped Service-Account authorization | 13, 42 | Exact merged independent consumer and representative retained-data proof | Independent consumer query proof |
+| Watch API | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 exposes bounded read, compile-preview and state controls; external compilation cannot activate a rule or execute an action | 12, 42 | Independent consumer exercise and human-confirmed lifecycle proof | Independent consumer conformance proof |
 | Result delivery | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 durable delivery state, six provider-neutral channels, idempotency, retry/dead-letter, signed callback, acknowledgement and cost attribution | 39, 42 | Real external sandbox/provider receipts | External end-to-end receipt proof |
-| Evidence references for integrations | FOUNDATION | Authorized evidence references exist internally | 7, 42 | External scoped reference lifecycle | Independent consumer opens authorized evidence |
-| Deep-link/open-camera in customer VMS | NOT STARTED | No customer VMS deep-link proof | 42, 43, 47 | Vendor-specific deep-link mapping | Real VMS integration proof |
+| Evidence references for integrations | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 exposes minimized metadata plus a reauthorized endpoint that issues only a 60-second private redirect; no private media is embedded in API JSON | 7, 42 | Exact merged independent consumer and real-object negative tests | Independent consumer opens authorized evidence |
+| Deep-link/open-camera in customer VMS | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 adds configured HTTPS template expansion tied to an authorized connected source, without credentials or universal-compatibility claims | 42, 43, 47 | Vendor-specific configuration and real VMS exercise | Real VMS integration proof |
 | Embedded Intelligence | FOUNDATION | Observer Core/domain separation exists | 31, 32, 43 | Supported embedding contract | External-host sample app |
 | OEM | NOT STARTED | No external OEM proof | 43, 50, 51 | Packaging, contracts and support | Signed partner integration |
 | White-label | NOT STARTED | No white-label deployment proof | 43, 50, 51 | Branding/isolation/upgrade contract | External branded deployment |
@@ -329,7 +329,7 @@ Seven later canonical requirements were not represented as distinct capabilities
 |---|---|---|---|---:|---|---|---|
 | `DO-NS-191` | Face detection | NOT STARTED | Person detection does not prove a face detector; no supported face-detection benchmark exists | 48 | PUSH 45 legal/privacy decision; PUSH 28 quality contract | Implement a purpose-limited detector separately from recognition, matching and identity | Approved representative benchmark with false-positive/false-negative and human-review evidence |
 | `DO-NS-192` | Vehicle re-identification | NOT STARTED | Vehicle detection, LPR and vehicle search do not prove cross-camera vehicle Re-ID | 48 | PUSH 45 policy; PUSH 28 quality contract | Implement uncertainty-aware cross-camera vehicle similarity and correlation | Authorized multi-camera benchmark with false-match handling |
-| `DO-NS-193` | Gan Batuach Management integration contract | FOUNDATION | Product boundary and truthful Management camera UI exist; runtime integration is explicitly disabled | 42 | PUSH 41 cross-product authorization; PUSH 45 kindergarten privacy | Publish and implement the audited server-to-server capability/event/evidence contract without merging authorization domains | Isolated Garden/Site role matrix, negative tests, reviewed Event and authorized playback/investigation E2E |
+| `DO-NS-193` | Gan Batuach Management integration contract | IMPLEMENTED — NEEDS REAL PROOF | PUSH 42 publishes the separate-domain role/capability contract and preserves the dedicated disabled-by-default Site-status adapter; direct tables, inherited Parent access and sensitive payloads remain denied | 42 | PUSH 41 cross-product authorization; PUSH 45 kindergarten privacy | Exercise the Garden/Site role matrix and authorized Evidence/Investigation path in isolated Development | Isolated Garden/Site role matrix, negative tests, reviewed Event and authorized playback/investigation E2E |
 | `DO-NS-194` | OEM partner and end-customer hierarchy/provisioning | NOT STARTED | Internal integration-client registry is not a partner tenancy/provisioning product | 43 | PUSH 41 enterprise hierarchy; PUSH 42 public API | Implement partner tenant, customer hierarchy, provisioning, branding and support ownership | Independent partner provisions isolated customers through supported contracts |
 | `DO-NS-195` | Partner usage metering and commercial settlement | PARTIAL | PUSH 40 adds partner billing accounts, tenant/Site/customer attribution, measured/allocated/estimated/unknown usage classes and reconciliation records without controlling partner resale pricing; no partner hierarchy, API identity, contractual rates or settlement proof exists | 40 | PUSH 42 API usage identity; PUSH 43 partner model; PUSH 49 reconciled economics | Complete partner/customer hierarchy, contractual wholesale rates, API attribution and settlement operations | Sandbox reconciliation followed by limited authorized partner billing proof |
 | `DO-NS-196` | Monthly cost ceiling compliance | FOUNDATION | Resource attribution exists; invoices, shared allocation, taxes, FX, registered-user denominator and active-paying-user denominator are not reconciled | 49 | PUSH 33 cost engine; PUSH 40 billing; PUSH 46–48 pilot telemetry | Calculate separately: infrastructure cost / registered users and all-in attributable cost / active paying users; do not substitute either metric; retain owner decision on their final relationship | Dated invoice-backed results for both ₪15 ratios, denominator definitions, peak forecasts, caps/alerts and break-even evidence |
@@ -340,10 +340,10 @@ Seven later canonical requirements were not represented as distinct capabilities
 | Status | Original 190 | Additions | Reconciled total |
 |---|---:|---:|---:|
 | `DONE + REAL PROOF` | 24 | 0 | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 49 | 1 | 50 |
-| `FOUNDATION` | 56 | 2 | 58 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 57 | 2 | 59 |
+| `FOUNDATION` | 52 | 1 | 53 |
 | `PARTIAL` | 20 | 1 | 21 |
-| `NOT STARTED` | 40 | 3 | 43 |
+| `NOT STARTED` | 36 | 3 | 39 |
 | `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
 | **TOTAL** | **190** | **7** | **197** |
 
