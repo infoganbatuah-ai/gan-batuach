@@ -11,6 +11,7 @@ This register maps every requested North-Star capability to an existing canonica
 
 | Capability | Previous Status | New Status | PUSH / reason | Evidence added, removed or reinterpreted |
 |---|---|---|---|---|
+| Mobile-assisted onboarding (DO-NS-003) | Previous: FOUNDATION | New: PARTIAL | PUSH 44 native runtime implementation | Existing camera assessment/onboarding contracts now run behind native lifecycle/network recovery, HttpOnly authentication, bounded non-sensitive resync and server-authorized deep links. Native compilation, signed real-device onboarding and OS permission proof are blocked/unavailable, so this is not implemented-with-real-proof. |
 | PUSH 43 partner integration group (DO-NS-113, 121–123, 194) | FOUNDATION or NOT STARTED | IMPLEMENTED — NEEDS REAL PROOF | PUSH 43 deterministic Development closure | Published server/browser/React SDK surfaces, signed partner API, partner/customer/Site hierarchy, canonical entitlement references, delegated customer service identities, branded embedded UI, short-lived audience/Origin/Site-scoped sessions and an independent public-contract sample are implemented. No real OEM partner, customer, vendor camera/VMS, custom domain, billing settlement or Production proof is claimed. |
 | PUSH 41 enterprise identity group (DO-NS-036, 124–126, 129, 181, 184) | FOUNDATION or PARTIAL | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 deterministic closure | Canonical organization/Site memberships, server-enforced role and permission policy, delegated administration, expiring scoped invitations, DISABLED/SANDBOX OIDC/SAML/SCIM contracts, scoped expiring service accounts, session revocation, enterprise audit and bounded scale/isolation QA are implemented. No external IdP, SCIM directory, enterprise customer or Production-scale proof is claimed. |
 | PUSH 39 provider delivery / escalation group (DO-NS-020, 048, 050, 052, 053, 118) | FOUNDATION or PARTIAL | IMPLEMENTED — NEEDS REAL PROOF | PUSH 39 deterministic closure | Provider-neutral disabled/sandbox adapters, durable attempts, bounded retry/dead-letter, delivery-time authorization, acknowledgements, bounded escalation, human action gates and minimized audit contracts are implemented. No external provider sandbox or Production receipt is claimed. |
@@ -53,7 +54,7 @@ This register maps every requested North-Star capability to an existing canonica
 |---|---|---|---|---|---|
 | Universal Camera Platform | FOUNDATION | Canonical source, adapter, registry and orchestrator contracts | 14, 17 | Expand verified vendor and deployment coverage | Real mixed-vendor pilots without architecture changes |
 | Zero-Install connection | FOUNDATION | Resolver and wizard rank secure persistent zero-install first | 17 | Implement and validate vendor/direct integrations | Real camera persists without phone, Connector or DO hardware |
-| Mobile-assisted onboarding | FOUNDATION | Mobile discovery and cross-device contracts | 17, 44 | Native implementation and OS validation | Signed iOS/Android real-device onboarding proof |
+| Mobile-assisted onboarding | PARTIAL | Mobile discovery/cross-device contracts plus PUSH 44 native lifecycle, network, secure session, deep-link and bounded resync implementation | 17, 44 | Native compilation, camera-discovery OS integration and real-device validation | Signed iOS/Android real-device onboarding proof |
 | Software Connector exception | DONE + REAL PROOF | Real Tapo C211, frames, AI, Event and Product UI | 16, 17 | Distribution signing and broader host coverage | Existing proof plus signed installer matrix |
 | Physical Gateway last resort | DONE + REAL PROOF | Real home DVR with ten populated channels | 17, 18 | Preserve resolver policy across future routes | Real policy-selection test and continuing DVR proof |
 | Mixed vendors in one Site | DONE + REAL PROOF | One Home contains DVR cameras and Tapo | 16, 17 | Add further vendor combinations | Real mixed-site inventory and isolation proof |
@@ -342,8 +343,8 @@ Seven later canonical requirements were not represented as distinct capabilities
 |---|---:|---:|---:|
 | `DONE + REAL PROOF` | 24 | 0 | 24 |
 | `IMPLEMENTED — NEEDS REAL PROOF` | 61 | 3 | 64 |
-| `FOUNDATION` | 51 | 1 | 52 |
-| `PARTIAL` | 20 | 1 | 21 |
+| `FOUNDATION` | 50 | 1 | 51 |
+| `PARTIAL` | 21 | 1 | 22 |
 | `NOT STARTED` | 33 | 2 | 35 |
 | `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
 | **TOTAL** | **190** | **7** | **197** |

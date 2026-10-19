@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { getApps, initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
 import { BellRing, LoaderCircle, Send, Smartphone } from "lucide-react";
@@ -46,6 +47,29 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
   async function register() {
     setState({ busy: true, registered: false, message: "", error: "" });
     try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await new Promise<{ ok: boolean; reason?: string }>((resolve) => {
+          const listener = (event: Event) => {
+            window.clearTimeout(timeout);
+            window.removeEventListener("digital-observer:native-push-result", listener);
+            resolve((event as CustomEvent<{ ok: boolean; reason?: string }>).detail);
+          };
+          const timeout = window.setTimeout(() => {
+            window.removeEventListener("digital-observer:native-push-result", listener);
+            resolve({ ok: false, reason: "timeout" });
+          }, 30_000);
+          window.addEventListener("digital-observer:native-push-result", listener, { once: true });
+          window.dispatchEvent(new CustomEvent("digital-observer:enable-native-push", { detail: { siteId } }));
+        });
+        if (!result.ok) {
+          const reason = result.reason === "permission_denied"
+            ? "הרשאת ההתראות לא אושרה במכשיר."
+            : "רישום ה־Push במכשיר לא הושלם.";
+          throw new Error(reason);
+        }
+        setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כפופה להפעלת ספק נפרדת.", error: "" });
+        return;
+      }
       if (!(await isSupported())) throw new Error("הדפדפן הזה אינו תומך ב־Push.");
       if (await Notification.requestPermission() !== "granted") throw new Error("יש לאשר התראות כדי לרשום את המכשיר.");
       const app = getApps()[0] ?? initializeApp(firebaseConfig());

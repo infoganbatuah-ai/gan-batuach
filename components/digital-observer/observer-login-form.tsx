@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, type FormEvent } from "react";
 import { LoaderCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
@@ -48,6 +49,9 @@ export function ObserverLoginForm({
   }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
+    // Native WebViews use the server form flow so Supabase credentials remain in
+    // HttpOnly cookies. The bearer token is never copied into JavaScript storage.
+    if (Capacitor.isNativePlatform()) return;
     event.preventDefault();
     setBusy(true);
     setError("");

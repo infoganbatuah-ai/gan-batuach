@@ -154,11 +154,31 @@ export function ObserverLivePlayer({
     const currentVideoElement = videoRef.current;
     if (!currentVideoElement) return;
     const videoElement: HTMLVideoElement = currentVideoElement;
+    let mobileSuspended = false;
     hasStartedRef.current = false;
     lastCurrentTimeRef.current = 0;
     lastProgressAtRef.current = Date.now();
     recoveryScheduledRef.current = false;
     const retry = () => { if (!cancelled) requestRetry(); };
+    const suspendForMobile = () => {
+      mobileSuspended = true;
+      playbackSessions.delete(playbackKey(observerSiteId, cameraSourceId));
+      hls?.destroy();
+      hls = null;
+      videoElement.pause();
+      setUnavailableReason("הניגון הושהה עד לחזרת האפליקציה או הרשת");
+      setState("loading");
+    };
+    const resumeForMobile = () => {
+      if (!mobileSuspended || cancelled) return;
+      mobileSuspended = false;
+      playbackSessions.delete(playbackKey(observerSiteId, cameraSourceId));
+      setRetryNonce((value) => value + 1);
+    };
+    window.addEventListener("digital-observer:mobile-suspend", suspendForMobile);
+    window.addEventListener("digital-observer:mobile-offline", suspendForMobile);
+    window.addEventListener("digital-observer:mobile-resume", resumeForMobile);
+    window.addEventListener("digital-observer:mobile-online", resumeForMobile);
     const markUnavailable = (reason: string) => {
       if (cancelled || recoveryScheduledRef.current) return;
       recoveryScheduledRef.current = true;
@@ -224,6 +244,10 @@ export function ObserverLivePlayer({
       cancelled = true;
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      window.removeEventListener("digital-observer:mobile-suspend", suspendForMobile);
+      window.removeEventListener("digital-observer:mobile-offline", suspendForMobile);
+      window.removeEventListener("digital-observer:mobile-resume", resumeForMobile);
+      window.removeEventListener("digital-observer:mobile-online", resumeForMobile);
       hls?.destroy();
       videoElement.removeAttribute("src");
       videoElement.load();
