@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-19T19:02:46Z",
+  "observedAt": "2026-10-19T19:16:02.806Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7788,7 +7788,7 @@
       "sourceCommit": "067f475b636dffe7d1250523f8112f3018218e4d",
       "sourceHead": "355faec550dc43617ad1af506856406f024d519e",
       "remoteBranch": "origin/codex/push-45-privacy-compliance",
-      "integrationCommit": "19f67935dd63ea51d8a30da5a3d6c2ccebbb964b",
+      "integrationCommit": "64e1b36b7e846258a11e948a54e5222f208247fc",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7799,20 +7799,20 @@
       "developmentDependsOn": [
         "20261019042000"
       ],
-      "developmentApprovalEvidence": "Implementation commit 067f475b636dffe7d1250523f8112f3018218e4d passed branch-local TypeScript, canonical lint-baseline, Production build without deployment, domain 46/46, security/isolation 47/47, migration health 256, release-contract, dependency audit and focused PUSH 39–45 regressions. PR #222 exact head 355faec550dc43617ad1af506856406f024d519e passed all 9 required checks and merged with preserved ancestry as 19f67935dd63ea51d8a30da5a3d6c2ccebbb964b. The migration is additive governance metadata with RLS; it seeds no legal approval and activates no sensitive capability. A verified isolated Development backup remains required before application.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApprovalEvidence": "Implementation commit 067f475b636dffe7d1250523f8112f3018218e4d passed branch-local TypeScript, canonical lint-baseline, Production build without deployment, domain 46/46, security/isolation 47/47, migration health 256, release-contract, dependency audit and focused PUSH 39–45 regressions. PR #222 exact head 355faec550dc43617ad1af506856406f024d519e passed all 9 required checks and merged with preserved ancestry as 19f67935dd63ea51d8a30da5a3d6c2ccebbb964b; PR #223 exact head 62eccb53562e7fbf3af27d0467c51df482d87c5f passed 9/9 and merged the validated application metadata as 64e1b36b7e846258a11e948a54e5222f208247fc. Pre-apply custom-format backup /private/tmp/push45-development-pre-migration-20261019T1916Z.dump has SHA-256 97b02a852dcb8bdf3a89b1ddd3c4ffa8f4598b8205dd53c3d2f92a9e35bbf49f and a verified pg_restore listing. The migration is additive governance metadata with RLS; it seeds no legal approval and activates no sensitive capability.",
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-19T19:15:48.96083+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "5aa9e754c82e5e588393028d390cc71524a21b690832979ef6a5e89947c16b62",
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
-      "recovery": "Forward-only additive policy, notice, privacy-incident and audit metadata plus additive fields on existing rights/hold/retention models. Before isolated Development application, take and verify a recoverable custom-format backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
-      "developmentStatusReason": "Integrated and validated; pending verified isolated Development backup and application",
-      "developmentSchemaFingerprint": null
+      "recovery": "Forward-only additive policy, notice, privacy-incident and audit metadata plus additive fields on existing rights/hold/retention models. Verified isolated Development backup: /private/tmp/push45-development-pre-migration-20261019T1916Z.dump, SHA-256 97b02a852dcb8bdf3a89b1ddd3c4ffa8f4598b8205dd53c3d2f92a9e35bbf49f. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "84bb65985b33b6ad73b3a76f6649477a8e482b474ccf75f16842d19c240afdae"
     }
   ],
   "developmentExpected": 256,
-  "developmentAppliedVerified": 255,
+  "developmentAppliedVerified": 256,
   "blockers": [],
   "localObservations": [
     {
