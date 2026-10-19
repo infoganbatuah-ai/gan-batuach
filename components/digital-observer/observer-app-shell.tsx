@@ -43,6 +43,7 @@ const homeNav = [
   { href: "/digital-observer/recordings", label: "הקלטות", icon: FileVideo2 },
   { href: "/digital-observer/people", label: "אנשים מוכרים", icon: UsersRound },
   { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
+  { href: "/digital-observer/privacy", label: "פרטיות וציות", icon: ShieldCheck },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;
 
@@ -59,6 +60,7 @@ const businessNav = [
   { href: "/digital-observer/enterprise", label: "ארגון ואבטחה", icon: ShieldCheck },
   { href: "/digital-observer/partners", label: "שותפים והטמעה", icon: Handshake },
   { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
+  { href: "/digital-observer/privacy", label: "פרטיות וציות", icon: ShieldCheck },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;
 

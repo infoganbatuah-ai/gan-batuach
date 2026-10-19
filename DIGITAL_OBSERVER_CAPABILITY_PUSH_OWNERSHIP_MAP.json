@@ -14,11 +14,11 @@
     "EXTERNAL COVERAGE GAP"
   ],
   "statusCounts": {
-    "FOUNDATION": 51,
+    "FOUNDATION": 50,
     "DONE + REAL PROOF": 24,
-    "PARTIAL": 22,
+    "PARTIAL": 20,
     "EXTERNAL COVERAGE GAP": 1,
-    "IMPLEMENTED — NEEDS REAL PROOF": 64,
+    "IMPLEMENTED — NEEDS REAL PROOF": 67,
     "NOT STARTED": 35
   },
   "ownershipRules": {
@@ -167,7 +167,7 @@
       "sourceRow": 3,
       "section": "CAMERA PLATFORM",
       "capabilityName": "Mobile-assisted onboarding",
-      "canonicalStatus": "PARTIAL",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         17,
         44
@@ -3644,23 +3644,28 @@
       },
       "codeOwnership": [
         "lib/domain/observer-engine/biometric-engine.ts",
-        "lib/domain/digital-observer/investigation-query.ts"
+        "lib/domain/digital-observer/investigation-query.ts",
+        "lib/domain/digital-observer/privacy-compliance.ts"
       ],
       "databaseOwnership": [
         "observer_known_people",
         "observer_identity_candidates",
-        "legal_review_items"
+        "legal_review_items",
+        "digital_observer_privacy_policy_profiles",
+        "digital_observer_legal_approvals"
       ],
       "apiOwnership": [
         "app/api/digital-observer/known-people",
-        "identity-candidates"
+        "identity-candidates",
+        "app/api/digital-observer/privacy-compliance"
       ],
       "uiOwnership": [
         "Digital Observer identity/review readiness surfaces"
       ],
       "testCoverage": [
         "unsupported identity refusal QA",
-        "capability legal-review policy QA"
+        "capability legal-review policy QA",
+        "scripts/qa/check-digital-observer-push45.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
@@ -4104,9 +4109,9 @@
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Privacy, retention and RBAC controls documented"
+        "summary": "PUSH 45 implements scoped policy profiles and a fail-closed written-approval gate; external approval remains pending"
       },
-      "unresolvedLimitations": "Formal legal decisions and enforcement",
+      "unresolvedLimitations": "Qualified external legal decisions and approved real-use profiles",
       "dependencies": [
         {
           "type": "PUSH",
@@ -4117,7 +4122,7 @@
           "id": 41
         }
       ],
-      "completionRequirements": "External legal review plus negative tests",
+      "completionRequirements": "External legal review plus approved-profile and negative-path evidence",
       "externalApprovalRequired": true
     },
     {
@@ -11161,7 +11166,7 @@
       "sourceRow": 185,
       "section": "SECURITY / PRIVACY / DD",
       "capabilityName": "Privacy",
-      "canonicalStatus": "PARTIAL",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         25,
         45
@@ -11176,38 +11181,46 @@
       },
       "codeOwnership": [
         "access/RBAC/media authorization",
-        "release/security policy and CI"
+        "release/security policy and CI",
+        "lib/domain/digital-observer/privacy-compliance.ts",
+        "lib/domain/digital-observer/privacy-compliance-service.ts"
       ],
       "databaseOwnership": [
         "RLS policies",
         "audit",
         "retention/legal hold",
-        "managed identity"
+        "managed identity",
+        "digital_observer_privacy_policy_profiles",
+        "digital_observer_notice_versions",
+        "digital_observer_privacy_incidents"
       ],
       "apiOwnership": [
-        "tenant-scoped routes and signed media endpoints"
+        "tenant-scoped routes and signed media endpoints",
+        "app/api/digital-observer/privacy-compliance"
       ],
       "uiOwnership": [
-        "admin/security/privacy/legal-review surfaces"
+        "admin/security/privacy/legal-review surfaces",
+        "app/digital-observer/privacy"
       ],
       "testCoverage": [
         "security/isolation CI",
         "migration health",
         "secret/dependency scans",
-        "release-contract preflight"
+        "release-contract preflight",
+        "scripts/qa/check-digital-observer-push45.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Sensitive-data register and minimization controls"
+        "summary": "PUSH 45 implements Site-scoped policy, notice, rights, legal-hold, incident and audit controls with truthful external-system outcomes"
       },
-      "unresolvedLimitations": "Formal notices, consent, deletion/export",
+      "unresolvedLimitations": "Counsel-approved notices and authorized real deletion/export/incident exercises",
       "dependencies": [
         {
           "type": "PUSH",
           "id": 25
         }
       ],
-      "completionRequirements": "External privacy/legal review",
+      "completionRequirements": "External privacy/legal review and authorized lifecycle proof",
       "externalApprovalRequired": true
     },
     {
@@ -11216,7 +11229,7 @@
       "sourceRow": 186,
       "section": "SECURITY / PRIVACY / DD",
       "capabilityName": "Compliance readiness",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         25,
         45,
@@ -11232,7 +11245,9 @@
       },
       "codeOwnership": [
         "access/RBAC/media authorization",
-        "release/security policy and CI"
+        "release/security policy and CI",
+        "DIGITAL_OBSERVER_PUSH_45_LEGAL_REQUIREMENTS_MATRIX.md",
+        "DIGITAL_OBSERVER_PUSH_45_EXTERNAL_COUNSEL_REVIEW_PACKAGE.md"
       ],
       "databaseOwnership": [
         "RLS policies",
@@ -11250,13 +11265,14 @@
         "security/isolation CI",
         "migration health",
         "secret/dependency scans",
-        "release-contract preflight"
+        "release-contract preflight",
+        "scripts/qa/check-digital-observer-push45.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Control matrices and roadmap ownership"
+        "summary": "PUSH 45 adds the legal matrix, data inventory, supplier governance, counsel handoff and internal technical evidence while preserving pending approvals"
       },
-      "unresolvedLimitations": "Jurisdictional decisions and evidence",
+      "unresolvedLimitations": "Written jurisdictional decisions, processor contracts and independent assessment",
       "dependencies": [
         {
           "type": "PUSH",

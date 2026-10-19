@@ -43,6 +43,8 @@
     "lib/domain/digital-observer/notification-orchestration.ts",
     "lib/domain/digital-observer/notification-providers.ts",
     "lib/domain/digital-observer/notification-delivery-service.ts",
+    "lib/domain/digital-observer/privacy-compliance.ts",
+    "lib/domain/digital-observer/privacy-compliance-service.ts",
     "lib/domain/digital-observer/webhook-security.ts",
     "lib/domain/digital-observer/learning-engine.ts",
     "lib/domain/digital-observer/observation-provenance.ts",
@@ -58,6 +60,7 @@
     "app/api/digital-observer/notifications/[deliveryId]/route.ts",
     "app/api/digital-observer/provider-callbacks/route.ts",
     "app/api/digital-observer/provider-channels/route.ts",
+    "app/api/digital-observer/privacy-compliance/route.ts",
     "app/api/digital-observer/escalations/route.ts",
     "app/api/digital-observer/escalations/[escalationId]/route.ts",
     "app/api/digital-observer/event-clips/[id]/media/route.ts",
@@ -118,7 +121,8 @@
     { "name": "push40-commercial-entitlements", "args": ["scripts/qa/check-digital-observer-push40.mjs"] },
     { "name": "push42-external-api-contract", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
     { "name": "push43-oem-sdk-contract", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
-    { "name": "push44-mobile-runtime-contract", "args": ["scripts/qa/check-digital-observer-push44.mjs"] }
+    { "name": "push44-mobile-runtime-contract", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
+    { "name": "push45-privacy-compliance", "args": ["scripts/qa/check-digital-observer-push45.mjs"] }
   ],
   "security": [
     { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
@@ -166,6 +170,7 @@
     { "name": "push41-enterprise-identity-security", "args": ["scripts/qa/check-digital-observer-push41.mjs"] },
     { "name": "push42-external-api-security", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
     { "name": "push43-partner-isolation", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
-    { "name": "push44-mobile-authorization", "args": ["scripts/qa/check-digital-observer-push44.mjs"] }
+    { "name": "push44-mobile-authorization", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
+    { "name": "push45-privacy-compliance-security", "args": ["scripts/qa/check-digital-observer-push45.mjs"] }
   ]
 }

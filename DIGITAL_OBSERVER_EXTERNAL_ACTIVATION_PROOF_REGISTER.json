@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
-  "updatedAt": "2026-10-19T21:30:00+03:00",
+  "updatedAt": "2026-10-19T21:47:17+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
@@ -23,7 +23,9 @@
     "twilioSmsAuthenticationDisabled": true,
     "emailAuthenticationPreserved": true,
     "whatsAppCannotBeSoleRecoveryFactor": true,
-    "evaluateDirectMetaWhatsAppBeforePaidIntermediary": true
+    "evaluateDirectMetaWhatsAppBeforePaidIntermediary": true,
+    "consentAloneDoesNotAuthorizeSensitiveProcessing": true,
+    "unknownLegalApprovalFailsClosed": true
   },
   "items": [
     {
@@ -151,12 +153,12 @@
       "id": "legal-privacy-approvals",
       "owner": "PUSH 45",
       "dependencies": ["feature purpose", "jurisdiction", "retention", "roles", "provider agreements"],
-      "currentState": "technical controls do not constitute legal approval",
+      "currentState": "PUSH 45 DEVELOPMENT COMPLETE — EXTERNAL LEGAL APPROVAL PENDING — versioned context/jurisdiction profiles, notices, Site-scoped rights requests, truthful external-system outcomes, legal holds, privacy incidents, append-only audit and a fail-closed sensitive-capability gate pass internal Development QA. Technical controls and internal QA do not constitute legal approval.",
       "requiredApproval": "qualified legal/privacy review plus owner activation decision",
-      "sandboxProof": "NOT APPLICABLE",
+      "sandboxProof": "INTERNAL deterministic privacy/security QA only; legal approval is not a sandbox concept",
       "realProof": "OPEN for sensitive child, biometric and identification workflows",
       "costImpact": "UNKNOWN external review and compliance cost",
-      "activationGate": "documented lawful basis, notices, purpose limits, retention, access, audit and prohibited-use controls"
+      "activationGate": "qualified written scoped decision with reference/checksum, documented lawful basis, approved notices, purpose limits, retention, access, audit, supplier/transfer decisions, prohibited-use controls and owner activation"
     },
     {
       "id": "production-deployment",
