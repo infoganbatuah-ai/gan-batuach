@@ -1,0 +1,15 @@
+{
+  "appId": "com.ganbatuach.app.qa",
+  "appName": "Digital Observer QA",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "iosScheme": "capacitor"
+  },
+  "packageClassList": [
+    "AppPlugin",
+    "DevicePlugin",
+    "CAPNetworkPlugin",
+    "PreferencesPlugin"
+  ]
+}
