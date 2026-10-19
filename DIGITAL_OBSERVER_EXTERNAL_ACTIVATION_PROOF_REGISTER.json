@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
-  "updatedAt": "2026-10-19T23:06:27+03:00",
+  "updatedAt": "2026-10-20T00:40:00+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
@@ -98,7 +98,7 @@
       "id": "mobile-push",
       "owner": "PUSH 39; mobile proof PUSH 44/46",
       "dependencies": ["mobile app credentials", "device registration", "notification provider approval"],
-      "currentState": "CONNECTED_NOT_PROVEN — PUSH 44 wires native iOS/Android permission, token rotation, existing server registration, privacy-minimized foreground handling and authorized tap/deep-link contracts. The targeted iOS continuation added an environment-specific APNs signing entitlement, but full Xcode, a signing identity/profile, a visible iPhone, APNs/FCM app credentials, registered-device delivery and receipt proof remain absent; external delivery remains disabled",
+      "currentState": "CONNECTED_NOT_PROVEN — PUSH 44 wires native iOS/Android permission, token rotation, existing server registration, privacy-minimized foreground handling and authorized tap/deep-link contracts. Xcode 26.3 now compiles simulator and unsigned iPhone targets at exact portable-helper commit 9c886315. An iPhone 13 Pro / iOS 18.7.8 is paired, but Developer Mode/DDI, Apple Development signing/profile, APNs/FCM app credentials, registered-device delivery and receipt proof remain absent; external delivery remains disabled",
       "requiredApproval": "owner approval for platform credentials and sandbox/Development send",
       "sandboxProof": "INTERNAL CONTRACT PASS only; external provider/device receipt OPEN",
       "realProof": "OPEN",
@@ -108,10 +108,10 @@
     {
       "id": "native-mobile-store-readiness",
       "owner": "PUSH 44",
-      "dependencies": ["full Xcode and Android SDK toolchains", "signing identities", "physical iOS and Android devices", "PUSH 45 privacy/legal review", "authorized HTTPS remote-media path"],
-      "currentState": "INTERNAL_IMPLEMENTATION_PARTIAL — Capacitor native runtime, lifecycle/network recovery, HttpOnly mobile auth, server-authorized deep links, bounded non-sensitive offline queue, playback suspend/reconnect and iOS APNs signing configuration are implemented. On 2026-10-19 the Apple-silicon host still had Command Line Tools only, zero signing identities/profiles and no visible iPhone. No approved HTTPS Development app/media endpoint was configured. Native compilation, installation and physical-device execution remain blocked.",
+      "dependencies": ["Android SDK toolchain", "signing identities", "physical iOS and Android devices", "PUSH 45 privacy/legal review", "authorized HTTPS remote-media path"],
+      "currentState": "INTERNAL_IMPLEMENTATION_PARTIAL — Capacitor native runtime, lifecycle/network recovery, HttpOnly mobile auth, server-authorized deep links, bounded non-sensitive offline queue, playback suspend/reconnect and iOS APNs signing configuration are implemented. On 2026-10-20 Xcode 26.3 passed simulator and unsigned generic iOS arm64 builds at exact portable-helper commit 9c886315, with DerivedData, package caches and result bundles on the encrypted Kingston volume. The simulator app process installed and launched but Product rendering failed with NSURLErrorDomain -1004 because no approved Development endpoint was configured. An iPhone 13 Pro / iOS 18.7.8 is paired, but Developer Mode/DDI and signing/profile are absent. Physical installation and execution remain blocked.",
       "requiredApproval": "owner-approved signing credentials, device campaign and later store submission",
-      "sandboxProof": "Deterministic PUSH 44 QA and Capacitor iOS/Android sync PASS; simulator/native build BLOCKED",
+      "sandboxProof": "Deterministic PUSH 44 QA and Capacitor iOS sync PASS; simulator and unsigned generic iOS native compilation PASS at 9c886315. Simulator Product execution FAILS because the Development endpoint is unavailable; Android native build remains BLOCKED.",
       "realProof": "OPEN — no signed real-device build, remote playback, Push receipt, battery/memory/crash matrix or store review",
       "costImpact": "Incremental Development supplier cost ₪0; store, device, media egress, support and provider costs unmeasured",
       "activationGate": "native builds, signed real-device supported matrix, authorized remote playback, push receipt/revocation, performance/privacy declarations, PUSH 45 approval and explicit store/Production authorization"

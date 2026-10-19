@@ -57,12 +57,17 @@ PUSH 38 reliability exceptions and all PUSH 39–43 external proof obligations r
 
 ## Post-PUSH-45 iOS continuation
 
-The 2026-10-19 targeted physical-iPhone continuation is recorded in
+The 2026-10-20 targeted physical-iPhone continuation is recorded in
 `DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`. It adds the
-missing environment-specific APNs signing entitlement and deterministic guard,
-but does not change the canonical result: full Xcode, Apple signing material, a
-visible iPhone and an approved authenticated HTTPS Development/media endpoint
-were absent. Native build, simulator, installation, real-device login, cellular
-remote playback, real Push receipt, network transitions, performance and
-TestFlight remain blocked or not run. PUSH 45 legal gates remain closed and
-PUSH 46 has not started.
+missing environment-specific APNs signing entitlement and deterministic guard.
+Full Xcode 26.3 is now selected; Capacitor sync, simulator compilation and an
+unsigned generic iOS arm64 build pass at exact portable-helper commit `9c886315`, with
+reproducible build artifacts kept on the Kingston volume. The iOS 26.3
+simulator installs and launches the app process, but the Product WebView fails
+with connection-refused error `-1004` because no approved Development endpoint
+is configured. An iPhone 13 Pro / iOS 18.7.8 is paired, but Developer Mode/DDI,
+Apple Development signing, secure HTTPS Development/media access, installation,
+real-device login, cellular remote playback, real Push receipt, network
+transitions, physical performance and TestFlight remain blocked or not run.
+PUSH 44 remains PARTIAL / CANONICAL NOT DONE. PUSH 45 legal gates remain closed
+and PUSH 46 has not started.

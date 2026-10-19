@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — PUSH 44 DEVICE QUALIFICATION MATRIX
 
-Date: 2026-10-19
+Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
 ## Evidence classes
@@ -18,27 +18,31 @@ Scope: Development only; no store submission, provider activation or Production 
 
 | Platform | Version/device | Build | Auth/session | Deep link | Playback/network | Push | Background/resume | Evidence |
 |---|---|---|---|---|---|---|---|---|
-| iOS | Minimum deployment target 15.0; physical model/iOS unknown | BLOCKED — full Xcode is not installed | DETERMINISTIC PASS | DETERMINISTIC PASS | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS for APNs project entitlement; REAL PUSH RECEIPT PASS not claimed | DETERMINISTIC PASS | PUSH 44 QA and iOS continuation report |
+| iOS | Minimum deployment target 15.0; iPhone 13 Pro / iOS 18.7.8 paired; iPhone 17 Pro / iOS 26.3 simulator | NATIVE BUILD PASS — simulator and unsigned generic iOS arm64 Debug targets at `9c886315` | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS for APNs project entitlement; REAL PUSH RECEIPT PASS not claimed | DETERMINISTIC PASS; physical NOT RUN | PUSH 44 QA, iOS continuation and Xcode storage reports |
 | Android | minSdk 24; target/compile SDK 36 | BLOCKED — Android SDK is not installed on the qualification host | DETERMINISTIC PASS | DETERMINISTIC PASS | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS; `google-services.json`/device receipt OPEN | DETERMINISTIC PASS | `npm run mobile:sync`; PUSH 44 QA |
 
-No native-build, simulator, real-device, remote-playback or real-Push PASS is
-claimed. The failed local Android build is retained as evidence: Gradle reached
+Native compilation now passes, but no SIMULATOR PASS, REAL DEVICE PASS, REMOTE
+PLAYBACK PASS or REAL PUSH RECEIPT PASS is claimed. The simulator app process
+installed and launched, but its WebView remained blank and recorded
+`NSURLErrorDomain -1004` because no approved Development endpoint was
+available. The failed local Android build is retained as evidence: Gradle reached
 dependency resolution and stopped because `ANDROID_HOME`/`android/local.properties`
-has no SDK location. The 2026-10-19 targeted iOS continuation stopped before
-compilation because the active developer directory contains Command Line Tools,
-full Xcode is absent, no code-signing identity/provisioning profile exists and
-no iPhone is visible over USB.
+has no SDK location. The 2026-10-20 targeted iOS continuation used Xcode 26.3,
+but no usable Apple Development identity/profile exists and the paired iPhone
+has Developer Mode disabled with no Developer Disk Image mounted.
 
 ## Targeted iOS continuation evidence
 
 | Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
 |---|---|---|---|---|---|---|---|
-| Physical iPhone not visible; model unknown | Unknown | Source baseline `4bc2dda2b2e0cae5d5d601b0702de4b90126a08d`; no native build | USB discovery | Device discovery | 2026-10-19 | `system_profiler`; `xcrun devicectl` unavailable | BLOCKED — no iPhone detected and full Xcode absent |
-| iOS Simulator | Not installed | No native build | Local | Native build and launch | 2026-10-19 | active developer directory `/Library/Developer/CommandLineTools` | BLOCKED — Xcode/simulator unavailable |
-| Physical iPhone not visible | Unknown | No installed build | Cellular | Authorized live/playback, reconnect, expiry/revocation and cross-tenant denial | 2026-10-19 | no approved HTTPS Development app/media endpoint configured | NOT RUN |
-| Physical iPhone not visible | Unknown | No installed build | APNs Development | Permission, token, receipt, tap, revocation and logout | 2026-10-19 | APNs project entitlement prepared; signing/profile/device/provider proof absent | NOT RUN |
-| Physical iPhone not visible | Unknown | No installed build | Wi-Fi/cellular/airplane mode | Network transitions, background/resume and restart | 2026-10-19 | application did not execute on a physical device | NOT RUN |
-| Physical iPhone not visible | Unknown | No installed build | Not applicable | Startup, playback/reconnect, memory, battery, crash and network use | 2026-10-19 | application did not execute on a physical device | NOT RUN |
+| iPhone 17 Pro simulator | iOS 26.3 | `9c886315` | Local simulator | Debug simulator target compile | 2026-10-20 | Xcode 26.3 result bundle on Kingston; `** BUILD SUCCEEDED **` | NATIVE BUILD PASS |
+| Generic iPhone arm64 target | iOS deployment target 15.0 | `9c886315` | Not applicable | Unsigned Debug hardware-target compile | 2026-10-20 | Xcode 26.3 result bundle on Kingston; signing disabled; `** BUILD SUCCEEDED **` | NATIVE BUILD PASS — not installation proof |
+| iPhone 17 Pro simulator | iOS 26.3 | `55eec8c0` | Local; configured app URL fallback `localhost:3000` | Install, launch and render | 2026-10-20 | process launch succeeded; screenshot blank; WebKit `NSURLErrorDomain -1004` | FAIL — no Product UI; SIMULATOR PASS not claimed |
+| iPhone 13 Pro | iOS 18.7.8 | `9c886315` unsigned compile only | USB paired | Device discovery / DDI | 2026-10-20 | Xcode device discovery | BLOCKED — Developer Mode disabled, DDI unavailable, no signing/profile |
+| iPhone 13 Pro | iOS 18.7.8 | No installed build | Cellular | Authorized live/playback, reconnect, expiry/revocation and cross-tenant denial | 2026-10-20 | no signed app or approved HTTPS Development app/media endpoint | NOT RUN |
+| iPhone 13 Pro | iOS 18.7.8 | No installed build | APNs Development | Permission, token, receipt, tap, revocation and logout | 2026-10-20 | APNs entitlement prepared; signing/profile/token/provider send absent | NOT RUN |
+| iPhone 13 Pro | iOS 18.7.8 | No installed build | Wi-Fi/cellular/airplane mode | Network transitions, background/resume and restart | 2026-10-20 | application did not execute on physical device | NOT RUN |
+| iPhone 13 Pro | iOS 18.7.8 | No installed build | Not applicable | Startup, playback/reconnect, memory, battery, crash and network use | 2026-10-20 | application did not execute on physical device | NOT RUN |
 
 ## Required real-device campaign
 
