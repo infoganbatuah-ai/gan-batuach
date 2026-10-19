@@ -1,7 +1,9 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
-Date: 2026-10-19  
-Baseline: `origin/integration/development@4bc2dda2b2e0cae5d5d601b0702de4b90126a08d`  
+Date: 2026-10-19
+
+Baseline: `origin/integration/development@4bc2dda2b2e0cae5d5d601b0702de4b90126a08d`
+
 Branch: `codex/push-44-ios-real-device`
 
 ## Result
