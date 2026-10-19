@@ -54,3 +54,15 @@ No schema change is required. Existing `digital_observer_device_slots`, `push_de
 ## Preserved obligations
 
 PUSH 38 reliability exceptions and all PUSH 39–43 external proof obligations remain unchanged. PUSH 46 still owns real zero-install proof; managed Gateway/mobile-assisted onboarding does not satisfy it. PUSH 45 remains the next canonical implementation owner and has not started.
+
+## Post-PUSH-45 iOS continuation
+
+The 2026-10-19 targeted physical-iPhone continuation is recorded in
+`DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`. It adds the
+missing environment-specific APNs signing entitlement and deterministic guard,
+but does not change the canonical result: full Xcode, Apple signing material, a
+visible iPhone and an approved authenticated HTTPS Development/media endpoint
+were absent. Native build, simulator, installation, real-device login, cellular
+remote playback, real Push receipt, network transitions, performance and
+TestFlight remain blocked or not run. PUSH 45 legal gates remain closed and
+PUSH 46 has not started.

@@ -29,6 +29,7 @@ const android = readFileSync(new URL("../../android/app/src/main/AndroidManifest
 const ios = readFileSync(new URL("../../ios/App/App/Info.plist", import.meta.url), "utf8");
 const appDelegate = readFileSync(new URL("../../ios/App/App/AppDelegate.swift", import.meta.url), "utf8");
 const iosPrivacy = readFileSync(new URL("../../ios/App/App/PrivacyInfo.xcprivacy", import.meta.url), "utf8");
+const iosEntitlements = readFileSync(new URL("../../ios/App/App/App.entitlements", import.meta.url), "utf8");
 const iosProject = readFileSync(new URL("../../ios/App/App.xcodeproj/project.pbxproj", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
 
@@ -73,6 +74,9 @@ assert(ios.includes("CFBundleURLSchemes") && ios.includes("digitalobserver"));
 assert(appDelegate.includes("capacitorDidRegisterForRemoteNotifications"));
 assert(appDelegate.includes("capacitorDidFailToRegisterForRemoteNotifications"));
 assert(iosPrivacy.includes("NSPrivacyAccessedAPICategoryUserDefaults") && iosPrivacy.includes("CA92.1"));
+assert(iosEntitlements.includes("aps-environment") && iosEntitlements.includes("$(APS_ENVIRONMENT)"));
+assert(iosProject.includes("CODE_SIGN_ENTITLEMENTS = App/App.entitlements;"));
+assert(iosProject.includes("APS_ENVIRONMENT = development;") && iosProject.includes("APS_ENVIRONMENT = production;"));
 assert(iosProject.includes("PrivacyInfo.xcprivacy in Resources"));
 
 for (const dependency of ["@capacitor/app", "@capacitor/device", "@capacitor/network", "@capacitor/preferences", "@capacitor/push-notifications"]) {
@@ -89,4 +93,4 @@ for (const preserved of [
   assert(readFileSync(new URL(preserved, import.meta.url), "utf8").length > 1_000, `missing preserved contract ${preserved}`);
 }
 
-console.log("PUSH 44 deterministic QA passed: native lifecycle/network handling, server-authorized deep links, native push token lifecycle, privacy-minimized previews, HttpOnly native authentication, bounded non-sensitive offline recovery, playback suspend/reconnect, iOS/Android URL and notification contracts, SMS-auth disablement and PUSH 39-43 preservation.");
+console.log("PUSH 44 deterministic QA passed: native lifecycle/network handling, server-authorized deep links, native push token lifecycle, iOS Development/Release APNs signing entitlement, privacy-minimized previews, HttpOnly native authentication, bounded non-sensitive offline recovery, playback suspend/reconnect, iOS/Android URL and notification contracts, SMS-auth disablement and PUSH 39-43 preservation.");
