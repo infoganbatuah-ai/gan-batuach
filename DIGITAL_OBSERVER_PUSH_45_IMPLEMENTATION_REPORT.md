@@ -28,7 +28,7 @@ No external legal approval was obtained or inferred. Final decisions remain requ
 
 ## Database and cost
 
-One additive migration is expected: `20261019050000_digital_observer_push45_privacy_compliance.sql`. It reuses existing privacy-rights, legal-hold and retention models and adds only bounded governance, incident, notice and audit metadata; it stores no raw video, biometric template, location stream, provider secret or legal document body. Development application and schema/RLS verification are recorded after canonical integration. Production application is `NO`. Incremental fixed supplier cost is ₪0; counsel, DPA and operational compliance costs remain unknown and are not claimed against either canonical cost denominator.
+One additive migration, `20261019050000_digital_observer_push45_privacy_compliance.sql`, reuses existing privacy-rights, legal-hold and retention models and adds only bounded governance, incident, notice and audit metadata; it stores no raw video, biometric template, location stream, provider secret or legal document body. It is applied and verified only in the isolated Development database with schema/RLS/default-denial PASS and drift 256/256. Production application is `NO`. Incremental fixed supplier cost is ₪0; counsel, DPA and operational compliance costs remain unknown and are not claimed against either canonical cost denominator.
 
 ## Validation
 
@@ -42,6 +42,9 @@ One additive migration is expected: `20261019050000_digital_observer_push45_priv
 - PUSH 45 deterministic privacy/compliance QA: PASS.
 - North-Star: 197/197 unique IDs preserved; only DO-NS-066, DO-NS-185 and DO-NS-186 changed to `IMPLEMENTED — NEEDS REAL PROOF`; no capability changed to `DONE + REAL PROOF`.
 - PR #222 exact head `355faec550dc43617ad1af506856406f024d519e` passed all 9 required checks and merged with preserved ancestry only to `integration/development` as `19f67935dd63ea51d8a30da5a3d6c2ccebbb964b`.
+- PR #223 exact head `62eccb53562e7fbf3af27d0467c51df482d87c5f` passed 9/9 and merged the integration receipt as `64e1b36b7e846258a11e948a54e5222f208247fc`.
+- The verified pre-apply Development backup is `/private/tmp/push45-development-pre-migration-20261019T1916Z.dump`, SHA-256 `97b02a852dcb8bdf3a89b1ddd3c4ffa8f4598b8205dd53c3d2f92a9e35bbf49f`; its `pg_restore` archive listing passed.
+- Isolated Development application: PASS at `2026-10-19T19:15:48.96083+00:00`, schema fingerprint `84bb65985b33b6ad73b3a76f6649477a8e482b474ccf75f16842d19c240afdae`, drift 256/256, Production access false.
 
 ## Preserved obligations
 

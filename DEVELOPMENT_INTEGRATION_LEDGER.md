@@ -1495,3 +1495,17 @@ merged with preserved ancestry only to `integration/development` as
 PUSH 45 migration is now eligible for the verified isolated Development
 application sequence; it is not applied to Production. Exact-SHA cumulative
 local Product verification and external legal decisions remain pending.
+
+PUSH 45 isolated Development schema receipt (2026-10-19): documentation-only
+PR #223 exact head `62eccb53562e7fbf3af27d0467c51df482d87c5f` passed 9/9 and merged as
+`64e1b36b7e846258a11e948a54e5222f208247fc`. Before applying the migration,
+the dedicated Development database was saved as a readable custom-format
+archive at `/private/tmp/push45-development-pre-migration-20261019T1916Z.dump`,
+SHA-256 `97b02a852dcb8bdf3a89b1ddd3c4ffa8f4598b8205dd53c3d2f92a9e35bbf49f`.
+Migration `20261019050000_digital_observer_push45_privacy_compliance.sql`
+applied only to isolated Development at `2026-10-19T19:15:48.96083+00:00`.
+Schema fingerprint is
+`84bb65985b33b6ad73b3a76f6649477a8e482b474ccf75f16842d19c240afdae`;
+RLS/default-denial checks pass, no approvals are seeded, and drift is 256/256.
+Production access is false. Exact-SHA cumulative local Product proof remains
+pending.
