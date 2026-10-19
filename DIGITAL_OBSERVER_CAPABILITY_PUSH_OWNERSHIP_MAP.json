@@ -7002,7 +7002,7 @@
       "sourceRow": 113,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "SDK",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         43
       ],
@@ -7015,26 +7015,31 @@
         "id": 43
       },
       "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
+        "packages/digital-observer-sdk/src/index.ts",
+        "packages/digital-observer-sdk/src/browser.ts",
+        "packages/digital-observer-sdk/src/react.tsx"
       ],
       "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
+        "PUSH 41 service accounts",
+        "PUSH 42 receipts and usage buckets",
+        "PUSH 43 partner service-account mappings"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
+        "app/api/digital-observer/external/v1",
+        "app/api/digital-observer/partner/v1"
       ],
       "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
+        "packages/digital-observer-sdk/src/react.tsx",
+        "examples/digital-observer-partner-app"
       ],
       "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
+        "scripts/qa/check-digital-observer-push43.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "No public supported SDK"
+        "summary": "Published Development SDK and independent synthetic conformance sample; no external consumer proof"
       },
-      "unresolvedLimitations": "Package, examples and support contract",
+      "unresolvedLimitations": "External publication/support lifecycle and real partner adoption",
       "dependencies": [],
       "completionRequirements": "Independent integration from docs",
       "externalApprovalRequired": false
@@ -7403,7 +7408,7 @@
       "sourceRow": 121,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "Embedded Intelligence",
-      "canonicalStatus": "FOUNDATION",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         31,
         32,
@@ -7418,26 +7423,29 @@
         "id": 43
       },
       "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
+        "packages/digital-observer-sdk/src/browser.ts",
+        "packages/digital-observer-sdk/src/react.tsx",
+        "lib/domain/digital-observer/partner-platform-service.ts"
       ],
       "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
+        "digital_observer_embedded_sessions",
+        "digital_observer_partner_brand_profiles"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
+        "app/api/digital-observer/embed/v1/dashboard"
       ],
       "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
+        "packages/digital-observer-sdk/src/react.tsx",
+        "examples/digital-observer-partner-app/embedded.tsx"
       ],
       "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
+        "scripts/qa/check-digital-observer-push43.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Observer Core/domain separation exists"
+        "summary": "Short-lived audience/Origin/Site-scoped embedding passes synthetic QA; no external host proof"
       },
-      "unresolvedLimitations": "Supported embedding contract",
+      "unresolvedLimitations": "External-host session, revocation, accessibility and upgrade proof",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7457,7 +7465,7 @@
       "sourceRow": 122,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "OEM",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         43,
         50,
@@ -7472,26 +7480,30 @@
         "id": 43
       },
       "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
+        "lib/domain/digital-observer/partner-platform*.ts",
+        "packages/digital-observer-sdk"
       ],
       "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
+        "digital_observer_partners",
+        "digital_observer_partner_customers",
+        "digital_observer_partner_service_accounts"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
+        "app/api/digital-observer/partner/v1",
+        "app/api/digital-observer/external/v1"
       ],
       "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
+        "app/digital-observer/partners",
+        "examples/digital-observer-partner-app"
       ],
       "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
+        "scripts/qa/check-digital-observer-push43.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "No external OEM proof"
+        "summary": "OEM contracts and synthetic independent-app proof exist; no real OEM partner proof"
       },
-      "unresolvedLimitations": "Packaging, contracts and support",
+      "unresolvedLimitations": "Approved partner agreement, vendor integration, support and settlement proof",
       "dependencies": [
         {
           "type": "PUSH",
@@ -7511,7 +7523,7 @@
       "sourceRow": 123,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "White-label",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         43,
         50,
@@ -7526,26 +7538,29 @@
         "id": 43
       },
       "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
+        "lib/domain/digital-observer/partner-platform*.ts",
+        "packages/digital-observer-sdk/src/react.tsx"
       ],
       "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
+        "digital_observer_partner_brand_profiles",
+        "digital_observer_embedded_sessions"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
+        "app/api/digital-observer/embed/v1/dashboard",
+        "app/api/digital-observer/partner/v1"
       ],
       "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
+        "app/digital-observer/partners",
+        "packages/digital-observer-sdk/src/react.tsx"
       ],
       "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
+        "scripts/qa/check-digital-observer-push43.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "No white-label deployment proof"
+        "summary": "Configurable branding and brand-neutral embedded components pass deterministic QA; no external domain deployment"
       },
-      "unresolvedLimitations": "Branding/isolation/upgrade contract",
+      "unresolvedLimitations": "Legal approval, verified custom domain and real branded deployment",
       "dependencies": [
         {
           "type": "PUSH",
@@ -11651,7 +11666,7 @@
       "sourceRow": 194,
       "section": "ENTERPRISE INTEGRATION OUTPUT",
       "capabilityName": "OEM partner and end-customer hierarchy/provisioning",
-      "canonicalStatus": "NOT STARTED",
+      "canonicalStatus": "IMPLEMENTED — NEEDS REAL PROOF",
       "historicalContributorPushes": [
         43
       ],
@@ -11664,26 +11679,32 @@
         "id": 51
       },
       "codeOwnership": [
-        "internal first-party API routes; no supported public SDK package"
+        "lib/domain/digital-observer/partner-platform-service.ts",
+        "packages/digital-observer-sdk"
       ],
       "databaseOwnership": [
-        "digital_observer_integration_clients",
-        "audit/outbox foundations"
+        "digital_observer_partners",
+        "digital_observer_partner_customers",
+        "digital_observer_partner_customer_sites",
+        "digital_observer_partner_customer_entitlements",
+        "digital_observer_partner_provisioning_receipts"
       ],
       "apiOwnership": [
-        "app/api/digital-observer/** is internal; public versioned API not yet implemented"
+        "app/api/digital-observer/partner/v1",
+        "app/api/digital-observer/partners"
       ],
       "uiOwnership": [
-        "first-party Product/admin surfaces; no partner portal or embedded reference app"
+        "app/digital-observer/partners",
+        "components/digital-observer/partner-integration-center.tsx"
       ],
       "testCoverage": [
-        "internal route/security QA only; independent consumer conformance missing"
+        "scripts/qa/check-digital-observer-push43.mjs"
       ],
       "realWorldEvidence": {
         "classification": "NON_COMPLETION_EVIDENCE",
-        "summary": "Internal integration-client registry is not a partner tenancy/provisioning product"
+        "summary": "Canonical partner/customer/Site hierarchy and synthetic idempotent provisioning proof; no real customer"
       },
-      "unresolvedLimitations": "Implement partner tenant, customer hierarchy, provisioning, branding and support ownership",
+      "unresolvedLimitations": "Real partner provisioning, support ownership, contract and operational proof",
       "dependencies": [
         {
           "type": "PUSH",
