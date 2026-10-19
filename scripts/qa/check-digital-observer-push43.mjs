@@ -13,6 +13,7 @@ const contract = await import("../../lib/domain/digital-observer/partner-platfor
 const { DigitalObserverServerClient, verifyWebhook } = await import("../../packages/digital-observer-sdk/src/index.ts");
 const { DigitalObserverEmbeddedClient } = await import("../../packages/digital-observer-sdk/src/browser.ts");
 const migration = readFileSync(new URL("../../supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql", import.meta.url), "utf8");
+const delegatedUsageMigration = readFileSync(new URL("../../supabase/migrations/20261019041000_digital_observer_push43_delegated_usage.sql", import.meta.url), "utf8");
 const service = readFileSync(new URL("../../lib/domain/digital-observer/partner-platform-service.ts", import.meta.url), "utf8");
 const partnerRoute = readFileSync(new URL("../../app/api/digital-observer/partner/v1/[...segments]/route.ts", import.meta.url), "utf8");
 const embeddedRoute = readFileSync(new URL("../../app/api/digital-observer/embed/v1/dashboard/route.ts", import.meta.url), "utf8");
@@ -47,6 +48,12 @@ for (const safety of ["enable row level security", "from anon,authenticated", "p
   "references public.digital_observer_entitlement_grants", "raw tokens are never stored"]) assert(migration.toLowerCase().includes(safety.toLowerCase()), `missing ${safety}`);
 assert(!migration.includes("partner_status in ('draft','sandbox','active'"));
 assert(!migration.match(/card_number|cvv|camera_password|rtsp_url|raw_video/i));
+for (const required of ["record_digital_observer_external_api_usage", "digital_observer_partner_service_accounts",
+  "access_kind='customer_resources'", "customer_status='active'", "partner_status='sandbox'",
+  "digital_observer_partner_customer_sites", "auth.role() <> 'service_role'"]) {
+  assert(delegatedUsageMigration.includes(required), `missing delegated usage guard ${required}`);
+}
+assert(!delegatedUsageMigration.match(/card_number|cvv|camera_password|rtsp_url|raw_video/i));
 
 for (const required of ["authorizePartnerDelegatedSite", "PARTNER_CUSTOMER_SITE_SCOPE_DENIED", "PARTNER_CUSTOMER_ENTITLEMENT_DENIED",
   "PARTNER_IDEMPOTENCY_CONFLICT", "digital_observer_partner_provisioning_receipts", "digital_observer_partner_customer_sites",
