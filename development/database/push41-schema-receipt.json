@@ -1,8 +1,8 @@
 {
-  "observedAt": "2026-10-18T23:49:58.790Z",
+  "observedAt": "2026-10-19T00:04:28.761Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "fd4adf6a13bedf75917e124a4025042c37749463",
+  "integrationCommit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
   "migration": "20261019020000_digital_observer_push41_enterprise_identity.sql",
   "migrationPresent": true,
   "tables": [

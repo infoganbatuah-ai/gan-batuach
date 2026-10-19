@@ -1301,3 +1301,24 @@ enabled SMS-auth policies. Its first run exposed only verifier output framing:
 with a non-output `SET LOCAL` made the same role-boundary proof pass without
 changing schema or data. Exact-SHA cumulative Product startup remains pending.
 No provider, main or Production access occurred.
+
+PUSH 41 cumulative local Product closure receipt (2026-10-19): PR #203 exact
+head `5a9de109caa5f13bd882cbbeb4fd25a146d77f64` passed all 9 required
+checks and merged as `a9ed021fed9f55a64c6b833ccdc9b26114104894` with the Development
+application/schema receipt. The first exact-SHA cumulative run surfaced stale
+local synthetic fixtures that predated PUSH 40/41, not a Product-code failure.
+The bounded idempotent seeder rejects replacement of non-synthetic commercial
+state and creates only two synthetic organizations, one provider-disabled
+trial and one notification entitlement. PR #204 exact head
+`41b202c6cf1ed3adced43f84fb1c8563f457fd56` passed all 9 checks and merged
+as `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`.
+
+The exact merged runtime `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`
+is labeled `DEVELOPMENT / INTEGRATION` and uses isolated `LOCAL_SUPABASE`.
+Canonical Product probes pass 18/18, PUSH 39 passes 24/24, PUSH 40 passes
+6/6, PUSH 41 passes 7/7, Enterprise schema/RLS verification passes and
+Development migration drift passes 251/251. No external IdP, SCIM directory,
+WhatsApp provider, payment provider, real charge, message, physical action,
+main or Production system was contacted. PUSH 41 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`. PUSH 42 is readiness-only
+and has not started.

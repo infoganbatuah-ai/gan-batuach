@@ -8,7 +8,7 @@ Production authorization: **none**
 
 ## Result classification
 
-PUSH 41 implements the internal Enterprise identity and authorization foundation. Exact-head CI, Development integration and isolated Development migration/schema verification have passed; until cumulative local Product verification finishes, the unit is `DEVELOPMENT MIGRATION VERIFIED — LOCAL PRODUCT PENDING — NOT DONE`. External organization SSO/SCIM, independent service-account use, real multi-site operation and Production scale remain proof obligations even after internal Development closure.
+PUSH 41 implements the internal Enterprise identity and authorization foundation. Exact-head CI, Development integration, isolated Development migration/schema verification and cumulative local Product verification have passed. The unit is `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING — NOT DONE`. External organization SSO/SCIM, independent service-account use, MFA/recovery, real multi-site operation, penetration review and Production scale remain proof obligations and are not converted into real proof by this internal closure.
 
 ## Implemented contracts
 
@@ -55,6 +55,10 @@ The migration is approved only for the canonical isolated Development database a
 - Isolated Development application: PASS at `2026-10-18T23:49:11.410164+00:00`; schema fingerprint `4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73`.
 - Development schema/RLS verifier: PASS; all 15 Enterprise tables have RLS, billing-only role cannot view cameras or operate a Site, audit is immutable, SMS auth is disabled and Production SSO/SCIM rows are zero.
 - Development migration drift: PASS 251/251 with zero missing migrations.
+- PR #203 application-receipt exact-head CI: PASS 9/9; merge `a9ed021fed9f55a64c6b833ccdc9b26114104894`.
+- The first cumulative Product run correctly exposed stale local synthetic fixtures that predated PUSH 40/41. The bounded, idempotent PUSH 41 Development seeder refuses non-synthetic subscription replacement, creates only two synthetic organizations, one provider-disabled trial and one notification entitlement, and never contacts a provider or creates a real charge.
+- PR #204 fixture-contract exact-head CI: PASS 9/9; merge `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`.
+- Exact merged integration runtime `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`: canonical Product PASS 18/18; PUSH 39 PASS 24/24; PUSH 40 PASS 6/6; PUSH 41 PASS 7/7; Enterprise schema/RLS PASS; migration drift PASS 251/251. Runtime label is `DEVELOPMENT / INTEGRATION`, backend is `LOCAL_SUPABASE`, and Production access/provider contact/payment/action are all false.
 
 The first security run was blocked by the filesystem sandbox from binding a loopback test port; the exact same suite passed outside that sandbox restriction. The first build was blocked by an out-of-root temporary dependency symlink; a local dependency copy completed the exact build. Neither was a Product-code failure.
 
