@@ -11371,6 +11371,73 @@
         "productionActivation": false
       },
       "nextAction": "Keep external SSO/SCIM/MFA/recovery/service-account/multi-site/penetration/scale proof open. PUSH 42 is readiness-only under DIGITAL_OBSERVER_PUSH_42_READINESS_HANDOFF.md and has not started. Do not touch main or Production."
+    },
+    {
+      "id": "codex/push-42-external-api-20261019",
+      "project": "Digital Observer",
+      "title": "PUSH 42 external API, webhooks and integration platform",
+      "owner": "PUSH 42 implementation owner",
+      "sourceBranch": "codex/push-42-external-api",
+      "sourceCommits": [
+        "ae79986940522136745967924739eeb3aa17b57a"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "implementationCommit": "ae79986940522136745967924739eeb3aa17b57a"
+      },
+      "validation": {
+        "status": "PASS_INTERNAL_BRANCH_GATES_EXTERNAL_PROOF_PENDING",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_42_IMPLEMENTATION_REPORT.md",
+          "TypeScript PASS; canonical lint PASS with zero canonical regressions",
+          "Production build without deployment PASS on Next.js 16.3.8",
+          "Digital Observer domain regression PASS 43/43",
+          "Security/isolation regression PASS 44/44",
+          "Migration health PASS 252 files; release-contract PASS with Production mutation false",
+          "npm dependency audit PASS with zero vulnerabilities",
+          "PUSH 42 deterministic version/auth/isolation/API/Evidence/Investigation/Watch/webhook/VMS/federation/Gan Batuach QA PASS",
+          "PUSH 39 notification/action, PUSH 40 billing/entitlement and PUSH 41 Enterprise identity regressions PASS",
+          "197 unique North-Star capability identities preserved; no row promoted to DONE + REAL PROOF"
+        ],
+        "limits": "Exact-head hosted CI, integration merge, isolated Development migration/schema/RLS and exact-SHA local independent-consumer proof remain pending. No external partner, webhook receiver, VMS/DVR/NVR vendor, Gan Batuach runtime or Production proof is claimed."
+      },
+      "integration": {
+        "status": "PENDING_PR",
+        "base": "integration/development",
+        "commit": null,
+        "sourceHead": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "SATISFIED_FOR_BRANCH_IMPLEMENTATION",
+        "units": [
+          "codex/push-39-external-actions-20261018",
+          "codex/push-40-commercial-billing-20261019",
+          "codex/push-41-enterprise-identity-20261019"
+        ]
+      },
+      "migrations": [
+        "20261019030000_digital_observer_push42_external_api.sql"
+      ],
+      "migrationOrder": [
+        "20261019030000"
+      ],
+      "conflictsResolution": "Built from origin/integration/development at eba142e812d161c231a72f80c813d1e0c3bd9c16 after PUSH 39/40/41 ancestry and implementation files were verified. Existing Service Account, entitlement, webhook, Camera, Event, Incident, Evidence, Investigation and Watch domains are reused; no parallel engine or authorization domain was introduced.",
+      "localVerification": "PENDING_EXACT_MERGED_INTEGRATION_SHA",
+      "releaseEligibility": "NOT_READY_EXTERNAL_CONSUMER_WEBHOOK_VENDOR_VMS_GAN_BATUACH_SECURITY_SCALE_AND_COST_PROOF_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "actualIncrementalProviderCostIls": 0,
+        "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
+        "productionActivation": false
+      },
+      "nextAction": "Push the dedicated branch, open a scoped PR to integration/development, require exact-head CI, merge with ancestry preserved, back up and apply only to isolated Development, verify RLS and independent local conformance, then retain external partner/vendor/runtime proof as open. Do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
