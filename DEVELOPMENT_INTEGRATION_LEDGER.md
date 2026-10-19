@@ -1445,3 +1445,23 @@ real remote playback, store privacy review, App Store/Google Play and
 Production proof remain open. PUSH 44 is `PARTIAL` and canonically `NOT DONE`;
 one existing North-Star row, DO-NS-003, moves from `FOUNDATION` to `PARTIAL`,
 all 197 identities remain, and no capability becomes `DONE + REAL PROOF`.
+
+PUSH 44 integration closure (2026-10-19): PR #220 exact head
+`c3ff106c517fa85f59a4686eac84fb00098e7a8b` passed all 9 required checks and
+merged with preserved ancestry as
+`8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`. The dedicated `gbi` Development
+stack reports 255/255 migration drift with `productionAccess: false`. At exact
+runtime `8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`, labeled
+`DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, the cumulative Product passes
+18/18, PUSH 39 passes 24/24, PUSH 40 passes 6/6, PUSH 41 passes 7/7, PUSH 42
+passes 10/10, PUSH 43 passes 15/15 and PUSH 44 mobile runtime passes 5/5,
+including authenticated Site scope, cross-Site denial and forged-link denial.
+The first local startup detected a stale pre-PUSH-44 `node_modules` snapshot;
+the locked dependency install was synchronized and the unchanged merged SHA was
+then re-run successfully. No Production or alternate backend fallback occurred.
+
+PUSH 44 remains `PARTIAL` and canonically `NOT DONE`: Android SDK and full
+Xcode are absent on the qualification host, and signed real-device, mobile
+Push receipt, real remote playback, store privacy/review and Production proof
+remain open. No migration, provider, customer, main, store or Production system
+was changed. PUSH 45 is readiness-only and has not started.

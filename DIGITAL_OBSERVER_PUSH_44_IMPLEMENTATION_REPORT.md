@@ -39,15 +39,17 @@ No schema change is required. Existing `digital_observer_device_slots`, `push_de
 - TypeScript: PASS.
 - Canonical lint baseline: PASS with zero canonical regressions.
 - Production build without deployment: PASS on Next.js 16.3.8.
-- Canonical domain regression: PASS 44/44.
-- Security/isolation regression: PASS 45/45; dependency audit has no high/critical findings and retains three moderate transitive `uuid` findings under Capacitor CLI's `xcode` dependency.
+- Canonical domain regression: PASS 45/45, including the PUSH 44 runtime contract.
+- Security/isolation regression: PASS 46/46, including PUSH 44 mobile authorization; dependency audit has no high/critical findings and retains three moderate transitive `uuid` findings under Capacitor CLI's `xcode` dependency.
 - Migration health: PASS 255 files; no PUSH 44 migration. Release contract: PASS with Production mutation false.
 - PUSH 39, 40, 41, 42 and 43 focused regressions: PASS.
 - Capacitor iOS/Android sync: PASS with five official plugins.
 - Android debug build: BLOCKED — Android SDK path unavailable.
 - iOS build/simulator: BLOCKED — full Xcode/simulator unavailable.
 - Real-device/remote-playback/Push receipt/store-policy proof: OPEN.
-- Exact-head hosted CI, PR integration and exact merged-runtime full-stack proof remain pending at this branch report revision.
+- PR #220 exact head `c3ff106c517fa85f59a4686eac84fb00098e7a8b` passed all 9 required checks and merged with preserved ancestry as `8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`.
+- The first merged local startup exposed stale worktree dependencies from before the five plugin additions; a locked `npm ci` synchronized that local environment, after which the unchanged merged Product passed. No runtime fallback or Product-code exception was used.
+- Exact merged local Product `8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`, labeled `DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, passed 255/255 migration drift, cumulative Product 18/18, PUSH 39 24/24, PUSH 40 6/6, PUSH 41 7/7, PUSH 42 10/10, PUSH 43 15/15 and PUSH 44 mobile runtime 5/5.
 
 ## Preserved obligations
 
