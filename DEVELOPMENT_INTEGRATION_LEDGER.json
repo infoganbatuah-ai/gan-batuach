@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18T23:50:30Z",
+  "updatedAt": "2026-10-19T00:51:06Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11379,16 +11379,20 @@
       "owner": "PUSH 42 implementation owner",
       "sourceBranch": "codex/push-42-external-api",
       "sourceCommits": [
-        "ae79986940522136745967924739eeb3aa17b57a"
+        "ae79986940522136745967924739eeb3aa17b57a",
+        "30919ada3f604dcfa5c18f5a28d016db01238e38"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-42-external-api",
+          "origin/integration/development"
+        ],
         "implementationCommit": "ae79986940522136745967924739eeb3aa17b57a"
       },
       "validation": {
-        "status": "PASS_INTERNAL_BRANCH_GATES_EXTERNAL_PROOF_PENDING",
+        "status": "PASS_CI_AND_DEVELOPMENT_SCHEMA_EXTERNAL_PROOF_PENDING",
         "evidence": [
           "DIGITAL_OBSERVER_PUSH_42_IMPLEMENTATION_REPORT.md",
           "TypeScript PASS; canonical lint PASS with zero canonical regressions",
@@ -11399,17 +11403,20 @@
           "npm dependency audit PASS with zero vulnerabilities",
           "PUSH 42 deterministic version/auth/isolation/API/Evidence/Investigation/Watch/webhook/VMS/federation/Gan Batuach QA PASS",
           "PUSH 39 notification/action, PUSH 40 billing/entitlement and PUSH 41 Enterprise identity regressions PASS",
-          "197 unique North-Star capability identities preserved; no row promoted to DONE + REAL PROOF"
+          "197 unique North-Star capability identities preserved; no row promoted to DONE + REAL PROOF",
+          "PR #206 exact head 30919ada3f604dcfa5c18f5a28d016db01238e38 PASS 9/9; merged as 1782df60ca25866866aef78fede49b48fcd26781",
+          "Isolated Development backup SHA-256 6d028cb8e7970d0bb5d6fe34ef7fd16d1d3bdf5f849195d8b6110a8ca8892b78; pg_restore catalog PASS",
+          "Migration 20261019030000 applied only to isolated Development; schema/RLS verifier PASS; fingerprint bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797"
         ],
-        "limits": "Exact-head hosted CI, integration merge, isolated Development migration/schema/RLS and exact-SHA local independent-consumer proof remain pending. No external partner, webhook receiver, VMS/DVR/NVR vendor, Gan Batuach runtime or Production proof is claimed."
+        "limits": "Exact-SHA cumulative local Product and independent-consumer proof remain pending. No external partner, webhook receiver, VMS/DVR/NVR vendor, Gan Batuach runtime or Production proof is claimed."
       },
       "integration": {
-        "status": "PENDING_PR",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "sourceHead": null,
-        "pullRequest": null,
-        "requiredChecks": "PENDING_EXACT_HEAD"
+        "commit": "1782df60ca25866866aef78fede49b48fcd26781",
+        "sourceHead": "30919ada3f604dcfa5c18f5a28d016db01238e38",
+        "pullRequest": 206,
+        "requiredChecks": "PASS_9_OF_9_EXACT_HEAD"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_BRANCH_IMPLEMENTATION",
@@ -11426,7 +11433,7 @@
         "20261019030000"
       ],
       "conflictsResolution": "Built from origin/integration/development at eba142e812d161c231a72f80c813d1e0c3bd9c16 after PUSH 39/40/41 ancestry and implementation files were verified. Existing Service Account, entitlement, webhook, Camera, Event, Incident, Evidence, Investigation and Watch domains are reused; no parallel engine or authorization domain was introduced.",
-      "localVerification": "PENDING_EXACT_MERGED_INTEGRATION_SHA",
+      "localVerification": "DEVELOPMENT_SCHEMA_RLS_PASS_EXACT_MERGED_FULL_STACK_PENDING",
       "releaseEligibility": "NOT_READY_EXTERNAL_CONSUMER_WEBHOOK_VENDOR_VMS_GAN_BATUACH_SECURITY_SCALE_AND_COST_PROOF_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
@@ -11437,7 +11444,7 @@
         "externalProviderCost": "UNMEASURED_AND_NOT_ACTIVATED",
         "productionActivation": false
       },
-      "nextAction": "Push the dedicated branch, open a scoped PR to integration/development, require exact-head CI, merge with ancestry preserved, back up and apply only to isolated Development, verify RLS and independent local conformance, then retain external partner/vendor/runtime proof as open. Do not touch main or Production."
+      "nextAction": "Merge the isolated Development application/schema receipt through exact-head CI, then run the exact merged cumulative local Product and independent conformance client. Retain external partner/vendor/runtime proof as open. Do not touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-18T23:49:48.188Z",
+  "observedAt": "2026-10-19T00:51:06.395Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7664,10 +7664,10 @@
       "sourceCommit": "ae79986940522136745967924739eeb3aa17b57a",
       "sourceHead": "ae79986940522136745967924739eeb3aa17b57a",
       "remoteBranch": "origin/codex/push-42-external-api",
-      "integrationCommit": null,
+      "integrationCommit": "1782df60ca25866866aef78fede49b48fcd26781",
       "inGit": true,
-      "inIntegration": false,
-      "inclusion": "READY_TO_INTEGRATE",
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20261019030000",
       "requiredPredecessor": "20261019020000_digital_observer_push41_enterprise_identity.sql",
       "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
@@ -7675,26 +7675,21 @@
       "developmentDependsOn": [
         "20261019020000"
       ],
-      "developmentApprovalEvidence": "Branch-local TypeScript, canonical lint, Production build without deployment, domain 43/43, security/isolation 44/44, migration health 252, release contract, dependency audit, focused PUSH 42 QA and PUSH 39/40/41 regressions pass. The migration is additive, RLS-protected, provider-disabled, contains no raw credentials/media and has not been applied. Exact-head hosted CI, remote integration, isolated Development backup and schema proof remain required before application.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApprovalEvidence": "PR #206 exact head 30919ada3f604dcfa5c18f5a28d016db01238e38 passed all nine required checks and merged with preserved ancestry as 1782df60ca25866866aef78fede49b48fcd26781. Branch-local TypeScript, canonical lint, Production build without deployment, domain 43/43, security/isolation 44/44, migration health 252, release contract, dependency audit, focused PUSH 42 QA and PUSH 39/40/41 regressions passed. Isolated Development pre-apply custom-format backup /private/tmp/push42-development-pre-migration.dump has SHA-256 6d028cb8e7970d0bb5d6fe34ef7fd16d1d3bdf5f849195d8b6110a8ca8892b78 and a verified pg_restore archive listing. No Production access.",
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-19T00:50:52.875136+00:00",
+      "developmentEvidence": "development/database/push42-schema-receipt.json",
+      "developmentHistoryDigest": "09090ea72ca9565fc06bf27f7993f8c55b5226ba179461f5f97e465a7940a935",
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
       "recovery": "Forward-only additive external API receipts, hourly usage and integration-source schema. Before isolated Development application, take and verify a recoverable backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
-      "developmentStatusReason": "Validated on the dedicated PUSH 42 branch; exact-head CI, Development integration and isolated Development application remain pending",
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797"
     }
   ],
   "developmentExpected": 252,
-  "developmentAppliedVerified": 251,
-  "blockers": [
-    {
-      "migration": "20261019030000",
-      "reason": "PUSH 42 must pass exact-head CI, merge to integration/development and receive a verified isolated Development pre-apply backup before application"
-    }
-  ],
+  "developmentAppliedVerified": 252,
+  "blockers": [],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
