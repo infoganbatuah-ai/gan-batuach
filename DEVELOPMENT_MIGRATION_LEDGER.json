@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-19T10:47:44Z",
+  "observedAt": "2026-10-19T10:53:10.161Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED_FEATURE_MIGRATION_PENDING",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
@@ -7757,10 +7757,10 @@
       "sourceCommit": "8b0700d1e67c21e0e21c7d2c234d79d7b22fca9b",
       "sourceHead": "8b0700d1e67c21e0e21c7d2c234d79d7b22fca9b",
       "remoteBranch": "origin/codex/push-43-embed-origin-fix",
-      "integrationCommit": null,
+      "integrationCommit": "fd86e065c2678e6a1e2ee4ea52808ba424699203",
       "inGit": true,
-      "inIntegration": false,
-      "inclusion": "PRESERVED_PENDING_INTEGRATION",
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20261019042000",
       "requiredPredecessor": "20261019041000_digital_observer_push43_delegated_usage.sql",
       "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
@@ -7769,19 +7769,19 @@
         "20261019041000"
       ],
       "developmentApprovalEvidence": "Source commit 8b0700d1e67c21e0e21c7d2c234d79d7b22fca9b passed branch-local TypeScript, migration health for 255 ordered migrations and focused PUSH 43 deterministic QA. A rolled-back synthetic Development insert reproduced the original constraint rejection for http://127.0.0.1:3000; this migration replaces only that constraint with an unambiguous character-class expression and validates existing rows. Exact-head CI and isolated Development application remain required before integration closure.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-19T10:53:02.658741+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
+      "developmentHistoryDigest": "d337c04b8f4ba5453e2d3ce7a5d76343907844ad8f7240535066f97d41212fc6",
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
       "recovery": "Forward-only constraint replacement with validation. Before isolated Development application, take and verify a recoverable custom-format backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
-      "developmentStatusReason": "Validated feature migration pending remote integration and isolated Development application",
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1"
     }
   ],
   "developmentExpected": 255,
-  "developmentAppliedVerified": 254,
+  "developmentAppliedVerified": 255,
   "blockers": [],
   "localObservations": [
     {
