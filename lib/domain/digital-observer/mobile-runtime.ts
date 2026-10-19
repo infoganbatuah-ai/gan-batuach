@@ -76,8 +76,9 @@ export function sanitizeOfflineQueue(value: unknown, limit = 20): MobileOfflineO
   return [...deduped.values()].slice(-Math.max(1, Math.min(limit, 20)));
 }
 
-export function mobileNotificationPreview(_data: { title?: unknown; body?: unknown }) {
+export function mobileNotificationPreview(data: { title?: unknown; body?: unknown }) {
   // Native previews deliberately ignore provider bodies. The authorized Product
   // route contains the detail after a fresh authorization check.
+  void data;
   return { title: "תצפיתן דיגיטלי", body: "יש עדכון חדש לבדיקה באפליקציה." };
 }
