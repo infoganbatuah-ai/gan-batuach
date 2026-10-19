@@ -1,12 +1,12 @@
 {
-  "observedAt": "2026-10-18T20:39:32.873Z",
+  "observedAt": "2026-10-19T00:04:15.366Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
+  "integrationCommit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
   "version": {
     "environment": "DEVELOPMENT / INTEGRATION",
-    "commit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
-    "startedAt": "2026-10-18T20:38:26.551Z",
+    "commit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
+    "startedAt": "2026-10-19T00:03:16.675Z",
     "backend": "LOCAL_SUPABASE",
     "production": false
   },
@@ -102,7 +102,7 @@
       "serverError": false
     },
     {
-      "path": "/api/digital-observer/action-intents/87350c70-61d9-4486-9e19-e76953d1b736",
+      "path": "/api/digital-observer/action-intents/4fa8c74c-81fb-4975-bd52-c0df3a3efd90",
       "method": "POST",
       "actor": "observer-a",
       "status": 200,
@@ -129,7 +129,7 @@
       "serverError": false
     },
     {
-      "path": "/api/digital-observer/notifications/c207cb67-dfd6-4df9-b9a8-48ae0a961b60",
+      "path": "/api/digital-observer/notifications/f391e3cb-0af4-4560-82db-570698b8ec67",
       "method": "POST",
       "actor": "observer-a recipient",
       "status": 200,
@@ -147,7 +147,7 @@
       "serverError": false
     },
     {
-      "path": "/api/digital-observer/escalations/560255a5-4eeb-400c-b7ba-9f4c8ddaa17c",
+      "path": "/api/digital-observer/escalations/154519d4-3119-4e1a-aaf9-5d57e55b46db",
       "method": "POST",
       "actor": "observer-a",
       "status": 200,
@@ -156,7 +156,7 @@
       "serverError": false
     },
     {
-      "path": "/api/digital-observer/escalations/560255a5-4eeb-400c-b7ba-9f4c8ddaa17c",
+      "path": "/api/digital-observer/escalations/154519d4-3119-4e1a-aaf9-5d57e55b46db",
       "method": "POST",
       "actor": "observer-a",
       "status": 200,
@@ -174,7 +174,7 @@
       "serverError": false
     },
     {
-      "path": "/api/digital-observer/action-intents/8c56e1d7-3acc-46e7-b0b6-b1587652a9be",
+      "path": "/api/digital-observer/action-intents/53048b25-a550-4039-8924-db9e9aee302b",
       "method": "POST",
       "actor": "lawful-use gate",
       "status": 409,
@@ -183,7 +183,7 @@
       "serverError": false
     },
     {
-      "path": "/api/digital-observer/action-intents/8c56e1d7-3acc-46e7-b0b6-b1587652a9be",
+      "path": "/api/digital-observer/action-intents/53048b25-a550-4039-8924-db9e9aee302b",
       "method": "POST",
       "actor": "observer-a",
       "status": 200,

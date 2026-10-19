@@ -56,7 +56,7 @@ Current post-PUSH-41 branch status counts are 24 DONE + REAL PROOF, 50 IMPLEMENT
 
 No new PUSH is required. The missing requirements fit the existing 39–52 architecture without replacing their objectives. They become explicit acceptance criteria: providers/actions in 39; billing and partner metering in 40; enterprise hierarchy in 41; public and Gan Batuach contracts in 42; OEM/white-label hierarchy and SDK proof in 43; legal/biometric governance in 45; zero-install and home reliability proof in 46; business/VMS proof in 47; cross-camera/Re-ID and 100+ scale in 48; quality and all-in economics in 49; DD in 50; commercial partner proof in 51; final strategic process in 52.
 
-The next canonical implementation PUSH after PUSH 41 Development closure is PUSH 42 — External API and Webhook Platform. PUSH 42 remains readiness-only until PUSH 41 exact-head CI, isolated Development migration and cumulative local Product gates close. This reconciliation does not start PUSH 42.
+The next canonical implementation PUSH after PUSH 41 Development closure is PUSH 42 — External API and Webhook Platform. PUSH 41's internal exact-head CI, isolated Development migration/RLS/drift and cumulative local Product gates are closed at integration commit `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`; its external proof remains open. PUSH 42 is readiness-only and has not started. This reconciliation does not start PUSH 42.
 
 ## Cost denominator reconciliation
 

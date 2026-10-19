@@ -1,0 +1,93 @@
+{
+  "observedAt": "2026-10-19T00:04:25.354Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
+    "startedAt": "2026-10-19T00:03:16.675Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "path": "/digital-observer/enterprise",
+      "method": "GET",
+      "actor": "observer-a enterprise UI",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/enterprise?organization_id=00000000-0000-4000-8000-000000000d41",
+      "method": "GET",
+      "actor": "observer-a own organization",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/enterprise?organization_id=00000000-0000-4000-8000-000000000d42",
+      "method": "GET",
+      "actor": "observer-a forbidden other organization",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/enterprise?organization_id=00000000-0000-4000-8000-000000000d41",
+      "method": "GET",
+      "actor": "unauthenticated enterprise",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/enterprise/scim/v2/Users",
+      "method": "POST",
+      "actor": "SCIM missing credential",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/notifications?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "PUSH39 regression",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/billing?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "method": "GET",
+      "actor": "PUSH40 regression",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    }
+  ],
+  "productionAccess": false,
+  "externalIdpContact": false,
+  "paidProviderContact": false,
+  "proofClassification": {
+    "deterministicContract": "PASS",
+    "localFullStack": "PASS",
+    "ssoProvider": "NOT_AVAILABLE",
+    "scimProvider": "NOT_AVAILABLE",
+    "productionScale": "NOT_CLAIMED"
+  },
+  "limitations": [
+    "Synthetic isolated Development identities and two organizations",
+    "No external SSO/SCIM/WhatsApp provider",
+    "No Production environment or real enterprise customer"
+  ]
+}

@@ -1,12 +1,12 @@
 {
-  "observedAt": "2026-10-18T21:58:39.328Z",
+  "observedAt": "2026-10-19T00:04:21.483Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
+  "integrationCommit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
   "version": {
     "environment": "DEVELOPMENT / INTEGRATION",
-    "commit": "869e1d5c91944d1ee5f76069f57a8f3310e98054",
-    "startedAt": "2026-10-18T21:57:25.536Z",
+    "commit": "a7e484bd9413ee1e2c06be9b75bec129cc9367b3",
+    "startedAt": "2026-10-19T00:03:16.675Z",
     "backend": "LOCAL_SUPABASE",
     "production": false
   },
@@ -69,7 +69,7 @@
   "productionAccess": false,
   "providerContact": false,
   "realPaymentCollected": false,
-  "commercialFixtureState": "NO_SUBSCRIPTION_NO_ENTITLEMENTS",
+  "commercialFixtureState": "SUBSCRIPTION_PRESENT",
   "proofClassification": {
     "deterministicContract": "PASS",
     "localFullStack": "PASS",
