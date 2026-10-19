@@ -7685,9 +7685,40 @@
       "recovery": "Forward-only additive external API receipts, hourly usage and integration-source schema. Before isolated Development application, take and verify a recoverable backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentSchemaFingerprint": "bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797"
+    },
+    {
+      "file": "supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql",
+      "blob": "b1bcad4173eacc9e20b519d3bac7fce56d0bb6b4",
+      "sha256": "7b06e3eb9be3235ddfd8d2a30c126ecba300b9bd76e1ea46e3840b8b0ef252ad",
+      "version": "20261019040000",
+      "sourceTask": "PUSH 43",
+      "sourceCommit": "08b716bd1ad4e84b9473334d4577f69b9201daa6",
+      "sourceHead": "08b716bd1ad4e84b9473334d4577f69b9201daa6",
+      "remoteBranch": "origin/codex/push-43-oem-sdk",
+      "integrationCommit": "7e0df3a2ad105145af42057837b4e3a21a7146d1",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261019040000",
+      "requiredPredecessor": "20261019030000_digital_observer_push42_external_api.sql",
+      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261019030000"
+      ],
+      "developmentApprovalEvidence": "PR #210 exact head 08b716bd1ad4e84b9473334d4577f69b9201daa6 passed all nine required checks and merged with preserved ancestry as 7e0df3a2ad105145af42057837b4e3a21a7146d1. Branch-local TypeScript, canonical lint, Production build without deployment, domain 44/44, security/isolation 45/45, migration health 253, release contract, dependency audit, focused PUSH 43 QA and PUSH 39/40/41/42 regressions passed. Isolated Development pre-apply custom-format backup /private/tmp/push43-development-pre-migration.dump has SHA-256 57544960da6fa7834ec22ba2a21ac9173c5324d1b42996e7cbba2ce2f43a15ba and a verified pg_restore archive listing. No Production access.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "NO",
+      "productionEvidence": "Production application is not authorized and was not attempted.",
+      "recovery": "Forward-only additive partner, customer mapping, branding, service-account delegation, provisioning-receipt and short-lived embedded-session schema. If isolated Development verification fails, restore the verified backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
+      "developmentStatusReason": "Validated and remotely integrated; awaiting application to the isolated Development database",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 252,
+  "developmentExpected": 253,
   "developmentAppliedVerified": 252,
   "blockers": [],
   "localObservations": [
