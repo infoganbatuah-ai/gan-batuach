@@ -211,6 +211,9 @@
     "dvr:cloud-discovery-web": "node scripts/cloud-dvr-discovery-web.mjs",
     "mobile:open:android": "npx cap open android",
     "mobile:open:ios": "npx cap open ios",
+    "mobile:sync:ios": "npx cap sync ios",
+    "mobile:build:ios:simulator": "node scripts/mobile/build-ios-on-kingston.mjs simulator",
+    "mobile:build:ios:device:unsigned": "node scripts/mobile/build-ios-on-kingston.mjs device",
     "visual:match": "node scripts/visual-match.mjs",
     "mobile:build:android": "cd android && ./gradlew assembleDebug"
   },

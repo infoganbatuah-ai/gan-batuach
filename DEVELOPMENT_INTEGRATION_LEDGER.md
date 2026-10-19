@@ -1552,3 +1552,24 @@ checks and merged with preserved ancestry only to `integration/development` as
 change the truthful qualification result: physical iPhone execution and every
 dependent native/external gate remain blocked or not run. No migration,
 provider, main, Production, store, customer or PUSH 46 state changed.
+
+PUSH 44 iOS/Xcode qualification continuation receipt (2026-10-20): scoped
+implementation commits through `9c8863159da4d300435a6452e38ed5c2287fc370`
+are remotely preserved on `codex/push-44-ios-kingston-qualification`, based on
+`origin/integration/development@78edef28fd1ec7bb106eba7bd432cd52011c2daa`.
+Xcode 26.3 (17C529) is selected. Capacitor iOS sync, the Debug simulator target
+and an unsigned generic iOS arm64 target pass at the exact feature commit.
+DerivedData, Archives, Swift package clones/cache and result bundles are
+configured on the encrypted Kingston volume, and the scripted build fails
+closed if that volume is unavailable.
+
+The iOS 26.3 simulator installed and launched the app process, but Product
+rendering failed with `NSURLErrorDomain -1004` because no approved Development
+endpoint is configured. An iPhone 13 Pro / iOS 18.7.8 is connected and paired,
+but Developer Mode is disabled, DDI is unavailable and no Apple Development
+identity/profile is installed. The canonical local Product launcher also
+failed closed because the isolated Development schema/history readiness query
+could not complete. Therefore signed installation, real-device auth/UI,
+cellular playback, real Push receipt, transitions, physical performance and
+TestFlight remain blocked or not run. No migration, provider, main, Production,
+store, customer, legal-gate or PUSH 46 state changed.
