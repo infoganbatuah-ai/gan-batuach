@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-19T21:40:00Z",
+  "updatedAt": "2026-10-19T22:06:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11696,17 +11696,20 @@
       "sourceCommits": [
         "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac",
         "55eec8c0edb4fabf555b1aabdef792dcdc624d30",
-        "9c8863159da4d300435a6452e38ed5c2287fc370"
+        "9c8863159da4d300435a6452e38ed5c2287fc370",
+        "534411e90b77961f2d3832f7736ca531bfeca87f"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "PR #227 exact head a4708653c1515458607f2c26c72cc27b975036f1",
           "origin/integration/development@78edef28fd1ec7bb106eba7bd432cd52011c2daa",
-          "origin/codex/push-44-ios-kingston-qualification@9c8863159da4d300435a6452e38ed5c2287fc370"
+          "origin/codex/push-44-ios-kingston-qualification@534411e90b77961f2d3832f7736ca531bfeca87f",
+          "PR #229 exact head 534411e90b77961f2d3832f7736ca531bfeca87f",
+          "origin/integration/development@cea28a4fc8534266fc1a5b471c4b7f84d22a598c"
         ],
-        "implementationCommit": "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac"
+        "implementationCommit": "9c8863159da4d300435a6452e38ed5c2287fc370"
       },
       "validation": {
         "status": "PARTIAL_NATIVE_BUILD_PASS_SIMULATOR_PRODUCT_AND_PHYSICAL_DEVICE_BLOCKED",
@@ -11731,9 +11734,9 @@
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": "dd5e4fc8c7cbcef40c7676d0e146e3518b574406",
-        "sourceHead": "a4708653c1515458607f2c26c72cc27b975036f1",
-        "pullRequest": 227,
+        "commit": "cea28a4fc8534266fc1a5b471c4b7f84d22a598c",
+        "sourceHead": "534411e90b77961f2d3832f7736ca531bfeca87f",
+        "pullRequest": 229,
         "requiredChecks": "PASS_9_OF_9_EXACT_HEAD"
       },
       "dependencies": {
