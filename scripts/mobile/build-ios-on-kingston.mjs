@@ -8,10 +8,15 @@ import { fileURLToPath } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "../..");
-const volumeRoot = "/Volumes/DIGITAL_OBSERVER";
+const projectPathParts = projectRoot.split(path.sep).filter(Boolean);
+const volumeRoot =
+  process.env.DIGITAL_OBSERVER_EXTERNAL_VOLUME_ROOT ??
+  (projectPathParts[0] === "Volumes" && projectPathParts[1]
+    ? path.join(path.sep, projectPathParts[0], projectPathParts[1])
+    : null);
 const storageRoot =
   process.env.DIGITAL_OBSERVER_XCODE_STORAGE_ROOT ??
-  path.join(volumeRoot, "XcodeStorage", "DigitalObserver");
+  (volumeRoot ? path.join(volumeRoot, "XcodeStorage", "DigitalObserver") : null);
 
 const action = process.argv[2] ?? "simulator";
 const supportedActions = new Set(["simulator", "device"]);
@@ -22,9 +27,9 @@ if (!supportedActions.has(action)) {
   process.exit(2);
 }
 
-if (!fs.existsSync(volumeRoot)) {
+if (!volumeRoot || !storageRoot || !fs.existsSync(volumeRoot)) {
   console.error(
-    `Kingston volume is not mounted at ${volumeRoot}; refusing to fall back to internal storage.`,
+    "Digital Observer checkout is not on a mounted external volume; refusing to fall back to internal storage.",
   );
   process.exit(3);
 }
