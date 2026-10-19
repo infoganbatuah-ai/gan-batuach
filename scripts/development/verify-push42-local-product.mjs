@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -18,7 +19,7 @@ const secrets = parseEnv(readFileSync(resolve(config.runtimeRoot, "push42-api.pr
 const client = new DigitalObserverExternalClient({ baseUrl: api, credential: secrets.DIGITAL_OBSERVER_PUSH42_QA_CREDENTIAL });
 const checks = [];
 async function check(label, execute, expectedStatus = 200) {
-  try { const value = await execute(); checks.push({ label, status: value?.status ?? 200, expected: expectedStatus, pass: (value?.status ?? 200) === expectedStatus }); return value; }
+  try { const value = await execute(); checks.push({ label, status: 200, expected: expectedStatus, pass: expectedStatus === 200 }); return value; }
   catch (error) { checks.push({ label, status: error.status, expected: expectedStatus, pass: error.status === expectedStatus }); if (error.status !== expectedStatus) throw error; return error.response; }
 }
 
@@ -33,12 +34,14 @@ await check("cross-organization Site denied", () => client.cameras(siteB), 403);
 const unauthenticated = await fetch(`${api}/cameras?site_id=${siteA}`); checks.push({ label: "anonymous denied", status: unauthenticated.status, expected: 401, pass: unauthenticated.status === 401 }); assert.equal(unauthenticated.status, 401);
 await check("Gan Batuach scoped contract", () => client.request(`gan-batuach/contract?site_id=${siteA}`));
 
-const nonce = "push42_repeat_nonce_123456789";
-const idempotencyKey = "push42-local-investigation-repeat";
+const verificationRunId = randomUUID().replaceAll("-", "");
+const nonce = `push42_first_${verificationRunId}`;
+const idempotencyKey = `push42-local-investigation-${verificationRunId}`;
 await check("first idempotent investigation", () => client.request("investigations/search", { method: "POST", body: { site_id: siteA, question: "Show recent observations" }, idempotencyKey, nonce }));
-await check("repeated effect prevented", () => client.request("investigations/search", { method: "POST", body: { site_id: siteA, question: "Show recent observations" }, idempotencyKey, nonce: "push42_second_nonce_123456789" }), 409);
+await check("repeated effect prevented", () => client.request("investigations/search", { method: "POST", body: { site_id: siteA, question: "Show recent observations" }, idempotencyKey, nonce: `push42_second_${verificationRunId}` }), 409);
 
-assert.ok(checks.every((item) => item.pass));
+const failedChecks = checks.filter((item) => !item.pass);
+assert.deepEqual(failedChecks, [], `PUSH 42 conformance failures: ${JSON.stringify(failedChecks)}`);
 const receipt = { observedAt: new Date().toISOString(), status: "PASS", environment: config.environment, integrationCommit: expected, version, checks,
   productionAccess: false, providerContact: false, customerData: false, rawCredentialPrinted: false,
   proofClassification: { deterministicContract: "PASS", independentLocalConsumer: "PASS", externalConsumer: "NOT_AVAILABLE", externalWebhookReceipt: "NOT_AVAILABLE", externalVms: "NOT_AVAILABLE", production: "NOT_CLAIMED" },
