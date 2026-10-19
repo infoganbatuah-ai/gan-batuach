@@ -1573,3 +1573,13 @@ could not complete. Therefore signed installation, real-device auth/UI,
 cellular playback, real Push receipt, transitions, physical performance and
 TestFlight remain blocked or not run. No migration, provider, main, Production,
 store, customer, legal-gate or PUSH 46 state changed.
+
+PUSH 44 iOS/Xcode qualification integration closure (2026-10-20): PR #229
+exact head `534411e90b77961f2d3832f7736ca531bfeca87f` passed all nine required
+checks and merged with preserved ancestry only to `integration/development` as
+`cea28a4fc8534266fc1a5b471c4b7f84d22a598c`. Portable build-helper commit
+`9c8863159da4d300435a6452e38ed5c2287fc370` and the earlier qualification
+commits remain ancestors. This records Development integration only; the local
+full stack, signed iPhone installation, cellular playback, real Push receipt,
+TestFlight and Android campaign remain blocked or not run. Main, Production,
+providers, stores, customer data and PUSH 46 remain unchanged.
