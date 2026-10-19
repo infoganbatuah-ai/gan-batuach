@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-10-19T10:53:10.161Z",
+  "observedAt": "2026-10-19T19:02:46Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7778,6 +7778,37 @@
       "recovery": "Forward-only constraint replacement with validation. Before isolated Development application, take and verify a recoverable custom-format backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentSchemaFingerprint": "1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1"
+    },
+    {
+      "file": "supabase/migrations/20261019050000_digital_observer_push45_privacy_compliance.sql",
+      "blob": "df54aa80efe756ea2d7700423100ea731c63dc8b",
+      "sha256": "5aa9e754c82e5e588393028d390cc71524a21b690832979ef6a5e89947c16b62",
+      "version": "20261019050000",
+      "sourceTask": "PUSH 45",
+      "sourceCommit": "067f475b636dffe7d1250523f8112f3018218e4d",
+      "sourceHead": "067f475b636dffe7d1250523f8112f3018218e4d",
+      "remoteBranch": "origin/codex/push-45-privacy-compliance",
+      "integrationCommit": null,
+      "inGit": true,
+      "inIntegration": false,
+      "inclusion": "PUSHED_REMOTE_PENDING_INTEGRATION",
+      "releaseOrder": "20261019050000",
+      "requiredPredecessor": "20261019042000_digital_observer_push43_embed_origin_constraint.sql",
+      "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT_AFTER_INTEGRATION",
+      "developmentDependsOn": [
+        "20261019042000"
+      ],
+      "developmentApprovalEvidence": "Implementation commit 067f475b636dffe7d1250523f8112f3018218e4d passed branch-local TypeScript, canonical lint-baseline, Production build without deployment, domain 46/46, security/isolation 47/47, migration health 256, release-contract, dependency audit and focused PUSH 39–45 regressions. The migration is additive governance metadata with RLS; it seeds no legal approval and activates no sensitive capability. Exact-head CI, ancestry-preserving integration and a verified isolated Development backup remain required before application.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "NO",
+      "productionEvidence": "Production application is not authorized and was not attempted.",
+      "recovery": "Forward-only additive policy, notice, privacy-incident and audit metadata plus additive fields on existing rights/hold/retention models. Before isolated Development application, take and verify a recoverable custom-format backup. If verification fails, restore that isolated backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
+      "developmentStatusReason": "Remotely preserved and validated; pending exact-head CI, integration and isolated Development application",
+      "developmentSchemaFingerprint": null
     }
   ],
   "developmentExpected": 255,
