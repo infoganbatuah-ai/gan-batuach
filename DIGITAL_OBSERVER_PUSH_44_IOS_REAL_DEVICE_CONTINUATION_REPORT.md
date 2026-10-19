@@ -1,5 +1,63 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Current recovery receipt — 2026-10-20
+
+Runtime/source: `31db906863984a35ad48d492457afaef07cac421`.
+Branch: `codex/push44-ios-runtime-recovery`.
+
+Database PASS: all 256 expected migrations match (227 baseline + 29 later),
+with no missing entries or schema errors. The reproduced failure was sandbox
+permission denial on the dedicated local Docker socket. The same read-only
+verifier passed with authorized socket access. No database reset, recreation,
+repair, migration or data deletion was needed.
+
+The canonical launcher serves `http://127.0.0.1:3000` with the exact source SHA
+and `LOCAL_SUPABASE`. The existing simulator app now renders the Development
+landing UI. Screenshot: `/private/tmp/push44-runtime-recovery-loaded.png`.
+Protected copy: `exports/restricted/push44-ios-runtime-recovery-20261020/simulator-loaded.png`.
+SHA256: `7dd1981ad3947220612e1a51a21496f77d4f52f90ff96aa1b9a73d30542b5e4c`.
+Five authenticated mobile authorization probes pass, including anonymous,
+cross-Site and forged-link denial. This establishes basic simulator rendering
+only. The landing page is Gan Batuach branded; an authenticated Observer
+simulator journey remains unqualified.
+
+Runtime regression results at this SHA: PUSH 39 24/24, PUSH 40 6/6, PUSH 41
+7/7, PUSH 42 10/10, PUSH 43 15/15, PUSH 44 5/5, PUSH 45 4/4 PASS. These use
+isolated synthetic Development data; no external provider send is claimed.
+
+The connected iPhone 13 Pro reports **iOS 27.0.1**, paired, booted, Developer
+Mode enabled and DDI services available. This supersedes the earlier 18.7.8
+observation below. Zero valid signing identities exist and the project has no
+Development Team. Installation and physical UI remain BLOCKED. The owner must
+sign in to the project-owned Apple account in Xcode Settings → Accounts, then
+select its existing team for the App target. New paid enrollment is not
+authorized. Check device-OS/toolchain compatibility during the signed build.
+
+### HTTPS QA proposal — owner authorization required
+
+Reuse an approved project-owned HTTPS reverse proxy/tunnel for a temporary
+owner-only QA hostname. Require identity-aware ingress plus Product login;
+proxy only the application loopback port and existing allowlisted playback
+ingress. Keep Supabase private. Require trusted TLS, scoped expiring media
+grants, request limits, revocation and immediate shutdown. Before activation,
+verify account ownership, existing plan/quota, zero added fixed cost, bounded
+egress, iPhone/WebView access, and cross-tenant denial. No DNS, hostname, tunnel
+or provider configuration was activated. Existing TLS playback-ingress source
+contracts do not establish a working application endpoint. Real camera cellular
+playback remains open.
+
+APNs remains blocked by signing, capability/credential and token readiness.
+Then obtain owner approval for one synthetic Development send. No message was
+sent. Android, PUSH 38 reliability and PUSH 45 legal gates remain open.
+
+External APFS storage is writable with approximately 1.6 TiB free. SMART is
+unsupported. Prior repair warnings remain unresolved. No repair or unmount
+was run. Safe follow-up: stop drive users, verify a recoverable backup, then
+run offline Disk Utility First Aid in an owner-approved maintenance window.
+
+PUSH 44 remains PARTIAL. PUSH 46 is not started. The earlier receipt and failed
+qualification below are preserved as history.
+
 Date: 2026-10-20
 
 Baseline: `origin/integration/development@78edef28fd1ec7bb106eba7bd432cd52011c2daa`
