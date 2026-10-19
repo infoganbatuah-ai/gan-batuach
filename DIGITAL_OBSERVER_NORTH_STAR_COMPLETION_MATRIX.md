@@ -137,7 +137,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Unknown-person handling | FOUNDATION | Events can remain unidentified; unsupported identity refused | 10, 13, 45 | Policy and UX | Real non-identification and escalation proof |
 | Watchlists | NOT STARTED | No lawful production watchlist | 39, 41, 45, 48 | Governance, audit and matching | Jurisdiction-approved pilot |
 | LPR/vehicle identity | NOT STARTED | No verified plate recognition | 28, 32, 45, 48 | Model, jurisdiction and retention | Real approved plate benchmark |
-| Consent/policy/jurisdiction controls | PARTIAL | Privacy, retention and RBAC controls documented | 25, 41, 45 | Formal legal decisions and enforcement | External legal review plus negative tests |
+| Consent/policy/jurisdiction controls | IMPLEMENTED — NEEDS REAL PROOF | PUSH 45 adds versioned context/jurisdiction profiles, notices and acknowledgements plus a fail-closed server gate requiring scoped written approval; consent alone never enables a sensitive capability | 25, 41, 45 | Qualified counsel decisions and approved notices for each real use | External legal review plus approved-profile and denial-path evidence |
 
 ## GUARDIAN / PERSONAL SAFETY
 
@@ -296,8 +296,8 @@ This register maps every requested North-Star capability to an existing canonica
 | Retention | IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 provider-independent retention, legal hold, delete-before-tombstone and backend-failure retry QA | 7, 25, 34, 45 | Approved legal periods, all-domain enforcement and Production deletion evidence | Policy-approved real deletion/retention test |
 | Evidence authorization | DONE + REAL PROOF | Real private signed playback with tenant scope | 7, 25 | External API consumer coverage | Wrong-tenant/expired/deleted real-object proof |
 | Enterprise access control | IMPLEMENTED — NEEDS REAL PROOF | PUSH 41 adds canonical organization/Site roles, granular server permissions, delegated-grant ceilings, invitation policy, session revalidation and billing/operational separation | 25, 41 | External IdP/organization deployment, independent penetration testing and real role operations | External enterprise negative test |
-| Privacy | PARTIAL | Sensitive-data register and minimization controls | 25, 45 | Formal notices, consent, deletion/export | External privacy/legal review |
-| Compliance readiness | FOUNDATION | Control matrices and roadmap ownership | 25, 45, 50 | Jurisdictional decisions and evidence | Independent compliance readiness review |
+| Privacy | IMPLEMENTED — NEEDS REAL PROOF | PUSH 45 adds Site-scoped policy profiles, notice evidence, rights requests, truthful external-system disposition, legal holds, privacy incidents and append-only audit with RLS | 25, 45 | Counsel-approved policies/notices and live deletion/export/incident exercises | External privacy/legal review and authorized lifecycle proof |
+| Compliance readiness | IMPLEMENTED — NEEDS REAL PROOF | PUSH 45 provides a legal-requirements matrix, data inventory, processor governance, counsel handoff and technical evidence pack while keeping every external approval pending | 25, 45, 50 | Written jurisdictional decisions, contracts and independent assessment | Independent compliance readiness review |
 | Dependency/license inventory | PARTIAL | Dependency/security scans and CI foundations | 24, 25, 50 | SBOM, licenses and remediation evidence | Reproducible clean inventory review |
 | Acquisition-grade documentation | FOUNDATION | Canonical reports, matrices and runbooks | 50 | Reconcile all final evidence | Independent DD reader can reproduce claims |
 | IP/ownership | NOT STARTED | No complete chain-of-title proof | 50, 51, 52 | Contributor/vendor/license ownership file | Legal DD sign-off |
@@ -310,9 +310,9 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 61 |
-| `FOUNDATION` | 51 |
-| `PARTIAL` | 20 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 64 |
+| `FOUNDATION` | 49 |
+| `PARTIAL` | 19 |
 | `NOT STARTED` | 33 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
@@ -342,9 +342,9 @@ Seven later canonical requirements were not represented as distinct capabilities
 | Status | Original 190 | Additions | Reconciled total |
 |---|---:|---:|---:|
 | `DONE + REAL PROOF` | 24 | 0 | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 61 | 3 | 64 |
-| `FOUNDATION` | 50 | 1 | 51 |
-| `PARTIAL` | 21 | 1 | 22 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 64 | 3 | 67 |
+| `FOUNDATION` | 49 | 1 | 50 |
+| `PARTIAL` | 19 | 1 | 20 |
 | `NOT STARTED` | 33 | 2 | 35 |
 | `EXTERNAL COVERAGE GAP` | 1 | 0 | 1 |
 | **TOTAL** | **190** | **7** | **197** |

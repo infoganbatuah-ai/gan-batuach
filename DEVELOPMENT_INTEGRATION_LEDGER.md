@@ -1465,3 +1465,24 @@ Xcode are absent on the qualification host, and signed real-device, mobile
 Push receipt, real remote playback, store privacy/review and Production proof
 remain open. No migration, provider, customer, main, store or Production system
 was changed. PUSH 45 is readiness-only and has not started.
+
+PUSH 45 branch-validation receipt (2026-10-19): implementation commit
+`067f475b636dffe7d1250523f8112f3018218e4d` is remotely preserved on
+`codex/push-45-privacy-compliance`. It adds versioned context/jurisdiction/
+purpose profiles, evidence-bound written-decision records, fail-closed
+sensitive-capability gates, notice acknowledgement, Site-scoped privacy-rights
+requests with truthful external-system disposition, governed legal-hold
+creation/release, privacy incidents, append-only audit, Product UI, an Israeli
+source map, data inventory and an external-counsel review package.
+
+Branch-local TypeScript, canonical lint-baseline, Production build without
+deployment, domain 46/46, security/isolation 47/47, migration health 256,
+release contract, dependency audit and focused PUSH 39–45 regressions pass.
+All 197 North-Star IDs remain; DO-NS-066, DO-NS-185 and DO-NS-186 move only to
+`IMPLEMENTED — NEEDS REAL PROOF`, with no new `DONE + REAL PROOF` claim. The
+additive migration is remotely preserved but not yet integrated or applied.
+Exact-head CI, PR integration, verified isolated Development backup/application,
+schema/RLS/drift and exact-SHA local Product proof remain pending. External
+counsel decisions and all PUSH 38–44 external obligations remain open; no legal
+approval, provider, customer, biometric/child-monitoring feature, main or
+Production system was activated.
