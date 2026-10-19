@@ -42,7 +42,7 @@ const ids = {
 
 sql(`begin;
 insert into public.digital_observer_organizations(id,owner_profile_id,name,organization_type,active,slug,status,default_timezone,support_tier,metadata)
-values ('${ids.orgC}','${ids.ownerB}','QA Partner Customer C','small_business',true,'qa-partner-customer-c','active','Asia/Jerusalem','standard','{"environment":"DEVELOPMENT","synthetic":true,"push":43}')
+values ('${ids.orgC}','${ids.ownerB}','QA Partner Customer C','business',true,'qa-partner-customer-c','active','Asia/Jerusalem','standard','{"environment":"DEVELOPMENT","synthetic":true,"push":43}')
 on conflict(id) do nothing;
 insert into public.observer_sites(id,name,site_type,owner_profile_id,digital_observer_organization_id,monitoring_enabled,metadata)
 values ('${ids.siteC}','QA Partner Customer C Site','business','${ids.ownerB}','${ids.orgC}',false,'{"environment":"DEVELOPMENT","synthetic":true,"push":43}')
