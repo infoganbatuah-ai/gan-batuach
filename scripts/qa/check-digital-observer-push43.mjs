@@ -65,6 +65,12 @@ for (const required of ["authorizePartnerDelegatedSite", "PARTNER_CUSTOMER_SITE_
 assert(service.includes('.is("garden_id", null).neq("site_type", "kindergarten")'));
 assert(embeddedRoute.includes("raw_video_embedded: false") && embeddedRoute.includes("biometric_features_enabled: false"));
 assert(embeddedRoute.includes("cache-control") && embeddedRoute.includes("vary"));
+for (const canonicalStore of ["digital_observer_camera_sources", "observer_intelligence_signals", "observer_correlated_events", "digital_observer_event_clips"]) {
+  assert(embeddedRoute.includes(canonicalStore), `embedded dashboard must reuse ${canonicalStore}`);
+}
+for (const parallelStore of ["digital_observer_camera_health_status", "digital_observer_incidents", "digital_observer_evidence_artifacts"]) {
+  assert(!embeddedRoute.includes(parallelStore), `embedded dashboard must not query non-canonical ${parallelStore}`);
+}
 assert(!browserSdk.includes("dosvc_") && !browserSdk.includes("node:crypto"));
 assert(!example.match(/@\/|lib\/domain|app\/api|supabase/));
 assert(docs.includes("does not create new Event, Incident, Evidence") && docs.includes("PUSH 46 owns real zero-install proof"));
