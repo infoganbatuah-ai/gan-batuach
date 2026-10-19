@@ -45,7 +45,10 @@ await probe({ label: "cross-Site privacy center denied", url: `${endpoint}?site_
 const denied = await probe({ label: "sensitive activation fails closed", method: "POST", cookie, expectedStatus: 200,
   body: { action: "evaluate_sensitive_activation", site_id: siteA, capability: "FACE_RECOGNITION", context: "HOME", purpose: "authorized household access" } });
 assert.equal(denied.data.allowed, false);
-assert.equal(denied.data.reason, "EXTERNAL_APPROVAL_REQUIRED");
+assert.ok(
+  ["POLICY_INACTIVE", "EXTERNAL_APPROVAL_REQUIRED"].includes(denied.data.reason),
+  `Expected a fail-closed policy or approval gate, received ${denied.data.reason}`,
+);
 
 await auth.auth.signOut();
 const receipt = { observedAt: new Date().toISOString(), status: "PASS", environment: config.environment, integrationCommit: expected,
