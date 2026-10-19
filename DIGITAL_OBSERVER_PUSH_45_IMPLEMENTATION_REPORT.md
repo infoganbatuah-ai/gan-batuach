@@ -41,6 +41,7 @@ One additive migration is expected: `20261019050000_digital_observer_push45_priv
 - Release contract: PASS, Production mutation false.
 - PUSH 45 deterministic privacy/compliance QA: PASS.
 - North-Star: 197/197 unique IDs preserved; only DO-NS-066, DO-NS-185 and DO-NS-186 changed to `IMPLEMENTED — NEEDS REAL PROOF`; no capability changed to `DONE + REAL PROOF`.
+- PR #222 exact head `355faec550dc43617ad1af506856406f024d519e` passed all 9 required checks and merged with preserved ancestry only to `integration/development` as `19f67935dd63ea51d8a30da5a3d6c2ccebbb964b`.
 
 ## Preserved obligations
 
