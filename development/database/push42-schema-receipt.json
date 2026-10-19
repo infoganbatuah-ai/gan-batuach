@@ -1,8 +1,8 @@
 {
-  "observedAt": "2026-10-19T00:50:59.757Z",
+  "observedAt": "2026-10-19T01:11:19.175Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "1782df60ca25866866aef78fede49b48fcd26781",
+  "integrationCommit": "8c284a72e0174ef9dd4308220882d6f284ee9dc5",
   "migration": "20261019030000_digital_observer_push42_external_api.sql",
   "tables": [
     {

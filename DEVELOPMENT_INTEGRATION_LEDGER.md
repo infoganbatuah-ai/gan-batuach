@@ -1361,3 +1361,28 @@ denies authenticated usage-RPC execution, observes zero Production integration
 sources and stores no raw credential or video columns. Exact merged local
 full-stack and independent-consumer conformance remain pending. No external
 provider, main or Production system was contacted.
+
+PUSH 42 exact-runtime closure receipt (2026-10-19): PR #207 exact head
+`37ce01bb8b112e650864eb5dab1fb1b55d40b38d` passed all 9 required checks and
+merged with preserved ancestry as
+`8de36d76a0f8d4891edee14418496474ccb3ea17`. The first merged runtime probe
+then found that the external Event adapter selected `camera_source_id` while
+the canonical signal table uses `camera_id`; it also confirmed the existing
+synthetic-auth verifiers must run sequentially because parallel runs share
+test sessions. PR #208 corrected only that source mapping, made conformance
+nonces/idempotency keys rerunnable and added deterministic regression
+assertions. Exact head `0f2575f41f5dafc5dc88690f7ecb768facdf8ab1`
+passed 9/9 and merged with preserved ancestry as
+`8c284a72e0174ef9dd4308220882d6f284ee9dc5`.
+
+At exact runtime `8c284a72e0174ef9dd4308220882d6f284ee9dc5`, the
+canonical isolated Development Product passed core full-stack 18/18, PUSH 39
+24/24, PUSH 40 6/6, PUSH 41 7/7, PUSH 42 independent local conformance 10/10,
+External API schema/RLS verification and migration drift 252/252. This closes
+the mandatory internal Development gates. PUSH 42 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`: external partner,
+signed-webhook receiver, VMS/DVR/NVR/vendor, Gan Batuach operational adapter,
+penetration, real scale/SLA, real-traffic cost and Production evidence remain
+open. All PUSH 38–41 proof obligations remain unchanged. No provider,
+customer, main or Production system was contacted. PUSH 43 remains
+readiness-only and has not started.

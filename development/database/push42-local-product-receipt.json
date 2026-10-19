@@ -1,0 +1,91 @@
+{
+  "observedAt": "2026-10-19T01:11:09.781Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "8c284a72e0174ef9dd4308220882d6f284ee9dc5",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "8c284a72e0174ef9dd4308220882d6f284ee9dc5",
+    "startedAt": "2026-10-19T01:09:57.436Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "label": "public OpenAPI",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "independent camera list",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "independent Event list",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "independent Incident list",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "truthful integration capabilities",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "cross-organization Site denied",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "label": "anonymous denied",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "label": "Gan Batuach scoped contract",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "first idempotent investigation",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "label": "repeated effect prevented",
+      "status": 409,
+      "expected": 409,
+      "pass": true
+    }
+  ],
+  "productionAccess": false,
+  "providerContact": false,
+  "customerData": false,
+  "rawCredentialPrinted": false,
+  "proofClassification": {
+    "deterministicContract": "PASS",
+    "independentLocalConsumer": "PASS",
+    "externalConsumer": "NOT_AVAILABLE",
+    "externalWebhookReceipt": "NOT_AVAILABLE",
+    "externalVms": "NOT_AVAILABLE",
+    "production": "NOT_CLAIMED"
+  },
+  "limitations": [
+    "Independent client exercised isolated synthetic Development data",
+    "No external partner, VMS/NVR/DVR, webhook receiver, customer data or Production system"
+  ]
+}
