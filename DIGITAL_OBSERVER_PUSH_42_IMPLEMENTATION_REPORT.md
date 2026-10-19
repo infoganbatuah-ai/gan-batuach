@@ -10,7 +10,7 @@ Production: unchanged; no deployment, provider activation, customer data access 
 
 PUSH 42 implements the internal Development platform for an external, versioned Digital Observer API and webhook/integration surface. The implementation reuses PUSH 41 Service Accounts, PUSH 40 `api_access` entitlement enforcement, PUSH 39 webhook security/delivery contracts and the existing Camera, Event, Incident, Evidence, Investigation and Watch domains. It does not create parallel intelligence or authorization engines.
 
-Canonical status remains **NOT DONE** until exact-head CI, Development integration, isolated Development migration/RLS verification and exact-SHA local full-stack conformance are complete. External partner, vendor/VMS, webhook receiver and Gan Batuach runtime proof remain separate open obligations even after internal Development closure.
+Canonical status remains **NOT DONE** until exact-SHA local full-stack conformance is complete. External partner, vendor/VMS, webhook receiver and Gan Batuach runtime proof remain separate open obligations even after internal Development closure.
 
 ## Implemented internal contracts
 
@@ -53,4 +53,6 @@ Current post-implementation taxonomy: 24 `DONE + REAL PROOF`, 59 `IMPLEMENTED â€
 
 Branch-local TypeScript, canonical lint, Production-mode build without deployment, migration health, release contract, PUSH 42 deterministic QA and PUSH 39â€“41 focused regressions pass. The canonical domain and security gates pass; the first sandboxed security run was unable to bind a loopback test port (`EPERM`) and the identical gate passed 42/42 when loopback binding was permitted.
 
-Exact-head hosted CI, PR merge, isolated Development database application and exact merged local full-stack conformance are recorded only after they occur; they are not pre-claimed here.
+PR #206 exact head `30919ada3f604dcfa5c18f5a28d016db01238e38` passed all nine required checks and merged with preserved ancestry as `1782df60ca25866866aef78fede49b48fcd26781`. A pre-apply custom-format backup is protected at `/private/tmp/push42-development-pre-migration.dump`, SHA-256 `6d028cb8e7970d0bb5d6fe34ef7fd16d1d3bdf5f849195d8b6110a8ca8892b78`, with a valid `pg_restore` archive listing.
+
+Migration `20261019030000_digital_observer_push42_external_api.sql` was applied only to the canonical isolated Development database at `2026-10-19T00:50:52.875136+00:00`, producing schema fingerprint `bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797`. The bounded schema verifier confirms RLS on all three tables, no anonymous/authenticated receipt reads, no authenticated source writes or usage-RPC execution, zero Production integration sources and no raw credential/video columns. Exact merged local full-stack conformance remains pending; no Production access occurred.
