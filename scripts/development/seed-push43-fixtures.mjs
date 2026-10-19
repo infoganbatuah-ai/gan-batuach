@@ -9,16 +9,23 @@ assert.equal(config.environment, "DEVELOPMENT / INTEGRATION");
 assert.equal(config.productionAllowed, false);
 assert.equal(sql("select exists(select 1 from development_metadata.migrations where version='20261019040000' and schema_fingerprint is not null);").trim(), "t");
 
-const privateFile = resolve(config.runtimeRoot, "push42-api.private.env");
-assert.ok(existsSync(privateFile), "PUSH 42 Development credentials must exist");
-const current = readFileSync(privateFile, "utf8");
-if (!current.includes("DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL=")) {
-  writeFileSync(privateFile, `${current.trimEnd()}\nDIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL=dosvc_${randomBytes(32).toString("base64url")}\n`, { mode: 0o600 });
+const serverPrivateFile = resolve(config.runtimeRoot, "push42-api.private.env");
+const sdkPrivateFile = resolve(config.runtimeRoot, "push43-sdk.private.env");
+assert.ok(existsSync(serverPrivateFile), "PUSH 42 Development credentials must exist");
+const serverSource = readFileSync(serverPrivateFile, "utf8");
+const legacy = parseEnv(serverSource).DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL;
+if (!existsSync(sdkPrivateFile)) {
+  writeFileSync(sdkPrivateFile, `DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL=${legacy ?? `dosvc_${randomBytes(32).toString("base64url")}`}\n`, { mode: 0o600, flag: "wx" });
 }
-const secrets = parseEnv(readFileSync(privateFile, "utf8"));
-assert.match(secrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL ?? "", /^dosvc_[A-Za-z0-9_-]{40,}$/);
-const credentialHash = createHmac("sha256", secrets.DIGITAL_OBSERVER_ENTERPRISE_CREDENTIAL_PEPPER)
-  .update(secrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL).digest("hex");
+if (legacy) {
+  const cleaned = serverSource.split(/\r?\n/).filter((line) => !line.startsWith("DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL=")).join("\n").trimEnd();
+  writeFileSync(serverPrivateFile, `${cleaned}\n`, { mode: 0o600 });
+}
+const serverSecrets = parseEnv(readFileSync(serverPrivateFile, "utf8"));
+const sdkSecrets = parseEnv(readFileSync(sdkPrivateFile, "utf8"));
+assert.match(sdkSecrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL ?? "", /^dosvc_[A-Za-z0-9_-]{40,}$/);
+const credentialHash = createHmac("sha256", serverSecrets.DIGITAL_OBSERVER_ENTERPRISE_CREDENTIAL_PEPPER)
+  .update(sdkSecrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL).digest("hex");
 
 const ids = {
   partner: "00000000-0000-4000-8000-000000004301",
@@ -84,7 +91,7 @@ on conflict(id) do update set account_status='active',revoked_at=null,permission
 insert into public.digital_observer_service_account_sites(service_account_id,observer_site_id)
 values ('${ids.customerAccount}','${ids.siteB}') on conflict do nothing;
 insert into public.digital_observer_service_account_credentials(id,service_account_id,credential_hash,credential_prefix,issued_at,expires_at,revoked_at,created_by,metadata)
-values ('${ids.customerCredential}','${ids.customerAccount}','${credentialHash}',left('${secrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL}',14),now(),now()+interval '90 days',null,'${ids.ownerA}','{"environment":"DEVELOPMENT","synthetic":true,"push":43,"raw_credential_stored":false}'::jsonb)
+values ('${ids.customerCredential}','${ids.customerAccount}','${credentialHash}',left('${sdkSecrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL}',14),now(),now()+interval '90 days',null,'${ids.ownerA}','{"environment":"DEVELOPMENT","synthetic":true,"push":43,"raw_credential_stored":false}'::jsonb)
 on conflict(id) do update set credential_hash=excluded.credential_hash,credential_prefix=excluded.credential_prefix,issued_at=excluded.issued_at,expires_at=excluded.expires_at,revoked_at=null,metadata=excluded.metadata;
 insert into public.digital_observer_partner_service_accounts(partner_id,service_account_id,partner_customer_id,access_kind)
 values
