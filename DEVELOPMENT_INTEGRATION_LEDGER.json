@@ -11541,12 +11541,15 @@
       "owner": "PUSH 44 implementation owner",
       "sourceBranch": "codex/push-44-mobile-readiness",
       "sourceCommits": [
-        "f4079c7f29308b59c49d441e742a01089f5bf98f"
+        "f4079c7f29308b59c49d441e742a01089f5bf98f",
+        "5d3d03c2903beab952028015f0d68565230f5d51"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "PUSHED_REMOTE",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-44-mobile-readiness"
+        ],
         "implementationCommit": "f4079c7f29308b59c49d441e742a01089f5bf98f"
       },
       "validation": {
@@ -11568,9 +11571,9 @@
         "status": "PENDING_PR_AND_EXACT_HEAD_CI",
         "base": "integration/development",
         "commit": null,
-        "sourceHead": "f4079c7f29308b59c49d441e742a01089f5bf98f",
-        "pullRequest": null,
-        "requiredChecks": "PENDING"
+        "sourceHead": "5d3d03c2903beab952028015f0d68565230f5d51",
+        "pullRequest": 220,
+        "requiredChecks": "PENDING_EXACT_HEAD"
       },
       "dependencies": {
         "status": "SATISFIED_FOR_INTERNAL_IMPLEMENTATION",

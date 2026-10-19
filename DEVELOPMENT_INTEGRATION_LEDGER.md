@@ -1427,7 +1427,8 @@ readiness-only and has not started.
 
 PUSH 44 branch-validation receipt (2026-10-19): implementation commit
 `f4079c7f29308b59c49d441e742a01089f5bf98f` on
-`codex/push-44-mobile-readiness` adds the canonical Capacitor mobile runtime,
+remotely preserved branch `codex/push-44-mobile-readiness` and PR #220 add the
+canonical Capacitor mobile runtime,
 server-authorized deep links, native lifecycle and network revalidation,
 privacy-minimized native Push registration, bounded non-sensitive offline
 recovery, remote-playback grant renewal, iOS privacy declarations and Android
