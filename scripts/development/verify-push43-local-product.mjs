@@ -60,10 +60,13 @@ checks.push({ label: "anonymous partner administration denied", status: anonymou
 const profile = await check("partner authentication/profile", () => control.partnerProfile());
 assert.equal(profile.partner.partner_status, "sandbox"); assert.equal(profile.brand.product_name, "Sentinel Home"); assert.equal(profile.brand.platform_brand_exposed, false);
 const customers = await check("partner customer inventory", () => control.partnerCustomers()); assert.equal(customers.data.length, 2);
-const replay = await check("idempotent customer provisioning", () => control.provisionPartnerCustomer({
+const provisionCustomer = () => control.provisionPartnerCustomer({
   customer_organization_id: orgB, external_customer_reference: "qa-customer-b", site_ids: [siteB],
   entitlement_grant_ids: ["00000000-0000-4000-8000-00000000430a"], idempotency_key: "push43-customer-b"
-}));
+});
+const firstProvision = await check("customer provisioning baseline", provisionCustomer);
+assert.ok(firstProvision.customer || firstProvision.customerId);
+const replay = await check("idempotent customer provisioning", provisionCustomer);
 assert.equal(replay.idempotentReplay, true);
 
 const independent = await check("independent sample partner application", () => loadAuthorizedPartnerCustomer({ baseUrl: externalApi,
