@@ -7707,19 +7707,19 @@
         "20261019030000"
       ],
       "developmentApprovalEvidence": "PR #210 exact head 08b716bd1ad4e84b9473334d4577f69b9201daa6 passed all nine required checks and merged with preserved ancestry as 7e0df3a2ad105145af42057837b4e3a21a7146d1. Branch-local TypeScript, canonical lint, Production build without deployment, domain 44/44, security/isolation 45/45, migration health 253, release contract, dependency audit, focused PUSH 43 QA and PUSH 39/40/41/42 regressions passed. Isolated Development pre-apply custom-format backup /private/tmp/push43-development-pre-migration.dump has SHA-256 57544960da6fa7834ec22ba2a21ac9173c5324d1b42996e7cbba2ce2f43a15ba and a verified pg_restore archive listing. No Production access.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-19T10:04:29.084519+00:00",
+      "developmentEvidence": "development/database/push43-schema-receipt.json",
+      "developmentHistoryDigest": "7b06e3eb9be3235ddfd8d2a30c126ecba300b9bd76e1ea46e3840b8b0ef252ad",
       "productionApplied": "NO",
       "productionEvidence": "Production application is not authorized and was not attempted.",
       "recovery": "Forward-only additive partner, customer mapping, branding, service-account delegation, provisioning-receipt and short-lived embedded-session schema. If isolated Development verification fails, restore the verified backup or use a reviewed forward-only corrective migration; never edit this migration after application.",
-      "developmentStatusReason": "Validated and remotely integrated; awaiting application to the isolated Development database",
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentSchemaFingerprint": "82f2cd428c720f04717eaa56b3766d71c253c7bed487216993115d9323b334d6"
     }
   ],
   "developmentExpected": 253,
-  "developmentAppliedVerified": 252,
+  "developmentAppliedVerified": 253,
   "blockers": [],
   "localObservations": [
     {
