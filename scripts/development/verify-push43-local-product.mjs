@@ -25,9 +25,10 @@ const expected = execFileSync("git", ["rev-parse", "origin/integration/developme
 const version = await (await fetch(`${app}/api/development/version`)).json();
 assert.equal(version.commit, expected); assert.equal(version.production, false); assert.equal(version.backend, "LOCAL_SUPABASE");
 
-const secrets = parseEnv(readFileSync(resolve(config.runtimeRoot, "push42-api.private.env"), "utf8"));
-const control = new DigitalObserverServerClient({ baseUrl: externalApi, partnerBaseUrl: partnerApi, credential: secrets.DIGITAL_OBSERVER_PUSH42_QA_CREDENTIAL });
-const customer = new DigitalObserverServerClient({ baseUrl: externalApi, partnerBaseUrl: partnerApi, credential: secrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL });
+const serverSecrets = parseEnv(readFileSync(resolve(config.runtimeRoot, "push42-api.private.env"), "utf8"));
+const sdkSecrets = parseEnv(readFileSync(resolve(config.runtimeRoot, "push43-sdk.private.env"), "utf8"));
+const control = new DigitalObserverServerClient({ baseUrl: externalApi, partnerBaseUrl: partnerApi, credential: serverSecrets.DIGITAL_OBSERVER_PUSH42_QA_CREDENTIAL });
+const customer = new DigitalObserverServerClient({ baseUrl: externalApi, partnerBaseUrl: partnerApi, credential: sdkSecrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL });
 const checks = [];
 async function check(label, execute, expectedStatus = 200) {
   try { const value = await execute(); checks.push({ label, status: 200, expected: expectedStatus, pass: expectedStatus === 200 }); return value; }
@@ -66,7 +67,7 @@ const replay = await check("idempotent customer provisioning", () => control.pro
 assert.equal(replay.idempotentReplay, true);
 
 const independent = await check("independent sample partner application", () => loadAuthorizedPartnerCustomer({ baseUrl: externalApi,
-  credential: secrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL, siteId: siteB, fetch }));
+  credential: sdkSecrets.DIGITAL_OBSERVER_PUSH43_CUSTOMER_CREDENTIAL, siteId: siteB, fetch }));
 assert.equal(independent.privateModulesImported, false); assert.ok(Array.isArray(independent.cameras));
 await check("cross-customer Site denied", () => customer.cameras(siteC), 403);
 
