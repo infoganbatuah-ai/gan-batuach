@@ -11686,6 +11686,77 @@
         "productionActivation": false
       },
       "nextAction": "Obtain and record qualified external legal decisions before any sensitive activation, while preserving every PUSH 38–44 proof obligation. PUSH 46 is readiness-only; do not start PUSH 46 or touch main or Production."
+    },
+    {
+      "id": "codex/push-44-ios-real-device-continuation-20261019",
+      "project": "Digital Observer",
+      "title": "PUSH 44 targeted iOS real-device qualification continuation",
+      "owner": "PUSH 44 mobile qualification owner",
+      "sourceBranch": "codex/push-44-ios-real-device",
+      "sourceCommits": [
+        "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push-44-ios-real-device@d0e6be0ac0961cb36693b7f52c409d1b55cd17ac"
+        ],
+        "implementationCommit": "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac"
+      },
+      "validation": {
+        "status": "PASS_INTERNAL_CONFIGURATION_AND_DETERMINISTIC_QA_PHYSICAL_DEVICE_BLOCKED",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md",
+          "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
+          "Capacitor iOS sync PASS with five official plugins",
+          "PUSH 44 deterministic QA PASS including Development/Release APNs signing entitlement",
+          "PUSH 39 through PUSH 45 deterministic preservation regressions PASS",
+          "TypeScript PASS; canonical lint-baseline PASS with zero canonical regressions",
+          "Production build without deployment PASS after granting Turbopack its required local compiler-port permission",
+          "Migration health PASS 256 files with no new migration; release contract PASS with Production mutation false",
+          "Full Xcode absent, active developer directory Command Line Tools only, no signing identity/profile and no physical iPhone visible",
+          "No approved authenticated HTTPS Development app/media endpoint configured; localhost is not accepted as physical-device proof"
+        ],
+        "limits": "Native build, simulator, physical installation, real-device authentication/UI, cellular remote playback, real Push receipt, network transitions, performance and TestFlight were not run. iPhone model and iOS version remain unknown."
+      },
+      "integration": {
+        "status": "PR_OPEN",
+        "base": "integration/development",
+        "commit": null,
+        "sourceHead": "d0e6be0ac0961cb36693b7f52c409d1b55cd17ac",
+        "pullRequest": 227,
+        "requiredChecks": "PENDING_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "BLOCKED_EXTERNAL_OWNER_PREREQUISITES",
+        "units": [
+          "codex/push-44-mobile-readiness-20261019",
+          "codex/push-45-privacy-compliance-20261019"
+        ],
+        "blockers": [
+          "Full Xcode 26.0.1 through 26.3 compatible with macOS 15.6.1",
+          "Project-owned Apple Development signing identity and provisioning profile",
+          "Unlocked trusted iPhone with Developer Mode enabled and visible to Xcode",
+          "Approved authenticated HTTPS Development/QA app endpoint and secure media path",
+          "Owner-approved bounded APNs Development device send"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "Built from origin/integration/development@4bc2dda2b2e0cae5d5d601b0702de4b90126a08d. Existing Capacitor runtime and PUSH 39 notification contracts are extended only with an iOS signing entitlement and evidence; no parallel mobile, notification, media or identity engine was created.",
+      "localVerification": "PASS_DETERMINISTIC_ONLY_NATIVE_AND_PHYSICAL_DEVICE_GATES_BLOCKED",
+      "releaseEligibility": "NOT_READY_PUSH44_CANONICAL_NOT_DONE_REAL_IOS_AND_ANDROID_DEVICE_REMOTE_PLAYBACK_PUSH_AND_STORE_PROOF_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "cost": {
+        "newFixedRecurringCost": 0,
+        "actualIncrementalProviderCostIls": 0,
+        "externalMobileAndStoreCost": "UNMEASURED_AND_NOT_ACTIVATED",
+        "productionActivation": false
+      },
+      "nextAction": "Install and select compatible full Xcode, authorize project-owned Development signing, connect and trust the owner's iPhone, approve an isolated authenticated HTTPS Development/media endpoint, then rerun signed installation, cellular playback, Push receipt, transition and performance qualification. Do not start PUSH 46 or touch main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

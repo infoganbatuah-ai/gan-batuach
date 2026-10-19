@@ -1524,3 +1524,22 @@ denied anonymous and cross-Site access and denied sensitive activation because
 the policy is inactive and no external approval exists. PUSH 45 is Development
 complete but canonically NOT DONE; qualified external legal decisions and real
 governed proof remain pending. Main and Production were not changed.
+
+PUSH 44 targeted iOS continuation branch receipt (2026-10-19): implementation
+commit `d0e6be0ac0961cb36693b7f52c409d1b55cd17ac` is remotely preserved on
+`codex/push-44-ios-real-device`; PR #227 targets only
+`integration/development`. The existing Capacitor project now declares a
+configuration-aware APNs signing entitlement, and deterministic PUSH 44 QA,
+Capacitor iOS sync, PUSH 39–45 preservation regressions, TypeScript, canonical
+lint with zero regressions, Production build without deployment, migration
+health 256/256 and release-contract checks pass. No migration was created.
+
+Physical qualification remains blocked and is not promoted: the Apple-silicon
+host has Command Line Tools only, no full Xcode, no signing identity or
+provisioning profile, no visible iPhone, and no approved authenticated HTTPS
+Development app/media endpoint. Native build, simulator, installation,
+real-device login/UI, cellular playback, real Push receipt, network transitions,
+performance and TestFlight are not run. PUSH 44 remains `PARTIAL` and
+canonically `NOT DONE`; all 197 North-Star identities and PUSH 38–45 obligations
+remain unchanged. PUSH 45 legal gates are closed, PUSH 46 is not started, and
+main and Production are unchanged.

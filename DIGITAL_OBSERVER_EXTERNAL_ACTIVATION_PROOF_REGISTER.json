@@ -1,6 +1,6 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
-  "updatedAt": "2026-10-19T21:47:17+03:00",
+  "updatedAt": "2026-10-19T23:06:27+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
