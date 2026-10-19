@@ -11691,6 +11691,17 @@
       "id": "codex/push-44-ios-real-device-continuation-20261019",
       "project": "Digital Observer",
       "title": "PUSH 44 targeted iOS real-device qualification continuation",
+      "signingFollowUp": {
+        "date": "2026-10-20",
+        "sourceBranch": "codex/push44-ios-personal-team-install",
+        "baseline": "10d088574f96a7479ab5e3bd947198842649ac34",
+        "identity": "APPLE_DEVELOPMENT_VERIFIED_PRESENT",
+        "team": "27G7ZP4U3Q_PERSONAL_TEAM",
+        "signedBuild": "FAIL_PERSONAL_TEAM_PUSH_CAPABILITY_UNSUPPORTED",
+        "installation": "BLOCKED",
+        "sourceSettings": "Preserve root-selected Debug/Release team; retain canonical APNs entitlement",
+        "productionChanged": false
+      },
       "runtimeRecovery": {
         "date": "2026-10-20",
         "sourceBranch": "codex/push44-ios-runtime-recovery",

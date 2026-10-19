@@ -1,5 +1,12 @@
 # Canonical Development Integration Ledger
 
+2026-10-20 PUSH 44 signing follow-up: branch
+`codex/push44-ios-personal-team-install` preserves root-selected team
+27G7ZP4U3Q for Debug/Release. Apple Development identity verified, but the
+Personal Team cannot provision Push Notifications. Signed build failed;
+installation remains blocked. APNs source contracts remain intact. See the
+existing iOS continuation report and JSON ledger signingFollowUp receipt.
+
 Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.json`. Migration variants and independent development/Production states: `DEVELOPMENT_MIGRATION_LEDGER.json`. Latest branch/file/stash inventory: `DEVELOPMENT_FINAL_STATE_AUDIT_2026-09-19.json`, `DEVELOPMENT_LOCAL_RECONCILIATION_2026-09-19.json`, `DEVELOPMENT_BRANCH_RECONCILIATION_2026-09-19.json`. Initial audit is retained as historical evidence.
 
 **Main is release-only. No owner release authorization has been issued for this workflow migration. No Production deployment or database write is authorized.** Earlier dated release ledgers and PR descriptions mentioning midnight are historical records, superseded by AGENTS.md.
