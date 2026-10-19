@@ -103,7 +103,8 @@ const capabilityRows = [
   ["Feedback / calibration", "lib/domain/digital-observer/feedback-calibration.ts", "/api/digital-observer/incidents/feedback", "digital_observer_feedback_revisions; digital_observer_calibration_samples", "qa:digital-observer-feedback", "PUSH 11", "GATE 3"],
   ["Watch rules", "lib/domain/digital-observer/watch-rule-compiler.ts", "/api/digital-observer/watch-rules", "observer_watch_requests; digital_observer_watch_rule_versions", "qa:digital-observer-watch-rules", "PUSH 12", "GATE 3"],
   ["Investigation", "lib/domain/digital-observer/investigation-search-service.ts", "/api/digital-observer/investigation", "canonical Event/Incident/Evidence projections", "qa:digital-observer-investigation", "PUSH 13", "GATE 3"],
-  ["External API / webhooks", "lib/domain/digital-observer/external-api-service.ts", "/api/digital-observer/external/v1/*", "service accounts; external API receipts/usage; webhook endpoints; integration sources", "qa:digital-observer-push42", "PUSH 42 independent consumer and external provider proof pending", "GATE 3 + GATE 4"]
+  ["External API / webhooks", "lib/domain/digital-observer/external-api-service.ts", "/api/digital-observer/external/v1/*", "service accounts; external API receipts/usage; webhook endpoints; integration sources", "qa:digital-observer-push42", "PUSH 42 independent consumer and external provider proof pending", "GATE 3 + GATE 4"],
+  ["OEM / SDK / white-label", "lib/domain/digital-observer/partner-platform-service.ts", "/api/digital-observer/partner/v1/*; /api/digital-observer/embed/v1/*", "partners; partner customers/Sites; brand profiles; delegated service accounts; embedded sessions", "qa:digital-observer-push43", "PUSH 43 real OEM partner and vendor proof pending", "GATE 3 + GATE 4"]
 ];
 
 const lines = [

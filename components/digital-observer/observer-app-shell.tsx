@@ -18,6 +18,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Handshake,
   UsersRound,
   X
 } from "lucide-react";
@@ -56,6 +57,7 @@ const businessNav = [
   { href: "/digital-observer/rules", label: "כללי ניטור", icon: Radar },
   { href: "/digital-observer/people", label: "צוות והרשאות", icon: UsersRound },
   { href: "/digital-observer/enterprise", label: "ארגון ואבטחה", icon: ShieldCheck },
+  { href: "/digital-observer/partners", label: "שותפים והטמעה", icon: Handshake },
   { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;

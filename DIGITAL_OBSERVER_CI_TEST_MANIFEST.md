@@ -37,6 +37,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 | Watch rules | lib/domain/digital-observer/watch-rule-compiler.ts | /api/digital-observer/watch-rules | observer_watch_requests; digital_observer_watch_rule_versions | qa:digital-observer-watch-rules | PUSH 12 | GATE 3 |
 | Investigation | lib/domain/digital-observer/investigation-search-service.ts | /api/digital-observer/investigation | canonical Event/Incident/Evidence projections | qa:digital-observer-investigation | PUSH 13 | GATE 3 |
 | External API / webhooks | lib/domain/digital-observer/external-api-service.ts | /api/digital-observer/external/v1/* | service accounts; external API receipts/usage; webhook endpoints; integration sources | qa:digital-observer-push42 | PUSH 42 independent consumer and external provider proof pending | GATE 3 + GATE 4 |
+| OEM / SDK / white-label | lib/domain/digital-observer/partner-platform-service.ts | /api/digital-observer/partner/v1/*; /api/digital-observer/embed/v1/* | partners; partner customers/Sites; brand profiles; delegated service accounts; embedded sessions | qa:digital-observer-push43 | PUSH 43 real OEM partner and vendor proof pending | GATE 3 + GATE 4 |
 
 ## TIER 1 CANONICAL SUITES
 
@@ -83,6 +84,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push39-notification-actions`: `node scripts/qa/check-digital-observer-push39.mjs`
 - `push40-commercial-entitlements`: `node scripts/qa/check-digital-observer-push40.mjs`
 - `push42-external-api-contract`: `node scripts/qa/check-digital-observer-push42.mjs`
+- `push43-oem-sdk-contract`: `node scripts/qa/check-digital-observer-push43.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-relay-handoff-remediation`: `node --test scripts/qa/check-push38-relay-handoff-remediation.mjs`
@@ -127,10 +129,11 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push39-notification-security`: `node scripts/qa/check-digital-observer-push39.mjs`
 - `push41-enterprise-identity-security`: `node scripts/qa/check-digital-observer-push41.mjs`
 - `push42-external-api-security`: `node scripts/qa/check-digital-observer-push42.mjs`
+- `push43-partner-isolation`: `node scripts/qa/check-digital-observer-push43.mjs`
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **547** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **548** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -230,6 +233,7 @@ Inventory count: **547** files. Classifications are conservative; environment-de
 | `scripts/qa/check-digital-observer-push40.mjs` | npm run qa:digital-observer-push40 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-push41.mjs` | npm run qa:digital-observer-push41 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-push42.mjs` | npm run qa:digital-observer-push42 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-push43.mjs` | npm run qa:digital-observer-push43 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-quality-benchmark.mjs` | npm run qa:digital-observer-quality-benchmark | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-queue-terminal-race.mjs` | npm run qa:digital-observer-queue-terminal-race | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-reliability-qualification.mjs` | npm run qa:digital-observer-reliability-qualification | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |

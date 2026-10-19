@@ -10,6 +10,7 @@ import {
   DIGITAL_OBSERVER_EXTERNAL_API_VERSION
 } from "./external-api-contract";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { authorizePartnerDelegatedSite } from "./partner-platform-service";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -156,14 +157,24 @@ export async function authorizeExternalApiSite(admin: Admin, actor: ExternalApiA
     throw new Error("EXTERNAL_API_PERMISSION_DENIED");
   }
   if (!actor.allSites && !actor.siteIds.includes(input.siteId)) throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
-  const site = await (admin as any).from("observer_sites")
+  const ownSite = await (admin as any).from("observer_sites")
     .select("id,name,owner_profile_id,site_type,garden_id,digital_observer_organization_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
     .eq("id", input.siteId).eq("digital_observer_organization_id", actor.organizationId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
-  if (site.error || !site.data) throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
+  let site = ownSite.data;
+  if (!site) {
+    const delegated = await authorizePartnerDelegatedSite(admin, { serviceAccountId: actor.serviceAccountId, siteId: input.siteId });
+    if (delegated) {
+      const delegatedSite = await (admin as any).from("observer_sites")
+        .select("id,name,owner_profile_id,site_type,garden_id,digital_observer_organization_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
+        .eq("id", input.siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
+      site = delegatedSite.data;
+    }
+  }
+  if (!site) throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
   try { await assertCommercialEntitlement(admin as any, { siteId: input.siteId, key: "api_access" }); }
   catch { throw new Error("EXTERNAL_API_ENTITLEMENT_DENIED"); }
   await audit(admin, actor, { requestId: actor.requestId, siteId: input.siteId, action: input.scope, decision: "allowed", result: "success" });
-  return site.data;
+  return site;
 }
 
 export async function recordExternalApiUsage(admin: Admin, actor: ExternalApiActor, input: { siteId: string; operation: string; status: number }) {
@@ -184,8 +195,11 @@ export async function assertExternalApiRateLimit(admin: Admin, actor: ExternalAp
     .select("id", { count: "exact", head: true }).eq("service_account_id", actor.serviceAccountId).gte("created_at", sinceMinute);
   if (recent.error) throw new Error("EXTERNAL_API_RATE_STATE_UNAVAILABLE");
   if ((recent.count ?? 0) > 120) throw new Error("EXTERNAL_API_RATE_LIMITED");
-  const site = await (admin as any).from("observer_sites").select("id").eq("id", siteId).eq("digital_observer_organization_id", actor.organizationId).maybeSingle();
-  if (!site.data) throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
+  const site = await (admin as any).from("observer_sites").select("id,digital_observer_organization_id").eq("id", siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
+  if (!site.data || (site.data.digital_observer_organization_id !== actor.organizationId
+    && !(await authorizePartnerDelegatedSite(admin, { serviceAccountId: actor.serviceAccountId, siteId })))) {
+    throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
+  }
 }
 
 export async function registerExternalWebhook(admin: Admin, actor: ExternalApiActor, input: {

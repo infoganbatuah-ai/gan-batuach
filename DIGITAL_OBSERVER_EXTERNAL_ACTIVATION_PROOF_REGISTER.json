@@ -107,7 +107,7 @@
       "id": "oem-integrations",
       "owner": "PUSH 43",
       "dependencies": ["PUSH 40 partner billing contracts", "PUSH 42 API/SDK identity and metering", "partner agreement"],
-      "currentState": "commercial account/usage attribution foundation only",
+      "currentState": "PUSH 43 partner/customer/Site hierarchy, signed SDK/API, canonical entitlement links, delegated service identities, brand profile and short-lived embedded session foundations implemented in Development; real partner remains NOT_PROVEN",
       "requiredApproval": "owner-approved partner, contract, data-processing terms and sandbox",
       "sandboxProof": "OPEN",
       "realProof": "OPEN",
