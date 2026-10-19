@@ -85,9 +85,9 @@ async function listEvents(request: Request, body: string) {
   const input = queryInput(new URL(request.url)); const offset = parseCursor(input.cursor);
   return runAuthorized(request, body, input.site_id, "events.read", "events.list", async ({ admin, actor }) => {
     let query = admin.from("observer_intelligence_signals")
-      .select("id,observer_site_id,camera_source_id,signal_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,created_at,reviewed_at,resolved_at")
+      .select("id,observer_site_id,camera_id,signal_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,created_at,reviewed_at,resolved_at")
       .eq("observer_site_id", input.site_id).order("created_at", { ascending: false }).range(offset, offset + input.limit);
-    if (input.camera_id) query = query.eq("camera_source_id", input.camera_id);
+    if (input.camera_id) query = query.eq("camera_id", input.camera_id);
     if (input.from) query = query.gte("created_at", input.from);
     if (input.to) query = query.lte("created_at", input.to);
     const result = await query;
@@ -116,7 +116,7 @@ async function resourceDetail(request: Request, body: string, kind: "cameras" | 
     cameras: { scope: "cameras.read" as const, table: "digital_observer_camera_sources", operation: "cameras.read",
       select: "id,observer_site_id,display_name,location_label,status,health_status,source_mode,last_health_check_at,last_seen_at,metadata,created_at,updated_at" },
     events: { scope: "events.read" as const, table: "observer_intelligence_signals", operation: "events.read",
-      select: "id,observer_site_id,camera_source_id,signal_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,created_at,reviewed_at,resolved_at" },
+      select: "id,observer_site_id,camera_id,signal_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,created_at,reviewed_at,resolved_at" },
     incidents: { scope: "incidents.read" as const, table: "observer_correlated_events", operation: "incidents.read",
       select: "id,observer_site_id,status,severity,confidence,title,summary,opened_at,last_activity_at,closed_at,primary_camera_source_id,involved_camera_ids,related_event_ids,timeline_summary,current_risk_score,current_risk_band,current_decision,current_verification_status,verification_classification,verification_confidence,final_decision" }
   }[kind];

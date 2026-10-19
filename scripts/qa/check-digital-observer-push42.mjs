@@ -87,6 +87,8 @@ for (const required of ["hashEnterpriseCredential", "digital_observer_service_ac
   "digital_observer_external_api_request_receipts", "record_digital_observer_external_api_usage",
   "completeExternalApiReceipt", "response_status"]) assert(service.includes(required));
 assert(route.includes("EXTERNAL_API_IDEMPOTENT_REPLAY"));
+assert(route.includes('.select("id,observer_site_id,camera_id,signal_type'));
+assert(route.includes('.eq("camera_id", input.camera_id)'));
 assert(route.includes("external_action_execution: false"));
 assert(route.includes("identity_or_movement_inference_is_certain: false"));
 assert(route.includes("universal_compatibility_claimed: false"));
