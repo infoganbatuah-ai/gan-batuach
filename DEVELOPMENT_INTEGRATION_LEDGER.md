@@ -1,11 +1,16 @@
 # Canonical Development Integration Ledger
 
-2026-10-20 PUSH 44 Personal Team QA continuation on existing draft PR #232:
+2026-10-20 PUSH 44 Personal Team QA continuation: PR #232 exact head
+`afc3c71b3021015711b426c5d8db0ae988986148` passed all nine checks and
+merged with source ancestry into `integration/development` at
+`b6c4a9c923b5bea8dc3edb103e0427235edc45b3`. No migration was added.
+The scoped source work was:
 source code commit `ef5f6930` adds a separate signed no-APNs QA configuration
 without changing canonical Debug/Release Push. The owner's iPhone 13 Pro on
 iOS 27.0.1 installed and launched `Digital Observer QA`; the owner confirmed
 the bundled offline-safe Hebrew QA screen. This is real-device installation/UI
-proof only. Authenticated Product, cellular playback and real Push remain
+proof only; the owner also confirmed that the access and notifications QA tabs
+switch content. Authenticated Product, cellular playback and real Push remain
 blocked by the absent approved HTTPS app/media path and Personal Team APNs
 capability. PUSH 44 stays PARTIAL / NOT DONE; no migration, main or Production
 change. Earlier signing failure below is preserved as historical evidence.

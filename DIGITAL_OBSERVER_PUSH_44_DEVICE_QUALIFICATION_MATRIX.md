@@ -25,6 +25,8 @@ CoreDevice confirmed installation, launch and a live app process. The QA app
 has no APNs entitlement, remote server URL or native Push registration. This
 does **not** prove authenticated Digital Observer UI, remote playback or real
 Push. Previous signing and simulator rows below are historical snapshots.
+The owner also confirmed that tapping `גישה` and `התראות` changes the bundled
+QA content; this is basic offline-shell navigation, not Product navigation.
 
 | Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
 |---|---|---|---|---|---|---|---|

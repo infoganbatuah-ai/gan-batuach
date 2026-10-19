@@ -11,6 +11,8 @@ developer identity, CoreDevice launched the app and the process remained
 running. The owner confirmed that the Hebrew `Digital Observer QA` screen and
 its `מצב / גישה / התראות` tabs actually appeared. This is real-device
 **installation and offline-safe QA UI proof**, not authenticated Product UI.
+The owner subsequently confirmed both `גישה` and `התראות` switch the bundled
+QA content when tapped; no authenticated Product navigation is inferred.
 
 The effective app signature and embedded provisioning profile contain no
 `aps-environment`; the QA bundle omits native Push registration and the
