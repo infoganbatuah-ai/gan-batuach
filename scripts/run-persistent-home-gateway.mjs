@@ -10,6 +10,7 @@ import { createContinuousMonitoringLifecycle } from "../services/video-gateway/c
 import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner-lock.mjs";
 import { connectorRuntimeIdentity, createInstallationId, validateConnectorConfigSnapshot } from "../services/video-gateway/edge-runtime-contract.mjs";
 import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret-store-sync.mjs";
+import { resolveHomeTelemetryProfile } from "../services/video-gateway/home-telemetry-profile.mjs";
 import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
 import { connectorHeartbeatHealth, connectorSourceRecoveryRequired, retainVerifiedChannels } from "../services/video-gateway/connector-health-recovery.mjs";
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
@@ -93,8 +94,11 @@ const managedIdentityProfileRoot = edgeDeviceType === "SOFTWARE_CONNECTOR"
 const homeQaIdentityDir = join(homedir(), "Library/Application Support/Digital Observer",
   `${managedIdentityProfileRoot}/ota/home-qa-device-secrets`);
 const configuredIdentityDir = process.env.OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR || "";
-const deviceIdentitySecretDir = configuredIdentityDir || existsSync(homeQaIdentityDir)
-  ? (configuredIdentityDir || homeQaIdentityDir) : "";
+const telemetryProfile = resolveHomeTelemetryProfile({ deviceType: edgeDeviceType, legacyStore: gatewayStore,
+  homeQaIdentityDir, configuredIdentityDir, profile: process.env.OBSERVER_EDGE_TELEMETRY_PROFILE || "",
+  authorizationFile: process.env.OBSERVER_EDGE_PRODUCTION_AUTHORIZATION_FILE || "",
+  connectorCloudUrl: edgeDeviceType === "SOFTWARE_CONNECTOR" ? process.env.OBSERVER_CONNECTOR_CLOUD_URL || "" : "" });
+const deviceIdentitySecretDir = telemetryProfile.identityDir;
 let identityStore = null;
 if (deviceIdentitySecretDir) {
   const expected = realpathSync(homeQaIdentityDir);
