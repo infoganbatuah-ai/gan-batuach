@@ -7,7 +7,7 @@ import { Network } from "@capacitor/network";
 import { Preferences } from "@capacitor/preferences";
 import { PushNotifications, type PushNotificationSchema } from "@capacitor/push-notifications";
 import { useEffect, useState } from "react";
-import { mobileNotificationPreview, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
+import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
@@ -110,6 +110,8 @@ export function ObserverMobileRuntime() {
     };
 
     const bootstrap = async () => {
+      // Public sign-in and recovery routes must not redirect on an expected 401.
+      if (!mobileRuntimeRequiresSession(window.location.pathname)) return;
       try {
         const response = await fetch("/api/digital-observer/mobile/runtime", { credentials: "same-origin", cache: "no-store" });
         if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
@@ -129,7 +131,8 @@ export function ObserverMobileRuntime() {
       } catch (error) {
         await enqueue("runtime_revalidate");
         if (!disposed) setStale(true);
-        if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED") {
+        if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
+          && mobileRuntimeRequiresSession(window.location.pathname)) {
           window.location.assign(`/digital-observer/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         }
       }

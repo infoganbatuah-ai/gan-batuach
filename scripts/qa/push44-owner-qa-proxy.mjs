@@ -1,9 +1,11 @@
 import { createServer, request as requestOrigin } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { readFileSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const origin = "http://127.0.0.1:3000";
+// QA must never proxy the canonical integration preview on port 3000.
+const origin = "http://127.0.0.1:3001";
 const listenHost = "127.0.0.1";
 const listenPort = 31744;
 const maxDurationMs = 30 * 60_000;
@@ -62,19 +64,20 @@ export function safeQaRedirect(rawLocation, incomingHost) {
   if (!rawLocation) return null;
   let redirect;
   try { redirect = new URL(rawLocation, `https://${incomingHost}`); } catch { return null; }
-  const localOrigin = ["localhost:3000", "127.0.0.1:3000"].includes(redirect.host);
+  const localOrigin = ["localhost:3001", "127.0.0.1:3001"].includes(redirect.host);
   if (redirect.protocol !== "https:" && !(localOrigin && redirect.protocol === "http:")) return null;
   if (redirect.host !== incomingHost && !localOrigin) return null;
   const destination = `${redirect.pathname}${redirect.search}`;
   return allowedQaRequest("GET", destination) ? destination : null;
 }
 
-export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, qaHost } = {}) {
+export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, qaHost, expiresAt } = {}) {
   if (!validToken(ownerToken)) throw new Error("PUSH44 QA requires a 256-bit temporary owner token");
   if (typeof qaHost !== "string" || !/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(qaHost)) {
     throw new Error("PUSH44 QA requires one exact HTTPS hostname");
   }
   const started = now();
+  const deadline = Math.min(started + maxDurationMs, expiresAt ?? started + maxDurationMs);
   let requests = 0;
   let responseBytes = 0;
   let minuteStart = started;
@@ -97,13 +100,13 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
       let finished = false;
       outgoing.on("finish", () => {
         finished = true;
-        console.log(`qa_request route=${route} method=${incoming.method} status=${outgoing.statusCode} origin_header=${incoming.headers.origin ? "present" : "absent"} duration_ms=${now() - current}`);
+        console.log(`qa_request route=${route} method=${incoming.method} status=${outgoing.statusCode} internal_path=${route === "next-internal" ? path : "none"} origin_header=${incoming.headers.origin ? "present" : "absent"} duration_ms=${now() - current}`);
       });
       outgoing.on("close", () => {
         if (!finished) console.log(`qa_request route=${route} method=${incoming.method} status=incomplete origin_header=${incoming.headers.origin ? "present" : "absent"} duration_ms=${now() - current}`);
       });
     }
-    if (current - started >= maxDurationMs) return void outgoing.writeHead(410).end();
+    if (current >= deadline) return void outgoing.writeHead(410).end();
     if (current - minuteStart >= 60_000) { minuteStart = current; minuteRequests = 0; }
     requests += 1;
     minuteRequests += 1;
@@ -180,11 +183,23 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const qaHost = process.env.PUSH44_QA_HOST;
   if (!tokenFile || !qaHost) throw new Error("PUSH44 QA token file and exact hostname are required");
   if (statSync(tokenFile).mode & 0o077) throw new Error("QA token file must be owner-readable only");
-  const server = createQaProxy({ ownerToken: readFileSync(tokenFile, "utf8").trim(), qaHost });
+  const expectedSha = process.env.PUSH44_QA_EXPECTED_SHA;
+  if (!expectedSha || !/^[a-f0-9]{8,40}$/.test(expectedSha)) throw new Error("Expected QA source SHA is required");
+  const sourceSha = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  if (!sourceSha.startsWith(expectedSha)) throw new Error("QA source commit differs from expected");
+  const login = await fetch(`${origin}/digital-observer/login`, { signal: AbortSignal.timeout(5000) });
+  if (!login.ok || !(await login.text()).includes("תצפיתן דיגיטלי")) {
+    throw new Error("QA origin is not serving the Digital Observer Product");
+  }
+  const expiresAt = Number(process.env.PUSH44_QA_HARD_DEADLINE_MS);
+  if (!Number.isSafeInteger(expiresAt) || expiresAt <= Date.now() || expiresAt - Date.now() > maxDurationMs) {
+    throw new Error("QA requires a valid deadline within 30 minutes");
+  }
+  const server = createQaProxy({ ownerToken: readFileSync(tokenFile, "utf8").trim(), qaHost, expiresAt });
   server.listen(listenPort, listenHost, () => {
-    console.log(`PUSH44 owner QA route filter active on ${listenHost}:${listenPort}; expires in 30 minutes; no media routes`);
+    console.log(`PUSH44 owner QA route filter active on ${listenHost}:${listenPort}; fixed deadline; no media routes`);
   });
-  const expiry = setTimeout(() => { server.close(); server.closeAllConnections(); }, maxDurationMs);
+  const expiry = setTimeout(() => { server.close(); server.closeAllConnections(); }, expiresAt - Date.now());
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
     clearTimeout(expiry);
     server.close();

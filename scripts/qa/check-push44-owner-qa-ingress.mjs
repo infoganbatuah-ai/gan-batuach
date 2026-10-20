@@ -27,15 +27,15 @@ for (const [method, path] of [
 
 assert.equal(allowedQaRequest("POST", "/api/digital-observer/auth/login"), true);
 assert.equal(allowedQaRequest("POST", "/api/auth/logout"), true);
-assert.equal(safeQaRedirect("https://localhost:3000/digital-observer/dashboard", "owner-qa.trycloudflare.com"), "/digital-observer/dashboard");
-assert.equal(safeQaRedirect("http://127.0.0.1:3000/digital-observer/login?error=invalid_login", "owner-qa.trycloudflare.com"), "/digital-observer/login?error=invalid_login");
+assert.equal(safeQaRedirect("https://localhost:3001/digital-observer/dashboard", "owner-qa.trycloudflare.com"), "/digital-observer/dashboard");
+assert.equal(safeQaRedirect("http://127.0.0.1:3001/digital-observer/login?error=invalid_login", "owner-qa.trycloudflare.com"), "/digital-observer/login?error=invalid_login");
 assert.equal(safeQaRedirect("https://evil.example/digital-observer/dashboard", "owner-qa.trycloudflare.com"), null);
 assert.equal(safeQaRedirect("http://owner-qa.trycloudflare.com/digital-observer/dashboard", "owner-qa.trycloudflare.com"), null);
-assert.equal(safeQaRedirect("https://localhost:3000/api/health", "owner-qa.trycloudflare.com"), null);
+assert.equal(safeQaRedirect("https://localhost:3001/api/health", "owner-qa.trycloudflare.com"), null);
 
 const upstream = createServer((_request, response) => {
   if (_request.url === "/digital-observer/redirect-test") {
-    response.writeHead(303, { location: "https://localhost:3000/digital-observer/dashboard", "set-cookie": "qa_test=1; HttpOnly; SameSite=Lax" });
+    response.writeHead(303, { location: "https://localhost:3001/digital-observer/dashboard", "set-cookie": "qa_test=1; HttpOnly; SameSite=Lax" });
     response.end();
     return;
   }

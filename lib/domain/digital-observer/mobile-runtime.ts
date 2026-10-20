@@ -2,6 +2,30 @@ import { z } from "zod";
 
 export const DIGITAL_OBSERVER_MOBILE_RUNTIME_CONTRACT = "digital-observer-mobile-runtime-v1";
 
+const publicObserverPaths = new Set([
+  "/digital-observer",
+  "/digital-observer/login",
+  "/digital-observer/register",
+  "/digital-observer/forgot-password",
+  "/digital-observer/set-password",
+  "/digital-observer/verify",
+  "/digital-observer/pricing",
+  "/digital-observer/privacy",
+  "/digital-observer/trust",
+  "/digital-observer/request-demo",
+  "/digital-observer/start",
+  "/digital-observer/home",
+  "/digital-observer/business",
+  "/digital-observer/office",
+  "/digital-observer/warehouse",
+  "/digital-observer/store",
+  "/digital-observer/parking_lot"
+]);
+
+export function mobileRuntimeRequiresSession(pathname: string) {
+  return pathname.startsWith("/digital-observer/") && !publicObserverPaths.has(pathname);
+}
+
 export const mobileLinkKinds = ["camera", "event", "incident", "evidence", "investigation", "notification"] as const;
 export type MobileLinkKind = (typeof mobileLinkKinds)[number];
 
