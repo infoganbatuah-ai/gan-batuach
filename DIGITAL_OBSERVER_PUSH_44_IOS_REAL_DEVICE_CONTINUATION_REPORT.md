@@ -1,5 +1,62 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Protected HTTPS retrial after account verification — 2026-10-20T21:27–21:39Z
+
+Read-only Cloudflare account inspection found the existing domain on Free,
+Workers Free active, R2 Paid already subscribed, billable usage **$0.00** for
+the observed Oct 13–20 cycle interval and projected cycle **$0.00** on that
+dashboard, and **1/1,000** included named Tunnels in use. Zero Trust had not
+been onboarded. No new plan, paid feature, account, DNS record or named Tunnel
+was activated. Cloudflare documents protected Quick Tunnels as temporary and
+accountless; the existing QA filter bounded this trial to 30 minutes,
+1,200 requests, 120/minute and 80 MiB total response data, with no media or
+Supabase route. This establishes no new fixed supplier activation, **not** an
+invoice-verified all-in project cost or a dependable QA service.
+
+The owner repeated the OTP challenge on the physical iPhone in Safari. With
+`cloudflared` **2026.10.1**, the owner observed Cloudflare HTTP 502, Ray
+`a4db2097bb1c9428`, and the process again exited in
+`proxy.(*Proxy).proxyHTTPRequest` with `assignment to entry in nil map`.
+The isolated Development backend was healthy; the exact PR #234 feature
+runtime at `99a4e68ab734bbb3433a688741fb2bb1fedacb04` returned login
+HTTP 200 and a referenced JavaScript asset HTTP 200 for the exact QA Origin.
+The loopback filter returned 404 for the Supabase path, while anonymous
+external access redirected to Cloudflare authentication. No Product login
+request from the failed iPhone attempt completed at the origin.
+
+A **temporary, checksum-verified** official `cloudflared` 2026.10.2 binary
+was then tried without updating the installed binary or the existing home
+Gateway Tunnel. The owner completed a second Safari OTP challenge and reported
+plain `Bad Request` on a black screen, before any completed Product-origin
+request. This is not Product authentication proof. Cloudflare's protected
+Quick Tunnel session-expiry issue remains open; 2026.10.2 was not established
+as a working fix in this environment. No unprotected tunnel was attempted.
+The temporary connector, QA filter and feature runtime were stopped; ports
+3001 and 31744 had no listeners and the public hostname returned HTTP 530.
+
+The connected iPhone 13 Pro remained visible to CoreDevice. A planned signed
+QA rebuild for the first trial was **not** completed: Xcode rejected the
+CoreDevice identifier as an Xcode destination (its build destination uses a
+different device ID). No new signed build was installed, and no app or cellular
+Product claim is made for this retrial. The existing offline-safe QA app and
+canonical APNs-capable Release configuration were not changed. PR #234 remains
+draft, exact-head CI **9/9 PASS**, with no migration or Product source change
+from this retrial. PUSH 44 stays **PARTIAL / CANONICAL NOT DONE**.
+
+The next secure option is a **separate** named Tunnel plus an owner-only
+Cloudflare Access application, never the existing home Gateway Tunnel.
+Cloudflare Zero Trust Free onboarding requires selecting a subscription and
+confirming payment details even though its documentation says the Free plan is
+not charged. That new account/security configuration and any applicable terms
+need an explicit at-action owner decision before activation. No media path is
+included; real remote video requires a separate compliant design and proof.
+
+Sources: [Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/),
+[protected Quick Tunnel](https://developers.cloudflare.com/changelog/post/2026-10-02-protected-quick-tunnels/),
+[Cloudflare Zero Trust onboarding](https://developers.cloudflare.com/learning-paths/cybersafe/account-creation/create-zero-trust-org/),
+[included Tunnel capacity](https://developers.cloudflare.com/tunnel/features/tunnels-for-platforms/),
+[open session issue](https://github.com/cloudflare/cloudflared/issues/1752).
+
 ## Local-only requalification — 2026-10-20T11:46Z
 
 On draft PR #234 head `be875d1805f6283bef1956675d42b8b677d6a16e`,

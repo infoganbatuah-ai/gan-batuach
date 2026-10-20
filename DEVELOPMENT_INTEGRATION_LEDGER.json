@@ -11775,6 +11775,22 @@
         "canonicalStatus": "PARTIAL_NOT_DONE",
         "productionChanged": false
       },
+      "protectedHttpsRetrial": {
+        "date": "2026-10-20T21:27Z",
+        "sourceBranch": "codex/push44-secure-iphone-qa",
+        "sourceCommit": "99a4e68ab734bbb3433a688741fb2bb1fedacb04",
+        "pullRequest": 234,
+        "accountPreflight": "CLOUDFLARE_CURRENT_CYCLE_OBSERVED_AND_PROJECTED_BILLABLE_USAGE_USD_0; ONE_OF_1000_INCLUDED_TUNNELS; ZERO_TRUST_NOT_ONBOARDED; NO_NEW_FIXED_PLAN_ACTIVATED",
+        "iphoneSafari": "2026_10_1_OWNER_OTP_HTTP_502_RAY_A4DB2097BB1C9428_CLOUDFLARED_NIL_MAP_PANIC; 2026_10_2_OWNER_OTP_PLAIN_BAD_REQUEST_NO_PRODUCT_ORIGIN_PROOF",
+        "localVerification": "ISOLATED_DEVELOPMENT_BACKEND_HEALTHY; EXACT_FEATURE_LOGIN_AND_REAL_JS_ASSET_HTTP_200; RESTRICTED_SUPABASE_PATH_404; ANONYMOUS_HTTPS_AUTH_REDIRECT_302",
+        "nativeBuild": "NOT_COMPLETED_XCODE_DESTINATION_REJECTED_COREDEVICE_UUID; NO_NEW_INSTALL",
+        "rollback": "PASS_TEMPORARY_CONNECTOR_PROXY_AND_FEATURE_RUNTIME_STOPPED; PORTS_3001_31744_CLOSED; PUBLIC_HOST_HTTP_530",
+        "preservation": "PUSHED_REMOTE_DRAFT_PR_234_PENDING_INTEGRATION",
+        "migrationCount": 0,
+        "canonicalStatus": "PARTIAL_NOT_DONE",
+        "productionChanged": false,
+        "nextAction": "Owner decision on separate Zero Trust Free onboarding and named owner-only Access/Tunnel; no media path or PUSH 46."
+      },
       "owner": "PUSH 44 mobile qualification owner",
       "sourceBranch": "codex/push-44-ios-kingston-qualification",
       "sourceCommits": [

@@ -16,6 +16,24 @@ Scope: Development only; no store submission, provider activation or Production 
 
 ## Current matrix
 
+Retrial (2026-10-20T21:27–21:39Z): owner-only protected Quick Tunnel 2026.10.1
+again crashed after iPhone Safari OTP with a nil-map panic and HTTP 502
+(Ray `a4db2097bb1c9428`). Official checksum-verified 2026.10.2 stayed up
+but the owner's second Safari OTP ended in `Bad Request` before Product-origin
+proof. Exact PR #234 feature runtime login and JavaScript assets passed local
+HTTP 200; the restricted Supabase path returned 404 and anonymous HTTPS
+redirected to Cloudflare authentication. No authenticated Product UI, cellular
+app journey or media proof was obtained. The temporary ingress was shut down
+(ports closed; public HTTP 530). A signed QA rebuild was attempted but Xcode
+rejected the CoreDevice UUID as a build destination; no new install is claimed.
+PR #234 remains draft and PUSH 44 remains PARTIAL / NOT DONE.
+
+| Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
+|---|---|---|---|---|---|---|---|
+| Owner iPhone 13 Pro / Safari | iOS 27.0.1 | PR #234 `99a4e68a` local Development runtime | Temporary owner-only HTTPS; network type unverified | Cloudflare OTP to Product login, `cloudflared` 2026.10.1 | 2026-10-20 21:31 UTC | Owner-reported 502, Ray `a4db2097bb1c9428`; matching connector nil-map panic | BLOCKED — no completed Product request |
+| Owner iPhone 13 Pro / Safari | iOS 27.0.1 | PR #234 `99a4e68a` local Development runtime | Temporary owner-only HTTPS; network type unverified | Cloudflare OTP to Product login, `cloudflared` 2026.10.2 | 2026-10-20 | Owner-reported plain `Bad Request`; local origin login and JavaScript were 200; external Product request not proven | BLOCKED — Product UI/auth not reached |
+| Owner iPhone 13 Pro / QA app | iOS 27.0.1 | Existing offline-safe signed QA app | No new remote app install | Signed QA rebuild for new hostname | 2026-10-20 | Xcode build destination used CoreDevice UUID rather than Xcode device ID; build rejected before install | NOT RUN — existing app preserved |
+
 Follow-up diagnostic (2026-10-20): the owner's new iPhone Safari OTP attempt
 returned Cloudflare 502; `cloudflared` 2026.10.1 crashed with a nil-map panic
 before a completed Product request reached the QA filter. A separate exact

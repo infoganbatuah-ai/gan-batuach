@@ -1654,3 +1654,20 @@ tunnel was down (public 530) and loopback QA port closed. No migration, media,
 APNs, Production, main or PUSH 46 change. PUSH 44 remains PARTIAL / NOT DONE;
 PR #234 remains draft until stable owner-only ingress, iPhone proof and
 required CI gates pass.
+
+2026-10-20 protected HTTPS retrial for draft PR #234: Cloudflare dashboard
+read-only preflight showed observed and projected current-cycle billable usage
+$0.00, one of 1,000 included Tunnels, and Zero Trust not yet onboarded. A
+bounded, owner-email-protected Quick Tunnel using `cloudflared` 2026.10.1
+crashed after iPhone Safari OTP (502/Ray `a4db2097bb1c9428`, nil-map panic).
+A checksum-verified temporary 2026.10.2 binary avoided that observed crash
+but the owner reported `Bad Request` after OTP; neither trial reached a proven
+Product login. Exact branch head `99a4e68a` served local login and real JS
+assets with HTTP 200; isolated Development backend remained healthy and
+restricted Supabase route returned 404. The connector, filter and feature
+runtime were stopped; public hostname returned 530 and ports closed. A new
+signed QA build was not installed because Xcode rejected the CoreDevice UUID
+as its destination. No source/migration/Production change. PR #234 remains
+draft and pushed, 9/9 exact-head CI PASS; PUSH 44 remains PARTIAL / NOT DONE.
+Named Access would require separately authorized Zero Trust Free onboarding
+and owner-only policy; no such activation was performed.
