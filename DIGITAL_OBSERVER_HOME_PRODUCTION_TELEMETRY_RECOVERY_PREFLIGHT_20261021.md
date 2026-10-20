@@ -1,0 +1,41 @@
+# Home Production telemetry recovery — read-only preflight
+
+Date: 2026-10-21 Asia/Jerusalem. Scope: preparation and read-only verification only. **No device, Production database, Vercel, DVR, or media configuration was changed.** This extends `DIGITAL_OBSERVER_PUSH44_CAMERA_CONNECTIVITY_DIAGNOSTIC_20261021.md` without authorizing live repair.
+
+## Decision
+
+**Live repair readiness: NO.** Production enrollment and source identity continuity are verified, but the active QA credentials are incompatible with Production enrollment. A destination-only edit is unsafe and cannot be expected to work. The legacy credential material appears to exist locally and its hash exists in Production, but their cryptographic match and current refresh/API behavior have not been proven. A protected, restorable pre-change copy of both device profiles has not been verified. A separate owner instruction is required before any live cutover.
+
+## Read-only verification
+
+| Gate | Evidence | Result |
+| --- | --- | --- |
+| Production environment | Supabase project `gan-batuah`, ref `kuaywzvucllxjsxarogb`, was explicitly labelled `main PRODUCTION` in the owner account. Vercel project `gan-batuach` shows the current Production deployment from `main` commit `2da8f75abce610a9a979eecd752d7a6a1011641e` (Oct 11). | Verified identity of inspected Production services. |
+| Site/tenant/enrollments | Production has both expected `gateway_id`s, bound to site/tenant `cc1673b8-3eb0-4785-a12c-1fb88f425a41`, with status `delivered`, lifecycle `ACTIVE`, and no revocation. Enrollment IDs match the QA records. Gateway profile `PHYSICAL_GATEWAY`, config v1; Connector `SOFTWARE_CONNECTOR`, config v4. | PASS for records and declared binding, **not** for live authentication. |
+| Source identity continuity | Both Production and isolated PUSH38T QA contain 17 sources for the site: 16 DVR entries (10 assigned + 6 empty) and 1 RTSP source. Count and a deterministic sorted-ID set checksum match (`4405172b005a302a9726edd4736c6513`). No source recreation is indicated. | PASS for the current source-ID set. |
+| Production camera truth | Production source rows: 8 DVR `connected/healthy` but last seen Sep 22 (therefore stale), 2 DVR `offline/failed`, 6 empty DVR channels `disabled/unknown`, and 1 RTSP `offline/failed`. The owner Product UI consequently shows all 11 assigned sources offline. | Confirms stale/missing Production telemetry, not a DVR-wide physical outage. |
+| QA camera truth | QA has 10 DVR `connected/healthy`, 6 empty DVR channels `disabled/unknown`, and 1 RTSP `connected/healthy`, with recent QA heartbeat. Installed Gateway/Connector remain on QA loopback destination `https://127.0.0.1:3101`. | Confirms current reporting boundary. |
+| Authentication scheme | Production enrollments are `LEGACY_HMAC`, credential version 0, with no managed-device key rows for the current version. QA enrollments are `ED25519_V1`, version 1, each with an `ACTIVE` managed public credential. | **INCOMPATIBLE for destination-only redirection.** |
+| Legacy credential availability | Production has non-null legacy refresh-token hashes for both enrollments. The local Gateway Keychain has a legacy refresh-token item and historical Production cloud URL; the Connector's protected legacy store has a refresh-token item and historical Production cloud URL. Values were neither printed nor copied. | Presence only; equality, validity, and refresh behavior **unverified**. |
+| Production API/config | Deployed `main` cloud-discovery route uses the legacy device-token/HMAC contract and checks enrollment/site/allowlist. Vercel lists `VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET` and `VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS` as Production variables (values remained masked). This is source/configuration evidence, not a successful authenticated request. | Contract likely supports legacy identity; operational compatibility remains blocked. |
+| Current runtime guard | The installed PUSH38 Gateway launcher explicitly requires the managed identity's cloud URL to remain `https://127.0.0.1:3101`; it selects managed identity ahead of legacy Keychain data. | A one-field URL edit would fail startup or use wrong credentials. |
+
+## Minimal candidate repair — not executed
+
+Use a **single-writer, reversible runtime-profile cutover** for the existing Gateway and Connector. Preserve the QA managed identity unchanged in its protected store. If a private, non-logging cryptographic comparison proves the existing local legacy refresh token matches the Production enrollment hash, select the existing legacy Production credential profile and its historical HTTPS endpoint for device telemetry only; disable the QA reporting profile during the cutover. Keep DVR/IP endpoints, source IDs, relay configuration, and media routing unchanged. Do not copy QA credentials into Production. If the legacy credential match or refresh contract fails, stop and prepare an explicitly authorized Production re-enrollment for the existing device IDs/site without recreating cameras or sources. No alternate/parallel reporter should be started merely to make the dashboard appear healthy.
+
+The proposed profile switch is **not currently implementable as a URL-only setting** in the installed Gateway: the managed-identity guard is hard-coded to the QA ingress. An eligible implementation path must be separately reviewed for the exact installed package/version and rollback behavior before a live change. The Connector also requires a separate authenticated profile check.
+
+## Required pre-cutover restoration package (not created in this read-only task)
+
+1. Pin exact current launchd definitions, installed versions/builds, OTA known-good slots, current QA managed identity directories, legacy Keychain item inventory, Connector protected legacy store, DVR/RTSP source configuration identifiers, and QA journal positions. Keep any secret-bearing copies under an approved restricted, encrypted location with owner-only access; never in Git, chat, or PR logs. Verify integrity and ability to restore in an isolated check.
+2. Verify no active PUSH38 qualification or legal-hold/evidence operation would be invalidated by interruption. Freeze one device writer at a time; do not reset journals or recreate enrollments/sources.
+3. Before each authorized switch, require a compatible Production credential proof, exact Production API/runtime contract check, tenant/site/source binding check, a timebox, and a rollback operator. Record pre-change Production and QA last-seen values.
+4. After an authorized cutover, require fresh Production enrollment/health timestamps, 10 assigned DVR + 1 RTSP source updates with unchanged IDs and no duplicates, correct empty-channel handling, cross-tenant denial, and no false stale-health status. Independently verify one authorized real moving video playback with expiry/revocation and remote-client access; telemetry is not playback proof.
+5. On failed authentication, wrong mapping, relay regression, or absent fresh Production heartbeat by the agreed deadline: restore exact QA runtime profile and launchd configuration, verify QA 10/10 + 1/1 discovery and journal synchronization, and revert only any explicitly changed Production enrollment state using its recorded pre-change values. Preserve failure evidence.
+
+**Interruption estimate:** unknown until the exact profile-switch mechanism and discovery/heartbeat cadence are qualified. A restart/cutover can temporarily interrupt both reporting and media relay; do not promise zero downtime. **Rollback readiness:** BLOCKED because no protected restoration package or tested cutback exists. **Owner approval:** required at the live-write boundary. No main merge, Production deployment, service restart, credential rotation, or Production row write occurred.
+
+## Evidence classification
+
+Production enrollment/source queries were bounded `SELECT` statements in the owner's Supabase Production project; no credential value or verifier hash was displayed. Vercel deployment and variable-name inspection was read-only. QA database queries were bounded `SELECT`s. Local store checks reported only presence, mode, or non-secret destination host. This document contains no token, private key, camera password, raw stream URL, or media.
