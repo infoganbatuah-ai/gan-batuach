@@ -481,3 +481,56 @@ PUSH 45 legal gates remain closed: no child monitoring, biometrics/Re-ID,
 location tracking, external pilot or sensitive workflow was activated. All
 PUSH 38–45 history and outstanding proof obligations remain intact. There is no
 schema change; expected Development or Production migrations are zero.
+
+## 2026-10-21 owner-only named-tunnel QA continuation
+
+The owner approved a temporary, no-new-fixed-plan QA ingress for at most 30
+minutes, with a one-time private gate before the Product, bounded request/byte
+limits, and no media or public database routes. Cloudflare's existing Free
+account had one of 1,000 included Tunnels in use before creating this isolated
+QA Tunnel. Zero Trust onboarding and payment-card terms were not accepted.
+The QA hostname was `qa-iphone-p44-20261021.ganbatuach.com`, with a fixed
+shutdown deadline of 2026-10-20 22:29:38 UTC. The token and tunnel credentials
+were held outside Git; no value is included in this report.
+
+The initial iPhone black/white loading screen was traced to a concrete origin
+mix-up: the QA route filter forwarded to `127.0.0.1:3000`, the separate
+integration/development preview, while the scoped PUSH 44 feature Product
+ran on `127.0.0.1:3001`. This delivered mismatched Next.js Development/HMR
+assets. A separate native login-loop defect was found: the mobile runtime
+probed an authenticated endpoint even on the public login page and redirected
+an expected 401 back to login. Source fix `c93c7c51` isolates the QA upstream
+on port 3001, adds a fixed deadline and source guard, and skips protected
+bootstrap on public routes. The owner then confirmed the real Product login
+screen rendered in the installed iPhone QA app. The compiled local Product
+used isolated Development Supabase; a direct request to the session runtime
+returned 401 without authentication, and direct DB/media paths were denied.
+Anonymous public HTTPS returned 401 with verified TLS.
+
+This proves **login-screen rendering only**. The owner attempted iPhone login
+and received an invalid-credentials message, despite reporting that computer
+login succeeds. The computer URL was `https://gan-batuach.vercel.app`, whereas
+the phone used the isolated Development database. The working Product account
+email was observed in the owner's already-open Vercel settings page; a read-only
+Development Auth scan found no matching account among 24 local users. The
+separate Cloudflare-gate email was also absent but is not assumed to be the
+Product login.
+No Production credential was copied, no account was reset, and neither a
+password nor one-time code was collected. Successful
+Development Product authentication, dashboard navigation, cellular access and
+remote playback remain unproven. No video route, APNs, child monitoring, biometric
+feature, Production resource or PUSH 46 work was activated. The signed QA
+build remains Personal Team/no-APNs. The compiled runtime was built from the
+working tree immediately before commit `c93c7c51`; exact-head native build
+and authenticated iPhone proof remain open. PR #234 remains draft pending its
+required proof and exact-head CI. No migration was added.
+
+Rollback completed before the fixed deadline: the scoped route filter,
+`cloudflared` connector and feature Product runtime were stopped; the temporary
+QA Tunnel UUID was deleted after checking the target. The pre-existing home
+Gateway Tunnel and the canonical integration runtime were untouched. The
+former QA hostname returned Cloudflare 530 after shutdown and the temporary
+loopback ports closed. No further external QA can proceed without a new,
+bounded ingress preflight. An isolated Development-only owner identity must
+be provisioned through the authorized Development process before repeating
+Product sign-in; the working Vercel Product login is not a Development account.

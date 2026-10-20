@@ -135,6 +135,37 @@ has Developer Mode disabled with no Developer Disk Image mounted.
 
 ## Required real-device campaign
 
+2026-10-21 01:20 Asia/Jerusalem, bounded owner-only HTTPS QA: the owner
+confirmed that the installed PersonalTeamQA application on Daniel Sun Deri 2
+(iPhone 13 Pro, iOS 27.0.1) rendered the actual Digital Observer Product login
+screen. The signed native build and installation preceded source fix
+`c93c7c51`; the local compiled Product used the login-loop fix, which was
+subsequently committed and pushed. This is **REAL DEVICE PASS for Product
+login-screen rendering only**, not exact-head native-binary proof or
+authenticated Product access. The first ingress attempt had targeted the
+separate integration server on port 3000 rather than the isolated QA Product
+on port 3001. The route filter now targets port 3001; anonymous external HTTPS
+returns 401 with trusted TLS, and media/direct database routes remain denied.
+Temporary ingress was stopped and its QA Tunnel deleted before the
+2026-10-20 22:29:38 UTC deadline. Product authentication,
+cellular session access, remote camera playback and APNs receipt remain **NOT
+PROVEN**. The QA build has no APNs entitlement; Production and PUSH 46 are
+unchanged.
+The owner attempted iPhone Product login and reported "invalid credentials".
+Their working computer URL is `gan-batuach.vercel.app`, not the isolated
+Development Product. The working Product account's email was observed in the
+owner's already-open Vercel settings page; a read-only scan of isolated
+Development Auth found no account for that email among 24 local users. The
+separate Cloudflare-gate email also was absent, but is not assumed to be the
+Product login. This identifies an environment mismatch without assuming a
+wrong password. No Production credential was copied and no account was
+created or reset.
+
+| Device | OS | Build/source | Network | Test | Timestamp | Evidence | Result / limitation |
+|---|---|---|---|---|---|---|---|
+| Daniel Sun Deri 2 / iPhone 13 Pro | iOS 27.0.1 | PersonalTeamQA 1.0 (1); source fix `c93c7c51` after build | Temporary owner-only HTTPS; cellular not asserted | Actual Product login screen | 2026-10-21 01:20 Asia/Jerusalem | Owner visual confirmation; QA login/static HTTP 200, anonymous external 401 and trusted TLS | REAL DEVICE PASS — login rendering only; authentication/dashboard/remote playback unproven |
+| Daniel Sun Deri 2 / iPhone 13 Pro | iOS 27.0.1 | Same PersonalTeamQA build | Temporary owner-only HTTPS | Product email/password login | 2026-10-21 01:23 Asia/Jerusalem | Owner reports "invalid credentials"; computer URL is Vercel, and isolated Development lacks the working Product account email | BLOCKED — Development identity absent; dashboard not proven |
+
 The owner-approved campaign must record exact app SHA/build, OS version, model, notification permission state and network path for at least:
 
 - one supported current iPhone and one older supported iPhone;

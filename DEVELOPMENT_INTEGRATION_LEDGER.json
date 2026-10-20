@@ -11791,6 +11791,23 @@
         "productionChanged": false,
         "nextAction": "Owner decision on separate Zero Trust Free onboarding and named owner-only Access/Tunnel; no media path or PUSH 46."
       },
+      "boundedOwnerIphoneLoginRequalification": {
+        "date": "2026-10-21",
+        "sourceBranch": "codex/push44-secure-iphone-qa",
+        "sourceCommit": "c93c7c51",
+        "pullRequest": 234,
+        "preservation": "PUSHED_REMOTE_DRAFT_PR_234_PENDING_INTEGRATION",
+        "rootCause": "QA route filter forwarded to the different integration server on port 3000 instead of the isolated feature Product on port 3001; public mobile login also retried protected bootstrap on 401",
+        "remediation": "Fixed upstream, deadline and source guard; public login skips protected runtime bootstrap",
+        "realDeviceProof": "OWNER_CONFIRMED_PRODUCT_LOGIN_RENDERED_ON_IPHONE_13_PRO_IOS_27_0_1_ONLY",
+        "developmentAuthentication": "BLOCKED_WORKING_VERCEL_PRODUCT_IDENTITY_ABSENT_FROM_ISOLATED_DEVELOPMENT_AUTH_24_USERS_READ_ONLY_CHECK_NO_CREDENTIAL_COPIED_OR_RESET",
+        "validation": "TYPECHECK_BUILD_LINT_CI_BASELINE_AND_TARGETED_PUSH44_INGRESS_AND_MOBILE_TESTS_PASS; EXACT_HEAD_NATIVE_AND_PR_CI_PENDING",
+        "rollback": "PASS_SCOPED_FILTER_CONNECTOR_AND_FEATURE_RUNTIME_STOPPED_TEMPORARY_QA_TUNNEL_DELETED_BEFORE_DEADLINE_EXISTING_HOME_TUNNEL_PRESERVED",
+        "migrationCount": 0,
+        "releaseEligibility": "NOT_READY_PUSH44_CANONICAL_NOT_DONE_AUTHENTICATED_PRODUCT_CELLULAR_MEDIA_APNS_ANDROID_PROOF_OPEN",
+        "productionChanged": false,
+        "nextAction": "Provision authorized isolated Development-only owner identity without copying or resetting Vercel Product credentials; repeat bounded authenticated iPhone QA after ingress/cost preflight. Keep PR #234 draft pending exact-head CI and required proof; no media route, Production or PUSH 46."
+      },
       "owner": "PUSH 44 mobile qualification owner",
       "sourceBranch": "codex/push-44-ios-kingston-qualification",
       "sourceCommits": [

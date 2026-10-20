@@ -1671,3 +1671,23 @@ as its destination. No source/migration/Production change. PR #234 remains
 draft and pushed, 9/9 exact-head CI PASS; PUSH 44 remains PARTIAL / NOT DONE.
 Named Access would require separately authorized Zero Trust Free onboarding
 and owner-only policy; no such activation was performed.
+
+2026-10-21 bounded owner-only HTTPS iPhone requalification, draft PR #234:
+source fix `c93c7c51` is pushed to
+`codex/push44-secure-iphone-qa` and remains pending integration. The QA route
+filter had forwarded to the separate integration runtime on port 3000 instead
+of the isolated feature Product on port 3001, producing mismatched loading
+assets. Public mobile login also looped on an expected unauthenticated 401.
+The narrow upstream/public-route fix passed TypeScript, no-deploy build,
+canonical lint baseline and targeted mobile/ingress tests; exact-head native
+build and PR CI remain pending. The owner confirmed the actual Product login
+screen in the installed iPhone QA app, **not** authenticated dashboard access.
+The working computer login is in the Vercel Product environment; read-only
+Development Auth inspection found that Product identity absent among 24 local
+users, explaining the phone's invalid-credentials result without copying or
+resetting any Production credential. The scoped ingress, connector and feature
+runtime were stopped, and the temporary QA Tunnel deleted before its fixed
+deadline; the home Gateway Tunnel and canonical integration runtime were
+untouched. No media, APNs or migration was activated. Product authentication,
+cellular navigation, real playback and Android proof remain open. PUSH 44 is
+`PARTIAL / NOT DONE`; PR #234 stays draft, main/Production/PUSH 46 unchanged.
