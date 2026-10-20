@@ -31,8 +31,14 @@ stopped; the public URL returned HTTP 530 and loopback port 31744 refused
 connections. **This is transport/route proof only, not usable authenticated
 Product UI, cellular, media or Push proof.**
 
+A later loopback-only desktop Chrome diagnostic rendered the Hebrew login form
+through the same route filter with CSS/JavaScript HTTP 200. The local QA proxy
+was stopped again. That desktop result narrows but does not resolve the iOS/
+external-path loading failure and is **not** real-device Product proof.
+
 | Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
 |---|---|---|---|---|---|---|---|
+| Desktop Chrome diagnostic | macOS host | Development runtime `0a909795`; QA filter from `8eb27207` | Loopback only | Product login rendering through QA filter | 2026-10-20 | Browser accessibility snapshot showed heading, email/password and button; Next.js CSS/JS 200; no login attempted | LOCAL UI PASS only; iPhone and external HTTPS remain BLOCKED |
 | Owner iPhone 13 Pro / PersonalTeamQA | iOS 27.0.1 | baseline `0a909795`; signed QA build from scoped continuation branch | Temporary owner-only HTTPS; network type unverified | Cloudflare challenge, Product origin access, static asset delivery | 2026-10-20 | CoreDevice install/launch; owner reported challenge then persistent loading after refresh; Product GET 200 and real JavaScript asset 200 at origin/filter | REAL DEVICE PASS for HTTPS route only; authenticated Product UI BLOCKED |
 | Owner iPhone 13 Pro / Safari | iOS 27.0.1 | Development runtime `0a909795` | Temporary owner-only HTTPS; network type unverified | Access OTP and Product login route | 2026-10-20 | Owner confirmed Access flow; origin recorded login GET 200; persistent loading even after asset-filter correction | Browser route PASS; login UI/authentication BLOCKED |
 | Owner iPhone 13 Pro | iOS 27.0.1 | PersonalTeamQA | Cellular outside camera LAN | Real live/playback, expiry/revocation, cross-tenant denial | 2026-10-20 | No approved compliant media ingress; no media route exposed | BLOCKED / NOT RUN |

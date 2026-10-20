@@ -1627,6 +1627,8 @@ Signed Personal Team QA installed/launched on the owner's iPhone 13 Pro;
 Cloudflare owner OTP and Product-origin transport were reached. Both the app
 and Safari remained on a loading screen, so Product UI, Product login, cellular
 access and real video are **not proven**. No media path or APNs was activated.
+A later loopback-only Chrome diagnostic rendered the login form through the
+same route filter with CSS/JavaScript 200; this is not iPhone Product proof.
 The temporary tunnel/proxy were stopped and the offline-safe QA bundle was
 reinstalled. TypeScript, lint, build, domain 46/46, security 48/48, migration
 and release-contract gates passed; the feature remains pending integration

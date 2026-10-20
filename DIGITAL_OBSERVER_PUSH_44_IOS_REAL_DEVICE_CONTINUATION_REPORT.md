@@ -48,6 +48,15 @@ was not altered. The owner iPhone was returned to the offline-safe Personal
 Team QA build with no temporary server URL. **An authenticated Product journey
 is not claimed.** Safari transport access is not native-app Product proof.
 
+A follow-up **loopback-only desktop Chrome diagnostic** loaded the login page
+through the same QA route filter and rendered the Hebrew Product heading,
+email/password fields and login button. Next.js CSS/JavaScript requests
+returned HTTP 200. The development-only HMR WebSocket and a decorative asset
+returned 404 without blocking that desktop page. This narrows the observed
+failure to the external protected path or iOS-specific behavior; it does not
+identify a confirmed Cloudflare root cause, nor does desktop rendering count
+as iPhone Product proof. The loopback diagnostic proxy was stopped again.
+
 Validation at this continuation: signed PersonalTeamQA build/install/launch
 PASS; QA route and negative-path contract PASS; TypeScript PASS; canonical lint
 PASS; production build without deployment PASS; domain regression 46/46 PASS;
