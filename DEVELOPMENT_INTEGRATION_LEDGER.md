@@ -1635,3 +1635,22 @@ and release-contract gates passed; the feature remains pending integration
 and external Product proof, with PUSH 44 `PARTIAL / NOT DONE`. Main, Production and PUSH 46
 were untouched. The detailed negative evidence and next safe prerequisite are
 in `DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`.
+
+2026-10-20 HTTPS loading-failure diagnostic continuation of draft PR #234:
+`codex/push44-secure-iphone-qa` commit
+`b1f74d7593e0e272a48b95f55a3f75c41c65524e` is pushed remotely and
+pending integration. Owner iPhone Safari reported Cloudflare 502 at 01:00:45
+UTC; `cloudflared` 2026.10.1 crashed with a nil-map panic at that time. A
+separate real Next.js Development asset probe returned 403 with the external
+Origin and logged the missing `allowedDevOrigins` hostname. A narrow,
+Development-only exact-host setting, early-denial response headers and
+redacted opt-in route diagnostics were added. Local ingress contract PASS;
+TypeScript, canonical lint baseline, domain 46/46, security 48/48, migration
+256/256, release contract and PUSH 39–45 deterministic suites PASS. The source
+commit's exact-head CI passed 9/9; the local no-deploy build passed after
+granting Turbopack the required loopback compiler-port permission.
+Physical iPhone Product proof remains pending. The temporary
+tunnel was down (public 530) and loopback QA port closed. No migration, media,
+APNs, Production, main or PUSH 46 change. PUSH 44 remains PARTIAL / NOT DONE;
+PR #234 remains draft until stable owner-only ingress, iPhone proof and
+required CI gates pass.

@@ -26,6 +26,15 @@ route/status/timing diagnostics are opt-in; no URL, OTP or password is logged.
 The deterministic ingress checks cover these changes, but a repeat iPhone
 journey through a stable owner-only ingress remains required.
 
+Validation for the scoped source commit `b1f74d7593e0e272a48b95f55a3f75c41c65524e`:
+TypeScript PASS; canonical lint-baseline PASS with no regression; no-deploy
+Production build PASS; domain 46/46; security 48/48; 256 migration files;
+release contract PASS; PUSH 39–45 deterministic preservation PASS; QA ingress
+contract PASS; exact-head CI 9/9 PASS. The first local security and build
+attempts were denied a loopback test/compiler port by the sandbox and passed
+when run with the required local permission. These checks do not substitute
+for authenticated iPhone Product evidence.
+
 The temporary QA filter was stopped and its loopback port refused connections;
 the crashed public hostname returned HTTP 530. No new tunnel, DNS, Access
 policy, paid service, media route or Production path was activated. The

@@ -11759,6 +11759,20 @@
         "productionChanged": false,
         "nextAction": "Review a separately isolated owner-only named Access/Tunnel application, exact account plan and session behavior before any new bounded trial; establish a compliant separate media route before cellular video proof. Do not start PUSH 46."
       },
+      "httpsLoadingFailureDiagnostic": {
+        "date": "2026-10-20",
+        "sourceBranch": "codex/push44-secure-iphone-qa",
+        "sourceCommit": "b1f74d7593e0e272a48b95f55a3f75c41c65524e",
+        "preservation": "PUSHED_REMOTE_DRAFT_PR_234_PENDING_INTEGRATION",
+        "observed": "iPhone Safari Cloudflare 502 at 2026-10-20T01:00:45Z coincident with cloudflared 2026.10.1 nil-map panic; separate Next Development external-Origin asset 403 reproduced",
+        "remediation": "Exact configured Development-only allowedDevOrigins hostname; nonempty response headers on QA route filter denials; opt-in redacted route/status diagnostics",
+        "verification": "TYPECHECK_LINT_BASELINE_BUILD_NO_DEPLOY_DOMAIN_46_OF_46_SECURITY_48_OF_48_MIGRATIONS_256_RELEASE_CONTRACT_PUSH39_TO_45_DETERMINISTIC_AND_PUSH44_INGRESS_CONTRACT_PASS; SOURCE_COMMIT_B1F74D75_EXACT_HEAD_CI_9_OF_9_PASS; IPHONE_PRODUCT_REQUALIFICATION_NOT_RUN",
+        "rollback": "PASS_TEMPORARY_TUNNEL_STOPPED_PUBLIC_530_AND_LOCAL_QA_PORT_CLOSED",
+        "externalProof": "BLOCKED_PROTECTED_QUICK_TUNNEL_UNSTABLE; NAMED_ACCESS_PATH_REQUIRES_PLAN_AND_COST_VERIFICATION",
+        "migrationCount": 0,
+        "canonicalStatus": "PARTIAL_NOT_DONE",
+        "productionChanged": false
+      },
       "owner": "PUSH 44 mobile qualification owner",
       "sourceBranch": "codex/push-44-ios-kingston-qualification",
       "sourceCommits": [
