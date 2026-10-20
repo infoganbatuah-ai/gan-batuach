@@ -2,17 +2,25 @@
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
   "mobileRuntimeRecovery": {
     "observedOn": "2026-10-20",
-    "runtimeSha": "31db906863984a35ad48d492457afaef07cac421",
+    "runtimeSha": "0a90979504d20c8db0d45574421e6eaf89231fc7",
     "databaseReadiness": "PASS_256_OF_256",
     "simulator": "PASS_BASIC_LANDING_RENDER_ONLY",
     "device": "iPhone 13 Pro; iOS 27.0.1; Developer Mode enabled; paired; DDI ready",
-    "installation": "BLOCKED_SIGNING_IDENTITY_AND_TEAM",
-    "httpsQa": "OWNER_AUTHORIZATION_REQUIRED_PROPOSAL_ONLY",
-    "apns": "BLOCKED_CREDENTIAL_TOKEN_AND_SEND_APPROVAL",
-    "realRemotePlayback": "NOT_RUN",
-    "history": "Earlier mobile entries preserve prior observations; this receipt supersedes runtime/device-readiness facts only"
+    "installation": "PASS_SIGNED_PERSONAL_TEAM_QA_OWNER_IPHONE_13_PRO_NO_APNS",
+    "httpsQa": "PARTIAL_OWNER_APPROVED_TEMPORARY_EMAIL_OTP_PRODUCT_ORIGIN_REACHED_VISUAL_AND_AUTH_PROOF_BLOCKED_LOADING_SCREEN_INGRESS_STOPPED",
+    "apns": "BLOCKED_PERSONAL_TEAM_QA_NO_APNS_ENTITLEMENT_REAL_RECEIPT_OPEN",
+    "realRemotePlayback": "BLOCKED_NO_APPROVED_COMPLIANT_DEVELOPMENT_MEDIA_ROUTE",
+    "secureQaContinuation": {
+      "scope": "Owner-only temporary HTTPS application route; read-only Product paths and login/logout; no public Supabase or media",
+      "status": "PARTIAL_PRODUCT_ORIGIN_REACHED_AUTHENTICATED_UI_BLOCKED_OWNER_OBSERVED_PERSISTENT_LOADING_INGRESS_ROLLED_BACK",
+      "constraints": "30 minutes, 1200 requests, 120 requests/minute, 64 KiB/request, 80 MiB response cap; immediate process shutdown",
+      "cost": "Quick Tunnel published as free; incremental fixed cost $0; actual variable/account cost not invoice verified",
+      "media": "NOT_EXPOSED; Cloudflare public-hostname Tunnel video delivery not approved on this plan",
+      "evidence": "DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md and DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md"
+    },
+    "history": "Earlier mobile entries and failed qualification remain historical evidence; the scoped continuation updates current installation and HTTPS-route facts only"
   },
-  "updatedAt": "2026-10-20T00:40:00+03:00",
+  "updatedAt": "2026-10-20T03:22:00+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",

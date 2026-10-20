@@ -65,6 +65,7 @@ async function authorizeAndOpen(rawUrl: string) {
 
 export function ObserverMobileRuntime() {
   const [native] = useState(() => typeof window !== "undefined" && Capacitor.isNativePlatform());
+  const [pushAvailable] = useState(() => typeof window !== "undefined" && Capacitor.isPluginAvailable("PushNotifications"));
   const [online, setOnline] = useState(true);
   const [stale, setStale] = useState(false);
 
@@ -120,7 +121,7 @@ export function ObserverMobileRuntime() {
         }
         const pending = await readQueue();
         await writeQueue(pending.filter((item) => item.kind !== "runtime_revalidate"));
-        if (pending.some((item) => item.kind === "push_registration")) {
+        if (pushAvailable && pending.some((item) => item.kind === "push_registration")) {
           const permission = await PushNotifications.checkPermissions();
           if (permission.receive === "granted") await PushNotifications.register();
         }
@@ -153,6 +154,10 @@ export function ObserverMobileRuntime() {
     };
 
     const enablePush = async (event: Event) => {
+      if (!pushAvailable) {
+        emit("digital-observer:native-push-result", { ok: false, reason: "push_unavailable_in_qa" });
+        return;
+      }
       const requestedSite = (event as CustomEvent<{ siteId?: string }>).detail?.siteId;
       pendingPushSiteId = requestedSite && sites.some((site) => site.id === requestedSite) ? requestedSite : sites[0]?.id || "";
       try {
@@ -196,16 +201,18 @@ export function ObserverMobileRuntime() {
       const launch = await App.getLaunchUrl();
       if (launch?.url) void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
 
-      const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
-      const registrationError = await PushNotifications.addListener("registrationError", () => emit("digital-observer:native-push-result", { ok: false, reason: "provider_error" }));
-      const received = await PushNotifications.addListener("pushNotificationReceived", (notification: PushNotificationSchema) => {
-        emit("digital-observer:native-notification", mobileNotificationPreview(notification));
-      });
-      const action = await PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => {
-        const link = notification.data?.deep_link;
-        if (typeof link === "string") void authorizeAndOpen(link).catch(() => emit("digital-observer:mobile-link-denied"));
-      });
-      removers.push(() => registration.remove(), () => registrationError.remove(), () => received.remove(), () => action.remove());
+      if (pushAvailable) {
+        const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
+        const registrationError = await PushNotifications.addListener("registrationError", () => emit("digital-observer:native-push-result", { ok: false, reason: "provider_error" }));
+        const received = await PushNotifications.addListener("pushNotificationReceived", (notification: PushNotificationSchema) => {
+          emit("digital-observer:native-notification", mobileNotificationPreview(notification));
+        });
+        const action = await PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => {
+          const link = notification.data?.deep_link;
+          if (typeof link === "string") void authorizeAndOpen(link).catch(() => emit("digital-observer:mobile-link-denied"));
+        });
+        removers.push(() => registration.remove(), () => registrationError.remove(), () => received.remove(), () => action.remove());
+      }
       window.addEventListener("digital-observer:enable-native-push", enablePush);
     };
 
@@ -215,10 +222,13 @@ export function ObserverMobileRuntime() {
       window.removeEventListener("digital-observer:enable-native-push", enablePush);
       void Promise.all(removers.map((remove) => remove()));
     };
-  }, []);
+  }, [pushAvailable]);
 
-  if (!native || (online && !stale)) return null;
-  return <div className="do-mobile-runtime-banner" role="status" aria-live="polite">
-    {online ? "המידע מוצג ממצב שמור עד להשלמת אימות מחדש." : "אין חיבור רשת. מידע קיים עשוי להיות ישן ופעולות יסתנכרנו בבטחה לאחר החיבור."}
-  </div>;
+  if (!native) return null;
+  return <>
+    {!pushAvailable ? <div className="do-mobile-runtime-banner" role="status">Push כבוי בבניית QA זו. התראות בתוך המוצר עדיין זמינות.</div> : null}
+    {(!online || stale) ? <div className="do-mobile-runtime-banner" role="status" aria-live="polite">
+      {online ? "המידע מוצג ממצב שמור עד להשלמת אימות מחדש." : "אין חיבור רשת. מידע קיים עשוי להיות ישן ופעולות יסתנכרנו בבטחה לאחר החיבור."}
+    </div> : null}
+  </>;
 }

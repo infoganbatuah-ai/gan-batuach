@@ -180,7 +180,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"$CONFIGURATION\" = \"PersonalTeamQA\" ]; then\n  set -eu\n  qa_bundle=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n  cp \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\"\n  mkdir -p \"$qa_bundle/public\"\n  cp \"$SRCROOT/../qa-personal-team/index.html\" \"$qa_bundle/public/index.html\"\n  /usr/libexec/PlistBuddy -c 'Delete :CFBundleURLTypes' \"$qa_bundle/Info.plist\"\nfi\n";
+			shellScript = "if [ \"$CONFIGURATION\" = \"PersonalTeamQA\" ]; then\n  set -eu\n  qa_bundle=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n  cp \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\"\n  if [ -n \"${PUSH44_QA_HTTPS_URL:-}\" ]; then\n    node \"$SRCROOT/../../scripts/qa/prepare-push44-iphone-qa-config.mjs\" \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\" \"$PUSH44_QA_HTTPS_URL\"\n  fi\n  mkdir -p \"$qa_bundle/public\"\n  cp \"$SRCROOT/../qa-personal-team/index.html\" \"$qa_bundle/public/index.html\"\n  /usr/libexec/PlistBuddy -c 'Delete :CFBundleURLTypes' \"$qa_bundle/Info.plist\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

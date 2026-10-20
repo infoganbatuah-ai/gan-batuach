@@ -1,5 +1,83 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Owner-approved bounded HTTPS Development QA — 2026-10-20
+
+Baseline: `origin/integration/development@0a90979504d20c8db0d45574421e6eaf89231fc7`.
+The isolated Development backend passed 256/256 migration-history/schema
+readiness checks and served the exact baseline SHA with `LOCAL_SUPABASE`;
+Production fallback was false. A temporary Cloudflare Quick Tunnel with
+email-OTP allowlisting was connected only to a loopback QA route filter. That
+filter permits the Digital Observer Product pages, selected read-only APIs,
+login and logout; it rejects Supabase, Management, media, physical actions and
+other internal routes. The trial is capped at 30 minutes, 1,200 requests,
+120 requests/minute, 64 KiB/request and 80 MiB total response data. The
+external endpoint returned an authentication redirect to anonymous probes;
+its loopback filter returned 404 for prohibited routes. No database or media
+port was published. The temporary hostname and personal OTP are not retained
+in Git.
+
+The signed `PersonalTeamQA` iPhone build was installed and launched on the
+owner's iPhone 13 Pro / iOS 27.0.1. Its QA-only Capacitor configuration points
+to the temporary HTTPS Product URL and allows the exact Cloudflare OTP broker
+hosts. Its effective entitlements still omit `aps-environment`; canonical
+Debug/Release Push capability and source contracts remain unchanged. The QA
+route filter rewrites localhost-origin redirects to same-origin relative paths
+and marks Product cookies `Secure`; a dummy empty-login probe verified this
+without using credentials. The owner reached the Cloudflare challenge in the
+app, but the first OTP attempt ended in a plain `Bad Request` before any
+Product-origin request. Safari on the same iPhone passed the Cloudflare OTP
+challenge and the Product login route returned HTTP 200; the owner initially
+saw only a loading screen, not a confirmed login UI. Redirect tracing
+identified an additional broker host, which was added only to the QA build;
+the corrected signed app was reinstalled and launched. The app then reached
+`/digital-observer` at the Development origin, but also remained loading. We
+traced this second failure to the QA route filter rejecting valid
+percent-encoded Next.js static asset names. The filter was corrected to permit
+safe encodings while denying encoded slashes, dots, backslashes, percent
+escapes and internal routes; a real Turbopack JavaScript asset then returned
+HTTP 200 through the filter. After reloading and repeating Cloudflare OTP,
+the owner reported that both the QA app and Safari still displayed only a
+loading screen. Thus the bounded endpoint proved identity-gated transport and
+Product-origin reachability, **not** usable Product UI or authentication. The
+symptom is consistent with a currently open Cloudflare protected Quick Tunnel
+session/subresource issue, but that upstream cause is not confirmed here. No
+unprotected tunnel or broad fallback was attempted. The temporary tunnel and
+local route filter were stopped; the public URL returned HTTP 530 and loopback
+port 31744 refused connections. The previously existing Cloudflare service
+was not altered. The owner iPhone was returned to the offline-safe Personal
+Team QA build with no temporary server URL. **An authenticated Product journey
+is not claimed.** Safari transport access is not native-app Product proof.
+
+Validation at this continuation: signed PersonalTeamQA build/install/launch
+PASS; QA route and negative-path contract PASS; TypeScript PASS; canonical lint
+PASS; production build without deployment PASS; domain regression 46/46 PASS;
+security/isolation 48/48 PASS; migration safety 256/256 PASS; release-contract
+PASS with Production mutation false. No migration was added or applied. The
+temporary Product trial did not reach authenticated UI, so cumulative local
+full-stack functionality is not promoted from transport PASS to Product PASS.
+
+No camera video route was exposed. Cloudflare's public-hostname Tunnel terms
+do not authorize continuous video delivery on the current unverified plan;
+the existing Gateway/media configuration was not changed. Real remote camera
+playback, APNs receipt, full native release readiness and PUSH 46 zero-install
+proof remain open. Incremental fixed supplier charge for this temporary Quick
+Tunnel is $0 according to the provider's published feature description; the
+bounded trial's actual metered/account cost has not been invoice-verified.
+The protected supplier ledger remains the cost source of truth.
+
+Next safe prerequisite: verify a separate owner-only named Cloudflare Access
+application and isolated Tunnel, including its actual account plan, zero-cost
+headroom, session behavior and rollback, without modifying the existing home
+Gateway Tunnel. A new media ingress requires its own compliant transport and
+short-lived grants; the application Quick Tunnel must not carry video.
+
+Cloudflare references: [protected Quick Tunnels](https://developers.cloudflare.com/changelog/post/2026-10-02-protected-quick-tunnels/),
+[video delivery restrictions](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/delivering-videos-with-cloudflare/),
+and [open protected-session issue](https://github.com/cloudflare/cloudflared/issues/1752).
+No Production, main, real customer, paid provider, sensitive feature or PUSH 46
+action was authorized or performed. PUSH 44 remains **PARTIAL / CANONICAL NOT
+DONE**.
+
 ## Personal Team QA installation — 2026-10-20
 
 PR #232, branch `codex/push44-ios-personal-team-install`, code commit

@@ -16,6 +16,28 @@ Scope: Development only; no store submission, provider activation or Production 
 
 ## Current matrix
 
+Bounded owner-approved HTTPS QA update (2026-10-20), baseline
+`0a90979504d20c8db0d45574421e6eaf89231fc7`: isolated Development
+schema readiness **256/256 PASS**; temporary owner-email-OTP HTTPS ingress
+reached the Product origin from both iPhone Safari and the signed Personal Team
+QA app. A localhost redirect was corrected to a relative Product URL, the QA
+WebView was allowed to navigate to the verified Cloudflare OTP broker host,
+and safe percent-encoded Next.js static assets now pass the route filter.
+Anonymous access redirected to Cloudflare authentication and internal,
+Supabase, media and action routes remained blocked. After the asset-filter
+correction the owner repeated OTP and refresh in both app and Safari, but
+both remained on a loading screen. The temporary Tunnel and filter were then
+stopped; the public URL returned HTTP 530 and loopback port 31744 refused
+connections. **This is transport/route proof only, not usable authenticated
+Product UI, cellular, media or Push proof.**
+
+| Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
+|---|---|---|---|---|---|---|---|
+| Owner iPhone 13 Pro / PersonalTeamQA | iOS 27.0.1 | baseline `0a909795`; signed QA build from scoped continuation branch | Temporary owner-only HTTPS; network type unverified | Cloudflare challenge, Product origin access, static asset delivery | 2026-10-20 | CoreDevice install/launch; owner reported challenge then persistent loading after refresh; Product GET 200 and real JavaScript asset 200 at origin/filter | REAL DEVICE PASS for HTTPS route only; authenticated Product UI BLOCKED |
+| Owner iPhone 13 Pro / Safari | iOS 27.0.1 | Development runtime `0a909795` | Temporary owner-only HTTPS; network type unverified | Access OTP and Product login route | 2026-10-20 | Owner confirmed Access flow; origin recorded login GET 200; persistent loading even after asset-filter correction | Browser route PASS; login UI/authentication BLOCKED |
+| Owner iPhone 13 Pro | iOS 27.0.1 | PersonalTeamQA | Cellular outside camera LAN | Real live/playback, expiry/revocation, cross-tenant denial | 2026-10-20 | No approved compliant media ingress; no media route exposed | BLOCKED / NOT RUN |
+| Owner iPhone 13 Pro | iOS 27.0.1 | PersonalTeamQA | APNs Development | Real receipt and token lifecycle | 2026-10-20 | QA entitlements omit APNs by design | BLOCKED / NOT RUN |
+
 Personal Team QA update (2026-10-20), source code commit `ef5f6930`:
 **NATIVE BUILD PASS** for the signed `PersonalTeamQA` iPhone target,
 **REAL DEVICE PASS limited to installation, launch and bundled offline-safe QA
