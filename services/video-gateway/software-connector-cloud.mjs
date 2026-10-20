@@ -1,8 +1,8 @@
-import { randomBytes } from "node:crypto";
 import { resolve } from "node:path";
 import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
 import { createManagedDeviceProofHeaders } from "./managed-device-auth.mjs";
 import { nextManagedDeviceProofStateSync } from "./managed-device-runtime-session.mjs";
+import { refreshDeviceCredentials } from "./device-refresh.mjs";
 
 function cloudUrl(store) {
   const value = String(process.env.OBSERVER_CONNECTOR_CLOUD_URL || store.read("device_cloud_base_url") || "https://ganbatuach.com").replace(/\/$/, "");
@@ -37,7 +37,7 @@ export async function resolveSoftwareConnectorStartupConfiguration({
   }
 }
 
-export async function softwareConnectorDeviceSession(store = softwareConnectorSecretStore()) {
+export async function softwareConnectorDeviceSession(store = softwareConnectorSecretStore(), fetcher = fetch) {
   const gatewayId = store.read("device_gateway_id");
   const observerSiteId = store.read("device_observer_site_id");
   const privateKeyPkcs8 = store.read("device_private_key_pkcs8");
@@ -47,7 +47,7 @@ export async function softwareConnectorDeviceSession(store = softwareConnectorSe
     const path = "/api/digital-observer/gateway-enrollment";
     const proofState = nextManagedDeviceProofStateSync({ readSecret: account => store.read(account),
       writeSecret: (account, value) => store.write(account, value), prefix: "connector" });
-    const response = await fetch(`${cloudUrl(store)}${path}`, {
+    const response = await fetcher(`${cloudUrl(store)}${path}`, {
       method: "POST",
       headers: { "content-type": "application/json", ...createManagedDeviceProofHeaders({ method: "POST", pathname: path,
         body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, ...proofState }) },
@@ -63,18 +63,15 @@ export async function softwareConnectorDeviceSession(store = softwareConnectorSe
   }
   const refreshToken = store.read("device_refresh_token");
   if (!gatewayId || !observerSiteId || !refreshToken) throw new Error("CONNECTOR_DEVICE_IDENTITY_REQUIRED");
-  const nextRefreshToken = randomBytes(48).toString("base64url");
-  const response = await fetch(`${cloudUrl(store)}/api/digital-observer/gateway-enrollment`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken, next_refresh_token: nextRefreshToken }),
-    redirect: "error",
-    signal: AbortSignal.timeout(15_000)
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok || !body.data?.access_token) throw new Error(`CONNECTOR_DEVICE_REFRESH_FAILED_${response.status}`);
-  store.write("device_refresh_token", body.data.refresh_token || nextRefreshToken);
-  return { gatewayId, observerSiteId, accessToken: body.data.access_token, baseUrl: cloudUrl(store), authMode: "LEGACY_HMAC" };
+  // Keep the client-prepared next token in the protected store before sending
+  // a rotating request. A lost response must not strand the Connector on the
+  // old token after Production has already accepted the next token.
+  const credentials = await refreshDeviceCredentials({ gatewayId, cloudBaseUrl: cloudUrl(store),
+    readSecret: async account => store.read(account),
+    writeSecret: async (account, value) => store.write(account, value),
+    removeSecret: async account => store.remove(account),
+    fetcher: (url, init) => fetcher(url, { ...init, redirect: "error" }), timeoutMs: 15_000 });
+  return { gatewayId, observerSiteId, accessToken: credentials.accessToken, baseUrl: cloudUrl(store), authMode: "LEGACY_HMAC" };
 }
 
 export async function connectorCloudRequest(path, init = {}, store = softwareConnectorSecretStore()) {

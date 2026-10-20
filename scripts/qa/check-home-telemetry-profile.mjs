@@ -6,6 +6,7 @@ import { test } from "node:test";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { refreshDeviceCredentials } from "../../services/video-gateway/device-refresh.mjs";
 import { resolveHomeTelemetryProfile } from "../../services/video-gateway/home-telemetry-profile.mjs";
+import { softwareConnectorDeviceSession } from "../../services/video-gateway/software-connector-cloud.mjs";
 
 const gatewayId = "62df97e2-3c0b-427f-9108-bde029bc10e7";
 const siteId = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
@@ -103,5 +104,36 @@ test("isolated QA → synthetic legacy refresh/health → QA rollback preserves 
     report(f.select(), "QA_CONNECTED");
     assert.equal(health.size, 17);
     assert.equal([...health.values()].every(value => value.status === "QA_CONNECTED" && value.reporter === "QA"), true);
+  } finally { f.cleanup(); }
+});
+
+test("Connector recovers a lost legacy rotation response without changing QA identity", async () => {
+  const f = fixture("SOFTWARE_CONNECTOR");
+  try {
+    const qaBefore = f.select();
+    let accepted = f.legacy.read("device_refresh_token");
+    let requests = 0;
+    const fetcher = async (_url, init) => {
+      assert.equal(init.redirect, "error");
+      const request = JSON.parse(init.body);
+      assert.equal(request.action, "refresh");
+      assert.equal(request.gateway_id, gatewayId);
+      requests += 1;
+      if (request.refresh_token !== accepted) return { status: 401, ok: false, json: async () => ({}) };
+      accepted = request.next_refresh_token;
+      if (requests === 1) throw new Error("synthetic response lost after verifier rotation");
+      return { status: 200, ok: true, json: async () => ({ data: {
+        rotation_protocol: 2, refresh_token: accepted, access_token: "synthetic-connector-access-token"
+      } }) };
+    };
+    await assert.rejects(softwareConnectorDeviceSession(f.legacy, fetcher), /synthetic response lost/);
+    assert.ok(f.legacy.read("device_refresh_pending"), "prepared recovery must survive a lost response");
+    const recovered = await softwareConnectorDeviceSession(f.legacy, fetcher);
+    assert.equal(recovered.authMode, "LEGACY_HMAC");
+    assert.equal(recovered.accessToken, "synthetic-connector-access-token");
+    assert.equal(f.legacy.read("device_refresh_token"), accepted);
+    assert.equal(f.legacy.read("device_refresh_pending"), "");
+    assert.equal(requests, 3, "old verifier is rejected, prepared next verifier recovers");
+    assert.deepEqual(f.select(), qaBefore, "QA identity and destination stay unchanged");
   } finally { f.cleanup(); }
 });
