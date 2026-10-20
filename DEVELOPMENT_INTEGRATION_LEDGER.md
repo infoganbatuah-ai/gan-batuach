@@ -1616,3 +1616,19 @@ identities and no project team. HTTPS QA is a proposal awaiting authorization;
 physical installation, cellular media and APNs receipt are untested. Scoped
 evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
 failures and external proof obligations remain intact.
+
+2026-10-20 owner-approved bounded HTTPS iPhone QA continuation: branch
+`codex/push44-secure-iphone-qa` preserves implementation commit
+`8eb272071676bed0e97f0e12341c1153865b516d` remotely from
+`origin/integration/development@0a90979504d20c8db0d45574421e6eaf89231fc7`.
+The isolated Development schema passed 256/256 with no migration change.
+Signed Personal Team QA installed/launched on the owner's iPhone 13 Pro;
+Cloudflare owner OTP and Product-origin transport were reached. Both the app
+and Safari remained on a loading screen, so Product UI, Product login, cellular
+access and real video are **not proven**. No media path or APNs was activated.
+The temporary tunnel/proxy were stopped and the offline-safe QA bundle was
+reinstalled. TypeScript, lint, build, domain 46/46, security 48/48, migration
+and release-contract gates passed; the feature remains pending scoped PR and
+integration, with PUSH 44 `PARTIAL / NOT DONE`. Main, Production and PUSH 46
+were untouched. The detailed negative evidence and next safe prerequisite are
+in `DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`.
