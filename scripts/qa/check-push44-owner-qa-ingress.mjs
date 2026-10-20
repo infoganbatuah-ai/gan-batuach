@@ -59,6 +59,8 @@ try {
   for (const path of ["/api/health", "/rest/v1/profiles", "/api/digital-observer/event-clips/x/media"]) {
     const denied = await fetch(`${base}${path}`);
     assert.equal(denied.status, 404, path);
+    assert.equal(denied.headers.get("cache-control"), "no-store");
+    assert.equal(denied.headers.get("x-robots-tag"), "noindex, nofollow");
   }
   const mutation = await fetch(`${base}/api/digital-observer/camera-actions`, { method: "POST" });
   assert.equal(mutation.status, 404);
@@ -91,4 +93,20 @@ assert.match(runtime, /Capacitor\.isPluginAvailable\("PushNotifications"\)/);
 assert.match(runtime, /Push כבוי בבניית QA זו/);
 const xcode = readFileSync(new URL("../../ios/App/App.xcodeproj/project.pbxproj", import.meta.url), "utf8");
 assert.match(xcode, /PUSH44_QA_HTTPS_URL/);
+const configProbe = "const config = (await import('./next.config.ts')).default; console.log(JSON.stringify(config.allowedDevOrigins ?? []))";
+const devConfig = execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", configProbe], {
+  cwd: new URL("../../", import.meta.url),
+  env: { ...process.env, NODE_ENV: "development", PUSH44_QA_DEV_ORIGIN_HOST: "owner-qa.trycloudflare.com" }
+}).toString().trim();
+assert.deepEqual(JSON.parse(devConfig), ["owner-qa.trycloudflare.com"]);
+const prodConfig = execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", configProbe], {
+  cwd: new URL("../../", import.meta.url),
+  env: { ...process.env, NODE_ENV: "production", PUSH44_QA_DEV_ORIGIN_HOST: "owner-qa.trycloudflare.com" }
+}).toString().trim();
+assert.deepEqual(JSON.parse(prodConfig), []);
+assert.throws(() => execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", configProbe], {
+  cwd: new URL("../../", import.meta.url),
+  env: { ...process.env, NODE_ENV: "development", PUSH44_QA_DEV_ORIGIN_HOST: "*.trycloudflare.com" },
+  stdio: "pipe"
+}));
 console.log("PUSH 44 owner-only QA ingress contracts PASS: limited routes, bounded config, no media/API mutation/Production path, QA Push disabled");

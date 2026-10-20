@@ -58,6 +58,27 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin } = {}
   let minuteRequests = 0;
   const server = createServer((incoming, outgoing) => {
     const current = now();
+    // Protected Quick Tunnel copies its response headers into the origin map;
+    // an empty map can crash cloudflared on an early rejected request.
+    outgoing.setHeader("cache-control", "no-store");
+    outgoing.setHeader("x-robots-tag", "noindex, nofollow");
+    if (process.env.PUSH44_QA_DIAGNOSTICS === "1") {
+      let path = "/";
+      try { path = new URL(incoming.url ?? "/", origin).pathname; } catch { /* invalid URLs remain unclassified */ }
+      const route = path === "/digital-observer/login" ? "login-page"
+        : path.startsWith("/_next/static/") ? "next-static"
+        : path.startsWith("/_next/") ? "next-internal"
+        : path.startsWith("/api/digital-observer/") ? "observer-api"
+        : path.startsWith("/digital-observer") ? "product-page" : "other";
+      let finished = false;
+      outgoing.on("finish", () => {
+        finished = true;
+        console.log(`qa_request route=${route} method=${incoming.method} status=${outgoing.statusCode} origin_header=${incoming.headers.origin ? "present" : "absent"} duration_ms=${now() - current}`);
+      });
+      outgoing.on("close", () => {
+        if (!finished) console.log(`qa_request route=${route} method=${incoming.method} status=incomplete origin_header=${incoming.headers.origin ? "present" : "absent"} duration_ms=${now() - current}`);
+      });
+    }
     if (current - started >= maxDurationMs) return void outgoing.writeHead(410).end();
     if (current - minuteStart >= 60_000) { minuteStart = current; minuteRequests = 0; }
     requests += 1;

@@ -16,6 +16,21 @@ Scope: Development only; no store submission, provider activation or Production 
 
 ## Current matrix
 
+Follow-up diagnostic (2026-10-20): the owner's new iPhone Safari OTP attempt
+returned Cloudflare 502; `cloudflared` 2026.10.1 crashed with a nil-map panic
+before a completed Product request reached the QA filter. A separate exact
+Development asset probe with an external `Origin` reproduced HTTP 403 from
+Next.js. Narrow Development-only origin configuration and non-empty denial
+headers were added on the draft branch, with deterministic contract checks;
+they have **not** been requalified on the iPhone. The temporary ingress is off
+(public HTTP 530; local QA port closed). Product login/dashboard, cellular
+access, remote camera playback and real Push remain BLOCKED / NOT RUN.
+
+| Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / failure reason |
+|---|---|---|---|---|---|---|---|
+| Owner iPhone 13 Pro / Safari | iOS 27.0.1 | Development runtime `0a909795`; protected Quick Tunnel / draft PR #234 | Temporary HTTPS; network type unverified | Cloudflare OTP to Product login | 2026-10-20 01:00:45 UTC | Owner-reported 502, Ray `a4d4165f4f8a46d0`; connector nil-map panic; no completed Product request | BLOCKED — connector crashed; Product UI/auth not reached |
+| Development host | macOS | draft PR #234 | Loopback QA filter | External-Origin JavaScript asset | 2026-10-20 | Asset 403 with tunnel Origin, 200 without; Next.js logged `allowedDevOrigins` rejection | DETERMINISTIC reproduction; iPhone fix proof NOT RUN |
+
 Bounded owner-approved HTTPS QA update (2026-10-20), baseline
 `0a90979504d20c8db0d45574421e6eaf89231fc7`: isolated Development
 schema readiness **256/256 PASS**; temporary owner-email-OTP HTTPS ingress

@@ -1,5 +1,43 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## HTTPS loading-failure diagnostic continuation — 2026-10-20
+
+The owner repeated the Cloudflare email challenge in iPhone Safari on a new,
+bounded, protected Quick Tunnel and received **HTTP 502 Bad Gateway** at
+`2026-10-20 01:00:45 UTC` (Cloudflare Ray `a4d4165f4f8a46d0`). The local
+`cloudflared` 2026.10.1 process exited at the same time with a Go panic,
+`assignment to entry in nil map`, in `proxy.(*Proxy).proxyHTTPRequest`.
+The QA filter recorded no completed Product request from that attempt. This
+establishes a connector/response-handling failure for this 502, **not** a
+Digital Observer login or database failure. The exact trigger of the
+cloudflared panic has not been independently isolated. The existing home
+Gateway Tunnel was not changed.
+
+Separately, a reproducible Next.js Development-origin rejection was found:
+with the external `Origin` header, a real Turbopack JavaScript asset returned
+HTTP 403 and the Development server logged that the tunnel hostname was not in
+`allowedDevOrigins`; the same asset without that external `Origin` returned
+HTTP 200. This can prevent remote loading even if the tunnel remains healthy.
+The scoped fix permits only one explicitly configured QA hostname in
+Development; no Production origin is added. The QA filter now puts no-store /
+no-index headers on early denials as well as proxied responses, avoiding the
+observed empty-header condition that may trigger the connector bug. Redacted
+route/status/timing diagnostics are opt-in; no URL, OTP or password is logged.
+The deterministic ingress checks cover these changes, but a repeat iPhone
+journey through a stable owner-only ingress remains required.
+
+The temporary QA filter was stopped and its loopback port refused connections;
+the crashed public hostname returned HTTP 530. No new tunnel, DNS, Access
+policy, paid service, media route or Production path was activated. The
+protected Quick Tunnel is **not** considered a stable qualification path:
+Cloudflare also has an open report of protected-session expiry shortly after
+OTP ([upstream issue](https://github.com/cloudflare/cloudflared/issues/1752)).
+An isolated named Access path could be evaluated only after actual account-plan
+and cost headroom, owner-only policy, and rollback are verified; the existing
+home Gateway Tunnel must remain untouched. No authenticated Product dashboard,
+cellular Product access or remote video proof is claimed. PR #234 remains draft
+and PUSH 44 remains PARTIAL / CANONICAL NOT DONE.
+
 ## Owner-approved bounded HTTPS Development QA — 2026-10-20
 
 Baseline: `origin/integration/development@0a90979504d20c8db0d45574421e6eaf89231fc7`.
