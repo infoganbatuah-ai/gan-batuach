@@ -1,4 +1,6 @@
 import { createServer, request as requestOrigin } from "node:http";
+import { timingSafeEqual } from "node:crypto";
+import { readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const origin = "http://127.0.0.1:3000";
@@ -9,6 +11,23 @@ const maxRequests = 1_200;
 const maxRequestsPerMinute = 120;
 const maxRequestBytes = 64 * 1024;
 const maxResponseBytes = 80 * 1024 * 1024;
+const ownerCookieName = "push44_owner_qa";
+
+function validToken(token) {
+  return typeof token === "string" && /^[a-f0-9]{64}$/.test(token);
+}
+
+function matchesToken(candidate, expected) {
+  if (!validToken(candidate)) return false;
+  return timingSafeEqual(Buffer.from(candidate, "hex"), Buffer.from(expected, "hex"));
+}
+
+function authorizedCookie(rawCookie, expected) {
+  if (typeof rawCookie !== "string") return false;
+  const entries = rawCookie.split(";").map((part) => part.trim());
+  const tokens = entries.filter((part) => part.startsWith(`${ownerCookieName}=`));
+  return tokens.length === 1 && matchesToken(tokens[0].slice(ownerCookieName.length + 1), expected);
+}
 
 const readOnlyApi = new Set([
   "/api/development/version",
@@ -50,7 +69,11 @@ export function safeQaRedirect(rawLocation, incomingHost) {
   return allowedQaRequest("GET", destination) ? destination : null;
 }
 
-export function createQaProxy({ now = () => Date.now(), upstream = origin } = {}) {
+export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, qaHost } = {}) {
+  if (!validToken(ownerToken)) throw new Error("PUSH44 QA requires a 256-bit temporary owner token");
+  if (typeof qaHost !== "string" || !/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(qaHost)) {
+    throw new Error("PUSH44 QA requires one exact HTTPS hostname");
+  }
   const started = now();
   let requests = 0;
   let responseBytes = 0;
@@ -62,6 +85,7 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin } = {}
     // an empty map can crash cloudflared on an early rejected request.
     outgoing.setHeader("cache-control", "no-store");
     outgoing.setHeader("x-robots-tag", "noindex, nofollow");
+    outgoing.setHeader("referrer-policy", "no-referrer");
     if (process.env.PUSH44_QA_DIAGNOSTICS === "1") {
       let path = "/";
       try { path = new URL(incoming.url ?? "/", origin).pathname; } catch { /* invalid URLs remain unclassified */ }
@@ -86,6 +110,19 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin } = {}
     if (requests > maxRequests || minuteRequests > maxRequestsPerMinute || responseBytes >= maxResponseBytes) {
       return void outgoing.writeHead(429).end();
     }
+    if (incoming.headers.host !== qaHost) return void outgoing.writeHead(421).end();
+    if (incoming.method === "GET" && incoming.url?.startsWith("/__push44/bootstrap?")) {
+      let bootstrap;
+      try { bootstrap = new URL(incoming.url, `https://${qaHost}`); } catch { /* denied below */ }
+      if (bootstrap?.pathname !== "/__push44/bootstrap" || bootstrap.searchParams.size !== 1
+        || !matchesToken(bootstrap.searchParams.get("t"), ownerToken)) {
+        return void outgoing.writeHead(401).end();
+      }
+      outgoing.setHeader("set-cookie", `${ownerCookieName}=${ownerToken}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=1800`);
+      outgoing.setHeader("location", "/digital-observer/login");
+      return void outgoing.writeHead(303).end();
+    }
+    if (!authorizedCookie(incoming.headers.cookie, ownerToken)) return void outgoing.writeHead(401).end();
     if (!allowedQaRequest(incoming.method, incoming.url)) return void outgoing.writeHead(404).end();
     if (Number(incoming.headers["content-length"] ?? 0) > maxRequestBytes) return void outgoing.writeHead(413).end();
 
@@ -97,6 +134,12 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin } = {}
     delete headers["x-video-gateway-device-token"];
     delete headers["x-forwarded-host"];
     delete headers["x-forwarded-port"];
+    if (headers.cookie) {
+      const productCookies = headers.cookie.split(";").map((part) => part.trim())
+        .filter((part) => !part.startsWith(`${ownerCookieName}=`));
+      if (productCookies.length) headers.cookie = productCookies.join("; ");
+      else delete headers.cookie;
+    }
     const forwarded = requestOrigin(target, { method: incoming.method, headers, timeout: 15_000 }, (source) => {
       const safeHeaders = { ...source.headers, "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
       delete safeHeaders["transfer-encoding"];
@@ -133,13 +176,18 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin } = {}
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const server = createQaProxy();
+  const tokenFile = process.env.PUSH44_QA_TOKEN_FILE;
+  const qaHost = process.env.PUSH44_QA_HOST;
+  if (!tokenFile || !qaHost) throw new Error("PUSH44 QA token file and exact hostname are required");
+  if (statSync(tokenFile).mode & 0o077) throw new Error("QA token file must be owner-readable only");
+  const server = createQaProxy({ ownerToken: readFileSync(tokenFile, "utf8").trim(), qaHost });
   server.listen(listenPort, listenHost, () => {
     console.log(`PUSH44 owner QA route filter active on ${listenHost}:${listenPort}; expires in 30 minutes; no media routes`);
   });
-  const expiry = setTimeout(() => server.close(), maxDurationMs);
+  const expiry = setTimeout(() => { server.close(); server.closeAllConnections(); }, maxDurationMs);
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
     clearTimeout(expiry);
     server.close();
+    server.closeAllConnections();
   });
 }

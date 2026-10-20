@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
-import { createServer } from "node:http";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { createServer, request } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { allowedQaRequest, createQaProxy, safeQaRedirect } from "./push44-owner-qa-proxy.mjs";
@@ -43,26 +43,52 @@ const upstream = createServer((_request, response) => {
   response.end("isolated-qa-origin");
 });
 await new Promise((resolve) => upstream.listen(0, "127.0.0.1", resolve));
-const proxy = createQaProxy({ upstream: `http://127.0.0.1:${upstream.address().port}` });
+const qaHost = "qa-iphone-contract.ganbatuach.com";
+const ownerToken = "a".repeat(64);
+assert.throws(() => createQaProxy(), /temporary owner token/);
+const proxy = createQaProxy({ upstream: `http://127.0.0.1:${upstream.address().port}`, qaHost, ownerToken });
 await new Promise((resolve) => proxy.listen(0, "127.0.0.1", resolve));
-try {
-  const base = `http://127.0.0.1:${proxy.address().port}`;
-  const product = await fetch(`${base}/digital-observer/login`);
-  assert.equal(product.status, 200);
-  assert.equal(await product.text(), "isolated-qa-origin");
-  const redirect = await fetch(`${base}/digital-observer/redirect-test`, {
-    redirect: "manual", headers: { host: "owner-qa.trycloudflare.com" }
+function requestQa(path, { method = "GET", headers = {} } = {}) {
+  return new Promise((resolve, reject) => {
+    const call = request({ hostname: "127.0.0.1", port: proxy.address().port, path, method,
+      headers: { host: qaHost, ...headers } }, (response) => {
+      let body = "";
+      response.on("data", (chunk) => { body += chunk; });
+      response.on("end", () => resolve({ status: response.statusCode, headers: response.headers, body }));
+    });
+    call.on("error", reject);
+    call.end();
   });
+}
+try {
+  const unauthenticated = await requestQa("/digital-observer/login");
+  assert.equal(unauthenticated.status, 401);
+  const forgedHost = await requestQa("/digital-observer/login", { headers: { host: "attacker.example" } });
+  assert.equal(forgedHost.status, 421);
+  const badBootstrap = await requestQa(`/__push44/bootstrap?t=${"b".repeat(64)}`);
+  assert.equal(badBootstrap.status, 401);
+  const bootstrap = await requestQa(`/__push44/bootstrap?t=${ownerToken}`);
+  assert.equal(bootstrap.status, 303);
+  assert.equal(bootstrap.headers.location, "/digital-observer/login");
+  assert.match(bootstrap.headers["set-cookie"]?.[0] ?? "", /HttpOnly; Secure; SameSite=Lax/);
+  const ownerCookie = bootstrap.headers["set-cookie"]?.[0]?.split(";")[0];
+  const authorizedHeaders = { host: qaHost, cookie: ownerCookie };
+  const product = await requestQa("/digital-observer/login", { headers: authorizedHeaders });
+  assert.equal(product.status, 200);
+  assert.equal(product.body, "isolated-qa-origin");
+  const redirect = await requestQa("/digital-observer/redirect-test", { headers: authorizedHeaders });
   assert.equal(redirect.status, 303);
-  assert.equal(redirect.headers.get("location"), "/digital-observer/dashboard");
-  assert.match(redirect.headers.get("set-cookie") ?? "", /; Secure/);
+  assert.equal(redirect.headers.location, "/digital-observer/dashboard");
+  assert.match(redirect.headers["set-cookie"]?.[0] ?? "", /; Secure/);
   for (const path of ["/api/health", "/rest/v1/profiles", "/api/digital-observer/event-clips/x/media"]) {
-    const denied = await fetch(`${base}${path}`);
+    const denied = await requestQa(path, { headers: authorizedHeaders });
     assert.equal(denied.status, 404, path);
-    assert.equal(denied.headers.get("cache-control"), "no-store");
-    assert.equal(denied.headers.get("x-robots-tag"), "noindex, nofollow");
+    assert.equal(denied.headers["cache-control"], "no-store");
+    assert.equal(denied.headers["x-robots-tag"], "noindex, nofollow");
   }
-  const mutation = await fetch(`${base}/api/digital-observer/camera-actions`, { method: "POST" });
+  const mutation = await requestQa("/api/digital-observer/camera-actions", {
+    method: "POST", headers: authorizedHeaders
+  });
   assert.equal(mutation.status, 404);
 } finally {
   await new Promise((resolve) => proxy.close(resolve));
@@ -73,19 +99,22 @@ const temp = mkdtempSync(join(tmpdir(), "push44-qa-config-"));
 const source = new URL("../../ios/qa-personal-team/capacitor.config.json", import.meta.url);
 const target = join(temp, "capacitor.config.json");
 const prepare = new URL("./prepare-push44-iphone-qa-config.mjs", import.meta.url);
+const tokenFile = join(temp, "owner-token");
+writeFileSync(tokenFile, ownerToken, { mode: 0o600 });
+const prepareEnv = { ...process.env, PUSH44_QA_HOST: qaHost, PUSH44_QA_TOKEN_FILE: tokenFile };
 execFileSync(process.execPath, [prepare.pathname, source.pathname, target,
-  "https://owner-qa.trycloudflare.com/digital-observer"], { stdio: "pipe" });
+  `https://${qaHost}/digital-observer`], { stdio: "pipe", env: prepareEnv });
 const config = JSON.parse(readFileSync(target, "utf8"));
-assert.equal(config.server.url, "https://owner-qa.trycloudflare.com/digital-observer");
+assert.equal(config.server.url, `https://${qaHost}/__push44/bootstrap?t=${ownerToken}`);
 assert.equal(config.server.cleartext, false);
-assert.deepEqual(config.server.allowNavigation, [
-  "owner-qa.trycloudflare.com", "login.trycloudflare.com", "cf-cloudflare-quicktunnels.cloudflareaccess.com"
-]);
+assert.deepEqual(config.server.allowNavigation, [qaHost]);
 assert(!config.packageClassList.includes("PushNotificationsPlugin"));
-for (const invalid of ["http://owner-qa.trycloudflare.com/digital-observer",
-  "https://ganbatuach.com/digital-observer", "https://owner-qa.trycloudflare.com/",
-  "https://owner-qa.trycloudflare.com/digital-observer?token=bad"]) {
-  assert.throws(() => execFileSync(process.execPath, [prepare.pathname, source.pathname, target, invalid], { stdio: "pipe" }));
+for (const invalid of [`http://${qaHost}/digital-observer`,
+  "https://ganbatuach.com/digital-observer", `https://${qaHost}/`,
+  `https://${qaHost}/digital-observer?token=bad`]) {
+  assert.throws(() => execFileSync(process.execPath, [prepare.pathname, source.pathname, target, invalid], {
+    stdio: "pipe", env: prepareEnv
+  }));
 }
 
 const runtime = readFileSync(new URL("../../components/digital-observer/observer-mobile-runtime.tsx", import.meta.url), "utf8");
@@ -96,12 +125,12 @@ assert.match(xcode, /PUSH44_QA_HTTPS_URL/);
 const configProbe = "const config = (await import('./next.config.ts')).default; console.log(JSON.stringify(config.allowedDevOrigins ?? []))";
 const devConfig = execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", configProbe], {
   cwd: new URL("../../", import.meta.url),
-  env: { ...process.env, NODE_ENV: "development", PUSH44_QA_DEV_ORIGIN_HOST: "owner-qa.trycloudflare.com" }
+  env: { ...process.env, NODE_ENV: "development", PUSH44_QA_DEV_ORIGIN_HOST: qaHost }
 }).toString().trim();
-assert.deepEqual(JSON.parse(devConfig), ["owner-qa.trycloudflare.com"]);
+assert.deepEqual(JSON.parse(devConfig), [qaHost]);
 const prodConfig = execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", configProbe], {
   cwd: new URL("../../", import.meta.url),
-  env: { ...process.env, NODE_ENV: "production", PUSH44_QA_DEV_ORIGIN_HOST: "owner-qa.trycloudflare.com" }
+  env: { ...process.env, NODE_ENV: "production", PUSH44_QA_DEV_ORIGIN_HOST: qaHost }
 }).toString().trim();
 assert.deepEqual(JSON.parse(prodConfig), []);
 assert.throws(() => execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", configProbe], {
