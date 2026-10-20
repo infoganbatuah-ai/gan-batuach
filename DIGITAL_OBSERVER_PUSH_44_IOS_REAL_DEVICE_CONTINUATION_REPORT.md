@@ -1,5 +1,25 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Local-only requalification — 2026-10-20T11:46Z
+
+On draft PR #234 head `be875d1805f6283bef1956675d42b8b677d6a16e`,
+the isolated Development migration/history/schema check passed **256/256**
+with no missing migrations. A separate feature-branch Development runtime bound
+only to `127.0.0.1:3001` returned the Product login page with HTTP 200 after
+its initial compilation. A real JavaScript asset referenced by that page
+returned HTTP 200 and `application/javascript` for the one configured QA
+Origin; an unapproved Origin returned HTTP 403. This verifies the narrow
+Development-origin fix locally, **not** Cloudflare, iPhone, authenticated
+Product, or cellular proof. The local feature runtime was stopped.
+
+The proposed external Quick Tunnel was rejected by the environment's approval
+gate before launch because account-specific plan/cost verification remained
+unavailable. The prepared loopback QA filter was stopped; no external ingress,
+media path, provider activation or Production path was opened. Do not bypass
+that gate. The next external trial requires verified account/cost scope and
+owner-only access, followed by fresh physical-iPhone proof. PR #234 remains
+draft and PUSH 44 remains PARTIAL / CANONICAL NOT DONE.
+
 ## HTTPS loading-failure diagnostic continuation — 2026-10-20
 
 The owner repeated the Cloudflare email challenge in iPhone Safari on a new,

@@ -30,6 +30,7 @@ access, remote camera playback and real Push remain BLOCKED / NOT RUN.
 |---|---|---|---|---|---|---|---|
 | Owner iPhone 13 Pro / Safari | iOS 27.0.1 | Development runtime `0a909795`; protected Quick Tunnel / draft PR #234 | Temporary HTTPS; network type unverified | Cloudflare OTP to Product login | 2026-10-20 01:00:45 UTC | Owner-reported 502, Ray `a4d4165f4f8a46d0`; connector nil-map panic; no completed Product request | BLOCKED — connector crashed; Product UI/auth not reached |
 | Development host | macOS | draft PR #234 | Loopback QA filter | External-Origin JavaScript asset | 2026-10-20 | Asset 403 with tunnel Origin, 200 without; Next.js logged `allowedDevOrigins` rejection | DETERMINISTIC reproduction; iPhone fix proof NOT RUN |
+| Development host | macOS | PR #234 head `be875d18` | Loopback-only feature runtime `127.0.0.1:3001` | Login and real JavaScript asset after narrow Origin fix | 2026-10-20T11:46Z | Development schema 256/256; login HTTP 200; configured QA Origin asset HTTP 200 JavaScript; unapproved Origin HTTP 403; runtime stopped | LOCAL DETERMINISTIC PASS only; external/iPhone Product proof NOT RUN |
 
 Bounded owner-approved HTTPS QA update (2026-10-20), baseline
 `0a90979504d20c8db0d45574421e6eaf89231fc7`: isolated Development
