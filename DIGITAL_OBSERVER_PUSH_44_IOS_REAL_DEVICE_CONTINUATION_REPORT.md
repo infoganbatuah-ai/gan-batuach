@@ -1,5 +1,26 @@
 # DIGITAL OBSERVER — PUSH 44 iOS REAL-DEVICE CONTINUATION
 
+## Zero Trust Free activation gate — 2026-10-20T21:44Z
+
+The owner approved a bounded, owner-only Zero Trust Free QA configuration with
+zero additional fixed cost and no media/database exposure. The signed-in
+Cloudflare account's actual checkout presented **Zero Trust Free, $0/month**, but
+also required (1) acceptance of Cloudflare's Terms of Service and Privacy
+Policy, and (2) authorization to charge an existing payment card for usage
+beyond free limits each month until cancellation. These are separate binding
+legal and potentially billable permissions, outside the bounded zero-increment
+QA approval. Neither checkbox was selected and **Activate** was not clicked.
+No Zero Trust subscription, named Tunnel, Access application, DNS route, or
+additional provider access was activated. The temporary Quick Tunnel, QA
+filter and Product runtime remained off; no Product, iPhone login, cellular or
+media proof was added. PR #234 remains draft and PUSH 44 remains partial.
+
+Next action requires an owner decision on the checkout terms and uncontrolled
+overage authorization, or an alternative secure QA ingress with enforceable
+zero-increment limits. The agent must not accept the legal/overage checkboxes
+on the owner's behalf under the present approval. Do not revive the failed
+Quick Tunnel as a security workaround.
+
 ## Protected HTTPS retrial after account verification — 2026-10-20T21:27–21:39Z
 
 Read-only Cloudflare account inspection found the existing domain on Free,
