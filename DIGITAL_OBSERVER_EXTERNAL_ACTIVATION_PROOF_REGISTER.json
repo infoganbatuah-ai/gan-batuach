@@ -133,7 +133,7 @@
       "requiredApproval": "owner-approved signing credentials, device campaign and later store submission",
       "sandboxProof": "Deterministic PUSH 44 QA and Capacitor iOS sync PASS; simulator and unsigned generic iOS compilation PASS at 9c886315; signed PersonalTeamQA iPhone install/launch and offline-safe screen PASS at ef5f6930. Owner-confirmed real iPhone Product login rendering through bounded HTTPS at c93c7c51; exact-head native build and authenticated Development Product remain OPEN. Android native build remains BLOCKED.",
       "realProof": "PARTIAL — signed real-device install, launch, offline-safe QA UI and Product login rendering observed; authenticated Development dashboard, cellular access, remote playback, Push receipt, battery/memory/crash matrix and store review OPEN",
-      "costImpact": "Incremental Development supplier cost ₪0; store, device, media egress, support and provider costs unmeasured",
+      "costImpact": "No new fixed supplier plan was activated for the bounded iPhone HTTPS QA; invoice-level incremental usage cost remains unverified. Store, device, media egress, support and provider costs remain unmeasured",
       "activationGate": "native builds, signed real-device supported matrix, authorized remote playback, push receipt/revocation, performance/privacy declarations, PUSH 45 approval and explicit store/Production authorization"
     },
     {
