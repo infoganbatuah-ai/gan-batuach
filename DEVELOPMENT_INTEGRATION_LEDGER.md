@@ -1708,3 +1708,29 @@ minimum permissions and rollback are in
 `DIGITAL_OBSERVER_HOME_LEGACY_COMPARE_ONLY_PACKAGE_20261021.md`. Signed
 installation and Keychain recovery gates remain open; PR stays Draft,
 unmerged. No Production write, deployment, device restart or live switch.
+
+PR #235 compare-only access-design continuation (2026-10-21): source commit
+`ca43834f` prepares pending migration
+`20261021010000_home_legacy_compare_reader_preparation.sql`, a private
+hard-coded two-device/Site SQL reader with a NOLOGIN dedicated role and no
+base-table grant. The host-side adapter reuses the existing comparison core;
+an identity-backed approval module and SQLite host-local store enforce
+five-minute purpose-bound approval, current admin revalidation, revocation,
+atomic two-attempt/replay control and append-only redacted audit. Isolated SQL
+reader 33/33, approval 37/37, comparison 90/90, domain 46/46, security
+52/52, TypeScript, lint baseline, non-deploying Product build, migration
+health 257, ledger schema and release contract passed. The new security
+suites are in the canonical CI manifest. Exact-head remote CI remains a
+separate gate.
+
+A read-only Production **metadata-only** inspection found 57 functions
+executable by PUBLIC in the public schema, including 31 volatile and 21
+volatile SECURITY DEFINER functions. A direct login is therefore not yet
+proved non-mutating; no login, migration, credential read or comparison was
+activated. The pending migration is **not applied to isolated Development or
+Production**, the integrated Development baseline remains 256 applied
+migrations, and both real Legacy matches remain UNKNOWN. Security/database
+review of effective privileges or a separately approved private-server
+alternative is the exact next gate. PR #235 remains Draft; main, Production,
+installed camera services and telemetry are unchanged. See the compare-only
+package for the bounded approval request and rollback limitations.
