@@ -1,5 +1,12 @@
 # Home Legacy credential comparison — private preparation package
 
+> **Superseded design warning (2026-10-21):** The dedicated reader role,
+> verifier-returning function and direct database LOGIN described below were
+> withdrawn before application. The pending SQL migration is now a no-op.
+> Current design and remaining gates are in
+> `DIGITAL_OBSERVER_HOME_LEGACY_SECURE_COMPARE_DESIGN_CLOSURE_20261021.md`.
+> Do not execute the older procedure below.
+
 Status: **DEVELOPMENT PREPARATION ONLY; NOT DEPLOYED OR RUN AGAINST PRODUCTION**. Owner: Home telemetry recovery / PR #235. Target: `integration/development`. Production project reference: `kuaywzvucllxjsxarogb`; last separately verified Production application SHA: `2da8f75abce610a9a979eecd752d7a6a1011641e`. Reverify the live alias and schema immediately before any separately approved operation.
 
 ## Purpose and exact scope

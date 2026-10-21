@@ -1755,3 +1755,21 @@ predicate a durable exact-record/tenant boundary; it requires tightening.
 The migration remains pending; both real matches remain UNKNOWN. PR #235
 stays Draft pending a separately approved private compare-only architecture,
 future-default privilege review, signed package and Keychain recovery gates.
+
+PR #235 secure-design continuation (2026-10-21): the **unapplied** direct-login,
+NOLOGIN reader and verifier-returning function proposal was withdrawn. Its
+ordered migration is now an explicit no-op (never applied to Development or
+Production). Read-only Production metadata pinned both exact enrollment IDs,
+tenant/Site/device/profile and config versions; no verifier was read. The
+private trusted comparison component now exposes only MATCH/MISMATCH/UNKNOWN
+to the existing administrator approval coordinator. Synthetic PGlite suites
+passed 80/80 match, 38/38 scoped compare, 38/38 approval store, 8/8 PUBLIC
+exposure and 19/19 narrow remediation checks; the full security gate passed
+54/54, typecheck, lint and migration health passed. Local domain gate stopped
+at an unrelated horizontal-scale benchmark under high host load; exact-head
+remote CI remains required. The five-function permission proposal and future
+default policy are review-only; no Production ACL was changed. A trusted
+Production execution boundary, approved protected-credential path, signed
+package and live Keychain rollback remain open. Both matches remain UNKNOWN;
+PR #235 remains Draft. See
+`DIGITAL_OBSERVER_HOME_LEGACY_SECURE_COMPARE_DESIGN_CLOSURE_20261021.md`.

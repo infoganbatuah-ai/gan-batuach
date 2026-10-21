@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { chmodSync } from "node:fs";
 import { isAbsolute } from "node:path";
-import { HOME_LEGACY_MATCH_DEVICES, HOME_LEGACY_MATCH_SITE_ID } from "./home-legacy-match-service.mjs";
+import { HOME_LEGACY_MATCH_DEVICES, HOME_LEGACY_MATCH_BINDINGS, HOME_LEGACY_MATCH_SITE_ID } from "./home-legacy-match-service.mjs";
 
 const PURPOSE = "HOME_TELEMETRY_LEGACY_MATCH";
 const MAX_MS = 5 * 60_000;
@@ -49,7 +49,7 @@ export function openHomeLegacyApprovalStore({ path, verifyAdministrator, now = (
   return Object.freeze({
     async issueApproval({ accessToken, deviceId, tenantId, purpose, ttlMs = MAX_MS }) {
       if (!Object.hasOwn(HOME_LEGACY_MATCH_DEVICES, deviceId) ||
-        !UUID.test(tenantId || "") || purpose !== PURPOSE ||
+        tenantId !== HOME_LEGACY_MATCH_BINDINGS[deviceId]?.tenantId || purpose !== PURPOSE ||
         !Number.isSafeInteger(ttlMs) || ttlMs < 1 || ttlMs > MAX_MS) return null;
       const identity = await verifyAdministrator(accessToken);
       if (!identity || identity.authenticated !== true || identity.role !== "platform_admin" ||
@@ -122,19 +122,17 @@ export function openHomeLegacyApprovalStore({ path, verifyAdministrator, now = (
   });
 }
 
-export function bindHomeLegacyApproval({ store, approvalId, deviceId, accessToken, reader, loadProtectedCredential, now }) {
+export function bindHomeLegacyApproval({ store, approvalId, deviceId, accessToken, reader, now }) {
   if (!store || !reader || !Object.hasOwn(HOME_LEGACY_MATCH_DEVICES, deviceId) ||
     typeof accessToken !== "string" || accessToken.length < 32 ||
-    typeof loadProtectedCredential !== "function" || typeof now !== "function")
+    typeof reader.compareBoundCredential !== "function" || typeof now !== "function")
     throw new TypeError("TRUSTED_BINDING_REQUIRED");
   return Object.freeze({
     authorizeAdministrator: () => store.authorizeAdministrator(approvalId, deviceId, accessToken),
     confirmApprovalActive: scope => store.confirmApprovalActive(scope, accessToken),
     consumeAttempt: scope => store.consumeAttempt(scope),
     recordAudit: event => store.recordAudit(event),
-    resolveApprovedBinding: deviceId => reader.resolveApprovedBinding(deviceId),
-    loadScopedRows: binding => reader.loadScopedRows(binding),
-    loadProtectedCredential,
+    compareBoundCredential: binding => reader.compareBoundCredential(binding),
     now
   });
 }

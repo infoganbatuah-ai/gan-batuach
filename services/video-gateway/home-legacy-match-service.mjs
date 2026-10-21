@@ -1,12 +1,25 @@
 // Preparation only: no HTTP route, Production connection, Keychain access, or
 // device-side invocation is provided by this module. The trusted host adapter
 // must keep both credential and verifier inside its protected process boundary.
-import { compareLegacyCredentialReadonly } from "./legacy-identity-bridge.mjs";
 export const HOME_LEGACY_MATCH_SITE_ID = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
-export const HOME_LEGACY_MATCH_DEVICES = Object.freeze({
-  "62df97e2-3c0b-427f-9108-bde029bc10e7": "PHYSICAL_GATEWAY",
-  "db267b52-6282-4944-bcee-5d4857698fb0": "SOFTWARE_CONNECTOR"
+// Read-only Production metadata observed 2026-10-21. These are exact enrollment
+// bindings, not proof that either protected local credential matches.
+export const HOME_LEGACY_MATCH_BINDINGS = Object.freeze({
+  "62df97e2-3c0b-427f-9108-bde029bc10e7": Object.freeze({
+    enrollmentId: "1c450dca-38a8-4e49-853f-c613ca498c27",
+    tenantId: HOME_LEGACY_MATCH_SITE_ID, siteId: HOME_LEGACY_MATCH_SITE_ID,
+    deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
+    deploymentProfile: "PHYSICAL_GATEWAY", configVersion: 1
+  }),
+  "db267b52-6282-4944-bcee-5d4857698fb0": Object.freeze({
+    enrollmentId: "d7ee3c9f-0b2e-4943-947b-c410c6bc2a41",
+    tenantId: HOME_LEGACY_MATCH_SITE_ID, siteId: HOME_LEGACY_MATCH_SITE_ID,
+    deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
+    deploymentProfile: "SOFTWARE_CONNECTOR", configVersion: 4
+  })
 });
+export const HOME_LEGACY_MATCH_DEVICES = Object.freeze(Object.fromEntries(
+  Object.entries(HOME_LEGACY_MATCH_BINDINGS).map(([id, binding]) => [id, binding.deploymentProfile])));
 
 const RESULTS = new Set(["MATCH", "MISMATCH", "UNKNOWN"]);
 const MAX_APPROVAL_MS = 5 * 60_000;
@@ -20,14 +33,14 @@ const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 export async function evaluateHomeLegacyMatch(input, dependencies) {
   const deviceId = input && typeof input === "object" ? input.deviceId : null;
   const requestId = input && typeof input === "object" ? input.requestId : null;
-  const { authorizeAdministrator, confirmApprovalActive, resolveApprovedBinding, consumeAttempt, loadScopedRows,
-    loadProtectedCredential, recordAudit, now = () => Date.now() } = dependencies &&
+  const { authorizeAdministrator, confirmApprovalActive, consumeAttempt, compareBoundCredential,
+    recordAudit, now = () => Date.now() } = dependencies &&
       typeof dependencies === "object" ? dependencies : {};
   if (typeof deviceId !== "string" || typeof requestId !== "string" || !REQUEST_ID.test(requestId)) return "UNKNOWN";
   const profile = HOME_LEGACY_MATCH_DEVICES[deviceId];
   if (!profile || !Object.hasOwn(HOME_LEGACY_MATCH_DEVICES, deviceId)) return "UNKNOWN";
-  if (![authorizeAdministrator, confirmApprovalActive, resolveApprovedBinding, consumeAttempt, loadScopedRows,
-    loadProtectedCredential, recordAudit, now]
+  if (![authorizeAdministrator, confirmApprovalActive, consumeAttempt, compareBoundCredential,
+    recordAudit, now]
     .every(value => typeof value === "function")) return "UNKNOWN";
 
   let scope = null;
@@ -65,38 +78,26 @@ export async function evaluateHomeLegacyMatch(input, dependencies) {
       return "UNKNOWN";
     }
 
-    const approvedBinding = await resolveApprovedBinding(deviceId);
-    if (!approvedBinding || approvedBinding.deviceId !== deviceId ||
-      approvedBinding.siteId !== HOME_LEGACY_MATCH_SITE_ID ||
-      approvedBinding.deploymentProfile !== profile ||
-      approvedBinding.tenantId !== authorization.tenantId ||
-      typeof approvedBinding.enrollmentId !== "string" || !approvedBinding.enrollmentId ||
-      !Number.isInteger(approvedBinding.configVersion) || approvedBinding.configVersion < 1) {
+    const binding = HOME_LEGACY_MATCH_BINDINGS[deviceId];
+    if (!binding || binding.tenantId !== authorization.tenantId ||
+      binding.deploymentProfile !== profile) {
       await recordAudit({ ...scope, phase: "DENIED" });
       return "UNKNOWN";
     }
 
-    const binding = Object.freeze({ ...approvedBinding });
     // Recheck revocation/expiry against the authoritative approval store after
     // the attempt was consumed, not against a stale authorization snapshot.
     if (now() >= authorization.expiresAt || await confirmApprovalActive(scope) !== true) {
       await recordAudit({ ...scope, phase: "DENIED" });
       return "UNKNOWN";
     }
-    // Both loaders must execute only inside the approved host-local boundary.
-    // The scoped reader must never return these rows to an HTTP response.
-    const rows = await loadScopedRows(binding);
-    const localCredential = await loadProtectedCredential({ deviceId, deploymentProfile: profile });
+    // The trusted comparison component owns both sensitive inputs and returns
+    // only a status. No verifier or credential crosses this interface.
+    const result = await compareBoundCredential(binding);
     if (now() >= authorization.expiresAt || await confirmApprovalActive(scope) !== true) {
       await recordAudit({ ...scope, phase: "DENIED" });
       return "UNKNOWN";
     }
-    const result = compareLegacyCredentialReadonly({ rows, expected: {
-      id: binding.enrollmentId, gateway_id: binding.deviceId,
-      observer_site_id: binding.siteId, tenant_id: binding.tenantId,
-      deployment_profile: binding.deploymentProfile,
-      config_version: binding.configVersion
-    }, localCredential });
     const safeResult = RESULTS.has(result) ? result : "UNKNOWN";
     // Never include token, verifier, proof, request body, or raw error text.
     const audited = await recordAudit({ ...scope, phase: "RESULT", outcome: safeResult });

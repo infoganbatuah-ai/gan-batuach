@@ -1,5 +1,10 @@
 # PR #235 — Production PUBLIC-function privilege safety review (read-only)
 
+> Follow-up: the direct-login/verifier-returning draft was withdrawn before
+> application. See `DIGITAL_OBSERVER_HOME_LEGACY_SECURE_COMPARE_DESIGN_CLOSURE_20261021.md`
+> for the current design and the separate narrow ACL proposal. The broad
+> REVOKE block below is historical analysis, **not approved execution SQL**.
+
 Date: 2026-10-21. Production Supabase project: `kuaywzvucllxjsxarogb`. Source PR: #235, Draft. All Production inspection was catalog/definition metadata only; no Home enrollment rows or verifiers were read, no function was invoked, and no Production DDL/DML was executed.
 
 ## Decision

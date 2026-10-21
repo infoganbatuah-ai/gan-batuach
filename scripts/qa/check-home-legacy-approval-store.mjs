@@ -12,7 +12,7 @@ const dir = mkdtempSync(join(tmpdir(), "home-legacy-approval-"));
 const path = join(dir, "approval.sqlite");
 const deviceId = Object.keys(HOME_LEGACY_MATCH_DEVICES)[0];
 const secondDevice = Object.keys(HOME_LEGACY_MATCH_DEVICES)[1];
-const actorId = randomUUID(), tenantId = randomUUID(), enrollmentId = randomUUID();
+const actorId = randomUUID(), tenantId = HOME_LEGACY_MATCH_SITE_ID;
 const token = "synthetic-admin-session-token-not-production";
 let at = 1_000_000, checks = 0, credentialReads = 0;
 const user = { id: actorId, app_metadata: { digital_observer_admin: true } };
@@ -35,6 +35,8 @@ try {
   assert.equal(await store.issueApproval({ accessToken: "bad", deviceId, tenantId,
     purpose: "HOME_TELEMETRY_LEGACY_MATCH" }), null); checks++;
   assert.equal(await store.issueApproval({ accessToken: token, deviceId: randomUUID(), tenantId,
+    purpose: "HOME_TELEMETRY_LEGACY_MATCH" }), null); checks++;
+  assert.equal(await store.issueApproval({ accessToken: token, deviceId, tenantId: randomUUID(),
     purpose: "HOME_TELEMETRY_LEGACY_MATCH" }), null); checks++;
   assert.equal(await store.issueApproval({ accessToken: token, deviceId, tenantId, purpose: "OTHER" }), null); checks++;
   assert.equal(await store.issueApproval({ accessToken: token, deviceId, tenantId,
@@ -67,18 +69,9 @@ try {
   assert.equal(await store.authorizeAdministrator(second.approvalId, secondDevice, token), null); checks++;
   at = 1_000_000;
   const approved = await issue();
-  const reader = {
-    resolveApprovedBinding: async () => ({ deviceId, siteId: HOME_LEGACY_MATCH_SITE_ID,
-      tenantId, enrollmentId, deploymentProfile: HOME_LEGACY_MATCH_DEVICES[deviceId], configVersion: 1 }),
-    loadScopedRows: async () => [{ id: enrollmentId, gateway_id: deviceId,
-      observer_site_id: HOME_LEGACY_MATCH_SITE_ID, tenant_id: tenantId,
-      deployment_profile: HOME_LEGACY_MATCH_DEVICES[deviceId], config_version: 1,
-      status: "delivered", lifecycle_state: "ACTIVE", identity_scheme: "LEGACY_HMAC",
-      refresh_token_hash: "0".repeat(64) }]
-  };
+  const reader = { compareBoundCredential: async () => { credentialReads++; return "MISMATCH"; } };
   const dependencies = bindHomeLegacyApproval({ store, approvalId: approved.approvalId,
-    deviceId, accessToken: token, reader, now: () => at,
-    loadProtectedCredential: async () => { credentialReads++; return "synthetic-credential-over-32-characters"; } });
+    deviceId, accessToken: token, reader, now: () => at });
   user.app_metadata.digital_observer_admin = false;
   assert.equal(await evaluateHomeLegacyMatch({ deviceId, requestId: randomUUID() }, dependencies), "UNKNOWN"); checks++;
   assert.equal(credentialReads, 0); checks++;
