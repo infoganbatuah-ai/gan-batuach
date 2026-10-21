@@ -7817,7 +7817,7 @@
       "version": "20261021010000",
       "sourceTask": "Home telemetry PR #235 compare-only preparation",
       "sourceCommit": "ca43834f304060d6bd609e9a3e8c0b76786674ad",
-      "sourceHead": "ca43834f304060d6bd609e9a3e8c0b76786674ad",
+      "sourceHead": "3e666b2fc132852dbcb80fa133a3c0134c715d6e",
       "remoteBranch": "origin/codex/home-telemetry-prelive-qualification",
       "integrationCommit": null,
       "inGit": true,

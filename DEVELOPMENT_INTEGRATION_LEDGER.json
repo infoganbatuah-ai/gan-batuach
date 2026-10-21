@@ -11837,12 +11837,13 @@
         "a844c8063c952e2b15b0025fc976d0cea0f8999f",
         "85b9186988d66375e68c575e685234f66c1f2b41",
         "ca43834f304060d6bd609e9a3e8c0b76786674ad",
-        "0446a8f426792e57c101ecdf6320f8efddee3fe2"
+        "0446a8f426792e57c101ecdf6320f8efddee3fe2",
+        "3e666b2fc132852dbcb80fa133a3c0134c715d6e"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@85b9186988d66375e68c575e685234f66c1f2b41", "origin/codex/home-telemetry-prelive-qualification@ca43834f304060d6bd609e9a3e8c0b76786674ad"],
+        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@85b9186988d66375e68c575e685234f66c1f2b41", "origin/codex/home-telemetry-prelive-qualification@ca43834f304060d6bd609e9a3e8c0b76786674ad", "origin/codex/home-telemetry-prelive-qualification@3e666b2fc132852dbcb80fa133a3c0134c715d6e"],
         "observedAt": "2026-10-21"
       },
       "validation": {
