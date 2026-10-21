@@ -1,5 +1,7 @@
 # PR #235 — separate secure Kingston APFS volume: non-live design
 
+**Later 2026-10-21 update:** `DIGITAL_OBSERVER_HOME_KINGSTON_BACKUP_AND_SECURE_EXECUTION_ALTERNATIVE_20261021.md` evaluates a small FileVault-protected internal runtime that would avoid creating any Kingston sibling volume. The sibling design below is optional, not a mandatory compare-only gate. Host signing identity availability also changed after this original observation; see the newer report. No storage or signing operation was performed.
+
 Date: 2026-10-21 (Asia/Jerusalem). Owner scope: read-only investigation and preparation. **No volume was created, resized, erased, repaired, mounted, or given new ownership settings.** No credential, verifier, Production row, installed camera service or telemetry destination was touched. PR #235 remains Draft. Read alongside `DIGITAL_OBSERVER_HOME_KINGSTON_OWNERSHIP_SIGNING_READINESS_20261021.md` and the Production access approval package.
 
 ## Decision and measured topology
