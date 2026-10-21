@@ -1,5 +1,25 @@
 import { createHash, createPublicKey, timingSafeEqual, verify } from "node:crypto";
 
+// Pure, bounded comparator for an independently authorized READ-ONLY snapshot.
+// The caller must obtain the exact enrollment through a scoped read-only role;
+// this function never fetches a verifier, authenticates, rotates, or logs data.
+export function compareLegacyCredentialReadonly({ rows, expected, localCredential }) {
+  if (!Array.isArray(rows) || rows.length !== 1 || !expected ||
+    typeof localCredential !== "string" || localCredential.length < 32 || localCredential.length > 512) return "UNKNOWN";
+  const row = rows[0];
+  if (!row || row.status !== "delivered" || row.lifecycle_state !== "ACTIVE" ||
+    row.identity_scheme !== "LEGACY_HMAC" ||
+    !["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"].includes(expected.deployment_profile) ||
+    !["id", "gateway_id", "observer_site_id", "tenant_id", "deployment_profile"].every(key =>
+      typeof expected[key] === "string" && expected[key].length > 0 && row[key] === expected[key]) ||
+    !Number.isInteger(expected.config_version) || expected.config_version < 1 ||
+    row.config_version !== expected.config_version ||
+    typeof row.refresh_token_hash !== "string" || !/^[a-f0-9]{64}$/.test(row.refresh_token_hash)) return "UNKNOWN";
+  const candidate = createHash("sha256").update(localCredential, "utf8").digest();
+  const verifier = Buffer.from(row.refresh_token_hash, "hex");
+  return timingSafeEqual(candidate, verifier) ? "MATCH" : "MISMATCH";
+}
+
 // Verification primitive for a future owner-controlled same-enrollment upgrade.
 // Only a trusted Product record may supply the expected hash and binding.
 export async function verifyLegacyIdentityUpgrade({ enrollment, claim, legacyRefreshToken, consumeNonce, now = Date.now() }) {
