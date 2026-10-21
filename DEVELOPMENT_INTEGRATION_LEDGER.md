@@ -1662,7 +1662,8 @@ PR #235 guarded-match continuation (2026-10-21): source commit `51ed10f5`
 is preserved on the remote feature branch. It adds an unwired, fail-closed
 host-local match coordinator allowlisted to the exact Home Gateway and
 Connector, using the existing timing-safe SHA-256 comparator in a trusted
-boundary. Synthetic checks passed 30/30; domain 46/46, security 50/50,
+boundary. A follow-up at `fc386e84` fails closed on malformed input; synthetic
+checks passed 34/34; domain 46/46, security 50/50,
 TypeScript, lint baseline, 256 migration checks and release contract passed
 locally. The local Next build did not complete and is not a PASS; exact-head
 remote CI remains a separate gate. No Production adapter, endpoint, migration,
