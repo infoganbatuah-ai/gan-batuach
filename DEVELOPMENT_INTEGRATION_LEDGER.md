@@ -1892,3 +1892,21 @@ was performed. Exact next action: project AWS administrator supplies a non-root
 read-only metadata/cost connection, or owner selects an independent encrypted
 physical backup destination. Finish the manifest, quote and isolated restore
 before activation. PR #235 remains Draft; both Legacy matches remain UNKNOWN.
+
+PR #235 AWS Console correction (2026-10-22): the owner identified an
+authenticated foreground Chrome console for the project AWS account. Its
+account ID matches the canonical restricted supplier ledger. The S3 general-
+purpose bucket inventory, scoped to **All AWS Regions**, completed with **0
+buckets**; no existing AWS S3 backup destination is available in this account.
+Two enabled customer-managed Ed25519 **sign/verify** KMS keys were visible in
+`us-east-1`; they are not S3 encryption keys and remain reserved for root and
+release signing. The console billing widget showed $4.71 current-month account
+cost and a $6.91 forecast at observation, not an itemized S3 invoice or backup
+charge. The prior statement that AWS account access was unavailable is
+superseded by the corrected redacted report at source commit
+`20fd03d97c4e789d9b63801658358cb8c7dcd1a1`, pushed to PR #235. The
+restricted supplier ledger contains the correction without recording new actual
+backup spend. Next decision: a separately approved new private S3 bucket in an
+owner-selected region after quotation/security review, **or** an independent
+encrypted physical drive; neither backup has begun. PR stays Draft, Legacy
+matches UNKNOWN, live transition unauthorized.
