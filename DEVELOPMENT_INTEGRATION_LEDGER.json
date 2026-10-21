@@ -11833,18 +11833,20 @@
         "51ed10f506c5c62ad3e7df47e5dcf2f03e03764f",
         "077c0f3345f221e5fcf300ab814df0b8f4ef4c9f",
         "fc386e84f3c7f09ec07ba6ebae1c2d67f2c6debd",
-        "d224bc6fce9c68dbebae5e1f41e4320a8745f75a"
+        "d224bc6fce9c68dbebae5e1f41e4320a8745f75a",
+        "a844c8063c952e2b15b0025fc976d0cea0f8999f",
+        "85b9186988d66375e68c575e685234f66c1f2b41"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@d224bc6fce9c68dbebae5e1f41e4320a8745f75a"],
+        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@85b9186988d66375e68c575e685234f66c1f2b41"],
         "observedAt": "2026-10-21"
       },
       "validation": {
-        "status": "LOCAL_DETERMINISTIC_PASS_MATCH_34_PROFILE_6_GENERIC_OTA_AND_QA_PACKAGES_BUILT_PREVIOUS_HEAD_CI_9_OF_9",
-        "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md", "DIGITAL_OBSERVER_HOME_TELEMETRY_CONTROLLED_TRANSITION_PLAN_20261021.md"],
-        "limits": "The previous evidence-only head d224bc6f passed 9/9 exact-head CI. New documentation/ledger head requires its own CI. Gateway and Connector QA package hashes and archive safety were verified from the installed baselines, but candidate KMS manifests, approved artifact transport, exact-candidate isolated install/return, Keychain disaster recovery and real Production telemetry remain unverified. No approved two-row Production verifier accessor or protected host adapter exists; both actual Legacy matches and current Vercel aliased Production SHA remain UNKNOWN. Managed cutover transaction is not implemented."
+        "status": "LOCAL_DETERMINISTIC_PASS_MATCH_90_PROFILE_6_DOMAIN_46_SECURITY_50_IDENTITY_17_CONNECTOR_22_MIGRATIONS_256_LINT_TYPECHECK_BUILD_RELEASE_CONTRACT",
+        "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md", "DIGITAL_OBSERVER_HOME_TELEMETRY_CONTROLLED_TRANSITION_PLAN_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_COMPARE_ONLY_PACKAGE_20261021.md"],
+        "limits": "The compare-only coordinator is unwired and synthetic-only. Code commit 85b91869 is remotely preserved; this ledger head requires fresh exact-head CI. A short approval, one-time request and audit are enforced by coordinator contract, but no approved Production two-row reader, protected local credential adapter, identity-backed approval issuer, durable atomic attempt store, or audit sink exists. Gateway and Connector real credential matches remain UNKNOWN. Candidate KMS manifests, artifact transport, exact-candidate isolated install/return, Keychain disaster recovery and real Production telemetry remain unverified."
       },
       "integration": { "status": "PENDING_REVIEW", "commit": null, "pullRequest": 235, "base": "integration/development" },
       "dependencies": { "status": "BLOCKED_PRODUCTION_READONLY_AUTH_MANAGED_CUTOVER_SIGNED_PACKAGE_AND_LIVE_ROLLBACK", "units": [] },
@@ -11854,7 +11856,7 @@
       "localVerification": "PASS_CODE_AND_DETERMINISTIC_QA_ONLY",
       "releaseEligibility": "NOT_READY_LIVE_LEGACY_AUTH_ROLLBACK_AND_OWNER_APPROVAL_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
-      "nextAction": "Keep PR #235 Draft. The project security administrator must provide a time-bounded, audited, exact-two-device compare-only Production verifier channel plus authorized Vercel alias/deployment read. Any new Production role/function/deployment needs separate approval. Then qualify KMS-signed candidate manifests and private artifact transport using an approved signing session, run exact-candidate isolated install/return and Keychain recovery checks, and seek a new explicit owner approval before any live install or telemetry switch. See controlled transition plan."
+      "nextAction": "Keep PR #235 Draft. Security/database owners must approve a short-lived, database-enforced two-row read-only verifier accessor and trusted host-local credential/approval/attempt/audit adapter, with separate authorization for any Production role/function/grant or deployment. Only then compare the two devices in a newly approved window. Qualify KMS-signed candidate manifests, exact-candidate isolated install/return and Keychain recovery before requesting separate live-transition approval. See compare-only package and controlled transition plan."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

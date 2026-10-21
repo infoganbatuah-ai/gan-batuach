@@ -1690,3 +1690,21 @@ ordered transition/abort plan is in
 Keep PR #235 Draft and this unit `PUSHED_REMOTE` pending exact-head CI on this
 documentation update. No live service, device identity, Production database,
 Vercel deployment, main or telemetry destination changed.
+
+Compare-only security preparation (2026-10-21): source commit
+`85b9186988d66375e68c575e685234f66c1f2b41` was pushed to the
+existing PR #235 branch. The private coordinator now requires an exact
+two-device request, a five-minute purpose-bound admin approval, atomic
+one-time requests with a two-attempt ceiling, rechecked revocation and
+redacted pre-access/result auditing. Synthetic Gateway/Connector tests pass
+90/90; local domain 46/46, security 50/50 (with permitted loopback),
+identity 17/17, Connector 22/22, profile 6/6, TypeScript, lint baseline, a non-deploying
+Production build, migration health 256/256 and release contract pass.
+The first local build was blocked by sandbox port denial; a permitted-loopback
+rerun passed. Exact-head remote CI is a separate gate and is not inferred.
+No approved Production-scoped reader or host-local secret/approval/attempt/
+audit adapter is connected. Real credentials remain UNKNOWN; the proposed
+minimum permissions and rollback are in
+`DIGITAL_OBSERVER_HOME_LEGACY_COMPARE_ONLY_PACKAGE_20261021.md`. Signed
+installation and Keychain recovery gates remain open; PR stays Draft,
+unmerged. No Production write, deployment, device restart or live switch.
