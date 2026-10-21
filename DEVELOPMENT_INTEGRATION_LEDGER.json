@@ -11832,18 +11832,19 @@
         "bd5b28055389dbae7c779524b6038f1d82f57def",
         "51ed10f506c5c62ad3e7df47e5dcf2f03e03764f",
         "077c0f3345f221e5fcf300ab814df0b8f4ef4c9f",
-        "fc386e84f3c7f09ec07ba6ebae1c2d67f2c6debd"
+        "fc386e84f3c7f09ec07ba6ebae1c2d67f2c6debd",
+        "d224bc6fce9c68dbebae5e1f41e4320a8745f75a"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@fc386e84f3c7f09ec07ba6ebae1c2d67f2c6debd"],
+        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@d224bc6fce9c68dbebae5e1f41e4320a8745f75a"],
         "observedAt": "2026-10-21"
       },
       "validation": {
-        "status": "LOCAL_DETERMINISTIC_PASS_DOMAIN_46_SECURITY_50_CONNECTOR_22_MATCH_34_BUILD_NOT_PROVEN_EXACT_HEAD_CI_PENDING",
-        "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md"],
-        "limits": "Host-local match coordinator, read-only comparator and same-enrollment migration model are synthetic only. No approved Production read-only verifier channel, protected host adapter, durable limiter/audit or remote proof protocol exists; both actual Legacy matches remain UNKNOWN. Local Next build stopped without completion; exact-head CI build pending. Managed cutover transaction, signed candidate artifacts, Keychain disaster restore, real Production telemetry and live rollback remain unverified."
+        "status": "LOCAL_DETERMINISTIC_PASS_MATCH_34_PROFILE_6_GENERIC_OTA_AND_QA_PACKAGES_BUILT_PREVIOUS_HEAD_CI_9_OF_9",
+        "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md", "DIGITAL_OBSERVER_HOME_TELEMETRY_CONTROLLED_TRANSITION_PLAN_20261021.md"],
+        "limits": "The previous evidence-only head d224bc6f passed 9/9 exact-head CI. New documentation/ledger head requires its own CI. Gateway and Connector QA package hashes and archive safety were verified from the installed baselines, but candidate KMS manifests, approved artifact transport, exact-candidate isolated install/return, Keychain disaster recovery and real Production telemetry remain unverified. No approved two-row Production verifier accessor or protected host adapter exists; both actual Legacy matches and current Vercel aliased Production SHA remain UNKNOWN. Managed cutover transaction is not implemented."
       },
       "integration": { "status": "PENDING_REVIEW", "commit": null, "pullRequest": 235, "base": "integration/development" },
       "dependencies": { "status": "BLOCKED_PRODUCTION_READONLY_AUTH_MANAGED_CUTOVER_SIGNED_PACKAGE_AND_LIVE_ROLLBACK", "units": [] },
@@ -11853,7 +11854,7 @@
       "localVerification": "PASS_CODE_AND_DETERMINISTIC_QA_ONLY",
       "releaseEligibility": "NOT_READY_LIVE_LEGACY_AUTH_ROLLBACK_AND_OWNER_APPROVAL_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
-      "nextAction": "Keep PR #235 draft. Verify exact-head CI and review the scoped match coordinator. Owner/security administrator must approve a host-local protected credential adapter plus exact two-row Production read-only verifier accessor, atomic rate limiting and append-only audit before any actual comparison; a remote path additionally needs an approved proof protocol and Production release. Both matches remain UNKNOWN. Signed Gateway/Connector packages, Keychain recovery and live rollback remain blocked; do not install or switch telemetry without a new explicit owner approval."
+      "nextAction": "Keep PR #235 Draft. The project security administrator must provide a time-bounded, audited, exact-two-device compare-only Production verifier channel plus authorized Vercel alias/deployment read. Any new Production role/function/deployment needs separate approval. Then qualify KMS-signed candidate manifests and private artifact transport using an approved signing session, run exact-candidate isolated install/return and Keychain recovery checks, and seek a new explicit owner approval before any live install or telemetry switch. See controlled transition plan."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

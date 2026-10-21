@@ -1671,3 +1671,22 @@ credential access or live match exists. Both matches remain UNKNOWN. A scoped
 read-only verifier accessor, protected local credential reader, approved
 administrator grant, atomic rate limiter, audit and security review are still
 required. PR remains Draft; no installed service, main or Production change.
+
+End-to-end non-live preparation continuation (2026-10-21): the prior
+evidence-only head `d224bc6f` was remotely preserved and passed all nine
+exact-head PR checks. Both installed baseline OTA archives were located and
+independently rehashed against signed manifests. Isolated Gateway and
+Connector QA packages were built from that pinned source on Kingston, rehashed,
+archive-inspected, and checked for exact profile-selector bytes; the Connector
+app passed strict/deep ad-hoc signature verification. Generic OTA rollback,
+Legacy comparator/coordinator and same-enrollment model tests passed, but no
+candidate KMS-signed manifest, approved private artifact transport, exact-
+candidate isolated installation/return or Keychain disaster recovery proof
+exists. The active task lacks a two-row Production verifier-access path,
+authenticated Vercel dashboard and AWS signing session. Thus both real Legacy
+matches and the currently aliased Production SHA remain UNKNOWN. The full
+ordered transition/abort plan is in
+`DIGITAL_OBSERVER_HOME_TELEMETRY_CONTROLLED_TRANSITION_PLAN_20261021.md`.
+Keep PR #235 Draft and this unit `PUSHED_REMOTE` pending exact-head CI on this
+documentation update. No live service, device identity, Production database,
+Vercel deployment, main or telemetry destination changed.
