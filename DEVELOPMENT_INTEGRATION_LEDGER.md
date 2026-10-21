@@ -1829,4 +1829,21 @@ An internal APFS mode test passed, but mounting a Kingston-hosted isolated
 image was denied; Kingston-wide compatibility is not proven. No valid macOS
 signing identity or independent immutable audit anchor was available. No volume
 setting, Keychain secret, Production resource or installed device was changed.
-Both real matches remain UNKNOWN; PR #235 stays Draft, pending exact-head CI.
+Both real matches remain UNKNOWN; PR #235 stays Draft. Exact-head CI on
+`c15eb4ed6321667230a2827182591b0587df819c` later passed 9/9.
+
+PR #235 separate Kingston APFS volume design (2026-10-21): source report
+commit `07d37503ba272b1116ca1fc5947f86998d6ca08c` is preserved on the
+remote branch. `DIGITAL_OBSERVER_HOME_SECURE_APFS_VOLUME_DESIGN_20261021.md`
+maps the existing disk4/disk5/disk5s1 topology and ~1.72 TB free, retains the
+existing volume's `noowners` state, and proposes a separately encrypted,
+ownership-enforcing sibling volume. It records prior unresolved First Aid
+warnings, no Time Machine destination, same-drive Development DB/Edge package
+backups, the independently verified 36-file Home configuration backup, and
+the missing off-drive recovery proof. It also records that the current guard
+requires code and artifacts on one volume and cannot safely use this new
+layout without a later reviewed dual-volume/sealed-package change. No volume,
+quota, ownership setting, signing identity, Keychain item or Production
+resource was changed. Local targeted guard 26/26, executor 44/44, security
+57/57, migration and release-contract gates passed; new exact-head CI remains
+to be observed. Both real matches remain UNKNOWN; PR #235 stays Draft.
