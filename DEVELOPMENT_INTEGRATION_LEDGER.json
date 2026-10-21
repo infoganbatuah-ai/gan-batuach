@@ -11815,6 +11815,38 @@
         "productionActivation": false
       },
       "nextAction": "Enable Developer Mode on the paired iPhone, mount DDI, authorize project-owned Development signing, restore the isolated Development backend readiness gate, approve an authenticated HTTPS Development/media endpoint, then rerun signed installation, cellular playback, Push receipt, transition and performance qualification. Do not start PUSH 46 or touch main or Production."
+    },
+    {
+      "id": "codex/home-telemetry-prelive-qualification-20261021",
+      "project": "Digital Observer",
+      "title": "Home telemetry recovery — non-live profile and rollback qualification",
+      "owner": "Home telemetry pre-live qualification owner",
+      "sourceBranch": "codex/home-telemetry-prelive-qualification",
+      "sourceCommits": [
+        "58056391b20c4404d56e5894326646a8ee8618b9",
+        "001b89f1ab875b2d324f8973b70eb6bcddba03a4",
+        "4d104ba28bc4ff2c41fd2d7fda47ade3e702a515"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/home-telemetry-prelive-qualification@4d104ba28bc4ff2c41fd2d7fda47ade3e702a515"],
+        "observedAt": "2026-10-21"
+      },
+      "validation": {
+        "status": "LOCAL_DETERMINISTIC_PASS_PR_235_CODE_HEAD_9_OF_9_FINAL_HEAD_PENDING",
+        "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md"],
+        "limits": "Legacy Production token matching, exact signed candidate package, Keychain disaster restore, real Production telemetry and live rollback remain unverified."
+      },
+      "integration": { "status": "PENDING_REVIEW", "commit": null, "pullRequest": 235, "base": "integration/development" },
+      "dependencies": { "status": "BLOCKED_LIVE_AUTH_AND_FINAL_PR_REVIEW", "units": [] },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "Separate feature branch based on integration/development; no integration conflict resolution or merge attempted.",
+      "localVerification": "PASS_CODE_AND_DETERMINISTIC_QA_ONLY",
+      "releaseEligibility": "NOT_READY_LIVE_LEGACY_AUTH_ROLLBACK_AND_OWNER_APPROVAL_PENDING",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Recheck PR #235 at its final head, review the scoped diff, and merge only if the development owner accepts the documented live-proof limitations. Keep live telemetry switch blocked pending separately approved legacy-auth and rollback gates."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

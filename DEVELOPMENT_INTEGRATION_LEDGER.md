@@ -1616,3 +1616,18 @@ identities and no project team. HTTPS QA is a proposal awaiting authorization;
 physical installation, cellular media and APNs receipt are untested. Scoped
 evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
 failures and external proof obligations remain intact.
+
+2026-10-21 Home telemetry pre-live qualification: candidate commits through
+`4d104ba28bc4ff2c41fd2d7fda47ade3e702a515` are remotely preserved on
+`codex/home-telemetry-prelive-qualification`; no installed service or Production
+state changed. The Connector timeout was caused by sandbox loopback denial,
+not a runtime regression; controlled Connector QA passed 22/22. A lost-response
+legacy rotation recovery candidate and synthetic test passed. Local static,
+build, domain, security, migration and release-contract gates passed. Existing
+draft PR #235 targets `integration/development`; all nine checks passed at
+code head `4d104ba2`, while a later ledger/report head still requires fresh CI.
+The protected archive is readable
+and byte-matched, but QA proof sequences have advanced and Gateway Keychain
+disaster recovery is not proven. Legacy Production credential matching and live
+rollback remain unverified. Keep this unit `PUSHED_REMOTE`, not integrated or
+release-ready; see `DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md`.
