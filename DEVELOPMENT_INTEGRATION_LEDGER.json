@@ -11850,7 +11850,7 @@
         "observedAt": "2026-10-21"
       },
       "validation": {
-        "status": "KINGSTON_GUARD_SYNTHETIC_20_OF_20_ACCESS_PACKAGE_30_OF_30_EXECUTOR_44_OF_44_PASS; NEW_EXACT_HEAD_CI_PENDING; PRODUCTION_ACTIVATION_BLOCKED",
+        "status": "KINGSTON_GUARD_SYNTHETIC_23_OF_23_ACCESS_PACKAGE_30_OF_30_EXECUTOR_44_OF_44_PASS; NEW_EXACT_HEAD_CI_PENDING; PRODUCTION_ACTIVATION_BLOCKED",
         "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md", "DIGITAL_OBSERVER_HOME_TELEMETRY_CONTROLLED_TRANSITION_PLAN_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_COMPARE_ONLY_PACKAGE_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_PRIVILEGE_REVIEW_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_SECURE_COMPARE_DESIGN_CLOSURE_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_ACCESS_APPROVAL_PACKAGE_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_KINGSTON_EXECUTOR_20261021.md", "DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_ACCESS_PREFLIGHT_20261021.sql", "config/home-legacy-production-compare-review.json"],
         "limits": "Kingston APFS encryption, mount UUID, writable state and capacity verified locally, but current noowners mount denies the sensitive-execution guard. The wrapper fails closed and has no alternate artifact path; no signed one-shot binary exists because no valid signing identity was found. The existing comparison core and Keychain custody remain unchanged. Production DB least privilege/private verifier transport, real administrator/session-revocation binding and independently immutable audit remain absent; separate five-function remediation is unapplied. No Production verifier or Keychain credential was read. Both matches UNKNOWN; Keychain disaster recovery and live transition remain blocked."
       },
@@ -11859,7 +11859,7 @@
       "migrations": ["20261021010000_home_legacy_compare_reader_preparation.sql"],
       "migrationOrder": ["20261021010000"],
       "conflictsResolution": "Separate feature branch based on integration/development; no integration conflict resolution or merge attempted.",
-      "localVerification": "PASS_KINGSTON_SYNTHETIC_20_OF_20_ACCESS_PACKAGE_30_OF_30_EXECUTOR_44_OF_44; ACTUAL_KINGSTON_SENSITIVE_GUARD_DENIES_NOOWNERS; NEW_EXACT_HEAD_CI_PENDING; PRODUCTION_UNVERIFIED",
+      "localVerification": "PASS_KINGSTON_SYNTHETIC_23_OF_23_ACCESS_PACKAGE_30_OF_30_EXECUTOR_44_OF_44; ACTUAL_KINGSTON_SENSITIVE_GUARD_DENIES_NOOWNERS; NEW_EXACT_HEAD_CI_PENDING; PRODUCTION_UNVERIFIED",
       "releaseEligibility": "NOT_READY_LIVE_LEGACY_AUTH_ROLLBACK_AND_OWNER_APPROVAL_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Keep PR #235 Draft. Kingston host is selected, but qualify enabling ownership without disturbing other drive workloads; provide a trusted signing identity; approve a two-record private verifier-delivery path with database-side restrictions, real Production admin/session revocation and immutable audit. Separately authorize Production deployment and credential comparison after security review. Both matches UNKNOWN; no live telemetry transition authorized."

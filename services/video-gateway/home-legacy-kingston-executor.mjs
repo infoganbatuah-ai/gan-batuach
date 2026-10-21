@@ -67,9 +67,12 @@ export function createHomeLegacyKingstonGuard({ inspect = inspectHomeLegacyKings
 export function createHomeLegacyKingstonExecutor({ hostGuard, ...dependencies }) {
   if (typeof hostGuard !== "function") throw new TypeError("KINGSTON_GUARD_REQUIRED");
   const existing = createHomeLegacyPrivateExecutor(dependencies);
+  let used = false;
   return Object.freeze({
     async compare(input) {
       try {
+        if (used) return "UNKNOWN";
+        used = true;
         if (await hostGuard() !== true) return "UNKNOWN";
         const result = await existing.compare(input);
         return await hostGuard() === true ? result : "UNKNOWN";
