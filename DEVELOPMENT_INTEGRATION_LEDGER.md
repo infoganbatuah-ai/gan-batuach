@@ -1812,7 +1812,7 @@ PR #235 Kingston host-selection continuation (2026-10-21):
 encrypted external volume UUID, source and future restricted artifact root.
 The new wrapper reuses the existing compare-only core and denies execution if
 the mount, encryption, ownership enforcement, capacity or path checks fail;
-synthetic guard QA passes 23/23. Real local inspection confirms encrypted,
+synthetic guard QA passes 26/26. Real local inspection confirms encrypted,
 writable APFS with approximately 1.72 TB free, but the volume is mounted
 `noowners`, so the sensitive-execution guard correctly denies operation.
 No signing identity, signed package, Production data path, real administrator

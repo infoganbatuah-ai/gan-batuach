@@ -1,20 +1,22 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { createHomeLegacyKingstonGuard, createHomeLegacyKingstonExecutor,
-  HOME_LEGACY_KINGSTON_MOUNT, HOME_LEGACY_KINGSTON_SOURCE,
-  HOME_LEGACY_KINGSTON_ARTIFACTS, HOME_LEGACY_KINGSTON_VOLUME_UUID } from
+  inspectHomeLegacyKingston, inspectHomeLegacyKingstonMountOptions } from
   "../../services/video-gateway/home-legacy-kingston-executor.mjs";
 import { HOME_LEGACY_MATCH_BINDINGS } from "../../services/video-gateway/home-legacy-match-service.mjs";
 
 let checks = 0;
-const good = { MountPoint: HOME_LEGACY_KINGSTON_MOUNT,
-  VolumeUUID: HOME_LEGACY_KINGSTON_VOLUME_UUID, FilesystemType: "apfs",
+const configuration = JSON.parse(readFileSync("config/home-legacy-production-compare-review.json", "utf8"))
+  .selectedHostStorage;
+const { mount, volumeUuid, source, artifacts } = configuration;
+const good = { MountPoint: mount,
+  VolumeUUID: volumeUuid, FilesystemType: "apfs",
   FileVault: true, Encryption: true, WritableVolume: true,
   APFSContainerFree: 2 * 1024 ** 3 };
-const paths = new Set([HOME_LEGACY_KINGSTON_MOUNT, HOME_LEGACY_KINGSTON_SOURCE,
-  HOME_LEGACY_KINGSTON_ARTIFACTS]);
+const paths = new Set([mount, source, artifacts]);
 const guard = (info = good, options = ["apfs", "local", "journaled"]) =>
-  createHomeLegacyKingstonGuard({ inspect: () => info, inspectMountOptions: () => options,
+  createHomeLegacyKingstonGuard({ configuration, inspect: () => info, inspectMountOptions: () => options,
     realpath: path => { if (!paths.has(path)) throw new Error("missing"); return path; },
     stat: path => ({ dev: paths.has(path) ? 42 : 1 }) });
 assert.equal(guard()(), true); checks++;
@@ -25,14 +27,17 @@ for (const change of [
 ]) { assert.equal(guard({ ...good, ...change })(), false); checks++; }
 assert.equal(guard(good, ["apfs", "noowners"])(), false); checks++;
 assert.equal(guard(good, [])(), false); checks++;
-assert.equal(createHomeLegacyKingstonGuard({ inspect: () => good,
-  inspectMountOptions: () => ["apfs"], realpath: () => HOME_LEGACY_KINGSTON_MOUNT,
+assert.equal(createHomeLegacyKingstonGuard({ configuration, inspect: () => good,
+  inspectMountOptions: () => ["apfs"], realpath: () => mount,
   stat: () => ({ dev: 42 }) })(), false); checks++;
-assert.equal(createHomeLegacyKingstonGuard({ inspect: () => good,
+assert.equal(createHomeLegacyKingstonGuard({ configuration, inspect: () => good,
   inspectMountOptions: () => ["apfs"], realpath: path => path,
-  stat: path => ({ dev: path === HOME_LEGACY_KINGSTON_SOURCE ? 12 : 42 }) })(), false); checks++;
-assert.equal(createHomeLegacyKingstonGuard({ inspect: () => { throw new Error("unmounted"); },
+  stat: path => ({ dev: path === source ? 12 : 42 }) })(), false); checks++;
+assert.equal(createHomeLegacyKingstonGuard({ configuration, inspect: () => { throw new Error("unmounted"); },
   inspectMountOptions: () => ["apfs"] })(), false); checks++;
+assert.throws(() => createHomeLegacyKingstonGuard(), /KINGSTON_GUARD_REQUIRED/); checks++;
+assert.equal(typeof inspectHomeLegacyKingston, "function"); checks++;
+assert.equal(typeof inspectHomeLegacyKingstonMountOptions, "function"); checks++;
 assert.throws(() => createHomeLegacyKingstonExecutor({ approvalStore: {}, comparator: {} }),
   /KINGSTON_GUARD_REQUIRED/); checks++;
 
