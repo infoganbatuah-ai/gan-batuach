@@ -1734,3 +1734,21 @@ review of effective privileges or a separately approved private-server
 alternative is the exact next gate. PR #235 remains Draft; main, Production,
 installed camera services and telemetry are unchanged. See the compare-only
 package for the bounded approval request and rollback limitations.
+
+PR #235 Production privilege review continuation (2026-10-21): source commit
+`0446a8f426792e57c101ecdf6320f8efddee3fe2` records a read-only audit of
+all 57 PUBLIC-executable `public` functions. Of 31 VOLATILE functions, 26
+return `trigger` and five are directly callable SECURITY DEFINER mutators.
+`notify_role` and `process_monthly_inspection_reminders` have no explicit
+caller-auth check in their live definitions; the latter can update tasks and
+queue notification rows. PUBLIC schema USAGE/EXECUTE reaches a future direct
+LOGIN even with NOINHERIT. A 16/16 isolated synthetic clone reproduced the
+write-through-function risk and verified clone-only ACL denial/rollback.
+The private reader also returns the two permitted verifier values, so it
+cannot be exposed to untrusted callers. The exact 57-signature REVOKE and
+rollback proposal is **review-only** in
+`DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_PRIVILEGE_REVIEW_20261021.md`; no
+Production grant, function, role, row, credential, or camera service changed.
+The migration remains pending; both real matches remain UNKNOWN. PR #235
+stays Draft pending a separately approved private compare-only architecture,
+future-default privilege review, signed package and Keychain recovery gates.
