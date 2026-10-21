@@ -1872,3 +1872,23 @@ by this alternative, and no runtime was installed. Local synthetic checks:
 Kingston guard 26/26, private executor 44/44, Production access review 30/30.
 New exact-head CI is pending. PR #235 remains Draft; both Legacy matches are
 UNKNOWN and no live transition is authorized.
+
+PR #235 AWS Kingston backup feasibility (2026-10-21): redacted audit
+`DIGITAL_OBSERVER_HOME_AWS_BACKUP_FEASIBILITY_20261021.md` and a clarification
+to the prior backup decision were pushed on the existing remote source branch at
+`d878485b5cc8c8b1eb134059b87240fb9e5620e2`. The one canonical restricted
+supplier ledger on Kingston records an **unincurred proposal**, not a charge.
+No usable authenticated AWS management connection was available; project AWS
+account/region, S3 buckets, encryption, lifecycle, KMS inventory and actual
+cost therefore remain unverified. Four candidate local groups occupy
+83,390,431,232 bytes gross, while the Kingston container reports
+327,465,021,440 bytes used; neither is the proven minimum selective backup.
+Development DB/Auth/Storage, dirty worktrees/stash and unique protected evidence
+still need a file-level manifest and independent restore. Illustrative us-east-1
+S3 Standard storage-only scenarios are $1.92/month for 83.39 GB or $7.53/month
+for 327.47 GB, before versions, requests, outbound transfer, tax and region
+differences; actual cost is unknown. No AWS resource, upload, backup or restore
+was performed. Exact next action: project AWS administrator supplies a non-root
+read-only metadata/cost connection, or owner selects an independent encrypted
+physical backup destination. Finish the manifest, quote and isolated restore
+before activation. PR #235 remains Draft; both Legacy matches remain UNKNOWN.
