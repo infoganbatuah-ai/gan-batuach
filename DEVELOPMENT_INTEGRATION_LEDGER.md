@@ -1806,3 +1806,15 @@ administrator/session-revocation binding, DB least-privilege path, private
 transport, immutable audit and signed live package remain BLOCKED; both
 matches UNKNOWN. PR remains Draft pending a separately approved architecture
 and later Production activation window.
+
+PR #235 Kingston host-selection continuation (2026-10-21):
+`DIGITAL_OBSERVER_HOME_LEGACY_KINGSTON_EXECUTOR_20261021.md` pins the
+encrypted external volume UUID, source and future restricted artifact root.
+The new wrapper reuses the existing compare-only core and denies execution if
+the mount, encryption, ownership enforcement, capacity or path checks fail;
+synthetic guard QA passes 20/20. Real local inspection confirms encrypted,
+writable APFS with approximately 1.72 TB free, but the volume is mounted
+`noowners`, so the sensitive-execution guard correctly denies operation.
+No signing identity, signed package, Production data path, real administrator
+binding or immutable audit is claimed. Keychain custody is unchanged, both
+matches remain UNKNOWN, and PR #235 remains Draft.

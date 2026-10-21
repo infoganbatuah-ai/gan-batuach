@@ -2,6 +2,17 @@
   "kind": "HOME_LEGACY_COMPARE_PRODUCTION_ACCESS_REVIEW",
   "status": "BLOCKED_REVIEW_ONLY",
   "enabled": false,
+  "selectedHostStorage": {
+    "mount": "/Volumes/DIGITAL_OBSERVER",
+    "volumeUuid": "D5D524FA-1545-43EE-AC1B-9771D2A7D526",
+    "source": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/home-telemetry-prelive-qualification",
+    "artifacts": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/home-legacy-private-compare",
+    "requiresApfsEncryption": true,
+    "requiresOwnershipEnforcement": true,
+    "requiresFreeBytes": 1073741824,
+    "currentOwnerEnforcement": "BLOCKED_NOOWNERS",
+    "fallbackStorage": false
+  },
   "productionProjectRef": "kuaywzvucllxjsxarogb",
   "executionIdentity": {
     "host": "OWNER_HOME_MACOS_UID_501_ONE_SHOT_PROCESS",
