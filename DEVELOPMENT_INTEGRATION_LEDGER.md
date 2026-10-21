@@ -1910,3 +1910,26 @@ backup spend. Next decision: a separately approved new private S3 bucket in an
 owner-selected region after quotation/security review, **or** an independent
 encrypted physical drive; neither backup has begun. PR stays Draft, Legacy
 matches UNKNOWN, live transition unauthorized.
+
+PR #235 AWS S3 final pre-activation proposal (2026-10-22): redacted
+`DIGITAL_OBSERVER_HOME_AWS_S3_BACKUP_PREACTIVATION_PLAN_20261022.md` was pushed
+at source commit `93539da8` on the existing remote feature branch. The
+project-owned AWS Console account and zero general-purpose S3 buckets remain
+verified; no resource or data was created. Existing KMS Ed25519 signing keys
+are excluded from backup encryption. Proposed region is `il-central-1`, subject
+to PUSH 45 data classification. Official regional public price lists show
+S3 Standard $0.025/GiB-month, Tier-1 requests $0.0055/1,000, and paid internet
+egress $0.11/GiB after any remaining shared free allowance. Four candidate
+directories total 83.39 decimal GB gross (77.66 GiB), not proved unique;
+Development DB/Auth/Storage bytes, dirty/ignored work and duplicate-package
+equivalence still block an exact minimum. The plan defines the mandatory
+selection manifest, private encrypted bucket, separate key custody, least
+privilege, consistent capture and isolated restore proof. Its proposed
+operator guardrails are 320 GiB per generation, 640 GiB retained, 100,000
+Tier-1 requests per run, and intended incremental $20 normal/$60 emergency
+pre-tax monthly budgets; AWS Budgets is not a hard cap. The restricted supplier
+ledger records this as **unincurred**, with all-in cost and owner approval
+still pending. No backup, Keychain export, Kingston storage change, Production
+action or telemetry transition occurred. PR remains Draft; both Legacy matches
+remain UNKNOWN. Exact-head CI on the subsequent ledger commit must be checked
+before claiming a new 9/9 pass.
