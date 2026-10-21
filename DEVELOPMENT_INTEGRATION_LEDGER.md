@@ -1847,3 +1847,28 @@ quota, ownership setting, signing identity, Keychain item or Production
 resource was changed. Local targeted guard 26/26, executor 44/44, security
 57/57, migration and release-contract gates passed; new exact-head CI remains
 to be observed. Both real matches remain UNKNOWN; PR #235 stays Draft.
+
+PR #235 Kingston backup and protected-runtime alternative (2026-10-21):
+`DIGITAL_OBSERVER_HOME_KINGSTON_BACKUP_AND_SECURE_EXECUTION_ALTERNATIVE_20261021.md`
+is preserved on the remote branch at source commit
+`866f5b0b67a039e1684707abc5315a69702fb34d`. The previous exact-head
+`2b8873f22be9b72dc823e07cfcab16fb91bbd915` passed 9/9 CI. Current
+read-only inventory found 327,465,021,440 Kingston bytes used, no Time Machine
+destination or independent mounted backup drive, and ~7.3 GiB free on the
+internal Data volume. At least 400 GB independently available encrypted
+capacity is the full-volume planning floor; no backup was started. The 36-file
+protected Home archive hash still matches, but full Development DB/Auth/Storage,
+ignored/dirty worktrees, local-only branches and Keychain recovery remain
+unproven. There are 149 registered worktrees (117 present, 32 missing), one
+stash, four local branches ahead of upstream and six without upstream; two
+present worktrees have extensive local deltas requiring separate preservation.
+One valid Apple Development code-signing identity is now present, but no signed
+private executor or project-approved trust anchor is proven. A small internal
+FileVault-protected, ownership-enforcing runtime is architecturally feasible
+without changing Kingston ownership; it needs a new fail-closed sealed-package
+guard, independent audit and Production access/administrator approval. The
+current `noowners` guard is preserved unchanged, no sibling volume is required
+by this alternative, and no runtime was installed. Local synthetic checks:
+Kingston guard 26/26, private executor 44/44, Production access review 30/30.
+New exact-head CI is pending. PR #235 remains Draft; both Legacy matches are
+UNKNOWN and no live transition is authorized.
