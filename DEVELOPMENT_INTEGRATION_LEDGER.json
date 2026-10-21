@@ -11834,19 +11834,19 @@
         "observedAt": "2026-10-21"
       },
       "validation": {
-        "status": "LOCAL_DETERMINISTIC_PASS_PR_235_CODE_HEAD_9_OF_9_FINAL_HEAD_PENDING",
+        "status": "LOCAL_DETERMINISTIC_PASS_PR_235_HEAD_51F46C1_9_OF_9_STRATEGY_REVIEW_HEAD_PENDING",
         "evidence": ["DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md"],
-        "limits": "Legacy Production token matching, exact signed candidate package, Keychain disaster restore, real Production telemetry and live rollback remain unverified."
+        "limits": "Both Legacy and managed-enrollment live strategies blocked: no approved non-mutating Production verifier channel; current candidate supports only Legacy in Production; no signed candidate artifact; Keychain disaster restore, real Production telemetry and live rollback remain unverified."
       },
       "integration": { "status": "PENDING_REVIEW", "commit": null, "pullRequest": 235, "base": "integration/development" },
-      "dependencies": { "status": "BLOCKED_LIVE_AUTH_AND_FINAL_PR_REVIEW", "units": [] },
+      "dependencies": { "status": "BLOCKED_LIVE_AUTH_SIGNED_PACKAGE_AND_FINAL_PR_REVIEW", "units": [] },
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Separate feature branch based on integration/development; no integration conflict resolution or merge attempted.",
       "localVerification": "PASS_CODE_AND_DETERMINISTIC_QA_ONLY",
       "releaseEligibility": "NOT_READY_LIVE_LEGACY_AUTH_ROLLBACK_AND_OWNER_APPROVAL_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
-      "nextAction": "Recheck PR #235 at its final head, review the scoped diff, and merge only if the development owner accepts the documented live-proof limitations. Keep live telemetry switch blocked pending separately approved legacy-auth and rollback gates."
+      "nextAction": "Keep PR #235 draft. Qualify an approved non-mutating exact-enrollment Legacy verifier comparison or separately authorize a rotating transaction; build and verify signed Gateway/Connector candidate packages with isolated install/rollback proof; separately design managed-identity migration only if Legacy is unavailable. Recheck exact-head CI before any development merge. Live telemetry change requires a new explicit owner approval."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

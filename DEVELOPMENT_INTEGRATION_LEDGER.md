@@ -1631,3 +1631,14 @@ and byte-matched, but QA proof sequences have advanced and Gateway Keychain
 disaster recovery is not proven. Legacy Production credential matching and live
 rollback remain unverified. Keep this unit `PUSHED_REMOTE`, not integrated or
 release-ready; see `DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md`.
+
+Final authentication strategy review on 2026-10-21: PR #235 at
+`51f46c1d62b551f99fd999ef02d0b676bec12122` had 9/9 checks and a
+scoped nine-file diff. Neither strategy is ready for a live switch. Legacy
+preserves the existing records but has no approved non-mutating credential
+proof; managed Ed25519 replacement would require a different candidate,
+verified Production schema/contracts and stateful source remapping. No signed
+candidate installation package exists, and rollback remains limited by live
+Keychain recovery and token rotation. The PR remains a draft development
+candidate; the detailed comparison and exact future gates are in the same
+pre-live report. No installed runtime or Production state was changed.
