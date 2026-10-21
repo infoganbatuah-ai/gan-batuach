@@ -1657,3 +1657,16 @@ and registry verify but no signed candidate package exists. PR #235 stays
 draft pending exact-head CI and the blocked authentication, package and live
 rollback gates. See the pre-live report; main/Production and installed camera
 services were not changed.
+
+PR #235 guarded-match continuation (2026-10-21): source commit `51ed10f5`
+is preserved on the remote feature branch. It adds an unwired, fail-closed
+host-local match coordinator allowlisted to the exact Home Gateway and
+Connector, using the existing timing-safe SHA-256 comparator in a trusted
+boundary. Synthetic checks passed 30/30; domain 46/46, security 50/50,
+TypeScript, lint baseline, 256 migration checks and release contract passed
+locally. The local Next build did not complete and is not a PASS; exact-head
+remote CI remains a separate gate. No Production adapter, endpoint, migration,
+credential access or live match exists. Both matches remain UNKNOWN. A scoped
+read-only verifier accessor, protected local credential reader, approved
+administrator grant, atomic rate limiter, audit and security review are still
+required. PR remains Draft; no installed service, main or Production change.
