@@ -1788,3 +1788,5 @@ isolation from inherited PUBLIC functions is still **not** ready. A private
 credential transport, if needed, requires separate authorization. Both real
 matches UNKNOWN; PR remains Draft. See
 `DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md`.
+Implementation commit `b055046bbe0b4986fad2134ec758e3c8a42c73d0` is
+preserved on the remote PR branch; exact-head CI remains a separate gate.
