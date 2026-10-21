@@ -1773,3 +1773,18 @@ Production execution boundary, approved protected-credential path, signed
 package and live Keychain rollback remain open. Both matches remain UNKNOWN;
 PR #235 remains Draft. See
 `DIGITAL_OBSERVER_HOME_LEGACY_SECURE_COMPARE_DESIGN_CLOSURE_20261021.md`.
+
+PR #235 private-executor pre-activation continuation (2026-10-21): an
+in-process, status-only executor now composes the existing administrator
+approval store and constant-time Legacy comparator. A read-only Keychain
+adapter checks exact device/Site, legacy identity and Production destination
+before any synthetic credential read. The isolated PGlite + SQLite Gateway
+and Connector E2E passes 44/44, including wrong scope, replay, attempts,
+expiry, revocation and unchanged enrollment rows. No Production verifier,
+Keychain secret or installed service was accessed. Read-only Production ACL
+inspection confirms `anon`/`authenticated` table SELECT under RLS and broad
+`service_role`/`postgres` rights; a Production broker with database-enforced
+isolation from inherited PUBLIC functions is still **not** ready. A private
+credential transport, if needed, requires separate authorization. Both real
+matches UNKNOWN; PR remains Draft. See
+`DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md`.

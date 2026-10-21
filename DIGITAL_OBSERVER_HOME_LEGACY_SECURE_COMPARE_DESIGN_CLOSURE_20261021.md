@@ -1,5 +1,9 @@
 # PR #235 — secure compare-only design closure (preparation only)
 
+> Subsequent private-executor implementation and the remaining Production
+> privilege/transport gates are documented in
+> `DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md`.
+
 Status: **Draft / no Production activation**. Production Supabase project `kuaywzvucllxjsxarogb` was inspected using SELECT-only catalog and enrollment-metadata queries on 2026-10-21. No verifier, local credential, Keychain value, or token was read. Gateway and Connector matches remain **UNKNOWN / UNKNOWN**. The two enrollment bindings below are identifiers, not authentication evidence.
 
 | Kind | Enrollment ID | Device ID | Tenant and Site ID | Profile | Config version |
