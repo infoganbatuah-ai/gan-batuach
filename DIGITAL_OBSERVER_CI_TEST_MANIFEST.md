@@ -114,6 +114,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `edge-parent-shutdown`: `node scripts/qa/check-edge-parent-shutdown.mjs`
 - `home-qa-identity-phases`: `node scripts/qa/check-push38-home-qa-phases.mjs`
 - `home-qa-legacy-transition-proof`: `node scripts/qa/check-push38-home-qa-legacy-proof.mjs`
+- `home-legacy-public-execute-clone`: `node scripts/qa/check-home-legacy-public-execute-clone.mjs`
 - `home-qa-r2-authorization`: `node scripts/qa/check-push38q-r2-download.mjs`
 - `remote-playback-boundary`: `node scripts/qa/check-remote-playback-boundary.mjs`
 - `remote-playback-https-ingress`: `node scripts/qa/check-push38-https-playback-ingress.mjs`
@@ -136,7 +137,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **549** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **550** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -268,6 +269,7 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/check-event-tracker-configuration.mjs` | node scripts/qa/check-event-tracker-configuration.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | TRACKING / ZONES | CANONICAL CI | none known |
 | `scripts/qa/check-guard-journal-search.mjs` | node scripts/qa/check-guard-journal-search.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVENT / JOURNAL | SUPPORTING | none known |
 | `scripts/qa/check-guard-server-credential.mjs` | node scripts/qa/check-guard-server-credential.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/check-home-legacy-public-execute-clone.mjs` | node scripts/qa/check-home-legacy-public-execute-clone.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-home-qa-enrollment.mjs` | node scripts/qa/check-home-qa-enrollment.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-home-qa-trust-issuance.mjs` | node scripts/qa/check-home-qa-trust-issuance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-immutable-audit-pgcrypto.mjs` | node scripts/qa/check-immutable-audit-pgcrypto.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
