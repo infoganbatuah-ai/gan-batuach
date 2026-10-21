@@ -14,11 +14,12 @@ const RESULTS = new Set(["MATCH", "MISMATCH", "UNKNOWN"]);
 // request fields. An adapter must obtain administrator authorization from the
 // approved identity system, enforce an atomic rate limit, and send a redacted
 // audit record to an approved append-only sink before returning a result.
-export async function evaluateHomeLegacyMatch({ deviceId }, {
-  authorizeAdministrator, resolveApprovedBinding, consumeAttempt, loadScopedRows,
-  loadProtectedCredential, recordAudit,
-  now = () => Date.now()
-} = {}) {
+export async function evaluateHomeLegacyMatch(input, dependencies) {
+  const deviceId = input && typeof input === "object" ? input.deviceId : null;
+  const { authorizeAdministrator, resolveApprovedBinding, consumeAttempt, loadScopedRows,
+    loadProtectedCredential, recordAudit, now = () => Date.now() } = dependencies &&
+      typeof dependencies === "object" ? dependencies : {};
+  if (typeof deviceId !== "string") return "UNKNOWN";
   const profile = HOME_LEGACY_MATCH_DEVICES[deviceId];
   if (!profile || !Object.hasOwn(HOME_LEGACY_MATCH_DEVICES, deviceId)) return "UNKNOWN";
   if (![authorizeAdministrator, resolveApprovedBinding, consumeAttempt, loadScopedRows,

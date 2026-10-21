@@ -54,6 +54,8 @@ for (const [deviceId, deploymentProfile] of Object.entries(HOME_LEGACY_MATCH_DEV
   const before = compareCalls;
   assert.equal(await run("00000000-0000-4000-8000-000000000000"), "UNKNOWN");
   assert.equal(compareCalls, before); checks++;
+  assert.equal(await evaluateHomeLegacyMatch(null, services), "UNKNOWN"); checks++;
+  assert.equal(await evaluateHomeLegacyMatch({ deviceId }, null), "UNKNOWN"); checks++;
   assert.equal(await run(deviceId, { ...services, loadScopedRows: async () => [{ ...row, tenant_id: "wrong-tenant" }] }), "UNKNOWN"); checks++;
   assert.equal(await run(deviceId, { ...services, loadScopedRows: async () => [row, row] }), "UNKNOWN"); checks++;
 }
