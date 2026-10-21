@@ -1789,4 +1789,7 @@ credential transport, if needed, requires separate authorization. Both real
 matches UNKNOWN; PR remains Draft. See
 `DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md`.
 Implementation commit `b055046bbe0b4986fad2134ec758e3c8a42c73d0` is
-preserved on the remote PR branch; exact-head CI remains a separate gate.
+preserved on the remote PR branch. On ledger head
+`4285a0b9e455cd6ef3df070e6d7c6c8b18574b43`, exact-head CI passed 9/9
+(six canonical gates, canonical quality, management context and Snyk).
+This is Development QA only and does not close Production activation gates.
