@@ -1818,3 +1818,15 @@ writable APFS with approximately 1.72 TB free, but the volume is mounted
 No signing identity, signed package, Production data path, real administrator
 binding or immutable audit is claimed. Keychain custody is unchanged, both
 matches remain UNKNOWN, and PR #235 remains Draft.
+
+PR #235 Kingston ownership/signing audit (2026-10-21): source report commit
+`275e47450be821bcf8ea7fbb379c43462cba73d3` is preserved on the remote
+branch. `DIGITAL_OBSERVER_HOME_KINGSTON_OWNERSHIP_SIGNING_READINESS_20261021.md`
+records the actual `noowners` guard failure, 112 Kingston worktrees, Colima and
+Xcode dependencies, verified 36-file protected archive, open disk-health and
+full-drive backup gaps, and a non-executed owner-approved change/rollback plan.
+An internal APFS mode test passed, but mounting a Kingston-hosted isolated
+image was denied; Kingston-wide compatibility is not proven. No valid macOS
+signing identity or independent immutable audit anchor was available. No volume
+setting, Keychain secret, Production resource or installed device was changed.
+Both real matches remain UNKNOWN; PR #235 stays Draft, pending exact-head CI.
