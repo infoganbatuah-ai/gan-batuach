@@ -154,6 +154,8 @@
     { "name": "home-qa-legacy-transition-proof", "args": ["scripts/qa/check-push38-home-qa-legacy-proof.mjs"] },
     { "name": "home-legacy-readonly-comparison", "args": ["scripts/qa/check-home-legacy-credential-readonly.mjs"] },
     { "name": "home-legacy-match-service", "args": ["scripts/qa/check-home-legacy-match-service.mjs"] },
+    { "name": "home-legacy-scoped-reader", "args": ["scripts/qa/check-home-legacy-scoped-reader.mjs"] },
+    { "name": "home-legacy-approval-store", "args": ["scripts/qa/check-home-legacy-approval-store.mjs"] },
     { "name": "home-managed-identity-migration-design", "args": ["scripts/qa/check-home-identity-migration-design.mjs"] },
     { "name": "home-qa-r2-authorization", "args": ["scripts/qa/check-push38q-r2-download.mjs"] },
     { "name": "remote-playback-boundary", "args": ["scripts/qa/check-remote-playback-boundary.mjs"] },
