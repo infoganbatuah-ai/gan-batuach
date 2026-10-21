@@ -1642,3 +1642,18 @@ candidate installation package exists, and rollback remains limited by live
 Keychain recovery and token rotation. The PR remains a draft development
 candidate; the detailed comparison and exact future gates are in the same
 pre-live report. No installed runtime or Production state was changed.
+
+Non-mutating Legacy verifier continuation: source commit `9d36b72c` adds a
+bounded in-memory MATCH/MISMATCH/UNKNOWN comparator and synthetic Gateway /
+Connector tests to the security gate. A separate isolated state-model test
+preserves 17 source IDs and shows that a same-enrollment Ed25519 cutover would
+need a new authorized Product transaction and cannot restore an old Legacy
+token after activation. Domain 46/46, security 49/49, managed identity 17/17,
+Connector 22/22, TypeScript, lint baseline, 256 migration checks, and release
+contract passed locally with isolated loopback where required. No approved
+read-only Production verifier channel was present, so both real matches remain
+UNKNOWN. The protected 36-file archive and checksum are unchanged; trust root
+and registry verify but no signed candidate package exists. PR #235 stays
+draft pending exact-head CI and the blocked authentication, package and live
+rollback gates. See the pre-live report; main/Production and installed camera
+services were not changed.
