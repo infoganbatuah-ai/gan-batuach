@@ -1744,11 +1744,14 @@ caller-auth check in their live definitions; the latter can update tasks and
 queue notification rows. PUBLIC schema USAGE/EXECUTE reaches a future direct
 LOGIN even with NOINHERIT. A 16/16 isolated synthetic clone reproduced the
 write-through-function risk and verified clone-only ACL denial/rollback.
-The private reader also returns the two permitted verifier values, so it
+The private reader also returns verifier material from permitted device calls, so it
 cannot be exposed to untrusted callers. The exact 57-signature REVOKE and
 rollback proposal is **review-only** in
 `DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_PRIVILEGE_REVIEW_20261021.md`; no
 Production grant, function, role, row, credential, or camera service changed.
+One active enrollment per exact device was observed in a bounded count, but
+the partial unique index does not make the draft function's Site/device-only
+predicate a durable exact-record/tenant boundary; it requires tightening.
 The migration remains pending; both real matches remain UNKNOWN. PR #235
 stays Draft pending a separately approved private compare-only architecture,
 future-default privilege review, signed package and Keychain recovery gates.
