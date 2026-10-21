@@ -1,0 +1,47 @@
+{
+  "kind": "HOME_LEGACY_COMPARE_PRODUCTION_ACCESS_REVIEW",
+  "status": "BLOCKED_REVIEW_ONLY",
+  "enabled": false,
+  "productionProjectRef": "kuaywzvucllxjsxarogb",
+  "executionIdentity": {
+    "host": "OWNER_HOME_MACOS_UID_501_ONE_SHOT_PROCESS",
+    "productAdministrator": "PRODUCTION_AUTH_GET_USER_APP_METADATA_AND_ACTIVE_PROFILE_REQUIRED",
+    "productionDatabasePrincipal": "NOT_SELECTED",
+    "newDirectDatabaseLogin": false
+  },
+  "purpose": "HOME_TELEMETRY_LEGACY_MATCH",
+  "approvalMaxSeconds": 300,
+  "maxAttemptsPerApproval": 2,
+  "bindings": [
+    {
+      "kind": "GATEWAY",
+      "enrollmentId": "1c450dca-38a8-4e49-853f-c613ca498c27",
+      "deviceId": "62df97e2-3c0b-427f-9108-bde029bc10e7",
+      "tenantId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+      "siteId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+      "deploymentProfile": "PHYSICAL_GATEWAY",
+      "configVersion": 1
+    },
+    {
+      "kind": "CONNECTOR",
+      "enrollmentId": "d7ee3c9f-0b2e-4943-947b-c410c6bc2a41",
+      "deviceId": "db267b52-6282-4944-bcee-5d4857698fb0",
+      "tenantId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+      "siteId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+      "deploymentProfile": "SOFTWARE_CONNECTOR",
+      "configVersion": 4
+    }
+  ],
+  "requiredReadColumns": [
+    "id", "gateway_id", "observer_site_id", "tenant_id",
+    "deployment_profile", "config_version", "status", "lifecycle_state",
+    "identity_scheme", "refresh_token_hash"
+  ],
+  "sensitiveInputCrossing": "NOT_SELECTED_OR_APPROVED",
+  "privateTransport": "NOT_SELECTED_OR_APPROVED",
+  "immutableAuditSink": "NOT_SELECTED_OR_APPROVED",
+  "productionDDL": false,
+  "productionDeployment": false,
+  "realComparison": false,
+  "liveTelemetryTransition": false
+}

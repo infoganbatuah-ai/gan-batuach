@@ -16,7 +16,9 @@ revoke execute on function public.escalate_task(uuid,text,uuid)
 
 revoke execute on function public.notify_role(uuid,public.app_role,text,text,text,uuid)
   from public, anon, authenticated, service_role;
--- The identified callers are SECURITY DEFINER functions owned by postgres.
+-- The verified current SQL caller is the SECURITY DEFINER monthly reminder
+-- function owned by postgres. An older escalate_task definition called this
+-- helper, but the later deployed definition no longer does.
 -- Owner execution still works; any separately verified service caller needs
 -- an explicit reviewed GRANT before this proposal can be activated.
 

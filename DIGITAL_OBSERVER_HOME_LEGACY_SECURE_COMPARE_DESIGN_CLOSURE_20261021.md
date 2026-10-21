@@ -3,6 +3,8 @@
 > Subsequent private-executor implementation and the remaining Production
 > privilege/transport gates are documented in
 > `DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md`.
+> The final access decision and corrected current caller inventory are in
+> `DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_ACCESS_APPROVAL_PACKAGE_20261021.md`.
 
 Status: **Draft / no Production activation**. Production Supabase project `kuaywzvucllxjsxarogb` was inspected using SELECT-only catalog and enrollment-metadata queries on 2026-10-21. No verifier, local credential, Keychain value, or token was read. Gateway and Connector matches remain **UNKNOWN / UNKNOWN**. The two enrollment bindings below are identifiers, not authentication evidence.
 
@@ -29,8 +31,8 @@ Production read-only catalog inspection confirmed all five are `VOLATILE SECURIT
 |---|---|---|---|
 | `assign_child_to_classroom(uuid,uuid,uuid)` | Authenticated garden route | `can_manage_garden`; writes assignment | authenticated, service_role, owner |
 | `assign_staff_to_classroom(uuid,uuid,uuid,text)` | Authenticated garden route | `can_manage_garden`; writes assignment | authenticated, service_role, owner |
-| `escalate_task(uuid,text,uuid)` | Authenticated task domain | actor/admin-inspector check; updates task, calls `notify_role` | authenticated, service_role, owner |
-| `notify_role(uuid,app_role,text,text,text,uuid)` | Nested `process_monthly_inspection_reminders` and `escalate_task` | **No independent caller check**; inserts notifications; notification trigger may enqueue delivery intent | owner only, pending external-caller inventory |
+| `escalate_task(uuid,text,uuid)` | Authenticated task domain | actor/admin-inspector check; updates task. The later deployed definition no longer calls `notify_role`. | authenticated, service_role, owner |
+| `notify_role(uuid,app_role,text,text,text,uuid)` | Nested `process_monthly_inspection_reminders`; an older superseded `escalate_task` definition also called it | **No independent caller check**; inserts notifications; notification trigger may enqueue delivery intent | owner only, pending external-caller inventory |
 | `process_monthly_inspection_reminders(timestamptz)` | Protected `/api/cron/inspection-reminders` via `createAdminClient` | **No independent caller check**; updates tasks and calls `notify_role` | service_role, owner |
 
 The exact review-only grant proposal is [DIGITAL_OBSERVER_HOME_PUBLIC_FUNCTION_REMEDIATION_PROPOSAL_20261021.sql](DIGITAL_OBSERVER_HOME_PUBLIC_FUNCTION_REMEDIATION_PROPOSAL_20261021.sql). Do **not** apply until the deployed cron role, SQL/trigger callers, downstream notification behavior, and Management regression are verified in an isolated clone and a separate Production window is approved. Direct calls to `notify_role` may create communication intents, so avoid invoking it against Production. Existing function definitions and old migrations are not rewritten. An emergency rollback would restore only each function's captured prior ACL in a transaction; restoring `PUBLIC` would reopen the vulnerability and must trigger incident review.

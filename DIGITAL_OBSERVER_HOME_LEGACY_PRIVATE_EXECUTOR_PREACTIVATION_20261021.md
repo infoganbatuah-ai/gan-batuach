@@ -2,6 +2,8 @@
 
 Status: **isolated implementation complete; Production deployment BLOCKED**. Scope is the existing Home Gateway and Connector only. No Production credential, verifier, Keychain value, device service or row was read or changed for this implementation. Both real matches remain **UNKNOWN**. The only permitted comparison output is `MATCH`, `MISMATCH`, or `UNKNOWN`.
 
+Final access-decision and approval boundary: `DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_ACCESS_APPROVAL_PACKAGE_20261021.md`. The package preserves this implementation but does not claim that its Product-side/private database capability or immutable Production audit sink exists.
+
 ## Implemented boundary
 
 `home-legacy-private-executor.mjs` composes the existing administrator approval store/coordinator and the existing constant-time Legacy comparator; it does not implement another comparison algorithm. It exports one in-process `compare` operation. It opens no HTTP listener, database connection or Keychain item. It rejects extra input fields and devices outside the two pinned Production enrollment bindings. The approval store enforces authenticated platform-admin identity, exact device/tenant/Site, explicit purpose, at most five minutes, two atomic attempts per approval, replay denial, revocation and append-only redacted audit. The scoped reader has a fixed SQL predicate for exact enrollment ID, device ID, tenant ID, Site ID, profile, config version, active state and Legacy scheme, and returns only a status to the executor.

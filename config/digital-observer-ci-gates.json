@@ -156,6 +156,7 @@
     { "name": "home-legacy-match-service", "args": ["scripts/qa/check-home-legacy-match-service.mjs"] },
     { "name": "home-legacy-scoped-reader", "args": ["scripts/qa/check-home-legacy-scoped-reader.mjs"] },
     { "name": "home-legacy-private-executor", "args": ["scripts/qa/check-home-legacy-private-executor.mjs"] },
+    { "name": "home-legacy-production-access-review", "args": ["scripts/qa/check-home-legacy-production-access-review.mjs"] },
     { "name": "home-legacy-public-execute-clone", "args": ["scripts/qa/check-home-legacy-public-execute-clone.mjs"] },
     { "name": "home-public-function-remediation", "args": ["scripts/qa/check-home-public-function-remediation.mjs"] },
     { "name": "home-legacy-approval-store", "args": ["scripts/qa/check-home-legacy-approval-store.mjs"] },

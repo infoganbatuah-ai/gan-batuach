@@ -119,6 +119,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `home-legacy-match-service`: `node scripts/qa/check-home-legacy-match-service.mjs`
 - `home-legacy-scoped-reader`: `node scripts/qa/check-home-legacy-scoped-reader.mjs`
 - `home-legacy-private-executor`: `node scripts/qa/check-home-legacy-private-executor.mjs`
+- `home-legacy-production-access-review`: `node scripts/qa/check-home-legacy-production-access-review.mjs`
 - `home-legacy-public-execute-clone`: `node scripts/qa/check-home-legacy-public-execute-clone.mjs`
 - `home-public-function-remediation`: `node scripts/qa/check-home-public-function-remediation.mjs`
 - `home-legacy-approval-store`: `node scripts/qa/check-home-legacy-approval-store.mjs`
@@ -146,7 +147,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **560** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **561** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -284,6 +285,7 @@ Inventory count: **560** files. Classifications are conservative; environment-de
 | `scripts/qa/check-home-legacy-credential-readonly.mjs` | node scripts/qa/check-home-legacy-credential-readonly.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-home-legacy-match-service.mjs` | node scripts/qa/check-home-legacy-match-service.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-home-legacy-private-executor.mjs` | node scripts/qa/check-home-legacy-private-executor.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-production-access-review.mjs` | node scripts/qa/check-home-legacy-production-access-review.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-home-legacy-public-execute-clone.mjs` | node scripts/qa/check-home-legacy-public-execute-clone.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-home-legacy-scoped-reader.mjs` | node scripts/qa/check-home-legacy-scoped-reader.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-home-public-function-remediation.mjs` | node scripts/qa/check-home-public-function-remediation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |

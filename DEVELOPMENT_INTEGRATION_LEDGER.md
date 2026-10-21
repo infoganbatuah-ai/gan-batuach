@@ -1793,3 +1793,16 @@ preserved on the remote PR branch. On ledger head
 `4285a0b9e455cd6ef3df070e6d7c6c8b18574b43`, exact-head CI passed 9/9
 (six canonical gates, canonical quality, management context and Snyk).
 This is Development QA only and does not close Production activation gates.
+
+PR #235 Production access-decision handoff (2026-10-21):
+`DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_ACCESS_APPROVAL_PACKAGE_20261021.md`
+records the exact two-device scope, proposed one-shot owner-macOS execution
+identity, current Production ACL facts, the unavoidable credential-or-verifier
+trust crossing, and the separate five-function remediation. Its review-only
+JSON configuration remains `enabled: false`; the SQL artifact is a metadata
+preflight, not a migration. The isolated access-package check passes 30/30.
+No Production data, identity, device or telemetry was changed. Current
+administrator/session-revocation binding, DB least-privilege path, private
+transport, immutable audit and signed live package remain BLOCKED; both
+matches UNKNOWN. PR remains Draft pending a separately approved architecture
+and later Production activation window.
