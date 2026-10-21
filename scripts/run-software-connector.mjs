@@ -1,6 +1,9 @@
 import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveSoftwareConnectorStartupConfiguration, softwareConnectorSecretStore } from "../services/video-gateway/software-connector-cloud.mjs";
+import { resolveHomeTelemetryProfile } from "../services/video-gateway/home-telemetry-profile.mjs";
 import { preferPackagedObjectModel, resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 
 process.env.OBSERVER_EDGE_DEVICE_TYPE = "SOFTWARE_CONNECTOR";
@@ -25,6 +28,13 @@ process.env.GAN_BATUACH_GATEWAY_DVR_SECRET_DIR ||= secretDir;
 process.env.VIDEO_GATEWAY_PORT ||= "18083";
 process.env.GAN_BATUACH_JOURNAL_OWNER_LOCK_PATH ||= `${dataRoot}/journal-owner.lock`;
 const store = softwareConnectorSecretStore();
+const homeQaIdentityDir = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota/home-qa-device-secrets");
+const telemetryProfile = resolveHomeTelemetryProfile({ deviceType: "SOFTWARE_CONNECTOR", legacyStore: store,
+  homeQaIdentityDir, configuredIdentityDir: process.env.OBSERVER_EDGE_DEVICE_IDENTITY_SECRET_DIR || "",
+  profile: process.env.OBSERVER_EDGE_TELEMETRY_PROFILE || "",
+  authorizationFile: process.env.OBSERVER_EDGE_PRODUCTION_AUTHORIZATION_FILE || "",
+  connectorCloudUrl: process.env.OBSERVER_CONNECTOR_CLOUD_URL || "" });
+if (telemetryProfile.profile !== "LEGACY_EXISTING") process.env.OBSERVER_CONNECTOR_CLOUD_URL = telemetryProfile.cloudUrl;
 // A verified local profile is sufficient to start the camera-side process.
 // Cloud refresh must never sit in front of local liveness: the managed runtime
 // can authenticate and reconcile after launch, while a cloud/network stall

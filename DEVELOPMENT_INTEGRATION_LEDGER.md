@@ -1616,3 +1616,320 @@ identities and no project team. HTTPS QA is a proposal awaiting authorization;
 physical installation, cellular media and APNs receipt are untested. Scoped
 evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
 failures and external proof obligations remain intact.
+
+2026-10-21 Home telemetry pre-live qualification: candidate commits through
+`4d104ba28bc4ff2c41fd2d7fda47ade3e702a515` are remotely preserved on
+`codex/home-telemetry-prelive-qualification`; no installed service or Production
+state changed. The Connector timeout was caused by sandbox loopback denial,
+not a runtime regression; controlled Connector QA passed 22/22. A lost-response
+legacy rotation recovery candidate and synthetic test passed. Local static,
+build, domain, security, migration and release-contract gates passed. Existing
+draft PR #235 targets `integration/development`; all nine checks passed at
+code head `4d104ba2`, while a later ledger/report head still requires fresh CI.
+The protected archive is readable
+and byte-matched, but QA proof sequences have advanced and Gateway Keychain
+disaster recovery is not proven. Legacy Production credential matching and live
+rollback remain unverified. Keep this unit `PUSHED_REMOTE`, not integrated or
+release-ready; see `DIGITAL_OBSERVER_HOME_TELEMETRY_PRELIVE_QUALIFICATION_20261021.md`.
+
+Final authentication strategy review on 2026-10-21: PR #235 at
+`51f46c1d62b551f99fd999ef02d0b676bec12122` had 9/9 checks and a
+scoped nine-file diff. Neither strategy is ready for a live switch. Legacy
+preserves the existing records but has no approved non-mutating credential
+proof; managed Ed25519 replacement would require a different candidate,
+verified Production schema/contracts and stateful source remapping. No signed
+candidate installation package exists, and rollback remains limited by live
+Keychain recovery and token rotation. The PR remains a draft development
+candidate; the detailed comparison and exact future gates are in the same
+pre-live report. No installed runtime or Production state was changed.
+
+Non-mutating Legacy verifier continuation: source commit `9d36b72c` adds a
+bounded in-memory MATCH/MISMATCH/UNKNOWN comparator and synthetic Gateway /
+Connector tests to the security gate. A separate isolated state-model test
+preserves 17 source IDs and shows that a same-enrollment Ed25519 cutover would
+need a new authorized Product transaction and cannot restore an old Legacy
+token after activation. Domain 46/46, security 49/49, managed identity 17/17,
+Connector 22/22, TypeScript, lint baseline, 256 migration checks, and release
+contract passed locally with isolated loopback where required. No approved
+read-only Production verifier channel was present, so both real matches remain
+UNKNOWN. The protected 36-file archive and checksum are unchanged; trust root
+and registry verify but no signed candidate package exists. PR #235 stays
+draft pending exact-head CI and the blocked authentication, package and live
+rollback gates. See the pre-live report; main/Production and installed camera
+services were not changed.
+
+PR #235 guarded-match continuation (2026-10-21): source commit `51ed10f5`
+is preserved on the remote feature branch. It adds an unwired, fail-closed
+host-local match coordinator allowlisted to the exact Home Gateway and
+Connector, using the existing timing-safe SHA-256 comparator in a trusted
+boundary. A follow-up at `fc386e84` fails closed on malformed input; synthetic
+checks passed 34/34; domain 46/46, security 50/50,
+TypeScript, lint baseline, 256 migration checks and release contract passed
+locally. The local Next build did not complete and is not a PASS; exact-head
+remote CI remains a separate gate. No Production adapter, endpoint, migration,
+credential access or live match exists. Both matches remain UNKNOWN. A scoped
+read-only verifier accessor, protected local credential reader, approved
+administrator grant, atomic rate limiter, audit and security review are still
+required. PR remains Draft; no installed service, main or Production change.
+
+End-to-end non-live preparation continuation (2026-10-21): the prior
+evidence-only head `d224bc6f` was remotely preserved and passed all nine
+exact-head PR checks. Both installed baseline OTA archives were located and
+independently rehashed against signed manifests. Isolated Gateway and
+Connector QA packages were built from that pinned source on Kingston, rehashed,
+archive-inspected, and checked for exact profile-selector bytes; the Connector
+app passed strict/deep ad-hoc signature verification. Generic OTA rollback,
+Legacy comparator/coordinator and same-enrollment model tests passed, but no
+candidate KMS-signed manifest, approved private artifact transport, exact-
+candidate isolated installation/return or Keychain disaster recovery proof
+exists. The active task lacks a two-row Production verifier-access path,
+authenticated Vercel dashboard and AWS signing session. Thus both real Legacy
+matches and the currently aliased Production SHA remain UNKNOWN. The full
+ordered transition/abort plan is in
+`DIGITAL_OBSERVER_HOME_TELEMETRY_CONTROLLED_TRANSITION_PLAN_20261021.md`.
+Keep PR #235 Draft and this unit `PUSHED_REMOTE` pending exact-head CI on this
+documentation update. No live service, device identity, Production database,
+Vercel deployment, main or telemetry destination changed.
+
+Compare-only security preparation (2026-10-21): source commit
+`85b9186988d66375e68c575e685234f66c1f2b41` was pushed to the
+existing PR #235 branch. The private coordinator now requires an exact
+two-device request, a five-minute purpose-bound admin approval, atomic
+one-time requests with a two-attempt ceiling, rechecked revocation and
+redacted pre-access/result auditing. Synthetic Gateway/Connector tests pass
+90/90; local domain 46/46, security 50/50 (with permitted loopback),
+identity 17/17, Connector 22/22, profile 6/6, TypeScript, lint baseline, a non-deploying
+Production build, migration health 256/256 and release contract pass.
+The first local build was blocked by sandbox port denial; a permitted-loopback
+rerun passed. Exact-head remote CI is a separate gate and is not inferred.
+No approved Production-scoped reader or host-local secret/approval/attempt/
+audit adapter is connected. Real credentials remain UNKNOWN; the proposed
+minimum permissions and rollback are in
+`DIGITAL_OBSERVER_HOME_LEGACY_COMPARE_ONLY_PACKAGE_20261021.md`. Signed
+installation and Keychain recovery gates remain open; PR stays Draft,
+unmerged. No Production write, deployment, device restart or live switch.
+
+PR #235 compare-only access-design continuation (2026-10-21): source commit
+`ca43834f` prepares pending migration
+`20261021010000_home_legacy_compare_reader_preparation.sql`, a private
+hard-coded two-device/Site SQL reader with a NOLOGIN dedicated role and no
+base-table grant. The host-side adapter reuses the existing comparison core;
+an identity-backed approval module and SQLite host-local store enforce
+five-minute purpose-bound approval, current admin revalidation, revocation,
+atomic two-attempt/replay control and append-only redacted audit. Isolated SQL
+reader 33/33, approval 37/37, comparison 90/90, domain 46/46, security
+52/52, TypeScript, lint baseline, non-deploying Product build, migration
+health 257, ledger schema and release contract passed. The new security
+suites are in the canonical CI manifest. Exact-head remote CI remains a
+separate gate.
+
+A read-only Production **metadata-only** inspection found 57 functions
+executable by PUBLIC in the public schema, including 31 volatile and 21
+volatile SECURITY DEFINER functions. A direct login is therefore not yet
+proved non-mutating; no login, migration, credential read or comparison was
+activated. The pending migration is **not applied to isolated Development or
+Production**, the integrated Development baseline remains 256 applied
+migrations, and both real Legacy matches remain UNKNOWN. Security/database
+review of effective privileges or a separately approved private-server
+alternative is the exact next gate. PR #235 remains Draft; main, Production,
+installed camera services and telemetry are unchanged. See the compare-only
+package for the bounded approval request and rollback limitations.
+
+PR #235 Production privilege review continuation (2026-10-21): source commit
+`0446a8f426792e57c101ecdf6320f8efddee3fe2` records a read-only audit of
+all 57 PUBLIC-executable `public` functions. Of 31 VOLATILE functions, 26
+return `trigger` and five are directly callable SECURITY DEFINER mutators.
+`notify_role` and `process_monthly_inspection_reminders` have no explicit
+caller-auth check in their live definitions; the latter can update tasks and
+queue notification rows. PUBLIC schema USAGE/EXECUTE reaches a future direct
+LOGIN even with NOINHERIT. A 16/16 isolated synthetic clone reproduced the
+write-through-function risk and verified clone-only ACL denial/rollback.
+The private reader also returns verifier material from permitted device calls, so it
+cannot be exposed to untrusted callers. The exact 57-signature REVOKE and
+rollback proposal is **review-only** in
+`DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_PRIVILEGE_REVIEW_20261021.md`; no
+Production grant, function, role, row, credential, or camera service changed.
+One active enrollment per exact device was observed in a bounded count, but
+the partial unique index does not make the draft function's Site/device-only
+predicate a durable exact-record/tenant boundary; it requires tightening.
+The migration remains pending; both real matches remain UNKNOWN. PR #235
+stays Draft pending a separately approved private compare-only architecture,
+future-default privilege review, signed package and Keychain recovery gates.
+
+PR #235 secure-design continuation (2026-10-21): the **unapplied** direct-login,
+NOLOGIN reader and verifier-returning function proposal was withdrawn. Its
+ordered migration is now an explicit no-op (never applied to Development or
+Production). Read-only Production metadata pinned both exact enrollment IDs,
+tenant/Site/device/profile and config versions; no verifier was read. The
+private trusted comparison component now exposes only MATCH/MISMATCH/UNKNOWN
+to the existing administrator approval coordinator. Synthetic PGlite suites
+passed 80/80 match, 38/38 scoped compare, 38/38 approval store, 8/8 PUBLIC
+exposure and 19/19 narrow remediation checks; the full security gate passed
+54/54, typecheck, lint and migration health passed. Local domain gate stopped
+at an unrelated horizontal-scale benchmark under high host load; exact-head
+remote CI remains required. The five-function permission proposal and future
+default policy are review-only; no Production ACL was changed. A trusted
+Production execution boundary, approved protected-credential path, signed
+package and live Keychain rollback remain open. Both matches remain UNKNOWN;
+PR #235 remains Draft. See
+`DIGITAL_OBSERVER_HOME_LEGACY_SECURE_COMPARE_DESIGN_CLOSURE_20261021.md`.
+
+PR #235 private-executor pre-activation continuation (2026-10-21): an
+in-process, status-only executor now composes the existing administrator
+approval store and constant-time Legacy comparator. A read-only Keychain
+adapter checks exact device/Site, legacy identity and Production destination
+before any synthetic credential read. The isolated PGlite + SQLite Gateway
+and Connector E2E passes 44/44, including wrong scope, replay, attempts,
+expiry, revocation and unchanged enrollment rows. No Production verifier,
+Keychain secret or installed service was accessed. Read-only Production ACL
+inspection confirms `anon`/`authenticated` table SELECT under RLS and broad
+`service_role`/`postgres` rights; a Production broker with database-enforced
+isolation from inherited PUBLIC functions is still **not** ready. A private
+credential transport, if needed, requires separate authorization. Both real
+matches UNKNOWN; PR remains Draft. See
+`DIGITAL_OBSERVER_HOME_LEGACY_PRIVATE_EXECUTOR_PREACTIVATION_20261021.md`.
+Implementation commit `b055046bbe0b4986fad2134ec758e3c8a42c73d0` is
+preserved on the remote PR branch. On ledger head
+`4285a0b9e455cd6ef3df070e6d7c6c8b18574b43`, exact-head CI passed 9/9
+(six canonical gates, canonical quality, management context and Snyk).
+This is Development QA only and does not close Production activation gates.
+
+PR #235 Production access-decision handoff (2026-10-21):
+`DIGITAL_OBSERVER_HOME_LEGACY_PRODUCTION_ACCESS_APPROVAL_PACKAGE_20261021.md`
+records the exact two-device scope, proposed one-shot owner-macOS execution
+identity, current Production ACL facts, the unavoidable credential-or-verifier
+trust crossing, and the separate five-function remediation. Its review-only
+JSON configuration remains `enabled: false`; the SQL artifact is a metadata
+preflight, not a migration. The isolated access-package check passes 30/30.
+No Production data, identity, device or telemetry was changed. Current
+administrator/session-revocation binding, DB least-privilege path, private
+transport, immutable audit and signed live package remain BLOCKED; both
+matches UNKNOWN. PR remains Draft pending a separately approved architecture
+and later Production activation window.
+
+PR #235 Kingston host-selection continuation (2026-10-21):
+`DIGITAL_OBSERVER_HOME_LEGACY_KINGSTON_EXECUTOR_20261021.md` pins the
+encrypted external volume UUID, source and future restricted artifact root.
+The new wrapper reuses the existing compare-only core and denies execution if
+the mount, encryption, ownership enforcement, capacity or path checks fail;
+synthetic guard QA passes 26/26. Real local inspection confirms encrypted,
+writable APFS with approximately 1.72 TB free, but the volume is mounted
+`noowners`, so the sensitive-execution guard correctly denies operation.
+No signing identity, signed package, Production data path, real administrator
+binding or immutable audit is claimed. Keychain custody is unchanged, both
+matches remain UNKNOWN, and PR #235 remains Draft.
+
+PR #235 Kingston ownership/signing audit (2026-10-21): source report commit
+`275e47450be821bcf8ea7fbb379c43462cba73d3` is preserved on the remote
+branch. `DIGITAL_OBSERVER_HOME_KINGSTON_OWNERSHIP_SIGNING_READINESS_20261021.md`
+records the actual `noowners` guard failure, 112 Kingston worktrees, Colima and
+Xcode dependencies, verified 36-file protected archive, open disk-health and
+full-drive backup gaps, and a non-executed owner-approved change/rollback plan.
+An internal APFS mode test passed, but mounting a Kingston-hosted isolated
+image was denied; Kingston-wide compatibility is not proven. No valid macOS
+signing identity or independent immutable audit anchor was available. No volume
+setting, Keychain secret, Production resource or installed device was changed.
+Both real matches remain UNKNOWN; PR #235 stays Draft. Exact-head CI on
+`c15eb4ed6321667230a2827182591b0587df819c` later passed 9/9.
+
+PR #235 separate Kingston APFS volume design (2026-10-21): source report
+commit `07d37503ba272b1116ca1fc5947f86998d6ca08c` is preserved on the
+remote branch. `DIGITAL_OBSERVER_HOME_SECURE_APFS_VOLUME_DESIGN_20261021.md`
+maps the existing disk4/disk5/disk5s1 topology and ~1.72 TB free, retains the
+existing volume's `noowners` state, and proposes a separately encrypted,
+ownership-enforcing sibling volume. It records prior unresolved First Aid
+warnings, no Time Machine destination, same-drive Development DB/Edge package
+backups, the independently verified 36-file Home configuration backup, and
+the missing off-drive recovery proof. It also records that the current guard
+requires code and artifacts on one volume and cannot safely use this new
+layout without a later reviewed dual-volume/sealed-package change. No volume,
+quota, ownership setting, signing identity, Keychain item or Production
+resource was changed. Local targeted guard 26/26, executor 44/44, security
+57/57, migration and release-contract gates passed; new exact-head CI remains
+to be observed. Both real matches remain UNKNOWN; PR #235 stays Draft.
+
+PR #235 Kingston backup and protected-runtime alternative (2026-10-21):
+`DIGITAL_OBSERVER_HOME_KINGSTON_BACKUP_AND_SECURE_EXECUTION_ALTERNATIVE_20261021.md`
+is preserved on the remote branch at source commit
+`866f5b0b67a039e1684707abc5315a69702fb34d`. The previous exact-head
+`2b8873f22be9b72dc823e07cfcab16fb91bbd915` passed 9/9 CI. Current
+read-only inventory found 327,465,021,440 Kingston bytes used, no Time Machine
+destination or independent mounted backup drive, and ~7.3 GiB free on the
+internal Data volume. At least 400 GB independently available encrypted
+capacity is the full-volume planning floor; no backup was started. The 36-file
+protected Home archive hash still matches, but full Development DB/Auth/Storage,
+ignored/dirty worktrees, local-only branches and Keychain recovery remain
+unproven. There are 149 registered worktrees (117 present, 32 missing), one
+stash, four local branches ahead of upstream and six without upstream; two
+present worktrees have extensive local deltas requiring separate preservation.
+One valid Apple Development code-signing identity is now present, but no signed
+private executor or project-approved trust anchor is proven. A small internal
+FileVault-protected, ownership-enforcing runtime is architecturally feasible
+without changing Kingston ownership; it needs a new fail-closed sealed-package
+guard, independent audit and Production access/administrator approval. The
+current `noowners` guard is preserved unchanged, no sibling volume is required
+by this alternative, and no runtime was installed. Local synthetic checks:
+Kingston guard 26/26, private executor 44/44, Production access review 30/30.
+New exact-head CI is pending. PR #235 remains Draft; both Legacy matches are
+UNKNOWN and no live transition is authorized.
+
+PR #235 AWS Kingston backup feasibility (2026-10-21): redacted audit
+`DIGITAL_OBSERVER_HOME_AWS_BACKUP_FEASIBILITY_20261021.md` and a clarification
+to the prior backup decision were pushed on the existing remote source branch at
+`d878485b5cc8c8b1eb134059b87240fb9e5620e2`. The one canonical restricted
+supplier ledger on Kingston records an **unincurred proposal**, not a charge.
+No usable authenticated AWS management connection was available; project AWS
+account/region, S3 buckets, encryption, lifecycle, KMS inventory and actual
+cost therefore remain unverified. Four candidate local groups occupy
+83,390,431,232 bytes gross, while the Kingston container reports
+327,465,021,440 bytes used; neither is the proven minimum selective backup.
+Development DB/Auth/Storage, dirty worktrees/stash and unique protected evidence
+still need a file-level manifest and independent restore. Illustrative us-east-1
+S3 Standard storage-only scenarios are $1.92/month for 83.39 GB or $7.53/month
+for 327.47 GB, before versions, requests, outbound transfer, tax and region
+differences; actual cost is unknown. No AWS resource, upload, backup or restore
+was performed. Exact next action: project AWS administrator supplies a non-root
+read-only metadata/cost connection, or owner selects an independent encrypted
+physical backup destination. Finish the manifest, quote and isolated restore
+before activation. PR #235 remains Draft; both Legacy matches remain UNKNOWN.
+
+PR #235 AWS Console correction (2026-10-22): the owner identified an
+authenticated foreground Chrome console for the project AWS account. Its
+account ID matches the canonical restricted supplier ledger. The S3 general-
+purpose bucket inventory, scoped to **All AWS Regions**, completed with **0
+buckets**; no existing AWS S3 backup destination is available in this account.
+Two enabled customer-managed Ed25519 **sign/verify** KMS keys were visible in
+`us-east-1`; they are not S3 encryption keys and remain reserved for root and
+release signing. The console billing widget showed $4.71 current-month account
+cost and a $6.91 forecast at observation, not an itemized S3 invoice or backup
+charge. The prior statement that AWS account access was unavailable is
+superseded by the corrected redacted report at source commit
+`20fd03d97c4e789d9b63801658358cb8c7dcd1a1`, pushed to PR #235. The
+restricted supplier ledger contains the correction without recording new actual
+backup spend. Next decision: a separately approved new private S3 bucket in an
+owner-selected region after quotation/security review, **or** an independent
+encrypted physical drive; neither backup has begun. PR stays Draft, Legacy
+matches UNKNOWN, live transition unauthorized.
+
+PR #235 AWS S3 final pre-activation proposal (2026-10-22): redacted
+`DIGITAL_OBSERVER_HOME_AWS_S3_BACKUP_PREACTIVATION_PLAN_20261022.md` was pushed
+at source commit `93539da8` on the existing remote feature branch. The
+project-owned AWS Console account and zero general-purpose S3 buckets remain
+verified; no resource or data was created. Existing KMS Ed25519 signing keys
+are excluded from backup encryption. Proposed region is `il-central-1`, subject
+to PUSH 45 data classification. Official regional public price lists show
+S3 Standard $0.025/GiB-month, Tier-1 requests $0.0055/1,000, and paid internet
+egress $0.11/GiB after any remaining shared free allowance. Four candidate
+directories total 83.39 decimal GB gross (77.66 GiB), not proved unique;
+Development DB/Auth/Storage bytes, dirty/ignored work and duplicate-package
+equivalence still block an exact minimum. The plan defines the mandatory
+selection manifest, private encrypted bucket, separate key custody, least
+privilege, consistent capture and isolated restore proof. Its proposed
+operator guardrails are 320 GiB per generation, 640 GiB retained, 100,000
+Tier-1 requests per run, and intended incremental $20 normal/$60 emergency
+pre-tax monthly budgets; AWS Budgets is not a hard cap. The restricted supplier
+ledger records this as **unincurred**, with all-in cost and owner approval
+still pending. No backup, Keychain export, Kingston storage change, Production
+action or telemetry transition occurred. PR remains Draft; both Legacy matches
+remain UNKNOWN. Exact-head CI on the subsequent ledger commit must be checked
+before claiming a new 9/9 pass.

@@ -86,7 +86,8 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push40-commercial-entitlements`: `node scripts/qa/check-digital-observer-push40.mjs`
 - `push42-external-api-contract`: `node scripts/qa/check-digital-observer-push42.mjs`
 - `push43-oem-sdk-contract`: `node scripts/qa/check-digital-observer-push43.mjs`
-- `push44-native-mobile-contract`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push44-mobile-runtime-contract`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push45-privacy-compliance`: `node scripts/qa/check-digital-observer-push45.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-relay-handoff-remediation`: `node --test scripts/qa/check-push38-relay-handoff-remediation.mjs`
@@ -114,6 +115,16 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `edge-parent-shutdown`: `node scripts/qa/check-edge-parent-shutdown.mjs`
 - `home-qa-identity-phases`: `node scripts/qa/check-push38-home-qa-phases.mjs`
 - `home-qa-legacy-transition-proof`: `node scripts/qa/check-push38-home-qa-legacy-proof.mjs`
+- `home-legacy-readonly-comparison`: `node scripts/qa/check-home-legacy-credential-readonly.mjs`
+- `home-legacy-match-service`: `node scripts/qa/check-home-legacy-match-service.mjs`
+- `home-legacy-scoped-reader`: `node scripts/qa/check-home-legacy-scoped-reader.mjs`
+- `home-legacy-private-executor`: `node scripts/qa/check-home-legacy-private-executor.mjs`
+- `home-legacy-kingston-executor`: `node scripts/qa/check-home-legacy-kingston-executor.mjs`
+- `home-legacy-production-access-review`: `node scripts/qa/check-home-legacy-production-access-review.mjs`
+- `home-legacy-public-execute-clone`: `node scripts/qa/check-home-legacy-public-execute-clone.mjs`
+- `home-public-function-remediation`: `node scripts/qa/check-home-public-function-remediation.mjs`
+- `home-legacy-approval-store`: `node scripts/qa/check-home-legacy-approval-store.mjs`
+- `home-managed-identity-migration-design`: `node scripts/qa/check-home-identity-migration-design.mjs`
 - `home-qa-r2-authorization`: `node scripts/qa/check-push38q-r2-download.mjs`
 - `remote-playback-boundary`: `node scripts/qa/check-remote-playback-boundary.mjs`
 - `remote-playback-https-ingress`: `node scripts/qa/check-push38-https-playback-ingress.mjs`
@@ -133,10 +144,11 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push42-external-api-security`: `node scripts/qa/check-digital-observer-push42.mjs`
 - `push43-partner-isolation`: `node scripts/qa/check-digital-observer-push43.mjs`
 - `push44-mobile-authorization`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push45-privacy-compliance-security`: `node scripts/qa/check-digital-observer-push45.mjs`
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **549** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **562** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -237,7 +249,8 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/check-digital-observer-push41.mjs` | npm run qa:digital-observer-push41 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-push42.mjs` | npm run qa:digital-observer-push42 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-push43.mjs` | npm run qa:digital-observer-push43 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
-| `scripts/qa/check-digital-observer-push44.mjs` | npm run qa:digital-observer-push44 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | MOBILE | CANONICAL CI | real-device/provider/store proof pending |
+| `scripts/qa/check-digital-observer-push44.mjs` | npm run qa:digital-observer-push44 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-push45.mjs` | npm run qa:digital-observer-push45 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-quality-benchmark.mjs` | npm run qa:digital-observer-quality-benchmark | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-queue-terminal-race.mjs` | npm run qa:digital-observer-queue-terminal-race | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-reliability-qualification.mjs` | npm run qa:digital-observer-reliability-qualification | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -268,8 +281,19 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/check-event-tracker-configuration.mjs` | node scripts/qa/check-event-tracker-configuration.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | TRACKING / ZONES | CANONICAL CI | none known |
 | `scripts/qa/check-guard-journal-search.mjs` | node scripts/qa/check-guard-journal-search.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVENT / JOURNAL | SUPPORTING | none known |
 | `scripts/qa/check-guard-server-credential.mjs` | node scripts/qa/check-guard-server-credential.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/check-home-identity-migration-design.mjs` | node scripts/qa/check-home-identity-migration-design.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-approval-store.mjs` | node scripts/qa/check-home-legacy-approval-store.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-credential-readonly.mjs` | node scripts/qa/check-home-legacy-credential-readonly.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-kingston-executor.mjs` | node scripts/qa/check-home-legacy-kingston-executor.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-match-service.mjs` | node scripts/qa/check-home-legacy-match-service.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-private-executor.mjs` | node scripts/qa/check-home-legacy-private-executor.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-production-access-review.mjs` | node scripts/qa/check-home-legacy-production-access-review.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-public-execute-clone.mjs` | node scripts/qa/check-home-legacy-public-execute-clone.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-legacy-scoped-reader.mjs` | node scripts/qa/check-home-legacy-scoped-reader.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-home-public-function-remediation.mjs` | node scripts/qa/check-home-public-function-remediation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-home-qa-enrollment.mjs` | node scripts/qa/check-home-qa-enrollment.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-home-qa-trust-issuance.mjs` | node scripts/qa/check-home-qa-trust-issuance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-home-telemetry-profile.mjs` | node scripts/qa/check-home-telemetry-profile.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-immutable-audit-pgcrypto.mjs` | node scripts/qa/check-immutable-audit-pgcrypto.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-installed-ota-health-truth.mjs` | node scripts/qa/check-installed-ota-health-truth.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-integration-workflow.mjs` | npm run qa:integration-workflow | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -466,6 +490,7 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38p-release-delivery.mjs` | node scripts/qa/check-push38p-release-delivery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38q-r2-download.mjs` | node scripts/qa/check-push38q-r2-download.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38t-ingress.mjs` | node scripts/qa/check-push38t-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push44-personal-team-qa.mjs` | node scripts/qa/check-push44-personal-team-qa.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-r2-keychain.mjs` | node scripts/qa/check-r2-keychain.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-real-detection-event-bridge.mjs` | npm run qa:real-detection-event-bridge | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-real-event-context-baseline.mjs` | node scripts/qa/check-real-event-context-baseline.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |

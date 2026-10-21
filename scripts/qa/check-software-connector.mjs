@@ -316,16 +316,25 @@ test("local software runtime reports its type and rejects arbitrary command", as
   const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], {
     cwd: new URL("../../", import.meta.url),
     env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VIDEO_GATEWAY_SIGNING_SECRET: "qa-signing-secret-1234567890", GAN_BATUACH_GATEWAY_SECRET_DIR: directory, OBSERVER_EDGE_DEVICE_TYPE: "SOFTWARE_CONNECTOR", OBSERVER_EDGE_INSTALLATION_ID: id, OBSERVER_EDGE_VERSION: "qa", OBSERVER_EDGE_BUILD_SHA: "qa-sha", DVR_EXPECTED_CHANNEL_COUNT: "1" },
-    stdio: "ignore"
+    stdio: ["ignore", "ignore", "pipe"]
   });
+  let stderrTail = "";
+  child.stderr.on("data", chunk => { stderrTail = `${stderrTail}${chunk}`.slice(-8192); });
   context.after(() => child.kill("SIGTERM"));
   let health;
-  // Cold ONNX/runtime initialization can exceed ten seconds on a busy QA host.
-  // Keep the bounded probe generous enough to test the service contract rather
-  // than host scheduling speed.
+  // Retain the existing bounded startup window. Distinguish a child exit or
+  // loopback permission denial from a genuinely slow Connector startup.
   for (let attempt = 0; attempt < 300; attempt += 1) {
     try { const response = await fetch(`http://127.0.0.1:${port}/health`); if (response.ok) { health = await response.json(); break; } } catch {}
+    if (child.exitCode !== null || child.signalCode !== null) break;
     await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  if (!health) {
+    const category = /ERR_MODULE_NOT_FOUND|Cannot find package/.test(stderrTail) ? "MISSING_DEPENDENCY"
+      : /EADDRINUSE/.test(stderrTail) ? "PORT_IN_USE"
+        : /listen EPERM|listen EACCES/.test(stderrTail) ? "LOOPBACK_BIND_DENIED"
+        : child.exitCode !== null || child.signalCode !== null ? "CHILD_EXITED" : "STARTUP_TIMEOUT";
+    assert.fail(`isolated Connector startup failed: ${category}; child_exit=${child.exitCode ?? "none"}`);
   }
   assert.equal(health?.edgeRuntime?.device_type, "SOFTWARE_CONNECTOR");
   assert.equal(health?.contract, "observer-edge-health-v1");
