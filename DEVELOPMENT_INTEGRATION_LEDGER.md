@@ -1,5 +1,22 @@
 # Canonical Development Integration Ledger
 
+PR #234 closure, 2026-10-22: source head
+`60ad671783a88bd790f7323db2c946134f957f14` passed all nine reported checks,
+including six canonical gates (run 39761020386), Management and Snyk. Complete
+diff/review-thread review found no pending review or unrelated schema change.
+Ancestry-preserving merge: `69eab585c806dfb1342efb56920ddc7809c043d1`.
+The exact merged canonical Product ran at `http://127.0.0.1:3000`,
+DEVELOPMENT / INTEGRATION, LOCAL_SUPABASE, production=false. Post-merge
+authenticated PUSH 39–45 regression: 24+6+7+10+15+5+4 = 71/71 PASS,
+including cross-Site/organization denial and sensitive activation fail-closed.
+Actual database schema/history: 256 expected, 227 baseline-covered plus 29
+post-baseline applied, no drift or new migration. Native/mobile/ingress
+contracts pass; former temporary QA hostname returns HTTP 530 and QA ports
+remain closed. Source commits and previous integration ancestry preserved.
+PR #235 remains unchanged Draft at `1c82559d97d407c90c6a404a961fd21323ba15ae`.
+Main remains `2da8f75abce610a9a979eecd752d7a6a1011641e`; no Production or
+camera-service/telemetry change. PUSH 44 PARTIAL, PUSH 46 NOT STARTED.
+
 2026-10-22 PR #234 authenticated physical-iPhone continuation: exact journey source
 `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`; owner confirmed Development-only
 dashboard, cellular Product navigation and logout requiring fresh login on

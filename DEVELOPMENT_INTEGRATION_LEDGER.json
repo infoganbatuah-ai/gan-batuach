@@ -11796,16 +11796,19 @@
         "sourceCommit": "1aa4b4e76abfb0eee097b6de49332534a7f61893",
         "journeySource": "0efb200bf9e934111e0cad485c1a4d0c8fccf08a",
         "pullRequest": 234,
-        "preservation": "PUSHED_REMOTE_PENDING_INTEGRATION",
+        "preservation": "INTEGRATED_DEVELOPMENT",
         "device": "iPhone 13 Pro / iOS 27.0.1; PersonalTeamQA 1.0 (1)",
         "proof": "REAL_DEVICE_PASS_OWNER_CONFIRMED_DEVELOPMENT_AUTH_DASHBOARD_CELLULAR_NAVIGATION_LOGOUT_REQUIRES_LOGIN",
         "isolation": "Dedicated synthetic Development viewer; cross-Site HTTP 403; no Production credential fallback; seven HTTPS security checks PASS",
         "shutdown": "2026-10-22T03:01:03Z temporary dedicated tunnel deleted; local QA ports closed; offline-safe QA reinstalled",
         "migrations": 0,
         "limits": "Strict stolen-token revocation and expiry on device, real media, APNs, Android and store/release qualification remain open",
-        "validation": "Prior exact head 1aa4b4e7 six canonical CI gates PASS; final documentation head requires exact-head CI before merge",
+        "validation": "Final head 60ad671783a88bd790f7323db2c946134f957f14 PASS_9_OF_9; CI run 39761020386; complete diff reviewed",
+        "integrationCommit": "69eab585c806dfb1342efb56920ddc7809c043d1",
+        "integratedHead": "60ad671783a88bd790f7323db2c946134f957f14",
+        "postMergeVerification": "LOCAL_VERIFIED exact merged runtime LOCAL_SUPABASE production=false; PUSH39 24/24, PUSH40 6/6, PUSH41 7/7, PUSH42 10/10, PUSH43 15/15, PUSH44 5/5, PUSH45 4/4; 71/71 total; actual schema/history PASS 256 expected = 227 baseline-covered + 29 post-baseline; zero new migrations",
         "productionChanged": false,
-        "nextAction": "Review final exact-head checks, ancestry-preserving merge only into integration/development, then verify canonical isolated Product and record merge receipt. PUSH44 remains PARTIAL."
+        "nextAction": "Qualify strict physical-device expiry/revocation and separately approved authorized media path before real cellular camera proof; real APNs, native release/stores and Android remain open. No PUSH46 or Production activation."
       },
       "boundedOwnerIphoneLoginRequalification": {
         "date": "2026-10-21",

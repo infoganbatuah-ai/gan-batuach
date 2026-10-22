@@ -2,6 +2,8 @@
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
   "mobileOwnerQualification20261022": {
     "sourceSha": "0efb200bf9e934111e0cad485c1a4d0c8fccf08a",
+    "integrationCommit": "69eab585c806dfb1342efb56920ddc7809c043d1",
+    "postMergeLocalRegression": "PASS_71_OF_71_PUSH39_TO_45; NOT_NEW_DEVICE_MEDIA_OR_PROVIDER_PROOF",
     "device": "iPhone 13 Pro / iOS 27.0.1",
     "authenticatedProductDashboard": "REAL_DEVICE_PASS_OWNER_CONFIRMED_DEVELOPMENT_ONLY",
     "cellularProductControlPlane": "REAL_DEVICE_PASS_OWNER_CONFIRMED",
