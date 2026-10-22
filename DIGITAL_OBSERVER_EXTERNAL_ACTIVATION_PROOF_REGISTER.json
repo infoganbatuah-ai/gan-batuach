@@ -1,5 +1,19 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
+  "mobileOwnerQualification20261022": {
+    "sourceSha": "0efb200bf9e934111e0cad485c1a4d0c8fccf08a",
+    "device": "iPhone 13 Pro / iOS 27.0.1",
+    "authenticatedProductDashboard": "REAL_DEVICE_PASS_OWNER_CONFIRMED_DEVELOPMENT_ONLY",
+    "cellularProductControlPlane": "REAL_DEVICE_PASS_OWNER_CONFIRMED",
+    "logout": "REAL_DEVICE_PASS_REAUTHENTICATION_REQUIRED; NOT_STOLEN_TOKEN_REVOCATION_PROOF",
+    "temporaryIngress": "SHUT_DOWN_2026-10-22T03:01:03Z; DEDICATED_TUNNEL_DELETED",
+    "actualCameraVideo": "NOT_PROVEN",
+    "apns": "NOT_PROVEN_PERSONAL_TEAM_QA; CANONICAL_PUSH_PRESERVED",
+    "nativeReleaseAndroidStores": "NOT_PROVEN",
+    "canonicalPush44": "PARTIAL_NOT_DONE",
+    "matrix": "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
+    "productionChanged": false
+  },
   "mobileRuntimeRecovery": {
     "observedOn": "2026-10-20",
     "runtimeSha": "0a90979504d20c8db0d45574421e6eaf89231fc7",

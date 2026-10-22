@@ -14,7 +14,21 @@ Scope: Development only; no store submission, provider activation or Production 
 - `BLOCKED`: a named prerequisite is absent.
 - `NOT RUN`: the test was not executed and no result is inferred.
 
-## Current matrix
+## Latest physical-iPhone qualification — 2026-10-22
+
+This section supersedes only the corresponding earlier failed login observations; all historical evidence below remains preserved. Native Product journey source: `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`, PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), iPhone 13 Pro / iOS 27.0.1. Executable SHA-256: `da8e75c5efc3b8ead2e2db98cdd5d12b72da6a85f5fd755ab07ebb72d7497b5d`.
+
+| Network | Test | Timestamp | Evidence | Result |
+|---|---|---|---|---|
+| Owner-only HTTPS Development | Dedicated Development account authentication and actual dashboard | 2026-10-22; local Auth corroboration 02:56:31 UTC | Explicit owner confirmation of dashboard; synthetic viewer identity, no Production credentials | REAL DEVICE PASS |
+| Cellular | Product dashboard and navigation | 2026-10-22 | Owner confirmed working cellular navigation; cameras disconnected in isolated viewing fixture | REAL DEVICE PASS — control plane only |
+| Owner-only HTTPS Development | Logout, back/refresh requires login again | 2026-10-22 | Owner explicitly confirmed reauthentication required | REAL DEVICE PASS — not stolen-token revocation proof |
+| No external path | Temporary ingress shutdown | 2026-10-22 03:01:03 UTC | Dedicated tunnel deleted; public HTTP 530; ports 31744/3001 closed; existing Home tunnel untouched | DETERMINISTIC PASS — operational shutdown evidence |
+| USB / offline-safe bundle | Repeated signed build and offline QA reinstall | 2026-10-22 | Two signed builds; strict seal, QA aps-environment absent; CoreDevice installation succeeded; automatic launch blocked by locked phone | NATIVE BUILD PASS; offline reinstall PASS, post-reinstall launch NOT RUN |
+
+Strict session expiry/revocation on the physical device, separate background/resume, real authorized camera playback on cellular, real APNs receipt, native release/TestFlight/App Store readiness and Android physical-device qualification remain NOT PROVEN / BLOCKED. No sensitive legal gate activated. Sanitized private evidence: `tmp/push44-iphone-session-20261022-evidence.json`; owner replies are primary evidence for phone interaction. PUSH 44 remains PARTIAL / CANONICAL NOT DONE.
+
+## Historical matrix
 
 Retrial (2026-10-20T21:27–21:39Z): owner-only protected Quick Tunnel 2026.10.1
 again crashed after iPhone Safari OTP with a nil-map panic and HTTP 502

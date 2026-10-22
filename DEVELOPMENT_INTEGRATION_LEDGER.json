@@ -11791,6 +11791,22 @@
         "productionChanged": false,
         "nextAction": "Owner decision on separate Zero Trust Free onboarding and named owner-only Access/Tunnel; no media path or PUSH 46."
       },
+      "ownerIphoneAuthenticatedQualification20261022": {
+        "sourceBranch": "codex/push44-secure-iphone-qa",
+        "sourceCommit": "1aa4b4e76abfb0eee097b6de49332534a7f61893",
+        "journeySource": "0efb200bf9e934111e0cad485c1a4d0c8fccf08a",
+        "pullRequest": 234,
+        "preservation": "PUSHED_REMOTE_PENDING_INTEGRATION",
+        "device": "iPhone 13 Pro / iOS 27.0.1; PersonalTeamQA 1.0 (1)",
+        "proof": "REAL_DEVICE_PASS_OWNER_CONFIRMED_DEVELOPMENT_AUTH_DASHBOARD_CELLULAR_NAVIGATION_LOGOUT_REQUIRES_LOGIN",
+        "isolation": "Dedicated synthetic Development viewer; cross-Site HTTP 403; no Production credential fallback; seven HTTPS security checks PASS",
+        "shutdown": "2026-10-22T03:01:03Z temporary dedicated tunnel deleted; local QA ports closed; offline-safe QA reinstalled",
+        "migrations": 0,
+        "limits": "Strict stolen-token revocation and expiry on device, real media, APNs, Android and store/release qualification remain open",
+        "validation": "Prior exact head 1aa4b4e7 six canonical CI gates PASS; final documentation head requires exact-head CI before merge",
+        "productionChanged": false,
+        "nextAction": "Review final exact-head checks, ancestry-preserving merge only into integration/development, then verify canonical isolated Product and record merge receipt. PUSH44 remains PARTIAL."
+      },
       "boundedOwnerIphoneLoginRequalification": {
         "date": "2026-10-21",
         "sourceBranch": "codex/push44-secure-iphone-qa",

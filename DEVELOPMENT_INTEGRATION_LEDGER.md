@@ -1,5 +1,15 @@
 # Canonical Development Integration Ledger
 
+2026-10-22 PR #234 authenticated physical-iPhone continuation: exact journey source
+`0efb200bf9e934111e0cad485c1a4d0c8fccf08a`; owner confirmed Development-only
+dashboard, cellular Product navigation and logout requiring fresh login on
+iPhone 13 Pro / iOS 27.0.1. Prior source/evidence head `1aa4b4e7` passed six
+canonical CI gates. Final documentation head requires its own CI before merge.
+Temporary ingress shut down at 03:01:03 UTC, dedicated tunnel deleted, offline
+QA reinstalled; canonical Push builds preserved. No migration or Production
+change. Strict physical-device expiry/revocation, media, APNs, Android and
+release/store qualification remain open; PUSH 44 remains PARTIAL / NOT DONE.
+
 2026-10-20 PUSH 44 Personal Team QA continuation: PR #232 exact head
 `afc3c71b3021015711b426c5d8db0ae988986148` passed all nine checks and
 merged with source ancestry into `integration/development` at
