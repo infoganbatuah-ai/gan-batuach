@@ -1,18 +1,40 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
+  "mobileOwnerQualification20261022": {
+    "sourceSha": "0efb200bf9e934111e0cad485c1a4d0c8fccf08a",
+    "device": "iPhone 13 Pro / iOS 27.0.1",
+    "authenticatedProductDashboard": "REAL_DEVICE_PASS_OWNER_CONFIRMED_DEVELOPMENT_ONLY",
+    "cellularProductControlPlane": "REAL_DEVICE_PASS_OWNER_CONFIRMED",
+    "logout": "REAL_DEVICE_PASS_REAUTHENTICATION_REQUIRED; NOT_STOLEN_TOKEN_REVOCATION_PROOF",
+    "temporaryIngress": "SHUT_DOWN_2026-10-22T03:01:03Z; DEDICATED_TUNNEL_DELETED",
+    "actualCameraVideo": "NOT_PROVEN",
+    "apns": "NOT_PROVEN_PERSONAL_TEAM_QA; CANONICAL_PUSH_PRESERVED",
+    "nativeReleaseAndroidStores": "NOT_PROVEN",
+    "canonicalPush44": "PARTIAL_NOT_DONE",
+    "matrix": "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
+    "productionChanged": false
+  },
   "mobileRuntimeRecovery": {
     "observedOn": "2026-10-20",
-    "runtimeSha": "31db906863984a35ad48d492457afaef07cac421",
+    "runtimeSha": "0a90979504d20c8db0d45574421e6eaf89231fc7",
     "databaseReadiness": "PASS_256_OF_256",
     "simulator": "PASS_BASIC_LANDING_RENDER_ONLY",
     "device": "iPhone 13 Pro; iOS 27.0.1; Developer Mode enabled; paired; DDI ready",
-    "installation": "BLOCKED_SIGNING_IDENTITY_AND_TEAM",
-    "httpsQa": "OWNER_AUTHORIZATION_REQUIRED_PROPOSAL_ONLY",
-    "apns": "BLOCKED_CREDENTIAL_TOKEN_AND_SEND_APPROVAL",
-    "realRemotePlayback": "NOT_RUN",
-    "history": "Earlier mobile entries preserve prior observations; this receipt supersedes runtime/device-readiness facts only"
+    "installation": "PASS_SIGNED_PERSONAL_TEAM_QA_OWNER_IPHONE_13_PRO_NO_APNS",
+    "httpsQa": "PARTIAL_OWNER_APPROVED_TEMPORARY_EMAIL_OTP_PRODUCT_ORIGIN_REACHED_EARLIER; FOLLOW_UP_CLOUDFLARED_502_CRASH_AND_NEXT_DEV_ASSET_403; VISUAL_AND_AUTH_PROOF_BLOCKED; INGRESS_STOPPED",
+    "apns": "BLOCKED_PERSONAL_TEAM_QA_NO_APNS_ENTITLEMENT_REAL_RECEIPT_OPEN",
+    "realRemotePlayback": "BLOCKED_NO_APPROVED_COMPLIANT_DEVELOPMENT_MEDIA_ROUTE",
+    "secureQaContinuation": {
+      "scope": "Owner-only temporary HTTPS application route; read-only Product paths and login/logout; no public Supabase or media",
+      "status": "PARTIAL_PRODUCT_ORIGIN_REACHED_EARLIER; OWNER_OBSERVED_PERSISTENT_LOADING; FOLLOW_UP_IPHONE_SAFARI_502_WITH_CLOUDFLARED_NIL_MAP_PANIC; NEXT_DEV_EXTERNAL_ORIGIN_ASSET_403_REPRODUCED; FIX_ON_DRAFT_PR_234_NOT_REQUALIFIED_ON_IPHONE; INGRESS_ROLLED_BACK",
+      "constraints": "30 minutes, 1200 requests, 120 requests/minute, 64 KiB/request, 80 MiB response cap; immediate process shutdown",
+      "cost": "Quick Tunnel published as free; incremental fixed cost $0; actual variable/account cost not invoice verified",
+      "media": "NOT_EXPOSED; Cloudflare public-hostname Tunnel video delivery not approved on this plan",
+      "evidence": "DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md and DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md; owner 502 Ray a4d4165f4f8a46d0 at 2026-10-20T01:00:45Z; source fix b1f74d7593e0e272a48b95f55a3f75c41c65524e"
+    },
+    "history": "Earlier mobile entries and failed qualification remain historical evidence; the scoped continuation updates current installation and HTTPS-route facts only"
   },
-  "updatedAt": "2026-10-20T00:40:00+03:00",
+  "updatedAt": "2026-10-20T04:09:00+03:00",
   "supplierReconciliation": {
     "report": "DIGITAL_OBSERVER_PUSH_40_SUPPLIER_RECONCILIATION.md",
     "canonicalRestrictedCostLedger": "exports/restricted/SUPPLIER_COST_LEDGER_2026-09-14.md",
@@ -121,11 +143,11 @@
       "id": "native-mobile-store-readiness",
       "owner": "PUSH 44",
       "dependencies": ["Android SDK toolchain", "signing identities", "physical iOS and Android devices", "PUSH 45 privacy/legal review", "authorized HTTPS remote-media path"],
-      "currentState": "INTERNAL_IMPLEMENTATION_PARTIAL — Capacitor native runtime, lifecycle/network recovery, HttpOnly mobile auth, server-authorized deep links, bounded offline queue, playback recovery and canonical APNs signing configuration remain implemented. Xcode 26.3 built and signed isolated no-Push PersonalTeamQA at source commit ef5f6930, installed/launched on owner's iPhone 13 Pro / iOS 27.0.1; owner confirmed bundled offline-safe QA UI. Authenticated Product UI and cellular media remain blocked by no approved HTTPS Development app/media endpoint. Canonical APNs device receipt and Android hardware remain open.",
+      "currentState": "INTERNAL_IMPLEMENTATION_PARTIAL — Capacitor native runtime, lifecycle/network recovery, HttpOnly mobile auth, server-authorized deep links, bounded offline queue, playback recovery and canonical APNs signing configuration remain implemented. Xcode 26.3 built and signed isolated no-Push PersonalTeamQA at source commit ef5f6930, installed/launched on owner's iPhone 13 Pro / iOS 27.0.1. During a bounded, owner-only HTTPS QA session on 2026-10-21, the owner confirmed the actual Product login rendered in the iPhone app after source fix c93c7c51. Product authentication was blocked: the working computer login belongs to a Vercel Product environment and that identity was absent from the isolated Development Auth inventory. The temporary ingress was stopped and QA Tunnel deleted before its deadline. Authenticated Product, cellular media, APNs receipt and Android hardware remain open.",
       "requiredApproval": "owner-approved signing credentials, device campaign and later store submission",
-      "sandboxProof": "Deterministic PUSH 44 QA and Capacitor iOS sync PASS; simulator and unsigned generic iOS compilation PASS at 9c886315; signed PersonalTeamQA iPhone install/launch and offline-safe screen PASS at ef5f6930. Authenticated Observer simulator/Product execution still awaits approved Development endpoint; Android native build remains BLOCKED.",
-      "realProof": "PARTIAL — signed real-device install, launch and offline-safe QA UI observed; authenticated Product, remote playback, Push receipt, battery/memory/crash matrix and store review OPEN",
-      "costImpact": "Incremental Development supplier cost ₪0; store, device, media egress, support and provider costs unmeasured",
+      "sandboxProof": "Deterministic PUSH 44 QA and Capacitor iOS sync PASS; simulator and unsigned generic iOS compilation PASS at 9c886315; signed PersonalTeamQA iPhone install/launch and offline-safe screen PASS at ef5f6930. Owner-confirmed real iPhone Product login rendering through bounded HTTPS at c93c7c51; exact-head native build and authenticated Development Product remain OPEN. Android native build remains BLOCKED.",
+      "realProof": "PARTIAL — signed real-device install, launch, offline-safe QA UI and Product login rendering observed; authenticated Development dashboard, cellular access, remote playback, Push receipt, battery/memory/crash matrix and store review OPEN",
+      "costImpact": "No new fixed supplier plan was activated for the bounded iPhone HTTPS QA; invoice-level incremental usage cost remains unverified. Store, device, media egress, support and provider costs remain unmeasured",
       "activationGate": "native builds, signed real-device supported matrix, authorized remote playback, push receipt/revocation, performance/privacy declarations, PUSH 45 approval and explicit store/Production authorization"
     },
     {

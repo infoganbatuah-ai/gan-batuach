@@ -1,5 +1,15 @@
 # Canonical Development Integration Ledger
 
+2026-10-22 PR #234 authenticated physical-iPhone continuation: exact journey source
+`0efb200bf9e934111e0cad485c1a4d0c8fccf08a`; owner confirmed Development-only
+dashboard, cellular Product navigation and logout requiring fresh login on
+iPhone 13 Pro / iOS 27.0.1. Prior source/evidence head `1aa4b4e7` passed six
+canonical CI gates. Final documentation head requires its own CI before merge.
+Temporary ingress shut down at 03:01:03 UTC, dedicated tunnel deleted, offline
+QA reinstalled; canonical Push builds preserved. No migration or Production
+change. Strict physical-device expiry/revocation, media, APNs, Android and
+release/store qualification remain open; PUSH 44 remains PARTIAL / NOT DONE.
+
 2026-10-20 PUSH 44 Personal Team QA continuation: PR #232 exact head
 `afc3c71b3021015711b426c5d8db0ae988986148` passed all nine checks and
 merged with source ancestry into `integration/development` at
@@ -1616,3 +1626,78 @@ identities and no project team. HTTPS QA is a proposal awaiting authorization;
 physical installation, cellular media and APNs receipt are untested. Scoped
 evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
 failures and external proof obligations remain intact.
+
+2026-10-20 owner-approved bounded HTTPS iPhone QA continuation: draft PR #234
+to `integration/development` preserves branch
+`codex/push44-secure-iphone-qa` preserves implementation commit
+`8eb272071676bed0e97f0e12341c1153865b516d` remotely from
+`origin/integration/development@0a90979504d20c8db0d45574421e6eaf89231fc7`.
+The isolated Development schema passed 256/256 with no migration change.
+Signed Personal Team QA installed/launched on the owner's iPhone 13 Pro;
+Cloudflare owner OTP and Product-origin transport were reached. Both the app
+and Safari remained on a loading screen, so Product UI, Product login, cellular
+access and real video are **not proven**. No media path or APNs was activated.
+A later loopback-only Chrome diagnostic rendered the login form through the
+same route filter with CSS/JavaScript 200; this is not iPhone Product proof.
+The temporary tunnel/proxy were stopped and the offline-safe QA bundle was
+reinstalled. TypeScript, lint, build, domain 46/46, security 48/48, migration
+and release-contract gates passed; the feature remains pending integration
+and external Product proof, with PUSH 44 `PARTIAL / NOT DONE`. Main, Production and PUSH 46
+were untouched. The detailed negative evidence and next safe prerequisite are
+in `DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`.
+
+2026-10-20 HTTPS loading-failure diagnostic continuation of draft PR #234:
+`codex/push44-secure-iphone-qa` commit
+`b1f74d7593e0e272a48b95f55a3f75c41c65524e` is pushed remotely and
+pending integration. Owner iPhone Safari reported Cloudflare 502 at 01:00:45
+UTC; `cloudflared` 2026.10.1 crashed with a nil-map panic at that time. A
+separate real Next.js Development asset probe returned 403 with the external
+Origin and logged the missing `allowedDevOrigins` hostname. A narrow,
+Development-only exact-host setting, early-denial response headers and
+redacted opt-in route diagnostics were added. Local ingress contract PASS;
+TypeScript, canonical lint baseline, domain 46/46, security 48/48, migration
+256/256, release contract and PUSH 39–45 deterministic suites PASS. The source
+commit's exact-head CI passed 9/9; the local no-deploy build passed after
+granting Turbopack the required loopback compiler-port permission.
+Physical iPhone Product proof remains pending. The temporary
+tunnel was down (public 530) and loopback QA port closed. No migration, media,
+APNs, Production, main or PUSH 46 change. PUSH 44 remains PARTIAL / NOT DONE;
+PR #234 remains draft until stable owner-only ingress, iPhone proof and
+required CI gates pass.
+
+2026-10-20 protected HTTPS retrial for draft PR #234: Cloudflare dashboard
+read-only preflight showed observed and projected current-cycle billable usage
+$0.00, one of 1,000 included Tunnels, and Zero Trust not yet onboarded. A
+bounded, owner-email-protected Quick Tunnel using `cloudflared` 2026.10.1
+crashed after iPhone Safari OTP (502/Ray `a4db2097bb1c9428`, nil-map panic).
+A checksum-verified temporary 2026.10.2 binary avoided that observed crash
+but the owner reported `Bad Request` after OTP; neither trial reached a proven
+Product login. Exact branch head `99a4e68a` served local login and real JS
+assets with HTTP 200; isolated Development backend remained healthy and
+restricted Supabase route returned 404. The connector, filter and feature
+runtime were stopped; public hostname returned 530 and ports closed. A new
+signed QA build was not installed because Xcode rejected the CoreDevice UUID
+as its destination. No source/migration/Production change. PR #234 remains
+draft and pushed, 9/9 exact-head CI PASS; PUSH 44 remains PARTIAL / NOT DONE.
+Named Access would require separately authorized Zero Trust Free onboarding
+and owner-only policy; no such activation was performed.
+
+2026-10-21 bounded owner-only HTTPS iPhone requalification, draft PR #234:
+source fix `c93c7c51` is pushed to
+`codex/push44-secure-iphone-qa` and remains pending integration. The QA route
+filter had forwarded to the separate integration runtime on port 3000 instead
+of the isolated feature Product on port 3001, producing mismatched loading
+assets. Public mobile login also looped on an expected unauthenticated 401.
+The narrow upstream/public-route fix passed TypeScript, no-deploy build,
+canonical lint baseline and targeted mobile/ingress tests; exact-head native
+build and PR CI remain pending. The owner confirmed the actual Product login
+screen in the installed iPhone QA app, **not** authenticated dashboard access.
+The working computer login is in the Vercel Product environment; read-only
+Development Auth inspection found that Product identity absent among 24 local
+users, explaining the phone's invalid-credentials result without copying or
+resetting any Production credential. The scoped ingress, connector and feature
+runtime were stopped, and the temporary QA Tunnel deleted before its fixed
+deadline; the home Gateway Tunnel and canonical integration runtime were
+untouched. No media, APNs or migration was activated. Product authentication,
+cellular navigation, real playback and Android proof remain open. PUSH 44 is
+`PARTIAL / NOT DONE`; PR #234 stays draft, main/Production/PUSH 46 unchanged.

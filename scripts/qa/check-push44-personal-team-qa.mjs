@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const root = new URL("../../", import.meta.url);
 const project = fileURLToPath(new URL("ios/App/App.xcodeproj/project.pbxproj", root));
@@ -35,6 +37,7 @@ assert.match(nativeDelegate, /capacitorDidRegisterForRemoteNotifications/);
 assert.match(plist, /\$\(APP_DISPLAY_NAME\)/);
 assert.match(script, /\$CONFIGURATION.*PersonalTeamQA/);
 assert.match(script, /Delete :CFBundleURLTypes/);
+assert.match(script, /Print :CFBundleURLTypes/);
 assert.equal(qaConfig.appId, "com.ganbatuach.app.qa");
 assert.equal(qaConfig.server.url, undefined);
 assert(!qaConfig.packageClassList.includes("PushNotificationsPlugin"));
@@ -42,5 +45,29 @@ assert.match(qaPage, /Digital Observer QA/);
 assert.match(qaPage, /מקומי בלבד/);
 assert.match(qaPage, /APNs כבויים/);
 assert(!/https?:\/\//.test(qaPage), "offline QA page must not contact an external host");
+
+// Xcode may reuse the already-transformed Info.plist on incremental builds.
+// Only an absent optional key may be ignored; other script failures still fail.
+const fixture = mkdtempSync(join(tmpdir(), "push44-qa-incremental-"));
+try {
+  const bundle = join(fixture, "App.app");
+  mkdirSync(bundle);
+  const info = join(bundle, "Info.plist");
+  writeFileSync(info, '<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.ganbatuach.app.qa</string><key>CFBundleURLTypes</key><array><dict><key>CFBundleURLSchemes</key><array><string>digitalobserver</string></array></dict></array></dict></plist>');
+  for (let attempt = 0; attempt < 2; attempt++) {
+    execFileSync("/bin/sh", ["-c", script], {
+      env: { ...process.env, CONFIGURATION: "PersonalTeamQA",
+        SRCROOT: fileURLToPath(new URL("ios/App", root)),
+        TARGET_BUILD_DIR: fixture, UNLOCALIZED_RESOURCES_FOLDER_PATH: "App.app",
+        PUSH44_QA_HTTPS_URL: "" }, stdio: "pipe"
+    });
+    const transformed = JSON.parse(execFileSync("plutil", ["-convert", "json", "-o", "-", info], { encoding: "utf8" }));
+    assert.equal(transformed.CFBundleIdentifier, "com.ganbatuach.app.qa");
+    assert.equal(transformed.CFBundleURLTypes, undefined);
+    const config = JSON.parse(readFileSync(join(bundle, "capacitor.config.json"), "utf8"));
+    assert.equal(config.server.url, undefined);
+    assert(!config.packageClassList.includes("PushNotificationsPlugin"));
+  }
+} finally { rmSync(fixture, { recursive: true }); }
 
 console.log("PUSH 44 Personal Team QA configuration PASS: canonical APNs preserved; QA has no APNs entitlement, Push bridge, remote URL or shared deep-link registration.");

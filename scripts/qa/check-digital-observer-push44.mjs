@@ -34,6 +34,12 @@ const iosProject = readFileSync(new URL("../../ios/App/App.xcodeproj/project.pbx
 const packageJson = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
 
 assert.equal(contract.DIGITAL_OBSERVER_MOBILE_RUNTIME_CONTRACT, "digital-observer-mobile-runtime-v1");
+for (const publicPath of ["/digital-observer/login", "/digital-observer/register", "/digital-observer/forgot-password", "/digital-observer/verify", "/digital-observer/home"]) {
+  assert.equal(contract.mobileRuntimeRequiresSession(publicPath), false, `public route cannot trigger a native sign-in loop: ${publicPath}`);
+}
+for (const protectedPath of ["/digital-observer/dashboard", "/digital-observer/sites", "/digital-observer/investigation"]) {
+  assert.equal(contract.mobileRuntimeRequiresSession(protectedPath), true, `protected route must revalidate its session: ${protectedPath}`);
+}
 assert.equal(new Set(contract.mobileLinkKinds).size, 6);
 const cameraLink = contract.parseMobileLink(
   "digitalobserver://camera/00000000-0000-4000-8000-000000000044?site=00000000-0000-4000-8000-000000000045"
@@ -58,6 +64,7 @@ assert(!JSON.stringify(notification).includes("Sensitive child"));
 for (const required of ["Network.addListener", "appStateChange", "appUrlOpen", "getLaunchUrl", "checkPermissions", "requestPermissions", "pushNotificationActionPerformed", "Preferences", "register_device"]) {
   assert(runtime.includes(required), `missing native runtime behavior: ${required}`);
 }
+assert(runtime.includes("if (!mobileRuntimeRequiresSession(window.location.pathname)) return;"), "native login must not bootstrap a protected session");
 assert(runtime.includes("sensitive_local_cache") === false, "client should not pretend to cache sensitive data");
 assert(!runtime.match(/localStorage|sessionStorage|camera credentials|raw video/i), "native runtime must not persist secrets or sensitive media");
 assert(runtimeRoute.includes("getObserverSiteAccess"));

@@ -38,7 +38,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 | Investigation | lib/domain/digital-observer/investigation-search-service.ts | /api/digital-observer/investigation | canonical Event/Incident/Evidence projections | qa:digital-observer-investigation | PUSH 13 | GATE 3 |
 | External API / webhooks | lib/domain/digital-observer/external-api-service.ts | /api/digital-observer/external/v1/* | service accounts; external API receipts/usage; webhook endpoints; integration sources | qa:digital-observer-push42 | PUSH 42 independent consumer and external provider proof pending | GATE 3 + GATE 4 |
 | OEM / SDK / white-label | lib/domain/digital-observer/partner-platform-service.ts | /api/digital-observer/partner/v1/*; /api/digital-observer/embed/v1/* | partners; partner customers/Sites; brand profiles; delegated service accounts; embedded sessions | qa:digital-observer-push43 | PUSH 43 real OEM partner and vendor proof pending | GATE 3 + GATE 4 |
-| Native mobile runtime | lib/domain/digital-observer/mobile-runtime.ts | /api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings | existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores | qa:digital-observer-push44 | Native build, signed real-device, provider receipt, remote playback and store proof pending | GATE 3 + GATE 4 |
+| Native mobile runtime | lib/domain/digital-observer/mobile-runtime.ts | /api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings | existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores | qa:digital-observer-push44 | Signed owner-iPhone QA shell PASS; authenticated Product, provider receipt, remote playback and store proof pending | GATE 3 + GATE 4 |
 
 ## TIER 1 CANONICAL SUITES
 
@@ -86,7 +86,8 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push40-commercial-entitlements`: `node scripts/qa/check-digital-observer-push40.mjs`
 - `push42-external-api-contract`: `node scripts/qa/check-digital-observer-push42.mjs`
 - `push43-oem-sdk-contract`: `node scripts/qa/check-digital-observer-push43.mjs`
-- `push44-native-mobile-contract`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push44-mobile-runtime-contract`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push45-privacy-compliance`: `node scripts/qa/check-digital-observer-push45.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-relay-handoff-remediation`: `node --test scripts/qa/check-push38-relay-handoff-remediation.mjs`
@@ -133,10 +134,12 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push42-external-api-security`: `node scripts/qa/check-digital-observer-push42.mjs`
 - `push43-partner-isolation`: `node scripts/qa/check-digital-observer-push43.mjs`
 - `push44-mobile-authorization`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push44-bounded-owner-qa-ingress`: `node scripts/qa/check-push44-owner-qa-ingress.mjs`
+- `push45-privacy-compliance-security`: `node scripts/qa/check-digital-observer-push45.mjs`
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **549** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **554** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -237,7 +240,8 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/check-digital-observer-push41.mjs` | npm run qa:digital-observer-push41 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-push42.mjs` | npm run qa:digital-observer-push42 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-push43.mjs` | npm run qa:digital-observer-push43 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
-| `scripts/qa/check-digital-observer-push44.mjs` | npm run qa:digital-observer-push44 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | MOBILE | CANONICAL CI | real-device/provider/store proof pending |
+| `scripts/qa/check-digital-observer-push44.mjs` | npm run qa:digital-observer-push44 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-push45.mjs` | npm run qa:digital-observer-push45 | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-quality-benchmark.mjs` | npm run qa:digital-observer-quality-benchmark | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-queue-terminal-race.mjs` | npm run qa:digital-observer-queue-terminal-race | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-reliability-qualification.mjs` | npm run qa:digital-observer-reliability-qualification | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
@@ -466,6 +470,8 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38p-release-delivery.mjs` | node scripts/qa/check-push38p-release-delivery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38q-r2-download.mjs` | node scripts/qa/check-push38q-r2-download.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38t-ingress.mjs` | node scripts/qa/check-push38t-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push44-owner-qa-ingress.mjs` | node scripts/qa/check-push44-owner-qa-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-push44-personal-team-qa.mjs` | node scripts/qa/check-push44-personal-team-qa.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-r2-keychain.mjs` | node scripts/qa/check-r2-keychain.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-real-detection-event-bridge.mjs` | npm run qa:real-detection-event-bridge | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-real-event-context-baseline.mjs` | node scripts/qa/check-real-event-context-baseline.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
@@ -565,6 +571,7 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/prepare-journal-source-release.mjs` | node scripts/qa/prepare-journal-source-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | EVENT / JOURNAL | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/prepare-push38-r2-phone-media.mjs` | node scripts/qa/prepare-push38-r2-phone-media.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/prepare-push38-remote-playback-qa.mjs` | node scripts/qa/prepare-push38-remote-playback-qa.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/prepare-push44-iphone-qa-config.mjs` | node scripts/qa/prepare-push44-iphone-qa-config.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/private-nvr-lighting-pulse.test.mjs` | node scripts/qa/private-nvr-lighting-pulse.test.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/probe-admin-dashboard-schema.mjs` | node scripts/qa/probe-admin-dashboard-schema.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | DATABASE / MIGRATIONS | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/probe-installed-managed-device-auth.mjs` | node scripts/qa/probe-installed-managed-device-auth.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
@@ -579,6 +586,7 @@ Inventory count: **549** files. Classifications are conservative; environment-de
 | `scripts/qa/prove-push38-remote-product-authorization.mjs` | node scripts/qa/prove-push38-remote-product-authorization.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
 | `scripts/qa/push38-qualification-runtime.test.mjs` | node scripts/qa/push38-qualification-runtime.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/push38-shadow-qualification-policy.mjs` | node scripts/qa/push38-shadow-qualification-policy.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | MOCK / SHADOW ISOLATION | SUPPORTING | none known |
+| `scripts/qa/push44-owner-qa-proxy.mjs` | node scripts/qa/push44-owner-qa-proxy.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/qualification-host-readiness.mjs` | node scripts/qa/qualification-host-readiness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/qualification-run-guard.mjs` | node scripts/qa/qualification-run-guard.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/qualification-run-guard.test.mjs` | node scripts/qa/qualification-run-guard.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |

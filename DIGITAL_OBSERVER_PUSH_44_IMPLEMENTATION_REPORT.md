@@ -71,3 +71,11 @@ real-device login, cellular remote playback, real Push receipt, network
 transitions, physical performance and TestFlight remain blocked or not run.
 PUSH 44 remains PARTIAL / CANONICAL NOT DONE. PUSH 45 legal gates remain closed
 and PUSH 46 has not started.
+
+## Owner iPhone qualification — 2026-10-22
+
+On iPhone 13 Pro / iOS 27.0.1, PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), source `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`, owner confirmed Development-only authenticated dashboard, cellular Product navigation, and logout requiring login again. Cameras were disconnected in the isolated viewing fixture; no moving-video, APNs, strict revoked-token, Android or store proof is claimed.
+
+The bounded owner-only HTTPS gate passed seven security probes and was shut down at 2026-10-22T03:01:03Z; its dedicated tunnel was deleted. Offline-safe QA was reinstalled without a remote server URL or native Push registration. Automatic post-rollback launch was blocked by the locked iPhone, not an observed crash. Canonical APNs-capable builds and Production remained unchanged.
+
+Repeat signed builds exposed an optional Info.plist key deletion that failed on the second build. The QA-only script now checks key existence first; its deterministic regression, two consecutive signed native builds, TypeScript and canonical lint pass. Exact-head CI must pass on the pushed revision; PR #234 remains Draft and PUSH 44 PARTIAL.
