@@ -43,7 +43,7 @@
       "title": "Verified backup technical closure and scoped canonical resumption",
       "owner": "Current continuation owner; project owner for live approvals",
       "sourceBranch": "codex/development-resumption-20261022",
-      "sourceCommits": ["ff5c270a"],
+      "sourceCommits": ["ff5c270a2e2a0bdb95044f67fd6562d6380fcd03"],
       "state": "VALIDATED_ON_BRANCH",
       "validation": {"status":"PASS_SCOPED_LOCAL_CHECKS; EXACT_HEAD_CI_PENDING","backupRestore":"PASS_EXISTING_INDEPENDENT_EVIDENCE","northStar":"197 unique IDs and both owners retained","migrationDrift":"256 expected / 227 baseline / 29 post-baseline PASS","domainBoundary":"PASS_OBSERVER_ENGINE_SEPARATION","migrationHealth":"PASS_256","diffCheck":"PASS"},
       "integration": {"status":"PENDING_SCOPED_PR","baseline":"0a90979504d20c8db0d45574421e6eaf89231fc7"},
