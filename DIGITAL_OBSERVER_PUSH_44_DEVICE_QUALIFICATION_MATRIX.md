@@ -1,5 +1,21 @@
 # DIGITAL OBSERVER — PUSH 44 DEVICE QUALIFICATION MATRIX
 
+## 2026-10-22 authenticated owner iPhone continuation
+
+This later evidence supersedes historical signing/runtime/invalid-login blockers only; it does not erase failed attempts or qualify media, Push, Android, stores or Production. Build source: PR #234 `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`; PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), iPhone 13 Pro / iOS 27.0.1. Native executable SHA-256 `da8e75c5efc3b8ead2e2db98cdd5d12b72da6a85f5fd755ab07ebb72d7497b5d`. Existing signed Personal Team configuration and canonical APNs-capable Debug/Release preserved; effective QA aps-environment absent.
+
+| Device | OS | Build SHA | Network | Test | Timestamp | Evidence | Result / limitation |
+|---|---|---|---|---|---|---|---|
+| Owner iPhone 13 Pro | 27.0.1 | `0efb200bf9e934111e0cad485c1a4d0c8fccf08a` | USB | Signed QA build, install, launch | 2026-10-22 05:46 Asia/Jerusalem | Xcode exit 0, strict/deep seal, CoreDevice installed and launched | NATIVE BUILD PASS; QA APNs absent |
+| Same | Same | Same | Owner-only bounded HTTPS | Dedicated Development identity and actual Product dashboard | 2026-10-22 05:56 Asia/Jerusalem | Owner explicitly confirmed dashboard after using the Development identity; local Auth last_sign_in_at 02:56:31 UTC corroborates the fresh login | REAL DEVICE PASS — authenticated Development Product only |
+| Same | Same | Same | Cellular after Wi-Fi disabled | Product access and navigation | 2026-10-22 owner session | Owner confirmed it works on cellular and reported cameras not connected under this viewing account | REAL DEVICE PASS — control plane only; disconnected test cameras are not video proof |
+| Same | Same | Same | Cellular | Real moving camera footage / media grants | Same session | Media ingress intentionally denied; no camera runtime changed | NOT RUN / BLOCKED — no REMOTE PLAYBACK PASS |
+| Same | Same | Same | APNs | Real Push receipt | Same session | Personal Team QA lacks entitlement and Push registration | BLOCKED — no REAL PUSH RECEIPT PASS |
+
+The earlier phone sign-in failure was use of the regular Production account against isolated Development, not a reason to reset Production credentials. A dedicated Development-only viewer was prepared on synthetic Site A; no Production password was copied. The prior 24-user backup remains a valid timestamped snapshot; the added 25th identity is reproducible synthetic QA state, not irreplaceable customer data. Background/resume, expiry, strict session revocation, full supported-device matrix and Android remain separately qualified; no unobserved PASS is inferred.
+
+HTTPS negative checks passed: anonymous 401; gated Product login 200; unauthenticated Product API 401; direct Supabase, internal administrator and media paths 404. The temporary ingress has a fixed 30-minute deadline and bounded traffic; no permanent external endpoint is established by this evidence.
+
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
