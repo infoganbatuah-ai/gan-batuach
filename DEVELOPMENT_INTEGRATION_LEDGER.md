@@ -1,5 +1,7 @@
 # Canonical Development Integration Ledger
 
+2026-10-22 recovery/resumption: technical Development backup recovery COMPLETE; source baseline `0a90979504d20c8db0d45574421e6eaf89231fc7` unchanged. Database/Auth/Storage and unique Git/local-state independently restored; final approved Git ciphertext uploaded, downloaded and SHA-256 matched. Owner confirmed temporary browser file access disabled. Billing remains PENDING, separate from technical completion. Scoped continuation branch `codex/development-resumption-20261022` reconciles current evidence without merging PR #234/#235 or activating Production. Integrated migration drift is 256 expected / 227 baseline / 29 post-baseline PASS; the additional withdrawn no-op is confined to Draft PR #235. See `DIGITAL_OBSERVER_DEVELOPMENT_RESUMPTION_20261022.md`; protected receipts remain outside Git. No new PUSH or capability promotion.
+
 2026-10-20 PUSH 44 Personal Team QA continuation: PR #232 exact head
 `afc3c71b3021015711b426c5d8db0ae988986148` passed all nine checks and
 merged with source ancestry into `integration/development` at

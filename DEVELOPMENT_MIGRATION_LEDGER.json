@@ -2,6 +2,18 @@
   "schemaVersion": 2,
   "observedAt": "2026-10-19T19:16:02.806Z",
   "productionWriteAuthorized": false,
+  "recoveryReconciliation20261022": {
+    "integrationSha":"0a90979504d20c8db0d45574421e6eaf89231fc7",
+    "integratedExpected":256,
+    "baselineCovered":227,
+    "verifiedPostBaselineApplied":29,
+    "schemaHistoryDrift":"PASS",
+    "repositoryUnionIncludingDraft235":257,
+    "draftOnly":"20261021010000_home_legacy_compare_reader_preparation.sql",
+    "draftState":"WITHDRAWN_PROPOSAL_NO_OP; NOT_INTEGRATED; NOT_APPLIED",
+    "productionAccess":false,
+    "note":"Baseline coverage is not a claim of 227 replayed history entries. No Draft migration application or history repair."
+  },
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [

@@ -6,6 +6,14 @@ Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands
 
 # EXECUTIVE STATE
 
+## Current evidence reconciliation — 2026-10-22
+
+The verified remote Development baseline is `0a90979504d20c8db0d45574421e6eaf89231fc7`. Technical backup/Development recovery is complete: independent Database/Auth/Storage and Git/local-state restoration is recorded; the final Git ciphertext was downloaded from S3 and matched the qualified restore input. Final AWS invoices remain pending. The existing 52 PUSH numbers and all 197 capability IDs/owners are preserved; no capability status is promoted by backup recovery.
+
+PUSH 38 remains Development accepted with exceptions. PUSH 39–43 and PUSH 45 have Development implementation with outstanding external proof/approval. PUSH 44 remains PARTIAL / NOT DONE: Xcode, native compilation, Personal Team QA installation/offline navigation and the iPhone Product login screen have actual evidence. Earlier statements below about absent Xcode, signing or database recovery are historical, not current blockers. Authenticated physical-device Product/session/cellular proof, approved remote camera playback, APNs-capable real receipt, Android matrix and store qualification remain separate open gates. PR #234 and #235 remain Draft and unmerged. PUSH 46 is NOT STARTED and blocked by its unchanged legal, connectivity, reliability and pilot-approval entry gates. This update authorizes no Production operation.
+
+The integrated database has 256 source migrations (227 baseline-covered and 29 verified post-baseline applications), with schema/history drift PASS. The 257th repository migration exists only on unmerged PR #235 and is a withdrawn reader proposal retained as a no-op; it is NOT applied or integrated. Do not replay the baseline or apply the Draft merely to equalize file counts.
+
 Digital Observer has completed the canonical product path from audit through Digital-First onboarding: PUSH 1–15 are reconciled as `DONE` by their final closure evidence. PUSH 16 is DONE, with independent Tapo C211 → Software Connector → real AI → Production/UI evidence in `DIGITAL_OBSERVER_PUSH_16C_TAPO_REAL_CONNECTOR_CLOSURE_REPORT.md`. PUSH 17 is DONE after PUSH 17D closed the internal commercial installer, enrollment, same-session discovery and global routing blockers. Distribution/platform/vendor evidence gaps remain explicit.
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.

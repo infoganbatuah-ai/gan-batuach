@@ -1,5 +1,22 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
+  "developmentRecovery20261022": {
+    "technicalState":"COMPLETE",
+    "integrationSha":"0a90979504d20c8db0d45574421e6eaf89231fc7",
+    "databaseAuthRestore":"PASS_ISOLATED",
+    "storageRestore":"PASS_OBJECT_BYTES_AND_METADATA",
+    "gitLocalState":"PASS_27_COMMITS_STASH_AND_SELECTED_LOCAL_FILES",
+    "finalCiphertextBytes":1448134368,
+    "finalCiphertextSha256":"64f6a45efc6bc98325f85980105ccbef90c5a7e436d386c1afa16c2d1b69bc46",
+    "s3DownloadVerification":"MATCH",
+    "recoveryIdentity":"OWNER_INDEPENDENT_CUSTODY_VERIFIED",
+    "temporaryFilePermission":"OWNER_CONFIRMED_DISABLED",
+    "awsBilling":"PENDING_NOT_FINAL",
+    "protectedEvidence":"tmp/backup-recovery-20261022/FINAL_DEVELOPMENT_RECOVERY_RECEIPT.md",
+    "historicalMobileEntries":"Do not erase; later PR #234 contains native/login-screen evidence, not authenticated physical-device proof",
+    "productionChanged":false,
+    "push46":"NOT_STARTED"
+  },
   "mobileRuntimeRecovery": {
     "observedOn": "2026-10-20",
     "runtimeSha": "31db906863984a35ad48d492457afaef07cac421",
