@@ -88,6 +88,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - name: Use the declared npm audit toolchain
+        run: |
+          npm install --global npm@11.13.0 --ignore-scripts
+          test "$(npm --version)" = "11.13.0"
       - name: Install locked dependencies
         run: npm ci
       - name: Run deterministic security suites

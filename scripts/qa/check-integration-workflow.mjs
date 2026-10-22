@@ -45,3 +45,12 @@ test('integration launcher uses the canonical baseline-aware migration gate',()=
   assert.match(launcher,/check-baseline-drift\.mjs/);
   assert.doesNotMatch(launcher,/check-migration-drift\.mjs/);
 });
+test('security audit pins the declared npm toolchain without weakening the gate',()=>{
+  const manager=JSON.parse(readFileSync('package.json','utf8')).packageManager;
+  const workflow=readFileSync('.github/workflows/production-checks.yml','utf8');
+  const security=workflow.split('  security:\n')[1]?.split(/\n  [a-z][\w-]*:\n/)[0];
+  assert.ok(security);
+  assert.ok(security.includes(`npm install --global ${manager} --ignore-scripts`));
+  assert.ok(security.includes('npm audit --audit-level=high'));
+  assert.doesNotMatch(security,/continue-on-error:\s*true|--omit=dev|\|\|\s*true/);
+});
