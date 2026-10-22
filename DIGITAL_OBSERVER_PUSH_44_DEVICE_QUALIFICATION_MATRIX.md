@@ -16,6 +16,8 @@ Scope: Development only; no store submission, provider activation or Production 
 
 ## Latest physical-iPhone qualification — 2026-10-22
 
+Integration receipt: PR #234 merged as `69eab585c806dfb1342efb56920ddc7809c043d1` from final head `60ad671783a88bd790f7323db2c946134f957f14` after 9/9 exact-head checks. Post-merge LOCAL_SUPABASE Product PUSH 39–45 regression passed 71/71 at the merge SHA; actual schema/history reconciliation passed 256 expected (227 baseline-covered + 29 post-baseline), no drift. These local tests do not upgrade the separate real-device evidence categories below.
+
 This section supersedes only the corresponding earlier failed login observations; all historical evidence below remains preserved. Native Product journey source: `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`, PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), iPhone 13 Pro / iOS 27.0.1. Executable SHA-256: `da8e75c5efc3b8ead2e2db98cdd5d12b72da6a85f5fd755ab07ebb72d7497b5d`.
 
 | Network | Test | Timestamp | Evidence | Result |
