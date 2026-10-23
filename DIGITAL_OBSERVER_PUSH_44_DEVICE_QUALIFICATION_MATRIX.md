@@ -14,7 +14,24 @@ Scope: Development only; no store submission, provider activation or Production 
 - `BLOCKED`: a named prerequisite is absent.
 - `NOT RUN`: the test was not executed and no result is inferred.
 
-## Latest physical-iPhone qualification — 2026-10-22
+## Physical-iPhone session security continuation — 2026-10-23
+
+Device: iPhone 13 Pro / iOS 27.0.1, PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), installed and launched through CoreDevice. Signed executable SHA-256 `c6a88bd7b992ab045ef6a042b4a2e9d99db4cfb742db83425cc41dfb38f8a0d7`; strict signature seal PASS, QA APNs entitlement absent. Compiled Observer journey source `ecdd1466d37687b0be4beccaba71d9c7e7b66cc7`, Observer code identical to reviewed PR #238 head `45961d8375d7fbca8ef13483c0272da698b98999` (later Staff-only compatibility change). Integrated as `9e4277bfb63dc641d16879d25359eaa42c2c0d6a`; application receipt integrated as `ced317668294571e2438794f9e4d235ba35b76eb`. Both PRs passed 9/9 exact-head CI. Actual local schema: 257 reconciled migrations (227 baseline-covered + 30 applied post-baseline), no Production access.
+
+| Network | Test | Timestamp (UTC) | Evidence | Result |
+|---|---|---|---|---|
+| Owner-only HTTPS Development, network type not yet confirmed | Dedicated Development login and actual dashboard | 2026-10-23, session observed 16:50:25 | Owner explicitly confirmed interface after login; exact dedicated fixture session observed only in trusted host memory | REAL DEVICE PASS |
+| Same bounded HTTPS path | Strict server-side session expiry, background/resume | Trigger 2026-10-23 16:54:04 | Exact current dedicated QA session `not_after` expired; protected API returned 401 in 170 ms locally; owner explicitly reported login screen after leaving/reopening app | REAL DEVICE PASS for expiry denial and resume; 170 ms is host probe latency, NOT measured phone propagation |
+| Same bounded HTTPS path | Reauthentication after expiry | 2026-10-23, new session observed 16:55:21 | Owner confirmed login again; fresh dedicated QA session and runtime 200 observed | REAL DEVICE PASS |
+| Same bounded HTTPS path | Canonical server-side revocation, not client logout | Trigger 2026-10-23 16:55:47 | Supabase admin signOut with local-session scope for the exact newly observed QA session; protected API returned 401 in 82 ms locally; owner explicitly reported login screen after leaving/reopening app | REAL DEVICE PASS for revocation denial and resume; exact phone propagation latency not measured |
+| Wi-Fi → cellular | Reauthentication after revocation and cellular dashboard | 2026-10-23, fresh session observed 16:57:47 | Owner reported dashboard loads after dedicated Development login and switching off Wi-Fi | REAL DEVICE PASS — control plane only |
+| Cellular → Wi-Fi | Session continuity | 2026-10-23 | Owner confirmed dashboard continues without another password | REAL DEVICE PASS |
+| Airplane mode, Wi-Fi off | Truthful offline indicator | 2026-10-23 | Owner explicitly reported the no-network message after ten-second instruction | REAL DEVICE PASS for indicator; protected-view shield source/contract tested, not a separate forensic cache test |
+| Network restored / full app restart | Session continuity before login-resume correction | 2026-10-23 | Owner reported login screen; QA bootstrap always targets login and that public page did not continue an already valid Observer session | FAIL — identified route behavior, not proof that cookies were lost; minimal server-authorized resume correction under qualification |
+
+An earlier expiry attempt at 16:50:51 returned local 401 in 142 ms but the owner interaction was ambiguous; it is not counted separately as device proof. The confirmed outcomes show return to login rather than protected Product access, not forensic proof about OS screenshots or every possible cache. Recovery/app restart and cleanup are pending observations. No media or Push activated. Historical results below are preserved without status inflation.
+
+## Earlier physical-iPhone qualification — 2026-10-22
 
 Integration receipt: PR #234 merged as `69eab585c806dfb1342efb56920ddc7809c043d1` from final head `60ad671783a88bd790f7323db2c946134f957f14` after 9/9 exact-head checks. Post-merge LOCAL_SUPABASE Product PUSH 39–45 regression passed 71/71 at the merge SHA; actual schema/history reconciliation passed 256 expected (227 baseline-covered + 29 post-baseline), no drift. These local tests do not upgrade the separate real-device evidence categories below.
 

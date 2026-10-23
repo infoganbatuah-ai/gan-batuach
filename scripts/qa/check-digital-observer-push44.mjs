@@ -25,6 +25,9 @@ const runtime = readFileSync(new URL("../../components/digital-observer/observer
 const runtimeRoute = readFileSync(new URL("../../app/api/digital-observer/mobile/runtime/route.ts", import.meta.url), "utf8");
 const player = readFileSync(new URL("../../components/digital-observer/observer-live-player.tsx", import.meta.url), "utf8");
 const login = readFileSync(new URL("../../components/digital-observer/observer-login-form.tsx", import.meta.url), "utf8");
+const loginPage = readFileSync(new URL("../../app/digital-observer/login/page.tsx", import.meta.url), "utf8");
+assert.match(loginPage, /if \(!params\?\.error && await getDigitalObserverApiUser\(\)\) redirect\("\/digital-observer\/dashboard"\)/);
+assert.ok(loginPage.indexOf("await getDigitalObserverApiUser()") < loginPage.indexOf("<ObserverLoginForm"), "resume requires canonical server session and Observer authorization before rendering");
 const android = readFileSync(new URL("../../android/app/src/main/AndroidManifest.xml", import.meta.url), "utf8");
 const ios = readFileSync(new URL("../../ios/App/App/Info.plist", import.meta.url), "utf8");
 const appDelegate = readFileSync(new URL("../../ios/App/App/AppDelegate.swift", import.meta.url), "utf8");
