@@ -11817,6 +11817,25 @@
         "productionChanged": false,
         "nextAction": "Separate bounded owner approval required for one-camera Home viewing delegation/private media delivery, with exact source binding and IAM/CORS/cost review before activation. Real video/APNs/Android/store/legal gates remain open. PR235 remains Draft; no Home service or Production change."
       },
+      "ch1MediaPreflight20261023": {
+        "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
+        "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
+        "state": "BLOCKED",
+        "preservation": "VALIDATED_EVIDENCE_ON_BRANCH_PENDING_REMOTE_CI",
+        "scope": "Read-only CH1 source/relay, canonical Development authorization and provider/cost preflight; no live media activation",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_MEDIA_PREFLIGHT_20261023.json",
+        "sourceId": "6fddc732-13df-4268-9f32-3357262ea997",
+        "siteId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+        "sourceTruth": "Current Home QA CH1 connected and relay counters progressing with current sole owner; not decoded video proof",
+        "authorization": "Dedicated canonical Development viewer has only synthetic Site A; actual Home DVR GET 403, anonymous/revoked 401, no grant issued",
+        "costBounds": "BLOCKED: existing 25 MiB publisher upload cap is not 100 MiB aggregate client transfer; no qualified single-viewer/non-resettable 300-second live adapter",
+        "validation": "PUSH39–45 contracts PASS; private R2 and isolated loopback TLS ingress PASS synthetic only; host Development authorization negatives 4/4; 197 owned capabilities preserved; actual schema/history PASS 257 = 227 baseline-covered + 30 post-baseline, no drift",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "liveMediaAuthorized": false,
+        "liveMediaPerformed": false,
+        "nextAction": "Qualify the existing-grant-core CH1-only metered adapter and explicit Home viewing delegation in isolation. Only then prepare one five-minute/100 MiB/one-owner activation request; no live request is ready now. Preserve PR235 Draft, source identities, Home services and Production boundary."
+      },
       "ownerIphoneAuthenticatedQualification20261022": {
         "sourceBranch": "codex/push44-secure-iphone-qa",
         "sourceCommit": "1aa4b4e76abfb0eee097b6de49332534a7f61893",

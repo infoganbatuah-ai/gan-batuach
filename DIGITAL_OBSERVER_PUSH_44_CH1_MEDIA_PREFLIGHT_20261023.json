@@ -129,6 +129,7 @@
     "httpsPlaybackIngressContract": "PASS_ISOLATED_LOOPBACK_SYNTHETIC_TLS_ONLY",
     "northStar": "197 unique capabilities; no ownerless implementation/proof rows; no status changes",
     "migrationChanges": 0,
+    "actualDevelopmentSchemaHistory": "PASS_257_EXPECTED_227_BASELINE_COVERED_PLUS_30_POST_BASELINE_ZERO_DRIFT_2026-10-23T17:34:23Z",
     "exactHeadCi": "REQUIRED_BEFORE_MERGE"
   },
   "activationRequest": null,

@@ -149,6 +149,15 @@
       "requiredApproval": "owner-approved signing credentials, device campaign and later store submission",
       "sandboxProof": "Existing deterministic mobile/native contracts preserved; signed PersonalTeamQA build/install/launch verified with Xcode 26.3 on iPhone13Pro/iOS27.0.1. Exact PR240 head 7998b9bbb251d82bb455294cc40ca70b58c0b302 passed 9/9 CI, merged as 74e55a8031e782ebff9bfb2ab352df0fb70b70ae. Actual canonical runtime at that merge passed mobile authorization/deep-link 5/5 and login-resume valid/anonymous/error/expired/revoked 5/5. Prior cumulative PUSH39–45 Product regression passed 71/71 at ced317668294571e2438794f9e4d235ba35b76eb. These local tests do not replace physical proof. Android native build remains BLOCKED.",
       "realProof": "PARTIAL — owner-confirmed physical iPhone Development login, actual dashboard, cellular navigation and logout on 2026-10-22; strict Development session expiry, reauthentication, separate canonical server-side revocation returning to login after resume, Wi-Fi/cellular continuity, offline indicator and corrected full-app-restart continuity confirmed on 2026-10-23. Temporary ingress deleted and final QA session revoked; offline no-Push bundle restored. See device matrix for exact build/source and evidence limits. Real authorized cellular camera playback, APNs receipt, Android hardware, native release/stores and instrumented performance matrix remain OPEN; canonical NOT DONE",
+      "ch1MediaPreflight20261023": {
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_MEDIA_PREFLIGHT_20261023.json",
+        "state": "BLOCKED_BEFORE_ACTIVATION",
+        "source": "6fddc732-13df-4268-9f32-3357262ea997; current Home QA relay progressing, not real cellular playback proof",
+        "missing": "Explicit Home viewing delegation for the canonical Development identity, CH1-only live metered gate with one viewer, atomic 100 MiB budget and 300-second deadline/revocation, and exact private media boundary qualification",
+        "activationApproved": false,
+        "mediaBytesRequested": 0,
+        "approvalRequestReady": false
+      },
       "costImpact": "No new fixed supplier plan was activated for the bounded iPhone HTTPS QA; invoice-level incremental usage cost remains unverified. Store, device, media egress, support and provider costs remain unmeasured",
       "activationGate": "native builds, signed real-device supported matrix, authorized remote playback, push receipt/revocation, performance/privacy declarations, PUSH 45 approval and explicit store/Production authorization"
     },
