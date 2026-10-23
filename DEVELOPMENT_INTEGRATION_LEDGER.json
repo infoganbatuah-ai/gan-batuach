@@ -11838,10 +11838,12 @@
       "ch1FinalPreactivation20261023": {
         "sourceBranch": "codex/push44-ch1-final-preactivation",
         "sourceCommit": "3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b",
-        "state": "VALIDATED_ON_BRANCH",
+        "state": "INTEGRATED_DEVELOPMENT",
+        "integrationSha": "051e4213a2fc718e303a75e592707aa7e58ccc0d",
+        "pullRequest": 244,
         "scope": "Reuse merged CH1 foundation; compose cookie/session/delegation/TLS E2E and correct encoded-byte iOS playlist delivery",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md",
-        "internalValidation": "23/23 isolated cases; exact-head CI required before merge",
+        "internalValidation": "23/23 isolated cases; PR244 final head 8a310b5a2171d5c69188e8f1730caa786fedd980 passed 9/9 CI, run40001552191",
         "actualSourceCompatibility": "Read-only one-segment local H264/MPEGTS probe and decode:25 distinct frames; no media retained or transmitted",
         "realOwnerAuthorization": "PENDING: Home QA has no owner/active membership/matching owner QA administrator; explicit recorded authority required",
         "liveReadiness": "BLOCKED: candidate media hostname NXDOMAIN; no permitted external TLS delivery/private publisher scope or bounded complete cost",
@@ -11850,6 +11852,21 @@
         "liveMediaAuthorized": false,
         "liveMediaPerformed": false,
         "nextAction": "Obtain exact source-owner view-only delegation attestation; do not activate a route until permitted HTTPS/native transport and complete cost are verified. Preserve PR235 Draft."
+      },
+      "ch1ExternalReadiness20261023": {
+        "sourceBranch": "codex/push44-ch1-external-readiness",
+        "sourceCommit": "f0df13d968549e171f3d27ffaca6c17329e16c52",
+        "state": "VALIDATED_ON_BRANCH",
+        "preservation": "REMOTE_PUSH_AND_EXACT_HEAD_CI_PENDING",
+        "scope": "Documentation only: authoritative NXDOMAIN evidence and exact non-live approval package; reuse existing comparison-free CH1 media foundations",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_EXTERNAL_APPROVAL_PACKAGE.json",
+        "validation": "Both authoritative DNS servers NXDOMAIN; authenticated Cloudflare zone lists 14 records without candidate. Phone inventory read-only. JSON parsing and diff checks required; no completed foundation tests repeated",
+        "migrationCount": 0,
+        "liveReadiness": "BLOCKED: verified source-owner authority, fresh phone/session binding, approved isolated external TLS edge, actual edge accounting and complete cost bound",
+        "productionChanged": false,
+        "liveMediaAuthorized": false,
+        "liveMediaPerformed": false,
+        "nextAction": "Separate NON-LIVE preparation approval only, as drafted in package. No real media test request or activation. Preserve PR235 Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
