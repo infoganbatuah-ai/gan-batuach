@@ -1,6 +1,9 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
   "syntheticMediaEdge20261023": {
+    "codeIntegrationSha": "c005a27397d76d075d520ccb04e6491984058460",
+    "validatedHead": "bce3468250183859b916dd0b12bec5772bf1d5dc",
+    "exactHeadCi": "PASS_9_OF_9_RUN40009022716",
     "evidence": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md",
     "scope": "SYNTHETIC_ONLY_NOT_HOME_NOT_PRODUCTION",
     "internalProof": "17 new isolated cases and 23 affected gateway regressions PASS; disabled Worker dry-run compiled",
