@@ -11915,7 +11915,7 @@
         "scope": "Cloudflare One Free account verification and owner-authorized exact-email device-enrollment restriction; no route, VPN, DNS or media activation",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md; DIGITAL_OBSERVER_EXTERNAL_ACTIVATION_PROOF_REGISTER.json",
         "providerPolicyId": "eb34789e-a2ac-49e9-9059-d8be7dce5d40",
-        "validation": "Zero Trust Free active in spring-feather-ce4e; 50 users at $0 per seat per month; exact owner email Allow policy attached only to Warp Login App with 15-minute session; no enrolled device or QA route",
+        "validation": "Zero Trust Free active in spring-feather-ce4e; 50 users at $0 per seat per month; exact owner email Allow policy attached only to Warp Login App with 15-minute session; no enrolled device or QA route. Initial exact-head CI found High zod advisory; minimal 4.4.3-to-4.6.7 patch passed local high audit, TypeScript and canonical lint; final exact-head CI pending",
         "migrationCount": 0,
         "productionChanged": false,
         "externalMediaBytes": 0,
