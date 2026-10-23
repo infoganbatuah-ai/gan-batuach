@@ -1,5 +1,17 @@
 # Canonical Development Integration Ledger
 
+2026-10-23 PUSH 44 session-security continuation: source
+`3ffa3b4a79265644293487929581722ddd44aff5`, branch
+`codex/push44-session-security-20261023`. Reproduced local Auth not_after expiry
+rejecting refresh but not an existing access JWT. Added a caller-only boolean
+lookup of the existing Auth session to both Observer page/API authorization;
+no token/row disclosure or parallel identity system. Native revalidation is
+bounded to 10 seconds and covers stale protected UI until validated. Eight
+rollback-only database checks, TypeScript, canonical lint and focused mobile/
+QA ingress pass. Additive migration 20261023161928 is NOT APPLIED pending
+remote integration; exact-head CI and actual iPhone expiry/revocation remain
+open. No Production, main, camera service, media or PUSH46 activation.
+
 PR #234 closure, 2026-10-22: source head
 `60ad671783a88bd790f7323db2c946134f957f14` passed all nine reported checks,
 including six canonical gates (run 39761020386), Management and Snyk. Complete

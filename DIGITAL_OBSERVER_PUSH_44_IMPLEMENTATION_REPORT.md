@@ -74,6 +74,25 @@ and PUSH 46 has not started.
 
 ## Owner iPhone qualification — 2026-10-22
 
+### 2026-10-23 session-security continuation (not yet physical-device proof)
+
+The existing Local Supabase Auth admin signOut rejected both the access token
+and refresh attempt in a bounded dedicated-QA-session probe (about 100 ms;
+host measurement, not iPhone propagation). A separate exact session not_after
+expiry rejected refresh but left its existing JWT accepted by getUser. The
+minimal correction checks the existing Auth session through a zero-argument,
+authenticated caller-only boolean function before Observer page/API access.
+No tokens, Auth rows or other users' sessions can be selected through it.
+Explicit anon/PUBLIC EXECUTE revocation, fixed empty search_path, stable SQL,
+indexed session ID plus auth.uid binding and not_after check pass eight
+rollback-only database cases. No permanent schema mutation in those tests.
+Native lifecycle revalidation gains a 10-second timeout, concurrent-check
+deduplication, stale protected-view cover and history-replacing login redirect.
+Production code/schema/provider activation remain unauthorized. Real-device
+expiry/revocation/network observations must be recorded separately after the
+Development migration and bounded HTTPS campaign. Earlier phone proof below
+is preserved and is not promoted by these local tests.
+
 On iPhone 13 Pro / iOS 27.0.1, PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), source `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`, owner confirmed Development-only authenticated dashboard, cellular Product navigation, and logout requiring login again. Cameras were disconnected in the isolated viewing fixture; no moving-video, APNs, strict revoked-token, Android or store proof is claimed.
 
 The bounded owner-only HTTPS gate passed seven security probes and was shut down at 2026-10-22T03:01:03Z; its dedicated tunnel was deleted. Offline-safe QA was reinstalled without a remote server URL or native Push registration. Automatic post-rollback launch was blocked by the locked iPhone, not an observed crash. Canonical APNs-capable builds and Production remained unchanged.

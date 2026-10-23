@@ -6,6 +6,28 @@
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
+      "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
+      "blob": "b21dd7b4ffd440f73c97d6ce3b9039e29708aed8",
+      "sha256": "0bf048622b6ba39c0412bfbd4bf410a3b2955b8fba292621f32592acaa309249",
+      "version": "20261023161928",
+      "sourceTask": "PUSH 44 session security continuation",
+      "sourceCommit": "3ffa3b4a79265644293487929581722ddd44aff5",
+      "remoteBranch": "origin/codex/push44-session-security-20261023",
+      "integrationCommit": null,
+      "inGit": true,
+      "inIntegration": false,
+      "inclusion": "VALIDATED_ON_BRANCH_PENDING_INTEGRATION",
+      "releaseOrder": "20261023161928",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": ["20261019050000"],
+      "developmentApprovalEvidence": "Eight rollback-only local database checks PASS: current session true; wrong user, malformed ID, expired and deleted sessions false; anon EXECUTE and direct authenticated Auth session reads denied; stable fixed-search-path function. TypeScript, canonical lint and mobile/QA-ingress contracts PASS. No permanent schema change during qualification.",
+      "developmentApplied": "NO",
+      "productionApplied": "NO",
+      "productionEvidence": "No Production application authorized or attempted",
+      "recovery": "Additive boolean function only, no data or table change. Revert dependent application before reviewed function removal; retain existing independently restored Development backup and pre-apply schema fingerprint. Apply only after remote integration, verify grants/function and exact-session expiry/revocation before claiming readiness.",
+      "cost": "One indexed Auth session lookup per protected Observer access; no new rows/logs/storage, no provider activation. Production usage forecast required before release."
+    },
+    {
       "file": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
       "blob": "9f7ee0a22c9cc40ef95edddeaac688b388e927af",
       "version": "20260919171000",
