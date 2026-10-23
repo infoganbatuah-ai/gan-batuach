@@ -100,4 +100,3 @@ Required: recorded source-owner attestation and explicit approval to issue ONE v
 That approval alone MUST NOT open a route. Live test still requires exact trusted hostname/TLS and owner-only ingress, first-party native cookie transport, verified R2 publisher/private scope if selected, bounded full cost and fresh source generation. Then request one exact infrastructure/cost/300s/100MiB activation. Rollback: revoke delegation/cookie/grant, abort transfers, close only dedicated ingress; remove only approved temporary objects and preserve sanitized receipts. Never restart/reconfigure Home services.
 
 **Live readiness NO; real owner authorization PENDING; iPhone/cellular media NOT RUN.** No migration, Production write, paid activation, public ingress, camera/telemetry change or PUSH46. Prior197 capabilities/migrations/session/backup proof and DraftPR235 preserved.
-
