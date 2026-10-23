@@ -1,5 +1,6 @@
 import { createServer } from "node:https";
 import { performance } from "node:perf_hooks";
+import { gzipSync } from "node:zlib";
 import { verifyGatewayPlaybackGrant } from "../../lib/domain/gateway-device-enrollment.ts";
 
 // No listener, provider client, enrollment write or camera command is started by
@@ -131,7 +132,7 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
       throw error;
     }
   }
-  async function media(context, pathname, deliver) {
+  async function media(context, pathname, deliver, { gzipPlaylist = false } = {}) {
     let controller;
     try {
       await identity(context);
@@ -157,6 +158,8 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
         lastSequence = object.sequence;
         advertisedSegments = new Set(body.toString().split("\n").filter(x => x.startsWith("/ch1/segment-")));
       }
+      const contentEncoding = pathname.endsWith("m3u8") && gzipPlaylist ? "gzip" : undefined;
+      if (contentEncoding) body = gzipSync(body);
       // Synchronous reserve before any asynchronous delivery. Interrupted writes
       // are NOT refunded: retries/Range/reconnect cannot reclaim the allowance.
       if (!Number.isSafeInteger(reservedBytes) || reservedBytes + body.length > CH1_LIMITS.bytes) {
@@ -164,7 +167,7 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
       }
       reservedBytes += body.length; record("TRANSFER_RESERVED"); bounds();
       await deliver(body, { contentType: pathname.endsWith("m3u8") ? "application/vnd.apple.mpegurl" : "video/mp2t",
-        signal: controller.signal });
+        contentEncoding, signal: controller.signal });
       submittedBytes += body.length;
       if (submittedBytes > reservedBytes) throw new Error("ACCOUNTING_INVALID");
       record("TRANSFER_SUBMITTED");
@@ -203,17 +206,20 @@ export function createCh1HttpsServer({ tls, gate }) {
     let abort;
     try {
       if (req.method !== "GET" || req.url?.includes("?") || req.headers.range) deny("ROUTE_DENIED");
-      await gate.media(req, req.url, async (body, { contentType, signal }) => {
+      const gzipPlaylist = /(?:^|,)\s*gzip(?:\s*;\s*q=(?:1(?:\.0*)?|0?\.\d*[1-9]\d*))?\s*(?:,|$)/i
+        .test(req.headers["accept-encoding"] || "");
+      await gate.media(req, req.url, async (body, { contentType, contentEncoding, signal }) => {
         if (signal.aborted) deny("TRANSFER_ABORTED");
         abort = () => res.destroy(); signal.addEventListener("abort", abort, { once: true });
         try {
-          res.writeHead(200, { "content-type": contentType, "content-length": body.length });
+          res.writeHead(200, { "content-type": contentType, "content-length": body.length,
+            ...(contentEncoding ? { "content-encoding": contentEncoding, vary: "Accept-Encoding" } : {}) });
           await new Promise((resolve, reject) => {
             res.once("close", () => res.writableFinished ? resolve() : reject(new Error("INTERRUPTED")));
             res.end(body, resolve);
           });
         } finally { signal.removeEventListener("abort", abort); }
-      });
+      }, { gzipPlaylist });
     } catch {
       if (!res.headersSent) res.writeHead(403).end("MEDIA_UNAVAILABLE");
       else res.destroy();

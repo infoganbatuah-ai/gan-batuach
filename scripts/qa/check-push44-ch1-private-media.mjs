@@ -7,12 +7,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { request } from "node:https";
 import { once } from "node:events";
+import { gunzipSync } from "node:zlib";
 import { CH1, CH1_LIMITS, assertCh1Delegation, createCh1MediaGate, validateCh1Playlist,
   createCh1HttpsServer } from "../../services/video-gateway/push44-ch1-private-media.mjs";
 import { issueGatewayPlaybackGrant } from "../../lib/domain/gateway-device-enrollment.ts";
 import { createCh1OperatorJournal } from "../../services/video-gateway/push44-ch1-operator-journal.mjs";
 import { createCh1PassiveReader } from "../../services/video-gateway/push44-ch1-passive-reader.mjs";
 import { createCh1DevelopmentAuthenticator } from "../../services/video-gateway/push44-ch1-development-session.mjs";
+import { createCh1CookieCustody } from "../../services/video-gateway/push44-ch1-cookie-custody.mjs";
 
 const playlist = sequence => Buffer.from(`#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:2\n#EXT-X-MEDIA-SEQUENCE:${sequence}\n#EXTINF:2,\nsegment-${sequence}.ts\n`);
 function fixture(overrides = {}) {
@@ -263,4 +265,71 @@ test("client reconnect preserves accounting and unadvertised segments are denied
   await f.read("/ch1/index.m3u8"); await f.read("/ch1/segment-7.ts");
   assert.ok(f.gate.metrics().reservedBytes > before); await assert.rejects(f.read("/ch1/segment-8.ts"));
   f.gate.stop(); assert.equal(f.gate.metrics().active, 0);
+});
+
+test("complete isolated owner/session/delegation/cookie/TLS/passive-media contract", async t => {
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "push44-ch1-e2e-")));
+  const generation = "22222222-2222-4222-8222-222222222222";
+  const mediaRoot = join(directory, `${CH1.streamId}-${generation}`);
+  mkdirSync(mediaRoot); chmodSync(directory, 0o700);
+  const sample = JSON.parse(readFileSync(new URL("./fixtures/push44-ch1-synthetic-ts.json", import.meta.url), "utf8"));
+  assert.equal(sample.kind, "SYNTHETIC_BLUE_COLOR_NOT_CAMERA");
+  const synthetic = Buffer.from(sample.base64, "base64");
+  assert.equal(synthetic[0], 0x47); assert.equal(synthetic.length % 188, 0);
+  writeFileSync(join(mediaRoot, "index.m3u8"), playlist(7));
+  writeFileSync(join(mediaRoot, "segment-7.ts"), synthetic);
+  const f = fixture(), delegationFile = join(directory, "delegation.json");
+  writeFileSync(delegationFile, JSON.stringify(f.delegation), { mode: 0o600 });
+  const journal = createCh1OperatorJournal(directory);
+  let serverAccepted = true;
+  const claims = { sub: CH1.viewerId, session_id: "synthetic-session", exp: Math.floor(Date.now() / 1000) + 300 };
+  const token = ["synthetic", Buffer.from(JSON.stringify(claims)).toString("base64url"), "synthetic"].join(".");
+  const sha = "b".repeat(40), approved = { sessionId: claims.session_id, deviceId: "synthetic-phone", revoked: false };
+  const verifySession = createCh1DevelopmentAuthenticator({ expectedRuntimeSha: sha, readSessionToken: async value => value,
+    readApprovedSession: async () => approved,
+    fetcher: async url => new Response(JSON.stringify(url.endsWith("version") ?
+      { environment: "DEVELOPMENT / INTEGRATION", backend: "LOCAL_SUPABASE", production: false, commit: sha } :
+      { data: { session: { active: true, profile_id: CH1.viewerId } } }), { status: serverAccepted ? 200 : 401 }) });
+  let elapsed = 0;
+  const custody = createCh1CookieCustody({ verifySession, now: () => f.delegation.issuedAt + elapsed });
+  const setCookie = await custody.bind(token), cookie = setCookie.split(";")[0];
+  assert.match(setCookie, /Secure; HttpOnly; SameSite=Strict; Max-Age=300/);
+  await assert.rejects(custody.bind(token));
+  const gate = createCh1MediaGate({ ...f.options, ...journal, authenticate: custody.authenticate,
+    readMedia: createCh1PassiveReader({ directory: mediaRoot, generation }) });
+  await gate.claim({ headers: { cookie } }, f.issue());
+  const key = join(directory, "key.pem"), cert = join(directory, "cert.pem");
+  execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1",
+    "-subj", "/CN=localhost", "-keyout", key, "-out", cert], { stdio: "ignore" });
+  const server = createCh1HttpsServer({ tls: { key: readFileSync(key), cert: readFileSync(cert) }, gate });
+  t.after(async () => { custody.revoke(); gate.stop(); server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve)); rmSync(directory, { recursive: true, force: true }); });
+  server.listen(0, "127.0.0.1"); await once(server, "listening");
+  const get = (path, value = cookie) => new Promise((resolve, reject) => {
+    const outgoing = request({ hostname: "127.0.0.1", port: server.address().port, path,
+      rejectUnauthorized: false, headers: { cookie: value, "accept-encoding": "gzip" } }, res => {
+      const chunks = []; res.on("data", x => chunks.push(x));
+      res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks) }));
+    }); outgoing.on("error", reject); outgoing.end();
+  });
+  assert.equal((await get("/ch1/index.m3u8", "")).status, 403);
+  assert.equal((await get("/ch1/index.m3u8", `${cookie}; ${cookie}`)).status, 403);
+  const manifest = await get("/ch1/index.m3u8"); assert.equal(manifest.status, 200);
+  assert.equal(manifest.headers["content-encoding"], "gzip");
+  assert.match(gunzipSync(manifest.body).toString(), /\/ch1\/segment-7.ts/);
+  assert.equal(gunzipSync(manifest.body).includes(Buffer.from(token)), false);
+  const segment = await get("/ch1/segment-7.ts"); assert.equal(segment.status, 200);
+  assert.equal(segment.headers["content-type"], "video/mp2t"); assert.deepEqual(segment.body, synthetic);
+  const before = gate.metrics().reservedBytes; await get("/ch1/segment-7.ts");
+  assert.ok(gate.metrics().reservedBytes > before);
+  assert.equal(gate.metrics().reservedBytes, manifest.body.length + synthetic.length * 2);
+  serverAccepted = false; assert.equal((await get("/ch1/segment-7.ts")).status, 403); serverAccepted = true;
+  const revoked = { ...f.delegation, revoked: true }; writeFileSync(delegationFile, JSON.stringify(revoked));
+  assert.equal((await get("/ch1/segment-7.ts")).status, 403);
+  writeFileSync(delegationFile, JSON.stringify(f.delegation)); elapsed = 300_000;
+  assert.equal((await get("/ch1/segment-7.ts")).status, 403);
+  gate.revoke(); assert.equal(gate.metrics().active, 0);
+  const audit = readFileSync(join(directory, "ch1-audit.jsonl"), "utf8");
+  assert.equal(audit.includes(token), false); assert.equal(audit.includes(cookie), false);
+  assert.match(audit, /TRANSFER_RESERVED/); assert.match(audit, /GRANT_REVOKED/);
 });
