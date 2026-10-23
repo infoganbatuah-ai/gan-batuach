@@ -1,0 +1,37 @@
+# PUSH 44 — synthetic-only private edge qualification
+
+Baseline `1303070304f1b227e1e020d36f56842c5adcc3bc`; branch `codex/push44-synthetic-edge-qualification`, 2026-10-23. Owner approved synthetic external QA only, plus temporary OAuth scopes `account:read user:read workers_scripts:write` with Keychain custody and disconnection afterward. This is NOT Home-source authorization.
+
+## Implemented, not externally activated
+
+- Reuse the existing CH1 gate core through two fixed factories. The original Home factory and its scope are unchanged. The synthetic factory pins separate source/Site/tenant/enrollment/Gateway IDs and rejects Home grants; no source or database enrollment is created.
+- `push44-synthetic-edge.mjs`: Cloudflare transport adapter, one globally named SQLite Durable Object, durable approval consumption, edge-wide response-body accounting (including player/control/error bodies), 6,000 total request cap, existing 600 media request cap, 300-second deadline, one lease/viewer, immediate revocation, audit and fail-closed restart. No arbitrary origin fetch or real media/file reader.
+- Private R2 contains only the reviewed 48,316-byte generated test pattern. A single preparation latch prevents repeated writes. At most 600 media reads, no public R2 URL, CORS change or shared release-bucket reuse.
+- `push44-synthetic-control.mjs`: outbound-only host polling; reuses the canonical strict Development session authenticator and existing HttpOnly cookie custody. Development JWT remains host-memory-only and is sent only to the pinned loopback Product. The edge receives opaque cookie plus verified session/profile/device metadata, not the JWT or password. Missing/stale control fails closed. One-use random binding code is separate from the Product password and never goes in a URL/log.
+- Default configuration disables `workers.dev`, preview URLs and observability; `OPEN_UNTIL=0` denies all external requests. A future approved window also rejects any deadline more than 300 seconds away. No public listener/resource/DNS/certificate/grant was created by implementation or dry-run.
+- Candidate path uses a **new isolated workers.dev name** with trusted Cloudflare TLS and a private QA-only R2 bucket. It does not publish the Home address, modify `ganbatuach.com`, proxy video through Tunnel or route to Supabase. Proposed hostname: `do-p44-synthetic-qa-20261023.info-ganbatuah.workers.dev`. It is NOT deployed, DNS/TLS external proof is NOT claimed. The old proposed `gateway-media-homeqa.ganbatuach.com` still returns NXDOMAIN; DNS-only Home-origin publication is rejected by owner scope.
+
+## Evidence and limitations
+
+- New isolated SQLite/transport/session/synthetic-origin suite: **13/13 PASS**. Includes scope rejection, anonymous/internal-route/host/query/Range/body denial, no-JWT-to-cloud assertion, accounting failure/limits, durable restart refusal, one-use binding, private fixture origin, expiry/revocation and composed delivery. These are not external or physical-device results.
+- Existing affected CH1 regression: **23/23 PASS**, rerun because the shared core changed. Initial sandbox run lacked loopback/DiskManagement permissions; the authorized isolated rerun passed without weakening the checks.
+- Synthetic fixture: H264 Constrained Baseline, MPEGTS, 160×96 yuv420p, 2 seconds/20 distinct decoded frames. No camera footage accessed or generated. Native iPhone playback/latency/continuity NOT RUN.
+- Wrangler **4.152.0**, official registry, final dry-run bundle **87.92 KiB / 45.16 KiB gzip**. No deployment. Source/build/tool cache remains on Kingston; no existing Keychain secrets exported.
+- TypeScript, targeted lint, JSON/diff checks, migration-file safety (257 files) and release contract passed locally; exact-head CI required. Migration file count is NOT a fresh database-applied-state check. No Supabase migration/change; last actual applied-state reconciliation remains the existing 227 baseline +30 post-baseline receipt.
+- Canonical loopback runtime observed `051e4213a2fc718e303a75e592707aa7e58ccc0d`, DEVELOPMENT/INTEGRATION, LOCAL_SUPABASE, production=false. This task has not restarted it or claimed the feature branch is the canonical Product.
+
+## Provider, cost and actual access gate
+
+Authenticated dashboard: Workers Free, no projects, 0/100,000 daily requests, observed current-period billable usage $0. R2 current-period billable usage $0; 123 Class A /19 Class B operations, current object footprint16GB (not monthly GB-month), existing release bucket untouched. Pricing: Workers Free fails at quota rather than adding paid overage; Standard R2 has free egress, 10GB-month/1M Class A/10M Class B included. R2-hosted media is the permitted model, not off-platform video through ordinary CDN/Tunnel.
+
+Expected marginal charge is $0 only while verified included quotas cover the bounded operation. Existing prior billing-unit worst-case estimate **$4.875 before applicable tax** is retained as a conservative boundary scenario, not an incurred charge or authorization to spend. The new private object is48,316bytes, one put/at most600reads plus bounded cleanup; Workers/control overhead is NOT counted as media bytes and is not falsely called a100MiB total-wire cap. Activation remains blocked until current quota/complete cost is checked at actual serving boundary. All-in per-paying-user compliance is not inferred from this free test.
+
+OAuth initiation reached the real Wrangler consent page with the approved scope plus the provider-required Background Access. Owner was asked to accept the privacy acknowledgment/Authorize themselves. The callback timed out without a token. **No authenticated deployment connection was established; no OAuth secret was exported or new resource created.** Reinitiate the same limited flow only when the owner is ready; do not use temporary anonymous preview accounts, broad API keys or extra permissions. A fresh consent/callback is required, not another foundation/codec audit.
+
+## Remaining execution and cleanup
+
+After OAuth and provider/security prerequisites pass: provision only the separate private QA R2 bucket and disabled Worker, install two new ephemeral control/grant secrets without logs/files, bind one freshly canonical-verified owner Development session/phone in host memory, then enable only the approved300s synthetic window. No actual endpoint can be labeled PASS from this document or isolated tests. Obtain physical-phone cellular playback evidence and negative/limit proof at that exact edge; do not substitute a local browser.
+
+Cleanup: close the dedicated synthetic window, revoke opaque cookie/grants/control, disable its workers.dev/preview route, remove only exact disposable synthetic objects/QA resources when safe, verify denial and preserve sanitized audit receipt. Disconnect the temporary OAuth application/Keychain entry via supported logout/revocation; no token exists from the timed-out attempt. No Home Gateway/Connector, Production/main, PR235, realCH1/APNs/Zero-Install/PUSH46 action.
+
+Sources: [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/), [R2 pricing](https://developers.cloudflare.com/r2/pricing/), [Cloudflare service terms](https://www.cloudflare.com/service-specific-terms-application-services/). External/device qualification remains BLOCKED/NOT RUN; do not merge as completed external proof.

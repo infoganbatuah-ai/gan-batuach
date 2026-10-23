@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "do-p44-synthetic-qa-20261023",
+  "account_id": "693f824a750afcc264fe6ee58c8a86ab",
+  "main": "../../push44-synthetic-edge.mjs",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": { "enabled": false },
+  "vars": {
+    "RUN_ID": "synthetic-only-approval-20261023",
+    "EXPECTED_HOST": "do-p44-synthetic-qa-20261023.info-ganbatuah.workers.dev",
+    "OPEN_UNTIL": "0"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "QA", "class_name": "SyntheticQaSession" }]
+  },
+  "migrations": [{ "tag": "synthetic-qa-v1", "new_sqlite_classes": ["SyntheticQaSession"] }],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "do-p44-synthetic-qa-20261023" }]
+}

@@ -1,5 +1,22 @@
 {
   "schemaVersion": "digital-observer-external-activation-proof-register-v1",
+  "syntheticMediaEdge20261023": {
+    "evidence": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md",
+    "scope": "SYNTHETIC_ONLY_NOT_HOME_NOT_PRODUCTION",
+    "internalProof": "13 new isolated cases and 23 affected gateway regressions PASS; disabled Worker dry-run compiled",
+    "fixtureBytes": 48316,
+    "fixtureDistinctDecodedFrames": 20,
+    "externalDnsTls": "NOT_DEPLOYED_NOT_VERIFIED",
+    "actualEdgeLimits": "NOT_VERIFIED_EXTERNALLY",
+    "physicalIphoneSyntheticPlayback": "NOT_RUN",
+    "deploymentAuthentication": "BLOCKED_PENDING_COMPLETED_LIMITED_OAUTH",
+    "newResourcesCreated": 0,
+    "externalMediaBytes": 0,
+    "realCh1MediaAccess": false,
+    "productionChanged": false,
+    "push44": "PARTIAL_NOT_DONE",
+    "push46": "NOT_STARTED"
+  },
   "mobileOwnerQualification20261022": {
     "sourceSha": "0efb200bf9e934111e0cad485c1a4d0c8fccf08a",
     "integrationCommit": "69eab585c806dfb1342efb56920ddc7809c043d1",
