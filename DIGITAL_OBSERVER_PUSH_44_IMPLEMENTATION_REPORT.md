@@ -76,6 +76,21 @@ and PUSH 46 has not started.
 
 ### 2026-10-23 session-security continuation (not yet physical-device proof)
 
+Security-triggered dependency correction: initial exact-head CI at b14b856b
+failed its unchanged audit gate on newly indexed Critical advisories, not the
+session tests. Pin Next.js and matching lint config to 16.4.1 and Sentry Next.js
+to 10.75.2 (same Sentry major; no broad audit-fix/force). Vendor patch references:
+[Next image optimization](https://github.com/advisories/GHSA-2464-fhr4-w9xw),
+[Next cache](https://github.com/advisories/GHSA-673q-mjm6-r5xr),
+[Next Server Actions](https://github.com/advisories/GHSA-p3m5-59mp-jv5r),
+[Sentry middleware tunnel](https://github.com/advisories/GHSA-mchm-gjx6-7h55).
+Locked local install and unchanged high-severity audit pass with zero
+High/Critical. UUID via xcode/Capacitor CLI remains Moderate, owner mobile
+dependency maintainer, review due 2026-10-29; it is not marked fixed.
+No external QA ingress was opened while Critical findings were unresolved.
+Full exact-head CI and installed-version compatibility remain required before
+integration; no Production remediation/deployment is implied.
+
 The existing Local Supabase Auth admin signOut rejected both the access token
 and refresh attempt in a bounded dedicated-QA-session probe (about 100 ms;
 host measurement, not iPhone propagation). A separate exact session not_after
