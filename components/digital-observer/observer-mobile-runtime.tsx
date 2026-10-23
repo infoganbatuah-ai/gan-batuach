@@ -74,6 +74,7 @@ export function ObserverMobileRuntime() {
     let disposed = false;
     let sites: RuntimeSite[] = [];
     let pendingPushSiteId = "";
+    let checking = false;
     const removers: Array<() => Promise<void>> = [];
 
     const registerDevice = async (siteId: string, pushToken?: string) => {
@@ -112,8 +113,14 @@ export function ObserverMobileRuntime() {
     const bootstrap = async () => {
       // Public sign-in and recovery routes must not redirect on an expected 401.
       if (!mobileRuntimeRequiresSession(window.location.pathname)) return;
+      if (checking || disposed) return;
+      checking = true;
+      setStale(true);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
       try {
-        const response = await fetch("/api/digital-observer/mobile/runtime", { credentials: "same-origin", cache: "no-store" });
+        const response = await fetch("/api/digital-observer/mobile/runtime", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+        if (disposed) return;
         if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
         const payload = await response.json() as RuntimeResponse;
         sites = payload.data?.sites ?? [];
@@ -133,8 +140,14 @@ export function ObserverMobileRuntime() {
         if (!disposed) setStale(true);
         if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
           && mobileRuntimeRequiresSession(window.location.pathname)) {
-          window.location.assign(`/digital-observer/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          sites = [];
+          const login = new URL("/digital-observer/login", window.location.origin);
+          login.searchParams.set("next", window.location.pathname + window.location.search);
+          window.location.replace(login.href);
         }
+      } finally {
+        clearTimeout(timeout);
+        checking = false;
       }
     };
 
@@ -194,6 +207,7 @@ export function ObserverMobileRuntime() {
       removers.push(() => network.remove());
 
       const appState = await App.addListener("appStateChange", async ({ isActive }) => {
+        if (!isActive && !disposed) setStale(true);
         emit(isActive ? "digital-observer:mobile-resume" : "digital-observer:mobile-suspend");
         if (isActive) await bootstrap();
       });
@@ -217,18 +231,24 @@ export function ObserverMobileRuntime() {
         removers.push(() => registration.remove(), () => registrationError.remove(), () => received.remove(), () => action.remove());
       }
       window.addEventListener("digital-observer:enable-native-push", enablePush);
+      window.addEventListener("pageshow", bootstrap);
     };
 
     void start().catch(() => setStale(true));
     return () => {
       disposed = true;
       window.removeEventListener("digital-observer:enable-native-push", enablePush);
+      window.removeEventListener("pageshow", bootstrap);
       void Promise.all(removers.map((remove) => remove()));
     };
   }, [pushAvailable]);
 
   if (!native) return null;
   return <>
+    {stale && mobileRuntimeRequiresSession(window.location.pathname) ? <div role="alert" style={{ position: "fixed", inset: 0, zIndex: 2147483647, background: "#061d3a", color: "white", display: "grid", placeContent: "center", padding: 24, textAlign: "center" }}>
+      <p>{online ? "הגישה מוגנת עד להשלמת אימות הסשן." : "אין חיבור רשת. מידע מוגן מוסתר עד לאימות מחדש."}</p>
+      <button type="button" onClick={() => window.location.reload()}>נסה שוב</button>
+    </div> : null}
     {!pushAvailable ? <div className="do-mobile-runtime-banner" role="status">Push כבוי בבניית QA זו. התראות בתוך המוצר עדיין זמינות.</div> : null}
     {(!online || stale) ? <div className="do-mobile-runtime-banner" role="status" aria-live="polite">
       {online ? "המידע מוצג ממצב שמור עד להשלמת אימות מחדש." : "אין חיבור רשת. מידע קיים עשוי להיות ישן ופעולות יסתנכרנו בבטחה לאחר החיבור."}

@@ -74,6 +74,48 @@ and PUSH 46 has not started.
 
 ## Owner iPhone qualification — 2026-10-22
 
+### 2026-10-23 session-security continuation (not yet physical-device proof)
+
+Security-triggered dependency correction: initial exact-head CI at b14b856b
+failed its unchanged audit gate on newly indexed Critical advisories, not the
+session tests. Pin Next.js and matching lint config to 16.4.1 and Sentry Next.js
+to 10.75.2 (same Sentry major; no broad audit-fix/force). Vendor patch references:
+[Next image optimization](https://github.com/advisories/GHSA-2464-fhr4-w9xw),
+[Next cache](https://github.com/advisories/GHSA-673q-mjm6-r5xr),
+[Next Server Actions](https://github.com/advisories/GHSA-p3m5-59mp-jv5r),
+[Sentry middleware tunnel](https://github.com/advisories/GHSA-mchm-gjx6-7h55).
+Locked local install and unchanged high-severity audit pass with zero
+High/Critical. UUID via xcode/Capacitor CLI remains Moderate, owner mobile
+dependency maintainer, review due 2026-10-29; it is not marked fixed.
+No external QA ingress was opened while Critical findings were unresolved.
+The matched Next lint package adds an internal-navigation rule. Its sole
+remaining finding was the pre-existing staff activation full-page handoff.
+That destination now uses an explicit same-origin absolute URL while retaining
+the full reload; its contract test pins both the destination and origin rather
+than the old relative literal. Full canonical lint returns to 4,711 errors /
+159 warnings, zero regressions and zero canonical errors; staff contract 8/8.
+No baseline allowance or rule was disabled. Observer code is unchanged by
+this one-line Management compatibility correction.
+Full exact-head CI and installed-version compatibility remain required before
+integration; no Production remediation/deployment is implied.
+
+The existing Local Supabase Auth admin signOut rejected both the access token
+and refresh attempt in a bounded dedicated-QA-session probe (about 100 ms;
+host measurement, not iPhone propagation). A separate exact session not_after
+expiry rejected refresh but left its existing JWT accepted by getUser. The
+minimal correction checks the existing Auth session through a zero-argument,
+authenticated caller-only boolean function before Observer page/API access.
+No tokens, Auth rows or other users' sessions can be selected through it.
+Explicit anon/PUBLIC EXECUTE revocation, fixed empty search_path, stable SQL,
+indexed session ID plus auth.uid binding and not_after check pass eight
+rollback-only database cases. No permanent schema mutation in those tests.
+Native lifecycle revalidation gains a 10-second timeout, concurrent-check
+deduplication, stale protected-view cover and history-replacing login redirect.
+Production code/schema/provider activation remain unauthorized. Real-device
+expiry/revocation/network observations must be recorded separately after the
+Development migration and bounded HTTPS campaign. Earlier phone proof below
+is preserved and is not promoted by these local tests.
+
 On iPhone 13 Pro / iOS 27.0.1, PersonalTeamQA `com.ganbatuach.app.qa` 1.0 (1), source `0efb200bf9e934111e0cad485c1a4d0c8fccf08a`, owner confirmed Development-only authenticated dashboard, cellular Product navigation, and logout requiring login again. Cameras were disconnected in the isolated viewing fixture; no moving-video, APNs, strict revoked-token, Android or store proof is claimed.
 
 The bounded owner-only HTTPS gate passed seven security probes and was shut down at 2026-10-22T03:01:03Z; its dedicated tunnel was deleted. Offline-safe QA was reinstalled without a remote server URL or native Push registration. Automatic post-rollback launch was blocked by the locked iPhone, not an observed crash. Canonical APNs-capable builds and Production remained unchanged.

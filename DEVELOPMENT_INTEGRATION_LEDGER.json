@@ -11791,6 +11791,20 @@
         "productionChanged": false,
         "nextAction": "Owner decision on separate Zero Trust Free onboarding and named owner-only Access/Tunnel; no media path or PUSH 46."
       },
+      "sessionSecurityContinuation20261023": {
+        "sourceBranch": "codex/push44-session-security-20261023",
+        "sourceCommit": "3ffa3b4a79265644293487929581722ddd44aff5",
+        "state": "VALIDATED_ON_BRANCH",
+        "scope": "Existing Supabase Auth session expiry/revocation, native revalidation timeout and stale-view shield; no parallel identity engine",
+        "rootCause": "Local not_after expiry rejected refresh but existing access JWT still passed getUser; current-session boolean RPC closes the Product authorization gap",
+        "validation": "TypeScript, canonical lint, mobile, PersonalTeamQA and ingress contracts PASS; rollback-only SQL 8/8 PASS; exact-head CI and actual iPhone session campaign pending",
+        "migration": "20261023161928_digital_observer_push44_session_validity.sql",
+        "developmentApplied": "NO_PENDING_REMOTE_INTEGRATION",
+        "physicalDeviceExpiryRevocation": "NOT_RUN",
+        "media": "NOT_ACTIVATED_REQUIRES_SEPARATE_SCOPE_AND_GRANT_REVIEW",
+        "productionChanged": false,
+        "nextAction": "Exact-head CI/review and scoped integration; apply additive function only to canonical local Development, verify API/page denial, then owner iPhone bounded campaign and shutdown. Preserve PR235 Draft and all external proof gates."
+      },
       "ownerIphoneAuthenticatedQualification20261022": {
         "sourceBranch": "codex/push44-secure-iphone-qa",
         "sourceCommit": "1aa4b4e76abfb0eee097b6de49332534a7f61893",
