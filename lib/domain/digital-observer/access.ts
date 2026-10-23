@@ -7,6 +7,13 @@ import type { Database } from "@/lib/supabase/types";
 
 type ObserverSupabaseClient = SupabaseClient<Database>;
 
+async function currentObserverSessionActive(supabase: ObserverSupabaseClient) {
+  // getUser verifies the JWT; this bounded RPC additionally enforces the
+  // existing Auth session's expiry/revocation. Missing schema fails closed.
+  const { data, error } = await supabase.rpc("digital_observer_current_session_active" as never);
+  return !error && data === true;
+}
+
 export type ObserverAccessProfile = {
   id: string;
   role?: string | null;
@@ -68,6 +75,7 @@ export function safeObserverReturnPath(value?: string | null) {
 export async function requireDigitalObserverUser(loginPath = "/digital-observer/login") {
   const session = await requireUser(loginPath);
   const supabase = await createClient();
+  if (!await currentObserverSessionActive(supabase)) redirect("/digital-observer/login?error=session_expired");
   const [account, ownedSite, membership, organizationMembership] = await Promise.all([
     supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", session.user.id).maybeSingle(),
     supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", session.user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
@@ -110,6 +118,8 @@ export async function getDigitalObserverApiUser(request?: Request) {
     });
     return null;
   }
+
+  if (!await currentObserverSessionActive(supabase)) return null;
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")

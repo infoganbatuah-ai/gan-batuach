@@ -65,6 +65,16 @@ for (const required of ["Network.addListener", "appStateChange", "appUrlOpen", "
   assert(runtime.includes(required), `missing native runtime behavior: ${required}`);
 }
 assert(runtime.includes("if (!mobileRuntimeRequiresSession(window.location.pathname)) return;"), "native login must not bootstrap a protected session");
+assert(runtime.includes("controller.abort(), 10_000"), "session bootstrap must have a bounded timeout");
+assert(runtime.includes("window.location.replace"), "expired sessions replace protected history");
+assert(runtime.includes("מידע מוגן מוסתר"), "offline protected content must be covered");
+const access = readFileSync(new URL("../../lib/domain/digital-observer/access.ts", import.meta.url), "utf8");
+assert.equal((access.match(/if \(!await currentObserverSessionActive\(supabase\)\)/g) ?? []).length, 2, "both page and API access must check the Auth session");
+const sessionSql = readFileSync(new URL("../../supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql", import.meta.url), "utf8");
+assert.match(sessionSql, /s\.user_id = auth\.uid\(\)/);
+assert.match(sessionSql, /s\.not_after > pg_catalog\.statement_timestamp\(\)/);
+assert.match(sessionSql, /from public, anon/);
+assert.match(sessionSql, /to authenticated/);
 assert(runtime.includes("sensitive_local_cache") === false, "client should not pretend to cache sensitive data");
 assert(!runtime.match(/localStorage|sessionStorage|camera credentials|raw video/i), "native runtime must not persist secrets or sensitive media");
 assert(runtimeRoute.includes("getObserverSiteAccess"));
