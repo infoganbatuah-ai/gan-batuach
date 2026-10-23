@@ -13,10 +13,10 @@ Baseline `1303070304f1b227e1e020d36f56842c5adcc3bc`; branch `codex/push44-synthe
 
 ## Evidence and limitations
 
-- New isolated SQLite/transport/session/synthetic-origin suite: **13/13 PASS**. Includes scope rejection, anonymous/internal-route/host/query/Range/body denial, no-JWT-to-cloud assertion, accounting failure/limits, durable restart refusal, one-use binding, private fixture origin, expiry/revocation and composed delivery. These are not external or physical-device results.
+- New isolated SQLite/transport/session/synthetic-origin suite: **15/15 PASS**. Includes scope rejection, anonymous/internal-route/host/query/Range/body denial, no-JWT-to-cloud assertion, accounting failure/limits, durable restart refusal, one-use binding, private fixture origin, expiry/revocation and composed delivery. Additional provider-specific request-signal compatibility and private disconnect propagation are covered; a stream cancel callback alone is not relied upon. These are not external or physical-device results.
 - Existing affected CH1 regression: **23/23 PASS**, rerun because the shared core changed. Initial sandbox run lacked loopback/DiskManagement permissions; the authorized isolated rerun passed without weakening the checks.
 - Synthetic fixture: H264 Constrained Baseline, MPEGTS, 160×96 yuv420p, 2 seconds/20 distinct decoded frames. No camera footage accessed or generated. Native iPhone playback/latency/continuity NOT RUN.
-- Wrangler **4.152.0**, official registry, final dry-run bundle **87.92 KiB / 45.16 KiB gzip**. No deployment. Source/build/tool cache remains on Kingston; no existing Keychain secrets exported.
+- Wrangler **4.152.0**, official registry, final dry-run bundle **88.78 KiB / 45.34 KiB gzip**. No deployment. Source/build/tool cache remains on Kingston; no existing Keychain secrets exported.
 - TypeScript, targeted lint, JSON/diff checks, migration-file safety (257 files) and release contract passed locally; exact-head CI required. Migration file count is NOT a fresh database-applied-state check. No Supabase migration/change; last actual applied-state reconciliation remains the existing 227 baseline +30 post-baseline receipt.
 - Canonical loopback runtime observed `051e4213a2fc718e303a75e592707aa7e58ccc0d`, DEVELOPMENT/INTEGRATION, LOCAL_SUPABASE, production=false. This task has not restarted it or claimed the feature branch is the canonical Product.
 

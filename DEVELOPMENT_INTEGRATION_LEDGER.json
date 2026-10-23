@@ -11878,7 +11878,7 @@
         "preservation": "PUSHED_REMOTE_PRESERVED_PENDING_INTEGRATION",
         "scope": "Isolated synthetic-only fixed scope and Cloudflare transport adapters reuse existing gate/session/grant/cookie cores; default external activation OFF",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md",
-        "validation": "13 new isolated synthetic-edge cases,23 affected gateway regressions,TypeScript,targeted lint,migration-file safety and release contract PASS; disabled Wrangler dry-run compiled; exact-head CI required",
+        "validation": "15 new isolated synthetic-edge cases,23 affected gateway regressions,TypeScript,canonical lint,migration-file safety and release contract PASS; disabled Wrangler dry-run compiled; exact-head CI required",
         "migrationCount": 0,
         "actualAppliedState": "No database change or new applied-state claim; prior257 canonical Development reconciliation retained",
         "externalProof": "NOT_RUN: no deployed DNS/TLS edge, actual external limits or physical-iPhone synthetic playback",

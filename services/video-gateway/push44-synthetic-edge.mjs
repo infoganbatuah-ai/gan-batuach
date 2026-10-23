@@ -111,6 +111,10 @@ export class SyntheticQaSession {
         (before.deadline && Date.now() >= before.deadline)) this.stop();
       const operator = secretEqual(request.headers.get("authorization"), `Bearer ${this.env.CONTROL_KEY}`);
       const path = url.pathname;
+      if (operator && path === "/control/disconnect" && request.method === "POST" &&
+        this.cookie && request.headers.get("cookie") === this.cookie) {
+        this.stop(); return this.response("CLOSED");
+      }
       if (operator && path === "/control/revoke" && request.method === "POST") { this.stop(); return this.response("CLOSED"); }
       if (this.closed) return this.response("CLOSED", 403);
       if (operator && path === "/control/prepare" && request.method === "POST") return this.response(JSON.stringify(await this.prepare()));
@@ -158,13 +162,23 @@ export class SyntheticQaSession {
 }
 
 const worker = {
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     if (!/^[A-Za-z0-9_-]{16,96}$/.test(env.RUN_ID || "") || !env.QA || !env.EXPECTED_HOST ||
       !Number.isSafeInteger(Number(env.OPEN_UNTIL)) || Date.now() >= Number(env.OPEN_UNTIL) ||
       Number(env.OPEN_UNTIL) - Date.now() > CH1_LIMITS.durationMs)
       return new Response(null, { status: 403, headers });
     // There is no client-selected namespace, run, source, upstream or DO ID.
-    return env.QA.get(env.QA.idFromName(env.RUN_ID)).fetch(request);
+    const session = env.QA.get(env.QA.idFromName(env.RUN_ID));
+    // Cloudflare requires enable_request_signal; stream.cancel alone is not a
+    // reliable disconnect signal. Only the DO can verify the viewer cookie.
+    if (new URL(request.url).pathname.startsWith("/ch1/") && cookiePattern.test(request.headers.get("cookie") || "")) {
+      const disconnect = () => context.waitUntil(session.fetch(new Request(`https://${env.EXPECTED_HOST}/control/disconnect`, {
+        method: "POST", headers: { authorization: `Bearer ${env.CONTROL_KEY}`, cookie: request.headers.get("cookie") }
+      })));
+      if (request.signal.aborted) { disconnect(); return new Response(null, { status: 403, headers }); }
+      request.signal.addEventListener("abort", disconnect, { once: true });
+    }
+    return session.fetch(request);
   }
 };
 export default worker;

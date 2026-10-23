@@ -4,7 +4,7 @@
   "account_id": "693f824a750afcc264fe6ee58c8a86ab",
   "main": "../../push44-synthetic-edge.mjs",
   "compatibility_date": "2026-10-23",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": ["nodejs_compat", "enable_request_signal"],
   "workers_dev": false,
   "preview_urls": false,
   "observability": { "enabled": false },

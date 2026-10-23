@@ -38,6 +38,22 @@ test("edge outer handler rejects absent bindings, expired window and no client-s
   assert.equal((await worker.fetch(new Request("https://qa.invalid"), {})).status, 403);
   assert.equal((await worker.fetch(new Request("https://qa.invalid"), { RUN_ID: "synthetic-approval-001", EXPECTED_HOST: "qa.invalid", OPEN_UNTIL: 0, QA: {} })).status, 403);
 });
+
+test("external request abort propagates bounded cleanup to the single private DO", async () => {
+  const controller = new AbortController(), cookie = `__Host-DOCH1QA=${randomBytes(32).toString("base64url")}`;
+  const calls = [], pending = [];
+  const env = { RUN_ID: "synthetic-approval-001", EXPECTED_HOST: "synthetic.example.invalid", OPEN_UNTIL: Date.now() + 1000,
+    CONTROL_KEY: randomBytes(48).toString("base64url"), QA: { idFromName: id => id, get: () => ({ fetch: async request => {
+      calls.push(request); return new Response("synthetic");
+    } }) } };
+  const response = await worker.fetch(new Request(`https://${env.EXPECTED_HOST}/ch1/index.m3u8`, {
+    headers: { cookie }, signal: controller.signal
+  }), env, { waitUntil: promise => pending.push(promise) });
+  assert.equal(response.status, 200); controller.abort(); await Promise.all(pending);
+  assert.equal(calls.length, 2); assert.equal(new URL(calls[1].url).pathname, "/control/disconnect");
+  assert.equal(calls[1].headers.get("cookie"), cookie);
+  assert.equal(calls[1].headers.get("authorization"), `Bearer ${env.CONTROL_KEY}`);
+});
 test("private synthetic R2 origin has no Home connection; no anonymous media/control access", async t => {
   const f = fixture(t);
   assert.equal((await f.edge.fetch(f.request("/control/prepare", { method: "POST" }))).status, 403);
@@ -108,6 +124,15 @@ test("edge-wide 100MiB stops even non-media routes", async t => {
   f.db.prepare("UPDATE qa_run SET bytes=? WHERE id=1").run(100 * 1024 * 1024 - 2);
   assert.equal((await f.edge.fetch(f.request("/"))).status, 403); assert(f.edge.closed);
   assert(f.edge.row().bytes <= 100 * 1024 * 1024);
+});
+test("accounting write failure cannot return an unaccounted response", async t => {
+  const f = fixture(t), execute = f.state.storage.sql.exec;
+  f.state.storage.sql.exec = (sql, ...args) => {
+    if (sql.startsWith("UPDATE qa_run SET bytes=")) throw new Error("ACCOUNTING_UNAVAILABLE");
+    return execute(sql, ...args);
+  };
+  await assert.rejects(f.edge.fetch(f.request("/")), /ACCOUNTING_UNAVAILABLE/);
+  assert.equal(f.edge.row().bytes, 0); assert.equal(f.objects.size, 0);
 });
 test("total-request cap fails closed before an extra media or control request", async t => {
   const f = fixture(t);
