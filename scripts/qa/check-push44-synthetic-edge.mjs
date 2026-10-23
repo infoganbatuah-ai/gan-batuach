@@ -58,7 +58,9 @@ test("private synthetic R2 origin has no Home connection; no anonymous media/con
   const f = fixture(t);
   assert.equal((await f.edge.fetch(f.request("/control/prepare", { method: "POST" }))).status, 403);
   assert.equal(f.objects.size, 0);
-  const result = await f.operator("prepare", { method: "POST" }); assert.equal(result.status, 200);
+  assert.equal((await f.operator("prepare", { method: "POST", body: "x".repeat(4096) })).status, 403);
+  assert.equal(f.objects.size, 0);
+  const result = await f.operator("prepare", { method: "POST", body: "{}" }); assert.equal(result.status, 200);
   assert.equal(f.objects.size, 1); assert(f.objects.has("synthetic-motion.ts"));
   assert.equal((await f.operator("prepare", { method: "POST" })).status, 403);
   for (const path of ["/ch1/index.m3u8", "/ch1/segment-0.ts", "/api/internal", `/sources/${CH1.sourceId}`])
@@ -110,6 +112,12 @@ test("untrusted host, mixed HTTP, query/Range and oversized/unbounded POST rejec
     f.request("/session", { method: "POST", headers: { origin: `https://${f.env.EXPECTED_HOST}` }, body: "code=x" })])
     assert.equal((await f.edge.fetch(request)).status, 403);
 });
+test("chunked/missing-length body is bounded by bytes, not a trusted Content-Length", async t => {
+  const f = fixture(t);
+  const response = await f.edge.fetch(f.request("/session", { method: "POST",
+    headers: { origin: `https://${f.env.EXPECTED_HOST}` }, body: `code=${"x".repeat(4096)}` }));
+  assert.equal(response.status, 403); assert.equal(f.edge.gate, null); assert.equal(f.objects.size, 0);
+});
 test("durable counters survive object reconstruction; consumed run cannot reopen", async t => {
   const f = fixture(t);
   await f.edge.fetch(f.request("/"));
@@ -118,6 +126,14 @@ test("durable counters survive object reconstruction; consumed run cannot reopen
   const restarted = new SyntheticQaSession(f.state, f.env); t.after(() => restarted.stop());
   assert.equal((await restarted.fetch(f.request("/"))).status, 403);
   assert(restarted.row().bytes > bytes);
+});
+test("prepared origin survives idle object eviction without duplicate writes", async t => {
+  const f = fixture(t); await f.operator("prepare", { method: "POST" });
+  assert.equal(f.edge.row().prepared, 1);
+  const restarted = new SyntheticQaSession(f.state, f.env); t.after(() => restarted.stop());
+  assert.equal(restarted.prepared, true);
+  await assert.rejects(restarted.prepare(), /RUN_USED/);
+  assert.equal(f.objects.size, 1);
 });
 test("edge-wide 100MiB stops even non-media routes", async t => {
   const f = fixture(t);
@@ -146,7 +162,7 @@ test("absolute persisted deadline stops control/player and prevents restart reop
 });
 test("explicit revocation rejects future access without deleting recovery evidence", async t => {
   const f = fixture(t);
-  assert.equal((await f.operator("revoke", { method: "POST" })).status, 200);
+  assert.equal((await f.operator("revoke", { method: "POST", body: "{}" })).status, 200);
   assert.equal((await f.edge.fetch(f.request("/"))).status, 403);
   assert(f.edge.row().requests >= 2);
 });
@@ -177,7 +193,7 @@ test("complete isolated outbound-control/cookie/existing-gate/private-R2 flow, t
         const grant = issueGatewayPlaybackGrant({ gateway_id: SYNTHETIC_QA.gatewayId, observer_site_id: SYNTHETIC_QA.siteId,
           camera_source_id: SYNTHETIC_QA.sourceId, gateway_stream_id: SYNTHETIC_QA.streamId }, f.env.GRANT_SECRET);
         const body = JSON.stringify({ id: job.id, result: allowed ? { cookie, principal, grant, grantExpires: Date.now() + 45000 } : {} });
-        await f.operator("respond", { method: "POST", headers: { "content-length": String(Buffer.byteLength(body)) }, body });
+        await f.operator("respond", { method: "POST", body });
       }
       await new Promise(resolve => setTimeout(resolve, 1));
     }
@@ -186,7 +202,7 @@ test("complete isolated outbound-control/cookie/existing-gate/private-R2 flow, t
     await f.operator("prepare", { method: "POST" });
     const body = `code=${code}`;
     const login = await f.edge.fetch(f.request("/session", { method: "POST", body,
-      headers: { origin: `https://${f.env.EXPECTED_HOST}`, "content-length": String(body.length) } }));
+      headers: { origin: `https://${f.env.EXPECTED_HOST}` } }));
     assert.equal(login.status, 200); assert.match(login.headers.get("set-cookie"), /Secure; HttpOnly; SameSite=Strict/);
     assert.match(await login.text(), /סינתטי/);
     assert.equal((await f.edge.fetch(f.request("/session", { method: "POST", body,

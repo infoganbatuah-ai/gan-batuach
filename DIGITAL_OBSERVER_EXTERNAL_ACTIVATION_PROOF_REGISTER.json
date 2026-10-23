@@ -3,9 +3,10 @@
   "syntheticMediaEdge20261023": {
     "evidence": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md",
     "scope": "SYNTHETIC_ONLY_NOT_HOME_NOT_PRODUCTION",
-    "internalProof": "15 new isolated cases and 23 affected gateway regressions PASS; disabled Worker dry-run compiled",
+    "internalProof": "17 new isolated cases and 23 affected gateway regressions PASS; disabled Worker dry-run compiled",
     "fixtureBytes": 48316,
     "fixtureDistinctDecodedFrames": 20,
+    "localProviderRuntimeProof": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_LOCAL_RUNTIME_PROOF.json; local synthetic identities only, NOT_EXTERNAL_OR_IPHONE",
     "externalDnsTls": "NOT_DEPLOYED_NOT_VERIFIED",
     "actualEdgeLimits": "NOT_VERIFIED_EXTERNALLY",
     "physicalIphoneSyntheticPlayback": "NOT_RUN",

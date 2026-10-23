@@ -9,6 +9,21 @@ import fixture from "../../scripts/qa/fixtures/push44-synthetic-motion-ts.json" 
 const cookiePattern = /^__Host-DOCH1QA=[A-Za-z0-9_-]{43}$/;
 const secretEqual = (a, b) => typeof a === "string" && typeof b === "string" &&
   a.length >= 43 && a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+async function readBoundedBody(request, maximum) {
+  const length = request.headers.get("content-length");
+  if (length !== null && (!/^\d{1,5}$/.test(length) || Number(length) > maximum)) throw new Error("BODY_TOO_LARGE");
+  const reader = request.body?.getReader(); if (!reader) throw new Error("BODY_REQUIRED");
+  const chunks = []; let size = 0, timer;
+  try {
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("BODY_TIMEOUT")), 3000); });
+    for (;;) {
+      const next = await Promise.race([reader.read(), timeout]); if (next.done) break;
+      size += next.value.byteLength; if (size > maximum) throw new Error("BODY_TOO_LARGE");
+      chunks.push(Buffer.from(next.value));
+    }
+    return new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
+  } finally { clearTimeout(timer); await reader.cancel().catch(() => {}); reader.releaseLock(); }
+}
 const headers = { "cache-control": "private, no-store", "referrer-policy": "no-referrer",
   "x-content-type-options": "nosniff", "x-qa-source": "SYNTHETIC_NOT_CH1",
   "content-security-policy": "default-src 'none'; media-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'" };
@@ -18,10 +33,16 @@ const player = `<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><
 export class SyntheticQaSession {
   constructor(state, env) {
     this.state = state; this.env = env; this.jobs = new Map(); this.sequence = 0;
-    this.queue = []; this.gate = null; this.cookie = null; this.closed = false; this.prepared = false; this.preparing = false;
+    this.queue = []; this.gate = null; this.cookie = null; this.closed = false;
     const sql = state.storage.sql;
     sql.exec("CREATE TABLE IF NOT EXISTS qa_run (id INTEGER PRIMARY KEY CHECK(id=1), consumed INTEGER NOT NULL DEFAULT 0, deadline INTEGER NOT NULL DEFAULT 0, bytes INTEGER NOT NULL DEFAULT 0, requests INTEGER NOT NULL DEFAULT 0)");
     sql.exec("INSERT OR IGNORE INTO qa_run(id) VALUES(1)");
+    // Preserve preparation across idle-object eviction too. A partially
+    // acknowledged upload is never automatically retried or billed twice.
+    if (!sql.exec("PRAGMA table_info(qa_run)").toArray().some(column => column.name === "prepared"))
+      sql.exec("ALTER TABLE qa_run ADD COLUMN prepared INTEGER NOT NULL DEFAULT 0");
+    this.prepared = this.row().prepared === 1;
+    this.preparing = this.row().prepared === -1;
     sql.exec("CREATE TABLE IF NOT EXISTS qa_audit (id INTEGER PRIMARY KEY, event TEXT NOT NULL, bytes INTEGER NOT NULL, timestamp INTEGER NOT NULL)");
     // Losing the in-memory owner/session/lease must NEVER reopen its allowance.
     if (this.row().consumed) this.closed = true;
@@ -52,11 +73,14 @@ export class SyntheticQaSession {
   async prepare() {
     if (this.gate || this.row().consumed || this.closed || this.preparing || this.prepared) throw new Error("RUN_USED");
     this.preparing = true;
+    if (this.state.storage.sql.exec("UPDATE qa_run SET prepared=-1 WHERE id=1 AND prepared=0 RETURNING id").toArray().length !== 1)
+      throw new Error("PREPARATION_USED");
     if (!this.env.MEDIA || !this.env.CONTROL_KEY || !this.env.GRANT_SECRET) throw new Error("MISSING_BINDING");
     // The only origin bytes are this reviewed generator fixture, never a URL,
     // filesystem reader, Home source, proxy fetch or camera connection.
     const bytes = Buffer.from(fixture.base64, "base64");
     await this.env.MEDIA.put("synthetic-motion.ts", bytes, { httpMetadata: { contentType: "video/mp2t" } });
+    this.state.storage.sql.exec("UPDATE qa_run SET prepared=1 WHERE id=1");
     this.prepared = true;
     return { kind: fixture.kind, storedBytes: bytes.length };
   }
@@ -111,6 +135,8 @@ export class SyntheticQaSession {
         (before.deadline && Date.now() >= before.deadline)) this.stop();
       const operator = secretEqual(request.headers.get("authorization"), `Bearer ${this.env.CONTROL_KEY}`);
       const path = url.pathname;
+      if (operator && request.method === "POST" && ["/control/prepare", "/control/revoke"].includes(path) && request.body)
+        await readBoundedBody(request, 128);
       if (operator && path === "/control/disconnect" && request.method === "POST" &&
         this.cookie && request.headers.get("cookie") === this.cookie) {
         this.stop(); return this.response("CLOSED");
@@ -123,9 +149,7 @@ export class SyntheticQaSession {
         return this.response(JSON.stringify(jobs), 200, { "content-type": "application/json" });
       }
       if (operator && path === "/control/respond" && request.method === "POST") {
-        if (!/^\d{1,4}$/.test(request.headers.get("content-length") || "") ||
-          Number(request.headers.get("content-length")) > 4096) return this.response("DENIED", 403);
-        const text = await request.text(); if (Buffer.byteLength(text) > 4096) throw new Error("BODY_TOO_LARGE");
+        const text = await readBoundedBody(request, 4096);
         const { id, result } = JSON.parse(text), job = this.jobs.get(id);
         if (!job) return this.response("DENIED", 403);
         clearTimeout(job.timer); this.jobs.delete(id); job.resolve(result); return this.response("OK");
@@ -134,10 +158,9 @@ export class SyntheticQaSession {
         return this.response(JSON.stringify({ ...this.row(), media: this.gate?.metrics() || null }), 200, { "content-type": "application/json" });
       if (path === "/" && request.method === "GET") return this.response(page, 200, { "content-type": "text/html;charset=utf-8" });
       if (path === "/session" && request.method === "POST") {
-        if (request.headers.get("origin") !== url.origin || !/^\d{1,3}$/.test(request.headers.get("content-length") || "") ||
-          Number(request.headers.get("content-length")) > 128)
+        if (request.headers.get("origin") !== url.origin)
           return this.response("DENIED", 403);
-        const text = await request.text(); if (text.length > 128) throw new Error("BODY_TOO_LARGE");
+        const text = await readBoundedBody(request, 128);
         const code = new URLSearchParams(text).get("code");
         if (!/^[A-Za-z0-9_-]{43}$/.test(code || "")) return this.response("DENIED", 403);
         await this.bind(code);
@@ -158,6 +181,7 @@ export class SyntheticQaSession {
       }
       return this.response("DENIED", 403);
     } catch { return this.response("MEDIA_UNAVAILABLE", 403); }
+    finally { if (!request.bodyUsed) await request.body?.cancel().catch(() => {}); }
   }
 }
 

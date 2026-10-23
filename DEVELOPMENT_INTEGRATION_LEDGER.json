@@ -11878,7 +11878,7 @@
         "preservation": "PUSHED_REMOTE_PRESERVED_PENDING_INTEGRATION",
         "scope": "Isolated synthetic-only fixed scope and Cloudflare transport adapters reuse existing gate/session/grant/cookie cores; default external activation OFF",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md",
-        "validation": "15 new isolated synthetic-edge cases,23 affected gateway regressions,TypeScript,canonical lint,migration-file safety and release contract PASS; disabled Wrangler dry-run compiled; exact-head CI required",
+        "validation": "17 new isolated synthetic-edge cases,23 affected gateway regressions,TypeScript,canonical lint,migration-file safety and release contract PASS; disabled Wrangler dry-run compiled; exact-head CI required",
         "migrationCount": 0,
         "actualAppliedState": "No database change or new applied-state claim; prior257 canonical Development reconciliation retained",
         "externalProof": "NOT_RUN: no deployed DNS/TLS edge, actual external limits or physical-iPhone synthetic playback",
@@ -11886,7 +11886,8 @@
         "externalMediaBytes": 0,
         "productionChanged": false,
         "realHomeMediaAccess": false,
-        "nextAction": "Complete owner-approved limited Cloudflare OAuth consent/callback, then verify provider/security/cost prerequisites before any synthetic-only300s/100MiB edge activation. Keep PR246 Draft and PR235 separate Draft."
+        "localProviderRuntime": "PASS_LOCAL_WORKERD_ONLY: synthetic binding/playlist/segment200,revoked principal403,cleanup200; sanitized receipt in DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_LOCAL_RUNTIME_PROOF.json",
+        "nextAction": "Integrate validated disabled Development implementation only after final exact-head CI/review; external qualification remains blocked until completed limited OAuth and actual provider/security/cost/phone gates. Keep PR235 separate Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
