@@ -141,7 +141,9 @@ export function ObserverMobileRuntime() {
         if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
           && mobileRuntimeRequiresSession(window.location.pathname)) {
           sites = [];
-          window.location.replace(`/digital-observer/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          const login = new URL("/digital-observer/login", window.location.origin);
+          login.searchParams.set("next", window.location.pathname + window.location.search);
+          window.location.replace(login.href);
         }
       } finally {
         clearTimeout(timeout);
