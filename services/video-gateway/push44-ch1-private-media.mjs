@@ -19,11 +19,25 @@ export const CH1 = Object.freeze({
 export const CH1_LIMITS = Object.freeze({ durationMs: 300_000, bytes: 100 * 1024 * 1024,
   requests: 600, objectBytes: 3 * 1024 * 1024, freshnessMs: 15_000 });
 
+// Synthetic scope is separate from Home. Neither factory accepts caller-selected
+// scope, and no enrollment/database row is created by these qualification IDs.
+export const SYNTHETIC_QA = Object.freeze({
+  sourceId: "00000000-0000-4000-8000-000000000c44",
+  siteId: "00000000-0000-4000-8000-000000000a44",
+  tenantId: "00000000-0000-4000-8000-000000000b44",
+  enrollmentId: "00000000-0000-4000-8000-000000000e44",
+  gatewayId: "00000000-0000-4000-8000-000000000d44",
+  streamId: "synthetic_push44_h264",
+  viewerId: CH1.viewerId,
+  sourceEnvironment: "SYNTHETIC_QA",
+  viewerEnvironment: "LOCAL_SUPABASE"
+});
+
 class Denied extends Error {
   constructor(code) { super(code); this.code = code; }
 }
 const deny = code => { throw new Denied(code); };
-const exactScope = value => value && Object.entries(CH1).every(([key, expected]) => value[key] === expected);
+const exactScope = (value, scope) => value && Object.entries(scope).every(([key, expected]) => value[key] === expected);
 const validPrincipal = p => p?.verified === true && p.active === true && p.viewerId === CH1.viewerId &&
   p.environment === CH1.viewerEnvironment && typeof p.sessionId === "string" && p.sessionId.length >= 8 &&
   typeof p.deviceId === "string" && p.deviceId.length >= 8;
@@ -40,7 +54,13 @@ async function bounded(operation) {
 // This is a delegation, NOT a copied Site membership or an enrollment. Its
 // issuer must verify both domain administrators outside the client boundary.
 export function assertCh1Delegation(value, wallNow = Date.now()) {
-  if (!exactScope(value) || value?.kind !== "CH1_VIEW_ONLY_DELEGATION" ||
+  return assertDelegation(value, CH1, "CH1_VIEW_ONLY_DELEGATION", wallNow);
+}
+export function assertSyntheticQaDelegation(value, wallNow = Date.now()) {
+  return assertDelegation(value, SYNTHETIC_QA, "SYNTHETIC_QA_VIEW_ONLY", wallNow);
+}
+function assertDelegation(value, scope, kind, wallNow) {
+  if (!exactScope(value, scope) || value?.kind !== kind ||
     value.adminVerified !== true || value.sourceOwnerVerified !== true || value.revoked !== false ||
     !/^[A-Za-z0-9_-]{16,96}$/.test(value.approvalId || "") ||
     typeof value.purpose !== "string" || value.purpose.trim().length < 12 || value.purpose.length > 256 ||
@@ -57,7 +77,13 @@ export function assertCh1Delegation(value, wallNow = Date.now()) {
  * server-side session (not getSession/JWT claims alone). Audit is synchronous,
  * durable and metadata-only. Missing/failed adapters permanently close the gate.
  */
-export function createCh1MediaGate({ authenticate, readDelegation, consumeApproval, readMedia, audit,
+export function createCh1MediaGate(options) {
+  return createScopedMediaGate(CH1, assertCh1Delegation, options);
+}
+export function createSyntheticQaMediaGate(options) {
+  return createScopedMediaGate(SYNTHETIC_QA, assertSyntheticQaDelegation, options);
+}
+function createScopedMediaGate(scope, assertDelegationForScope, { authenticate, readDelegation, consumeApproval, readMedia, audit,
   grantSecret, wallNow = Date.now, monotonicNow = () => performance.now() } = {}) {
   if (![authenticate, readDelegation, consumeApproval, readMedia, audit].every(x => typeof x === "function") ||
     typeof grantSecret !== "string" || grantSecret.length < 43) throw new Error("CH1_ADAPTERS_REQUIRED");
@@ -67,7 +93,7 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
   let advertisedSegments = new Set();
   const metrics = () => ({ stopped, reason, reservedBytes, submittedBytes, requests, active: active.size });
   function record(event) {
-    const result = audit(Object.freeze({ event, sourceId: CH1.sourceId, ...metrics() }));
+    const result = audit(Object.freeze({ event, sourceId: scope.sourceId, ...metrics() }));
     if (result !== true) throw new Error("AUDIT_UNAVAILABLE");
   }
   function stop(code = "CLOSED") {
@@ -86,7 +112,7 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
     bounds();
     const p = await bounded(() => authenticate(context));
     if (!validPrincipal(p)) deny("SESSION_DENIED");
-    const d = assertCh1Delegation(await bounded(readDelegation), wallNow());
+    const d = assertDelegationForScope(await bounded(readDelegation), wallNow());
     if (requireLease && (!lease || p.sessionId !== lease.sessionId || p.deviceId !== lease.deviceId ||
       d.approvalId !== lease.approvalId)) deny("VIEWER_DENIED");
     bounds();
@@ -95,8 +121,8 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
   function claims(token) {
     if (typeof token !== "string" || token.length > 4096) deny("GRANT_DENIED");
     const c = verifyGatewayPlaybackGrant(token, grantSecret);
-    if (!c || c.gateway_id !== CH1.gatewayId || c.observer_site_id !== CH1.siteId ||
-      c.camera_source_id !== CH1.sourceId || c.gateway_stream_id !== CH1.streamId) deny("GRANT_DENIED");
+    if (!c || c.gateway_id !== scope.gatewayId || c.observer_site_id !== scope.siteId ||
+      c.camera_source_id !== scope.sourceId || c.gateway_stream_id !== scope.streamId) deny("GRANT_DENIED");
     return c;
   }
   async function claim(context, token) {
@@ -113,7 +139,7 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
       if (remaining <= 0) deny("DELEGATION_DENIED");
       lease = { sessionId: p.sessionId, deviceId: p.deviceId, approvalId: d.approvalId,
         deadline: monotonicNow() + remaining, wallDeadline: d.expiresAt, nonce: c.nonce, grantExp: c.exp };
-      timer = setTimeout(() => stop("DURATION_EXHAUSTED"), remaining); timer.unref();
+      timer = setTimeout(() => stop("DURATION_EXHAUSTED"), remaining); timer.unref?.();
       record("LEASE_CLAIMED");
       return { path: "/ch1/index.m3u8", expiresAt: Math.min(c.exp, d.expiresAt) };
     } catch (error) { stop(error instanceof Denied ? error.code : "ADAPTER_FAILURE"); throw error; }
@@ -142,14 +168,14 @@ export function createCh1MediaGate({ authenticate, readDelegation, consumeApprov
       if (++requests > CH1_LIMITS.requests) { stop("REQUEST_LIMIT"); deny("REQUEST_LIMIT"); }
       if (active.size >= 4) deny("REQUEST_CONCURRENCY_LIMIT");
       controller = new AbortController(); active.add(controller);
-      const object = await bounded(() => readMedia({ source: CH1, pathname, signal: controller.signal,
+      const object = await bounded(() => readMedia({ source: scope, pathname, signal: controller.signal,
         maxBytes: CH1_LIMITS.objectBytes }));
       await identity(context); // Revocation while reading cannot leak a completed object.
       if (wallNow() >= lease.grantExp) deny("GRANT_EXPIRED");
       if (controller.signal.aborted) deny("TRANSFER_ABORTED");
       if (!Buffer.isBuffer(object?.body) || object.body.length > CH1_LIMITS.objectBytes ||
         !Number.isSafeInteger(object.producedAt) || wallNow() - object.producedAt > CH1_LIMITS.freshnessMs ||
-        object.producedAt > wallNow() || !exactScope(object.source)) deny("STALE_OR_INVALID_MEDIA");
+        object.producedAt > wallNow() || !exactScope(object.source, scope)) deny("STALE_OR_INVALID_MEDIA");
       let body = object.body;
       if (pathname.endsWith("m3u8")) {
         body = validateCh1Playlist(body, lastSequence);

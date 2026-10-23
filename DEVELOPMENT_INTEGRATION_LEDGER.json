@@ -11856,8 +11856,10 @@
       "ch1ExternalReadiness20261023": {
         "sourceBranch": "codex/push44-ch1-external-readiness",
         "sourceCommit": "f0df13d968549e171f3d27ffaca6c17329e16c52",
-        "state": "VALIDATED_ON_BRANCH",
-        "preservation": "REMOTE_PUSH_AND_EXACT_HEAD_CI_PENDING",
+        "state": "INTEGRATED_DEVELOPMENT",
+        "integrationSha": "1303070304f1b227e1e020d36f56842c5adcc3bc",
+        "pullRequest": 245,
+        "preservation": "INTEGRATED_DEVELOPMENT_EXACT_HEAD_CI_9_OF_9_PASS",
         "scope": "Documentation only: authoritative NXDOMAIN evidence and exact non-live approval package; reuse existing comparison-free CH1 media foundations",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_EXTERNAL_APPROVAL_PACKAGE.json",
         "validation": "Both authoritative DNS servers NXDOMAIN; authenticated Cloudflare zone lists 14 records without candidate. Phone inventory read-only. JSON parsing and diff checks required; no completed foundation tests repeated",
@@ -11867,6 +11869,25 @@
         "liveMediaAuthorized": false,
         "liveMediaPerformed": false,
         "nextAction": "Separate NON-LIVE preparation approval only, as drafted in package. No real media test request or activation. Preserve PR235 Draft."
+      },
+      "syntheticMediaEdge20261023": {
+        "sourceBranch": "codex/push44-synthetic-edge-qualification",
+        "sourceCommit": "6089d60d0cd317bf8efd8d5c0f912e38a6e18320",
+        "pullRequest": 246,
+        "state": "BLOCKED",
+        "preservation": "PUSHED_REMOTE_PRESERVED_PENDING_INTEGRATION",
+        "scope": "Isolated synthetic-only fixed scope and Cloudflare transport adapters reuse existing gate/session/grant/cookie cores; default external activation OFF",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md",
+        "validation": "17 new isolated synthetic-edge cases,23 affected gateway regressions,TypeScript,canonical lint,migration-file safety and release contract PASS; disabled Wrangler dry-run compiled; exact-head CI required",
+        "migrationCount": 0,
+        "actualAppliedState": "No database change or new applied-state claim; prior257 canonical Development reconciliation retained",
+        "externalProof": "NOT_RUN: no deployed DNS/TLS edge, actual external limits or physical-iPhone synthetic playback",
+        "newResourcesCreated": 0,
+        "externalMediaBytes": 0,
+        "productionChanged": false,
+        "realHomeMediaAccess": false,
+        "localProviderRuntime": "PASS_LOCAL_WORKERD_ONLY: synthetic binding/playlist/segment200,revoked principal403,cleanup200; sanitized receipt in DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_LOCAL_RUNTIME_PROOF.json",
+        "nextAction": "Integrate validated disabled Development implementation only after final exact-head CI/review; external qualification remains blocked until completed limited OAuth and actual provider/security/cost/phone gates. Keep PR235 separate Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
