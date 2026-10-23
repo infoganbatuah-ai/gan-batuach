@@ -11906,7 +11906,7 @@
         "migrationCount": 0,
         "externalMediaBytes": 0,
         "productionChanged": false,
-        "nextAction": "Keep PR248 Draft. Cloudflare Free public Worker/R2 HLS is rejected by current video-delivery guidance. Select Cloudflare One Free private-network route conditionally (public-video restriction expressly exempt), but the account still shows Zero Trust onboarding; request separately approved Free setup, exact owner-iPhone enrollment, deny-by-default private route and trusted QA-origin TLS before adapting only the transport boundary. No external media route or phone test yet; PR235 stays Draft."
+        "nextAction": "Keep PR248 Draft. Cloudflare account shows Free $0/seat/month, 50 seats, but remains at onboarding; owner must personally complete Free-only terms/payment steps, stopping if any charge appears. Exact one-owner/one-device default-deny private-hostname policy is designed but not deployed. Private DNS/trusted iPhone TLS, actual-edge accounting and total cost remain blocked; no route, VPN or media activation. PR235 separate Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
