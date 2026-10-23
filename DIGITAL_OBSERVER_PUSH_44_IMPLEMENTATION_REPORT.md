@@ -2,7 +2,7 @@
 
 ## CH1 media activation preflight — 2026-10-23, BLOCKED
 
-Baseline `2a70695aefd9a8ac03647125eeb237483a0580a6` is still remote integration. No live media activation is authorized or performed. Exact read-only findings and gate ownership are in `DIGITAL_OBSERVER_PUSH_44_CH1_MEDIA_PREFLIGHT_20261023.json`; prior real-iPhone session-security and backup proof remain intact.
+Preflight started from remote integration baseline `2a70695aefd9a8ac03647125eeb237483a0580a6`; this continuation changes only documentation/evidence, not Product code or schema. No live media activation is authorized or performed. Exact read-only findings and gate ownership are in `DIGITAL_OBSERVER_PUSH_44_CH1_MEDIA_PREFLIGHT_20261023.json`; prior real-iPhone session-security and backup proof remain intact.
 
 CH1 source `6fddc732-13df-4268-9f32-3357262ea997`, Site/QA-enrollment tenant `cc1673b8-3eb0-4785-a12c-1fb88f425a41`, Gateway `62df97e2-3c0b-427f-9108-bde029bc10e7`, enrollment `1c450dca-38a8-4e49-853f-c613ca498c27`, stream `dvr_3a2d4e23f178cefa8f_1` were read from the verified isolated Home PUSH38T database, not Production or canonical Development. The current delivered enrollment was not revoked. Read-only Gateway health at 17:30:45/48 UTC showed CH1 input bytes advancing 75,513,472→75,715,696, chunks 39,572→39,700, current owner, output idle 211 ms, ten canonical/live relays and no candidate handoff. This establishes source/relay progression, NOT independently decoded moving video or cellular playback. Source input is HEVC/ISOBMFF with VideoToolbox reported; actual iPhone media decoding remains untested. No media bytes were requested by this preflight.
 

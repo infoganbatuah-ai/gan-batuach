@@ -11821,7 +11821,7 @@
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
         "state": "BLOCKED",
-        "preservation": "VALIDATED_EVIDENCE_ON_BRANCH_PENDING_REMOTE_CI",
+        "preservation": "PUSHED_REMOTE_EVIDENCE_ONLY",
         "scope": "Read-only CH1 source/relay, canonical Development authorization and provider/cost preflight; no live media activation",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_MEDIA_PREFLIGHT_20261023.json",
         "sourceId": "6fddc732-13df-4268-9f32-3357262ea997",
