@@ -11901,12 +11901,12 @@
         "preservation": "REMOTE_BRANCH_AND_DRAFT_PR; NOT_INTEGRATED",
         "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
         "scope": "Sanitized correction of false Colima Broken report and original isolated Development runtime verification; synthetic external edge remains disabled",
-        "evidence": "DIGITAL_OBSERVER_PUSH_44_ORIGINAL_DEVELOPMENT_RECOVERY_20261023.md; DIGITAL_OBSERVER_EXTERNAL_ACTIVATION_PROOF_REGISTER.json",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_ORIGINAL_DEVELOPMENT_RECOVERY_20261023.md; DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md; DIGITAL_OBSERVER_EXTERNAL_ACTIVATION_PROOF_REGISTER.json",
         "validation": "Original gbi Running; seven integration Supabase containers up; 25 Auth users including existing QA owner; 257 applied migrations=227+30 with zero drift; loopback Product DEVELOPMENT/INTEGRATION, LOCAL_SUPABASE, production=false; synthetic edge 17/17 PASS",
         "migrationCount": 0,
         "externalMediaBytes": 0,
         "productionChanged": false,
-        "nextAction": "Keep PR248 Draft: Cloudflare's current video-delivery guidance does not establish permission for HLS through this Free Workers/R2 path. Obtain explicit provider allowance for the exact bounded synthetic model or separately approve a permitted no-recurring-cost transport; then qualify a trusted one-shot operator and fresh phone/session binding. Do not activate media or paid Stream. PR235 stays Draft."
+        "nextAction": "Keep PR248 Draft. Cloudflare Free public Worker/R2 HLS is rejected by current video-delivery guidance. Select Cloudflare One Free private-network route conditionally (public-video restriction expressly exempt), but the account still shows Zero Trust onboarding; request separately approved Free setup, exact owner-iPhone enrollment, deny-by-default private route and trusted QA-origin TLS before adapting only the transport boundary. No external media route or phone test yet; PR235 stays Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
