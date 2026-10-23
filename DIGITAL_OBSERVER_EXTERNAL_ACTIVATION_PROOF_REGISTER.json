@@ -168,6 +168,9 @@
         "mediaBytesRequested": 0
       },
       "ch1FinalPreactivation20261023": {
+        "externalApprovalPackage": "DIGITAL_OBSERVER_PUSH_44_CH1_EXTERNAL_APPROVAL_PACKAGE.json",
+        "authoritativeDnsConclusion": "AA/NXDOMAIN at both Cloudflare authorities and candidate absent among14 dashboard records; not an application/cache-only failure",
+        "actualEdgeEnforcement": "NOT_DEPLOYED_NOT_VERIFIED; do not substitute existing isolated limit proof",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md#final-pre-activation-follow-up",
         "isolatedProof": "23/23 including composed delegation/cookie/TLS/passive-reader/synthetic-MPEGTS and encoded-byte accounting",
         "realSourceInspection": "Existing local CH1 TS: H264 High Level3 640x480 25fps yuv420p,25 distinct frames decoded; no media saved/transmitted",
