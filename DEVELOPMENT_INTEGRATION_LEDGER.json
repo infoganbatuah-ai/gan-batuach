@@ -11893,6 +11893,21 @@
         "localProviderRuntime": "PASS_LOCAL_WORKERD_ONLY: synthetic binding/playlist/segment200,revoked principal403,cleanup200; sanitized receipt in DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_LOCAL_RUNTIME_PROOF.json",
         "nextAction": "Integrate validated disabled Development implementation only after final exact-head CI/review; external qualification remains blocked until completed limited OAuth and actual provider/security/cost/phone gates. Keep PR235 separate Draft."
       },
+      "syntheticExternalRecovery20261023": {
+        "sourceBranch": "codex/push44-synthetic-external-preparation",
+        "sourceCommit": "30d7470851f15010ab3b188e9ff2517d13d5da36",
+        "pullRequest": 248,
+        "state": "PUSHED_REMOTE",
+        "preservation": "REMOTE_BRANCH_AND_DRAFT_PR; NOT_INTEGRATED",
+        "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
+        "scope": "Sanitized correction of false Colima Broken report and original isolated Development runtime verification; synthetic external edge remains disabled",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_ORIGINAL_DEVELOPMENT_RECOVERY_20261023.md; DIGITAL_OBSERVER_EXTERNAL_ACTIVATION_PROOF_REGISTER.json",
+        "validation": "Original gbi Running; seven integration Supabase containers up; 25 Auth users including existing QA owner; 257 applied migrations=227+30 with zero drift; loopback Product DEVELOPMENT/INTEGRATION, LOCAL_SUPABASE, production=false; synthetic edge 17/17 PASS",
+        "migrationCount": 0,
+        "externalMediaBytes": 0,
+        "productionChanged": false,
+        "nextAction": "Keep PR248 Draft while a trusted one-shot host operator, fresh owner Development session/phone binding and final Cloudflare terms/cost preflight are qualified; do not activate external media from test-harness proof. PR235 stays Draft."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
