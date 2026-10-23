@@ -158,6 +158,15 @@
         "mediaBytesRequested": 0,
         "approvalRequestReady": false
       },
+      "ch1PrivateGateway20261023": {
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md",
+        "internalProof": "22 isolated security/media/TLS cases; bounded one-shot gate, canonical Development session adapter, generation-pinned passive reader and protected operator journal",
+        "realProof": "NOT_RUN",
+        "activationApproved": false,
+        "missing": "Actual source-domain delegation approval, native session/cookie transport and grant renewal integration, protected operator custody, actual passive-output compatibility and permitted external trusted-TLS media path",
+        "productionChanged": false,
+        "mediaBytesRequested": 0
+      },
       "costImpact": "No new fixed supplier plan was activated for the bounded iPhone HTTPS QA; invoice-level incremental usage cost remains unverified. Store, device, media egress, support and provider costs remain unmeasured",
       "activationGate": "native builds, signed real-device supported matrix, authorized remote playback, push receipt/revocation, performance/privacy declarations, PUSH 45 approval and explicit store/Production authorization"
     },

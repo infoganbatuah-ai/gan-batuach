@@ -3,6 +3,8 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-23 CH1 private-media continuation — **DETERMINISTIC PASS**, 22 isolated security/media/TLS cases; no physical-device media test and no real camera bytes read. Exact CH1/site, lease, 300-second deadline, aggregate 100 MiB payload budget, session/delegation checks, passive generation reader, durable operator journal and pending live-adapter boundaries are recorded in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. **REAL DEVICE PASS / REMOTE PLAYBACK PASS: NOT RUN** for this media task. Existing iPhone login/session/network evidence below is preserved; no APNs or Android promotion.
+
 ## Evidence classes
 
 - `DETERMINISTIC PASS`: source/contract tests only.

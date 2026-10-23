@@ -125,6 +125,7 @@
     { "name": "push45-privacy-compliance", "args": ["scripts/qa/check-digital-observer-push45.mjs"] }
   ],
   "security": [
+    { "name": "push44-ch1-private-media", "args": ["--test", "scripts/qa/check-push44-ch1-private-media.mjs"] },
     { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
     { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
     { "name": "gateway-relay-handoff-remediation", "args": ["--test", "scripts/qa/check-push38-relay-handoff-remediation.mjs"] },
