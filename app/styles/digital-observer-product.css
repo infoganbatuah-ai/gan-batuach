@@ -1268,6 +1268,23 @@
 .do-notice div { display: grid; gap: 3px; }
 .do-notice small { line-height: 1.55; }
 
+.do-mobile-runtime-banner {
+  position: fixed;
+  z-index: 10000;
+  inset: env(safe-area-inset-top, 0) 12px auto;
+  margin-inline: auto;
+  max-width: 720px;
+  border: 1px solid #e7c675;
+  border-radius: 12px;
+  background: #fff8df;
+  color: #6a4700;
+  box-shadow: 0 10px 28px rgb(18 40 70 / 18%);
+  padding: 10px 14px;
+  text-align: center;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
 .do-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

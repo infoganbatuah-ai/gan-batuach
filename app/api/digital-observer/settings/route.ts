@@ -90,9 +90,9 @@ export async function POST(request: Request) {
     if (scheduleError) return fail("לא ניתן לשמור את לוח הניטור.", 400);
 
     const channels = [
-      ["in_app", payload.in_app, "mock"],
-      ["email", payload.email, "mock"],
-      ["push", payload.push, "mock"],
+      ["in_app", payload.in_app, "sandbox"],
+      ["email", payload.email, "disabled"],
+      ["push", payload.push, "disabled"],
       ["sms", payload.sms, "disabled"],
       ["whatsapp", payload.whatsapp, "disabled"]
     ] as const;
@@ -112,7 +112,14 @@ export async function POST(request: Request) {
         enabled,
         package_allowed: channel === "in_app" || channel === "email" || channel === "push",
         provider_mode: providerMode,
-        metadata: { production_send_disabled: true },
+        timezone: "Asia/Jerusalem",
+        locale: "he-IL",
+        quiet_hours_start: payload.quiet_start ?? null,
+        quiet_hours_end: payload.quiet_end ?? null,
+        consent_or_legal_basis: channel === "in_app" || payload.monitoring_consent,
+        channel_eligible: enabled,
+        emergency_override_authorized: false,
+        metadata: { production_send_disabled: true, preference_only: channel !== "in_app" },
         updated_at: now
       };
       if (existing.data?.id) await supabase.from("observer_alert_channel_settings" as any).update(row).eq("id", existing.data.id);

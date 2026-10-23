@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ObserverMobileRuntime } from "@/components/digital-observer/observer-mobile-runtime";
 
 export const metadata: Metadata = {
   title: { absolute: "תצפיתן דיגיטלי" },
@@ -22,5 +23,8 @@ export const viewport: Viewport = {
 };
 
 export default function DigitalObserverLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <>
+    <ObserverMobileRuntime />
+    {children}
+  </>;
 }

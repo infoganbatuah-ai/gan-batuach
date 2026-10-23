@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Digital Observer QA</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #f6fbff; background: #081725; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 20% 10%,#1d5269,#081725 55%); }
+    main { max-width: 560px; margin: auto; padding: max(38px, env(safe-area-inset-top)) 22px max(30px, env(safe-area-inset-bottom)); }
+    .eyebrow { letter-spacing: .14em; color: #7fe0d4; font-size: 12px; font-weight: 700; }
+    h1 { font-size: 34px; margin: 14px 0; }
+    p { color: #c9d8e0; line-height: 1.65; }
+    nav { display: flex; gap: 8px; margin: 28px 0; }
+    button { flex: 1; border: 1px solid #66838f; border-radius: 12px; background: #153145; color: white; padding: 12px 6px; font-size: 15px; }
+    button[aria-selected="true"] { background: #236c70; border-color: #8fe4d9; }
+    section { border: 1px solid #436370; border-radius: 18px; padding: 16px; background: #102938; }
+    .status { color: #f1c785; font-weight: 700; }
+    small { color: #9ab5c0; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">DIGITAL OBSERVER · DEVELOPMENT QA</div>
+    <h1>תצפיתן דיגיטלי</h1>
+    <p>האפליקציה הותקנה ונפתחה לצורך בדיקת iPhone מקומית. זוהי מעטפת QA מבודדת; חיבור מאובטח לסביבת הפיתוח טרם הוגדר.</p>
+    <nav aria-label="ניווט בדיקה">
+      <button type="button" aria-selected="true" data-page="status">מצב</button>
+      <button type="button" aria-selected="false" data-page="access">גישה</button>
+      <button type="button" aria-selected="false" data-page="notifications">התראות</button>
+    </nav>
+    <section id="status"><strong>מצב האפליקציה</strong><p class="status">מקומי בלבד · ממתין לחיבור Development מאובטח</p><p>כניסה לחשבון, אתרים, מצלמות, אירועים וניגון מרחוק אינם זמינים במעטפת זו.</p></section>
+    <section id="access" hidden><strong>גישה מורשית</strong><p>לא הוגדר יעד HTTPS מאושר. האפליקציה אינה פונה ל־Production ואינה משתמשת ב־localhost של הטלפון.</p></section>
+    <section id="notifications" hidden><strong>התראות</strong><p>רישום Push ו־APNs כבויים בבניית Personal Team QA. התראות בתוך המוצר נשמרות בקוד המוצר הרגיל, אך אינן נטענות ללא חיבור מאובטח.</p></section>
+    <p><small>Personal Team QA · ללא נתוני לקוחות · ללא שליחת Push</small></p>
+  </main>
+  <script>
+    for (const button of document.querySelectorAll('nav button')) button.addEventListener('click', () => {
+      for (const item of document.querySelectorAll('nav button')) item.setAttribute('aria-selected', String(item === button));
+      for (const section of document.querySelectorAll('main section')) section.hidden = section.id !== button.dataset.page;
+    });
+  </script>
+</body>
+</html>

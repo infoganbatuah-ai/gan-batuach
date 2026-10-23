@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
@@ -17,7 +17,13 @@ try {
   }
   const uiOnly = process.argv.includes('--ui-only');
   const localFile = resolve(root,'config/integration.local.env');
-  const local = !uiOnly && existsSync(localFile) ? parseEnv(readFileSync(localFile,'utf8')) : {};
+  const databaseConfig = JSON.parse(readFileSync(resolve(root,'development/database/environment.json'),'utf8'));
+  const privateFile = resolve(databaseConfig.runtimeRoot,'push42-api.private.env');
+  if (!uiOnly && existsSync(privateFile) && (statSync(privateFile).mode & 0o077)) throw new Error('PUSH 42 private Development environment must be owner-only (0600).');
+  const local = !uiOnly ? {
+    ...(existsSync(localFile) ? parseEnv(readFileSync(localFile,'utf8')) : {}),
+    ...(existsSync(privateFile) ? parseEnv(readFileSync(privateFile,'utf8')) : {})
+  } : {};
   const sha = git('rev-parse','HEAD');
   const env = integrationEnvironment(local,{uiOnly,sha,timestamp:new Date().toISOString(),system:process.env});
   if (!uiOnly) {

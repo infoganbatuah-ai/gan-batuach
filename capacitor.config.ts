@@ -12,6 +12,9 @@ const config = {
     androidScheme: "https"
   },
   plugins: {
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
+    },
     SplashScreen: {
       launchShowDuration: 1200,
       backgroundColor: "#123b8f",

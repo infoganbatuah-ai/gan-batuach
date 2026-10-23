@@ -1,10 +1,132 @@
 # Canonical Development Integration Ledger
 
+2026-10-23 PUSH44 CH1 final pre-activation, branch `codex/push44-ch1-final-preactivation`, implementation `3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b`: reused PR243 foundation (integrated `4c0d70555cf96c4f5e5d815df7720e5f29c9ea13`, exact-head9/9). Added one composed synthetic session/delegation/cookie/TLS/media E2E,23/23 cases, and actual encoded-byte gzip playlist accounting. Real CH1 local TS inspected/decoded25 distinct frames; no media retained/transmitted. Home QA owner mapping absent and media DNS NXDOMAIN remain specific blockers; owner attestation/delegation and permitted/bounded HTTPS path required before live request. No migrations, Production/Home/PR235 changes. Evidence: final follow-up in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`.
+
+2026-10-23 PUSH 44 CH1 private-media continuation: branch `codex/push44-ch1-private-gateway-20261023`, implementation `cf0952609b2b2c1c1a1195bb99e6352b9c7df403`; isolated existing-grant-core TLS gate, exact view-only delegation, canonical Development session adapter, passive generation reader and protected operator journal. 22 synthetic security/media/TLS cases; no real camera bytes or live authorization. Actual isolated Development schema/history: 257 expected, 227 baseline-covered + 30 applied, zero drift. No migration. See `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. Real delegation/native transport/external TLS are activation blockers, not waived by CI. PR235 Draft, main/Production/Home services unchanged.
+
+2026-10-23 PUSH 44 session-security continuation: source
+`3ffa3b4a79265644293487929581722ddd44aff5`, branch
+`codex/push44-session-security-20261023`. Reproduced local Auth not_after expiry
+rejecting refresh but not an existing access JWT. Added a caller-only boolean
+lookup of the existing Auth session to both Observer page/API authorization;
+no token/row disclosure or parallel identity system. Native revalidation is
+bounded to 10 seconds and covers stale protected UI until validated. Eight
+rollback-only database checks, TypeScript, canonical lint and focused mobile/
+QA ingress pass. Additive migration 20261023161928 is NOT APPLIED pending
+remote integration; exact-head CI and actual iPhone expiry/revocation remain
+open. No Production, main, camera service, media or PUSH46 activation.
+
+PR #234 closure, 2026-10-22: source head
+`60ad671783a88bd790f7323db2c946134f957f14` passed all nine reported checks,
+including six canonical gates (run 39761020386), Management and Snyk. Complete
+diff/review-thread review found no pending review or unrelated schema change.
+Ancestry-preserving merge: `69eab585c806dfb1342efb56920ddc7809c043d1`.
+The exact merged canonical Product ran at `http://127.0.0.1:3000`,
+DEVELOPMENT / INTEGRATION, LOCAL_SUPABASE, production=false. Post-merge
+authenticated PUSH 39–45 regression: 24+6+7+10+15+5+4 = 71/71 PASS,
+including cross-Site/organization denial and sensitive activation fail-closed.
+Actual database schema/history: 256 expected, 227 baseline-covered plus 29
+post-baseline applied, no drift or new migration. Native/mobile/ingress
+contracts pass; former temporary QA hostname returns HTTP 530 and QA ports
+remain closed. Source commits and previous integration ancestry preserved.
+PR #235 remains unchanged Draft at `1c82559d97d407c90c6a404a961fd21323ba15ae`.
+Main remains `2da8f75abce610a9a979eecd752d7a6a1011641e`; no Production or
+camera-service/telemetry change. PUSH 44 PARTIAL, PUSH 46 NOT STARTED.
+
+2026-10-22 PR #234 authenticated physical-iPhone continuation: exact journey source
+`0efb200bf9e934111e0cad485c1a4d0c8fccf08a`; owner confirmed Development-only
+dashboard, cellular Product navigation and logout requiring fresh login on
+iPhone 13 Pro / iOS 27.0.1. Prior source/evidence head `1aa4b4e7` passed six
+canonical CI gates. Final documentation head requires its own CI before merge.
+Temporary ingress shut down at 03:01:03 UTC, dedicated tunnel deleted, offline
+QA reinstalled; canonical Push builds preserved. No migration or Production
+change. Strict physical-device expiry/revocation, media, APNs, Android and
+release/store qualification remain open; PUSH 44 remains PARTIAL / NOT DONE.
+
+2026-10-20 PUSH 44 Personal Team QA continuation: PR #232 exact head
+`afc3c71b3021015711b426c5d8db0ae988986148` passed all nine checks and
+merged with source ancestry into `integration/development` at
+`b6c4a9c923b5bea8dc3edb103e0427235edc45b3`. No migration was added.
+The scoped source work was:
+source code commit `ef5f6930` adds a separate signed no-APNs QA configuration
+without changing canonical Debug/Release Push. The owner's iPhone 13 Pro on
+iOS 27.0.1 installed and launched `Digital Observer QA`; the owner confirmed
+the bundled offline-safe Hebrew QA screen. This is real-device installation/UI
+proof only; the owner also confirmed that the access and notifications QA tabs
+switch content. Authenticated Product, cellular playback and real Push remain
+blocked by the absent approved HTTPS app/media path and Personal Team APNs
+capability. PUSH 44 stays PARTIAL / NOT DONE; no migration, main or Production
+change. Earlier signing failure below is preserved as historical evidence.
+
+2026-10-20 PUSH 44 signing follow-up: branch
+`codex/push44-ios-personal-team-install` preserves root-selected team
+27G7ZP4U3Q for Debug/Release. Apple Development identity verified, but the
+Personal Team cannot provision Push Notifications. Signed build failed;
+installation remains blocked. APNs source contracts remain intact. See the
+existing iOS continuation report and JSON ledger signingFollowUp receipt.
+
 Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.json`. Migration variants and independent development/Production states: `DEVELOPMENT_MIGRATION_LEDGER.json`. Latest branch/file/stash inventory: `DEVELOPMENT_FINAL_STATE_AUDIT_2026-09-19.json`, `DEVELOPMENT_LOCAL_RECONCILIATION_2026-09-19.json`, `DEVELOPMENT_BRANCH_RECONCILIATION_2026-09-19.json`. Initial audit is retained as historical evidence.
 
 **Main is release-only. No owner release authorization has been issued for this workflow migration. No Production deployment or database write is authorized.** Earlier dated release ledgers and PR descriptions mentioning midnight are historical records, superseded by AGENTS.md.
 
 ## Current transition
+
+PUSH 38 final development closure (2026-10-18): source commit `f4fc7ff2` is
+remotely preserved and ancestry-integrated as `dd4df868` on
+`origin/integration/development`. The owner explicitly accepted a shortened
+evidence path; this is not a continuous 24-hour PASS claim. The `0.2.100` and
+`0.2.101` V8 results remain NOT_DONE, and the three-hour `0.2.102` aggregate
+also remains strictly NOT_DONE because Tapo passed 176/180 samples and AI
+passed 65/66. The repaired Gateway path passed a fully green 15-minute Canary,
+then all 10 DVR channels at all 180 recovery checkpoints (1,800/1,800), all 60
+DVR playback samples, zero recorder auth failures and zero Gateway restarts.
+Exact-candidate CI passed six of six required gates plus the canonical quality
+gate. Integration conflict QA passed the combined braces-depth guards, the HA
+suite and migration health for 247 files. A recoverable isolated DEVELOPMENT
+pre-apply backup is protected outside Git with SHA-256
+`84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4`.
+The three reviewed PUSH 38 migrations were applied in order only to canonical
+isolated DEVELOPMENT from remote commit `d4b91ff1`; migration receipts, the
+`ACTION_REQUIRED` and `HOME_QA` constraints, the private authorization-audit
+table RLS/grants/FKs/checks/index and focused application compatibility all
+passed. The final DEVELOPMENT schema fingerprint is
+`7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080`.
+The protected application-closure evidence SHA-256 is
+`23778d9c04cff7fcbf631446ba346364f60d548cb55653b558581954bc677371`.
+PUSH 38 is `LOCAL_VERIFIED` and complete for Development under the explicit
+owner exception. Main and Production remain unchanged; a future release still
+requires a separate explicit owner instruction.
+
+PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`,
+`514515e2` and `e51b74f7` are remotely preserved on
+`origin/codex/push-38t-qualification`. The bounded
+qualification path verifies the local Product playback grant, acquires exact
+authorized Edge HLS through the protected local interface, stores only a
+short-lived 11.97 MB snapshot under an exact private R2 prefix, and returns
+presigned playlist/segment capabilities without proxying media through the
+control plane. Focused TypeScript, lint, R2, ingress/default-deny and playback
+boundary checks pass. A desktop-browser run was deliberately not accepted as
+phone evidence; server-side client classification now rejects a desktop PASS.
+The follow-up releases each native phone video decoder before opening the next
+source after the real iPhone proved two DVR streams and then exhausted its
+concurrent decoder capacity on the third.
+The latest correction captures one complete, internally consistent rolling-HLS
+snapshot before any upload and retries a bounded three times when playlist
+segments rotate during acquisition. The first 52-object proof window was
+deleted in full after expiry, and the partial 29-object second attempt rolled
+back in full before publication.
+The third window passed on the real owner iPhone: 10/10 DVR authorization,
+moving CH1/CH3/CH11 and Tapo video, HTTPS-only media, no localhost, and no Edge
+software on the client. All 52 temporary objects were then deleted immediately,
+the bounded ingress closed, and the original Cloudflare service was restored.
+Exact-head CI run `37837717396` passed all six gates plus the canonical quality
+gate for `e51b74f7`. The protected owner-phone result checksum is
+`79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f`.
+V8
+continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
+at `2026-10-09T10:49:29.554Z`. This unit is
+`PRESERVED_PENDING_INTEGRATION`; PUSH 38 is not done, main/Production are
+unchanged, and PUSH 39 has not started.
 
 PUSH 38 relay-probation checkpoint (2026-10-02): the failed live 0.2.56
 HLS-window canary completed 15 minutes and recorded a strict source-availability
@@ -911,3 +1033,719 @@ cannot record the transient loading state. This status is not owner approval.
 Production, `main`, customer data, migrations, provider state, physical camera
 actions and Digital Observer core remain untouched. The only remaining action is
 external owner review; RELEASE-GAP-01 has not started.
+
+PUSH 38 Gateway 0.2.95 V8 start receipt (2026-10-08): the scoped
+pre-release-probe settlement remediation is remotely preserved at
+`5907b6ff0708b3c1084ad91b20f8feac8d253ae7`; its exact qualification candidate
+is `be93e5f6578e5852a3de18d0c746aaec8fcfc92b` on
+`origin/codex/push-38t-qualification`. Exact-head GitHub Actions run
+`37840811624` passed all six CI gates plus the canonical quality gate, and AWS
+protected-signing run `37840867628` passed from signing-workflow commit
+`6aa0949179038785340ed58c3d1b6518955e08e9`. The exact-device private-R2
+artifact was round-trip verified and activated as Gateway
+`0.2.95-p38-health`; Connector remains `0.2.40-p38-health`. Broad eligibility
+is disabled, both managed services are healthy/current/known-good, and no new
+fixed provider was introduced.
+
+The valid canary `push38-gateway-0.2.95-canary-20261008T212408Z` passed 15
+minutes and 15/15 checkpoints; the valid pre-soak
+`push38-gateway-0.2.95-pre-soak-20261008T214031Z` passed 60 minutes and 60/60
+checkpoints. Both recorded DVR 10/10, Tapo 1/1, zero Gateway/Connector
+unavailability, zero stale-input failures, playback and AI PASS, zero data
+loss, duplicate effects, cross-tenant leakage or manual intervention. The real
+owner-iPhone remote proof remains PASS at the protected
+`push38-r2-phone-proof-20261008T201358Z` evidence location.
+
+The frozen 35-row V8 matrix source has SHA-256
+`4c710bc4c3ef8b369b205a6080b7bbc0ade7353953283061d137e1f6502e1ebb`; the
+candidate-binding freeze receipt has SHA-256
+`9db1f47da323fda0d68df8677b1758edc85327c62dba60e2dfabf85a57e15c70`.
+Fresh V8 run `push38-gateway-0.2.95-v8-20261008T224318Z` started at
+`2026-10-08T22:43:44.325Z` and cannot complete validly before
+`2026-10-09T22:43:44.325Z`. The prior 0.2.94 V8 failure remains immutable and
+its duration is not reused. This unit is `PRESERVED_PENDING_INTEGRATION` and
+`BLOCKED_UNTIL_V8_PASS`; PUSH 38 is not done. Main and Production remain
+unchanged, and PUSH 39 has not started.
+
+Owner-authorized consolidated Production release receipt (2026-10-11): the
+owner explicitly authorized the frozen non-PUSH-38 candidate, its required
+Production configuration, one main merge/deployment sequence and the 17
+reviewed Supabase migrations. PR #182 merged the consolidated candidate as
+`3848f7fcc8a0c9be6364bedb9add1e9d5cd35b89`; its first Vercel build exposed
+the missing dedicated hash-pepper prerequisite and did not become the final
+current deployment. The narrowly scoped compatibility fix in PR #183 passed
+all required checks at
+`5846c9d726eb456c8c25dd75581df00612542491` and merged to main as
+`2da8f75abce610a9a979eecd752d7a6a1011641e`. Vercel deployment
+`GneHPHF1NyWZYrrepnL7rw4JEFrr` is `Ready`, `Production` and `Current` for
+`ganbatuach.com`; `/`, `/login`, `/forgot-password`,
+`/digital-observer/login` and `/api/health` returned HTTP 200, and health
+reported both application and Supabase `ok`.
+
+Supabase Production applied the 17 reviewed migrations in two dependency-
+ordered phases and linked remote history was verified through
+`20260928010000`. Post-apply checks preserved one real Auth/profile identity,
+two active device slots, one membership and 17 cameras. No user was deleted,
+no Auth password was changed and no email was sent. Migration
+`20260920170000` removed only the legacy plaintext `temporary_password`
+column; 23 non-secret credential-history rows remained. The latest observed
+Vercel cycle showed `$0.30 / $20.00` included credit used, with the Pro base
+subscription unchanged. No paid add-on or plan upgrade was activated. PUSH 38
+and its draft/qualification branches were expressly excluded and untouched.
+The one-time Production authorization is consumed; future main merges,
+Production deployments or Production migrations again require a new explicit
+owner instruction.
+
+Digital Observer post-PUSH-38 roadmap reconciliation receipt (2026-10-18):
+the documentation-only audit is remotely preserved at
+`1887467f0fdb0d9b3c90395f59a31df88e1b7703` on
+`origin/codex/digital-observer-post-push38-roadmap-audit`. It preserves all
+190 original North-Star capability identities and adds seven non-duplicate
+canonical requirements for a reconciled total of 197, with exactly one
+implementation owner and one proof owner per capability. All 52 canonical
+PUSHes are accounted for; no additional PUSH is currently required, and PUSH
+39 was not started. The audit preserves PUSH 38 as Development-complete under
+the owner-approved acceptance exception while retaining both failed V8
+histories, the shortened recovery exceptions and every outstanding proof
+obligation. Validation passed the North-Star ledger guard, the 197-row
+ownership/52-PUSH reconciliation guard, typecheck, zero-regression lint,
+migration health for 247 files and release-contract checks. The PR's first
+security run exposed a pre-existing false positive where the scanner treated
+`sk-` inside canonical `disk-pressure` evidence as a key prefix; its token
+boundary was corrected without excluding the evidence or weakening standalone
+key-shape detection. Exact-head commit
+`9fa2422478ecfacb4674cc98bb71d81209d09066` then passed all nine PR checks:
+the six deterministic Digital Observer gates, canonical quality gate,
+Management tenant-context workflow and Snyk. No application source, migration,
+provider, paid capacity, `main` or Production state changed. This unit is
+`PRESERVED_PENDING_INTEGRATION_CHECKS_PASS`; scoped PR #184 targets
+`integration/development` and remains open for review. It must not be merged to
+`main` or treated as Production authorization.
+
+Post-PUSH-38 canonical closure receipt (2026-10-18): PR #184 was revalidated
+at final source head `c00034507fdaa3ea7760f3bca6b968fb818f5d95`. All nine exact-head
+checks passed: six Digital Observer CI gates, canonical quality,
+Management tenant-context and Snyk. It merged by preserved ancestry into
+`integration/development` as `1bcd11b0a5f632f13805d63bc6e027080081db83`;
+both the expected audit commit `72f3434968fa135a0fb90a29335b41cf8955f089`
+and final source head are ancestors. Post-merge reconciliation verified 197
+unique capabilities with one implementation and proof owner each, all 52
+canonical PUSHes and 17 retained PUSH 38 proof obligations. PUSH 38 remains
+`DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS`; PUSH 39 remains `NOT
+STARTED`.
+
+The canonical isolated Development database passed 247/247 drift at the merge
+SHA (227 baseline-included plus 20 post-baseline, zero missing). PR #184
+contains no migration and no Production migration was applied. The local
+Product ran at `http://127.0.0.1:3000` with runtime SHA `1bcd11b0...`, local
+Supabase, 18/18 scoped full-stack probes, Digital Observer and Management UIs,
+Site isolation and unauthenticated boundaries. A non-mutating browser login for
+the synthetic Development owner passed. The legacy dashboard role harness has
+test drift: it expects removed selector `#dashboard-child`; current-contract
+browser verification found four authorized child cards. This is not hidden as
+a Product failure or silently rewritten in this closure.
+
+`DIGITAL_OBSERVER_PUSH_39_READINESS_HANDOFF.md` records dependencies,
+foundations, 27 implementation-owned and 24 proof-owned North-Star rows,
+security, migration and QA gates. It is a handoff only and does not start PUSH
+39. Existing branches, open PRs, worktrees and the preserved stash remain
+untouched. Remote `main` remains `2da8f75abce610a9a979eecd752d7a6a1011641e`;
+no Production deployment, provider activation or Production database change
+was authorized or performed.
+
+PUSH 39 branch-validation receipt (2026-10-18): implementation commit
+`48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0` on
+`codex/push-39-external-actions` implements the default-disabled provider
+abstraction, durable delivery/idempotency/acknowledgement engine, bounded
+escalation, human-confirmed action intents, webhook/callback security and
+existing-Product UI. Branch-local TypeScript, canonical zero-regression lint,
+Production build without deployment, domain 41/41, security/isolation 42/42,
+migration health 248, release-contract and focused PUSH 39 QA all pass. The
+additive migration
+`20261018010000_digital_observer_push39_orchestration.sql` is validated only
+for the canonical isolated Development database after remote integration; it
+has not been applied yet. Real provider sandbox receipts for Push, email, SMS,
+WhatsApp, webhook and phone remain unavailable, all provider modes remain
+disabled, and no external recipient or physical action was contacted. The
+unit is remotely preserved through ledger commit
+`b4e33cb6f3119def8e78816ac9a65f4b0273aa31` and is `PUSHED_REMOTE`, pending
+the scoped PR, exact-head CI, Development integration/migration and cumulative
+local full-stack proof.
+PUSH 38 exceptions remain unchanged; main and Production remain unchanged.
+
+PUSH 39 Development-migration receipt (2026-10-18): PR #186 exact head
+`5fe182eacf1bc73450ab8837c86b689376070ef0` passed 9/9 and merged with
+preserved ancestry as `6236718c1cd05b084d3827526f6fc43980a2cb7b`. The
+first isolated Development apply attempt failed closed before mutation because
+the migration row was misplaced under historical observations. PR #187 moved
+only that exact row into the canonical migration array, passed 9/9 at
+`33a76dc0fc8dd42536ac6d2148308a10792389c8` and merged as
+`369968977a3c5fa4c874e7db997501ec7c3af7bb`. A verified pre-apply custom dump
+has SHA-256
+`7087464dd8eb376f1640b121c8d5daf413567d7aff86af885e04a2f46cb0d362`.
+The reviewed migration then applied only to canonical isolated Development:
+248/248 drift PASS, 21 post-baseline migrations, schema fingerprint
+`e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd`,
+Production access false. Cumulative local full-stack proof remains pending;
+real provider/action proof remains unavailable and is not claimed.
+
+PUSH 39 local full-stack blocker receipt (2026-10-18): the cumulative Product
+started correctly from integration `e79d5a4c7d5499b927655dbb5301b908711b9371`,
+but the first authenticated delivery-history probe returned HTTP 503. A direct
+authenticated local Supabase read isolated SQLSTATE 42501: historical
+column-level SELECT privileges did not include the new bounded PUSH 39 status
+columns. Corrective migration `20261018204500_digital_observer_push39_delivery_read_grant.sql`
+grants only those read fields, preserves Site-scoped RLS, exposes no credential,
+destination or policy snapshots, and grants no writes. Migration health passes
+249 ordered files and a transaction-scoped privilege test passed before
+rollback. The correction remains pending exact-head CI, Development integration
+and isolated Development application; no provider, main or Production access
+occurred. PR #189 then passed all 9 required checks at exact head
+`78ca3eabac28af18c57b65e058145cdb7814a932` and merged with preserved ancestry
+as `f1ed86d15707e1ec551f1cfb04621bdb5250876f`. The migration is approved only
+for the canonical isolated Development database; application and full-stack
+retry remain pending.
+
+PUSH 39 Development-completion receipt (2026-10-18): PR #190 passed all 9
+required checks at exact head
+`1afd8912295f76a510627c66f0a36fc8918ef8b7` and merged as
+`5e62fe4bf56047eaddc00cd8f7f6099b6e8a45e6`, preserving the reviewed
+Development-only approval. A verified pre-apply custom dump has SHA-256
+`d5e866bc409bfdcebe23a94480576efa126f411950a66d9de53cec24462dadf4`.
+Corrective migration `20261018204500` then applied only to canonical isolated
+Development at `2026-10-18T20:32:36.153866+00:00`, producing schema fingerprint
+`9c8b5f3613c7ed13abde011c3ec768d1b433a6d3e639f8097d124919bcd392dd`.
+PR #191 recorded that application after 9/9 exact-head checks at
+`fd2f21834ceafc4e333881ca33f84a0a6c89e4a5` and merged as
+`d31c2651f89e6135d36be91fc2138a712e2b3061`. Development drift is 249/249
+PASS. The exact integration runtime then passed 18/18 canonical Product probes
+and 24/24 PUSH 39 notification/action/escalation probes. Eight orchestration
+tables have RLS; Production provider count, external QA delivery attempts and
+paid-provider activation are all zero; autonomous service-role action execution
+remains denied. PUSH 39 is `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING` and
+canonically `NOT DONE`: Push, email, SMS, WhatsApp, signed-webhook and phone
+sandbox receipts, real-device actions and approved emergency/sensitive workflow
+proof remain open. PUSH 38 exceptions are unchanged. PUSH 40 is readiness-only
+and has not started. Main and Production remain unchanged.
+
+PUSH 40 Development-integration and migration-approval receipt (2026-10-19):
+PR #193 exact head `0230e526c9965ae7ea484378ba0624ee4783b7c2`
+passed all 9 required checks and merged with preserved ancestry as
+`8dee58999c322041691e19d61a7b22a90dd8fb68`. The provider-neutral commercial
+billing domain, subscriptions, server-side entitlements, checkout, invoice and
+refund lifecycle, partner allocation, webhook ordering/idempotency, financial
+reconciliation, existing-Product UI and activation register are integrated.
+All payment-provider modes remain disabled; no provider, real payment, paid
+resource, main or Production system was contacted. The additive migration
+`20261019010000_digital_observer_push40_commercial_billing.sql` passed migration
+health across 250 ordered files and is approved only for the canonical isolated
+Development database. A verified pre-apply custom-format backup is protected at
+`/private/tmp/push40-development-pre-migration.dump`, SHA-256
+`4a80f2f79a319e745f65f0e9afc990e243e6612572b07d46533248213e1978b7`, with a
+valid `pg_restore` archive listing. Development application and exact-SHA
+cumulative local full-stack proof remain pending. PUSH 38 exceptions and PUSH
+39 external proof obligations remain unchanged.
+
+PUSH 40 isolated Development migration receipt (2026-10-19): PR #194 exact
+head `e6510447c272d208b0b4d4c18cd27b59fdd5410e` passed all 9 required checks
+and merged as `3108ab242ddd0660dd85674f778eb6c6258bfe13`. Migration
+`20261019010000_digital_observer_push40_commercial_billing.sql` applied only to
+the canonical isolated Development database at
+`2026-10-18T21:50:20.392211+00:00`, producing schema fingerprint
+`497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed`.
+Development drift is 250/250 PASS: 227 baseline, 23 post-baseline and zero
+missing. The bounded schema verifier confirms RLS on all 10 commercial tables,
+excludes the billing-only role from operational access, denies anonymous
+payment reads and authenticated payment mutations, and observes zero Production
+checkout/payment rows. Its initial run exposed only verifier assumptions (a
+printed `set_config` result and a non-empty-subscription assertion while the
+isolated database truthfully has zero subscriptions); the corrected verifier
+does not fabricate data and now passes. Exact-SHA cumulative Product startup
+remains gated until this application receipt and verifier correction are merged.
+No provider, real payment, main or Production access occurred.
+
+PUSH 40 cumulative Development completion receipt (2026-10-19): PR #195 exact
+head `52541707d22a8a7fb890692d2147be37b764944f` passed all 9 required checks
+and merged as `869e1d5c91944d1ee5f76069f57a8f3310e98054`. The canonical cumulative
+Product started from that exact integration SHA at `http://127.0.0.1:3000`
+with `DEVELOPMENT / INTEGRATION`, `LOCAL_SUPABASE` and Production false. The
+existing Product suite passed 18/18. PUSH 40 passed 6/6 bounded probes: billing
+UI and authorized Site 200, cross-Site 403, anonymous 401, unapproved-price
+checkout 409 and provider callback 503 while disabled. The isolated fixture
+truthfully has no subscription or entitlement; the verifier proves that state
+without creating a trial, charge, subscription or payment. Schema/RLS proof and
+250/250 migration drift remain PASS. PUSH 40 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`: approved provider sandbox,
+real payment/refund/tax-invoice, commercial customer, cost, legal, OEM,
+Zero-Install and Production activation proof remain open in the canonical
+activation register. PUSH 38 exceptions and PUSH 39 external proof remain
+unchanged. PUSH 41 is readiness-only and has not started. Main and Production
+remain unchanged.
+
+PUSH 40 exact-integration verification addendum (2026-10-19): PR #196 exact
+head `4414d4d47bd9e1e2713b392407dff652c716baf2` passed all 9 required checks
+and merged as `d7a1960796e2b02c7695b758a884a99111bcc8c7`. The cumulative Product was
+restarted from that exact integration SHA and passed the existing 18/18 Product
+suite, PUSH 40 6/6 bounded full-stack probes and 250/250 Development migration
+drift with `LOCAL_SUPABASE` and Production false. The verifier accepts the
+truthful zero-subscription fixture only when entitlements are also empty; it
+does not create a trial, subscription, payment or entitlement. The Master
+Roadmap status is reconciled to `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING
+— NOT DONE`; the open provider, legal, commercial, cost and real-world proof
+gates are unchanged.
+
+PUSH 40 supplier-reconciliation receipt (2026-10-19): exact source head
+`4c8de7725a4bca129e392d30278ec1cf0f606114` is remotely preserved on
+`codex/push40-supplier-reconciliation`; scoped PR #198 passed all 9 required
+checks and merged with preserved ancestry to `integration/development` as
+`3e9a6301ac443cef36120b25c527c138851282d8`. The read-only review confirms paid/operational
+Vercel, Supabase, Cloudflare DNS/R2 and AWS signing dependencies and real
+Sentry monitoring. Resend is connected but lacks a controlled provider
+receipt; Firebase and Twilio accounts exist but are not operational channel
+proof; Morning / Green Invoice exists but is not connected to the Digital
+Observer payment/invoice lifecycle. The existing Morning account must be
+evaluated before adding payment or invoice suppliers, and the existing Twilio
+account before adding a WhatsApp supplier. No provider was purchased,
+upgraded, activated or contacted; no message, payment, invoice, migration,
+main or Production mutation occurred. The sole restricted supplier ledger was
+updated in place and remains outside Git at SHA-256
+`75b65c245ee1e6d80bb078c7baa319fa522618ba92171247edd7629459e439f4`.
+Known bounded base is $54.8717–$55.9167/month before tax/FX (approximately
+₪169.50–₪172.73 at the reconciliation rate), while exact all-in
+exposure and both canonical user ratios remain unmeasurable. PUSH 39 and PUSH
+40 remain canonically NOT DONE and all prior proof obligations remain open.
+
+PUSH 41 branch-preservation receipt (2026-10-19): source implementation commit
+`be485dab83546c1acd550d9bd9c89b555d1d1e6b` is remotely preserved on
+`codex/push-41-enterprise-identity`, built
+from integration baseline `de292b65d52c885b378eb7cd4daec9afac6be305` after
+verifying the required PUSH 39 and PUSH 40 ancestry. Canonical organization and
+Site membership, RBAC, delegated administration, expiring invitations,
+DISABLED/SANDBOX OIDC/SAML/SCIM, scoped expiring service accounts, sessions,
+append-only Enterprise audit, Product UI and bounded scale profiles are
+implemented. SMS user authentication, automatic SMS fallback and Twilio SMS
+authentication now fail closed; email remains enabled and generic PUSH 39 SMS
+delivery history/contracts are preserved. WhatsApp remains unactivated and
+cannot be the sole recovery factor.
+
+Branch-local TypeScript, canonical zero-regression lint, Production build
+without deployment, domain 41/41, security/isolation 42/42, migration health
+251, release contract, focused PUSH 41 QA and PUSH 39/40 regressions pass. The
+additive migration `20261019020000_digital_observer_push41_enterprise_identity.sql`
+is validated but not applied: exact-head protected CI, Development integration,
+verified isolated backup, Development application/schema proof and exact-SHA
+cumulative local Product verification remain pending. No IdP/provider was
+activated, no supplier cost was added, and main and Production remain
+unchanged. PUSH 42 is readiness-only and has not started.
+
+PUSH 41 Development-integration and migration-approval receipt (2026-10-19):
+PR #201 exact head `2a9b7084219144e9cf4dadbca8ba5a28d6e728ef`
+passed all 9 required checks and merged with preserved ancestry as
+`2d581c9acd60f811cdb210ac019eaf537e390c3a`. The additive migration is now
+approved only for the canonical isolated Development database. A verified
+pre-apply custom-format backup is protected at
+`/private/tmp/push41-development-pre-migration.dump`, SHA-256
+`80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99`, with a
+valid `pg_restore` archive listing. Development application, schema/RLS proof
+and exact-SHA cumulative local full-stack proof remain pending. No external
+provider, main or Production system was contacted.
+
+PUSH 41 isolated Development migration receipt (2026-10-19): PR #202 exact
+head `f9fdb3ff51a08fe54e97ecc1a5522d29517924ba` passed all 9 required checks
+and merged as `fd4adf6a13bedf75917e124a4025042c37749463`. Migration
+`20261019020000_digital_observer_push41_enterprise_identity.sql` applied only to
+the canonical isolated Development database at
+`2026-10-18T23:49:11.410164+00:00`, producing schema fingerprint
+`4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73`.
+Development drift is 251/251 PASS: 227 baseline, 24 post-baseline and zero
+missing. The bounded verifier confirms RLS on all 15 Enterprise tables,
+billing-only denial of camera/operational access, anonymous and authenticated
+credential denials, immutable audit, zero Production SSO/SCIM rows and zero
+enabled SMS-auth policies. Its first run exposed only verifier output framing:
+`set_config` printed the synthetic subject before the JSON result. Replacing it
+with a non-output `SET LOCAL` made the same role-boundary proof pass without
+changing schema or data. Exact-SHA cumulative Product startup remains pending.
+No provider, main or Production access occurred.
+
+PUSH 41 cumulative local Product closure receipt (2026-10-19): PR #203 exact
+head `5a9de109caa5f13bd882cbbeb4fd25a146d77f64` passed all 9 required
+checks and merged as `a9ed021fed9f55a64c6b833ccdc9b26114104894` with the Development
+application/schema receipt. The first exact-SHA cumulative run surfaced stale
+local synthetic fixtures that predated PUSH 40/41, not a Product-code failure.
+The bounded idempotent seeder rejects replacement of non-synthetic commercial
+state and creates only two synthetic organizations, one provider-disabled
+trial and one notification entitlement. PR #204 exact head
+`41b202c6cf1ed3adced43f84fb1c8563f457fd56` passed all 9 checks and merged
+as `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`.
+
+The exact merged runtime `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`
+is labeled `DEVELOPMENT / INTEGRATION` and uses isolated `LOCAL_SUPABASE`.
+Canonical Product probes pass 18/18, PUSH 39 passes 24/24, PUSH 40 passes
+6/6, PUSH 41 passes 7/7, Enterprise schema/RLS verification passes and
+Development migration drift passes 251/251. No external IdP, SCIM directory,
+WhatsApp provider, payment provider, real charge, message, physical action,
+main or Production system was contacted. PUSH 41 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`. PUSH 42 is readiness-only
+and has not started.
+
+PUSH 42 branch-validation receipt (2026-10-19): implementation commit
+`ae79986940522136745967924739eeb3aa17b57a` on
+`codex/push-42-external-api` adds the versioned external API, PUSH 41 signed
+Service Account authorization, tenant/organization/Site/resource isolation,
+PUSH 40 `api_access` enforcement, bounded Camera/Event/Incident/Evidence/
+Investigation/Watch contracts, PUSH 39 signed webhook lifecycle, measured
+usage, truthful VMS/DVR/NVR/vendor/federation state, a separate-domain Gan
+Batuach contract, public documentation and an independent consumer. The
+additive migration is validated and not yet applied.
+
+Branch-local TypeScript, canonical zero-regression lint, Production build
+without deployment, domain 43/43, security/isolation 44/44, migration health
+252, release contract, dependency audit, focused PUSH 42 QA and PUSH 39/40/41
+regressions pass. All 197 capability identities remain and no capability was
+promoted to `DONE + REAL PROOF`. Exact-head hosted CI, remote integration,
+verified isolated Development backup/application/schema proof and exact-SHA
+local independent-consumer proof remain pending. No external partner, webhook
+receiver, VMS/DVR/NVR provider, Gan Batuach runtime, supplier, customer data,
+main or Production system was contacted.
+
+PUSH 42 Development-integration and schema receipt (2026-10-19): PR #206
+exact head `30919ada3f604dcfa5c18f5a28d016db01238e38` passed all 9 required
+checks and merged with preserved ancestry as
+`1782df60ca25866866aef78fede49b48fcd26781`. The verified isolated
+Development pre-apply custom-format backup is protected at
+`/private/tmp/push42-development-pre-migration.dump`, SHA-256
+`6d028cb8e7970d0bb5d6fe34ef7fd16d1d3bdf5f849195d8b6110a8ca8892b78`,
+with a valid `pg_restore` archive listing. Migration
+`20261019030000_digital_observer_push42_external_api.sql` applied only to the
+canonical isolated Development database at `2026-10-19T00:50:52.875136+00:00`
+and produced schema fingerprint
+`bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797`.
+The bounded schema verifier confirms RLS on all three new tables, denies
+anonymous/authenticated receipt access and authenticated source mutation,
+denies authenticated usage-RPC execution, observes zero Production integration
+sources and stores no raw credential or video columns. Exact merged local
+full-stack and independent-consumer conformance remain pending. No external
+provider, main or Production system was contacted.
+
+PUSH 42 exact-runtime closure receipt (2026-10-19): PR #207 exact head
+`37ce01bb8b112e650864eb5dab1fb1b55d40b38d` passed all 9 required checks and
+merged with preserved ancestry as
+`8de36d76a0f8d4891edee14418496474ccb3ea17`. The first merged runtime probe
+then found that the external Event adapter selected `camera_source_id` while
+the canonical signal table uses `camera_id`; it also confirmed the existing
+synthetic-auth verifiers must run sequentially because parallel runs share
+test sessions. PR #208 corrected only that source mapping, made conformance
+nonces/idempotency keys rerunnable and added deterministic regression
+assertions. Exact head `0f2575f41f5dafc5dc88690f7ecb768facdf8ab1`
+passed 9/9 and merged with preserved ancestry as
+`8c284a72e0174ef9dd4308220882d6f284ee9dc5`.
+
+At exact runtime `8c284a72e0174ef9dd4308220882d6f284ee9dc5`, the
+canonical isolated Development Product passed core full-stack 18/18, PUSH 39
+24/24, PUSH 40 6/6, PUSH 41 7/7, PUSH 42 independent local conformance 10/10,
+External API schema/RLS verification and migration drift 252/252. This closes
+the mandatory internal Development gates. PUSH 42 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`: external partner,
+signed-webhook receiver, VMS/DVR/NVR/vendor, Gan Batuach operational adapter,
+penetration, real scale/SLA, real-traffic cost and Production evidence remain
+open. All PUSH 38–41 proof obligations remain unchanged. No provider,
+customer, main or Production system was contacted. PUSH 43 remains
+readiness-only and has not started.
+
+PUSH 43 Development-completion receipt (2026-10-19): implementation PR #210
+passed 9/9 exact-head checks and merged with preserved ancestry as
+`7e0df3a2ad105145af42057837b4e3a21a7146d1`. Scoped follow-up PRs #211–#218
+each passed 9/9 exact-head checks and preserved the migration receipts,
+runtime-secret isolation, delegated partner usage, embedded-origin constraint
+and canonical embedded Camera/Event/Incident/Evidence reads. The final bounded
+runtime fix merged as `42a680218005403c6501ce4264e7e5a5cc4e201d`.
+
+The additive migrations `20261019040000_digital_observer_push43_oem_sdk.sql`,
+`20261019041000_digital_observer_push43_delegated_usage.sql` and
+`20261019042000_digital_observer_push43_embed_origin_constraint.sql` are
+applied only to the canonical isolated Development database. Development
+drift is 255/255 with schema fingerprint
+`1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1`.
+The final migration pre-apply custom-format backup is readable by `pg_restore`
+and has SHA-256
+`3beeb65c099e342c59ea0e1a57b9b0ef9752d0dec758fc71649ff1297583a45d`.
+Production access was false.
+
+At exact runtime `42a680218005403c6501ce4264e7e5a5cc4e201d`, labeled
+`DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, the cumulative Product
+passes 18/18, PUSH 39 passes 24/24, PUSH 40 passes 6/6, PUSH 41 passes 7/7
+and PUSH 42 passes 10/10. The independent public-SDK partner application
+passes 15/15 using isolated synthetic data: partner auth, idempotent customer
+provisioning, customer/Site isolation, Camera/Event/Incident access, branded
+embedding, wrong-origin denial, session revocation and measured usage
+attribution. It imports no private Digital Observer server module.
+
+PUSH 43 is `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING` and canonically
+`NOT DONE`. A real OEM/white-label partner, custom-domain verification,
+partner SSO, real webhook receipt, vendor/VMS integration where applicable,
+commercial settlement, support ownership, legal/privacy and Production proof
+remain open. Five existing North-Star rows are `IMPLEMENTED — NEEDS REAL
+PROOF`; all 197 IDs remain and no row was promoted to `DONE + REAL PROOF`.
+Incremental supplier cost is ₪0. PUSH 38–42 obligations are preserved. No
+provider, real customer, main or Production system was contacted. PUSH 44 is
+readiness-only and has not started.
+
+PUSH 44 branch-validation receipt (2026-10-19): implementation commit
+`f4079c7f29308b59c49d441e742a01089f5bf98f` on
+remotely preserved branch `codex/push-44-mobile-readiness` and PR #220 add the
+canonical Capacitor mobile runtime,
+server-authorized deep links, native lifecycle and network revalidation,
+privacy-minimized native Push registration, bounded non-sensitive offline
+recovery, remote-playback grant renewal, iOS privacy declarations and Android
+permission hardening. TypeScript, canonical lint, Production build without
+deployment, release-contract, migration health, PUSH 39–43 regressions and
+Capacitor sync pass. The canonical domain gate passes 45/45 and the
+security/isolation gate passes 46/46 with PUSH 44 included in both.
+
+No PUSH 44 migration or paid provider activation exists; the 255 canonical
+migrations are unchanged and Production access is false. Android native build
+is blocked because the validation host has no Android SDK; iOS native build is
+blocked because full Xcode is absent. Signed real-device, mobile Push receipt,
+real remote playback, store privacy review, App Store/Google Play and
+Production proof remain open. PUSH 44 is `PARTIAL` and canonically `NOT DONE`;
+one existing North-Star row, DO-NS-003, moves from `FOUNDATION` to `PARTIAL`,
+all 197 identities remain, and no capability becomes `DONE + REAL PROOF`.
+
+PUSH 44 integration closure (2026-10-19): PR #220 exact head
+`c3ff106c517fa85f59a4686eac84fb00098e7a8b` passed all 9 required checks and
+merged with preserved ancestry as
+`8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`. The dedicated `gbi` Development
+stack reports 255/255 migration drift with `productionAccess: false`. At exact
+runtime `8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`, labeled
+`DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, the cumulative Product passes
+18/18, PUSH 39 passes 24/24, PUSH 40 passes 6/6, PUSH 41 passes 7/7, PUSH 42
+passes 10/10, PUSH 43 passes 15/15 and PUSH 44 mobile runtime passes 5/5,
+including authenticated Site scope, cross-Site denial and forged-link denial.
+The first local startup detected a stale pre-PUSH-44 `node_modules` snapshot;
+the locked dependency install was synchronized and the unchanged merged SHA was
+then re-run successfully. No Production or alternate backend fallback occurred.
+
+PUSH 44 remains `PARTIAL` and canonically `NOT DONE`: Android SDK and full
+Xcode are absent on the qualification host, and signed real-device, mobile
+Push receipt, real remote playback, store privacy/review and Production proof
+remain open. No migration, provider, customer, main, store or Production system
+was changed. PUSH 45 is readiness-only and has not started.
+
+PUSH 45 branch-validation receipt (2026-10-19): implementation commit
+`067f475b636dffe7d1250523f8112f3018218e4d` is remotely preserved on
+`codex/push-45-privacy-compliance`. It adds versioned context/jurisdiction/
+purpose profiles, evidence-bound written-decision records, fail-closed
+sensitive-capability gates, notice acknowledgement, Site-scoped privacy-rights
+requests with truthful external-system disposition, governed legal-hold
+creation/release, privacy incidents, append-only audit, Product UI, an Israeli
+source map, data inventory and an external-counsel review package.
+
+Branch-local TypeScript, canonical lint-baseline, Production build without
+deployment, domain 46/46, security/isolation 47/47, migration health 256,
+release contract, dependency audit and focused PUSH 39–45 regressions pass.
+All 197 North-Star IDs remain; DO-NS-066, DO-NS-185 and DO-NS-186 move only to
+`IMPLEMENTED — NEEDS REAL PROOF`, with no new `DONE + REAL PROOF` claim. The
+additive migration is remotely preserved but not yet integrated or applied.
+Exact-head CI, PR integration, verified isolated Development backup/application,
+schema/RLS/drift and exact-SHA local Product proof remain pending. External
+counsel decisions and all PUSH 38–44 external obligations remain open; no legal
+approval, provider, customer, biometric/child-monitoring feature, main or
+Production system was activated.
+
+PUSH 45 integration receipt (2026-10-19): PR #222 exact head
+`355faec550dc43617ad1af506856406f024d519e` passed all 9 required checks and
+merged with preserved ancestry only to `integration/development` as
+`19f67935dd63ea51d8a30da5a3d6c2ccebbb964b`. Source implementation commit
+`067f475b636dffe7d1250523f8112f3018218e4d` is an ancestor. The additive
+PUSH 45 migration is now eligible for the verified isolated Development
+application sequence; it is not applied to Production. Exact-SHA cumulative
+local Product verification and external legal decisions remain pending.
+
+PUSH 45 isolated Development schema receipt (2026-10-19): documentation-only
+PR #223 exact head `62eccb53562e7fbf3af27d0467c51df482d87c5f` passed 9/9 and merged as
+`64e1b36b7e846258a11e948a54e5222f208247fc`. Before applying the migration,
+the dedicated Development database was saved as a readable custom-format
+archive at `/private/tmp/push45-development-pre-migration-20261019T1916Z.dump`,
+SHA-256 `97b02a852dcb8bdf3a89b1ddd3c4ffa8f4598b8205dd53c3d2f92a9e35bbf49f`.
+Migration `20261019050000_digital_observer_push45_privacy_compliance.sql`
+applied only to isolated Development at `2026-10-19T19:15:48.96083+00:00`.
+Schema fingerprint is
+`84bb65985b33b6ad73b3a76f6649477a8e482b474ccf75f16842d19c240afdae`;
+RLS/default-denial checks pass, no approvals are seeded, and drift is 256/256.
+Production access is false. Exact-SHA cumulative local Product proof remains
+pending.
+
+PUSH 45 local Product closure (2026-10-19): PR #224 exact head
+`25156a3e47e096f757651387dbc3e13a27570be3` passed 9/9 and merged as
+`1d110fa00452b2bbd2a29f5baace083bd1b728b2`; PR #225 exact head
+`a0ecbc4feb28c8630dbf4a8c561a730bd38587c6` passed 9/9 and merged the
+fail-closed verifier correction as
+`62a7331c90619bf183e0bfbd48516f8b1f83edae`. At that exact integration SHA,
+the canonical Product ran as `DEVELOPMENT / INTEGRATION` at
+`http://127.0.0.1:3000` with `LOCAL_SUPABASE` and Production false. Cumulative
+Product probes passed 18/18; PUSH 39 passed 24/24, PUSH 40 6/6, PUSH 41 7/7,
+PUSH 42 10/10, PUSH 43 15/15, PUSH 44 5/5 and PUSH 45 4/4. The privacy center
+denied anonymous and cross-Site access and denied sensitive activation because
+the policy is inactive and no external approval exists. PUSH 45 is Development
+complete but canonically NOT DONE; qualified external legal decisions and real
+governed proof remain pending. Main and Production were not changed.
+
+PUSH 44 targeted iOS continuation branch receipt (2026-10-19): implementation
+commit `d0e6be0ac0961cb36693b7f52c409d1b55cd17ac` is remotely preserved on
+`codex/push-44-ios-real-device`; PR #227 targets only
+`integration/development`. The existing Capacitor project now declares a
+configuration-aware APNs signing entitlement, and deterministic PUSH 44 QA,
+Capacitor iOS sync, PUSH 39–45 preservation regressions, TypeScript, canonical
+lint with zero regressions, Production build without deployment, migration
+health 256/256 and release-contract checks pass. No migration was created.
+
+Physical qualification remains blocked and is not promoted: the Apple-silicon
+host has Command Line Tools only, no full Xcode, no signing identity or
+provisioning profile, no visible iPhone, and no approved authenticated HTTPS
+Development app/media endpoint. Native build, simulator, installation,
+real-device login/UI, cellular playback, real Push receipt, network transitions,
+performance and TestFlight are not run. PUSH 44 remains `PARTIAL` and
+canonically `NOT DONE`; all 197 North-Star identities and PUSH 38–45 obligations
+remain unchanged. PUSH 45 legal gates are closed, PUSH 46 is not started, and
+main and Production are unchanged.
+
+PUSH 44 targeted iOS continuation integration receipt (2026-10-19): PR #227
+exact head `a4708653c1515458607f2c26c72cc27b975036f1` passed all nine required
+checks and merged with preserved ancestry only to `integration/development` as
+`dd5e4fc8c7cbcef40c7676d0e146e3518b574406`. Implementation commit
+`d0e6be0ac0961cb36693b7f52c409d1b55cd17ac` is an ancestor. The merge does not
+change the truthful qualification result: physical iPhone execution and every
+dependent native/external gate remain blocked or not run. No migration,
+provider, main, Production, store, customer or PUSH 46 state changed.
+
+PUSH 44 iOS/Xcode qualification continuation receipt (2026-10-20): scoped
+implementation commits through `9c8863159da4d300435a6452e38ed5c2287fc370`
+are remotely preserved on `codex/push-44-ios-kingston-qualification`, based on
+`origin/integration/development@78edef28fd1ec7bb106eba7bd432cd52011c2daa`.
+Xcode 26.3 (17C529) is selected. Capacitor iOS sync, the Debug simulator target
+and an unsigned generic iOS arm64 target pass at the exact feature commit.
+DerivedData, Archives, Swift package clones/cache and result bundles are
+configured on the encrypted Kingston volume, and the scripted build fails
+closed if that volume is unavailable.
+
+The iOS 26.3 simulator installed and launched the app process, but Product
+rendering failed with `NSURLErrorDomain -1004` because no approved Development
+endpoint is configured. An iPhone 13 Pro / iOS 18.7.8 is connected and paired,
+but Developer Mode is disabled, DDI is unavailable and no Apple Development
+identity/profile is installed. The canonical local Product launcher also
+failed closed because the isolated Development schema/history readiness query
+could not complete. Therefore signed installation, real-device auth/UI,
+cellular playback, real Push receipt, transitions, physical performance and
+TestFlight remain blocked or not run. No migration, provider, main, Production,
+store, customer, legal-gate or PUSH 46 state changed.
+
+PUSH 44 iOS/Xcode qualification integration closure (2026-10-20): PR #229
+exact head `534411e90b77961f2d3832f7736ca531bfeca87f` passed all nine required
+checks and merged with preserved ancestry only to `integration/development` as
+`cea28a4fc8534266fc1a5b471c4b7f84d22a598c`. Portable build-helper commit
+`9c8863159da4d300435a6452e38ed5c2287fc370` and the earlier qualification
+commits remain ancestors. This records Development integration only; the local
+full stack, signed iPhone installation, cellular playback, real Push receipt,
+TestFlight and Android campaign remain blocked or not run. Main, Production,
+providers, stores, customer data and PUSH 46 remain unchanged.
+
+2026-10-20 runtime recovery on `31db906863984a35ad48d492457afaef07cac421`:
+256/256 Development migration/schema verification PASS after granting access
+to the dedicated local Docker socket. No database changes were required.
+Canonical runtime and basic simulator landing rendering recovered; mobile
+authorization probes PASS 5/5. iPhone 13 Pro reports iOS 27.0.1, Developer Mode
+enabled, paired and DDI available. Signing remains blocked by zero valid
+identities and no project team. HTTPS QA is a proposal awaiting authorization;
+physical installation, cellular media and APNs receipt are untested. Scoped
+evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
+failures and external proof obligations remain intact.
+
+2026-10-20 owner-approved bounded HTTPS iPhone QA continuation: draft PR #234
+to `integration/development` preserves branch
+`codex/push44-secure-iphone-qa` preserves implementation commit
+`8eb272071676bed0e97f0e12341c1153865b516d` remotely from
+`origin/integration/development@0a90979504d20c8db0d45574421e6eaf89231fc7`.
+The isolated Development schema passed 256/256 with no migration change.
+Signed Personal Team QA installed/launched on the owner's iPhone 13 Pro;
+Cloudflare owner OTP and Product-origin transport were reached. Both the app
+and Safari remained on a loading screen, so Product UI, Product login, cellular
+access and real video are **not proven**. No media path or APNs was activated.
+A later loopback-only Chrome diagnostic rendered the login form through the
+same route filter with CSS/JavaScript 200; this is not iPhone Product proof.
+The temporary tunnel/proxy were stopped and the offline-safe QA bundle was
+reinstalled. TypeScript, lint, build, domain 46/46, security 48/48, migration
+and release-contract gates passed; the feature remains pending integration
+and external Product proof, with PUSH 44 `PARTIAL / NOT DONE`. Main, Production and PUSH 46
+were untouched. The detailed negative evidence and next safe prerequisite are
+in `DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`.
+
+2026-10-20 HTTPS loading-failure diagnostic continuation of draft PR #234:
+`codex/push44-secure-iphone-qa` commit
+`b1f74d7593e0e272a48b95f55a3f75c41c65524e` is pushed remotely and
+pending integration. Owner iPhone Safari reported Cloudflare 502 at 01:00:45
+UTC; `cloudflared` 2026.10.1 crashed with a nil-map panic at that time. A
+separate real Next.js Development asset probe returned 403 with the external
+Origin and logged the missing `allowedDevOrigins` hostname. A narrow,
+Development-only exact-host setting, early-denial response headers and
+redacted opt-in route diagnostics were added. Local ingress contract PASS;
+TypeScript, canonical lint baseline, domain 46/46, security 48/48, migration
+256/256, release contract and PUSH 39–45 deterministic suites PASS. The source
+commit's exact-head CI passed 9/9; the local no-deploy build passed after
+granting Turbopack the required loopback compiler-port permission.
+Physical iPhone Product proof remains pending. The temporary
+tunnel was down (public 530) and loopback QA port closed. No migration, media,
+APNs, Production, main or PUSH 46 change. PUSH 44 remains PARTIAL / NOT DONE;
+PR #234 remains draft until stable owner-only ingress, iPhone proof and
+required CI gates pass.
+
+2026-10-20 protected HTTPS retrial for draft PR #234: Cloudflare dashboard
+read-only preflight showed observed and projected current-cycle billable usage
+$0.00, one of 1,000 included Tunnels, and Zero Trust not yet onboarded. A
+bounded, owner-email-protected Quick Tunnel using `cloudflared` 2026.10.1
+crashed after iPhone Safari OTP (502/Ray `a4db2097bb1c9428`, nil-map panic).
+A checksum-verified temporary 2026.10.2 binary avoided that observed crash
+but the owner reported `Bad Request` after OTP; neither trial reached a proven
+Product login. Exact branch head `99a4e68a` served local login and real JS
+assets with HTTP 200; isolated Development backend remained healthy and
+restricted Supabase route returned 404. The connector, filter and feature
+runtime were stopped; public hostname returned 530 and ports closed. A new
+signed QA build was not installed because Xcode rejected the CoreDevice UUID
+as its destination. No source/migration/Production change. PR #234 remains
+draft and pushed, 9/9 exact-head CI PASS; PUSH 44 remains PARTIAL / NOT DONE.
+Named Access would require separately authorized Zero Trust Free onboarding
+and owner-only policy; no such activation was performed.
+
+2026-10-21 bounded owner-only HTTPS iPhone requalification, draft PR #234:
+source fix `c93c7c51` is pushed to
+`codex/push44-secure-iphone-qa` and remains pending integration. The QA route
+filter had forwarded to the separate integration runtime on port 3000 instead
+of the isolated feature Product on port 3001, producing mismatched loading
+assets. Public mobile login also looped on an expected unauthenticated 401.
+The narrow upstream/public-route fix passed TypeScript, no-deploy build,
+canonical lint baseline and targeted mobile/ingress tests; exact-head native
+build and PR CI remain pending. The owner confirmed the actual Product login
+screen in the installed iPhone QA app, **not** authenticated dashboard access.
+The working computer login is in the Vercel Product environment; read-only
+Development Auth inspection found that Product identity absent among 24 local
+users, explaining the phone's invalid-credentials result without copying or
+resetting any Production credential. The scoped ingress, connector and feature
+runtime were stopped, and the temporary QA Tunnel deleted before its fixed
+deadline; the home Gateway Tunnel and canonical integration runtime were
+untouched. No media, APNs or migration was activated. Product authentication,
+cellular navigation, real playback and Android proof remain open. PUSH 44 is
+`PARTIAL / NOT DONE`; PR #234 stays draft, main/Production/PUSH 46 unchanged.
+# PUSH 44 session guard integration receipt — 2026-10-23
+
+Synthetic-edge code integration verified: PR #246 final head `bce3468250183859b916dd0b12bec5772bf1d5dc` passed all9 checks (run40009022716) and merged ancestry-preserving as `c005a27397d76d075d520ccb04e6491984058460`. Merge tree equals the exact CI-tested head. Final qualification is17 isolated cases +23 affected gateway regressions and the actual LOCAL workerd synthetic-only transport receipt; no external/phone proof. This post-merge receipt changes documentation only, not any code/config/provider. External readiness stays blocked by incomplete limited OAuth and actual deployment/security/cost/physical qualification. No cloud resource, DNS, media, Home service, main, Production or PR235 change.
+
+Synthetic-only edge continuation: source `6089d60d0cd317bf8efd8d5c0f912e38a6e18320`, branch `codex/push44-synthetic-edge-qualification`, Draft PR #246. Existing media/grant/session/cookie cores reused with an immutable separate synthetic scope; private R2/SQLite-DO transport and outbound host-control adapters default OFF (`workers.dev=false`, previews=false, OPEN_UNTIL=0). 13 new cases +23 affected gateway regressions and disabled official-CLI dry-run PASS; exact-head CI required. No source enrollment, resource, DNS, media or Production operation. Limited OAuth owner-approved but consent/callback timed out without a token; external TLS, actual-edge limits and physical-iPhone synthetic playback NOT RUN. Canonical Product remains actual051/LOCAL_SUPABASE, not this feature branch. PR235 preserved Draft; real CH1/APNs/Zero-Install proof unpromoted, PUSH46 not started. PR245 documentation integration verified1303070304f1b227e1e020d36f56842c5adcc3bc, exact head9/9CI PASS. See qualification report and canonical JSON ledger; complete scoped OAuth before the dependent external qualification, not another foundation audit.
+
+CH1 external-readiness continuation: original evidence commit `f0df13d968549e171f3d27ffaca6c17329e16c52`, branch `codex/push44-ch1-external-readiness`. Both Cloudflare authoritative servers return NXDOMAIN for the candidate media hostname; authenticated zone inspection confirms no such record among 14 existing records. Documentation-only package pins exact source, viewer and connected phone inventory, but does not assert source ownership or remote hardware attestation. Direct DNS-only TLS is a review candidate, not approved/deployed ingress; origin exposure, external edge accounting and complete cost remain blocking. No completed foundation/codec/session tests repeated. No DNS, listener, certificate, live grant, media, migration, provider or Home service change. Separate NON-LIVE preparation approval required; no real-test request. PR244 integration receipt corrected to verified merge `051e4213a2fc718e303a75e592707aa7e58ccc0d`, exact head 9/9 CI PASS. PR235 remains separate Draft; PUSH44 PARTIAL, PUSH46 not started.
+
+CH1 media preflight continuation: branch `codex/push44-ch1-media-preflight-20261023`, original evidence commit `3ff7b6849499d6655fc56df568e0beaa5eb5f6b6`, baseline `2a70695a`. Current Home QA source `6fddc732-13df-4268-9f32-3357262ea997` and pinned Site/Gateway/enrollment mapping verified read-only; counters progress with no duplicate owner. Canonical Development phone viewer correctly receives 403 for Home. Existing multi-source VOD/R2 publisher and generic ingress lack the requested per-viewer aggregate byte/deadline/revocation enforcement. Result BLOCKED BEFORE ACTIVATION, not another real-video PASS. No grant, camera access, upload, tunnel, provider change, Home restart, migration or Production operation. PUSH39–45/R2/isolated TLS contracts and four actual Development authorization probes PASS; 197 owned capabilities and 257 actual schema/history reconciliation preserved. Exact-head CI required before documentation-only integration. See the scoped JSON preflight for evidence, provider estimates, precise remaining adapter/delegation gates and later rollback.
+
+Final code integration verified: PR #240 merged as `74e55a8031e782ebff9bfb2ab352df0fb70b70ae` after final head `7998b9bbb251d82bb455294cc40ca70b58c0b302` passed 9/9 CI (run 39992473515). Its original code/evidence commits remain in ancestry. Canonical loopback Product restarted at that exact SHA with LOCAL_SUPABASE/production=false; login-resume positive/negative 5/5 and mobile/deep-link isolation 5/5 passed. The two protected sanitized metadata receipts are referenced with SHA-256 in the JSON ledger, not credentials or private media. Final post-merge receipt is documentation-only; no new migration, Product code, provider or live action.
+
+Real-device follow-up branch `codex/push44-real-device-session-evidence-20261023`, PR #240: owner confirmed strict expiry, reauthentication, canonical server-side revocation, background/resume denial, Wi-Fi/cellular continuity and offline indication. Full restart first returned login despite a valid session; the minimal canonical-authorized login-resume correction passed five actual local negative/positive cases and owner retrial returned dashboard without password. Campaign stopped 17:05:52 UTC; exact tunnel deleted, public 530, final QA session revoked, signed offline QA reinstalled/launched, Home services untouched. Exact-head CI and review required before integration. Separate media/APNs/Android/release/legal obligations remain open; 197 capabilities/52 PUSHes unchanged, no Production activation or PR235 changes.
+
+PR #238 merged into Development as `9e4277bfb63dc641d16879d25359eaa42c2c0d6a`; exact head `45961d8375d7fbca8ef13483c0272da698b98999` passed all nine checks (canonical six gates plus aggregate, management and Snyk). Additive migration `20261023161928` applied only to the canonical isolated LOCAL_SUPABASE at 16:47:11 UTC. Actual history/schema reconciles 257 migrations (227 baseline-covered + 30 post-baseline). Eight rollback-only function/ACL checks passed. Actual loopback Product login/runtime passed and unauthorized Site returned 403. These are not yet physical-iPhone expiry/revocation proof. Separate bounded device campaign pending; PR #235 remains Draft; main and Production unchanged.
