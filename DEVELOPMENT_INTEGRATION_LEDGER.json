@@ -11804,9 +11804,11 @@
         "exactHeadCi": "45961d8375d7fbca8ef13483c0272da698b98999 PASS_9_OF_9 run_39988979935",
         "databaseVerification": "257 reconciled = 227 baseline-covered + 30 actual post-baseline receipts; session function rollback-only security checks 8/8; Product login/runtime PASS and cross-Site 403 on loopback; not physical-device proof",
         "physicalDeviceExpiryRevocation": "REAL_DEVICE_PASS_OWNER_CONFIRMED_EXPIRY_AND_CANONICAL_SERVER_REVOCATION_RETURN_TO_LOGIN_AFTER_RESUME_20261023; REAUTHENTICATION_CONFIRMED; LOCAL_API_DENIAL_170MS_EXPIRY_82MS_REVOCATION_NOT_PHONE_LATENCY",
+        "physicalDeviceNetwork": "OWNER_CONFIRMED_WIFI_TO_CELLULAR_TO_WIFI_SESSION_CONTINUITY_AND_TRUTHFUL_OFFLINE_INDICATOR; APP_RESTART_INITIAL_FAIL_FIXED_BY_CANONICAL_LOGIN_RESUME; OWNER_CONFIRMED_RETRIAL_NO_PASSWORD_SOURCE_403628CD",
+        "shutdown": "2026-10-23T17:05:52.750Z temporary tunnel deleted; public 530 and loopback QA proxy closed; final dedicated QA session revoked; signed offline no-Push bundle reinstalled and launched; ephemeral ingress secret files deleted; Home tunnel untouched",
         "media": "NOT_ACTIVATED_REQUIRES_SEPARATE_SCOPE_AND_GRANT_REVIEW",
         "productionChanged": false,
-        "nextAction": "Exact-head CI/review and scoped integration; apply additive function only to canonical local Development, verify API/page denial, then owner iPhone bounded campaign and shutdown. Preserve PR235 Draft and all external proof gates."
+        "nextAction": "Merge reviewed real-device receipt and minimal login-resume correction only after exact-head CI; verify final canonical local runtime. Separate approval required for one-camera Home viewing delegation/private media delivery; real video/APNs/Android/store/legal gates remain open. Preserve PR235 Draft and Production boundary."
       },
       "ownerIphoneAuthenticatedQualification20261022": {
         "sourceBranch": "codex/push44-secure-iphone-qa",
