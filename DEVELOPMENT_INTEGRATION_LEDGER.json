@@ -11908,6 +11908,19 @@
         "productionChanged": false,
         "nextAction": "Keep PR248 Draft. Cloudflare account shows Free $0/seat/month, 50 seats, but remains at onboarding; owner must personally complete Free-only terms/payment steps, stopping if any charge appears. Exact one-owner/one-device default-deny private-hostname policy is designed but not deployed. Private DNS/trusted iPhone TLS, actual-edge accounting and total cost remain blocked; no route, VPN or media activation. PR235 separate Draft."
       },
+      "cloudflareOnePrivateQa20261024": {
+        "sourceBranch": "codex/push44-synthetic-external-preparation",
+        "pullRequest": 248,
+        "state": "PUSHED_REMOTE_PENDING_EXACT_HEAD_CI",
+        "scope": "Cloudflare One Free account verification and owner-authorized exact-email device-enrollment restriction; no route, VPN, DNS or media activation",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md; DIGITAL_OBSERVER_EXTERNAL_ACTIVATION_PROOF_REGISTER.json",
+        "providerPolicyId": "eb34789e-a2ac-49e9-9059-d8be7dce5d40",
+        "validation": "Zero Trust Free active in spring-feather-ce4e; 50 users at $0 per seat per month; exact owner email Allow policy attached only to Warp Login App with 15-minute session; no enrolled device or QA route",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "externalMediaBytes": 0,
+        "nextAction": "Keep PR248 Draft. Request separate approval for temporary QA-only DNS-01 TXT in shared ganbatuach.com zone and publicly trusted origin certificate; then verify exact QA-host default-deny/owner-device allow, iPhone VPN consent, actual-edge accounting and total cost before opening route. Preserve PR235 Draft."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
