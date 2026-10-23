@@ -11817,6 +11817,22 @@
         "productionChanged": false,
         "nextAction": "Separate bounded owner approval required for one-camera Home viewing delegation/private media delivery, with exact source binding and IAM/CORS/cost review before activation. Real video/APNs/Android/store/legal gates remain open. PR235 remains Draft; no Home service or Production change."
       },
+      "ch1PrivateGateway20261023": {
+        "sourceBranch": "codex/push44-ch1-private-gateway-20261023",
+        "sourceCommit": "cf0952609b2b2c1c1a1195bb99e6352b9c7df403",
+        "state": "VALIDATED_ON_BRANCH",
+        "preservation": "REMOTE_PUSH_AND_EXACT_HEAD_CI_REQUIRED_BEFORE_INTEGRATION",
+        "scope": "Isolated CH1 private TLS media gate, exact view-only delegation contract and protected one-shot operator journal; no live wiring or activation",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md",
+        "migrationCount": 0,
+        "developmentMigrations": "257 expected, 227 baseline-covered + 30 applied, no drift at 2026-10-23T17:51:10Z",
+        "internalValidation": "22 deterministic security/media/loopback TLS tests; exact-head CI required before merge",
+        "liveReadiness": "BLOCKED: actual approved source-domain delegation, native session transport, passive generation-bound reader, protected run custody and permitted external TLS delivery must be verified",
+        "liveMediaAuthorized": false,
+        "liveMediaPerformed": false,
+        "productionChanged": false,
+        "nextAction": "Qualify missing live adapter boundaries in isolation; do not grant Product membership or activate real media. Preserve PR235 Draft."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
