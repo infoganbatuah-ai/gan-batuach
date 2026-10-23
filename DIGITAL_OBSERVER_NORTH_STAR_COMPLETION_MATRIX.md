@@ -3,6 +3,8 @@
 Date: 2026-09-10
 Roadmap boundary: the existing canonical 52 PUSHES only.
 
+PUSH 44 proof receipt (2026-10-23): the owner's physical iPhone 13 Pro / iOS 27.0.1 demonstrated dedicated Development authentication, strict session expiry, successful reauthentication and separate canonical server-side revocation returning to login after resume. Earlier 2026-10-22 cellular navigation/logout proof is preserved. See the device qualification matrix for exact build, session and network evidence; remaining device observations are tracked there separately. No capability status/owner/ID changes: 197 remain accounted for (24 DONE + REAL PROOF, 67 IMPLEMENTED — NEEDS REAL PROOF, 50 FOUNDATION, 20 PARTIAL, 35 NOT STARTED, 1 EXTERNAL GAP). Remote real-camera video, APNs, Android, native release/store and applicable legal approvals remain open; no PUSH 46 started.
+
 This register maps every requested North-Star capability to an existing canonical owner and a final proof obligation. Status is deliberately evidence-based: code or UI alone is not `DONE + REAL PROOF`.
 
 `52/52 PUSHES DONE != PRODUCT COMPLETE` unless a future North-Star Completion Audit confirms that every mandatory row has reached its required final evidence state. No PUSH 53+ is implied or authorized by this matrix.

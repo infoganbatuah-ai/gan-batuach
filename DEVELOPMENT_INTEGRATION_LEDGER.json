@@ -11794,19 +11794,21 @@
       "sessionSecurityContinuation20261023": {
         "sourceBranch": "codex/push44-session-security-20261023",
         "sourceCommit": "3ffa3b4a79265644293487929581722ddd44aff5",
-        "state": "VALIDATED_ON_BRANCH",
+        "state": "INTEGRATED_DEVELOPMENT",
         "scope": "Existing Supabase Auth session expiry/revocation, native revalidation timeout and stale-view shield; no parallel identity engine",
         "rootCause": "Local not_after expiry rejected refresh but existing access JWT still passed getUser; current-session boolean RPC closes the Product authorization gap",
-        "validation": "TypeScript, canonical lint, mobile, PersonalTeamQA and ingress contracts PASS; rollback-only SQL 8/8 PASS; exact-head CI and actual iPhone session campaign pending",
+        "validation": "PR238 exact head 45961d8375d7fbca8ef13483c0272da698b98999 passed 9/9 CI; PR239 receipt exact head c4b445c156a583b198544faa5defd1869b38b28f passed 9/9. Actual cumulative Product PUSH39–45 71/71 at ced317668294571e2438794f9e4d235ba35b76eb; rollback-only session-function checks 8/8; actual schema/history PASS 257, no drift",
         "migration": "20261023161928_digital_observer_push44_session_validity.sql",
         "developmentApplied": "YES_2026-10-23T16:47:11.77187Z_LOCAL_SUPABASE_ONLY",
         "integrationCommit": "9e4277bfb63dc641d16879d25359eaa42c2c0d6a",
         "exactHeadCi": "45961d8375d7fbca8ef13483c0272da698b98999 PASS_9_OF_9 run_39988979935",
         "databaseVerification": "257 reconciled = 227 baseline-covered + 30 actual post-baseline receipts; session function rollback-only security checks 8/8; Product login/runtime PASS and cross-Site 403 on loopback; not physical-device proof",
-        "physicalDeviceExpiryRevocation": "NOT_RUN",
+        "physicalDeviceExpiryRevocation": "REAL_DEVICE_PASS_OWNER_CONFIRMED_EXPIRY_AND_CANONICAL_SERVER_REVOCATION_RETURN_TO_LOGIN_AFTER_RESUME_20261023; REAUTHENTICATION_CONFIRMED; LOCAL_API_DENIAL_170MS_EXPIRY_82MS_REVOCATION_NOT_PHONE_LATENCY",
+        "physicalDeviceNetwork": "OWNER_CONFIRMED_WIFI_TO_CELLULAR_TO_WIFI_SESSION_CONTINUITY_AND_TRUTHFUL_OFFLINE_INDICATOR; APP_RESTART_INITIAL_FAIL_FIXED_BY_CANONICAL_LOGIN_RESUME; OWNER_CONFIRMED_RETRIAL_NO_PASSWORD_SOURCE_403628CD",
+        "shutdown": "2026-10-23T17:05:52.750Z temporary tunnel deleted; public 530 and loopback QA proxy closed; final dedicated QA session revoked; signed offline no-Push bundle reinstalled and launched; ephemeral ingress secret files deleted; Home tunnel untouched",
         "media": "NOT_ACTIVATED_REQUIRES_SEPARATE_SCOPE_AND_GRANT_REVIEW",
         "productionChanged": false,
-        "nextAction": "Exact-head CI/review and scoped integration; apply additive function only to canonical local Development, verify API/page denial, then owner iPhone bounded campaign and shutdown. Preserve PR235 Draft and all external proof gates."
+        "nextAction": "Merge reviewed real-device receipt and minimal login-resume correction only after exact-head CI; verify final canonical local runtime. Separate approval required for one-camera Home viewing delegation/private media delivery; real video/APNs/Android/store/legal gates remain open. Preserve PR235 Draft and Production boundary."
       },
       "ownerIphoneAuthenticatedQualification20261022": {
         "sourceBranch": "codex/push44-secure-iphone-qa",
