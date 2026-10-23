@@ -11820,8 +11820,10 @@
       "ch1PrivateGateway20261023": {
         "sourceBranch": "codex/push44-ch1-private-gateway-20261023",
         "sourceCommit": "cf0952609b2b2c1c1a1195bb99e6352b9c7df403",
-        "state": "VALIDATED_ON_BRANCH",
-        "preservation": "REMOTE_PUSH_AND_EXACT_HEAD_CI_REQUIRED_BEFORE_INTEGRATION",
+        "state": "INTEGRATED_DEVELOPMENT",
+        "integrationSha": "4c0d70555cf96c4f5e5d815df7720e5f29c9ea13",
+        "pullRequest": 243,
+        "preservation": "INTEGRATED_DEVELOPMENT_EXACT_HEAD_CI_9_OF_9_PASS",
         "scope": "Isolated CH1 private TLS media gate, exact view-only delegation contract and protected one-shot operator journal; no live wiring or activation",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md",
         "migrationCount": 0,
@@ -11832,6 +11834,22 @@
         "liveMediaPerformed": false,
         "productionChanged": false,
         "nextAction": "Qualify missing live adapter boundaries in isolation; do not grant Product membership or activate real media. Preserve PR235 Draft."
+      },
+      "ch1FinalPreactivation20261023": {
+        "sourceBranch": "codex/push44-ch1-final-preactivation",
+        "sourceCommit": "3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b",
+        "state": "VALIDATED_ON_BRANCH",
+        "scope": "Reuse merged CH1 foundation; compose cookie/session/delegation/TLS E2E and correct encoded-byte iOS playlist delivery",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md",
+        "internalValidation": "23/23 isolated cases; exact-head CI required before merge",
+        "actualSourceCompatibility": "Read-only one-segment local H264/MPEGTS probe and decode:25 distinct frames; no media retained or transmitted",
+        "realOwnerAuthorization": "PENDING: Home QA has no owner/active membership/matching owner QA administrator; explicit recorded authority required",
+        "liveReadiness": "BLOCKED: candidate media hostname NXDOMAIN; no permitted external TLS delivery/private publisher scope or bounded complete cost",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "liveMediaAuthorized": false,
+        "liveMediaPerformed": false,
+        "nextAction": "Obtain exact source-owner view-only delegation attestation; do not activate a route until permitted HTTPS/native transport and complete cost are verified. Preserve PR235 Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",

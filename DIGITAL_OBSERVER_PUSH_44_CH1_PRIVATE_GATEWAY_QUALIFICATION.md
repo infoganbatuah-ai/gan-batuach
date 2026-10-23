@@ -60,3 +60,43 @@ For any later approved window: stop/revoke gate, abort responses, close only its
 No Product route, installed runtime, APNs entitlement, Home service, source identity, Production record or key changed. PR #235 remains separate Draft. Existing 197 North-Star identities and 52 PUSHes unchanged; no capability promoted. PUSH 44 remains PARTIAL / NOT DONE: real cellular video, APNs, native release/store and Android proof remain open. PUSH 45 legal gates remain closed. PUSH 46 not started.
 
 Required exact-head CI must pass before Development integration. Passing it qualifies this isolated code, not live viewing permission or Production activation.
+
+## Final pre-activation follow-up — baseline 4c0d70555cf96c4f5e5d815df7720e5f29c9ea13
+
+Branch: `codex/push44-ch1-final-preactivation`. Existing grant/ledger/lease/deadline/byte controls reused, not rebuilt.
+
+### Fresh actual evidence (2026-10-23 UTC)
+
+- 18:04:59.706 Gateway read-only health: CH1 CURRENT/progressing, 10 canonical relays, no candidate handoffs. Exact Home QA source ID/Site still connected.
+- 18:05:36.250 inspected one existing CH1 local segment, generation `0d82ee48-9c55-4069-a5d2-b0db6c84eba6`, `segment-004818.ts`, 171,268 bytes, mtime 18:05:34.028. MPEG-TS, H.264 High Level3.0, yuv420p, 640×480, 25fps, duration1.2s. Local decode:25 frames/25 distinct frame hashes. Only counts retained; no pixels, frame hashes or media saved/uploaded. No playback/HLS route invoked (those can call ensureRelay), no RTSP, grant redemption or new relay. An empty transient generation directory was excluded after the first read-only scan; no Home recovery action.
+- Actual playlist: version6, target duration1, 12 sequential padded TS names, EXTINF1.200000, independent segments, no ENDLIST. Apple permits H.264/MPEG-TS and this profile/level; no extra transcoding/repackaging indicated by the sample. Decoder proof is NOT AVPlayer, full continuity or cellular proof. Generation changes must fail closed.
+- Exact Home QA Site: owner profile absent, organization absent, zero active Site memberships. Boolean-only exact-owner lookup: no matching owner account/administrator in that QA domain. This does not describe Production ownership. No users, memberships or Site fields were created/changed.
+- Candidate `gateway-media-homeqa.ganbatuach.com`: NXDOMAIN; no18443 listener. No DNS/TLS/firewall/public route change.
+
+### Incremental isolated qualification
+
+Added only missing host-memory cookie transport, `push44-ch1-cookie-custody.mjs`: one already approved canonical Development session, opaque __Host cookie, Secure/HttpOnly/SameSite=Strict, 300-second lifetime and timed memory cleanup, fresh session checks, duplicate-cookie denial, no rebind/reset, no raw token in URL/file/client bundle. This is not hardware attestation. Real WKWebView cookie installation and first-party/same-site delivery still require approved integration; an isolated HTTP client does not prove browser cookie policy.
+
+One composed synthetic E2E now exercises canonical session adapter → protected approval journal/delegation → cookie → existing TLS gate → generation-pinned passive reader → generated blue-color H.264/MPEG-TS fixture. It verifies authorized delivery, denial, server revocation, delegation revocation, expiry, reconnect debit, sanitized audit and cleanup. Fixture is NOT camera footage.
+
+Apple's delivery guidance identified missing gzip playlists. Added negotiated gzip in the EXISTING adapter with debit of the actual encoded payload BEFORE delivery. The first composed short-playlist test exposed gzip overhead exceeding the original raw reservation; corrected encoded-byte accounting passes. No cap increase, reset, alternate grant core or bypass.
+
+**23/23 isolated cases PASS**, including original exact300-second/100-MiB/one-viewer boundaries. Registered existing mandatory security suite includes the new composed case. Full exact-head CI required before integration; unrelated completed backup/hardware tests not rerun locally.
+
+### Provider and cost — actual account reads
+
+Existing Workers Free Active / R2 Paid, no upgrade. One R2 bucket `digital-observer-releases`, Standard, Public Access Disabled. Overview:16GB,2.33k ClassA,615 ClassB in its displayed aggregate period. Separate current-cycle billing:5.29GB-month,115 ClassA,17 ClassB,$0 observed/projected; Oct13–Oct23 observed, Oct13–Nov12 cycle. Instantaneous storage and billing-window usage are not interchangeable or final invoices. Existing release bucket is NOT an approved CH1 media destination; no prefix IAM/CORS/publisher/Worker/bucket change.
+
+A. Access: control plane only. B. Ordinary Tunnel/CDN video permission: NOT assumed. C. R2 Standard private objects: media-compatible, but no complete bounded publisher/private authenticated delivery integration verified. D. Existing direct-TLS candidate: DNS absent. Therefore complete permitted HTTPS media path BLOCKED.
+
+No new fixed commitment or remote media traffic. Hypothetical100MiB retained300s in R2 uses about0.00001214GB-month: unrounded storage component about$0.000000182 before tax at$0.015/GB-month. This excludes requests, billing-unit rounding, other usage, publisher/storage bounds, host delivery and taxes. Included quotas could yield$0 marginal R2 charge, NOT a verified end-to-end budget. Existing consumer cap is not a publisher cap. **Complete live-test cost UNKNOWN; activation ineligible until bounded.**
+
+References: [Apple HLS](https://developer.apple.com/streaming/hls-authoring-specification-for-apple-devices.html), [R2 storage](https://developers.cloudflare.com/r2/buckets/storage-classes/), [R2 pricing](https://developers.cloudflare.com/r2/pricing/), [Cloudflare terms](https://www.cloudflare.com/service-specific-terms-application-services/).
+
+### Exact owner handoff, not live activation approval
+
+Required: recorded source-owner attestation and explicit approval to issue ONE view-only QA delegation for the exact pinned CH1/Site/tenant/enrollment/Gateway → pinned Development viewer → one approved owner-iPhone session/device. Purpose:PUSH44 cellular qualification; maximum300seconds from issuance,104857600 cumulative payload bytes,one source/viewer/lease,revocation,sanitized audit,immediate shutdown. No Site membership/ownership change, Production impersonation or credential copying. Trusted operator must verify/issue authority after approval; client booleans are not evidence. No actual delegation was written.
+
+That approval alone MUST NOT open a route. Live test still requires exact trusted hostname/TLS and owner-only ingress, first-party native cookie transport, verified R2 publisher/private scope if selected, bounded full cost and fresh source generation. Then request one exact infrastructure/cost/300s/100MiB activation. Rollback: revoke delegation/cookie/grant, abort transfers, close only dedicated ingress; remove only approved temporary objects and preserve sanitized receipts. Never restart/reconfigure Home services.
+
+**Live readiness NO; real owner authorization PENDING; iPhone/cellular media NOT RUN.** No migration, Production write, paid activation, public ingress, camera/telemetry change or PUSH46. Prior197 capabilities/migrations/session/backup proof and DraftPR235 preserved.
