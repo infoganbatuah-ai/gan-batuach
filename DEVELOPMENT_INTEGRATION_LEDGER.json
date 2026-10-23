@@ -11802,13 +11802,20 @@
         "developmentApplied": "YES_2026-10-23T16:47:11.77187Z_LOCAL_SUPABASE_ONLY",
         "integrationCommit": "9e4277bfb63dc641d16879d25359eaa42c2c0d6a",
         "exactHeadCi": "45961d8375d7fbca8ef13483c0272da698b98999 PASS_9_OF_9 run_39988979935",
+        "deviceQualificationSourceBranch": "codex/push44-real-device-session-evidence-20261023",
+        "deviceQualificationOriginalCommits": ["403628cd2917237175cdf15713aa56dc8623cd05", "7998b9bbb251d82bb455294cc40ca70b58c0b302"],
+        "deviceQualificationPr": 240,
+        "deviceQualificationIntegrationCommit": "74e55a8031e782ebff9bfb2ab352df0fb70b70ae",
+        "deviceQualificationCi": "7998b9bbb251d82bb455294cc40ca70b58c0b302 PASS_9_OF_9 run_39992473515",
+        "postMergeVerification": "LOCAL_VERIFIED exact canonical runtime 74e55a8031e782ebff9bfb2ab352df0fb70b70ae LOCAL_SUPABASE production=false: committed login-resume verifier 5/5 and mobile runtime/deep-link isolation 5/5 PASS; prior cumulative 71/71 at ancestor ced31766 preserved; no media or external provider activation",
+        "sanitizedEvidence": [{"path":"tmp/push44-session-campaign-20261023-before-shutdown.json","classification":"PROTECTED_LOCAL_NON_SECRET_SESSION_METADATA","sha256":"a00c60ef57e85fea04063f6d0d54fd0f7ce30e335ee3ae92b395d66632065aee"},{"path":"tmp/push44-session-campaign-20261023-shutdown.json","classification":"PROTECTED_LOCAL_NON_SECRET_SHUTDOWN_METADATA","sha256":"ca7aebe49444d144b99b67917994a22745525a3fdcc23bfa77a8b53a19b5b93a"}],
         "databaseVerification": "257 reconciled = 227 baseline-covered + 30 actual post-baseline receipts; session function rollback-only security checks 8/8; Product login/runtime PASS and cross-Site 403 on loopback; not physical-device proof",
         "physicalDeviceExpiryRevocation": "REAL_DEVICE_PASS_OWNER_CONFIRMED_EXPIRY_AND_CANONICAL_SERVER_REVOCATION_RETURN_TO_LOGIN_AFTER_RESUME_20261023; REAUTHENTICATION_CONFIRMED; LOCAL_API_DENIAL_170MS_EXPIRY_82MS_REVOCATION_NOT_PHONE_LATENCY",
         "physicalDeviceNetwork": "OWNER_CONFIRMED_WIFI_TO_CELLULAR_TO_WIFI_SESSION_CONTINUITY_AND_TRUTHFUL_OFFLINE_INDICATOR; APP_RESTART_INITIAL_FAIL_FIXED_BY_CANONICAL_LOGIN_RESUME; OWNER_CONFIRMED_RETRIAL_NO_PASSWORD_SOURCE_403628CD",
         "shutdown": "2026-10-23T17:05:52.750Z temporary tunnel deleted; public 530 and loopback QA proxy closed; final dedicated QA session revoked; signed offline no-Push bundle reinstalled and launched; ephemeral ingress secret files deleted; Home tunnel untouched",
         "media": "NOT_ACTIVATED_REQUIRES_SEPARATE_SCOPE_AND_GRANT_REVIEW",
         "productionChanged": false,
-        "nextAction": "Merge reviewed real-device receipt and minimal login-resume correction only after exact-head CI; verify final canonical local runtime. Separate approval required for one-camera Home viewing delegation/private media delivery; real video/APNs/Android/store/legal gates remain open. Preserve PR235 Draft and Production boundary."
+        "nextAction": "Separate bounded owner approval required for one-camera Home viewing delegation/private media delivery, with exact source binding and IAM/CORS/cost review before activation. Real video/APNs/Android/store/legal gates remain open. PR235 remains Draft; no Home service or Production change."
       },
       "ownerIphoneAuthenticatedQualification20261022": {
         "sourceBranch": "codex/push44-secure-iphone-qa",
