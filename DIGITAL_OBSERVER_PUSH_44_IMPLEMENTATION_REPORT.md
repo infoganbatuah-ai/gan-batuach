@@ -88,6 +88,14 @@ Locked local install and unchanged high-severity audit pass with zero
 High/Critical. UUID via xcode/Capacitor CLI remains Moderate, owner mobile
 dependency maintainer, review due 2026-10-29; it is not marked fixed.
 No external QA ingress was opened while Critical findings were unresolved.
+The matched Next lint package adds an internal-navigation rule. Its sole
+remaining finding was the pre-existing staff activation full-page handoff.
+That destination now uses an explicit same-origin absolute URL while retaining
+the full reload; its contract test pins both the destination and origin rather
+than the old relative literal. Full canonical lint returns to 4,711 errors /
+159 warnings, zero regressions and zero canonical errors; staff contract 8/8.
+No baseline allowance or rule was disabled. Observer code is unchanged by
+this one-line Management compatibility correction.
 Full exact-head CI and installed-version compatibility remain required before
 integration; no Production remediation/deployment is implied.
 
