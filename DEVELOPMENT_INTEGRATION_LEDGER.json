@@ -44,24 +44,26 @@
       "owner": "PUSH 44 Development qualification owner",
       "sourceBranch": "codex/push44-synthetic-external-preparation",
       "sourceCommits": [
-        "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f"
+        "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f",
+        "b1ab16d942223e8bfb156b78c41bdf9bcb88f576"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@9cc298ae3a16c8d8ae67902565bd89f9cd4f729f"],
-        "implementationCommit": "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f"
+        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@b1ab16d942223e8bfb156b78c41bdf9bcb88f576"],
+        "implementationCommit": "b1ab16d942223e8bfb156b78c41bdf9bcb88f576"
       },
       "validation": {
         "status": "ISOLATED_PASS_OWNER_AUTH_CONFIRMED_SCOPED_GRANT_NOT_ISSUED",
         "evidence": [
           "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md",
           "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
-          "Seven local device-transport tests passed; exact-head CI pending",
+          "Eight isolated device-transport tests and local ci:quality PASS at b1ab16d942223e8bfb156b78c41bdf9bcb88f576; remote exact-head CI pending",
           "Owner confirmed Gan Batuach parent dashboard on Mac after local invitation, not Digital Observer; local Auth shows confirmed email and one session",
-          "Owner profile remains unassigned parent with no admin role or scoped capability"
+          "Read-only original LOCAL_SUPABASE: owner Auth=1, capability=0, unassigned parent=1, owned Observer Sites=0, memberships=0, synthetic Site records=0",
+          "One pending request is bound to the exact key fingerprint and session; no grant was issued"
         ],
-        "limits": "No actual owner-presence ceremony for a device approval, no scoped capability issuance, no physical iPhone enrollment or HTTPS activation."
+        "limits": "No independent Observer owner bootstrap anchor, no actual owner-presence ceremony for a device approval, no scoped capability issuance, no physical iPhone enrollment or HTTPS activation."
       },
       "integration": {
         "status": "NOT_INTEGRATED",
@@ -77,12 +79,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "conflictsResolution": "No schema change; replaces the unsafe global Development admin requirement in the existing host reader with a server-held, expiring, exact-scope capability.",
+      "conflictsResolution": "No schema change; server-held, expiring exact-request/key capability remains unissued; existing durable local approval store now requires a one-pending-installation request.",
       "localVerification": "PASS_ISOLATED_OWNER_AUTHORIZATION_ONLY",
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "Issue an audited short-lived exact-scope capability only after renewed owner session validation and fresh Mac owner-presence; do not preapprove the phone, open HTTPS or activate media."
+      "nextAction": "Establish and document an independent project-owner bootstrap authority, then obtain explicit owner approval for a single pending request/key grant; do not preapprove the phone, open HTTPS or activate media."
     },
     {
       "id": "backup/active-observer-engine-20260831",
