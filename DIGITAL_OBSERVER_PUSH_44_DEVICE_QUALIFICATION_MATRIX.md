@@ -3,6 +3,17 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 control-host non-public preflight — **DNS-01 / CERTIFICATE / DENY-ONLY
+ACCESS CONFIGURATION PASS; IPHONE TLS NOT RUN**. The exact-host Let's Encrypt
+certificate was issued using the protected existing ACME account and one
+temporary TXT, which was removed; authoritative DNS returned to its prior
+state. Access application `4382f628-c338-4a23-9da0-1490056b83e4` covers only
+the private QA hostname on port 443, with zero policies and no route. Public
+A/AAAA/CNAME remain absent. The certificate has a locally trusted chain and
+matching protected key, but no physical-iPhone TLS or device-proof request was
+attempted. See the newest section of the device-proof receipt; older entries
+below record earlier states, not current blockers.
+
 2026-10-24 exact-control enrollment preparation — **SIGNED BUILD PASS;
 PHYSICAL PROOF NOT RUN**. A separate `PersonalTeamQA` iPhone target was built
 and validated with the exact `qa-iphone-device-proof.ganbatuach.com` HTTPS

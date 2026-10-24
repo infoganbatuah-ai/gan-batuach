@@ -1,5 +1,58 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-24 non-public control TLS and Access preflight
+
+Owner authorization covered one exact-host DNS-01 challenge, issuance through
+the existing dedicated Let's Encrypt ACME account, challenge cleanup, and one
+deny-only Access application. Account `693f824a750afcc264fe6ee58c8a86ab`
+and its `ganbatuach.com` zone were verified in Cloudflare. The DNS zone had 14
+records before the operation, with no exact control-host or challenge record;
+the Access inventory had only the separate synthetic-media application, so no
+exact-host collision existed.
+
+Certbot 5.8.0 requested only `qa-iphone-device-proof.ganbatuach.com` with a
+fresh ECDSA key, reusing the protected ACME account under the Mac's
+`/Users/danielderi/Library/Application Support/DigitalObserverQA/acme/config/`
+tree. One task-created TXT at
+`_acme-challenge.qa-iphone-device-proof.ganbatuach.com` propagated to both
+authoritative Cloudflare nameservers and resolver `1.1.1.1` before validation.
+Let's Encrypt issued the single-name certificate. Its sole SAN is the exact
+control hostname; issuer `YE2`, validity **2026-10-24 17:59:24 UTC through
+2027-01-22 17:59:23 UTC**, certificate SHA-256 fingerprint
+`32:6B:A9:11:F6:84:3F:95:25:F3:52:28:EB:F3:80:5D:95:62:82:88:ED:96:88:C0:B2:48:95:C2:59:9A:2D:62`.
+Local chain verification using the issuer chain and Homebrew trust bundle
+returned OK; public-key digests of the certificate and protected key matched.
+The key file is owner-owned mode `0600` under an owner-only `0700` config/archive
+parent. No key or challenge value was copied to Git. Manual DNS-01 will **not**
+renew automatically; renewal requires a later approved challenge. Public
+certificate-transparency logging of the QA hostname is an expected consequence
+of issuance, not endpoint activation. This is local trusted-chain proof, **not**
+an iPhone TLS test.
+
+Only the task-created TXT was deleted after issuance. The DNS inventory returned
+to 14 records, and both authoritative nameservers returned no TXT at that name.
+Public A, AAAA and CNAME for the control hostname remain absent. A dedicated
+Cloudflare self-hosted **private-hostname** Access application, ID
+`4382f628-c338-4a23-9da0-1490056b83e4`, now names only the exact host on
+port 443. It has **zero policies** (no Allow, Bypass or Service Auth), a
+30-minute application session setting, and is hidden from App Launcher. This
+is deny-only configuration, not a public or private route. Cloudflare still
+shows only the pre-existing Home tunnel, with no routes; no QA origin, CNAME,
+private route, media, iPhone install or owner enrollment approval was activated.
+
+Zero Trust remains Free (`Teams Free Base`); the account's existing Workers
+Free and R2 Paid subscriptions were unchanged. No new fixed subscription was
+activated. The future external control-window request/traffic and cellular
+cost bound is still **unverified**, so no route may open. A trusted proxy must
+also be qualified for header sanitation, Access-audience validation and
+loopback-only forwarding before that window. Rollback of this preparation is
+limited to deleting only Access application
+`4382f628-c338-4a23-9da0-1490056b83e4` after checking no dependent use;
+the DNS challenge is already gone. Certificate revocation requires a separate
+incident/cleanup decision, not deletion of the existing ACME account.
+Existing signed iPhone build, device-proof core, migrations, PR #235, main,
+Production and Home services remain unchanged; physical proof has not run.
+
 ## 2026-10-24 final physical-enrollment readiness pass (no activation)
 
 The exact-host PersonalTeamQA installation now targets only

@@ -69,9 +69,10 @@
           "Development-only PersonalTeamQA binary signed and macOS trust verified for exact control page; executable SHA-256 b30e69138e9bff8541ae4667abeb948425e42cd216a453078aac82a6436db83c; provisioning expires 2026-10-26T23:14:41Z; not installed",
           "Protected Mac owner-presence binary installed under owner-only Application Support, pinned SHA-256 in device-proof receipt; one owner-approved local presence prompt returned PRESENT without issuing a device approval",
           "Local TypeScript, lint baseline, no-deployment Product build, exact-path PersonalTeamQA configuration and isolated status/transport/boundary tests PASS at 6dbadbea73ba813f2fbc4060d49821f519cf92b0",
-          "Read-only GitHub identity check at 2026-10-24 18:01:43 UTC: account infoganbatuah-ai (ID 287220776) has repository admin; existing GitHub CLI keyring credential authenticated as same ID; /user/public_emails target match YES and verified TRUE; no address list, token, new scope or capability grant"
+          "Read-only GitHub identity check at 2026-10-24 18:01:43 UTC: account infoganbatuah-ai (ID 287220776) has repository admin; existing GitHub CLI keyring credential authenticated as same ID; /user/public_emails target match YES and verified TRUE; no address list, token, new scope or capability grant",
+          "Owner-approved non-public control preflight: one exact-host Let's Encrypt certificate with locally verified chain/key and protected private key; temporary DNS-01 TXT created, propagated and removed; Cloudflare Access application 4382f628-c338-4a23-9da0-1490056b83e4 is private-hostname only with zero policies and no route"
         ],
-        "limits": "Verified GitHub owner identity and Mac presence are not a capability grant. No scoped capability issuance, physical pending request/fingerprint, iPhone installation, exact-host DNS/TLS/Access route, independent immutable audit receipt or HTTPS activation."
+        "limits": "Verified GitHub owner identity and Mac presence are not a capability grant. Exact-host certificate and deny-only Access app are prepared, but no scoped capability issuance, physical pending request/fingerprint, iPhone installation, trusted proxy/edge accounting, independent immutable audit receipt, iPhone TLS proof or HTTPS activation."
       },
       "integration": {
         "status": "NOT_INTEGRATED",
@@ -92,7 +93,7 @@
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "Qualify the exact-host TLS certificate and owner-only Cloudflare Access application without publishing a route; review trusted proxy header sanitation, Access audience validation, edge accounting and total cost. Then request separate owner approval for a 30-minute control-only HTTPS/install window. Only after the real pending request/key exists may the one-use capability and Mac approval be separately authorized. No route, media or Production activation."
+      "nextAction": "The exact-host certificate and deny-only Access app are configured without a route. Qualify trusted proxy header sanitation, Access audience validation, edge accounting and total cost before requesting separate owner approval for a 30-minute control-only HTTPS/install window. Only after a real pending request/key exists may the one-use capability and Mac approval be separately authorized. No route, media or Production activation."
     },
     {
       "id": "backup/active-observer-engine-20260831",
