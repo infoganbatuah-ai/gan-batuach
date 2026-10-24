@@ -11923,9 +11923,9 @@
       },
       "qaDeviceProof20261024": {
         "sourceBranch": "codex/push44-synthetic-external-preparation",
-        "sourceCommit": null,
+        "sourceCommit": "d551304025d721b90b04df18b3eb615ff08d5b6b",
         "pullRequest": 248,
-        "state": "VALIDATED_ON_BRANCH_PENDING_REMOTE_SHA",
+        "state": "VALIDATED_ON_BRANCH_PENDING_EXACT_HEAD_CI",
         "preservation": "DRAFT_PR; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
         "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
         "scope": "PersonalTeamQA Secure Enclave key and isolated one-installation proof core wrapping the existing synthetic media gate; no Cloudflare or Production change",
