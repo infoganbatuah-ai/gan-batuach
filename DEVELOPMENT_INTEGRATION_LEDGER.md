@@ -8,7 +8,8 @@ the existing global admin role over-broad (1,058 of 1,234 RLS policies
 reference `is_admin()`, plus admin routes). A single Auth Admin invitation
 created a passwordless owner Auth record. A later read-only check found email
 confirmation and one Auth session; the owner separately confirmed that the
-invitation led to the Development dashboard on the Mac. Its profile has only
+invitation led to the Gan Batuach parent dashboard on the Mac, **not** Digital
+Observer. This proves local Auth sign-in but not Observer admin access. Its profile has only
 default `parent`, no Garden, no scoped capability
 or one-use device approval. The host owner reader now requires a time-bounded,
 server-controlled exact-purpose/exact-device capability and refuses the global

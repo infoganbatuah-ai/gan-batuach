@@ -6,8 +6,9 @@ Scope: Development only; no store submission, provider activation or Production 
 2026-10-24 owner Development identity — **INVITED, NOT QUALIFIED**. One
 passwordless invitation created in the original isolated LOCAL_SUPABASE;
 initially unconfirmed; a later read-only check found email confirmation and
-one Auth session; the owner confirmed the invitation opened the Development
-dashboard on the Mac. No role beyond
+one Auth session; the owner confirmed the invitation opened the Gan Batuach
+parent dashboard on the Mac, not Digital Observer. This is local Auth sign-in
+only. No role beyond
 an unassigned `parent` profile was granted. No exact-device approval capability
 or one-use enrollment was issued. The previous global-admin requirement was
 replaced by a short-lived, exact-purpose Auth-controlled capability in the

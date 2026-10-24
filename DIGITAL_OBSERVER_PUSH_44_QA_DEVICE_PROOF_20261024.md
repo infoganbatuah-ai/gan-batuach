@@ -12,8 +12,11 @@ Gmail account identifies the same mailbox, but local Supabase uses a **local
 mail catcher** and has email confirmations disabled; invitation creation is
 not proof that the actual mailbox received an email. A later read-only check
 found email confirmation and one Auth session. The owner independently
-confirmed that following the invitation on the Mac opened the Development
-dashboard. This corroborates the owner sign-in, but does not grant the
+confirmed that following the invitation on the Mac opened the Gan Batuach
+**parent** dashboard in Development, not the Digital Observer dashboard. The
+generic callback defaults to the Management product for an unassigned parent
+profile. This corroborates a local Auth sign-in, not Observer administrator
+access, and does not grant the
 single-purpose approval capability or prove a fresh presence ceremony. No device
 privilege follows from a session record alone. The invitation link must
 not be copied into Git, logs, chat, or a report.
