@@ -275,3 +275,12 @@ They do **not** prove a physical Secure Enclave key, authenticated owner action,
 device-bound iOS HLS fetch, second physical device denial or live media. The
 existing native plugin and media gate remain fail-closed until a separately
 approved phone-facing transport and physical qualification window exist.
+
+Owner-scoped follow-up (2026-10-24): read-only original Development checks
+found no Observer Site/membership or scoped capability for the newly confirmed
+owner Auth account. The loopback-only synthetic transport now binds an
+unpredictable pending request ID to the exact public-key fingerprint and
+session before the Mac-only approval can issue a one-use grant. Isolated
+wrong-request, wrong-key, second-key, replay and revoked-session tests pass.
+Independent owner bootstrap, capability issuance, durable Mac helper,
+external control HTTPS and physical iPhone proof remain **NOT PROVEN**.

@@ -11,9 +11,10 @@ const limited = value => typeof value === "string" && value.length <= 2048;
 // Isolated Development control transport. It cannot bind a public interface;
 // importing the module opens no listener. A later iPhone-facing HTTPS route
 // requires a separate approved security review and activation step.
-export function createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress,
+export function createPush44QaDeviceTransport({ proof, requestEnrollment, authenticate, database, trustedIngress,
   now = Date.now } = {}) {
-  if (!proof || typeof authenticate !== "function" || !database) throw new Error("QA_DEVICE_TRANSPORT_ADAPTERS_REQUIRED");
+  if (!proof || typeof requestEnrollment !== "function" || typeof authenticate !== "function" || !database)
+    throw new Error("QA_DEVICE_TRANSPORT_ADAPTERS_REQUIRED");
   if (typeof now !== "function") throw new Error("QA_DEVICE_TRANSPORT_CLOCK_REQUIRED");
   if (trustedIngress && (trustedIngress.hostname !== "qa-iphone-device-proof.ganbatuach.com" ||
     !/^[A-Za-z0-9_-]{43,96}$/.test(trustedIngress.localIngressKey || "") ||
@@ -56,7 +57,7 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database, t
       const declaredLength = request.headers["content-length"];
       if (declaredLength !== undefined && (!/^\d{1,4}$/.test(declaredLength) || Number(declaredLength) > 2048)) deny();
       const path = request.url;
-      if (!["/qa-device/challenge", "/qa-device/enroll", "/qa-device/prove", "/qa-device/revoke"].includes(path)) deny();
+      if (!["/qa-device/request-enrollment", "/qa-device/challenge", "/qa-device/enroll", "/qa-device/prove", "/qa-device/revoke"].includes(path)) deny();
       // The canonical Development adapter validates the actual server-side
       // session, not just the Bearer string or decoded JWT claims.
       const session = await authenticate(request);
@@ -70,6 +71,7 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database, t
       const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
       if (!input || typeof input !== "object" || Array.isArray(input)) deny();
       const allowedFields = {
+        "/qa-device/request-enrollment": ["publicKey"],
         "/qa-device/challenge": ["operation", "publicKey", "method", "path"],
         "/qa-device/enroll": ["publicKey", "challengeId", "signature"],
         "/qa-device/prove": ["challengeId", "signature", "method", "path"],
@@ -79,7 +81,10 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database, t
       const context = request;
       record("STARTED");
       let result;
-      if (path === "/qa-device/challenge") {
+      if (path === "/qa-device/request-enrollment") {
+        if (!limited(input.publicKey)) deny();
+        result = await requestEnrollment({ context, publicKey: input.publicKey });
+      } else if (path === "/qa-device/challenge") {
         if ((input.operation === "ENROLL" && !limited(input.publicKey)) ||
           (input.operation === "ACCESS" && input.publicKey !== undefined) ||
           !limited(input.operation) || !limited(input.method) || !limited(input.path)) deny();
@@ -142,8 +147,10 @@ export function createPush44QaLocalOperator({ database, expectedRuntimeSha,
     readApprovedEnrollment: approvals.readApprovedEnrollment,
     consumeApproval: approvals.consumeApproval,
     authorizeOwnerAction: verifyOwnerAction, now });
-  const transport = createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress, now });
+  const transport = createPush44QaDeviceTransport({ proof, requestEnrollment: approvals.requestEnrollment,
+    authenticate, database, trustedIngress, now });
   return Object.freeze({
+    requestEnrollment: approvals.requestEnrollment,
     authorizeEnrollment: approvals.authorize,
     revokePendingApproval: approvals.revoke,
     ...transport

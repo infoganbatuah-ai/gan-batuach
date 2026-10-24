@@ -38,7 +38,8 @@ function fixture(t) {
     readApprovedEnrollment: approvals.readApprovedEnrollment,
     consumeApproval: approvals.consumeApproval,
     authorizeOwnerAction: async () => permitted, now: () => clock });
-  const transport = createPush44QaDeviceTransport({ proof, database: db, authenticate: async request =>
+  const transport = createPush44QaDeviceTransport({ proof,
+    requestEnrollment: approvals.requestEnrollment, database: db, authenticate: async request =>
     request.headers.authorization === `Bearer ${"synthetic.".repeat(8)}token` ? session() : null });
   t.after(async () => transport.close());
   return { db, first, second, approvals, proof, transport, session,
@@ -46,9 +47,12 @@ function fixture(t) {
     setTenant: value => { tenant = value; }, advance: ms => { clock += ms; } };
 }
 
-const approve = (f, device = f.first) => f.approvals.authorize({ context: {},
-  keyId: qaDeviceKeyId(device.publicKey), purpose: "Approved exact owner QA installation",
-  ownerAction: "host-approved-owner-action" });
+const approve = async (f, device = f.first) => {
+  const pending = await f.approvals.requestEnrollment({ context: {}, publicKey: device.publicKey });
+  return f.approvals.authorize({ context: {}, keyId: qaDeviceKeyId(device.publicKey),
+    enrollmentRequestId: pending.enrollmentRequestId, purpose: "Approved exact owner QA installation",
+    ownerAction: "host-approved-owner-action" });
+};
 
 test("trusted owner action creates one durable 60-second approval; second pending device denied", async t => {
   const f = fixture(t);
@@ -65,6 +69,30 @@ test("trusted owner action creates one durable 60-second approval; second pendin
   assert.equal(await f.approvals.consumeApproval(approved.approvalId), true);
   assert.equal(await f.approvals.consumeApproval(approved.approvalId), false);
   assert.equal(await f.approvals.readApprovedEnrollment(), null);
+});
+
+test("pending installation is session/key bound and an unscoped owner action cannot approve it", async t => {
+  const f = fixture(t);
+  const pending = await f.approvals.requestEnrollment({ context: {}, publicKey: f.first.publicKey });
+  assert.equal((await f.approvals.requestEnrollment({ context: {}, publicKey: f.first.publicKey }))
+    .enrollmentRequestId, pending.enrollmentRequestId);
+  await assert.rejects(f.approvals.requestEnrollment({ context: {}, publicKey: f.second.publicKey }),
+    /QA_ENROLLMENT_APPROVAL_DENIED/);
+  const base = { context: {}, keyId: pending.keyId, enrollmentRequestId: pending.enrollmentRequestId,
+    purpose: "Approve exactly one QA installation", ownerAction: "host-approved-owner-action" };
+  await assert.rejects(f.approvals.authorize({ ...base, enrollmentRequestId: "wrong-installation-request-0001" }),
+    /QA_ENROLLMENT_APPROVAL_DENIED/);
+  await assert.rejects(f.approvals.authorize({ ...base, keyId: qaDeviceKeyId(f.second.publicKey) }),
+    /QA_ENROLLMENT_APPROVAL_DENIED/);
+  await assert.rejects(f.approvals.authorize({ ...base, ownerAction: undefined }),
+    /QA_ENROLLMENT_APPROVAL_DENIED/);
+  f.setSession(false);
+  await assert.rejects(f.approvals.authorize(base), /QA_ENROLLMENT_APPROVAL_DENIED/);
+  f.setSession(true);
+  await f.approvals.authorize(base);
+  await assert.rejects(f.approvals.authorize(base), /QA_ENROLLMENT_APPROVAL_DENIED/);
+  const audit = f.db.prepare("SELECT event FROM push44_qa_enrollment_audit ORDER BY seq").all();
+  assert.deepEqual(audit.map(row => row.event), ["INSTALLATION_REQUESTED", "APPROVAL_ISSUED"]);
 });
 
 test("expiry, wrong tenant, session revocation and owner revocation fail closed", async t => {
@@ -84,7 +112,7 @@ test("expiry, wrong tenant, session revocation and owner revocation fail closed"
 });
 
 test("loopback-only transport completes enrollment/proof; copied token without key and replay denied", async t => {
-  const f = fixture(t); await approve(f);
+  const f = fixture(t);
   const origin = await f.transport.listen();
   const send = async (path, body, headers = {}) => {
     const response = await fetch(`${origin}${path}`, { method: "POST", headers: {
@@ -92,6 +120,12 @@ test("loopback-only transport completes enrollment/proof; copied token without k
       body: JSON.stringify(body) });
     return { status: response.status, body: await response.json() };
   };
+  const pending = await send("/qa-device/request-enrollment", { publicKey: f.first.publicKey });
+  assert.equal(pending.status, 200);
+  assert.equal(pending.body.keyId, qaDeviceKeyId(f.first.publicKey));
+  await f.approvals.authorize({ context: {}, keyId: pending.body.keyId,
+    enrollmentRequestId: pending.body.enrollmentRequestId,
+    purpose: "Approved exact owner QA installation", ownerAction: "host-approved-owner-action" });
   const enrollChallenge = await send("/qa-device/challenge", { operation: "ENROLL", publicKey: f.first.publicKey,
     method: "POST", path: "/qa-device/enroll" });
   assert.equal(enrollChallenge.status, 200);
@@ -174,11 +208,14 @@ test("operator composes canonical LOCAL_SUPABASE session verification and fails 
   t.after(async () => operator.close());
   const context = { headers: { authorization: `Bearer ${token}` } };
   const device = key();
+  const pending = await operator.requestEnrollment({ context, publicKey: device.publicKey });
   ownerPresent = false;
   await assert.rejects(operator.authorizeEnrollment({ context, keyId: qaDeviceKeyId(device.publicKey),
+    enrollmentRequestId: pending.enrollmentRequestId,
     purpose: "Approved exact owner QA installation" }), /QA_OWNER_ACTION_DENIED/);
   ownerPresent = true;
   await operator.authorizeEnrollment({ context, keyId: qaDeviceKeyId(device.publicKey),
+    enrollmentRequestId: pending.enrollmentRequestId,
     purpose: "Approved exact owner QA installation" });
   const origin = await operator.listen();
   const challenge = () => fetch(`${origin}/qa-device/challenge`, { method: "POST",
@@ -206,6 +243,7 @@ test("host action requires owner record and fresh presence, rejects caller asser
       expiresAt }),
     confirmHostPresence: async () => present });
   const action = { context: {}, principal, keyId: "a".repeat(43),
+    enrollmentRequestId: "pending-synthetic-installation-0001",
     purpose: "Approve one synthetic QA installation", operation: "AUTHORIZE_ENROLLMENT" };
   assert.equal(await check(action), true);
   await assert.rejects(check({ ...action, ownerAction: "caller-approved" }), /QA_OWNER_ACTION_DENIED/);
@@ -232,6 +270,8 @@ test("separate Development owner reader uses verified Auth session and denies QA
   let gardenId = null, appRole = "parent", approval = {
     version: 1, ownerId, environment: SYNTHETIC_QA.viewerEnvironment,
     tenantId: SYNTHETIC_QA.tenantId, siteId: SYNTHETIC_QA.siteId,
+    capability: "observer.qa_device_enrollment.approve", keyId: "a".repeat(43),
+    enrollmentRequestId: "pending-synthetic-installation-0001",
     viewerId: SYNTHETIC_QA.viewerId, purpose: "APPROVE_ONE_QA_DEVICE_ENROLLMENT",
     issuedAt: Date.now() - 1000, expiresAt: Date.now() + 60_000 };
   const read = createPush44QaDevelopmentOwnerReader({
@@ -244,39 +284,45 @@ test("separate Development owner reader uses verified Auth session and denies QA
       rpc: async () => ({ data: active, error: null }),
       from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
         data: { id: ownerId, email: profileEmail, role, active: true, garden_id: gardenId }, error: null }) }) }) }) }) });
-  assert.equal((await read()).owner, true);
+  const scope = { keyId: "a".repeat(43), enrollmentRequestId: "pending-synthetic-installation-0001",
+    operation: "AUTHORIZE_ENROLLMENT" };
+  assert.equal((await read(scope)).owner, true);
+  await assert.rejects(read({ ...scope, keyId: "b".repeat(43) }), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read({ ...scope, enrollmentRequestId: "another-installation-request-0001" }), /QA_DEVELOPMENT_OWNER_DENIED/);
   userEmail = "admin@integration.qa.invalid";
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   userEmail = "owner@verified.example"; profileEmail = "admin@integration.qa.invalid";
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   profileEmail = userEmail; confirmed = false;
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   confirmed = true;
-  role = "admin"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
-  role = "parent"; appRole = "admin"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  role = "admin"; await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
+  role = "parent"; appRole = "admin"; await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   appRole = "parent"; gardenId = SYNTHETIC_QA.siteId;
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   gardenId = null; approval = null;
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   approval = { version: 1, ownerId, environment: SYNTHETIC_QA.viewerEnvironment,
     tenantId: SYNTHETIC_QA.tenantId, siteId: SYNTHETIC_QA.siteId,
+    capability: "observer.qa_device_enrollment.approve", keyId: scope.keyId,
+    enrollmentRequestId: scope.enrollmentRequestId,
     viewerId: SYNTHETIC_QA.viewerId, purpose: "APPROVE_ONE_QA_DEVICE_ENROLLMENT",
     issuedAt: Date.now() - 120_000, expiresAt: Date.now() - 60_000 };
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   approval.expiresAt = Date.now() + 60_000;
   approval.tenantId = "wrong-tenant";
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   approval.tenantId = SYNTHETIC_QA.tenantId; approval.siteId = "wrong-site";
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   approval.siteId = SYNTHETIC_QA.siteId; approval.viewerId = "wrong-device";
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   approval.viewerId = SYNTHETIC_QA.viewerId;
   approval.issuedAt = Date.now() - 31 * 60_000;
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   approval.issuedAt = Date.now() - 1000;
-  active = false; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  active = false; await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   active = true; userId = SYNTHETIC_QA.viewerId;
-  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  await assert.rejects(read(scope), /QA_DEVELOPMENT_OWNER_DENIED/);
   assert.throws(() => createPush44QaDevelopmentOwnerReader({ supabaseUrl: "https://kuaywzvucllxjsxarogb.supabase.co/",
     publishableKey: "local-publishable-key-for-synthetic-test", expectedOwnerProfileId: ownerId,
     expectedOwnerEmail: "owner@verified.example",
@@ -296,11 +342,13 @@ test("prepared HTTPS ingress requires exact host, TLS assertion and private orig
   const localIngressKey = "k".repeat(43);
   let clock = Date.now();
   const expiresAt = clock + 30 * 60_000;
-  assert.throws(() => createPush44QaDeviceTransport({ proof: f.proof, database: f.db,
+  assert.throws(() => createPush44QaDeviceTransport({ proof: f.proof,
+    requestEnrollment: f.approvals.requestEnrollment, database: f.db,
     authenticate: async () => f.session(), trustedIngress: {
       hostname: "qa-iphone-other.ganbatuach.com", localIngressKey, expiresAt } }),
   /QA_DEVICE_INGRESS_CONFIG_DENIED/);
-  const edge = createPush44QaDeviceTransport({ proof: f.proof, database: f.db,
+  const edge = createPush44QaDeviceTransport({ proof: f.proof,
+    requestEnrollment: f.approvals.requestEnrollment, database: f.db,
     authenticate: async request => request.headers.authorization === `Bearer ${"synthetic.".repeat(8)}token`
       ? f.session() : null,
     trustedIngress: { hostname, localIngressKey, expiresAt }, now: () => clock });

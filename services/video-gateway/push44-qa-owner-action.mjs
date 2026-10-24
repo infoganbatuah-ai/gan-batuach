@@ -43,16 +43,17 @@ export function createPush44QaOwnerAction({ expectedOwnerProfileId, readOwnerAut
     ![readOwnerAuthorization, confirmHostPresence, now].every(fn => typeof fn === "function"))
     throw new Error("QA_OWNER_ACTION_ADAPTERS_REQUIRED");
   let pending = false;
-  return async ({ context, principal, keyId, purpose, operation, ownerAction }) => {
+  return async ({ context, principal, keyId, enrollmentRequestId, purpose, operation, ownerAction }) => {
     if (pending || ownerAction !== undefined || !["AUTHORIZE_ENROLLMENT", "REVOKE_APPROVAL", "REVOKE"].includes(operation) ||
       principal?.verified !== true || principal.active !== true ||
       principal.environment !== SYNTHETIC_QA.viewerEnvironment || principal.viewerId !== SYNTHETIC_QA.viewerId ||
       typeof principal.sessionId !== "string" || principal.sessionId.length < 16 ||
       typeof purpose !== "string" || purpose.trim().length < 12 || purpose.length > 256 ||
-      (operation !== "REVOKE_APPROVAL" && !keyPattern.test(keyId || ""))) deny();
+      (operation !== "REVOKE_APPROVAL" && !keyPattern.test(keyId || "")) ||
+      (operation === "AUTHORIZE_ENROLLMENT" && !/^[A-Za-z0-9_-]{16,96}$/.test(enrollmentRequestId || ""))) deny();
     pending = true;
     try {
-      const owner = await readOwnerAuthorization({ context, principal });
+      const owner = await readOwnerAuthorization({ context, principal, keyId, enrollmentRequestId, operation });
       if (owner?.verified !== true || owner.active !== true || owner.owner !== true ||
         owner.environment !== SYNTHETIC_QA.viewerEnvironment ||
         owner.profileId !== expectedOwnerProfileId || owner.profileId === principal.viewerId ||
@@ -64,9 +65,9 @@ export function createPush44QaOwnerAction({ expectedOwnerProfileId, readOwnerAut
       // No reusable approval token is returned. The existing durable store
       // creates and consumes the one-use, key-bound approval after this step.
       const present = await confirmHostPresence({ operation, purpose,
-        keyId: keyId || null, profileId: owner.profileId });
+        keyId: keyId || null, enrollmentRequestId: enrollmentRequestId || null, profileId: owner.profileId });
       if (present !== true) deny();
-      const latest = await readOwnerAuthorization({ context, principal });
+      const latest = await readOwnerAuthorization({ context, principal, keyId, enrollmentRequestId, operation });
       if (latest?.verified !== true || latest.active !== true || latest.owner !== true ||
         latest.profileId !== owner.profileId || latest.sessionId !== owner.sessionId ||
         latest.tenantId !== owner.tenantId || latest.siteId !== owner.siteId ||

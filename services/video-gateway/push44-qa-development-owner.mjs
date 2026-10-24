@@ -23,8 +23,14 @@ export function createPush44QaDevelopmentOwnerReader({ supabaseUrl, publishableK
     expectedOwnerEmail.endsWith(".invalid") ||
     typeof publishableKey !== "string" || publishableKey.length < 20 ||
     ![readOwnerToken, clientFactory, now].every(fn => typeof fn === "function")) deny();
-  return async () => {
+  return async ({ keyId, enrollmentRequestId, operation } = {}) => {
     try {
+      // The operator must present the exact pending installation and key. A
+      // general owner session, email, or unscoped capability is insufficient.
+      if (!["AUTHORIZE_ENROLLMENT", "REVOKE_APPROVAL", "REVOKE"].includes(operation) ||
+        (operation !== "REVOKE_APPROVAL" && !/^[A-Za-z0-9_-]{43}$/.test(keyId || "")) ||
+        (operation === "AUTHORIZE_ENROLLMENT" &&
+          !/^[A-Za-z0-9_-]{16,96}$/.test(enrollmentRequestId || ""))) deny();
       const token = await readOwnerToken();
       if (typeof token !== "string" || token.length < 32 || token.length > 8192) deny();
       const client = clientFactory(supabaseUrl, publishableKey, {
@@ -41,6 +47,10 @@ export function createPush44QaDevelopmentOwnerReader({ supabaseUrl, publishableK
         approval.tenantId !== SYNTHETIC_QA.tenantId ||
         approval.siteId !== SYNTHETIC_QA.siteId ||
         approval.viewerId !== SYNTHETIC_QA.viewerId ||
+        approval.capability !== "observer.qa_device_enrollment.approve" ||
+        (operation !== "REVOKE_APPROVAL" && approval.keyId !== keyId) ||
+        (operation === "AUTHORIZE_ENROLLMENT" &&
+          approval.enrollmentRequestId !== enrollmentRequestId) ||
         approval.purpose !== "APPROVE_ONE_QA_DEVICE_ENROLLMENT" ||
         !Number.isSafeInteger(approval.issuedAt) ||
         !Number.isSafeInteger(approval.expiresAt) ||

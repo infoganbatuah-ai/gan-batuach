@@ -1,5 +1,42 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## Owner-scoped enrollment boundary — 2026-10-24 (not activated)
+
+The original `LOCAL_SUPABASE` was checked read-only after the owner signed in:
+one exact owner Auth record exists, but the profile remains an unassigned
+Gan Batuach `parent`; it owns zero Observer Sites, has zero active Observer
+memberships, and has no `push44_qa_enrollment_approver` capability. The
+synthetic QA Site is not a database Site record. Consequently neither parent
+login, email confirmation, Mac unlock, nor the synthetic admin fixture is an
+independent Observer ownership/bootstrap anchor. **No capability or device
+approval was issued.** No Management role, global `admin`, RLS, or Production
+record was changed.
+
+The isolated Development transport now accepts an authenticated
+`/qa-device/request-enrollment` request containing only a P-256 public key.
+It records one pending installation with an unpredictable request ID, exact
+public-key SHA-256 fingerprint, canonical QA session and five-minute expiry.
+A second key/session cannot replace the active pending request. The host-only
+approval operation requires that exact pending ID and key, a fresh separate
+owner session with server-held `observer.qa_device_enrollment.approve`
+capability pinned to the same ID/key/tenant/Site/viewer, and fresh Mac owner
+presence. It rechecks the pending row atomically before issuing the existing
+60-second, single-use approval. No HTTP route issues approval; no service-role
+key enters the Mac helper or phone. The new route is **not externally active**.
+Its isolated tests do not prove a physical iPhone or legitimate capability
+provisioning.
+
+Required bootstrap before any grant: the owner must separately authorize the
+exact one-request Development capability after the pending iPhone installation
+ID and public-key fingerprint exist. A trusted operator must independently
+verify project-owner control through an existing project-owned administration
+identity (not this parent login, a fixture, or email string alone), confirm the
+exact LOCAL_SUPABASE Auth ID and current session, obtain fresh macOS owner
+presence, and record an auditable, expiring Auth-admin metadata update with
+revocation. If that independent authority cannot be established, issuance
+remains blocked. The owner must not approve an unobserved or arbitrary key.
+The protected Mac helper and private HTTPS transport remain separate gates.
+
 ## Owner Development Auth invitation and least-privilege correction — 2026-10-24
 
 The original `LOCAL_SUPABASE` project had no Auth user or profile for the
