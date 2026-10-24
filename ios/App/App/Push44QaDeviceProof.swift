@@ -39,6 +39,8 @@ public class Push44QaDeviceProofPlugin: CAPPlugin, CAPBridgedPlugin {
               configured.scheme == "https", current.scheme == "https",
               let host = configured.host, current.host == host,
               host == "qa-iphone-device-proof.ganbatuach.com",
+              configured.path == "/digital-observer/qa-device-enrollment",
+              current.path == configured.path,
               configured.port == nil, current.port == nil else { return false }
         return true
     }

@@ -175,6 +175,7 @@
     { "name": "push42-external-api-security", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
     { "name": "push43-partner-isolation", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
     { "name": "push44-mobile-authorization", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
+    { "name": "push44-qa-control-boundary", "args": ["--experimental-strip-types", "--test", "scripts/qa/check-push44-qa-control-boundary.mjs"] },
     { "name": "push44-bounded-owner-qa-ingress", "args": ["scripts/qa/check-push44-owner-qa-ingress.mjs"] },
     { "name": "push45-privacy-compliance-security", "args": ["scripts/qa/check-digital-observer-push45.mjs"] }
   ]

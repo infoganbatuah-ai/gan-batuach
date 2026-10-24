@@ -1,5 +1,82 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-24 final physical-enrollment readiness pass (no activation)
+
+The exact-host PersonalTeamQA installation now targets only
+`https://qa-iphone-device-proof.ganbatuach.com/digital-observer/qa-device-enrollment`.
+The native bridge checks both the hostname and that exact path before creating
+or using its Secure Enclave key. The Development-only page requires the fixed
+QA viewer's current authenticated session, presents the random pending request
+ID and public-key fingerprint, and never contains an approval action. It
+supports pending, approved, denied and expired status; approval completion
+uses the existing one-use challenge/signature core. The status read is scoped
+server-side to the exact key, request ID and canonical session. Isolated tests
+confirm wrong-key/request denial, expiry, revocation, replay, tenant/Site and
+session denial; none is physical-iPhone proof.
+
+The native login retains HttpOnly Supabase cookies. A new inert-by-default
+server-side control bridge revalidates the exact QA viewer, reads the session
+token only on the local server, forwards only four named operations to the
+loopback operator and never returns a token to JavaScript. Its guards require
+the exact HTTPS Host/Origin/forwarded protocol, an owner-protected proxy key,
+`LOCAL_SUPABASE` on `127.0.0.1`, a loopback-only operator URL, an absolute
+deadline no more than 30 minutes away, 2,048-byte bodies and explicit
+`PUSH44_QA_CONTROL_ONLY=1`. It fails closed on Vercel or missing configuration.
+Two deterministic boundary tests deny host/origin spoofing, insecure forwarding,
+wrong proxy key, non-loopback backends and expired or overlong windows.
+No media/admin route exists in this bridge. A future trusted proxy must remove
+client-supplied forwarding/proxy-key headers before injecting its own and must
+validate Cloudflare Access's exact application audience; this proxy and Access
+application are **not** active or qualified yet. The local control transport
+still enforces its durable 1,000-attempt ceiling; edge-denied traffic is not
+covered by that ceiling.
+
+The reviewed macOS presence helper was compiled to an owner-only directory
+under `~/Library/Application Support/DigitalObserver/Push44Qa/` on the internal
+Mac (not Kingston's `noowners` volume), with directory mode `0700`, binary
+mode `0700`, owner UID and pinned SHA-256
+`13fe7419e282a04516e72f2a55f0a4a351975c20de5c9591b86ab4c239759283`.
+The owner approved one fresh macOS presence prompt and the helper returned
+`PRESENT`. This verifies the local presence mechanism, **not** a current
+Development owner approval session, scoped bootstrap capability, real pending
+device request, or one-use device approval. No such grant was issued. The
+existing SQLite hash-chain audit is tamper-evident within host custody, not an
+independently immutable off-host receipt; immutable receipt qualification
+remains open before live enrollment.
+
+The QA hostname still returns public DNS `NXDOMAIN` on the read-only lookup. The
+Cloudflare account/zone and Free plan were previously verified, but there is
+no exact-host Access application, DNS route or hostname-specific publicly
+trusted TLS certificate. The earlier Let's Encrypt certificate covers the
+different synthetic-media hostname. [Cloudflare's current self-hosted app
+guide](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/)
+requires an Access policy before publishing a Tunnel route and origin token
+validation. Its Free plan has a $0 fixed seat price under 50 users, but a
+complete account-specific request/traffic/cellular cost bound and edge limits
+are **not verified**, so no external route may be opened. Only control
+requests are proposed; video remains expressly excluded by provider terms
+and this owner's approval.
+
+A new non-installed PersonalTeamQA device build on Kingston targets the exact
+page above and passed macOS designated-requirement verification. It has bundle
+ID `com.ganbatuach.app.qa`, no APNs entitlement, no bootstrap token and no
+Production URL. Its executable SHA-256 is
+`b30e69138e9bff8541ae4667abeb948425e42cd216a453078aac82a6436db83c`.
+The previous signed build remains preserved; this one has **not** been
+installed or tested on the physical iPhone. Its Personal Team provisioning
+profile expires **2026-10-26 23:14:41 UTC**; a later owner-approved window
+must check validity and rebuild if necessary. No DNS, Access, Tunnel, Supabase
+role/data, Home, media or Production mutation occurred in this pass.
+
+Next technical gate before requesting a live control window: qualify the
+exact-host certificate and owner-only Access application **without publishing
+the route**, then test the trusted local proxy's header sanitation, Access
+audience validation and edge accounting in isolation. Only after those gates
+and a verified cost bound should the owner be asked to approve one 30-minute
+control-only window, one signed-app installation and one exact-key bootstrap
+ceremony; the owner approval must occur after the physical pending request
+exists. No broad administrative privilege is needed.
+
 ## Exact physical enrollment-request preparation — 2026-10-24
 
 This continuation reuses the existing verified GitHub owner-identity receipt

@@ -296,3 +296,12 @@ session before the Mac-only approval can issue a one-use grant. Isolated
 wrong-request, wrong-key, second-key, replay and revoked-session tests pass.
 Independent owner bootstrap, capability issuance, durable Mac helper,
 external control HTTPS and physical iPhone proof remain **NOT PROVEN**.
+
+Readiness update (2026-10-24): the exact-path Development-only enrollment
+screen and server-side HttpOnly-session handoff now exist on PR #248. A new
+PersonalTeamQA build was signed and verified on the Mac but **not installed**;
+its executable SHA-256 and path are in the device-proof receipt. The owner
+approved a fresh Mac owner-presence test, which returned PRESENT from the
+protected helper; this is a Mac control test, **not** iPhone Secure Enclave,
+enrollment, owner capability or media proof. The control hostname has no live
+DNS/TLS/Access route. All physical-iPhone enrollment fields remain NOT RUN.

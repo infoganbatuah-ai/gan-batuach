@@ -39,7 +39,8 @@ function fixture(t) {
     consumeApproval: approvals.consumeApproval,
     authorizeOwnerAction: async () => permitted, now: () => clock });
   const transport = createPush44QaDeviceTransport({ proof,
-    requestEnrollment: approvals.requestEnrollment, database: db, authenticate: async request =>
+    requestEnrollment: approvals.requestEnrollment, readRequestStatus: approvals.readRequestStatus,
+    database: db, authenticate: async request =>
     request.headers.authorization === `Bearer ${"synthetic.".repeat(8)}token` ? session() : null });
   t.after(async () => transport.close());
   return { db, first, second, approvals, proof, transport, session,
@@ -111,6 +112,27 @@ test("expiry, wrong tenant, session revocation and owner revocation fail closed"
   assert.equal(await f.approvals.readApprovedEnrollment(), null);
 });
 
+test("status is exact-request scoped and distinguishes expiry and revocation without verifier disclosure", async t => {
+  const f = fixture(t);
+  const pending = await f.approvals.requestEnrollment({ context: {}, publicKey: f.first.publicKey });
+  const input = { context: {}, publicKey: f.first.publicKey,
+    enrollmentRequestId: pending.enrollmentRequestId };
+  assert.equal((await f.approvals.readRequestStatus(input)).status, "PENDING");
+  await assert.rejects(f.approvals.readRequestStatus({ ...input, publicKey: f.second.publicKey }),
+    /QA_ENROLLMENT_APPROVAL_DENIED/);
+  await f.approvals.authorize({ context: {}, keyId: pending.keyId,
+    enrollmentRequestId: pending.enrollmentRequestId,
+    purpose: "Approve exactly one QA installation", ownerAction: "host-approved-owner-action" });
+  assert.equal((await f.approvals.readRequestStatus(input)).status, "APPROVED");
+  await f.approvals.revoke({ context: {}, purpose: "Owner revokes pending enrollment",
+    ownerAction: "host-approved-owner-action" });
+  assert.equal((await f.approvals.readRequestStatus(input)).status, "DENIED");
+  f.advance(300_001);
+  assert.equal((await f.approvals.readRequestStatus(input)).status, "EXPIRED");
+  const output = JSON.stringify(f.db.prepare("SELECT * FROM push44_qa_enrollment_audit").all());
+  assert(!output.includes(f.first.publicKey));
+});
+
 test("loopback-only transport completes enrollment/proof; copied token without key and replay denied", async t => {
   const f = fixture(t);
   const origin = await f.transport.listen();
@@ -123,15 +145,24 @@ test("loopback-only transport completes enrollment/proof; copied token without k
   const pending = await send("/qa-device/request-enrollment", { publicKey: f.first.publicKey });
   assert.equal(pending.status, 200);
   assert.equal(pending.body.keyId, qaDeviceKeyId(f.first.publicKey));
+  const statusInput = { publicKey: f.first.publicKey, enrollmentRequestId: pending.body.enrollmentRequestId };
+  assert.equal((await send("/qa-device/status", statusInput)).body.status, "PENDING");
+  assert.equal((await send("/qa-device/status", { ...statusInput, publicKey: f.second.publicKey })).status, 403);
+  assert.equal((await send("/qa-device/status", { ...statusInput, enrollmentRequestId: "wrong-request-identifier-0001" })).status, 403);
   await f.approvals.authorize({ context: {}, keyId: pending.body.keyId,
     enrollmentRequestId: pending.body.enrollmentRequestId,
     purpose: "Approved exact owner QA installation", ownerAction: "host-approved-owner-action" });
+  assert.equal((await send("/qa-device/status", statusInput)).body.status, "APPROVED");
   const enrollChallenge = await send("/qa-device/challenge", { operation: "ENROLL", publicKey: f.first.publicKey,
     method: "POST", path: "/qa-device/enroll" });
   assert.equal(enrollChallenge.status, 200);
   const enrolled = await send("/qa-device/enroll", { publicKey: f.first.publicKey,
     challengeId: enrollChallenge.body.challengeId, signature: f.first.sign(enrollChallenge.body.payload) });
   assert.equal(enrolled.status, 200);
+  assert.equal((await send("/qa-device/status", statusInput)).body.status, "ENROLLED");
+  f.setSession(false);
+  assert.equal((await send("/qa-device/status", statusInput)).status, 403);
+  f.setSession(true);
   assert.equal((await send("/qa-device/enroll", { publicKey: f.first.publicKey,
     challengeId: enrollChallenge.body.challengeId, signature: f.first.sign(enrollChallenge.body.payload) })).status, 403);
   const challenge = await send("/qa-device/challenge", { operation: "ACCESS", method: "GET", path: "/ch1/index.m3u8" });
@@ -343,12 +374,14 @@ test("prepared HTTPS ingress requires exact host, TLS assertion and private orig
   let clock = Date.now();
   const expiresAt = clock + 30 * 60_000;
   assert.throws(() => createPush44QaDeviceTransport({ proof: f.proof,
-    requestEnrollment: f.approvals.requestEnrollment, database: f.db,
+    requestEnrollment: f.approvals.requestEnrollment, readRequestStatus: f.approvals.readRequestStatus,
+    database: f.db,
     authenticate: async () => f.session(), trustedIngress: {
       hostname: "qa-iphone-other.ganbatuach.com", localIngressKey, expiresAt } }),
   /QA_DEVICE_INGRESS_CONFIG_DENIED/);
   const edge = createPush44QaDeviceTransport({ proof: f.proof,
-    requestEnrollment: f.approvals.requestEnrollment, database: f.db,
+    requestEnrollment: f.approvals.requestEnrollment, readRequestStatus: f.approvals.readRequestStatus,
+    database: f.db,
     authenticate: async request => request.headers.authorization === `Bearer ${"synthetic.".repeat(8)}token`
       ? f.session() : null,
     trustedIngress: { hostname, localIngressKey, expiresAt }, now: () => clock });

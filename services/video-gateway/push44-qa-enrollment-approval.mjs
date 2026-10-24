@@ -51,10 +51,16 @@ export function createPush44QaEnrollmentApproval({ database, authenticate,
     return transaction(() => {
       const current = database.prepare("SELECT * FROM push44_qa_pending_installation WHERE id=1").get();
       const existingApproval = row();
-      if (current && current.expires_at > now() && current.approved_at === null) {
+      if (current && current.expires_at > now()) {
         if (current.key_id !== keyId || current.session_id !== p.sessionId) deny();
-        return { enrollmentRequestId: current.request_id, keyId, expiresAt: current.expires_at };
+        if (current.approved_at === null || (existingApproval &&
+          existingApproval.key_id === keyId && existingApproval.session_id === p.sessionId &&
+          existingApproval.revoked_at === null && existingApproval.consumed_at === null &&
+          existingApproval.expires_at > now()))
+          return { enrollmentRequestId: current.request_id, keyId, expiresAt: current.expires_at };
       }
+      const activeBinding = database.prepare("SELECT key_id,session_id,expires_at,revoked_at FROM push44_qa_binding WHERE id=1").get();
+      if (activeBinding && activeBinding.revoked_at === null && activeBinding.expires_at > now()) deny();
       if (existingApproval && existingApproval.expires_at > now() &&
         existingApproval.consumed_at === null && existingApproval.revoked_at === null) deny();
       const requestId = randomBytes(24).toString("base64url");
@@ -64,6 +70,29 @@ export function createPush44QaEnrollmentApproval({ database, authenticate,
       audit("INSTALLATION_REQUESTED", keyId);
       return { enrollmentRequestId: requestId, keyId, expiresAt };
     });
+  }
+  async function readRequestStatus({ context, publicKey, enrollmentRequestId }) {
+    const p = await principal(context);
+    const keyId = qaDeviceKeyId(publicKey);
+    if (!validId(enrollmentRequestId)) deny();
+    const pending = database.prepare("SELECT * FROM push44_qa_pending_installation WHERE id=1").get();
+    if (!pending || pending.request_id !== enrollmentRequestId ||
+      pending.key_id !== keyId || pending.session_id !== p.sessionId) deny();
+    const current = row();
+    let status = "PENDING";
+    if (pending.expires_at <= now()) status = "EXPIRED";
+    else if (pending.approved_at !== null) {
+      if (current?.key_id !== keyId || current.session_id !== p.sessionId ||
+        current.revoked_at !== null) status = "DENIED";
+      else if (current.expires_at <= now()) status = "EXPIRED";
+      else if (current.consumed_at !== null) {
+        const binding = database.prepare("SELECT key_id,session_id,expires_at,revoked_at FROM push44_qa_binding WHERE id=1").get();
+        status = binding?.key_id === keyId && binding.session_id === p.sessionId &&
+          binding.revoked_at === null && binding.expires_at > now() ? "ENROLLED" : "DENIED";
+      }
+      else status = "APPROVED";
+    }
+    return { enrollmentRequestId, keyId, status, expiresAt: pending.expires_at };
   }
   async function authorize({ context, keyId, enrollmentRequestId, purpose, ownerAction }) {
     const p = await principal(context);
@@ -124,5 +153,5 @@ export function createPush44QaEnrollmentApproval({ database, authenticate,
       return { revoked: true };
     });
   }
-  return Object.freeze({ requestEnrollment, authorize, readApprovedEnrollment, consumeApproval, revoke });
+  return Object.freeze({ requestEnrollment, readRequestStatus, authorize, readApprovedEnrollment, consumeApproval, revoke });
 }

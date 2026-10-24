@@ -5,6 +5,7 @@ if (!templatePath || !outputPath || !rawUrl) throw new Error("QA config template
 const qaHost = process.env.PUSH44_QA_HOST;
 const tokenFile = process.env.PUSH44_QA_TOKEN_FILE;
 const controlOnly = process.env.PUSH44_QA_CONTROL_ONLY === "1";
+const controlPath = "/digital-observer/qa-device-enrollment";
 if (process.env.PUSH44_QA_CONTROL_ONLY && !controlOnly) throw new Error("Unknown QA build mode");
 if (!qaHost || !/^qa-iphone-[a-z0-9-]+\.ganbatuach\.com$/.test(qaHost)) {
   throw new Error("One scoped QA hostname is required");
@@ -22,7 +23,7 @@ if (config.appId !== "com.ganbatuach.app.qa" || !Array.isArray(config.packageCla
 let target;
 if (controlOnly) {
   if (qaHost !== "qa-iphone-device-proof.ganbatuach.com" ||
-    rawUrl !== `https://${qaHost}/` || tokenFile) {
+    rawUrl !== `https://${qaHost}${controlPath}` || tokenFile) {
     throw new Error("Control-only QA requires the exact origin and no bootstrap token");
   }
   target = rawUrl;
