@@ -20,7 +20,7 @@ export function createPush44QaMacOwnerPresence({ helperPath, expectedSha256 } = 
     try {
       const path = realpathSync(helperPath);
       const file = statSync(path), directory = statSync(dirname(path));
-      if (path.startsWith("/Volumes/DIGITAL_OBSERVER/") || !file.isFile() ||
+      if (path.startsWith("/Volumes/") || !file.isFile() ||
         file.uid !== process.getuid() || directory.uid !== process.getuid() ||
         (file.mode & 0o077) !== 0 || (directory.mode & 0o077) !== 0 ||
         createHash("sha256").update(readFileSync(path)).digest("hex") !== expectedSha256) return false;
