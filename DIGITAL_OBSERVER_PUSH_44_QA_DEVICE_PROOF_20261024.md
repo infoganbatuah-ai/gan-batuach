@@ -19,6 +19,10 @@ policy, route or DNS record was made. The new public application's AUD must be
 read from its actual configuration before startup; the verifier now rejects a
 missing AUD rather than silently using the current private app's AUD. Live
 assertion delivery remains **unproven**.
+In this candidate, the iPhone would validate Cloudflare's *edge* TLS
+certificate; the previously issued exact-host Let's Encrypt certificate is
+protected but is not automatically installed at that edge or exercised by a
+Unix-socket origin. Real device TLS remains unproven.
 
 The local control ingress is now Unix-socket-only: it requires a fresh
 `control.sock` beneath an owner-owned `0700` real directory, applies socket
@@ -33,6 +37,11 @@ not admit HLS, media, Home or Production routes. The signed iPhone control UI
 still needs a separately reviewed same-origin login/page/assets path; this
 single-API socket is **not yet a usable physical-iPhone transport**. See
 [Tunnel routing](https://developers.cloudflare.com/tunnel/concepts/routing/).
+The local Next bridge checks the reconstructed HTTPS request URL even though
+the current upstream hop is loopback HTTP; an actual local proxy-to-Next
+request must prove those forwarded URL semantics before calling the bridge
+operational. Isolated constructed `Request` tests do not establish that
+integration.
 
 **Edge limitations:** Cloudflare Free documents only one zone rate-limiting
 rule, with Path/Verified-Bot matching and IP counting over 10 seconds; Host
