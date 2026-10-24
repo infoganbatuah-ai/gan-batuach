@@ -1,5 +1,78 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-25 Access-to-native return decision — local-only handoff
+
+Branch `codex/push44-synthetic-external-preparation` remained at
+`2cac671b9c2385ccd136d414f3742c7b666636e2` during this read-only
+qualification; `origin/integration/development` was
+`f3401b181954b800e8e0f26702642ea18dba7e2a`. The previously verified
+real Next.js + original LOCAL_SUPABASE login, scoped cookies, assets and
+enrollment-page result below remains local evidence. It is not Access login
+or physical-iPhone evidence. No new code, provider setting, database row,
+enrollment approval, public route or signed app was changed by this pass.
+
+The live Cloudflare One dashboard for project account
+`693f824a750afcc264fe6ee58c8a86ab` showed **Zero Trust Free** and the
+existing `Digital Observer PUSH44 control QA deny-only` application at the
+exact control hostname. Its destination is still a **private hostname**;
+there are **no associated Access policies**, and Managed OAuth is visible as
+a **Beta** switch but **Off**. This only proves that the switch is displayed
+in this account; it does not prove entitlement for the proposed native flow,
+compatibility with that private-hostname destination, cost, or successful
+token/JWT delivery. No setting was saved. The other synthetic-media Access
+application was not touched.
+
+The supported browser-cookie contract blocks a callback-only fix:
+[Cloudflare documents](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/)
+that every protected HTTP request needs a valid application-domain
+`CF_Authorization` cookie. `ASWebAuthenticationSession` returning to the
+native app does not transfer its cookie into Capacitor's `WKWebView`.
+Accordingly, a successful callback would not authorize the next HTML,
+JavaScript, enrollment API or status request. Do **not** copy the cookie or
+Access JWT into the WebView, put it in a URL, or add an Access-exempt token
+redemption endpoint.
+
+Comparison of the three supported candidates:
+
+1. **Managed OAuth + native control client (preferred candidate, not
+   qualified).** [Cloudflare's Managed OAuth documentation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/managed-oauth/)
+   provides a browser authorization-code path for non-browser clients and
+   bearer authentication on *subsequent* protected requests, while the origin
+   still receives the signed Access assertion. It requires an RFC 8707
+   resource-aware client, an exact HTTPS redirect allowlist, native PKCE/state
+   and callback validation, short token lifetime, Keychain custody, and
+   native `URLSession` requests carrying the bearer token. The existing
+   Capacitor remote-Next/WKWebView page and its assets cannot automatically
+   use that native bearer token. A bundled local QA control view using native
+   requests to the already existing control API would therefore be a separate
+   adapter, *not* a general identity replacement. Cloudflare enablement,
+   public self-hosted routing compatibility and the OAuth callback are not
+   authorized or proven; no adapter was added on assumptions about them.
+2. **HTTPS Universal Link alone:** the current signed PersonalTeamQA binary
+   has no Associated Domains entitlement or AASA installation proof. Even
+   with those, the link only returns control to the app; it does not solve
+   the WebView Access-cookie boundary. It could serve as the exact OAuth
+   redirect for a future native client only after Apple signing and real
+   device qualification. No broad custom-scheme fallback is accepted.
+3. **Server-mediated handoff:** a one-use code would still require a
+   separately reachable, authenticated redemption endpoint and a supported
+   way to authorize subsequent WebView requests at Cloudflare. Exempting a
+   route from Access or minting an Access cookie is a new edge trust boundary,
+   not provided by the current private-hostname application. Reject for this
+   QA scope unless Cloudflare documents and the owner approves an exact
+   fail-closed contract.
+
+**Decision:** Access-to-app return is BLOCKED, not locally PASS. The narrow
+next technical step is a Development-only native-control adapter proof using
+Managed OAuth's documented token/resource contract and existing Supabase
+session/device-proof API, *after* confirming exact-host OAuth eligibility,
+redirect support, JWT delivery and bounded provider cost for this account.
+The current signed package is not fit for that flow and its provisioning
+expires `2026-10-26T23:14:41Z`; a new signed build and iPhone test would be
+separate gates. Until then keep Cloudflare default-deny, external HTTPS off,
+media off and PR #248 Draft. This local-only handoff has not been pushed or
+integrated and is **PRESERVED_PENDING_INTEGRATION**, not completed/CI-pass.
+
 ## 2026-10-24 actual local Next/Auth control-path qualification — no external activation
 
 Ran `scripts/qa/check-push44-real-local-control.mjs` with the original `gbi`
