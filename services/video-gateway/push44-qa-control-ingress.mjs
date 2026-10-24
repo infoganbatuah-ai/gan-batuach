@@ -136,7 +136,7 @@ function permitted(request, route) {
       headers.origin === `https://${CONTROL_HOST}` &&
       headers["content-type"] === (route.kind === "control" ? "application/json" : "application/x-www-form-urlencoded")
       : (!headers.origin || headers.origin === `https://${CONTROL_HOST}`) &&
-        !headers["content-type"] && !headers["content-length"]) &&
+        !headers["content-type"] && !headers["content-length"] && !headers["transfer-encoding"]) &&
     headers.host === CONTROL_HOST &&
     headers["x-forwarded-proto"] === "https" &&
     !headers.forwarded && !headers["x-forwarded-host"] &&
@@ -254,7 +254,7 @@ export function createPush44QaControlIngress({ proxyKey, socketPath, ledger, dea
       if (request.method === "POST") headers["content-type"] = request.headers["content-type"];
       else delete headers.origin;
       const cookie = developmentCookies(request.headers.cookie);
-      if (cookie) headers.cookie = cookie;
+      if (cookie && route.kind !== "asset") headers.cookie = cookie;
       const remainingMs = deadline - now();
       if (remainingMs <= 0) return deny(response, 410);
       const upstream = await fetcher(`http://127.0.0.1:3001${route.path}`, { method: request.method, headers, body,

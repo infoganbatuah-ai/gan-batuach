@@ -262,6 +262,7 @@ test("exact login, page and static assets pass through while cookies and redirec
   const asset = await call(url, jwt, { path: "/_next/static/chunks/app_test.js" });
   assert.equal(asset.status, 200);
   assert.match(asset.body, /synthetic/);
+  assert.equal(calls[1].init.headers.cookie, undefined, "static assets do not receive session cookies");
   const form = "email=owner-iphone%40integration.qa.invalid&password=not-a-real-password&auth_source=observer&next=%2Fdigital-observer%2Fqa-device-enrollment";
   const login = await call(url, jwt, { method: "POST", path: "/api/digital-observer/auth/login", body: form });
   assert.equal(login.status, 303);
@@ -271,6 +272,8 @@ test("exact login, page and static assets pass through while cookies and redirec
   assert.equal(calls[0].init.headers["cf-access-jwt-assertion"], undefined);
   assert.equal(calls[2].init.headers["x-do-qa-proxy-key"], proxyKey);
   assert.equal((await call(url, jwt, { path: "/digital-observer/dashboard" })).status, 403);
+  assert.equal((await call(url, jwt, { path: "/digital-observer/qa-device-enrollment",
+    headers: { "transfer-encoding": "chunked" } })).status, 403);
   assert.equal((await call(url, jwt, { path: "/digital-observer/login?next=%2Fdigital-observer%2Fqa-device-enrollment&next=%2Fdigital-observer%2Fdashboard" })).status, 403);
   assert.equal((await call(url, jwt, { path: "/_next/static/../server.js" })).status, 403);
   assert.equal((await call(url, jwt, { path: "/api/digital-observer/media/playlist.m3u8" })).status, 403);
