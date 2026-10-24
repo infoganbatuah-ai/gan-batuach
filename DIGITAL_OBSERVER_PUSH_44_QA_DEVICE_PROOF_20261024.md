@@ -1,5 +1,68 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## Exact physical enrollment-request preparation — 2026-10-24
+
+This continuation reuses the existing verified GitHub owner-identity receipt
+below; it does not repeat the email query or turn repository administration
+into application administration. The Development owner identity remains a
+confirmed, unassigned parent with **no** enrollment capability. No capability,
+one-use approval or pending physical-device request has been issued.
+
+The PersonalTeamQA bridge now accepts **only** the proposed control hostname
+`qa-iphone-device-proof.ganbatuach.com`, not the former `qa-iphone-*` pattern.
+The build preparation script has a separate `PUSH44_QA_CONTROL_ONLY=1` mode:
+it requires the exact HTTPS origin URL with no path, query or embedded token;
+it refuses a bootstrap-token file, other host, Push plugin and pre-existing
+server URL. The old owner-only Product QA mode remains separate. Configuration
+generation neither starts a listener nor exposes the control hostname.
+
+The eventual phone request is exactly the native bridge's X9.63 P-256 public
+key submitted to `POST /qa-device/request-enrollment` under the **existing**
+canonical authenticated LOCAL_SUPABASE viewer session. The server derives the
+SHA-256 key fingerprint, generates a random request ID, pins it to that session
+and the fixed synthetic QA viewer/tenant/Site delegation, and expires it after
+five minutes. A second key/session cannot replace an active pending request.
+Neither a public-key fingerprint nor an installation/request ID can be known
+or preapproved before the actual signed app creates the key on the iPhone and
+reaches the authorized control route. The private key never leaves Secure
+Enclave/Keychain. There is presently **no phone-side control UI/request
+adapter**, phone-reachable control route, hostname-specific trusted TLS, or
+Cloudflare Access application for this hostname. Thus a real pending request
+is **blocked**, despite isolated request-store tests passing; do not fabricate
+one from a synthetic key or use the old URL-token bootstrap.
+
+The subsequent Mac-only ceremony must read the real pending request and exact
+fingerprint from the trusted host, reverify the distinct owner Development
+session and audited one-request bootstrap capability, require fresh macOS
+presence with the protected pinned helper, and issue the existing 60-second
+single-use approval. The phone's parent session cannot approve itself. The
+helper was previously exercised once in a temporary owner-only location, but
+its protected durable installation and a fresh live presence prompt remain
+open. Approval is never exposed through the phone-facing HTTP transport.
+
+Before any separately authorized physical test: implement and review a
+control-only phone UI that obtains the existing Development session without a
+client secret, calls `Push44QaDeviceProof.publicKey`, and sends only that
+public key to the private route; establish exact-host trusted TLS and
+owner-only Cloudflare Access with strict forwarding-header sanitation, the
+30-minute absolute shutdown, edge request/traffic limits, audit and immediate
+rollback; verify the total provider cost bound; install the separately signed
+QA build only after owner approval. The route must deny all media, admin and
+Production paths. No DNS, route, phone installation or media activation is
+performed by this preparation.
+
+A separate non-installed `PersonalTeamQA` device build was completed on
+Kingston at `worktrees/push-44-ios-real-device/ios/DerivedData/Push44ControlQA/Build/Products/PersonalTeamQA-iphoneos/App.app`
+at 2026-10-24 18:12 UTC. macOS `codesign --verify --strict` succeeded with
+the existing Apple Development identity and designated requirement. Its
+bundle ID is `com.ganbatuach.app.qa`; the embedded server URL is the exact
+control HTTPS origin; `cleartext` is false; Push is absent; no APNs entitlement
+was found. The executable SHA-256 is
+`fd1d015de011d11503fe5eba0db4ebf326ef6948703923c689a2725a783f4898`.
+The bundle remains a local build artifact, not a remotely preserved signed
+release or physical-device proof. Installation, actual iOS TLS trust and
+Secure Enclave operation still require a separately approved QA window.
+
 ## Owner bootstrap identity check — 2026-10-24 (read-only)
 
 The connected GitHub App installation identifies account `infoganbatuah-ai`

@@ -38,7 +38,7 @@ public class Push44QaDeviceProofPlugin: CAPPlugin, CAPBridgedPlugin {
               let current = bridge?.webView?.url,
               configured.scheme == "https", current.scheme == "https",
               let host = configured.host, current.host == host,
-              host.hasPrefix("qa-iphone-"), host.hasSuffix(".ganbatuach.com"),
+              host == "qa-iphone-device-proof.ganbatuach.com",
               configured.port == nil, current.port == nil else { return false }
         return true
     }

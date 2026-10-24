@@ -3,6 +3,18 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 exact-control enrollment preparation — **SIGNED BUILD PASS;
+PHYSICAL PROOF NOT RUN**. A separate `PersonalTeamQA` iPhone target was built
+and validated with the exact `qa-iphone-device-proof.ganbatuach.com` HTTPS
+origin, no embedded bootstrap token and no APNs/Push. `codesign --verify
+--strict` passed using the existing Apple Development identity; executable
+SHA-256 is `fd1d015de011d11503fe5eba0db4ebf326ef6948703923c689a2725a783f4898`.
+It remains uninstalled. No phone key, public-key fingerprint, pending request,
+capability or approval exists. The phone-side request UI and separately
+approved control-only HTTPS/TLS/Access path are still missing. Isolated
+transport tests do not constitute physical enrollment proof. See the current
+device-proof receipt; older preflight entries below are historical snapshots.
+
 2026-10-24 owner Development identity — **INVITED, NOT QUALIFIED**. One
 passwordless invitation created in the original isolated LOCAL_SUPABASE;
 initially unconfirmed; a later read-only check found email confirmation and
