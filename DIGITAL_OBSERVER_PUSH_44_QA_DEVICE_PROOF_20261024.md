@@ -1,11 +1,72 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-24 transport decision and Free-plan edge gate — no activation
+
+**Decision:** the existing *private-hostname* Access application is not a
+qualified origin-JWT transport for this HTTPS topology without Gateway TLS
+decryption. The supported candidate is an exact-host **self-hosted public
+Access application** with a published Cloudflare Tunnel application route,
+not a private-network route or video tunnel. Cloudflare documents delivery of
+`Cf-Access-Jwt-Assertion` to a public self-hosted application's origin; the
+origin must verify its signature, issuer, exact application audience, expiry
+and owner identity. Tunnel `Protect with Access` is an additional upstream
+JWT check, not a substitute for canonical Development session authorization.
+See [public Access applications](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/),
+[origin JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)
+and [Tunnel Access protection](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/configure-tunnels/origin-parameters/).
+The current private app stays default-deny; no conversion, new application,
+policy, route or DNS record was made. The new public application's AUD must be
+read from its actual configuration before startup; the verifier now rejects a
+missing AUD rather than silently using the current private app's AUD. Live
+assertion delivery remains **unproven**.
+
+The local control ingress is now Unix-socket-only: it requires a fresh
+`control.sock` beneath an owner-owned `0700` real directory, applies socket
+mode `0600`, and refuses pre-existing paths, symlinked parent directories,
+TCP connections and direct public binding. A future dedicated `cloudflared`
+published-application route may use Cloudflare's documented `unix:` origin
+service, with only the exact QA hostname and a separate owner-approved Access
+Allow policy. The administrator approval operation remains Mac-local. The
+ingress still admits only the exact POST control API and validates Access JWT,
+forwarding constraints and canonical Development session separately. It does
+not admit HLS, media, Home or Production routes. The signed iPhone control UI
+still needs a separately reviewed same-origin login/page/assets path; this
+single-API socket is **not yet a usable physical-iPhone transport**. See
+[Tunnel routing](https://developers.cloudflare.com/tunnel/concepts/routing/).
+
+**Edge limitations:** Cloudflare Free documents only one zone rate-limiting
+rule, with Path/Verified-Bot matching and IP counting over 10 seconds; Host
+matching is not available on Free. A new QA rule cannot safely be applied to
+the shared zone until actual rule inventory, a collision-free dedicated path
+and legitimate-traffic impact are verified. Cloudflare rate limiting is also
+per-data-center and may fail open; it is not a global 1,000-request ceiling or
+hard financial cap. Do not change existing WAF rules or purchase the paid
+account-level WAF add-on. The durable local 30-minute/1,000-attempt/12-MiB
+reservation protects the origin only; it does not meter denied edge requests,
+handshakes, Access authentication, Tunnel traffic or unrelated account use.
+The Free plan has no new fixed seat charge within its published 50-user tier,
+but **maximum provider cost remains residual/unbounded by an enforceable
+spending cap**. No dollar maximum may be represented as guaranteed. See
+[Cloudflare rate-limiting limits](https://developers.cloudflare.com/waf/rate-limiting-rules/),
+[limiting behavior](https://developers.cloudflare.com/waf/rate-limiting-rules/troubleshooting/)
+and [Zero Trust pricing](https://www.cloudflare.com/plans/).
+
+**Activation remains blocked.** The narrow same-origin iPhone UI/auth surface,
+actual public Access AUD and JWT delivery, exact-host route, zone-level edge
+rule impact, and an explicit owner decision on residual provider-cost risk all
+remain open. No external route, Allow policy, iPhone installation or media
+was activated. Rollback for a *future separately authorized* test is to stop
+the socket listener and dedicated tunnel, remove only task-created DNS and
+policy resources, and revoke temporary grants. Existing Production, Home,
+certificate and deny-only applications are not rollback targets.
+
 ## 2026-10-24 control-only trust and cost continuation — no activation
 
 The existing Access application `4382f628-c338-4a23-9da0-1490056b83e4`
 still has the exact private hostname on port 443, zero policies, no route, and
 Cloudflare One Client automatic authentication off. Its displayed application
-AUD was pinned in the new local verifier; the issuer is the exact
+AUD was the isolated-test fixture in the prior revision; the live verifier
+now requires an explicit AUD at startup. The issuer is the exact
 `spring-feather-ce4e` team domain. A future owner-only policy is **prepared,
 not saved**: one Allow rule for `info.ganbatuah@gmail.com`, preferably through
 the existing verified GitHub IdP, no Bypass or Service Auth, 30-minute maximum
@@ -23,7 +84,7 @@ transport mismatch. The live signing-key endpoint was not reachable from the
 current local/browser checks; local tests use isolated synthetic keys only.
 No Allow policy, TLS decryption, VPN, DNS, route or origin was activated.
 
-A new inert-by-default, loopback-only control ingress candidate validates the
+A new inert-by-default, owner-only Unix-socket control ingress candidate validates the
 exact issuer, app audience, RS256 signature against the team's current JWKS,
 expiry, 30-minute token lifetime and exact owner email. It requires the exact
 Host/Origin/HTTPS forwarding and one POST control path, rejects duplicate or
@@ -71,11 +132,9 @@ durable attempt accounting, deadline, existing parent self-approval denial,
 wrong key, replay, expired approval, session revocation and tenant/Site scope.
 Those tests do not prove live Cloudflare JWT issuance or physical-iPhone TLS.
 
-**Activation decision: BLOCKED.** The next concrete technical step is to
-select and qualify a Cloudflare Access delivery architecture that actually
-issues the origin JWT for this exact host without changing shared TLS
-inspection or routing unrelated traffic; then qualify the narrow page/login
-surface and provider-edge cost cap. Only after those gates may the owner be
+**Activation decision: BLOCKED.** The supported public self-hosted Access
+architecture is selected above, but its live AUD/JWT, narrow page/login
+surface and provider-edge cost risk remain unqualified. Only after those gates may the owner be
 asked separately to approve a 30-minute control-only route and signed-app
 installation. Rollback remains: close the loopback listener, remove only the
 future temporary route/policy, revoke the one-use QA grant, and leave the

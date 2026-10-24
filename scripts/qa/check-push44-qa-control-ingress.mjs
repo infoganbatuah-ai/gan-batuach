@@ -2,13 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { request as httpRequest } from "node:http";
-import { mkdtempSync, rmSync } from "node:fs";
+import { chmodSync, mkdtempSync, realpathSync, rmSync, statSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from "jose";
-import { ACCESS_AUDIENCE, ACCESS_ISSUER, ACCESS_OWNER, CONTROL_HOST, CONTROL_PATH,
+import { ACCESS_ISSUER, ACCESS_OWNER, CONTROL_HOST, CONTROL_PATH,
   createPush44AccessVerifier, createPush44ControlLedger, createPush44QaControlIngress
 } from "../../services/video-gateway/push44-qa-control-ingress.mjs";
+const TEST_AUDIENCE = "b7eb4b1d10599071db3635118062272b8dec09328c3467a4f3a8677b704245a6";
 
 const now = 1_800_000_000_000;
 const deadline = now + 30 * 60_000;
@@ -21,17 +22,22 @@ async function fixture() {
   const sign = (claims = {}, header = {}) => new SignJWT({ sub: "approved-owner", email: ACCESS_OWNER, ...claims })
     .setProtectedHeader({ alg: "RS256", kid: "test-key", ...header })
     .setIssuer(claims.iss ?? ACCESS_ISSUER)
-    .setAudience(claims.aud ?? ACCESS_AUDIENCE)
+    .setAudience(claims.aud ?? TEST_AUDIENCE)
     .setIssuedAt(Math.floor(now / 1000))
     .setExpirationTime(Math.floor(now / 1000) + 600)
     .sign(privateKey);
-  return { sign, privateKey, verifyAccess: createPush44AccessVerifier({ keySet, now: () => now }) };
+  return { sign, privateKey, verifyAccess: createPush44AccessVerifier({ audience: TEST_AUDIENCE, keySet, now: () => now }) };
 }
 
-function post(url, jwt, { path = CONTROL_PATH, headers = {}, body = "{}" } = {}) {
-  const target = new URL(path, url);
+function testSocket(t) {
+  const directory = mkdtempSync(join(realpathSync(tmpdir()), "push44-ingress-socket-"));
+  t.after(() => rmSync(directory, { recursive: true }));
+  return join(directory, "control.sock");
+}
+
+function post(socketPath, jwt, { path = CONTROL_PATH, headers = {}, body = "{}" } = {}) {
   return new Promise((resolve, reject) => {
-    const req = httpRequest(target, { method: "POST", headers: {
+    const req = httpRequest({ socketPath, path, method: "POST", headers: {
       host: CONTROL_HOST, origin: `https://${CONTROL_HOST}`, "x-forwarded-proto": "https",
       "cf-access-jwt-assertion": jwt, "content-type": "application/json", ...headers
     } }, res => {
@@ -46,6 +52,8 @@ function post(url, jwt, { path = CONTROL_PATH, headers = {}, body = "{}" } = {})
 
 test("signed Access assertion requires current key, exact issuer/audience/owner and expiry", async () => {
   const { sign, privateKey: approvedKey, verifyAccess } = await fixture();
+  assert.throws(() => createPush44AccessVerifier({ now: () => now }), /QA_ACCESS_CONFIG_REQUIRED/);
+  assert.throws(() => createPush44AccessVerifier({ audience: "private-app-label" }), /QA_ACCESS_CONFIG_REQUIRED/);
   assert.equal(await verifyAccess(await sign()), true);
   assert.equal(await verifyAccess("bad.token.value"), false);
   for (const claims of [
@@ -57,13 +65,13 @@ test("signed Access assertion requires current key, exact issuer/audience/owner 
   const { privateKey } = await generateKeyPair("RS256");
   const forged = await new SignJWT({ sub: "approved-owner", email: ACCESS_OWNER })
     .setProtectedHeader({ alg: "RS256", kid: "test-key" })
-    .setIssuer(ACCESS_ISSUER).setAudience(ACCESS_AUDIENCE)
+    .setIssuer(ACCESS_ISSUER).setAudience(TEST_AUDIENCE)
     .setIssuedAt(Math.floor(now / 1000)).setExpirationTime(Math.floor(now / 1000) + 600)
     .sign(privateKey);
   assert.equal(await verifyAccess(forged), false);
   const expired = await new SignJWT({ sub: "approved-owner", email: ACCESS_OWNER })
     .setProtectedHeader({ alg: "RS256", kid: "test-key" })
-    .setIssuer(ACCESS_ISSUER).setAudience(ACCESS_AUDIENCE)
+    .setIssuer(ACCESS_ISSUER).setAudience(TEST_AUDIENCE)
     .setIssuedAt(Math.floor(now / 1000) - 1200).setExpirationTime(Math.floor(now / 1000) - 600)
     .sign(approvedKey);
   assert.equal(await verifyAccess(expired), false);
@@ -94,18 +102,21 @@ test("durable local request ceiling survives restart and cannot reset by changin
   } finally { database.close(); rmSync(directory, { recursive: true }); }
 });
 
-test("loopback control proxy strips caller identity, forwards only exact control API and denies media", async t => {
+test("protected local socket proxy strips caller identity, forwards only exact control API and denies media", async t => {
   const { sign, verifyAccess } = await fixture();
   const jwt = await sign();
   const database = new DatabaseSync(":memory:");
   t.after(() => database.close());
+  const socketPath = testSocket(t);
   const calls = [];
-  const ingress = createPush44QaControlIngress({ proxyKey, deadline, now: () => now,
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, deadline, now: () => now,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess,
     fetcher: async (url, init) => { calls.push({ url, init }); return Response.json({ state: "PENDING" }); }
   });
   const url = await ingress.listen();
   t.after(() => ingress.close());
+  assert.equal(statSync(socketPath).isSocket(), true);
+  assert.equal(statSync(socketPath).mode & 0o777, 0o600);
   const good = await post(url, jwt, { headers: {
     cookie: "CF_Authorization=stolen; sb-development-auth-token.0=synthetic; arbitrary=ignored",
     "cf-connecting-ip": "1.2.3.4"
@@ -136,11 +147,12 @@ test("one in-flight request and fail-closed accounting stop concurrent or exhaus
   const jwt = await sign();
   const database = new DatabaseSync(":memory:");
   t.after(() => database.close());
+  const socketPath = testSocket(t);
   let release;
   let entered;
   const started = new Promise(resolve => { entered = resolve; });
   const pending = new Promise(resolve => { release = resolve; });
-  const ingress = createPush44QaControlIngress({ proxyKey, deadline, now: () => now,
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, deadline, now: () => now,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess,
     fetcher: async () => { entered(); await pending; return Response.json({ ok: true }); }
   });
@@ -151,7 +163,8 @@ test("one in-flight request and fail-closed accounting stop concurrent or exhaus
   assert.equal((await post(url, jwt)).status, 429);
   release();
   assert.equal((await first).status, 200);
-  const denied = createPush44QaControlIngress({ proxyKey, deadline, now: () => now,
+  const deniedSocketPath = testSocket(t);
+  const denied = createPush44QaControlIngress({ proxyKey, socketPath: deniedSocketPath, deadline, now: () => now,
     ledger: { consume: () => { throw Error("database unavailable"); } },
     verifyAccess, fetcher: async () => Response.json({ ok: true }) });
   const deniedUrl = await denied.listen();
@@ -164,9 +177,10 @@ test("absolute deadline and oversized upstream response deny without returning p
   const jwt = await sign();
   const database = new DatabaseSync(":memory:");
   t.after(() => database.close());
+  const socketPath = testSocket(t);
   let clock = now;
   let upstreamCalls = 0;
-  const ingress = createPush44QaControlIngress({ proxyKey, deadline, now: () => clock,
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, deadline, now: () => clock,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess,
     fetcher: async () => { upstreamCalls++; return Response.json({ data: "x".repeat(9000) }); }
   });
@@ -178,4 +192,19 @@ test("absolute deadline and oversized upstream response deny without returning p
   clock = deadline;
   assert.equal((await post(url, jwt)).status, 410);
   assert.equal(upstreamCalls, 1);
+});
+
+test("socket admission rejects shared or symlinked parent directories", t => {
+  const socketPath = testSocket(t);
+  const database = new DatabaseSync(":memory:");
+  t.after(() => database.close());
+  const config = { proxyKey, socketPath, deadline, now: () => now,
+    ledger: createPush44ControlLedger(database, deadline), verifyAccess: async () => true };
+  chmodSync(dirname(socketPath), 0o755);
+  assert.throws(() => createPush44QaControlIngress(config), /QA_CONTROL_INGRESS_CONFIG_DENIED/);
+  chmodSync(dirname(socketPath), 0o700);
+  const link = join(dirname(socketPath), "linked-parent");
+  symlinkSync(dirname(socketPath), link);
+  assert.throws(() => createPush44QaControlIngress({ ...config,
+    socketPath: join(link, "control.sock") }), /QA_CONTROL_INGRESS_CONFIG_DENIED/);
 });

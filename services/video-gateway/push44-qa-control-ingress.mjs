@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { chmodSync, lstatSync, realpathSync } from "node:fs";
+import { dirname, isAbsolute } from "node:path";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 // This module never starts a listener on import. A separate, owner-approved
@@ -6,7 +8,6 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 export const CONTROL_HOST = "qa-iphone-device-proof.ganbatuach.com";
 export const CONTROL_PATH = "/api/digital-observer/qa-device";
 export const ACCESS_ISSUER = "https://spring-feather-ce4e.cloudflareaccess.com";
-export const ACCESS_AUDIENCE = "b7eb4b1d10599071db3635118062272b8dec09328c3467a4f3a8677b704245a6";
 export const ACCESS_OWNER = "info.ganbatuah@gmail.com";
 const ORIGIN = `http://127.0.0.1:3001${CONTROL_PATH}`;
 const WINDOW_MS = 30 * 60_000;
@@ -17,6 +18,19 @@ const MAX_REPLY_BYTES = 8_192;
 const MAX_ACCOUNTED_BYTES = 12 * 1024 * 1024;
 const RESERVED_BYTES_PER_ATTEMPT = MAX_BODY_BYTES + MAX_REPLY_BYTES;
 
+function protectedSocketPath(socketPath) {
+  if (typeof socketPath !== "string" || !isAbsolute(socketPath) ||
+    Buffer.byteLength(socketPath) > 100 || !/\/control\.sock$/.test(socketPath)) return false;
+  try {
+    const parent = dirname(socketPath);
+    const directory = lstatSync(parent);
+    return directory.isDirectory() && directory.uid === process.getuid() &&
+      (directory.mode & 0o700) === 0o700 && (directory.mode & 0o077) === 0 &&
+      realpathSync(parent) === parent &&
+      !lstatSync(socketPath, { throwIfNoEntry: false });
+  } catch { return false; }
+}
+
 const validProxyKey = value => typeof value === "string" && /^[A-Za-z0-9_-]{43,96}$/.test(value);
 const deny = (response, status = 403) => {
   response.writeHead(status, { "content-type": "application/json", "cache-control": "no-store",
@@ -24,15 +38,16 @@ const deny = (response, status = 403) => {
   response.end('{"error":"QA_CONTROL_DENIED"}');
 };
 
-export function createPush44AccessVerifier({ keySet = createRemoteJWKSet(
+export function createPush44AccessVerifier({ audience, keySet = createRemoteJWKSet(
   new URL(`${ACCESS_ISSUER}/cdn-cgi/access/certs`)), now = Date.now } = {}) {
-  if (typeof now !== "function") throw new Error("QA_ACCESS_CLOCK_REQUIRED");
+  if (typeof audience !== "string" || !/^[a-f0-9]{64}$/.test(audience) ||
+    typeof now !== "function") throw new Error("QA_ACCESS_CONFIG_REQUIRED");
   return async assertion => {
     if (typeof assertion !== "string" || assertion.length > 8192 ||
       !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(assertion)) return false;
     try {
       const { payload } = await jwtVerify(assertion, keySet, {
-        issuer: ACCESS_ISSUER, audience: ACCESS_AUDIENCE,
+        issuer: ACCESS_ISSUER, audience,
         algorithms: ["RS256"], currentDate: new Date(now())
       });
       return payload.email === ACCESS_OWNER && typeof payload.sub === "string" &&
@@ -87,7 +102,7 @@ function permitted(request) {
   if (["host", "origin", "x-forwarded-proto", "cf-access-jwt-assertion", "content-type"]
     .some(name => counts.get(name) !== 1) || (counts.get("content-length") ?? 0) > 1)
     return false;
-  return request.socket.remoteAddress === "127.0.0.1" && request.method === "POST" &&
+  return request.socket.remoteAddress === undefined && request.method === "POST" &&
     request.url === CONTROL_PATH && headers.host === CONTROL_HOST &&
     headers.origin === `https://${CONTROL_HOST}` &&
     headers["x-forwarded-proto"] === "https" &&
@@ -136,9 +151,10 @@ function developmentCookies(raw) {
   return selected.length ? selected.join("; ") : undefined;
 }
 
-export function createPush44QaControlIngress({ proxyKey, ledger, deadline, verifyAccess,
+export function createPush44QaControlIngress({ proxyKey, socketPath, ledger, deadline, verifyAccess,
   fetcher = fetch, now = Date.now } = {}) {
-  if (!validProxyKey(proxyKey) || !ledger || typeof ledger.consume !== "function" ||
+  if (!validProxyKey(proxyKey) || !protectedSocketPath(socketPath) ||
+    !ledger || typeof ledger.consume !== "function" ||
     typeof verifyAccess !== "function" ||
     typeof fetcher !== "function" || typeof now !== "function" ||
     !Number.isSafeInteger(deadline) || deadline <= now() || deadline > now() + WINDOW_MS)
@@ -183,16 +199,19 @@ export function createPush44QaControlIngress({ proxyKey, ledger, deadline, verif
   server.setTimeout(5_000, socket => socket.destroy());
   return Object.freeze({
     async listen() {
-      if (server.listening || now() >= deadline) throw new Error("QA_CONTROL_EXPIRED");
+      if (server.listening || now() >= deadline || !protectedSocketPath(socketPath))
+        throw new Error("QA_CONTROL_EXPIRED");
       await new Promise((resolve, reject) => {
         server.once("error", reject);
-        server.listen(0, "127.0.0.1", () => { server.off("error", reject); resolve(); });
+        server.listen(socketPath, () => { server.off("error", reject); resolve(); });
       });
+      try { chmodSync(socketPath, 0o600); }
+      catch (error) { await new Promise(resolve => server.close(resolve)); throw error; }
       shutdown = setTimeout(() => {
         server.close();
         server.closeAllConnections();
       }, deadline - now());
-      return `http://127.0.0.1:${server.address().port}`;
+      return socketPath;
     },
     async close() {
       clearTimeout(shutdown);

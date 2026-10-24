@@ -1,5 +1,23 @@
 # Canonical Development Integration Ledger
 
+PUSH 44 control-only Access/edge-cost closure, 2026-10-24: PR #248 Draft
+continues on `codex/push44-synthetic-external-preparation`; this scoped
+Development change selects public-hostname self-hosted Access plus an
+exact-host Tunnel published application route for a future, separately
+approved test. The existing private-hostname Access application remains
+default-deny because its HTTPS origin JWT requires unapproved Gateway TLS
+decryption. The local ingress now requires an owner-only Unix socket rather
+than a TCP listener, and signed Access JWT verification requires the actual
+application AUD as an explicit startup input. Isolated tests validate the
+boundary; live JWT delivery, iPhone page/login delivery and physical-device
+TLS remain unproven. Cloudflare Free's one Path-only/IP-counted rate rule
+cannot safely be assumed available or exact-host scoped on the shared zone;
+origin request/byte reservations do not guarantee an edge cost cap. No
+Cloudflare configuration, route, Allow policy, media or Production/Home change
+was made. Final implementation SHA, exact-head CI and remote preservation
+must be recorded after push; see
+`DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md`. PR #235 stays Draft.
+
 PUSH 44 owner Development invitation / scoped authorization correction,
 2026-10-24: PR #248 Draft, source branch
 `codex/push44-synthetic-external-preparation`, parent `b36a5956`.
