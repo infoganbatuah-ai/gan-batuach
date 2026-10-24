@@ -1,5 +1,39 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## Owner bootstrap identity check — 2026-10-24 (read-only)
+
+The connected GitHub identity is `infoganbatuah-ai`, numeric user ID
+`287220776`, and GitHub reports repository `admin` permission for
+`infoganbatuah-ai/gan-batuach`. The connected profile presents an email
+matching the intended Development owner address, but its profile result has
+**no verified-email field**. The GitHub CLI's separately authorized `/user`
+profile has no email value, and its `/user/emails` verified-address check was
+denied (HTTP 404) with the current scopes. Neither an email string in a
+profile nor repository administration proves verified mailbox ownership.
+The existing LOCAL_SUPABASE confirmation came through the local mail catcher;
+it proves a local Auth confirmation/session, not independent mailbox delivery
+or Observer ownership. No existing audited identity record supplies the
+missing GitHub verified-address assertion.
+
+GitHub documents `user:email` for read-only listing of the authenticated
+account's email addresses (or the fine-grained user **Email addresses: read**
+permission). The minimum next verification is a temporary extension of the
+existing connection for that read only, checking **only** whether the exact
+owner address has `verified: true` for GitHub user ID `287220776`. Do not
+list, log, store or publish the other addresses, request repository/org/write
+scopes, or create a new token merely to perform this check. No scope extension
+was requested or used in this operation.
+
+Even if that check later succeeds, it is only one independent bootstrap
+factor. A one-request Development capability grant still requires an explicit
+new owner approval, the exact active LOCAL_SUPABASE owner Auth ID and session,
+verified repository administration, a pending installation ID and public-key
+fingerprint, fixed QA viewer/tenant/Site scope, fresh Mac owner presence,
+an auditable short expiry, one-time consumption and revocation. The parent QA
+account and synthetic administrator cannot issue it. No capability, pending
+device approval, global role or Production permission was granted here;
+external HTTPS, VPN and media remain off.
+
 ## Owner-scoped enrollment boundary — 2026-10-24 (not activated)
 
 The original `LOCAL_SUPABASE` was checked read-only after the owner signed in:

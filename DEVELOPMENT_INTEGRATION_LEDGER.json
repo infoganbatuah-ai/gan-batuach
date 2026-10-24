@@ -61,7 +61,8 @@
           "Eight isolated device-transport tests and local ci:quality PASS at b1ab16d942223e8bfb156b78c41bdf9bcb88f576; remote exact-head CI pending",
           "Owner confirmed Gan Batuach parent dashboard on Mac after local invitation, not Digital Observer; local Auth shows confirmed email and one session",
           "Read-only original LOCAL_SUPABASE: owner Auth=1, capability=0, unassigned parent=1, owned Observer Sites=0, memberships=0, synthetic Site records=0",
-          "One pending request is bound to the exact key fingerprint and session; no grant was issued"
+          "One pending request is bound to the exact key fingerprint and session; no grant was issued",
+          "Read-only GitHub identity check: account infoganbatuah-ai (ID 287220776) has repository admin; connected profile email matches intended owner address but has no verified flag; current CLI /user/emails returns HTTP 404 with existing scopes; bootstrap remains unverified"
         ],
         "limits": "No independent Observer owner bootstrap anchor, no actual owner-presence ceremony for a device approval, no scoped capability issuance, no physical iPhone enrollment or HTTPS activation."
       },
@@ -84,7 +85,7 @@
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "Establish and document an independent project-owner bootstrap authority, then obtain explicit owner approval for a single pending request/key grant; do not preapprove the phone, open HTTPS or activate media."
+      "nextAction": "Obtain separate owner authorization for temporary read-only GitHub user:email (or fine-grained Email addresses: read) on the existing connection; check only the exact verified-address match for user ID 287220776. Even after a match, require separate exact-request owner approval and fresh Mac presence before any scoped grant; do not preapprove the phone, open HTTPS or activate media."
     },
     {
       "id": "backup/active-observer-engine-20260831",
