@@ -7,6 +7,7 @@ loopback transport. Seven isolated transport and nine existing device-proof
 tests pass; wrong-host/media/unrelated routes and post-deadline calls deny.
 Read-only Development check found one active administrator profile that does
 **not** match the project-owner Cloudflare email and has **zero unexpired sessions**;
+that exact owner email has no Development Auth record;
 the phone account remains a parent.
 Cloudflare zone ownership was confirmed, but the new control hostname has no
 record, TLS proof or Access application; the only existing application is the

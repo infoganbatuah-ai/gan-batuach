@@ -196,7 +196,9 @@ HLS playlist/segment boundary remains denied.
   authorized by the actual owner, separately authenticated from the phone account, must
   be established through the canonical authorization workflow before any host
   approval. Do not elevate the parent or treat the unrelated admin fixture as
-  owner. No token was read, minted or copied during this preflight.
+  owner. A separate exact-email lookup found **zero Development Auth users**
+  for the project-owner Cloudflare email. No token was read, minted or copied
+  during this preflight.
 - Cloudflare account `693f824a750afcc264fe6ee58c8a86ab` owns the active
   `ganbatuach.com` zone (`7ed7c66b239f8f6d108e2c3944db29a4`). The live
   DNS dashboard lists 14 records and **no** record for

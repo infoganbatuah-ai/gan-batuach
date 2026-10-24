@@ -6,6 +6,7 @@ Scope: Development only; no store submission, provider activation or Production 
 2026-10-24 control-only iPhone preflight — **NOT ACTIVATED / REAL DEVICE PROOF NOT RUN**.
 The canonical isolated database has one active administrator profile, but it
 does not match the project-owner Cloudflare email and has zero unexpired sessions;
+that owner email has no Development Auth user record;
 the phone account is a parent and cannot
 self-approve. The project Cloudflare zone is verified, but the exact control
 hostname has no DNS record, no matching Access application and no proven TLS

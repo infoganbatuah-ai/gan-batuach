@@ -11962,7 +11962,7 @@
         "sourceCommit": "b3c86c68",
         "portabilityFixCommit": "d3763d5a375ffedbf1a61c155180947d2289e0e8",
         "controlPreflightCommit": "a7c0c052",
-        "controlPreflightState": "ISOLATED_CONTROL_BOUNDS_PASS; ONLY_ADMIN_DIFFERS_FROM_CLOUDFLARE_OWNER_EMAIL_AND_LIVE_ADMIN_SESSION_0; EXACT_HOST_DNS_TLS_ACCESS_ABSENT; REAL_IPHONE_NOT_RUN",
+        "controlPreflightState": "ISOLATED_CONTROL_BOUNDS_PASS; CLOUDFLARE_OWNER_EMAIL_DEV_AUTH_USERS_0; ONLY_ADMIN_DIFFERS_FROM_OWNER_AND_LIVE_ADMIN_SESSION_0; EXACT_HOST_DNS_TLS_ACCESS_ABSENT; REAL_IPHONE_NOT_RUN",
         "pullRequest": 248,
         "state": "PUSHED_REMOTE_PENDING_EXACT_HEAD_CI",
         "preservation": "DRAFT_PR_REMOTE_BRANCH; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
@@ -11974,7 +11974,7 @@
         "migrationCount": 0,
         "productionChanged": false,
         "externalMediaBytes": 0,
-        "nextAction": "Keep PR248 Draft. The only isolated Development admin profile 00000000-0000-4000-8000-000000000501 does not match the project-owner Cloudflare email and has zero unexpired Auth sessions: establish and verify an owner-authorized distinct Development admin identity through the canonical authorization workflow before any enrollment approval. Do not elevate the QA parent or presume this fixture is the owner. Then qualify protected Mac presence, exact-host DNS/TLS/owner-only Access and control-only ingress/build before external activation. No media activation; PR235 remains separate Draft."
+        "nextAction": "Keep PR248 Draft. The project-owner Cloudflare email has no isolated Development Auth user, and the only Development admin profile 00000000-0000-4000-8000-000000000501 differs from it and has zero unexpired sessions: separately authorize creation and sign-in of a dedicated Development owner-admin identity through the canonical workflow before any enrollment approval. Do not elevate the QA parent or presume the fixture is the owner. Then qualify protected Mac presence, exact-host DNS/TLS/owner-only Access and control-only ingress/build before external activation. No media activation; PR235 remains separate Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
