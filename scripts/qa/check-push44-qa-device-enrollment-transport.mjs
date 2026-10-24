@@ -247,12 +247,18 @@ test("separate Development owner reader uses verified Auth session and denies QA
 
 test("prepared HTTPS ingress requires exact host, TLS assertion and private origin key", async t => {
   const f = fixture(t); await approve(f);
-  const hostname = "qa-iphone-owner.ganbatuach.com";
+  const hostname = "qa-iphone-device-proof.ganbatuach.com";
   const localIngressKey = "k".repeat(43);
+  let clock = Date.now();
+  const expiresAt = clock + 30 * 60_000;
+  assert.throws(() => createPush44QaDeviceTransport({ proof: f.proof, database: f.db,
+    authenticate: async () => f.session(), trustedIngress: {
+      hostname: "qa-iphone-other.ganbatuach.com", localIngressKey, expiresAt } }),
+  /QA_DEVICE_INGRESS_CONFIG_DENIED/);
   const edge = createPush44QaDeviceTransport({ proof: f.proof, database: f.db,
     authenticate: async request => request.headers.authorization === `Bearer ${"synthetic.".repeat(8)}token`
       ? f.session() : null,
-    trustedIngress: { hostname, localIngressKey } });
+    trustedIngress: { hostname, localIngressKey, expiresAt }, now: () => clock });
   t.after(async () => edge.close());
   const origin = await edge.listen();
   const headers = { host: hostname, origin: `https://${hostname}`,
@@ -261,8 +267,8 @@ test("prepared HTTPS ingress requires exact host, TLS assertion and private orig
     authorization: `Bearer ${"synthetic.".repeat(8)}token` };
   const body = JSON.stringify({ operation: "ENROLL", publicKey: f.first.publicKey,
     method: "POST", path: "/qa-device/enroll" });
-  const send = (changes, payload = body) => new Promise((resolve, reject) => {
-    const request = httpRequest(`${origin}/qa-device/challenge`, { method: "POST",
+  const send = (changes, payload = body, path = "/qa-device/challenge") => new Promise((resolve, reject) => {
+    const request = httpRequest(`${origin}${path}`, { method: "POST",
       headers: { ...headers, ...changes } }, response => {
       response.resume(); response.on("end", () => resolve({ status: response.statusCode }));
     });
@@ -273,6 +279,11 @@ test("prepared HTTPS ingress requires exact host, TLS assertion and private orig
   assert.equal((await send({ host: "other.ganbatuach.com" })).status, 403);
   assert.equal((await send({ "x-forwarded-proto": "http" })).status, 403);
   assert.equal((await send({ host: new URL(origin).host, origin: "https://untrusted.invalid" })).status, 403);
+  assert.equal((await send({}, body, "/ch1/index.m3u8")).status, 403);
+  assert.equal((await send({}, body, "/api/auth/admin")).status, 403);
+  assert.equal((await send({}, "x".repeat(2049))).status, 403);
   assert.equal((await send({}, JSON.stringify({ operation: "ENROLL", publicKey: f.first.publicKey,
     method: "POST", path: "/qa-device/enroll", sourceId: "real-camera" }))).status, 403);
+  clock = expiresAt;
+  assert.equal((await send({})).status, 403);
 });

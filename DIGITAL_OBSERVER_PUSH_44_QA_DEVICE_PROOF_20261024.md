@@ -185,3 +185,58 @@ then revoke and verify immediate denial. A second independent installation
 must be denied. Key loss requires a new explicit approval. No physical proof,
 external media or real CH1 playback is claimed here. The existing unsigned
 HLS playlist/segment boundary remains denied.
+
+## 2026-10-24 control-only activation preflight (not activated)
+
+- The isolated LOCAL_SUPABASE database has one active `admin` profile,
+  `00000000-0000-4000-8000-000000000501`, but **zero unexpired Auth sessions**
+  for that profile at the read-only check. The dedicated phone account remains
+  a `parent`; its session cannot approve enrollment. The administrator must
+  establish a separate Development-only session and its owner authorization
+  must be verified by the canonical reader before any host approval. No token
+  was read, minted or copied during this preflight.
+- Cloudflare account `693f824a750afcc264fe6ee58c8a86ab` owns the active
+  `ganbatuach.com` zone (`7ed7c66b239f8f6d108e2c3944db29a4`). The live
+  DNS dashboard lists 14 records and **no** record for
+  `qa-iphone-device-proof.ganbatuach.com`. Its only Access application is the
+  separate deny-only synthetic-media destination
+  `gateway-media-homeqa.ganbatuach.com:443`, with zero policies. It does not
+  protect the proposed control hostname. No DNS, Access or Tunnel write was
+  made. The previously issued certificate covers the media hostname, not this
+  control hostname; iPhone-trusted TLS for this hostname is **not proven**.
+- The prepared loopback transport now requires that *exact* control hostname,
+  a private ingress key, HTTPS forwarding assertions and an absolute deadline
+  no later than 30 minutes after startup. Its durable 1,000-attempt ceiling,
+  2,048-byte body cap and exact control-route allowlist remain in place. Tests
+  deny wrong host, wrong key/protocol, non-control/media routes, oversized
+  bodies and post-deadline requests. These are isolated tests only; no edge
+  policy, proxy header sanitation or Cloudflare Access token validation has
+  yet been deployed. A 1,000-attempt origin ceiling does not cap rejected
+  requests or traffic at Cloudflare's edge.
+- The Mac presence helper source is typechecked, but no owner-protected,
+  pinned-hash executable has been installed or exercised with the owner. The
+  existing signed PersonalTeamQA package is still the offline-safe variant.
+  The old HTTPS configuration helper embeds an owner bootstrap token in the
+  app URL, so it is **not** suitable as-is for this control-only, no-client-
+  secret route. A reviewed non-secret control UI/auth bootstrap and a newly
+  signed exact-host build remain necessary. Do not install the old package
+  as proof of this path.
+- The proposed future edge sequence is: establish the distinct local admin
+  session and Mac presence helper; prepare a control-only static/auth surface;
+  issue hostname-specific trusted TLS; create a new exact-host owner-only
+  Access application with no Bypass policy; configure a dedicated outbound
+  tunnel with `access.required`, exact audience and origin JWT validation;
+  strip all incoming forwarding/ingress-key headers at a local trusted proxy
+  before injecting the private origin key; set a 30-minute shutdown timer and
+  edge rate/traffic controls; verify media/admin/Production routes deny; then
+  request **separate owner authorization** before any external activation.
+  The administrator approval operation stays Mac-local and presence-gated.
+  Rollback is to stop the loopback operator and tunnel, revoke the temporary
+  ingress key/grants, and remove only task-created DNS/Access resources after
+  verifying no unrelated dependency. No such resources were created here.
+- Cloudflare's published Zero Trust Free tier is $0 for up to 50 users, and
+  its documentation supports a self-hosted Access application behind Tunnel.
+  This establishes no new *fixed* subscription requirement for this design,
+  not a verified all-in maximum: edge-denied traffic, cellular usage and actual
+  account quotas must be bounded/checked before activation. No financial
+  commitment or charge was incurred by this preflight.

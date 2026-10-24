@@ -11,10 +11,14 @@ const limited = value => typeof value === "string" && value.length <= 2048;
 // Isolated Development control transport. It cannot bind a public interface;
 // importing the module opens no listener. A later iPhone-facing HTTPS route
 // requires a separate approved security review and activation step.
-export function createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress } = {}) {
+export function createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress,
+  now = Date.now } = {}) {
   if (!proof || typeof authenticate !== "function" || !database) throw new Error("QA_DEVICE_TRANSPORT_ADAPTERS_REQUIRED");
-  if (trustedIngress && (!/^qa-iphone-[a-z0-9-]+\.ganbatuach\.com$/.test(trustedIngress.hostname || "") ||
-    !/^[A-Za-z0-9_-]{43,96}$/.test(trustedIngress.localIngressKey || "")))
+  if (typeof now !== "function") throw new Error("QA_DEVICE_TRANSPORT_CLOCK_REQUIRED");
+  if (trustedIngress && (trustedIngress.hostname !== "qa-iphone-device-proof.ganbatuach.com" ||
+    !/^[A-Za-z0-9_-]{43,96}$/.test(trustedIngress.localIngressKey || "") ||
+    !Number.isSafeInteger(trustedIngress.expiresAt) || trustedIngress.expiresAt <= now() ||
+    trustedIngress.expiresAt > now() + 30 * 60_000))
     throw new Error("QA_DEVICE_INGRESS_CONFIG_DENIED");
   database.exec(`CREATE TABLE IF NOT EXISTS push44_qa_transport_limit (
     id INTEGER PRIMARY KEY CHECK(id=1), attempts INTEGER NOT NULL DEFAULT 0
@@ -24,7 +28,7 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database, t
     seq INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL, event TEXT NOT NULL
   );`);
   const record = event => database.prepare("INSERT INTO push44_qa_transport_audit(at,event) VALUES(?,?)")
-    .run(Date.now(), event);
+    .run(now(), event);
   const server = createServer(async (request, response) => {
     const reply = (status, value) => {
       response.writeHead(status, { "content-type": "application/json", "cache-control": "no-store",
@@ -32,6 +36,7 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database, t
       response.end(JSON.stringify(value));
     };
     try {
+      if (trustedIngress && now() >= trustedIngress.expiresAt) deny();
       // The counter survives process restarts; error or exhaustion denies
       // without calling any credential or enrollment adapter.
       if (database.prepare(`UPDATE push44_qa_transport_limit SET attempts=attempts+1
@@ -48,6 +53,8 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database, t
         request.headers.cookie || !(privateIngress || (localHost && !request.headers.origin && !trustedIngress)) ||
         request.headers["content-type"] !== "application/json" ||
         !/^Bearer [A-Za-z0-9._~-]{32,8192}$/.test(request.headers.authorization || "")) deny();
+      const declaredLength = request.headers["content-length"];
+      if (declaredLength !== undefined && (!/^\d{1,4}$/.test(declaredLength) || Number(declaredLength) > 2048)) deny();
       const path = request.url;
       if (!["/qa-device/challenge", "/qa-device/enroll", "/qa-device/prove", "/qa-device/revoke"].includes(path)) deny();
       // The canonical Development adapter validates the actual server-side
@@ -135,7 +142,7 @@ export function createPush44QaLocalOperator({ database, expectedRuntimeSha,
     readApprovedEnrollment: approvals.readApprovedEnrollment,
     consumeApproval: approvals.consumeApproval,
     authorizeOwnerAction: verifyOwnerAction, now });
-  const transport = createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress });
+  const transport = createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress, now });
   return Object.freeze({
     authorizeEnrollment: approvals.authorize,
     revokePendingApproval: approvals.revoke,

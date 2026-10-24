@@ -3,6 +3,17 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 control-only iPhone preflight — **NOT ACTIVATED / REAL DEVICE PROOF NOT RUN**.
+The canonical isolated database has one active administrator profile but zero
+unexpired administrator sessions; the phone account is a parent and cannot
+self-approve. The project Cloudflare zone is verified, but the exact control
+hostname has no DNS record, no matching Access application and no proven TLS
+certificate. The loopback control transport now rejects non-exact hosts,
+non-control routes, oversized bodies and requests after its 30-minute deadline
+in isolated tests. The current signed app is offline-safe, not a signed
+control-origin build. No phone installation, media, external ingress, DNS or
+Cloudflare configuration change occurred. See the device-proof receipt.
+
 2026-10-24 device-bound proof candidate — **ISOLATED DEVELOPMENT ONLY**. The
 PersonalTeamQA source generates a Secure Enclave P-256 key; a host-local
 challenge core requires exact owner-approved enrollment, one-use signatures
