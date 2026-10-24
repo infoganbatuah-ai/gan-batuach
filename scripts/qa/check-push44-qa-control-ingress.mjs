@@ -117,6 +117,10 @@ test("durable local request ceiling survives restart and cannot reset by changin
     }
     assert.equal(restarted.consume(), false);
     assert.equal(restarted.stats().bytes, 1000 * 10_240);
+    const remaining = 64 * 1024 * 1024 - restarted.stats().bytes;
+    assert.equal(restarted.accountReply(remaining + 1), false, "reply byte cap fails closed");
+    assert.equal(restarted.accountReply(remaining), true);
+    assert.equal(restarted.accountReply(1), false, "restart cannot exceed cumulative cap");
   } finally { database.close(); rmSync(directory, { recursive: true }); }
 });
 
