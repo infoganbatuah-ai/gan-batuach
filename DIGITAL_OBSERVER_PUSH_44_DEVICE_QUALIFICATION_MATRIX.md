@@ -3,6 +3,52 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 owner Development identity — **INVITED, NOT QUALIFIED**. One
+passwordless invitation created in the original isolated LOCAL_SUPABASE;
+initially unconfirmed; a later read-only check found email confirmation and
+one Auth session; the owner confirmed the invitation opened the Gan Batuach
+parent dashboard on the Mac, not Digital Observer. This is local Auth sign-in
+only. No role beyond
+an unassigned `parent` profile was granted. No exact-device approval capability
+or one-use enrollment was issued. The previous global-admin requirement was
+replaced by a short-lived, exact-purpose Auth-controlled capability in the
+host reader; isolated negative tests passed, but owner login, actual Mac
+presence at approval, physical iPhone proof and external HTTPS remain open.
+The local catcher is not evidence of delivery to the owner's Gmail inbox.
+
+2026-10-24 control-only iPhone preflight — **NOT ACTIVATED / REAL DEVICE PROOF NOT RUN**.
+The canonical isolated database has one active administrator profile, but it
+does not match the project-owner Cloudflare email and has zero unexpired sessions;
+that owner email has no Development Auth user record;
+the phone account is a parent and cannot
+self-approve. The project Cloudflare zone is verified, but the exact control
+hostname has no DNS record, no matching Access application and no proven TLS
+certificate. The loopback control transport now rejects non-exact hosts,
+non-control routes, oversized bodies and requests after its 30-minute deadline
+in isolated tests. The current signed app is offline-safe, not a signed
+control-origin build. No phone installation, media, external ingress, DNS or
+Cloudflare configuration change occurred. See the device-proof receipt.
+
+2026-10-24 device-bound proof candidate — **ISOLATED DEVELOPMENT ONLY**. The
+PersonalTeamQA source generates a Secure Enclave P-256 key; a host-local
+challenge core requires exact owner-approved enrollment, one-use signatures
+and a live Development session in addition to the existing synthetic media
+gate. Synthetic key/SQLite tests do not prove the new binary on the physical
+iPhone or deny a physical second iPhone. No route or media was activated. See
+`DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md`.
+
+2026-10-24 exact-device authorization follow-up — **READ-ONLY DESIGN; SINGLE-DEVICE DENIAL NOT PROVEN**. The existing WARP registration ID cannot be selected by a Device Profile. Cloudflare's iOS `Unique Client ID` Access posture check instead requires a separate MDM-supplied UUID, not the current registration ID; owner email+iOS and Require WARP cannot deny a second owner phone. The gateway's approved `deviceId`/session cookie similarly do not prove physical-device possession. Posture-only's certificate provisioner is shared-zone scoped; its current Boolean and impact remain unknown, despite zero mTLS Hosts/certs in the zone UI. The QA app retains zero Allow policies; no token, profile, certificate, route or media was created. Development-only per-install cryptographic proof is proposed for separate implementation/qualification, not marked PASS. See the media-delivery decision for sources, boundaries and next approval.
+
+2026-10-24 controlled Posture-only activation authorization — **STOPPED BEFORE WRITE BY OWNER'S IMPACT GATE**. Live inventory again showed one owner registration and only the unchanged Default Traffic/DNS profile. The full unsaved-profile selector menu and Cloudflare documentation provide no registration/device-ID selector; email+iOS could match a second owner iPhone. Required certificate provisioning is shared-zone scoped and its existing Boolean/impact on other services was not established through the available read-only dashboard. The form was cancelled. No API tokens, provisioning change, Posture-only profile, client certificate, private route, Allow policy or media activation resulted. Token revocation N/A (none created); iPhone remains disconnected per owner confirmation. See the media-delivery decision for the exact pre-write blocker and next gate.
+
+2026-10-24 controlled Posture-only activation plan — **DOCUMENTED ONLY**. Live read-only check reconfirmed one owner iPhone registered but Disconnected, one unchanged Default Traffic/DNS profile, QA Access application with zero policies, and six system-only routes. The `ganbatuach.com` zone shows no mTLS Hosts or issued client certificates; device-certificate-provisioning boolean remains unknown until an authorized read. Proposed exact-owner-email+iOS profile does not prove single-device selection, so QA stays deny-all. Two expiring, separately scoped zone/account token specifications and rollback are in the media-delivery decision; neither token nor profile nor certificate was created. No phone reconnect or media test occurred.
+
+2026-10-24 Posture-only preflight — **DESIGN PREPARED; NOT ACTIVATED**. Cloudflare's live Device panel now independently shows the single owner iPhone client **Disconnected**; its active registration and assigned `Default` Traffic/DNS profile remain unchanged. The unsaved new-profile form permits exact owner email + iOS and Posture-only with no traffic/DNS routing, but no registration-ID selector; a second device using the same owner email is **not denied by enrollment**. Zone client-certificate provisioning requires separately approved `SSL and Certificates Write` in the shared zone; no certificate was issued, no active profile was saved, and no iPhone reconnect was requested. No private route or media access exists. See media-delivery decision for certificate lifecycle uncertainties, Free-plan limitations and rollback.
+
+2026-10-24 Cloudflare One device update — **REAL DEVICE REGISTRATION VERIFIED; PRIVATE POLICY DENIAL NOT RUN**. Owner iPhone 13 Pro (`iPhone14,2`) is the sole Cloudflare inventory device with one active registration under the exact approved owner email; registration ID is held only in restricted ignored evidence, with an abbreviated reference in the media-delivery decision. The owner confirmed that the client was disconnected after the assigned `Default` profile was found to route Traffic and DNS with Split Tunnels Exclude. The owner also confirmed the QA hostname did not open in Safari while disconnected; public DNS has no A/AAAA/CNAME, the private QA Access app has no Allow policy, route inventory has only six system entries, and the public Worker returned 404. These are configuration and public-reachability facts, **not** a live enrolled-device Access denial or proof of a one-device enforcement rule. No media or private route was activated. Previous Product/session iPhone proofs are unchanged.
+
+2026-10-24 Cloudflare One deny-only enrollment preflight — **BLOCKED BEFORE DEVICE ENROLLMENT**. The live organization has no enrolled devices, no private QA route, and a no-Allow QA Access application. Its sole active device profile is `Traffic and DNS` with Split Tunnels `Exclude`; connecting the personal iPhone would route more than the approved deny-only QA scope. No VPN prompt was presented, iPhone registration or device-bound policy was not proven, and no physical deny probe was run. A dedicated no-routing profile would require separately approved zone client-certificate provisioning and device certificate installation. See the media-delivery decision for exact policy IDs and provider references. Previous iPhone Product/session proofs below are unchanged.
+
 2026-10-23 synthetic-only edge continuation — **DETERMINISTIC PASS**, 17 new SQLite/transport/control/session cases and affected existing CH1 23/23 regression. Fixture is generated H264 MPEGTS, 48,316 bytes, 20 distinct synthetic frames, NOT camera footage. Disabled Cloudflare package dry-run compiles; **external DNS/TLS/edge limits and physical iPhone cellular playback BLOCKED / NOT RUN**, pending completed limited OAuth and actual deployment/security/cost qualification. No new native build, installation, real camera access or phone interaction. No prior real-device evidence promoted or replaced. See `DIGITAL_OBSERVER_PUSH_44_SYNTHETIC_EDGE_QUALIFICATION.md`.
 
 2026-10-23 CH1 final pre-activation — **DETERMINISTIC PASS**: composed session/delegation/HttpOnly-cookie/private-TLS/passive-reader/synthetic-MPEGTS contract, 23/23 cases. **Actual read-only source inspection**: one existing CH1 segment H264 High Level3, MPEGTS, 640×480,25fps,yuv420p;25 distinct frames decoded locally, no media retained/transmitted. **REAL DEVICE / CELLULAR VIDEO NOT RUN**. Exact Home QA Site has no owner, zero active memberships, no matching owner QA administrator; candidate media DNS NXDOMAIN. See final follow-up in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. Prior phone session proof preserved; no APNs/Android promotion.
@@ -222,3 +268,10 @@ The owner-approved campaign must record exact app SHA/build, OS version, model, 
 - startup, playback/reconnect latency, bandwidth, memory, battery and crash observations.
 
 Store review, store approval, Production delivery and arbitrary LAN-only camera access remain explicitly outside this matrix.
+
+PUSH 44 one-installation continuation (2026-10-24): the new one-use approval
+store and loopback-only challenge transport passed isolated synthetic tests.
+They do **not** prove a physical Secure Enclave key, authenticated owner action,
+device-bound iOS HLS fetch, second physical device denial or live media. The
+existing native plugin and media gate remain fail-closed until a separately
+approved phone-facing transport and physical qualification window exist.
