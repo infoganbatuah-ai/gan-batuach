@@ -190,6 +190,24 @@ function safeLocation(value) {
   return null;
 }
 
+// Next may start streaming before a Server Component calls redirect(). In that
+// case it emits a meta refresh with HTTP 200. Translate only the two expected
+// local control-page redirects into explicit, scoped HTTP redirects; never
+// return an unchecked meta refresh to the iPhone.
+function streamedPageRedirect(body, path) {
+  const tags = [...body.toString("utf8").matchAll(/<meta\b[^>]*\bid="__next-page-redirect"[^>]*>/gi)];
+  if (!tags.length) return null;
+  if (tags.length !== 1) throw new Error("QA_STREAM_REDIRECT_DENIED");
+  const content = /\bcontent="([^"]+)"/i.exec(tags[0][0])?.[1];
+  const target = /^1;url=(.+)$/.exec(content ?? "")?.[1];
+  if (path === ENROLLMENT_PATH && target === LOGIN_PATH)
+    return `https://${CONTROL_HOST}${LOGIN_PATH}?next=${encodeURIComponent(ENROLLMENT_PATH)}`;
+  const safe = target && safeLocation(target);
+  if (!safe || path.startsWith(`${LOGIN_PATH}?`) && safe !== `https://${CONTROL_HOST}${ENROLLMENT_PATH}`)
+    throw new Error("QA_STREAM_REDIRECT_DENIED");
+  return safe;
+}
+
 function scopedSetCookies(upstream) {
   const raw = upstream.headers.getSetCookie?.() ?? [];
   if (raw.length > 8) throw new Error("QA_COOKIE_LIMIT");
@@ -272,15 +290,19 @@ export function createPush44QaControlIngress({ proxyKey, socketPath, ledger, dea
         throw new Error("QA_UPSTREAM_DENIED");
       const result = redirect ? Buffer.alloc(0) : await boundedReply(upstream,
         route.kind === "control" ? MAX_REPLY_BYTES : route.kind === "asset" ? MAX_ASSET_BYTES : MAX_PAGE_BYTES);
-      if (typeof ledger.accountReply !== "function" || !ledger.accountReply(result.length))
+      const streamedRedirect = route.kind === "page" && !redirect ?
+        streamedPageRedirect(result, route.path) : null;
+      if (typeof ledger.accountReply !== "function" || !ledger.accountReply(streamedRedirect ? 0 : result.length))
         return deny(response, 503);
       const cookies = route.kind === "login" || route.kind === "page" ? scopedSetCookies(upstream) : [];
       if (now() >= deadline) return deny(response, 410);
-      response.writeHead(redirect ? upstream.status : 200, { "content-type": redirect ? "text/plain; charset=utf-8" : type,
+      response.writeHead(streamedRedirect ? 307 : redirect ? upstream.status : 200,
+        { "content-type": redirect || streamedRedirect ? "text/plain; charset=utf-8" : type,
         "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff",
         "referrer-policy": "no-referrer", "content-security-policy": "frame-ancestors 'none'",
-        ...(redirect ? { location: redirect } : {}), ...(cookies.length ? { "set-cookie": cookies } : {}) });
-      response.end(result);
+        ...(redirect || streamedRedirect ? { location: redirect || streamedRedirect } : {}),
+        ...(cookies.length ? { "set-cookie": cookies } : {}) });
+      response.end(streamedRedirect ? undefined : result);
     } catch { deny(response); }
     finally { busy = false; }
   });

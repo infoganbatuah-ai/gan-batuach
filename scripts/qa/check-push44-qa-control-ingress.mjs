@@ -320,3 +320,30 @@ test("unauthenticated enrollment page redirects only to scoped login and does no
   assert.equal(result.headers.location,
     `https://${CONTROL_HOST}/digital-observer/login?next=/digital-observer/qa-device-enrollment`);
 });
+
+test("streamed Next page redirects become exact control HTTP redirects", async t => {
+  const { sign, verifyAccess } = await fixture();
+  const jwt = await sign();
+  const database = new DatabaseSync(":memory:");
+  t.after(() => database.close());
+  const socketPath = testSocket(t);
+  let target = "/digital-observer/login";
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl,
+    deadline, now: () => now, ledger: createPush44ControlLedger(database, deadline), verifyAccess,
+    fetcher: async () => new Response(`<html><meta id="__next-page-redirect" http-equiv="refresh" content="1;url=${target}"/></html>`,
+      { headers: { "content-type": "text/html; charset=utf-8" } }) });
+  const url = await ingress.listen();
+  t.after(() => ingress.close());
+  const anonymous = await call(url, jwt, { path: "/digital-observer/qa-device-enrollment" });
+  assert.equal(anonymous.status, 307);
+  assert.equal(anonymous.headers.location,
+    `https://${CONTROL_HOST}/digital-observer/login?next=%2Fdigital-observer%2Fqa-device-enrollment`);
+  assert.equal(anonymous.body, "");
+  target = "/digital-observer/qa-device-enrollment";
+  const resumed = await call(url, jwt, {
+    path: "/digital-observer/login?next=%2Fdigital-observer%2Fqa-device-enrollment" });
+  assert.equal(resumed.status, 307);
+  assert.equal(resumed.headers.location, `https://${CONTROL_HOST}/digital-observer/qa-device-enrollment`);
+  target = "https://production.example.invalid/dashboard";
+  assert.equal((await call(url, jwt, { path: "/digital-observer/qa-device-enrollment" })).status, 403);
+});

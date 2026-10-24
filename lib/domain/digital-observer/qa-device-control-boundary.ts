@@ -2,6 +2,12 @@ import { timingSafeEqual } from "node:crypto";
 
 const hostname = "qa-iphone-device-proof.ganbatuach.com";
 
+function validPrivateProxyKey(presentedKey: string, proxyKey: string) {
+  return /^[A-Za-z0-9_-]{43,96}$/.test(proxyKey) &&
+    presentedKey.length === proxyKey.length &&
+    timingSafeEqual(Buffer.from(presentedKey), Buffer.from(proxyKey));
+}
+
 type ControlEnvironment = {
   VERCEL?: string;
   PUSH44_QA_CONTROL_ONLY?: string;
@@ -22,9 +28,7 @@ export function qaDeviceControlBoundary(request: Request, env: ControlEnvironmen
     const deadline = Number(env.PUSH44_QA_CONTROL_DEADLINE_MS);
     const proxyKey = env.PUSH44_QA_PROXY_KEY || "";
     const presentedKey = request.headers.get("x-do-qa-proxy-key") || "";
-    const validKey = /^[A-Za-z0-9_-]{43,96}$/.test(proxyKey) &&
-      presentedKey.length === proxyKey.length &&
-      timingSafeEqual(Buffer.from(presentedKey), Buffer.from(proxyKey));
+    const validKey = validPrivateProxyKey(presentedKey, proxyKey);
     const trustedLocalNext = url.protocol === "https:" &&
       (url.hostname === hostname && !url.port ||
         ["localhost", "127.0.0.1"].includes(url.hostname) && url.port === "3001");
@@ -46,6 +50,24 @@ export function qaDeviceControlBoundary(request: Request, env: ControlEnvironmen
       Number(request.headers.get("content-length") || 0) > 2048) return null;
     return loopback;
   } catch { return null; }
+}
+
+// Next reconstructs the local request Host as localhost:3001 even when the
+// protected socket forwarded the external QA Host. Only the private proxy key
+// plus its exact forwarded host/protocol may authorize QA page rendering.
+export function qaDevicePageProxyBoundary(headers: Headers, env: Pick<ControlEnvironment,
+  "VERCEL" | "PUSH44_QA_CONTROL_ONLY" | "NEXT_PUBLIC_SUPABASE_URL" | "PUSH44_QA_PROXY_KEY">) {
+  try {
+    const backend = new URL(env.NEXT_PUBLIC_SUPABASE_URL || "");
+    return !env.VERCEL && env.PUSH44_QA_CONTROL_ONLY === "1" &&
+      backend.origin === "http://127.0.0.1:55421" && backend.pathname === "/" &&
+      !backend.search && !backend.hash && !backend.username && !backend.password &&
+      ["localhost:3001", "127.0.0.1:3001"].includes(headers.get("host") || "") &&
+      headers.get("x-forwarded-host") === hostname &&
+      headers.get("x-forwarded-proto") === "https" &&
+      !headers.has("forwarded") && !headers.has("authorization") &&
+      validPrivateProxyKey(headers.get("x-do-qa-proxy-key") || "", env.PUSH44_QA_PROXY_KEY || "");
+  } catch { return false; }
 }
 
 export async function readQaDeviceBoundedBody(request: Request): Promise<string | null> {

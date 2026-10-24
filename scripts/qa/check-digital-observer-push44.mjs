@@ -27,7 +27,7 @@ const player = readFileSync(new URL("../../components/digital-observer/observer-
 const login = readFileSync(new URL("../../components/digital-observer/observer-login-form.tsx", import.meta.url), "utf8");
 const loginPage = readFileSync(new URL("../../app/digital-observer/login/page.tsx", import.meta.url), "utf8");
 assert.match(loginPage, /if \(!params\?\.error && await getDigitalObserverApiUser\(\)\)/);
-assert.match(loginPage, /process\.env\.PUSH44_QA_CONTROL_ONLY === "1" &&[\s\S]*\(await headers\(\)\)\.get\("host"\) === "qa-iphone-device-proof\.ganbatuach\.com" &&[\s\S]*params\?\.next === "\/digital-observer\/qa-device-enrollment"\)[\s\S]*redirect\("\/digital-observer\/qa-device-enrollment"\)/);
+assert.match(loginPage, /qaDevicePageProxyBoundary\(await headers\(\), \{[\s\S]*PUSH44_QA_PROXY_KEY: process\.env\.PUSH44_QA_PROXY_KEY[\s\S]*\}\) &&[\s\S]*params\?\.next === "\/digital-observer\/qa-device-enrollment"\)[\s\S]*redirect\("\/digital-observer\/qa-device-enrollment"\)/);
 assert.match(loginPage, /redirect\("\/digital-observer\/dashboard"\)/);
 assert.ok(loginPage.indexOf("await getDigitalObserverApiUser()") < loginPage.indexOf("<ObserverLoginForm"), "resume requires canonical server session and Observer authorization before rendering");
 const android = readFileSync(new URL("../../android/app/src/main/AndroidManifest.xml", import.meta.url), "utf8");

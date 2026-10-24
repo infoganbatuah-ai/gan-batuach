@@ -1,5 +1,72 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-24 actual local Next/Auth control-path qualification — no external activation
+
+Ran `scripts/qa/check-push44-real-local-control.mjs` with the original `gbi`
+Colima Development Supabase (`127.0.0.1:55421`) and the existing protected
+`owner-iphone@integration.qa.invalid` credentials. Elevated, read-only runtime
+checks found the seven original Supabase containers healthy; the sandboxed
+`colima list` reporting `Broken` was not the actual VM state. The script starts
+its own feature-branch Next.js process on loopback port 3001, uses an ephemeral
+in-memory Access-compatible signer and private proxy key, then shuts down its
+own Next process and Unix-socket ingress. It creates no Auth user, pending
+device approval, public listener, Cloudflare policy or media route. Credential
+and session values are not emitted; only protected local files are read.
+
+**Real local result:** PASS for unauthenticated enrollment-to-login redirect,
+actual Next login HTML, all **32** referenced Next static JS/CSS assets, a
+password sign-in through the canonical Development Supabase Auth endpoint,
+server-side active Observer session and authenticated enrollment screen.
+The real login returned QA-host-scoped `Secure; HttpOnly; SameSite=Lax` cookies;
+the proxy forwarded only `sb-*` cookies to the loopback application and no
+session cookie to static assets. Direct access to the loopback Next page without
+the private proxy key, forged cookies, unrelated dashboard/media routes and
+invalid device-status requests were denied. The test used **40** proxy attempts
+and **11,122,342** reserved-plus-reply bytes under a five-minute local
+deadline; **10,712,742** bytes were actual local replies. These are not
+Cloudflare measurements or a financial cap.
+
+The actual Next.js runtime exposed two gaps hidden by earlier mock replies:
+(1) a streamed Server Component redirect arrived as HTTP 200 plus a meta
+refresh; the ingress now accepts only the expected login/enrollment targets and
+normalizes them to exact-host HTTP redirects; (2) Next reconstructs `Host` as
+`localhost:3001`, so the protected QA page now requires the private proxy key,
+the exact forwarded QA hostname and HTTPS protocol, plus the original loopback
+Development backend, instead of trusting Host alone. Focused tests cover these
+behaviors and hostile targets. No arbitrary forwarded header authorizes access.
+
+**Still not proven:** a real pending Secure Enclave request/key fingerprint,
+successful device challenge and status against that request, physical iPhone
+flow, or live Cloudflare Access assertion delivery. The local control API
+confirmed denial without a real pending request; it did not fabricate one or
+issue owner approval. For this existing password identity, the same-origin
+login POST establishes the Supabase session; an email `auth/confirm` callback
+was not part of this flow and remains intentionally unexposed.
+
+**Access return blocker:** the preserved signed PersonalTeamQA app has only
+the QA hostname in `allowNavigation`, no Associated Domains entitlement and no
+approved Access-specific return/exchange handler. Cloudflare requires the same
+browser context to complete sign-in; a system-browser Access cookie cannot be
+assumed to appear in the app's WKWebView. A generic custom-scheme callback
+would not safely establish the Access session and is not added here. Thus the
+signed binary is valid on disk (provisioning expires **2026-10-26T23:14:41Z**),
+but external Access login/return is **BLOCKED** pending a separately qualified,
+narrow native return or server-side exchange contract. No installation occurred.
+See [Cloudflare Access troubleshooting](https://developers.cloudflare.com/cloudflare-one/access-controls/troubleshooting/)
+and [Capacitor universal-link prerequisites](https://capacitorjs.com/docs/guides/deep-links).
+
+**Edge/cost decision unchanged:** the existing Zero Trust Free entitlement has
+no new fixed subscription for the intended one-owner control test. Origin
+enforces 1,000 total attempts, 60/minute, 2-KiB request bodies, bounded
+responses and 64 MiB cumulative reserved-plus-reply bytes with a 30-minute
+absolute deadline. Cloudflare Free's shared-zone rate rule cannot match the
+exact Host and was not enabled; pre-origin Access/denied requests, provider
+traffic and cellular data are outside the origin ledger. There is no verified
+contractual hard financial ceiling, so expected incremental provider charge
+is estimated at $0 **with residual unbounded edge-cost risk**, not guaranteed
+$0. No owner activation request should be made until the Access return path
+and actual provider-edge exposure are explicitly accepted/qualified.
+
 ## 2026-10-24 iPhone control-page and cost gate continuation — no activation
 
 The proposed Unix-socket ingress now has a narrow same-origin **Development-only**
