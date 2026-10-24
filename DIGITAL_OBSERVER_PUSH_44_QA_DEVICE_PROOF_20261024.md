@@ -2,32 +2,34 @@
 
 ## Owner bootstrap identity check — 2026-10-24 (read-only)
 
-The connected GitHub identity is `infoganbatuah-ai`, numeric user ID
-`287220776`, and GitHub reports repository `admin` permission for
-`infoganbatuah-ai/gan-batuach`. The connected profile presents an email
-matching the intended Development owner address, but its profile result has
-**no verified-email field**. The GitHub CLI's separately authorized `/user`
-profile has no email value, and its `/user/emails` verified-address check was
-denied (HTTP 404) with the current scopes. Neither an email string in a
-profile nor repository administration proves verified mailbox ownership.
-The existing LOCAL_SUPABASE confirmation came through the local mail catcher;
+The connected GitHub App installation identifies account `infoganbatuah-ai`
+with numeric user ID `287220776`; GitHub reports repository `admin`
+permission. Its profile email field alone has no verification flag. A separate
+existing GitHub CLI credential stored in the macOS keyring was confirmed to
+authenticate as the same login and user ID. With no scope extension, the
+authenticated read-only `GET /user/public_emails` response established:
+
+- Target owner email matched: **YES**.
+- GitHub `verified` for that exact target: **TRUE**.
+- Verification timestamp: **2026-10-24 18:01:43 UTC**.
+- Authentication method: **existing GitHub CLI keyring credential**, tied to
+  user ID `287220776`; the GitHub App connection was used only for a profile
+  cross-check.
+
+Only the exact target-match and verification booleans were returned from the
+email query. No address list or credential was printed, stored, or committed.
+The broader `/user/emails` endpoint remains unavailable to the existing CLI
+scopes, but **no `user:email` or Email addresses: read permission is needed**
+for this public-address verification. No scope extension or new token occurred.
+The LOCAL_SUPABASE confirmation still came through the local mail catcher;
 it proves a local Auth confirmation/session, not independent mailbox delivery
-or Observer ownership. No existing audited identity record supplies the
-missing GitHub verified-address assertion.
+or Observer ownership by itself.
 
-GitHub documents `user:email` for read-only listing of the authenticated
-account's email addresses (or the fine-grained user **Email addresses: read**
-permission). The minimum next verification is a temporary extension of the
-existing connection for that read only, checking **only** whether the exact
-owner address has `verified: true` for GitHub user ID `287220776`. Do not
-list, log, store or publish the other addresses, request repository/org/write
-scopes, or create a new token merely to perform this check. No scope extension
-was requested or used in this operation.
-
-Even if that check later succeeds, it is only one independent bootstrap
-factor. A one-request Development capability grant still requires an explicit
+GitHub's verified address and repository administration establish a useful
+independent project-owner identity check, **not** an automatic Development
+authorization grant. A one-request capability still requires an explicit
 new owner approval, the exact active LOCAL_SUPABASE owner Auth ID and session,
-verified repository administration, a pending installation ID and public-key
+recheck of repository administration, a pending installation ID and public-key
 fingerprint, fixed QA viewer/tenant/Site scope, fresh Mac owner presence,
 an auditable short expiry, one-time consumption and revocation. The parent QA
 account and synthetic administrator cannot issue it. No capability, pending

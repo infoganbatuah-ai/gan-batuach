@@ -62,7 +62,7 @@
           "Owner confirmed Gan Batuach parent dashboard on Mac after local invitation, not Digital Observer; local Auth shows confirmed email and one session",
           "Read-only original LOCAL_SUPABASE: owner Auth=1, capability=0, unassigned parent=1, owned Observer Sites=0, memberships=0, synthetic Site records=0",
           "One pending request is bound to the exact key fingerprint and session; no grant was issued",
-          "Read-only GitHub identity check: account infoganbatuah-ai (ID 287220776) has repository admin; connected profile email matches intended owner address but has no verified flag; current CLI /user/emails returns HTTP 404 with existing scopes; bootstrap remains unverified"
+          "Read-only GitHub identity check at 2026-10-24 18:01:43 UTC: account infoganbatuah-ai (ID 287220776) has repository admin; existing GitHub CLI keyring credential authenticated as same ID; /user/public_emails target match YES and verified TRUE; no address list, token, new scope or capability grant"
         ],
         "limits": "No independent Observer owner bootstrap anchor, no actual owner-presence ceremony for a device approval, no scoped capability issuance, no physical iPhone enrollment or HTTPS activation."
       },
@@ -85,7 +85,7 @@
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "Obtain separate owner authorization for temporary read-only GitHub user:email (or fine-grained Email addresses: read) on the existing connection; check only the exact verified-address match for user ID 287220776. Even after a match, require separate exact-request owner approval and fresh Mac presence before any scoped grant; do not preapprove the phone, open HTTPS or activate media."
+      "nextAction": "Identity match is verified without added GitHub scope. Obtain separate explicit owner approval for one exact pending installation/request/key and fresh Mac presence before any scoped Development capability grant; do not preapprove the phone, open HTTPS or activate media."
     },
     {
       "id": "backup/active-observer-engine-20260831",
