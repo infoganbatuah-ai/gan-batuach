@@ -50,7 +50,9 @@ new token in JS. Any Access bearer is a distinct native Keychain item, never
 a Supabase credential. Confirm native cookie retention and revocation in an
 actual Next + original LOCAL_SUPABASE test before claiming this path works.
 
-The three gates stay independent on **every** control operation:
+The three gates stay independent. Edge and Development-session checks apply to
+every control operation; possession is required at enrollment completion and
+every later device-bound access, not before a key can request enrollment:
 
 1. **Cloudflare edge:** valid native Access credential -> edge policy -> signed
    assertion with exact issuer, AUD, owner, expiry; trusted proxy/origin key.
@@ -60,7 +62,8 @@ The three gates stay independent on **every** control operation:
 3. **Device:** pinned one-use request and public key -> fresh challenge ->
    Secure Enclave signature -> one separate owner action with fresh Mac
    presence -> revocable enrollment. A copied Access credential plus app
-   cookie must still fail without this proof.
+   cookie must still fail for a protected device-bound operation without
+   this proof.
 
 ## Fail-closed native state machine (design contract, not implemented)
 
