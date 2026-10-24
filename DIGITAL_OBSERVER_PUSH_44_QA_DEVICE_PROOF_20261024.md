@@ -244,3 +244,43 @@ HLS playlist/segment boundary remains denied.
   not a verified all-in maximum: edge-denied traffic, cellular usage and actual
   account quotas must be bounded/checked before activation. No financial
   commitment or charge was incurred by this preflight.
+
+## Development owner identity and Mac presence recovery (2026-10-24)
+
+- Read-only LOCAL_SUPABASE inspection found the sole active administrator
+  profile `00000000-0000-4000-8000-000000000501` belongs to the synthetic
+  `admin@integration.qa.invalid` fixture. Its Auth role and app metadata are
+  `admin`/`DEVELOPMENT`, both set by the guarded Development identity seed and
+  fixture SQL. It has a password/email sign-in identity and confirmed fixture
+  email, but zero unexpired Auth sessions, zero active observer-Site memberships,
+  no Garden assignment and no verified connection to the human project owner.
+  Its normal sign-in mechanism exists, but logging into this synthetic account
+  would not establish a legitimate owner approval session. No credentials or
+  verifier material were read. The iPhone QA user remains a distinct `parent`.
+- A separate lookup still found no Auth user for the owner's project email in
+  LOCAL_SUPABASE. The existing canonical invitation path uses Supabase Auth's
+  administrator invitation API, verified email ownership, a server-side
+  `profiles.role` assignment and audit. It requires a properly authorized
+  Development administrator; the synthetic fixture is not silently promoted
+  into owner provenance. The next owner-controlled step is separate approval
+  for a *Development-only* owner-admin invitation and least-privilege role
+  grant, followed by email verification and a fresh normal login. Do not use
+  direct SQL, the parent's session, or a copied Production identity.
+- The owner reader now requires a host-pinned owner profile ID **and** verified
+  owner email, a confirmed Auth email, an active Auth session checked server-
+  side, and an active administrator profile with the same email. It rejects
+  `.invalid` fixture addresses even if their role is admin. The synthetic
+  tenant/Site scope remains hard-pinned; this is not a real Home membership.
+- The Swift `LocalAuthentication` helper was compiled for the Mac in an
+  owner-only temporary directory, checked for 0700 directory/executable modes
+  and pinned SHA-256, then actually prompted the owner once. The owner approved
+  the macOS prompt and the helper returned only `PRESENT`; no biometric or
+  password value was accessed. This proves the local presence mechanism, **not**
+  an enrollment approval: no valid owner-admin session exists, and no key was
+  enrolled. The temporary helper is not a durable installation; before any
+  later enrollment, rebuild or install it in a protected owner-only Mac path,
+  repin its hash and repeat fresh presence with the authorized admin session.
+- Isolated negative tests cover fixture-email denial, mismatched Auth/profile
+  email, unconfirmed email, parent role, inactive session, wrong user and
+  non-local Supabase URL. No Development Auth user, role, approval, DNS, Tunnel,
+  iPhone installation, Cloudflare setting, media or Production data was changed.

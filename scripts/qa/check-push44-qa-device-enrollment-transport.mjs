@@ -228,19 +228,37 @@ test("separate Development owner reader uses verified Auth session and denies QA
     session_id: "separate-owner-session-00000001", exp: expires })).toString("base64url"),
     "signature"].join(".");
   let role = "admin", active = true, userId = ownerId;
+  let userEmail = "owner@verified.example", profileEmail = userEmail, confirmed = true;
   const read = createPush44QaDevelopmentOwnerReader({
     supabaseUrl: "http://127.0.0.1:54321/", publishableKey: "local-publishable-key-for-synthetic-test",
-    expectedOwnerProfileId: ownerId, readOwnerToken: async () => token,
-    clientFactory: () => ({ auth: { getUser: async () => ({ data: { user: { id: userId } }, error: null }) },
+    expectedOwnerProfileId: ownerId, expectedOwnerEmail: "owner@verified.example",
+    readOwnerToken: async () => token,
+    clientFactory: () => ({ auth: { getUser: async () => ({ data: { user: { id: userId, email: userEmail,
+      email_confirmed_at: confirmed ? "2026-10-24T00:00:00Z" : null } }, error: null }) },
       rpc: async () => ({ data: active, error: null }),
       from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
-        data: { id: ownerId, role, active: true }, error: null }) }) }) }) }) });
+        data: { id: ownerId, email: profileEmail, role, active: true }, error: null }) }) }) }) }) });
   assert.equal((await read()).owner, true);
+  userEmail = "admin@integration.qa.invalid";
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  userEmail = "owner@verified.example"; profileEmail = "admin@integration.qa.invalid";
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  profileEmail = userEmail; confirmed = false;
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  confirmed = true;
   role = "parent"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
   role = "admin"; active = false; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
   active = true; userId = SYNTHETIC_QA.viewerId;
   await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
   assert.throws(() => createPush44QaDevelopmentOwnerReader({ supabaseUrl: "https://kuaywzvucllxjsxarogb.supabase.co/",
+    publishableKey: "local-publishable-key-for-synthetic-test", expectedOwnerProfileId: ownerId,
+    expectedOwnerEmail: "owner@verified.example",
+    readOwnerToken: async () => token }), /QA_DEVELOPMENT_OWNER_DENIED/);
+  assert.throws(() => createPush44QaDevelopmentOwnerReader({ supabaseUrl: "http://127.0.0.1:54321/",
+    publishableKey: "local-publishable-key-for-synthetic-test", expectedOwnerProfileId: ownerId,
+    expectedOwnerEmail: "admin@integration.qa.invalid", readOwnerToken: async () => token }),
+  /QA_DEVELOPMENT_OWNER_DENIED/);
+  assert.throws(() => createPush44QaDevelopmentOwnerReader({ supabaseUrl: "http://127.0.0.1:54321/",
     publishableKey: "local-publishable-key-for-synthetic-test", expectedOwnerProfileId: ownerId,
     readOwnerToken: async () => token }), /QA_DEVELOPMENT_OWNER_DENIED/);
 });
