@@ -45,13 +45,14 @@
       "sourceBranch": "codex/push44-synthetic-external-preparation",
       "sourceCommits": [
         "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f",
-        "b1ab16d942223e8bfb156b78c41bdf9bcb88f576"
+        "b1ab16d942223e8bfb156b78c41bdf9bcb88f576",
+        "e0d454d9f2d5319f69b2bdee2ee29715ced61c4c"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@b1ab16d942223e8bfb156b78c41bdf9bcb88f576"],
-        "implementationCommit": "b1ab16d942223e8bfb156b78c41bdf9bcb88f576"
+        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@e0d454d9f2d5319f69b2bdee2ee29715ced61c4c"],
+        "implementationCommit": "e0d454d9f2d5319f69b2bdee2ee29715ced61c4c"
       },
       "validation": {
         "status": "ISOLATED_PASS_OWNER_AUTH_CONFIRMED_SCOPED_GRANT_NOT_ISSUED",
@@ -61,10 +62,12 @@
           "Eight isolated device-transport tests and local ci:quality PASS at b1ab16d942223e8bfb156b78c41bdf9bcb88f576; remote exact-head CI pending",
           "Owner confirmed Gan Batuach parent dashboard on Mac after local invitation, not Digital Observer; local Auth shows confirmed email and one session",
           "Read-only original LOCAL_SUPABASE: owner Auth=1, capability=0, unassigned parent=1, owned Observer Sites=0, memberships=0, synthetic Site records=0",
-          "One pending request is bound to the exact key fingerprint and session; no grant was issued",
+          "The isolated request-store code binds a future pending request to the exact key fingerprint and session; no physical pending request or grant was issued",
+          "Exact-host control-only PersonalTeamQA build signed and verified on Kingston at 2026-10-24 18:12 UTC; executable SHA-256 fd1d015de011d11503fe5eba0db4ebf326ef6948703923c689a2725a783f4898; not installed",
+          "Control-only config rejects bootstrap tokens, wrong origin, media path and Push; eight isolated transport tests PASS. No external route or phone-side control UI is active",
           "Read-only GitHub identity check at 2026-10-24 18:01:43 UTC: account infoganbatuah-ai (ID 287220776) has repository admin; existing GitHub CLI keyring credential authenticated as same ID; /user/public_emails target match YES and verified TRUE; no address list, token, new scope or capability grant"
         ],
-        "limits": "No independent Observer owner bootstrap anchor, no actual owner-presence ceremony for a device approval, no scoped capability issuance, no physical iPhone enrollment or HTTPS activation."
+        "limits": "Verified GitHub owner identity is not a capability grant. No actual owner-presence ceremony for a device approval, no scoped capability issuance, no phone-side request UI, no physical pending request/fingerprint, no iPhone installation or HTTPS activation."
       },
       "integration": {
         "status": "NOT_INTEGRATED",
@@ -85,7 +88,7 @@
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "Identity match is verified without added GitHub scope. Obtain separate explicit owner approval for one exact pending installation/request/key and fresh Mac presence before any scoped Development capability grant; do not preapprove the phone, open HTTPS or activate media."
+      "nextAction": "First complete a reviewed control-only phone UI/session handoff and exact-host TLS/Access/cost preflight. Then request separate owner approval for a 30-minute control-only HTTPS/install window to create the physical pending request; only after its exact request ID/key fingerprint exists may the one-use capability and fresh Mac approval be separately considered. No route, media or Production activation."
     },
     {
       "id": "backup/active-observer-engine-20260831",
