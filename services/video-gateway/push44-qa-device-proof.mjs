@@ -161,9 +161,10 @@ export function createPush44QaDeviceProof({ database, authenticate, readDelegati
     if (!b || !active(p, b.key_id)) denied();
     return p;
   }
-  async function revoke({ keyId, purpose }) {
+  async function revoke({ context, keyId, purpose }) {
+    const p = await principal(context);
     if (typeof purpose !== "string" || purpose.length < 12 || !validId(keyId) ||
-      await authorizeOwnerAction({ keyId, purpose, operation: "REVOKE" }) !== true) denied();
+      await authorizeOwnerAction({ context, principal: p, keyId, purpose, operation: "REVOKE" }) !== true) denied();
     transaction(() => {
       const b = binding();
       if (!b || b.key_id !== keyId || b.revoked_at !== null) denied();

@@ -64,3 +64,54 @@ expiry, revocation, error fail-closed and audit minimization. No real camera,
 external synthetic media, Cloudflare change or Production operation is part of
 these tests. The exact native compile, required CI and Git status are recorded
 in the PR checks and task handoff; a code test does not imply physical proof.
+
+## Controlled-enrollment continuation — 2026-10-24
+
+The private host candidate now has a SQLite-backed, single-pending-approval
+store. An authenticated `LOCAL_SUPABASE` principal, exact synthetic delegation
+and a **separate trusted owner/admin action adapter** must all succeed before
+it issues a 60-second, one-use approval pinned to the public-key digest and
+canonical session. Atomic consumption, explicit approval revocation and a
+metadata-only hash-chained audit survive process recreation when the caller
+uses a protected durable SQLite file. A second key cannot be silently enrolled.
+The tested synthetic owner-action callback is **not** an actual authorized
+administrator ceremony; no live owner enrollment has been performed.
+
+The challenge/enroll/prove/revoke transport binds exclusively to `127.0.0.1`
+on an ephemeral port and starts only when a trusted operator calls `listen()`.
+It rejects browser Origin, cookies, invalid Bearer credentials, oversized
+bodies, arbitrary paths and non-POST methods. A durable 1,000-attempt ceiling
+and metadata-only STARTED/ACCEPTED/DENIED audit are enforced at the serving
+boundary; an unavailable audit blocks the protected action. The caller must supply the
+canonical server-side Development session adapter; the isolated test uses a
+synthetic adapter. It opens no public route and is **not reachable from the
+iPhone**. A future approved HTTPS bridge must retain the same authorization
+checks and be reviewed before any phone-facing activation.
+
+The existing media gate still requires a fresh per-request device signature
+as well as the canonical Supabase session, exact delegation and lease. Native
+AVPlayer/HLS does not attach those proof headers to playlist and segment
+requests. A copied cookie or URL is therefore denied, but playback is also
+denied. This is a deliberate fail-closed state, **not** completed iOS HLS
+authorization. The next design must provide device-bound native request
+handling or equivalent proof at the actual serving boundary without a reusable
+bearer-only media session. No media route was activated here.
+
+No migration was added: this short-lived Development operator state belongs
+to a protected local SQLite file, not Production or public Supabase. The file
+owner, retention and cleanup are the trusted operator; expected volume is one
+binding, one pending approval and at most 600 challenges for the single QA
+session. A real owner-action adapter and protected durable store must be
+qualified before phone enrollment. Key loss/reinstall still requires an
+explicit owner-authorized re-enrollment and cannot be silently repaired.
+
+A local `PersonalTeamQA` device build completed with the existing Apple
+Development identity and the connected iPhone 13 Pro selected in Xcode.
+`codesign --verify --strict` passed for bundle `com.ganbatuach.app.qa`;
+the executable SHA-256 is
+`0aa3023b1dd61f7ef4ca1836e96167da7c77d22b79e4a1419a700ededa3a9f77`.
+The signed entitlements have no APNs key. The built package remains under
+`/Volumes/DIGITAL_OBSERVER/XcodeStorage/DigitalObserver/DerivedData/Build/Products/PersonalTeamQA-iphoneos/App.app`.
+It was **not installed or exercised** in this continuation: the current
+offline-safe QA bundle has no approved phone-reachable challenge transport,
+and installation would not prove Secure Enclave behavior or owner enrollment.

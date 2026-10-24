@@ -242,3 +242,10 @@ The owner-approved campaign must record exact app SHA/build, OS version, model, 
 - startup, playback/reconnect latency, bandwidth, memory, battery and crash observations.
 
 Store review, store approval, Production delivery and arbitrary LAN-only camera access remain explicitly outside this matrix.
+
+PUSH 44 one-installation continuation (2026-10-24): the new one-use approval
+store and loopback-only challenge transport passed isolated synthetic tests.
+They do **not** prove a physical Secure Enclave key, authenticated owner action,
+device-bound iOS HLS fetch, second physical device denial or live media. The
+existing native plugin and media gate remain fail-closed until a separately
+approved phone-facing transport and physical qualification window exist.
