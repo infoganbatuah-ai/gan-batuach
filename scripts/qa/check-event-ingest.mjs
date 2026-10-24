@@ -48,6 +48,7 @@ class Query {
 let uploads=0;
 const db={from:table=>new Query(table),storage:{from:()=>({upload:async()=>{uploads++;return {error:null};}})}};
 let pushCalls=0;
+let riskCalls=0;
 const audits=[];
 const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   ok:(data,status=200)=>Response.json({data},{status}),fail:(error,status=400)=>Response.json({error},{status}),handleRouteError:()=>Response.json({error:"route_failure"},{status:500})
@@ -59,7 +60,7 @@ const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   const result=await db.from("immutable_audit_events").insert(input);
   if(result.error){immutableAuditFailures++;return;}
   audits.push(input);
-}},"@/lib/domain/digital-observer/risk-decision-service":{evaluateAndPersistIncidentRisk:async()=>({status:"not_applicable"})},"server-only":{}};
+}},"@/lib/domain/digital-observer/risk-decision-service":{evaluateAndPersistIncidentRisk:async()=>{riskCalls++;return {status:"not_applicable"};}},"server-only":{}};
 const tokenLib=load("lib/domain/gateway-device-enrollment.ts",mocks);
 const token=tokenLib.issueGatewayDeviceAccessToken({device_id:deviceId,gateway_id:gatewayId,observer_site_id:siteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
 const route=load("app/api/video-gateway/cloud-events/route.ts",mocks);
@@ -73,6 +74,16 @@ let value=(await response.json()).data;assert.equal(value.recording_required,fal
 assert.equal(tables.observer_intelligence_signals[0].metadata.observation_provenance,"REAL_CAMERA_AI","Authenticated Gateway events are explicitly marked as real camera AI");
 assert.equal(tables.observer_intelligence_signals[0].metadata.stream_id,"stream","Authenticated Gateway events retain their source stream binding");
 assert.equal((await send(event)).status,201);assert.equal(tables.observer_intelligence_signals.length,1,"Retries must not insert a second event");
+const riskCallsBeforeConflicts=riskCalls;
+assert.equal((await send({...event,track_id:"different-track"})).status,409,"A reused event ID cannot change the tracked observation");
+assert.equal((await send({...event,confidence:.72})).status,409,"A reused event ID cannot change its confidence or downstream risk input");
+assert.equal((await send({...event,model_provenance:{model:"different-model",runtime:"qa",execution_provider:"qa"}})).status,409,"A reused event ID cannot add different model provenance");
+assert.equal((await send({...event,verification_evidence:{distinct_source_frames:2,directional_confirmations:0,source_sequence:1,source_anchor_verified:true,tracking_duration_ms:100}})).status,409,"A reused event ID cannot substitute verification evidence");
+tables.digital_observer_camera_sources[0].metadata.verified_event_models={person_detected:true};
+assert.equal((await send({...event,evidence_kind:"validated_rule"})).status,409,"A reused event ID cannot substitute another compatible evidence kind");
+delete tables.digital_observer_camera_sources[0].metadata.verified_event_models;
+assert.equal(tables.observer_intelligence_signals.length,1,"Conflicting retries do not create or replace durable observations");
+assert.equal(riskCalls,riskCallsBeforeConflicts,"Conflicting retries are rejected before Incident Risk evaluation");
 assert.equal((await send({...event,event_id:randomUUID(),timestamp:new Date(Date.now()-2*86400000).toISOString()})).status,201,"An authenticated backlog older than one day must not be lost");
 assert.equal(tables.observer_intelligence_signals[1].metadata.received_late,true);
 assert.equal((await send({...event,event_id:randomUUID(),timestamp:new Date(Date.now()+180000).toISOString()})).status,422);
@@ -166,4 +177,18 @@ tables.digital_observer_camera_sources[0].metadata.monitoring_enabled=true;
 tables.video_gateway_device_enrollments[0].status="revoked";
 assert.equal((await send(event)).status,401);
 assert.equal(tables.observer_intelligence_signals.length,6);
-console.log("Event ingestion checks passed: token validation, revocation, scope, consent, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");
+tables.video_gateway_device_enrollments[0].status="delivered";
+tables.digital_observer_camera_sources[0].metadata.zone_type="ENTRANCE";
+const separateObservation={...event,event_id:randomUUID()};
+assert.equal((await send(separateObservation)).status,201,"A distinct event ID remains distinct even at the same camera and timestamp");
+assert.equal(tables.observer_intelligence_signals.length,7);
+const otherSiteId=randomUUID(),otherCameraId=randomUUID(),otherGatewayId=randomUUID(),otherDeviceId=randomUUID();
+tables.video_gateway_device_enrollments.push({id:otherDeviceId,gateway_id:otherGatewayId,observer_site_id:otherSiteId,status:"delivered"});
+tables.observer_sites.push({id:otherSiteId,garden_id:null,site_type:"home",monitoring_enabled:true,metadata:{observer_monitoring_consent:true}});
+tables.observer_site_subscriptions.push({id:randomUUID(),observer_site_id:otherSiteId,commercial_state:"active",entitlement_snapshot:{ai_processing:true,evidence_storage:true,video_retention:24},trial_end:null,grace_period_ends_at:null});
+tables.digital_observer_camera_sources.push({id:otherCameraId,observer_site_id:otherSiteId,display_name:"Other entrance",status:"connected",source_mode:"gateway_test",metadata:{gateway_id:otherGatewayId,gateway_stream_id:"stream",zone_type:"ENTRANCE"}});
+const otherToken=tokenLib.issueGatewayDeviceAccessToken({device_id:otherDeviceId,gateway_id:otherGatewayId,observer_site_id:otherSiteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
+assert.equal((await send({...event,camera_source_id:otherCameraId},otherToken)).status,201,"The same producer event ID at another authorized site is independently namespaced");
+assert.notEqual(tables.observer_intelligence_signals.at(-1).source_id,tables.observer_intelligence_signals[0].source_id,"Different sites cannot share the durable source key");
+assert.equal(tables.observer_intelligence_signals.length,8);
+console.log("Event ingestion checks passed: token validation, revocation, scope, consent, immutable replay identity, site namespace, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");
