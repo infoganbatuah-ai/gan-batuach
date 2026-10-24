@@ -1,5 +1,22 @@
 # Canonical Development Integration Ledger
 
+PUSH 44 real local control-path qualification, 2026-10-24: PR #248 Draft
+at source commit `9b3b96181b55295ce839297ce8b1af7ed9813042`
+uses the original `gbi` LOCAL_SUPABASE Auth and actual feature Next.js over a
+protected Unix-socket proxy. The existing QA identity authenticated; the
+active-session enrollment screen and all 32 referenced Next assets loaded.
+The local five-minute run consumed 40 attempts and 11,122,342
+reserved-plus-reply bytes; direct-origin bypass, forged cookies and media
+routes were denied. Streamed Next redirects and private-key-bound local Host
+handling were corrected. Focused 14/14, security 54/54, domain 46/46,
+TypeScript, canonical lint, migration health and release contract passed
+locally. This is not real Cloudflare or physical-iPhone proof: Access
+cross-host sign-in/return for the signed QA app is unresolved, as is a hard
+provider edge-cost ceiling. No pending physical-key enrollment, approval,
+external route, media, Production/Home or PR #235 change. Exact-head CI for
+the final ledger commit remains to be verified; see the scoped device-proof
+receipt for details.
+
 PUSH 44 control-only Access/edge-cost closure, 2026-10-24: PR #248 Draft
 continues on `codex/push44-synthetic-external-preparation`; this scoped
 Development change selects public-hostname self-hosted Access plus an
