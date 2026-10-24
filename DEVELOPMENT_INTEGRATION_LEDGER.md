@@ -1849,3 +1849,19 @@ PUSH 44 physical-enrollment readiness continuation, 2026-10-24: PR #248 Draft br
 PUSH 44 control-host non-public preflight, 2026-10-24: PR #248 Draft branch only. With exact owner approval, reused the protected Let's Encrypt account to issue a single-name certificate for `qa-iphone-device-proof.ganbatuach.com`; one task-created DNS-01 TXT propagated, validated and was removed. Zone records returned from 15 to the original 14; authoritative nameservers no longer return the challenge. Certificate chain, sole SAN, key match and owner-only private-key mode were verified locally; this is not physical-iPhone TLS proof. Created only private-hostname Access application `4382f628-c338-4a23-9da0-1490056b83e4` with zero policies, hidden from App Launcher and no connected route. Free plan and existing subscriptions remain unchanged; public control DNS has no A/AAAA/CNAME and the sole Home tunnel still has no routes. No existing Production DNS record, external ingress, phone install, enrollment approval, media, Home service or main change; the shared zone did receive the authorized temporary TXT and its removal. Future edge request/traffic cost and trusted proxy remain unqualified; a separate approval is required before any 30-minute control window. See the newest device-proof receipt for sanitized fingerprint, expiry, rollback and pending gates.
 
 PUSH 44 control security/cost continuation, 2026-10-24: PR #248 Draft branch adds an inert, loopback-only one-path control ingress using the existing device-proof bridge. Synthetic signed Access assertions are checked for the exact team issuer, application AUD, owner email, signature and expiry; a durable local SQLite ledger limits 60 attempts/minute, 1,000 total attempts, 12 MiB conservatively reserved bytes, one in-flight request and a 30-minute deadline. Spoofed headers, media routes, oversized requests and responses deny in isolated tests; no listener starts on import. The Cloudflare application is a private hostname: documented origin Access JWT delivery for HTTPS requires Gateway TLS decryption, which is not verified/approved on this shared account. The phone HTML/login path and pre-origin provider-cost bound are also unqualified. Existing owner-only policy remains a proposal; Access still has zero policies and no route. No iPhone installation, capability grant, media, Production, Home or main change. The next gate is a separately reviewable JWT-capable Access route design with a verified cost cap, not activation. Details and test limits are in the newest device-proof receipt.
+PUSH 44 control-only iPhone page/cost gate, 2026-10-24: PR #248 Draft branch
+`codex/push44-synthetic-external-preparation`, scoped source commit
+`4a19e5d1d645f5f4dc3f6d60db91b959eeff8ba1`. The owner-only Unix-socket
+proxy now permits only the QA enrollment/login, required Next static assets,
+and existing device-control POST, with signed Access assertion checks,
+Development login identity binding, restricted cookies/redirects, durable
+30-minute/1,000-attempt/64-MiB origin budget, and no media/admin routes.
+Focused isolated socket/boundary checks 12/12 and PUSH 44 regression PASS;
+actual Access redirect/JWT delivery, full local Next/Supabase loop and
+physical iPhone proof remain open. The signed QA package is valid on disk
+through `2026-10-26T23:14:41Z`, but its exact-host WebView navigation does not
+yet prove Cloudflare team-domain/IdP sign-in. Account visibly remains Zero
+Trust Free; the Free shared-zone WAF cannot match an exact Host, so edge
+traffic has no contractual hard financial cap. No route, Allow policy, app
+installation, capability, media, Home, Production or main change. Exact-head
+CI and local build results must be recorded separately; PR #235 remains Draft.

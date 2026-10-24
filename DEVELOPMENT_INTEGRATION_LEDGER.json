@@ -12052,6 +12052,22 @@
         "externalMediaBytes": 0,
         "nextAction": "Preserve PR248 Draft and verify exact-head CI. Qualify the narrow same-origin iPhone page/login surface and safe edge-rule scope before asking the owner to decide on a temporary Access Allow/Tunnel route with residual non-hard-capped provider cost risk. PR235 stays separate Draft."
       },
+      "qaControlIphonePath20261024": {
+        "sourceBranch": "codex/push44-synthetic-external-preparation",
+        "sourceCommit": "4a19e5d1d645f5f4dc3f6d60db91b959eeff8ba1",
+        "pullRequest": 248,
+        "state": "VALIDATED_ON_BRANCH_PENDING_REMOTE_CI",
+        "preservation": "DRAFT_PR_BRANCH; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
+        "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
+        "scope": "Exact-host QA login/enrollment page, static assets and existing control API over protected Unix socket; scoped cookies and redirects, no media or admin route",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md",
+        "validation": "Focused protected socket and boundary tests 12/12 PASS; PUSH44 deterministic mobile regression PASS. Canonical security suite 54/54 PASS after preserving the updated login assertion. Live Cloudflare/JWT and physical iPhone NOT RUN. Local full build and exact-head remote CI remain independently pending at this ledger edit.",
+        "exactHeadCi": "PENDING_REMOTE_RUN_FOR_THIS_LEDGER_COMMIT",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "externalMediaBytes": 0,
+        "nextAction": "Keep PR248 Draft. Qualify Cloudflare Access cross-host sign-in and return in the signed iPhone QA app and actual isolated proxy-to-Next/Supabase login, then request separate approval for a 30-minute exact-host control route/Allow policy with explicit residual edge-cost decision. Do not activate media, Home, Production or PR235."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
