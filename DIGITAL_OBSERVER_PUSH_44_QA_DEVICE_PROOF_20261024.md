@@ -189,12 +189,14 @@ HLS playlist/segment boundary remains denied.
 ## 2026-10-24 control-only activation preflight (not activated)
 
 - The isolated LOCAL_SUPABASE database has one active `admin` profile,
-  `00000000-0000-4000-8000-000000000501`, but **zero unexpired Auth sessions**
-  for that profile at the read-only check. The dedicated phone account remains
-  a `parent`; its session cannot approve enrollment. The administrator must
-  establish a separate Development-only session and its owner authorization
-  must be verified by the canonical reader before any host approval. No token
-  was read, minted or copied during this preflight.
+  `00000000-0000-4000-8000-000000000501`, but a read-only boolean comparison
+  shows it does **not match the project-owner email used for Cloudflare**, and it has **zero unexpired
+  Auth sessions**. The dedicated phone account remains a `parent`; its session
+  cannot approve enrollment. A verified Development-only administrator identity
+  authorized by the actual owner, separately authenticated from the phone account, must
+  be established through the canonical authorization workflow before any host
+  approval. Do not elevate the parent or treat the unrelated admin fixture as
+  owner. No token was read, minted or copied during this preflight.
 - Cloudflare account `693f824a750afcc264fe6ee58c8a86ab` owns the active
   `ganbatuach.com` zone (`7ed7c66b239f8f6d108e2c3944db29a4`). The live
   DNS dashboard lists 14 records and **no** record for
