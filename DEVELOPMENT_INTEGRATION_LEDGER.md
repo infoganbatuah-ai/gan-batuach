@@ -1,5 +1,20 @@
 # Canonical Development Integration Ledger
 
+PUSH 44 control-only physical-iPhone preflight, 2026-10-24: PR #248 Draft
+commit `a7c0c052` pins the exact proposed hostname and adds a fail-closed
+30-minute deadline and early 2-KiB request rejection to the existing
+loopback transport. Seven isolated transport and nine existing device-proof
+tests pass; wrong-host/media/unrelated routes and post-deadline calls deny.
+Read-only Development check found one active administrator profile but **zero
+unexpired administrator sessions**; the phone account remains a parent.
+Cloudflare zone ownership was confirmed, but the new control hostname has no
+record, TLS proof or Access application; the only existing application is the
+separate synthetic-media deny-only destination. The signed QA binary remains
+offline-safe. No external endpoint, Mac owner ceremony, real iPhone proof,
+media, Cloudflare write, migration, Home or Production operation occurred.
+The exact-head CI for the final ledger commit is pending. See the [control
+preflight](DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md).
+
 PUSH 44 distinct-owner QA enrollment continuation, 2026-10-24: PR #248 Draft
 branch implementation `b3c86c68` and portability correction `d3763d5a` add a separate verified Development admin
 session, fresh host presence check, and optional exact-host/private-key

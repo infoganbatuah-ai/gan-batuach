@@ -11961,6 +11961,8 @@
         "sourceBranch": "codex/push44-synthetic-external-preparation",
         "sourceCommit": "b3c86c68",
         "portabilityFixCommit": "d3763d5a375ffedbf1a61c155180947d2289e0e8",
+        "controlPreflightCommit": "a7c0c052",
+        "controlPreflightState": "ISOLATED_CONTROL_BOUNDS_PASS; LIVE_ADMIN_SESSION_0; EXACT_HOST_DNS_TLS_ACCESS_ABSENT; REAL_IPHONE_NOT_RUN",
         "pullRequest": 248,
         "state": "PUSHED_REMOTE_PENDING_EXACT_HEAD_CI",
         "preservation": "DRAFT_PR_REMOTE_BRANCH; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
@@ -11972,7 +11974,7 @@
         "migrationCount": 0,
         "productionChanged": false,
         "externalMediaBytes": 0,
-        "nextAction": "Keep PR248 Draft. Verify a distinct Development administrator owner session and protected host helper, then separately approve a bounded owner-only HTTPS QA control path and install an HTTPS-configured signed QA build for physical proof. No media activation; PR235 remains separate Draft."
+        "nextAction": "Keep PR248 Draft. The isolated Development admin profile 00000000-0000-4000-8000-000000000501 has zero unexpired Auth sessions: obtain a separately authenticated owner-admin Development session first. Then qualify protected Mac presence, exact-host DNS/TLS/owner-only Access and the control-only ingress/build before requesting any external activation. No media activation; PR235 remains separate Draft."
       },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
