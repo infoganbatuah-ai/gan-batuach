@@ -11957,6 +11957,22 @@
         "externalMediaBytes": 0,
         "nextAction": "Keep PR248 Draft. Obtain a separately reviewed owner-only phone-facing Development challenge transport and verified administrator action; then test actual Secure Enclave enrollment on the signed QA build. Do not install or expose media until that path is approved. Preserve PR235 Draft."
       },
+      "qaDistinctOwnerEnrollment20261024": {
+        "sourceBranch": "codex/push44-synthetic-external-preparation",
+        "sourceCommit": "b3c86c68",
+        "pullRequest": 248,
+        "state": "PUSHED_REMOTE_PENDING_EXACT_HEAD_CI",
+        "preservation": "DRAFT_PR_REMOTE_BRANCH; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
+        "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
+        "scope": "Separate canonical LOCAL_SUPABASE administrator session and host presence required for one-use exact-key QA enrollment; optional loopback trusted-ingress checks prepared but disabled",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md",
+        "validation": "16 isolated device/transport cases, 52 security suites, 46 domain suites, TypeScript, lint baseline, Product build, migration-file health and release contract pass; macOS presence helper typechecks. Actual owner session/presence and physical iPhone proof NOT RUN.",
+        "exactHeadCi": "PENDING_REMOTE_RUN_FOR_THIS_LEDGER_COMMIT",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "externalMediaBytes": 0,
+        "nextAction": "Keep PR248 Draft. Verify a distinct Development administrator owner session and protected host helper, then separately approve a bounded owner-only HTTPS QA control path and install an HTTPS-configured signed QA build for physical proof. No media activation; PR235 remains separate Draft."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",

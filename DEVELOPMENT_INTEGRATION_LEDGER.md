@@ -1,5 +1,20 @@
 # Canonical Development Integration Ledger
 
+PUSH 44 distinct-owner QA enrollment continuation, 2026-10-24: PR #248 Draft
+branch implementation `b3c86c68` adds a separate verified Development admin
+session, fresh host presence check, and optional exact-host/private-key
+trusted-ingress contract while retaining the original one-use key approval
+and proof core. The dedicated iPhone QA fixture is actually a `parent` profile,
+so its own login cannot approve enrollment. Sixteen isolated device/transport
+tests, 52 security suites, 46 domain suites, TypeScript, lint baseline, no-deploy
+build, migration-file health and release contract pass. The macOS presence
+helper typechecks; the existing offline-safe PersonalTeamQA package verifies
+with normal trust-store access but is not configured for phone-reachable HTTPS.
+Actual distinct-owner login/presence, ingress activation and physical iPhone
+proof were NOT RUN. No migration, media, Cloudflare, Home, Production or main
+change. Exact-head CI and remote preservation remain required; PR #235 stays
+Draft and separate. Details: [QA device proof](DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md).
+
 2026-10-23 PUSH44 CH1 final pre-activation, branch `codex/push44-ch1-final-preactivation`, implementation `3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b`: reused PR243 foundation (integrated `4c0d70555cf96c4f5e5d815df7720e5f29c9ea13`, exact-head9/9). Added one composed synthetic session/delegation/cookie/TLS/media E2E,23/23 cases, and actual encoded-byte gzip playlist accounting. Real CH1 local TS inspected/decoded25 distinct frames; no media retained/transmitted. Home QA owner mapping absent and media DNS NXDOMAIN remain specific blockers; owner attestation/delegation and permitted/bounded HTTPS path required before live request. No migrations, Production/Home/PR235 changes. Evidence: final follow-up in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`.
 
 2026-10-23 PUSH 44 CH1 private-media continuation: branch `codex/push44-ch1-private-gateway-20261023`, implementation `cf0952609b2b2c1c1a1195bb99e6352b9c7df403`; isolated existing-grant-core TLS gate, exact view-only delegation, canonical Development session adapter, passive generation reader and protected operator journal. 22 synthetic security/media/TLS cases; no real camera bytes or live authorization. Actual isolated Development schema/history: 257 expected, 227 baseline-covered + 30 applied, zero drift. No migration. See `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. Real delegation/native transport/external TLS are activation blockers, not waived by CI. PR235 Draft, main/Production/Home services unchanged.
