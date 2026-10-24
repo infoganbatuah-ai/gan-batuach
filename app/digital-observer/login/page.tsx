@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
 import { LockKeyhole, MapPinned, ShieldCheck } from "lucide-react";
@@ -20,7 +21,13 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
   const params = await searchParams;
   // Native QA opens this route on every launch. Resume only a verified,
   // active Observer session; explicit errors still render the login form.
-  if (!params?.error && await getDigitalObserverApiUser()) redirect("/digital-observer/dashboard");
+  if (!params?.error && await getDigitalObserverApiUser()) {
+    if (process.env.PUSH44_QA_CONTROL_ONLY === "1" &&
+      (await headers()).get("host") === "qa-iphone-device-proof.ganbatuach.com" &&
+      params?.next === "/digital-observer/qa-device-enrollment")
+      redirect("/digital-observer/qa-device-enrollment");
+    redirect("/digital-observer/dashboard");
+  }
   const initialType = params?.type === "business" ? "business" : "home";
   return (
     <main className="do-auth-page" dir="rtl">

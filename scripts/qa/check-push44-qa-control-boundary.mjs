@@ -21,6 +21,10 @@ function request({ url = `https://${host}/api/digital-observer/qa-device`, heade
 
 test("only exact control host, trusted proxy, local Development and bounded deadline pass", () => {
   assert.equal(qaDeviceControlBoundary(request(), base, now)?.host, "127.0.0.1:45678");
+  // Next constructs request.url from its own loopback listener, not Host.
+  assert.equal(qaDeviceControlBoundary(request({ url: "https://localhost:3001/api/digital-observer/qa-device" }), base, now)?.host,
+    "127.0.0.1:45678");
+  assert.equal(qaDeviceControlBoundary(request({ url: "https://localhost:3000/api/digital-observer/qa-device" }), base, now), null);
   assert.equal(qaDeviceControlBoundary(request(), {}, now), null);
   assert.equal(qaDeviceControlBoundary(request(), { ...base, VERCEL: "1" }, now), null);
   assert.equal(qaDeviceControlBoundary(request(), { ...base,

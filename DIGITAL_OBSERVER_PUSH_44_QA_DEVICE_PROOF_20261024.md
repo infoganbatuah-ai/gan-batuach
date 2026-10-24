@@ -1,5 +1,85 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-24 iPhone control-page and cost gate continuation — no activation
+
+The proposed Unix-socket ingress now has a narrow same-origin **Development-only**
+surface: `GET /digital-observer/qa-device-enrollment`, scoped `GET
+/digital-observer/login?next=...`, `POST /api/digital-observer/auth/login`,
+`POST /api/digital-observer/qa-device`, and immutable `/_next/static/` assets.
+The form is limited to the existing `owner-iphone@integration.qa.invalid`
+identity and the enrollment return path. Every admitted request still requires
+the signed Access assertion and exact host/forwarding checks; the origin receives
+only a private proxy key and scoped Development cookies. The proxy rewrites only
+the login/enrollment redirects to the exact QA HTTPS host and emits only scoped
+`Secure; HttpOnly; SameSite=Lax` cookies. It rejects unrelated app routes,
+administrative approval, HLS/media, arbitrary redirects, forged headers and
+wrong-account login. The shared login page redirects an already authenticated
+QA viewer back to enrollment, not the general dashboard. The Next bridge now
+accepts the *observed* `https://localhost:3001` reconstructed URL only alongside
+the exact QA Host and private proxy key. The ingress refuses a non-loopback
+Supabase Development URL at startup. No listener, external route or policy was
+started by this change.
+
+**Evidence and limits:** a read-only invalid-credential probe against the
+existing loopback Next runtime yielded a `303` whose Location was
+`https://localhost:3000/...`, even with the QA Host and forwarded host headers.
+This is why the ingress validates and rewrites a local-origin Location before
+returning it; it never forwards `localhost` to the iPhone. Focused Unix-socket
+tests now cover login/page/assets, scoped redirects/cookies, media denial,
+identity/header failures and expiry. These use a synthetic Access signer and
+mock Next reply; the direct loopback probe used invalid credentials. **A full
+live proxy-to-Next/Supabase login, Cloudflare JWT delivery and physical iPhone
+flow are not proven.** The `auth/confirm` email callback is deliberately not
+exposed: this QA test uses the already established password identity. If an
+Access or Supabase callback is actually needed on the phone, it is a new
+reviewed control path, not an implicit wildcard.
+
+The durable SQLite ceiling remains 1,000 requests and 60/minute with a
+30-minute absolute deadline. With login/pages/assets admitted, it now reserves
+10 KiB per attempt and atomically accounts each bounded reply before sending
+it, stopping at **64 MiB total origin-to-client bytes**; a page is capped at
+512 KiB, a static asset at 4 MiB, and a control JSON reply at 8 KiB. One
+upstream request is in flight. Failed accounting returns no upstream content.
+These are origin controls, **not** a Cloudflare edge request or billing cap.
+
+The correct Cloudflare One account is visibly on **Zero Trust Free** with team
+`spring-feather-ce4e`; the published seat price is $0 for up to 50 users.
+Official Free WAF rate-limiting expressions do **not** offer Host matching,
+so a zone-wide Path/IP rule on the shared `ganbatuach.com` zone is not an
+acceptable exact-host edge control and was not installed. Cloudflare also
+documents that rate-limit counters are not exact global request ceilings.
+The intended control-only Tunnel/Access path is supported in principle and
+requires no new fixed subscription, but denied edge requests, Access sign-in,
+TLS handshakes, other zone usage and cellular data are not bounded by the
+64-MiB/1,000-attempt origin ledger. Expected incremental Cloudflare charge
+under the present Free entitlement is $0; **no contractual maximum total test
+charge is established**. Do not describe this as a guaranteed $0 test.
+Sources: [Free pricing](https://www.cloudflare.com/plans/),
+[Free rate-limit fields](https://developers.cloudflare.com/waf/rate-limiting-rules/),
+[rate-limit counter limitations](https://developers.cloudflare.com/waf/rate-limiting-rules/),
+[Access JWT](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/).
+
+The signed PersonalTeamQA package exists with bundle
+`com.ganbatuach.app.qa`, team `27G7ZP4U3Q` and provisioning expiry
+`2026-10-26T23:14:41Z`. macOS `codesign --verify --deep --strict`
+validated the package on disk and its designated requirement with normal
+host trust access; it was not installed. More importantly, its QA configuration permits
+navigation only to the control hostname. Cloudflare Access authentication
+uses a team-domain session/cookie and can redirect through an identity
+provider. That **cross-host iPhone sign-in/callback is not qualified** by the
+exact-host WebView configuration. Adding broad navigation or assuming Safari
+cookies transfer into the app would be an unsafe guess; an approved native
+system-browser return path or proven narrow WebView flow is still required.
+See [Access cookies](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/).
+
+**Activation decision: BLOCKED.** The next executable Development task is an
+isolated end-to-end Access login/callback design for the signed QA app,
+followed by a local full proxy-to-Next test using the actual isolated backend.
+Only after those pass should the owner receive a 30-minute exact-host Allow
+policy/Tunnel/installation request that explicitly accepts residual edge-cost
+risk. No Access Allow policy, public DNS/route, phone installation, capability,
+Mac approval, media, Home or Production change was made.
+
 ## 2026-10-24 transport decision and Free-plan edge gate — no activation
 
 **Decision:** the existing *private-hostname* Access application is not a

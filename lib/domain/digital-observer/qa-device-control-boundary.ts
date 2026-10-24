@@ -25,8 +25,11 @@ export function qaDeviceControlBoundary(request: Request, env: ControlEnvironmen
     const validKey = /^[A-Za-z0-9_-]{43,96}$/.test(proxyKey) &&
       presentedKey.length === proxyKey.length &&
       timingSafeEqual(Buffer.from(presentedKey), Buffer.from(proxyKey));
+    const trustedLocalNext = url.protocol === "https:" &&
+      (url.hostname === hostname && !url.port ||
+        ["localhost", "127.0.0.1"].includes(url.hostname) && url.port === "3001");
     if (env.VERCEL || env.PUSH44_QA_CONTROL_ONLY !== "1" ||
-      url.protocol !== "https:" || url.hostname !== hostname || url.port || url.search ||
+      !trustedLocalNext || url.search ||
       request.headers.get("host") !== hostname ||
       request.headers.get("origin") !== `https://${hostname}` ||
       request.headers.get("x-forwarded-proto") !== "https" ||

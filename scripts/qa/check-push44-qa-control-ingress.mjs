@@ -14,6 +14,7 @@ const TEST_AUDIENCE = "b7eb4b1d10599071db3635118062272b8dec09328c3467a4f3a8677b7
 const now = 1_800_000_000_000;
 const deadline = now + 30 * 60_000;
 const proxyKey = "k".repeat(43);
+const developmentBackendUrl = "http://127.0.0.1:55421/";
 
 async function fixture() {
   const { publicKey, privateKey } = await generateKeyPair("RS256");
@@ -44,6 +45,23 @@ function post(socketPath, jwt, { path = CONTROL_PATH, headers = {}, body = "{}" 
       const chunks = [];
       res.on("data", chunk => chunks.push(chunk));
       res.on("end", () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() }));
+    });
+    req.on("error", reject);
+    req.end(body);
+  });
+}
+
+function call(socketPath, jwt, { path, method = "GET", headers = {}, body } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = httpRequest({ socketPath, path, method, headers: {
+      host: CONTROL_HOST, "x-forwarded-proto": "https", "cf-access-jwt-assertion": jwt,
+      ...(method === "POST" ? { origin: `https://${CONTROL_HOST}`,
+        "content-type": "application/x-www-form-urlencoded" } : {}), ...headers
+    } }, res => {
+      const chunks = [];
+      res.on("data", chunk => chunks.push(chunk));
+      res.on("end", () => resolve({ status: res.statusCode,
+        headers: res.headers, body: Buffer.concat(chunks).toString() }));
     });
     req.on("error", reject);
     req.end(body);
@@ -109,7 +127,7 @@ test("protected local socket proxy strips caller identity, forwards only exact c
   t.after(() => database.close());
   const socketPath = testSocket(t);
   const calls = [];
-  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, deadline, now: () => now,
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl, deadline, now: () => now,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess,
     fetcher: async (url, init) => { calls.push({ url, init }); return Response.json({ state: "PENDING" }); }
   });
@@ -152,7 +170,7 @@ test("one in-flight request and fail-closed accounting stop concurrent or exhaus
   let entered;
   const started = new Promise(resolve => { entered = resolve; });
   const pending = new Promise(resolve => { release = resolve; });
-  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, deadline, now: () => now,
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl, deadline, now: () => now,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess,
     fetcher: async () => { entered(); await pending; return Response.json({ ok: true }); }
   });
@@ -164,7 +182,7 @@ test("one in-flight request and fail-closed accounting stop concurrent or exhaus
   release();
   assert.equal((await first).status, 200);
   const deniedSocketPath = testSocket(t);
-  const denied = createPush44QaControlIngress({ proxyKey, socketPath: deniedSocketPath, deadline, now: () => now,
+  const denied = createPush44QaControlIngress({ proxyKey, socketPath: deniedSocketPath, developmentBackendUrl, deadline, now: () => now,
     ledger: { consume: () => { throw Error("database unavailable"); } },
     verifyAccess, fetcher: async () => Response.json({ ok: true }) });
   const deniedUrl = await denied.listen();
@@ -180,7 +198,7 @@ test("absolute deadline and oversized upstream response deny without returning p
   const socketPath = testSocket(t);
   let clock = now;
   let upstreamCalls = 0;
-  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, deadline, now: () => clock,
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl, deadline, now: () => clock,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess,
     fetcher: async () => { upstreamCalls++; return Response.json({ data: "x".repeat(9000) }); }
   });
@@ -198,7 +216,7 @@ test("socket admission rejects shared or symlinked parent directories", t => {
   const socketPath = testSocket(t);
   const database = new DatabaseSync(":memory:");
   t.after(() => database.close());
-  const config = { proxyKey, socketPath, deadline, now: () => now,
+  const config = { proxyKey, socketPath, developmentBackendUrl, deadline, now: () => now,
     ledger: createPush44ControlLedger(database, deadline), verifyAccess: async () => true };
   chmodSync(dirname(socketPath), 0o755);
   assert.throws(() => createPush44QaControlIngress(config), /QA_CONTROL_INGRESS_CONFIG_DENIED/);
@@ -207,4 +225,91 @@ test("socket admission rejects shared or symlinked parent directories", t => {
   symlinkSync(dirname(socketPath), link);
   assert.throws(() => createPush44QaControlIngress({ ...config,
     socketPath: join(link, "control.sock") }), /QA_CONTROL_INGRESS_CONFIG_DENIED/);
+  assert.throws(() => createPush44QaControlIngress({ ...config,
+    developmentBackendUrl: "https://production.supabase.co/" }), /QA_CONTROL_INGRESS_CONFIG_DENIED/);
+});
+
+test("exact login, page and static assets pass through while cookies and redirects remain QA scoped", async t => {
+  const { sign, verifyAccess } = await fixture();
+  const jwt = await sign();
+  const database = new DatabaseSync(":memory:");
+  t.after(() => database.close());
+  const socketPath = testSocket(t);
+  const calls = [];
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl, deadline, now: () => now,
+    ledger: createPush44ControlLedger(database, deadline), verifyAccess,
+    fetcher: async (url, init) => {
+      calls.push({ url, init });
+      if (url.endsWith("/api/digital-observer/auth/login")) return new Response(null, {
+        status: 303, headers: { location: "https://localhost:3001/digital-observer/qa-device-enrollment",
+          "set-cookie": "sb-development-auth-token=synthetic; Path=/; HttpOnly" }
+      });
+      if (url.includes("/_next/static/")) return new Response("console.log('synthetic')", {
+        headers: { "content-type": "text/javascript" }
+      });
+      return new Response("<html>synthetic login</html>", { headers: { "content-type": "text/html" } });
+    }
+  });
+  const url = await ingress.listen();
+  t.after(() => ingress.close());
+  const page = await call(url, jwt, { path: "/digital-observer/login?next=%2Fdigital-observer%2Fqa-device-enrollment" });
+  assert.equal(page.status, 200);
+  assert.match(page.body, /synthetic login/);
+  const asset = await call(url, jwt, { path: "/_next/static/chunks/app_test.js" });
+  assert.equal(asset.status, 200);
+  assert.match(asset.body, /synthetic/);
+  const form = "email=owner-iphone%40integration.qa.invalid&password=not-a-real-password&auth_source=observer&next=%2Fdigital-observer%2Fqa-device-enrollment";
+  const login = await call(url, jwt, { method: "POST", path: "/api/digital-observer/auth/login", body: form });
+  assert.equal(login.status, 303);
+  assert.equal(login.headers.location, `https://${CONTROL_HOST}/digital-observer/qa-device-enrollment`);
+  assert.match(login.headers["set-cookie"][0], /Secure; HttpOnly; SameSite=Lax/);
+  assert.equal(calls[0].init.headers["x-forwarded-host"], CONTROL_HOST);
+  assert.equal(calls[0].init.headers["cf-access-jwt-assertion"], undefined);
+  assert.equal(calls[2].init.headers["x-do-qa-proxy-key"], proxyKey);
+  assert.equal((await call(url, jwt, { path: "/digital-observer/dashboard" })).status, 403);
+  assert.equal((await call(url, jwt, { path: "/digital-observer/login?next=%2Fdigital-observer%2Fqa-device-enrollment&next=%2Fdigital-observer%2Fdashboard" })).status, 403);
+  assert.equal((await call(url, jwt, { path: "/_next/static/../server.js" })).status, 403);
+  assert.equal((await call(url, jwt, { path: "/api/digital-observer/media/playlist.m3u8" })).status, 403);
+  assert.equal((await call(url, jwt, { method: "POST", path: "/api/digital-observer/auth/login",
+    body: form.replace("owner-iphone", "other-user") })).status, 403);
+  assert.equal((await call(url, "forged.jwt.value", { path: "/_next/static/chunks/app_test.js" })).status, 403);
+  assert.equal(calls.length, 3);
+});
+
+test("unsafe login redirects and unrelated cookies fail closed", async t => {
+  const { sign, verifyAccess } = await fixture();
+  const jwt = await sign();
+  const database = new DatabaseSync(":memory:");
+  t.after(() => database.close());
+  const socketPath = testSocket(t);
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl, deadline, now: () => now,
+    ledger: createPush44ControlLedger(database, deadline), verifyAccess,
+    fetcher: async () => new Response(null, { status: 303,
+      headers: { location: "https://production.example.invalid/dashboard" } })
+  });
+  const url = await ingress.listen();
+  t.after(() => ingress.close());
+  const form = "email=owner-iphone%40integration.qa.invalid&password=x&auth_source=observer&next=%2Fdigital-observer%2Fqa-device-enrollment";
+  const result = await call(url, jwt, { method: "POST", path: "/api/digital-observer/auth/login", body: form });
+  assert.equal(result.status, 403);
+  assert.equal(result.headers.location, undefined);
+});
+
+test("unauthenticated enrollment page redirects only to scoped login and does not reveal other routes", async t => {
+  const { sign, verifyAccess } = await fixture();
+  const jwt = await sign();
+  const database = new DatabaseSync(":memory:");
+  t.after(() => database.close());
+  const socketPath = testSocket(t);
+  const ingress = createPush44QaControlIngress({ proxyKey, socketPath, developmentBackendUrl, deadline, now: () => now,
+    ledger: createPush44ControlLedger(database, deadline), verifyAccess,
+    fetcher: async () => new Response(null, { status: 307,
+      headers: { location: "https://localhost:3001/digital-observer/login?next=/digital-observer/qa-device-enrollment" } })
+  });
+  const url = await ingress.listen();
+  t.after(() => ingress.close());
+  const result = await call(url, jwt, { path: "/digital-observer/qa-device-enrollment" });
+  assert.equal(result.status, 307);
+  assert.equal(result.headers.location,
+    `https://${CONTROL_HOST}/digital-observer/login?next=/digital-observer/qa-device-enrollment`);
 });

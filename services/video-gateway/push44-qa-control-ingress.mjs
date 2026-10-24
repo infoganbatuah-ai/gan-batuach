@@ -9,14 +9,37 @@ export const CONTROL_HOST = "qa-iphone-device-proof.ganbatuach.com";
 export const CONTROL_PATH = "/api/digital-observer/qa-device";
 export const ACCESS_ISSUER = "https://spring-feather-ce4e.cloudflareaccess.com";
 export const ACCESS_OWNER = "info.ganbatuah@gmail.com";
-const ORIGIN = `http://127.0.0.1:3001${CONTROL_PATH}`;
 const WINDOW_MS = 30 * 60_000;
 const MAX_ATTEMPTS = 1_000;
 const MAX_ATTEMPTS_PER_MINUTE = 60;
 const MAX_BODY_BYTES = 2_048;
 const MAX_REPLY_BYTES = 8_192;
-const MAX_ACCOUNTED_BYTES = 12 * 1024 * 1024;
+const MAX_PAGE_BYTES = 512 * 1024;
+const MAX_ASSET_BYTES = 4 * 1024 * 1024;
+const MAX_ACCOUNTED_BYTES = 64 * 1024 * 1024;
 const RESERVED_BYTES_PER_ATTEMPT = MAX_BODY_BYTES + MAX_REPLY_BYTES;
+const LOGIN_PATH = "/digital-observer/login";
+const ENROLLMENT_PATH = "/digital-observer/qa-device-enrollment";
+const LOGIN_API_PATH = "/api/digital-observer/auth/login";
+
+function controlRoute(request) {
+  const path = request.url;
+  if (request.method === "POST" && path === CONTROL_PATH) return { kind: "control", path };
+  if (request.method === "POST" && path === LOGIN_API_PATH) return { kind: "login", path };
+  if (request.method === "GET" && path === ENROLLMENT_PATH) return { kind: "page", path };
+  if (request.method === "GET" && path.startsWith(`${LOGIN_PATH}?`)) {
+    const url = new URL(path, `https://${CONTROL_HOST}`);
+    const params = url.searchParams;
+    if (url.hash || params.getAll("next").length !== 1 ||
+      params.get("next") !== ENROLLMENT_PATH || params.size > 2 ||
+      [...params.keys()].some(key => !["next", "error"].includes(key)) ||
+      (params.has("error") && !["invalid_login", "email_not_confirmed", "observer_setup_required"].includes(params.get("error")))) return null;
+    return { kind: "page", path };
+  }
+  if (request.method === "GET" && /^\/_next\/static\/[A-Za-z0-9_./%~-]+$/.test(path) &&
+    !path.includes("..") && !/%2f|%5c|%2e/i.test(path)) return { kind: "asset", path };
+  return null;
+}
 
 function protectedSocketPath(socketPath) {
   if (typeof socketPath !== "string" || !isAbsolute(socketPath) ||
@@ -80,6 +103,8 @@ export function createPush44ControlLedger(database, deadline, now = Date.now) {
       AND (minute_bucket<>? OR minute_attempts<?)`);
   const read = database.prepare(`SELECT attempts,bytes,deadline,minute_bucket,minute_attempts
     FROM push44_qa_control_ingress_limit WHERE id=1`);
+  const accountReply = database.prepare(`UPDATE push44_qa_control_ingress_limit SET bytes=bytes+?
+    WHERE id=1 AND deadline=? AND bytes+?<=?`);
   return Object.freeze({
     consume: () => {
       const minute = Math.floor(now() / 60_000);
@@ -87,11 +112,13 @@ export function createPush44ControlLedger(database, deadline, now = Date.now) {
         minute, minute, deadline, MAX_ATTEMPTS, RESERVED_BYTES_PER_ATTEMPT,
         MAX_ACCOUNTED_BYTES, minute, MAX_ATTEMPTS_PER_MINUTE).changes === 1;
     },
+    accountReply: bytes => Number.isSafeInteger(bytes) && bytes >= 0 &&
+      accountReply.run(bytes, deadline, bytes, MAX_ACCOUNTED_BYTES).changes === 1,
     stats: () => read.get()
   });
 }
 
-function permitted(request) {
+function permitted(request, route) {
   const headers = request.headers;
   const length = headers["content-length"];
   const counts = new Map();
@@ -99,14 +126,19 @@ function permitted(request) {
     const name = request.rawHeaders[i].toLowerCase();
     counts.set(name, (counts.get(name) ?? 0) + 1);
   }
-  if (["host", "origin", "x-forwarded-proto", "cf-access-jwt-assertion", "content-type"]
-    .some(name => counts.get(name) !== 1) || (counts.get("content-length") ?? 0) > 1)
+  if (["host", "x-forwarded-proto", "cf-access-jwt-assertion"]
+    .some(name => counts.get(name) !== 1) || (counts.get("content-length") ?? 0) > 1 ||
+    (counts.get("origin") ?? 0) > 1 || (counts.get("content-type") ?? 0) > 1)
     return false;
-  return request.socket.remoteAddress === undefined && request.method === "POST" &&
-    request.url === CONTROL_PATH && headers.host === CONTROL_HOST &&
-    headers.origin === `https://${CONTROL_HOST}` &&
+  const post = route.kind === "control" || route.kind === "login";
+  return request.socket.remoteAddress === undefined &&
+    (post ? counts.get("origin") === 1 && counts.get("content-type") === 1 &&
+      headers.origin === `https://${CONTROL_HOST}` &&
+      headers["content-type"] === (route.kind === "control" ? "application/json" : "application/x-www-form-urlencoded")
+      : (!headers.origin || headers.origin === `https://${CONTROL_HOST}`) &&
+        !headers["content-type"] && !headers["content-length"]) &&
+    headers.host === CONTROL_HOST &&
     headers["x-forwarded-proto"] === "https" &&
-    headers["content-type"] === "application/json" &&
     !headers.forwarded && !headers["x-forwarded-host"] &&
     !headers["x-do-qa-proxy-key"] && !headers["x-do-qa-ingress-key"] &&
     !headers.authorization && !headers["x-user-role"] &&
@@ -126,9 +158,8 @@ async function boundedBody(request) {
   return Buffer.concat(chunks);
 }
 
-async function boundedReply(response) {
-  if (!response.body || response.status !== 200 ||
-    !response.headers.get("content-type")?.startsWith("application/json")) throw new Error("QA_UPSTREAM_DENIED");
+async function boundedReply(response, maxBytes) {
+  if (!response.body) throw new Error("QA_UPSTREAM_DENIED");
   const reader = response.body.getReader();
   const chunks = [];
   let bytes = 0;
@@ -137,11 +168,38 @@ async function boundedReply(response) {
       const { done, value } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > MAX_REPLY_BYTES) throw new Error("QA_REPLY_LIMIT");
+      if (bytes > maxBytes) throw new Error("QA_REPLY_LIMIT");
       chunks.push(value);
     }
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
   return Buffer.concat(chunks);
+}
+
+function safeLocation(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value, "https://localhost:3001");
+    if (url.username || url.password || url.hash ||
+      !(["localhost", "127.0.0.1", CONTROL_HOST].includes(url.hostname)) ||
+      (url.hostname === CONTROL_HOST ? url.port !== "" : !["3001", ""].includes(url.port)) ||
+      url.protocol !== "https:") return null;
+    const path = `${url.pathname}${url.search}`;
+    if (path === ENROLLMENT_PATH || controlRoute({ method: "GET", url: path })?.kind === "page")
+      return `https://${CONTROL_HOST}${path}`;
+  } catch { /* deny unsafe redirects */ }
+  return null;
+}
+
+function scopedSetCookies(upstream) {
+  const raw = upstream.headers.getSetCookie?.() ?? [];
+  if (raw.length > 8) throw new Error("QA_COOKIE_LIMIT");
+  return raw.map(cookie => {
+    const pair = cookie.split(";", 1)[0];
+    const match = /^([A-Za-z0-9_.-]+)=([A-Za-z0-9_+\-./%=]+)$/.exec(pair);
+    if (!match || (!/^sb-[A-Za-z0-9_-]+(?:\.[0-9]+)?$/.test(match[1]) &&
+      match[1] !== "gb_active_product") || pair.length > 4096) throw new Error("QA_COOKIE_DENIED");
+    return `${pair}; Path=/; Secure; HttpOnly; SameSite=Lax`;
+  });
 }
 
 function developmentCookies(raw) {
@@ -152,8 +210,13 @@ function developmentCookies(raw) {
 }
 
 export function createPush44QaControlIngress({ proxyKey, socketPath, ledger, deadline, verifyAccess,
-  fetcher = fetch, now = Date.now } = {}) {
+  developmentBackendUrl, fetcher = fetch, now = Date.now } = {}) {
+  let backend;
+  try { backend = new URL(developmentBackendUrl); } catch { /* fail closed */ }
   if (!validProxyKey(proxyKey) || !protectedSocketPath(socketPath) ||
+    process.env.VERCEL || backend?.protocol !== "http:" || backend.hostname !== "127.0.0.1" ||
+    !backend.port || backend.username || backend.password || backend.pathname !== "/" ||
+    backend.search || backend.hash ||
     !ledger || typeof ledger.consume !== "function" ||
     typeof verifyAccess !== "function" ||
     typeof fetcher !== "function" || typeof now !== "function" ||
@@ -170,25 +233,53 @@ export function createPush44QaControlIngress({ proxyKey, socketPath, ledger, dea
     if (busy) return deny(response, 429);
     busy = true;
     try {
-      if (!permitted(request) || !await verifyAccess(request.headers["cf-access-jwt-assertion"]))
+      const route = controlRoute(request);
+      if (!route || !permitted(request, route) ||
+        !await verifyAccess(request.headers["cf-access-jwt-assertion"]))
         return deny(response);
-      const body = await boundedBody(request);
+      const body = request.method === "POST" ? await boundedBody(request) : undefined;
+      if (route.kind === "login") {
+        const form = new URLSearchParams(body.toString("utf8"));
+        if (["email", "password", "next", "auth_source", "observer_account_type"]
+          .some(key => form.getAll(key).length > 1) ||
+          form.get("next") !== ENROLLMENT_PATH || form.get("auth_source") !== "observer" ||
+          form.get("email")?.trim().toLowerCase() !== "owner-iphone@integration.qa.invalid" ||
+          [...form.keys()].some(key => !["email", "password", "next", "auth_source", "observer_account_type"].includes(key)))
+          return deny(response);
+      }
       if (now() >= deadline) return deny(response, 410);
       const headers = { host: CONTROL_HOST, origin: `https://${CONTROL_HOST}`,
         "x-forwarded-proto": "https", "x-do-qa-proxy-key": proxyKey,
-        "content-type": "application/json" };
+        "x-forwarded-host": CONTROL_HOST };
+      if (request.method === "POST") headers["content-type"] = request.headers["content-type"];
+      else delete headers.origin;
       const cookie = developmentCookies(request.headers.cookie);
       if (cookie) headers.cookie = cookie;
       const remainingMs = deadline - now();
       if (remainingMs <= 0) return deny(response, 410);
-      const upstream = await fetcher(ORIGIN, { method: "POST", headers, body,
+      const upstream = await fetcher(`http://127.0.0.1:3001${route.path}`, { method: request.method, headers, body,
         redirect: "manual", signal: AbortSignal.any([
           AbortSignal.timeout(4_000), AbortSignal.timeout(remainingMs)
         ]) });
-      const result = await boundedReply(upstream);
+      const redirectStatus = route.kind === "login" ? upstream.status === 303 :
+        route.kind === "page" && [307, 308].includes(upstream.status);
+      const redirect = redirectStatus ? safeLocation(upstream.headers.get("location")) : null;
+      const type = upstream.headers.get("content-type") ?? "";
+      const allowedType = route.kind === "control" ? type.startsWith("application/json") :
+        route.kind === "page" ? type.startsWith("text/html") :
+        route.kind === "asset" ? /^(?:text\/css|text\/javascript|application\/javascript|font\/|image\/|application\/font-)/.test(type) : false;
+      if (route.kind === "login" ? !redirect : redirectStatus ? !redirect : upstream.status !== 200 || !allowedType)
+        throw new Error("QA_UPSTREAM_DENIED");
+      const result = redirect ? Buffer.alloc(0) : await boundedReply(upstream,
+        route.kind === "control" ? MAX_REPLY_BYTES : route.kind === "asset" ? MAX_ASSET_BYTES : MAX_PAGE_BYTES);
+      if (typeof ledger.accountReply !== "function" || !ledger.accountReply(result.length))
+        return deny(response, 503);
+      const cookies = route.kind === "login" || route.kind === "page" ? scopedSetCookies(upstream) : [];
       if (now() >= deadline) return deny(response, 410);
-      response.writeHead(200, { "content-type": "application/json", "cache-control": "no-store",
-        "x-content-type-options": "nosniff" });
+      response.writeHead(redirect ? upstream.status : 200, { "content-type": redirect ? "text/plain; charset=utf-8" : type,
+        "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff",
+        "referrer-policy": "no-referrer", "content-security-policy": "frame-ancestors 'none'",
+        ...(redirect ? { location: redirect } : {}), ...(cookies.length ? { "set-cookie": cookies } : {}) });
       response.end(result);
     } catch { deny(response); }
     finally { busy = false; }
