@@ -11921,6 +11921,21 @@
         "externalMediaBytes": 0,
         "nextAction": "Keep PR248 Draft. Request separate approval for temporary QA-only DNS-01 TXT in shared ganbatuach.com zone and publicly trusted origin certificate; then verify exact QA-host default-deny/owner-device allow, iPhone VPN consent, actual-edge accounting and total cost before opening route. Preserve PR235 Draft."
       },
+      "qaDeviceProof20261024": {
+        "sourceBranch": "codex/push44-synthetic-external-preparation",
+        "sourceCommit": null,
+        "pullRequest": 248,
+        "state": "VALIDATED_ON_BRANCH_PENDING_REMOTE_SHA",
+        "preservation": "DRAFT_PR; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
+        "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
+        "scope": "PersonalTeamQA Secure Enclave key and isolated one-installation proof core wrapping the existing synthetic media gate; no Cloudflare or Production change",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md; DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
+        "validation": "Synthetic P-256/SQLite contract 9/9 PASS; unsigned generic iOS PersonalTeamQA compile PASS; TypeScript, canonical lint, security, migration-file and release-contract checks PASS; physical-device proof NOT RUN",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "externalMediaBytes": 0,
+        "nextAction": "Keep PR248 Draft. Complete trusted owner-approval/challenge transport and iOS HLS request-proof integration in isolated Development; then request a separate physical-device qualification window. Do not open routes or media. Preserve PR235 Draft."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",

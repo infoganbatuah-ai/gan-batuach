@@ -3,6 +3,14 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 device-bound proof candidate — **ISOLATED DEVELOPMENT ONLY**. The
+PersonalTeamQA source generates a Secure Enclave P-256 key; a host-local
+challenge core requires exact owner-approved enrollment, one-use signatures
+and a live Development session in addition to the existing synthetic media
+gate. Synthetic key/SQLite tests do not prove the new binary on the physical
+iPhone or deny a physical second iPhone. No route or media was activated. See
+`DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md`.
+
 2026-10-24 exact-device authorization follow-up — **READ-ONLY DESIGN; SINGLE-DEVICE DENIAL NOT PROVEN**. The existing WARP registration ID cannot be selected by a Device Profile. Cloudflare's iOS `Unique Client ID` Access posture check instead requires a separate MDM-supplied UUID, not the current registration ID; owner email+iOS and Require WARP cannot deny a second owner phone. The gateway's approved `deviceId`/session cookie similarly do not prove physical-device possession. Posture-only's certificate provisioner is shared-zone scoped; its current Boolean and impact remain unknown, despite zero mTLS Hosts/certs in the zone UI. The QA app retains zero Allow policies; no token, profile, certificate, route or media was created. Development-only per-install cryptographic proof is proposed for separate implementation/qualification, not marked PASS. See the media-delivery decision for sources, boundaries and next approval.
 
 2026-10-24 controlled Posture-only activation authorization — **STOPPED BEFORE WRITE BY OWNER'S IMPACT GATE**. Live inventory again showed one owner registration and only the unchanged Default Traffic/DNS profile. The full unsaved-profile selector menu and Cloudflare documentation provide no registration/device-ID selector; email+iOS could match a second owner iPhone. Required certificate provisioning is shared-zone scoped and its existing Boolean/impact on other services was not established through the available read-only dashboard. The form was cancelled. No API tokens, provisioning change, Posture-only profile, client certificate, private route, Allow policy or media activation resulted. Token revocation N/A (none created); iPhone remains disconnected per owner confirmation. See the media-delivery decision for the exact pre-write blocker and next gate.
