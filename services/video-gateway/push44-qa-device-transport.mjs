@@ -1,7 +1,9 @@
 import { createServer } from "node:http";
+import { timingSafeEqual } from "node:crypto";
 import { createCh1DevelopmentAuthenticator } from "./push44-ch1-development-session.mjs";
 import { createPush44QaDeviceProof } from "./push44-qa-device-proof.mjs";
 import { createPush44QaEnrollmentApproval } from "./push44-qa-enrollment-approval.mjs";
+import { createPush44QaOwnerAction } from "./push44-qa-owner-action.mjs";
 
 const deny = () => { throw new Error("QA_DEVICE_TRANSPORT_DENIED"); };
 const limited = value => typeof value === "string" && value.length <= 2048;
@@ -9,8 +11,11 @@ const limited = value => typeof value === "string" && value.length <= 2048;
 // Isolated Development control transport. It cannot bind a public interface;
 // importing the module opens no listener. A later iPhone-facing HTTPS route
 // requires a separate approved security review and activation step.
-export function createPush44QaDeviceTransport({ proof, authenticate, database } = {}) {
+export function createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress } = {}) {
   if (!proof || typeof authenticate !== "function" || !database) throw new Error("QA_DEVICE_TRANSPORT_ADAPTERS_REQUIRED");
+  if (trustedIngress && (!/^qa-iphone-[a-z0-9-]+\.ganbatuach\.com$/.test(trustedIngress.hostname || "") ||
+    !/^[A-Za-z0-9_-]{43,96}$/.test(trustedIngress.localIngressKey || "")))
+    throw new Error("QA_DEVICE_INGRESS_CONFIG_DENIED");
   database.exec(`CREATE TABLE IF NOT EXISTS push44_qa_transport_limit (
     id INTEGER PRIMARY KEY CHECK(id=1), attempts INTEGER NOT NULL DEFAULT 0
   );
@@ -31,8 +36,16 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database } 
       // without calling any credential or enrollment adapter.
       if (database.prepare(`UPDATE push44_qa_transport_limit SET attempts=attempts+1
         WHERE id=1 AND attempts<1000`).run().changes !== 1) deny();
+      const localHost = request.headers.host === `127.0.0.1:${server.address()?.port}`;
+      const ingressKey = request.headers["x-do-qa-ingress-key"];
+      const privateIngress = trustedIngress && request.headers.host === trustedIngress.hostname &&
+        request.headers["x-forwarded-host"] === trustedIngress.hostname &&
+        request.headers["x-forwarded-proto"] === "https" &&
+        request.headers.origin === `https://${trustedIngress.hostname}` &&
+        typeof ingressKey === "string" && ingressKey.length === trustedIngress.localIngressKey.length &&
+        timingSafeEqual(Buffer.from(ingressKey), Buffer.from(trustedIngress.localIngressKey));
       if (request.socket.remoteAddress !== "127.0.0.1" || request.method !== "POST" ||
-        request.headers.origin || request.headers.cookie || request.headers.host !== `127.0.0.1:${server.address()?.port}` ||
+        request.headers.cookie || !(privateIngress || (localHost && !request.headers.origin && !trustedIngress)) ||
         request.headers["content-type"] !== "application/json" ||
         !/^Bearer [A-Za-z0-9._~-]{32,8192}$/.test(request.headers.authorization || "")) deny();
       const path = request.url;
@@ -49,6 +62,13 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database } 
       }
       const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
       if (!input || typeof input !== "object" || Array.isArray(input)) deny();
+      const allowedFields = {
+        "/qa-device/challenge": ["operation", "publicKey", "method", "path"],
+        "/qa-device/enroll": ["publicKey", "challengeId", "signature"],
+        "/qa-device/prove": ["challengeId", "signature", "method", "path"],
+        "/qa-device/revoke": ["keyId", "purpose"]
+      }[path];
+      if (Object.keys(input).some(key => !allowedFields.includes(key))) deny();
       const context = request;
       record("STARTED");
       let result;
@@ -100,19 +120,22 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database } 
 // Composition is host-owned: no token, admin action or service-role key is
 // embedded in the mobile bundle, and no listener starts before listen().
 export function createPush44QaLocalOperator({ database, expectedRuntimeSha,
-  readSessionToken, readApprovedSession, readDelegation, verifyOwnerAction,
+  readSessionToken, readApprovedSession, readDelegation, expectedOwnerProfileId,
+  readOwnerAuthorization, confirmHostPresence, trustedIngress,
   fetcher, now = Date.now } = {}) {
-  if (!database || typeof readDelegation !== "function" || typeof verifyOwnerAction !== "function")
+  if (!database || typeof readDelegation !== "function")
     throw new Error("QA_DEVICE_OPERATOR_ADAPTERS_REQUIRED");
   const authenticate = createCh1DevelopmentAuthenticator({ expectedRuntimeSha,
     readSessionToken, readApprovedSession, fetcher });
+  const verifyOwnerAction = createPush44QaOwnerAction({ expectedOwnerProfileId,
+    readOwnerAuthorization, confirmHostPresence, now });
   const approvals = createPush44QaEnrollmentApproval({ database, authenticate,
     readDelegation, verifyOwnerAction, now });
   const proof = createPush44QaDeviceProof({ database, authenticate, readDelegation,
     readApprovedEnrollment: approvals.readApprovedEnrollment,
     consumeApproval: approvals.consumeApproval,
     authorizeOwnerAction: verifyOwnerAction, now });
-  const transport = createPush44QaDeviceTransport({ proof, authenticate, database });
+  const transport = createPush44QaDeviceTransport({ proof, authenticate, database, trustedIngress });
   return Object.freeze({
     authorizeEnrollment: approvals.authorize,
     revokePendingApproval: approvals.revoke,

@@ -118,3 +118,70 @@ The signed entitlements have no APNs key. The built package remains under
 It was **not installed or exercised** in this continuation: the current
 offline-safe QA bundle has no approved phone-reachable challenge transport,
 and installation would not prove Secure Enclave behavior or owner enrollment.
+
+## Distinct owner approval and HTTPS ingress preparation — 2026-10-24
+
+The actual isolated Development iPhone fixture is a `parent` profile with a
+`home` account in onboarding state. It is **not** an owner/administrator. Its
+valid login cannot approve its own device key. The host operator now requires
+a separately pinned Development administrator profile and a separately active
+Auth session. The read-only owner adapter accepts only the canonical loopback
+LOCAL_SUPABASE URL, verifies the user through Supabase Auth, checks the
+server-side `digital_observer_current_session_active` RPC and the active
+`profiles.role = admin` record, then binds the distinct owner session to the
+one synthetic QA Site/tenant. It never uses a service-role key or trusts
+user-editable metadata. Its owner profile ID and token are supplied only to
+the trusted host process; no owner token is included in the iPhone build.
+
+For each approval or revocation, the trusted host action checks that owner
+record, requires a fresh macOS `deviceOwnerAuthentication` ceremony through
+the reviewed local helper, then checks the owner session again. It accepts no
+caller-supplied approval string. The existing SQLite approval store remains
+the only issuer of a one-use, 60-second, exact-key approval. The helper source
+typechecks on macOS, but a protected, trusted binary has **not** been installed
+or exercised with the actual owner. A local Mac unlock proves host presence,
+not by itself the Development administrator's identity; both checks are
+required. The helper must be placed on an ownership-enforcing protected volume
+and verified before a live ceremony; the Kingston `noowners` volume is not a
+safe executable custody location.
+
+The same loopback transport has a prepared optional trusted-ingress mode. It
+still binds only `127.0.0.1`; in this mode it requires the exact
+`qa-iphone-*.ganbatuach.com` Host and Origin, HTTPS forwarding assertions,
+and a high-entropy host-to-ingress key that never reaches the phone. The
+reverse proxy must **strip incoming forwarding and ingress-key headers** and
+inject its own after Cloudflare Access owner-only authentication. Direct
+loopback requests are denied when this mode is enabled. The Product session,
+one-time challenge, delegation and key binding are rechecked by the transport;
+an ingress key alone cannot authorize enrollment. No reverse proxy, DNS route,
+Cloudflare policy, HTTPS endpoint or media path was activated in this task.
+
+The host helper adapter rejects Kingston execution, requires an owner-only
+binary and parent directory, and checks a pinned SHA-256 before invoking it.
+The digest and binary placement must be approved and verified at activation;
+the helper is not installed by this PR.
+
+Activation remains blocked until (1) the actual administrator identity and
+active Development-only owner session are independently verified; (2) a
+trusted protected host helper is installed and qualified; (3) a time-bounded
+owner-only HTTPS ingress with valid iPhone TLS is separately approved and
+verified, including forwarding-header sanitation, strict origin routing,
+rate/cost bounds and immediate disable; and (4) the QA build is configured
+for the approved HTTPS origin and its signature is valid at installation.
+The current `PersonalTeamQA` package still has the offline-safe configuration.
+The previously recorded executable digest remains unchanged. An initial
+sandboxed `codesign --verify --strict` check returned
+`CSSMERR_TP_NOT_TRUSTED`; the same check with normal macOS trust-store access
+verified that the package is valid on disk and satisfies its Designated
+Requirement. This verifies the existing package signature, **not** that a
+phone-reachable HTTPS-configured variant has been built or installed.
+
+Physical qualification after separate approval: open the Development QA app
+on the iPhone, authenticate as the existing dedicated viewer, generate the
+Secure Enclave key, send only its public key to the private challenge route,
+perform the separate owner presence/administrator approval on the host, sign
+the one-use challenge, confirm enrollment and persistence after app restart,
+then revoke and verify immediate denial. A second independent installation
+must be denied. Key loss requires a new explicit approval. No physical proof,
+external media or real CH1 playback is claimed here. The existing unsigned
+HLS playlist/segment boundary remains denied.

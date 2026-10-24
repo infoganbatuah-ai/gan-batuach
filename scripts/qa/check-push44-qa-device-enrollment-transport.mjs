@@ -2,9 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { generateKeyPairSync, sign } from "node:crypto";
+import { request as httpRequest } from "node:http";
 import { createPush44QaDeviceProof, qaDeviceKeyId } from "../../services/video-gateway/push44-qa-device-proof.mjs";
 import { createPush44QaEnrollmentApproval } from "../../services/video-gateway/push44-qa-enrollment-approval.mjs";
 import { createPush44QaDeviceTransport, createPush44QaLocalOperator } from "../../services/video-gateway/push44-qa-device-transport.mjs";
+import { createPush44QaOwnerAction } from "../../services/video-gateway/push44-qa-owner-action.mjs";
+import { createPush44QaDevelopmentOwnerReader } from "../../services/video-gateway/push44-qa-development-owner.mjs";
 import { SYNTHETIC_QA } from "../../services/video-gateway/push44-ch1-private-media.mjs";
 
 function key() {
@@ -142,17 +145,25 @@ test("loopback-only transport completes enrollment/proof; copied token without k
 test("operator composes canonical LOCAL_SUPABASE session verification and fails closed on runtime drift", async t => {
   const db = new DatabaseSync(":memory:"); t.after(() => db.close());
   const sha = "f".repeat(40), sessionId = "synthetic-development-session-0001";
+  const ownerProfileId = "00000000-0000-4000-8000-000000000044";
+  const ownerSessionId = "separate-owner-session-00000001";
   const token = ["synthetic", Buffer.from(JSON.stringify({ sub: SYNTHETIC_QA.viewerId,
     session_id: sessionId, exp: Math.floor(Date.now() / 1000) + 300 })).toString("base64url"), "synthetic"].join(".");
   let runtimeOk = true, sessionOk = true;
+  let ownerPresent = true;
   const operator = createPush44QaLocalOperator({ database: db, expectedRuntimeSha: sha,
+    expectedOwnerProfileId: ownerProfileId,
     readSessionToken: async context => context.headers.authorization?.slice(7),
     readApprovedSession: async () => ({ sessionId, deviceId: "owner-iphone-approved-0001", revoked: false }),
     readDelegation: async () => ({ ...SYNTHETIC_QA, kind: "SYNTHETIC_QA_VIEW_ONLY",
       adminVerified: true, sourceOwnerVerified: true, revoked: false,
       approvalId: "synthetic-media-approval-0001", purpose: "Approved exact synthetic QA",
       issuedAt: Date.now() - 1000, expiresAt: Date.now() + 250_000 }),
-    verifyOwnerAction: async input => input.ownerAction === "host-approved-owner-action",
+    readOwnerAuthorization: async () => ({ verified: true, active: true, owner: true,
+      environment: SYNTHETIC_QA.viewerEnvironment, profileId: ownerProfileId,
+      sessionId: ownerSessionId, tenantId: SYNTHETIC_QA.tenantId, siteId: SYNTHETIC_QA.siteId,
+      expiresAt: Date.now() + 30_000 }),
+    confirmHostPresence: async () => ownerPresent,
     fetcher: async url => {
       assert.match(url, /^http:\/\/127\.0\.0\.1:3000\/api\//);
       if (url.endsWith("/version")) return new Response(JSON.stringify({ environment: "DEVELOPMENT / INTEGRATION",
@@ -163,8 +174,12 @@ test("operator composes canonical LOCAL_SUPABASE session verification and fails 
   t.after(async () => operator.close());
   const context = { headers: { authorization: `Bearer ${token}` } };
   const device = key();
+  ownerPresent = false;
+  await assert.rejects(operator.authorizeEnrollment({ context, keyId: qaDeviceKeyId(device.publicKey),
+    purpose: "Approved exact owner QA installation" }), /QA_OWNER_ACTION_DENIED/);
+  ownerPresent = true;
   await operator.authorizeEnrollment({ context, keyId: qaDeviceKeyId(device.publicKey),
-    purpose: "Approved exact owner QA installation", ownerAction: "host-approved-owner-action" });
+    purpose: "Approved exact owner QA installation" });
   const origin = await operator.listen();
   const challenge = () => fetch(`${origin}/qa-device/challenge`, { method: "POST",
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
@@ -175,4 +190,89 @@ test("operator composes canonical LOCAL_SUPABASE session verification and fails 
   assert.equal((await challenge()).status, 403);
   runtimeOk = true; sessionOk = false;
   assert.equal((await challenge()).status, 403);
+});
+
+test("host action requires owner record and fresh presence, rejects caller assertions", async () => {
+  let owner = true, present = true, session = "separate-owner-session-00000001";
+  let siteId = SYNTHETIC_QA.siteId, expiresAt = Date.now() + 30_000;
+  const ownerProfileId = "00000000-0000-4000-8000-000000000044";
+  const now = Date.now();
+  const principal = { verified: true, active: true, environment: SYNTHETIC_QA.viewerEnvironment,
+    viewerId: SYNTHETIC_QA.viewerId, sessionId: "synthetic-development-session-0001" };
+  const check = createPush44QaOwnerAction({ now: () => now, expectedOwnerProfileId: ownerProfileId,
+    readOwnerAuthorization: async () => ({ verified: true, active: true, owner,
+      environment: SYNTHETIC_QA.viewerEnvironment, profileId: ownerProfileId,
+      sessionId: session, tenantId: SYNTHETIC_QA.tenantId, siteId,
+      expiresAt }),
+    confirmHostPresence: async () => present });
+  const action = { context: {}, principal, keyId: "a".repeat(43),
+    purpose: "Approve one synthetic QA installation", operation: "AUTHORIZE_ENROLLMENT" };
+  assert.equal(await check(action), true);
+  await assert.rejects(check({ ...action, ownerAction: "caller-approved" }), /QA_OWNER_ACTION_DENIED/);
+  owner = false;
+  await assert.rejects(check(action), /QA_OWNER_ACTION_DENIED/);
+  owner = true; present = false;
+  await assert.rejects(check(action), /QA_OWNER_ACTION_DENIED/);
+  present = true; session = principal.sessionId;
+  await assert.rejects(check(action), /QA_OWNER_ACTION_DENIED/);
+  session = "separate-owner-session-00000001"; siteId = "wrong-site";
+  await assert.rejects(check(action), /QA_OWNER_ACTION_DENIED/);
+  siteId = SYNTHETIC_QA.siteId; expiresAt = now - 1;
+  await assert.rejects(check(action), /QA_OWNER_ACTION_DENIED/);
+});
+
+test("separate Development owner reader uses verified Auth session and denies QA parent or revocation", async () => {
+  const ownerId = "00000000-0000-4000-8000-000000000044";
+  const expires = Math.floor(Date.now() / 1000) + 300;
+  const token = ["header", Buffer.from(JSON.stringify({ sub: ownerId,
+    session_id: "separate-owner-session-00000001", exp: expires })).toString("base64url"),
+    "signature"].join(".");
+  let role = "admin", active = true, userId = ownerId;
+  const read = createPush44QaDevelopmentOwnerReader({
+    supabaseUrl: "http://127.0.0.1:54321/", publishableKey: "local-publishable-key-for-synthetic-test",
+    expectedOwnerProfileId: ownerId, readOwnerToken: async () => token,
+    clientFactory: () => ({ auth: { getUser: async () => ({ data: { user: { id: userId } }, error: null }) },
+      rpc: async () => ({ data: active, error: null }),
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
+        data: { id: ownerId, role, active: true }, error: null }) }) }) }) }) });
+  assert.equal((await read()).owner, true);
+  role = "parent"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  role = "admin"; active = false; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  active = true; userId = SYNTHETIC_QA.viewerId;
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  assert.throws(() => createPush44QaDevelopmentOwnerReader({ supabaseUrl: "https://kuaywzvucllxjsxarogb.supabase.co/",
+    publishableKey: "local-publishable-key-for-synthetic-test", expectedOwnerProfileId: ownerId,
+    readOwnerToken: async () => token }), /QA_DEVELOPMENT_OWNER_DENIED/);
+});
+
+test("prepared HTTPS ingress requires exact host, TLS assertion and private origin key", async t => {
+  const f = fixture(t); await approve(f);
+  const hostname = "qa-iphone-owner.ganbatuach.com";
+  const localIngressKey = "k".repeat(43);
+  const edge = createPush44QaDeviceTransport({ proof: f.proof, database: f.db,
+    authenticate: async request => request.headers.authorization === `Bearer ${"synthetic.".repeat(8)}token`
+      ? f.session() : null,
+    trustedIngress: { hostname, localIngressKey } });
+  t.after(async () => edge.close());
+  const origin = await edge.listen();
+  const headers = { host: hostname, origin: `https://${hostname}`,
+    "x-forwarded-host": hostname, "x-forwarded-proto": "https",
+    "x-do-qa-ingress-key": localIngressKey, "content-type": "application/json",
+    authorization: `Bearer ${"synthetic.".repeat(8)}token` };
+  const body = JSON.stringify({ operation: "ENROLL", publicKey: f.first.publicKey,
+    method: "POST", path: "/qa-device/enroll" });
+  const send = (changes, payload = body) => new Promise((resolve, reject) => {
+    const request = httpRequest(`${origin}/qa-device/challenge`, { method: "POST",
+      headers: { ...headers, ...changes } }, response => {
+      response.resume(); response.on("end", () => resolve({ status: response.statusCode }));
+    });
+    request.on("error", reject); request.end(payload);
+  });
+  assert.equal((await send({})).status, 200);
+  assert.equal((await send({ "x-do-qa-ingress-key": "wrong" })).status, 403);
+  assert.equal((await send({ host: "other.ganbatuach.com" })).status, 403);
+  assert.equal((await send({ "x-forwarded-proto": "http" })).status, 403);
+  assert.equal((await send({ host: new URL(origin).host, origin: "https://untrusted.invalid" })).status, 403);
+  assert.equal((await send({}, JSON.stringify({ operation: "ENROLL", publicKey: f.first.publicKey,
+    method: "POST", path: "/qa-device/enroll", sourceId: "real-camera" }))).status, 403);
 });
