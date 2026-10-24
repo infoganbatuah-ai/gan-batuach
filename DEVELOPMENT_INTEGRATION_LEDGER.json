@@ -46,16 +46,17 @@
       "sourceCommits": [
         "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f",
         "b1ab16d942223e8bfb156b78c41bdf9bcb88f576",
-        "e0d454d9f2d5319f69b2bdee2ee29715ced61c4c"
+        "e0d454d9f2d5319f69b2bdee2ee29715ced61c4c",
+        "6dbadbea73ba813f2fbc4060d49821f519cf92b0"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@e0d454d9f2d5319f69b2bdee2ee29715ced61c4c"],
-        "implementationCommit": "e0d454d9f2d5319f69b2bdee2ee29715ced61c4c"
+        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@6dbadbea73ba813f2fbc4060d49821f519cf92b0"],
+        "implementationCommit": "6dbadbea73ba813f2fbc4060d49821f519cf92b0"
       },
       "validation": {
-        "status": "ISOLATED_PASS_OWNER_AUTH_CONFIRMED_SCOPED_GRANT_NOT_ISSUED",
+        "status": "ISOLATED_PASS_SIGNED_BUILD_OWNER_PRESENCE_SCOPED_GRANT_NOT_ISSUED",
         "evidence": [
           "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md",
           "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
@@ -64,10 +65,13 @@
           "Read-only original LOCAL_SUPABASE: owner Auth=1, capability=0, unassigned parent=1, owned Observer Sites=0, memberships=0, synthetic Site records=0",
           "The isolated request-store code binds a future pending request to the exact key fingerprint and session; no physical pending request or grant was issued",
           "Exact-host control-only PersonalTeamQA build signed and verified on Kingston at 2026-10-24 18:12 UTC; executable SHA-256 fd1d015de011d11503fe5eba0db4ebf326ef6948703923c689a2725a783f4898; not installed",
-          "Control-only config rejects bootstrap tokens, wrong origin, media path and Push; eight isolated transport tests PASS. No external route or phone-side control UI is active",
+          "Control-only config rejects bootstrap tokens, wrong origin, media path and Push; nine isolated transport tests and three control-boundary cases PASS. Exact-path phone UI and HttpOnly-preserving local bridge are implemented but not externally active",
+          "Development-only PersonalTeamQA binary signed and macOS trust verified for exact control page; executable SHA-256 b30e69138e9bff8541ae4667abeb948425e42cd216a453078aac82a6436db83c; provisioning expires 2026-10-26T23:14:41Z; not installed",
+          "Protected Mac owner-presence binary installed under owner-only Application Support, pinned SHA-256 in device-proof receipt; one owner-approved local presence prompt returned PRESENT without issuing a device approval",
+          "Local TypeScript, lint baseline, no-deployment Product build, exact-path PersonalTeamQA configuration and isolated status/transport/boundary tests PASS at 6dbadbea73ba813f2fbc4060d49821f519cf92b0",
           "Read-only GitHub identity check at 2026-10-24 18:01:43 UTC: account infoganbatuah-ai (ID 287220776) has repository admin; existing GitHub CLI keyring credential authenticated as same ID; /user/public_emails target match YES and verified TRUE; no address list, token, new scope or capability grant"
         ],
-        "limits": "Verified GitHub owner identity is not a capability grant. No actual owner-presence ceremony for a device approval, no scoped capability issuance, no phone-side request UI, no physical pending request/fingerprint, no iPhone installation or HTTPS activation."
+        "limits": "Verified GitHub owner identity and Mac presence are not a capability grant. No scoped capability issuance, physical pending request/fingerprint, iPhone installation, exact-host DNS/TLS/Access route, independent immutable audit receipt or HTTPS activation."
       },
       "integration": {
         "status": "NOT_INTEGRATED",
@@ -84,11 +88,11 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "No schema change; server-held, expiring exact-request/key capability remains unissued; existing durable local approval store now requires a one-pending-installation request.",
-      "localVerification": "PASS_ISOLATED_OWNER_AUTHORIZATION_ONLY",
+      "localVerification": "PASS_ISOLATED_UI_TRANSPORT_SECURITY_SIGNED_BUILD_NO_EXTERNAL_PROOF",
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "First complete a reviewed control-only phone UI/session handoff and exact-host TLS/Access/cost preflight. Then request separate owner approval for a 30-minute control-only HTTPS/install window to create the physical pending request; only after its exact request ID/key fingerprint exists may the one-use capability and fresh Mac approval be separately considered. No route, media or Production activation."
+      "nextAction": "Qualify the exact-host TLS certificate and owner-only Cloudflare Access application without publishing a route; review trusted proxy header sanitation, Access audience validation, edge accounting and total cost. Then request separate owner approval for a 30-minute control-only HTTPS/install window. Only after the real pending request/key exists may the one-use capability and Mac approval be separately authorized. No route, media or Production activation."
     },
     {
       "id": "backup/active-observer-engine-20260831",
