@@ -38,6 +38,53 @@
   ],
   "units": [
     {
+      "id": "codex/push44-owner-development-provisioning-20261024",
+      "project": "Digital Observer",
+      "title": "PUSH 44 scoped owner identity for one Development iPhone enrollment",
+      "owner": "PUSH 44 Development qualification owner",
+      "sourceBranch": "codex/push44-synthetic-external-preparation",
+      "sourceCommits": [
+        "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/push44-synthetic-external-preparation@9cc298ae3a16c8d8ae67902565bd89f9cd4f729f"],
+        "implementationCommit": "9cc298ae3a16c8d8ae67902565bd89f9cd4f729f"
+      },
+      "validation": {
+        "status": "ISOLATED_PASS_OWNER_AUTH_CONFIRMED_SCOPED_GRANT_NOT_ISSUED",
+        "evidence": [
+          "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md",
+          "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
+          "Seven local device-transport tests passed; exact-head CI pending",
+          "Owner confirmed Mac Development dashboard after local invitation; local Auth shows confirmed email and one session",
+          "Owner profile remains unassigned parent with no admin role or scoped capability"
+        ],
+        "limits": "No actual owner-presence ceremony for a device approval, no scoped capability issuance, no physical iPhone enrollment or HTTPS activation."
+      },
+      "integration": {
+        "status": "NOT_INTEGRATED",
+        "base": "integration/development",
+        "commit": null,
+        "sourceHead": null,
+        "pullRequest": 248,
+        "requiredChecks": "PENDING_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "EXTERNAL_QUALIFICATION_PENDING",
+        "units": ["codex/push-44-ios-real-device-continuation-20261019"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "No schema change; replaces the unsafe global Development admin requirement in the existing host reader with a server-held, expiring, exact-scope capability.",
+      "localVerification": "PASS_ISOLATED_OWNER_AUTHORIZATION_ONLY",
+      "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
+      "nextAction": "Issue an audited short-lived exact-scope capability only after renewed owner session validation and fresh Mac owner-presence; do not preapprove the phone, open HTTPS or activate media."
+    },
+    {
       "id": "backup/active-observer-engine-20260831",
       "project": "Digital Observer / shared",
       "title": "feat: connect verified camera gateway adapter",
