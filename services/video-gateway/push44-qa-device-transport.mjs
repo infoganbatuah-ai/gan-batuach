@@ -1,4 +1,7 @@
 import { createServer } from "node:http";
+import { createCh1DevelopmentAuthenticator } from "./push44-ch1-development-session.mjs";
+import { createPush44QaDeviceProof } from "./push44-qa-device-proof.mjs";
+import { createPush44QaEnrollmentApproval } from "./push44-qa-enrollment-approval.mjs";
 
 const deny = () => { throw new Error("QA_DEVICE_TRANSPORT_DENIED"); };
 const limited = value => typeof value === "string" && value.length <= 2048;
@@ -91,5 +94,28 @@ export function createPush44QaDeviceTransport({ proof, authenticate, database } 
     async close() {
       if (server.listening) await new Promise(resolve => server.close(resolve));
     }
+  });
+}
+
+// Composition is host-owned: no token, admin action or service-role key is
+// embedded in the mobile bundle, and no listener starts before listen().
+export function createPush44QaLocalOperator({ database, expectedRuntimeSha,
+  readSessionToken, readApprovedSession, readDelegation, verifyOwnerAction,
+  fetcher, now = Date.now } = {}) {
+  if (!database || typeof readDelegation !== "function" || typeof verifyOwnerAction !== "function")
+    throw new Error("QA_DEVICE_OPERATOR_ADAPTERS_REQUIRED");
+  const authenticate = createCh1DevelopmentAuthenticator({ expectedRuntimeSha,
+    readSessionToken, readApprovedSession, fetcher });
+  const approvals = createPush44QaEnrollmentApproval({ database, authenticate,
+    readDelegation, verifyOwnerAction, now });
+  const proof = createPush44QaDeviceProof({ database, authenticate, readDelegation,
+    readApprovedEnrollment: approvals.readApprovedEnrollment,
+    consumeApproval: approvals.consumeApproval,
+    authorizeOwnerAction: verifyOwnerAction, now });
+  const transport = createPush44QaDeviceTransport({ proof, authenticate, database });
+  return Object.freeze({
+    authorizeEnrollment: approvals.authorize,
+    revokePendingApproval: approvals.revoke,
+    ...transport
   });
 }

@@ -83,8 +83,11 @@ It rejects browser Origin, cookies, invalid Bearer credentials, oversized
 bodies, arbitrary paths and non-POST methods. A durable 1,000-attempt ceiling
 and metadata-only STARTED/ACCEPTED/DENIED audit are enforced at the serving
 boundary; an unavailable audit blocks the protected action. The caller must supply the
-canonical server-side Development session adapter; the isolated test uses a
-synthetic adapter. It opens no public route and is **not reachable from the
+canonical server-side Development session adapter. The host-only operator
+factory composes the existing `createCh1DevelopmentAuthenticator` against the
+exact loopback Product SHA, `LOCAL_SUPABASE` runtime and active mobile session;
+its isolated test uses synthetic Product responses and confirms runtime drift
+and revoked-session denial. It opens no public route and is **not reachable from the
 iPhone**. A future approved HTTPS bridge must retain the same authorization
 checks and be reviewed before any phone-facing activation.
 

@@ -11948,7 +11948,7 @@
         "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
         "scope": "One-use 60-second owner-action-gated synthetic QA key approval, loopback-only challenge transport, durable 1000-attempt ceiling and sanitized audit; existing proof/media gate retained",
         "evidence": "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md; DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md",
-        "validation": "Isolated synthetic approval/transport 3/3, existing proof 9/9, security gate 52/52, signed PersonalTeamQA build/codesign PASS; TypeScript, canonical lint, migration-file safety and release contract PASS. Actual administrator ceremony, phone-reachable HTTPS transport and iOS HLS proof remain BLOCKED; physical iPhone proof NOT RUN.",
+        "validation": "Isolated synthetic approval/transport and canonical LOCAL_SUPABASE composition 4/4, existing proof 9/9, security gate 52/52, domain gate 46/46, signed PersonalTeamQA build/codesign PASS; TypeScript, canonical lint, migration-file safety and release contract PASS. Actual administrator ceremony, phone-reachable HTTPS transport and iOS HLS proof remain BLOCKED; physical iPhone proof NOT RUN.",
         "migrationCount": 0,
         "productionChanged": false,
         "externalMediaBytes": 0,

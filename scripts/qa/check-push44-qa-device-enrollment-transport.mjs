@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 import { generateKeyPairSync, sign } from "node:crypto";
 import { createPush44QaDeviceProof, qaDeviceKeyId } from "../../services/video-gateway/push44-qa-device-proof.mjs";
 import { createPush44QaEnrollmentApproval } from "../../services/video-gateway/push44-qa-enrollment-approval.mjs";
-import { createPush44QaDeviceTransport } from "../../services/video-gateway/push44-qa-device-transport.mjs";
+import { createPush44QaDeviceTransport, createPush44QaLocalOperator } from "../../services/video-gateway/push44-qa-device-transport.mjs";
 import { SYNTHETIC_QA } from "../../services/video-gateway/push44-ch1-private-media.mjs";
 
 function key() {
@@ -137,4 +137,42 @@ test("loopback-only transport completes enrollment/proof; copied token without k
   f.db.prepare("UPDATE push44_qa_transport_limit SET attempts=1000 WHERE id=1").run();
   assert.equal((await send("/qa-device/challenge", { operation: "ACCESS", method: "GET",
     path: "/ch1/index.m3u8" })).status, 403);
+});
+
+test("operator composes canonical LOCAL_SUPABASE session verification and fails closed on runtime drift", async t => {
+  const db = new DatabaseSync(":memory:"); t.after(() => db.close());
+  const sha = "f".repeat(40), sessionId = "synthetic-development-session-0001";
+  const token = ["synthetic", Buffer.from(JSON.stringify({ sub: SYNTHETIC_QA.viewerId,
+    session_id: sessionId, exp: Math.floor(Date.now() / 1000) + 300 })).toString("base64url"), "synthetic"].join(".");
+  let runtimeOk = true, sessionOk = true;
+  const operator = createPush44QaLocalOperator({ database: db, expectedRuntimeSha: sha,
+    readSessionToken: async context => context.headers.authorization?.slice(7),
+    readApprovedSession: async () => ({ sessionId, deviceId: "owner-iphone-approved-0001", revoked: false }),
+    readDelegation: async () => ({ ...SYNTHETIC_QA, kind: "SYNTHETIC_QA_VIEW_ONLY",
+      adminVerified: true, sourceOwnerVerified: true, revoked: false,
+      approvalId: "synthetic-media-approval-0001", purpose: "Approved exact synthetic QA",
+      issuedAt: Date.now() - 1000, expiresAt: Date.now() + 250_000 }),
+    verifyOwnerAction: async input => input.ownerAction === "host-approved-owner-action",
+    fetcher: async url => {
+      assert.match(url, /^http:\/\/127\.0\.0\.1:3000\/api\//);
+      if (url.endsWith("/version")) return new Response(JSON.stringify({ environment: "DEVELOPMENT / INTEGRATION",
+        backend: "LOCAL_SUPABASE", production: false, commit: runtimeOk ? sha : "a".repeat(40) }));
+      return new Response(JSON.stringify({ data: { session: { active: sessionOk,
+        profile_id: SYNTHETIC_QA.viewerId } } }), { status: sessionOk ? 200 : 401 });
+    } });
+  t.after(async () => operator.close());
+  const context = { headers: { authorization: `Bearer ${token}` } };
+  const device = key();
+  await operator.authorizeEnrollment({ context, keyId: qaDeviceKeyId(device.publicKey),
+    purpose: "Approved exact owner QA installation", ownerAction: "host-approved-owner-action" });
+  const origin = await operator.listen();
+  const challenge = () => fetch(`${origin}/qa-device/challenge`, { method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ operation: "ENROLL", publicKey: device.publicKey,
+      method: "POST", path: "/qa-device/enroll" }) });
+  assert.equal((await challenge()).status, 200);
+  runtimeOk = false;
+  assert.equal((await challenge()).status, 403);
+  runtimeOk = true; sessionOk = false;
+  assert.equal((await challenge()).status, 403);
 });
