@@ -1,7 +1,7 @@
 # Canonical Development Integration Ledger
 
 PUSH 44 distinct-owner QA enrollment continuation, 2026-10-24: PR #248 Draft
-branch implementation `b3c86c68` adds a separate verified Development admin
+branch implementation `b3c86c68` and portability correction `d3763d5a` add a separate verified Development admin
 session, fresh host presence check, and optional exact-host/private-key
 trusted-ingress contract while retaining the original one-use key approval
 and proof core. The dedicated iPhone QA fixture is actually a `parent` profile,
