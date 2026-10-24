@@ -1,5 +1,9 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+The focused 2026-10-25 native Access contract, three-gate state machine,
+local test receipts and one bounded provider experiment are in
+[`DIGITAL_OBSERVER_PUSH_44_NATIVE_ACCESS_CONTRACT_20261025.md`](DIGITAL_OBSERVER_PUSH_44_NATIVE_ACCESS_CONTRACT_20261025.md).
+
 ## 2026-10-25 Access-to-native return decision — local-only handoff
 
 Branch `codex/push44-synthetic-external-preparation` remained at
