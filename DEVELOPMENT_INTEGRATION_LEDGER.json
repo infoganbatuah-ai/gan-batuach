@@ -12036,6 +12036,22 @@
         "ownerRecovery20261024": "Read-only LOCAL_SUPABASE confirmed the sole admin is a synthetic fixture with no current session or observer-Site membership; the owner email has no Auth record. Owner-email/profile binding and confirmed-email checks were added to the host reader; fixture, mismatched and unconfirmed identities are denied. An actual owner-approved macOS LocalAuthentication prompt passed using an owner-only temporary helper and pinned hash, but no enrollment approval was issued. Development-only owner-admin invitation/role grant awaits separate explicit owner authorization and normal email verification/login. No external activation or database mutation.",
         "nextAction": "Keep PR248 Draft. Request separate approval for one Development-only invitation and least-privilege admin role grant to the verified project owner through the canonical Auth provisioning path, then require email verification and fresh owner login. Reinstall and repin the Mac presence helper in a durable owner-only location before any enrollment approval. Do not use the synthetic admin fixture or elevate the QA parent; no external activation or media. Preserve PR235 Draft."
       },
+      "qaControlAccessTransportCost20261024": {
+        "sourceBranch": "codex/push44-synthetic-external-preparation",
+        "sourceCommit": "0eeea7ede74db82e406aace7485ee6cc410c8390",
+        "pullRequest": 248,
+        "state": "PUSHED_REMOTE",
+        "preservation": "DRAFT_PR_BRANCH; NOT_INTEGRATED; NO_EXTERNAL_ACTIVATION",
+        "integrationBaselineSha": "f3401b181954b800e8e0f26702642ea18dba7e2a",
+        "scope": "Control-only Access transport decision, explicit live application AUD and protected Unix-socket origin; no Cloudflare policy, route or DNS changes",
+        "evidence": "DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md",
+        "validation": "Isolated ingress 6/6, security gate 54/54, migration-file health 257 and ledger schema PASS. Existing private-hostname Access app cannot deliver origin JWT for HTTPS without unapproved Gateway TLS decryption. Public self-hosted Access plus exact-host Tunnel route selected but not activated. Live JWT delivery, iPhone page/login and provider hard cost cap remain BLOCKED.",
+        "exactHeadCi": "See GitHub PR248 checks for current exact head; no historical green check transfers",
+        "migrationCount": 0,
+        "productionChanged": false,
+        "externalMediaBytes": 0,
+        "nextAction": "Preserve PR248 Draft and verify exact-head CI. Qualify the narrow same-origin iPhone page/login surface and safe edge-rule scope before asking the owner to decide on a temporary Access Allow/Tunnel route with residual non-hard-capped provider cost risk. PR235 stays separate Draft."
+      },
       "ch1MediaPreflight20261023": {
         "sourceBranch": "codex/push44-ch1-media-preflight-20261023",
         "sourceCommit": "3ff7b6849499d6655fc56df568e0beaa5eb5f6b6",
