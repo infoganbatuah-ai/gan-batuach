@@ -1,5 +1,49 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## Owner Development Auth invitation and least-privilege correction — 2026-10-24
+
+The original `LOCAL_SUPABASE` project had no Auth user or profile for the
+project-owner mailbox before this operation. A single Auth Admin invitation was
+created through the guarded local Supabase API, without a password. The new
+Auth user was initially unconfirmed; its active profile is the default
+`parent` role with no Garden assignment. No enrollment capability, admin role,
+device approval, or second iPhone identity was granted. The connected owner
+Gmail account identifies the same mailbox, but local Supabase uses a **local
+mail catcher** and has email confirmations disabled; invitation creation is
+not proof that the actual mailbox received an email. A later read-only check
+found email confirmation and one Auth session. The owner independently
+confirmed that following the invitation on the Mac opened the Development
+dashboard. This corroborates the owner sign-in, but does not grant the
+single-purpose approval capability or prove a fresh presence ceremony. No device
+privilege follows from a session record alone. The invitation link must
+not be copied into Git, logs, chat, or a report.
+Sanitized local Auth timestamps (UTC): invited `17:00:01`, confirmed
+`17:03:19`, first sign-in `17:03:20` on 2026-10-24. The local mail catcher
+contains one addressed invitation; its body and one-time link were not read
+by the agent.
+
+`profiles.role = admin` is global Development authority: read-only review
+found 1,058 RLS policies referencing `is_admin()` (of 1,234 policies) and
+additional administrative application routes. It is not a suitable role for
+this single-purpose phone enrollment. The host-only reader now refuses a
+global admin role and instead requires the exact pinned owner Auth/profile
+identity, confirmed email, a current server-side session, an active unassigned
+profile, and a short-lived Auth-admin-controlled `app_metadata` capability
+bound to the one synthetic viewer, Site, tenant and purpose. It accepts no
+user-editable metadata and re-reads Auth on each decision. The capability is
+**not issued in this operation**; issuance requires a separately verified
+owner login, a fresh Mac owner-presence ceremony, a guarded local Auth Admin
+update, and a sanitized audit/revocation record. The approval store remains
+empty, the loopback transport closed, and the external QA endpoint closed.
+
+The local Mail UI is `http://127.0.0.1:55424`. The owner must personally
+use the normal Development sign-in on the Mac; the agent must not inspect or
+relay the one-use link. Before capability issuance, reverify
+`email_confirmed_at`, that the profile remains unassigned, and that no broad
+role appeared. If actual mailbox-delivery proof is required, first configure
+an approved outbound Development SMTP path; local catcher receipt is not
+equivalent. No Production Auth or Cloudflare configuration was changed.
+
 Scope: PR #248, `LOCAL_SUPABASE` viewer, fixed synthetic Site/tenant/source in
 `SYNTHETIC_QA`. No Production schema, Cloudflare policy, Home source, or public
 route is changed. The existing media lease and byte accounting remain the
@@ -123,13 +167,13 @@ and installation would not prove Secure Enclave behavior or owner enrollment.
 
 The actual isolated Development iPhone fixture is a `parent` profile with a
 `home` account in onboarding state. It is **not** an owner/administrator. Its
-valid login cannot approve its own device key. The host operator now requires
-a separately pinned Development administrator profile and a separately active
-Auth session. The read-only owner adapter accepts only the canonical loopback
-LOCAL_SUPABASE URL, verifies the user through Supabase Auth, checks the
-server-side `digital_observer_current_session_active` RPC and the active
-`profiles.role = admin` record, then binds the distinct owner session to the
-one synthetic QA Site/tenant. It never uses a service-role key or trusts
+valid login cannot approve its own device key. The host operator requires
+a separately pinned owner identity and a separately active Auth session. The
+read-only owner adapter accepts only the canonical loopback LOCAL_SUPABASE URL,
+verifies the user through Supabase Auth, checks the server-side
+`digital_observer_current_session_active` RPC and the scoped owner capability
+described above, then binds the distinct session to the one synthetic QA
+Site/tenant. It never uses a service-role key or trusts
 user-editable metadata. Its owner profile ID and token are supplied only to
 the trusted host process; no owner token is included in the iPhone build.
 
@@ -140,7 +184,7 @@ caller-supplied approval string. The existing SQLite approval store remains
 the only issuer of a one-use, 60-second, exact-key approval. The helper source
 typechecks on macOS, but a protected, trusted binary has **not** been installed
 or exercised with the actual owner. A local Mac unlock proves host presence,
-not by itself the Development administrator's identity; both checks are
+not by itself the Development owner's identity; both checks are
 required. The helper must be placed on an ownership-enforcing protected volume
 and verified before a live ceremony; the Kingston `noowners` volume is not a
 safe executable custody location.
@@ -161,8 +205,9 @@ binary and parent directory, and checks a pinned SHA-256 before invoking it.
 The digest and binary placement must be approved and verified at activation;
 the helper is not installed by this PR.
 
-Activation remains blocked until (1) the actual administrator identity and
-active Development-only owner session are independently verified; (2) a
+Activation remains blocked until (1) the verified Development owner account
+receives the scoped capability and its current session is independently
+validated; (2) a
 trusted protected host helper is installed and qualified; (3) a time-bounded
 owner-only HTTPS ingress with valid iPhone TLS is separately approved and
 verified, including forwarding-header sanitation, strict origin routing,
@@ -246,6 +291,9 @@ HLS playlist/segment boundary remains denied.
   commitment or charge was incurred by this preflight.
 
 ## Development owner identity and Mac presence recovery (2026-10-24)
+
+Historical pre-invitation baseline below. The owner identity and scoped reader
+status at the top of this document supersede its then-current blockers.
 
 - Read-only LOCAL_SUPABASE inspection found the sole active administrator
   profile `00000000-0000-4000-8000-000000000501` belongs to the synthetic

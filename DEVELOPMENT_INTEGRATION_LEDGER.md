@@ -1,5 +1,24 @@
 # Canonical Development Integration Ledger
 
+PUSH 44 owner Development invitation / scoped authorization correction,
+2026-10-24: PR #248 Draft, source branch
+`codex/push44-synthetic-external-preparation`, parent `b36a5956`.
+Read-only original LOCAL_SUPABASE review found the owner account absent and
+the existing global admin role over-broad (1,058 of 1,234 RLS policies
+reference `is_admin()`, plus admin routes). A single Auth Admin invitation
+created a passwordless owner Auth record. A later read-only check found email
+confirmation and one Auth session; the owner separately confirmed that the
+invitation led to the Development dashboard on the Mac. Its profile has only
+default `parent`, no Garden, no scoped capability
+or one-use device approval. The host owner reader now requires a time-bounded,
+server-controlled exact-purpose/exact-device capability and refuses the global
+admin role. Isolated authorization tests passed; exact-head CI and remote push
+are recorded by the PR after this ledger edit. No migration, external ingress,
+Cloudflare, media, Home, Production, main or PR #235 change. Next: prepare
+audited issuance of the scoped capability and require a fresh Mac
+owner-presence ceremony at the one-use approval; do not expose HTTPS or
+enroll the phone yet. See the [device-proof receipt](DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md).
+
 PUSH 44 control-only physical-iPhone preflight, 2026-10-24: PR #248 Draft
 commit `a7c0c052` pins the exact proposed hostname and adds a fail-closed
 30-minute deadline and early 2-KiB request rejection to the existing

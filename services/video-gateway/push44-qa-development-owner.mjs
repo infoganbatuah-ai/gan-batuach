@@ -4,9 +4,10 @@ import { SYNTHETIC_QA } from "./push44-ch1-private-media.mjs";
 const deny = () => { throw new Error("QA_DEVELOPMENT_OWNER_DENIED"); };
 
 // A second, host-held Development Auth session is required. The QA iPhone's
-// parent account cannot approve itself. The host must pin the separately
-// verified owner's profile ID and email; a generic admin fixture is not enough.
-// No service-role key is used.
+// parent account cannot approve itself. The host pins the verified owner's
+// profile ID/email. The server-held, expiring Auth app_metadata capability is
+// specific to this enrollment ceremony; the global profiles.role=admin is
+// deliberately not granted. No service-role key is used by this reader.
 export function createPush44QaDevelopmentOwnerReader({ supabaseUrl, publishableKey,
   expectedOwnerProfileId, expectedOwnerEmail, readOwnerToken, clientFactory = createClient,
   now = Date.now } = {}) {
@@ -33,12 +34,25 @@ export function createPush44QaDevelopmentOwnerReader({ supabaseUrl, publishableK
       const { data: { user }, error: userError } = await client.auth.getUser(token);
       if (userError || user?.id !== expectedOwnerProfileId ||
         user.email?.toLowerCase() !== expectedOwnerEmail || !user.email_confirmed_at) deny();
+      const approval = user.app_metadata?.push44_qa_enrollment_approver;
+      if (user.app_metadata?.role === "admin" ||
+        approval?.version !== 1 || approval.ownerId !== expectedOwnerProfileId ||
+        approval.environment !== SYNTHETIC_QA.viewerEnvironment ||
+        approval.tenantId !== SYNTHETIC_QA.tenantId ||
+        approval.siteId !== SYNTHETIC_QA.siteId ||
+        approval.viewerId !== SYNTHETIC_QA.viewerId ||
+        approval.purpose !== "APPROVE_ONE_QA_DEVICE_ENROLLMENT" ||
+        !Number.isSafeInteger(approval.issuedAt) ||
+        !Number.isSafeInteger(approval.expiresAt) ||
+        approval.issuedAt > now() || approval.expiresAt <= now() ||
+        approval.expiresAt - approval.issuedAt > 30 * 60_000) deny();
       const { data: active, error: activeError } = await client.rpc("digital_observer_current_session_active");
       if (activeError || active !== true) deny();
       const { data: profile, error: profileError } = await client.from("profiles")
-        .select("id,email,role,active").eq("id", expectedOwnerProfileId).maybeSingle();
+        .select("id,email,role,active,garden_id").eq("id", expectedOwnerProfileId).maybeSingle();
       if (profileError || profile?.id !== expectedOwnerProfileId || profile.active !== true ||
-        profile.role !== "admin" || profile.email?.toLowerCase() !== expectedOwnerEmail) deny();
+        profile.role !== "parent" || profile.garden_id !== null ||
+        profile.email?.toLowerCase() !== expectedOwnerEmail) deny();
       // Claims are read only after getUser and the server-side session RPC.
       const claims = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8"));
       if (claims.sub !== expectedOwnerProfileId || typeof claims.session_id !== "string" ||
@@ -46,7 +60,8 @@ export function createPush44QaDevelopmentOwnerReader({ supabaseUrl, publishableK
       return { verified: true, active: true, owner: true,
         environment: SYNTHETIC_QA.viewerEnvironment, profileId: expectedOwnerProfileId,
         sessionId: claims.session_id, tenantId: SYNTHETIC_QA.tenantId,
-        siteId: SYNTHETIC_QA.siteId, expiresAt: Math.min(claims.exp * 1000, now() + 30_000) };
+        siteId: SYNTHETIC_QA.siteId,
+        expiresAt: Math.min(claims.exp * 1000, approval.expiresAt, now() + 30_000) };
     } catch { deny(); }
   };
 }

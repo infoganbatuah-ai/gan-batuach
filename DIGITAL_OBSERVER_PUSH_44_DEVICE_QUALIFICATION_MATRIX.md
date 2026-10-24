@@ -3,6 +3,18 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 owner Development identity — **INVITED, NOT QUALIFIED**. One
+passwordless invitation created in the original isolated LOCAL_SUPABASE;
+initially unconfirmed; a later read-only check found email confirmation and
+one Auth session; the owner confirmed the invitation opened the Development
+dashboard on the Mac. No role beyond
+an unassigned `parent` profile was granted. No exact-device approval capability
+or one-use enrollment was issued. The previous global-admin requirement was
+replaced by a short-lived, exact-purpose Auth-controlled capability in the
+host reader; isolated negative tests passed, but owner login, actual Mac
+presence at approval, physical iPhone proof and external HTTPS remain open.
+The local catcher is not evidence of delivery to the owner's Gmail inbox.
+
 2026-10-24 control-only iPhone preflight — **NOT ACTIVATED / REAL DEVICE PROOF NOT RUN**.
 The canonical isolated database has one active administrator profile, but it
 does not match the project-owner Cloudflare email and has zero unexpired sessions;

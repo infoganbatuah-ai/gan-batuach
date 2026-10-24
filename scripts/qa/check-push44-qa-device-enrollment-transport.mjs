@@ -227,17 +227,23 @@ test("separate Development owner reader uses verified Auth session and denies QA
   const token = ["header", Buffer.from(JSON.stringify({ sub: ownerId,
     session_id: "separate-owner-session-00000001", exp: expires })).toString("base64url"),
     "signature"].join(".");
-  let role = "admin", active = true, userId = ownerId;
+  let role = "parent", active = true, userId = ownerId;
   let userEmail = "owner@verified.example", profileEmail = userEmail, confirmed = true;
+  let gardenId = null, appRole = "parent", approval = {
+    version: 1, ownerId, environment: SYNTHETIC_QA.viewerEnvironment,
+    tenantId: SYNTHETIC_QA.tenantId, siteId: SYNTHETIC_QA.siteId,
+    viewerId: SYNTHETIC_QA.viewerId, purpose: "APPROVE_ONE_QA_DEVICE_ENROLLMENT",
+    issuedAt: Date.now() - 1000, expiresAt: Date.now() + 60_000 };
   const read = createPush44QaDevelopmentOwnerReader({
     supabaseUrl: "http://127.0.0.1:54321/", publishableKey: "local-publishable-key-for-synthetic-test",
     expectedOwnerProfileId: ownerId, expectedOwnerEmail: "owner@verified.example",
     readOwnerToken: async () => token,
     clientFactory: () => ({ auth: { getUser: async () => ({ data: { user: { id: userId, email: userEmail,
-      email_confirmed_at: confirmed ? "2026-10-24T00:00:00Z" : null } }, error: null }) },
+      email_confirmed_at: confirmed ? "2026-10-24T00:00:00Z" : null,
+      app_metadata: { role: appRole, push44_qa_enrollment_approver: approval } } }, error: null }) },
       rpc: async () => ({ data: active, error: null }),
       from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
-        data: { id: ownerId, email: profileEmail, role, active: true }, error: null }) }) }) }) }) });
+        data: { id: ownerId, email: profileEmail, role, active: true, garden_id: gardenId }, error: null }) }) }) }) }) });
   assert.equal((await read()).owner, true);
   userEmail = "admin@integration.qa.invalid";
   await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
@@ -246,8 +252,29 @@ test("separate Development owner reader uses verified Auth session and denies QA
   profileEmail = userEmail; confirmed = false;
   await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
   confirmed = true;
-  role = "parent"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
-  role = "admin"; active = false; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  role = "admin"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  role = "parent"; appRole = "admin"; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  appRole = "parent"; gardenId = SYNTHETIC_QA.siteId;
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  gardenId = null; approval = null;
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  approval = { version: 1, ownerId, environment: SYNTHETIC_QA.viewerEnvironment,
+    tenantId: SYNTHETIC_QA.tenantId, siteId: SYNTHETIC_QA.siteId,
+    viewerId: SYNTHETIC_QA.viewerId, purpose: "APPROVE_ONE_QA_DEVICE_ENROLLMENT",
+    issuedAt: Date.now() - 120_000, expiresAt: Date.now() - 60_000 };
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  approval.expiresAt = Date.now() + 60_000;
+  approval.tenantId = "wrong-tenant";
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  approval.tenantId = SYNTHETIC_QA.tenantId; approval.siteId = "wrong-site";
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  approval.siteId = SYNTHETIC_QA.siteId; approval.viewerId = "wrong-device";
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  approval.viewerId = SYNTHETIC_QA.viewerId;
+  approval.issuedAt = Date.now() - 31 * 60_000;
+  await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
+  approval.issuedAt = Date.now() - 1000;
+  active = false; await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
   active = true; userId = SYNTHETIC_QA.viewerId;
   await assert.rejects(read(), /QA_DEVELOPMENT_OWNER_DENIED/);
   assert.throws(() => createPush44QaDevelopmentOwnerReader({ supabaseUrl: "https://kuaywzvucllxjsxarogb.supabase.co/",
