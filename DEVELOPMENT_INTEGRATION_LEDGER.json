@@ -70,9 +70,10 @@
           "Protected Mac owner-presence binary installed under owner-only Application Support, pinned SHA-256 in device-proof receipt; one owner-approved local presence prompt returned PRESENT without issuing a device approval",
           "Local TypeScript, lint baseline, no-deployment Product build, exact-path PersonalTeamQA configuration and isolated status/transport/boundary tests PASS at 6dbadbea73ba813f2fbc4060d49821f519cf92b0",
           "Read-only GitHub identity check at 2026-10-24 18:01:43 UTC: account infoganbatuah-ai (ID 287220776) has repository admin; existing GitHub CLI keyring credential authenticated as same ID; /user/public_emails target match YES and verified TRUE; no address list, token, new scope or capability grant",
-          "Owner-approved non-public control preflight: one exact-host Let's Encrypt certificate with locally verified chain/key and protected private key; temporary DNS-01 TXT created, propagated and removed; Cloudflare Access application 4382f628-c338-4a23-9da0-1490056b83e4 is private-hostname only with zero policies and no route"
+          "Owner-approved non-public control preflight: one exact-host Let's Encrypt certificate with locally verified chain/key and protected private key; temporary DNS-01 TXT created, propagated and removed; Cloudflare Access application 4382f628-c338-4a23-9da0-1490056b83e4 is private-hostname only with zero policies and no route",
+          "Isolated control ingress: exact Access issuer/audience/owner RS256 verification, header sanitation, one-path loopback proxy, 2-KiB body, durable 60-per-minute/1000-total SQLite ledger, one-in-flight and absolute 30-minute deadline tests PASS; no external activation"
         ],
-        "limits": "Verified GitHub owner identity and Mac presence are not a capability grant. Exact-host certificate and deny-only Access app are prepared, but no scoped capability issuance, physical pending request/fingerprint, iPhone installation, trusted proxy/edge accounting, independent immutable audit receipt, iPhone TLS proof or HTTPS activation."
+        "limits": "Verified GitHub owner identity and Mac presence are not a capability grant. The current private-hostname Access app has not proven origin JWT issuance without Gateway TLS decryption; no compatible external route, phone HTML/login surface, provider-edge cost cap, scoped capability issuance, physical pending request/fingerprint, iPhone installation, independent immutable audit receipt, iPhone TLS proof or HTTPS activation."
       },
       "integration": {
         "status": "NOT_INTEGRATED",
@@ -93,7 +94,7 @@
       "releaseEligibility": "NOT_READY_PHYSICAL_IPHONE_HTTPS_AND_OWNER_APPROVAL_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "cost": {"newFixedRecurringCost": 0, "productionActivation": false},
-      "nextAction": "The exact-host certificate and deny-only Access app are configured without a route. Qualify trusted proxy header sanitation, Access audience validation, edge accounting and total cost before requesting separate owner approval for a 30-minute control-only HTTPS/install window. Only after a real pending request/key exists may the one-use capability and Mac approval be separately authorized. No route, media or Production activation."
+      "nextAction": "The exact-host certificate and deny-only private-hostname Access app are configured without a route; isolated control ingress is tested. Select and qualify a delivery architecture that issues an origin Access JWT without unapproved shared TLS decryption, then qualify the narrow phone page/login surface and provider-edge cost cap before any separate 30-minute HTTPS/install approval. Only after a real pending request/key exists may the one-use capability and Mac approval be separately authorized. No route, media or Production activation."
     },
     {
       "id": "backup/active-observer-engine-20260831",

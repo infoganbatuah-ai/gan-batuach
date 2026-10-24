@@ -1,5 +1,87 @@
 # PUSH 44 — one-installation device proof (isolated Development candidate)
 
+## 2026-10-24 control-only trust and cost continuation — no activation
+
+The existing Access application `4382f628-c338-4a23-9da0-1490056b83e4`
+still has the exact private hostname on port 443, zero policies, no route, and
+Cloudflare One Client automatic authentication off. Its displayed application
+AUD was pinned in the new local verifier; the issuer is the exact
+`spring-feather-ce4e` team domain. A future owner-only policy is **prepared,
+not saved**: one Allow rule for `info.ganbatuah@gmail.com`, preferably through
+the existing verified GitHub IdP, no Bypass or Service Auth, 30-minute maximum
+session, with the separate canonical Development QA session and device proof
+still mandatory. The email rule alone does **not** bind one iPhone.
+
+Cloudflare's [private-hostname Access guide](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/non-http/self-hosted-private-app/)
+states that origin Access JWTs for HTTPS private hostnames require Gateway TLS
+decryption; without it the Cloudflare One Client manages the session instead.
+That shared-account TLS-decryption configuration is not verified or approved
+for change, and the existing iPhone Client is disconnected. Therefore the
+current private-hostname Access application cannot yet be claimed as a
+server-verified JWT delivery path. A signed-JWT verifier cannot repair that
+transport mismatch. The live signing-key endpoint was not reachable from the
+current local/browser checks; local tests use isolated synthetic keys only.
+No Allow policy, TLS decryption, VPN, DNS, route or origin was activated.
+
+A new inert-by-default, loopback-only control ingress candidate validates the
+exact issuer, app audience, RS256 signature against the team's current JWKS,
+expiry, 30-minute token lifetime and exact owner email. It requires the exact
+Host/Origin/HTTPS forwarding and one POST control path, rejects duplicate or
+spoofed sensitive headers, strips all caller identity headers, injects the
+protected private proxy-to-origin key, and forwards only scoped Supabase
+session cookies to the existing Development bridge. The bridge separately
+checks the canonical Development QA session and tenant/Site/device policy;
+Access identity cannot replace it. The ingress has 2-KiB request, 8-KiB
+response, one in-flight request, durable SQLite 60-attempt/minute,
+1,000-attempt and 12-MiB
+conservative reserved-byte ceilings, plus a 30-minute absolute shutdown. The ledger
+atomically reserves the maximum request/response bytes **before** forwarding;
+an accounting failure cannot authorize an upstream operation. A changed
+deadline cannot reset its ledger. No listener starts on import, and no
+production activation command or secret is committed. Its single allowed API
+path denies HLS, media, Home, Production and Mac administrator actions.
+This is **isolated proof**, not an externally deployed edge or a complete
+phone-facing page/login route.
+
+The signed iPhone UI currently requires an authenticated HTML page and assets;
+the new minimal control-only API ingress intentionally does not expose them.
+Before a phone test, a reviewed same-origin login/page/static-asset delivery
+boundary must be qualified without widening to unrelated application routes.
+The current private-hostname Access/JWT mismatch must also be resolved via a
+separately approved architecture; enabling shared Gateway TLS decryption is
+not authorized by this task.
+
+The account remains Zero Trust Free (up to 50 users, $0 seat price); no new
+fixed subscription was created. At the application boundary 1,000 accepted or
+denied attempts with at most 2 KiB request plus 8 KiB response each imply
+under 10 MiB of bounded body data, with a separate 12-MiB local reservation
+failsafe. The reserved bytes are an upper bound, **not measured transfer**.
+This **does not** bound Cloudflare pre-origin requests, headers,
+handshakes, retries, cellular traffic or unrelated account usage. Because no
+approved compatible external route and provider-level cost/abuse control are
+verified, the maximum financial exposure is **BLOCKED**, not $0 guaranteed.
+No paid add-on may be activated to resolve that gap.
+
+The protected Mac presence helper remains owner-owned mode `0700` beneath a
+`0700` parent and retains the previously pinned SHA-256; no new presence
+prompt or enrollment approval was performed. Focused synthetic tests cover
+forged/wrong-audience/wrong-issuer/expired Access tokens, wrong owner,
+spoofed headers, forbidden paths, concurrency, oversized bodies/responses,
+durable attempt accounting, deadline, existing parent self-approval denial,
+wrong key, replay, expired approval, session revocation and tenant/Site scope.
+Those tests do not prove live Cloudflare JWT issuance or physical-iPhone TLS.
+
+**Activation decision: BLOCKED.** The next concrete technical step is to
+select and qualify a Cloudflare Access delivery architecture that actually
+issues the origin JWT for this exact host without changing shared TLS
+inspection or routing unrelated traffic; then qualify the narrow page/login
+surface and provider-edge cost cap. Only after those gates may the owner be
+asked separately to approve a 30-minute control-only route and signed-app
+installation. Rollback remains: close the loopback listener, remove only the
+future temporary route/policy, revoke the one-use QA grant, and leave the
+existing deny-only Access app and issued certificate untouched unless a
+separate cleanup decision is made.
+
 ## 2026-10-24 non-public control TLS and Access preflight
 
 Owner authorization covered one exact-host DNS-01 challenge, issuance through

@@ -3,6 +3,16 @@
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
+2026-10-24 control ingress continuation — **ISOLATED SECURITY PASS; EXTERNAL
+JWT/PHONE ROUTE BLOCKED**. The one-path loopback proxy verifies signed Access
+claims against the exact application audience, strips spoofed identity headers,
+and enforces durable 1,000-attempt, 30-minute, 2-KiB body and one-in-flight
+limits. It denies media; existing Development session, owner presence and
+device-key tests remain separate. The current Cloudflare private-hostname app
+does not prove origin JWT issuance without an approved Gateway TLS-decryption
+path; no phone-facing HTML/login surface or external cost cap is qualified.
+No real iPhone TLS/enrollment test, Access Allow policy or route was activated.
+
 2026-10-24 control-host non-public preflight — **DNS-01 / CERTIFICATE / DENY-ONLY
 ACCESS CONFIGURATION PASS; IPHONE TLS NOT RUN**. The exact-host Let's Encrypt
 certificate was issued using the protected existing ACME account and one
