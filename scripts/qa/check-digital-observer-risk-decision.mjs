@@ -73,6 +73,16 @@ const ruled = evaluateIncidentRisk(input({ matchedRules: [rule] }));
 assert(ruled.accepted && ruled.riskScore >= 75);
 assert.equal(ruled.recommendedDecision, "NOTIFY_IN_APP");
 assert(ruled.matchedRules.some(item => item.version === "rule-v2"));
+const escalated = evaluateIncidentRisk(input({
+  incident: { ...input().incident, relatedEventIds: ["event-a", "event-b"], eventTypes: ["person_entered", "person_entered"], durationSeconds: 30 },
+  triggeringEvent: { ...input().triggeringEvent, id: "event-b", occurredAt: "2026-09-06T09:00:30.000Z" },
+  matchedRules: [rule],
+  previousEvaluation: { riskScore: normal.riskScore, peakRiskScore: normal.peakRiskScore, riskBand: normal.riskBand },
+  evaluatedAt: "2026-09-06T09:00:31.000Z"
+}));
+assert(escalated.accepted && escalated.incidentId === normal.incidentId, "A legitimate later Event escalates the existing Incident");
+assert(escalated.riskScore > normal.riskScore && escalated.peakRiskScore === escalated.riskScore, "The canonical Risk engine preserves a higher authorized peak");
+assert.equal(escalated.recommendedDecision, "NOTIFY_IN_APP");
 
 const closedInput = input({
   incident: { ...input().incident, status: "closed", relatedEventIds: ["event-a", "event-b"], eventTypes: ["person_entered", "person_exited"], durationSeconds: 30 },
