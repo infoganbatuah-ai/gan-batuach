@@ -189,22 +189,79 @@ export async function dispatchQueuedDelivery(admin: AnySupabase, input: { delive
 export async function applyAuthenticatedCallback(admin: AnySupabase, input: { deliveryId: string; providerKey: string; providerEventId: string; outcome: ProviderOutcome; occurredAt?: string | null; safeMetadata?: Record<string, unknown>; now?: Date }) {
   const now = input.now ?? new Date();
   const deliveryResult = await admin.from("digital_observer_notification_deliveries").select("id,observer_site_id,delivery_status,attempt_count,max_attempts,expires_at,metadata").eq("id", input.deliveryId).maybeSingle();
-  if (!deliveryResult.data) throw new Error("CALLBACK_DELIVERY_NOT_FOUND");
+  if (deliveryResult.error || !deliveryResult.data) throw new Error("CALLBACK_DELIVERY_NOT_FOUND");
   const delivery = deliveryResult.data;
   if (delivery.metadata?.provider_key !== input.providerKey) throw new Error("CALLBACK_PROVIDER_MISMATCH");
   const callback = await admin.from("digital_observer_provider_callbacks").insert({ observer_site_id: delivery.observer_site_id,
     delivery_id: delivery.id, provider_key: input.providerKey, provider_event_id: input.providerEventId,
     callback_status: input.outcome, signature_valid: true, replay_detected: false,
     occurred_at: input.occurredAt ?? null, safe_metadata: input.safeMetadata ?? {} }).select("id").maybeSingle();
-  if (callback.error?.code === "23505") return { replay: true, deliveryStatus: delivery.delivery_status };
-  if (callback.error) throw new Error("CALLBACK_PERSIST_FAILED");
+  if (callback.error?.code === "23505") {
+    const original = await admin.from("digital_observer_provider_callbacks")
+      .select("id,observer_site_id,delivery_id,provider_key,provider_event_id,callback_status,signature_valid,occurred_at,safe_metadata")
+      .eq("provider_key", input.providerKey).eq("provider_event_id", input.providerEventId).maybeSingle();
+    if (original.error || !original.data) throw new Error("CALLBACK_REPLAY_LOOKUP_FAILED");
+    const stored = original.data;
+    if (typeof stored.id !== "string" || stored.signature_valid !== true
+      || typeof stored.delivery_id !== "string" || typeof stored.observer_site_id !== "string"
+      || typeof stored.callback_status !== "string" || !isJsonObject(stored.safe_metadata)) {
+      throw new Error("CALLBACK_REPLAY_RECORD_INVALID");
+    }
+    if (stored.provider_key !== input.providerKey || stored.provider_event_id !== input.providerEventId
+      || stored.delivery_id !== delivery.id || stored.observer_site_id !== delivery.observer_site_id
+      || stored.callback_status !== input.outcome
+      || !sameCallbackTime(stored.occurred_at, input.occurredAt ?? null)
+      || stableJson(stored.safe_metadata) !== stableJson(input.safeMetadata ?? {})) {
+      throw new Error("CALLBACK_EVENT_ID_CONFLICT");
+    }
+    const current = await admin.from("digital_observer_notification_deliveries")
+      .select("id,observer_site_id,delivery_status,metadata").eq("id", delivery.id).maybeSingle();
+    if (current.error || !current.data || current.data.id !== delivery.id
+      || current.data.observer_site_id !== delivery.observer_site_id
+      || current.data.metadata?.provider_key !== input.providerKey) throw new Error("CALLBACK_RECOVERY_REQUIRED");
+    const provenStatus: Partial<Record<ProviderOutcome, string>> = {
+      success: "delivered", acknowledged: "acknowledged", unknown_outcome: "unknown_outcome",
+      expired: "expired", cancelled: "cancelled", permanent_failure: "terminal_failure"
+    };
+    if (current.data.delivery_status !== provenStatus[input.outcome]) throw new Error("CALLBACK_RECOVERY_REQUIRED");
+    return { replay: true, deliveryStatus: current.data.delivery_status };
+  }
+  if (callback.error || !callback.data?.id) throw new Error("CALLBACK_PERSIST_FAILED");
+  const terminal = new Set(["acknowledged", "cancelled", "expired", "terminal_failure", "dead_letter", "unknown_outcome"]);
+  if (terminal.has(delivery.delivery_status) || (delivery.delivery_status === "delivered" && input.outcome !== "acknowledged")) {
+    return { replay: false, ignoredTerminal: true, deliveryStatus: delivery.delivery_status };
+  }
+  if (delivery.delivery_status !== "sent" && !(delivery.delivery_status === "delivered" && input.outcome === "acknowledged")) {
+    throw new Error("CALLBACK_RECOVERY_REQUIRED");
+  }
   const transition = transitionForProviderOutcome({ outcome: input.outcome, attemptCount: delivery.attempt_count, maxAttempts: delivery.max_attempts, expiresAt: delivery.expires_at, now });
-  const status = input.outcome === "success" ? "delivered" : transition.status;
+  if (delivery.delivery_status === "delivered" && transition.status !== "acknowledged") {
+    return { replay: false, ignoredTerminal: true, deliveryStatus: "delivered" };
+  }
+  const status = input.outcome === "success" && transition.status !== "expired" ? "delivered" : transition.status;
   const update = await admin.from("digital_observer_notification_deliveries").update({ delivery_status: status,
     acknowledged_at: input.outcome === "acknowledged" ? now.toISOString() : null,
     terminal_at: transition.terminal ? now.toISOString() : null,
     unknown_outcome_at: input.outcome === "unknown_outcome" ? now.toISOString() : null,
     next_retry_at: transition.retryAt, updated_at: now.toISOString() }).eq("id", delivery.id)
-    .not("delivery_status", "in", '(cancelled,expired,acknowledged)').select("id,delivery_status").maybeSingle();
-  return { replay: false, deliveryStatus: update.data?.delivery_status ?? delivery.delivery_status };
+    .eq("observer_site_id", delivery.observer_site_id).eq("delivery_status", delivery.delivery_status)
+    .eq("attempt_count", delivery.attempt_count).select("id,delivery_status").maybeSingle();
+  if (update.error || !update.data || update.data.delivery_status !== status) throw new Error("CALLBACK_RECOVERY_REQUIRED");
+  return { replay: false, deliveryStatus: update.data.delivery_status };
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (isJsonObject(value)) return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  return JSON.stringify(value) ?? "undefined";
+}
+
+function sameCallbackTime(stored: unknown, received: string | null) {
+  if (stored == null || received == null) return stored == null && received == null;
+  return typeof stored === "string" && Number.isFinite(Date.parse(stored))
+    && Number.isFinite(Date.parse(received)) && Date.parse(stored) === Date.parse(received);
 }

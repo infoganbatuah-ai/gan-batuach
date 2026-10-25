@@ -36,5 +36,10 @@ export async function POST(request: Request) {
       providerKey: parsed.provider_key, providerEventId: parsed.provider_event_id, outcome: parsed.outcome,
       occurredAt: parsed.occurred_at, safeMetadata: parsed.metadata });
     return ok(result, result.replay ? 200 : 202);
-  } catch (error) { return handleRouteError(error); }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("CALLBACK_")) {
+      return fail(error.message, error.message === "CALLBACK_RECOVERY_REQUIRED" ? 503 : 409);
+    }
+    return handleRouteError(error);
+  }
 }
