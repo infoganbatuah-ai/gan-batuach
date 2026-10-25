@@ -182,13 +182,54 @@ export async function issuePartnerEmbeddedSession(admin: Admin, input: { partner
 
 export async function linkPartnerServiceAccount(admin: Admin, input: { partnerId: string; organizationId: string; actorId: string; actorRole: EnterpriseRole; serviceAccountId: string; customerId?: string | null; correlationId: string }) {
   assertPartnerRole(input.actorRole);
-  const account = await (admin as any).from("digital_observer_service_accounts").select("id,organization_id,account_status").eq("id", input.serviceAccountId).eq("organization_id", input.organizationId).eq("account_status", "active").maybeSingle();
-  if (!account.data) throw new Error("PARTNER_SERVICE_ACCOUNT_DENIED");
-  const mapping = await (admin as any).from("digital_observer_partner_service_accounts").upsert({ partner_id: input.partnerId,
-    service_account_id: input.serviceAccountId, partner_customer_id: input.customerId ?? null,
-    access_kind: input.customerId ? "customer_resources" : "partner_control" }, { onConflict: "service_account_id" })
+  const [account, partner] = await Promise.all([
+    (admin as any).from("digital_observer_service_accounts").select("id,organization_id,account_status")
+      .eq("id", input.serviceAccountId).eq("organization_id", input.organizationId).eq("account_status", "active").maybeSingle(),
+    (admin as any).from("digital_observer_partners").select("id,organization_id,partner_status")
+      .eq("id", input.partnerId).eq("organization_id", input.organizationId).eq("partner_status", "sandbox").maybeSingle()
+  ]);
+  if (account.error || partner.error) throw new Error("PARTNER_SERVICE_ACCOUNT_LOOKUP_FAILED");
+  if (account.data?.id !== input.serviceAccountId || account.data.organization_id !== input.organizationId
+    || account.data.account_status !== "active" || partner.data?.id !== input.partnerId
+    || partner.data.organization_id !== input.organizationId || partner.data.partner_status !== "sandbox") {
+    throw new Error("PARTNER_SERVICE_ACCOUNT_DENIED");
+  }
+  if (input.customerId) {
+    const customer = await (admin as any).from("digital_observer_partner_customers")
+      .select("id,partner_id,customer_organization_id,customer_status")
+      .eq("id", input.customerId).eq("partner_id", input.partnerId).eq("customer_status", "active").maybeSingle();
+    if (customer.error) throw new Error("PARTNER_CUSTOMER_LOOKUP_FAILED");
+    if (customer.data?.id !== input.customerId || customer.data.partner_id !== input.partnerId
+      || customer.data.customer_status !== "active" || !customer.data.customer_organization_id
+      || customer.data.customer_organization_id === input.organizationId) throw new Error("PARTNER_CUSTOMER_SCOPE_DENIED");
+    const customerOrganization = await (admin as any).from("digital_observer_organizations").select("id,status")
+      .eq("id", customer.data.customer_organization_id).eq("status", "active").maybeSingle();
+    if (customerOrganization.error) throw new Error("PARTNER_CUSTOMER_LOOKUP_FAILED");
+    if (customerOrganization.data?.id !== customer.data.customer_organization_id
+      || customerOrganization.data.status !== "active") throw new Error("PARTNER_CUSTOMER_SCOPE_DENIED");
+  }
+  const desired = { partner_id: input.partnerId, service_account_id: input.serviceAccountId,
+    partner_customer_id: input.customerId ?? null, access_kind: input.customerId ? "customer_resources" : "partner_control" };
+  const sameMapping = (row: any) => row?.partner_id === desired.partner_id && row.service_account_id === desired.service_account_id
+    && row.partner_customer_id === desired.partner_customer_id && row.access_kind === desired.access_kind;
+  const readMapping = async () => (admin as any).from("digital_observer_partner_service_accounts")
+    .select("partner_id,service_account_id,partner_customer_id,access_kind")
+    .eq("service_account_id", input.serviceAccountId).maybeSingle();
+  const existing = await readMapping();
+  if (existing.error) throw new Error("PARTNER_SERVICE_ACCOUNT_LOOKUP_FAILED");
+  if (existing.data) {
+    if (!sameMapping(existing.data)) throw new Error("PARTNER_SERVICE_ACCOUNT_CONFLICT");
+    return existing.data;
+  }
+  const mapping = await (admin as any).from("digital_observer_partner_service_accounts").insert(desired)
     .select("partner_id,service_account_id,partner_customer_id,access_kind").single();
-  if (mapping.error) throw new Error("PARTNER_SERVICE_ACCOUNT_LINK_FAILED");
+  if (mapping.error?.code === "23505") {
+    const raced = await readMapping();
+    if (raced.error || !raced.data) throw new Error("PARTNER_SERVICE_ACCOUNT_LOOKUP_FAILED");
+    if (!sameMapping(raced.data)) throw new Error("PARTNER_SERVICE_ACCOUNT_CONFLICT");
+    return raced.data;
+  }
+  if (mapping.error || !sameMapping(mapping.data)) throw new Error("PARTNER_SERVICE_ACCOUNT_LINK_FAILED");
   await audit(admin, { organizationId: input.organizationId, actorId: input.actorId, resourceType: "partner_service_account",
     resourceId: input.serviceAccountId, action: "partner_service_account.link", correlationId: input.correlationId,
     metadata: { access_kind: mapping.data.access_kind } });
@@ -196,14 +237,28 @@ export async function linkPartnerServiceAccount(admin: Admin, input: { partnerId
 }
 
 export async function authorizePartnerDelegatedSite(admin: Admin, input: { serviceAccountId: string; siteId: string }) {
-  const mapping = await (admin as any).from("digital_observer_partner_service_accounts")
-    .select("partner_customer_id,access_kind,digital_observer_partner_customers!inner(id,customer_status,partner_id,digital_observer_partners!inner(partner_status))")
-    .eq("service_account_id", input.serviceAccountId).eq("access_kind", "customer_resources").maybeSingle();
+  const [mapping, account, site] = await Promise.all([
+    (admin as any).from("digital_observer_partner_service_accounts")
+      .select("partner_id,partner_customer_id,access_kind,digital_observer_partner_customers!inner(id,customer_status,partner_id,customer_organization_id,digital_observer_partners!inner(id,organization_id,partner_status))")
+      .eq("service_account_id", input.serviceAccountId).eq("access_kind", "customer_resources").maybeSingle(),
+    (admin as any).from("digital_observer_service_accounts").select("id,organization_id,account_status")
+      .eq("id", input.serviceAccountId).eq("account_status", "active").maybeSingle(),
+    (admin as any).from("observer_sites").select("id,digital_observer_organization_id,site_type,garden_id")
+      .eq("id", input.siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle()
+  ]);
+  if (mapping.error || account.error || site.error) return false;
   const customer = (mapping.data as any)?.digital_observer_partner_customers;
-  if (!customer || customer.customer_status !== "active" || customer.digital_observer_partners.partner_status !== "sandbox") return false;
+  const partner = customer?.digital_observer_partners;
+  if (!customer || !partner || customer.customer_status !== "active" || partner.partner_status !== "sandbox"
+    || !account.data || account.data.id !== input.serviceAccountId || account.data.account_status !== "active"
+    || mapping.data.access_kind !== "customer_resources" || mapping.data.partner_customer_id !== customer.id
+    || mapping.data.partner_id !== customer.partner_id || customer.partner_id !== partner.id
+    || partner.organization_id !== account.data.organization_id || !site.data || site.data.id !== input.siteId
+    || site.data.garden_id !== null || site.data.site_type === "kindergarten"
+    || !customer.customer_organization_id || site.data.digital_observer_organization_id !== customer.customer_organization_id) return false;
   const linked = await (admin as any).from("digital_observer_partner_customer_sites").select("observer_site_id")
     .eq("partner_customer_id", mapping.data.partner_customer_id).eq("observer_site_id", input.siteId).maybeSingle();
-  return Boolean(linked.data);
+  return !linked.error && linked.data?.observer_site_id === input.siteId;
 }
 
 export async function authenticateEmbeddedSession(admin: Admin, input: { token: string; origin: string | null; audience: string; requiredScope: EmbeddedScope }) {
