@@ -38,6 +38,8 @@ contents. A future reviewed writer must establish trusted recipient
 selection, immutable first-write semantics and one canonical serialization
 shared by Node and PostgreSQL; `JSON.stringify` and jsonb rendering are not
 assumed equivalent. No snapshot persistence is claimed.
+The candidate-by-candidate rejection and minimum missing schema contract are
+recorded in `SNAPSHOT-PERSISTENCE-COMPATIBILITY.md`.
 
 ## Atomic completion preconditions
 

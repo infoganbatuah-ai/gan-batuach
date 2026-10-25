@@ -24,6 +24,7 @@ const fencedWrites = readFileSync(new URL("../../lib/domain/digital-observer/eve
 const recovery = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-recovery.ts", directory), "utf8");
 const ownershipSnapshot = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-ownership-snapshot.ts", directory), "utf8");
 const completionReview = readFileSync(new URL("OWNERSHIP-SNAPSHOT-COMPLETION.md", directory), "utf8");
+const snapshotCompatibility = readFileSync(new URL("SNAPSHOT-PERSISTENCE-COMPATIBILITY.md", directory), "utf8");
 
 const executable = text => text.split("\n").filter(line => !line.trimStart().startsWith("--")).join("\n");
 const draftExecutable = executable(draft);
@@ -126,5 +127,13 @@ assert.match(draftExecutable, /recipient_snapshot_fingerprint text NOT NULL/);
 assert.match(draftExecutable, /recipient_snapshot_schema_version integer NOT NULL/);
 assert.match(draftExecutable, /jsonb_typeof\(recipient_snapshot\) = 'object'/);
 assert.match(completionReview, /PERSISTENCE AND RPC APPLICATION BLOCKED/);
+assert.match(snapshotCompatibility, /NONE of the existing canonical stores is compatible/);
+for (const candidate of ["digital_observer_risk_evaluations", "digital_observer_decision_intents",
+  "digital_observer_action_intents", "digital_observer_notification_deliveries",
+  "digital_observer_incident_verifications", "observer_correlated_events", "immutable_audit_events"]) {
+  assert(snapshotCompatibility.includes(candidate), `snapshot review missing ${candidate}`);
+}
+assert.match(snapshotCompatibility, /required_evidence_references jsonb NOT NULL/);
+assert.match(snapshotCompatibility, /Retention[\s\S]*?UNKNOWN/i);
 
 console.log("Review-package containment checks passed: three abort-guarded offline SQL bodies, four disconnected write transitions, exact ACL scope, no runtime claim activation.");

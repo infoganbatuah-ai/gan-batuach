@@ -124,6 +124,11 @@ CREATE TABLE public.observer_event_risk_effect_plans (
 -- derive/recompute the content and reject any semantic replacement. Node's
 -- JSON.stringify hash and PostgreSQL jsonb rendering are not interchangeable
 -- without a separately qualified canonical serialization contract.
+-- SNAPSHOT PERSISTENCE COMPATIBILITY BLOCKED: required evidence references,
+-- authoritative event-time Tenant provenance, a composite scope FK to the
+-- claim, a reviewed retention policy, and an atomic first-write/recovery
+-- reader are not specified by this sketch. Do not use its generic jsonb
+-- column as a substitute for those missing constraints.
 
 CREATE TABLE public.observer_event_risk_effect_receipts (
   signal_id uuid NOT NULL,
