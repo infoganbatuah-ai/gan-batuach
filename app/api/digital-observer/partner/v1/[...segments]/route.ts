@@ -14,7 +14,7 @@ const embedded = z.object({ partner_customer_id: z.string().uuid(), site_id: z.s
 function json(body: unknown, status = 200) { return NextResponse.json(body, { status, headers: { "cache-control": "no-store" } }); }
 function code(error: unknown) {
   const message = error instanceof Error ? error.message : "PARTNER_API_FAILED";
-  return [/AUTH|CREDENTIAL/.test(message) ? 401 : /DENIED|SCOPE/.test(message) ? 403 : /CONFLICT/.test(message) ? 409 : 400, message] as const;
+  return [/AUTH|CREDENTIAL/.test(message) ? 401 : /DENIED|SCOPE/.test(message) ? 403 : /CONFLICT|REPLAY/.test(message) ? 409 : 400, message] as const;
 }
 async function partnerActor(admin: any, serviceAccountId: string, organizationId: string) {
   const mapping = await admin.from("digital_observer_partner_service_accounts")
@@ -28,6 +28,7 @@ async function partnerActor(admin: any, serviceAccountId: string, organizationId
 async function dispatch(request: Request, context: Context) {
   const body = request.method === "GET" ? "" : await request.text();
   const { admin, actor } = await authenticateExternalApiRequest(request, body);
+  if (actor.idempotentReplay) throw new Error("EXTERNAL_API_IDEMPOTENT_REPLAY");
   const { partnerId } = await partnerActor(admin as any, actor.serviceAccountId, actor.organizationId);
   const path = (await context.params).segments.join("/");
   if (request.method === "GET" && path === "profile") {
