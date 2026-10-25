@@ -30,6 +30,33 @@
       "historicalOwnershipProven": false
     }
   },
+  "homeRegistrationReadQualification": {
+    "observationWindowUtc": "2026-10-25T20:35–20:36Z (approximate)",
+    "scope": "owner-authorized bounded READ ONLY catalog and aggregate review of original gbi Development postgres; no clone or write",
+    "targetVerified": "colima-gbi socket; healthy supabase_db_gan-batuach-integration; matching project label; original named volume; 127.0.0.1:55422; postgres 17.6; transaction_read_only=on",
+    "transactionLimits": "explicit READ ONLY; statement_timeout 10s; lock_timeout 1s; all sessions closed",
+    "evidenceClass": "VERIFIED_CATALOG_AND_AGGREGATE",
+    "organizations": 3,
+    "homeSites": 2,
+    "homeSitesMissingOrganization": 0,
+    "homeSitesMissingSiteOwner": 0,
+    "homeOrgSiteOwnerMismatches": 0,
+    "organizationsWithMultipleHomeSites": 0,
+    "homeOwnerOrSiteOwnerWithoutActiveMembership": 0,
+    "homeSources": 0,
+    "homeGatewayEnrollments": 0,
+    "homeSignals": 0,
+    "homeIncidents": 0,
+    "homeIncidentLinks": 0,
+    "activeProfileAdminsAggregate": 1,
+    "activePlatformAdminMembershipsAggregate": 0,
+    "homeRegistrationAcceptanceBindingObjectsFound": false,
+    "pilotHomeToCanonicalForeignKeyFound": false,
+    "historicalOwnershipProven": false,
+    "dedicatedRegistrationAuthorityProven": false,
+    "cloneCreatedOrSqlWritten": false,
+    "qualification": "Authorization A complete for bounded current-state read only; registration schema, authority resolver and Risk writers remain blocked"
+  },
   "objects": [
     {
       "name": "public.digital_observer_organizations", "type": "table", "state": "EXISTING",

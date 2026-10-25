@@ -232,3 +232,30 @@ existing review-package abort guard PASS; focused ESLint and strict TypeScript
 PASS; `git diff --check` PASS. The 14 PostgreSQL cases are **NOT RUN** and
 remain blocked. The earlier 29/29 synthetic contract result belongs to the
 prior commit, not to this preflight or any database qualification.
+
+## Owner-authorized gbi READ ONLY qualification — 2026-10-25 20:35 UTC
+
+This later increment supersedes only the previous statement that a fresh
+Home-registration catalog/aggregate read had not yet run. Original
+`colima-gbi`/`gan-batuach-integration`/named database volume and loopback
+port 55422 were freshly verified. The `postgres` database reported
+PostgreSQL 17.6 and `transaction_read_only=on`. Catalog and bounded aggregate
+SELECTs ran in explicit read-only transactions with 10s statement and 1s
+lock limits; all sessions closed. No clone, SQL write, service change,
+Production access, app RPC, raw user row or credential output occurred.
+Detailed sanitized observations and evidence classes are in
+`PROSPECTIVE-HOME-REGISTRATION.md`, `BLOCKING-FACTS.md` and
+`OBJECT-INVENTORY.json`.
+
+Result: Authorization A **COMPLETE** for its narrow read scope, not for
+PostgreSQL implementation qualification. Current two Home Sites have coherent
+organization/owner links, but there are no Home camera Sources or Events and
+no immutable registration/acceptance ledger. Historical customer authority,
+dedicated owner/Platform Admin registration rights, retention and atomic
+acceptance remain **UNVERIFIED/BLOCKED**. The four downstream Risk writers
+remain blocked; no registration SQL is ready to apply. The 14-case future
+PostgreSQL matrix is still **NOT RUN**. This local branch is still not
+remotely preserved under the task's explicit no-push boundary. Handoff to
+the future authorized Home identity/retention decision owner, then a
+separately approved isolated-clone implementation reviewer; no runtime
+adapter or activation is permitted.

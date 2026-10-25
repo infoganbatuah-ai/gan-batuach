@@ -134,6 +134,66 @@ privilege expansion or audit inconsistency. Lifecycle restart/durability
 fault injection needs a **third**, explicit clone-only approval. A and B are
 not interchangeable.
 
+### Authorization A executed — bounded original Development read, 2026-10-25
+
+The owner separately authorized **read-only SQL on gbi only**, without a clone.
+At approximately 20:35 UTC, the canonical Development configuration was
+rechecked. Docker context `colima-gbi` resolved to the dedicated Unix socket
+under the Kingston runtime root; the existing container was running and
+healthy, carried the exact `gan-batuach-integration` project label, mounted
+the original named database volume, and exposed PostgreSQL only at
+`127.0.0.1:55422`. A read-only transaction confirmed database `postgres`,
+`transaction_read_only=on`, and PostgreSQL 17.6. The other profile on 56422
+was not used. Every SQL batch used `BEGIN READ ONLY`, a 10-second local
+statement timeout, a 1-second local lock timeout, and closed normally. Only
+catalog metadata and bounded aggregate counts were selected; no Auth user,
+session, JSON value, row ID, function execution, DDL or DML was read/run.
+
+**Verified catalog:** the candidate organization has a required owner profile;
+the canonical Site has independently nullable owner and organization FKs,
+with organization deletion setting its reference to NULL. Source `created_by`
+is nullable and separately references a profile. Signal and Incident Site
+references are independent, not a composite Tenant/Site/Source chain. The
+two pilot Home tables have only profile-owner FKs, not canonical
+organization/Site acceptance FKs. The existing enterprise audit table has
+RLS, but its organization FK is `ON DELETE CASCADE`; it is not an established
+immutable registration/acceptance receipt. No registration, event-acceptance,
+event-binding or risk-claim table/function was found by the scoped catalog
+search. These are present-state catalog observations, not a migration proposal.
+
+**Verified aggregates:** 3 organizations; 2 Home Sites; 0 Home Sites missing
+an organization or Site owner; 0 mismatches between current Site owner and
+organization owner; 0 organizations with multiple Home Sites or mixed
+Home/non-Home Sites; 0 Home owner/site-owner rows without active membership;
+0 inactive Home Sites or linked organizations. There are 0 Home camera
+Sources, Gateway enrollments, Signals, Incidents, Incident links or pilot Home
+test-site rows. Thus there are no current Home source/event rows on which to
+qualify historical ownership, versioned acceptance, or risk-link consistency.
+Zero mismatches over empty event sets is **not** historical proof. No raw
+profile, Site or organization identifier was output.
+
+**Verified authorization catalog:** one active `profiles.role='admin'`
+aggregate, zero active `platform_admin` organization memberships, and zero
+admin-profile owners of the current Home organizations/Sites. The existing
+`current_role`, `is_admin`, `digital_observer_has_org_permission`, and
+`digital_observer_current_session_active` functions are present and
+`SECURITY DEFINER`; the org-permission function sets `row_security=off`.
+Source-defined `is_admin()` reads the broad profile admin role, while the
+enterprise route also accepts an application metadata flag. Neither proves a
+dedicated Home-registration authority. No Auth users/sessions/app metadata or
+real actor identities were inspected. A current owner membership is not an
+immutable ownership history or authorization to register/transfer a Source.
+These catalog/aggregate reads used the local `postgres` maintenance role;
+they are not authenticated-user RLS or Data API behavior tests.
+
+**Outcome:** Authorization A is complete for this bounded catalog/aggregate
+scope. The candidate mapping is supported for the two *current* Home Site
+rows only, not qualified as the canonical historical customer key or an
+event-time authority. Registration DDL/RPC, privileged actor resolver, four
+fenced Risk writers, and any clone/apply/activation remain **BLOCKED** pending
+an approved customer/owner authority rule, immutable acceptance/audit design,
+retention decision and separately authorized isolated PostgreSQL trial.
+
 ### Identity-source mapping and the exact gap
 
 | Concept | Current source-defined field/function | Why not yet registration authority |

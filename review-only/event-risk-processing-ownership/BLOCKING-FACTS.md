@@ -39,6 +39,29 @@ Production read or Home service action occurred.
 The old endpoint-identity paragraph below is retained as historical evidence,
 not the current blocker. APPLY BLOCKED remains the package decision.
 
+## Focused Home-registration read qualification — 2026-10-25 20:35 UTC
+
+The owner authorized a bounded **READ ONLY** inspection of the original gbi
+Development database, without clone creation or mutation. The verified
+container/socket/project/volume/loopback identity and the 10s/1s explicit
+read-only transaction limits are recorded in
+`PROSPECTIVE-HOME-REGISTRATION.md` and `OBJECT-INVENTORY.json`. All sessions
+closed; no user records, credentials, JSON contents or raw identifiers were
+selected. This is new current-state evidence, separate from the earlier
+11:50 UTC general catalog review and earlier source-only preflight.
+
+| Question | Classification and observed result | Remaining consequence |
+| --- | --- | --- |
+| Canonical customer/Home key | **VERIFIED CATALOG/AGGREGATE:** 3 organizations, 2 Home Sites, both currently linked to an organization and matching current organization/Site owners; the inspected constraints do not establish a unique immutable Home customer key or transfer history. Pilot Home tables have no canonical FK and 0 rows. | Current association supports a candidate only. Historical identity and future registration authority remain **UNVERIFIED**. |
+| Home Source/Event chain | **VERIFIED CATALOG/AGGREGATE:** Site organization and owner FKs are nullable; Source creator is nullable; Signal and Incident Site links are independent. Current Home Sources, Gateway enrollments, Signals, Incidents and Incident links are all 0. | Empty counts cannot prove historical or future Tenant/Site/Event consistency. No backfill or writer activation. |
+| Owner/Platform Admin | **VERIFIED CATALOG/AGGREGATE:** 1 active global profile-admin count, 0 active `platform_admin` memberships, 0 global admins owning current Home organizations/Sites. Four pre-approved auth/session functions exist as SECURITY DEFINER; org-permission function sets `row_security=off`. **SOURCE ONLY:** broad `is_admin()` and enterprise route app-metadata predicate. | No dedicated Home-registration actor or narrow privilege is proven. No Auth user/session/metadata rows were read. A role name or current membership is not authorization to register or transfer. |
+| Registration version, acceptance, binding, audit | **ABSENT IN SCOPED CATALOG:** no registration/acceptance/event-binding/risk-claim object relevant to this design. **VERIFIED CATALOG:** enterprise audit exists with RLS but organization FK cascades delete. | No immutable server-acceptance/version receipt or atomic audit target is established; no executable registration DDL/RPC body or four downstream Risk writer bodies may be promoted. |
+
+The exact next gate is a reviewed, independently authorized Home/customer
+ownership and actor rule plus retention/audit specification. Only then may a
+separately approved isolated clone/migration trial qualify new schema and
+concurrency. No SQL writes or clone were authorized by this read.
+
 ## Prospective Home Event authority options — source inventory, no selection
 
 The active `cloud-events/route.ts:35-45,68-85` authenticates a Gateway,
