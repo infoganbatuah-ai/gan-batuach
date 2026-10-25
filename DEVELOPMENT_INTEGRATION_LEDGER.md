@@ -1,5 +1,92 @@
 # Canonical Development Integration Ledger
 
+PUSH 44 real local control-path qualification, 2026-10-24: PR #248 Draft
+at source commit `9b3b96181b55295ce839297ce8b1af7ed9813042`
+uses the original `gbi` LOCAL_SUPABASE Auth and actual feature Next.js over a
+protected Unix-socket proxy. The existing QA identity authenticated; the
+active-session enrollment screen and all 32 referenced Next assets loaded.
+The local five-minute run consumed 40 attempts and 11,122,342
+reserved-plus-reply bytes; direct-origin bypass, forged cookies and media
+routes were denied. Streamed Next redirects and private-key-bound local Host
+handling were corrected. Focused 14/14, security 54/54, domain 46/46,
+TypeScript, canonical lint, migration health and release contract passed
+locally. This is not real Cloudflare or physical-iPhone proof: Access
+cross-host sign-in/return for the signed QA app is unresolved, as is a hard
+provider edge-cost ceiling. No pending physical-key enrollment, approval,
+external route, media, Production/Home or PR #235 change. Exact-head CI for
+the final ledger commit remains to be verified; see the scoped device-proof
+receipt for details.
+
+PUSH 44 control-only Access/edge-cost closure, 2026-10-24: PR #248 Draft
+continues on `codex/push44-synthetic-external-preparation`; this scoped
+Development change selects public-hostname self-hosted Access plus an
+exact-host Tunnel published application route for a future, separately
+approved test. The existing private-hostname Access application remains
+default-deny because its HTTPS origin JWT requires unapproved Gateway TLS
+decryption. The local ingress now requires an owner-only Unix socket rather
+than a TCP listener, and signed Access JWT verification requires the actual
+application AUD as an explicit startup input. Isolated tests validate the
+boundary; live JWT delivery, iPhone page/login delivery and physical-device
+TLS remain unproven. Cloudflare Free's one Path-only/IP-counted rate rule
+cannot safely be assumed available or exact-host scoped on the shared zone;
+origin request/byte reservations do not guarantee an edge cost cap. No
+Cloudflare configuration, route, Allow policy, media or Production/Home change
+was made. Final implementation SHA, exact-head CI and remote preservation
+must be recorded after push; see
+`DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md`. PR #235 stays Draft.
+
+PUSH 44 owner Development invitation / scoped authorization correction,
+2026-10-24: PR #248 Draft, source branch
+`codex/push44-synthetic-external-preparation`, parent `b36a5956`.
+Read-only original LOCAL_SUPABASE review found the owner account absent and
+the existing global admin role over-broad (1,058 of 1,234 RLS policies
+reference `is_admin()`, plus admin routes). A single Auth Admin invitation
+created a passwordless owner Auth record. A later read-only check found email
+confirmation and one Auth session; the owner separately confirmed that the
+invitation led to the Gan Batuach parent dashboard on the Mac, **not** Digital
+Observer. This proves local Auth sign-in but not Observer admin access. Its profile has only
+default `parent`, no Garden, no scoped capability
+or one-use device approval. The host owner reader now requires a time-bounded,
+server-controlled exact-purpose/exact-device capability and refuses the global
+admin role. Isolated authorization tests passed; exact-head CI and remote push
+are recorded by the PR after this ledger edit. No migration, external ingress,
+Cloudflare, media, Home, Production, main or PR #235 change. Next: prepare
+audited issuance of the scoped capability and require a fresh Mac
+owner-presence ceremony at the one-use approval; do not expose HTTPS or
+enroll the phone yet. See the [device-proof receipt](DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md).
+
+PUSH 44 control-only physical-iPhone preflight, 2026-10-24: PR #248 Draft
+commit `a7c0c052` pins the exact proposed hostname and adds a fail-closed
+30-minute deadline and early 2-KiB request rejection to the existing
+loopback transport. Seven isolated transport and nine existing device-proof
+tests pass; wrong-host/media/unrelated routes and post-deadline calls deny.
+Read-only Development check found one active administrator profile that does
+**not** match the project-owner Cloudflare email and has **zero unexpired sessions**;
+that exact owner email has no Development Auth record;
+the phone account remains a parent.
+Cloudflare zone ownership was confirmed, but the new control hostname has no
+record, TLS proof or Access application; the only existing application is the
+separate synthetic-media deny-only destination. The signed QA binary remains
+offline-safe. No external endpoint, Mac owner ceremony, real iPhone proof,
+media, Cloudflare write, migration, Home or Production operation occurred.
+The exact-head CI for the final ledger commit is pending. See the [control
+preflight](DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md).
+
+PUSH 44 distinct-owner QA enrollment continuation, 2026-10-24: PR #248 Draft
+branch implementation `b3c86c68` and portability correction `d3763d5a` add a separate verified Development admin
+session, fresh host presence check, and optional exact-host/private-key
+trusted-ingress contract while retaining the original one-use key approval
+and proof core. The dedicated iPhone QA fixture is actually a `parent` profile,
+so its own login cannot approve enrollment. Sixteen isolated device/transport
+tests, 52 security suites, 46 domain suites, TypeScript, lint baseline, no-deploy
+build, migration-file health and release contract pass. The macOS presence
+helper typechecks; the existing offline-safe PersonalTeamQA package verifies
+with normal trust-store access but is not configured for phone-reachable HTTPS.
+Actual distinct-owner login/presence, ingress activation and physical iPhone
+proof were NOT RUN. No migration, media, Cloudflare, Home, Production or main
+change. Exact-head CI and remote preservation remain required; PR #235 stays
+Draft and separate. Details: [QA device proof](DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md).
+
 2026-10-23 PUSH44 CH1 final pre-activation, branch `codex/push44-ch1-final-preactivation`, implementation `3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b`: reused PR243 foundation (integrated `4c0d70555cf96c4f5e5d815df7720e5f29c9ea13`, exact-head9/9). Added one composed synthetic session/delegation/cookie/TLS/media E2E,23/23 cases, and actual encoded-byte gzip playlist accounting. Real CH1 local TS inspected/decoded25 distinct frames; no media retained/transmitted. Home QA owner mapping absent and media DNS NXDOMAIN remain specific blockers; owner attestation/delegation and permitted/bounded HTTPS path required before live request. No migrations, Production/Home/PR235 changes. Evidence: final follow-up in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`.
 
 2026-10-23 PUSH 44 CH1 private-media continuation: branch `codex/push44-ch1-private-gateway-20261023`, implementation `cf0952609b2b2c1c1a1195bb99e6352b9c7df403`; isolated existing-grant-core TLS gate, exact view-only delegation, canonical Development session adapter, passive generation reader and protected operator journal. 22 synthetic security/media/TLS cases; no real camera bytes or live authorization. Actual isolated Development schema/history: 257 expected, 227 baseline-covered + 30 applied, zero drift. No migration. See `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. Real delegation/native transport/external TLS are activation blockers, not waived by CI. PR235 Draft, main/Production/Home services unchanged.
@@ -1749,3 +1836,49 @@ Final code integration verified: PR #240 merged as `74e55a8031e782ebff9bfb2ab352
 Real-device follow-up branch `codex/push44-real-device-session-evidence-20261023`, PR #240: owner confirmed strict expiry, reauthentication, canonical server-side revocation, background/resume denial, Wi-Fi/cellular continuity and offline indication. Full restart first returned login despite a valid session; the minimal canonical-authorized login-resume correction passed five actual local negative/positive cases and owner retrial returned dashboard without password. Campaign stopped 17:05:52 UTC; exact tunnel deleted, public 530, final QA session revoked, signed offline QA reinstalled/launched, Home services untouched. Exact-head CI and review required before integration. Separate media/APNs/Android/release/legal obligations remain open; 197 capabilities/52 PUSHes unchanged, no Production activation or PR235 changes.
 
 PR #238 merged into Development as `9e4277bfb63dc641d16879d25359eaa42c2c0d6a`; exact head `45961d8375d7fbca8ef13483c0272da698b98999` passed all nine checks (canonical six gates plus aggregate, management and Snyk). Additive migration `20261023161928` applied only to the canonical isolated LOCAL_SUPABASE at 16:47:11 UTC. Actual history/schema reconciles 257 migrations (227 baseline-covered + 30 post-baseline). Eight rollback-only function/ACL checks passed. Actual loopback Product login/runtime passed and unauthorized Site returned 403. These are not yet physical-iPhone expiry/revocation proof. Separate bounded device campaign pending; PR #235 remains Draft; main and Production unchanged.
+
+PUSH 44 original Development recovery verification, PR #248 Draft: source branch `codex/push44-synthetic-external-preparation`, evidence commit `30d7470851f15010ab3b188e9ff2517d13d5da36`, integration baseline `f3401b181954b800e8e0f26702642ea18dba7e2a`. The apparent Colima `Broken` was restricted-tool socket denial: authorized host inspection found the original `gbi` VM running, seven original integration containers up, existing QA owner among 25 Auth users, actual applied migration history 227+30=257 with zero drift, and the existing loopback Product reporting LOCAL_SUPABASE/production=false. No repair, reset, restore or identity replacement. The synthetic edge remains closed (`OPEN_UNTIL=0`, no active URL, empty private R2 bucket); 17/17 isolated edge regressions pass, but no external or iPhone media proof. Current Cloudflare video-delivery guidance does not establish permission for HLS via this Free Workers/R2 route; no paid video product may be activated. The one-shot host operator and exact phone/session binding also remain unqualified. Keep Draft until a permitted delivery model and those gates are proven; no main, Production, Home media or PR #235 change. See the sanitized recovery receipt and external activation register.
+
+PUSH 44 focused provider decision, 2026-10-23: [sanitized decision](DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md). Cloudflare One private-network routing is the only selected **conditional** no-fixed-fee video path because the official public-Tunnel video restriction does not apply there; ordinary Free Workers/R2 public HLS is rejected, AWS needs a new metered media edge, Vercel has no qualified isolated private media project, and Tailscale Personal excludes commercial use. The connected Cloudflare account still presents Zero Trust Free onboarding; no private route, iPhone enrollment or trusted QA-origin TLS exists. The existing synthetic Worker remains disabled. No endpoint or synthetic phone playback was activated. PR #248 stays Draft until Free setup/identity policy/TLS, actual-boundary limits, cost and phone proof pass; PR #235 remains separate Draft. This decision changes no migrations, Production, main or Home service.
+
+PUSH 44 Cloudflare One private QA preflight, 2026-10-23: account dashboard again displayed Zero Trust Free at $0/seat/month and 50 seats; no plan selection or terms/payment acceptance. Exact owner/email + one-iPhone enrollment, default-deny private-hostname/port policy and rollback are specified in the existing [media delivery decision](DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md), not deployed. Cloudflare private-route video policy is compatible, but the QA private DNS, browser-trusted TLS and absolute total usage/cellular cost remain unverified. No route, VPN, synthetic stream or paid add-on activated; public Worker stays closed. PR #248 Draft/pushed-remote pending Free onboarding by owner and later separate device/media approvals. No migration, Production, main, Home-service or PR #235 change.
+
+PUSH 44 Cloudflare One limited enrollment, 2026-10-24: the owner completed Free onboarding in account `693f824a750afcc264fe6ee58c8a86ab`, team `spring-feather-ce4e`; current dashboard shows $0.00 cycle-to-date/projected, not a final bill or hard cap. With separate owner approval, policy `eb34789e-a2ac-49e9-9059-d8be7dce5d40` now allows device enrollment for only `info.ganbatuah@gmail.com` with a 15-minute session and is attached only to Warp Login App. No iPhone has enrolled and this does not bind an exact device. The existing broad private-network deny rule is disabled and was left unchanged; the Home tunnel remains untouched. Candidate QA hostname is NXDOMAIN and trusted TLS is absent. A QA-only DNS-01 TXT in the shared zone needs separate approval before certificate issuance; exact private route policy, real-edge accounting and total cost remain open. No QA route, DNS write, VPN, media bytes, main, Production, Home-service or PR #235 change. PR #248 stays Draft; see the updated [media decision](DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md).
+
+PUSH 44 exact-head CI repair, 2026-10-24: the first Cloudflare-evidence commit passed five of six canonical jobs but security failed on newly disclosed High Zod advisory GHSA-mrhx-c7xc-m3w5. The pinned dependency was minimally updated from `4.4.3` to `4.6.7`; local high-severity audit, TypeScript and canonical lint baseline passed. The patch does not change application, migration, provider or Home runtime logic. Final commit still requires fresh exact-head CI before any merge; PR #248 stays Draft irrespective of CI while external-proof gates remain open.
+
+PUSH 44 private QA preparation, 2026-10-24: the issued QA certificate was preserved, and a deny-only Cloudflare private Access application `450b2ee9-e89b-478d-a776-d8920085fc76` was saved for only `gateway-media-homeqa.ganbatuach.com:443`, with no viewer policy, public hostname or private route. The existing owner-email enrollment policy remains 15-minute/email-only; no iPhone is enrolled. A local process test proved no-egress plus loopback receive, but not file-level origin isolation. Public A/AAAA/CNAME are absent; private DNS, iPhone TLS, device-specific policy, actual-edge usage and total cost remain unproven. The exact remaining preparation and consent gate are recorded in the [media decision](DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md). This is a PR #248 Draft branch-only qualification unit, pending this commit's exact-head CI; no integration, main, Production, Home service, synthetic stream, CH1 or PR #235 change.
+
+PUSH 44 Posture-only controlled activation plan, 2026-10-24: PR #248 Draft branch only. Live read-only Cloudflare recheck verified Zero Trust Free, exactly one registered owner iPhone with client Disconnected, sole shared Default Traffic/DNS profile, QA Access app with zero policies, six system-only routes, and shared-zone Client Certificates showing no Hosts/certificates. The device provisioning boolean was not available in dashboard and remains UNKNOWN pending authorized GET. The [scoped plan](DIGITAL_OBSERVER_PUSH_44_MEDIA_DELIVERY_DECISION_20261023.md) specifies separate zone-only SSL/Certificates Write and account-only Zero Trust Write temporary tokens, owner-email+iOS Posture-only candidate, before-values, iOS consent, certificate metadata, and rollback. No token, certificate, profile, route, Allow policy or media was activated. One-device enforcement is NOT PROVEN because a matching second owner iPhone could receive the profile; QA access remains deny-all. This evidence/documentation unit is PUSHED_REMOTE only after this commit is pushed and exact-head CI passes; not integrated or production-ready. PR #235, main, Production and Home services remain untouched.
+
+PUSH 44 QA device enrollment continuation, 2026-10-24: PR #248 Draft, implementation commits `d447256f05fd5a81bd2dc84164aab98d8458db5c` and `872bc957bfd7cfc8cbe0b03466d1cb2ecf587b15`, validated code head `7b1ef42c8ed721bcbc35b64eb0d4883a87fe9256`. Exact-head Digital Observer CI passed all six gates in run `40104872732`; Management tenant context passed in run `40104872639`. A one-use 60-second exact-key approval store and loopback-only challenge/enroll/prove/revoke transport were added on the existing proof core, then wired to the canonical LOCAL_SUPABASE session adapter with exact integration-SHA check. Four isolated transport/composition cases and nine existing proof cases pass; 52 security suites, 46 domain suites, TypeScript, lint, no-deployment Product build, migration-file safety, release contract and signed no-APNs PersonalTeamQA build pass. The approval test uses a synthetic host action, not a real administrator ceremony; the transport is not phone-reachable, HLS remains fail-closed, and the signed binary was not installed. No new migration, Cloudflare change, media activation, Home/Production operation or PR235 change. This code remains Draft and pending separate review, with no integration claim. Next: authorize a private owner-only Development phone challenge path plus actual owner action before physical Secure Enclave testing. PUSH44 remains partial.
+
+PUSH 44 Development owner identity recovery, 2026-10-24: PR #248 Draft branch only. Read-only original LOCAL_SUPABASE verification established that its only admin is a synthetic `.invalid` QA fixture with no unexpired Auth session or observer-Site membership; the owner's project email is absent from Development Auth. The iPhone QA user is a separate parent and cannot self-approve. The host authorization reader now requires a pinned verified owner email matching both Auth and profile, confirmed email and current server-side session, denying the synthetic fixture and mismatched/unconfirmed identities. An actual owner-approved macOS LocalAuthentication presence prompt passed with an owner-only temporary helper and pinned hash, but no administrator session or enrollment approval was created. The temporary helper is not a durable installation. Focused isolated tests passed; exact-head CI must be rerun after this commit. No schema migration, Development Auth mutation, Cloudflare, Production, Home or media change. Next: obtain separate authorization for a Development-only owner-admin invitation/role grant, verify email and normal login, then install a durable protected helper before any enrollment approval. External HTTPS and physical iPhone proof remain pending; PR #235 stays Draft and separate.
+
+PUSH 44 scoped enrollment request closure, 2026-10-24: PR #248 Draft implementation commit `b1ab16d942223e8bfb156b78c41bdf9bcb88f576` is remotely preserved. Read-only original LOCAL_SUPABASE verification after the owner's local sign-in found one Auth identity and unassigned parent profile, but zero scoped capabilities, owned Observer Sites, active Observer memberships or synthetic Site records. The existing approval core now accepts only one authenticated pending installation and pins its random request ID, exact public-key fingerprint and QA session; the owner reader requires the same request/key in its short-lived server-held capability. Eight isolated tests and local cumulative `ci:quality` passed; remote exact-head CI remains pending until this ledger commit is pushed. No capability, device approval, Development schema change, external HTTPS, media or physical iPhone proof. The prior suggestion to grant global Development `admin` is superseded: a separately documented, independent project-owner bootstrap authority and exact-request owner approval are required before any scoped grant. PR #235, main, Production and Home services remain unchanged.
+
+PUSH 44 owner bootstrap identity check, 2026-10-24: PR #248 Draft. Connected GitHub App profile identifies account `infoganbatuah-ai` (ID `287220776`) with repository admin; its profile address lacked a verified flag. The separate existing GitHub CLI keyring credential was confirmed as the same account and queried the authenticated `/user/public_emails` endpoint without new scopes. At `2026-10-24 18:01:43 UTC`, target owner email matched YES and GitHub `verified` was TRUE; only booleans were returned, not an address list. `user:email` is therefore NOT REQUIRED for this check. The LOCAL_SUPABASE sign-in was locally confirmed, but identity proof alone does not grant Observer authority. No Development capability, iPhone approval, GitHub permission expansion, Auth mutation, external HTTPS, media, VPN, Home, Production or main operation. Next: a separate explicit owner approval for one exact pending installation/request/key, fresh Mac presence and auditable single-use grant; PR #235 stays Draft and separate.
+
+PUSH 44 exact physical enrollment-request preparation, 2026-10-24: PR #248 Draft code/evidence commit `e0d454d9f2d5319f69b2bdee2ee29715ced61c4c` is remotely preserved on `codex/push44-synthetic-external-preparation`. The native device bridge is now restricted to the exact proposed control hostname; a separate tokenless control-only PersonalTeamQA build mode rejects wrong origin, legacy bootstrap tokens and Push. A non-installed signed iPhone build on Kingston passed macOS designated-requirement verification; its executable SHA-256 is in the device-proof receipt. Isolated enrollment/transport tests passed. The actual phone-side control UI and approved exact-host TLS/Access route are absent, so there is no physical pending request, key fingerprint, enrollment capability or Mac approval. Previously verified GitHub owner identity is reused without a new query or scope. No Cloudflare, LOCAL_SUPABASE Auth, Production, Home, media, VPN or main change. Exact-head CI on the final ledger commit remains required; PR #235 stays separate Draft, PUSH 44 partial and PUSH 46 not started.
+
+PUSH 44 physical-enrollment readiness continuation, 2026-10-24: PR #248 Draft branch adds an exact-path native QA enrollment screen and HttpOnly-preserving, inert-by-default local control bridge, reusing the approved one-key/one-request core. Status reads are bound to the canonical viewer session, exact public key and request ID; nine isolated approval/transport security cases pass. A new non-installed PersonalTeamQA build is signed for the exact control page and its hash is in the device-proof receipt. The protected Mac presence helper is installed on the owner-protected internal Application Support path; one owner-approved fresh macOS presence prompt returned PRESENT, without issuing any device approval. The exact control hostname still lacks DNS, its own trusted TLS certificate, a Cloudflare Access application, qualified proxy/edge accounting and a complete cost bound. No physical request, scoped capability, route, media or Production action exists. See `DIGITAL_OBSERVER_PUSH_44_QA_DEVICE_PROOF_20261024.md`; branch preservation and exact-head CI must be recorded after push. PR #235 stays Draft and separate; PUSH 44 remains partial, PUSH 46 not started.
+
+PUSH 44 control-host non-public preflight, 2026-10-24: PR #248 Draft branch only. With exact owner approval, reused the protected Let's Encrypt account to issue a single-name certificate for `qa-iphone-device-proof.ganbatuach.com`; one task-created DNS-01 TXT propagated, validated and was removed. Zone records returned from 15 to the original 14; authoritative nameservers no longer return the challenge. Certificate chain, sole SAN, key match and owner-only private-key mode were verified locally; this is not physical-iPhone TLS proof. Created only private-hostname Access application `4382f628-c338-4a23-9da0-1490056b83e4` with zero policies, hidden from App Launcher and no connected route. Free plan and existing subscriptions remain unchanged; public control DNS has no A/AAAA/CNAME and the sole Home tunnel still has no routes. No existing Production DNS record, external ingress, phone install, enrollment approval, media, Home service or main change; the shared zone did receive the authorized temporary TXT and its removal. Future edge request/traffic cost and trusted proxy remain unqualified; a separate approval is required before any 30-minute control window. See the newest device-proof receipt for sanitized fingerprint, expiry, rollback and pending gates.
+
+PUSH 44 control security/cost continuation, 2026-10-24: PR #248 Draft branch adds an inert, loopback-only one-path control ingress using the existing device-proof bridge. Synthetic signed Access assertions are checked for the exact team issuer, application AUD, owner email, signature and expiry; a durable local SQLite ledger limits 60 attempts/minute, 1,000 total attempts, 12 MiB conservatively reserved bytes, one in-flight request and a 30-minute deadline. Spoofed headers, media routes, oversized requests and responses deny in isolated tests; no listener starts on import. The Cloudflare application is a private hostname: documented origin Access JWT delivery for HTTPS requires Gateway TLS decryption, which is not verified/approved on this shared account. The phone HTML/login path and pre-origin provider-cost bound are also unqualified. Existing owner-only policy remains a proposal; Access still has zero policies and no route. No iPhone installation, capability grant, media, Production, Home or main change. The next gate is a separately reviewable JWT-capable Access route design with a verified cost cap, not activation. Details and test limits are in the newest device-proof receipt.
+PUSH 44 control-only iPhone page/cost gate, 2026-10-24: PR #248 Draft branch
+`codex/push44-synthetic-external-preparation`, scoped source commit
+`4a19e5d1d645f5f4dc3f6d60db91b959eeff8ba1`. The owner-only Unix-socket
+proxy now permits only the QA enrollment/login, required Next static assets,
+and existing device-control POST, with signed Access assertion checks,
+Development login identity binding, restricted cookies/redirects, durable
+30-minute/1,000-attempt/64-MiB origin budget, and no media/admin routes.
+Focused isolated socket/boundary checks 12/12 and PUSH 44 regression PASS;
+actual Access redirect/JWT delivery, full local Next/Supabase loop and
+physical iPhone proof remain open. The signed QA package is valid on disk
+through `2026-10-26T23:14:41Z`, but its exact-host WebView navigation does not
+yet prove Cloudflare team-domain/IdP sign-in. Account visibly remains Zero
+Trust Free; the Free shared-zone WAF cannot match an exact Host, so edge
+traffic has no contractual hard financial cap. No route, Allow policy, app
+installation, capability, media, Home, Production or main change. Exact-head
+CI and local build results must be recorded separately; PR #235 remains Draft.

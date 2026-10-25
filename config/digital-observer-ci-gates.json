@@ -127,6 +127,9 @@
   "security": [
     { "name": "push44-ch1-private-media", "args": ["--test", "scripts/qa/check-push44-ch1-private-media.mjs"] },
     { "name": "push44-synthetic-edge", "args": ["--test", "scripts/qa/check-push44-synthetic-edge.mjs"] },
+    { "name": "push44-qa-device-proof", "args": ["--test", "scripts/qa/check-push44-qa-device-proof.mjs"] },
+    { "name": "push44-qa-device-enrollment-transport", "args": ["--test", "scripts/qa/check-push44-qa-device-enrollment-transport.mjs"] },
+    { "name": "push44-qa-control-ingress", "args": ["--test", "scripts/qa/check-push44-qa-control-ingress.mjs"] },
     { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
     { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
     { "name": "gateway-relay-handoff-remediation", "args": ["--test", "scripts/qa/check-push38-relay-handoff-remediation.mjs"] },
@@ -173,6 +176,7 @@
     { "name": "push42-external-api-security", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
     { "name": "push43-partner-isolation", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
     { "name": "push44-mobile-authorization", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
+    { "name": "push44-qa-control-boundary", "args": ["--experimental-strip-types", "--test", "scripts/qa/check-push44-qa-control-boundary.mjs"] },
     { "name": "push44-bounded-owner-qa-ingress", "args": ["scripts/qa/check-push44-owner-qa-ingress.mjs"] },
     { "name": "push45-privacy-compliance-security", "args": ["scripts/qa/check-digital-observer-push45.mjs"] }
   ]

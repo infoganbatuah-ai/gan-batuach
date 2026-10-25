@@ -30,6 +30,7 @@ const plist = readFileSync(new URL("ios/App/App/Info.plist", root), "utf8");
 const script = object.objects["A14400032026102000000003"].shellScript;
 const qaConfig = JSON.parse(readFileSync(new URL("ios/qa-personal-team/capacitor.config.json", root), "utf8"));
 const qaPage = readFileSync(new URL("ios/qa-personal-team/index.html", root), "utf8");
+const deviceBridge = readFileSync(new URL("ios/App/App/Push44QaDeviceProof.swift", root), "utf8");
 
 assert.match(normalEntitlements, /aps-environment/);
 assert.match(nativeDelegate, /#if !PERSONAL_TEAM_QA/);
@@ -45,6 +46,37 @@ assert.match(qaPage, /Digital Observer QA/);
 assert.match(qaPage, /מקומי בלבד/);
 assert.match(qaPage, /APNs כבויים/);
 assert(!/https?:\/\//.test(qaPage), "offline QA page must not contact an external host");
+assert.match(deviceBridge, /host == "qa-iphone-device-proof\.ganbatuach\.com"/);
+assert.match(deviceBridge, /current\.path == configured\.path/);
+assert.doesNotMatch(deviceBridge, /host\.hasPrefix\("qa-iphone-"\)/);
+
+// The future control-only binary is prepared without the old bearer-token URL.
+// No route is opened by generating this config.
+const controlFixture = mkdtempSync(join(tmpdir(), "push44-control-config-"));
+try {
+  const output = join(controlFixture, "capacitor.config.json");
+  const prepare = fileURLToPath(new URL("scripts/qa/prepare-push44-iphone-qa-config.mjs", root));
+  const template = fileURLToPath(new URL("ios/qa-personal-team/capacitor.config.json", root));
+  const host = "qa-iphone-device-proof.ganbatuach.com";
+  const env = { ...process.env, PUSH44_QA_CONTROL_ONLY: "1", PUSH44_QA_HOST: host,
+    PUSH44_QA_TOKEN_FILE: "" };
+  const generate = (url, override = {}) => execFileSync(process.execPath,
+    [prepare, template, output, url], { env: { ...env, ...override }, stdio: "pipe" });
+  generate(`https://${host}/digital-observer/qa-device-enrollment`);
+  const control = JSON.parse(readFileSync(output, "utf8"));
+  assert.equal(control.server.url, `https://${host}/digital-observer/qa-device-enrollment`);
+  assert.equal(control.server.cleartext, false);
+  assert.deepEqual(control.server.allowNavigation, [host]);
+  assert.doesNotMatch(JSON.stringify(control), /__push44\/bootstrap|[?&]t=/);
+  assert(!control.packageClassList.includes("PushNotificationsPlugin"));
+  for (const invalid of [`http://${host}/`, `https://${host}/`, `https://${host}/digital-observer`,
+    `https://${host}/?token=bad`, "https://qa-iphone-other.ganbatuach.com/"]) {
+    assert.throws(() => generate(invalid));
+  }
+  assert.throws(() => generate(`https://${host}/digital-observer/qa-device-enrollment`, { PUSH44_QA_TOKEN_FILE: "/private/tmp/not-read" }));
+  assert.throws(() => generate(`https://${host}/digital-observer`,
+    { PUSH44_QA_CONTROL_ONLY: "", PUSH44_QA_TOKEN_FILE: "/private/tmp/not-read" }));
+} finally { rmSync(controlFixture, { recursive: true }); }
 
 // Xcode may reuse the already-transformed Info.plist on incremental builds.
 // Only an absent optional key may be ignored; other script failures still fail.

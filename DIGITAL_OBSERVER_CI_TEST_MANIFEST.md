@@ -88,6 +88,10 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push43-oem-sdk-contract`: `node scripts/qa/check-digital-observer-push43.mjs`
 - `push44-mobile-runtime-contract`: `node scripts/qa/check-digital-observer-push44.mjs`
 - `push45-privacy-compliance`: `node scripts/qa/check-digital-observer-push45.mjs`
+- `push44-ch1-private-media`: `node --test scripts/qa/check-push44-ch1-private-media.mjs`
+- `push44-synthetic-edge`: `node --test scripts/qa/check-push44-synthetic-edge.mjs`
+- `push44-qa-device-proof`: `node --test scripts/qa/check-push44-qa-device-proof.mjs`
+- `push44-qa-device-enrollment-transport`: `node --test scripts/qa/check-push44-qa-device-enrollment-transport.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
 - `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-relay-handoff-remediation`: `node --test scripts/qa/check-push38-relay-handoff-remediation.mjs`
@@ -134,12 +138,13 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push42-external-api-security`: `node scripts/qa/check-digital-observer-push42.mjs`
 - `push43-partner-isolation`: `node scripts/qa/check-digital-observer-push43.mjs`
 - `push44-mobile-authorization`: `node scripts/qa/check-digital-observer-push44.mjs`
+- `push44-qa-control-boundary`: `node --experimental-strip-types --test scripts/qa/check-push44-qa-control-boundary.mjs`
 - `push44-bounded-owner-qa-ingress`: `node scripts/qa/check-push44-owner-qa-ingress.mjs`
 - `push45-privacy-compliance-security`: `node scripts/qa/check-digital-observer-push45.mjs`
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **554** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **561** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -470,8 +475,13 @@ Inventory count: **554** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38p-release-delivery.mjs` | node scripts/qa/check-push38p-release-delivery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38q-r2-download.mjs` | node scripts/qa/check-push38q-r2-download.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push38t-ingress.mjs` | node scripts/qa/check-push38t-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push44-ch1-private-media.mjs` | node scripts/qa/check-push44-ch1-private-media.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push44-owner-qa-ingress.mjs` | node scripts/qa/check-push44-owner-qa-ingress.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-push44-personal-team-qa.mjs` | node scripts/qa/check-push44-personal-team-qa.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-push44-qa-control-boundary.mjs` | node scripts/qa/check-push44-qa-control-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-push44-qa-device-enrollment-transport.mjs` | node scripts/qa/check-push44-qa-device-enrollment-transport.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-push44-qa-device-proof.mjs` | node scripts/qa/check-push44-qa-device-proof.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-push44-synthetic-edge.mjs` | node scripts/qa/check-push44-synthetic-edge.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-r2-keychain.mjs` | node scripts/qa/check-r2-keychain.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-real-detection-event-bridge.mjs` | npm run qa:real-detection-event-bridge | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-real-event-context-baseline.mjs` | node scripts/qa/check-real-event-context-baseline.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
@@ -511,6 +521,7 @@ Inventory count: **554** files. Classifications are conservative; environment-de
 | `scripts/qa/compare-object-session-startup.mjs` | node scripts/qa/compare-object-session-startup.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | AI / INFERENCE | SUPPORTING | none known |
 | `scripts/qa/create-demo-role-users.mjs` | npm run qa:create-demo-role-users | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | MOCK / SHADOW ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/create-digital-observer-admin-pilot.mjs` | node scripts/qa/create-digital-observer-admin-pilot.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/create-push44-qa-token.mjs` | node scripts/qa/create-push44-qa-token.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/delete-digital-observer-test-user.mjs` | npm run qa:delete-digital-observer-test-user | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/diagnose-auth-email-delivery.mjs` | node scripts/qa/diagnose-auth-email-delivery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
 | `scripts/qa/digital-guard-autonomy.test.mjs` | node scripts/qa/digital-guard-autonomy.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -580,6 +591,7 @@ Inventory count: **554** files. Classifications are conservative; environment-de
 | `scripts/qa/probe-push38-dvr-transport.mjs` | node scripts/qa/probe-push38-dvr-transport.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/probe-push38-homeqa-gateway-release.mjs` | node scripts/qa/probe-push38-homeqa-gateway-release.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/probe-push38-private-nvr-rtsp.mjs` | node scripts/qa/probe-push38-private-nvr-rtsp.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/probe-push44-synthetic-workerd.mjs` | node scripts/qa/probe-push44-synthetic-workerd.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/production-release-snapshot-core.mjs` | node scripts/qa/production-release-snapshot-core.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | PRODUCTION RELEASE | SUPPORTING | none known |
 | `scripts/qa/prove-live-dvr-endpoint-recovery.mjs` | node scripts/qa/prove-live-dvr-endpoint-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/prove-push38-homeqa-legacy-download.mjs` | node scripts/qa/prove-push38-homeqa-legacy-download.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
