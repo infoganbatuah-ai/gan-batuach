@@ -1,0 +1,126 @@
+{
+  "status": "BLOCKED_NOT_EXECUTABLE",
+  "target": null,
+  "credentials": null,
+  "runner": null,
+  "requires": [
+    "separate owner authorization for identified isolated synthetic clone",
+    "verified clone identity, no real Home/Auth/Storage data and tested restore",
+    "reviewed additive schema, actor resolver, RLS/ACL and immutable audit",
+    "bounded statement/lock/resource limits and redacted evidence capture"
+  ],
+  "cases": [
+    {
+      "id": "transfer_vs_acceptance",
+      "precondition": "Synthetic qualified version 1 and two independent transactions on one Source",
+      "action": "Race version-2 transfer against first canonical Event acceptance",
+      "invariant": "One committed serialized version owns Event; never camera-time attribution or mixed Site/Tenant",
+      "evidence": "Sanitized acceptance version, transfer CAS result, binding and audit counts",
+      "failure": "Missing, mixed or retroactively changed acceptance version"
+    },
+    {
+      "id": "two_approvers_one_version",
+      "precondition": "Synthetic candidate at current version 1 with two independently authorized actors",
+      "action": "Concurrently attempt version 2 qualification",
+      "invariant": "Exactly one CAS succeeds and one immutable audit pair is committed",
+      "evidence": "Version count, CAS outcomes and audit references",
+      "failure": "Both succeed, gap appears or un-audited success"
+    },
+    {
+      "id": "duplicate_identical",
+      "precondition": "Accepted synthetic Signal and binding already committed",
+      "action": "Retry exact same Event payload and identity",
+      "invariant": "One canonical Event, one acceptance, one binding, original version retained",
+      "evidence": "Scoped row counts and original reference equality",
+      "failure": "Duplicate effect or owner rebind"
+    },
+    {
+      "id": "duplicate_conflict",
+      "precondition": "Event ID previously accepted with version 1",
+      "action": "Retry same ID with changed Source, Site or authority version",
+      "invariant": "Conflict rejected, original immutable rows retained and conflict audited",
+      "evidence": "Denial category and unchanged row fingerprints",
+      "failure": "23505 treated as semantic equality or overwrite"
+    },
+    {
+      "id": "retry_after_commit_before_reply",
+      "precondition": "Acceptance and audit committed; client did not receive response",
+      "action": "Reconnect and retry the same synthetic Event",
+      "invariant": "Original receipt returned with no new binding, audit or owner choice",
+      "evidence": "Receipt identity and before/after scoped counts",
+      "failure": "Second owner or duplicate acceptance"
+    },
+    {
+      "id": "rollback_before_commit",
+      "precondition": "Synthetic acceptance transaction open",
+      "action": "Abort before commit and retry",
+      "invariant": "No partial Event/acceptance/audit; next valid attempt can commit",
+      "evidence": "Zero partial scoped rows followed by one complete set",
+      "failure": "Orphan receipt, audit or blocked retry"
+    },
+    {
+      "id": "mandatory_audit_failure",
+      "precondition": "Synthetic scoped audit write failure in same transaction",
+      "action": "Attempt qualification, acceptance and binding separately",
+      "invariant": "Every affected transaction fails closed with no apparent success",
+      "evidence": "Error class, absence of partial rows and retry eligibility",
+      "failure": "Success without mandatory audit"
+    },
+    {
+      "id": "replay_after_transfer",
+      "precondition": "Event bound to version 1, current Source transferred to version 2",
+      "action": "Replay original Event and read ownership",
+      "invariant": "Original Tenant/Site/Source and version 1 remain authoritative",
+      "evidence": "Immutable reference comparison; current pointer is version 2",
+      "failure": "Replay uses current owner or changes recipients"
+    },
+    {
+      "id": "missing_or_conflicting_ownership",
+      "precondition": "Synthetic missing Tenant, Site, owner, or contradictory Source relationship",
+      "action": "Attempt qualification and new Event binding",
+      "invariant": "No qualified version or ownership claim is created",
+      "evidence": "Denial category and zero scoped writes",
+      "failure": "Nullable association or client value fills the gap"
+    },
+    {
+      "id": "historical_no_receipt",
+      "precondition": "Pre-existing synthetic Signal without server acceptance/version receipt",
+      "action": "Read through prospective ownership reader",
+      "invariant": "Unqualified; Signal preserved without automatic backfill",
+      "evidence": "Missing receipt classification and unchanged Signal count",
+      "failure": "Current Site or timestamp inferred as historical authority"
+    },
+    {
+      "id": "actor_denial_and_role_escalation",
+      "precondition": "Synthetic installer, Site member, inactive owner and role-labelled user",
+      "action": "Attempt registration and transfer as each identity",
+      "invariant": "Only independently verified owner or qualified Platform Admin can succeed",
+      "evidence": "Resolved actor provenance, denial classes and audit",
+      "failure": "created_by, profile.role, email or caller boolean alone grants authority"
+    },
+    {
+      "id": "recipient_separation",
+      "precondition": "Synthetic owner change with frozen decision-time recipient snapshot",
+      "action": "Replay Event after recipient preference/revocation change",
+      "invariant": "Registration owner never adds recipients; original snapshot does not expand",
+      "evidence": "Before/after snapshot fingerprints and no external delivery",
+      "failure": "Ownership lookup alters recipients or bypasses revocation"
+    },
+    {
+      "id": "rls_acl_data_api",
+      "precondition": "Reviewed schema on isolated clone with synthetic anon, authenticated, service and intended internal roles",
+      "action": "Probe table/function grants, RLS row boundaries, inherited roles and Data API exposure",
+      "invariant": "No public or cross-Tenant registration read/write; only qualified internal path writes",
+      "evidence": "Redacted role-by-operation allow/deny matrix and catalog snapshot",
+      "failure": "PUBLIC EXECUTE, bypassing definer, direct Data API mutation or cross-scope access"
+    },
+    {
+      "id": "client_crash_vs_server_durability",
+      "precondition": "Synthetic committed and uncommitted operations in isolated clone",
+      "action": "Terminate only test client, reconnect and compare; plan server restart separately",
+      "invariant": "Committed rows remain and uncommitted rows roll back; server restart NOT PROVEN here",
+      "evidence": "Transactional scoped counts and explicit durability limitation",
+      "failure": "Client termination reported as PostgreSQL restart durability proof"
+    }
+  ]
+}

@@ -85,3 +85,129 @@ expand recipients from newer mutable settings. `notifications.ts` is unchanged.
 The local tests exercise the actual TypeScript transition/reader code with a
 synthetic store. They do not prove the future store faithfully implements the
 atomic port contract. No SQL was executed or database connection made.
+
+## Isolated Development qualification preflight (source-only, 2026-10-25)
+
+This section is the handoff for a **future separately authorized** PostgreSQL
+qualification, not an execution recipe. `HOME-REGISTRATION-QUALIFICATION-CASES.json`
+is a blocked-by-default test matrix, and
+`check-home-registration-qualification-package.mjs` checks only its static
+containment. Neither connects to a database. Existing synthetic contract tests
+are not PostgreSQL evidence.
+
+### Candidate environment and two separate permissions
+
+The local `development/database/environment.json` names the **original**
+Development project `gan-batuach-integration`, container
+`supabase_db_gan-batuach-integration`, Docker context `colima-gbi`, runtime
+root `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach`, and a builder database
+name `gan_batuach_baseline_builder_v2`. `development/database/config.toml`
+specifies loopback DB port `55422`. Historical catalog evidence in
+`OBJECT-INVENTORY.json` began 2026-10-25 11:50 UTC. These are source/config
+identifiers, **not a fresh health, data or isolation check**. Root
+`supabase/config.toml` names `gan-batuach-push38t`/`56422`, a different profile.
+The builder name alone does not establish a disposable clone, separate volume,
+safe credentials or recoverability. **Clone target: UNVERIFIED / NOT PRESENT IN
+THIS SOURCE INVENTORY**. No database name, URI, container or volume is invented
+for it; neither gbi nor push38t is an acceptable synthetic mutation target.
+
+Authorization A, if separately granted, is a bounded read-only catalog and
+aggregate review of the positively identified original gbi Development DB:
+`pg_catalog` definitions/ACLs/RLS, and counts/conflict categories over
+`digital_observer_organizations`, `observer_sites`,
+`digital_observer_camera_sources`, relevant enrollment/Signal rows and actor
+session/role provenance. No PII, secret, media, raw row or credential output;
+use explicit read-only transaction, 10-second statement and 1-second lock
+timeout, bounded output, exact identity check, and stop on identity mismatch.
+The earlier aggregate review is not permission to repeat it now. This read
+does **not** authorize creating a clone or writing to any database.
+
+Authorization B, separately considered **after** A and a verified restore,
+would permit only an explicitly identified, isolated synthetic clone with
+its own DB/container/volume identity, no Production or real Home/Auth/Storage
+data, reviewed additive registration schema, synthetic fixtures, RLS/role and
+Data API probes, and controlled transaction/race tests. Pin statement/lock
+timeouts and resource caps after measured preflight; do not assume the
+10s/1s read limits safely cover a schema apply. Stop on target ambiguity,
+unexpected network route, real user rows, migration drift, backup failure,
+privilege expansion or audit inconsistency. Lifecycle restart/durability
+fault injection needs a **third**, explicit clone-only approval. A and B are
+not interchangeable.
+
+### Identity-source mapping and the exact gap
+
+| Concept | Current source-defined field/function | Why not yet registration authority |
+| --- | --- | --- |
+| Candidate customer Tenant owner | `digital_observer_organizations.id`, `owner_profile_id`, `status`; `digital_observer_organization_memberships.organization_id/profile_id/enterprise_role/active/revoked_at` in PUSH 41 | No proved one-customer/one-Home cardinality or immutable ownership/transfer record; organization owner and Site owner may differ. |
+| Site owner | `observer_sites.id/owner_profile_id/site_type/garden_id/digital_observer_organization_id` | Site owner is nullable/independently mutable; organization FK is nullable. |
+| Source registration actor | `digital_observer_camera_sources.created_by`; software connector route uses authenticated `session.profile.id` | Records who wrote source metadata, not who owns Home or may transfer it. |
+| Authenticated application actor | `getDigitalObserverApiUser` verifies `auth.getUser` plus `digital_observer_current_session_active`; `profiles.id/role/active` | This authenticates a principal, not Home registration authority. No client role string or email may supply it. |
+| Platform Admin candidate | `public.is_admin()` resolves active `profiles.role='admin'`; enterprise route `platformAdmin()` accepts that role **or** `user.app_metadata.digital_observer_admin`; `resolveEnterpriseActor` accepts a caller boolean as a bypass | This route-level predicate crosses app scopes and has no proven narrow Home-registration authority. `digital_observer_has_org_permission` also short-circuits through `is_admin()`. No existing label/boolean may be promoted to the new resolver without independent role/session/provenance review. |
+| Home identifier | `home_test_sites` and `home_camera_test_sites` are separate pilot/test tables; no verified FK to canonical organization/Site/Source acceptance | `HomeRegistrationScope.homeId` is a logical contract field, **not a deployed column**. Do not create a guessed FK or use test-home rows as the canonical customer. |
+| Alert recipient | `notifications.ts` uses Site owner, authorized recipients and channel settings | Eligibility is independently governed; ownership cannot add a recipient or override a revoked preference. |
+
+The owner has approved the prospective *direction*, not a concrete existing
+Platform Admin predicate or real Home/customer cardinality. Minimum next
+read-only qualification must establish whether a canonical Home/customer key
+is the existing organization row, how owner and Site associations are proven,
+what validates `app_metadata`/profile admin provenance, and whether current
+server acceptance can be made transactional without losing accepted Events.
+If those facts remain missing, the SQL and privileged resolver stay BLOCKED.
+
+### Minimal proposed persistence delta — design only; no deployable SQL
+
+Use the existing organization/Site/Source/Signal keys. Do **not** create a
+second Tenant directory. The smallest candidate consists of: (a) an immutable
+version history per Source with registration ID, positive monotonic version,
+existing Tenant/Site/Source/owner and authorized actor IDs plus qualification
+and audit references; (b) a current-version pointer with compare-and-swap;
+(c) an Event acceptance record keyed uniquely by canonical Signal ID freezing
+Source/Site/registration ID+version/authority reference at server acceptance;
+(d) one immutable Event binding keyed by the same Signal ID, unique against
+the acceptance receipt, with an audit reference; (e) append-only sanitized
+authorization, acceptance, conflict and transfer audit. Every FK/index and
+constraint must be reviewed against the real catalog and nullable historical
+rows. No cascade delete of evidence, default TTL, cleanup, auto-backfill or
+recipient data is proposed. Data owner: Digital Observer; content: bounded
+operational IDs/authorization references, no media or secrets; retention and
+legal hold **unresolved**, so schema application is blocked.
+
+The exact `homeId` mapping, immutable audit target/atomicity, role provenance,
+table ownership, schema exposure and RLS/ACL are not source-proven. For that
+reason **no new DDL/RPC bodies are presented as executable or ready to apply**.
+The existing `DRAFT-NOT-APPLIED.sql` abort guard remains intact and covers
+separate Risk objects only. A future reviewed registration migration must
+be additive and ordered; it cannot be made safe by removing that guard.
+
+### Transaction and isolation contract for a future adapter
+
+1. **Qualification:** under a verified server session, lock the canonical
+   Source/current-version key in a stable order; verify current organization,
+   Home key, Site, Source and authorized owner or independently qualified
+   Platform Admin; compare expected version; insert the next immutable
+   version, pointer and mandatory audit in **one short transaction**. Two
+   concurrent approvers cannot both advance the same version. No network call
+   while holding locks. Denial is audited where safe without disclosing rows.
+2. **Acceptance:** within the same transaction as the canonical new Signal
+   acceptance, lock/read the qualified registration version and current scope,
+   then insert the immutable acceptance receipt and mandatory audit. The
+   transfer and acceptance transactions serialize on the current-version
+   key. The winning committed version—not camera time—owns the Event. A
+   duplicate Signal ID compares all frozen ownership and observation fields;
+   an identical retry reuses the original, a contradiction fails closed.
+   **Current route does not do this; activation is blocked.**
+3. **Binding:** insert-if-absent under the same Event key; compare all
+   acceptance/version/authority fields and commit binding plus mandatory audit
+   atomically. Retry after commit-before-response returns the original
+   binding; retry after rollback sees no partial receipt. Historical Signals
+   without trusted acceptance remain unqualified. Missing audit prevents a
+   success receipt. Do not make Gateway ACK, Risk, notification or Guard changes
+   as part of this qualification.
+
+Lock order, uniqueness, DB permissions, isolation level, deadlock retry and
+actual durability require isolated PostgreSQL proof. A source-only description
+cannot prove them. A rollback preserves the original Event, all registration
+versions, acceptance/binding history and audit. Before activation, stop the
+new adapter; after any claim/receipt exists, retain additive storage and
+reconcile forward. No DROP, deletion, unfenced old writer, or empty synthetic
+clone is a lossless-rollback proof for original data.

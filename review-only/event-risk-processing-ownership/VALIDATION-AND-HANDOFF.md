@@ -206,3 +206,29 @@ source and an atomic server acceptance + immutable registration-version ledger
 in an authorized isolated database; include concurrency, replay, transfer,
 RLS/ACL, retention and rollback evidence. No PostgreSQL behavior is claimed
 from the synthetic store.
+
+## Source-only qualification preflight — 2026-10-25
+
+This increment adds a candidate-target/identity and two-permission gate to
+`PROSPECTIVE-HOME-REGISTRATION.md`, a blocked 14-case synthetic-only future
+PostgreSQL matrix, and a five-group **static-only** containment checker. No
+clone was identified or created. Existing gbi/55422 identity is local config
+plus historical evidence, not a fresh health check; push38t/56422 is excluded.
+`homeId` and the narrow Platform Admin predicate lack deployed proof, so no
+registration DDL/RPC body is presented as ready to apply. Risk SQL abort guard,
+four blocked downstream writers, active route and notifications are unchanged.
+
+Handoff owner: future independently authorized Development catalog reviewer,
+then separate isolated-clone migration/test owner. First gate is bounded
+read-only source catalog/aggregate verification of customer/Home key and actor
+authority; it does not authorize clone creation or SQL writes. The local branch
+is not remotely preserved under this task's explicit no-push boundary. No
+database, VM, supplier, Production, Home service or physical Guard operation
+was performed. Static tests do not establish PostgreSQL/RLS/crash/restore
+behavior. Retention, cost and lossless rollback remain unqualified.
+
+Local checks for this **preflight only**: new static containment tests 5/5;
+existing review-package abort guard PASS; focused ESLint and strict TypeScript
+PASS; `git diff --check` PASS. The 14 PostgreSQL cases are **NOT RUN** and
+remain blocked. The earlier 29/29 synthetic contract result belongs to the
+prior commit, not to this preflight or any database qualification.

@@ -64,3 +64,30 @@ code can safely coexist with pending claims is unproven; thus **ROLLBACK
 BLOCKED** until an isolated compatibility/restore rehearsal and an exact
 in-flight inventory. Never delete canonical Events, Incidents, Risk,
 verification, intent, notification, audit or historical ownership evidence.
+
+## Prospective Home registration qualification gate (not executed)
+
+The owner-approved source-only contract and blocked test matrix are in
+`PROSPECTIVE-HOME-REGISTRATION.md` and
+`HOME-REGISTRATION-QUALIFICATION-CASES.json`. The original gbi Development
+database is a possible **read-only** source after separate identity and scope
+approval, never the synthetic mutation target. No isolated clone target has
+been verified. Read-only source catalog/aggregate qualification and clone
+creation/schema/race testing require **distinct authorizations**; server
+restart durability requires another clone-only lifecycle authorization.
+
+Forward order: identify and authorize source read → verify Home/customer key,
+owner/platform-actor provenance and deployed schema/ACL → independently prove
+isolated synthetic clone identity and restore → review additive registration
+history, acceptance/binding/audit schema and lock order → run only authorized
+clone tests → review adapter/ACK compatibility separately. Do not infer
+historical Event ownership or apply the existing abort-guarded Risk SQL.
+
+Rollback order: before activation, leave the active route unchanged; after
+schema installation, retain additive rows and audit; after qualified or
+accepted synthetic operations, stop new adapter use, preserve every version,
+Signal, acceptance, binding and audit, then reconcile forward or restore only
+to a separately verified destination. A clean synthetic clone cannot prove
+lossless rollback of the original database. No DROP, automatic cleanup or
+unfenced old writer is a valid shortcut. **Rollback remains BLOCKED** until
+the actual clone restore and mixed-version rehearsal are authorized and pass.
