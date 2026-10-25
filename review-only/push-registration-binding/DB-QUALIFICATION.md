@@ -44,3 +44,10 @@ Until this gate passes, the application rejects known conflicts and unique
 races, but direct Data API writes and concurrent different-token registration
 for one installation are **not proven atomically safe**. Do not present this
 source-only change as full DB enforcement or release readiness.
+
+The scoped cancellation path is also source-only until its `profile_id`,
+`device_id`/token and metadata JSON filters are exercised under real RLS.
+Synthetic tests prove that a normal sequential rotation leaves one active
+token; they do not prove ordering against a concurrent provider callback or
+direct Data API mutation. The web/native UI disables only the server row and
+does not revoke provider permission or guarantee provider delivery behavior.

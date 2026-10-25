@@ -88,6 +88,7 @@ export function ObserverMobileRuntime() {
         source: "digital_observer_native" }, async (path, body) => {
         const response = await fetch(path, { method: "POST", credentials: "same-origin",
           headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        if (path === "/api/push/register" && response.status === 409) throw new Error("PUSH_TOKEN_BINDING_CONFLICT");
         if (!response.ok) throw new Error(path === "/api/push/register" ? "PUSH_TOKEN_REGISTRATION_FAILED" : "DEVICE_REGISTRATION_FAILED");
       });
     };
@@ -156,7 +157,8 @@ export function ObserverMobileRuntime() {
           emit("digital-observer:native-push-result", { ok: false, reason: "site_revoked" });
         } else {
           await enqueue("push_registration");
-          emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+          emit("digital-observer:native-push-result", { ok: false,
+            reason: error instanceof Error && error.message === "PUSH_TOKEN_BINDING_CONFLICT" ? "token_conflict" : "registration_failed" });
         }
       } finally {
         pendingPushSiteId = "";
@@ -187,6 +189,26 @@ export function ObserverMobileRuntime() {
         await PushNotifications.register();
       } catch {
         emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+      }
+    };
+
+    const disablePush = async (event: Event) => {
+      try {
+        const siteId = (event as CustomEvent<{ siteId?: string }>).detail?.siteId;
+        const reference = (await Preferences.get({ key: deviceReferenceKey })).value;
+        if (!siteId || !reference) throw new Error("PUSH_REVOCATION_TARGET_MISSING");
+        const response = await fetch("/api/push/unregister", {
+          method: "POST", credentials: "same-origin",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ device_id: reference, source: "digital_observer_native", observer_site_id: siteId })
+        });
+        if (!response.ok) throw new Error("PUSH_REVOCATION_FAILED");
+        const savedSite = await Preferences.get({ key: pushSiteKey });
+        if (savedSite.value === siteId) await Preferences.remove({ key: pushSiteKey });
+        await writeQueue((await readQueue()).filter((item) => item.kind !== "push_registration"));
+        emit("digital-observer:native-push-revoke-result", { ok: true });
+      } catch {
+        emit("digital-observer:native-push-revoke-result", { ok: false });
       }
     };
 
@@ -230,6 +252,7 @@ export function ObserverMobileRuntime() {
         removers.push(() => registration.remove(), () => registrationError.remove(), () => received.remove(), () => action.remove());
       }
       window.addEventListener("digital-observer:enable-native-push", enablePush);
+      window.addEventListener("digital-observer:disable-native-push", disablePush);
       window.addEventListener("pageshow", bootstrap);
     };
 
@@ -237,6 +260,7 @@ export function ObserverMobileRuntime() {
     return () => {
       disposed = true;
       window.removeEventListener("digital-observer:enable-native-push", enablePush);
+      window.removeEventListener("digital-observer:disable-native-push", disablePush);
       window.removeEventListener("pageshow", bootstrap);
       void Promise.all(removers.map((remove) => remove()));
     };

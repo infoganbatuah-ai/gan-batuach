@@ -65,6 +65,8 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
         if (!result.ok) {
           const reason = result.reason === "permission_denied"
             ? "הרשאת ההתראות לא אושרה במכשיר."
+            : result.reason === "token_conflict"
+              ? "למכשיר יש שיוך Push קודם. בטל אותו כאן ואז נסה להירשם שוב."
             : "רישום ה־Push במכשיר לא הושלם.";
           throw new Error(reason);
         }
@@ -104,6 +106,38 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
     }
   }
 
+  async function disable() {
+    setState((current) => ({ ...current, busy: true, message: "", error: "" }));
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await new Promise<{ ok: boolean }>((resolve) => {
+          const listener = (event: Event) => {
+            window.clearTimeout(timeout);
+            window.removeEventListener("digital-observer:native-push-revoke-result", listener);
+            resolve((event as CustomEvent<{ ok: boolean }>).detail);
+          };
+          const timeout = window.setTimeout(() => {
+            window.removeEventListener("digital-observer:native-push-revoke-result", listener);
+            resolve({ ok: false });
+          }, 30_000);
+          window.addEventListener("digital-observer:native-push-revoke-result", listener, { once: true });
+          window.dispatchEvent(new CustomEvent("digital-observer:disable-native-push", { detail: { siteId } }));
+        });
+        if (!result.ok) throw new Error("ביטול רישום המכשיר לא הושלם.");
+      } else {
+        const reference = window.localStorage.getItem("digital_observer_device_reference");
+        if (!reference) throw new Error("מזהה ההתקנה אינו זמין במכשיר הזה.");
+        await postJson("/api/push/unregister", {
+          device_id: reference, source: "digital_observer_fcm", observer_site_id: siteId
+        });
+      }
+      setState({ busy: false, registered: false, message: "רישום ההתראות במכשיר הזה בוטל בשרת. הרשאת הספק במכשיר לא שונתה.", error: "" });
+    } catch (error) {
+      setState((current) => ({ ...current, busy: false,
+        error: error instanceof Error ? error.message : "ביטול רישום המכשיר נכשל." }));
+    }
+  }
+
   async function sendTest() {
     setTesting(true);
     setState((current) => ({ ...current, message: "", error: "" }));
@@ -120,6 +154,9 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
   return <div className="do-page-stack">
     <button className="do-button secondary" type="button" onClick={register} disabled={state.busy}>
       {state.busy ? <LoaderCircle className="do-spin" /> : <Smartphone />} הפעלת Push במכשיר הזה
+    </button>
+    <button className="do-button secondary" type="button" onClick={disable} disabled={state.busy}>
+      ביטול Push במכשיר הזה
     </button>
     <button className="do-button primary" type="button" onClick={sendTest} disabled={testing || !state.registered}>
       {testing ? <LoaderCircle className="do-spin" /> : <Send />} בדיקת חוזה Push ללא שליחה

@@ -21,7 +21,7 @@ registerHooks({
   }
 });
 
-const { registerPushDevice } = await import("../../lib/domain/push-service.ts");
+const { registerPushDevice, unregisterPushDevice } = await import("../../lib/domain/push-service.ts");
 const site = "00000000-0000-4000-8000-000000000044";
 const otherSite = "00000000-0000-4000-8000-000000000045";
 const input = (overrides = {}) => ({ profileId: "owner-a", role: "parent", platform: "ios",
@@ -40,6 +40,7 @@ function database(initial = [], options = {}) {
     let selected = "";
     const builder = {
       select(columns) { selected = columns; return builder; },
+      then(resolve, reject) { return finish().then(resolve, reject); },
       eq(key, value) { filters.push((record) => record[key] === value); return builder; },
       is(key, value) { filters.push((record) => record[key] === value); return builder; },
       contains(key, value) { filters.push((record) => Object.entries(value).every(([field, expected]) => record[key]?.[field] === expected)); return builder; },
@@ -125,4 +126,63 @@ test("generic product registration remains available but cannot take an Observer
   const observer = database([row()]);
   assert.equal((await registerPushDevice(observer, input({ metadata: { source: "fcm_web" } }))).conflict, true);
   assert.equal(observer.writes.length, 0);
+});
+
+const scope = { source: "digital_observer_native", siteId: site };
+
+test("scoped revocation disables only the current profile/source/Site installation", async () => {
+  const db = database([row(), row({ id: "row-other-site", device_token: "synthetic-provider-token-b",
+    metadata: { source: "digital_observer_native", observer_site_id: otherSite } }),
+  row({ id: "row-management", device_token: "synthetic-provider-token-c", metadata: { source: "management" } })]);
+  const result = await unregisterPushDevice(db, "owner-a", null, "installation-a", scope);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.rows.map((item) => item.id), ["row-a"]);
+  assert.equal(db.rows[0].is_active, false);
+  assert.equal(db.rows[1].is_active, true);
+  assert.equal(db.rows[2].is_active, true);
+});
+
+test("exact token is also a valid scoped revocation target", async () => {
+  const db = database([row()]);
+  const result = await unregisterPushDevice(db, "owner-a", "synthetic-provider-token-a", null, scope);
+  assert.equal(result.ok, true);
+  assert.equal(db.rows[0].is_active, false);
+  assert.equal(db.writes.length, 1);
+});
+
+test("wrong profile, Site, source and token cannot revoke another binding", async () => {
+  for (const [profile, token, device, binding] of [
+    ["owner-b", null, "installation-a", scope],
+    ["owner-a", null, "installation-a", { ...scope, siteId: otherSite }],
+    ["owner-a", null, "installation-a", { ...scope, source: "digital_observer_fcm" }],
+    ["owner-a", "synthetic-provider-token-other", "installation-a", scope]
+  ]) {
+    const db = database([row()]);
+    const result = await unregisterPushDevice(db, profile, token, device, binding);
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.rows, []);
+    assert.equal(db.writes.length, 0);
+    assert.deepEqual(db.rows, [row()]);
+  }
+});
+
+test("empty target is rejected; double revocation is bounded and idempotent", async () => {
+  const db = database([row()]);
+  assert.equal((await unregisterPushDevice(db, "owner-a", null, null, scope)).ok, false);
+  assert.equal(db.writes.length, 0);
+  assert.equal((await unregisterPushDevice(db, "owner-a", null, "installation-a", scope)).rows.length, 1);
+  assert.equal((await unregisterPushDevice(db, "owner-a", null, "installation-a", scope)).rows.length, 0);
+  assert.equal(db.writes.length, 1);
+});
+
+test("database failure does not claim revocation; new token rotates only after old revocation", async () => {
+  const failing = database([row()], { fail: "update" });
+  assert.equal((await unregisterPushDevice(failing, "owner-a", null, "installation-a", scope)).ok, false);
+  assert.equal(failing.rows[0].is_active, true);
+  const db = database([row()]);
+  assert.equal((await registerPushDevice(db, input({ deviceToken: "synthetic-provider-token-b" }))).conflict, true);
+  assert.equal((await unregisterPushDevice(db, "owner-a", null, "installation-a", scope)).ok, true);
+  assert.equal((await registerPushDevice(db, input({ deviceToken: "synthetic-provider-token-b" }))).ok, true);
+  assert.equal(db.rows.filter((item) => item.is_active).length, 1);
+  assert.equal((await registerPushDevice(db, input())).conflict, true);
 });

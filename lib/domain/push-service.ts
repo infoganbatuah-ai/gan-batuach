@@ -143,17 +143,32 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
   };
 }
 
-export async function unregisterPushDevice(supabase: SupabaseLike, profileId: string, deviceToken?: string | null, deviceId?: string | null) {
+export type ObserverPushScope = {
+  source: "digital_observer_native" | "digital_observer_fcm";
+  siteId: string;
+};
+
+export async function unregisterPushDevice(
+  supabase: SupabaseLike,
+  profileId: string,
+  deviceToken?: string | null,
+  deviceId?: string | null,
+  observerScope?: ObserverPushScope
+) {
+  if (!deviceToken && !deviceId) return { ok: false, rows: [], error: "PUSH_REVOCATION_TARGET_REQUIRED" };
   let query = supabase.from("push_device_tokens").update({
     is_active: false,
     disabled_reason: "unregistered_by_user",
     revoked_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
-  }).eq("profile_id", profileId);
+  }).eq("profile_id", profileId).eq("is_active", true);
 
   if (deviceToken) query = query.eq("device_token", deviceToken);
-  else if (deviceId) query = query.eq("device_id", deviceId);
-  else query = query.eq("is_active", true);
+  if (deviceId) query = query.eq("device_id", deviceId);
+  if (observerScope) query = query.contains("metadata", {
+    source: observerScope.source,
+    observer_site_id: observerScope.siteId
+  });
 
   const result = await query.select("id, is_active");
   return {
