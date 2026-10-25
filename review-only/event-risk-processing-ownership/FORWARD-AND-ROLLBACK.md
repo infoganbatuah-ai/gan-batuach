@@ -1,7 +1,9 @@
 # Proposed Development-only sequence and lossless rollback
 
-This is an ordering contract, not authorization to run commands. No SQL was
-executed. The current guarded SQL is **not** an ordered migration and cannot
+This is an ordering contract, not authorization to run changes. Bounded
+read-only Development catalog and aggregate SELECTs were executed on
+2026-10-25; no write SQL or application RPC was run. The guarded SQL is
+**not** an ordered migration and cannot
 become one by removing its guard.
 
 ## Forward prerequisites and order
@@ -16,8 +18,12 @@ become one by removing its guard.
    ownership. No automatic backfill or destructive correction.
 3. Inventory actual roles, schema exposure, table/function ACL, default
    privileges, RLS policies and dependent legitimate callers on the exact
-   isolated Development database. Review existing writable SECURITY DEFINER
-   exposure separately; this package does not apply broad revocations.
+   isolated Development database. The catalog/ACL inventory is now in
+   PERMISSIONS-AND-RPCS.md; legitimate-caller, external Data API and
+   row-boundary probes remain open. The watch-rule SECURITY DEFINER function
+   has explicit anon/authenticated EXECUTE despite a service-role body guard.
+   Review an exact-function REVOKE and caller compatibility separately; this
+   package does not apply broad revocations.
 4. Prove existing Home/business creation and Gateway enrollment can populate
    the approved Tenant relationship before a new-write constraint is added.
    Stage historical mapping through individually reviewed, reversible records.

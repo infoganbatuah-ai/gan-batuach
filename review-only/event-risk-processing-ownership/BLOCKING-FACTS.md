@@ -1,7 +1,43 @@
-# Consolidated blocking facts — 2026-10-25, local static review
+# Consolidated blocking facts — 2026-10-25, Development catalog qualification
 
-All statements below distinguish source text from deployed state. Each
-future verification requires its own bounded authorization; none was run.
+The original table below records source-only blockers. A later authorized,
+bounded, read-only inspection of the original Development database was run;
+its observations follow. No migration, role change, application RPC,
+Production read or Home service action occurred.
+
+## Resolved target and catalog facts (2026-10-25; qualification began 11:50 UTC)
+
+- The earlier port 56422 belongs to the separate push38t profile and was
+  not used. The original Kingston gbi profile and its Docker Unix socket
+  are running. supabase_db_gan-batuach-integration is healthy, has the
+  gan-batuach-integration project label, the original named database volume,
+  and loopback-only PostgreSQL port 55422. The canonical environment
+  configuration forbids Production access. SQL was executed only inside
+  this verified container in explicit read-only transactions with 10-second
+  statement and 1-second lock limits. No Production endpoint or credential
+  was used.
+- Fourteen relevant existing tables have RLS enabled (none FORCE RLS).
+  Three proposed ownership tables, two proposed Incident generation
+  columns and all seven proposed risk-ownership RPCs are absent.
+  Deployed relationships remain independent/nullable as detailed in
+  HOME-MAPPING.md; no Tenant/Site/Signal/Incident/Risk composite chain is
+  enforced.
+- The deployed watch-rule recording function has effective EXECUTE for
+  anon, authenticated and service_role, despite source-only service-use
+  language. Its body starts with a service-role check; no unauthorized
+  write was demonstrated. Default function ACLs in public also grant new
+  function EXECUTE to these roles. Exact future REVOKEs and role-boundary
+  tests are required; no ACL was changed.
+- Current Development aggregates: two Home Sites, zero missing organization
+  references, zero Home Gateway enrollments/sources/validated real Signals.
+  Historical Home ownership remains ambiguous. Zero observed mismatches
+  in an empty Home Risk set is not a consistency proof.
+- PostgREST exposes public,graphql_public and uses anon as its anonymous
+  role. Effective PostgreSQL grants are in PERMISSIONS-AND-RPCS.md; external
+  Data API reachability and actual role-boundary behavior remain untested.
+
+The old endpoint-identity paragraph below is retained as historical evidence,
+not the current blocker. APPLY BLOCKED remains the package decision.
 
 ## Local endpoint identity check (2026-10-25)
 
@@ -15,13 +51,19 @@ inspection, the SSH process's open Unix sockets were observed under
 `.colima/_lima/colima-gbi/` and `.colima/gbi/` profile directories also exist.
 Thus this forwarding process belongs to **push38t, not the original gbi
 profile**. The inner SSH forward destination/database identity was not
-exposed by the available sanitized process metadata; Production exclusion is
-still **NOT PROVEN**. The first unrestricted `ps` request was denied; the
-owner-approved restricted metadata check did not reveal a forwarding target.
+exposed by the available sanitized process metadata; Production exclusion
+for that port was **NOT PROVEN AT THAT TIME**. The first unrestricted `ps`
+request was denied; the owner-approved restricted metadata check did not
+reveal a forwarding target.
 No database connection or SQL was attempted. Do not use `56422` for the
-original-gbi catalog inspection. A future authorized, read-only receipt must
-establish a different endpoint → exact gbi VM → original isolated Development
-database identity without exposing credentials.
+original-gbi catalog inspection. The verified gbi Docker-socket chain above
+supersedes this old target blocker without relying on the 56422 forward.
+
+The table below is the original source-only queue. Items 2 and 4 now have
+limited Development aggregate/catalog evidence above; item 12 now has
+deployed PostgREST schema configuration evidence. Historical ownership,
+legitimate callers, external Data API behavior and all implementation
+gates remain open.
 
 | # | Missing fact / inspected source | Why source is insufficient; affected contract | Future authorized verification; owner approval? |
 | --- | --- | --- | --- |

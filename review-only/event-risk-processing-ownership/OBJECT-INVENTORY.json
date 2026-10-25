@@ -3,6 +3,33 @@
   "sourceBaseline": "a4fa761b5d63b6b3a0f8937073b16c0f775c1c37",
   "tenantCandidate": "public.digital_observer_organizations.id",
   "tenantCandidateStatus": "PROPOSED_NOT_HISTORICALLY_VERIFIED",
+  "developmentCatalogQualification": {
+    "qualificationStartedAtUtc": "2026-10-25T11:50:06Z",
+    "target": "original Kingston gbi / gan-batuach-integration / postgres 17.6",
+    "method": "bounded catalog and aggregate SELECTs in explicit read-only transactions; no application RPC executed",
+    "existingRelevantTablesInspected": 14,
+    "existingRelevantTablesWithRls": 14,
+    "existingRelevantTablesWithForceRls": 0,
+    "proposedClaimPlanReceiptTablesPresent": false,
+    "proposedIncidentProjectionGenerationColumnsPresent": false,
+    "proposedSevenRiskOwnershipRpcsPresent": false,
+    "verifiedFunctionExecute": {
+      "correlate_digital_observer_signal": ["service_role"],
+      "record_digital_observer_watch_rule_evaluation": ["anon", "authenticated", "service_role"]
+    },
+    "functionExecuteCaveat": "The watch-rule function is SECURITY DEFINER with row_security=off and has an early auth.role() service_role check; EXECUTE exposure is verified, unauthorized data effect is not proven.",
+    "roleCaveat": "service_role and postgres have BYPASSRLS; anon and authenticated do not. Effective grants were queried with has_*_privilege.",
+    "dataApi": "PostgREST configured schemas public,graphql_public; external route reachability and application authorization were not tested.",
+    "homeAggregate": {
+      "sites": 2,
+      "sitesMissingOrganization": 0,
+      "gatewayEnrollments": 0,
+      "cameraSources": 0,
+      "validatedRealSignals": 0,
+      "riskScopeMismatchesInObservedHomeRows": 0,
+      "historicalOwnershipProven": false
+    }
+  },
   "objects": [
     {
       "name": "public.digital_observer_organizations", "type": "table", "state": "EXISTING",

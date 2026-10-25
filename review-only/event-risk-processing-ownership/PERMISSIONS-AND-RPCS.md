@@ -1,10 +1,13 @@
 # Source permissions, effective permissions and proposed RPCs
 
-No database or provider was contacted for this package. A migration file is
-source intent, **not** proof of the live ACL, RLS, schema exposure, function
-owner or default privileges. No previous receipt available to this worktree
-proves effective privileges for these exact proposed objects. Thus layer B is
-`UNKNOWN`, even where layer A contains a `GRANT` or `REVOKE`.
+The table below preserves the original source-only review. In the read-only
+qualification begun 2026-10-25 at 11:50 UTC, the original Kingston gbi /
+gan-batuach-integration PostgreSQL
+17.6 container was verified by Docker socket, project label, original named
+volume and loopback-only port 55422. Catalog and aggregate-only queries ran
+in bounded read-only transactions. No application RPC was executed.
+Migration text remains source intent; effective ACL UNKNOWN for any object
+or caller not listed in the observed section below.
 
 | Object | A — source-defined privileges/security | B — effective | C — unresolved |
 | --- | --- | --- | --- |
@@ -16,6 +19,54 @@ proves effective privileges for these exact proposed objects. Thus layer B is
 | `public.record_digital_observer_watch_rule_evaluation(uuid,integer,uuid,uuid,uuid,boolean,jsonb,jsonb,text,timestamptz)` | Source declares `SECURITY DEFINER`, `search_path=public`, row security off; `REVOKE ... FROM public`, `GRANT EXECUTE TO service_role` | UNKNOWN | Verify effective EXECUTE/owner/role inheritance, actual RPC behavior and legitimate callers before changing it. |
 | New claim/plan/receipt tables | Guarded proposal enables RLS and revokes new-table rights from PUBLIC/anon/authenticated; no policies or service grants applied | NOT APPLICABLE | Exact service grants, public-schema Data API exposure, role inheritance and default privileges require separate review. |
 | New risk ownership RPCs below | Proposed `SECURITY INVOKER`, exact `search_path=pg_catalog,pg_temp`; qualified `public.` object names; proposed immediate `REVOKE EXECUTE FROM PUBLIC,anon,authenticated`, then narrow `service_role` grant only if justified | NOT APPLICABLE | No functions are created. Effective caller and Data API behavior require isolated privilege probes before any migration. |
+
+## Observed deployed Development permissions — not an application access test
+
+- All 14 relevant existing tables are present with RLS enabled and FORCE RLS
+  disabled. The three proposed claim/plan/receipt tables and seven proposed
+  ownership RPCs are absent. The inspected 27 policies are permissive; many
+  target PUBLIC but their predicates restrict rows. Grants plus policies do
+  not prove that any particular user can access or mutate a row.
+- PostgREST is configured with schemas public,graphql_public and anonymous
+  role anon. Actual external Data API reachability, cache state and end-to-end
+  authorization remain untested. anon, authenticated and service_role have
+  schema USAGE on public.
+- Effective table rights, queried with has_table_privilege: anon has
+  INSERT/UPDATE/DELETE on camera sources and notification deliveries without
+  SELECT, and SELECT/INSERT/UPDATE/DELETE on Sites, Signals, Incidents, links,
+  Gateway enrollments and immutable audit events. authenticated has
+  SELECT/INSERT on organizations; SELECT on Risk, verification, watch-rule
+  evaluations and camera action requests; and SELECT/INSERT/UPDATE/DELETE on
+  Sites, Signals, Incidents, links, Gateway enrollments and immutable audit
+  events. RLS or mutation guards may narrow these rights; no unauthorized
+  row-level effect was tested or claimed. service_role has all four rights
+  on all 14 inspected tables and BYPASSRLS.
+- The deployed public.correlate_digital_observer_signal(uuid) is owned by
+  postgres, SECURITY DEFINER, search_path=public; only service_role has
+  effective EXECUTE among the three API roles. No PUBLIC grant exists.
+  The deployed
+  public.record_digital_observer_watch_rule_evaluation(uuid,integer,uuid,uuid,uuid,boolean,jsonb,jsonb,text,timestamptz)
+  is also owned by postgres, SECURITY DEFINER, with
+  search_path=public,row_security=off. It has explicit effective EXECUTE
+  for anon, authenticated and service_role (not PUBLIC). The source
+  migration revokes only PUBLIC; its body starts with an auth.role()
+  service_role guard. This is a least-privilege mismatch, not proof of an
+  ordinary-user RLS bypass. An exact-function privilege change and
+  legitimate-caller test require separate review; none was applied.
+- anon and authenticated do not have BYPASSRLS. service_role and postgres
+  do. postgres inherits anon, authenticated and service_role; authenticator
+  membership in those roles has inherit_option=false. No role was granted.
+  Default privileges for both postgres and supabase_admin in public grant
+  new-function EXECUTE to anon, authenticated and service_role. A future
+  risk RPC must explicitly revoke exact-function EXECUTE from anon,
+  authenticated and PUBLIC in its creation transaction; a PUBLIC-only revoke
+  is insufficient. Do not alter shared default privileges merely for this
+  review package.
+
+Source: deployed pg_namespace, pg_class, pg_policy, pg_proc, pg_roles,
+pg_auth_members, pg_default_acl, information_schema.routine_privileges and
+has_*_privilege; non-secret PostgREST container configuration. Observation
+is limited to this Development database, not Production.
 
 ## Exact proposed signatures — bodies BLOCKED
 
