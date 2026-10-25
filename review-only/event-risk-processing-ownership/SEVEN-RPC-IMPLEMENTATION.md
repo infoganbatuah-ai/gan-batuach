@@ -17,6 +17,10 @@ The later disconnected pre/post ownership split removes the local circular
 Risk-ID prerequisite only: pre-persist Event scope requires no Risk ID;
 post-read binding requires the trusted Risk row and unchanged attestation.
 Neither proves a database commit or resolves Home history.
+The local post-read contract additionally compares the source-defined Risk
+`risk_engine_version` to an explicit expected processing version; a legacy
+caller without that context now fails closed. This does not implement an RPC,
+trusted reader, or atomic claim/Risk transaction.
 They are *not deployable*: the proposed Home/customer Tenant mapping has not
 been independently reconciled and the new claim schema is absent. A body
 being present is not PostgreSQL qualification.

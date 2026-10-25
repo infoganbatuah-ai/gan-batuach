@@ -20,6 +20,7 @@ const permissions = readFileSync(new URL("PERMISSIONS-AND-RPCS.md", directory), 
 const rollback = readFileSync(new URL("FORWARD-AND-ROLLBACK.md", directory), "utf8");
 const blockers = readFileSync(new URL("BLOCKING-FACTS.md", directory), "utf8");
 const route = readFileSync(new URL("../../app/api/video-gateway/cloud-events/route.ts", directory), "utf8");
+const modelA = readFileSync(new URL("../../lib/domain/digital-observer/model-a-ownership.ts", directory), "utf8");
 const fencedWrites = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-fenced-writes.ts", directory), "utf8");
 const recovery = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-recovery.ts", directory), "utf8");
 const ownershipSnapshot = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-ownership-snapshot.ts", directory), "utf8");
@@ -140,6 +141,10 @@ for (const functionName of ["validateAuthoritativeEventRiskOwnership", "createDe
 assert.match(ownershipSnapshot, /PRE_PERSIST_EVENT_CHAIN_VALIDATED/);
 assert.match(ownershipSnapshot, /POST_READ_RISK_SCOPE_BOUND/);
 assert.match(ownershipSnapshot, /riskDecisionId: input\.riskDecisionId/);
+assert.match(modelA, /riskEngineVersion: string/);
+assert.match(modelA, /decision\?\.riskEngineVersion !== input\.expectedRiskEngineVersion/);
+assert.match(ownershipSnapshot, /ownership\.riskEngineVersion !== context\.engineVersion/);
+assert.match(localRiskRowComparator, /ownership\.riskEngineVersion !== context\.engineVersion/);
 assert.doesNotMatch(route, /validatePrePersistEventOwnership|bindPostReadRiskOwnership/);
 assert.match(draftExecutable, /recipient_snapshot_fingerprint text NOT NULL/);
 assert.match(draftExecutable, /recipient_snapshot_schema_version integer NOT NULL/);

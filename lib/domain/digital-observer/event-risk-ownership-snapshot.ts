@@ -28,6 +28,7 @@ export type PrePersistEventOwnership = Readonly<{
 export type PostReadRiskScopeBoundOwnership = Readonly<{
   stage: "POST_READ_RISK_SCOPE_BOUND";
   scope: Readonly<ResolvedModelAChain & { riskDecisionId: string }>;
+  riskEngineVersion: string;
   authorityEvidenceRef: string;
 }>;
 export type VerifiedEventRiskOwnership = PostReadRiskScopeBoundOwnership;
@@ -72,6 +73,7 @@ export async function validatePrePersistEventOwnership(input: EventOwnershipInpu
 export async function bindPostReadRiskOwnership(input: EventOwnershipInput & {
   prePersist: PrePersistEventOwnership;
   riskDecisionId: string;
+  expectedRiskEngineVersion: string;
 }): Promise<PostReadRiskScopeBoundOwnership> {
   if (input.prePersist?.stage !== "PRE_PERSIST_EVENT_CHAIN_VALIDATED" || !input.riskDecisionId) {
     throw new Error("MODEL_A_PRE_PERSIST_OR_RISK_MISSING");
@@ -84,12 +86,14 @@ export async function bindPostReadRiskOwnership(input: EventOwnershipInput & {
     || !samePrePersistScope(input.prePersist.scope, current.scope)) {
     throw new Error("MODEL_A_PRE_PERSIST_CHAIN_CHANGED");
   }
-  const scope = await resolveModelAChain({ ...input, riskDecisionId: input.riskDecisionId });
+  const scope = await resolveModelAChain({ ...input, riskDecisionId: input.riskDecisionId,
+    expectedRiskEngineVersion: input.expectedRiskEngineVersion });
   if (scope.riskDecisionId !== input.riskDecisionId || !samePrePersistScope(scope, current.scope)) {
     throw new Error("MODEL_A_RISK_SCOPE_MISMATCH");
   }
   return Object.freeze({ stage: "POST_READ_RISK_SCOPE_BOUND" as const,
     scope: Object.freeze({ ...scope, riskDecisionId: input.riskDecisionId }),
+    riskEngineVersion: input.expectedRiskEngineVersion,
     authorityEvidenceRef: current.authorityEvidenceRef });
 }
 
@@ -102,6 +106,7 @@ function samePrePersistScope(left: PrePersistEventOwnership["scope"], right: Pre
 /** Strict compatibility wrapper for disconnected post-persist callers. */
 export async function validateAuthoritativeEventRiskOwnership(input: EventOwnershipInput & {
   riskDecisionId: string;
+  expectedRiskEngineVersion: string;
 }): Promise<VerifiedEventRiskOwnership> {
   const prePersist = await validatePrePersistEventOwnership(input);
   return bindPostReadRiskOwnership({ ...input, prePersist });
@@ -215,6 +220,7 @@ export function qualifyAtomicCompletionPlan(input: {
   const { state, context, ownership } = input;
   assertFencedWrite(state, context);
   if (ownership.stage !== "POST_READ_RISK_SCOPE_BOUND"
+    || ownership.riskEngineVersion !== context.engineVersion
     || !sameScope(ownership.scope, context.scope)
     || !ownership.authorityEvidenceRef) throw new Error("MODEL_A_COMPLETION_OWNERSHIP_UNVERIFIED");
   if (!state.riskResult || !state.claim.risk || !state.claim.plan

@@ -29,6 +29,8 @@ export type CanonicalRiskDecision = Readonly<{
   siteId: string;
   incidentId: string;
   eventId: string;
+  // Source column: digital_observer_risk_evaluations.risk_engine_version.
+  riskEngineVersion: string;
 }>;
 
 /** A future trusted, server-side adapter must obtain these from canonical rows. */
@@ -56,12 +58,23 @@ export async function resolveModelAChain(input: {
   eventId: string;
   incidentId: string;
   riskDecisionId?: string;
+  // For a Risk lookup, derive this from the trusted processing claim, never
+  // an untrusted request. This disconnected reader does not prove that origin.
+  expectedRiskEngineVersion?: string;
   clientTenantId?: string;
   clientSiteId?: string;
 }): Promise<ResolvedModelAChain> {
   const { principal } = input;
   if (principal.lifecycleState !== "ACTIVE" || !principal.tenantId || !principal.siteId) {
     throw new Error("MODEL_A_PRINCIPAL_SCOPE_UNVERIFIED");
+  }
+  if (input.riskDecisionId && (typeof input.expectedRiskEngineVersion !== "string"
+    || !input.expectedRiskEngineVersion.trim()
+    || input.expectedRiskEngineVersion !== input.expectedRiskEngineVersion.trim())) {
+    throw new Error("MODEL_A_RISK_ENGINE_VERSION_REQUIRED");
+  }
+  if (!input.riskDecisionId && input.expectedRiskEngineVersion !== undefined) {
+    throw new Error("MODEL_A_RISK_ENGINE_VERSION_WITHOUT_RISK");
   }
   const [site, source, event, incident, decision] = await Promise.all([
     input.reader.site(principal.siteId),
@@ -91,6 +104,9 @@ export async function resolveModelAChain(input: {
     || decision.siteId !== site.siteId || decision.eventId !== event.id
     || decision.incidentId !== incident.id)) {
     throw new Error("MODEL_A_RISK_SCOPE_MISMATCH");
+  }
+  if (input.riskDecisionId && decision?.riskEngineVersion !== input.expectedRiskEngineVersion) {
+    throw new Error("MODEL_A_RISK_ENGINE_VERSION_MISMATCH");
   }
   return Object.freeze({ tenantId: site.tenantId, siteId: site.siteId,
     sourceId: source.id, eventId: event.id, incidentId: incident.id,

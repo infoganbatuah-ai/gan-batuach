@@ -35,7 +35,7 @@ function reader({ ambiguous = false, missingAuthority = false, tenantOverride = 
       sourceId: `source-${suffix}`, incidentId: `incident-${suffix}` }];
     if (kind === "incident") return [id, { id, siteId: `site-${suffix}`, eventIds: [`event-${suffix}`] }];
     return [id, { id, siteId: `site-${suffix}`, eventId: `event-${suffix}`,
-      incidentId: `incident-${suffix}` }];
+      incidentId: `incident-${suffix}`, riskEngineVersion: "do-risk-v1" }];
   }));
   return {
     async site(id) { return sites[id] ?? null; },
@@ -53,11 +53,13 @@ function reader({ ambiguous = false, missingAuthority = false, tenantOverride = 
 }
 function ownershipInput(overrides = {}) {
   return { reader: reader(), principal, sourceId: scope.sourceId, eventId: scope.eventId,
-    incidentId: scope.incidentId, riskDecisionId: scope.riskDecisionId, ...overrides };
+    incidentId: scope.incidentId, riskDecisionId: scope.riskDecisionId,
+    expectedRiskEngineVersion: engineVersion, ...overrides };
 }
 function preInput(overrides = {}) {
-  const { riskDecisionId: ignored, ...input } = ownershipInput(overrides);
-  void ignored;
+  const { riskDecisionId: ignoredRisk, expectedRiskEngineVersion: ignoredVersion, ...input } = ownershipInput(overrides);
+  void ignoredRisk;
+  void ignoredVersion;
   return input;
 }
 function snapshot(overrides = {}) {
@@ -121,7 +123,7 @@ function completeState() {
 function qualification(state = completeState(), overrides = {}) {
   const fixedSnapshot = snapshot();
   return { state, context: context(state), ownership: { stage: "POST_READ_RISK_SCOPE_BOUND",
-    scope, authorityEvidenceRef: "owner-adjudication-a" },
+    scope, riskEngineVersion: engineVersion, authorityEvidenceRef: "owner-adjudication-a" },
     persistedSnapshot: fixedSnapshot, expectedSnapshot: fixedSnapshot,
     expectedRiskProjectionGeneration: 1, expectedVerificationProjectionGeneration: 1,
     expectedDecisionIntent: intent(), externalAcknowledgmentRequired: true, ...overrides };
@@ -185,34 +187,69 @@ test("pre-persist authority and canonical chain fail closed on scope, ambiguity 
 test("post-read Risk binding verifies row and revalidates event-time evidence", async () => {
   const input = preInput();
   const prePersist = await validatePrePersistEventOwnership(input);
-  const bound = await bindPostReadRiskOwnership({ ...input, prePersist, riskDecisionId: "risk-a" });
+  const bind = (overrides = {}) => ({ ...input, prePersist, riskDecisionId: "risk-a",
+    expectedRiskEngineVersion: engineVersion, ...overrides });
+  const bound = await bindPostReadRiskOwnership(bind());
   assert.equal(bound.stage, "POST_READ_RISK_SCOPE_BOUND");
   assert.equal(bound.scope.riskDecisionId, "risk-a");
+  assert.equal(bound.riskEngineVersion, engineVersion);
   assert.equal(bound.authorityEvidenceRef, prePersist.authorityEvidenceRef);
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, riskDecisionId: "risk-b" }), /RISK_SCOPE_MISMATCH/);
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, riskDecisionId: "" }), /PRE_PERSIST_OR_RISK_MISSING/);
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist: { ...prePersist,
-    scope: { ...prePersist.scope, eventId: "event-b" } }, riskDecisionId: "risk-a" }), /CHAIN_CHANGED/);
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist: { ...prePersist,
-    authorityEvidenceRef: "different-evidence" }, riskDecisionId: "risk-a" }), /CHAIN_CHANGED/);
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, reader: {
+  await assert.rejects(bindPostReadRiskOwnership(bind({ riskDecisionId: "risk-b" })), /RISK_SCOPE_MISMATCH/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ riskDecisionId: "" })), /PRE_PERSIST_OR_RISK_MISSING/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ prePersist: { ...prePersist,
+    scope: { ...prePersist.scope, eventId: "event-b" } } })), /CHAIN_CHANGED/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ prePersist: { ...prePersist,
+    authorityEvidenceRef: "different-evidence" } })), /CHAIN_CHANGED/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ reader: {
     ...input.reader, async authoritativeTenantForEvent(siteId, eventId) {
       const old = await input.reader.authoritativeTenantForEvent(siteId, eventId);
       return { ...old, evidenceRef: "new-adjudication" };
     }
-  }, riskDecisionId: "risk-a" }), /CHAIN_CHANGED/);
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, reader: {
+  } })), /CHAIN_CHANGED/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ reader: {
     ...input.reader, async riskDecision() { return { id: "risk-a", siteId: "site-c",
-      eventId: "event-a", incidentId: "incident-a" }; }
-  }, riskDecisionId: "risk-a" }), /RISK_SCOPE_MISMATCH/);
+      eventId: "event-a", incidentId: "incident-a", riskEngineVersion: engineVersion }; }
+  } })), /RISK_SCOPE_MISMATCH/);
   for (const wrong of [{ eventId: "event-b" }, { incidentId: "incident-b" }]) {
-    await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, reader: {
+    await assert.rejects(bindPostReadRiskOwnership(bind({ reader: {
       ...input.reader, async riskDecision() { return { id: "risk-a", siteId: "site-a",
-        eventId: "event-a", incidentId: "incident-a", ...wrong }; }
-    }, riskDecisionId: "risk-a" }), /RISK_SCOPE_MISMATCH/);
+        eventId: "event-a", incidentId: "incident-a", riskEngineVersion: engineVersion, ...wrong }; }
+    } })), /RISK_SCOPE_MISMATCH/);
   }
-  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist,
-    sourceId: "source-b", riskDecisionId: "risk-a" }), /OWNERSHIP_CHAIN_MISMATCH/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ sourceId: "source-b" })), /OWNERSHIP_CHAIN_MISMATCH/);
+});
+
+test("Risk engine version is mandatory, exact and bound to the post-read result", async () => {
+  const input = preInput();
+  const prePersist = await validatePrePersistEventOwnership(input);
+  const bind = (overrides = {}) => ({ ...input, prePersist, riskDecisionId: "risk-a",
+    expectedRiskEngineVersion: engineVersion, ...overrides });
+  for (const invalid of [undefined, "", " "]) {
+    await assert.rejects(bindPostReadRiskOwnership(bind({ expectedRiskEngineVersion: invalid })),
+      /RISK_ENGINE_VERSION_REQUIRED/);
+  }
+  await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({
+    expectedRiskEngineVersion: undefined
+  })), /RISK_ENGINE_VERSION_REQUIRED/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ expectedRiskEngineVersion: "do-risk-v2" })),
+    /RISK_ENGINE_VERSION_MISMATCH/);
+  for (const wrong of [undefined, "", "do-risk-v2"]) {
+    await assert.rejects(bindPostReadRiskOwnership(bind({ reader: { ...input.reader,
+      async riskDecision() { return { id: "risk-a", siteId: "site-a", eventId: "event-a",
+        incidentId: "incident-a", riskEngineVersion: wrong }; }
+    } })), /RISK_ENGINE_VERSION_MISMATCH/);
+  }
+  const v2Reader = { ...input.reader, async riskDecision(id) {
+    return id === "risk-v2" ? { id, siteId: "site-a", eventId: "event-a",
+      incidentId: "incident-a", riskEngineVersion: "do-risk-v2" } : null;
+  } };
+  const v2 = await bindPostReadRiskOwnership(bind({ reader: v2Reader,
+    riskDecisionId: "risk-v2", expectedRiskEngineVersion: "do-risk-v2" }));
+  assert.equal(v2.riskEngineVersion, "do-risk-v2");
+  assert.notEqual(v2.riskEngineVersion, engineVersion);
+  assert.equal(v2.scope.eventId, prePersist.scope.eventId);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ reader: v2Reader,
+    riskDecisionId: "risk-v2" })), /RISK_ENGINE_VERSION_MISMATCH/);
 });
 
 test("decision-time recipient snapshot is canonical, immutable and cannot be replaced on retry", () => {
@@ -259,6 +296,8 @@ test("completion requires risk, fence, every mandatory effect, projections, audi
       snapshot({ scope: { ...scope, tenantId: "tenant-c" } }) })), /SNAPSHOT_SCOPE_CONFLICT/);
   assert.throws(() => qualifyAtomicCompletionPlan(qualification(state, { ownership:
     { scope: { ...scope, tenantId: "tenant-c" }, authorityEvidenceRef: "wrong" } })), /UNVERIFIED/);
+  assert.throws(() => qualifyAtomicCompletionPlan(qualification(state, { ownership:
+    { ...qualification(state).ownership, riskEngineVersion: "do-risk-v2" } })), /UNVERIFIED/);
 });
 
 test("mandatory local completion and external delivery/Guard acknowledgment remain separate", () => {

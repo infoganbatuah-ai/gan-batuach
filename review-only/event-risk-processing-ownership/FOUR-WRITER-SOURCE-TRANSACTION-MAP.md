@@ -57,8 +57,15 @@ Risk→Site/Event/Incident row, and returns a distinct
 compatibility wrapper. These functions are disconnected contracts; a caller-
 supplied fake reader is not an authoritative historical source. The deployed
 reader, atomic insert/read/fence and database-generated-ID transaction remain
-unimplemented. `CanonicalRiskDecision` does not carry engine version, so a
-post-read engine-version binding needs a reviewed reader/schema contract.
+unimplemented. The later disconnected reader contract now also requires the
+source-defined `risk_engine_version` (`20260906010000...:44`,
+`risk-decision-service.ts:302`) on the Risk row and an explicit expected
+processing version. Missing or different versions fail closed; the strict
+compatibility wrapper cannot guess one. The bound result carries that version
+into the local completion and full-row comparison guards. The expected version
+must come from a trusted claim/processing context, never from a client claim;
+no deployed reader or atomic engine-version verification exists. Factor and
+decision versions remain distinct fields, not substitutes for engine version.
 
 **Blocking facts.** The event-time ownership reader is not deployed; exact
 immutable Risk-result semantic serialization and composite Tenant/Site

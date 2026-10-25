@@ -39,6 +39,33 @@ Production read or Home service action occurred.
 The old endpoint-identity paragraph below is retained as historical evidence,
 not the current blocker. APPLY BLOCKED remains the package decision.
 
+## Prospective Home Event authority options — source inventory, no selection
+
+The active `cloud-events/route.ts:35-45,68-85` authenticates a Gateway,
+checks one Site and camera Source, and writes a Site-scoped canonical Signal.
+It does **not** read an authoritative event-time Tenant association:
+its Site projection omits `digital_observer_organization_id`. The candidate
+Site organization FK is nullable (`HOME-MAPPING.md`), and enrollment
+`tenant_id` is nullable and not a proved Tenant/Site pair. The disconnected
+`AuthoritativeEventOwnershipReader.authoritativeTenantForEvent` is an
+interface, not an implemented source. A test fixture returning
+`verifiedForEvent: true` or an `evidenceRef` is not external attestation.
+
+| Option for **new** Home Events | What source supports / does not support | Missing mandate and evidence |
+| --- | --- | --- |
+| A. Prospective server-authorized Site→Tenant association before Event acceptance | Existing Source/Site/Gateway checks can bind the incoming Event to a Site, and `digital_observer_organizations.id` is a candidate Tenant. Current nullable, mutable Site membership does not prove ownership at the Event time. | An authorized Digital Observer data owner must approve the authoritative association producer and attester; specify effective-time validity, immutable Event reference, change/conflict/revocation handling and audit. Candidate future default only after those facts are verified. |
+| B. Governed manual attestation | The existing reader interface can describe exact Tenant/Site/Event evidence, but no deployed producer or attester authorization exists. | Name a designated owner empowered to attest exact Event or bounded valid interval, with independent dated evidence, audit, revocation and conflict process. No blanket approval, email inference or automatic backfill. |
+| C. Fail closed | The disconnected validator rejects missing, ambiguous or conflicting event-time evidence. | Current fallback: do not activate the new risk-ownership path while authority is unresolved; preserve accepted canonical records and existing lawful access. This does not certify existing processing as migrated. |
+
+**Historical Home rows are separate.** Each ambiguous row/Event needs
+row-specific adjudication from independent dated ownership evidence. A
+prospective association cannot authorize a retrospective backfill. Do not
+infer historical Tenant from current Site, email, labels, billing role,
+Gateway enrollment or the empty Development Home Risk set. The owner decision
+must name issuer, authorized attester, exact Tenant/Site/Event/time scope,
+conflict/revocation/change handling and audit evidence. No legal conclusion,
+retention duration or database access is supplied by this inventory.
+
 ## Offline implementation blockers after this task
 
 | Missing fact | Inspected source and consequence | Exact future verification |
@@ -46,7 +73,7 @@ not the current blocker. APPLY BLOCKED remains the package decision.
 | Authoritative Home customer Tenant cardinality/history | `observer_sites.digital_observer_organization_id` is nullable; current two Home Site references do not prove historic ownership. Claim creation could bind the wrong customer. | Separately authorized historical owner review and new-write mapping/constraint qualification; no inferred backfill. |
 | Event-time ownership evidence reader | `model-a-ownership.ts` checks the canonical chain and `event-risk-ownership-snapshot.ts` now requires a trusted event-time Tenant attestation; no deployed reader or historical adjudication source implements it. Current Site organization membership is not authoritative for old Home Events. | Define and independently review a trusted event-time source with exact Tenant/Site/Event provenance, then qualify historical and new-write coverage without inferred backfill. |
 | Fenced Risk/verification/watch/intent/journal/audit writers | `risk-decision-service.ts`, `incident-verification-service.ts`, notification and audit helpers issue separate writes. The disconnected `event-risk-fenced-writes.ts` tests desired fence and evidence rules but is not called by them. A claim receipt cannot prove actual rows. | Verify exact row/payload mappings and implement epoch-fenced writers in reviewed PostgreSQL transactions; isolate and crash-test. |
-| Risk identity and complete semantic duplicate check | `risk-decision-service.ts:287-317` lets PostgreSQL generate the Risk UUID and, on 23505, rereads only `id`. The disconnected ownership contract now validates Event scope before persistence without that ID and binds Risk scope only after a trusted row read. `event-risk-source-row-map.ts` compares all source-shaped fields only for a supplied local row; it neither retrieves nor certifies a committed database row. | Implement an authoritative event-time reader and an atomic generated-ID insert/read/fence; qualify full stored-row equality, engine-version binding and PostgreSQL normalization in an approved isolated clone. `persist_event_risk_v1` body remains BLOCKED. |
+| Risk identity and complete semantic duplicate check | `risk-decision-service.ts:287-317` lets PostgreSQL generate the Risk UUID and, on 23505, rereads only `id`. The disconnected pre/post contract now binds Risk only after a reader-reported row with exact `risk_engine_version`, Event, Incident and Site; it does not certify a committed database row. `event-risk-source-row-map.ts` compares supplied source-shaped fields locally. | Implement an authoritative event-time reader and atomic generated-ID insert/read/fence; qualify full stored-row equality, trusted processing-version provenance and PostgreSQL normalization in an approved isolated clone. `persist_event_risk_v1` body remains BLOCKED. |
 | Four downstream write transaction boundaries | `FOUR-WRITER-SOURCE-TRANSACTION-MAP.md` maps each target and current independent service request; receipt rows alone cannot certify linked Risk, watch, verification, intent, journal or mandatory audit rows. No atomic claim/target/receipt/audit writer exists. | Review authoritative row inputs and composite scope keys, then implement and test each target write plus receipt/audit under current nonce/epoch and Incident-wide CAS in an authorized isolated clone. All four downstream SQL bodies remain BLOCKED. |
 | Incident-wide projection generation | Two proposed generation columns are absent. A delayed Event worker could replace newer Incident state. | Add only after approval, then test atomic generation/reference CAS under competing Events. |
 | Immutable recipient/settings plan | Current notification path rereads mutable recipients; the proposed plan table is absent. Replays could widen delivery. | Approve bounded snapshot schema and retention; test settings changes across crash/replay. |

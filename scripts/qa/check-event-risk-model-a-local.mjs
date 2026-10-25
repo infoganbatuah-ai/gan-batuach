@@ -29,10 +29,11 @@ const reader = {
   async incident(id) { return ({ "incident-a": { id, siteId: "site-a", eventIds: ["event-a"] },
     "incident-b": { id, siteId: "site-b", eventIds: ["event-b"] },
     "incident-c": { id, siteId: "site-c", eventIds: ["event-c"] } })[id] ?? null; },
-  async riskDecision(id) { return ({ "risk-a": { id, siteId: "site-a", eventId: "event-a", incidentId: "incident-a" } })[id] ?? null; }
+  async riskDecision(id) { return ({ "risk-a": { id, siteId: "site-a", eventId: "event-a",
+    incidentId: "incident-a", riskEngineVersion: "do-risk-v1" } })[id] ?? null; }
 };
 const requestA = { reader, principal, sourceId: "source-a", eventId: "event-a",
-  incidentId: "incident-a", riskDecisionId: "risk-a" };
+  incidentId: "incident-a", riskDecisionId: "risk-a", expectedRiskEngineVersion: "do-risk-v1" };
 const scopeA = { tenantId: "tenant-a", siteId: "site-a", sourceId: "source-a",
   eventId: "event-a", incidentId: "incident-a", riskDecisionId: "risk-a" };
 const tokenA = { ownerNonce: "worker-a", ownerEpoch: 1 };

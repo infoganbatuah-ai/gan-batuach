@@ -137,3 +137,48 @@ Site membership or an email string is not that proof. No historical Tenant is
 inferred here. Any later database observation needs a separate instruction
 naming the isolated target, read scope, sanitized outputs and limits; it is
 not authorized by this local contract task.
+
+## Subsequent exact engine-version binding — 2026-10-25 19:54 UTC
+
+Started from clean local `41e71f58080aea3dadbc6aeaf34866932af8c24a`
+on `codex/event-ingest-replay-identity-20261025`; prior ancestry is preserved.
+The final SHA is reported after commit. No active route, SQL, migration,
+database connection, provider, PR or remote branch was touched.
+
+The source migration declares `digital_observer_risk_evaluations.risk_engine_version
+text NOT NULL`, and `risk-decision-service.ts` writes it independently of
+`factor_version` and `decision_version`. The disconnected `CanonicalRiskDecision`
+reader contract now requires `riskEngineVersion`. `resolveModelAChain` rejects
+a Risk lookup without a nonempty explicit expected version and rejects a
+reader row with a missing or different version. The post-read binding and
+strict compatibility wrapper require that version, and completion/source-row
+comparison reject reuse under another processing version. The expected value
+must be supplied by a trusted server-side claim/processing context; an HTTP
+version parameter is not authority. No deployed reader or end-to-end context
+provenance is claimed.
+
+Bounded source audit: the pre-stage still carries no Risk ID; the post-stage
+checks stage, ID, Event/Incident/Site, unchanged event-time evidence and exact
+engine version; client Tenant/Site overrides remain denied. The same-ID Risk
+semantic comparator still rejects differing content. No further pure-code
+defect was established in this boundary. Independent re-reads remain
+non-atomic and cannot authenticate an arbitrary evidence string or prove
+snapshot isolation. Tenant is derived from the separately qualified chain,
+not a fictional Risk Tenant column. `BLOCKING-FACTS.md` records three
+source-supported prospective authority options and separate historical
+adjudication; none is selected or activated.
+
+Focused local validation for this increment: ownership snapshot tests 8/8,
+source-row tests 4/4, fenced-write tests 5/5, Model A tests 5/5 (22/22
+groups total); strict focused TypeScript, focused ESLint, review-package
+containment and staged diff checks passed. These are synthetic/source tests,
+not PostgreSQL concurrency, committed-row, RLS or restore proof. The earlier
+21/21 result belongs to the prior increment and is not reused here.
+
+Open external gates remain: owner selection and authorization of event-time
+Home Tenant/Site provenance (historical rows adjudicated separately), deployed
+trusted reader and processing-version provenance, atomic fenced writers and
+mandatory row/receipt/audit coupling, Incident-wide CAS, immutable recipient
+state, retention/legal holds, role/RLS/Data API qualification, restore and
+lossless rollback. Any isolated DB read or apply requires its own explicit
+scope and approval. Guard OFF; no Product readiness promotion.
