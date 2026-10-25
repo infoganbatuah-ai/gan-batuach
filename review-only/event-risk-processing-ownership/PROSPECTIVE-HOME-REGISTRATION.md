@@ -365,3 +365,16 @@ versions, acceptance/binding history and audit. Before activation, stop the
 new adapter; after any claim/receipt exists, retain additive storage and
 reconcile forward. No DROP, deletion, unfenced old writer, or empty synthetic
 clone is a lossless-rollback proof for original data.
+
+### Later guarded SQL source package — still not applicable
+
+`HOME-REGISTRATION-RECEIPTS-NOT-APPLIED.sql` now records a proposed private
+registration/version/acceptance/binding/audit shape and one conditional
+binding function body. It deliberately aborts before any object statement,
+has no COMMIT or grants, and is not a migration. The source mapping and exact
+remaining authority/atomic-acceptance gaps are in
+`HOME-REGISTRATION-SQL-REVIEW.md`. Qualification and acceptance RPC bodies
+remain BLOCKED because the current owner-session observation is not an
+in-transaction authority and `cloud-events/route.ts` inserts the Signal in a
+separate call. This package is static review evidence only, not PostgreSQL
+concurrency, RLS, rollback or historical-ownership proof.
