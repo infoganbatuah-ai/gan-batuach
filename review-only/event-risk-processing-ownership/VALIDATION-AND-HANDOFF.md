@@ -323,3 +323,46 @@ catalog discrepancy. No SQL write, clone, migration, service or provider
 change was made in this follow-up. The four downstream Risk writers and the
 future PostgreSQL qualification remain blocked. The final local SHA is
 reported after commit, not predicted here.
+
+## Existing-session live-read gate — 2026-10-25 21:10 UTC
+
+Baseline `f7141f53de0a5f37f206abc9482fe3d1f8fb6668` was clean. This
+follow-up makes no application or database mutation. Fresh target checks
+identified the original `colima-gbi` context, healthy
+`gan-batuach-integration` DB/Auth/gateway containers, the named original DB
+volume, and loopback-only DB/Auth gateway ports `55422`/`55421`; neither
+push38t/56422 nor Production was used. Two bounded catalog SELECTs in
+explicit READ ONLY transactions (10s statement, 1s lock timeout) returned a
+deployed function-body MD5 matching the reviewed migration body:
+`56be98b3bef9d01f8b8a574d8cc055d9`. Catalog flags were SQL, STABLE,
+SECURITY DEFINER, empty search path, zero arguments; authenticated EXECUTE
+true and anon EXECUTE false. No Auth/session rows or raw profile data were
+read, and no application RPC was invoked. This is source/catalog identity,
+**not** an authenticated-user or RLS result.
+
+The request-bound adapter's Bearer path uses installed Supabase client
+`2.106.1`: explicit-token `getUser(jwt)` issues an Auth GET and does not
+enter the cookie-session refresh path; its client disables persistence and
+auto-refresh. The canonical helper then calls the verified read-only
+current-session function and bounded profile, account, Site and membership
+SELECTs. `user_metadata.product` may help that helper classify Product
+scope, but cannot grant Home owner authority; exact server-derived owner,
+Tenant, Site and Source facts remain independently required. The PostgREST
+client's default RPC transport is POST despite this function's SELECT-only
+body. No approved existing Bearer-session channel was identified in the
+relevant source/qualification records; private browser or Keychain data was
+not searched. Browser Cookie use could refresh and was explicitly excluded.
+
+**LIVE AUTH NOT RUN.** No login, token creation, session touch/refresh,
+revocation, user/profile change or reader invocation occurred. Actor
+consistency, live session/profile state, wrong-actor live denial, actual owner
+RLS and revocation/expiry behavior are not proven; prior 28/28 local tests
+remain historical synthetic evidence, not a live result. No new 14-case
+PostgreSQL run, schema/ACL/RLS change, clone, route activation or Risk writer
+promotion occurred. The missing condition for this narrow test is an
+already-authorized existing Development actor Bearer session available through
+an approved secure runtime channel, **without** inspecting private stores,
+logging a token, logging in or refreshing it. If absent, the live read stays
+NOT RUN. Separately, the exact unresolved retention decision is recorded in
+`RETENTION-DECISION-GATE.md`; an approved category/context schedule and later
+isolated PostgreSQL qualification are required before storage activation.

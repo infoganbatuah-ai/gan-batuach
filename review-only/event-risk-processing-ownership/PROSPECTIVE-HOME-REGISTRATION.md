@@ -286,6 +286,8 @@ hold dependencies expire. No duration, automatic cleanup or indefinite
 retention is inferred. The already approved Model A/owner-registration policy
 is not being reopened. A separately authorized isolated PostgreSQL trial must
 still prove atomicity, RLS/role boundaries, recovery and rollback.
+The concrete category/trigger/options brief is `RETENTION-DECISION-GATE.md`;
+it does not adopt an existing media or audit-log period for these new records.
 
 ### Identity-source mapping and the exact gap
 

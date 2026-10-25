@@ -69,6 +69,18 @@
     "riskWriters": "FOUR_BLOCKED",
     "databaseOrRuntimeChange": false
   },
+  "liveHomeOwnerSessionRead": {
+    "status": "NOT_RUN",
+    "target": "original Kingston colima-gbi / gan-batuach-integration / loopback database 55422 and Auth gateway 55421",
+    "targetIdentity": "VERIFIED_NAME_LABEL_VOLUME_LOOPBACK_PORTS; no Production or push38t fallback",
+    "deployedSessionFunction": "MIGRATION_BODY_MD5_MATCH; SQL STABLE SECURITY DEFINER; search_path empty; authenticated EXECUTE true; anon EXECUTE false",
+    "allowedCallClasses": "explicit JWT auth.getUser GET; deployed read-only current-session SQL check; bounded active-profile and Observer-scope SELECTs",
+    "reasonNotRun": "No existing approved Bearer session channel for the Development actor was identified in relevant records; browser Cookie extraction or refresh, login and token minting are outside scope",
+    "actorConsistency": "NOT_OBSERVED",
+    "activeSessionAndProfile": "NOT_OBSERVED",
+    "revocationAndExpiry": "NOT_RUN_NO_STATE_MUTATION",
+    "databaseWriteOrClone": false
+  },
   "objects": [
     {
       "name": "public.digital_observer_organizations", "type": "table", "state": "EXISTING",

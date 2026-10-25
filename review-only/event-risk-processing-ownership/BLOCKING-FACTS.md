@@ -81,6 +81,22 @@ Registration/version/acceptance/binding/audit storage remains blocked by one
 Product/privacy retention-and-legal-hold schedule plus separate isolated
 PostgreSQL qualification. No general ownership-policy reapproval is needed.
 
+Live-session follow-up on 2026-10-25: the original gbi Development DB and
+Auth gateway were freshly identified from the `colima-gbi` context, project
+labels, named database volume and loopback ports. Two bounded read-only catalog
+SELECTs found the deployed current-session function's body MD5 matches
+the reviewed source, with SQL/STABLE/SECURITY DEFINER flags, empty search
+path, authenticated EXECUTE and no anon EXECUTE. It read no Auth rows and is
+**not** authenticated-user proof. The installed explicit-JWT client path sends
+an Auth GET and disables persistence/refresh; the helper then invokes the
+read-only function and bounded profile/account/Site/membership SELECTs.
+No approved existing Bearer-session channel was identified; Cookie extraction,
+login or refresh was not attempted. **LIVE AUTH NOT RUN**, so actor consistency,
+active profile/session and real owner/RLS behavior remain unverified. This is
+not a request for a new user, token or broad database permission. Category
+retention choices and the exact Product/privacy/legal input are in
+`RETENTION-DECISION-GATE.md`; no TTL or cleanup was chosen.
+
 ## Prospective Home Event authority options — source inventory, no selection
 
 The active `cloud-events/route.ts:35-45,68-85` authenticates a Gateway,
