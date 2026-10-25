@@ -254,6 +254,15 @@ const reloadedReply=await reloadedRoute.POST(new Request("http://test.invalid/ap
 assert.equal(reloadedReply.status,201,"A route-module reload can reread the same persisted fixture event");
 assert.equal(tables.observer_intelligence_signals.length,signalsBeforeRace+1,"A simulated restart does not insert another signal into the shared fixture store");
 assert.equal(tables.digital_observer_notification_deliveries.length,notificationCountBeforeReload,"A simulated restart does not duplicate notification intents");
+const collisionEvent={...raceEvent,event_id:randomUUID(),track_id:"original-track"};
+const collisionRiskBefore=riskCalls;
+raceReads.arrivals=0;
+raceReads.gate=new Promise(resolve=>{raceReads.release=resolve;});
+raceReads.enabled=true;
+const collisionReplies=await Promise.all([send(collisionEvent),send({...collisionEvent,track_id:"conflicting-track"})]);
+assert.deepEqual(collisionReplies.map(item=>item.status).sort(),[201,409],"A 23505 reread must reject a semantically different observation");
+assert.equal(raceReads.arrivals,2,"Both conflicting requests entered the simulated insert race");
+assert.equal(riskCalls-collisionRiskBefore,1,"Only the winning observation reaches Risk after the collision");
 const detailed={...event,event_id:randomUUID(),confidence:.90005,
   model_provenance:{model:"qa-model",runtime:"local",execution_provider:"local"},
   verification_evidence:{distinct_source_frames:2,directional_confirmations:0,source_sequence:11,source_anchor_verified:true,tracking_duration_ms:100}};
@@ -264,5 +273,39 @@ assert.equal((await send({...detailed,model_provenance:{execution_provider:"loca
 assert.equal((await send({...detailed,verification_evidence:{...detailed.verification_evidence,source_sequence:12}})).status,409,"Changed nested evidence cannot reuse an Event ID");
 assert.equal((await send({...detailed,confidence:.9002})).status,409,"A distinct normalized confidence cannot reuse an Event ID");
 assert.equal((await send({...detailed,event_id:randomUUID(),confidence:.9002})).status,201,"A replay collision does not suppress a later legitimate Event");
+const {buildCanonicalCloudObservation,matchesCanonicalCloudObservation}=load("lib/domain/event-engine/cloud-event-observation.ts",mocks);
+const original=tables.observer_intelligence_signals[0];
+const expectedObservation=buildCanonicalCloudObservation({event,siteId,sourceId:original.source_id,
+  eventType:event.event_type,severity:"info",recordingRequired:false});
+assert.equal(matchesCanonicalCloudObservation(original,expectedObservation),true);
+const operational=structuredClone(original);
+operational.metadata.media_status="available";
+operational.metadata.delivery_delay_ms=90_000;
+operational.metadata.last_seen=new Date().toISOString();
+assert.equal(matchesCanonicalCloudObservation(operational,expectedObservation),true,"Mutable delivery/media fields cannot change observation identity");
+for(const [label,mutate] of [
+  ["Site",row=>{row.observer_site_id=randomUUID();}],
+  ["stable Source key",row=>{row.source_id=randomUUID();}],
+  ["camera Source",row=>{row.metadata.camera_source_id=randomUUID();}],
+  ["stream",row=>{row.metadata.stream_id="other";}],
+  ["event type",row=>{row.metadata.event_type="other";}],
+  ["severity",row=>{row.severity="critical";}],
+  ["confidence",row=>{row.confidence=.72;}],
+  ["observation time",row=>{row.metadata.first_seen=new Date(Date.now()-1000).toISOString();}],
+  ["created time",row=>{row.created_at=new Date(Date.now()-1000).toISOString();}],
+  ["track",row=>{row.metadata.track_id="other";}],
+  ["evidence kind",row=>{row.metadata.evidence_kind="validated_rule";}],
+  ["recording decision",row=>{row.metadata.recording_required=true;}],
+  ["model",row=>{row.metadata.model_provenance={model:"other"};}],
+  ["verification",row=>{row.metadata.verification_evidence={source_sequence:1};}],
+  ["provenance",row=>{row.metadata.observation_provenance="SHADOW_AI";}],
+  ["validation",row=>{row.metadata.validated_event=false;}],
+  ["malformed metadata",row=>{row.metadata=[];}],
+  ["malformed confidence",row=>{row.confidence="Infinity";}]
+]){
+  const changed=structuredClone(original);mutate(changed);
+  assert.equal(matchesCanonicalCloudObservation(changed,expectedObservation),false,`${label} cannot reuse a stored observation`);
+}
+assert.equal(matchesCanonicalCloudObservation(null,expectedObservation),false,"Missing database row fails closed");
 console.log(JSON.stringify({localRace:{accepted:2,durableSignals:1,inAppIntents:2,riskEvaluations:riskEvaluationsDuringRace,database:"mocked_unique_constraint",moduleReload:"simulated",postgresqlIntegration:false}}));
 console.log("Event ingestion checks passed: token validation, revocation, scope, consent, immutable replay identity, Site-scoped tenant denial, mocked race behavior, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");

@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
-import { isDeepStrictEqual } from "node:util";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth";
 import { eventValidationPipeline } from "@/lib/domain/event-engine/event-validation-pipeline";
 import { validCrossingLine } from "@/lib/domain/event-engine/camera-zone-mapper";
 import { cloudCameraEventSchema, eventEvidenceCompatibility } from "@/lib/domain/event-engine/event-evidence-compatibility";
+import { buildCanonicalCloudObservation, matchesCanonicalCloudObservation } from "@/lib/domain/event-engine/cloud-event-observation";
 import { scheduleIsOffHours } from "@/lib/domain/event-engine/off-hours";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { dispatchDigitalGuardActionsForValidatedEvent } from "@/lib/domain/digital-observer/guard-autonomy-service";
@@ -65,19 +65,21 @@ export async function POST(request: Request) {
     const severity: "info" | "medium" | "critical" = result.event.severity === "CRITICAL"
       ? "critical"
       : result.event.severity === "WARNING" ? "medium" : "info";
+    const observation = buildCanonicalCloudObservation({ event, siteId: device.observer_site_id,
+      sourceId, eventType: result.event.event_type, severity, recordingRequired: result.shouldRecord });
     let signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
     if (signal.error) throw new Error("EVENT_READ_FAILED");
     if (!signal.data) {
       signal = await db.from("observer_intelligence_signals").insert({
-        source_type: "system", source_id: sourceId, signal_type: "ai_camera", observer_site_id: device.observer_site_id,
-        severity, confidence: event.confidence, created_at: event.timestamp, review_status: "needs_review",
+        source_type: "system", source_id: observation.sourceId, signal_type: "ai_camera", observer_site_id: observation.siteId,
+        severity: observation.severity, confidence: observation.confidence, created_at: observation.occurredAt, review_status: "needs_review",
         human_review_required: true, parent_visible: false, recommended_action: result.shouldRecord ? narrative.action : "לידיעה בלבד; לא נדרשה הקלטה.",
-        metadata: { event_type: result.event.event_type, camera_source_id: camera.id, stream_id: event.stream_id, camera_name: result.camera.camera_name,
-          zone_type: result.camera.source === "default" ? null : result.camera.zone_type, track_id: event.track_id,
+        metadata: { event_type: observation.eventType, camera_source_id: observation.cameraId, stream_id: observation.streamId, camera_name: result.camera.camera_name,
+          zone_type: result.camera.source === "default" ? null : result.camera.zone_type, track_id: observation.trackId ?? undefined,
           event_summary: `${narrative.summary} · ${result.camera.camera_name}`, validated_event: true,
-          recording_required: result.shouldRecord, media_status: result.shouldRecord ? "pending" : "not_required",
-          evidence_kind: event.evidence_kind, observation_provenance: "REAL_CAMERA_AI", ...(event.model_provenance ? { model_provenance: event.model_provenance } : {}), first_seen: event.timestamp, last_seen: event.timestamp,
-          ...(event.verification_evidence ? { verification_evidence: event.verification_evidence } : {}),
+          recording_required: observation.recordingRequired, media_status: observation.recordingRequired ? "pending" : "not_required",
+          evidence_kind: observation.evidenceKind, observation_provenance: "REAL_CAMERA_AI", ...(observation.modelProvenance ? { model_provenance: observation.modelProvenance } : {}), first_seen: observation.occurredAt, last_seen: event.timestamp,
+          ...(observation.verificationEvidence ? { verification_evidence: observation.verificationEvidence } : {}),
           received_at: new Date().toISOString(), received_late: backfill, delivery_mode: backfill ? "BACKFILL_RESYNC" : "LIVE", delivery_delay_ms: deliveryDelayMs,
           queued_at: event.delivery?.queued_at ?? event.timestamp, cloud_ingested_at: new Date().toISOString() }
       }).select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").single();
@@ -86,22 +88,10 @@ export async function POST(request: Request) {
     }
     const persistedSignal = signal.data;
     if (!persistedSignal) throw new Error("EVENT_WRITE_FAILED");
-    const stored = persistedSignal.metadata ?? {};
     // A retry may update delivery/media lifecycle metadata, but it may not
     // change the immutable observation that owns this site-scoped source ID.
     // Check this before risk, notification or Guard side effects run again.
-    if (persistedSignal.observer_site_id !== device.observer_site_id
-      || persistedSignal.source_type !== "system" || persistedSignal.source_id !== sourceId
-      || persistedSignal.signal_type !== "ai_camera" || persistedSignal.severity !== severity
-      || persistedSignal.confidence == null || !Number.isFinite(Number(persistedSignal.confidence))
-      || Math.round(Number(persistedSignal.confidence) * 10_000) !== Math.round(event.confidence * 10_000)
-      || stored.camera_source_id !== camera.id || stored.stream_id !== event.stream_id
-      || stored.event_type !== result.event.event_type || stored.first_seen !== event.timestamp
-      || (stored.track_id ?? null) !== (event.track_id ?? null)
-      || stored.evidence_kind !== event.evidence_kind || stored.recording_required !== result.shouldRecord
-      || stored.observation_provenance !== "REAL_CAMERA_AI" || stored.validated_event !== true
-      || !isDeepStrictEqual(stored.model_provenance ?? null, event.model_provenance ?? null)
-      || !isDeepStrictEqual(stored.verification_evidence ?? null, event.verification_evidence ?? null)) {
+    if (!matchesCanonicalCloudObservation(persistedSignal, observation)) {
       return fail("Event id was already used for a different observation.", 409);
     }
     // Context learning is best-effort and cannot make a durable, authenticated

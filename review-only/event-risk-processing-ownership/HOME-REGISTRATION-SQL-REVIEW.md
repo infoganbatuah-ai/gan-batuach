@@ -62,6 +62,23 @@ must be approved and measured before activation.
    reviewed transactional server adapter must own both writes, compare the
    *complete immutable observation* on duplicate stable IDs, and retain the
    original version on retry. `23505` alone is not semantic equivalence.
+
+   The current source-level comparator is now centralized in
+   `lib/domain/event-engine/cloud-event-observation.ts` and used after both
+   initial read and `23505` reread, before Risk/notification/Guard. Its frozen
+   fields are Site, namespaced stable Source key, canonical Signal source/type,
+   camera Source, stream, normalized severity and 4-decimal confidence,
+   server-stored Event type, observation timestamp (`created_at` and
+   `metadata.first_seen`), track, evidence kind, recording decision, model
+   provenance, verification evidence, validated flag and REAL_CAMERA_AI
+   provenance. Delivery delay/mode, receive time, last-seen time, media status
+   and fault lifecycle remain mutable operational fields, not identity. The
+   comparator rejects malformed rows and semantic collisions; a simulated
+   two-request `23505` race verifies only the local route behavior. It does
+   **not** make the HTTP Signal insert and future acceptance receipt atomic,
+   nor does it prove PostgreSQL concurrency, historical ownership or the
+   canonical JSON serialization needed for a future receipt writer.
+
 3. The source-defined owner session adapter is request-local and read-only;
    it is not a transaction-bound DB authority. Before a qualification RPC,
    prove fresh session, organization/Site/Source/owner invariants and a
