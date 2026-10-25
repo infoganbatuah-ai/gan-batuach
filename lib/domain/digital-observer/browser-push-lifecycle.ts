@@ -14,6 +14,11 @@ const bindingSchema = z.object({
 export type BrowserPushBinding = z.infer<typeof bindingSchema>;
 type BindingStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
+export function browserPushConflictMessage(previousSiteRevoked: boolean) {
+  const blocked = "הטוקן שהתקבל כבר משויך או בוטל בשרת. רישום Push חדש לא הושלם; ביטול חוזר לבדו לא יפתור זאת. דרוש טוקן חדש או מסלול שיוך מחדש מבוקר.";
+  return previousSiteRevoked ? `רישום ה־Push באתר הקודם בוטל. ${blocked}` : blocked;
+}
+
 export function readBrowserPushBinding(storage: BindingStorage): BrowserPushBinding | null {
   const raw = storage.getItem(browserPushBindingKey);
   if (!raw) {

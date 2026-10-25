@@ -72,6 +72,19 @@ test("same authorized Site retains its exact installation without an extra revoc
   assert.deepEqual(result, { revoked: false, binding });
 });
 
+test("reused FCM token is reported as blocked, never as an automatic new-Site registration", () => {
+  const switched = lifecycle.browserPushConflictMessage(true);
+  const sameSite = lifecycle.browserPushConflictMessage(false);
+  assert.match(switched, /באתר הקודם בוטל/);
+  assert.match(switched, /רישום Push חדש לא הושלם/);
+  assert.match(switched, /ביטול חוזר לבדו לא יפתור/);
+  assert.doesNotMatch(sameSite, /באתר הקודם בוטל/);
+  assert.match(sameSite, /טוקן חדש או מסלול שיוך מחדש מבוקר/);
+  const consumer = readFileSync(new URL("../../components/digital-observer/observer-fcm-push-registration.tsx", import.meta.url), "utf8");
+  assert.match(consumer, /url === "\/api\/push\/register" && response\.status === 409/);
+  assert.match(consumer, /browserPushConflictMessage\(previousSiteRevoked\)/);
+});
+
 test("profile switch cannot revoke or register using previous owner's binding", async () => {
   let calls = 0;
   await assert.rejects(lifecycle.reconcileBrowserPushBinding(binding, runtime(other, [oldSite]), oldSite,

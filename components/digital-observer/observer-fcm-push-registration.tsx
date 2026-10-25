@@ -7,12 +7,14 @@ import { getMessaging, getToken, isSupported, onMessage } from "firebase/messagi
 import { BellRing, LoaderCircle, Send, Smartphone } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import { registerObserverPushAfterSiteGate } from "@/lib/domain/digital-observer/push-registration-order";
-import { clearConfirmedBrowserPushBinding, confirmedBrowserPushRevocation, readBrowserPushBinding,
+import { browserPushConflictMessage, clearConfirmedBrowserPushBinding, confirmedBrowserPushRevocation, readBrowserPushBinding,
   reconcileBrowserPushBinding, recoverLegacyBrowserPushBinding, saveBrowserPushBinding, verifiedBrowserPushRuntime,
   type BrowserPushBinding } from "@/lib/domain/digital-observer/browser-push-lifecycle";
 
 type ActionState = { busy: boolean; registered: boolean; message: string; error: string };
 const initialState: ActionState = { busy: false, registered: false, message: "", error: "" };
+
+class BrowserPushBindingConflict extends Error {}
 
 function firebaseConfig() {
   const config = {
@@ -41,6 +43,7 @@ async function postJson(url: string, body: Record<string, unknown>) {
     body: JSON.stringify(body)
   });
   const result = await response.json().catch(() => ({}));
+  if (url === "/api/push/register" && response.status === 409) throw new BrowserPushBindingConflict();
   if (!response.ok) throw new Error(result?.error || "הפעולה נכשלה.");
   return result?.data ?? result;
 }
@@ -129,6 +132,7 @@ export function ObserverFcmPushRegistration({ siteId }: { siteId: string }) {
 
   async function register() {
     setState({ busy: true, registered: false, message: "", error: "" });
+    let previousSiteRevoked = false;
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await new Promise<{ ok: boolean; reason?: string }>((resolve) => {
@@ -148,7 +152,7 @@ export function ObserverFcmPushRegistration({ siteId }: { siteId: string }) {
           const reason = result.reason === "permission_denied"
             ? "הרשאת ההתראות לא אושרה במכשיר."
             : result.reason === "token_conflict"
-              ? "למכשיר יש שיוך Push קודם. בטל אותו כאן ואז נסה להירשם שוב."
+              ? "שיוך ה־Push במכשיר הזה חסום בשל טוקן קיים או מבוטל. ביטול חוזר לבדו לא יפתור זאת; דרוש טוקן חדש או שיוך מבוקר."
             : "רישום ה־Push במכשיר לא הושלם.";
           throw new Error(reason);
         }
@@ -158,6 +162,7 @@ export function ObserverFcmPushRegistration({ siteId }: { siteId: string }) {
       const runtime = await currentBrowserRuntime();
       const saved = await readOrRecoverBrowserBinding();
       const reconciled = await reconcileBrowserPushBinding(saved, runtime, siteId, revokeBrowserBinding);
+      previousSiteRevoked = reconciled.revoked;
       if (!(await isSupported())) throw new Error("הדפדפן הזה אינו תומך ב־Push.");
       if (await Notification.requestPermission() !== "granted") throw new Error("יש לאשר התראות כדי לרשום את המכשיר.");
       const app = getApps()[0] ?? initializeApp(firebaseConfig());
@@ -188,7 +193,9 @@ export function ObserverFcmPushRegistration({ siteId }: { siteId: string }) {
       });
       setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כבויה עד אישור הפעלה נפרד.", error: "" });
     } catch (error) {
-      setState({ busy: false, registered: false, message: "", error: error instanceof Error ? error.message : "לא ניתן לרשום את המכשיר." });
+      setState({ busy: false, registered: false, message: "", error: error instanceof BrowserPushBindingConflict
+        ? browserPushConflictMessage(previousSiteRevoked)
+        : error instanceof Error ? error.message : "לא ניתן לרשום את המכשיר." });
     }
   }
 
