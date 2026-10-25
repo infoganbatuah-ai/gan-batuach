@@ -20,6 +20,43 @@ registration/processing metadata, not source recordings or media.
 - The guarded SQL package has no active registration, acceptance, binding,
   claim or receipt store. The four downstream Risk writers remain blocked.
 
+## Bounded Development read and operational-clock inventory
+
+At **2026-10-25 21:14 UTC**, the owner-authorized, bounded **READ ONLY** check
+used the verified original `colima-gbi` / `supabase_db_gan-batuach-integration`
+container and an explicit read-only PostgreSQL transaction (10-second statement,
+1-second lock timeout). It selected only aggregate policy flags and exact
+proposed-table catalog presence: the five PUSH 45 Digital Observer policies
+listed in the migration are present; **5/5 have a null retention period,
+5/5 need legal review, 0/5 permit automatic execution, and 5/5 require a
+legal-hold check**. The exact proposed Risk claim, plan and effect-receipt
+tables are **0/3 present**. No individual record, Auth data, credential or
+policy JSON was read. No SQL write, clone or runtime change occurred. This is
+Development state, not Production or future-schema proof.
+
+The following bounds are *engineering behavior*, not approved retention for
+the five proposed categories above. "Source" means inspected code/migration;
+"observed" means the bounded gbi aggregate above. Neither proves a live
+Home Event replay window or a lawful deletion date.
+
+| Dependency | Established bound and class | What remains unbounded or unproven |
+| --- | --- | --- |
+| Gateway offline Event queue | **Source:** `services/video-gateway/durable-offline-queue.mjs:36-42,57-59,91-96` defaults to 7 days from queueing, permits a configured 1-minute to 30-day range, removes pending/failed payloads after expiry, and caps each retry backoff (default 300 seconds). `services/video-gateway/journal-loop.mjs:46-50,225-258` supplies no retention override and retries Event delivery; its 60-second/5-attempt branch concerns media capture, not Event retention. | No hard attempt-count cap for Event delivery; the queue can expire an undelivered Event. Its configured/default duration neither guarantees all Event replay nor authorizes deletion of server acceptance/binding or audit. Installed Home runtime configuration was not inspected here. |
+| Accepted Event replay | **Source:** `app/api/video-gateway/cloud-events/route.ts:27-37,63-105` accepts authenticated backfill, rejects timestamps over 60 seconds in the future and checks stable-ID semantic duplicates. | No maximum *past* Event age or bounded period for canonical Event/Incident/Risk reprocessing is defined here. A 60-second live/backfill classification is not a retention cutoff. |
+| Proposed Risk claim recovery | **Disconnected source only:** `lib/domain/digital-observer/event-risk-recovery.ts:4-5,53-60,100-117` caps each lease at five minutes and permits renewed leases and higher-epoch takeover. `review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql:138-140` defines no TTL or cleanup. **Observed:** the three exact proposed Risk tables are absent in gbi. | No cumulative retry/takeover lifetime, pending-effect resolution deadline, or deployed durable recovery clock. A per-lease limit cannot become a claim retention period. |
+| Notification delivery | **Source:** `lib/domain/digital-observer/notification-orchestration.ts:130-151,178-195` gives each delivery a default 1-hour validity, clamped to 60 seconds–24 hours, and bounded retry backoff; `supabase/migrations/20260820010000_digital_observer_product_runtime.sql:265-275` defaults to three attempts (allowed 1–10). | Delivery expiry/dead-letter/unknown outcome does not define how long decision-time recipient/settings references, delivery evidence or complaints must remain. Provider callback, dispute and audit retention are not bounded by these TTLs. |
+| Incident and appeal | **In-memory projection source:** `lib/domain/digital-observer/incident-correlation.ts:115-175` closes on a matching exit and correlates an open track within ten minutes. | Ten-minute correlation is not an Incident closure SLA, appeal window or permissible evidence disposal date; no category-specific dispute horizon was established. |
+| Backup, restore and rollback | **Schema source:** `supabase/migrations/20260612013400_business_continuity_backup_disaster_recovery.sql:48-92` permits nullable RPO/RTO targets in restore runs/plans; a field is not an approved or met objective. **Review contract:** `review-only/event-risk-processing-ownership/FORWARD-AND-ROLLBACK.md:51-65` retains active claims/effects and declares compatibility-first rollback blocked pending rehearsal. | No verified coverage or retention for the **not-yet-created** registration/Risk stores, no numeric backup-copy deletion horizon, and no finite mixed-version rollback window. Existing Development backup/restore receipts cannot prove coverage of future tables. |
+
+**Retention lower bound: NOT COMPUTABLE.** The 7-day default queue, 24-hour
+maximum delivery TTL and 5-minute lease cap constrain different components;
+they cannot be added or selected as a common record-retention period. A future
+category schedule must cover the last permitted Event retry/replay, active or
+recoverable claim/effect, Incident disposition and challenge, recipient/setting
+reconstruction, backup/restore and compatible rollback dependency, subject to
+legal hold. Several of those maxima are undefined. No automatic deletion,
+redaction or backup expiry is authorized by this inventory.
+
 ## Exact category decisions required
 
 All triggers below are **proposed decision points**, not approved expiry dates.
