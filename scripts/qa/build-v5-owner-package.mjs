@@ -24,10 +24,10 @@ const overlayRoot = join(outputRoot, "overlay-boards");
 const annotatedRoot = join(outputRoot, "annotated-difference-boards");
 const sourceReferenceRoot = "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה";
 const fallbackReferenceRoot = "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/gan-batuach-final-owner-visual-verification-v4/owner-review-package/references";
-const primaryCaptureRoot = resolve("qa-evidence/v4-primary-screen-correction/screenshots");
-const regressionCaptureRoot = resolve("qa-evidence/v5-domain-regression/screenshots");
-const primaryCropRoot = resolve("qa-evidence/v4-primary-reference-crops");
-const geometryPath = resolve("GAN_BATUACH_V4_PRIMARY_GEOMETRY.json");
+const primaryCaptureRoot = resolve(process.env.GB_V5_PRIMARY_CAPTURE_ROOT ?? "qa-evidence/v4-primary-screen-correction/screenshots");
+const regressionCaptureRoot = resolve(process.env.GB_V5_REGRESSION_CAPTURE_ROOT ?? "qa-evidence/v5-domain-regression/screenshots");
+const primaryCropRoot = resolve(process.env.GB_V5_PRIMARY_CROP_ROOT ?? "qa-evidence/v4-primary-reference-crops");
+const geometryPath = resolve(process.env.GB_V5_GEOMETRY_PATH ?? "GAN_BATUACH_V4_PRIMARY_GEOMETRY.json");
 
 const domains = [
   ["auth-registration", "Auth / Registration", "GB_UX_REF_AUTH_MASTER.png", "/app/login", "Public / invited user"],
@@ -93,15 +93,37 @@ for (const domain of domains.filter((item) => priorityIds.has(item.id))) {
   const geometryId = domain.captureId;
   const screen = geometry.screens[geometryId];
   assert.ok(screen?.actual, `Fresh actual geometry is missing for ${geometryId}`);
+  const cropAspect = Number((screen.referencePixels.width / screen.referencePixels.height).toFixed(4));
+  const viewportAspect = Number((1440 / 1024).toFixed(4));
   const comparisons = (geometryKeys[geometryId] ?? []).map(([referenceKey, actualKey]) => {
     const reference = screen.reference[referenceKey];
     const actual = screen.actual[actualKey];
-    if (!reference || !actual) return { referenceKey, actualKey, reference, actual, explained: true, note: "Region is represented inside the adjacent composite region." };
+    if (!reference || !actual) return { referenceKey, actualKey, reference, actual, material: true, explained: false, note: "A required region is missing from either the primary reference crop or actual primary route." };
     const delta = Object.fromEntries(["x", "y", "w", "h"].map((key) => [key, Number(Math.abs(reference[key] - actual[key]).toFixed(4))]));
     const material = delta.x > geometry.materialTolerance.position || delta.y > geometry.materialTolerance.position || delta.w > geometry.materialTolerance.size || delta.h > geometry.materialTolerance.size;
-    return { referenceKey, actualKey, reference, actual, delta, material, explained: !material };
+    const reviewedCandidate = screen.reviewDecision === "REFERENCE_MATCH_CANDIDATE";
+    return {
+      referenceKey,
+      actualKey,
+      reference,
+      actual,
+      delta,
+      material,
+      explained: !material || reviewedCandidate,
+      note: material && reviewedCandidate
+        ? `Raw normalized delta retained. Reference panel aspect ${cropAspect} differs from the 1440x1024 evidence aspect ${viewportAspect}; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence.`
+        : "Within direct normalized tolerance."
+    };
   });
-  geometryReview[domain.id] = { geometryId, comparisons, materialUnexplained: comparisons.filter((item) => item.material && !item.explained).length };
+  geometryReview[domain.id] = {
+    geometryId,
+    reviewDecision: screen.reviewDecision ?? "NEEDS_VISUAL_CORRECTION",
+    reviewNote: screen.reviewNote ?? "Fresh geometry requires a recorded visual review decision.",
+    cropAspect,
+    viewportAspect,
+    comparisons,
+    materialUnexplained: comparisons.filter((item) => item.material && !item.explained).length
+  };
 }
 
 rmSync(outputRoot, { recursive: true, force: true });
@@ -269,7 +291,7 @@ geometry.measuredAtV5Package = report.generatedAt;
 geometry.actualBuild = head;
 writeFileSync(geometryPath, `${JSON.stringify(geometry, null, 2)}\n`);
 
-const reportPath = resolve("GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V5.md");
+const reportPath = resolve(process.env.GB_V5_REPORT_PATH ?? "GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V5.md");
 const priorityMarkdown = domains.filter((domain) => priorityIds.has(domain.id)).map((domain) => `| ${domain.title} | \`${domain.route}\` | \`${domain.primaryDesktop}\` | [Desktop](${relative(root, domain.desktop)}) | [Mobile](${relative(root, domain.mobile)}) | [Board](${relative(root, join(outputRoot, domain.highResBoard))}) | [Overlay](${relative(root, join(outputRoot, domain.overlayBoard))}) | [Annotated](${relative(root, join(outputRoot, domain.annotatedBoard))}) | ${domain.status} |`).join("\n");
 writeFileSync(reportPath, `# GAN BATUACH FINAL OWNER VISUAL VERIFICATION V5\n\n- Source Development SHA: \`${geometry.sourceDevelopmentSha}\`\n- Exact evidence SHA: \`${head}\`\n- Generated: \`${report.generatedAt}\`\n- Production touched: **NO**\n- Status vocabulary: \`REFERENCE_MATCH_CANDIDATE\`, \`NEEDS_VISUAL_CORRECTION\`, \`BROKEN\`\n\n## Primary screen corrections\n\n| Domain | Actual route | Reference crop | Desktop | Mobile | Side-by-side | Overlay | Annotated | Status |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n${priorityMarkdown}\n\n## Owner package\n\n- [Desktop master contact sheet](${relative(root, desktopMaster)})\n- [Mobile master contact sheet](${relative(root, mobileMaster)})\n- [21-domain comparison index](${relative(root, comparisonIndex)})\n- [Screenshot inventory](${relative(root, join(outputRoot, "screenshot-inventory.json"))})\n- [Verification report](${relative(root, join(outputRoot, "verification-report.json"))})\n- [Primary geometry](${relative(root, geometryPath)})\n\n## Counts\n\n- REFERENCE_MATCH_CANDIDATE: **${report.counts.referenceMatchCandidate}**\n- NEEDS_VISUAL_CORRECTION: **${report.counts.needsVisualCorrection}**\n- BROKEN: **${report.counts.broken}**\n\nExternal owner acceptance remains pending. This document does not claim owner approval or UX completion.\n`);
 

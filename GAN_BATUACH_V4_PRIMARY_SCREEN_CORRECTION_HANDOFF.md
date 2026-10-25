@@ -4,7 +4,8 @@
 - Owner: current Codex task `Continue Gan Batuach roadmap`
 - Branch: `codex/ux-v4-primary-screen-correction`
 - Worktree: `/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-v4-primary-screen-correction`
-- Source Development SHA: `5635988133ca8690aa28c8797d1c54ef6ca1e8e3`
+- Source Development SHA: `af30b84f21a35e817738bf0329cf1a632a10a5ae`
+- Candidate ancestry head before final commit: `cdaa80d1fe786eb2087e166102b4d022ae303738`
 - Production: untouched
 - `main`: untouched
 - RELEASE-GAP-01: not started
@@ -22,38 +23,37 @@
 
 - Typecheck: PASS
 - Lint regression: PASS, zero new regressions
-- Domain gate: PASS 30/30
-- Security gate: PASS 11/11
-- Migration health: PASS 244 migrations, no new migration
+- Build: PASS on the reconciled source head
+- Domain gate: PASS 46/46
+- Security/isolation gate: PASS 50/50
+- Migration health: PASS 257 migrations, no new migration
 - Release contract: PASS, no Production mutation
-- Owner focused: PASS 6/6
-- Parent focused: PASS 7/7
-- Platform Admin focused: PASS 9/9
-- Settings focused: PASS 9/9
 - Manager/Parent contract: PASS 23/23
+- Management dashboards: PASS 9/9
+- Owner command center: PASS 6/6
+- Legacy consolidation: PASS 8/8
+- Fresh primary evidence: PASS, 10 screenshots at 1440×1024 and 390×844
+- Fresh domain regression evidence: PASS, 32 screenshots
+- Candidate V5 package: 21 `REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION`, 0 `BROKEN`
 
-## Active blocker
+## Current state
 
-The shared Home Mac is reserved by PUSH 38 camera qualification. The valid
-24-hour host-isolation window started on 2026-10-09 at 01:43:44 Asia/Jerusalem
-and cannot finish before 2026-10-10 at 01:43:44. Starting Next, `gbi`, the
-local Development stack, build, browser capture or other competing load before
-the camera task releases the host can invalidate that qualification.
-
-Read-only heartbeat `ux-v5` monitors the camera task hourly. It does not run
-commands, change code, use Git, push, open a PR or merge.
+The former PUSH 38 host-isolation blocker is obsolete. The five primary routes,
+fresh evidence and cumulative local gates are complete on the isolated feature
+worktree. The remaining work is repository integration: exact scoped commit,
+remote preservation, PR checks, merge to `integration/development`, and one
+fresh post-merge evidence run from the exact merged SHA.
 
 ## Exact next action
 
-1. Confirm the camera task explicitly released host isolation.
-2. Fetch `origin/integration/development` and preserve any later valid work.
-3. Start only the isolated DEVELOPMENT / INTEGRATION stack.
-4. Capture the five primary Desktop/Mobile screens and the fresh 21-domain regression set.
-5. Inspect every primary screenshot, overlay, geometry comparison and annotated board; correct any material difference.
-6. Run build and all remaining cumulative gates.
-7. Generate `GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V5.md` from the exact candidate SHA.
-8. Update the Development ledger, push the exact validated head, open a PR to `integration/development`, wait for all required checks, fix failures and merge.
-9. Verify the final integration SHA and regenerate V5 from that exact merged head.
+1. Re-fetch `origin/integration/development` and reconcile only if it advanced.
+2. Commit the scoped implementation, evidence, map, geometry and reports.
+3. Update the Development ledger with the exact validated commit and push it.
+4. Open a PR to `integration/development`, wait for all required checks, fix failures and merge.
+5. Verify the final remote integration SHA.
+6. Re-run the ten primary captures and 32 regression captures from that exact merged SHA in the isolated Development environment.
+7. Generate the final V5 package outside the canonical worktree and confirm counts 21/0/0.
+8. Verify the canonical Development worktree is clean. Keep `main`, Production and RELEASE-GAP-01 untouched.
 
 This handoff is preservation evidence only. It is not a visual PASS, owner
 approval, Development integration receipt or Production release.

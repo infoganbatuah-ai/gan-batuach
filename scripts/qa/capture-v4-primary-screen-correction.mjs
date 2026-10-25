@@ -15,7 +15,7 @@ const chrome = process.env.GB_M35_CHROME ?? "/Applications/Google Chrome.app/Con
 const base = process.env.GB_V4_PRIMARY_BASE_URL ?? "http://127.0.0.1:3200";
 const evidenceRoot = resolve(process.env.GB_V4_PRIMARY_OUTPUT ?? "qa-evidence/v4-primary-screen-correction");
 const screenshotRoot = resolve(evidenceRoot, "screenshots");
-const geometryPath = resolve("GAN_BATUACH_V4_PRIMARY_GEOMETRY.json");
+const geometryPath = resolve(process.env.GB_V4_PRIMARY_GEOMETRY ?? "GAN_BATUACH_V4_PRIMARY_GEOMETRY.json");
 
 assert.equal(new URL(base).hostname, "127.0.0.1");
 assert.equal(config.environment, "DEVELOPMENT / INTEGRATION");
@@ -34,11 +34,11 @@ const identity = (email) => {
 };
 
 const targets = [
-  { id: "owner-dashboard", route: "/dashboard/garden", user: identity("owner-ab@integration.qa.invalid"), ready: ".manager-reference-dashboard", selectors: { sidebar: ".owner-command-sidebar", header: ".role-app-header", hero: ".manager-command-hero", kpi: ".manager-today-strip", primary: ".manager-reference-first-viewport", quickActions: ".manager-reference-quick", lower: ".manager-command-grid-primary" } },
-  { id: "parent-assigned", route: "/dashboard/parent", user: identity("parent-b@integration.qa.invalid"), ready: ".parent-dashboard-home", selectors: { sidebar: ".role-app-sidebar", header: ".role-app-header", hero: ".parent-hero", selector: ".parent-child-card-selector", primary: ".parent-primary-reference-grid", quickActions: ".parent-primary-reference-actions", lower: ".parent-two-columns" } },
-  { id: "parent-multi-child", route: "/dashboard/parent", user: identity("parent-multi@integration.qa.invalid"), ready: ".parent-dashboard-home", selectors: { sidebar: ".role-app-sidebar", header: ".role-app-header", hero: ".parent-hero", selector: ".parent-child-card-selector", primary: ".parent-primary-reference-grid", quickActions: ".parent-primary-reference-actions", lower: ".parent-two-columns" } },
-  { id: "platform-admin", route: "/dashboard/admin", user: identity("admin@integration.qa.invalid"), ready: ".admin-literal-dashboard", selectors: { sidebar: ".role-app-sidebar", header: ".role-app-header", hero: ".admin-literal-heading", kpi: ".admin-literal-kpis", primary: ".admin-literal-upper-grid", lower: ".admin-literal-lower-grid" } },
-  { id: "settings", route: "/dashboard/garden/settings", user: identity("owner-a@integration.qa.invalid"), ready: ".ux18-settings-layout", selectors: { sidebar: ".role-app-sidebar", header: ".role-app-header", title: ".ux18-settings-header", navigation: ".ux18-settings-layout > aside", profile: ".ux18-reference-profile-column", security: ".ux18-reference-security-column", garden: ".ux18-reference-garden-column" } },
+  { id: "owner-dashboard", route: "/dashboard/garden", user: identity("owner-ab@integration.qa.invalid"), ready: ".manager-reference-dashboard", selectors: { sidebar: ".gb-app-shell-sidebar", header: ".role-app-header", hero: ".manager-command-hero", kpi: ".manager-today-strip", primary: ".manager-reference-first-viewport", quickActions: ".manager-reference-quick", lower: ".manager-command-grid-primary" } },
+  { id: "parent-assigned", route: "/dashboard/parent", user: identity("parent-b@integration.qa.invalid"), ready: ".parent-dashboard-home", selectors: { sidebar: ".gb-app-shell-sidebar", header: ".role-app-header", hero: ".parent-hero", selector: ".parent-child-card-selector", primary: ".parent-primary-reference-grid", quickActions: ".parent-primary-reference-actions", lower: ".parent-two-columns" } },
+  { id: "parent-multi-child", route: "/dashboard/parent", user: identity("parent-multi@integration.qa.invalid"), ready: ".parent-dashboard-home", selectors: { sidebar: ".gb-app-shell-sidebar", header: ".role-app-header", hero: ".parent-hero", selector: ".parent-child-card-selector", primary: ".parent-primary-reference-grid", quickActions: ".parent-primary-reference-actions", lower: ".parent-two-columns" } },
+  { id: "platform-admin", route: "/dashboard/admin", user: identity("admin@integration.qa.invalid"), ready: ".admin-runtime-shell", selectors: { sidebar: ".gb-app-shell-sidebar", header: ".role-app-header", hero: ".admin-literal-heading", kpi: ".admin-literal-kpis", primary: ".admin-literal-upper-grid", lower: ".admin-literal-lower-grid" } },
+  { id: "settings", route: "/dashboard/garden/settings", user: identity("owner-a@integration.qa.invalid"), ready: ".ux18-settings-layout", selectors: { sidebar: ".gb-app-shell-sidebar", header: ".role-app-header", title: ".ux18-settings-header", navigation: ".ux18-settings-layout > aside", profile: ".ux18-reference-profile-column", security: ".ux18-reference-security-column", garden: ".ux18-reference-garden-column" } },
 ];
 
 async function cookiesFor(user) {
