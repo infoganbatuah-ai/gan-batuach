@@ -37,7 +37,8 @@ const authInput = (token, overrides = {}) => ({ token, origin: "https://partner.
 function fixture() {
   const state = {
     partner: { id: ids.partner, organization_id: ids.partnerOrg, partner_status: "sandbox", allowed_embed_origins: ["https://partner.test"] },
-    customer: { id: ids.customer, partner_id: ids.partner, customer_organization_id: ids.customerOrg, customer_status: "active" },
+    customer: { id: ids.customer, partner_id: ids.partner, customer_organization_id: ids.customerOrg, customer_status: "active",
+      activated_at: new Date(Date.now() - 60_000).toISOString() },
     site: { id: ids.site, digital_observer_organization_id: ids.customerOrg, site_type: "home", garden_id: null },
     link: { partner_customer_id: ids.customer, observer_site_id: ids.site },
     organizations: [{ id: ids.partnerOrg, status: "active" }, { id: ids.customerOrg, status: "active" }],
@@ -62,7 +63,8 @@ function fixture() {
           assert.equal(operation, "insert"); state.calls.audited++; return { data: null, error: null };
         }
         if (table === "digital_observer_embedded_sessions" && operation === "insert") {
-          const row = { ...payload, id: `session-${state.sessions.length + 1}`, revoked_at: null, last_used_at: null };
+          const row = { ...payload, id: `session-${state.sessions.length + 1}`, revoked_at: null, last_used_at: null,
+            created_at: new Date().toISOString() };
           state.sessions.push(row); state.calls.issued++; return { data: row, error: null };
         }
         const sources = {

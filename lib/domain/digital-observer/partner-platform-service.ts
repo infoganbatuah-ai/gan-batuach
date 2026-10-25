@@ -134,16 +134,50 @@ export async function provisionPartnerCustomer(admin: Admin, input: { partnerId:
 
 export async function transitionPartnerCustomer(admin: Admin, input: { partnerId: string; organizationId: string; actorId: string; actorRole: EnterpriseRole; customerId: string; status: "active"|"suspended"|"deprovisioned"; reason: string; correlationId: string }) {
   assertPartnerRole(input.actorRole);
-  const current = await (admin as any).from("digital_observer_partner_customers").select("id,customer_status").eq("id", input.customerId).eq("partner_id", input.partnerId).maybeSingle();
-  if (!current.data) throw new Error("PARTNER_CUSTOMER_NOT_FOUND");
-  partnerCustomerTransition(current.data.customer_status, input.status);
+  const [partner, current] = await Promise.all([
+    (admin as any).from("digital_observer_partners").select("id,organization_id,partner_status")
+      .eq("id", input.partnerId).eq("organization_id", input.organizationId).maybeSingle(),
+    (admin as any).from("digital_observer_partner_customers")
+      .select("id,partner_id,customer_organization_id,customer_status,activated_at,suspended_at,deprovisioned_at")
+      .eq("id", input.customerId).eq("partner_id", input.partnerId).maybeSingle()
+  ]);
+  if (partner.error || current.error) throw new Error("PARTNER_CUSTOMER_LOOKUP_FAILED");
+  if (partner.data?.id !== input.partnerId || partner.data.organization_id !== input.organizationId
+    || !["sandbox", "suspended"].includes(partner.data.partner_status)
+    || current.data?.id !== input.customerId || current.data.partner_id !== input.partnerId
+    || !current.data.customer_organization_id || current.data.customer_organization_id === input.organizationId) {
+    throw new Error("PARTNER_CUSTOMER_SCOPE_DENIED");
+  }
+  const organizations = await (admin as any).from("digital_observer_organizations").select("id,status")
+    .in("id", [input.organizationId, current.data.customer_organization_id]).limit(2);
+  if (organizations.error || !Array.isArray(organizations.data) || organizations.data.length !== 2
+    || ![input.organizationId, current.data.customer_organization_id]
+      .every((id) => organizations.data.some((row: any) => row.id === id && row.status === "active"))) {
+    throw new Error("PARTNER_CUSTOMER_SCOPE_DENIED");
+  }
+  const repeatRevocation = current.data.customer_status === input.status && input.status !== "active";
+  if (!repeatRevocation) partnerCustomerTransition(current.data.customer_status, input.status);
   const now = new Date().toISOString();
   const fields = input.status === "active" ? { customer_status: input.status, activated_at: now, suspended_at: null, suspension_reason: null }
     : input.status === "suspended" ? { customer_status: input.status, suspended_at: now, suspension_reason: input.reason }
       : { customer_status: input.status, deprovisioned_at: now, suspension_reason: input.reason };
-  const changed = await (admin as any).from("digital_observer_partner_customers").update(fields).eq("id", input.customerId).eq("partner_id", input.partnerId).select("id,customer_status,activated_at,suspended_at,deprovisioned_at").single();
-  if (changed.error) throw new Error("PARTNER_CUSTOMER_TRANSITION_FAILED");
-  if (input.status !== "active") await (admin as any).from("digital_observer_embedded_sessions").update({ revoked_at: now, revocation_reason: input.reason }).eq("partner_customer_id", input.customerId).is("revoked_at", null);
+  const changed = repeatRevocation ? { data: current.data, error: null } : await (admin as any)
+    .from("digital_observer_partner_customers").update(fields)
+    .eq("id", input.customerId).eq("partner_id", input.partnerId)
+    .eq("customer_organization_id", current.data.customer_organization_id)
+    .eq("customer_status", current.data.customer_status)
+    .select("id,customer_status,activated_at,suspended_at,deprovisioned_at").single();
+  if (changed.error || changed.data?.id !== input.customerId || changed.data.customer_status !== input.status) {
+    throw new Error("PARTNER_CUSTOMER_TRANSITION_FAILED");
+  }
+  if (input.status !== "active") {
+    // Leave a failed revocation in the non-active state. A retry can repair it without a second status write.
+    const revoked = await (admin as any).from("digital_observer_embedded_sessions")
+      .update({ revoked_at: now, revocation_reason: input.reason })
+      .eq("partner_id", input.partnerId).eq("partner_customer_id", input.customerId).is("revoked_at", null).select("id");
+    if (revoked.error || !Array.isArray(revoked.data)) throw new Error("PARTNER_EMBED_REVOCATION_FAILED");
+    if (repeatRevocation && revoked.data.length === 0) return changed.data;
+  }
   await audit(admin, { organizationId: input.organizationId, actorId: input.actorId, resourceType: "partner_customer", resourceId: input.customerId,
     action: `partner_customer.${input.status}`, correlationId: input.correlationId, metadata: { reason: input.reason.slice(0, 120) } });
   return changed.data;
@@ -163,7 +197,7 @@ async function currentEmbeddedSiteScope(admin: Admin, input: { partnerId: string
   const [partner, customer, site, linked] = await Promise.all([
     (admin as any).from("digital_observer_partners").select("id,organization_id,partner_status,allowed_embed_origins")
       .eq("id", input.partnerId).maybeSingle(),
-    (admin as any).from("digital_observer_partner_customers").select("id,partner_id,customer_organization_id,customer_status")
+    (admin as any).from("digital_observer_partner_customers").select("id,partner_id,customer_organization_id,customer_status,activated_at")
       .eq("id", input.customerId).eq("partner_id", input.partnerId).maybeSingle(),
     (admin as any).from("observer_sites").select("id,digital_observer_organization_id,site_type,garden_id")
       .eq("id", input.siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle(),
@@ -183,7 +217,7 @@ async function currentEmbeddedSiteScope(admin: Admin, input: { partnerId: string
     .in("id", [p.organization_id, c.customer_organization_id]).limit(2);
   if (organizations.error || !Array.isArray(organizations.data) || organizations.data.length !== 2
     || ![p.organization_id, c.customer_organization_id].every((id) => organizations.data.some((org: any) => org.id === id && org.status === "active"))) return null;
-  return p as { id: string; organization_id: string; allowed_embed_origins: string[] };
+  return { ...p, customerActivatedAt: c.activated_at } as { id: string; organization_id: string; allowed_embed_origins: string[]; customerActivatedAt: string | null };
 }
 
 export async function issuePartnerEmbeddedSession(admin: Admin, input: { partnerId: string; organizationId: string; actorId?: string; serviceAccountId?: string; actorRole: EnterpriseRole; customerId: string; siteId: string; audience: string; origin: string; scopes: EmbeddedScope[]; ttlMinutes: number; correlationId: string }) {
@@ -291,7 +325,7 @@ export async function authorizePartnerDelegatedSite(admin: Admin, input: { servi
 export async function authenticateEmbeddedSession(admin: Admin, input: { token: string; origin: string | null; audience: string; requiredScope: EmbeddedScope }) {
   if (typeof input.token !== "string" || !input.token.startsWith("doemb_")) throw new Error("EMBEDDED_AUTH_REQUIRED");
   const result = await (admin as any).from("digital_observer_embedded_sessions")
-    .select("id,partner_id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at,revoked_at")
+    .select("id,partner_id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at,revoked_at,created_at")
     .eq("token_hash", hashEmbeddedToken(input.token, pepper())).maybeSingle();
   const row = result.data as any;
   const expiresAt = new Date(row?.expires_at).getTime();
@@ -306,6 +340,13 @@ export async function authenticateEmbeddedSession(admin: Admin, input: { token: 
   const partner = await currentEmbeddedSiteScope(admin, { partnerId: row.partner_id, customerId: row.partner_customer_id,
     siteId: row.observer_site_id });
   if (!partner || !Array.isArray(partner.allowed_embed_origins) || !partner.allowed_embed_origins.includes(row.allowed_origin)) {
+    throw new Error("EMBEDDED_SESSION_INACTIVE");
+  }
+  // A suspension/reactivation changes activated_at. Even if a bulk revocation fails, a token
+  // issued before that activation cannot regain access. Equal millisecond timestamps fail closed.
+  const createdAt = typeof row.created_at === "string" ? new Date(row.created_at).getTime() : NaN;
+  const activatedAt = typeof partner.customerActivatedAt === "string" ? new Date(partner.customerActivatedAt).getTime() : NaN;
+  if (!Number.isFinite(createdAt) || !Number.isFinite(activatedAt) || createdAt <= activatedAt) {
     throw new Error("EMBEDDED_SESSION_INACTIVE");
   }
   const usedAt = new Date().toISOString();
