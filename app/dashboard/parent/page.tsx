@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Baby, Bell, Building2, CalendarDays, Camera, FileText, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
+import { Baby, Bell, Building2, CalendarDays, Camera, FileText, MessageCircle, Phone, Plus, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentChildProfileForm } from "@/components/self-service-forms";
 import { ParentKindergartenInvitationsPanel } from "@/components/parent-kindergarten-invitations-panel";
@@ -65,10 +65,11 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
   const childProfiles = (family.childFiles ?? []) as any[];
   const requests = (requestsRes.data ?? []) as any[];
   const enrollmentRows = (family.enrollments ?? []) as unknown as DashboardRow[];
+  const childContextKey = (child: DashboardRow) => String(child.permanent_child_file_id ?? child.child?.permanent_child_file_id ?? child.child_id ?? child.id ?? "");
   const childContexts = [...enrollmentRows, ...(childProfiles as unknown as DashboardRow[])]
     .filter((child, index, all) => {
-      const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id ?? "");
-      return id && all.findIndex(item => String(item.child_id ?? item.permanent_child_file_id ?? item.id ?? "") === id) === index;
+      const id = childContextKey(child);
+      return id && all.findIndex(item => childContextKey(item) === id) === index;
     });
   const selectedChild = selectAuthorizedChild(childContexts, requestedChildId);
   const selectedChildId = String(selectedChild?.child_id ?? selectedChild?.permanent_child_file_id ?? selectedChild?.id ?? "");
@@ -94,6 +95,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
     supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_id", profile.id).is("read_at", null).is("archived_at", null)
   ]);
   const scheduleItems = (scheduleRes.data ?? []) as any[];
+  const latestAttendance = ((attendanceRes.data ?? []) as DashboardRow[])[0] ?? null;
   const todayAttendance = deriveAttendanceSummary((attendanceRes.data ?? []) as unknown as DashboardRow[], hasActiveKindergarten ? 1 : 0);
   const tuition = deriveTuitionSummary((tuitionRes.data ?? []) as unknown as DashboardRow[], new Date().toISOString().slice(0, 10));
   const safetyScore = selectedGarden?.last_inspection_score ?? null;
@@ -102,16 +104,16 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
 
   return (
     <DashboardShell role="parent" title="אזור הורה" appHome>
-      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null} contentClassName="parent-dashboard-home">
+      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null} contentClassName={`parent-dashboard-home${childContexts.length > 1 ? " parent-dashboard-multi-child" : " parent-dashboard-assigned"}`}>
         <ParentHero title={`שלום, ${cleanSyntheticLabel(profile.full_name, "הורה")}`} subtitle="כיף לראות אתכם שוב · כל מה שחשוב על הילד והגן במקום אחד" />
 
         {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. נתוני ילדים והורים אמיתיים אינם מופעלים כאן.</div> : null}
 
         <ParentKindergartenInvitationsPanel />
 
-        {childContexts.length > 1 ? <nav className="parent-child-selector parent-child-card-selector" aria-label="בחירת ילד להצגת הדשבורד">
+        {childContexts.length ? <nav className="parent-child-selector parent-child-card-selector" aria-label="בחירת ילד להצגת הדשבורד" data-child-count={childContexts.length}>
           <input type="hidden" name="child" value={selectedChildId} />
-          <div className="parent-child-selector-heading"><Baby size={22} /><span><b>הילדים שלי</b><small>בחירה מעדכנת מיד את כל המידע במסך</small></span></div>
+          <div className="parent-child-selector-heading"><Baby size={22} /><span><b>{childContexts.length > 1 ? "הילדים שלי" : "הילד שלי"}</b><small>{childContexts.length > 1 ? "בחירה מעדכנת מיד את כל המידע במסך" : "המידע המעודכן מהגן במקום אחד"}</small></span></div>
           <div className="parent-child-selector-track">{childContexts.map(child => {
             const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id);
             const enrollment = enrollmentRows.find(item => String(item.child_id ?? item.permanent_child_file_id ?? item.id ?? "") === id);
@@ -125,7 +127,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
               status={id === selectedChildId ? "נבחר" : "הצגה"}
               image={(child as DashboardRow).photo_url as string | null | undefined}
             />;
-          })}</div>
+          })}<Link className="parent-child-context-add" href="#child-profile"><Plus aria-hidden="true" /><span><b>הוספת ילד</b><small>פרופיל ובקשת שיוך</small></span></Link></div>
         </nav> : null}
 
         {selectedChild ? (
@@ -149,6 +151,51 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
             </div>
           </section>
         )}
+
+        {selectedChild ? <section className="parent-primary-reference-grid" aria-label="תמונת מצב יומית">
+          <ParentSection title="נוכחות היום" subtitle={cleanSyntheticLabel(String(selectedChild.full_name ?? ""), "הילד שלי")}>
+            <div className="parent-primary-attendance">
+              <div className="parent-primary-attendance-row">
+                <span className={`parent-primary-attendance-avatar${(selectedChild as DashboardRow).photo_url ? " has-photo" : ""}`} style={(selectedChild as DashboardRow).photo_url ? { backgroundImage: `url(${String((selectedChild as DashboardRow).photo_url)})` } : undefined}>{(selectedChild as DashboardRow).photo_url ? null : <Baby size={24} />}</span>
+                <span className="parent-primary-attendance-identity"><strong>{cleanSyntheticLabel(String(selectedChild.full_name ?? ""), "הילד שלי")}</strong><small>{cleanSyntheticLabel(String(selectedGarden?.name ?? ""), hasActiveKindergarten ? "גן הילד" : "טרם שויך לגן")}</small></span>
+                <span className={`parent-primary-attendance-status ${todayAttendance.present ? "is-present" : todayAttendance.absent ? "is-absent" : "is-pending"}`}><ShieldCheck size={16} />{!hasActiveKindergarten ? "ממתין לשיוך" : todayAttendance.present ? "נוכח/ת" : todayAttendance.departed ? "יצא/ה" : todayAttendance.absent ? "נעדר/ת" : "טרם עודכן"}</span>
+                <time>{latestAttendance?.check_in_at ? new Date(String(latestAttendance.check_in_at)).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "—"}</time>
+              </div>
+              <small>{hasActiveKindergarten ? "סטטוס מאומת ממערכת הנוכחות" : "המידע יוצג לאחר שיוך פעיל"}</small>
+              <Link href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`}>לפרטי הנוכחות</Link>
+            </div>
+          </ParentSection>
+
+          <ParentSection title="מצלמות הגן" subtitle={hasActiveKindergarten ? cleanSyntheticLabel(selectedGarden?.name, "גן הילד") : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">למצלמות</Link>}>
+            <div className="parent-primary-camera">
+              <div className="parent-camera-preview"><Camera size={34} /><strong>{hasActiveKindergarten ? "צפייה רק לאחר בדיקת הרשאה" : "ממתין לשיוך"}</strong><span>לא מוצג שידור חי לא מאומת</span></div>
+            </div>
+          </ParentSection>
+
+          <ParentSection title="הודעות אחרונות" subtitle={`${unreadOrPendingCount} עדכונים פתוחים`}>
+            <div className="parent-primary-updates">
+              {selectedRequests.length ? selectedRequests.slice(0, 3).map((request) => <ParentListRow
+                key={`primary-${request.id}`}
+                title={`${cleanSyntheticLabel(request.gardens?.name, "גן")} · ${formatStatus(request.status)}`}
+                subtitle={`תשלום: ${formatStatus(request.payment_status)}`}
+                time={request.requested_at ? new Date(request.requested_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : undefined}
+                icon={Bell}
+                tone={request.status === "approved" ? "green" : request.status === "rejected" ? "red" : "purple"}
+              />) : <>
+                <ParentListRow title={hasActiveKindergarten ? "השיוך לגן פעיל" : "השיוך לגן עדיין בתהליך"} subtitle={cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "הקשר הגן")} icon={Building2} tone={hasActiveKindergarten ? "green" : "purple"} />
+                <ParentListRow title={(documentRes.count ?? 0) ? `${documentRes.count} מסמכים דורשים פעולה` : "המסמכים מעודכנים"} subtitle="מרכז המסמכים של הילד" icon={FileText} tone={(documentRes.count ?? 0) ? "orange" : "green"} />
+                <ParentListRow title={tuition.outstanding > 0 ? "קיימת יתרה פתוחה" : "אין יתרה פתוחה"} subtitle="שכר לימוד ותשלומים" icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} />
+              </>}
+            </div>
+          </ParentSection>
+        </section> : null}
+
+        {selectedChild ? <section className="parent-primary-reference-actions" aria-label="פעולות מרכזיות">
+          <ParentActionTile title="יצירת קשר" href="/dashboard/parent/messages" icon={Phone} tone="blue" />
+          <ParentActionTile title="אירועים קרובים" href="/dashboard/parent/schedule" icon={CalendarDays} tone="purple" />
+          <ParentActionTile title="מסמכים" href="/dashboard/parent/documents" icon={FileText} tone={(documentRes.count ?? 0) ? "orange" : "green"} />
+          <ParentActionTile title="תשלומים" href={`/dashboard/parent/payments${selectedChildId ? `?child=${selectedChildId}` : ""}`} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} />
+        </section> : null}
 
         <section className="parent-metrics-grid">
           <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount} hint="בקשות/התראות לטיפול" icon={MessageCircle} tone={unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />

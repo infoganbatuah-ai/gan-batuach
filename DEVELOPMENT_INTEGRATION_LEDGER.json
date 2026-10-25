@@ -3600,7 +3600,9 @@
       },
       "dependencies": {
         "status": "PASS_ISOLATED_DEVELOPMENT",
-        "units": ["codex/development-database-baseline-20260919"]
+        "units": [
+          "codex/development-database-baseline-20260919"
+        ]
       },
       "migrations": [
         "20260913210000_management_canonical_messaging_threads.sql",
@@ -8396,11 +8398,16 @@
       "title": "PUSH 38Q private R2 HOME_QA download authorization repair",
       "owner": "PUSH 38 release/control-plane workstream",
       "sourceBranch": "codex/push-38q-r2-auth",
-      "sourceCommits": ["994ab8b07299e1e37cbd91c3c7cb5488a53a0001", "2175a5e9273f0f348838b6686cad514d3764aa68"],
+      "sourceCommits": [
+        "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+        "2175a5e9273f0f348838b6686cad514d3764aa68"
+      ],
       "state": "PRESERVED_PENDING_INTEGRATION",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/push-38q-r2-auth"],
+        "remoteRefs": [
+          "origin/codex/push-38q-r2-auth"
+        ],
         "localHead": "2175a5e9273f0f348838b6686cad514d3764aa68",
         "remoteHead": "2175a5e9273f0f348838b6686cad514d3764aa68",
         "observedAt": "2026-09-19T19:55:00Z"
@@ -8408,7 +8415,16 @@
       "validation": {
         "status": "SCOPED_LOCAL_PASS_DOMAIN_30_OF_30_LIVE_DELIVERY_BLOCKED",
         "sourceCommit": "2175a5e9273f0f348838b6686cad514d3764aa68",
-        "checks": ["Next build", "typecheck", "targeted ESLint", "security gate", "migration health", "HOME_QA R2 unit QA", "OTA regression", "npm audit high/critical PASS with 6 moderate findings"],
+        "checks": [
+          "Next build",
+          "typecheck",
+          "targeted ESLint",
+          "security gate",
+          "migration health",
+          "HOME_QA R2 unit QA",
+          "OTA regression",
+          "npm audit high/critical PASS with 6 moderate findings"
+        ],
         "fullCi": "NOT_RUN_EXACT_HEAD; DOMAIN_GATE_PASS_30_OF_30; cumulative integration CI pending"
       },
       "integration": {
@@ -8418,14 +8434,23 @@
       },
       "dependencies": {
         "status": "MAPPED_BLOCKED_ON_QA_ENROLLMENT_AND_SCOPED_INGRESS",
-        "units": ["codex/push-38-aws-signing", "codex/preserve-push38-r2-draft-20260919"]
+        "units": [
+          "codex/push-38-aws-signing",
+          "codex/preserve-push38-r2-draft-20260919"
+        ]
       },
-      "migrations": ["20260919190000_edge_home_qa_channel.sql"],
-      "migrationOrder": ["20260919190000"],
+      "migrations": [
+        "20260919190000_edge_home_qa_channel.sql"
+      ],
+      "migrationOrder": [
+        "20260919190000"
+      ],
       "conflictsResolution": "Reviewed source prerequisites; no merge attempted",
       "localVerification": "NOT_TESTED_ON_CANONICAL_INTEGRATION",
       "releaseEligibility": "NOT_READY",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Review the 15-file minimum control-plane slice and three migration prerequisites in the PUSH 38S inventory/graph; resolve the unused Supabase bucket in the private-delivery migration, qualify synthetic-to-real-device QA enrollment and scoped HTTPS ingress, then integrate exact source code and apply Development-only migrations. Horizontal qualification is being rerun with a documented queue-bound versus inference-bound fixture; preserve the original 2 ms failure as evidence. No live Home or Production activation."
     },
     {
@@ -8479,11 +8504,15 @@
       "title": "Canonical GB-M29 development migration application receipts",
       "owner": "Development integration coordinator",
       "sourceBranch": "codex/gb-m29-development-receipts-20260919",
-      "sourceCommits": ["9e8c874a2f196051b3cc8de9336f1937cfb07ed1"],
+      "sourceCommits": [
+        "9e8c874a2f196051b3cc8de9336f1937cfb07ed1"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/gb-m29-development-receipts-20260919"],
+        "remoteRefs": [
+          "origin/codex/gb-m29-development-receipts-20260919"
+        ],
         "remoteHead": "9e8c874a2f196051b3cc8de9336f1937cfb07ed1"
       },
       "validation": {
@@ -8494,8 +8523,19 @@
           "development/database/development-application-receipts.json"
         ]
       },
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9", "pullRequest": 63, "conflicts": "NONE"},
-      "dependencies": {"status": "PASS", "units": ["codex/gb-m29-development-approval-20260919", "codex/gb-m29-messaging-threads"]},
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9",
+        "pullRequest": 63,
+        "conflicts": "NONE"
+      },
+      "dependencies": {
+        "status": "PASS",
+        "units": [
+          "codex/gb-m29-development-approval-20260919",
+          "codex/gb-m29-messaging-threads"
+        ]
+      },
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "No conflicts",
@@ -8517,7 +8557,9 @@
       "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/gb-m29-development-approval-20260919"],
+        "remoteRefs": [
+          "origin/codex/gb-m29-development-approval-20260919"
+        ],
         "remoteHead": "bc23eb491ede3d7220cba8e0514f9faa6843b9e6"
       },
       "validation": {
@@ -8534,7 +8576,12 @@
         "pullRequest": 62,
         "conflicts": "NONE"
       },
-      "dependencies": {"status": "PASS", "units": ["codex/development-database-baseline-20260919"]},
+      "dependencies": {
+        "status": "PASS",
+        "units": [
+          "codex/development-database-baseline-20260919"
+        ]
+      },
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "No conflicts",
@@ -8618,18 +8665,31 @@
       "title": "GB-M30 canonical notifications, fan-out and preferences",
       "owner": "GB-M30 feature owner; development integration coordinator for merge",
       "sourceBranch": "codex/gb-m30-notification-pipeline",
-      "sourceCommits": ["5c0f344cd59bd75294824eb9f62685bca7b19e11", "e96b62a6542662840df74a38523ad6d03bb85c2c"],
+      "sourceCommits": [
+        "5c0f344cd59bd75294824eb9f62685bca7b19e11",
+        "e96b62a6542662840df74a38523ad6d03bb85c2c"
+      ],
       "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/gb-m30-notification-pipeline"],
+        "remoteRefs": [
+          "origin/codex/gb-m30-notification-pipeline"
+        ],
         "validatedSourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
         "observedAt": "2026-09-19T19:48:05Z"
       },
       "validation": {
         "status": "PASS_INTEGRATED_DEVELOPMENT",
         "sourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
-        "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M30_NOTIFICATIONS_FANOUT_PREFERENCES_REPORT.md", "development/database/development-application-receipts.json", "scripts/qa/check-management-notification-pipeline.sql", "scripts/qa/check-management-notification-broadcast.sql", "scripts/qa/check-management-notification-role-matrix.sql", "scripts/qa/run-management-notification-concurrency.mjs", "https://github.com/infoganbatuah-ai/gan-batuach/pull/66"],
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M30_NOTIFICATIONS_FANOUT_PREFERENCES_REPORT.md",
+          "development/database/development-application-receipts.json",
+          "scripts/qa/check-management-notification-pipeline.sql",
+          "scripts/qa/check-management-notification-broadcast.sql",
+          "scripts/qa/check-management-notification-role-matrix.sql",
+          "scripts/qa/run-management-notification-concurrency.mjs",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/66"
+        ],
         "limits": "Synthetic isolated DEVELOPMENT proof; live role browser/provider journeys, Production migration and deployment remain unverified"
       },
       "integration": {
@@ -8640,14 +8700,22 @@
       },
       "dependencies": {
         "status": "GB_M29_INTEGRATED_DEVELOPMENT",
-        "units": ["codex/gb-m29-messaging-threads"]
+        "units": [
+          "codex/gb-m29-messaging-threads"
+        ]
       },
-      "migrations": ["20260919180000_management_notification_pipeline.sql"],
-      "migrationOrder": ["20260919180000"],
+      "migrations": [
+        "20260919180000_management_notification_pipeline.sql"
+      ],
+      "migrationOrder": [
+        "20260919180000"
+      ],
       "conflictsResolution": "GB-M30 merge preserved both feature and existing PUSH 38S shared-ledger records; no Digital Observer core file changed",
       "localVerification": "PASS_CUMULATIVE_PRODUCT_AND_ISOLATED_DEVELOPMENT_RLS_FANOUT_CONCURRENCY",
       "releaseEligibility": "NOT_READY_PENDING_EXPLICIT_OWNER_RELEASE_AND_CUMULATIVE_RELEASE_GATES",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Retain live Parent/Staff/Manager browser and external-provider QA debt. Production release requires separate explicit owner authorization and cumulative release gates; do not infer it from GB-M30 Development PASS."
     },
     {
@@ -8656,17 +8724,54 @@
       "title": "GB-M31 email-first account verification and bounded external notification delivery",
       "owner": "GB-M31 feature owner",
       "sourceBranch": "codex/gb-m31-external-delivery",
-      "sourceCommits": ["bf93be20dd859cae735dc35892429fc3788816a5", "593d829de9f3a82168f3ec20f744a43002522002", "f5378f6821673a74c88f2c89b74babbc2046ec2b"],
+      "sourceCommits": [
+        "bf93be20dd859cae735dc35892429fc3788816a5",
+        "593d829de9f3a82168f3ec20f744a43002522002",
+        "f5378f6821673a74c88f2c89b74babbc2046ec2b"
+      ],
       "state": "LOCAL_VERIFIED",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m31-external-delivery"], "validatedSourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5"},
-      "validation": {"status": "PASS_CUMULATIVE_AND_FINAL_FULL_STACK", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M31_EXTERNAL_NOTIFICATION_DELIVERY_REPORT.md", "scripts/qa/check-management-external-delivery.sql", "https://github.com/infoganbatuah-ai/gan-batuach/pull/67"], "limits": "PR #67 and scoped fix PR #68 required exact-head checks passed; ordered Development migrations, recipient/RLS, worker race and cumulative QA passed on 8d257ab. Final integrated head 1714e05 full-stack health 200/Supabase OK, home 200, preferences GET/PATCH 401, disabled worker 503; drift 234/234 after non-destructive local VM recovery. Live provider receipts remain unverified."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "3556cb9a4282fdb9a28be889d4e60dc585eb8a8d", "pullRequest": 67, "scopedFixPullRequest": 68, "scopedFixMergeCommit": "1714e05fe2a650b44f8177862a1469a00727b168"},
-      "dependencies": {"status": "GB_M30_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m30-notification-pipeline"]},
-      "migrations": ["20260920110000_management_email_first_verification.sql", "20260920120000_management_external_delivery.sql"],
-      "migrationOrder": ["20260920110000", "20260920120000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m31-external-delivery"
+        ],
+        "validatedSourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5"
+      },
+      "validation": {
+        "status": "PASS_CUMULATIVE_AND_FINAL_FULL_STACK",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M31_EXTERNAL_NOTIFICATION_DELIVERY_REPORT.md",
+          "scripts/qa/check-management-external-delivery.sql",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/67"
+        ],
+        "limits": "PR #67 and scoped fix PR #68 required exact-head checks passed; ordered Development migrations, recipient/RLS, worker race and cumulative QA passed on 8d257ab. Final integrated head 1714e05 full-stack health 200/Supabase OK, home 200, preferences GET/PATCH 401, disabled worker 503; drift 234/234 after non-destructive local VM recovery. Live provider receipts remain unverified."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "3556cb9a4282fdb9a28be889d4e60dc585eb8a8d",
+        "pullRequest": 67,
+        "scopedFixPullRequest": 68,
+        "scopedFixMergeCommit": "1714e05fe2a650b44f8177862a1469a00727b168"
+      },
+      "dependencies": {
+        "status": "GB_M30_INTEGRATED_DEVELOPMENT",
+        "units": [
+          "codex/gb-m30-notification-pipeline"
+        ]
+      },
+      "migrations": [
+        "20260920110000_management_email_first_verification.sql",
+        "20260920120000_management_external_delivery.sql"
+      ],
+      "migrationOrder": [
+        "20260920110000",
+        "20260920120000"
+      ],
       "localVerification": "PASS_CUMULATIVE_AND_FINAL_FULL_STACK_1714E05",
       "releaseEligibility": "DEVELOPMENT_VERIFIED_PRODUCTION_REQUIRES_OWNER_RELEASE_AND_PROVIDER_GATES",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "PR #68 fix f5378f6 merged at 1714e05 after exact-head checks. Final-head Development drift and full-backend auth/health smoke passed after isolated VM repair. Preserve live provider, controlled-role and all-in cost QA debt; await explicit owner release for Production. No paid provider activation authorized."
     },
     {
@@ -8675,17 +8780,59 @@
       "title": "GB-M32 canonical private Management documents",
       "owner": "GB-M32 feature and Development integration owner",
       "sourceBranch": "codex/gb-m32-documents",
-      "sourceCommits": ["40b938fd317917fa702e82bae1702a26133b4792", "c51cebf015e102438961ebd4fa4f13596904244d", "aaac28c2b8db2962ab74eb5b00842889b3fa62fb", "154f4a5621b90b6d9090f7cd60be222ed1fab74c", "e63104c7dcb2e718fa2e1c8fe24140cacca76de0"],
+      "sourceCommits": [
+        "40b938fd317917fa702e82bae1702a26133b4792",
+        "c51cebf015e102438961ebd4fa4f13596904244d",
+        "aaac28c2b8db2962ab74eb5b00842889b3fa62fb",
+        "154f4a5621b90b6d9090f7cd60be222ed1fab74c",
+        "e63104c7dcb2e718fa2e1c8fe24140cacca76de0"
+      ],
       "state": "LOCAL_VERIFIED",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m32-documents", "origin/codex/gb-m32-private-e2e-fix"], "validatedSourceCommit": "e63104c7dcb2e718fa2e1c8fe24140cacca76de0"},
-      "validation": {"status": "PASS_EXACT_HEAD_CI_9_OF_9_AND_ISOLATED_DEVELOPMENT_E2E", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M32_DOCUMENTS_REPORT.md", "scripts/qa/check-management-documents-rls.sql", "scripts/qa/check-management-documents-e2e.mjs", "scripts/qa/check-management-documents-race.mjs", "https://github.com/infoganbatuah-ai/gan-batuach/pull/69", "https://github.com/infoganbatuah-ai/gan-batuach/pull/70", "https://github.com/infoganbatuah-ai/gan-batuach/pull/71"], "limits": "Production role QA, retention policy and restore verification remain open; Production has not been touched."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "b4e5b0195473a985ecbf14025537515cc983809c", "pullRequest": 69, "migrationApprovalPullRequest": 70, "fixPullRequest": 71},
-      "dependencies": {"status": "GB_M31_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m31-external-delivery"]},
-      "migrations": ["20260920130000_management_private_documents.sql"],
-      "migrationOrder": ["20260920130000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m32-documents",
+          "origin/codex/gb-m32-private-e2e-fix"
+        ],
+        "validatedSourceCommit": "e63104c7dcb2e718fa2e1c8fe24140cacca76de0"
+      },
+      "validation": {
+        "status": "PASS_EXACT_HEAD_CI_9_OF_9_AND_ISOLATED_DEVELOPMENT_E2E",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M32_DOCUMENTS_REPORT.md",
+          "scripts/qa/check-management-documents-rls.sql",
+          "scripts/qa/check-management-documents-e2e.mjs",
+          "scripts/qa/check-management-documents-race.mjs",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/69",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/70",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/71"
+        ],
+        "limits": "Production role QA, retention policy and restore verification remain open; Production has not been touched."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "b4e5b0195473a985ecbf14025537515cc983809c",
+        "pullRequest": 69,
+        "migrationApprovalPullRequest": 70,
+        "fixPullRequest": 71
+      },
+      "dependencies": {
+        "status": "GB_M31_INTEGRATED_DEVELOPMENT",
+        "units": [
+          "codex/gb-m31-external-delivery"
+        ]
+      },
+      "migrations": [
+        "20260920130000_management_private_documents.sql"
+      ],
+      "migrationOrder": [
+        "20260920130000"
+      ],
       "localVerification": "PASS_CUMULATIVE_PRODUCT_RLS_PRIVATE_STORAGE_E2E_AND_DRIFT_235_OF_235",
       "releaseEligibility": "NOT_READY_PENDING_RETENTION_RECOVERY_POLICY_AND_EXPLICIT_OWNER_RELEASE",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Approve category retention and expiry policy, verify Production backup/restore and all-in cost headroom before an explicit owner release. Retain controlled live-role QA debt; no Production release."
     },
     {
@@ -8694,17 +8841,55 @@
       "title": "GB-M33 canonical Child attendance and safe pickup",
       "owner": "GB-M33 feature and Development integration owner",
       "sourceBranch": "codex/gb-m33-attendance-pickup",
-      "sourceCommits": ["f766314a73c15129b96602d2331b8ebb19684ff9", "d6d8c3e600ef2515df0e2b8d7f1bbf08b031f5cc", "40b671c95b7a2402fb2c414118fad5789c34ef4f"],
+      "sourceCommits": [
+        "f766314a73c15129b96602d2331b8ebb19684ff9",
+        "d6d8c3e600ef2515df0e2b8d7f1bbf08b031f5cc",
+        "40b671c95b7a2402fb2c414118fad5789c34ef4f"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m33-attendance-pickup"], "validatedSourceCommit": "40b671c95b7a2402fb2c414118fad5789c34ef4f"},
-      "validation": {"status": "PASS_CI_9_OF_9_ISOLATED_DEVELOPMENT_RLS_RACES_AND_CUMULATIVE_TESTS", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M33_CHILD_ATTENDANCE_PICKUP_REPORT.md", "scripts/qa/check-management-child-attendance-pickup.sql", "https://github.com/infoganbatuah-ai/gan-batuach/pull/77", "https://github.com/infoganbatuah-ai/gan-batuach/pull/78", "development/database/development-application-receipts.json"], "limits": "Controlled Production-like browser-role QA remains unavailable. Production is untouched."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "ef9af8443fd09952b1eb645f35f06ac0ebc93a06", "pullRequest": 77, "migrationApprovalPullRequest": 78, "verificationClosurePullRequest": 79, "verificationClosureCommit": "e048c81acae4307e80f9584917772614d984328d"},
-      "dependencies": {"status": "GB_M32_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m32-documents"]},
-      "migrations": ["20260920140000_management_child_attendance_pickup.sql"],
-      "migrationOrder": ["20260920140000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m33-attendance-pickup"
+        ],
+        "validatedSourceCommit": "40b671c95b7a2402fb2c414118fad5789c34ef4f"
+      },
+      "validation": {
+        "status": "PASS_CI_9_OF_9_ISOLATED_DEVELOPMENT_RLS_RACES_AND_CUMULATIVE_TESTS",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M33_CHILD_ATTENDANCE_PICKUP_REPORT.md",
+          "scripts/qa/check-management-child-attendance-pickup.sql",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/77",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/78",
+          "development/database/development-application-receipts.json"
+        ],
+        "limits": "Controlled Production-like browser-role QA remains unavailable. Production is untouched."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "ef9af8443fd09952b1eb645f35f06ac0ebc93a06",
+        "pullRequest": 77,
+        "migrationApprovalPullRequest": 78,
+        "verificationClosurePullRequest": 79,
+        "verificationClosureCommit": "e048c81acae4307e80f9584917772614d984328d"
+      },
+      "dependencies": {
+        "status": "GB_M32_INTEGRATED_DEVELOPMENT",
+        "units": [
+          "codex/gb-m32-documents"
+        ]
+      },
+      "migrations": [
+        "20260920140000_management_child_attendance_pickup.sql"
+      ],
+      "migrationOrder": [
+        "20260920140000"
+      ],
       "localVerification": "PASS_CUMULATIVE_TESTS_ISOLATED_SCHEMA_RLS_RACES_AND_FULL_STACK_HEALTH_AUTH_E048C81",
       "releaseEligibility": "NOT_READY_PENDING_OWNER_POLICY_RECOVERY_COST_AND_EXPLICIT_RELEASE_AUTHORIZATION",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Preserve isolated Development receipt and exact-head CI evidence; carry controlled live-role QA to GB-M35/40. Resolve retention/recovery and all-in cost gates before an explicit owner-authorized Production release."
     },
     {
@@ -8713,17 +8898,55 @@
       "title": "GB-M34 canonical Staff time, shifts and payroll-ready input",
       "owner": "GB-M34 feature and Development integration owner",
       "sourceBranch": "codex/gb-m34-staff-time",
-      "sourceCommits": ["d9a2a55f1660f0a72c987b795880ae02dda325c9", "0acb70a8428d82c38dd7b61805d33cb9a298dfa7"],
+      "sourceCommits": [
+        "d9a2a55f1660f0a72c987b795880ae02dda325c9",
+        "0acb70a8428d82c38dd7b61805d33cb9a298dfa7"
+      ],
       "state": "LOCAL_VERIFIED",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m34-staff-time"], "validatedSourceCommit": "0acb70a8428d82c38dd7b61805d33cb9a298dfa7"},
-      "validation": {"status": "PASS_ISOLATED_DEVELOPMENT_MIGRATION_CUMULATIVE_QA_AND_LOCAL_SMOKE", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M34_STAFF_TIME_SHIFTS_REPORT.md", "development/database/development-application-receipts.json", "scripts/qa/check-management-staff-time.sql", "scripts/qa/run-management-staff-time-races.mjs", "https://github.com/infoganbatuah-ai/gan-batuach/pull/81", "https://github.com/infoganbatuah-ai/gan-batuach/pull/82", "https://github.com/infoganbatuah-ai/gan-batuach/pull/83"], "limits": "Isolated Development migration 237/237 and schema fingerprint verified; synthetic role/RLS, cumulative domain/security/Staff/Manager, typecheck, build, lint regression, migration audit, release preflight and local health/auth smoke PASS. Controlled live Staff/Manager browser QA remains unavailable; Production and main untouched."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "9fe30d6a82c8111542bf16002910aa77a14bb914", "pullRequest": 81, "migrationApprovalPullRequest": 82, "migrationApprovalMergeCommit": "89dc2d98f4d6f88d57b4ab49487edaab15481cc9"},
-      "dependencies": {"status": "GB_M33_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m33-attendance-pickup"]},
-      "migrations": ["20260920150000_management_staff_time_ledger.sql"],
-      "migrationOrder": ["20260920150000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m34-staff-time"
+        ],
+        "validatedSourceCommit": "0acb70a8428d82c38dd7b61805d33cb9a298dfa7"
+      },
+      "validation": {
+        "status": "PASS_ISOLATED_DEVELOPMENT_MIGRATION_CUMULATIVE_QA_AND_LOCAL_SMOKE",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M34_STAFF_TIME_SHIFTS_REPORT.md",
+          "development/database/development-application-receipts.json",
+          "scripts/qa/check-management-staff-time.sql",
+          "scripts/qa/run-management-staff-time-races.mjs",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/81",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/82",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/83"
+        ],
+        "limits": "Isolated Development migration 237/237 and schema fingerprint verified; synthetic role/RLS, cumulative domain/security/Staff/Manager, typecheck, build, lint regression, migration audit, release preflight and local health/auth smoke PASS. Controlled live Staff/Manager browser QA remains unavailable; Production and main untouched."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "9fe30d6a82c8111542bf16002910aa77a14bb914",
+        "pullRequest": 81,
+        "migrationApprovalPullRequest": 82,
+        "migrationApprovalMergeCommit": "89dc2d98f4d6f88d57b4ab49487edaab15481cc9"
+      },
+      "dependencies": {
+        "status": "GB_M33_INTEGRATED_DEVELOPMENT",
+        "units": [
+          "codex/gb-m33-attendance-pickup"
+        ]
+      },
+      "migrations": [
+        "20260920150000_management_staff_time_ledger.sql"
+      ],
+      "migrationOrder": [
+        "20260920150000"
+      ],
       "localVerification": "PASS_DEVELOPMENT_237_OF_237_SCHEMA_RLS_CUMULATIVE_QA_HEALTH_AUTH_89DC2D9",
       "releaseEligibility": "NOT_READY_PENDING_LIVE_QA_RECOVERY_COST_AND_EXPLICIT_OWNER_RELEASE",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Preserve Development migration receipt and cumulative QA in a scoped PR/remote integration commit. Carry controlled live Staff/Manager browser QA to GB-M35/40; require separate owner authorization, recovery and all-in cost review before any Production release."
     },
     {
@@ -8732,17 +8955,52 @@
       "title": "GB-M35 controlled role E2E QA closure",
       "owner": "GB-M35 QA owner",
       "sourceBranch": "codex/gb-m35-role-e2e-qa",
-      "sourceCommits": ["f9b7466b4d6c3d5b7c974b337919287d17315e92", "40071188778f651e97c6cc7cd06e3bc9a29515d3", "2fad28a68c71c134e23eabf6af4962c299475d2f", "d0a99dfebc331757a26f7b7c7610c95bd4a865da", "00c2695e77d4061746d6d9754ee4dfccffa2ecc5", "24c9d766d3500e7867b407e82a98ef4597eeff05", "2d35619cad6a86c7c6dc6e9cadf31b5eb5e4732b", "124323ec965656fbe127dd5679b0e62caf0c1027"],
+      "sourceCommits": [
+        "f9b7466b4d6c3d5b7c974b337919287d17315e92",
+        "40071188778f651e97c6cc7cd06e3bc9a29515d3",
+        "2fad28a68c71c134e23eabf6af4962c299475d2f",
+        "d0a99dfebc331757a26f7b7c7610c95bd4a865da",
+        "00c2695e77d4061746d6d9754ee4dfccffa2ecc5",
+        "24c9d766d3500e7867b407e82a98ef4597eeff05",
+        "2d35619cad6a86c7c6dc6e9cadf31b5eb5e4732b",
+        "124323ec965656fbe127dd5679b0e62caf0c1027"
+      ],
       "state": "LOCAL_VERIFIED",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35-role-e2e-qa"], "validatedSourceCommit": "124323ec965656fbe127dd5679b0e62caf0c1027"},
-      "validation": {"status": "PASS_STABLE_ISOLATED_FULL_ROLE_E2E_MATRIX_AND_9_REQUIRED_CI", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md", "development/database/gb-m35-role-qa-summary.json", "https://github.com/infoganbatuah-ai/gan-batuach/pull/86"], "limits": "Mandatory internal matrix closed with PASS 40, PASS_WITH_P2_P3 3, BLOCKED_EXTERNAL 2, PARTIAL 0 and NOT RUN 0. Controlled live Resend/FCM delivery and Production release remain external/owner-controlled; accessibility label findings remain P2 and no WCAG certification is claimed."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "pullRequest": 86, "commit": "693a225a2f17399575e4e2588309bb9051ea53b7"},
-      "dependencies": {"status": "GB_M34_LOCAL_VERIFIED", "units": ["codex/gb-m34-staff-time"]},
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35-role-e2e-qa"
+        ],
+        "validatedSourceCommit": "124323ec965656fbe127dd5679b0e62caf0c1027"
+      },
+      "validation": {
+        "status": "PASS_STABLE_ISOLATED_FULL_ROLE_E2E_MATRIX_AND_9_REQUIRED_CI",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md",
+          "development/database/gb-m35-role-qa-summary.json",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/86"
+        ],
+        "limits": "Mandatory internal matrix closed with PASS 40, PASS_WITH_P2_P3 3, BLOCKED_EXTERNAL 2, PARTIAL 0 and NOT RUN 0. Controlled live Resend/FCM delivery and Production release remain external/owner-controlled; accessibility label findings remain P2 and no WCAG certification is claimed."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "pullRequest": 86,
+        "commit": "693a225a2f17399575e4e2588309bb9051ea53b7"
+      },
+      "dependencies": {
+        "status": "GB_M34_LOCAL_VERIFIED",
+        "units": [
+          "codex/gb-m34-staff-time"
+        ]
+      },
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_STABLE_AUTH_DB_STORAGE_43_OF_43_ROUTES_ROLE_ACTIONS_RACES_REVOCATION_243_OF_243_MIGRATIONS_AND_CUMULATIVE_VALIDATION",
       "releaseEligibility": "NOT_SELECTED_FOR_RELEASE_PENDING_EXPLICIT_OWNER_RELEASE_RECOVERY_AND_COST_REVIEW",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Preserve the isolated QA evidence and P2/P3 backlog. Production remains unchanged until a separate explicit owner release selects a frozen candidate and completes recovery, cost and cumulative release gates."
     },
     {
@@ -8751,17 +9009,53 @@
       "title": "GB-M35 P1 tuition audit role repair",
       "owner": "GB-M35 QA owner",
       "sourceBranch": "codex/gb-m35-tuition-audit-role-fix",
-      "sourceCommits": ["270861c84f318407be06394cfeef105f4ed6b3ac", "208f544b618762800b15d54c9361f8ba8c5185f5"],
+      "sourceCommits": [
+        "270861c84f318407be06394cfeef105f4ed6b3ac",
+        "208f544b618762800b15d54c9361f8ba8c5185f5"
+      ],
       "state": "LOCAL_VERIFIED",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35-tuition-audit-role-fix"], "validatedSourceCommit": "208f544b618762800b15d54c9361f8ba8c5185f5"},
-      "validation": {"status": "PASS_ISOLATED_DEVELOPMENT_MIGRATION_AND_25_ROLE_API_CHECKS", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/88", "https://github.com/infoganbatuah-ai/gan-batuach/pull/89", "development/database/development-application-receipts.json", "scripts/qa/run-management-tuition-audit-role-fix.mjs", "scripts/qa/run-management-tuition-role-e2e.mjs"], "limits": "238/238 isolated Development migration drift PASS; 25/25 synthetic Parent/Manager partial/full settlement and concurrent replay HTTP checks PASS. Production unchanged."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "740e32d631576733ac8bdf5d43fb8127e845a66b", "pullRequest": 88, "migrationApprovalPullRequest": 89, "migrationApprovalMergeCommit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4"},
-      "dependencies": {"status": "GB_M27_AND_GB_M34_DEVELOPMENT_APPLIED", "units": ["codex/gb-m34-staff-time"]},
-      "migrations": ["20260920160000_management_tuition_audit_role_fix.sql"],
-      "migrationOrder": ["20260920160000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35-tuition-audit-role-fix"
+        ],
+        "validatedSourceCommit": "208f544b618762800b15d54c9361f8ba8c5185f5"
+      },
+      "validation": {
+        "status": "PASS_ISOLATED_DEVELOPMENT_MIGRATION_AND_25_ROLE_API_CHECKS",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/88",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/89",
+          "development/database/development-application-receipts.json",
+          "scripts/qa/run-management-tuition-audit-role-fix.mjs",
+          "scripts/qa/run-management-tuition-role-e2e.mjs"
+        ],
+        "limits": "238/238 isolated Development migration drift PASS; 25/25 synthetic Parent/Manager partial/full settlement and concurrent replay HTTP checks PASS. Production unchanged."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "740e32d631576733ac8bdf5d43fb8127e845a66b",
+        "pullRequest": 88,
+        "migrationApprovalPullRequest": 89,
+        "migrationApprovalMergeCommit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4"
+      },
+      "dependencies": {
+        "status": "GB_M27_AND_GB_M34_DEVELOPMENT_APPLIED",
+        "units": [
+          "codex/gb-m34-staff-time"
+        ]
+      },
+      "migrations": [
+        "20260920160000_management_tuition_audit_role_fix.sql"
+      ],
+      "migrationOrder": [
+        "20260920160000"
+      ],
       "localVerification": "PASS_DEVELOPMENT_238_OF_238_SCHEMA_AND_SYNTHETIC_TUITION_ROLE_API",
       "releaseEligibility": "NOT_READY_PENDING_GB_M35_FULL_QA_RECOVERY_COST_AND_EXPLICIT_OWNER_RELEASE",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Keep GB-M35 PR #86 draft until remaining browser, concurrency, IDOR, mobile and accessibility gates complete; Production history and recovery need separate owner release review."
     },
     {
@@ -8770,17 +9064,43 @@
       "title": "GB-M35 P1 unconfirmed signup response repair",
       "owner": "GB-M35 QA owner",
       "sourceBranch": "codex/gb-m35-auth-sdk-signup-fix",
-      "sourceCommits": ["0fc091eb6bd0f5afd451e712d5441a32abdf83ee"],
+      "sourceCommits": [
+        "0fc091eb6bd0f5afd451e712d5441a32abdf83ee"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35-auth-sdk-signup-fix"], "validatedSourceCommit": "0fc091eb6bd0f5afd451e712d5441a32abdf83ee"},
-      "validation": {"status": "PASS_9_REQUIRED_CI_AND_ISOLATED_AUTH_PRODUCT_API", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/96", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Disposable Auth/Mailpit QA clone passed Product signup and verification API, invalid/expired/cross-account token negatives. Browser PKCE signup and full role E2E remain open."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "89625e65456524fb0b58466c4f086ef2bb7593f8", "pullRequest": 96},
-      "dependencies": {"status": "GB_M35_QA_IN_PROGRESS", "units": ["codex/gb-m35-role-e2e-qa"]},
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35-auth-sdk-signup-fix"
+        ],
+        "validatedSourceCommit": "0fc091eb6bd0f5afd451e712d5441a32abdf83ee"
+      },
+      "validation": {
+        "status": "PASS_9_REQUIRED_CI_AND_ISOLATED_AUTH_PRODUCT_API",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/96",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"
+        ],
+        "limits": "Disposable Auth/Mailpit QA clone passed Product signup and verification API, invalid/expired/cross-account token negatives. Browser PKCE signup and full role E2E remain open."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "89625e65456524fb0b58466c4f086ef2bb7593f8",
+        "pullRequest": 96
+      },
+      "dependencies": {
+        "status": "GB_M35_QA_IN_PROGRESS",
+        "units": [
+          "codex/gb-m35-role-e2e-qa"
+        ]
+      },
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_ISOLATED_AUTH_API_AND_EMAIL_CAPTURE_ONLY",
       "releaseEligibility": "NOT_READY_PENDING_GB_M35_FULL_QA_AND_EXPLICIT_OWNER_RELEASE",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Complete same-browser signup/PKCE and remaining GB-M35 journeys before release selection."
     },
     {
@@ -8789,17 +9109,43 @@
       "title": "GB-M35 legacy invitation delivery-log redaction",
       "owner": "GB-M35 QA owner",
       "sourceBranch": "codex/gb-m35-legacy-credential-log-redaction",
-      "sourceCommits": ["052c55687e50e6ebc512be275fe118f10a2a3db9"],
+      "sourceCommits": [
+        "052c55687e50e6ebc512be275fe118f10a2a3db9"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35-legacy-credential-log-redaction"], "validatedSourceCommit": "052c55687e50e6ebc512be275fe118f10a2a3db9"},
-      "validation": {"status": "PASS_9_REQUIRED_CI_AFTER_RERUN_WITH_OPEN_LEGACY_P1", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/97", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Removes temporary passwords from mock delivery logs; plaintext generated_credentials and legacy credential-return paths remain open P1. Digital Observer horizontal-scale CI failed once and passed on rerun; no core diff."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "a885f9a5f4d0e7d88a1ef0e6f62062b0532ac957", "pullRequest": 97},
-      "dependencies": {"status": "AUTH_SDK_FIX_INTEGRATED", "units": ["codex/gb-m35-auth-sdk-signup-fix"]},
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35-legacy-credential-log-redaction"
+        ],
+        "validatedSourceCommit": "052c55687e50e6ebc512be275fe118f10a2a3db9"
+      },
+      "validation": {
+        "status": "PASS_9_REQUIRED_CI_AFTER_RERUN_WITH_OPEN_LEGACY_P1",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/97",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"
+        ],
+        "limits": "Removes temporary passwords from mock delivery logs; plaintext generated_credentials and legacy credential-return paths remain open P1. Digital Observer horizontal-scale CI failed once and passed on rerun; no core diff."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "a885f9a5f4d0e7d88a1ef0e6f62062b0532ac957",
+        "pullRequest": 97
+      },
+      "dependencies": {
+        "status": "AUTH_SDK_FIX_INTEGRATED",
+        "units": [
+          "codex/gb-m35-auth-sdk-signup-fix"
+        ]
+      },
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_FOCUSED_11_TESTS_AND_RELEASE_CONTRACT",
       "releaseEligibility": "NOT_READY_PENDING_LEGACY_CREDENTIAL_P1_AND_GB_M35_FULL_QA",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Legacy plaintext credential retirement is PR #98; Production remains owner-controlled."
     },
     {
@@ -8808,17 +9154,47 @@
       "title": "GB-M35 P1 retire recoverable legacy credentials",
       "owner": "GB-M35 QA owner",
       "sourceBranch": "codex/gb-m35-retire-plaintext-credentials",
-      "sourceCommits": ["f97819e520dbffd4e4b75e7238da314f3b8cb7f3"],
+      "sourceCommits": [
+        "f97819e520dbffd4e4b75e7238da314f3b8cb7f3"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35-retire-plaintext-credentials"], "validatedSourceCommit": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3"},
-      "validation": {"status": "PASS_9_REQUIRED_CI_AND_DISPOSABLE_AUTH_INVITE_QA", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/98", "GAN_BATUACH_MANAGEMENT_GB_M35_TEMPORARY_CREDENTIAL_SECURITY_FIX.md"], "limits": "Canonical Development migration/application and full GB-M35 browser QA pending; Production remains untouched."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "f83eb1bb781c050019ff6c7e877f946276aecf23", "pullRequest": 98},
-      "dependencies": {"status": "PR_97_INTEGRATED", "units": ["codex/gb-m35-legacy-credential-log-redaction"]},
-      "migrations": ["supabase/migrations/20260920170000_retire_generated_plaintext_credentials.sql"],
-      "migrationOrder": ["20260920170000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35-retire-plaintext-credentials"
+        ],
+        "validatedSourceCommit": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3"
+      },
+      "validation": {
+        "status": "PASS_9_REQUIRED_CI_AND_DISPOSABLE_AUTH_INVITE_QA",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/98",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_TEMPORARY_CREDENTIAL_SECURITY_FIX.md"
+        ],
+        "limits": "Canonical Development migration/application and full GB-M35 browser QA pending; Production remains untouched."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "f83eb1bb781c050019ff6c7e877f946276aecf23",
+        "pullRequest": 98
+      },
+      "dependencies": {
+        "status": "PR_97_INTEGRATED",
+        "units": [
+          "codex/gb-m35-legacy-credential-log-redaction"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20260920170000_retire_generated_plaintext_credentials.sql"
+      ],
+      "migrationOrder": [
+        "20260920170000"
+      ],
       "localVerification": "PASS_DISPOSABLE_AUTH_CLONE; CANONICAL_DEVELOPMENT_PENDING",
       "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35_FULL_QA",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Apply reviewed migration to canonical isolated Development after ledger integration, verify RLS and schema, then resume PR #86 browser QA."
     },
     {
@@ -8876,17 +9252,47 @@
       "title": "GB-M35E P1 enrollment decision typed audit role",
       "owner": "GB-M35E QA owner",
       "sourceBranch": "codex/gb-m35e-enrollment-audit-role-fix",
-      "sourceCommits": ["a5b6dfd715bd43e77546b26f72d6ea32e51678e7"],
+      "sourceCommits": [
+        "a5b6dfd715bd43e77546b26f72d6ea32e51678e7"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35e-enrollment-audit-role-fix"], "validatedSourceCommit": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7"},
-      "validation": {"status": "PASS_REQUIRED_CI_AND_HEALTHY_ISOLATED_PARENT_ENROLLMENT_QA", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/109", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Canonical Development migration and 242/242 drift verification PASS; final GB-M35E matrix closure pending. Production unchanged."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "166a65c2d4abe5095783fc3d28b157a2ed0aaa7b", "pullRequest": 109},
-      "dependencies": {"status": "GB_M35_CANDIDATE_DOCUMENTS_DEVELOPMENT_APPLIED", "units": ["codex/gb-m35-p1-candidate-documents"]},
-      "migrations": ["supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql"],
-      "migrationOrder": ["20260922100000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35e-enrollment-audit-role-fix"
+        ],
+        "validatedSourceCommit": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7"
+      },
+      "validation": {
+        "status": "PASS_REQUIRED_CI_AND_HEALTHY_ISOLATED_PARENT_ENROLLMENT_QA",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/109",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"
+        ],
+        "limits": "Canonical Development migration and 242/242 drift verification PASS; final GB-M35E matrix closure pending. Production unchanged."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "166a65c2d4abe5095783fc3d28b157a2ed0aaa7b",
+        "pullRequest": 109
+      },
+      "dependencies": {
+        "status": "GB_M35_CANDIDATE_DOCUMENTS_DEVELOPMENT_APPLIED",
+        "units": [
+          "codex/gb-m35-p1-candidate-documents"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql"
+      ],
+      "migrationOrder": [
+        "20260922100000"
+      ],
       "localVerification": "PASS_CANONICAL_DEVELOPMENT_242_OF_242_AND_HEALTHY_ISOLATED_AUTH_QA",
       "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Retest Parent Enrollment on the exact integrated baseline and continue PR #86 evidence closure."
     },
     {
@@ -8895,17 +9301,47 @@
       "title": "GB-M35E P1 enrollment activation typed audit roles",
       "owner": "GB-M35E QA owner",
       "sourceBranch": "codex/gb-m35e-enrollment-activation-audit-role-fix",
-      "sourceCommits": ["f15dccb46f1c0fcca33ee43263652e127a0c0130"],
+      "sourceCommits": [
+        "f15dccb46f1c0fcca33ee43263652e127a0c0130"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35e-enrollment-activation-audit-role-fix"], "validatedSourceCommit": "f15dccb46f1c0fcca33ee43263652e127a0c0130"},
-      "validation": {"status": "PASS_10_CHECKS_AND_PARENT_ENROLLMENT_19_OF_19", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/110", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Canonical Development migration and 242/242 drift verification PASS; final GB-M35E matrix closure pending. Production unchanged."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "d001f37c2a030a371adb7267f1a428c670f758c8", "pullRequest": 110},
-      "dependencies": {"status": "GB_M35E_ENROLLMENT_DECISION_FIX_INTEGRATED", "units": ["codex/gb-m35e-enrollment-audit-role-fix"]},
-      "migrations": ["supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql"],
-      "migrationOrder": ["20260922110000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35e-enrollment-activation-audit-role-fix"
+        ],
+        "validatedSourceCommit": "f15dccb46f1c0fcca33ee43263652e127a0c0130"
+      },
+      "validation": {
+        "status": "PASS_10_CHECKS_AND_PARENT_ENROLLMENT_19_OF_19",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/110",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"
+        ],
+        "limits": "Canonical Development migration and 242/242 drift verification PASS; final GB-M35E matrix closure pending. Production unchanged."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "d001f37c2a030a371adb7267f1a428c670f758c8",
+        "pullRequest": 110
+      },
+      "dependencies": {
+        "status": "GB_M35E_ENROLLMENT_DECISION_FIX_INTEGRATED",
+        "units": [
+          "codex/gb-m35e-enrollment-audit-role-fix"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql"
+      ],
+      "migrationOrder": [
+        "20260922110000"
+      ],
       "localVerification": "PASS_CANONICAL_DEVELOPMENT_242_OF_242_AND_HEALTHY_ISOLATED_AUTH_QA",
       "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Retest Parent Enrollment on the exact integrated baseline and continue PR #86 evidence closure."
     },
     {
@@ -8914,17 +9350,48 @@
       "title": "GB-M35E P1 Parent notification preference category compatibility",
       "owner": "GB-M35E QA owner",
       "sourceBranch": "codex/gb-m35e-notification-preference-category-fix",
-      "sourceCommits": ["df5732acfb213a465f9f7d18975520f4492ca641", "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693"],
+      "sourceCommits": [
+        "df5732acfb213a465f9f7d18975520f4492ca641",
+        "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35e-notification-preference-category-fix"], "validatedSourceCommit": "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693"},
-      "validation": {"status": "PASS_9_REQUIRED_CI_AND_HEALTHY_ISOLATED_PARENT_NOTIFICATION_BROWSER_QA", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/113", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Disposable Auth QA migration and Parent preference browser retest PASS; canonical Development application remains gated by this ledger approval. Production unchanged."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "62fbff45477425696ae8e85c647b6a6fc67e9bd9", "pullRequest": 113},
-      "dependencies": {"status": "GB_M35E_ENROLLMENT_MIGRATIONS_DEVELOPMENT_APPLIED", "units": ["codex/gb-m35e-enrollment-activation-audit-role-fix"]},
-      "migrations": ["supabase/migrations/20260922120000_management_parent_notification_category_fix.sql"],
-      "migrationOrder": ["20260922120000"],
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m35e-notification-preference-category-fix"
+        ],
+        "validatedSourceCommit": "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693"
+      },
+      "validation": {
+        "status": "PASS_9_REQUIRED_CI_AND_HEALTHY_ISOLATED_PARENT_NOTIFICATION_BROWSER_QA",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/113",
+          "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"
+        ],
+        "limits": "Disposable Auth QA migration and Parent preference browser retest PASS; canonical Development application remains gated by this ledger approval. Production unchanged."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "62fbff45477425696ae8e85c647b6a6fc67e9bd9",
+        "pullRequest": 113
+      },
+      "dependencies": {
+        "status": "GB_M35E_ENROLLMENT_MIGRATIONS_DEVELOPMENT_APPLIED",
+        "units": [
+          "codex/gb-m35e-enrollment-activation-audit-role-fix"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20260922120000_management_parent_notification_category_fix.sql"
+      ],
+      "migrationOrder": [
+        "20260922120000"
+      ],
       "localVerification": "PASS_CANONICAL_DEVELOPMENT_243_OF_243_AND_PARENT_BROWSER_PREFERENCES",
       "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Canonical isolated Development application, 243/243 drift and Parent browser preference retest passed. Continue PR #86 matrix closure; no Production release."
     },
     {
@@ -8984,11 +9451,15 @@
       "title": "GB-M37 role dashboards, operational command center and canonical navigation",
       "owner": "GB-M37 owner",
       "sourceBranch": "codex/gb-m37-role-command-center",
-      "sourceCommits": ["ff21556b61970cf0b4644a27384abc2d3a292ba4"],
+      "sourceCommits": [
+        "ff21556b61970cf0b4644a27384abc2d3a292ba4"
+      ],
       "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/gb-m37-role-command-center"],
+        "remoteRefs": [
+          "origin/codex/gb-m37-role-command-center"
+        ],
         "validatedSourceCommit": "ff21556b61970cf0b4644a27384abc2d3a292ba4"
       },
       "validation": {
@@ -9011,13 +9482,17 @@
       },
       "dependencies": {
         "status": "GB_M36_INTEGRATED",
-        "units": ["codex/gb-m36-reporting-analytics"]
+        "units": [
+          "codex/gb-m36-reporting-analytics"
+        ]
       },
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_264_MANAGEMENT_22_PARENT_MANAGER_30_DOMAIN_7_SECURITY_243_MIGRATIONS_7_REPORTING_16_ROLE_SMOKE_8_ROLE_CONTEXT_E2E_TYPECHECK_BUILD_LINT_PREFLIGHT_HEALTH",
       "releaseEligibility": "READY_FOR_OWNER_RELEASE",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Include GB-M37 only in a later explicit owner-authorized consolidated release candidate; run Production role/dashboard smoke at that time."
     },
     {
@@ -9026,7 +9501,10 @@
       "title": "GB-M38 legacy consolidation, route retirement and product cleanup",
       "owner": "GB-M38 owner",
       "sourceBranch": "codex/gb-m38-legacy-consolidation",
-      "sourceCommits": ["5a01a973", "9e16f276da9c159d244702a76b0a83cd5d058fe0"],
+      "sourceCommits": [
+        "5a01a973",
+        "9e16f276da9c159d244702a76b0a83cd5d058fe0"
+      ],
       "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
@@ -9046,13 +9524,25 @@
         ],
         "limits": "PR #121 exact-head checks 9/9 PASS; cumulative post-merge Development verification and built-server smoke PASS. Production and main unchanged."
       },
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "base": "integration/development", "commit": "b143d6f163a5a24bb2ef2020c5c9f2f00d090901", "pullRequest": 121},
-      "dependencies": {"status": "GB_M37_INTEGRATED", "units": ["codex/gb-m37-role-command-center"]},
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "b143d6f163a5a24bb2ef2020c5c9f2f00d090901",
+        "pullRequest": 121
+      },
+      "dependencies": {
+        "status": "GB_M37_INTEGRATED",
+        "units": [
+          "codex/gb-m37-role-command-center"
+        ]
+      },
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_PR_9_OF_9_272_MANAGEMENT_8_GB_M38_9_DASHBOARD_7_REPORTING_30_DOMAIN_7_SECURITY_243_MIGRATIONS_TYPECHECK_BUILD_LINT_PREFLIGHT_HEALTH_200_SUPABASE_OK_ROLE_DASHBOARDS_NO_500_REDIRECT_SECURITY_INTERNAL_API_401",
       "releaseEligibility": "READY_FOR_OWNER_RELEASE",
-      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
       "nextAction": "Include only in a later explicitly owner-authorized consolidated release; Production remains unchanged."
     },
     {
@@ -11499,7 +11989,16 @@
         "sourceHead": "08b716bd1ad4e84b9473334d4577f69b9201daa6",
         "pullRequest": 210,
         "requiredChecks": "PASS_9_OF_9_EXACT_HEAD",
-        "followUpPullRequests": [211, 212, 213, 214, 215, 216, 217, 218]
+        "followUpPullRequests": [
+          211,
+          212,
+          213,
+          214,
+          215,
+          216,
+          217,
+          218
+        ]
       },
       "dependencies": {
         "status": "SATISFIED_FOR_INTERNAL_DEVELOPMENT",
@@ -11654,7 +12153,11 @@
         "sourceHead": "355faec550dc43617ad1af506856406f024d519e",
         "pullRequest": 222,
         "requiredChecks": "PASS_9_OF_9_EXACT_HEAD",
-        "followUpPullRequests": [223, 224, 225]
+        "followUpPullRequests": [
+          223,
+          224,
+          225
+        ]
       },
       "dependencies": {
         "status": "SATISFIED_FOR_INTERNAL_IMPLEMENTATION",
@@ -11803,12 +12306,26 @@
         "integrationCommit": "9e4277bfb63dc641d16879d25359eaa42c2c0d6a",
         "exactHeadCi": "45961d8375d7fbca8ef13483c0272da698b98999 PASS_9_OF_9 run_39988979935",
         "deviceQualificationSourceBranch": "codex/push44-real-device-session-evidence-20261023",
-        "deviceQualificationOriginalCommits": ["403628cd2917237175cdf15713aa56dc8623cd05", "7998b9bbb251d82bb455294cc40ca70b58c0b302"],
+        "deviceQualificationOriginalCommits": [
+          "403628cd2917237175cdf15713aa56dc8623cd05",
+          "7998b9bbb251d82bb455294cc40ca70b58c0b302"
+        ],
         "deviceQualificationPr": 240,
         "deviceQualificationIntegrationCommit": "74e55a8031e782ebff9bfb2ab352df0fb70b70ae",
         "deviceQualificationCi": "7998b9bbb251d82bb455294cc40ca70b58c0b302 PASS_9_OF_9 run_39992473515",
         "postMergeVerification": "LOCAL_VERIFIED exact canonical runtime 74e55a8031e782ebff9bfb2ab352df0fb70b70ae LOCAL_SUPABASE production=false: committed login-resume verifier 5/5 and mobile runtime/deep-link isolation 5/5 PASS; prior cumulative 71/71 at ancestor ced31766 preserved; no media or external provider activation",
-        "sanitizedEvidence": [{"path":"tmp/push44-session-campaign-20261023-before-shutdown.json","classification":"PROTECTED_LOCAL_NON_SECRET_SESSION_METADATA","sha256":"a00c60ef57e85fea04063f6d0d54fd0f7ce30e335ee3ae92b395d66632065aee"},{"path":"tmp/push44-session-campaign-20261023-shutdown.json","classification":"PROTECTED_LOCAL_NON_SECRET_SHUTDOWN_METADATA","sha256":"ca7aebe49444d144b99b67917994a22745525a3fdcc23bfa77a8b53a19b5b93a"}],
+        "sanitizedEvidence": [
+          {
+            "path": "tmp/push44-session-campaign-20261023-before-shutdown.json",
+            "classification": "PROTECTED_LOCAL_NON_SECRET_SESSION_METADATA",
+            "sha256": "a00c60ef57e85fea04063f6d0d54fd0f7ce30e335ee3ae92b395d66632065aee"
+          },
+          {
+            "path": "tmp/push44-session-campaign-20261023-shutdown.json",
+            "classification": "PROTECTED_LOCAL_NON_SECRET_SHUTDOWN_METADATA",
+            "sha256": "ca7aebe49444d144b99b67917994a22745525a3fdcc23bfa77a8b53a19b5b93a"
+          }
+        ],
         "databaseVerification": "257 reconciled = 227 baseline-covered + 30 actual post-baseline receipts; session function rollback-only security checks 8/8; Product login/runtime PASS and cross-Site 403 on loopback; not physical-device proof",
         "physicalDeviceExpiryRevocation": "REAL_DEVICE_PASS_OWNER_CONFIRMED_EXPIRY_AND_CANONICAL_SERVER_REVOCATION_RETURN_TO_LOGIN_AFTER_RESUME_20261023; REAUTHENTICATION_CONFIRMED; LOCAL_API_DENIAL_170MS_EXPIRY_82MS_REVOCATION_NOT_PHONE_LATENCY",
         "physicalDeviceNetwork": "OWNER_CONFIRMED_WIFI_TO_CELLULAR_TO_WIFI_SESSION_CONTINUITY_AND_TRUTHFUL_OFFLINE_INDICATOR; APP_RESTART_INITIAL_FAIL_FIXED_BY_CANONICAL_LOGIN_RESUME; OWNER_CONFIRMED_RETRIAL_NO_PASSWORD_SOURCE_403628CD",
@@ -12025,6 +12542,61 @@
         "productionActivation": false
       },
       "nextAction": "Enable Developer Mode on the paired iPhone, mount DDI, authorize project-owned Development signing, restore the isolated Development backend readiness gate, approve an authenticated HTTPS Development/media endpoint, then rerun signed installation, cellular playback, Push receipt, transition and performance qualification. Do not start PUSH 46 or touch main or Production."
+    },
+    {
+      "id": "codex/ux-v4-primary-screen-correction",
+      "project": "Gan Batuach Management",
+      "title": "UX V4 primary-screen correction — five owner-blocking primary routes and V5 evidence",
+      "owner": "UX-V4 primary-screen correction owner",
+      "sourceBranch": "codex/ux-v4-primary-screen-correction",
+      "sourceCommits": [
+        "b9dac699",
+        "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+        "72281329"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v4-primary-screen-correction@0855814aea547b4b7098e3c8bfba76ac4f8a53c4"
+        ],
+        "validatedRemoteHead": "0855814aea547b4b7098e3c8bfba76ac4f8a53c4",
+        "implementationCommit": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+        "evidenceCommit": "72281329",
+        "handoff": "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md"
+      },
+      "validation": {
+        "status": "PASS_LOCAL_EXACT_HEAD_V5_21_REFERENCE_MATCH_CANDIDATE_0_NEEDS_VISUAL_CORRECTION_0_BROKEN",
+        "evidence": [
+          "GAN_BATUACH_V4_PRIMARY_SCREEN_MAP.md",
+          "GAN_BATUACH_V4_PRIMARY_GEOMETRY.json",
+          "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md",
+          "GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V5.md",
+          "qa-evidence/v4-primary-reference-crops",
+          "qa-evidence/v4-primary-screen-correction",
+          "qa-evidence/v5-domain-regression"
+        ],
+        "limits": "Internal visual result is REFERENCE_MATCH_CANDIDATE only. External owner acceptance remains pending. The legacy qa:probe-role-boundaries harness was not used because it expects removed demo credentials; the current security/isolation gate passed 50/50 and current management scope contracts passed."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_REMOTE_PR"
+      },
+      "dependencies": {
+        "status": "SATISFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_DOMAIN_46_SECURITY_ISOLATION_50_MIGRATIONS_257_RELEASE_CONTRACT_MANAGER_PARENT_23_MANAGEMENT_DASHBOARDS_9_OWNER_COMMAND_CENTER_6_LEGACY_CONSOLIDATION_8_PRIMARY_CAPTURE_10_DOMAIN_REGRESSION_32_V5_PACKAGE_21_0_0",
+      "releaseEligibility": "READY_FOR_DEVELOPMENT_PR_NOT_PRODUCTION_RELEASE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Push the exact validated branch, verify the remote head, open and merge the PR to integration/development after exact-head checks, then regenerate V5 evidence from the exact merged Development SHA. Do not touch main or Production and do not begin RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

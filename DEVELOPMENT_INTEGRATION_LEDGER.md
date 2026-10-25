@@ -1749,3 +1749,36 @@ Final code integration verified: PR #240 merged as `74e55a8031e782ebff9bfb2ab352
 Real-device follow-up branch `codex/push44-real-device-session-evidence-20261023`, PR #240: owner confirmed strict expiry, reauthentication, canonical server-side revocation, background/resume denial, Wi-Fi/cellular continuity and offline indication. Full restart first returned login despite a valid session; the minimal canonical-authorized login-resume correction passed five actual local negative/positive cases and owner retrial returned dashboard without password. Campaign stopped 17:05:52 UTC; exact tunnel deleted, public 530, final QA session revoked, signed offline QA reinstalled/launched, Home services untouched. Exact-head CI and review required before integration. Separate media/APNs/Android/release/legal obligations remain open; 197 capabilities/52 PUSHes unchanged, no Production activation or PR235 changes.
 
 PR #238 merged into Development as `9e4277bfb63dc641d16879d25359eaa42c2c0d6a`; exact head `45961d8375d7fbca8ef13483c0272da698b98999` passed all nine checks (canonical six gates plus aggregate, management and Snyk). Additive migration `20261023161928` applied only to the canonical isolated LOCAL_SUPABASE at 16:47:11 UTC. Actual history/schema reconciles 257 migrations (227 baseline-covered + 30 post-baseline). Eight rollback-only function/ACL checks passed. Actual loopback Product login/runtime passed and unauthorized Site returned 403. These are not yet physical-iPhone expiry/revocation proof. Separate bounded device campaign pending; PR #235 remains Draft; main and Production unchanged.
+
+UX-V4 PRIMARY-SCREEN CORRECTION preservation receipt (2026-10-09): scoped
+implementation and V5 tooling are remotely preserved at
+`origin/codex/ux-v4-primary-screen-correction@b9dac699`. Static qualification
+passes typecheck, zero-regression lint, Domain 30/30, Security 11/11, migration
+health 244/244, release-contract validation, Owner 6/6, Parent 7/7, Platform
+Admin 9/9, Settings 9/9 and Manager/Parent 23/23. Fresh V5 capture, visual
+comparison, build and local full-stack verification remain intentionally
+blocked because PUSH 38 began a new 24-hour host-isolation window on 2026-10-09
+at 01:43:44 Asia/Jerusalem; starting Next or `gbi` before explicit release can
+invalidate that qualification. Read-only heartbeat `ux-v5` monitors release of
+the host and performs no code, Git, PR or merge action. No visual PASS, owner
+approval or Development integration is claimed. Production, `main` and
+RELEASE-GAP-01 remain untouched.
+
+UX-V4 PRIMARY-SCREEN CORRECTION validation update (2026-10-25): source
+Development `af30b84f21a35e817738bf0329cf1a632a10a5ae` was merged into the
+isolated feature branch. Implementation commit
+`e85eda2a62c5d988ac5790d843a14fce9bcb766b` and evidence commit `72281329`
+produce the five primary compositions, 10 fresh primary screenshots, 32 fresh
+domain-regression screenshots and a V5 package with 21
+`REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION`, 0 `BROKEN`.
+Typecheck, zero-regression lint, build, Domain 46/46, Security/Isolation 50/50,
+257-migration health, release contract, Manager/Parent 23/23, management
+dashboards 9/9, Owner command center 6/6 and legacy consolidation 8/8 pass.
+External owner acceptance remains pending; no owner approval is claimed. The
+branch is remotely preserved and still requires exact-head PR checks and merge
+to `integration/development`. Production, `main` and RELEASE-GAP-01 remain
+untouched.
+
+Remote preservation verified: `origin/codex/ux-v4-primary-screen-correction`
+contains validated head `0855814aea547b4b7098e3c8bfba76ac4f8a53c4`, including the
+implementation, fresh evidence and validation ledger update.
