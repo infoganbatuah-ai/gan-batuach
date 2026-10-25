@@ -60,9 +60,7 @@ export async function provisionPartnerCustomer(admin: Admin, input: { partnerId:
     organizationId: input.organizationId, actorId: input.actorId ?? null, serviceAccountId: input.serviceAccountId ?? null,
     customerOrganizationId: input.customerOrganizationId, externalReferenceHash: ref.hash,
     siteIds: [...new Set(input.siteIds)].sort(), entitlementGrantIds: [...new Set(input.entitlementGrantIds)].sort() })).digest("hex");
-  const receipt = await (admin as any).from("digital_observer_partner_provisioning_receipts").insert({ partner_id: input.partnerId,
-    service_account_id: input.serviceAccountId ?? null, idempotency_key: input.idempotencyKey, operation: "customer.provision", request_hash: requestHash }).select("id").single();
-  if (receipt.error?.code === "23505") {
+  const completedReplay = async () => {
     const existing = await (admin as any).from("digital_observer_partner_provisioning_receipts")
       .select("request_hash,service_account_id,resource_type,resource_id,result_status,response_status")
       .eq("partner_id", input.partnerId).eq("operation", "customer.provision").eq("idempotency_key", input.idempotencyKey).single();
@@ -89,7 +87,19 @@ export async function provisionPartnerCustomer(admin: Admin, input: { partnerId:
       throw new Error("PARTNER_RECEIPT_RECOVERY_REQUIRED");
     }
     return { customerId: existing.data.resource_id, idempotentReplay: true, status: existing.data.result_status };
+  };
+  // A new key is not permission to re-provision an existing customer. This read is only a preflight;
+  // the unique constraints and insert-only write below handle a concurrent insert without overwriting it.
+  const priorCustomer = await (admin as any).from("digital_observer_partner_customers").select("id,idempotency_key")
+    .eq("partner_id", input.partnerId).eq("customer_organization_id", input.customerOrganizationId).maybeSingle();
+  if (priorCustomer.error) throw new Error("PARTNER_CUSTOMER_LOOKUP_FAILED");
+  if (priorCustomer.data) {
+    if (!priorCustomer.data.id || priorCustomer.data.idempotency_key !== input.idempotencyKey) throw new Error("PARTNER_CUSTOMER_CONFLICT");
+    return completedReplay();
   }
+  const receipt = await (admin as any).from("digital_observer_partner_provisioning_receipts").insert({ partner_id: input.partnerId,
+    service_account_id: input.serviceAccountId ?? null, idempotency_key: input.idempotencyKey, operation: "customer.provision", request_hash: requestHash }).select("id").single();
+  if (receipt.error?.code === "23505") return completedReplay();
   if (receipt.error || !receipt.data?.id) throw new Error("PARTNER_RECEIPT_FAILED");
   const [sites, grants] = await Promise.all([
     (admin as any).from("observer_sites").select("id,digital_observer_organization_id,site_type,garden_id").in("id", input.siteIds).eq("digital_observer_organization_id", input.customerOrganizationId).is("garden_id", null).neq("site_type", "kindergarten"),
@@ -97,15 +107,16 @@ export async function provisionPartnerCustomer(admin: Admin, input: { partnerId:
   ]);
   if (sites.error || sites.data?.length !== new Set(input.siteIds).size) throw new Error("PARTNER_CUSTOMER_SITE_SCOPE_DENIED");
   if (grants.error || grants.data?.length !== new Set(input.entitlementGrantIds).size) throw new Error("PARTNER_CUSTOMER_ENTITLEMENT_DENIED");
-  const customer = await (admin as any).from("digital_observer_partner_customers").upsert({ partner_id: input.partnerId,
+  const customer = await (admin as any).from("digital_observer_partner_customers").insert({ partner_id: input.partnerId,
     customer_organization_id: input.customerOrganizationId, external_customer_reference_hash: ref.hash, external_customer_reference_hint: ref.hint,
     idempotency_key: input.idempotencyKey, customer_status: "active", activated_at: new Date().toISOString(), created_by: input.actorId ?? null,
-    metadata: { external_reference_stored: false, production_customer: false } }, { onConflict: "partner_id,customer_organization_id" })
+    metadata: { external_reference_stored: false, production_customer: false } })
     .select("id,customer_organization_id,external_customer_reference_hint,customer_status,activated_at").single();
-  if (customer.error) throw new Error("PARTNER_CUSTOMER_CREATE_FAILED");
+  if (customer.error?.code === "23505") throw new Error("PARTNER_CUSTOMER_CONFLICT");
+  if (customer.error || !customer.data?.id) throw new Error("PARTNER_CUSTOMER_CREATE_FAILED");
   const [siteLinks, entitlementLinks] = await Promise.all([
-    (admin as any).from("digital_observer_partner_customer_sites").upsert(input.siteIds.map((siteId) => ({ partner_customer_id: customer.data.id, observer_site_id: siteId })), { onConflict: "partner_customer_id,observer_site_id" }),
-    (admin as any).from("digital_observer_partner_customer_entitlements").upsert(input.entitlementGrantIds.map((grantId) => ({ partner_customer_id: customer.data.id, entitlement_grant_id: grantId, assigned_by: input.actorId ?? null })), { onConflict: "partner_customer_id,entitlement_grant_id" })
+    (admin as any).from("digital_observer_partner_customer_sites").insert(input.siteIds.map((siteId) => ({ partner_customer_id: customer.data.id, observer_site_id: siteId }))),
+    (admin as any).from("digital_observer_partner_customer_entitlements").insert(input.entitlementGrantIds.map((grantId) => ({ partner_customer_id: customer.data.id, entitlement_grant_id: grantId, assigned_by: input.actorId ?? null })))
   ]);
   if (siteLinks.error || entitlementLinks.error) throw new Error("PARTNER_CUSTOMER_SCOPE_LINK_FAILED");
   await audit(admin, { organizationId: input.organizationId, actorId: input.actorId, serviceAccountId: input.serviceAccountId,

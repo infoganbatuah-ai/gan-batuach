@@ -30,7 +30,7 @@ const base = { partnerId: id(1), organizationId: id(2), customerOrganizationId: 
 
 function fixture() {
   const state = { receipt: null, customer: null, linkedSites: [], linkedGrants: [], calls: {
-    customerWrites: 0, siteWrites: 0, grantWrites: 0, receiptCompletes: 0, audits: 0
+    customerInsertAttempts: 0, customerWrites: 0, siteWrites: 0, grantWrites: 0, receiptInserts: 0, receiptCompletes: 0, audits: 0
   }, fail: null };
   const admin = { from(table) {
     const filters = new Map();
@@ -48,6 +48,7 @@ function fixture() {
         if (table === "digital_observer_partner_provisioning_receipts") {
           if (op === "insert") {
             if (state.receipt) return { data: null, error: { code: "23505" } };
+            state.calls.receiptInserts++;
             state.receipt = { id: id(20), result_status: "accepted", resource_type: null, resource_id: null,
               response_status: null, ...payload };
             return { data: { id: state.receipt.id }, error: null };
@@ -70,20 +71,31 @@ function fixture() {
         if (table === "observer_sites") return { data: base.siteIds.map((site) => ({ id: site })), error: null };
         if (table === "digital_observer_entitlement_grants") return { data: base.entitlementGrantIds.map((grant) => ({ id: grant })), error: null };
         if (table === "digital_observer_partner_customers") {
-          if (op === "upsert") {
+          if (op === "insert") {
+            state.calls.customerInsertAttempts++;
+            if (state.fail === "customer-race") {
+              // A competing insert wins the unique (partner, customer organization) constraint.
+              state.customer = { id: id(22), partner_id: payload.partner_id,
+                customer_organization_id: payload.customer_organization_id, idempotency_key: "other-worker-key",
+                external_customer_reference_hash: "competing-reference", customer_status: "active" };
+              return { data: null, error: { code: "23505" } };
+            }
+            if (state.customer) return { data: null, error: { code: "23505" } };
             state.calls.customerWrites++;
             state.customer = { id: id(21), customer_status: "active", ...payload };
             return { data: state.customer, error: null };
           }
-          return { data: state.customer, error: null };
+          if (state.fail === "customer-lookup") return { data: null, error: { code: "synthetic" } };
+          const customer = state.customer;
+          return { data: customer && [...filters].every(([key, value]) => customer[key] === value) ? customer : null, error: null };
         }
         if (table === "digital_observer_partner_customer_sites") {
-          if (op === "upsert") { state.calls.siteWrites++; if (state.fail === "site-link") return { error: { code: "synthetic" } };
+          if (op === "insert") { state.calls.siteWrites++; if (state.fail === "site-link") return { error: { code: "synthetic" } };
             state.linkedSites = payload.map((row) => row.observer_site_id); return { error: null }; }
           return { data: state.linkedSites.map((observer_site_id) => ({ observer_site_id })), error: null };
         }
         if (table === "digital_observer_partner_customer_entitlements") {
-          if (op === "upsert") { state.calls.grantWrites++; if (state.fail === "grant-link") return { error: { code: "synthetic" } };
+          if (op === "insert") { state.calls.grantWrites++; if (state.fail === "grant-link") return { error: { code: "synthetic" } };
             state.linkedGrants = payload.map((row) => row.entitlement_grant_id); return { error: null }; }
           return { data: state.linkedGrants.map((entitlement_grant_id) => ({ entitlement_grant_id })), error: null };
         }
@@ -122,6 +134,42 @@ test("changed reference, site, grant, actor or service account cannot reuse a re
     await assert.rejects(() => provision(f, change), /PARTNER_IDEMPOTENCY_CONFLICT/);
     assert.deepEqual(f.state.calls, before);
   }
+});
+
+test("an existing customer rejects new keys and changed reference or scope without any writes", async () => {
+  for (const change of [{}, { externalReference: "different-reference" }, { siteIds: [id(8)] },
+    { entitlementGrantIds: [id(9)] }]) {
+    const f = fixture(); await provision(f);
+    const before = structuredClone(f.state);
+    await assert.rejects(() => provision(f, { idempotencyKey: "new-receipt-key", ...change }), /PARTNER_CUSTOMER_CONFLICT/);
+    assert.deepEqual(f.state, before, "customer, links and all receipts remain untouched");
+  }
+});
+
+test("a customer inserted after preflight wins the unique constraint without being overwritten", async () => {
+  const f = fixture(); f.state.fail = "customer-race";
+  await assert.rejects(() => provision(f), /PARTNER_CUSTOMER_CONFLICT/);
+  assert.equal(f.state.customer.id, id(22));
+  assert.equal(f.state.customer.idempotency_key, "other-worker-key");
+  assert.equal(f.state.calls.customerWrites, 0);
+  assert.equal(f.state.calls.customerInsertAttempts, 1);
+  assert.equal(f.state.calls.siteWrites, 0);
+  assert.equal(f.state.calls.grantWrites, 0);
+  assert.equal(f.state.calls.receiptCompletes, 0);
+  assert.equal(f.state.receipt.result_status, "accepted", "the new uncompleted receipt requires reconciliation");
+  const before = structuredClone(f.state); f.state.fail = null;
+  await assert.rejects(() => provision(f), /PARTNER_CUSTOMER_CONFLICT/);
+  assert.deepEqual(f.state, { ...before, fail: null }, "retry must not mutate the winning customer or receipt");
+});
+
+test("customer preflight lookup failure cannot create a receipt or mutate scope", async () => {
+  const f = fixture(); f.state.fail = "customer-lookup";
+  await assert.rejects(() => provision(f), /PARTNER_CUSTOMER_LOOKUP_FAILED/);
+  assert.equal(f.state.receipt, null);
+  assert.equal(f.state.customer, null);
+  assert.deepEqual(f.state.linkedSites, []);
+  assert.deepEqual(f.state.linkedGrants, []);
+  assert.equal(f.state.calls.receiptInserts, 0);
 });
 
 test("legacy, missing, partial and malformed receipts fail closed", async () => {
