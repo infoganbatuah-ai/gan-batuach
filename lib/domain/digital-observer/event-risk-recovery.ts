@@ -173,6 +173,7 @@ export function requiredEffectKeys(plan: EffectsPlan): readonly string[] {
     "INCIDENT_RISK_PROJECTION", "VERIFICATION_RESULT", "DECISION_INTENT",
     "INCIDENT_VERIFICATION_PROJECTION", "RECIPIENT_PLAN",
     ...plan.recipients.recipientIds.map(id => `IN_APP_JOURNAL:${id}`),
+    "MANDATORY_DECISION_AUDIT",
     ...(plan.mediaFaultAuditRequired ? ["MEDIA_FAULT_AUDIT"] : []), "GUARD_ELIGIBILITY"];
 }
 

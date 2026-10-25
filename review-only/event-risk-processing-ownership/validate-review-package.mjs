@@ -20,6 +20,8 @@ const permissions = readFileSync(new URL("PERMISSIONS-AND-RPCS.md", directory), 
 const rollback = readFileSync(new URL("FORWARD-AND-ROLLBACK.md", directory), "utf8");
 const blockers = readFileSync(new URL("BLOCKING-FACTS.md", directory), "utf8");
 const route = readFileSync(new URL("../../app/api/video-gateway/cloud-events/route.ts", directory), "utf8");
+const fencedWrites = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-fenced-writes.ts", directory), "utf8");
+const recovery = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-recovery.ts", directory), "utf8");
 
 const executable = text => text.split("\n").filter(line => !line.trimStart().startsWith("--")).join("\n");
 const draftExecutable = executable(draft);
@@ -108,5 +110,10 @@ for (const required of ["Watch-rule evaluations", "Incident risk projection", "V
 }
 assert.doesNotMatch(route, /claim_event_risk_v1|persist_event_risk_v1|complete_event_risk_v1/);
 assert.doesNotMatch(route, /model-a-ownership|event-risk-recovery/);
+assert.doesNotMatch(route, /event-risk-fenced-writes/);
+for (const functionName of ["persistFencedRisk", "startFencedEffects", "recordFencedEffect", "completeFencedRisk"]) {
+  assert.match(fencedWrites, new RegExp(`export function ${functionName}\\(`));
+}
+assert.match(recovery, /"MANDATORY_DECISION_AUDIT"/);
 
-console.log("Review-package containment checks passed: three abort-guarded offline bodies, exact ACL scope, no runtime claim activation.");
+console.log("Review-package containment checks passed: three abort-guarded offline SQL bodies, four disconnected write transitions, exact ACL scope, no runtime claim activation.");

@@ -17,10 +17,10 @@ being present is not PostgreSQL qualification.
 | --- | --- | --- |
 | `claim_event_risk_v1(uuid,text,uuid,integer) RETURNS jsonb` | Proposed: validates a canonical REAL_CAMERA_AI Signal, Site, camera Source, link and Incident; derives candidate Tenant; PK/row lock elects one owner; returns OWNED/BUSY/RESUME_EFFECTS/COMPLETED/NOT_APPLICABLE. | Existing `observer_sites.digital_observer_organization_id` is nullable and customer cardinality/history is unverified. A non-null reference is not authoritative historical ownership; application is BLOCKED until separately reviewed mapping and PostgreSQL concurrency tests. |
 | `renew_event_risk_lease_v1(uuid,text,uuid,bigint,integer) RETURNS jsonb` | Proposed conditional UPDATE with exact nonce, epoch, live deadline, allowed status and current Site/Signal/link consistency. | Depends on a valid original claim and new table; role and lease-race behavior require isolated PostgreSQL tests. |
-| `persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) RETURNS uuid` | **BLOCKED — no body.** | Existing Risk writer inserts by Data API then handles 23505 with an ID-only reread; it does not compare immutable result fields. A transactionally fenced result insert, full semantic 23505 verification, and exact JSON contract are missing. |
-| `start_event_risk_effects_v1(uuid,text,uuid,bigint,jsonb) RETURNS jsonb` | **BLOCKED — no body.** | Existing recipient/settings choice is mutable and the future plan table has no independently approved frozen payload schema. A stable snapshot and full expected-effect fingerprints must precede effects. |
-| `record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text) RETURNS jsonb` | **BLOCKED — no body.** | A receipt alone would falsely attest that the separate watch/verification/intent/journal/audit writers were fenced and committed. Their canonical row checks and CAS writes are absent. |
-| `complete_event_risk_v1(uuid,text,uuid,bigint) RETURNS jsonb` | **BLOCKED — no body.** | Cannot prove every mandatory durable effect, recipient and audit row, nor Incident-wide projection generations, from current writers. Never set COMPLETED merely from receipt count. |
+| `persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) RETURNS uuid` | **SQL BLOCKED — no body; disconnected local transition implemented.** | The local transition rejects stale ownership and semantic-result conflicts. The existing Risk writer inserts by Data API then handles 23505 with an ID-only reread; exact immutable result JSON and transactional SQL insertion are not verified. |
+| `start_event_risk_effects_v1(uuid,text,uuid,bigint,jsonb) RETURNS jsonb` | **SQL BLOCKED — no body; disconnected local transition implemented.** | The local transition freezes settings version, recipient digest and effect fingerprints. The future plan table lacks an approved complete snapshot payload/retention contract; the existing choice is mutable. |
+| `record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text) RETURNS jsonb` | **SQL BLOCKED — no body; disconnected local transition implemented.** | The local transition requires matching synthetic row evidence, Incident CAS and audit evidence. A receipt cannot attest that deployed watch/verification/intent/journal/audit writers committed; exact SQL mapping is absent. |
+| `complete_event_risk_v1(uuid,text,uuid,bigint) RETURNS jsonb` | **SQL BLOCKED — no body; disconnected local transition implemented.** | The local transition checks all planned evidence, receipts, audit and projection references. Current deployed writers cannot prove these PostgreSQL rows or generations; never set deployed COMPLETED from receipt count. |
 | `recover_expired_event_risk_v1(uuid,text,uuid,integer) RETURNS jsonb` | Proposed wrapper rereads the existing claim, delegates to the one atomic acquisition/takeover path, preserves Risk/plan/receipts and increments epoch on expiry. | Depends on first function and a verified claim; no PostgreSQL crash/race proof yet. |
 
 For proposed functions: owner is the future reviewed migration owner, execution
@@ -64,8 +64,8 @@ snapshot digest, expected effect keys and semantic fingerprints before any
 recoverable effect. Mandatory keys are defined by `requiredEffectKeys` in
 `event-risk-recovery.ts`: Event/Incident link, Risk, each watch-rule decision,
 Incident risk projection, verification, decision intent, Incident verification
-projection, recipient plan, each required in-app journal row, conditional
-media-fault audit, and Guard **eligibility**. A mandatory audit failure leaves
+projection, recipient plan, each required in-app journal row, mandatory
+decision audit, conditional media-fault audit, and Guard **eligibility**. A mandatory audit failure leaves
 retry eligibility and blocks completion; best-effort telemetry cannot replace
 it. Guard physical dispatch, attempts and external acknowledgment are separate
 states and must never be inferred from Risk COMPLETED.
@@ -144,10 +144,33 @@ PostgreSQL locking, RLS, Data API callability, crash durability or a physical
 side effect. The seven signatures are accounted for, but this package is
 **NOT READY TO APPLY** and the adapter remains disabled.
 
+## Four-write disconnected implementation receipt
+
+`event-risk-fenced-writes.ts` adds four pure operations, without importing them
+into ingestion. All share a fence over exact canonical Tenant/Site/Source/
+Event/Incident/Risk scope, engine version, nonce, epoch, live lease and a
+monotonic synthetic write generation. Risk persistence compares input and
+semantic result fingerprints. Plan start freezes the decision-time recipient
+and settings digest. Effect recording requires same-scope row evidence, a
+matching receipt and Incident-wide generation/reference CAS for projection
+keys. Completion checks every mandatory row/receipt and both projection
+references. Decision intents compare canonical fields; an audit receipt
+requires affirmative committed-audit evidence. Guard dispatch remains zero.
+An identical retry is a no-op; a semantic conflict fails closed.
+
+The focused test uses a serial transactional in-memory store: it clones state
+before an operation, commits only on success, and snapshots/reloads it to
+model restart. This is deliberately **not** a production store or a
+PostgreSQL concurrency/crash proof. The existing live Data API writers are
+unchanged. The four exact RPC signatures remain SQL BLOCKED until canonical
+payload shapes, recipient snapshot schema, transactional row/effect mapping
+and historical Model A ownership are independently qualified.
+
 ## Local validation receipt
 
-- The 5 focused Node test groups passed, including added partial-effect,
-  stale-owner, snapshot and semantic duplicate-intent cases.
+- The original 5 focused Node test groups and 5 new four-write synthetic
+  groups passed (10 total), including test-store rollback, recovered missing
+  effects, stale owner, snapshot and semantic duplicate-intent cases.
 - The review-package containment/signature/ACL validator passed; `git diff
   --check`, JSON parsing, focused TypeScript and focused lint passed.
 - Whole-repository TypeScript did **not** pass in this worktree because its
