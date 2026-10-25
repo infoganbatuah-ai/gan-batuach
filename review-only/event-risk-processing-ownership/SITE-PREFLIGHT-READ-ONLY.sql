@@ -36,3 +36,14 @@ WHERE r.observer_site_id IS DISTINCT FROM i.observer_site_id
    OR r.observer_site_id IS DISTINCT FROM s.observer_site_id
 ORDER BY r.created_at
 LIMIT 100;
+
+-- Home-scope shape only; this does not define Tenant or prove ownership.
+-- A missing organization is expected to be possible, not auto-repaired.
+SELECT count(*) AS eligible_nongarden_sites,
+       count(*) FILTER (WHERE owner_profile_id IS NULL) AS missing_owner_profile,
+       count(*) FILTER (WHERE digital_observer_organization_id IS NULL)
+         AS no_organization,
+       count(*) FILTER (WHERE digital_observer_organization_id IS NOT NULL)
+         AS has_organization
+FROM public.observer_sites
+WHERE garden_id IS NULL AND site_type IS DISTINCT FROM 'kindergarten';

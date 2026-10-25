@@ -12,9 +12,13 @@ or in-memory model test will not substitute for PostgreSQL concurrency proof.
 | Crash during risk persistence | Result and `RISK_PERSISTED` appear together or neither does | NOT RUN |
 | Stale owner after lease takeover | Old epoch cannot persist risk or any downstream effect | NOT RUN |
 | Crash after risk, before outbox | Retry reads stored result, resumes missing idempotent effects without recalculation or loss | NOT RUN; transactional design open |
+| Crash between each Risk downstream write | Expected watch-rule, Incident risk projection, verification, intent and Incident verification projection are each recovered or atomically absent; stale epoch writes denied | NOT RUN; completion boundary open |
+| Recipient set changes during replay | A durable expected-recipient snapshot or reviewed equivalent proves in-app journal completeness without duplicate delivery | NOT RUN; recipient snapshot open |
+| Audit write fails | Gateway ACK policy is explicit; no false claim of immutable-audit completeness | NOT RUN; current helper swallows failure |
+| Digital Guard dispatch after Risk completion | Existing command idempotency prevents duplicate physical action; Risk completion neither suppresses nor replays it implicitly | NOT RUN; separate effect review open |
 | Replay after complete | Returns stored outcome without recalculation or duplicate outbox | NOT RUN |
 | New Event or engine version | Legitimate risk escalation still occurs | NOT RUN |
-| Wrong Tenant/Site/Incident | Claim and completion reject; no new mismatched row | NOT RUN; Home tenant mapping open |
+| Wrong Tenant/Site/Incident | Claim and completion reject; no new mismatched row | NOT RUN; Home tenant mapping open; Site alone is not Tenant proof |
 | Existing mismatched rows | Count and restricted references reviewed; no silent repair | PREFLIGHT NOT RUN |
 | Scope and privileges | `anon`/`authenticated` cannot call claim or write claims; no client secret | NOT RUN |
 | Rollback | Claims/results retained, unfinished events reconciled, no data loss | NOT RUN |
@@ -29,15 +33,16 @@ contract. Do not mark these cases PASS from that older evidence.
    independently restorable snapshot of Development database/Auth and Storage.
 2. Run `SITE-PREFLIGHT-READ-ONLY.sql` in a restricted channel; if mismatches
    exist, stop for a separate data decision. Do not delete or auto-correct.
-3. Review the Home tenant mapping, SQL function permissions, RLS, index lock
-   time, historical row count, claim cardinality and retention. Record the
+3. Review the Home tenant mapping, effect/ACK ledger, SQL function
+   permissions, RLS, index lock time, historical row count, claim cardinality
+   and retention. Record the
    next-month and peak usage/cost impact.
 4. Replace this guarded sketch with an ordered canonical migration only after
    explicit owner approval. Test it first in an isolated clone with synthetic
    IDs; prove real PostgreSQL transactions, worker restart and rollback.
-5. Keep the runtime claim flag OFF until risk, Incident, verification, decision
-   and notification recovery are all qualified. Do not acknowledge a Gateway
-   event while only an in-progress claim exists.
+5. Keep the runtime claim flag OFF until risk, Incident, verification, decision,
+   in-app journal and independent route-level effects are qualified. Do not
+   acknowledge a Gateway event while only an in-progress claim exists.
 
 ## Forward recovery and rollback — proposed, not executed
 

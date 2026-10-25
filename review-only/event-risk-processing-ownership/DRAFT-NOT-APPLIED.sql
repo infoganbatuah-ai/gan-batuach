@@ -16,7 +16,8 @@ CREATE TABLE public.observer_event_risk_claims (
   risk_engine_version text NOT NULL,
   observer_site_id uuid NOT NULL,
   incident_id uuid NOT NULL,
-  tenant_scope_key text NOT NULL,
+  -- No tenant key is invented here. Home tenant derivation is a blocking
+  -- decision; observer_site_id is only the canonical processing partition.
   status text NOT NULL DEFAULT 'CLAIMED',
   owner_nonce uuid NOT NULL,
   owner_epoch bigint NOT NULL DEFAULT 1,
@@ -94,11 +95,14 @@ REVOKE ALL ON TABLE public.observer_event_risk_claims FROM PUBLIC, anon, authent
 -- 2. A fenced risk-persist RPC must verify owner_nonce, owner_epoch and live
 --    lease, then insert immutable evaluation and mark RISK_PERSISTED in the
 --    *same transaction*. Replays must verify the stored input fingerprint.
--- 3. A fenced completion/reconciliation boundary must cover Incident,
---    verification, decision intent and outbox, or prove each idempotent stage
---    recoverable before marking COMPLETED. Existing separate HTTP writes do
---    not satisfy this automatically.
+-- 3. A fenced completion/reconciliation boundary must cover Incident risk
+--    projection, watch-rule evaluations, verification, decision intent and
+--    required in-app journal/outbox rows. Each stage needs a durable expected
+--    effect set and replay-safe proof before COMPLETED. Existing separate
+--    HTTP writes do not satisfy this automatically. Media-fault audit and
+--    Guard dispatch are separate route-level effects; COMPLETED must not be
+--    mistaken for the full Gateway acknowledgement boundary.
 -- 4. Function EXECUTE grants, service_role table privileges and exposure to
 --    the Data API require a separate least-privilege security review.
--- 5. Home tenant_scope_key derivation, historical mismatch handling, claim
+-- 5. Home tenant derivation, historical mismatch handling, claim
 --    retention and data-size limits require explicit decisions.

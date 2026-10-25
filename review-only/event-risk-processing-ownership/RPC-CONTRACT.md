@@ -16,8 +16,9 @@ without review. This RPC must:
 1. Load and lock the signal, its canonical Incident link and Incident. Verify
    `REAL_CAMERA_AI`, `validated_event`, supported entry/exit event type, exact
    Site match and an active eligible processing context. An unmatched exit
-   returns `NOT_APPLICABLE`; a mismatched link fails closed. Derive Site and
-   tenant scope from canonical rows, never caller arguments.
+   returns `NOT_APPLICABLE`; a mismatched link fails closed. Derive Site from
+   canonical rows, never caller arguments. Home Tenant derivation is BLOCKED;
+   do not substitute organization ID, owner profile or billing account key.
 2. Atomically insert a claim or take over an expired claim by incrementing
    `owner_epoch`. Do not replace a live owner. The primary key is `(signal_id,
    engine_version)`. A completed claim cannot be reopened for the same version.
@@ -50,23 +51,29 @@ review; the guarded SQL sketch does not create this function.
 
 ## `complete_event_risk_v1(...)` — BLOCKED DESIGN GATE
 
-The current risk service persists watch-rule evaluations, Incident projection,
-verification and decision intent in separate requests; notifications are a
-further idempotent stage. The completion RPC cannot simply set `COMPLETED`
-after risk insertion. A future design must choose and prove one of:
+The current risk service persists watch-rule evaluations, Incident risk
+projection, verification, decision intent and Incident verification projection
+in separate requests; in-app notification rows are a further per-recipient
+stage. The completion RPC cannot simply set `COMPLETED` after risk insertion.
+A future design must choose and prove one of:
 
 - One fenced SQL transaction for the required Incident/verification/decision
-  effects and completion marker; or
+  effects, expected recipient snapshot and completion marker; or
 - Durable per-stage checkpoints with idempotent replay, each fenced by the
   current epoch, followed by a completion transaction that verifies every
   required stage. Recipient/outbox completeness must be explicit, not inferred
-  from the existence of a risk row.
+  from the existence of a risk row. Duplicate watch-rule, verification and
+  decision rows must be checked for the expected contents, not merely caught
+  as `23505`.
 
 Until that design is reviewed, `RISK_PERSISTED` is not a Gateway success
 condition. On crash, replay must resume missing effects from the stored risk
 row. On lease expiry, only the new epoch may finalize. A completed replay
 returns the stored result, not a new evaluation. A legitimate new Event or
-engine version remains processable.
+engine version remains processable. `COMPLETED` covers only the reviewed
+Risk/Incident pipeline; the route's media-fault audit and Digital Guard
+dispatch need separate ACK/replay decisions. `writeAuditEvent` currently
+swallows failures. See `EFFECT-RECOVERY-REVIEW.md`.
 
 Error classes for future review: `SCOPE_MISMATCH`, `UNTRUSTED_EVENT`,
 `LEASE_BUSY`, `LEASE_EXPIRED`, `STALE_OWNER`, `RESULT_CONFLICT`,

@@ -43,7 +43,9 @@ One claim per `(signal_id, risk_engine_version)` is the minimum durable unit.
 `claim(signal_id, version, request_owner_nonce)` must derive the Incident and
 Site from canonical rows; it must not trust a client-supplied Site or tenant.
 The Home tenant-scope representation is unresolved: the canonical Site may
-have no `digital_observer_organization_id`. Resolve this before SQL is applied.
+have no `digital_observer_organization_id`. The draft deliberately stores no
+invented Tenant key. Resolve mapping and historical ownership before SQL is
+applied; Site is the current processing partition, not proof of Tenant scope.
 
 An atomic claim returns one of:
 
@@ -54,15 +56,17 @@ An atomic claim returns one of:
 - `RESUME_EFFECTS(epoch, lease_until, evaluation_id)`: a caller that acquired
   or renewed the claim owns recovery of already-persisted risk; it must not
   recalculate. A different live owner still yields `BUSY`.
-- `COMPLETED(evaluation_id)`: all required downstream work is durably complete.
+- `COMPLETED(evaluation_id)`: all reviewed Risk/Incident downstream work is
+  durably complete; this is **not** a full Gateway-route ACK receipt.
 - `NOT_APPLICABLE`: a valid event (for example unmatched exit) has no Incident.
 
 On expiry, a new owner may take the claim with a strictly larger epoch. The
 previous owner must be rejected at **every** persistence boundary. The risk
 result and transition to `RISK_PERSISTED` must commit together. Transition to
-`COMPLETED` must occur only after the canonical Incident, verification, decision
-intent and notification/outbox requirements are satisfied durably. Their
-transactional or replay-safe boundary is **not yet proven** in current code;
+`COMPLETED` must occur only after the canonical Incident projections,
+watch-rule evaluations, verification, decision intent and applicable in-app
+journal/outbox requirements are satisfied durably. Their transactional or
+replay-safe boundary is **not yet proven** in current code;
 the draft must not be activated until that boundary and error responses are
 implemented and tested. A non-owner must never calculate risk.
 
@@ -101,11 +105,14 @@ mismatched engine input; this does not replace database-level integrity.
   **not run**.
 - `TEST-AND-ROLLBACK.md`: synthetic acceptance matrix, forward recovery and
   rollback conditions; **not run**.
+- `EFFECT-RECOVERY-REVIEW.md`: source-grounded effect inventory, ACK boundary
+  and unresolved Home Tenant mapping; no live data assertion.
 - `validate-review-package.mjs`: dependency-free static containment check;
   it is not a PostgreSQL behavior test.
 
 Open gates: canonical Home tenant scope, exact transactional downstream
-completion, historical Site exceptions, RLS/ACL review, migration locking and
-cost, FK behavior during approved Event retention/deletion, PostgreSQL
+completion and route-level ACK semantics (including swallowed audit failures
+and Digital Guard dispatch), historical Site exceptions, RLS/ACL review,
+migration locking and cost, FK behavior during approved Event retention/deletion, PostgreSQL
 concurrency/restart qualification of the *new* contract, and owner approval.
 No runtime flag or claim path has been added or enabled.

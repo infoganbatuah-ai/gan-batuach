@@ -9,6 +9,7 @@ assert(!location.includes("/supabase/migrations/"), "review package must remain 
 const draft = readFileSync(new URL("DRAFT-NOT-APPLIED.sql", directory), "utf8");
 const preflight = readFileSync(new URL("SITE-PREFLIGHT-READ-ONLY.sql", directory), "utf8");
 const contract = readFileSync(new URL("RPC-CONTRACT.md", directory), "utf8");
+const effects = readFileSync(new URL("EFFECT-RECOVERY-REVIEW.md", directory), "utf8");
 const route = readFileSync(new URL("../../app/api/video-gateway/cloud-events/route.ts", directory), "utf8");
 
 const executable = text => text.split("\n").filter(line => !line.trimStart().startsWith("--")).join("\n");
@@ -20,6 +21,11 @@ assert.doesNotMatch(draftExecutable, /^\s*(?:COMMIT|ROLLBACK)\s*;/im);
 assert.doesNotMatch(draftExecutable, /\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b/i);
 assert.doesNotMatch(preflightExecutable, /\b(?:INSERT|UPDATE|DELETE|ALTER|DROP|CREATE|GRANT|REVOKE|TRUNCATE)\b/i);
 assert.match(contract, /complete_event_risk_v1[\s\S]*BLOCKED DESIGN GATE/);
+assert.doesNotMatch(draftExecutable, /tenant_scope_key\s+text/i);
+assert.match(effects, /Completion boundary — BLOCKED/);
+for (const required of ["Watch-rule evaluations", "Incident risk projection", "Verification", "Decision intent", "In-app notification journal", "Media-fault metadata and audit", "Digital Guard action dispatch", "Home scope — BLOCKED"]) {
+  assert(effects.includes(required), `effect review must cover ${required}`);
+}
 assert.doesNotMatch(route, /claim_event_risk_v1|persist_event_risk_v1|complete_event_risk_v1/);
 
 console.log("Review-package containment checks passed: migration guard, read-only preflight, no runtime claim activation.");
