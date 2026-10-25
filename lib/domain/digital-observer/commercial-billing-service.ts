@@ -79,6 +79,58 @@ async function billingAccount(admin: AnySupabase, input: { siteId: string; owner
   return created.data;
 }
 
+function sameMinorAmount(stored: unknown, requested: number) {
+  const amount = typeof stored === "string" && /^\d+$/.test(stored) ? Number(stored) : stored;
+  return typeof amount === "number" && Number.isSafeInteger(amount) && amount === requested;
+}
+
+function checkoutReplay(existing: any, input: {
+  siteId: string; actorId: string; packageId: string; idempotencyKey: string; billingPeriod: "monthly" | "annual";
+}, expected: { stableId: string; accountId: string; plan: PlanVersion; subscriptionId: string | null;
+  amountMinor: number; currency: string; quoteId: string }) {
+  if (typeof existing.id !== "string" || !existing.id || typeof existing.quote_expires_at !== "string"
+    || !Number.isFinite(Date.parse(existing.quote_expires_at)) || typeof existing.metadata !== "object"
+    || !existing.metadata || Array.isArray(existing.metadata)) {
+    throw new Error("CHECKOUT_REPLAY_INVALID");
+  }
+  if (existing.observer_site_id !== input.siteId || existing.idempotency_key !== input.idempotencyKey
+    || existing.stable_checkout_id !== expected.stableId || existing.billing_account_id !== expected.accountId
+    || existing.created_by !== input.actorId || existing.plan_version_id !== expected.plan.id
+    || existing.metadata.billing_period !== input.billingPeriod
+    || (existing.metadata.package_id != null && existing.metadata.package_id !== input.packageId)
+    || !sameMinorAmount(existing.amount_minor, expected.amountMinor) || existing.currency !== expected.currency) {
+    throw new Error("CHECKOUT_IDEMPOTENCY_CONFLICT");
+  }
+  // Older records did not persist the quote ID. Reconstruct it only while the original subscription binding is known.
+  const originalQuoteId = existing.metadata.quote_id ?? expected.quoteId;
+  if (typeof originalQuoteId !== "string" || !/^[a-f0-9]{64}$/.test(originalQuoteId)
+    || (existing.metadata.quote_id == null && existing.subscription_id !== expected.subscriptionId)
+    || (existing.metadata.quote_id != null && existing.metadata.quote_subscription_id !== null
+      && typeof existing.metadata.quote_subscription_id !== "string")
+    || (existing.metadata.quote_id != null && originalQuoteId !== stableCommercialId("quote", input.siteId,
+      existing.metadata.quote_subscription_id, existing.plan_version_id, expected.amountMinor, expected.currency))
+    || (existing.subscription_id === expected.subscriptionId && originalQuoteId !== expected.quoteId)) {
+    throw new Error("CHECKOUT_REPLAY_INVALID");
+  }
+  return { checkout: existing, quote: { quoteId: originalQuoteId, planVersionId: existing.plan_version_id,
+    amountMinor: expected.amountMinor, currency: existing.currency, billingPeriod: input.billingPeriod,
+    expiresAt: existing.quote_expires_at, providerContacted: false }, duplicate: true, providerContacted: false };
+}
+
+function refundReplay(existing: any, input: { siteId: string; actorId: string; paymentEventId: string;
+  amountMinor: number; currency: string; reason: string; idempotencyKey: string }, stableRefundId: string) {
+  if (typeof existing.id !== "string" || !existing.id || typeof existing.refund_status !== "string") {
+    throw new Error("REFUND_REPLAY_INVALID");
+  }
+  if (existing.observer_site_id !== input.siteId || existing.idempotency_key !== input.idempotencyKey
+    || existing.stable_refund_id !== stableRefundId || existing.payment_event_id !== input.paymentEventId
+    || !sameMinorAmount(existing.amount_minor, input.amountMinor) || existing.currency !== input.currency
+    || existing.requested_by !== input.actorId || existing.safe_reason !== input.reason) {
+    throw new Error("REFUND_IDEMPOTENCY_CONFLICT");
+  }
+  return { refund: existing, duplicate: true, providerContacted: false };
+}
+
 async function ensureDraftInvoice(admin: AnySupabase, input: {
   checkoutId: string; siteId: string; ownerId: string; packageId: string; amountMinor: number; currency: string;
   billingPeriod: "monthly" | "annual" | "contract"; providerKey: string;
@@ -102,28 +154,45 @@ async function ensureDraftInvoice(admin: AnySupabase, input: {
 export async function createCheckoutIntent(admin: AnySupabase, input: {
   siteId: string; actorId: string; packageId: string; billingPeriod: "monthly" | "annual"; idempotencyKey: string;
 }) {
-  const [plan, subscriptionResult, siteResult] = await Promise.all([
+  const [plan, subscriptionResult, siteResult, existing] = await Promise.all([
     approvedPlan(admin, input.packageId, input.billingPeriod),
     admin.from("observer_site_subscriptions").select("id,package_id,commercial_state").eq("observer_site_id", input.siteId).maybeSingle(),
-    admin.from("observer_sites").select("id,owner_profile_id").eq("id", input.siteId).single()
+    admin.from("observer_sites").select("id,owner_profile_id").eq("id", input.siteId).single(),
+    admin.from("digital_observer_checkout_intents").select("*").eq("observer_site_id", input.siteId).eq("idempotency_key", input.idempotencyKey).maybeSingle()
   ]);
   if (subscriptionResult.error || siteResult.error || !siteResult.data) throw new Error("CHECKOUT_CONTEXT_UNAVAILABLE");
+  if (existing.error) throw new Error("CHECKOUT_IDEMPOTENCY_LOOKUP_FAILED");
   const quote = quoteForPlan({ plan, siteId: input.siteId, subscriptionId: subscriptionResult.data?.id });
+  const stableCheckoutId = stableCommercialId("checkout", input.siteId, plan.id, input.idempotencyKey);
+  if (existing.data) {
+    const account = await admin.from("digital_observer_billing_accounts").select("id")
+      .eq("observer_site_id", input.siteId).maybeSingle();
+    if (account.error || !account.data?.id) throw new Error("CHECKOUT_REPLAY_INVALID");
+    return checkoutReplay(existing.data, input, { stableId: stableCheckoutId, accountId: account.data.id, plan,
+      subscriptionId: subscriptionResult.data?.id ?? null, amountMinor: quote.amountMinor, currency: quote.currency,
+      quoteId: quote.quoteId });
+  }
   const account = await billingAccount(admin, { siteId: input.siteId, ownerId: siteResult.data.owner_profile_id, segment: plan.segment });
   if (account.account_status !== "active") throw new Error("BILLING_ACCOUNT_INACTIVE");
-  const stableCheckoutId = stableCommercialId("checkout", input.siteId, plan.id, input.idempotencyKey);
-  const existing = await admin.from("digital_observer_checkout_intents").select("*").eq("observer_site_id", input.siteId).eq("idempotency_key", input.idempotencyKey).maybeSingle();
-  if (existing.error) throw new Error("CHECKOUT_IDEMPOTENCY_LOOKUP_FAILED");
-  if (existing.data) return { checkout: existing.data, quote, duplicate: true, providerContacted: false };
   const provider = providerConfig();
   const inserted = await admin.from("digital_observer_checkout_intents").insert({
     stable_checkout_id: stableCheckoutId, idempotency_key: input.idempotencyKey, billing_account_id: account.id,
     observer_site_id: input.siteId, subscription_id: subscriptionResult.data?.id ?? null, plan_version_id: plan.id,
     provider_key: provider.key, provider_mode: provider.mode, checkout_status: "quoted", amount_minor: quote.amountMinor,
     currency: quote.currency, quote_expires_at: quote.expiresAt, created_by: input.actorId,
-    metadata: { billing_period: input.billingPeriod, client_payment_success_trusted: false }
+    metadata: { billing_period: input.billingPeriod, package_id: input.packageId,
+      quote_subscription_id: subscriptionResult.data?.id ?? null,
+      quote_id: quote.quoteId, client_payment_success_trusted: false }
   }).select("*").single();
-  if (inserted.error) throw new Error("CHECKOUT_CREATE_FAILED");
+  if (inserted.error?.code === "23505") {
+    const raced = await admin.from("digital_observer_checkout_intents").select("*")
+      .eq("observer_site_id", input.siteId).eq("idempotency_key", input.idempotencyKey).maybeSingle();
+    if (raced.error || !raced.data) throw new Error("CHECKOUT_REPLAY_INVALID");
+    return checkoutReplay(raced.data, input, { stableId: stableCheckoutId, accountId: account.id, plan,
+      subscriptionId: subscriptionResult.data?.id ?? null, amountMinor: quote.amountMinor, currency: quote.currency,
+      quoteId: quote.quoteId });
+  }
+  if (inserted.error || !inserted.data?.id) throw new Error("CHECKOUT_CREATE_FAILED");
   const adapter = paymentProviderAdapter(provider);
   const providerResult = await adapter.createCheckout({ checkoutIntentId: inserted.data.id, amountMinor: quote.amountMinor, currency: quote.currency, returnPath: "/digital-observer/billing" });
   const checkoutStatus = providerResult.outcome === "sandbox_created" ? "provider_created" : providerResult.outcome === "unknown" ? "unknown" : "quoted";
@@ -228,13 +297,20 @@ export async function requestRefund(admin: AnySupabase, input: { siteId: string;
   const stableRefundId = stableCommercialId("refund", input.siteId, input.paymentEventId, input.idempotencyKey);
   const existing = await admin.from("digital_observer_refunds").select("*").eq("observer_site_id", input.siteId).eq("idempotency_key", input.idempotencyKey).maybeSingle();
   if (existing.error) throw new Error("REFUND_IDEMPOTENCY_LOOKUP_FAILED");
-  if (existing.data) return { refund: existing.data, duplicate: true };
+  if (existing.data) return refundReplay(existing.data, input, stableRefundId);
   const saved = await admin.rpc("authorize_digital_observer_refund", { p_stable_refund_id: stableRefundId,
     p_idempotency_key: input.idempotencyKey, p_observer_site_id: input.siteId, p_payment_event_id: input.paymentEventId,
     p_amount_minor: input.amountMinor, p_currency: input.currency, p_safe_reason: input.reason, p_actor_profile_id: input.actorId });
+  if (saved.error?.code === "23505") {
+    const raced = await admin.from("digital_observer_refunds").select("*")
+      .eq("observer_site_id", input.siteId).eq("idempotency_key", input.idempotencyKey).maybeSingle();
+    if (raced.error || !raced.data) throw new Error("REFUND_REPLAY_INVALID");
+    return refundReplay(raced.data, input, stableRefundId);
+  }
   const refund = Array.isArray(saved.data) ? saved.data[0] : saved.data;
   if (saved.error || !refund) throw new Error(saved.error?.message?.includes("REFUND_AMOUNT_INVALID") ? "REFUND_AMOUNT_INVALID" :
     saved.error?.message?.includes("CONFIRMED_PAYMENT_REQUIRED") ? "CONFIRMED_PAYMENT_REQUIRED" : "REFUND_REQUEST_FAILED");
+  refundReplay(refund, input, stableRefundId);
   await audit(admin, { siteId: input.siteId, actorId: input.actorId, operation: "refund_authorized", entityType: "refund", entityId: refund.id,
     next: { refund_status: "authorized", amount_minor: input.amountMinor, currency: input.currency }, correlationId: stableRefundId });
   return { refund, duplicate: false, providerContacted: false };

@@ -19,7 +19,8 @@ const schema = z.discriminatedUnion("action", [
 function billingError(error: unknown) {
   const message = error instanceof Error ? error.message : "BILLING_OPERATION_FAILED";
   if (message.includes("ENTITLEMENT_DENIED") || message.includes("DENIED")) return fail(message, 403);
-  if (message.includes("NOT_OWNER_APPROVED") || message.includes("REQUIRED") || message.includes("INVALID") || message.includes("NOT_ELIGIBLE") || message.includes("UNAVAILABLE")) return fail(message, 409);
+  if (message.includes("NOT_OWNER_APPROVED") || message.includes("REQUIRED") || message.includes("INVALID")
+    || message.includes("CONFLICT") || message.includes("NOT_ELIGIBLE") || message.includes("UNAVAILABLE")) return fail(message, 409);
   return null;
 }
 
