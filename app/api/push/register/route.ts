@@ -28,16 +28,20 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const bearerSession = request.headers.get("authorization")?.startsWith("Bearer ")
+    const hasBearer = request.headers.get("authorization")?.startsWith("Bearer ") ?? false;
+    const bearerSession = hasBearer
       ? await getDigitalObserverApiUser(request)
       : null;
+    if (hasBearer && !bearerSession) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const cookieSession = bearerSession ? null : await requireUser();
     const profile = bearerSession?.profile ?? cookieSession!.profile;
     const payload = schema.parse(await request.json());
     const supabase = bearerSession?.supabase ?? await createClient();
     const observerClaim = observerPushSiteClaim(payload.metadata ?? {});
+    if (hasBearer && !observerClaim) return fail("רישום Push לתצפיתן דורש מקור ואתר מאושרים.", 400);
     if (observerClaim) {
       if (observerClaim.invalid) return fail("רישום Push לאתר דורש מזהה אתר תקין ומקור מאושר.", 400);
+      if (!payload.device_id?.trim()) return fail("רישום Push לתצפיתן דורש מזהה התקנה.", 400);
       // A client-supplied site label is never authority. Recheck the current
       // Observer session and manage access before the token upsert.
       const observer = bearerSession ?? await getDigitalObserverApiUser(request);
@@ -55,6 +59,7 @@ export async function POST(request: Request) {
       metadata: payload.metadata ?? {}
     });
     if (!result.ok) {
+      if (result.conflict) return fail("המכשיר כבר משויך או בוטל; נדרש ביטול ורישום מורשה מחדש.", 409);
       console.error("[push-register] failed", { profile_id: profile.id, role: profile.role, platform: payload.platform, error: result.error });
       return fail("רישום המכשיר להתראות נכשל.", 500);
     }

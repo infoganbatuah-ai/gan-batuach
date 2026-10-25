@@ -1,4 +1,6 @@
 type SupabaseLike = {
+  // The shared push tables are not yet represented in the generated client types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   from: (table: string) => any;
 };
 
@@ -19,6 +21,33 @@ export type RegisterPushDeviceInput = {
   appVersion?: string | null;
   metadata?: Record<string, unknown>;
 };
+
+type PushTokenRow = {
+  id: string;
+  profile_id: string;
+  role: string;
+  platform: PushPlatform;
+  device_id: string | null;
+  is_active: boolean;
+  metadata: Record<string, unknown> | null;
+};
+
+const registrationColumns = "id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata";
+
+function registrationConflict() {
+  return { ok: false, device: null, error: "PUSH_TOKEN_BINDING_CONFLICT", conflict: true };
+}
+
+function registrationError(error: string) {
+  return { ok: false, device: null, error, conflict: false };
+}
+
+function registrationBinding(metadata: Record<string, unknown> | null | undefined) {
+  return {
+    source: metadata?.source ?? null,
+    observerSiteId: metadata?.observer_site_id ?? null
+  };
+}
 
 export type PreparePushInput = {
   profileId: string;
@@ -45,7 +74,47 @@ function hashDeviceToken(token: string) {
 
 export async function registerPushDevice(supabase: SupabaseLike, input: RegisterPushDeviceInput) {
   const now = new Date().toISOString();
-  const result = await supabase.from("push_device_tokens").upsert({
+  const binding = registrationBinding(input.metadata);
+  const existingResult = await supabase.from("push_device_tokens")
+    .select("id, profile_id, role, platform, device_id, is_active, metadata")
+    .eq("device_token", input.deviceToken).maybeSingle();
+  if (existingResult.error) return registrationError(existingResult.error.message);
+  const existing = existingResult.data as PushTokenRow | null;
+  if (existing && (existing.profile_id !== input.profileId || existing.role !== input.role
+    || existing.platform !== input.platform || existing.device_id !== (input.deviceId ?? null)
+    || !existing.is_active || registrationBinding(existing.metadata).source !== binding.source
+    || registrationBinding(existing.metadata).observerSiteId !== binding.observerSiteId)) {
+    return registrationConflict();
+  }
+
+  // A provider token rotation must not leave a second active token for the
+  // same installation. Revocation is an explicit, separate user action.
+  if (input.deviceId) {
+    const installation = await supabase.from("push_device_tokens").select("id, device_token")
+      .eq("profile_id", input.profileId).eq("device_id", input.deviceId)
+      .eq("is_active", true).limit(2);
+    if (installation.error) return registrationError(installation.error.message);
+    if ((installation.data ?? []).some((row: { id: string; device_token: string }) => row.device_token !== input.deviceToken)) {
+      return registrationConflict();
+    }
+  }
+
+  if (existing) {
+    // Replays may refresh liveness/version only. Identity, site and token
+    // metadata never move through this path, even for a database admin.
+    let update = supabase.from("push_device_tokens")
+      .update({ app_version: input.appVersion ?? null, last_seen_at: now, updated_at: now })
+      .eq("id", existing.id).eq("profile_id", input.profileId).eq("device_token", input.deviceToken)
+      .eq("role", input.role).eq("platform", input.platform).eq("is_active", true)
+      .contains("metadata", existing.metadata ?? {});
+    update = input.deviceId ? update.eq("device_id", input.deviceId) : update.is("device_id", null);
+    const replay = await update.select(registrationColumns).maybeSingle();
+    if (replay.error) return registrationError(replay.error.message);
+    if (!replay.data) return registrationConflict();
+    return { ok: true, device: replay.data, error: null, conflict: false };
+  }
+
+  const result = await supabase.from("push_device_tokens").insert({
     profile_id: input.profileId,
     role: input.role,
     platform: input.platform,
@@ -60,12 +129,17 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
     last_seen_at: now,
     updated_at: now,
     metadata: input.metadata ?? {}
-  }, { onConflict: "device_token" }).select("id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata").single();
+  }).select(registrationColumns).single();
+
+  // A concurrent registration can win the unique device_token index after
+  // our read; never retry it as an upsert or transfer ownership.
+  if (result.error?.code === "23505") return registrationConflict();
 
   return {
     ok: !result.error,
     device: result.data,
-    error: result.error?.message ?? null
+    error: result.error?.message ?? null,
+    conflict: false
   };
 }
 

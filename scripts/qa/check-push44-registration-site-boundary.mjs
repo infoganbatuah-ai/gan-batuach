@@ -70,7 +70,7 @@ const session = { profile: { id: "owner-a", role: "parent" }, supabase: {} };
 const metadata = { source: "digital_observer_native", observer_site_id: siteId };
 const request = (suppliedMetadata) => new Request("http://127.0.0.1/api/push/register", {
   method: "POST", headers: { "content-type": "application/json" },
-  body: JSON.stringify({ platform: "ios", device_token: "synthetic-token", metadata: suppliedMetadata })
+  body: JSON.stringify({ platform: "ios", device_token: "synthetic-token", device_id: "device-a", metadata: suppliedMetadata })
 });
 
 test("stale saved or requested Site is rejected against the current server list", () => {
@@ -137,6 +137,28 @@ test("current authorized Site registers, while generic products remain compatibl
   assert.equal((await route.POST(request({ source: "fcm_web" }))).status, 200);
   assert.equal(push.calls().length, 1);
   assert.equal(access.siteChecks().length, 0);
+});
+
+test("Observer registration rejects missing installation identity before a write", async () => {
+  push.reset(); access.configure(session, { id: siteId, active: true });
+  const response = await route.POST(new Request("http://127.0.0.1/api/push/register", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ platform: "ios", device_token: "synthetic-token", metadata })
+  }));
+  assert.equal(response.status, 400);
+  assert.equal(push.calls().length, 0);
+});
+
+test("Observer bearer cannot downgrade to generic registration or cookie fallback", async () => {
+  const bearerRequest = (suppliedMetadata) => new Request("http://127.0.0.1/api/push/register", {
+    method: "POST", headers: { "content-type": "application/json", authorization: "Bearer synthetic-session" },
+    body: JSON.stringify({ platform: "ios", device_token: "synthetic-token", device_id: "device-a", metadata: suppliedMetadata })
+  });
+  push.reset(); access.configure(null, null);
+  assert.equal((await route.POST(bearerRequest(metadata))).status, 401);
+  access.configure(session, { id: siteId, active: true });
+  assert.equal((await route.POST(bearerRequest({ source: "fcm_web" }))).status, 400);
+  assert.equal(push.calls().length, 0);
 });
 
 test("consumer wiring uses the ordered site gate; token metadata is not delivery authority", () => {
