@@ -196,6 +196,36 @@ Platform Admin/cross-owner transfer and Guard remain independently gated.
   preservation/integration step; neither the review package nor the new
   evaluator is ready for real-data activation.
 
+### Malformed-input closure — later local-only increment, 2026-10-25
+
+The entrypoints now accept `unknown` at the runtime boundary and validate
+top-level input, dependency/hold/registration shapes, enum values, optional
+timestamp fields and the actual `Date` clock before dereference. Missing or
+malformed decoded values produce `INVALID_INPUT`, not an exception or review
+eligibility. Invalid calendar timestamps still use `TIME_INVALID`; valid
+category, hold, dependency and policy-version semantics are unchanged.
+The literal `TRUSTED_SERVER` marker remains **a contract field, not proof of
+caller identity**. A future server adapter must establish provenance before
+using this evaluator with real data; no adapter was added here.
+
+The dry-run summary counts malformed entries in a single sanitized
+`UNRECOGNIZED / INVALID_INPUT / INPUT_INVALID` bucket. It accepts only decisions
+issued by this evaluator in the current process; copied, decoded or forged
+decision shapes are not promoted to eligible output. Neither the summary nor
+an `ELIGIBLE_FOR_REVIEW` result authorizes deletion. The 30-day and conditional
+24-calendar-month engineering clocks were not changed.
+
+Regression tests first reproduced the null-dependency and non-iterable-summary
+exceptions, then passed **15/15** after the bounded fix. Focused strict
+TypeScript and ESLint, review-package containment, and the existing ownership
+snapshot regression passed. The PUSH 45 deterministic regression also passed:
+its two missing Markdown inputs were verified as tracked at the exact branch
+HEAD and hydrated from that same commit into this sparse checkout, with no
+content change. This does not advance PUSH 45's canonical external/legal gates.
+Full-repository typecheck remains a separate, pre-existing Capacitor dependency
+failure; no unrelated dependency repair was made. No database, Auth, provider,
+SQL, clone, service, runtime or external media access occurred in this increment.
+
 ## Earlier category decision brief — retained as dated history
 
 All triggers below are **proposed decision points**, not approved expiry dates.

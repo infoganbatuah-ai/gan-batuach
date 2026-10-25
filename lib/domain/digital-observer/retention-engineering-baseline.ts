@@ -89,6 +89,10 @@ export type EngineeringRetentionDecision = Readonly<{
 const DAY_MS = 86_400_000;
 const UTC_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const knownCategories = new Set<string>(engineeringRetentionCategories);
+const knownPrivacyContexts = new Set<string>([
+  "HOME", "SMALL_BUSINESS", "ENTERPRISE", "OEM_WHITE_LABEL",
+  "KINDERGARTEN", "AUTHORIZED_INVESTIGATION", "PERSONAL_SAFETY"
+] satisfies readonly PrivacyContext[]);
 const knownStates = new Set<EngineeringRetentionState>([
   "KEEP_REQUIRED", "WAIT_DEPENDENCIES", "WAIT_POLICY", "ELIGIBLE_FOR_REVIEW", "INVALID_INPUT"
 ]);
@@ -99,6 +103,21 @@ const knownReasons = new Set<EngineeringRetentionReason>([
   "DEPENDENCY_ACTIVE", "DEPENDENCY_UNBOUNDED", "DEPENDENCY_HORIZON_OPEN",
   "REVIEW_DATE_NOT_REACHED", "REVIEW_ONLY_NO_DELETION_AUTHORITY"
 ]);
+const knownDependencyKinds = new Set<string>([
+  "EVENT", "INCIDENT", "CLAIM", "EFFECT", "EXTERNAL_OUTCOME", "DELIVERY",
+  "COMPLAINT", "INVESTIGATION", "REPLAY", "RESTORE", "ROLLBACK"
+]);
+const knownDependencyStates = new Set<string>([
+  "ACTIVE", "RESOLVED", "UNKNOWN", "UNBOUNDED"
+]);
+const knownHoldStates = new Set<string>([
+  "NONE", "ACTIVE", "RELEASED", "UNKNOWN"
+]);
+const knownSecurityClassifications = new Set<string>([
+  "OPERATIONAL_METADATA", "BUSINESS_AUDIT", "TECHNICAL_SECURITY_LOG",
+  "NON_SENSITIVE_DEBUG", "SPECIAL_OR_MEDIA"
+]);
+const issuedDecisions = new WeakSet<object>();
 const mediaOrSpecial = new Set<EngineeringRetentionCategory>([
   ...protectedExistingDataClasses, "CHILD_SENSITIVE_DATA"
 ]);
@@ -144,25 +163,77 @@ function plusDays(timestamp: number, days: number): string | null {
     ? new Date(result).toISOString() : null;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function optionalTimestampShape(value: unknown): value is string | null | undefined {
+  return value == null || typeof value === "string";
+}
+
+/** Shape validation only. The marker below is not proof of server provenance. */
+function isEngineeringRetentionInput(value: unknown): value is EngineeringRetentionInput {
+  if (!isRecord(value) || typeof value.category !== "string" || !knownCategories.has(value.category)
+    || value.authority !== "TRUSTED_SERVER"
+    || typeof value.context !== "string" || !knownPrivacyContexts.has(value.context)
+    || (value.jurisdiction !== null && typeof value.jurisdiction !== "string")
+    || (value.policyVersion !== null && typeof value.policyVersion !== "string")
+    || typeof value.purpose !== "string" || !value.purpose.trim()
+    || (value.environment !== "REAL" && value.environment !== "SYNTHETIC_QA")
+    || (value.securityClassification !== null
+      && (typeof value.securityClassification !== "string"
+        || !knownSecurityClassifications.has(value.securityClassification)))
+    || !["APPLIES", "DOES_NOT_APPLY", "UNKNOWN"].includes(value.securityLogApplicability as string)
+    || typeof value.recordedAt !== "string" || !optionalTimestampShape(value.closedAt)
+    || !isRecord(value.hold) || typeof value.hold.state !== "string"
+    || !knownHoldStates.has(value.hold.state)
+    || !optionalTimestampShape(value.hold.activatedAt)
+    || !optionalTimestampShape(value.hold.reviewedAt)
+    || !optionalTimestampShape(value.hold.releasedAt)
+    || !Array.isArray(value.dependencies)) return false;
+
+  if (value.registration !== undefined && (!isRecord(value.registration)
+    || typeof value.registration.currentVersion !== "boolean"
+    || typeof value.registration.sourceActive !== "boolean"
+    || !optionalTimestampShape(value.registration.supersededAt)
+    || !optionalTimestampShape(value.registration.sourceRetiredAt))) return false;
+
+  return value.dependencies.length <= knownDependencyKinds.size
+    && [...value.dependencies].every((dependency: unknown) => isRecord(dependency)
+    && typeof dependency.kind === "string" && knownDependencyKinds.has(dependency.kind)
+    && typeof dependency.state === "string" && knownDependencyStates.has(dependency.state)
+    && optionalTimestampShape(dependency.resolvedAt)
+    && optionalTimestampShape(dependency.horizonUntil));
+}
+
+function validClock(value: unknown): value is Date {
+  if (!(value instanceof Date)) return false;
+  try {
+    return Number.isFinite(Date.prototype.getTime.call(value));
+  } catch {
+    return false;
+  }
+}
+
 function decide(category: EngineeringRetentionCategory | "UNRECOGNIZED",
   state: EngineeringRetentionState, reason: EngineeringRetentionReason,
   earliestReviewAt: string | null = null): EngineeringRetentionDecision {
-  return Object.freeze({ category, state, reasonCodes: Object.freeze([reason]),
+  const decision = Object.freeze({ category, state, reasonCodes: Object.freeze([reason]),
     policyVersion: ENGINEERING_RETENTION_POLICY_V1.version, earliestReviewAt,
     deletionAuthorized: false as const });
+  issuedDecisions.add(decision);
+  return decision;
 }
 
-/** Pure review eligibility, never a deletion or legal-authority decision. */
-export function evaluateEngineeringRetention(input: EngineeringRetentionInput,
-  now: Date): EngineeringRetentionDecision {
-  const category = knownCategories.has(input?.category) ? input.category : "UNRECOGNIZED";
-  if (category === "UNRECOGNIZED" || input.authority !== "TRUSTED_SERVER"
-    || !Array.isArray(input.dependencies) || !input.hold
-    || !["NONE", "ACTIVE", "RELEASED", "UNKNOWN"].includes(input.hold.state)
-    || !["APPLIES", "DOES_NOT_APPLY", "UNKNOWN"].includes(input.securityLogApplicability)
-    || !["REAL", "SYNTHETIC_QA"].includes(input.environment)
-    || typeof input.purpose !== "string" || !input.purpose.trim()
-    || !Number.isFinite(now?.getTime())) return decide(category, "INVALID_INPUT", "INPUT_INVALID");
+/** Pure review eligibility; caller must establish trusted provenance separately. */
+export function evaluateEngineeringRetention(input: unknown,
+  now: unknown): EngineeringRetentionDecision {
+  const category = isRecord(input) && typeof input.category === "string"
+    && knownCategories.has(input.category)
+    ? input.category as EngineeringRetentionCategory : "UNRECOGNIZED";
+  if (!isEngineeringRetentionInput(input) || !validClock(now)) {
+    return decide(category, "INVALID_INPUT", "INPUT_INVALID");
+  }
   const recorded = utcMillis(input.recordedAt);
   const closed = input.closedAt == null ? null : utcMillis(input.closedAt);
   const holdActivated = input.hold.activatedAt == null ? null : utcMillis(input.hold.activatedAt);
@@ -174,7 +245,7 @@ export function evaluateEngineeringRetention(input: EngineeringRetentionInput,
   const datePairs = input.dependencies.map(dependency => ({ dependency,
     resolved: dependency.resolvedAt == null ? null : utcMillis(dependency.resolvedAt),
     horizon: dependency.horizonUntil == null ? null : utcMillis(dependency.horizonUntil) }));
-  const nowMs = now.getTime();
+  const nowMs = Date.prototype.getTime.call(now);
   if (recorded === null || recorded > nowMs
     || (input.closedAt != null && (closed === null || closed < recorded || closed > nowMs))
     || (input.hold.activatedAt != null && (holdActivated === null || holdActivated > nowMs))
@@ -188,7 +259,7 @@ export function evaluateEngineeringRetention(input: EngineeringRetentionInput,
     || (registered?.sourceRetiredAt != null && (sourceRetired === null || sourceRetired < recorded || sourceRetired > nowMs))
     || new Set(datePairs.map(row => row.dependency?.kind)).size !== datePairs.length
     || datePairs.some(({ dependency, resolved, horizon }) =>
-      !requiredDependencies[category].includes(dependency?.kind)
+      !requiredDependencies[input.category].includes(dependency?.kind)
       || !["ACTIVE", "RESOLVED", "UNKNOWN", "UNBOUNDED"].includes(dependency.state)
       || (dependency.resolvedAt != null && (resolved === null || resolved < recorded || resolved > nowMs))
       || (dependency.horizonUntil != null && (horizon === null || horizon < recorded))
@@ -212,7 +283,7 @@ export function evaluateEngineeringRetention(input: EngineeringRetentionInput,
   if (input.securityClassification == null || input.securityLogApplicability === "UNKNOWN") {
     return decide(category, "WAIT_POLICY", "SECURITY_CLASSIFICATION_REQUIRED");
   }
-  if (mediaOrSpecial.has(category)) return decide(category, "WAIT_POLICY", "CATEGORY_POLICY_MISSING");
+  if (mediaOrSpecial.has(input.category)) return decide(category, "WAIT_POLICY", "CATEGORY_POLICY_MISSING");
   const expectedClassification = category === "SECURITY_COMPLIANCE_LOG" ? "TECHNICAL_SECURITY_LOG"
     : category === "REGISTRATION_BUSINESS_AUDIT" ? "BUSINESS_AUDIT"
       : category === "DEBUG_TELEMETRY" ? "NON_SENSITIVE_DEBUG" : "OPERATIONAL_METADATA";
@@ -236,7 +307,7 @@ export function evaluateEngineeringRetention(input: EngineeringRetentionInput,
       return decide(category, "WAIT_DEPENDENCIES", "DEPENDENCY_UNVERIFIED");
     }
   }
-  const required = requiredDependencies[category];
+  const required = requiredDependencies[input.category];
   if (required.some(kind => !datePairs.some(row => row.dependency.kind === kind))) {
     return decide(category, "WAIT_DEPENDENCIES", "DEPENDENCY_UNVERIFIED");
   }
@@ -280,19 +351,27 @@ export function evaluateEngineeringRetention(input: EngineeringRetentionInput,
   return decide(category, "ELIGIBLE_FOR_REVIEW", "REVIEW_ONLY_NO_DELETION_AUTHORITY", reviewAt);
 }
 
-/** Aggregate only closed, enumerated codes; never echo input IDs or purpose. */
-export function summarizeEngineeringRetentionDryRun(decisions: readonly EngineeringRetentionDecision[]) {
+/** Aggregate evaluator-issued decisions only; malformed items count as invalid. */
+export function summarizeEngineeringRetentionDryRun(decisions: unknown) {
   const groups = new Map<string, { category: EngineeringRetentionDecision["category"];
     state: EngineeringRetentionState; reasonCode: EngineeringRetentionReason;
     count: number; nextReviewAt: string | null }>();
-  for (const decision of decisions) {
-    const category = knownCategories.has(decision.category) ? decision.category : "UNRECOGNIZED";
-    const state = knownStates.has(decision.state) ? decision.state : "INVALID_INPUT";
-    const reasonCode = knownReasons.has(decision.reasonCodes[0])
-      ? decision.reasonCodes[0] : "INPUT_INVALID";
+  for (const value of Array.isArray(decisions) ? decisions : [null]) {
+    const valid = isRecord(value) && issuedDecisions.has(value)
+      && (value.category === "UNRECOGNIZED" || knownCategories.has(value.category as string))
+      && knownStates.has(value.state as EngineeringRetentionState)
+      && Array.isArray(value.reasonCodes) && value.reasonCodes.length === 1
+      && knownReasons.has(value.reasonCodes[0] as EngineeringRetentionReason)
+      && value.policyVersion === ENGINEERING_RETENTION_POLICY_V1.version
+      && value.deletionAuthorized === false
+      && (value.earliestReviewAt === null || utcMillis(value.earliestReviewAt) !== null);
+    const decision = valid ? value as EngineeringRetentionDecision : null;
+    const category = decision?.category ?? "UNRECOGNIZED";
+    const state = decision?.state ?? "INVALID_INPUT";
+    const reasonCode = decision?.reasonCodes[0] ?? "INPUT_INVALID";
     const key = `${category}|${state}|${reasonCode}`;
     const current = groups.get(key);
-    const nextReviewAt = utcMillis(decision.earliestReviewAt);
+    const nextReviewAt = utcMillis(decision?.earliestReviewAt);
     const safeReviewAt = nextReviewAt === null ? null : new Date(nextReviewAt).toISOString();
     if (current) {
       current.count += 1;

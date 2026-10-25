@@ -130,6 +130,55 @@ test("missing/contradictory/future/non-UTC dates are invalid", () => {
   assert.equal(evaluate(input(undefined, { dependencies: [dependency("EVENT"), dependency("EVENT")] })).state, "INVALID_INPUT");
 });
 
+test("malformed decoded input and clock fail closed without throwing", () => {
+  const candidate = input();
+  for (const value of [null, undefined, false, 7, "not an input", [],
+    { ...candidate, dependencies: [null] },
+    { ...candidate, dependencies: [undefined] },
+    { ...candidate, dependencies: Array(1) },
+    { ...candidate, dependencies: ["EVENT"] },
+    { ...candidate, dependencies: [{ kind: "EVENT", state: "RESOLVED", resolvedAt: {} }] },
+    { ...candidate, dependencies: [{ kind: "NO_SUCH_KIND", state: "ACTIVE" }] },
+    { ...candidate, hold: null },
+    { ...candidate, hold: "ACTIVE" },
+    { ...candidate, hold: { state: "NONE", activatedAt: {} } },
+    { ...candidate, registration: [] },
+    { ...candidate, registration: { currentVersion: "yes", sourceActive: true } },
+    { ...candidate, securityClassification: {} },
+    { ...candidate, context: "NO_SUCH_CONTEXT" },
+    { ...candidate, environment: {} }]) {
+    const decision = evaluate(value);
+    assert.equal(decision.state, "INVALID_INPUT");
+    assert.equal(decision.deletionAuthorized, false);
+  }
+  for (const clock of [null, undefined, {}, { getTime: () => Date.now() },
+    new Date(Number.NaN)]) {
+    const decision = evaluateEngineeringRetention(candidate, clock);
+    assert.equal(decision.state, "INVALID_INPUT");
+  }
+});
+
+test("malformed dry-run decisions are counted in a sanitized invalid bucket", () => {
+  const valid = evaluate(input());
+  const privateValue = "person@example.invalid";
+  for (const decisions of [null, undefined, {}, "not an array",
+    [null], [undefined], [privateValue],
+    [{ ...valid, reasonCodes: null }],
+    [{ ...valid, reasonCodes: privateValue }],
+    [{ ...valid, reasonCodes: [null] }],
+    [{ ...valid, reasonCodes: [] }],
+    [{ ...valid, deletionAuthorized: true }],
+    [{ ...valid, state: "ELIGIBLE_FOR_REVIEW", reasonCodes: ["INPUT_INVALID"] }]]) {
+    const report = summarizeEngineeringRetentionDryRun(decisions);
+    assert.deepEqual(report, [{ category: "UNRECOGNIZED", state: "INVALID_INPUT",
+      reasonCode: "INPUT_INVALID", count: 1, nextReviewAt: null }]);
+    assert(!JSON.stringify(report).includes(privateValue));
+  }
+  const mixed = summarizeEngineeringRetentionDryRun([valid, null, valid, { ...valid }]);
+  assert.equal(mixed.reduce((sum, row) => sum + row.count, 0), 4);
+  assert.equal(mixed.find(row => row.state === "INVALID_INPUT")?.count, 2);
+});
+
 test("policy change, missing jurisdiction and missing security classification fail closed", () => {
   assert.equal(evaluate(input(undefined, { policyVersion: "older-v0" })).reasonCodes[0], "POLICY_VERSION_REVIEW");
   assert.equal(evaluate(input(undefined, { jurisdiction: null })).state, "WAIT_POLICY");
