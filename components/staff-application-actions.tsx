@@ -19,7 +19,7 @@ export function StaffApplicationActions({ openingId, applicationId, status }: { 
     const response = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
     const body = await response.json().catch(() => ({})); setBusy(false);
     if (!response.ok) { setMessage(body.error ?? "הפעולה נכשלה."); return; }
-    if (action === "accept") { window.location.assign("/dashboard/staff"); return; }
+    if (action === "accept") { window.location.assign(new URL("/dashboard/staff", window.location.origin).href); return; }
     setMessage(action === "apply" ? "המועמדות הוגשה בהצלחה." : action === "respond" ? "ההשלמה נשלחה לבדיקה." : "המועמדות נמשכה וההיסטוריה נשמרה.");
     setPanel(null); router.refresh();
   }

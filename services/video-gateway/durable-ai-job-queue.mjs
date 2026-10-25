@@ -33,9 +33,22 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
     return true;
   };
   function expireAndRecover() {
-    db.prepare("UPDATE ai_jobs SET state='PENDING',lease_owner=NULL,lease_expires_at=NULL WHERE state='CLAIMED' AND lease_expires_at<=?").run(now());
-    const expired = db.prepare("SELECT job_id FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED') AND expires_at<=? LIMIT 1000").all(now());
-    for (const row of expired) { db.prepare("UPDATE ai_jobs SET state='EXPIRED',lease_owner=NULL,lease_expires_at=NULL,last_error='JOB_EXPIRED' WHERE job_id=?").run(row.job_id); audit("JOB_EXPIRED", row.job_id); }
+    const at = now();
+    // Healthy workers call claim frequently. An unconditional no-op UPDATE
+    // still acquires SQLite's single WAL writer lock and previously let four
+    // workers serialize lease maintenance ahead of real claims. Read first;
+    // take the writer lock only when bounded recovery work actually exists.
+    const leases = db.prepare("SELECT job_id FROM ai_jobs WHERE state='CLAIMED' AND lease_expires_at<=? LIMIT 1000").all(at);
+    const expired = db.prepare("SELECT job_id FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED') AND expires_at<=? LIMIT 1000").all(at);
+    if (!leases.length && !expired.length) return;
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      const recover = db.prepare("UPDATE ai_jobs SET state='PENDING',lease_owner=NULL,lease_expires_at=NULL WHERE job_id=? AND state='CLAIMED' AND lease_expires_at<=?");
+      const expire = db.prepare("UPDATE ai_jobs SET state='EXPIRED',lease_owner=NULL,lease_expires_at=NULL,last_error='JOB_EXPIRED' WHERE job_id=? AND state IN ('PENDING','RETRY_WAIT','CLAIMED') AND expires_at<=?");
+      for (const row of leases) recover.run(row.job_id, at);
+      for (const row of expired) if (expire.run(row.job_id, at).changes) audit("JOB_EXPIRED", row.job_id);
+      db.exec("COMMIT");
+    } catch (error) { db.exec("ROLLBACK"); throw error; }
   }
   function enqueue(value) {
     if (closed) throw new Error("ai_queue_closed");

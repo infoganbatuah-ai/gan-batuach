@@ -1,0 +1,140 @@
+{
+  "contract": "digital-observer-push38-finite-epoch-drain-closure-evidence-v1",
+  "recorded_at": "2026-10-18T01:37:18Z",
+  "branch": "codex/push-38t-qualification",
+  "candidate_sha": "fd30e9335dbcacb2f06f5536a5ca08b2f8473974",
+  "push38_status": "DONE_OWNER_ACCEPTANCE_EXCEPTION",
+  "continuous_24h_pass_claimed": false,
+  "obsolete_v8": {
+    "gateway_version": "0.2.100-p38-health",
+    "status": "NOT_DONE_NON_REUSABLE",
+    "failure_fingerprint_sha256": "97a070ab83f6e94f7e09d861c01df05738271351659306708dd37dc8c1229f14"
+  },
+  "failed_v8": {
+    "run_id": "push38-gateway-0.2.101-disk-pressure-resilience-v8-auto10-durable-20261016T231510Z",
+    "gateway_version": "0.2.101-p38-health",
+    "status": "NOT_DONE",
+    "elapsed_ms": 77623617,
+    "checkpoints": 1294,
+    "result_sha256": "c30fc0a99943adf7dc1d1f2b07b9e6d203af1b120743149392c040c7e208c5f1",
+    "checkpoints_sha256": "2e0415f8ceea8fce38e608cdf12a09597ad761554e5b59c67378b3a9fb2439be",
+    "failure_fingerprint_sha256": "59375aec1df4fadbe585e728601c332e9d98d2fa39ed8c0d7fb54a3ae0e42f52",
+    "internal_failure": {
+      "checkpoint": 906,
+      "classification": "STALE_FINITE_RESPONSE_EPOCH_SIBLING_OWNERS",
+      "gateway_restarts": 0,
+      "recorder_auth_rejections": 0
+    },
+    "external_failure": {
+      "checkpoint": 1294,
+      "classification": "COMMON_DVR_NETWORK_OR_POWER_EVENT",
+      "dvr_available": "0/10",
+      "tapo_available": "1/1",
+      "host_power": "BATTERY_POWER",
+      "gateway_restarts": 0,
+      "connector_restarts": 0
+    },
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.101-disk-pressure-resilience-v8-auto10-durable-20261016T231510Z"
+  },
+  "remediation": {
+    "commit_sha": "eb0dcd9744ad165aa840d65ba3b267844be6546c",
+    "classification": "DRAIN_ALL_STALE_FINITE_RESPONSE_EPOCH_OWNERS",
+    "focused_tests": "PASS_76_OF_76",
+    "threshold_weakened": false,
+    "duplicate_owner_allowed": false
+  },
+  "release": {
+    "gateway_version": "0.2.102-p38-health",
+    "gateway_build_sha": "eb0dcd9744ad165aa840d65ba3b267844be6546c",
+    "gateway_artifact_sha256": "650e70e152b0aad9fc10801ad18676e3ea65e9ed576721375b234cfb114f64ec",
+    "connector_version": "0.2.41-p38-health",
+    "connector_build_sha": "c14ac38bf7b1e2313b8509a5204aee23c8c4e9aa",
+    "ci_run_id": "39073985404",
+    "ci_required_gates": "PASS_6_OF_6",
+    "canonical_quality_gate": "PASS",
+    "signing_run_id": "39072658442",
+    "signing": "PASS",
+    "r2_publication": "PASS",
+    "home_qa_ota": "PASS_KNOWN_GOOD"
+  },
+  "canary": {
+    "run_id": "push38-gateway-0.2.102-finite-epoch-drain-recovery-canary-auto10-20261017T2215Z",
+    "status": "PASS",
+    "elapsed_ms": 900012,
+    "checkpoints": "15/15",
+    "camera_samples": "165/165",
+    "playback_samples": "33/33",
+    "ai_samples": "33/33",
+    "auth_not_ready_checkpoints": 0,
+    "host_interference_checkpoints": [],
+    "result_sha256": "21e01e3c790c03b0e254b6dd5ee3e86d44cc7e2471f94d762e247f6cf0b3aeae",
+    "checkpoints_sha256": "d44bcc929f260337e52ac3eb11d55e5888ab8ef0e49170090f3bcb72b8278d46",
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.102-finite-epoch-drain-recovery-canary-auto10-20261017T2215Z"
+  },
+  "recovery_validation": {
+    "run_id": "push38-gateway-0.2.102-finite-epoch-drain-recovery-validation-3h-auto10-20261017T2234Z",
+    "strict_status": "NOT_DONE",
+    "strict_status_rewritten": false,
+    "elapsed_ms": 10800032,
+    "checkpoints": "180/180",
+    "dvr_samples": "1800/1800",
+    "dvr_playback_samples": "60/60",
+    "tapo_samples": "176/180",
+    "all_playback_samples": "66/66",
+    "ai_samples": "65/66",
+    "ai_failure": "FIRST_PROBE_DVR8_THEN_5_OF_5_FULL_PROBES_PASS",
+    "tapo_failed_sequences": [39, 144, 147, 169],
+    "tapo_failure_reason": "DECODER_OR_RELAY_EXIT",
+    "gateway_supervisor_restarts": 0,
+    "gateway_runtime_restarts": 0,
+    "connector_supervisor_restarts": 0,
+    "connector_runtime_restarts": 0,
+    "recorder_session_failures": 0,
+    "recorder_auth_rejections": 0,
+    "auth_not_ready_checkpoints": 0,
+    "forbidden_workload_checkpoints": 0,
+    "low_disk_checkpoints": 0,
+    "host_interference_checkpoints": [],
+    "result_sha256": "ca594ffb7a65a45c032613079460acc55f3ee4166562a04ff205f2fa8bd7e795",
+    "checkpoints_sha256": "4e023e0099d0d3c19eece505b6bdd0c3445cf43ab8a50b4c999e700be5eaff10",
+    "state_sha256": "e1ce559ed21d2a033ddac7177029865b6dca38cf765162a8e81466735d9dbec8",
+    "failure_fingerprint_sha256": "73e0cc524f50557ad63f5591daafb445004ad8a0888068e19fdc8d07309c39de",
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.102-finite-epoch-drain-recovery-validation-3h-auto10-20261017T2234Z"
+  },
+  "protected_closure": {
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.102-finite-epoch-drain-closure-20261017T220912Z",
+    "failure_closure_sha256": "62e13f9ec0b904af8e3fa73f11725e05312c5d6db159436bf458cd88f5dad44d",
+    "recovery_validation_failure_fingerprint_sha256": "73e0cc524f50557ad63f5591daafb445004ad8a0888068e19fdc8d07309c39de",
+    "development_application_closure_path_class": "exports/restricted/push38-gateway-0.2.102-finite-epoch-drain-closure-20261017T220912Z/development-application-closure.json",
+    "development_application_closure_sha256": "23778d9c04cff7fcbf631446ba346364f60d548cb55653b558581954bc677371"
+  },
+  "development_closure": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "integration_source_commit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
+    "migration_versions": [
+      "20260919171000",
+      "20260919172000",
+      "20260919190000"
+    ],
+    "development_applied": "YES_3_OF_3",
+    "final_schema_fingerprint": "7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080",
+    "schema_rls_verification": "PASS",
+    "focused_application_compatibility": "PASS",
+    "application_receipts_sha256": "afb081c6396c257f4580e34ddaf8d3ea2dc48b24eb3442e34f0bed53c945148e",
+    "production_access": false
+  },
+  "acceptance_exception": {
+    "authorized": true,
+    "decision": "ACCEPT_FOR_INTEGRATION_DEVELOPMENT",
+    "basis": [
+      "PRESERVED_0_2_101_21H33M_EVIDENCE",
+      "0_2_102_FULLY_GREEN_CANARY",
+      "0_2_102_DVR_RECOVERY_1800_OF_1800",
+      "STRICT_TAPO_AND_AI_EXCEPTIONS_RETAINED"
+    ],
+    "continuous_24h_pass_claimed": false,
+    "main_changed": false,
+    "production_changed": false,
+    "new_cost": false
+  }
+}

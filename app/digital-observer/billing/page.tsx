@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, CreditCard, FileText, House, PackageCheck, ShieldCheck, Smartphone, Tag } from "lucide-react";
-import { ObserverPlanButton } from "@/components/digital-observer/observer-action-forms";
+import { AlertTriangle, BarChart3, Building2, Check, CreditCard, FileText, House, ListChecks, PackageCheck, ShieldCheck, Smartphone, Tag } from "lucide-react";
+import { ObserverCancelSubscriptionButton, ObserverPlanButton, ObserverRefundButton } from "@/components/digital-observer/observer-action-forms";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import {
@@ -22,12 +22,14 @@ function money(value: unknown) {
   }).format(Number(value || 0));
 }
 
-function planPrice(plan: { monthly_price?: number | null; annual_price?: number | null }, cycle: BillingCycle) {
+function planPrice(plan: { monthly_price?: number | null; annual_price?: number | null; pricing_status?: string | null }, cycle: BillingCycle) {
+  if (plan.pricing_status !== "approved") return "ממתין לאישור מחיר מסחרי";
   if (cycle === "annual") return plan.annual_price ? `${money(plan.annual_price)} / שנה` : "תמחור שנתי בהכנה";
   return plan.monthly_price ? `${money(plan.monthly_price)} / חודש` : "תמחור מותאם";
 }
 
-function annualSaving(plan: { monthly_price?: number | null; annual_price?: number | null }) {
+function annualSaving(plan: { monthly_price?: number | null; annual_price?: number | null; pricing_status?: string | null }) {
+  if (plan.pricing_status !== "approved") return null;
   const monthlyAnnualized = Number(plan.monthly_price || 0) * 12;
   const annual = Number(plan.annual_price || 0);
   if (!monthlyAnnualized || !annual || annual >= monthlyAnnualized) return null;
@@ -50,6 +52,12 @@ export default async function DigitalObserverBillingPage({
   const entitlement = resolveObserverEntitlement(subscription);
   const currentPackage = runtime.packages.find((item) => item.id === subscription?.package_id);
   const invoices = site ? runtime.invoices.filter((item) => item.observer_site_id === site.id) : [];
+  const commercialEntitlements = site ? runtime.entitlements.filter((item) => item.observer_site_id === site.id) : [];
+  const commercialUsage = site ? runtime.commercialUsage.filter((item) => item.observer_site_id === site.id) : [];
+  const paymentEvents = site ? runtime.paymentEvents.filter((item) => item.observer_site_id === site.id) : [];
+  const refunds = site ? runtime.refunds.filter((item) => item.observer_site_id === site.id) : [];
+  const subscriptionChanges = site ? runtime.subscriptionChanges.filter((item) => item.observer_site_id === site.id) : [];
+  const checkoutIntents = site ? runtime.checkoutIntents.filter((item) => item.observer_site_id === site.id) : [];
   const visiblePackages = runtime.packages.filter(
     (item) => item.package_type === mode || (mode === "business" && item.package_type === "enterprise")
   );
@@ -64,7 +72,7 @@ export default async function DigitalObserverBillingPage({
       <h3>{item.name}</h3>
       <strong>{planPrice(item, cycle)}</strong>
       <ul><li><Check /> עד {item.camera_limit ?? "לפי הסכם"} מצלמות</li><li><Check /> שמירת מקטע עד {item.recording_retention_hours ?? 0} שעות</li><li><Check /> ביקורת אנושית {item.human_review_required ? "חובה" : "לפי הגדרה"}</li><li><Check /> ערוצים: {Array.isArray(item.alert_channels) ? item.alert_channels.join(", ") : "In-app"}</li></ul>
-      {site && currentPackage?.id !== item.id ? <ObserverPlanButton siteId={site.id} packageId={item.id} billingCycle={cycle} /> : <span className="do-badge good">{currentPackage?.id === item.id ? "החבילה הנוכחית" : "יש להקים אתר"}</span>}
+      {site && currentPackage?.id !== item.id && item.pricing_status === "approved" ? <ObserverPlanButton siteId={site.id} packageId={item.id} billingCycle={cycle} /> : <span className={currentPackage?.id === item.id ? "do-badge good" : "do-badge warn"}>{currentPackage?.id === item.id ? "החבילה הנוכחית" : site ? "המחיר טרם אושר" : "יש להקים אתר"}</span>}
     </article>;
   };
 
@@ -74,12 +82,12 @@ export default async function DigitalObserverBillingPage({
       mode={mode}
       activeHref="/digital-observer/billing"
       title="מנוי וחיוב"
-      statusLabel="חיוב מדומה בלבד"
+      statusLabel="ספק תשלום כבוי"
     >
       <div className="do-page-stack">
         <div className="do-notice warn">
           <AlertTriangle />
-          <span>חיוב אמיתי כבוי. אין איסוף כרטיס, חשבונית אמיתית, App Store או Google Play. בחירת חבילה יוצרת בקשת שינוי בלבד.</span>
+          <span>ספק התשלום כבוי כברירת מחדל. אין איסוף כרטיס או חיוב, ומחיר היסטורי שאינו מאושר אינו זמין ל-checkout.</span>
         </div>
 
         {!paymentView ? <section className="do-billing-selection-layout">
@@ -115,14 +123,14 @@ export default async function DigitalObserverBillingPage({
                 <p>{subscription ? `סטטוס: ${observerStatusLabel(entitlement.status)}` : "האתר עדיין במצב הכנה ללא מנוי פעיל"}</p>
                 {entitlement.trialEndsAt ? <small>סיום ניסיון: {formatObserverDate(entitlement.trialEndsAt)}</small> : null}
               </div>
-              {currentPackage ? (
+              {currentPackage?.pricing_status === "approved" ? (
                 <strong>
                   {subscription?.billing_cycle === "annual" && currentPackage.annual_price
                     ? money(currentPackage.annual_price)
                     : money(currentPackage.monthly_price)}
                   <small>{subscription?.billing_cycle === "annual" ? " לשנה" : " לחודש"}</small>
                 </strong>
-              ) : null}
+              ) : currentPackage ? <span className="do-badge warn">מחיר לא מאושר</span> : null}
             </article>
             <article className="do-panel do-billing-entitlement-card">
               <h2>מה זמין במסלול</h2>
@@ -131,7 +139,10 @@ export default async function DigitalObserverBillingPage({
                 <div><span>בדיקת חיבור מצלמה</span><strong>{entitlement.canTestConnection ? "זמינה" : "חסומה"}</strong></div>
                 <div><span>צפייה וניטור</span><strong>{entitlement.canUseLiveMonitoring ? "מותר במסלול; ספק חי עדיין כבוי" : "כבויים"}</strong></div>
                 <div><span>חיוב חי</span><strong>כבוי</strong></div>
+                <div><span>מצב מסחרי</span><strong>{observerStatusLabel(subscription?.commercial_state || entitlement.status)}</strong></div>
+                <div><span>תוצאת ספק</span><strong>{observerStatusLabel(subscription?.provider_outcome || "none")}</strong></div>
               </div>
+              {site && subscription ? <ObserverCancelSubscriptionButton siteId={site.id} /> : null}
             </article>
             <Link className="do-button primary full" href={`/digital-observer/billing?view=payment&cycle=${cycle}`}><CreditCard /> המשך לפרטי תשלום</Link>
           </aside>
@@ -157,18 +168,48 @@ export default async function DigitalObserverBillingPage({
           </aside>
         </section> : null}
 
+        {paymentView ? <section className="do-grid cols-2">
+          <article className="do-panel">
+            <div className="do-section-head"><div><h2>זכאויות פעילות</h2><p>המגבלות נאכפות בשרת ואינן תלויות בהסתרת כפתורים.</p></div><ListChecks /></div>
+            {commercialEntitlements.length ? <div className="do-summary-list">{commercialEntitlements.map((item) => <div key={item.id}>
+              <span>{observerStatusLabel(item.entitlement_key)}</span>
+              <strong>{item.grant_status === "active" ? item.boolean_value === true ? "פעיל" : item.limit_value ?? "פעיל" : observerStatusLabel(item.grant_status)}</strong>
+            </div>)}</div> : <div className="do-empty compact"><ListChecks /><strong>אין זכאויות מסחריות פעילות</strong><span>הפעלה תתרחש רק לאחר ניסיון מאושר או תשלום שאומת בשרת.</span></div>}
+          </article>
+          <article className="do-panel">
+            <div className="do-section-head"><div><h2>שימוש מיוחס</h2><p>שימוש מדוד, מוקצה, משוער או לא ידוע נשמר בנפרד.</p></div><BarChart3 /></div>
+            {commercialUsage.length ? <div className="do-summary-list">{commercialUsage.slice(0, 12).map((item) => <div key={item.id}>
+              <span>{observerStatusLabel(item.service)} · {observerStatusLabel(item.usage_category)}</span>
+              <strong>{item.quantity} {item.unit} · {observerStatusLabel(item.evidence_class)}</strong>
+            </div>)}</div> : <div className="do-empty compact"><BarChart3 /><strong>אין שימוש מיוחס</strong><span>המערכת אינה ממציאה צריכה כאשר אין מקור מדידה.</span></div>}
+          </article>
+        </section> : null}
+
         {paymentView ? <section className="do-panel">
-          <div className="do-section-head"><div><h2>חשבוניות</h2><p>חשבוניות production לא נוצרות במצב הדגמה.</p></div></div>
+          <div className="do-section-head"><div><h2>היסטוריית תשלום ושינויים</h2><p>תוצאה לא ידועה נשארת לא ידועה עד פיוס. אישור לקוח אינו מפעיל מנוי בתשלום.</p></div><CreditCard /></div>
+          {paymentEvents.length || checkoutIntents.length || subscriptionChanges.length ? <div className="do-row-list">
+            {paymentEvents.map((payment) => {
+              const alreadyRefunded = refunds.some((refund) => refund.payment_event_id === payment.id && ["authorized", "provider_pending", "confirmed", "unknown"].includes(String(refund.refund_status)));
+              return <div className="do-row" key={`payment-${payment.id}`}><CreditCard /><span className="do-row-main"><strong>{observerStatusLabel(payment.event_type)}</strong><small>{money(Number(payment.amount_minor || 0) / 100)} · {observerStatusLabel(payment.payment_outcome)} · {formatObserverDate(payment.occurred_at || payment.created_at)}</small></span>{site && payment.payment_outcome === "confirmed" && !alreadyRefunded ? <ObserverRefundButton siteId={site.id} paymentEventId={payment.id} amountMinor={Number(payment.amount_minor)} currency={String(payment.currency)} /> : null}</div>;
+            })}
+            {checkoutIntents.map((checkout) => <div className="do-row" key={`checkout-${checkout.id}`}><ShieldCheck /><span className="do-row-main"><strong>כוונת Checkout · {observerStatusLabel(checkout.checkout_status)}</strong><small>{money(Number(checkout.amount_minor || 0) / 100)} · מצב ספק {observerStatusLabel(checkout.provider_mode)} · {formatObserverDate(checkout.created_at)}</small></span></div>)}
+            {subscriptionChanges.map((change) => <div className="do-row" key={`change-${change.id}`}><PackageCheck /><span className="do-row-main"><strong>{observerStatusLabel(change.change_type)} · {observerStatusLabel(change.status)}</strong><small>{change.effective_at ? `מועד: ${formatObserverDate(change.effective_at)}` : "מועד ייקבע לפי מחזור המנוי"}</small></span></div>)}
+          </div> : <div className="do-empty compact"><CreditCard /><strong>אין פעילות כספית</strong><span>זהו מצב צפוי כל עוד ספק התשלום כבוי.</span></div>}
+        </section> : null}
+
+        {paymentView ? <section className="do-panel">
+          <div className="do-section-head"><div><h2>חשבוניות והחזרים</h2><p>אלו רשומות מסחריות פנימיות בלבד. מסמך מס חוקי דורש ספק ותהליך משפטי מאושרים.</p></div></div>
           {invoices.length ? (
             <div className="do-table-wrap">
               <table className="do-table">
-                <thead><tr><th>מספר</th><th>סכום</th><th>סטטוס</th><th>תאריך</th></tr></thead>
-                <tbody>{invoices.map((invoice) => <tr key={invoice.id}><td>{invoice.invoice_number}</td><td>{money(invoice.amount)}</td><td>{observerStatusLabel(invoice.status)}</td><td>{formatObserverDate(invoice.issued_at)}</td></tr>)}</tbody>
+                <thead><tr><th>מספר</th><th>סכום</th><th>מצב פנימי</th><th>מסמך מס</th><th>תאריך</th></tr></thead>
+                <tbody>{invoices.map((invoice) => <tr key={invoice.id}><td>{invoice.invoice_number}</td><td>{money(invoice.amount)}{Number(invoice.credited_amount_minor || 0) > 0 ? <small> · זוכה {money(Number(invoice.credited_amount_minor) / 100)}</small> : null}</td><td>{observerStatusLabel(invoice.invoice_state || invoice.status)}</td><td>{observerStatusLabel(invoice.tax_document_status || "not_requested")}</td><td>{formatObserverDate(invoice.issued_at || invoice.created_at)}</td></tr>)}</tbody>
               </table>
             </div>
           ) : (
-            <div className="do-empty compact"><FileText /><strong>אין חשבוניות</strong><span>זהו מצב צפוי כל עוד ספק החיוב אינו מחובר.</span></div>
+            <div className="do-empty compact"><FileText /><strong>אין רשומות חשבונית</strong><span>זהו מצב צפוי כל עוד אין תשלום Sandbox שאומת.</span></div>
           )}
+          {refunds.length ? <div className="do-row-list">{refunds.map((refund) => <div className="do-row" key={refund.id}><FileText /><span className="do-row-main"><strong>החזר {money(Number(refund.amount_minor || 0) / 100)}</strong><small>{observerStatusLabel(refund.refund_status)} · {formatObserverDate(refund.updated_at || refund.created_at)}</small></span></div>)}</div> : null}
         </section> : null}
 
         <div className="do-notice info"><ShieldCheck /><span>תשלומי התצפיתן נשמרים בזרם חיוב נפרד מגן בטוח ומתשלומי הורים לגנים.</span></div>

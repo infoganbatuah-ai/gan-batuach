@@ -18,6 +18,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Handshake,
   UsersRound,
   X
 } from "lucide-react";
@@ -42,6 +43,7 @@ const homeNav = [
   { href: "/digital-observer/recordings", label: "הקלטות", icon: FileVideo2 },
   { href: "/digital-observer/people", label: "אנשים מוכרים", icon: UsersRound },
   { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
+  { href: "/digital-observer/privacy", label: "פרטיות וציות", icon: ShieldCheck },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;
 
@@ -55,7 +57,10 @@ const businessNav = [
   { href: "/digital-observer/recordings", label: "קליפים", icon: FileVideo2 },
   { href: "/digital-observer/rules", label: "כללי ניטור", icon: Radar },
   { href: "/digital-observer/people", label: "צוות והרשאות", icon: UsersRound },
+  { href: "/digital-observer/enterprise", label: "ארגון ואבטחה", icon: ShieldCheck },
+  { href: "/digital-observer/partners", label: "שותפים והטמעה", icon: Handshake },
   { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
+  { href: "/digital-observer/privacy", label: "פרטיות וציות", icon: ShieldCheck },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;
 

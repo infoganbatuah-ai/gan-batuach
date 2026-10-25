@@ -1,0 +1,8 @@
+{
+  "name": "@digital-observer/sdk",
+  "version": "0.1.0-push43",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./browser": "./src/browser.ts", "./react": "./src/react.tsx" },
+  "peerDependencies": { "react": ">=19" }
+}

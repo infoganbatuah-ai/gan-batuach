@@ -1,0 +1,94 @@
+{
+  "contract": "digital-observer-push38-v8-host-interference-evidence-v1",
+  "recorded_at": "2026-10-07T10:46:20.459Z",
+  "branch": "codex/push-38t-qualification",
+  "source_parent_sha": "f2c81abc7b317ed2c5321ec232993f2b6275b15c",
+  "push38_status": "NOT_DONE",
+  "v8_status": "FAILED_STOPPED_NOT_REUSABLE",
+  "failed_run": {
+    "run_id": "push38-gateway-0.2.90-v8-20261007T0554Z",
+    "gateway_version": "0.2.90-p38-health",
+    "gateway_build_sha": "7012a2c22ad080a3eb3cb3fe2b01241629073f87",
+    "connector_version": "0.2.40-p38-health",
+    "started_at": "2026-10-07T05:54:58.652Z",
+    "stopped_at": "2026-10-07T10:30:34.787Z",
+    "elapsed_ms": 16536135,
+    "checkpoints": 276,
+    "camera_sample_availability": 0.9967061923583662,
+    "gateway_unavailable_checkpoints": 1,
+    "gateway_supervisor_restarts": 0,
+    "gateway_runtime_restarts": 0,
+    "playback": "PASS_55_OF_55",
+    "ai": "PASS_55_OF_55",
+    "tapo": "PASS_276_OF_276",
+    "result_sha256": "367757edc2d36e28a599cdd50a6d8e631ea1b011fa608c3d0e403a65bb7b47db",
+    "checkpoints_sha256": "8ef5894d24834e82858b40c8545d8a75337b25af3d9a33ab4da3449ff2d82b23",
+    "state_sha256": "131a9a3b75b16aa2d1aab14933bbe6e44e3caa0f4cfc6a2b0980ff2d0d672d5a",
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.90-v8-20261007T0554Z"
+  },
+  "failure_timeline": {
+    "checkpoint_262": "Gateway health 43 ms; DVR 10/10; event-loop max 6371.148 ms",
+    "checkpoint_263": "Gateway health 2282 ms; DVR 9 progressing plus 1 renewing with continuity; same process identities",
+    "checkpoint_264": "Gateway health timed out after 8172 ms and liveness timed out after 2005 ms; the same supervisor and runtime PIDs remained present",
+    "checkpoint_265": "Gateway recovered without restart in 220 ms; DVR 10/10; event-loop max increased to 16978.543 ms",
+    "checkpoint_274": "All ten DVR relays renewed together with retained continuity",
+    "checkpoint_275": "Gateway health 3719 ms during relay recovery; no process restart"
+  },
+  "incident_exclusions": [
+    "GATEWAY_PROCESS_RESTART",
+    "SUPERVISOR_RESTART",
+    "DVR_AUTHENTICATION_REJECTION_AT_INCIDENT",
+    "DVR_SESSION_ROTATION_AT_INCIDENT",
+    "NEW_SOCKET_ERROR_AT_INCIDENT",
+    "MACOS_SLEEP",
+    "MEMORY_PRESSURE_KILL"
+  ],
+  "root_cause": {
+    "classification": "QUALIFICATION_HOST_CPU_IO_CONTENTION_WITH_RELAY_RESCUE_AMPLIFICATION",
+    "confidence": "CAUSALLY_NARROWED",
+    "summary": "The live Gateway process remained present and used little CPU while its event loop lost about 17 seconds. Independent host sampling found the shared developer Mac saturated by unrelated development/UI/VM work, with zero idle CPU in the worst sample, load around 42 and very high disk traffic. Relay freshness recovery then amplified the stall. This is not evidence of a DVR authentication, shared-session, socket or process-crash failure.",
+    "qualification_boundary": "The failed run did not yet record host telemetry in each checkpoint, so it remains failed Product qualification evidence and cannot be reclassified as PASS. The successor monitor records and gates host interference explicitly."
+  },
+  "host_isolation": {
+    "temporarily_stopped": [
+      "CANONICAL_DEVELOPMENT_NEXT_SERVERS_ON_PORTS_3001_AND_3002",
+      "USER_COLIMA_GBI_PROFILE",
+      "EXTERNAL_DEVELOPMENT_COLIMA_GBI_PROFILE"
+    ],
+    "preserved": [
+      "LIVE_GATEWAY",
+      "LIVE_CONNECTOR",
+      "PUSH38T_QUALIFICATION_DATABASE",
+      "HOME_QA_CONTROL_PLANE",
+      "SCOPED_RESULT_SERVICE"
+    ],
+    "destructive_changes": 0,
+    "new_recurring_cost_usd": 0
+  },
+  "post_isolation_proof": {
+    "read_only_gateway_samples": 20,
+    "gateway_failures": 0,
+    "gateway_health_latency_max_ms": 63,
+    "dvr_progressing": "10_OF_10_ALL_SAMPLES",
+    "renewing_relays": 0,
+    "durable_dry_run": "PASS",
+    "durable_dry_run_id": "push38-host-isolation-preflight-20261007T1048Z",
+    "host_readiness_samples": 5,
+    "host_readiness_forbidden_workloads": 0,
+    "host_readiness_normalized_load_1m_range": [0.8023, 0.8287],
+    "gateway_health_latency_p95_ms": 22,
+    "connector_health_latency_p95_ms": 8,
+    "restricted_evidence_path_class": "exports/restricted/push38-host-isolation-preflight-20261007T1048Z"
+  },
+  "monitor_remediation": {
+    "forbidden_development_workload_preflight": true,
+    "five_sample_health_latency_preflight": true,
+    "normalized_host_load_preflight": true,
+    "per_checkpoint_host_pressure_evidence": true,
+    "runtime_host_interference_gate": true,
+    "camera_or_health_threshold_weakened": false,
+    "gateway_runtime_changed": false,
+    "connector_runtime_changed": false
+  },
+  "next_gate": "EXACT_COMMIT_CI_THEN_NEW_15_MINUTE_CANARY_FROM_ZERO"
+}
