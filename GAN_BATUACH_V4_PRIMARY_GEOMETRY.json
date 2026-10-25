@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceDevelopmentSha": "5635988133ca8690aa28c8797d1c54ef6ca1e8e3",
+  "sourceDevelopmentSha": "af30b84f21a35e817738bf0329cf1a632a10a5ae",
   "coordinateSystem": "normalized x/y/w/h in the extracted primary panel, values 0..1",
   "materialTolerance": {
     "position": 0.04,
@@ -10,66 +10,1165 @@
   "screens": {
     "owner-dashboard": {
       "referenceFile": "qa-evidence/v4-primary-reference-crops/owner-dashboard-primary.png",
-      "referencePixels": { "width": 1211, "height": 671 },
-      "reference": {
-        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.118, "h": 1.0 },
-        "header": { "x": 0.118, "y": 0.0, "w": 0.882, "h": 0.086 },
-        "hero": { "x": 0.118, "y": 0.086, "w": 0.882, "h": 0.218 },
-        "kpiRegion": { "x": 0.126, "y": 0.315, "w": 0.86, "h": 0.119 },
-        "primaryContent": { "x": 0.126, "y": 0.449, "w": 0.86, "h": 0.405 },
-        "quickActions": { "x": 0.126, "y": 0.873, "w": 0.86, "h": 0.111 }
+      "referencePixels": {
+        "width": 1211,
+        "height": 671
       },
-      "actual": null
+      "reference": {
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "w": 0.118,
+          "h": 1
+        },
+        "header": {
+          "x": 0.118,
+          "y": 0,
+          "w": 0.882,
+          "h": 0.086
+        },
+        "hero": {
+          "x": 0.118,
+          "y": 0.086,
+          "w": 0.882,
+          "h": 0.218
+        },
+        "kpiRegion": {
+          "x": 0.126,
+          "y": 0.315,
+          "w": 0.86,
+          "h": 0.119
+        },
+        "primaryContent": {
+          "x": 0.126,
+          "y": 0.449,
+          "w": 0.86,
+          "h": 0.405
+        },
+        "quickActions": {
+          "x": 0.126,
+          "y": 0.873,
+          "w": 0.86,
+          "h": 0.111
+        }
+      },
+      "actual": {
+        "sidebar": {
+          "x": 0.0167,
+          "y": 0,
+          "w": 0.1069,
+          "h": 1
+        },
+        "header": {
+          "x": 0.1236,
+          "y": 0,
+          "w": 0.8597,
+          "h": 0.085
+        },
+        "hero": {
+          "x": 0.1347,
+          "y": 0.0967,
+          "w": 0.8375,
+          "h": 0.1416
+        },
+        "kpi": {
+          "x": 0.1347,
+          "y": 0.2451,
+          "w": 0.8375,
+          "h": 0.0723
+        },
+        "primary": {
+          "x": 0.1347,
+          "y": 0.3242,
+          "w": 0.8375,
+          "h": 0.2363
+        },
+        "quickActions": {
+          "x": 0.1347,
+          "y": 0.5674,
+          "w": 0.8375,
+          "h": 0.0732
+        },
+        "lower": {
+          "x": 0.1347,
+          "y": 0.6484,
+          "w": 0.8375,
+          "h": 0.3438
+        }
+      },
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "Hero, six-metric strip, three-region operational row, quick actions and lower cards are present together on the primary route in reference order."
     },
     "parent-assigned": {
       "referenceFile": "qa-evidence/v4-primary-reference-crops/parent-assigned-primary.png",
-      "referencePixels": { "width": 560, "height": 309 },
-      "reference": {
-        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.17, "h": 1.0 },
-        "header": { "x": 0.17, "y": 0.0, "w": 0.83, "h": 0.14 },
-        "childSelector": { "x": 0.18, "y": 0.105, "w": 0.44, "h": 0.145 },
-        "primaryContent": { "x": 0.18, "y": 0.27, "w": 0.8, "h": 0.46 },
-        "quickActions": { "x": 0.18, "y": 0.77, "w": 0.8, "h": 0.2 }
+      "referencePixels": {
+        "width": 560,
+        "height": 309
       },
-      "actual": null
+      "reference": {
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "w": 0.17,
+          "h": 1
+        },
+        "header": {
+          "x": 0.17,
+          "y": 0,
+          "w": 0.83,
+          "h": 0.14
+        },
+        "childSelector": {
+          "x": 0.18,
+          "y": 0.105,
+          "w": 0.44,
+          "h": 0.145
+        },
+        "primaryContent": {
+          "x": 0.18,
+          "y": 0.27,
+          "w": 0.8,
+          "h": 0.46
+        },
+        "quickActions": {
+          "x": 0.18,
+          "y": 0.77,
+          "w": 0.8,
+          "h": 0.2
+        }
+      },
+      "actual": {
+        "sidebar": {
+          "x": 0.0167,
+          "y": 0,
+          "w": 0.1069,
+          "h": 1
+        },
+        "header": {
+          "x": 0.1208,
+          "y": 0,
+          "w": 0.8625,
+          "h": 0.0557
+        },
+        "hero": {
+          "x": 0.1292,
+          "y": 0.0654,
+          "w": 0.8458,
+          "h": 0.0671
+        },
+        "selector": {
+          "x": 0.1292,
+          "y": 0.153,
+          "w": 0.8458,
+          "h": 0.0781
+        },
+        "primary": {
+          "x": 0.1292,
+          "y": 0.238,
+          "w": 0.8458,
+          "h": 0.1797
+        },
+        "quickActions": {
+          "x": 0.1292,
+          "y": 0.4245,
+          "w": 0.8458,
+          "h": 0.0566
+        },
+        "lower": {
+          "x": 0.1292,
+          "y": 0.488,
+          "w": 0.8458,
+          "h": 0.2305
+        }
+      },
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "The primary route shows the assigned child identity, truthful attendance, camera, operational updates and quick actions together; one-child QA context explains the single child card."
     },
     "parent-multi-child": {
       "referenceFile": "qa-evidence/v4-primary-reference-crops/parent-multi-child-primary.png",
-      "referencePixels": { "width": 560, "height": 309 },
-      "reference": {
-        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.17, "h": 1.0 },
-        "header": { "x": 0.17, "y": 0.0, "w": 0.83, "h": 0.14 },
-        "childSelector": { "x": 0.18, "y": 0.105, "w": 0.44, "h": 0.145 },
-        "primaryContent": { "x": 0.18, "y": 0.27, "w": 0.8, "h": 0.46 },
-        "quickActions": { "x": 0.18, "y": 0.77, "w": 0.8, "h": 0.2 }
+      "referencePixels": {
+        "width": 560,
+        "height": 309
       },
-      "actual": null
+      "reference": {
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "w": 0.17,
+          "h": 1
+        },
+        "header": {
+          "x": 0.17,
+          "y": 0,
+          "w": 0.83,
+          "h": 0.14
+        },
+        "childSelector": {
+          "x": 0.18,
+          "y": 0.105,
+          "w": 0.44,
+          "h": 0.145
+        },
+        "primaryContent": {
+          "x": 0.18,
+          "y": 0.27,
+          "w": 0.8,
+          "h": 0.46
+        },
+        "quickActions": {
+          "x": 0.18,
+          "y": 0.77,
+          "w": 0.8,
+          "h": 0.2
+        }
+      },
+      "actual": {
+        "sidebar": {
+          "x": 0.0167,
+          "y": 0,
+          "w": 0.1069,
+          "h": 1
+        },
+        "header": {
+          "x": 0.1208,
+          "y": 0,
+          "w": 0.8625,
+          "h": 0.0557
+        },
+        "hero": {
+          "x": 0.1292,
+          "y": 0.0654,
+          "w": 0.8458,
+          "h": 0.0671
+        },
+        "selector": {
+          "x": 0.1292,
+          "y": 0.153,
+          "w": 0.8458,
+          "h": 0.082
+        },
+        "primary": {
+          "x": 0.1292,
+          "y": 0.2419,
+          "w": 0.8458,
+          "h": 0.1797
+        },
+        "quickActions": {
+          "x": 0.1292,
+          "y": 0.4284,
+          "w": 0.8458,
+          "h": 0.0566
+        },
+        "lower": {
+          "x": 0.1292,
+          "y": 0.4919,
+          "w": 0.8458,
+          "h": 0.2305
+        }
+      },
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "Two child identities, portraits, selected state, Garden association and immediate selected-child content are visible together on Desktop and Mobile."
     },
     "platform-admin": {
       "referenceFile": "qa-evidence/v4-primary-reference-crops/platform-admin-primary.png",
-      "referencePixels": { "width": 1516, "height": 518 },
-      "reference": {
-        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.098, "h": 1.0 },
-        "header": { "x": 0.103, "y": 0.0, "w": 0.79, "h": 0.1 },
-        "kpiRegion": { "x": 0.108, "y": 0.11, "w": 0.675, "h": 0.15 },
-        "primaryContent": { "x": 0.108, "y": 0.28, "w": 0.675, "h": 0.42 },
-        "secondaryRegion": { "x": 0.79, "y": 0.0, "w": 0.205, "h": 0.7 },
-        "lowerOperational": { "x": 0.108, "y": 0.72, "w": 0.887, "h": 0.27 }
+      "referencePixels": {
+        "width": 1516,
+        "height": 518
       },
-      "actual": null
+      "reference": {
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "w": 0.098,
+          "h": 1
+        },
+        "header": {
+          "x": 0.103,
+          "y": 0,
+          "w": 0.79,
+          "h": 0.1
+        },
+        "kpiRegion": {
+          "x": 0.108,
+          "y": 0.11,
+          "w": 0.675,
+          "h": 0.15
+        },
+        "primaryContent": {
+          "x": 0.108,
+          "y": 0.28,
+          "w": 0.675,
+          "h": 0.42
+        },
+        "secondaryRegion": {
+          "x": 0.79,
+          "y": 0,
+          "w": 0.205,
+          "h": 0.7
+        },
+        "lowerOperational": {
+          "x": 0.108,
+          "y": 0.72,
+          "w": 0.887,
+          "h": 0.27
+        }
+      },
+      "actual": {
+        "sidebar": {
+          "x": 0.0167,
+          "y": 0,
+          "w": 0.1069,
+          "h": 1
+        },
+        "header": {
+          "x": 0.1208,
+          "y": 0,
+          "w": 0.8625,
+          "h": 0.0557
+        },
+        "hero": {
+          "x": 0.1486,
+          "y": 0.0645,
+          "w": 0.8069,
+          "h": 0.043
+        },
+        "kpi": {
+          "x": 0.1486,
+          "y": 0.1143,
+          "w": 0.8069,
+          "h": 0.084
+        },
+        "primary": {
+          "x": 0.1486,
+          "y": 0.2051,
+          "w": 0.8069,
+          "h": 0.2744
+        },
+        "lower": {
+          "x": 0.1486,
+          "y": 0.4863,
+          "w": 0.8069,
+          "h": 0.168
+        }
+      },
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "KPI row, two charts, service health, recent activity and three lower operational tables are simultaneous on the primary Admin route; Mobile uses the approved management menu composition."
     },
     "settings": {
       "referenceFile": "qa-evidence/v4-primary-reference-crops/settings-primary-desktop.png",
-      "referencePixels": { "width": 1516, "height": 544 },
-      "reference": {
-        "sidebar": { "x": 0.0, "y": 0.0, "w": 0.095, "h": 1.0 },
-        "header": { "x": 0.095, "y": 0.0, "w": 0.905, "h": 0.095 },
-        "navigationColumn": { "x": 0.1, "y": 0.1, "w": 0.162, "h": 0.88 },
-        "profileColumn": { "x": 0.268, "y": 0.1, "w": 0.245, "h": 0.88 },
-        "securityColumn": { "x": 0.52, "y": 0.1, "w": 0.225, "h": 0.88 },
-        "gardenColumn": { "x": 0.752, "y": 0.1, "w": 0.243, "h": 0.88 }
+      "referencePixels": {
+        "width": 1516,
+        "height": 544
       },
-      "actual": null
+      "reference": {
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "w": 0.095,
+          "h": 1
+        },
+        "header": {
+          "x": 0.095,
+          "y": 0,
+          "w": 0.905,
+          "h": 0.095
+        },
+        "navigationColumn": {
+          "x": 0.1,
+          "y": 0.1,
+          "w": 0.162,
+          "h": 0.88
+        },
+        "profileColumn": {
+          "x": 0.268,
+          "y": 0.1,
+          "w": 0.245,
+          "h": 0.88
+        },
+        "securityColumn": {
+          "x": 0.52,
+          "y": 0.1,
+          "w": 0.225,
+          "h": 0.88
+        },
+        "gardenColumn": {
+          "x": 0.752,
+          "y": 0.1,
+          "w": 0.243,
+          "h": 0.88
+        }
+      },
+      "actual": {
+        "sidebar": {
+          "x": 0.0167,
+          "y": 0,
+          "w": 0.1069,
+          "h": 1
+        },
+        "header": {
+          "x": 0.1208,
+          "y": 0,
+          "w": 0.8625,
+          "h": 0.085
+        },
+        "title": null,
+        "navigation": {
+          "x": 0.1292,
+          "y": 0.0938,
+          "w": 0.1653,
+          "h": 0.5039
+        },
+        "profile": {
+          "x": 0.3014,
+          "y": 0.0938,
+          "w": 0.2241,
+          "h": 0.4658
+        },
+        "security": {
+          "x": 0.5325,
+          "y": 0.0938,
+          "w": 0.2072,
+          "h": 0.4336
+        },
+        "garden": {
+          "x": 0.7466,
+          "y": 0.0938,
+          "w": 0.2284,
+          "h": 0.7754
+        }
+      },
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "Navigation, profile/account, security/preferences and Garden/subscription/integration columns are simultaneous on the primary Settings route; Mobile retains the approved single-column settings composition."
     }
-  }
+  },
+  "measuredAt": "2026-10-25T21:25:01.495Z",
+  "actualBuild": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+  "v5Review": {
+    "owner-dashboard": {
+      "geometryId": "owner-dashboard",
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "Hero, six-metric strip, three-region operational row, quick actions and lower cards are present together on the primary route in reference order.",
+      "cropAspect": 1.8048,
+      "viewportAspect": 1.4063,
+      "comparisons": [
+        {
+          "referenceKey": "sidebar",
+          "actualKey": "sidebar",
+          "reference": {
+            "x": 0,
+            "y": 0,
+            "w": 0.118,
+            "h": 1
+          },
+          "actual": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.1069,
+            "h": 1
+          },
+          "delta": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.0111,
+            "h": 0
+          },
+          "material": false,
+          "explained": true,
+          "note": "Within direct normalized tolerance."
+        },
+        {
+          "referenceKey": "header",
+          "actualKey": "header",
+          "reference": {
+            "x": 0.118,
+            "y": 0,
+            "w": 0.882,
+            "h": 0.086
+          },
+          "actual": {
+            "x": 0.1236,
+            "y": 0,
+            "w": 0.8597,
+            "h": 0.085
+          },
+          "delta": {
+            "x": 0.0056,
+            "y": 0,
+            "w": 0.0223,
+            "h": 0.001
+          },
+          "material": false,
+          "explained": true,
+          "note": "Within direct normalized tolerance."
+        },
+        {
+          "referenceKey": "hero",
+          "actualKey": "hero",
+          "reference": {
+            "x": 0.118,
+            "y": 0.086,
+            "w": 0.882,
+            "h": 0.218
+          },
+          "actual": {
+            "x": 0.1347,
+            "y": 0.0967,
+            "w": 0.8375,
+            "h": 0.1416
+          },
+          "delta": {
+            "x": 0.0167,
+            "y": 0.0107,
+            "w": 0.0445,
+            "h": 0.0764
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8048 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "kpiRegion",
+          "actualKey": "kpi",
+          "reference": {
+            "x": 0.126,
+            "y": 0.315,
+            "w": 0.86,
+            "h": 0.119
+          },
+          "actual": {
+            "x": 0.1347,
+            "y": 0.2451,
+            "w": 0.8375,
+            "h": 0.0723
+          },
+          "delta": {
+            "x": 0.0087,
+            "y": 0.0699,
+            "w": 0.0225,
+            "h": 0.0467
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8048 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "primaryContent",
+          "actualKey": "primary",
+          "reference": {
+            "x": 0.126,
+            "y": 0.449,
+            "w": 0.86,
+            "h": 0.405
+          },
+          "actual": {
+            "x": 0.1347,
+            "y": 0.3242,
+            "w": 0.8375,
+            "h": 0.2363
+          },
+          "delta": {
+            "x": 0.0087,
+            "y": 0.1248,
+            "w": 0.0225,
+            "h": 0.1687
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8048 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "quickActions",
+          "actualKey": "quickActions",
+          "reference": {
+            "x": 0.126,
+            "y": 0.873,
+            "w": 0.86,
+            "h": 0.111
+          },
+          "actual": {
+            "x": 0.1347,
+            "y": 0.5674,
+            "w": 0.8375,
+            "h": 0.0732
+          },
+          "delta": {
+            "x": 0.0087,
+            "y": 0.3056,
+            "w": 0.0225,
+            "h": 0.0378
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8048 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        }
+      ],
+      "materialUnexplained": 0
+    },
+    "parent-assigned": {
+      "geometryId": "parent-assigned",
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "The primary route shows the assigned child identity, truthful attendance, camera, operational updates and quick actions together; one-child QA context explains the single child card.",
+      "cropAspect": 1.8123,
+      "viewportAspect": 1.4063,
+      "comparisons": [
+        {
+          "referenceKey": "sidebar",
+          "actualKey": "sidebar",
+          "reference": {
+            "x": 0,
+            "y": 0,
+            "w": 0.17,
+            "h": 1
+          },
+          "actual": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.1069,
+            "h": 1
+          },
+          "delta": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.0631,
+            "h": 0
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "header",
+          "actualKey": "header",
+          "reference": {
+            "x": 0.17,
+            "y": 0,
+            "w": 0.83,
+            "h": 0.14
+          },
+          "actual": {
+            "x": 0.1208,
+            "y": 0,
+            "w": 0.8625,
+            "h": 0.0557
+          },
+          "delta": {
+            "x": 0.0492,
+            "y": 0,
+            "w": 0.0325,
+            "h": 0.0843
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "childSelector",
+          "actualKey": "selector",
+          "reference": {
+            "x": 0.18,
+            "y": 0.105,
+            "w": 0.44,
+            "h": 0.145
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.153,
+            "w": 0.8458,
+            "h": 0.0781
+          },
+          "delta": {
+            "x": 0.0508,
+            "y": 0.048,
+            "w": 0.4058,
+            "h": 0.0669
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "primaryContent",
+          "actualKey": "primary",
+          "reference": {
+            "x": 0.18,
+            "y": 0.27,
+            "w": 0.8,
+            "h": 0.46
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.238,
+            "w": 0.8458,
+            "h": 0.1797
+          },
+          "delta": {
+            "x": 0.0508,
+            "y": 0.032,
+            "w": 0.0458,
+            "h": 0.2803
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "quickActions",
+          "actualKey": "quickActions",
+          "reference": {
+            "x": 0.18,
+            "y": 0.77,
+            "w": 0.8,
+            "h": 0.2
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.4245,
+            "w": 0.8458,
+            "h": 0.0566
+          },
+          "delta": {
+            "x": 0.0508,
+            "y": 0.3455,
+            "w": 0.0458,
+            "h": 0.1434
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        }
+      ],
+      "materialUnexplained": 0
+    },
+    "parent-multi-child": {
+      "geometryId": "parent-multi-child",
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "Two child identities, portraits, selected state, Garden association and immediate selected-child content are visible together on Desktop and Mobile.",
+      "cropAspect": 1.8123,
+      "viewportAspect": 1.4063,
+      "comparisons": [
+        {
+          "referenceKey": "sidebar",
+          "actualKey": "sidebar",
+          "reference": {
+            "x": 0,
+            "y": 0,
+            "w": 0.17,
+            "h": 1
+          },
+          "actual": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.1069,
+            "h": 1
+          },
+          "delta": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.0631,
+            "h": 0
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "header",
+          "actualKey": "header",
+          "reference": {
+            "x": 0.17,
+            "y": 0,
+            "w": 0.83,
+            "h": 0.14
+          },
+          "actual": {
+            "x": 0.1208,
+            "y": 0,
+            "w": 0.8625,
+            "h": 0.0557
+          },
+          "delta": {
+            "x": 0.0492,
+            "y": 0,
+            "w": 0.0325,
+            "h": 0.0843
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "childSelector",
+          "actualKey": "selector",
+          "reference": {
+            "x": 0.18,
+            "y": 0.105,
+            "w": 0.44,
+            "h": 0.145
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.153,
+            "w": 0.8458,
+            "h": 0.082
+          },
+          "delta": {
+            "x": 0.0508,
+            "y": 0.048,
+            "w": 0.4058,
+            "h": 0.063
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "primaryContent",
+          "actualKey": "primary",
+          "reference": {
+            "x": 0.18,
+            "y": 0.27,
+            "w": 0.8,
+            "h": 0.46
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.2419,
+            "w": 0.8458,
+            "h": 0.1797
+          },
+          "delta": {
+            "x": 0.0508,
+            "y": 0.0281,
+            "w": 0.0458,
+            "h": 0.2803
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "quickActions",
+          "actualKey": "quickActions",
+          "reference": {
+            "x": 0.18,
+            "y": 0.77,
+            "w": 0.8,
+            "h": 0.2
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.4284,
+            "w": 0.8458,
+            "h": 0.0566
+          },
+          "delta": {
+            "x": 0.0508,
+            "y": 0.3416,
+            "w": 0.0458,
+            "h": 0.1434
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 1.8123 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        }
+      ],
+      "materialUnexplained": 0
+    },
+    "platform-admin": {
+      "geometryId": "platform-admin",
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "KPI row, two charts, service health, recent activity and three lower operational tables are simultaneous on the primary Admin route; Mobile uses the approved management menu composition.",
+      "cropAspect": 2.9266,
+      "viewportAspect": 1.4063,
+      "comparisons": [
+        {
+          "referenceKey": "sidebar",
+          "actualKey": "sidebar",
+          "reference": {
+            "x": 0,
+            "y": 0,
+            "w": 0.098,
+            "h": 1
+          },
+          "actual": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.1069,
+            "h": 1
+          },
+          "delta": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.0089,
+            "h": 0
+          },
+          "material": false,
+          "explained": true,
+          "note": "Within direct normalized tolerance."
+        },
+        {
+          "referenceKey": "header",
+          "actualKey": "header",
+          "reference": {
+            "x": 0.103,
+            "y": 0,
+            "w": 0.79,
+            "h": 0.1
+          },
+          "actual": {
+            "x": 0.1208,
+            "y": 0,
+            "w": 0.8625,
+            "h": 0.0557
+          },
+          "delta": {
+            "x": 0.0178,
+            "y": 0,
+            "w": 0.0725,
+            "h": 0.0443
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.9266 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "kpiRegion",
+          "actualKey": "kpi",
+          "reference": {
+            "x": 0.108,
+            "y": 0.11,
+            "w": 0.675,
+            "h": 0.15
+          },
+          "actual": {
+            "x": 0.1486,
+            "y": 0.1143,
+            "w": 0.8069,
+            "h": 0.084
+          },
+          "delta": {
+            "x": 0.0406,
+            "y": 0.0043,
+            "w": 0.1319,
+            "h": 0.066
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.9266 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "primaryContent",
+          "actualKey": "primary",
+          "reference": {
+            "x": 0.108,
+            "y": 0.28,
+            "w": 0.675,
+            "h": 0.42
+          },
+          "actual": {
+            "x": 0.1486,
+            "y": 0.2051,
+            "w": 0.8069,
+            "h": 0.2744
+          },
+          "delta": {
+            "x": 0.0406,
+            "y": 0.0749,
+            "w": 0.1319,
+            "h": 0.1456
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.9266 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "lowerOperational",
+          "actualKey": "lower",
+          "reference": {
+            "x": 0.108,
+            "y": 0.72,
+            "w": 0.887,
+            "h": 0.27
+          },
+          "actual": {
+            "x": 0.1486,
+            "y": 0.4863,
+            "w": 0.8069,
+            "h": 0.168
+          },
+          "delta": {
+            "x": 0.0406,
+            "y": 0.2337,
+            "w": 0.0801,
+            "h": 0.102
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.9266 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        }
+      ],
+      "materialUnexplained": 0
+    },
+    "settings-account-permissions": {
+      "geometryId": "settings",
+      "reviewDecision": "REFERENCE_MATCH_CANDIDATE",
+      "reviewNote": "Navigation, profile/account, security/preferences and Garden/subscription/integration columns are simultaneous on the primary Settings route; Mobile retains the approved single-column settings composition.",
+      "cropAspect": 2.7868,
+      "viewportAspect": 1.4063,
+      "comparisons": [
+        {
+          "referenceKey": "sidebar",
+          "actualKey": "sidebar",
+          "reference": {
+            "x": 0,
+            "y": 0,
+            "w": 0.095,
+            "h": 1
+          },
+          "actual": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.1069,
+            "h": 1
+          },
+          "delta": {
+            "x": 0.0167,
+            "y": 0,
+            "w": 0.0119,
+            "h": 0
+          },
+          "material": false,
+          "explained": true,
+          "note": "Within direct normalized tolerance."
+        },
+        {
+          "referenceKey": "header",
+          "actualKey": "header",
+          "reference": {
+            "x": 0.095,
+            "y": 0,
+            "w": 0.905,
+            "h": 0.095
+          },
+          "actual": {
+            "x": 0.1208,
+            "y": 0,
+            "w": 0.8625,
+            "h": 0.085
+          },
+          "delta": {
+            "x": 0.0258,
+            "y": 0,
+            "w": 0.0425,
+            "h": 0.01
+          },
+          "material": false,
+          "explained": true,
+          "note": "Within direct normalized tolerance."
+        },
+        {
+          "referenceKey": "navigationColumn",
+          "actualKey": "navigation",
+          "reference": {
+            "x": 0.1,
+            "y": 0.1,
+            "w": 0.162,
+            "h": 0.88
+          },
+          "actual": {
+            "x": 0.1292,
+            "y": 0.0938,
+            "w": 0.1653,
+            "h": 0.5039
+          },
+          "delta": {
+            "x": 0.0292,
+            "y": 0.0062,
+            "w": 0.0033,
+            "h": 0.3761
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.7868 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "profileColumn",
+          "actualKey": "profile",
+          "reference": {
+            "x": 0.268,
+            "y": 0.1,
+            "w": 0.245,
+            "h": 0.88
+          },
+          "actual": {
+            "x": 0.3014,
+            "y": 0.0938,
+            "w": 0.2241,
+            "h": 0.4658
+          },
+          "delta": {
+            "x": 0.0334,
+            "y": 0.0062,
+            "w": 0.0209,
+            "h": 0.4142
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.7868 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "securityColumn",
+          "actualKey": "security",
+          "reference": {
+            "x": 0.52,
+            "y": 0.1,
+            "w": 0.225,
+            "h": 0.88
+          },
+          "actual": {
+            "x": 0.5325,
+            "y": 0.0938,
+            "w": 0.2072,
+            "h": 0.4336
+          },
+          "delta": {
+            "x": 0.0125,
+            "y": 0.0062,
+            "w": 0.0178,
+            "h": 0.4464
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.7868 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        },
+        {
+          "referenceKey": "gardenColumn",
+          "actualKey": "garden",
+          "reference": {
+            "x": 0.752,
+            "y": 0.1,
+            "w": 0.243,
+            "h": 0.88
+          },
+          "actual": {
+            "x": 0.7466,
+            "y": 0.0938,
+            "w": 0.2284,
+            "h": 0.7754
+          },
+          "delta": {
+            "x": 0.0054,
+            "y": 0.0062,
+            "w": 0.0146,
+            "h": 0.1046
+          },
+          "material": true,
+          "explained": true,
+          "note": "Raw normalized delta retained. Reference panel aspect 2.7868 differs from the 1440x1024 evidence aspect 1.4063; the region is present in the same primary-screen order and was reviewed in side-by-side, overlay, and annotated evidence."
+        }
+      ],
+      "materialUnexplained": 0
+    }
+  },
+  "measuredAtV5Package": "2026-10-25T21:31:26.255Z"
 }
