@@ -18,19 +18,23 @@ export async function createClient() { return { marker: "cookie-client" }; }
 const pushUrl = `data:text/javascript,${encodeURIComponent(`
 let calls = [];
 let failed = false;
-export function reset() { calls = []; failed = false; }
+let confirmed = true;
+export function reset() { calls = []; failed = false; confirmed = true; }
 export function setFailure(value) { failed = value; }
+export function setConfirmed(value) { confirmed = value; }
 export function writes() { return calls; }
 export async function unregisterPushDevice(...args) {
   calls.push(args);
   return failed ? { ok: false, rows: [], error: "DB_FAILED" }
-    : { ok: true, rows: [{ id: "synthetic-row", is_active: false }], error: null };
+    : { ok: true, rows: [{ id: "synthetic-row", is_active: false }], confirmed, error: null };
 }
 `)}`;
 const accessUrl = `data:text/javascript,${encodeURIComponent(`
 let observer = { profile: { id: "owner-a", role: "parent" }, supabase: { marker: "bearer-client" } };
-export function configure(value) { observer = value; }
+let revocation = observer;
+export function configure(value, revocationValue = value) { observer = value; revocation = revocationValue; }
 export async function getDigitalObserverApiUser() { return observer; }
+export async function getDigitalObserverPushRevocationUser() { return revocation; }
 `)}`;
 const aliases = new Map([
   ["@/lib/api", apiUrl], ["@/lib/auth", authUrl],
@@ -66,7 +70,9 @@ const scoped = { device_id: "installation-a", source: "digital_observer_native",
 
 test("valid Observer revocation uses exact scope and authenticated bearer client", async () => {
   push.reset(); access.configure(observer);
-  assert.equal((await route.POST(request(scoped, true))).status, 200);
+  const response = await route.POST(request(scoped, true));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.confirmed, true);
   assert.equal(push.writes().length, 1);
   assert.equal(push.writes()[0][0].marker, "bearer-client");
   assert.deepEqual(push.writes()[0].slice(1), ["owner-a", null, "installation-a",
@@ -74,10 +80,10 @@ test("valid Observer revocation uses exact scope and authenticated bearer client
 });
 
 test("revoked Site can still revoke own token; no Site authorization lookup is required", async () => {
-  push.reset(); access.configure(observer);
+  push.reset(); access.configure(null, observer);
   assert.equal((await route.POST(request(scoped))).status, 200);
   assert.equal(push.writes().length, 1);
-  assert.equal(push.writes()[0][0].marker, "cookie-client");
+  assert.equal(push.writes()[0][0].marker, "bearer-client");
 });
 
 test("invalid bearer never falls back to a cookie", async () => {
@@ -103,6 +109,12 @@ test("generic targeted revocation remains available to non-Observer users", asyn
 
 test("database failure does not claim successful revocation", async () => {
   push.reset(); access.configure(observer); push.setFailure(true);
+  assert.equal((await route.POST(request(scoped))).status, 500);
+  assert.equal(push.writes().length, 1);
+});
+
+test("Observer response without read-back confirmation is not a success", async () => {
+  push.reset(); access.configure(observer); push.setConfirmed(false);
   assert.equal((await route.POST(request(scoped))).status, 500);
   assert.equal(push.writes().length, 1);
 });

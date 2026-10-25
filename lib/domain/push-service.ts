@@ -171,10 +171,33 @@ export async function unregisterPushDevice(
   });
 
   const result = await query.select("id, is_active");
-  return {
+  if (result.error || !observerScope) return {
     ok: !result.error,
     rows: result.data ?? [],
-    error: result.error?.message ?? null
+    error: result.error?.message ?? null,
+    confirmed: false
+  };
+
+  // A lost response after a successful UPDATE is retried idempotently. A
+  // second, exact owner-scoped read must confirm no active row remains before
+  // the native client discards its local revocation target.
+  let remaining = supabase.from("push_device_tokens").select("id")
+    .eq("profile_id", profileId).eq("is_active", true);
+  if (deviceToken) remaining = remaining.eq("device_token", deviceToken);
+  if (deviceId) remaining = remaining.eq("device_id", deviceId);
+  remaining = remaining.contains("metadata", {
+    source: observerScope.source,
+    observer_site_id: observerScope.siteId
+  });
+  const verification = await remaining.limit(1);
+  const confirmed = !verification.error && Array.isArray(result.data)
+    && result.data.every((row: { is_active: boolean }) => row.is_active === false)
+    && Array.isArray(verification.data) && verification.data.length === 0;
+  return {
+    ok: confirmed,
+    rows: result.data ?? [],
+    error: verification.error?.message ?? (confirmed ? null : "PUSH_REVOCATION_UNCONFIRMED"),
+    confirmed
   };
 }
 

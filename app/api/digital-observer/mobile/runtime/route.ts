@@ -9,6 +9,8 @@ import {
 } from "@/lib/domain/digital-observer/mobile-runtime";
 
 const linkSchema = z.object({ url: z.string().url().max(2_048) });
+const mobileSitePageSize = 25;
+const maxMobileSiteCandidates = 100;
 
 const resourceTable: Record<Exclude<MobileLinkKind, "investigation">, string> = {
   camera: "digital_observer_camera_sources",
@@ -36,18 +38,32 @@ export async function GET(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const { data: sites, error } = await session.supabase
-      .from("observer_sites" as never)
-      .select("id,name,timezone")
-      .is("garden_id", null)
-      .neq("site_type", "kindergarten")
-      .eq("active", true)
-      .order("created_at", { ascending: true })
-      .limit(25);
-    if (error) return fail("לא ניתן לטעון את סביבת המובייל.", 503);
+    // RLS may expose more than 25 Sites to an owner or administrator. Never
+    // treat the first page as a complete authorization set: a saved Site on
+    // a later page would otherwise be mistaken for a revoked Site.
+    const candidates: Array<{ id: string; name: string; timezone: string | null }> = [];
+    for (let offset = 0; offset <= maxMobileSiteCandidates; offset += mobileSitePageSize) {
+      const { data, error } = await session.supabase
+        .from("observer_sites" as never)
+        .select("id,name,timezone")
+        .is("garden_id", null)
+        .neq("site_type", "kindergarten")
+        .eq("active", true)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(offset, Math.min(offset + mobileSitePageSize - 1, maxMobileSiteCandidates));
+      if (error || !Array.isArray(data)) return fail("לא ניתן לטעון את סביבת המובייל.", 503);
+      // One extra row is a sentinel. Return no partial list when the ceiling
+      // is exceeded, so the phone cannot infer a missing Site was revoked.
+      if (offset === maxMobileSiteCandidates && data.length) {
+        return fail("רשימת האתרים גדולה ממגבלת האימות למובייל.", 503);
+      }
+      candidates.push(...data as typeof candidates);
+      if (data.length < mobileSitePageSize) break;
+    }
 
     const authorized = [];
-    for (const candidate of (sites ?? []) as Array<{ id: string; name: string; timezone: string | null }>) {
+    for (const candidate of candidates) {
       const site = await getObserverSiteAccess(session.supabase, session.profile, candidate.id);
       if (site) authorized.push(candidate);
     }

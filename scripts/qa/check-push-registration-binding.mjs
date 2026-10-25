@@ -51,7 +51,7 @@ function database(initial = [], options = {}) {
     async function finish() {
       if (options.fail === operation) return { data: null, error: { message: `${operation.toUpperCase()}_FAILED` } };
       const matched = rows.filter((record) => filters.every((filter) => filter(record)));
-      if (operation === "read") return { data: matched, error: null };
+      if (operation === "read") return { data: options.nullRead ? null : matched, error: null };
       if (operation === "insert") {
         if (options.uniqueRace || rows.some((record) => record.device_token === payload.device_token)) {
           return { data: null, error: { code: "23505", message: "unique violation" } };
@@ -136,6 +136,7 @@ test("scoped revocation disables only the current profile/source/Site installati
   row({ id: "row-management", device_token: "synthetic-provider-token-c", metadata: { source: "management" } })]);
   const result = await unregisterPushDevice(db, "owner-a", null, "installation-a", scope);
   assert.equal(result.ok, true);
+  assert.equal(result.confirmed, true);
   assert.deepEqual(result.rows.map((item) => item.id), ["row-a"]);
   assert.equal(db.rows[0].is_active, false);
   assert.equal(db.rows[1].is_active, true);
@@ -171,8 +172,25 @@ test("empty target is rejected; double revocation is bounded and idempotent", as
   assert.equal((await unregisterPushDevice(db, "owner-a", null, null, scope)).ok, false);
   assert.equal(db.writes.length, 0);
   assert.equal((await unregisterPushDevice(db, "owner-a", null, "installation-a", scope)).rows.length, 1);
-  assert.equal((await unregisterPushDevice(db, "owner-a", null, "installation-a", scope)).rows.length, 0);
+  const retry = await unregisterPushDevice(db, "owner-a", null, "installation-a", scope);
+  assert.equal(retry.rows.length, 0);
+  assert.equal(retry.confirmed, true);
   assert.equal(db.writes.length, 1);
+});
+
+test("failed read-back never confirms revocation even after an update", async () => {
+  const db = database([row()], { fail: "read" });
+  const result = await unregisterPushDevice(db, "owner-a", null, "installation-a", scope);
+  assert.equal(result.ok, false);
+  assert.equal(result.confirmed, false);
+  assert.equal(db.rows[0].is_active, false);
+});
+
+test("missing read-back data without a reported database error still fails closed", async () => {
+  const db = database([row()], { nullRead: true });
+  const result = await unregisterPushDevice(db, "owner-a", null, "installation-a", scope);
+  assert.equal(result.ok, false);
+  assert.equal(result.confirmed, false);
 });
 
 test("database failure does not claim revocation; new token rotates only after old revocation", async () => {

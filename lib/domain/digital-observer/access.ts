@@ -90,7 +90,7 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
   return { ...session, observerAccount: account.data ?? null };
 }
 
-export async function getDigitalObserverApiUser(request?: Request) {
+async function getDigitalObserverSessionUser(request?: Request) {
   const authorization = request?.headers.get("authorization") ?? "";
   const accessToken = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
@@ -134,6 +134,19 @@ export async function getDigitalObserverApiUser(request?: Request) {
     return null;
   }
 
+  return { user, profile, accessToken, supabase };
+}
+
+// Revoking an exact, owner-scoped Push token must remain possible when the
+// user's last Site membership was removed. This is not Observer Site access.
+export async function getDigitalObserverPushRevocationUser(request?: Request) {
+  return getDigitalObserverSessionUser(request);
+}
+
+export async function getDigitalObserverApiUser(request?: Request) {
+  const session = await getDigitalObserverSessionUser(request);
+  if (!session) return null;
+  const { user, profile, accessToken, supabase } = session;
   const [account, ownedSite, membership, organizationMembership] = await Promise.all([
     supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", user.id).maybeSingle(),
     supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),

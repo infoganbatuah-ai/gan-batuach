@@ -169,7 +169,8 @@ test("consumer wiring uses the ordered site gate; token metadata is not delivery
   const slotRoute = readFileSync(new URL("../../app/api/digital-observer/access-settings/route.ts", import.meta.url), "utf8");
   const runtimeRoute = readFileSync(new URL("../../app/api/digital-observer/mobile/runtime/route.ts", import.meta.url), "utf8");
   assert.match(native, /registerObserverPushAfterSiteGate/);
-  assert.match(native, /cache: "no-store", signal: AbortSignal\.timeout/);
+  assert.match(native, /verifiedSites\(AbortSignal\.timeout\(10_000\)\)/);
+  assert.match(native, /credentials: "same-origin", cache: "no-store", signal/);
   assert.match(web, /registerObserverPushAfterSiteGate/);
   assert.match(delivery, /\.eq\("profile_id", input\.profileId\)/);
   assert.doesNotMatch(delivery.slice(delivery.indexOf("export async function preparePushForNotification")), /observer_site_id/);
