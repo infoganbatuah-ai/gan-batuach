@@ -2,7 +2,7 @@
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { assertDelegatedGrant, type EnterpriseRole } from "./enterprise-identity";
-import { customerReference, hashEmbeddedToken, issueEmbeddedToken, partnerCustomerTransition, publicBrandProfile, validateEmbedOrigin, verifyEmbeddedAudience, type EmbeddedScope } from "./partner-platform";
+import { brandProfileSchema, customerReference, hashEmbeddedToken, issueEmbeddedToken, partnerCustomerTransition, publicBrandProfile, validateEmbedOrigin, verifyEmbeddedAudience, type EmbeddedScope } from "./partner-platform";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -188,11 +188,46 @@ export async function transitionPartnerCustomer(admin: Admin, input: { partnerId
 
 export async function savePartnerBrand(admin: Admin, input: { partnerId: string; organizationId: string; actorId: string; actorRole: EnterpriseRole; brand: Record<string, unknown>; correlationId: string }) {
   assertPartnerRole(input.actorRole);
-  const saved = await (admin as any).from("digital_observer_partner_brand_profiles").upsert({ partner_id: input.partnerId, ...input.brand,
-    domain_status: "unverified", updated_by: input.actorId }, { onConflict: "partner_id" }).select("*").single();
-  if (saved.error) throw new Error("PARTNER_BRAND_SAVE_FAILED");
+  const brand = brandProfileSchema.parse(input.brand);
+  const organization = await (admin as any).from("digital_observer_organizations")
+    .select("id,status").eq("id", input.organizationId).maybeSingle();
+  if (organization.error || organization.data?.id !== input.organizationId
+    || organization.data.status !== "active") throw new Error("PARTNER_BRAND_SCOPE_DENIED");
+  const ownedPartner = async () => {
+    const result = await (admin as any).from("digital_observer_partners").select("id,organization_id,partner_status")
+      .eq("id", input.partnerId).eq("organization_id", input.organizationId).maybeSingle();
+    if (result.error) throw new Error("PARTNER_BRAND_PARTNER_LOOKUP_FAILED");
+    if (result.data?.id !== input.partnerId || result.data.organization_id !== input.organizationId
+      || result.data.partner_status !== "sandbox") throw new Error("PARTNER_BRAND_SCOPE_DENIED");
+  };
+  await ownedPartner();
+  const previous = await (admin as any).from("digital_observer_partner_brand_profiles")
+    .select("partner_id,customer_domain,domain_status,updated_at").eq("partner_id", input.partnerId).maybeSingle();
+  if (previous.error || (previous.data && (previous.data.partner_id !== input.partnerId
+    || !["unverified", "verification_pending", "verified_sandbox"].includes(previous.data.domain_status)
+    || !previous.data.updated_at))) throw new Error("PARTNER_BRAND_LOOKUP_FAILED");
+  // Re-check immediately before the write. The current schema has no organization_id on the
+  // brand row, so PostgreSQL must still qualify the ownership/write race before activation.
+  await ownedPartner();
+  const customerDomain = Object.hasOwn(brand, "customer_domain")
+    ? brand.customer_domain : previous.data?.customer_domain ?? null;
+  const domainStatus = previous.data && customerDomain === previous.data.customer_domain
+    ? previous.data.domain_status : "unverified";
+  const priorUpdate = previous.data ? new Date(previous.data.updated_at).getTime() : NaN;
+  if (previous.data && !Number.isFinite(priorUpdate)) throw new Error("PARTNER_BRAND_LOOKUP_FAILED");
+  const values = { ...brand, domain_status: domainStatus, updated_by: input.actorId,
+    updated_at: new Date(Number.isFinite(priorUpdate) ? Math.max(Date.now(), priorUpdate + 1) : Date.now()).toISOString() };
+  const query = previous.data
+    ? (admin as any).from("digital_observer_partner_brand_profiles").update(values)
+      .eq("partner_id", input.partnerId).eq("updated_at", previous.data.updated_at)
+    : (admin as any).from("digital_observer_partner_brand_profiles").insert({ partner_id: input.partnerId, ...values });
+  const saved = await query.select("*").single();
+  if (saved.error || saved.data?.partner_id !== input.partnerId || saved.data.domain_status !== domainStatus) {
+    throw new Error("PARTNER_BRAND_SAVE_FAILED");
+  }
+  await ownedPartner();
   await audit(admin, { organizationId: input.organizationId, actorId: input.actorId, resourceType: "partner_brand", resourceId: input.partnerId,
-    action: "partner_brand.update", correlationId: input.correlationId, metadata: { domain_verified: false } });
+    action: "partner_brand.update", correlationId: input.correlationId, metadata: { domain_verified: domainStatus === "verified_sandbox" } });
   return publicBrandProfile(saved.data);
 }
 
