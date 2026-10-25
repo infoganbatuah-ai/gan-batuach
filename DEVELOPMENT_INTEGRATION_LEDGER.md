@@ -1775,6 +1775,10 @@ Typecheck, zero-regression lint, build, Domain 46/46, Security/Isolation 50/50,
 257-migration health, release contract, Manager/Parent 23/23, management
 dashboards 9/9, Owner command center 6/6 and legacy consolidation 8/8 pass.
 External owner acceptance remains pending; no owner approval is claimed. The
-branch still requires remote preservation, exact-head PR checks and merge to
-`integration/development`. Production, `main` and RELEASE-GAP-01 remain
+branch is remotely preserved and still requires exact-head PR checks and merge
+to `integration/development`. Production, `main` and RELEASE-GAP-01 remain
 untouched.
+
+Remote preservation verified: `origin/codex/ux-v4-primary-screen-correction`
+contains validated head `0855814aea547b4b7098e3c8bfba76ac4f8a53c4`, including the
+implementation, fresh evidence and validation ledger update.

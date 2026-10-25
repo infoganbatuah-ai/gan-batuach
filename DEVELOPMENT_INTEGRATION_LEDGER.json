@@ -12556,10 +12556,11 @@
       ],
       "state": "VALIDATED_ON_BRANCH",
       "preservation": {
-        "remoteVerified": false,
+        "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-v4-primary-screen-correction@b9dac699"
+          "origin/codex/ux-v4-primary-screen-correction@0855814aea547b4b7098e3c8bfba76ac4f8a53c4"
         ],
+        "validatedRemoteHead": "0855814aea547b4b7098e3c8bfba76ac4f8a53c4",
         "implementationCommit": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
         "evidenceCommit": "72281329",
         "handoff": "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md"
