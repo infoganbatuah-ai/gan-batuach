@@ -246,8 +246,12 @@ export function revokeClaim(claim: RiskClaim, token: ClaimToken, now: number): R
 }
 
 export type CanonicalDecisionIntent = Readonly<{
-  siteId: string; incidentId: string; riskEvaluationId: string; verificationId: string;
-  decision: string; dedupeKey: string; cooldownUntil: string;
+  tenantId: string; siteId: string; eventId: string; incidentId: string;
+  riskEvaluationId: string; verificationId: string;
+  decision: string; intentType: string; payloadVersion: string;
+  dedupeKey: string; idempotencyKey: string; cooldownUntil: string;
+  recipientSettingsVersion: string; recipientSnapshotDigest: string;
+  requiredEvidenceReferences: readonly string[];
   requiresHumanReview: boolean; externalExecutionEnabled: false;
   verificationVersion: string; finalDecisionVersion: string;
   finalDecisionConfidence: number; decisionStage: "post_verification_final";
@@ -257,10 +261,31 @@ export type CanonicalDecisionIntent = Readonly<{
 /** Call after a 23505 reread; the error code itself proves nothing. */
 export function assertEquivalentDecisionIntent(expected: CanonicalDecisionIntent,
   persisted: CanonicalDecisionIntent): void {
-  for (const key of ["siteId", "incidentId", "riskEvaluationId", "verificationId", "decision",
-    "dedupeKey", "cooldownUntil", "requiresHumanReview", "externalExecutionEnabled",
+  const valid = (value: CanonicalDecisionIntent) =>
+    [value.tenantId, value.siteId, value.eventId, value.incidentId,
+      value.riskEvaluationId, value.verificationId, value.intentType,
+      value.payloadVersion, value.dedupeKey, value.idempotencyKey,
+      value.recipientSettingsVersion].every(item => typeof item === "string" && item.length > 0)
+    && typeof value.recipientSnapshotDigest === "string"
+    && /^[a-f0-9]{64}$/.test(value.recipientSnapshotDigest)
+    && Array.isArray(value.requiredEvidenceReferences)
+    && value.requiredEvidenceReferences.every(item => typeof item === "string" && item.length > 0)
+    && new Set(value.requiredEvidenceReferences).size === value.requiredEvidenceReferences.length
+    && value.externalExecutionEnabled === false
+    && value.decisionStage === "post_verification_final"
+    && value.privacyPolicyAuthoritative === true;
+  if (!valid(expected) || !valid(persisted)) throw new Error("DECISION_INTENT_INVALID");
+  for (const key of ["tenantId", "siteId", "eventId", "incidentId", "riskEvaluationId",
+    "verificationId", "decision", "intentType", "payloadVersion", "dedupeKey",
+    "idempotencyKey", "cooldownUntil", "recipientSettingsVersion", "recipientSnapshotDigest",
+    "requiresHumanReview", "externalExecutionEnabled",
     "verificationVersion", "finalDecisionVersion", "finalDecisionConfidence",
     "decisionStage", "privacyPolicyAuthoritative"] as const) {
     if (expected[key] !== persisted[key]) throw new Error("DECISION_INTENT_CONFLICT");
+  }
+  const canonicalReferences = (value: readonly string[]) => JSON.stringify([...value].sort());
+  if (canonicalReferences(expected.requiredEvidenceReferences)
+    !== canonicalReferences(persisted.requiredEvidenceReferences)) {
+    throw new Error("DECISION_INTENT_CONFLICT");
   }
 }

@@ -1,6 +1,6 @@
 # DRAFT — NOT APPLIED: Event risk processing ownership
 
-Status: **local review only; not a migration, implementation, or activation**. This
+Status: **local offline proposal only; not a migration or activation**. This
 directory is deliberately outside `supabase/migrations/` and every runtime import
 path. No SQL here has been run. The draft SQL starts an aborted transaction so
 accidental execution cannot reach its DDL. Removing that guard requires a new,
@@ -102,8 +102,12 @@ mismatched engine input; this does not replace database-level integrity.
 
 ## Review files and open gates
 
-- `DRAFT-NOT-APPLIED.sql`: intentionally non-executable table/constraint sketch;
-  **no claim or completion RPC is defined or granted**.
+- `DRAFT-NOT-APPLIED.sql`: intentionally non-executable table/constraint sketch.
+- `RPC-BODIES-NOT-APPLIED.sql`: abort-guarded acquisition, renewal and recovery
+  proposals; four downstream RPC bodies remain BLOCKED.
+- `SEVEN-RPC-IMPLEMENTATION.md`: exact body/blocking matrix and completion contract.
+- `WATCH-RULE-ACL-NOT-APPLIED.sql` and its separate guarded rollback:
+  exact-signature privilege proposal, never executed.
 - `RPC-CONTRACT.md`: exact server-only claim/persist inputs, outputs and
   transaction requirements; completion remains an explicit design gate.
 - `SITE-PREFLIGHT-READ-ONLY.sql`: proposed counts and pseudonymous row handles;
@@ -115,8 +119,8 @@ mismatched engine input; this does not replace database-level integrity.
 - `OBJECT-INVENTORY.json`: machine-readable existing/proposed object and RPC
   inventory; source declarations are not effective database state.
 - `HOME-MAPPING.md`: proposed Model A mapping and explicit historical exceptions.
-- `PERMISSIONS-AND-RPCS.md`: source-defined versus effective ACL, plus exact
-  proposed RPC signatures; function bodies and grants remain blocked.
+- `PERMISSIONS-AND-RPCS.md`: source-defined versus previously inspected
+  effective ACL, plus exact proposed RPC signatures; application remains blocked.
 - `FORWARD-AND-ROLLBACK.md`: gated migration order and non-destructive rollback
   states; no rollback rehearsal has run.
 - `BLOCKING-FACTS.md`: exact evidence needed before an executable migration.

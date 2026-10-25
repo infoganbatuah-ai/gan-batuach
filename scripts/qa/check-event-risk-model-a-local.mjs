@@ -120,8 +120,13 @@ test("risk checkpoint survives takeover; effects resume without recomputation or
     { evaluationId: "risk-a", inputFingerprint: fingerprint }, now + 101), /FENCED_OR_EXPIRED/);
   const pending = beginEffects(takeover.claim, tokenB, plan(), now + 101);
   assert.throws(() => completeRiskEffects(pending, tokenB, now + 102), /INCOMPLETE/);
-  let current = pending;
+  let current = recordEffectReceipt(pending, tokenB,
+    receipt("EVENT_INCIDENT_LINK", pending, tokenB), now + 102);
+  assert.equal(current.state, "EFFECTS_PENDING"); // simulated crash after one durable effect
+  assert.equal(recordEffectReceipt(current, tokenB,
+    receipt("EVENT_INCIDENT_LINK", current, tokenB), now + 102), current);
   for (const key of requiredEffectKeys(pending.plan)) {
+    if (key === "EVENT_INCIDENT_LINK") continue;
     current = recordEffectReceipt(current, tokenB, receipt(key, current, tokenB), now + 102);
   }
   const completed = completeRiskEffects(current, tokenB, now + 103);
@@ -136,11 +141,20 @@ test("risk checkpoint survives takeover; effects resume without recomputation or
   assert.throws(() => acquireClaim({ existing: completed,
     scope: { ...scopeA, tenantId: "tenant-c" }, engineVersion: "do-risk-v1",
     ownerNonce: "worker-c", now: now + 200, leaseMs: 100 }), /SCOPE_CONFLICT/);
+  assert.throws(() => acquireClaim({ existing: completed,
+    scope: { ...scopeA, siteId: "site-b" }, engineVersion: "do-risk-v1",
+    ownerNonce: "worker-c", now: now + 200, leaseMs: 100 }), /SCOPE_CONFLICT/);
 });
 
 test("snapshot, audit and Guard eligibility are explicit; no external dispatch", () => {
+  const missingSnapshot = plan();
+  missingSnapshot.recipients = { ...missingSnapshot.recipients, digest: "" };
+  assert.throws(() => beginEffects(riskPersisted(), tokenA, missingSnapshot, now + 2), /PLAN_INVALID/);
   const pending = beginEffects(riskPersisted(), tokenA, plan(["owner-1"], true), now + 2);
   assert.throws(() => beginEffects(pending, tokenA, plan(["owner-2"], true), now + 3), /PLAN_CHANGED/);
+  const changedSettings = plan(["owner-1"], true);
+  changedSettings.recipients = freezeRecipientSnapshot("settings-v2", ["owner-1"]);
+  assert.throws(() => beginEffects(pending, tokenA, changedSettings, now + 3), /PLAN_CHANGED/);
   assert.throws(() => recordEffectReceipt(pending, tokenA, { ...receipt("RECIPIENT_PLAN", pending),
     recipientSnapshotDigest: "wrong" }, now + 3), /SNAPSHOT_CONFLICT/);
   assert.throws(() => recordEffectReceipt(pending, tokenA, { ...receipt("DECISION_INTENT", pending),
@@ -153,20 +167,42 @@ test("snapshot, audit and Guard eligibility are explicit; no external dispatch",
   }
   assert.equal(current.effects.GUARD_ELIGIBILITY !== undefined, true);
   assert.throws(() => completeRiskEffects(current, tokenA, now + 4), /INCOMPLETE/);
+  const recovered = acquireClaim({ existing: pending, scope: scopeA, engineVersion: "do-risk-v1",
+    ownerNonce: "worker-b", now: now + 100, leaseMs: 100 });
+  assert.equal(recovered.kind, "RECOVERED");
+  assert.throws(() => recordEffectReceipt(recovered.claim, tokenA,
+    receipt("EVENT_INCIDENT_LINK", recovered.claim), now + 101), /FENCED_OR_EXPIRED/);
   assert.equal(eventRiskAdapterEnabled, false);
   assert.throws(unavailableDurableRiskStore, /ADAPTER_DISABLED/);
 });
 
 test("intent duplicate needs semantic equivalence; projections require current fence", () => {
-  const expected = { siteId: "site-a", incidentId: "incident-a", riskEvaluationId: "risk-a",
-    verificationId: "verification-a", decision: "NOTIFY_IN_APP", dedupeKey: "decision-a",
+  const expected = { tenantId: "tenant-a", siteId: "site-a", eventId: "event-a",
+    incidentId: "incident-a", riskEvaluationId: "risk-a",
+    verificationId: "verification-a", decision: "NOTIFY_IN_APP", intentType: "IN_APP_DECISION",
+    payloadVersion: "v1", dedupeKey: "decision-a", idempotencyKey: "decision-a",
+    recipientSettingsVersion: "settings-v1", recipientSnapshotDigest: fingerprint,
+    requiredEvidenceReferences: ["signal:event-a", "risk:risk-a"],
     cooldownUntil: "2026-10-25T00:05:00.000Z", requiresHumanReview: true,
     externalExecutionEnabled: false, verificationVersion: "do-verification-v2",
     finalDecisionVersion: "do-final-decision-v1", finalDecisionConfidence: 0.9,
     decisionStage: "post_verification_final", privacyPolicyAuthoritative: true };
   assert.doesNotThrow(() => assertEquivalentDecisionIntent(expected, { ...expected }));
+  assert.throws(() => assertEquivalentDecisionIntent(expected,
+    { ...expected, recipientSnapshotDigest: undefined }), /INTENT_INVALID/);
+  assert.throws(() => assertEquivalentDecisionIntent(expected,
+    { ...expected, requiredEvidenceReferences: ["risk:risk-a", "risk:risk-a"] }), /INTENT_INVALID/);
   assert.throws(() => assertEquivalentDecisionIntent(expected, { ...expected, verificationId: "other" }), /INTENT_CONFLICT/);
   assert.throws(() => assertEquivalentDecisionIntent(expected, { ...expected, decision: "IGNORE" }), /INTENT_CONFLICT/);
+  assert.doesNotThrow(() => assertEquivalentDecisionIntent(expected,
+    { ...expected, requiredEvidenceReferences: [...expected.requiredEvidenceReferences].reverse() }));
+  for (const changed of [
+    { tenantId: "tenant-c" }, { eventId: "event-b" }, { recipientSnapshotDigest: "b".repeat(64) },
+    { recipientSettingsVersion: "settings-v2" }, { payloadVersion: "v2" },
+    { idempotencyKey: "other" }, { requiredEvidenceReferences: ["signal:event-a"] }
+  ]) {
+    assert.throws(() => assertEquivalentDecisionIntent(expected, { ...expected, ...changed }), /INTENT_CONFLICT/);
+  }
   const value = riskPersisted();
   assert.throws(() => persistRiskCheckpoint(value, tokenA,
     { evaluationId: "other-risk", inputFingerprint: fingerprint }, now + 3), /RESULT_INVALID|RESULT_CONFLICT/);

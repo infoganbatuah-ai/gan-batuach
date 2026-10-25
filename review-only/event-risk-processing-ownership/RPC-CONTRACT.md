@@ -1,7 +1,9 @@
 # DRAFT — server-only claim and completion contracts
 
-These are review signatures and transaction requirements, **not implemented
-RPCs**. No route calls them. A future migration must define exact SQL, revoke
+These are review signatures and transaction requirements, **not deployed
+RPCs**. No route calls them. Three abort-guarded offline bodies now exist in
+`RPC-BODIES-NOT-APPLIED.sql`; four downstream bodies remain BLOCKED. A future
+migration must define reviewed exact SQL, revoke
 default `PUBLIC` function execution within the same transaction, grant only the
 reviewed server role, and prove Data API exposure is limited. Never put the
 service credential in a Gateway, browser or mobile build.
@@ -89,5 +91,5 @@ alone promises physically exactly-once CPU work after a crash.
 
 The complete proposed seven-function signature list and source/effective
 permission distinction are in `PERMISSIONS-AND-RPCS.md`. These signatures
-are a review contract only: no function body, grant or Data API activation
-exists in this package.
+are a review contract only: no function, grant or Data API activation exists
+in a database as a result of this package.

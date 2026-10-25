@@ -219,5 +219,19 @@
     "public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text) RETURNS jsonb",
     "public.complete_event_risk_v1(uuid,text,uuid,bigint) RETURNS jsonb",
     "public.recover_expired_event_risk_v1(uuid,text,uuid,integer) RETURNS jsonb"
-  ]
+  ],
+  "offlineBodyStatus": {
+    "proposedGuarded": [
+      "claim_event_risk_v1",
+      "renew_event_risk_lease_v1",
+      "recover_expired_event_risk_v1"
+    ],
+    "blockedNoBody": [
+      "persist_event_risk_v1",
+      "start_event_risk_effects_v1",
+      "record_event_risk_effect_v1",
+      "complete_event_risk_v1"
+    ],
+    "appliedOrActivated": false
+  }
 }

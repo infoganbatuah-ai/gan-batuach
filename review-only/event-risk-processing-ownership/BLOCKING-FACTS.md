@@ -39,6 +39,18 @@ Production read or Home service action occurred.
 The old endpoint-identity paragraph below is retained as historical evidence,
 not the current blocker. APPLY BLOCKED remains the package decision.
 
+## Offline implementation blockers after this task
+
+| Missing fact | Inspected source and consequence | Exact future verification |
+| --- | --- | --- |
+| Authoritative Home customer Tenant cardinality/history | `observer_sites.digital_observer_organization_id` is nullable; current two Home Site references do not prove historic ownership. Claim creation could bind the wrong customer. | Separately authorized historical owner review and new-write mapping/constraint qualification; no inferred backfill. |
+| Fenced Risk/verification/watch/intent/journal/audit writers | `risk-decision-service.ts`, `incident-verification-service.ts`, notification and audit helpers issue separate writes. A claim receipt cannot prove effects. | Implement exact claim-epoch checks and semantic duplicate reads in reviewed transactions; isolate and crash-test. |
+| Incident-wide projection generation | Two proposed generation columns are absent. A delayed Event worker could replace newer Incident state. | Add only after approval, then test atomic generation/reference CAS under competing Events. |
+| Immutable recipient/settings plan | Current notification path rereads mutable recipients; the proposed plan table is absent. Replays could widen delivery. | Approve bounded snapshot schema and retention; test settings changes across crash/replay. |
+| Legitimate external watch-rule callers and role probes | Source shows one service-role application caller and no other direct references, but deployed anon/authenticated EXECUTE remains. Blind revocation could break an unknown caller. | Isolated role-boundary and caller inventory before exact-signature forward ACL; review rollback alternative. |
+| Shared default function ACL impact | `pg_default_acl` for postgres and supabase_admin grants public-schema function EXECUTE to API roles. Broad change could affect unrelated future functions. | Explicit future-function dependency and creator-role review; use exact-function REVOKEs meanwhile. |
+| PostgreSQL race, crash and rollback behavior | Three offline SQL bodies are unexecuted proposals; local TypeScript tests are non-durable. | Separately authorized isolated clone tests, including two workers, lease expiry during lock wait, semantic 23505, audit failure, in-flight rollback and restore. |
+
 ## Local endpoint identity check (2026-10-25)
 
 Read-only host inspection observed an `ssh` process (PID 44976) listening on

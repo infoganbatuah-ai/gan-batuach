@@ -5,6 +5,34 @@ following are **future** acceptance cases after owner approval, migration
 review, an isolated snapshot and a safe restore destination. A passing source
 or in-memory model test will not substitute for PostgreSQL concurrency proof.
 
+## Offline results on this branch (synthetic only)
+
+`node --test scripts/qa/check-event-risk-model-a-local.mjs` passed 5/5 test
+groups on the final local diff. The groups exercise the actual disabled
+`event-risk-recovery.ts` and `model-a-ownership.ts` transitions, not a database.
+`validate-review-package.mjs` passed the abort-guard, exact-signature, ACL
+scope and no-adapter-activation checks. These are *local contract* results,
+not PostgreSQL behavior:
+
+| Required case | Offline result |
+| --- | --- |
+| Two workers compete; one active owner | PASS in synchronous synthetic store; DB concurrency NOT RUN. |
+| Lease expiry and higher takeover epoch | PASS in transition code. |
+| Stale owner cannot persist or complete | PASS in transition code. |
+| Crash before Risk persistence | PASS modeled by absent Risk and expiry recovery; process crash NOT RUN. |
+| Crash after Risk persistence; reuse result | PASS modeled by retained checkpoint and `calculateRisk=false`. |
+| Partial effect persistence and replay | PASS modeled by retained receipt, idempotent reread and completion only after remaining keys. |
+| Equivalent/conflicting decision intent | PASS for expanded semantic fields; actual DB 23505 NOT RUN. |
+| Missing recipient snapshot; changed settings | PASS fail-closed in local plan contract. |
+| Stale Incident generation/reference | PASS in local CAS assertion; DB CAS NOT RUN. |
+| Missing mandatory media-fault audit | PASS blocks local completion; real audit-write failure NOT RUN. |
+| Cross-Tenant, cross-Site, missing Home mapping | PASS fail-closed in Model A resolver/claim scope. |
+| Unauthorized RPC role | Static guard check PASS for each proposed body; simulated SQL role behavior NOT RUN. |
+| Guard dispatch inactive | PASS: adapter flag false and no external command path called. |
+
+The requested scenarios are grouped above; the untested database/role/crash
+facets remain explicit future gates, never implicit PASS.
+
 | Case | Required evidence | Current state |
 | --- | --- | --- |
 | Two simultaneous identical deliveries | One active claim and one accepted risk result; the non-owner never starts calculation | NOT RUN for draft |

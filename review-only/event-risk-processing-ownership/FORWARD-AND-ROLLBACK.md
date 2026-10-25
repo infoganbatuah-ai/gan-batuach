@@ -35,7 +35,8 @@ become one by removing its guard.
    every exception has a reviewed treatment: Site/Tenant → enrollment and
    source → Signal/link/Incident → Risk/effects. A nullable composite FK does
    not establish presence; separate non-null gates are required.
-7. Review and install transactionally fenced RPC bodies and *exact* function
+7. Review the three offline bodies and complete the four blocked downstream
+   bodies. Install transactionally fenced RPCs and *exact* function
    grants in a future separately authorized migration. Verify `PUBLIC` default
    EXECUTE is absent, Data API exposure, role inheritance, and failure audit.
 8. Run isolated PostgreSQL races, process-crash/restart, lease takeover,

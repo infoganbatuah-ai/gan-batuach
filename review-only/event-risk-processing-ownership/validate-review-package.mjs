@@ -7,6 +7,10 @@ const location = fileURLToPath(directory);
 assert(!location.includes("/supabase/migrations/"), "review package must remain outside migration discovery");
 
 const draft = readFileSync(new URL("DRAFT-NOT-APPLIED.sql", directory), "utf8");
+const rpcBodies = readFileSync(new URL("RPC-BODIES-NOT-APPLIED.sql", directory), "utf8");
+const watchAcl = readFileSync(new URL("WATCH-RULE-ACL-NOT-APPLIED.sql", directory), "utf8");
+const watchAclRollback = readFileSync(new URL("WATCH-RULE-ACL-ROLLBACK-NOT-APPLIED.sql", directory), "utf8");
+const implementation = readFileSync(new URL("SEVEN-RPC-IMPLEMENTATION.md", directory), "utf8");
 const preflight = readFileSync(new URL("SITE-PREFLIGHT-READ-ONLY.sql", directory), "utf8");
 const contract = readFileSync(new URL("RPC-CONTRACT.md", directory), "utf8");
 const effects = readFileSync(new URL("EFFECT-RECOVERY-REVIEW.md", directory), "utf8");
@@ -19,12 +23,50 @@ const route = readFileSync(new URL("../../app/api/video-gateway/cloud-events/rou
 
 const executable = text => text.split("\n").filter(line => !line.trimStart().startsWith("--")).join("\n");
 const draftExecutable = executable(draft);
+const rpcExecutable = executable(rpcBodies);
+const aclExecutable = executable(watchAcl);
+const aclRollbackExecutable = executable(watchAclRollback);
 const preflightExecutable = executable(preflight);
 assert.match(draftExecutable, /^\s*BEGIN;\s*DO \$draft_guard\$/);
 assert.match(draftExecutable, /RAISE EXCEPTION 'DRAFT_NOT_APPLIED/);
 assert.doesNotMatch(draftExecutable, /^\s*(?:COMMIT|ROLLBACK)\s*;/im);
 assert.doesNotMatch(draftExecutable, /\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b/i);
 assert.doesNotMatch(draftExecutable, /\b(?:INSERT|UPDATE|DELETE|TRUNCATE)\s+(?:INTO\s+|FROM\s+)?public\./i);
+for (const guarded of [rpcExecutable, aclExecutable, aclRollbackExecutable]) {
+  assert.match(guarded, /^\s*BEGIN;\s*DO \$draft_guard\$/);
+  assert.match(guarded, /RAISE EXCEPTION 'DRAFT_NOT_APPLIED/);
+  assert.doesNotMatch(guarded, /^\s*(?:COMMIT|ROLLBACK)\s*;/im);
+}
+assert.equal((rpcExecutable.match(/\bCREATE FUNCTION public\./g) ?? []).length, 3);
+const definedSignatures = [...rpcExecutable.matchAll(
+  /CREATE FUNCTION public\.(\w+)\(([^)]*)\) RETURNS (jsonb|uuid)/g
+)].map(([, name, argumentsText, result]) => {
+  const types = argumentsText.split(",").map(argument => argument.trim().split(/\s+/).at(-1));
+  return `public.${name}(${types.join(",")}) RETURNS ${result}`;
+});
+assert.equal(definedSignatures.length, 3, "all proposed bodies need statically recognizable signatures");
+for (const signature of definedSignatures) {
+  assert(inventory.rpcSignatures.includes(signature), `unexpected RPC signature: ${signature}`);
+}
+assert.doesNotMatch(rpcExecutable, /SECURITY DEFINER/i);
+assert.equal((rpcExecutable.match(/current_user <> 'service_role'/g) ?? []).length, 3);
+for (const name of ["claim", "renew", "recover_expired"]) {
+  assert.match(rpcExecutable, new RegExp(`CREATE FUNCTION public\\.${name}_event_risk(?:_lease)?_v1\\(`));
+}
+for (const name of ["persist_event_risk_v1", "start_event_risk_effects_v1",
+  "record_event_risk_effect_v1", "complete_event_risk_v1"]) {
+  assert.doesNotMatch(rpcExecutable, new RegExp(`CREATE FUNCTION public\\.${name}\\(`));
+  assert.match(implementation, new RegExp(`${name}[\\s\\S]*?BLOCKED`));
+}
+assert.equal((rpcExecutable.match(/REVOKE ALL ON FUNCTION public\./g) ?? []).length, 3);
+assert.equal((rpcExecutable.match(/GRANT EXECUTE ON FUNCTION public\./g) ?? []).length, 3);
+assert.doesNotMatch(aclExecutable, /\b(?:ALTER DEFAULT PRIVILEGES|CREATE FUNCTION|DROP FUNCTION)\b/i);
+assert.equal((aclExecutable.match(/public\.record_digital_observer_watch_rule_evaluation\(/g) ?? []).length, 1);
+assert.equal((aclRollbackExecutable.match(/public\.record_digital_observer_watch_rule_evaluation\(/g) ?? []).length, 1);
+assert.match(aclExecutable, /FROM anon, authenticated/);
+assert.doesNotMatch(aclExecutable, /\bGRANT\b/i);
+assert.match(aclRollbackExecutable, /TO anon, authenticated/);
+assert.doesNotMatch(aclRollbackExecutable, /\bREVOKE\b/i);
 assert.doesNotMatch(preflightExecutable, /\b(?:INSERT|UPDATE|DELETE|ALTER|DROP|CREATE|GRANT|REVOKE|TRUNCATE)\b/i);
 assert.match(contract, /complete_event_risk_v1[\s\S]*BLOCKED DESIGN GATE/);
 assert.doesNotMatch(draftExecutable, /tenant_scope_key\s+text/i);
@@ -40,8 +82,16 @@ for (const object of inventory.objects) {
   }
 }
 assert.equal(inventory.rpcSignatures.length, 7);
+assert.equal(inventory.offlineBodyStatus.appliedOrActivated, false);
+assert.equal(inventory.offlineBodyStatus.proposedGuarded.length, 3);
+assert.equal(inventory.offlineBodyStatus.blockedNoBody.length, 4);
+assert.deepEqual(
+  new Set([...inventory.offlineBodyStatus.proposedGuarded, ...inventory.offlineBodyStatus.blockedNoBody]),
+  new Set(inventory.rpcSignatures.map(signature => signature.match(/^public\.(\w+)\(/)?.[1]))
+);
 for (const signature of inventory.rpcSignatures) {
   assert(permissions.includes(signature), `permission review must include ${signature}`);
+  assert(implementation.includes(signature.replace(/^public\./, "")), `implementation matrix must include ${signature}`);
 }
 for (const table of ["observer_event_risk_claims", "observer_event_risk_effect_plans", "observer_event_risk_effect_receipts"]) {
   assert.match(draftExecutable, new RegExp(`CREATE TABLE public\\.${table}\\s*\\(`));
@@ -59,4 +109,4 @@ for (const required of ["Watch-rule evaluations", "Incident risk projection", "V
 assert.doesNotMatch(route, /claim_event_risk_v1|persist_event_risk_v1|complete_event_risk_v1/);
 assert.doesNotMatch(route, /model-a-ownership|event-risk-recovery/);
 
-console.log("Review-package containment checks passed: migration guard, read-only preflight, no runtime claim activation.");
+console.log("Review-package containment checks passed: three abort-guarded offline bodies, exact ACL scope, no runtime claim activation.");

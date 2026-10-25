@@ -11,12 +11,12 @@ or caller not listed in the observed section below.
 
 | Object | A — source-defined privileges/security | B — effective | C — unresolved |
 | --- | --- | --- | --- |
-| `digital_observer_organizations` | RLS and owner/member read, owner insert/update policies; migration revokes anon/authenticated then grants authenticated SELECT/INSERT/UPDATE | UNKNOWN | Current deployed ACL, policy version, function dependencies, and customer cardinality. |
-| `observer_sites` | RLS; standalone owner insert/update predicates declared | UNKNOWN | Existing Site-owner and organization-role paths, effective grants, new-write compatibility with proposed non-null Tenant gate. |
-| `video_gateway_device_enrollments` | Admin-only RLS policy declared; later nullable `tenant_id`; no matching Tenant FK in inspected migration | UNKNOWN | Effective write roles and legitimate provisioner callers. No broad revoke proposed. |
-| Signal, Incident, link, Risk, verification, intent, watch and notification tables | RLS declared in their migrations; risk/verification/intent/watch read and mutation grants/revokes declared in `20260907010000` and watch migration | UNKNOWN | Actual policy/ACL versions, grants through role inheritance, service-role bypass, and affected legitimate callers. |
-| `public.correlate_digital_observer_signal(uuid)` | Source declares `SECURITY DEFINER SET search_path=public` and a signal-insert trigger | UNKNOWN | Effective PUBLIC EXECUTE, owner, trigger dependency and shadow-object exposure. No change proposed in this package. |
-| `public.record_digital_observer_watch_rule_evaluation(uuid,integer,uuid,uuid,uuid,boolean,jsonb,jsonb,text,timestamptz)` | Source declares `SECURITY DEFINER`, `search_path=public`, row security off; `REVOKE ... FROM public`, `GRANT EXECUTE TO service_role` | UNKNOWN | Verify effective EXECUTE/owner/role inheritance, actual RPC behavior and legitimate callers before changing it. |
+| `digital_observer_organizations` | RLS and owner/member read, owner insert/update policies; migration revokes anon/authenticated then grants authenticated SELECT/INSERT/UPDATE | Catalog-qualified below | Historical customer cardinality, actual owner-session row behavior and new-write compatibility. |
+| `observer_sites` | RLS; standalone owner insert/update predicates declared | Catalog-qualified below | Site-owner/organization role-boundary probes and new-write compatibility with a non-null Tenant gate. |
+| `video_gateway_device_enrollments` | Admin-only RLS policy declared; later nullable `tenant_id`; no matching Tenant FK in inspected migration | Catalog-qualified below | Legitimate provisioner callers and row-boundary behavior. No broad revoke proposed. |
+| Signal, Incident, link, Risk, verification, intent, watch and notification tables | RLS declared in migrations; risk/verification/intent/watch grants/revokes declared in `20260907010000` and watch migration | Relevant inspected objects below | Caller/row effects and exact policy dependency remain untested. |
+| `public.correlate_digital_observer_signal(uuid)` | Source declares `SECURITY DEFINER SET search_path=public` and a signal-insert trigger | Catalog-qualified below | Trigger behavior and shadow-object exposure. No change proposed here. |
+| `public.record_digital_observer_watch_rule_evaluation(uuid,integer,uuid,uuid,uuid,boolean,jsonb,jsonb,text,timestamptz)` | Source declares `SECURITY DEFINER`, `search_path=public`, row security off; `REVOKE ... FROM public`, `GRANT EXECUTE TO service_role` | Catalog-qualified below | Actual RPC/role-boundary behavior and external legitimate callers before change. |
 | New claim/plan/receipt tables | Guarded proposal enables RLS and revokes new-table rights from PUBLIC/anon/authenticated; no policies or service grants applied | NOT APPLICABLE | Exact service grants, public-schema Data API exposure, role inheritance and default privileges require separate review. |
 | New risk ownership RPCs below | Proposed `SECURITY INVOKER`, exact `search_path=pg_catalog,pg_temp`; qualified `public.` object names; proposed immediate `REVOKE EXECUTE FROM PUBLIC,anon,authenticated`, then narrow `service_role` grant only if justified | NOT APPLICABLE | No functions are created. Effective caller and Data API behavior require isolated privilege probes before any migration. |
 
@@ -68,10 +68,11 @@ pg_auth_members, pg_default_acl, information_schema.routine_privileges and
 has_*_privilege; non-secret PostgREST container configuration. Observation
 is limited to this Development database, not Production.
 
-## Exact proposed signatures — bodies BLOCKED
+## Exact proposed signatures — three offline bodies, four BLOCKED
 
-These names and argument types are the proposed transport contract; they are
-not executable SQL implementations. The current Data API route uses a server
+These names and argument types are the proposed transport contract. Three
+offline bodies are abort-guarded proposals; none is deployed or qualified.
+The current Data API route uses a server
 admin client, but no new privileged function is exposed or called. All seven
 would require fresh canonical Tenant/Site lookup and `current_user`/trusted
 server-role authorization, not an unsigned header or client-supplied Tenant.
@@ -94,6 +95,9 @@ All signatures: intended `EXECUTE` role is only a reviewed server role; no
 `anon` or `authenticated` execution. `PUBLIC` default EXECUTE must be revoked
 in the same future migration transaction as function creation. Do not grant a
 new login or assume `REVOKE FROM anon` alone removes privileges inherited
-from `PUBLIC`. Exact direct table grants and function owners are **BLOCKED**
-until the restricted effective-permission and dependent-caller review. No
-SQL grant/revoke beyond the guarded new-table sketch has been run.
+from `PUBLIC`. Exact direct table grants and function owners remain **BLOCKED**
+until dependent-caller, mapping and isolated PostgreSQL reviews. No
+grant/revoke in this package has been run. The only direct application
+watch-rule caller found in source is `risk-decision-service.ts`, reached from
+the Gateway cloud-event route's server-only `createAdminClient()`; external
+caller identity is not proved. See `SEVEN-RPC-IMPLEMENTATION.md`.
