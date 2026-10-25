@@ -6,9 +6,12 @@ path. No SQL here has been run. The draft SQL starts an aborted transaction so
 accidental execution cannot reach its DDL. Removing that guard requires a new,
 explicit Development database authorization and review.
 
-Source baseline for this review increment: `codex/event-ingest-replay-identity-20261025`
-at `a4fa761b5d63b6b3a0f8937073b16c0f775c1c37`, preserving
-`ee5ee96cbc1769159605b760f1d535afaaec470c` and intervening commits. The separate PUSH 44 worktree,
+Source baseline for the final local review increment: `codex/event-ingest-replay-identity-20261025`
+at `790c6e6cb6abbaddf5c3efb041a3ca4b80e095ac`, preserving
+`e867ecea669093d5692313dc7f5ef8493641dfb1`,
+`d6d66e326cec732791ef56fc008d45465b234e84`,
+`9c3b2dc631eec61829f04f28d75b9dd30bf2f572` and
+`59f6c18822a592b5812ceac2a7ec4578a595d951`. The separate PUSH 44 worktree,
 PR #248, and PR #235 are outside this change.
 
 ## Existing path and the missing guarantee
@@ -89,8 +92,9 @@ processing status; no media, credentials, payloads or identity secrets.
 Expected volume: at most one claim per retained Event and engine version;
 measure actual Event rates and version changes before approval. Query pattern:
 primary-key claim/lookup, bounded expired-lease recovery, no broad polling.
-Retention: no automatic deletion is proposed; align with Event/risk retention
-and legal holds after recovery review. Cost and storage growth remain unmeasured.
+Retention: **unresolved**. No duration, TTL, cleanup or indefinite-retention
+policy is approved; align with separate Event/risk, recipient, evidence, audit
+and legal-hold decisions after recovery review. Cost and storage growth remain unmeasured.
 
 The eventual migration requires a separate read-only historical Site audit,
 row-level and function-EXECUTE review, a tested backup/restore path, lock-duration
@@ -102,6 +106,10 @@ mismatched engine input; this does not replace database-level integrity.
 
 ## Review files and open gates
 
+- `FINAL-MIGRATION-REVIEW.md`: consolidated A–L design, impact, future
+  qualification and exact blocking decisions; READY FOR DESIGN REVIEW only.
+- `VALIDATION-AND-HANDOFF.md`: fresh static/synthetic results and explicit
+  unverified database/runtime boundaries for this local increment.
 - `DRAFT-NOT-APPLIED.sql`: intentionally non-executable table/constraint sketch.
 - `RPC-BODIES-NOT-APPLIED.sql`: abort-guarded acquisition, renewal and recovery
   proposals; four downstream RPC bodies remain BLOCKED.

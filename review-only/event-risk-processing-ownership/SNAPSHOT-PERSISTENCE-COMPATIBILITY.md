@@ -39,11 +39,13 @@ parallel subsystem. Required before any real use:
    `recipient_snapshot_digest text`, `recipient_settings_version text`,
    `recipient_policy_version text`, `decision_code text`, and
    `recipient_snapshot_captured_at timestamptz`.
-2. Add `required_evidence_references jsonb NOT NULL` as a bounded, canonical
-   array (or an equivalently constrained child relation). The current
-   snapshot type does not carry this set, so the final versioned payload and
-   existing `CanonicalDecisionIntent.requiredEvidenceReferences` must be
-   reconciled before a writer is defined. Do not silently omit it.
+2. The guarded draft now *proposes* `required_evidence_references jsonb NOT
+   NULL` as an array, plus `camera_source_id` and
+   `ownership_evidence_ref`. Shape is not proof of bounded, canonical or
+   authoritative content. The current snapshot type does not carry the
+   evidence set, so its final versioned payload and existing
+   `CanonicalDecisionIntent.requiredEvidenceReferences` must be reconciled
+   before a writer is defined. Do not silently omit it.
 3. Strengthen the proposed plan→claim reference from only `(signal_id,
    risk_engine_version)` to the exact composite Tenant/Site/Incident/Risk
    scope, backed by a unique claim key and canonical Site→Tenant,
@@ -70,7 +72,7 @@ parallel subsystem. Required before any real use:
    crash windows and retention in an authorized isolated clone before apply.
 
 The proposed table, composite constraints, authoritative reader, recipient
-provenance, hash verification, retention policy and atomic writer are all
+provenance, bounded evidence validation, hash verification, retention policy and atomic writer are all
 **BLOCKED**. No existing consumer can safely read an encoded snapshot today.
 Therefore this gate is **CLOSED WITH NO COMPATIBLE EXISTING CANDIDATE**, not
 "PostgreSQL persistence PASS" or "ready to apply".

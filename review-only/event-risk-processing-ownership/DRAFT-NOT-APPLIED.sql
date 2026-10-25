@@ -93,6 +93,10 @@ CREATE TABLE public.observer_event_risk_effect_plans (
   observer_site_id uuid NOT NULL,
   incident_id uuid NOT NULL,
   risk_evaluation_id uuid NOT NULL,
+  -- PROPOSED ONLY: source and event-time ownership evidence must be obtained
+  -- from an authoritative reader, not copied from untrusted Event metadata.
+  camera_source_id uuid NOT NULL,
+  ownership_evidence_ref text NOT NULL,
   recipient_settings_version text NOT NULL,
   recipient_policy_version text NOT NULL,
   decision_code text NOT NULL,
@@ -101,6 +105,9 @@ CREATE TABLE public.observer_event_risk_effect_plans (
   recipient_snapshot jsonb NOT NULL,
   recipient_snapshot_fingerprint text NOT NULL,
   recipient_snapshot_digest text NOT NULL,
+  -- PROPOSED ONLY: bounded canonical references, not media bytes or a
+  -- mutable query for the current recipient/evidence set.
+  required_evidence_references jsonb NOT NULL,
   expected_fingerprints jsonb NOT NULL,
   media_fault_audit_required boolean NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -115,6 +122,7 @@ CREATE TABLE public.observer_event_risk_effect_plans (
       AND recipient_snapshot_schema_version = 1),
   CONSTRAINT observer_event_risk_plan_json_check
     CHECK (jsonb_typeof(recipient_snapshot) = 'object'
+      AND jsonb_typeof(required_evidence_references) = 'array'
       AND jsonb_typeof(expected_fingerprints) = 'object')
 );
 
@@ -124,11 +132,12 @@ CREATE TABLE public.observer_event_risk_effect_plans (
 -- derive/recompute the content and reject any semantic replacement. Node's
 -- JSON.stringify hash and PostgreSQL jsonb rendering are not interchangeable
 -- without a separately qualified canonical serialization contract.
--- SNAPSHOT PERSISTENCE COMPATIBILITY BLOCKED: required evidence references,
--- authoritative event-time Tenant provenance, a composite scope FK to the
--- claim, a reviewed retention policy, and an atomic first-write/recovery
--- reader are not specified by this sketch. Do not use its generic jsonb
--- column as a substitute for those missing constraints.
+-- SNAPSHOT PERSISTENCE COMPATIBILITY BLOCKED: the proposed evidence fields
+-- have no authoritative producer or qualified canonical serializer. A
+-- composite scope FK to the claim, bounded-reference validation, a reviewed
+-- retention policy, immutable first-write enforcement and an atomic fenced
+-- writer/recovery reader are still absent. JSON shape checks are insufficient.
+-- No TTL, cleanup job or indefinite-retention policy is defined here.
 
 CREATE TABLE public.observer_event_risk_effect_receipts (
   signal_id uuid NOT NULL,
