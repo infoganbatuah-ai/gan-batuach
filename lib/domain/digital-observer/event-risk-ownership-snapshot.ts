@@ -12,6 +12,7 @@ import type { ManagedDevicePrincipal } from "./managed-device-identity";
 export type EventTimeTenantEvidence = Readonly<{
   tenantId: string;
   siteId: string;
+  sourceId: string;
   eventId: string;
   evidenceRef: string;
   verifiedForEvent: true;
@@ -54,11 +55,14 @@ export async function validatePrePersistEventOwnership(input: EventOwnershipInpu
   const authority = await input.reader.authoritativeTenantForEvent(input.principal.siteId, input.eventId);
   if (!authority?.verifiedForEvent || authority.historicallyAmbiguous !== false
     || !authority.evidenceRef || authority.siteId !== input.principal.siteId
+    || authority.sourceId !== input.sourceId
     || authority.eventId !== input.eventId || authority.tenantId !== input.principal.tenantId) {
     throw new Error("MODEL_A_EVENT_TIME_TENANT_UNVERIFIED");
   }
   const scope = await resolveModelAChain({ reader: input.reader, principal: input.principal,
-    sourceId: input.sourceId, eventId: input.eventId, incidentId: input.incidentId });
+    sourceId: input.sourceId, eventId: input.eventId, incidentId: input.incidentId,
+    verifiedEventScope: { tenantId: authority.tenantId, siteId: authority.siteId,
+      sourceId: authority.sourceId } });
   if (scope.tenantId !== authority.tenantId || scope.siteId !== authority.siteId
     || scope.eventId !== authority.eventId || scope.riskDecisionId !== null) {
     throw new Error("MODEL_A_EVENT_TIME_CHAIN_CONFLICT");
@@ -87,7 +91,9 @@ export async function bindPostReadRiskOwnership(input: EventOwnershipInput & {
     throw new Error("MODEL_A_PRE_PERSIST_CHAIN_CHANGED");
   }
   const scope = await resolveModelAChain({ ...input, riskDecisionId: input.riskDecisionId,
-    expectedRiskEngineVersion: input.expectedRiskEngineVersion });
+    expectedRiskEngineVersion: input.expectedRiskEngineVersion,
+    verifiedEventScope: { tenantId: current.scope.tenantId, siteId: current.scope.siteId,
+      sourceId: current.scope.sourceId } });
   if (scope.riskDecisionId !== input.riskDecisionId || !samePrePersistScope(scope, current.scope)) {
     throw new Error("MODEL_A_RISK_SCOPE_MISMATCH");
   }

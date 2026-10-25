@@ -68,6 +68,15 @@ retention duration or database access is supplied by this inventory.
 
 ## Offline implementation blockers after this task
 
+Prospective Home ownership decision is now captured in
+`PROSPECTIVE-HOME-REGISTRATION.md` and exercised by the disconnected
+`home-registration-ownership.ts` reader/transition contract. This **does not**
+resolve the deployed event-time reader or historical ambiguity blocker below:
+there is no trusted server acceptance/version ledger, no verified owner/Platform
+Admin resolver, and no atomic PostgreSQL adapter. Four downstream writer SQL
+bodies remain BLOCKED. No active ingestion route or notification recipient
+logic changed.
+
 | Missing fact | Inspected source and consequence | Exact future verification |
 | --- | --- | --- |
 | Authoritative Home customer Tenant cardinality/history | `observer_sites.digital_observer_organization_id` is nullable; current two Home Site references do not prove historic ownership. Claim creation could bind the wrong customer. | Separately authorized historical owner review and new-write mapping/constraint qualification; no inferred backfill. |

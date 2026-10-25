@@ -45,7 +45,8 @@ function reader({ ambiguous = false, missingAuthority = false, tenantOverride = 
     async riskDecision(id) { return rows("risk")[id] ?? null; },
     async authoritativeTenantForEvent(siteId, eventId) {
       if (missingAuthority) return null;
-      return { tenantId: siteId === "site-c" ? "tenant-c" : "tenant-a", siteId, eventId,
+      return { tenantId: siteId === "site-c" ? "tenant-c" : "tenant-a", siteId,
+        sourceId: `source-${eventId.split("-").at(-1)}`, eventId,
         evidenceRef: `owner-adjudication:${siteId}:${eventId}`,
         verifiedForEvent: !ambiguous, historicallyAmbiguous: ambiguous };
     }
@@ -138,9 +139,9 @@ test("authoritative Model A chain permits two Sites in one Tenant and rejects un
   assert.notEqual(first.scope.siteId, second.scope.siteId);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ reader: reader({ ambiguous: true }) })), /UNVERIFIED/);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ reader: reader({ missingAuthority: true }) })), /UNVERIFIED/);
-  await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ reader: reader({ tenantOverride: "" }) })), /UNVERIFIED/);
-  await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ reader: reader({ tenantOverride: "tenant-c" }) })), /UNVERIFIED|MISMATCH/);
-  await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ sourceId: "source-c" })), /MISMATCH/);
+  // An immutable event-time binding survives later Site membership changes.
+  assert.equal((await validateAuthoritativeEventRiskOwnership(ownershipInput({ reader: reader({ tenantOverride: "tenant-c" }) }))).scope.tenantId, "tenant-a");
+  await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ sourceId: "source-c" })), /UNVERIFIED|MISMATCH/);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ eventId: "event-b" })), /UNVERIFIED|MISMATCH/);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ incidentId: "incident-b" })), /MISMATCH/);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ riskDecisionId: "risk-b" })), /MISMATCH/);
@@ -167,7 +168,7 @@ test("pre-persist Event ownership needs no Risk row and cannot qualify completio
 test("pre-persist authority and canonical chain fail closed on scope, ambiguity and overrides", async () => {
   await assert.rejects(validatePrePersistEventOwnership(preInput({ reader: reader({ ambiguous: true }) })), /UNVERIFIED/);
   await assert.rejects(validatePrePersistEventOwnership(preInput({ reader: reader({ missingAuthority: true }) })), /UNVERIFIED/);
-  await assert.rejects(validatePrePersistEventOwnership(preInput({ reader: reader({ tenantOverride: "tenant-c" }) })), /UNVERIFIED|MISMATCH/);
+  assert.equal((await validatePrePersistEventOwnership(preInput({ reader: reader({ tenantOverride: "tenant-c" }) }))).scope.tenantId, "tenant-a");
   await assert.rejects(validatePrePersistEventOwnership(preInput({ principal: { ...principal,
     lifecycleState: "REVOKED" } })), /PRINCIPAL_SCOPE_UNVERIFIED/);
   let authorityReads = 0;
@@ -216,7 +217,7 @@ test("post-read Risk binding verifies row and revalidates event-time evidence", 
         eventId: "event-a", incidentId: "incident-a", riskEngineVersion: engineVersion, ...wrong }; }
     } })), /RISK_SCOPE_MISMATCH/);
   }
-  await assert.rejects(bindPostReadRiskOwnership(bind({ sourceId: "source-b" })), /OWNERSHIP_CHAIN_MISMATCH/);
+  await assert.rejects(bindPostReadRiskOwnership(bind({ sourceId: "source-b" })), /UNVERIFIED|MISMATCH/);
 });
 
 test("Risk engine version is mandatory, exact and bound to the post-read result", async () => {

@@ -63,6 +63,9 @@ export async function resolveModelAChain(input: {
   expectedRiskEngineVersion?: string;
   clientTenantId?: string;
   clientSiteId?: string;
+  // Only an already verified immutable Event binding may supply this value.
+  // Current mutable Site membership must not rewrite historical replay scope.
+  verifiedEventScope?: TenantSite & Readonly<{ sourceId: string }>;
 }): Promise<ResolvedModelAChain> {
   const { principal } = input;
   if (principal.lifecycleState !== "ACTIVE" || !principal.tenantId || !principal.siteId) {
@@ -85,15 +88,19 @@ export async function resolveModelAChain(input: {
   ]);
   // Site.tenantId must come from an approved authoritative Site/Tenant mapping.
   // The existing nullable enrollment tenant_id is a consistency check only.
-  if (!site?.tenantId || site.siteId !== principal.siteId || site.gardenId !== null
-    || site.siteType === "kindergarten" || site.tenantId !== principal.tenantId) {
+  const tenantId = input.verifiedEventScope?.tenantId ?? site?.tenantId;
+  if (!tenantId || site?.siteId !== principal.siteId || site.gardenId !== null
+    || site.siteType === "kindergarten" || tenantId !== principal.tenantId
+    || (input.verifiedEventScope && (input.verifiedEventScope.siteId !== site.siteId
+      || input.verifiedEventScope.sourceId !== input.sourceId))) {
     throw new Error("MODEL_A_SITE_TENANT_UNVERIFIED");
   }
-  if (input.clientTenantId && input.clientTenantId !== site.tenantId
+  if (input.clientTenantId && input.clientTenantId !== tenantId
     || input.clientSiteId && input.clientSiteId !== site.siteId) {
     throw new Error("MODEL_A_CLIENT_SCOPE_MISMATCH");
   }
-  if (!source || source.id !== input.sourceId || source.siteId !== site.siteId
+  if (!source || source.id !== input.sourceId
+    || (!input.verifiedEventScope && source.siteId !== site.siteId)
     || !event || event.id !== input.eventId || event.siteId !== site.siteId
     || event.sourceId !== source.id || event.incidentId !== input.incidentId
     || !incident || incident.id !== input.incidentId || incident.siteId !== site.siteId
@@ -108,7 +115,7 @@ export async function resolveModelAChain(input: {
   if (input.riskDecisionId && decision?.riskEngineVersion !== input.expectedRiskEngineVersion) {
     throw new Error("MODEL_A_RISK_ENGINE_VERSION_MISMATCH");
   }
-  return Object.freeze({ tenantId: site.tenantId, siteId: site.siteId,
+  return Object.freeze({ tenantId, siteId: site.siteId,
     sourceId: source.id, eventId: event.id, incidentId: incident.id,
     riskDecisionId: input.riskDecisionId ?? null });
 }

@@ -30,6 +30,9 @@ const finalReview = readFileSync(new URL("FINAL-MIGRATION-REVIEW.md", directory)
 const fourWriterMap = readFileSync(new URL("FOUR-WRITER-SOURCE-TRANSACTION-MAP.md", directory), "utf8");
 const localRiskRowComparator = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-source-row-map.ts", directory), "utf8");
 const localRiskRowTests = readFileSync(new URL("../../scripts/qa/check-event-risk-source-row-map-local.mjs", directory), "utf8");
+const homeRegistration = readFileSync(new URL("../../lib/domain/digital-observer/home-registration-ownership.ts", directory), "utf8");
+const homeRegistrationTests = readFileSync(new URL("../../scripts/qa/check-home-registration-ownership-local.mjs", directory), "utf8");
+const homeRegistrationReview = readFileSync(new URL("PROSPECTIVE-HOME-REGISTRATION.md", directory), "utf8");
 
 const executable = text => text.split("\n").filter(line => !line.trimStart().startsWith("--")).join("\n");
 const draftExecutable = executable(draft);
@@ -129,6 +132,15 @@ assert.doesNotMatch(route, /model-a-ownership|event-risk-recovery/);
 assert.doesNotMatch(route, /event-risk-fenced-writes/);
 assert.doesNotMatch(route, /event-risk-ownership-snapshot/);
 assert.doesNotMatch(route, /event-risk-source-row-map/);
+assert.doesNotMatch(route, /home-registration-ownership/);
+for (const contract of ["qualifyProspectiveHomeRegistration", "bindProspectiveHomeEvent", "prospectiveHomeEventReader"]) {
+  assert.match(homeRegistration, new RegExp(`export (?:async )?function ${contract}\\(`));
+  assert.match(homeRegistrationTests, new RegExp(contract));
+}
+assert.doesNotMatch(homeRegistration, /\b(?:createClient|createAdminClient|fetch\(|\.from\(|\.rpc\()\b/);
+assert.match(homeRegistrationReview, /NOT DEPLOYED, NOT AUTHORIZED TO APPLY/);
+assert.match(homeRegistrationReview, /acceptance_ref/);
+assert.match(homeRegistrationReview, /notifications\.ts` is unchanged/);
 for (const functionName of ["persistFencedRisk", "startFencedEffects", "recordFencedEffect", "completeFencedRisk"]) {
   assert.match(fencedWrites, new RegExp(`export function ${functionName}\\(`));
 }

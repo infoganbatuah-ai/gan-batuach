@@ -182,3 +182,27 @@ mandatory row/receipt/audit coupling, Incident-wide CAS, immutable recipient
 state, retention/legal holds, role/RLS/Data API qualification, restore and
 lossless rollback. Any isolated DB read or apply requires its own explicit
 scope and approval. Guard OFF; no Product readiness promotion.
+
+## Prospective Home registration authority contract — 2026-10-25
+
+Owner selected server-verified Home/Source/Site/Tenant registration for **new**
+Home Events. The disconnected contract and local tests are in
+`home-registration-ownership.ts`, `check-home-registration-ownership-local.mjs`
+and `PROSPECTIVE-HOME-REGISTRATION.md`. It separates installer from authorized
+owner/platform actor, checks versioned registration and server acceptance,
+preserves old Event binding across reassignment, and fails closed on missing
+or contradictory history. The existing event-time Model A reader now checks
+Source ID in the trusted evidence and can retain the original Tenant/Site/Source
+scope when current Site or Source membership changes. The active event route,
+recipient service and SQL files remain unchanged; the four downstream SQL
+write bodies remain BLOCKED. No operational cutoff, historical backfill,
+recipient expansion, database operation, remote publication or activation.
+
+Handoff: this local branch owns only the two domain contracts, their focused
+tests and this guarded review-only package. Next owner is the future
+Development migration/transaction reviewer, **not** the runtime adapter.
+Before any application work, qualify the actual owner/Platform Admin authority
+source and an atomic server acceptance + immutable registration-version ledger
+in an authorized isolated database; include concurrency, replay, transfer,
+RLS/ACL, retention and rollback evidence. No PostgreSQL behavior is claimed
+from the synthetic store.
