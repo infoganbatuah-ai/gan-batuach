@@ -72,7 +72,9 @@ test("valid Observer revocation uses exact scope and authenticated bearer client
   push.reset(); access.configure(observer);
   const response = await route.POST(request(scoped, true));
   assert.equal(response.status, 200);
-  assert.equal((await response.json()).data.confirmed, true);
+  const payload = await response.json();
+  assert.equal(payload.data.confirmed, true);
+  assert.equal(payload.data.profile_id, "owner-a");
   assert.equal(push.writes().length, 1);
   assert.equal(push.writes()[0][0].marker, "bearer-client");
   assert.deepEqual(push.writes()[0].slice(1), ["owner-a", null, "installation-a",
@@ -123,7 +125,7 @@ test("web and native consumers use their existing installation identity for scop
   const web = readFileSync(new URL("../../components/digital-observer/observer-fcm-push-registration.tsx", import.meta.url), "utf8");
   const native = readFileSync(new URL("../../components/digital-observer/observer-mobile-runtime.tsx", import.meta.url), "utf8");
   assert.match(web, /postJson\("\/api\/push\/unregister"/);
-  assert.match(web, /device_id: reference, source: "digital_observer_fcm", observer_site_id: siteId/);
+  assert.match(web, /device_id: binding\.deviceReference, source: "digital_observer_fcm", observer_site_id: binding\.siteId/);
   assert.match(native, /Preferences\.get\(\{ key: deviceReferenceKey \}\)/);
   assert.match(native, /device_id: reference, source: "digital_observer_native", observer_site_id: siteId/);
   assert.match(native, /digital-observer:disable-native-push/);

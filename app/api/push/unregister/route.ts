@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         error: result.error ?? "PUSH_REVOCATION_UNCONFIRMED" });
       return fail("ביטול רישום המכשיר להתראות נכשל.", 500);
     }
-    return ok({ devices: result.rows, ...(scope ? { confirmed: true } : {}) });
+    return ok({ devices: result.rows, ...(scope ? { confirmed: true, profile_id: profile.id } : {}) });
   } catch (error) {
     return handleRouteError(error);
   }

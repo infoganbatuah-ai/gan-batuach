@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { getApps, initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
 import { BellRing, LoaderCircle, Send, Smartphone } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import { registerObserverPushAfterSiteGate } from "@/lib/domain/digital-observer/push-registration-order";
+import { clearConfirmedBrowserPushBinding, confirmedBrowserPushRevocation, readBrowserPushBinding,
+  reconcileBrowserPushBinding, recoverLegacyBrowserPushBinding, saveBrowserPushBinding, verifiedBrowserPushRuntime,
+  type BrowserPushBinding } from "@/lib/domain/digital-observer/browser-push-lifecycle";
 
 type ActionState = { busy: boolean; registered: boolean; message: string; error: string };
 const initialState: ActionState = { busy: false, registered: false, message: "", error: "" };
@@ -30,6 +33,7 @@ async function postJson(url: string, body: Record<string, unknown>) {
   const response = await fetch(url, {
     method: "POST",
     credentials: "same-origin",
+    signal: AbortSignal.timeout(10_000),
     headers: {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
@@ -41,8 +45,86 @@ async function postJson(url: string, body: Record<string, unknown>) {
   return result?.data ?? result;
 }
 
-export function ObserverFcmPushRegistration({ siteId, initialRegistered = false }: { siteId: string; initialRegistered?: boolean }) {
-  const [state, setState] = useState<ActionState>({ ...initialState, registered: initialRegistered });
+async function currentBrowserRuntime() {
+  const accessToken = readObserverAccessToken();
+  const response = await fetch("/api/digital-observer/mobile/runtime", {
+    credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(10_000),
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+  });
+  if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
+  return verifiedBrowserPushRuntime(await response.json().catch(() => null));
+}
+
+async function revokeBrowserBinding(binding: BrowserPushBinding) {
+  const result = await postJson("/api/push/unregister", {
+    device_id: binding.deviceReference, source: "digital_observer_fcm", observer_site_id: binding.siteId
+  });
+  if (!confirmedBrowserPushRevocation({ data: result }, binding)) throw new Error("PUSH_REVOCATION_UNCONFIRMED");
+  clearConfirmedBrowserPushBinding(window.localStorage, binding);
+}
+
+async function readOrRecoverBrowserBinding() {
+  try { return readBrowserPushBinding(window.localStorage); }
+  catch (error) {
+    if (!(error instanceof Error) || error.message !== "PUSH_LEGACY_BINDING_UNSCOPED") throw error;
+  }
+  const reference = window.localStorage.getItem("digital_observer_device_reference");
+  if (!reference) throw new Error("PUSH_LEGACY_BINDING_UNTRUSTED");
+  const accessToken = readObserverAccessToken();
+  const url = new URL("/api/push/browser-binding", window.location.origin);
+  url.searchParams.set("device_id", reference);
+  const response = await fetch(url, { credentials: "same-origin", cache: "no-store",
+    signal: AbortSignal.timeout(10_000), headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} });
+  if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "PUSH_LEGACY_BINDING_UNVERIFIED");
+  return recoverLegacyBrowserPushBinding(window.localStorage, await response.json().catch(() => null));
+}
+
+// Mounted at the Observer boundary, not only on a Site settings page. A lost
+// last Site still leaves a same-owner session able to revoke its exact token.
+export function ObserverWebPushCleanup() {
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
+    let checking = false;
+    const check = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        const binding = await readOrRecoverBrowserBinding();
+        if (!binding) return;
+        try {
+          const runtime = await currentBrowserRuntime();
+          await reconcileBrowserPushBinding(binding, runtime, null, revokeBrowserBinding);
+        } catch (error) {
+          if (!(error instanceof Error) || error.message !== "SESSION_REVALIDATION_REQUIRED") throw error;
+          // 401 may mean the last Observer affiliation was removed. The
+          // server still authenticates and reports the owning profile; a
+          // missing session or a different signed-in user cannot clear this.
+          await revokeBrowserBinding(binding);
+        }
+      } catch {
+        // Offline, invalid session, changed owner or untrusted response:
+        // retain the exact revocation target for a later visit/focus. After
+        // logout, the original owner must reauthenticate before retrying;
+        // local deletion cannot prove server revocation.
+      } finally { checking = false; }
+    };
+    void check();
+    const onFocus = () => { void check(); };
+    const onVisible = () => { if (document.visibilityState === "visible") void check(); };
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("pageshow", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("pageshow", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+  return null;
+}
+
+export function ObserverFcmPushRegistration({ siteId }: { siteId: string }) {
+  const [state, setState] = useState<ActionState>(initialState);
   const [testing, setTesting] = useState(false);
 
   async function register() {
@@ -73,6 +155,9 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
         setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כפופה להפעלת ספק נפרדת.", error: "" });
         return;
       }
+      const runtime = await currentBrowserRuntime();
+      const saved = await readOrRecoverBrowserBinding();
+      const reconciled = await reconcileBrowserPushBinding(saved, runtime, siteId, revokeBrowserBinding);
       if (!(await isSupported())) throw new Error("הדפדפן הזה אינו תומך ב־Push.");
       if (await Notification.requestPermission() !== "granted") throw new Error("יש לאשר התראות כדי לרשום את המכשיר.");
       const app = getApps()[0] ?? initializeApp(firebaseConfig());
@@ -84,10 +169,11 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
       });
       if (!token) throw new Error("Firebase לא החזיר טוקן למכשיר.");
 
-      const storageKey = "digital_observer_device_reference";
-      const existing = window.localStorage.getItem(storageKey);
-      const reference = existing || crypto.randomUUID();
-      if (!existing) window.localStorage.setItem(storageKey, reference);
+      const reference = reconciled.binding?.deviceReference ?? crypto.randomUUID();
+      const binding: BrowserPushBinding = { version: 1, profileId: runtime.profileId, siteId, deviceReference: reference };
+      // Store before the first server write. A lost response must not orphan
+      // an active registration without a precise revocation target.
+      saveBrowserPushBinding(window.localStorage, binding);
       await registerObserverPushAfterSiteGate({ siteId,
         deviceLabel: /Mobi|Android/i.test(navigator.userAgent) ? "המכשיר הנייד שלי" : "הדפדפן שלי",
         platform: "web", deviceReference: reference, deviceToken: token,
@@ -125,11 +211,9 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
         });
         if (!result.ok) throw new Error("ביטול רישום המכשיר לא הושלם.");
       } else {
-        const reference = window.localStorage.getItem("digital_observer_device_reference");
-        if (!reference) throw new Error("מזהה ההתקנה אינו זמין במכשיר הזה.");
-        await postJson("/api/push/unregister", {
-          device_id: reference, source: "digital_observer_fcm", observer_site_id: siteId
-        });
+        const binding = await readOrRecoverBrowserBinding();
+        if (!binding) throw new Error("לא נמצא יעד ביטול מדויק לדפדפן זה.");
+        await revokeBrowserBinding(binding);
       }
       setState({ busy: false, registered: false, message: "רישום ההתראות במכשיר הזה בוטל בשרת. הרשאת הספק במכשיר לא שונתה.", error: "" });
     } catch (error) {
