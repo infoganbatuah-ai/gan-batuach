@@ -205,6 +205,59 @@ export function minimizeNotificationContent(input: { title: string; body: string
   return { title: strip(input.title, 120), body: strip(input.body, 300), productPath, severity: input.severity, containsRawMedia: false, containsCredentials: false };
 }
 
+export function assertEquivalentStoredDelivery(existing: Record<string, unknown>, expected: {
+  intentId: string;
+  plan: DeliveryPlan;
+  content: ReturnType<typeof minimizeNotificationContent>;
+}) {
+  const { plan, content } = expected;
+  const authorization = existing.authorization_snapshot;
+  const policy = existing.policy_snapshot;
+  const metadata = existing.metadata;
+  const savedContent = typeof metadata === "object" && metadata !== null && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>).content : null;
+  const object = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof existing.id !== "string" || !object(authorization) || !object(policy) || !object(metadata)
+    || !object(savedContent) || typeof metadata.provider_key !== "string" || !metadata.provider_key
+    || typeof metadata.external_message_sent !== "boolean"
+    || typeof existing.provider_mode !== "string"
+    || typeof existing.delivery_status !== "string" || typeof existing.expires_at !== "string"
+    || !Number.isFinite(Date.parse(existing.expires_at))
+    || authorization.profile_id !== existing.recipient_profile_id
+    || typeof authorization.evaluated_at !== "string"
+    || !Number.isFinite(Date.parse(authorization.evaluated_at))
+    || typeof authorization.active_membership !== "boolean"
+    || typeof authorization.member_role !== "string"
+    || typeof authorization.channel_enabled !== "boolean"
+    || typeof authorization.channel_eligible !== "boolean"
+    || typeof authorization.consent_or_legal_basis !== "boolean"
+    || typeof authorization.revoked !== "boolean"
+    || typeof policy.policy_version !== "string" || !policy.policy_version
+    || typeof policy.quiet_hours_applied !== "boolean"
+    || typeof policy.emergency_override_authorized !== "boolean"
+    || !(policy.suppression_reason === null || typeof policy.suppression_reason === "string")) {
+    throw new Error("DELIVERY_REPLAY_RECORD_INCOMPLETE");
+  }
+  if (existing.action_intent_id !== expected.intentId
+    || existing.observer_site_id !== plan.observerSiteId
+    || existing.recipient_profile_id !== plan.recipientProfileId
+    || existing.channel !== plan.channel
+    || existing.stable_delivery_id !== plan.stableDeliveryId
+    || existing.dedupe_key !== plan.idempotencyKey
+    || existing.severity !== plan.severity
+    || existing.priority !== plan.priority
+    || existing.content_classification !== "minimal"
+    || Object.keys(savedContent).length !== Object.keys(content).length
+    || Object.entries(content).some(([key, value]) => savedContent[key] !== value)) {
+    throw new Error("DELIVERY_REPLAY_SEMANTIC_CONFLICT");
+  }
+  // The authorization/policy snapshots and expiry belong to the original
+  // decision. Current recipient, quiet-hour, provider and clock state are not
+  // part of replay identity; dispatch checks current authorization separately.
+  return true;
+}
+
 export function compileNaturalLanguageAction(text: string): ActionProposal {
   const normalized = text.normalize("NFKC").trim().toLowerCase();
   if (!normalized || normalized.length > 500) throw new Error("ACTION_INSTRUCTION_INVALID");

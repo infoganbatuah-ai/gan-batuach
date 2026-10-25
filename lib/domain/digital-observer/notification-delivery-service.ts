@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- service consumes newly migrated tables before generated Supabase types exist. */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  assertRecipientAuthorization, createDeliveryPlan, isInQuietHours, minimizeNotificationContent, transitionForProviderOutcome,
+  assertEquivalentStoredDelivery, assertRecipientAuthorization, createDeliveryPlan, isInQuietHours, minimizeNotificationContent, transitionForProviderOutcome,
   type DeliveryChannel, type ProviderOutcome, type RecipientAuthorization, type Severity
 } from "./notification-orchestration";
 import { providerAdapter, type SandboxBehavior } from "./notification-providers";
@@ -105,10 +105,12 @@ export async function queueAuthorizedDelivery(admin: AnySupabase, input: {
   }, { onConflict: "observer_site_id,dedupe_key", ignoreDuplicates: true }).select("id,observer_site_id,recipient_profile_id,channel,provider_mode,delivery_status,attempt_count,max_attempts,expires_at,stable_delivery_id,metadata").maybeSingle();
   if (insert.error) throw new Error(`DELIVERY_PERSIST_FAILED:${insert.error.code ?? "unknown"}`);
   if (insert.data) return { delivery: insert.data, duplicate: false, plan };
-  const existing = await admin.from("digital_observer_notification_deliveries").select("id,observer_site_id,recipient_profile_id,channel,provider_mode,delivery_status,attempt_count,max_attempts,expires_at,stable_delivery_id,metadata")
+  const existing = await admin.from("digital_observer_notification_deliveries").select("id,observer_site_id,action_intent_id,recipient_profile_id,channel,provider_mode,delivery_status,attempt_count,max_attempts,expires_at,stable_delivery_id,dedupe_key,severity,priority,content_classification,authorization_snapshot,policy_snapshot,metadata")
     .eq("observer_site_id", input.observerSiteId).eq("dedupe_key", plan.idempotencyKey).single();
-  if (existing.error) throw new Error("DELIVERY_DEDUPE_LOOKUP_FAILED");
-  return { delivery: existing.data, duplicate: true, plan };
+  if (existing.error || !existing.data) throw new Error("DELIVERY_DEDUPE_LOOKUP_FAILED");
+  assertEquivalentStoredDelivery(existing.data, { intentId: input.actionIntentId, plan, content });
+  // A fresh plan would misrepresent the stored decision-time snapshots.
+  return { delivery: existing.data, duplicate: true, plan: null };
 }
 
 export async function dispatchQueuedDelivery(admin: AnySupabase, input: { deliveryId: string; sandboxBehavior?: SandboxBehavior; now?: Date }) {
