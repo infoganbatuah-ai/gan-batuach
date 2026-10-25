@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       .select("id,name,timezone")
       .is("garden_id", null)
       .neq("site_type", "kindergarten")
+      .eq("active", true)
       .order("created_at", { ascending: true })
       .limit(25);
     if (error) return fail("לא ניתן לטעון את סביבת המובייל.", 503);

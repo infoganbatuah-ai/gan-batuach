@@ -7,7 +7,8 @@ import { Network } from "@capacitor/network";
 import { Preferences } from "@capacitor/preferences";
 import { PushNotifications, type PushNotificationSchema } from "@capacitor/push-notifications";
 import { useEffect, useState } from "react";
-import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
+import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, selectCurrentPushSite, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
+import { registerObserverPushAfterSiteGate } from "@/lib/domain/digital-observer/push-registration-order";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
@@ -80,34 +81,15 @@ export function ObserverMobileRuntime() {
     const registerDevice = async (siteId: string, pushToken?: string) => {
       const [info, appInfo] = await Promise.all([Device.getInfo(), App.getInfo()]);
       const reference = await deviceReference();
-      if (pushToken) {
-        const pushResponse = await fetch("/api/push/register", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            platform: Capacitor.getPlatform(),
-            device_token: pushToken,
-            device_id: reference,
-            app_version: appInfo.version,
-            metadata: { source: "digital_observer_native", observer_site_id: siteId }
-          })
-        });
-        if (!pushResponse.ok) throw new Error("PUSH_TOKEN_REGISTRATION_FAILED");
-      }
-      const response = await fetch("/api/digital-observer/access-settings", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          action: "register_device",
-          observer_site_id: siteId,
-          device_label: info.name || `${Capacitor.getPlatform()} device`,
-          platform: Capacitor.getPlatform(),
-          device_reference: reference
-        })
+      const platform = Capacitor.getPlatform();
+      if (platform !== "ios" && platform !== "android") throw new Error("NATIVE_PLATFORM_REQUIRED");
+      await registerObserverPushAfterSiteGate({ siteId, deviceLabel: info.name || `${platform} device`,
+        deviceReference: reference, platform, deviceToken: pushToken, appVersion: appInfo.version,
+        source: "digital_observer_native" }, async (path, body) => {
+        const response = await fetch(path, { method: "POST", credentials: "same-origin",
+          headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        if (!response.ok) throw new Error(path === "/api/push/register" ? "PUSH_TOKEN_REGISTRATION_FAILED" : "DEVICE_REGISTRATION_FAILED");
       });
-      if (!response.ok) throw new Error("DEVICE_REGISTRATION_FAILED");
     };
 
     const bootstrap = async () => {
@@ -152,20 +134,32 @@ export function ObserverMobileRuntime() {
     };
 
     const handlePushRegistration = async (token: { value: string }) => {
-      const savedSite = await Preferences.get({ key: pushSiteKey });
-      const siteId = pendingPushSiteId || savedSite.value || sites[0]?.id || "";
-      if (!siteId) {
-        emit("digital-observer:native-push-result", { ok: false, reason: "site_required" });
-        return;
-      }
       try {
+        // Preferences and a previous bootstrap are not current authorization.
+        const response = await fetch("/api/digital-observer/mobile/runtime", {
+          credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(10_000)
+        });
+        if (!response.ok) throw new Error("PUSH_SITE_REVALIDATION_FAILED");
+        const payload = await response.json() as RuntimeResponse;
+        sites = payload.data?.sites ?? [];
+        const savedSite = await Preferences.get({ key: pushSiteKey });
+        const siteId = selectCurrentPushSite(sites.map((site) => site.id), pendingPushSiteId, savedSite.value);
+        if (!siteId) throw new Error("PUSH_SITE_REVOKED");
         await registerDevice(siteId, token.value);
         await Preferences.set({ key: pushSiteKey, value: siteId });
         await writeQueue((await readQueue()).filter((item) => item.kind !== "push_registration"));
         emit("digital-observer:native-push-result", { ok: true });
-      } catch {
-        await enqueue("push_registration");
-        emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+      } catch (error) {
+        if (error instanceof Error && error.message === "PUSH_SITE_REVOKED") {
+          await Preferences.remove({ key: pushSiteKey });
+          await writeQueue((await readQueue()).filter((item) => item.kind !== "push_registration"));
+          emit("digital-observer:native-push-result", { ok: false, reason: "site_revoked" });
+        } else {
+          await enqueue("push_registration");
+          emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+        }
+      } finally {
+        pendingPushSiteId = "";
       }
     };
 
@@ -175,7 +169,12 @@ export function ObserverMobileRuntime() {
         return;
       }
       const requestedSite = (event as CustomEvent<{ siteId?: string }>).detail?.siteId;
-      pendingPushSiteId = requestedSite && sites.some((site) => site.id === requestedSite) ? requestedSite : sites[0]?.id || "";
+      const selected = selectCurrentPushSite(sites.map((site) => site.id), requestedSite);
+      if (!selected) {
+        emit("digital-observer:native-push-result", { ok: false, reason: "site_required" });
+        return;
+      }
+      pendingPushSiteId = selected;
       try {
         let permission = await PushNotifications.checkPermissions();
         if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {

@@ -64,7 +64,7 @@ assert.equal(notification.title, "תצפיתן דיגיטלי");
 assert.equal(notification.body, "יש עדכון חדש לבדיקה באפליקציה.");
 assert(!JSON.stringify(notification).includes("Sensitive child"));
 
-for (const required of ["Network.addListener", "appStateChange", "appUrlOpen", "getLaunchUrl", "checkPermissions", "requestPermissions", "pushNotificationActionPerformed", "Preferences", "register_device"]) {
+for (const required of ["Network.addListener", "appStateChange", "appUrlOpen", "getLaunchUrl", "checkPermissions", "requestPermissions", "pushNotificationActionPerformed", "Preferences", "registerObserverPushAfterSiteGate"]) {
   assert(runtime.includes(required), `missing native runtime behavior: ${required}`);
 }
 assert(runtime.includes("if (!mobileRuntimeRequiresSession(window.location.pathname)) return;"), "native login must not bootstrap a protected session");

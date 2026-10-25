@@ -52,7 +52,9 @@ export async function POST(request: Request) {
 
     if (payload.action === "create_recipient" || payload.action === "register_device") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
-      if (!site) return fail("אין הרשאה לעדכן את הגדרות הגישה באתר.", 403);
+      if (!site || (payload.action === "register_device" && site.active !== true)) {
+        return fail("אין הרשאה לעדכן את הגדרות הגישה באתר.", 403);
+      }
     }
 
     if (payload.action === "create_recipient") {

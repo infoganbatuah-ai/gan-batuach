@@ -6,6 +6,7 @@ import { getApps, initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
 import { BellRing, LoaderCircle, Send, Smartphone } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
+import { registerObserverPushAfterSiteGate } from "@/lib/domain/digital-observer/push-registration-order";
 
 type ActionState = { busy: boolean; registered: boolean; message: string; error: string };
 const initialState: ActionState = { busy: false, registered: false, message: "", error: "" };
@@ -81,22 +82,14 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
       });
       if (!token) throw new Error("Firebase לא החזיר טוקן למכשיר.");
 
-      await postJson("/api/push/register", {
-        platform: "web",
-        device_token: token,
-        metadata: { source: "digital_observer_fcm", observer_site_id: siteId }
-      });
       const storageKey = "digital_observer_device_reference";
       const existing = window.localStorage.getItem(storageKey);
       const reference = existing || crypto.randomUUID();
       if (!existing) window.localStorage.setItem(storageKey, reference);
-      await postJson("/api/digital-observer/access-settings", {
-        action: "register_device",
-        observer_site_id: siteId,
-        device_label: /Mobi|Android/i.test(navigator.userAgent) ? "המכשיר הנייד שלי" : "הדפדפן שלי",
-        platform: "web",
-        device_reference: reference
-      });
+      await registerObserverPushAfterSiteGate({ siteId,
+        deviceLabel: /Mobi|Android/i.test(navigator.userAgent) ? "המכשיר הנייד שלי" : "הדפדפן שלי",
+        platform: "web", deviceReference: reference, deviceToken: token,
+        source: "digital_observer_fcm" }, postJson);
 
       onMessage(messaging, (payload) => {
         if (Notification.permission !== "granted") return;

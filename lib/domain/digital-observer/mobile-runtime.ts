@@ -26,6 +26,13 @@ export function mobileRuntimeRequiresSession(pathname: string) {
   return pathname.startsWith("/digital-observer/") && !publicObserverPaths.has(pathname);
 }
 
+export function selectCurrentPushSite(siteIds: string[], requestedSiteId?: string | null, savedSiteId?: string | null) {
+  // An explicit or persisted selection cannot silently switch to another Site.
+  const selected = requestedSiteId || savedSiteId;
+  if (selected) return siteIds.includes(selected) ? selected : null;
+  return siteIds[0] ?? null;
+}
+
 export const mobileLinkKinds = ["camera", "event", "incident", "evidence", "investigation", "notification"] as const;
 export type MobileLinkKind = (typeof mobileLinkKinds)[number];
 
