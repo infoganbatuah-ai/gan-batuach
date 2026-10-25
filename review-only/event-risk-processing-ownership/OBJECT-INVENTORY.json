@@ -65,7 +65,7 @@
     "platformAdminRegistration": "DENIED_UNQUALIFIED",
     "crossOwnerOrCrossTenantTransfer": "DENIED_UNQUALIFIED",
     "historicalOwnerAuthority": "UNVERIFIED",
-    "realSessionReaderAndTransactionalStore": "NOT_IMPLEMENTED",
+    "realSessionReaderAndTransactionalStore": "SERVER_BEARER_READER_SOURCE_ONLY_NOT_WIRED; TRANSACTIONAL_STORE_NOT_IMPLEMENTED",
     "riskWriters": "FOUR_BLOCKED",
     "databaseOrRuntimeChange": false
   },

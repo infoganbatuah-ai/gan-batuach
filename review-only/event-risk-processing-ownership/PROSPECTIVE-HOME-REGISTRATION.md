@@ -238,6 +238,55 @@ hold, historical owner changes, dedicated Platform Admin provenance and
 cross-owner transfer procedure remain **UNQUALIFIED**. No active route or
 recipient path changed.
 
+### Request-bound server session reader — local source implementation only
+
+`home-registration-owner-session.server.ts` now adapts the canonical
+`getDigitalObserverApiUser(request)` **Bearer** path to the owner-session port.
+That helper calls `auth.getUser(accessToken)`, the existing
+`digital_observer_current_session_active()` check, and the canonical active
+profile lookup. Source review of the session RPC shows a stable, read-only
+`auth.sessions` lookup by the authenticated caller's session ID; its body
+contains no touch/write. The Bearer client explicitly disables persistence,
+refresh and URL session detection. The cookie-server path in `server.ts` can
+set refreshed Cookies and is therefore deliberately excluded; this does not
+prove that a browser Cookie login can use this reader without a separate
+reviewed transport. The adapter refuses missing/malformed Bearer credentials,
+requires the verified current user and active profile to equal the *comparison*
+`actorId`, and fails closed on errors. It neither selects an actor by ID nor
+creates a service-role/admin client. No route imports it.
+
+Every successful call returns a fresh, request-local, at-most-five-second
+`SESSION_VERIFIED_ONLY` observation marker. It contains no JWT, Cookie, email,
+token or persisted audit ID; it is **not** a registration approval or durable
+authority receipt. No result is cached across requests. Logout/revocation
+after observation must be caught by a future in-transaction current-session,
+owner and scope recheck before any version/audit commit. A valid session alone
+cannot add recipients, certify another Tenant/Site/Source, or qualify Platform
+Admin. Local stub tests verify adapter mapping and denial behavior, **not**
+live Auth, session revocation, RLS or PostgreSQL transaction behavior.
+
+### Retention and atomic persistence decision brief — no storage activated
+
+Data owner: Digital Observer Product/security. The minimum proposed records
+are bounded operational identifiers and authorization references, not media,
+raw Auth sessions, tokens or recipient lists:
+
+| Category | Minimum recovery/replay dependency | Deletion/hold implication |
+| --- | --- | --- |
+| Source registration and version history | Exact Tenant, Home Site, Source, owner, qualified actor, version and authority reference preserve the accepted scope across renewal | Old versions cannot be removed while an Event or claim can replay against them. |
+| Server acceptance receipt | Event/Signal ID, accepted registration version, Site/Source scope and server reference distinguish new accepted Events from ambiguous history | Must be atomic with acceptance; deletion would erase event-time ownership proof. |
+| Immutable Event binding | Binds accepted Event to the exact historical qualified version and comparison/audit reference | Replays must find the original link; do not rewrite on current-owner change. |
+| Authorization/transfer/conflict audit | Sanitized actor, decision, scope, version and conflict/revocation evidence | Mandatory audit failure prevents qualification; legal holds may outlive ordinary operational access. |
+| Risk plan/effect/recipient snapshot references | Downstream recovery must know what was decided and for whom without rereading mutable preferences | Separate retention/consent rules govern recipients; owner registration never expands delivery. |
+
+One unique external input remains before **storage activation**: an approved
+Product/privacy retention-and-legal-hold schedule for these linked categories,
+including when deletion is permitted after all replay, incident, backup and
+hold dependencies expire. No duration, automatic cleanup or indefinite
+retention is inferred. The already approved Model A/owner-registration policy
+is not being reopened. A separately authorized isolated PostgreSQL trial must
+still prove atomicity, RLS/role boundaries, recovery and rollback.
+
 ### Identity-source mapping and the exact gap
 
 | Concept | Current source-defined field/function | Why not yet registration authority |

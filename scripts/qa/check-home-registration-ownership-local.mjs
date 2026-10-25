@@ -20,8 +20,12 @@ const facts = Object.freeze({ tenantId: "tenant-a", tenantOwnerProfileId: "owner
   siteType: "home", siteGardenId: null, siteActive: true,
   sourceId: "source-a", sourceSiteId: "site-a", ownerProfileId: "owner-a",
   ownerProfileActive: true, tenantActive: true, tenantStatus: "active" });
-const ownerSession = Object.freeze({ authenticatedUserId: "owner-a", sessionAuthenticated: true, sessionActive: true,
-  profileId: "owner-a", profileActive: true, evidenceRef: "trusted-owner-proof-a" });
+function ownerSession() {
+  const observedAtMs = Date.now();
+  return Object.freeze({ authenticatedUserId: "owner-a", sessionAuthenticated: true, sessionActive: true,
+    profileId: "owner-a", profileActive: true, observedAtMs, expiresAtMs: observedAtMs + 5_000,
+    evidenceRef: "trusted-owner-proof-a" });
+}
 const accepted = Object.freeze({ eventId: "event-a", siteId: "site-a", sourceId: "source-a",
   registrationId: "registration-a", registrationVersion: 1, authorityRef: "trusted-owner-proof-a",
   acceptanceRef: "server-acceptance-a" });
@@ -29,7 +33,7 @@ function fixture() {
   let pending = candidate;
   let liveFacts = facts;
   let liveAccepted = accepted;
-  let liveSession = ownerSession;
+  let liveSession = ownerSession();
   let live = null;
   const versions = new Map();
   const bindings = new Map();
@@ -122,12 +126,14 @@ test("one customer Tenant may own multiple independently scoped Home Sites", asy
 
 test("owner-only resolver rejects missing, stale, inactive and contradictory session facts", async () => {
   for (const session of [null,
-    { ...ownerSession, sessionAuthenticated: false },
-    { ...ownerSession, sessionActive: false },
-    { ...ownerSession, profileActive: false },
-    { ...ownerSession, authenticatedUserId: "installer-a" },
-    { ...ownerSession, profileId: "installer-a" },
-    { ...ownerSession, evidenceRef: "" }
+    { ...ownerSession(), sessionAuthenticated: false },
+    { ...ownerSession(), sessionActive: false },
+    { ...ownerSession(), profileActive: false },
+    { ...ownerSession(), authenticatedUserId: "installer-a" },
+    { ...ownerSession(), profileId: "installer-a" },
+    { ...ownerSession(), expiresAtMs: Date.now() - 1 },
+    { ...ownerSession(), expiresAtMs: Date.now() + 60_000 },
+    { ...ownerSession(), evidenceRef: "" }
   ]) {
     const f = fixture();
     f.setSession(session);
@@ -138,7 +144,7 @@ test("owner-only resolver rejects missing, stale, inactive and contradictory ses
 
 test("creator, client labels, billing/recipient fields and broad admin cannot confer registration authority", async () => {
   const f = fixture();
-  f.setSession({ ...ownerSession, authenticatedUserId: "installer-a", profileId: "installer-a",
+  f.setSession({ ...ownerSession(), authenticatedUserId: "installer-a", profileId: "installer-a",
     role: "admin", billingRole: "owner", recipient: true, email: "owner@example.invalid" });
   await assert.rejects(qualify(f, "installer-a"), /ACTOR_DENIED/);
   const platformFake = { async authorizeRegistration() {

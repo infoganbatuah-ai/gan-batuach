@@ -297,3 +297,29 @@ for role/RLS, atomic CAS, race, recovery and lossless rollback behavior.
 No general Model A/owner policy re-decision is requested. This branch remains
 local under the explicit no-push boundary, so remote preservation and
 integration are **PENDING**, not PASS.
+
+## Request-bound Home owner session reader — local follow-up
+
+The later local increment adds `home-registration-owner-session.server.ts`,
+which reuses the canonical verified Bearer API boundary and produces a fresh,
+five-second, request-local session observation. It does not grant registration
+authority, write a durable receipt, accept a browser Cookie session, or wire an
+active route. The existing owner predicate now rejects expired/future/overlong
+observations. A future transactional adapter must recheck the current Auth
+session, owner, Tenant, Site and Source inside the acceptance transaction;
+no pre-transaction observation alone is sufficient.
+
+Focused adapter tests cover exact identity, missing/malformed credential,
+wrong/inactive profile, helper failure, cross-request isolation and the
+unchanged Home/Site/Source denial. They use a local stub of the canonical Auth
+boundary and do not call Supabase. Focused local results: 28/28 combined
+session/Home/ownership test groups PASS; focused strict TypeScript PASS;
+focused ESLint PASS; review-package containment PASS; `git diff --check` PASS.
+The full-tree TypeScript check was not repeated: its existing missing
+Capacitor dependency issue is recorded above, and no affected mobile source
+changed here. The owner-authorized bounded READ ONLY
+inspection of original gbi is recorded above and was not rerun without a new
+catalog discrepancy. No SQL write, clone, migration, service or provider
+change was made in this follow-up. The four downstream Risk writers and the
+future PostgreSQL qualification remain blocked. The final local SHA is
+reported after commit, not predicted here.

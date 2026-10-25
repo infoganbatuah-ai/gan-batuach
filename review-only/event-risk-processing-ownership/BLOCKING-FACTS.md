@@ -71,6 +71,16 @@ unqualified. Cross-owner/Tenant transfer and Platform Admin remain denied.
 This narrows the implementation gap without resolving immutable acceptance,
 audit/retention, historical authority or the four blocked Risk writers.
 
+Further local source closure: `home-registration-owner-session.server.ts`
+reuses the canonical verified API Bearer path and returns only a five-second
+request-local `SESSION_VERIFIED_ONLY` observation. It is not wired to an active
+route or a transaction. The browser Cookie path may refresh Cookies and was
+not reused as a read-only probe. Actual Auth/session revocation and owner
+role/RLS behavior remain **UNQUALIFIED**; stub tests are not live proof.
+Registration/version/acceptance/binding/audit storage remains blocked by one
+Product/privacy retention-and-legal-hold schedule plus separate isolated
+PostgreSQL qualification. No general ownership-policy reapproval is needed.
+
 ## Prospective Home Event authority options — source inventory, no selection
 
 The active `cloud-events/route.ts:35-45,68-85` authenticates a Gateway,

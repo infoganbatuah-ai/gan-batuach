@@ -97,14 +97,16 @@ export type TrustedHomeOwnerSession = Readonly<{
   sessionActive: boolean;
   profileId: string;
   profileActive: boolean;
+  observedAtMs: number;
+  expiresAtMs: number;
   evidenceRef: string;
 }>;
 export interface TrustedHomeOwnerSessionReader {
   sessionForActor(actorId: string): Promise<TrustedHomeOwnerSession | null>;
 }
 
-/** Disconnected OWNER predicate; the reader is deliberately not implemented
- * or wired to the application. The transactional store must recheck current
+/** Disconnected OWNER predicate; a server reader adapter exists but is not
+ * wired to the application. The transactional store must recheck current
  * ownership and the session before committing a qualification. */
 export function ownerOnlyHomeActorResolver(reader: TrustedHomeOwnerSessionReader): TrustedHomeActorResolver {
   return {
@@ -112,6 +114,9 @@ export function ownerOnlyHomeActorResolver(reader: TrustedHomeOwnerSessionReader
       const session = await reader.sessionForActor(actorId);
       if (!session || !session.sessionAuthenticated || !session.sessionActive || !session.profileActive
         || !populated(actorId, session.authenticatedUserId, session.profileId, session.evidenceRef)
+        || !Number.isSafeInteger(session.observedAtMs) || !Number.isSafeInteger(session.expiresAtMs)
+        || session.observedAtMs > Date.now() || session.expiresAtMs <= Date.now()
+        || session.expiresAtMs - session.observedAtMs > 5_000
         || session.authenticatedUserId !== actorId || session.profileId !== actorId
         || actorId !== candidate.ownerProfileId
         || !trustedFactsMatch(candidate, facts)) return null;
