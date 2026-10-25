@@ -13,6 +13,10 @@ offline bodies** in `RPC-BODIES-NOT-APPLIED.sql`, behind an aborting guard.
 to exact source fields and transactional dependencies; the disconnected
 `event-risk-source-row-map.ts` compares a supplied Risk-shaped row but cannot
 certify a persisted database row. Their SQL bodies remain BLOCKED.
+The later disconnected pre/post ownership split removes the local circular
+Risk-ID prerequisite only: pre-persist Event scope requires no Risk ID;
+post-read binding requires the trusted Risk row and unchanged attestation.
+Neither proves a database commit or resolves Home history.
 They are *not deployable*: the proposed Home/customer Tenant mapping has not
 been independently reconciled and the new claim schema is absent. A body
 being present is not PostgreSQL qualification.

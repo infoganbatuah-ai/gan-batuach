@@ -133,9 +133,14 @@ for (const functionName of ["persistFencedRisk", "startFencedEffects", "recordFe
 }
 assert.match(recovery, /"MANDATORY_DECISION_AUDIT"/);
 for (const functionName of ["validateAuthoritativeEventRiskOwnership", "createDecisionTimeRecipientSnapshot",
+  "validatePrePersistEventOwnership", "bindPostReadRiskOwnership",
   "preserveDecisionTimeSnapshot", "qualifyAtomicCompletionPlan"]) {
   assert.match(ownershipSnapshot, new RegExp(`export function ${functionName}\\(|export async function ${functionName}\\(`));
 }
+assert.match(ownershipSnapshot, /PRE_PERSIST_EVENT_CHAIN_VALIDATED/);
+assert.match(ownershipSnapshot, /POST_READ_RISK_SCOPE_BOUND/);
+assert.match(ownershipSnapshot, /riskDecisionId: input\.riskDecisionId/);
+assert.doesNotMatch(route, /validatePrePersistEventOwnership|bindPostReadRiskOwnership/);
 assert.match(draftExecutable, /recipient_snapshot_fingerprint text NOT NULL/);
 assert.match(draftExecutable, /recipient_snapshot_schema_version integer NOT NULL/);
 assert.match(draftExecutable, /jsonb_typeof\(recipient_snapshot\) = 'object'/);

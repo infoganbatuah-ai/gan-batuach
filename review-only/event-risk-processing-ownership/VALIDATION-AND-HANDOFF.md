@@ -79,3 +79,61 @@ full PostgreSQL row-equivalence, immutable decision-time plan producer,
 composite Tenant/Site keys, atomic target-row/receipt/audit writes, Incident-wide
 CAS, retention/legal-hold decisions, and an approved isolated PostgreSQL
 qualification. A local comparison cannot establish committed database state.
+
+## Subsequent pre/post Risk ownership-contract increment — 2026-10-25 19:39 UTC
+
+Baseline was the clean local commit `5f6489737f23cb180e5b78a255f9dde3e0e506c2`
+on `codex/event-ingest-replay-identity-20261025`. The worktree had no
+concurrent or unexplained changes. The final local commit is reported after
+validation; no remote publication is authorized.
+
+Before: `validateAuthoritativeEventRiskOwnership` required a Risk ID to
+validate event-time ownership, while the active Risk writer lets PostgreSQL
+generate that ID. After: `validatePrePersistEventOwnership` checks the full
+Event chain and event-time attestation with no Risk ID or Risk read;
+`bindPostReadRiskOwnership` revalidates those inputs through the abstract
+trusted reader, then binds the reader-reported Risk row's ID/Site/Event/Incident. The
+strict legacy post-persist function delegates to both stages. Pre and post
+types have incompatible stage markers; the pre result cannot qualify
+completion or recipient snapshot. The comparison helper also requires the
+post stage. All new tests use synthetic readers only. No deployed reader was
+created, and no arbitrary evidence string is independently authenticated.
+
+The Risk reader contract does not expose engine version or a Tenant column;
+it is only a source-level scope check. Repeated independent reads are not one
+database transaction and cannot prove atomicity, commit, snapshot isolation,
+durability or historical Home ownership. The four downstream SQL bodies remain
+BLOCKED and their abort guard remains intact. No SQL (including SELECT),
+database connection, service, route, schema, ACL/RLS, supplier, remote Git or
+physical Guard operation occurred. No retention duration was inferred.
+
+Focused local checks for this increment (not database or external proof):
+
+| Check | Result |
+| --- | --- |
+| `node scripts/qa/check-event-risk-ownership-snapshot-local.mjs` | PASS, 7/7 groups, including pre/post binding and completed-snapshot negatives. |
+| `node scripts/qa/check-event-risk-source-row-map-local.mjs` | PASS, 4/4 groups; same-ID semantic conflicts still fail. |
+| `node scripts/qa/check-event-risk-fenced-writes-local.mjs` | PASS, 5/5 groups; existing stale-owner/completion negatives. |
+| `node scripts/qa/check-event-risk-model-a-local.mjs` | PASS, 5/5 groups; existing canonical-chain/claim regression. |
+| Focused strict `tsc --ignoreConfig --noEmit` of two changed contracts and `check-event-risk-ownership-stages-types.ts` | PASS; incompatible pre/post types checked. |
+| Focused ESLint of changed executable files | PASS. |
+| `node review-only/event-risk-processing-ownership/validate-review-package.mjs` | PASS; abort guard, absent four SQL bodies and route isolation retained. |
+| `git diff --check` | PASS; staged diff and final status inspected separately before local commit. |
+
+The first source-row test run failed because its older fixture lacked the new
+post-read stage marker; the fixture was corrected and reran PASS. No runtime
+or database state changed. Remaining gates:
+approved event-time Home Tenant/Site provenance and historical adjudication;
+deployed trusted reader and Risk engine-version binding; atomic fenced writers,
+mandatory audit, Incident CAS, retention, RLS/roles/Data API, restore and
+lossless rollback. Separately authorized isolated PostgreSQL tests are needed
+before any application claim. Guard OFF; no Product-readiness promotion.
+
+Smallest external evidence decision: the authorized Digital Observer data
+owner must identify the trustworthy event-time Tenant/Site/Event provenance
+for *new* Home Events, name who may attest it, and separately adjudicate each
+ambiguous historical Home record from independent ownership evidence. Current
+Site membership or an email string is not that proof. No historical Tenant is
+inferred here. Any later database observation needs a separate instruction
+naming the isolated target, read scope, sanitized outputs and limits; it is
+not authorized by this local contract task.

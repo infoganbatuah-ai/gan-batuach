@@ -21,7 +21,8 @@ const state = { claim, writeGeneration: 0, riskResult: null, effects: {},
   verificationProjection: { generation: 0, latestReferenceId: null }, guardDispatchCount: 0 };
 const context = { scope, engineVersion: "do-risk-v1", token: claim.token,
   now: 1001, expectedWriteGeneration: 0 };
-const ownership = { scope, authorityEvidenceRef: "synthetic-reviewed-event-attestation" };
+const ownership = { stage: "POST_READ_RISK_SCOPE_BOUND", scope,
+  authorityEvidenceRef: "synthetic-reviewed-event-attestation" };
 const evaluation = { accepted: true, incidentId: scope.incidentId,
   triggeringEventId: scope.eventId, riskScore: 72, peakRiskScore: 75,
   riskBand: "HIGH", evaluationConfidence: 0.8,
@@ -74,6 +75,8 @@ test("wrong Event, engine version, Site or Tenant cannot match", () => {
     scope: { ...scope, tenantId: "other-tenant" } } })), /RISK_SOURCE_OWNERSHIP_UNVERIFIED/);
 });
 test("missing event-time authority, stale epoch and wrong previous projection fail closed", () => {
+  assert.throws(() => compareSuppliedRiskRowForReview(subject({ ownership: { ...ownership,
+    stage: "PRE_PERSIST_EVENT_CHAIN_VALIDATED" } })), /RISK_SOURCE_OWNERSHIP_UNVERIFIED/);
   assert.throws(() => compareSuppliedRiskRowForReview(subject({ ownership: { ...ownership,
     authorityEvidenceRef: "" } })), /RISK_SOURCE_OWNERSHIP_UNVERIFIED/);
   assert.throws(() => compareSuppliedRiskRowForReview(subject({ context: { ...context,

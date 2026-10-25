@@ -20,23 +20,35 @@ export type EventTimeTenantEvidence = Readonly<{
 export interface AuthoritativeEventOwnershipReader extends ModelAOwnershipReader {
   authoritativeTenantForEvent(siteId: string, eventId: string): Promise<EventTimeTenantEvidence | null>;
 }
-export type VerifiedEventRiskOwnership = Readonly<{
-  scope: ResolvedModelAChain;
+export type PrePersistEventOwnership = Readonly<{
+  stage: "PRE_PERSIST_EVENT_CHAIN_VALIDATED";
+  scope: Readonly<Omit<ResolvedModelAChain, "riskDecisionId">>;
   authorityEvidenceRef: string;
 }>;
+export type PostReadRiskScopeBoundOwnership = Readonly<{
+  stage: "POST_READ_RISK_SCOPE_BOUND";
+  scope: Readonly<ResolvedModelAChain & { riskDecisionId: string }>;
+  authorityEvidenceRef: string;
+}>;
+export type VerifiedEventRiskOwnership = PostReadRiskScopeBoundOwnership;
 
-export async function validateAuthoritativeEventRiskOwnership(input: {
+type EventOwnershipInput = Readonly<{
   reader: AuthoritativeEventOwnershipReader;
   principal: Pick<ManagedDevicePrincipal, "tenantId" | "siteId" | "lifecycleState">;
   sourceId: string;
   eventId: string;
   incidentId: string;
-  riskDecisionId: string;
   clientTenantId?: string;
   clientSiteId?: string;
-}): Promise<VerifiedEventRiskOwnership> {
-  if (!input.riskDecisionId || input.clientTenantId !== undefined || input.clientSiteId !== undefined) {
+}>;
+
+/** Disconnected pre-insert check: no Risk UUID or persisted-row claim. */
+export async function validatePrePersistEventOwnership(input: EventOwnershipInput): Promise<PrePersistEventOwnership> {
+  if (input.clientTenantId !== undefined || input.clientSiteId !== undefined) {
     throw new Error("MODEL_A_CLIENT_OWNERSHIP_OVERRIDE_DENIED");
+  }
+  if (input.principal.lifecycleState !== "ACTIVE" || !input.principal.tenantId || !input.principal.siteId) {
+    throw new Error("MODEL_A_PRINCIPAL_SCOPE_UNVERIFIED");
   }
   const authority = await input.reader.authoritativeTenantForEvent(input.principal.siteId, input.eventId);
   if (!authority?.verifiedForEvent || authority.historicallyAmbiguous !== false
@@ -44,12 +56,55 @@ export async function validateAuthoritativeEventRiskOwnership(input: {
     || authority.eventId !== input.eventId || authority.tenantId !== input.principal.tenantId) {
     throw new Error("MODEL_A_EVENT_TIME_TENANT_UNVERIFIED");
   }
-  const scope = await resolveModelAChain(input);
+  const scope = await resolveModelAChain({ reader: input.reader, principal: input.principal,
+    sourceId: input.sourceId, eventId: input.eventId, incidentId: input.incidentId });
   if (scope.tenantId !== authority.tenantId || scope.siteId !== authority.siteId
-    || scope.eventId !== authority.eventId || scope.riskDecisionId !== input.riskDecisionId) {
+    || scope.eventId !== authority.eventId || scope.riskDecisionId !== null) {
     throw new Error("MODEL_A_EVENT_TIME_CHAIN_CONFLICT");
   }
-  return Object.freeze({ scope, authorityEvidenceRef: authority.evidenceRef });
+  return Object.freeze({ stage: "PRE_PERSIST_EVENT_CHAIN_VALIDATED" as const,
+    scope: Object.freeze({ tenantId: scope.tenantId, siteId: scope.siteId,
+      sourceId: scope.sourceId, eventId: scope.eventId, incidentId: scope.incidentId }),
+    authorityEvidenceRef: authority.evidenceRef });
+}
+
+/** The Risk ID is a lookup key only; the trusted reader must verify its row. */
+export async function bindPostReadRiskOwnership(input: EventOwnershipInput & {
+  prePersist: PrePersistEventOwnership;
+  riskDecisionId: string;
+}): Promise<PostReadRiskScopeBoundOwnership> {
+  if (input.prePersist?.stage !== "PRE_PERSIST_EVENT_CHAIN_VALIDATED" || !input.riskDecisionId) {
+    throw new Error("MODEL_A_PRE_PERSIST_OR_RISK_MISSING");
+  }
+  // Re-read authority and every canonical link. A caller-supplied pre result
+  // or Risk UUID cannot certify ownership, and changed evidence fails closed.
+  const current = await validatePrePersistEventOwnership(input);
+  if (!input.prePersist.authorityEvidenceRef
+    || input.prePersist.authorityEvidenceRef !== current.authorityEvidenceRef
+    || !samePrePersistScope(input.prePersist.scope, current.scope)) {
+    throw new Error("MODEL_A_PRE_PERSIST_CHAIN_CHANGED");
+  }
+  const scope = await resolveModelAChain({ ...input, riskDecisionId: input.riskDecisionId });
+  if (scope.riskDecisionId !== input.riskDecisionId || !samePrePersistScope(scope, current.scope)) {
+    throw new Error("MODEL_A_RISK_SCOPE_MISMATCH");
+  }
+  return Object.freeze({ stage: "POST_READ_RISK_SCOPE_BOUND" as const,
+    scope: Object.freeze({ ...scope, riskDecisionId: input.riskDecisionId }),
+    authorityEvidenceRef: current.authorityEvidenceRef });
+}
+
+function samePrePersistScope(left: PrePersistEventOwnership["scope"], right: PrePersistEventOwnership["scope"]): boolean {
+  return left.tenantId === right.tenantId && left.siteId === right.siteId
+    && left.sourceId === right.sourceId && left.eventId === right.eventId
+    && left.incidentId === right.incidentId;
+}
+
+/** Strict compatibility wrapper for disconnected post-persist callers. */
+export async function validateAuthoritativeEventRiskOwnership(input: EventOwnershipInput & {
+  riskDecisionId: string;
+}): Promise<VerifiedEventRiskOwnership> {
+  const prePersist = await validatePrePersistEventOwnership(input);
+  return bindPostReadRiskOwnership({ ...input, prePersist });
 }
 
 export type SnapshotChannel = "in_app" | "email" | "sms" | "push";
@@ -159,7 +214,8 @@ export function qualifyAtomicCompletionPlan(input: {
 }): LocalCompletionQualification {
   const { state, context, ownership } = input;
   assertFencedWrite(state, context);
-  if (!sameScope(ownership.scope, context.scope)
+  if (ownership.stage !== "POST_READ_RISK_SCOPE_BOUND"
+    || !sameScope(ownership.scope, context.scope)
     || !ownership.authorityEvidenceRef) throw new Error("MODEL_A_COMPLETION_OWNERSHIP_UNVERIFIED");
   if (!state.riskResult || !state.claim.risk || !state.claim.plan
     || state.riskResult.checkpoint.evaluationId !== state.claim.risk.evaluationId) {

@@ -7,7 +7,8 @@ registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(/\/(event-risk-recovery|event-risk-fenced-writes|model-a-ownership)\.js$/.test(specifier)
     ? specifier.replace(/\.js$/, ".ts") : specifier, context);
 } });
-const { validateAuthoritativeEventRiskOwnership, createDecisionTimeRecipientSnapshot,
+const { validatePrePersistEventOwnership, bindPostReadRiskOwnership,
+  validateAuthoritativeEventRiskOwnership, createDecisionTimeRecipientSnapshot,
   assertDecisionTimeSnapshot, preserveDecisionTimeSnapshot, qualifyAtomicCompletionPlan } =
   await import("../../lib/domain/digital-observer/event-risk-ownership-snapshot.ts");
 const { acquireClaim, freezeRecipientSnapshot, requiredEffectKeys } =
@@ -53,6 +54,11 @@ function reader({ ambiguous = false, missingAuthority = false, tenantOverride = 
 function ownershipInput(overrides = {}) {
   return { reader: reader(), principal, sourceId: scope.sourceId, eventId: scope.eventId,
     incidentId: scope.incidentId, riskDecisionId: scope.riskDecisionId, ...overrides };
+}
+function preInput(overrides = {}) {
+  const { riskDecisionId: ignored, ...input } = ownershipInput(overrides);
+  void ignored;
+  return input;
 }
 function snapshot(overrides = {}) {
   return createDecisionTimeRecipientSnapshot({ schemaVersion: 1, scope,
@@ -114,7 +120,8 @@ function completeState() {
 }
 function qualification(state = completeState(), overrides = {}) {
   const fixedSnapshot = snapshot();
-  return { state, context: context(state), ownership: { scope, authorityEvidenceRef: "owner-adjudication-a" },
+  return { state, context: context(state), ownership: { stage: "POST_READ_RISK_SCOPE_BOUND",
+    scope, authorityEvidenceRef: "owner-adjudication-a" },
     persistedSnapshot: fixedSnapshot, expectedSnapshot: fixedSnapshot,
     expectedRiskProjectionGeneration: 1, expectedVerificationProjectionGeneration: 1,
     expectedDecisionIntent: intent(), externalAcknowledgmentRequired: true, ...overrides };
@@ -136,6 +143,76 @@ test("authoritative Model A chain permits two Sites in one Tenant and rejects un
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ incidentId: "incident-b" })), /MISMATCH/);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ riskDecisionId: "risk-b" })), /MISMATCH/);
   await assert.rejects(validateAuthoritativeEventRiskOwnership(ownershipInput({ clientTenantId: "tenant-a" })), /OVERRIDE_DENIED/);
+});
+
+test("pre-persist Event ownership needs no Risk row and cannot qualify completion", async () => {
+  let riskReads = 0;
+  const syntheticReader = reader();
+  const pre = await validatePrePersistEventOwnership(preInput({ reader: {
+    ...syntheticReader, async riskDecision() { riskReads += 1; return null; }
+  } }));
+  assert.equal(pre.stage, "PRE_PERSIST_EVENT_CHAIN_VALIDATED");
+  assert.equal(Object.hasOwn(pre.scope, "riskDecisionId"), false);
+  assert.equal(riskReads, 0);
+  assert(Object.isFrozen(pre.scope));
+  assert.throws(() => qualifyAtomicCompletionPlan(qualification(completeState(), {
+    ownership: pre
+  })), /MODEL_A_COMPLETION_OWNERSHIP_UNVERIFIED/);
+  assert.throws(() => createDecisionTimeRecipientSnapshot({ ...snapshot(), scope: pre.scope }),
+    /RECIPIENT_SNAPSHOT_INVALID/);
+});
+
+test("pre-persist authority and canonical chain fail closed on scope, ambiguity and overrides", async () => {
+  await assert.rejects(validatePrePersistEventOwnership(preInput({ reader: reader({ ambiguous: true }) })), /UNVERIFIED/);
+  await assert.rejects(validatePrePersistEventOwnership(preInput({ reader: reader({ missingAuthority: true }) })), /UNVERIFIED/);
+  await assert.rejects(validatePrePersistEventOwnership(preInput({ reader: reader({ tenantOverride: "tenant-c" }) })), /UNVERIFIED|MISMATCH/);
+  await assert.rejects(validatePrePersistEventOwnership(preInput({ principal: { ...principal,
+    lifecycleState: "REVOKED" } })), /PRINCIPAL_SCOPE_UNVERIFIED/);
+  let authorityReads = 0;
+  await assert.rejects(validatePrePersistEventOwnership(preInput({
+    principal: { ...principal, lifecycleState: "REVOKED" }, reader: { ...reader(),
+      async authoritativeTenantForEvent() { authorityReads += 1; return null; } }
+  })), /PRINCIPAL_SCOPE_UNVERIFIED/);
+  assert.equal(authorityReads, 0);
+  for (const [key, value] of [["sourceId", "source-c"], ["eventId", "event-b"],
+    ["incidentId", "incident-b"]]) {
+    await assert.rejects(validatePrePersistEventOwnership(preInput({ [key]: value })), /UNVERIFIED|MISMATCH/);
+  }
+  await assert.rejects(validatePrePersistEventOwnership(preInput({ clientTenantId: "tenant-a" })), /OVERRIDE_DENIED/);
+  await assert.rejects(validatePrePersistEventOwnership(preInput({ clientSiteId: "site-a" })), /OVERRIDE_DENIED/);
+});
+
+test("post-read Risk binding verifies row and revalidates event-time evidence", async () => {
+  const input = preInput();
+  const prePersist = await validatePrePersistEventOwnership(input);
+  const bound = await bindPostReadRiskOwnership({ ...input, prePersist, riskDecisionId: "risk-a" });
+  assert.equal(bound.stage, "POST_READ_RISK_SCOPE_BOUND");
+  assert.equal(bound.scope.riskDecisionId, "risk-a");
+  assert.equal(bound.authorityEvidenceRef, prePersist.authorityEvidenceRef);
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, riskDecisionId: "risk-b" }), /RISK_SCOPE_MISMATCH/);
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, riskDecisionId: "" }), /PRE_PERSIST_OR_RISK_MISSING/);
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist: { ...prePersist,
+    scope: { ...prePersist.scope, eventId: "event-b" } }, riskDecisionId: "risk-a" }), /CHAIN_CHANGED/);
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist: { ...prePersist,
+    authorityEvidenceRef: "different-evidence" }, riskDecisionId: "risk-a" }), /CHAIN_CHANGED/);
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, reader: {
+    ...input.reader, async authoritativeTenantForEvent(siteId, eventId) {
+      const old = await input.reader.authoritativeTenantForEvent(siteId, eventId);
+      return { ...old, evidenceRef: "new-adjudication" };
+    }
+  }, riskDecisionId: "risk-a" }), /CHAIN_CHANGED/);
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, reader: {
+    ...input.reader, async riskDecision() { return { id: "risk-a", siteId: "site-c",
+      eventId: "event-a", incidentId: "incident-a" }; }
+  }, riskDecisionId: "risk-a" }), /RISK_SCOPE_MISMATCH/);
+  for (const wrong of [{ eventId: "event-b" }, { incidentId: "incident-b" }]) {
+    await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist, reader: {
+      ...input.reader, async riskDecision() { return { id: "risk-a", siteId: "site-a",
+        eventId: "event-a", incidentId: "incident-a", ...wrong }; }
+    }, riskDecisionId: "risk-a" }), /RISK_SCOPE_MISMATCH/);
+  }
+  await assert.rejects(bindPostReadRiskOwnership({ ...input, prePersist,
+    sourceId: "source-b", riskDecisionId: "risk-a" }), /OWNERSHIP_CHAIN_MISMATCH/);
 });
 
 test("decision-time recipient snapshot is canonical, immutable and cannot be replaced on retry", () => {

@@ -18,7 +18,8 @@ export function compareSuppliedRiskRowForReview(input: {
   const { state, context, ownership, evaluation, suppliedRow } = input;
   assertFencedWrite(state, context);
   const scope = ownership.scope;
-  if (!ownership.authorityEvidenceRef || !scope.tenantId || !scope.siteId || !scope.sourceId
+  if (ownership.stage !== "POST_READ_RISK_SCOPE_BOUND"
+    || !ownership.authorityEvidenceRef || !scope.tenantId || !scope.siteId || !scope.sourceId
     || !scope.eventId || !scope.incidentId || !scope.riskDecisionId
     || scope.tenantId !== context.scope.tenantId || scope.siteId !== context.scope.siteId
     || scope.sourceId !== context.scope.sourceId || scope.eventId !== context.scope.eventId
