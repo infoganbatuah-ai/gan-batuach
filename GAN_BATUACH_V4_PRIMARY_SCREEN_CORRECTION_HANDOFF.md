@@ -5,7 +5,8 @@
 - Branch: `codex/ux-v4-primary-screen-correction`
 - Worktree: `/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-v4-primary-screen-correction`
 - Source Development SHA: `af30b84f21a35e817738bf0329cf1a632a10a5ae`
-- Candidate ancestry head before final commit: `cdaa80d1fe786eb2087e166102b4d022ae303738`
+- Implementation commit: `e85eda2a62c5d988ac5790d843a14fce9bcb766b`
+- Fresh evidence commit: `72281329`
 - Production: untouched
 - `main`: untouched
 - RELEASE-GAP-01: not started

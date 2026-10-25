@@ -12550,49 +12550,52 @@
       "owner": "UX-V4 primary-screen correction owner",
       "sourceBranch": "codex/ux-v4-primary-screen-correction",
       "sourceCommits": [
-        "b9dac699"
+        "b9dac699",
+        "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+        "72281329"
       ],
-      "state": "BLOCKED",
+      "state": "VALIDATED_ON_BRANCH",
       "preservation": {
-        "remoteVerified": true,
+        "remoteVerified": false,
         "remoteRefs": [
           "origin/codex/ux-v4-primary-screen-correction@b9dac699"
         ],
-        "implementationCommit": "b9dac699",
+        "implementationCommit": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+        "evidenceCommit": "72281329",
         "handoff": "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md"
       },
       "validation": {
-        "status": "PASS_STATIC_GATES_VISUAL_EVIDENCE_BLOCKED_BY_PUSH38_HOST_ISOLATION",
+        "status": "PASS_LOCAL_EXACT_HEAD_V5_21_REFERENCE_MATCH_CANDIDATE_0_NEEDS_VISUAL_CORRECTION_0_BROKEN",
         "evidence": [
           "GAN_BATUACH_V4_PRIMARY_SCREEN_MAP.md",
           "GAN_BATUACH_V4_PRIMARY_GEOMETRY.json",
           "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md",
+          "GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V5.md",
           "qa-evidence/v4-primary-reference-crops",
-          "qa-evidence/v4-primary-screen-correction"
+          "qa-evidence/v4-primary-screen-correction",
+          "qa-evidence/v5-domain-regression"
         ],
-        "limits": "Fresh V5 screenshots, visual comparison, build and local full-stack verification are intentionally pending. PUSH 38 began a new 24-hour host-isolation window on 2026-10-09 01:43:44 Asia/Jerusalem; starting Next or gbi before explicit release can invalidate that qualification. Internal visual status and owner acceptance are not claimed."
+        "limits": "Internal visual result is REFERENCE_MATCH_CANDIDATE only. External owner acceptance remains pending. The legacy qa:probe-role-boundaries harness was not used because it expects removed demo credentials; the current security/isolation gate passed 50/50 and current management scope contracts passed."
       },
       "integration": {
         "status": "PRESERVED_PENDING_INTEGRATION",
         "base": "integration/development",
         "commit": null,
         "pullRequest": null,
-        "requiredChecks": "PENDING_AFTER_V5_EXACT_HEAD"
+        "requiredChecks": "PENDING_REMOTE_PR"
       },
       "dependencies": {
-        "status": "BLOCKED_BY_PUSH38_HOST_ISOLATION",
-        "units": [
-          "codex/push-38t-private-r2-phone-proof-20261008"
-        ]
+        "status": "SATISFIED",
+        "units": []
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_TYPECHECK_LINT_REGRESSION_DOMAIN_30_SECURITY_11_MIGRATIONS_244_RELEASE_CONTRACT_OWNER_6_PARENT_7_ADMIN_9_SETTINGS_9_MANAGER_PARENT_23",
-      "releaseEligibility": "BLOCKED_PENDING_FRESH_V5_VISUAL_EVIDENCE_BUILD_AND_EXACT_HEAD_CI",
+      "localVerification": "PASS_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_DOMAIN_46_SECURITY_ISOLATION_50_MIGRATIONS_257_RELEASE_CONTRACT_MANAGER_PARENT_23_MANAGEMENT_DASHBOARDS_9_OWNER_COMMAND_CENTER_6_LEGACY_CONSOLIDATION_8_PRIMARY_CAPTURE_10_DOMAIN_REGRESSION_32_V5_PACKAGE_21_0_0",
+      "releaseEligibility": "READY_FOR_DEVELOPMENT_PR_NOT_PRODUCTION_RELEASE",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After PUSH 38 explicitly releases host isolation, reconcile the latest integration head, run the isolated Development stack, capture and inspect V5, finish all gates, update this ledger entry, then open and merge the PR to integration/development only. Do not touch main or Production and do not begin RELEASE-GAP-01."
+      "nextAction": "Push the exact validated branch, verify the remote head, open and merge the PR to integration/development after exact-head checks, then regenerate V5 evidence from the exact merged Development SHA. Do not touch main or Production and do not begin RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -1763,3 +1763,18 @@ invalidate that qualification. Read-only heartbeat `ux-v5` monitors release of
 the host and performs no code, Git, PR or merge action. No visual PASS, owner
 approval or Development integration is claimed. Production, `main` and
 RELEASE-GAP-01 remain untouched.
+
+UX-V4 PRIMARY-SCREEN CORRECTION validation update (2026-10-25): source
+Development `af30b84f21a35e817738bf0329cf1a632a10a5ae` was merged into the
+isolated feature branch. Implementation commit
+`e85eda2a62c5d988ac5790d843a14fce9bcb766b` and evidence commit `72281329`
+produce the five primary compositions, 10 fresh primary screenshots, 32 fresh
+domain-regression screenshots and a V5 package with 21
+`REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION`, 0 `BROKEN`.
+Typecheck, zero-regression lint, build, Domain 46/46, Security/Isolation 50/50,
+257-migration health, release contract, Manager/Parent 23/23, management
+dashboards 9/9, Owner command center 6/6 and legacy consolidation 8/8 pass.
+External owner acceptance remains pending; no owner approval is claimed. The
+branch still requires remote preservation, exact-head PR checks and merge to
+`integration/development`. Production, `main` and RELEASE-GAP-01 remain
+untouched.
