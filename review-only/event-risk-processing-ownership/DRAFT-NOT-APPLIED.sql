@@ -94,7 +94,12 @@ CREATE TABLE public.observer_event_risk_effect_plans (
   incident_id uuid NOT NULL,
   risk_evaluation_id uuid NOT NULL,
   recipient_settings_version text NOT NULL,
+  recipient_policy_version text NOT NULL,
+  decision_code text NOT NULL,
+  recipient_snapshot_schema_version integer NOT NULL,
+  recipient_snapshot_captured_at timestamptz NOT NULL,
   recipient_snapshot jsonb NOT NULL,
+  recipient_snapshot_fingerprint text NOT NULL,
   recipient_snapshot_digest text NOT NULL,
   expected_fingerprints jsonb NOT NULL,
   media_fault_audit_required boolean NOT NULL,
@@ -105,10 +110,20 @@ CREATE TABLE public.observer_event_risk_effect_plans (
     REFERENCES public.observer_event_risk_claims(signal_id, risk_engine_version),
   CONSTRAINT observer_event_risk_plan_digest_check
     CHECK (recipient_snapshot_digest ~ '^[a-f0-9]{64}$'),
+  CONSTRAINT observer_event_risk_plan_fingerprint_check
+    CHECK (recipient_snapshot_fingerprint ~ '^[a-f0-9]{64}$'
+      AND recipient_snapshot_schema_version = 1),
   CONSTRAINT observer_event_risk_plan_json_check
-    CHECK (jsonb_typeof(recipient_snapshot) = 'array'
+    CHECK (jsonb_typeof(recipient_snapshot) = 'object'
       AND jsonb_typeof(expected_fingerprints) = 'object')
 );
+
+-- The PK allows one immutable plan/snapshot per (signal_id, engine_version).
+-- Shape and fingerprint CHECKs alone do NOT prove that a caller supplied
+-- canonical content or authorized recipients. A future fenced RPC must
+-- derive/recompute the content and reject any semantic replacement. Node's
+-- JSON.stringify hash and PostgreSQL jsonb rendering are not interchangeable
+-- without a separately qualified canonical serialization contract.
 
 CREATE TABLE public.observer_event_risk_effect_receipts (
   signal_id uuid NOT NULL,

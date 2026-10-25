@@ -166,6 +166,11 @@ unchanged. The four exact RPC signatures remain SQL BLOCKED until canonical
 payload shapes, recipient snapshot schema, transactional row/effect mapping
 and historical Model A ownership are independently qualified.
 
+The additional event-time ownership reader, immutable schema-v1 recipient
+snapshot and local completion-plan validator are specified in
+`OWNERSHIP-SNAPSHOT-COMPLETION.md`. They narrow the forward SQL contract but
+do not turn the four blocked SQL bodies into deployable functions.
+
 ## Local validation receipt
 
 - The original 5 focused Node test groups and 5 new four-write synthetic

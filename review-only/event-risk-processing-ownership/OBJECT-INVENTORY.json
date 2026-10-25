@@ -176,7 +176,7 @@
     },
     {
       "name": "public.observer_event_risk_effect_plans", "type": "table", "state": "PROPOSED_GUARDED",
-      "columns": ["signal_id uuid", "risk_engine_version text", "tenant_id uuid", "observer_site_id uuid", "incident_id uuid", "risk_evaluation_id uuid", "recipient_settings_version text", "recipient_snapshot jsonb", "recipient_snapshot_digest text", "expected_fingerprints jsonb", "media_fault_audit_required boolean"],
+      "columns": ["signal_id uuid", "risk_engine_version text", "tenant_id uuid", "observer_site_id uuid", "incident_id uuid", "risk_evaluation_id uuid", "recipient_settings_version text", "recipient_policy_version text", "decision_code text", "recipient_snapshot_schema_version integer", "recipient_snapshot_captured_at timestamptz", "recipient_snapshot jsonb", "recipient_snapshot_fingerprint text", "recipient_snapshot_digest text", "expected_fingerprints jsonb", "media_fault_audit_required boolean"],
       "keys": ["PK(signal_id,risk_engine_version)", "FK(signal_id,risk_engine_version)->observer_event_risk_claims"],
       "source": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
       "runtime": "lib/domain/digital-observer/event-risk-recovery.ts (disabled interface only)",
