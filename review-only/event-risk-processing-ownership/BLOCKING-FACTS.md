@@ -7,15 +7,21 @@ future verification requires its own bounded authorization; none was run.
 
 Read-only host inspection observed an `ssh` process (PID 44976) listening on
 `*:56422`; its established connection leads to `127.0.0.1:64084`, where a
-`limactl` process (PID 44950) listens. `supabase/config.toml` declares 56422
-as the Development DB port, but that file does not identify the SSH forwarding
-destination or prove the running VM/database identity. A request for full
-process metadata was denied by the host (`ps: operation not permitted`), so
-the forwarding configuration, exact Lima/Colima profile, and Production
-exclusion remain **UNVERIFIED**. No database connection or SQL was attempted.
-Do not use this endpoint for catalog inspection until an authorized, read-only
-receipt establishes local port → SSH forward → exact VM destination → original
-isolated Development database identity without exposing credentials.
+`limactl` user-network process (PID 44950) listens. `supabase/config.toml`
+declares 56422 as the `gan-batuach-push38t` DB port; that declaration alone
+does not identify a running database. After owner approval for process
+inspection, the SSH process's open Unix sockets were observed under
+`.colima/_lima/colima-push38t/` and `.colima/push38t/`. The distinct original
+`.colima/_lima/colima-gbi/` and `.colima/gbi/` profile directories also exist.
+Thus this forwarding process belongs to **push38t, not the original gbi
+profile**. The inner SSH forward destination/database identity was not
+exposed by the available sanitized process metadata; Production exclusion is
+still **NOT PROVEN**. The first unrestricted `ps` request was denied; the
+owner-approved restricted metadata check did not reveal a forwarding target.
+No database connection or SQL was attempted. Do not use `56422` for the
+original-gbi catalog inspection. A future authorized, read-only receipt must
+establish a different endpoint → exact gbi VM → original isolated Development
+database identity without exposing credentials.
 
 | # | Missing fact / inspected source | Why source is insufficient; affected contract | Future authorized verification; owner approval? |
 | --- | --- | --- | --- |
