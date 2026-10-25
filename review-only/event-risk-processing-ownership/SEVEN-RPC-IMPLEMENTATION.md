@@ -9,6 +9,10 @@ an ordered migration or an activation. No SQL in this task was executed.
 Exact signatures are pinned in `OBJECT-INVENTORY.json` and
 `PERMISSIONS-AND-RPCS.md`. The first, second and seventh have **proposed
 offline bodies** in `RPC-BODIES-NOT-APPLIED.sql`, behind an aborting guard.
+`FOUR-WRITER-SOURCE-TRANSACTION-MAP.md` now maps the other four operations
+to exact source fields and transactional dependencies; the disconnected
+`event-risk-source-row-map.ts` compares a supplied Risk-shaped row but cannot
+certify a persisted database row. Their SQL bodies remain BLOCKED.
 They are *not deployable*: the proposed Home/customer Tenant mapping has not
 been independently reconciled and the new claim schema is absent. A body
 being present is not PostgreSQL qualification.

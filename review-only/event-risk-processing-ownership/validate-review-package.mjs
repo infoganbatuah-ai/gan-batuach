@@ -26,6 +26,9 @@ const ownershipSnapshot = readFileSync(new URL("../../lib/domain/digital-observe
 const completionReview = readFileSync(new URL("OWNERSHIP-SNAPSHOT-COMPLETION.md", directory), "utf8");
 const snapshotCompatibility = readFileSync(new URL("SNAPSHOT-PERSISTENCE-COMPATIBILITY.md", directory), "utf8");
 const finalReview = readFileSync(new URL("FINAL-MIGRATION-REVIEW.md", directory), "utf8");
+const fourWriterMap = readFileSync(new URL("FOUR-WRITER-SOURCE-TRANSACTION-MAP.md", directory), "utf8");
+const localRiskRowComparator = readFileSync(new URL("../../lib/domain/digital-observer/event-risk-source-row-map.ts", directory), "utf8");
+const localRiskRowTests = readFileSync(new URL("../../scripts/qa/check-event-risk-source-row-map-local.mjs", directory), "utf8");
 
 const executable = text => text.split("\n").filter(line => !line.trimStart().startsWith("--")).join("\n");
 const draftExecutable = executable(draft);
@@ -63,7 +66,15 @@ for (const name of ["persist_event_risk_v1", "start_event_risk_effects_v1",
   "record_event_risk_effect_v1", "complete_event_risk_v1"]) {
   assert.doesNotMatch(rpcExecutable, new RegExp(`CREATE FUNCTION public\\.${name}\\(`));
   assert.match(implementation, new RegExp(`${name}[\\s\\S]*?BLOCKED`));
+  assert.match(fourWriterMap, new RegExp(`## ${name} — source-mapped; SQL BLOCKED`));
 }
+assert.match(fourWriterMap, /No SQL\/RPC was executed/);
+assert.match(fourWriterMap, /retention and legal-hold/);
+assert.match(localRiskRowComparator, /export function compareSuppliedRiskRowForReview/);
+assert.match(localRiskRowComparator, /assertFencedWrite\(state, context\)/);
+assert.match(localRiskRowComparator, /isDeepStrictEqual\(suppliedRow\[column\], value\)/);
+assert.doesNotMatch(localRiskRowComparator, /\b(?:createClient|db\.from|db\.rpc|fetch\()\b/);
+assert.match(localRiskRowTests, /SOURCE_ROW_SEMANTIC_MATCH_ONLY/);
 assert.equal((rpcExecutable.match(/REVOKE ALL ON FUNCTION public\./g) ?? []).length, 3);
 assert.equal((rpcExecutable.match(/GRANT EXECUTE ON FUNCTION public\./g) ?? []).length, 3);
 assert.doesNotMatch(aclExecutable, /\b(?:ALTER DEFAULT PRIVILEGES|CREATE FUNCTION|DROP FUNCTION)\b/i);
@@ -116,6 +127,7 @@ assert.doesNotMatch(route, /claim_event_risk_v1|persist_event_risk_v1|complete_e
 assert.doesNotMatch(route, /model-a-ownership|event-risk-recovery/);
 assert.doesNotMatch(route, /event-risk-fenced-writes/);
 assert.doesNotMatch(route, /event-risk-ownership-snapshot/);
+assert.doesNotMatch(route, /event-risk-source-row-map/);
 for (const functionName of ["persistFencedRisk", "startFencedEffects", "recordFencedEffect", "completeFencedRisk"]) {
   assert.match(fencedWrites, new RegExp(`export function ${functionName}\\(`));
 }

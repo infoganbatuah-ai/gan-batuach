@@ -114,6 +114,10 @@ mismatched engine input; this does not replace database-level integrity.
 - `RPC-BODIES-NOT-APPLIED.sql`: abort-guarded acquisition, renewal and recovery
   proposals; four downstream RPC bodies remain BLOCKED.
 - `SEVEN-RPC-IMPLEMENTATION.md`: exact body/blocking matrix and completion contract.
+- `FOUR-WRITER-SOURCE-TRANSACTION-MAP.md`: source fields, current
+  multi-request writers, proposed transaction boundaries and missing facts
+  for the four still-blocked downstream RPC bodies. Its local Risk-row
+  comparator is not a PostgreSQL reread or durable-write proof.
 - `WATCH-RULE-ACL-NOT-APPLIED.sql` and its separate guarded rollback:
   exact-signature privilege proposal, never executed.
 - `RPC-CONTRACT.md`: exact server-only claim/persist inputs, outputs and

@@ -44,3 +44,38 @@ runtime activation BLOCKED**. The exact outstanding facts and future gates
 are in `FINAL-MIGRATION-REVIEW.md`, `BLOCKING-FACTS.md` and
 `FORWARD-AND-ROLLBACK.md`. Keep all prior commits; this increment must remain
 local and must not be mistaken for a remotely preserved development unit.
+
+## Subsequent four-writer source-map increment — 2026-10-25 18:41 UTC
+
+The later local task started from clean `17e7e2cdd0c9afc6c179b75a7e9bd7f0b1971283`
+on the same branch. Unlike the preceding review-only increment, it adds one
+**disconnected** TypeScript source-row comparator, one local synthetic test,
+`FOUR-WRITER-SOURCE-TRANSACTION-MAP.md`, and narrow package-documentation and
+static-containment updates. The final local SHA is reported after commit. No
+database connection, SQL execution (even SELECT), service start, migration,
+active route change, provider action, remote push or PR update was performed.
+
+Fresh checks for this increment:
+
+| Check | Result | Boundary |
+| --- | --- | --- |
+| `node scripts/qa/check-event-risk-source-row-map-local.mjs` | PASS, 4/4 groups | Supplied synthetic Risk-shaped rows only; each mapped field is changed/removed in a negative case. No committed-row proof. |
+| `node scripts/qa/check-event-risk-fenced-writes-local.mjs` | PASS, 5/5 | Existing disconnected fence/claim synthetic regression; no PostgreSQL transaction proof. |
+| Focused `tsc --ignoreConfig --noEmit --strict ... event-risk-source-row-map.ts` | PASS | Changed TypeScript and imported local types only; not whole-project typecheck. |
+| Focused ESLint of comparator, its test and package validator | PASS | Changed executable local files only. |
+| `node review-only/event-risk-processing-ownership/validate-review-package.mjs` | PASS | Static abort guards, three proposed/four absent RPC bodies, exact ACL scope and route disconnection. It never parses or executes SQL. |
+| `git diff --cached --check` and explicit staged-file review | PASS | Text integrity and scope only; no runtime or database proof. |
+
+The first test run needed a local `.js`→`.ts` resolver for existing Node TS
+imports; after that correction it passed. An initial focused TypeScript
+invocation omitted `--ignoreConfig`, and a second used incompatible NodeNext
+module settings; the final focused command above passed. These local command
+configuration failures did not touch product/runtime state.
+
+Result: **four downstream operations are source-mapped, but all four SQL
+bodies remain BLOCKED and the migration is NOT READY TO APPLY**. Next facts:
+trusted event-time Home Tenant authority, generated Risk ID/pre-write scope,
+full PostgreSQL row-equivalence, immutable decision-time plan producer,
+composite Tenant/Site keys, atomic target-row/receipt/audit writes, Incident-wide
+CAS, retention/legal-hold decisions, and an approved isolated PostgreSQL
+qualification. A local comparison cannot establish committed database state.
