@@ -1,5 +1,10 @@
 # Push-token binding: database gate (proposal only)
 
+The newer guarded SQL candidate and exact future isolated PostgreSQL gates
+are in [IMPLEMENTATION-QUALIFICATION.md](IMPLEMENTATION-QUALIFICATION.md).
+The broader partial-index suggestion below is historical; the current
+candidate is Observer-only and must not change shared Management rows.
+
 This is source-only qualification. No SQL has been executed or added to
 `supabase/migrations`; no Development or Production schema has changed.
 
