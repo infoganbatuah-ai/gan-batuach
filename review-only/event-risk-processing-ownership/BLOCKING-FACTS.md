@@ -62,6 +62,15 @@ ownership and actor rule plus retention/audit specification. Only then may a
 separately approved isolated clone/migration trial qualify new schema and
 concurrency. No SQL writes or clone were authorized by this read.
 
+Later offline follow-up: the owner-approved Model A direction is reflected in
+the disconnected Home-type Site scope and a strict owner-only predicate. The
+redundant logical `homeId` is removed. The OWNER predicate checks only
+trusted-reader outputs; it has **no deployed session reader or transactional
+store**, so authenticated-owner proof and actual role/RLS behavior are still
+unqualified. Cross-owner/Tenant transfer and Platform Admin remain denied.
+This narrows the implementation gap without resolving immutable acceptance,
+audit/retention, historical authority or the four blocked Risk writers.
+
 ## Prospective Home Event authority options — source inventory, no selection
 
 The active `cloud-events/route.ts:35-45,68-85` authenticates a Gateway,

@@ -5,7 +5,6 @@ import type { ModelAOwnershipReader } from "./model-a-ownership.js";
 export type HomeRegistrationScope = Readonly<{
   registrationId: string;
   version: number;
-  homeId: string;
   tenantId: string;
   siteId: string;
   sourceId: string;
@@ -41,18 +40,20 @@ export type EventBoundRegistration = HomeRegistrationScope & Readonly<{
   auditRef: string;
 }>;
 export type TrustedRegistrationFacts = Readonly<{
-  homeId: string;
   tenantId: string;
+  tenantOwnerProfileId: string;
   siteId: string;
+  siteTenantId: string | null;
+  siteOwnerProfileId: string | null;
+  siteType: string;
+  siteGardenId: string | null;
+  siteActive: boolean;
   sourceId: string;
+  sourceSiteId: string;
   ownerProfileId: string;
-  homeActive: boolean;
+  ownerProfileActive: boolean;
   tenantActive: boolean;
-  siteIsHome: boolean;
-  sourceAssignedToSite: boolean;
-  siteOwnedByTenant: boolean;
-  tenantOwnedByProfile: boolean;
-  contradictoryAssociation: boolean;
+  tenantStatus: string;
 }>;
 export type VerifiedActorAuthority = Readonly<{
   actorId: string;
@@ -80,22 +81,67 @@ export interface TrustedHomeRegistrationStore {
   bindEvent(accepted: AcceptedEvent, registration: QualifiedRegistration): Promise<EventBoundRegistration>;
 }
 export interface TrustedHomeActorResolver {
-  // Resolve verified server session and independent owner/platform authority.
-  // Client-provided role/email are never sufficient.
-  authorizeRegistration(actorId: string, candidate: RegistrationCandidate): Promise<VerifiedActorAuthority | null>;
+  // Only a trusted server-side reader may supply session facts; an arbitrary
+  // object or test fake is not authentication evidence. Platform Admin is not
+  // qualified by this disconnected contract.
+  authorizeRegistration(actorId: string, candidate: RegistrationCandidate,
+    facts: TrustedRegistrationFacts): Promise<VerifiedActorAuthority | null>;
+}
+
+/** The future reader must verify the real Auth user and current session, then
+ * return the active canonical profile. It must never read identity from JSON,
+ * email, a client role, or a caller-supplied admin boolean. */
+export type TrustedHomeOwnerSession = Readonly<{
+  authenticatedUserId: string;
+  sessionAuthenticated: boolean;
+  sessionActive: boolean;
+  profileId: string;
+  profileActive: boolean;
+  evidenceRef: string;
+}>;
+export interface TrustedHomeOwnerSessionReader {
+  sessionForActor(actorId: string): Promise<TrustedHomeOwnerSession | null>;
+}
+
+/** Disconnected OWNER predicate; the reader is deliberately not implemented
+ * or wired to the application. The transactional store must recheck current
+ * ownership and the session before committing a qualification. */
+export function ownerOnlyHomeActorResolver(reader: TrustedHomeOwnerSessionReader): TrustedHomeActorResolver {
+  return {
+    async authorizeRegistration(actorId, candidate, facts) {
+      const session = await reader.sessionForActor(actorId);
+      if (!session || !session.sessionAuthenticated || !session.sessionActive || !session.profileActive
+        || !populated(actorId, session.authenticatedUserId, session.profileId, session.evidenceRef)
+        || session.authenticatedUserId !== actorId || session.profileId !== actorId
+        || actorId !== candidate.ownerProfileId
+        || !trustedFactsMatch(candidate, facts)) return null;
+      return Object.freeze({ actorId, ownerProfileId: actorId, authorized: true,
+        basis: "HOME_OWNER", evidenceRef: session.evidenceRef });
+    }
+  };
 }
 
 function populated(...values: readonly string[]): boolean {
   return values.every(value => typeof value === "string" && value.trim() === value && value.length > 0);
 }
+function trustedFactsMatch(candidate: RegistrationCandidate, facts: TrustedRegistrationFacts): boolean {
+  return facts.tenantActive && facts.tenantStatus === "active"
+    && facts.siteActive && facts.ownerProfileActive
+    && facts.siteType === "home" && facts.siteGardenId === null
+    && facts.tenantId === candidate.tenantId && facts.siteId === candidate.siteId
+    && facts.sourceId === candidate.sourceId && facts.ownerProfileId === candidate.ownerProfileId
+    && facts.siteTenantId === candidate.tenantId && facts.sourceSiteId === candidate.siteId
+    && facts.tenantOwnerProfileId === candidate.ownerProfileId
+    && facts.siteOwnerProfileId === candidate.ownerProfileId;
+}
 function sameScope(a: HomeRegistrationScope, b: HomeRegistrationScope): boolean {
   return a.registrationId === b.registrationId && a.version === b.version
-    && a.homeId === b.homeId && a.tenantId === b.tenantId && a.siteId === b.siteId
+    && a.tenantId === b.tenantId && a.siteId === b.siteId
     && a.sourceId === b.sourceId && a.ownerProfileId === b.ownerProfileId;
 }
 function assertScope(scope: HomeRegistrationScope): void {
   if (!Number.isSafeInteger(scope.version) || scope.version < 1 || !populated(scope.registrationId,
-    scope.homeId, scope.tenantId, scope.siteId, scope.sourceId, scope.ownerProfileId)) {
+    scope.tenantId, scope.siteId, scope.sourceId, scope.ownerProfileId)) {
     throw new Error("HOME_REGISTRATION_SCOPE_INVALID");
   }
 }
@@ -114,22 +160,21 @@ export async function qualifyProspectiveHomeRegistration(input: {
   }
   assertScope(candidate);
   const facts = await input.store.facts(candidate.sourceId);
-  if (!facts || !facts.homeActive || !facts.tenantActive || !facts.siteIsHome
-    || !facts.sourceAssignedToSite || !facts.siteOwnedByTenant || !facts.tenantOwnedByProfile
-    || facts.contradictoryAssociation || facts.homeId !== candidate.homeId
-    || facts.tenantId !== candidate.tenantId || facts.siteId !== candidate.siteId
-    || facts.sourceId !== candidate.sourceId || facts.ownerProfileId !== candidate.ownerProfileId) {
+  if (!facts || !trustedFactsMatch(candidate, facts)) {
     throw new Error("HOME_REGISTRATION_AUTHORITY_UNVERIFIED");
   }
   const current = await input.store.current(candidate.sourceId);
-  if (current && (candidate.version !== current.version + 1 || !populated(current.auditRef))) {
+  if (current && (current.state !== "QUALIFIED" || current.registrationId !== candidate.registrationId
+    || candidate.version !== current.version + 1 || !populated(current.auditRef)
+    || current.tenantId !== candidate.tenantId || current.siteId !== candidate.siteId
+    || current.sourceId !== candidate.sourceId || current.ownerProfileId !== candidate.ownerProfileId)) {
     throw new Error("HOME_REGISTRATION_VERSION_CONFLICT");
   }
   if (!current && candidate.version !== 1) throw new Error("HOME_REGISTRATION_VERSION_CONFLICT");
-  const actor = await input.actorResolver.authorizeRegistration(input.actorId, candidate);
+  const actor = await input.actorResolver.authorizeRegistration(input.actorId, candidate, facts);
   if (!actor?.authorized || actor.actorId !== input.actorId
     || actor.ownerProfileId !== candidate.ownerProfileId
-    || !["HOME_OWNER", "PLATFORM_ADMIN"].includes(actor.basis)
+    || actor.basis !== "HOME_OWNER"
     || !populated(actor.evidenceRef)) throw new Error("HOME_REGISTRATION_ACTOR_DENIED");
   const qualified = await input.store.qualify(candidate, actor);
   if (qualified.state !== "QUALIFIED" || !sameScope(qualified, candidate)

@@ -42,12 +42,15 @@ test("each future case has a bounded falsifiable result, not a PASS claim", () =
   }
 });
 
-test("source-grounded authority notes keep logical Home ID and broad admin unresolved", () => {
-  assert.match(proposal, /homeId` is a logical contract field/);
+test("source-grounded authority notes use canonical Home Site and keep broad admin unresolved", () => {
+  assert.match(proposal, /redundant logical `homeId` has been removed/);
+  assert.doesNotMatch(sourceContract, /homeId/);
   assert.match(proposal, /Platform Admin candidate/);
   assert.match(proposal, /not a fresh health/i);
   assert.match(proposal, /no new DDL\/RPC bodies are presented as executable/);
   assert.match(sourceContract, /export interface TrustedHomeRegistrationStore/);
+  assert.match(sourceContract, /export function ownerOnlyHomeActorResolver/);
+  assert.match(sourceContract, /actor\.basis !== "HOME_OWNER"/);
   assert.match(sourceContract, /acceptedEvent\(eventId: string\)/);
 });
 

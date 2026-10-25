@@ -57,6 +57,18 @@
     "cloneCreatedOrSqlWritten": false,
     "qualification": "Authorization A complete for bounded current-state read only; registration schema, authority resolver and Risk writers remain blocked"
   },
+  "homeRegistrationLocalContract": {
+    "evidenceClass": "LOCAL_PREDICATE_IMPLEMENTED_NOT_DEPLOYED",
+    "canonicalHomeLocation": "observer_sites.id with site_type=home; no distinct approved Home entity",
+    "logicalHomeIdRemoved": true,
+    "ownerOnlyResolver": "disconnected trusted-session and exact organization/Site/Source owner predicate",
+    "platformAdminRegistration": "DENIED_UNQUALIFIED",
+    "crossOwnerOrCrossTenantTransfer": "DENIED_UNQUALIFIED",
+    "historicalOwnerAuthority": "UNVERIFIED",
+    "realSessionReaderAndTransactionalStore": "NOT_IMPLEMENTED",
+    "riskWriters": "FOUR_BLOCKED",
+    "databaseOrRuntimeChange": false
+  },
   "objects": [
     {
       "name": "public.digital_observer_organizations", "type": "table", "state": "EXISTING",

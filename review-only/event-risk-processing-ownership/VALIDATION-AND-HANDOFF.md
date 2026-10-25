@@ -214,7 +214,8 @@ This increment adds a candidate-target/identity and two-permission gate to
 PostgreSQL matrix, and a five-group **static-only** containment checker. No
 clone was identified or created. Existing gbi/55422 identity is local config
 plus historical evidence, not a fresh health check; push38t/56422 is excluded.
-`homeId` and the narrow Platform Admin predicate lack deployed proof, so no
+The then-present logical `homeId` and narrow Platform Admin predicate lacked
+deployed proof; the redundant `homeId` has since been removed locally, but no
 registration DDL/RPC body is presented as ready to apply. Risk SQL abort guard,
 four blocked downstream writers, active route and notifications are unchanged.
 
@@ -259,3 +260,40 @@ remotely preserved under the task's explicit no-push boundary. Handoff to
 the future authorized Home identity/retention decision owner, then a
 separately approved isolated-clone implementation reviewer; no runtime
 adapter or activation is permitted.
+
+## Offline Home Site/OWNER scope closure — 2026-10-25
+
+Source review of `observer_sites`, the Home onboarding route and the bounded
+gbi receipt establishes the **current canonical Home location** as
+`observer_sites.id` with `site_type='home'`; no distinct approved Home entity
+was found. The duplicate logical `homeId` was removed from the disconnected
+contract. Tenant, Site, owner profile and Source remain separately bound;
+multiple Sites per Tenant are allowed. This does not turn two current Home
+rows into historical proof or a unique customer rule.
+
+The new `ownerOnlyHomeActorResolver` is a **local predicate** over a
+server-trusted session-reader port and exact canonical ownership facts.
+Authenticated/active session, active owner profile, active organization and
+Home Site, no Garden link, Source→Site, Site→Tenant and matching organization/
+Site/account owners are all required. Installing a Source, an email, role,
+billing or recipient label does not authorize registration. Platform Admin
+is explicitly denied; cross-owner/Tenant transfer is explicitly denied.
+Same-owner version renewal preserves the original Event binding. No real
+session reader, immutable registration store, transactional recheck or
+active route was implemented, so **DEPLOYED AUTHORITY UNQUALIFIED**.
+
+Fresh local validation for this increment: 25/25 focused domain/static/
+Model A test groups PASS; focused strict TypeScript PASS; focused ESLint PASS.
+The full-tree TypeScript check is **BLOCKED** by absent Capacitor packages in
+unmodified `observer-mobile-runtime.tsx` in this worktree, not reported as
+a full PASS. The future 14-case PostgreSQL matrix remains **NOT RUN**; no SQL,
+clone, service, provider or runtime action occurred in this increment. Risk
+SQL guards and four downstream writer blocks remain unchanged.
+
+Next implementation owner: verify a real server-side current-session reader
+and canonical row provenance, plus a reviewed immutable receipt/audit and
+retention design. A separate approved isolated PostgreSQL trial is required
+for role/RLS, atomic CAS, race, recovery and lossless rollback behavior.
+No general Model A/owner policy re-decision is requested. This branch remains
+local under the explicit no-push boundary, so remote preservation and
+integration are **PENDING**, not PASS.

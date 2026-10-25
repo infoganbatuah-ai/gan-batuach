@@ -11,6 +11,7 @@ turn the current nullable Site organization reference into authority.
 | --- | --- | --- |
 | `20260820010000_digital_observer_product_runtime.sql` | Organization `id`, `owner_profile_id`; nullable `observer_sites.digital_observer_organization_id`; Source `observer_site_id` | One customer per Tenant, immutable ownership, event-time authority, or authorized actor at transfer |
 | `20260603003000_digital_observer_multisite_foundation.sql` | Site has `owner_profile_id` | That Site owner, organization owner and Home owner are always the same person |
+| `app/api/digital-observer/onboarding/route.ts` | Home onboarding selects `site_type='home'` and creates an `observer_sites` row | A separate persistent Home entity or immutable customer/owner history |
 | `app/api/digital-observer/cameras/route.ts` | Source creation checks a Site-manage session and stores `created_by` | `created_by` is not a Home ownership attestation; `profile.role` is not a registration-authority proof |
 | `app/api/digital-observer/software-connector/route.ts` | Connector creates a Site-scoped Source and records a registering actor | Registration actor need not be Home owner; source metadata is mutable |
 | `app/api/video-gateway/cloud-events/route.ts` | Gateway/Source/Site checks and accepted Signal identity | Site select omits Tenant; Signal timestamp is camera-supplied; no immutable registration-version receipt |
@@ -19,19 +20,23 @@ turn the current nullable Site organization reference into authority.
 `lib/domain/digital-observer/home-registration-ownership.ts` is a **disconnected
 port and validation layer**, not an adapter to the deployed schema. It keeps
 the registering actor separate from the authorized owner/Platform Admin. The
-actor resolver must be implemented with a verified server session and a
-separately qualified owner/platform-authority source; accepting a client role,
-email, Site membership or mutable metadata would violate the contract.
+disconnected OWNER resolver checks server-resolved active session/profile and
+exact canonical organization/Site/Source owner facts; it is not wired to an
+actual authenticated reader or transactional store. The Platform Admin branch
+is deliberately denied. Client role, email, Site membership, billing role,
+recipient state or mutable metadata cannot certify authority.
 
 ## Future atomic persistence boundary (proposed, not present)
 
-1. A CANDIDATE has exact Home, Tenant, Site, Source, owner profile,
+1. A CANDIDATE has exact Tenant, Home-type Site, Source, owner profile,
    registering actor, registration ID and positive version. It grants nothing.
-2. Qualification reads authoritative Home/customer/Site/Source relationships,
+2. Qualification reads authoritative customer/Site/Source relationships,
    checks active state and contradictions, verifies a distinct actor's authority,
    then atomically CASes the Source registration version and commits an
-   immutable authorization/audit receipt. Owner transfer requires a new version;
-   the old version and audit remain readable. Concurrent or ambiguous transfers
+   immutable authorization/audit receipt. The local predicate allows a new
+   version only within the same Tenant, Site, Source and owner; cross-owner or
+   cross-Tenant transfer remains blocked pending a separately qualified process.
+   The old version and audit remain readable. Concurrent or ambiguous changes
    fail closed. Retention and legal-hold rules require separate approval.
 3. **At new Event acceptance**, a server transaction must check the current
    qualified registration and Site/Tenant relationship and atomically freeze
@@ -42,9 +47,10 @@ email, Site membership or mutable metadata would violate the contract.
 4. EVENT_BOUND links that exact acceptance receipt to the immutable qualified
    version, insert-if-absent with full semantic comparison, and commits binding
    and audit together. A retry returns the original link; it never rebinds to
-   the Source's current owner. This also permits a delayed first link after
-   legitimate reassignment, provided the original server acceptance receipt
-   already froze the version. Missing or contradictory history fails closed.
+   the Source's current version. This also permits a delayed first link after
+   an authorized same-owner version renewal, provided the original server
+   acceptance receipt already froze the version. Cross-owner reassignment is
+   not implemented. Missing or contradictory history fails closed.
 5. The local event-time reader validates acceptance, binding and registration
    history before returning Tenant/Site/Source/Event evidence. The Model A
    pre/post readers allow later Site or Source reassignment only when this
@@ -77,14 +83,16 @@ expand recipients from newer mutable settings. `notifications.ts` is unchanged.
 
 | Missing fact | Inspected source / insufficiency | Consequence | Future gate |
 | --- | --- | --- | --- |
-| Authoritative Home/customer cardinality and Platform Admin scope | Product runtime and enterprise identity migrations provide candidate organization and roles but no immutable Home registration authority | Actor resolver cannot safely certify an owner or delegated platform actor | Separate authorized Development catalog/row and policy review; owner signs off exact authority criteria |
+| Authoritative Home/customer history and Platform Admin scope | Current catalog/aggregates show two Home-type Sites with coherent current organization/owner links, but no registration version or historical authority; enterprise role sources are broader | Disconnected owner predicate is local only; deployed owner reader and delegated platform actor remain unqualified | Independently review trusted server reader/session, owner/transfer provenance and dedicated Platform Admin permission before deployment |
 | Durable server-acceptance/version ledger | Current `cloud-events/route.ts` inserts Signal and independently triggers Risk; no registration-version receipt | No trustworthy new-vs-historical distinction or event-time binding | Reviewed additive migration and atomic acceptance integration in isolated Development, separately authorized |
 | Source/Site transfer invariants and retention | Nullable and mutable links in reviewed migrations; no versioned history/retention policy | Unsafe reuse or loss of old replay authority | Review transfer process, uniqueness/CAS constraints, immutable history, retention/legal hold and rollback |
 | Physical PostgreSQL guarantees | Only disconnected synthetic tests ran | No concurrency, RLS or crash-durability proof | Authorized isolated PostgreSQL transaction/race/recovery test before any migration/activation |
 
-The local tests exercise the actual TypeScript transition/reader code with a
-synthetic store. They do not prove the future store faithfully implements the
-atomic port contract. No SQL was executed or database connection made.
+The original local tests exercised the TypeScript transition/reader code with
+a synthetic store. They did not prove the future store faithfully implements
+the atomic port contract. No SQL ran in that original increment; a later,
+separately authorized bounded READ ONLY catalog/aggregate inspection is
+recorded below.
 
 ## Isolated Development qualification preflight (source-only, 2026-10-25)
 
@@ -194,6 +202,42 @@ fenced Risk writers, and any clone/apply/activation remain **BLOCKED** pending
 an approved customer/owner authority rule, immutable acceptance/audit design,
 retention decision and separately authorized isolated PostgreSQL trial.
 
+### Source-grounded local Home Site and OWNER predicate — later offline increment
+
+The existing `observer_sites` table uses `site_type='home'`, and the Home
+onboarding route creates that Site row. Neither source nor the bounded catalog
+read establishes a second canonical Home entity. The disconnected scope
+therefore uses the Home `siteId` and removes its redundant `homeId`. Tenant,
+owner profile and camera Source remain separate identities. One organization
+may have multiple Sites; the two observed current Home Sites do not impose a
+global one-Home-per-Tenant uniqueness rule. Pilot/test Home tables are not
+promoted into the Product identity chain.
+
+The local `ownerOnlyHomeActorResolver` checks a trusted server-session reader's
+authenticated user, active session, active profile and nonempty evidence
+reference against the candidate owner. The qualification predicate separately
+requires active organization/profile/Site, exact Source→Site and Site→Tenant
+IDs, `siteType='home'`, no Garden link, and matching organization owner,
+Site owner and candidate owner. The registering actor may be a different
+installer; it never gains approval authority from `created_by`. Missing or
+contradictory facts fail closed. A new version is allowed only for the same
+Tenant/Site/Source/owner; cross-owner and cross-Tenant transfer remain denied.
+An existing Event keeps its immutable accepted version after same-owner
+renewal. The Platform Admin basis is rejected by the transition even if a
+caller returns that label; global `profiles.role`, `is_admin()`, application
+metadata, billing status or notification preferences do not authorize it.
+
+This is **LOCAL PREDICATE IMPLEMENTED**, not deployed authorization. No real
+session reader, registration store or transactional recheck is connected.
+An in-memory fake can exercise the predicate but cannot establish a genuine
+session, PostgreSQL RLS, immutable receipt or crash-safe qualification. The
+future server adapter must use the canonical session verification in
+`access.ts`, derive owner/Site/Source facts from trusted current rows, and
+atomically recheck them when committing a version and audit. Retention/legal
+hold, historical owner changes, dedicated Platform Admin provenance and
+cross-owner transfer procedure remain **UNQUALIFIED**. No active route or
+recipient path changed.
+
 ### Identity-source mapping and the exact gap
 
 | Concept | Current source-defined field/function | Why not yet registration authority |
@@ -203,16 +247,15 @@ retention decision and separately authorized isolated PostgreSQL trial.
 | Source registration actor | `digital_observer_camera_sources.created_by`; software connector route uses authenticated `session.profile.id` | Records who wrote source metadata, not who owns Home or may transfer it. |
 | Authenticated application actor | `getDigitalObserverApiUser` verifies `auth.getUser` plus `digital_observer_current_session_active`; `profiles.id/role/active` | This authenticates a principal, not Home registration authority. No client role string or email may supply it. |
 | Platform Admin candidate | `public.is_admin()` resolves active `profiles.role='admin'`; enterprise route `platformAdmin()` accepts that role **or** `user.app_metadata.digital_observer_admin`; `resolveEnterpriseActor` accepts a caller boolean as a bypass | This route-level predicate crosses app scopes and has no proven narrow Home-registration authority. `digital_observer_has_org_permission` also short-circuits through `is_admin()`. No existing label/boolean may be promoted to the new resolver without independent role/session/provenance review. |
-| Home identifier | `home_test_sites` and `home_camera_test_sites` are separate pilot/test tables; no verified FK to canonical organization/Site/Source acceptance | `HomeRegistrationScope.homeId` is a logical contract field, **not a deployed column**. Do not create a guessed FK or use test-home rows as the canonical customer. |
+| Home identifier | Canonical `observer_sites.id` with `site_type='home'` is the Home Site; `home_test_sites` and `home_camera_test_sites` are separate pilot/test tables with no canonical FK | The redundant logical `homeId` has been removed from the disconnected contract. Site ID is the Home location, not the customer Tenant or an immutable owner attestation. Do not create a guessed Home table/FK or use pilot rows as the canonical customer. |
 | Alert recipient | `notifications.ts` uses Site owner, authorized recipients and channel settings | Eligibility is independently governed; ownership cannot add a recipient or override a revoked preference. |
 
 The owner has approved the prospective *direction*, not a concrete existing
-Platform Admin predicate or real Home/customer cardinality. Minimum next
-read-only qualification must establish whether a canonical Home/customer key
-is the existing organization row, how owner and Site associations are proven,
-what validates `app_metadata`/profile admin provenance, and whether current
-server acceptance can be made transactional without losing accepted Events.
-If those facts remain missing, the SQL and privileged resolver stay BLOCKED.
+Platform Admin predicate or historical Home/customer cardinality. The bounded
+current-state read above supports the organization as a *candidate* Tenant and
+the Home-type Site as location; it cannot prove prior transfers, privileged
+actor provenance or transactional acceptance. The local owner predicate is
+not a deployed reader. SQL and the privileged resolver stay BLOCKED.
 
 ### Minimal proposed persistence delta — design only; no deployable SQL
 
@@ -232,7 +275,7 @@ recipient data is proposed. Data owner: Digital Observer; content: bounded
 operational IDs/authorization references, no media or secrets; retention and
 legal hold **unresolved**, so schema application is blocked.
 
-The exact `homeId` mapping, immutable audit target/atomicity, role provenance,
+The exact historical owner mapping, immutable audit target/atomicity, role provenance,
 table ownership, schema exposure and RLS/ACL are not source-proven. For that
 reason **no new DDL/RPC bodies are presented as executable or ready to apply**.
 The existing `DRAFT-NOT-APPLIED.sql` abort guard remains intact and covers
