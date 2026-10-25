@@ -12552,21 +12552,23 @@
       "sourceCommits": [
         "b9dac699",
         "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
-        "72281329"
+        "72281329535258f404dc75a7cd1779305113d932",
+        "0855814aea547b4b7098e3c8bfba76ac4f8a53c4",
+        "e0617705114940fba282209fb163a71a2d841eca"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-v4-primary-screen-correction@0855814aea547b4b7098e3c8bfba76ac4f8a53c4"
+          "origin/codex/ux-v4-primary-screen-correction@e0617705114940fba282209fb163a71a2d841eca"
         ],
-        "validatedRemoteHead": "0855814aea547b4b7098e3c8bfba76ac4f8a53c4",
+        "validatedRemoteHead": "e0617705114940fba282209fb163a71a2d841eca",
         "implementationCommit": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
-        "evidenceCommit": "72281329",
+        "evidenceCommit": "72281329535258f404dc75a7cd1779305113d932",
         "handoff": "GAN_BATUACH_V4_PRIMARY_SCREEN_CORRECTION_HANDOFF.md"
       },
       "validation": {
-        "status": "PASS_LOCAL_EXACT_HEAD_V5_21_REFERENCE_MATCH_CANDIDATE_0_NEEDS_VISUAL_CORRECTION_0_BROKEN",
+        "status": "PASS_POST_MERGE_EXACT_HEAD_V5_21_REFERENCE_MATCH_CANDIDATE_0_NEEDS_VISUAL_CORRECTION_0_BROKEN",
         "evidence": [
           "GAN_BATUACH_V4_PRIMARY_SCREEN_MAP.md",
           "GAN_BATUACH_V4_PRIMARY_GEOMETRY.json",
@@ -12574,16 +12576,17 @@
           "GAN_BATUACH_FINAL_OWNER_VISUAL_VERIFICATION_V5.md",
           "qa-evidence/v4-primary-reference-crops",
           "qa-evidence/v4-primary-screen-correction",
-          "qa-evidence/v5-domain-regression"
+          "qa-evidence/v5-domain-regression",
+          "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/gan-batuach-v5-merged-1d6bb1f5/owner-review-package"
         ],
         "limits": "Internal visual result is REFERENCE_MATCH_CANDIDATE only. External owner acceptance remains pending. The legacy qa:probe-role-boundaries harness was not used because it expects removed demo credentials; the current security/isolation gate passed 50/50 and current management scope contracts passed."
       },
       "integration": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "LOCAL_VERIFIED",
         "base": "integration/development",
-        "commit": null,
-        "pullRequest": null,
-        "requiredChecks": "PENDING_REMOTE_PR"
+        "commit": "1d6bb1f50e8efc87b241d81d0ae0f7b7f64c5a94",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/251",
+        "requiredChecks": "PASS_9_OF_9_EXACT_HEAD_E0617705_TREE_IDENTICAL_TO_MERGE_1D6BB1F5"
       },
       "dependencies": {
         "status": "SATISFIED",
@@ -12591,12 +12594,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_DOMAIN_46_SECURITY_ISOLATION_50_MIGRATIONS_257_RELEASE_CONTRACT_MANAGER_PARENT_23_MANAGEMENT_DASHBOARDS_9_OWNER_COMMAND_CENTER_6_LEGACY_CONSOLIDATION_8_PRIMARY_CAPTURE_10_DOMAIN_REGRESSION_32_V5_PACKAGE_21_0_0",
-      "releaseEligibility": "READY_FOR_DEVELOPMENT_PR_NOT_PRODUCTION_RELEASE",
+      "localVerification": "PASS_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_DOMAIN_46_SECURITY_ISOLATION_50_MIGRATIONS_257_RELEASE_CONTRACT_MANAGER_PARENT_23_MANAGEMENT_DASHBOARDS_9_OWNER_COMMAND_CENTER_6_LEGACY_CONSOLIDATION_8_POST_MERGE_PRIMARY_CAPTURE_10_POST_MERGE_DOMAIN_REGRESSION_32_POST_MERGE_V5_PACKAGE_21_0_0",
+      "releaseEligibility": "AWAITING_EXTERNAL_OWNER_VISUAL_ACCEPTANCE_NOT_PRODUCTION_RELEASE",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Push the exact validated branch, verify the remote head, open and merge the PR to integration/development after exact-head checks, then regenerate V5 evidence from the exact merged Development SHA. Do not touch main or Production and do not begin RELEASE-GAP-01."
+      "nextAction": "External owner visual review of the exact merged Development V5 package. Do not touch main or Production and do not begin RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -441,8 +441,8 @@
       "reviewNote": "Navigation, profile/account, security/preferences and Garden/subscription/integration columns are simultaneous on the primary Settings route; Mobile retains the approved single-column settings composition."
     }
   },
-  "measuredAt": "2026-10-25T21:25:01.495Z",
-  "actualBuild": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+  "measuredAt": "2026-10-25T22:12:42.400Z",
+  "actualBuild": "1d6bb1f50e8efc87b241d81d0ae0f7b7f64c5a94",
   "v5Review": {
     "owner-dashboard": {
       "geometryId": "owner-dashboard",
@@ -1170,5 +1170,5 @@
       "materialUnexplained": 0
     }
   },
-  "measuredAtV5Package": "2026-10-25T21:31:26.255Z"
+  "measuredAtV5Package": "2026-10-25T22:27:06.677Z"
 }
