@@ -157,7 +157,10 @@ export async function transitionPartnerCustomer(admin: Admin, input: { partnerId
   }
   const repeatRevocation = current.data.customer_status === input.status && input.status !== "active";
   if (!repeatRevocation) partnerCustomerTransition(current.data.customer_status, input.status);
-  const now = new Date().toISOString();
+  // Each activation is a distinct generation, even when suspension and reactivation share a millisecond.
+  const priorActivation = typeof current.data.activated_at === "string" ? new Date(current.data.activated_at).getTime() : NaN;
+  const now = new Date(input.status === "active" && Number.isFinite(priorActivation)
+    ? Math.max(Date.now(), priorActivation + 1) : Date.now()).toISOString();
   const fields = input.status === "active" ? { customer_status: input.status, activated_at: now, suspended_at: null, suspension_reason: null }
     : input.status === "suspended" ? { customer_status: input.status, suspended_at: now, suspension_reason: input.reason }
       : { customer_status: input.status, deprovisioned_at: now, suspension_reason: input.reason };
@@ -225,6 +228,9 @@ export async function issuePartnerEmbeddedSession(admin: Admin, input: { partner
   const partner = await currentEmbeddedSiteScope(admin, { partnerId: input.partnerId, customerId: input.customerId,
     siteId: input.siteId, organizationId: input.organizationId });
   if (!partner) throw new Error("PARTNER_EMBED_SCOPE_DENIED");
+  const customerActivation = typeof partner.customerActivatedAt === "string"
+    ? new Date(partner.customerActivatedAt).getTime() : NaN;
+  if (!Number.isFinite(customerActivation)) throw new Error("PARTNER_EMBED_SCOPE_DENIED");
   let origin: string;
   try { origin = validateEmbedOrigin(input.origin, Array.isArray(partner.allowed_embed_origins) ? partner.allowed_embed_origins : []); }
   catch { throw new Error("PARTNER_EMBED_ORIGIN_DENIED"); }
@@ -233,7 +239,8 @@ export async function issuePartnerEmbeddedSession(admin: Admin, input: { partner
     partner_customer_id: input.customerId, observer_site_id: input.siteId, token_hash: token.hash, token_prefix: token.prefix,
     audience: input.audience, allowed_origin: origin, scopes: input.scopes, expires_at: token.expiresAt,
     issued_by_profile_id: input.actorId ?? null, issued_by_service_account_id: input.serviceAccountId ?? null,
-    metadata: { production: false, long_lived_secret: false } }).select("id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at").single();
+    metadata: { production: false, long_lived_secret: false, customer_activation_epoch_ms: customerActivation } })
+    .select("id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at").single();
   if (session.error) throw new Error("PARTNER_EMBED_SESSION_FAILED");
   await audit(admin, { organizationId: input.organizationId, actorId: input.actorId, serviceAccountId: input.serviceAccountId,
     resourceType: "embedded_session", resourceId: session.data.id, action: "embedded_session.issue", correlationId: input.correlationId,
@@ -325,7 +332,7 @@ export async function authorizePartnerDelegatedSite(admin: Admin, input: { servi
 export async function authenticateEmbeddedSession(admin: Admin, input: { token: string; origin: string | null; audience: string; requiredScope: EmbeddedScope }) {
   if (typeof input.token !== "string" || !input.token.startsWith("doemb_")) throw new Error("EMBEDDED_AUTH_REQUIRED");
   const result = await (admin as any).from("digital_observer_embedded_sessions")
-    .select("id,partner_id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at,revoked_at,created_at")
+    .select("id,partner_id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at,revoked_at,metadata")
     .eq("token_hash", hashEmbeddedToken(input.token, pepper())).maybeSingle();
   const row = result.data as any;
   const expiresAt = new Date(row?.expires_at).getTime();
@@ -342,11 +349,11 @@ export async function authenticateEmbeddedSession(admin: Admin, input: { token: 
   if (!partner || !Array.isArray(partner.allowed_embed_origins) || !partner.allowed_embed_origins.includes(row.allowed_origin)) {
     throw new Error("EMBEDDED_SESSION_INACTIVE");
   }
-  // A suspension/reactivation changes activated_at. Even if a bulk revocation fails, a token
-  // issued before that activation cannot regain access. Equal millisecond timestamps fail closed.
-  const createdAt = typeof row.created_at === "string" ? new Date(row.created_at).getTime() : NaN;
+  // A token is bound to the customer's activation generation. Failed bulk revocation cannot
+  // revive an older token after reactivation, nor can a stale issuance read mint a new valid one.
   const activatedAt = typeof partner.customerActivatedAt === "string" ? new Date(partner.customerActivatedAt).getTime() : NaN;
-  if (!Number.isFinite(createdAt) || !Number.isFinite(activatedAt) || createdAt <= activatedAt) {
+  if (!Number.isFinite(activatedAt) || !Number.isSafeInteger(row.metadata?.customer_activation_epoch_ms)
+    || row.metadata.customer_activation_epoch_ms !== activatedAt) {
     throw new Error("EMBEDDED_SESSION_INACTIVE");
   }
   const usedAt = new Date().toISOString();

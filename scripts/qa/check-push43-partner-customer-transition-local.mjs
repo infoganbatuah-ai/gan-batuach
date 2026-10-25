@@ -40,7 +40,8 @@ function fixture() {
     organizations: [{ id: ids.partnerOrg, status: "active" }, { id: ids.customerOrg, status: "active" }],
     site: { id: ids.site, digital_observer_organization_id: ids.customerOrg, site_type: "home", garden_id: null },
     link: { partner_customer_id: ids.customer, observer_site_id: ids.site },
-    sessions: [], failRevocation: false, raceStatus: null, writes: { customer: 0, revoked: 0, audit: 0 }
+    sessions: [], failRevocation: false, raceStatus: null, beforeSessionInsert: null,
+    writes: { customer: 0, revoked: 0, audit: 0 }
   };
   const admin = { from(table) {
     const eq = new Map(); const is = new Map(); const ne = new Map(); const ins = new Map(); const gt = new Map();
@@ -57,6 +58,7 @@ function fixture() {
           assert.equal(operation, "insert"); state.writes.audit++; return { data: null, error: null };
         }
         if (table === "digital_observer_embedded_sessions" && operation === "insert") {
+          state.beforeSessionInsert?.();
           const row = { ...payload, id: `session-${state.sessions.length + 1}`, created_at: new Date().toISOString(), revoked_at: null };
           state.sessions.push(row); return { data: row, error: null };
         }
@@ -141,6 +143,19 @@ test("reactivation after failed revocation cannot revive old token", async () =>
   await transition(f, "active");
   assert.equal(f.state.sessions[0].revoked_at, null);
   await assert.rejects(() => auth(f, issued.token), /EMBEDDED_SESSION_INACTIVE/);
+  const replacement = await issue(f);
+  assert.equal((await auth(f, replacement.token)).id, replacement.session.id);
+});
+
+test("legacy tokens without activation binding and raced issuance fail closed", async () => {
+  const f = fixture(); const issued = await issue(f);
+  delete f.state.sessions[0].metadata.customer_activation_epoch_ms;
+  await assert.rejects(() => auth(f, issued.token), /EMBEDDED_SESSION_INACTIVE/);
+  f.state.beforeSessionInsert = () => {
+    f.state.customer.activated_at = new Date(Date.now() + 1_000).toISOString();
+  };
+  const raced = await issue(f);
+  await assert.rejects(() => auth(f, raced.token), /EMBEDDED_SESSION_INACTIVE/);
 });
 
 test("invalid activation marker and same-status active repeat fail closed", async () => {
