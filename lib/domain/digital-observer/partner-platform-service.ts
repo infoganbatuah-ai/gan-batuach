@@ -159,14 +159,41 @@ export async function savePartnerBrand(admin: Admin, input: { partnerId: string;
   return publicBrandProfile(saved.data);
 }
 
+async function currentEmbeddedSiteScope(admin: Admin, input: { partnerId: string; customerId: string; siteId: string; organizationId?: string }) {
+  const [partner, customer, site, linked] = await Promise.all([
+    (admin as any).from("digital_observer_partners").select("id,organization_id,partner_status,allowed_embed_origins")
+      .eq("id", input.partnerId).maybeSingle(),
+    (admin as any).from("digital_observer_partner_customers").select("id,partner_id,customer_organization_id,customer_status")
+      .eq("id", input.customerId).eq("partner_id", input.partnerId).maybeSingle(),
+    (admin as any).from("observer_sites").select("id,digital_observer_organization_id,site_type,garden_id")
+      .eq("id", input.siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle(),
+    (admin as any).from("digital_observer_partner_customer_sites").select("partner_customer_id,observer_site_id")
+      .eq("partner_customer_id", input.customerId).eq("observer_site_id", input.siteId).maybeSingle()
+  ]);
+  if (partner.error || customer.error || site.error || linked.error) return null;
+  const p = partner.data; const c = customer.data; const s = site.data; const l = linked.data;
+  if (p?.id !== input.partnerId || p.partner_status !== "sandbox" || !p.organization_id
+    || (input.organizationId && p.organization_id !== input.organizationId)
+    || c?.id !== input.customerId || c.partner_id !== p.id || c.customer_status !== "active"
+    || !c.customer_organization_id || c.customer_organization_id === p.organization_id
+    || s?.id !== input.siteId || s.digital_observer_organization_id !== c.customer_organization_id
+    || s.garden_id !== null || !s.site_type || s.site_type === "kindergarten"
+    || l?.partner_customer_id !== c.id || l.observer_site_id !== s.id) return null;
+  const organizations = await (admin as any).from("digital_observer_organizations").select("id,status")
+    .in("id", [p.organization_id, c.customer_organization_id]).limit(2);
+  if (organizations.error || !Array.isArray(organizations.data) || organizations.data.length !== 2
+    || ![p.organization_id, c.customer_organization_id].every((id) => organizations.data.some((org: any) => org.id === id && org.status === "active"))) return null;
+  return p as { id: string; organization_id: string; allowed_embed_origins: string[] };
+}
+
 export async function issuePartnerEmbeddedSession(admin: Admin, input: { partnerId: string; organizationId: string; actorId?: string; serviceAccountId?: string; actorRole: EnterpriseRole; customerId: string; siteId: string; audience: string; origin: string; scopes: EmbeddedScope[]; ttlMinutes: number; correlationId: string }) {
   assertDelegatedGrant({ actorRole: input.actorRole, requestedRole: "service_account" });
-  const [partner, linked] = await Promise.all([
-    (admin as any).from("digital_observer_partners").select("allowed_embed_origins,partner_status").eq("id", input.partnerId).eq("organization_id", input.organizationId).maybeSingle(),
-    (admin as any).from("digital_observer_partner_customer_sites").select("partner_customer_id,observer_site_id,digital_observer_partner_customers!inner(customer_status,partner_id)").eq("partner_customer_id", input.customerId).eq("observer_site_id", input.siteId).eq("digital_observer_partner_customers.partner_id", input.partnerId).maybeSingle()
-  ]);
-  if (!partner.data || partner.data.partner_status !== "sandbox" || !linked.data || (linked.data as any).digital_observer_partner_customers.customer_status !== "active") throw new Error("PARTNER_EMBED_SCOPE_DENIED");
-  const origin = validateEmbedOrigin(input.origin, partner.data.allowed_embed_origins ?? []);
+  const partner = await currentEmbeddedSiteScope(admin, { partnerId: input.partnerId, customerId: input.customerId,
+    siteId: input.siteId, organizationId: input.organizationId });
+  if (!partner) throw new Error("PARTNER_EMBED_SCOPE_DENIED");
+  let origin: string;
+  try { origin = validateEmbedOrigin(input.origin, Array.isArray(partner.allowed_embed_origins) ? partner.allowed_embed_origins : []); }
+  catch { throw new Error("PARTNER_EMBED_ORIGIN_DENIED"); }
   const token = issueEmbeddedToken({ pepper: pepper(), ttlMinutes: input.ttlMinutes });
   const session = await (admin as any).from("digital_observer_embedded_sessions").insert({ partner_id: input.partnerId,
     partner_customer_id: input.customerId, observer_site_id: input.siteId, token_hash: token.hash, token_prefix: token.prefix,
@@ -262,19 +289,29 @@ export async function authorizePartnerDelegatedSite(admin: Admin, input: { servi
 }
 
 export async function authenticateEmbeddedSession(admin: Admin, input: { token: string; origin: string | null; audience: string; requiredScope: EmbeddedScope }) {
-  if (!input.token.startsWith("doemb_")) throw new Error("EMBEDDED_AUTH_REQUIRED");
+  if (typeof input.token !== "string" || !input.token.startsWith("doemb_")) throw new Error("EMBEDDED_AUTH_REQUIRED");
   const result = await (admin as any).from("digital_observer_embedded_sessions")
-    .select("id,partner_id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at,revoked_at,digital_observer_partner_customers!inner(customer_status),digital_observer_partners!inner(partner_status)")
+    .select("id,partner_id,partner_customer_id,observer_site_id,audience,allowed_origin,scopes,expires_at,revoked_at")
     .eq("token_hash", hashEmbeddedToken(input.token, pepper())).maybeSingle();
   const row = result.data as any;
-  if (!row || row.revoked_at || new Date(row.expires_at).getTime() <= Date.now()
-    || row.digital_observer_partner_customers.customer_status !== "active" || row.digital_observer_partners.partner_status !== "sandbox") {
+  const expiresAt = new Date(row?.expires_at).getTime();
+  if (result.error || !row?.id || row.revoked_at || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
     throw new Error("EMBEDDED_SESSION_INACTIVE");
   }
-  if (!verifyEmbeddedAudience({ expected: row.audience, actual: input.audience })) throw new Error("EMBEDDED_AUDIENCE_DENIED");
-  if (!input.origin || new URL(input.origin).origin !== row.allowed_origin) throw new Error("EMBEDDED_ORIGIN_DENIED");
+  if (typeof row.audience !== "string" || typeof input.audience !== "string"
+    || !verifyEmbeddedAudience({ expected: row.audience, actual: input.audience })) throw new Error("EMBEDDED_AUDIENCE_DENIED");
+  try { validateEmbedOrigin(input.origin ?? "", [row.allowed_origin]); }
+  catch { throw new Error("EMBEDDED_ORIGIN_DENIED"); }
   if (!Array.isArray(row.scopes) || !row.scopes.includes(input.requiredScope)) throw new Error("EMBEDDED_SCOPE_DENIED");
-  await (admin as any).from("digital_observer_embedded_sessions").update({ last_used_at: new Date().toISOString() }).eq("id", row.id);
+  const partner = await currentEmbeddedSiteScope(admin, { partnerId: row.partner_id, customerId: row.partner_customer_id,
+    siteId: row.observer_site_id });
+  if (!partner || !Array.isArray(partner.allowed_embed_origins) || !partner.allowed_embed_origins.includes(row.allowed_origin)) {
+    throw new Error("EMBEDDED_SESSION_INACTIVE");
+  }
+  const usedAt = new Date().toISOString();
+  const touch = await (admin as any).from("digital_observer_embedded_sessions").update({ last_used_at: usedAt })
+    .eq("id", row.id).is("revoked_at", null).gt("expires_at", usedAt).select("id").single();
+  if (touch.error || touch.data?.id !== row.id) throw new Error("EMBEDDED_SESSION_INACTIVE");
   return row as { id: string; partner_id: string; partner_customer_id: string; observer_site_id: string; scopes: EmbeddedScope[]; expires_at: string };
 }
 
