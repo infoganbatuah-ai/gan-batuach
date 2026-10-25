@@ -55,6 +55,10 @@ The current risk service persists watch-rule evaluations, Incident risk
 projection, verification, decision intent and Incident verification projection
 in separate requests; in-app notification rows are a further per-recipient
 stage. The completion RPC cannot simply set `COMPLETED` after risk insertion.
+A future `EFFECTS_PENDING` transition must durably freeze the decision-time
+recipient/settings version, expected effect keys and semantic fingerprints
+before any recoverable effect is written. Existing rows cannot be treated as
+complete on `23505` without comparing their canonical contents.
 A future design must choose and prove one of:
 
 - One fenced SQL transaction for the required Incident/verification/decision

@@ -35,6 +35,7 @@ CREATE TABLE public.observer_event_risk_claims (
     CHECK (
       (status = 'CLAIMED' AND risk_evaluation_id IS NULL AND completed_at IS NULL)
       OR (status = 'RISK_PERSISTED' AND risk_evaluation_id IS NOT NULL AND completed_at IS NULL)
+      OR (status = 'EFFECTS_PENDING' AND risk_evaluation_id IS NOT NULL AND completed_at IS NULL)
       OR (status = 'COMPLETED' AND risk_evaluation_id IS NOT NULL AND completed_at IS NOT NULL)
     ),
   CONSTRAINT observer_event_risk_claim_signal_fk
@@ -106,3 +107,12 @@ REVOKE ALL ON TABLE public.observer_event_risk_claims FROM PUBLIC, anon, authent
 --    the Data API require a separate least-privilege security review.
 -- 5. Home tenant derivation, historical mismatch handling, claim
 --    retention and data-size limits require explicit decisions.
+-- 6. Model A requires an authoritative, exactly-one Tenant relationship for
+--    each non-garden Site and a verified enrollment/source chain. The current
+--    nullable enrollment tenant_id and optional organization ID do not
+--    establish this. Do not auto-assign existing Home records.
+-- 7. This sketch has no durable effect plan, recipient/settings snapshot,
+--    expected fingerprints, per-effect receipts, or Incident-wide projection
+--    generation/CAS fencing (a per-Event owner_epoch alone is insufficient)
+--    columns. They require a separately reviewed transactional schema/RPC
+--    design before COMPLETED can be written. No table name is proposed here.

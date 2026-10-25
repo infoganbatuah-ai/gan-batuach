@@ -63,6 +63,8 @@ An atomic claim returns one of:
 On expiry, a new owner may take the claim with a strictly larger epoch. The
 previous owner must be rejected at **every** persistence boundary. The risk
 result and transition to `RISK_PERSISTED` must commit together. Transition to
+`EFFECTS_PENDING` must atomically freeze the expected effects and recipient /
+settings snapshot. Transition to
 `COMPLETED` must occur only after the canonical Incident projections,
 watch-rule evaluations, verification, decision intent and applicable in-app
 journal/outbox requirements are satisfied durably. Their transactional or
@@ -116,3 +118,18 @@ and Digital Guard dispatch), historical Site exceptions, RLS/ACL review,
 migration locking and cost, FK behavior during approved Event retention/deletion, PostgreSQL
 concurrency/restart qualification of the *new* contract, and owner approval.
 No runtime flag or claim path has been added or enabled.
+
+Local Model A/claim transition code lives outside this review directory and
+remains disabled by default. Its synthetic tests do not satisfy the future
+PostgreSQL concurrency, durability or migration gates.
+
+For Model A, a future approved migration must establish a single authoritative
+Tenant relationship for each eligible Site, reconcile historical Home rows,
+and enforce enrollment/source/Event/Incident/Risk Site integrity. The existing
+nullable enrollment `tenant_id`, optional organization ID and commercial
+account key are not interchangeable Tenant authorities. No new persistent
+Tenant identifier or table is selected by this local code. Claims additionally
+need atomic owner fencing, a durable effect plan/recipient snapshot, semantic
+effect receipts, and Incident-wide projection compare-and-swap. Restricted
+functions and Data API exposure require their own privilege review. None of
+these schema or permission changes has been applied.

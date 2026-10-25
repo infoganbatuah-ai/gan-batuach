@@ -27,5 +27,6 @@ for (const required of ["Watch-rule evaluations", "Incident risk projection", "V
   assert(effects.includes(required), `effect review must cover ${required}`);
 }
 assert.doesNotMatch(route, /claim_event_risk_v1|persist_event_risk_v1|complete_event_risk_v1/);
+assert.doesNotMatch(route, /model-a-ownership|event-risk-recovery/);
 
 console.log("Review-package containment checks passed: migration guard, read-only preflight, no runtime claim activation.");

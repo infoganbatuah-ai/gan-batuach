@@ -11,6 +11,7 @@ or in-memory model test will not substitute for PostgreSQL concurrency proof.
 | Crash after claim, before risk commit | No `COMPLETED` marker and no result; new owner recovers after lease expiry | NOT RUN |
 | Crash during risk persistence | Result and `RISK_PERSISTED` appear together or neither does | NOT RUN |
 | Stale owner after lease takeover | Old epoch cannot persist risk or any downstream effect | NOT RUN |
+| Different Event updates same Incident | Incident-wide generation/CAS rejects a stale projection even if the other Event's claim epoch is lower | NOT RUN; schema/transaction open |
 | Crash after risk, before outbox | Retry reads stored result, resumes missing idempotent effects without recalculation or loss | NOT RUN; transactional design open |
 | Crash between each Risk downstream write | Expected watch-rule, Incident risk projection, verification, intent and Incident verification projection are each recovered or atomically absent; stale epoch writes denied | NOT RUN; completion boundary open |
 | Recipient set changes during replay | A durable expected-recipient snapshot or reviewed equivalent proves in-app journal completeness without duplicate delivery | NOT RUN; recipient snapshot open |
@@ -26,6 +27,9 @@ or in-memory model test will not substitute for PostgreSQL concurrency proof.
 The prior local PostgreSQL checks established only existing uniqueness and a
 high-privilege Site-integrity gap. They did not exercise this proposed claim
 contract. Do not mark these cases PASS from that older evidence.
+
+The local TypeScript transition tests exercise a non-durable deterministic
+double. They do not satisfy any `NOT RUN` PostgreSQL row above.
 
 ## Before any future application
 
