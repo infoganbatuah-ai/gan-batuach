@@ -6,9 +6,9 @@ path. No SQL here has been run. The draft SQL starts an aborted transaction so
 accidental execution cannot reach its DDL. Removing that guard requires a new,
 explicit Development database authorization and review.
 
-Baseline: `codex/event-ingest-replay-identity-20261025` at
-`2b3755bf47ac875460c6ddcf7436ccad5a097440`, preserving
-`ee5ee96cbc1769159605b760f1d535afaaec470c`. The separate PUSH 44 worktree,
+Source baseline for this review increment: `codex/event-ingest-replay-identity-20261025`
+at `a4fa761b5d63b6b3a0f8937073b16c0f775c1c37`, preserving
+`ee5ee96cbc1769159605b760f1d535afaaec470c` and intervening commits. The separate PUSH 44 worktree,
 PR #248, and PR #235 are outside this change.
 
 ## Existing path and the missing guarantee
@@ -42,10 +42,13 @@ synthetic rows were verified absent.
 One claim per `(signal_id, risk_engine_version)` is the minimum durable unit.
 `claim(signal_id, version, request_owner_nonce)` must derive the Incident and
 Site from canonical rows; it must not trust a client-supplied Site or tenant.
-The Home tenant-scope representation is unresolved: the canonical Site may
-have no `digital_observer_organization_id`. The draft deliberately stores no
-invented Tenant key. Resolve mapping and historical ownership before SQL is
-applied; Site is the current processing partition, not proof of Tenant scope.
+Model A's proposed Tenant identifier is the existing
+`digital_observer_organizations.id`, not a new parallel Tenant table or key.
+Its customer cardinality and Home mapping remain unverified: the canonical
+Site may have no `digital_observer_organization_id`. The guarded draft carries
+that candidate ID for new claims but neither invents nor backfills historical
+IDs. Resolve mapping and historical ownership before SQL is applied; Site is
+the current processing partition, not proof of Tenant scope.
 
 An atomic claim returns one of:
 
@@ -109,6 +112,14 @@ mismatched engine input; this does not replace database-level integrity.
   rollback conditions; **not run**.
 - `EFFECT-RECOVERY-REVIEW.md`: source-grounded effect inventory, ACK boundary
   and unresolved Home Tenant mapping; no live data assertion.
+- `OBJECT-INVENTORY.json`: machine-readable existing/proposed object and RPC
+  inventory; source declarations are not effective database state.
+- `HOME-MAPPING.md`: proposed Model A mapping and explicit historical exceptions.
+- `PERMISSIONS-AND-RPCS.md`: source-defined versus effective ACL, plus exact
+  proposed RPC signatures; function bodies and grants remain blocked.
+- `FORWARD-AND-ROLLBACK.md`: gated migration order and non-destructive rollback
+  states; no rollback rehearsal has run.
+- `BLOCKING-FACTS.md`: exact evidence needed before an executable migration.
 - `validate-review-package.mjs`: dependency-free static containment check;
   it is not a PostgreSQL behavior test.
 

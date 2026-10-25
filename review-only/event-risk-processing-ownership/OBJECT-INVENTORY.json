@@ -1,0 +1,196 @@
+{
+  "status": "DRAFT_NOT_APPLIED",
+  "sourceBaseline": "a4fa761b5d63b6b3a0f8937073b16c0f775c1c37",
+  "tenantCandidate": "public.digital_observer_organizations.id",
+  "tenantCandidateStatus": "PROPOSED_NOT_HISTORICALLY_VERIFIED",
+  "objects": [
+    {
+      "name": "public.digital_observer_organizations", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "owner_profile_id uuid NOT NULL", "organization_type text", "active boolean"],
+      "keys": ["PK(id)", "FK(owner_profile_id)->profiles(id)"],
+      "source": "supabase/migrations/20260820010000_digital_observer_product_runtime.sql",
+      "runtime": "lib/domain/digital-observer/access.ts",
+      "sourcePermissions": "RLS enabled; authenticated SELECT/INSERT/UPDATE declared; scoped policies; effective ACL UNKNOWN",
+      "proposal": "Candidate Tenant identity only; no new table; owner/customer cardinality must be proven",
+      "rollback": "Preserve all rows and ownership evidence"
+    },
+    {
+      "name": "public.observer_sites", "type": "table", "state": "EXISTING_MODIFICATION_PROPOSED",
+      "columns": ["id uuid PK", "owner_profile_id uuid NULL", "garden_id uuid NULL", "site_type text", "digital_observer_organization_id uuid NULL"],
+      "keys": ["PK(id)", "FK(digital_observer_organization_id)->digital_observer_organizations(id) ON DELETE SET NULL"],
+      "proposed": ["observer_site_tenant_required_draft_check NOT VALID", "observer_sites_id_org_draft_uidx UNIQUE(id,digital_observer_organization_id)"],
+      "source": "supabase/migrations/20260603003000_digital_observer_multisite_foundation.sql; supabase/migrations/20260820010000_digital_observer_product_runtime.sql",
+      "runtime": "app/api/video-gateway/cloud-events/route.ts; lib/domain/digital-observer/access.ts",
+      "sourcePermissions": "RLS enabled; standalone owner insert/update policies declared; effective ACL UNKNOWN",
+      "rollback": "Keep nullable historical mapping and all Site rows; do not drop until backfill and dependent rows are reconciled"
+    },
+    {
+      "name": "public.digital_observer_camera_sources", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid NOT NULL", "metadata jsonb"],
+      "keys": ["PK(id)", "FK(observer_site_id)->observer_sites(id)"],
+      "proposed": ["observer_camera_id_site_draft_uidx UNIQUE(id,observer_site_id)"],
+      "source": "supabase/migrations/20260820010000_digital_observer_product_runtime.sql",
+      "runtime": "app/api/video-gateway/cloud-events/route.ts",
+      "sourcePermissions": "RLS and Site-scoped policies declared; effective ACL UNKNOWN",
+      "rollback": "Preserve source rows and metadata"
+    },
+    {
+      "name": "public.video_gateway_device_enrollments", "type": "table", "state": "EXISTING_MODIFICATION_PROPOSED",
+      "columns": ["id uuid PK", "observer_site_id uuid NULL", "tenant_id uuid NULL", "gateway_id uuid NULL", "status text", "identity_scheme text"],
+      "keys": ["PK(id)", "FK(observer_site_id)->observer_sites(id)"],
+      "proposed": ["observer_gateway_site_tenant_draft_fk (observer_site_id,tenant_id)->observer_sites(id,digital_observer_organization_id) NOT VALID"],
+      "source": "supabase/migrations/20260829010000_gateway_device_enrollment.sql; supabase/migrations/20260908010000_managed_device_identity_hardening.sql",
+      "runtime": "lib/domain/event-engine/gateway-auth.ts; lib/domain/digital-observer/managed-device-auth-service.ts",
+      "sourcePermissions": "Admin-only RLS policy declared; effective ACL UNKNOWN",
+      "rollback": "Never rewrite Legacy enrollment tenant IDs without approved evidence"
+    },
+    {
+      "name": "public.observer_intelligence_signals", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid NULL", "source_type text", "source_id uuid NULL", "metadata jsonb"],
+      "keys": ["PK(id)", "FK(observer_site_id)->observer_sites(id)"],
+      "proposed": ["observer_signal_id_site_draft_uidx UNIQUE(id,observer_site_id)"],
+      "source": "supabase/migrations/20260611003000_digital_observer_intelligence_network.sql",
+      "runtime": "app/api/video-gateway/cloud-events/route.ts",
+      "sourcePermissions": "Site-scoped read policy declared in product runtime migration; effective ACL UNKNOWN",
+      "rollback": "Preserve Events and original metadata"
+    },
+    {
+      "name": "public.observer_correlated_events", "type": "table", "state": "EXISTING_MODIFICATION_PROPOSED",
+      "columns": ["id uuid PK", "observer_site_id uuid NULL", "related_event_ids uuid[]", "latest_risk_evaluation_id uuid NULL", "latest_verification_id uuid NULL"],
+      "keys": ["PK(id)", "FK(observer_site_id)->observer_sites(id)"],
+      "proposed": ["observer_incident_id_site_draft_uidx UNIQUE(id,observer_site_id)", "risk_projection_generation bigint NOT NULL DEFAULT 0", "verification_projection_generation bigint NOT NULL DEFAULT 0"],
+      "source": "supabase/migrations/20260606003000_multi_camera_correlation_engine.sql; supabase/migrations/20260905010000_digital_observer_canonical_incidents.sql; supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql; supabase/migrations/20260906020000_digital_observer_incident_verification.sql",
+      "runtime": "lib/domain/digital-observer/incident-correlation.ts; lib/domain/digital-observer/risk-decision-service.ts; lib/domain/digital-observer/incident-verification-service.ts",
+      "sourcePermissions": "RLS enabled and scoped read policy declared; effective ACL UNKNOWN",
+      "rollback": "Keep all Incident rows and generation fields while claims may resume"
+    },
+    {
+      "name": "public.observer_correlated_event_links", "type": "table", "state": "EXISTING_MODIFICATION_PROPOSED",
+      "columns": ["id uuid PK", "correlated_event_id uuid", "source_type text", "source_id uuid", "observer_site_id uuid NULL"],
+      "keys": ["PK(id)", "FK(correlated_event_id)->observer_correlated_events(id)", "observer_incident_signal_one_timeline_idx UNIQUE(source_type,source_id) WHERE source_type='observer_intelligence_signal'"],
+      "proposed": ["observer_link_incident_site_draft_fk (correlated_event_id,observer_site_id)->observer_correlated_events(id,observer_site_id) NOT VALID"],
+      "source": "supabase/migrations/20260606003000_multi_camera_correlation_engine.sql; supabase/migrations/20260905010000_digital_observer_canonical_incidents.sql",
+      "runtime": "public.correlate_digital_observer_signal; lib/domain/digital-observer/risk-decision-service.ts",
+      "sourcePermissions": "RLS enabled; effective ACL UNKNOWN",
+      "rollback": "Preserve all timeline links; polymorphic source_id requires separate Signal-specific validation"
+    },
+    {
+      "name": "public.digital_observer_risk_evaluations", "type": "table", "state": "EXISTING_MODIFICATION_PROPOSED",
+      "columns": ["id uuid PK", "observer_site_id uuid", "incident_id uuid", "triggering_event_id uuid", "risk_engine_version text", "input_fingerprint text"],
+      "keys": ["PK(id)", "digital_observer_risk_event_version_uidx UNIQUE(incident_id,triggering_event_id,risk_engine_version)"],
+      "proposed": ["observer_risk_result_scope_draft_uidx", "observer_risk_incident_site_draft_fk NOT VALID", "observer_risk_signal_site_draft_fk NOT VALID"],
+      "source": "supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql; supabase/migrations/20260906011000_digital_observer_risk_event_idempotency.sql",
+      "runtime": "lib/domain/digital-observer/risk-decision-service.ts",
+      "sourcePermissions": "RLS enabled; authenticated SELECT declared, writes revoked; effective ACL UNKNOWN",
+      "rollback": "Retain immutable evaluations and version history"
+    },
+    {
+      "name": "public.digital_observer_watch_rule_evaluations", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid", "rule_id uuid", "rule_version integer", "event_id uuid", "incident_id uuid NULL", "risk_evaluation_id uuid NULL", "input_fingerprint text"],
+      "keys": ["PK(id)", "UNIQUE(rule_id,rule_version,event_id)"],
+      "source": "supabase/migrations/20260906040000_digital_observer_watch_rule_compiler.sql",
+      "runtime": "public.record_digital_observer_watch_rule_evaluation; lib/domain/digital-observer/risk-decision-service.ts",
+      "sourcePermissions": "RLS enabled; service_role RPC EXECUTE declared, effective ACL UNKNOWN",
+      "rollback": "Preserve evaluations and matched-rule history"
+    },
+    {
+      "name": "public.digital_observer_incident_verifications", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid", "incident_id uuid", "risk_evaluation_id uuid", "verification_version text", "input_fingerprint text"],
+      "keys": ["PK(id)", "UNIQUE(incident_id,risk_evaluation_id,verification_version)"],
+      "source": "supabase/migrations/20260906020000_digital_observer_incident_verification.sql",
+      "runtime": "lib/domain/digital-observer/incident-verification-service.ts",
+      "sourcePermissions": "RLS enabled; authenticated SELECT declared, writes revoked; effective ACL UNKNOWN",
+      "rollback": "Retain verification rows"
+    },
+    {
+      "name": "public.digital_observer_decision_intents", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid", "incident_id uuid", "risk_evaluation_id uuid", "dedupe_key text", "external_execution_enabled boolean"],
+      "keys": ["PK(id)", "UNIQUE(observer_site_id,dedupe_key)", "CHECK(external_execution_enabled=false)"],
+      "source": "supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql",
+      "runtime": "lib/domain/digital-observer/incident-verification-service.ts",
+      "sourcePermissions": "RLS enabled; authenticated SELECT declared, writes revoked; effective ACL UNKNOWN",
+      "rollback": "Retain intents and semantic conflict evidence"
+    },
+    {
+      "name": "public.digital_observer_notification_deliveries", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid", "signal_id uuid NULL", "recipient_profile_id uuid NULL", "dedupe_key text NULL", "provider_mode text"],
+      "keys": ["PK(id)", "digital_observer_notification_dedupe_idx UNIQUE(observer_site_id,dedupe_key) WHERE dedupe_key IS NOT NULL"],
+      "source": "supabase/migrations/20260820010000_digital_observer_product_runtime.sql",
+      "runtime": "lib/domain/event-engine/notifications.ts",
+      "sourcePermissions": "RLS enabled; effective ACL UNKNOWN",
+      "rollback": "Retain in-app journal and provider-delivery history"
+    },
+    {
+      "name": "public.immutable_audit_events", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "event_type text NOT NULL", "request_id text NULL", "metadata jsonb NOT NULL", "previous_event_hash text NULL", "event_hash text NULL"],
+      "keys": ["PK(id)", "append-only mutation guard trigger; audit request index is non-unique"],
+      "source": "supabase/migrations/20260612015400_immutable_audit_trail_evidence_logs_worm_readiness.sql; supabase/migrations/20260901010500_fix_immutable_audit_hash_pgcrypto.sql",
+      "runtime": "lib/security/audit-log-service.ts",
+      "sourcePermissions": "Effective ACL UNKNOWN",
+      "rollback": "Never delete or rewrite audit history"
+    },
+    {
+      "name": "public.digital_observer_camera_action_requests", "type": "table", "state": "EXISTING",
+      "columns": ["id uuid PK", "observer_site_id uuid", "camera_source_id uuid", "idempotency_key text NOT NULL UNIQUE", "action_status text", "task_kind text"],
+      "keys": ["PK(id)", "UNIQUE(idempotency_key)"],
+      "source": "supabase/migrations/20260831090000_camera_action_queue_contract.sql",
+      "runtime": "lib/domain/digital-observer/guard-autonomy-service.ts; lib/domain/digital-observer/guard-command-client.ts",
+      "sourcePermissions": "RLS/ACL declarations require focused source audit; effective ACL UNKNOWN",
+      "rollback": "Do not delete or re-dispatch physical command history"
+    },
+    {
+      "name": "public.observer_event_risk_claims", "type": "table", "state": "PROPOSED_GUARDED",
+      "columns": ["signal_id uuid", "risk_engine_version text", "tenant_id uuid", "observer_site_id uuid", "incident_id uuid", "status text", "owner_nonce uuid", "owner_epoch bigint", "lease_expires_at timestamptz", "risk_evaluation_id uuid NULL", "completed_at timestamptz NULL"],
+      "keys": ["PK(signal_id,risk_engine_version)", "Site/Tenant, Signal/Site, Incident/Site and evaluation scope FKs proposed"],
+      "source": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "runtime": "lib/domain/digital-observer/event-risk-recovery.ts (disabled interface only)",
+      "sourcePermissions": "PROPOSED RLS; PROPOSED no anon/authenticated table writes; effective ACL NOT APPLICABLE",
+      "rollback": "Never drop while any incomplete or completed claim must be reconciled"
+    },
+    {
+      "name": "public.observer_event_risk_effect_plans", "type": "table", "state": "PROPOSED_GUARDED",
+      "columns": ["signal_id uuid", "risk_engine_version text", "tenant_id uuid", "observer_site_id uuid", "incident_id uuid", "risk_evaluation_id uuid", "recipient_settings_version text", "recipient_snapshot jsonb", "recipient_snapshot_digest text", "expected_fingerprints jsonb", "media_fault_audit_required boolean"],
+      "keys": ["PK(signal_id,risk_engine_version)", "FK(signal_id,risk_engine_version)->observer_event_risk_claims"],
+      "source": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "runtime": "lib/domain/digital-observer/event-risk-recovery.ts (disabled interface only)",
+      "sourcePermissions": "PROPOSED RLS; service-only writer after review; effective ACL NOT APPLICABLE",
+      "rollback": "Keep recipient and settings snapshot for deterministic replay"
+    },
+    {
+      "name": "public.observer_event_risk_effect_receipts", "type": "table", "state": "PROPOSED_GUARDED",
+      "columns": ["signal_id uuid", "risk_engine_version text", "effect_key text", "tenant_id uuid", "observer_site_id uuid", "risk_evaluation_id uuid", "owner_epoch bigint", "effect_fingerprint text", "recipient_snapshot_digest text NULL", "completed_at timestamptz"],
+      "keys": ["PK(signal_id,risk_engine_version,effect_key)", "FK(signal_id,risk_engine_version)->observer_event_risk_effect_plans"],
+      "source": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "runtime": "lib/domain/digital-observer/event-risk-recovery.ts (disabled interface only)",
+      "sourcePermissions": "PROPOSED RLS; service-only writer after review; effective ACL NOT APPLICABLE",
+      "rollback": "Keep all receipts and audit linkage"
+    },
+    {
+      "name": "public.observer_correlated_events.risk_projection_generation", "type": "column", "state": "PROPOSED_GUARDED",
+      "columns": ["risk_projection_generation bigint NOT NULL DEFAULT 0"],
+      "keys": ["observer_incident_projection_generation_draft_check CHECK(generation >= 0)"],
+      "source": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "runtime": "lib/domain/digital-observer/event-risk-recovery.ts (disabled CAS contract)",
+      "sourcePermissions": "Inherited from observer_correlated_events; effective ACL UNKNOWN",
+      "rollback": "Keep generation while old and new writers may coexist"
+    },
+    {
+      "name": "public.observer_correlated_events.verification_projection_generation", "type": "column", "state": "PROPOSED_GUARDED",
+      "columns": ["verification_projection_generation bigint NOT NULL DEFAULT 0"],
+      "keys": ["observer_incident_projection_generation_draft_check CHECK(generation >= 0)"],
+      "source": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "runtime": "lib/domain/digital-observer/event-risk-recovery.ts (disabled CAS contract)",
+      "sourcePermissions": "Inherited from observer_correlated_events; effective ACL UNKNOWN",
+      "rollback": "Keep generations while old and new writers may coexist"
+    }
+  ],
+  "rpcSignatures": [
+    "public.claim_event_risk_v1(uuid,text,uuid,integer) RETURNS jsonb",
+    "public.renew_event_risk_lease_v1(uuid,text,uuid,bigint,integer) RETURNS jsonb",
+    "public.persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) RETURNS uuid",
+    "public.start_event_risk_effects_v1(uuid,text,uuid,bigint,jsonb) RETURNS jsonb",
+    "public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text) RETURNS jsonb",
+    "public.complete_event_risk_v1(uuid,text,uuid,bigint) RETURNS jsonb",
+    "public.recover_expired_event_risk_v1(uuid,text,uuid,integer) RETURNS jsonb"
+  ]
+}

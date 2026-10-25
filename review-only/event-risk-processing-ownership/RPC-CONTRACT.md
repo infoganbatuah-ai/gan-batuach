@@ -17,8 +17,10 @@ without review. This RPC must:
    `REAL_CAMERA_AI`, `validated_event`, supported entry/exit event type, exact
    Site match and an active eligible processing context. An unmatched exit
    returns `NOT_APPLICABLE`; a mismatched link fails closed. Derive Site from
-   canonical rows, never caller arguments. Home Tenant derivation is BLOCKED;
-   do not substitute organization ID, owner profile or billing account key.
+   canonical rows, never caller arguments. Model A proposes the existing
+   `digital_observer_organizations.id` as Tenant, but Home ownership and
+   historical Site mapping are unverified. Never substitute owner profile,
+   enrollment's nullable tenant claim, or billing account key.
 2. Atomically insert a claim or take over an expired claim by incrementing
    `owner_epoch`. Do not replace a live owner. The primary key is `(signal_id,
    engine_version)`. A completed claim cannot be reopened for the same version.
@@ -84,3 +86,8 @@ Error classes for future review: `SCOPE_MISMATCH`, `UNTRUSTED_EVENT`,
 `DOWNSTREAM_INCOMPLETE`, `DATABASE_UNAVAILABLE`. No error may trigger a
 silent fallback to the old unfenced path. Neither a lease nor a unique index
 alone promises physically exactly-once CPU work after a crash.
+
+The complete proposed seven-function signature list and source/effective
+permission distinction are in `PERMISSIONS-AND-RPCS.md`. These signatures
+are a review contract only: no function body, grant or Data API activation
+exists in this package.

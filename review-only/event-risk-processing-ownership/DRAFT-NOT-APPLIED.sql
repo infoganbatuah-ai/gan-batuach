@@ -11,13 +11,33 @@ $draft_guard$;
 
 -- REVIEW SKETCH ONLY. Rewrite as a canonical ordered migration after approval.
 -- Historical Site preflight must precede the cross-Site constraints below.
+-- PROPOSED Model A Tenant identity: existing digital_observer_organizations.id.
+-- This candidate is BLOCKED until Home/business ownership and one-customer
+-- cardinality are proven; do not synthesize or backfill historical IDs.
+ALTER TABLE public.observer_sites
+  ADD CONSTRAINT observer_site_tenant_required_draft_check
+  CHECK (site_type = 'kindergarten' OR digital_observer_organization_id IS NOT NULL) NOT VALID;
+
+CREATE UNIQUE INDEX observer_sites_id_org_draft_uidx
+  ON public.observer_sites(id, digital_observer_organization_id);
+CREATE UNIQUE INDEX observer_camera_id_site_draft_uidx
+  ON public.digital_observer_camera_sources(id, observer_site_id);
+
+-- NULL tenant_id bypasses a composite FK, so this is not a legacy backfill.
+-- New hardened enrollments need a separately reviewed non-null gate.
+ALTER TABLE public.video_gateway_device_enrollments
+  ADD CONSTRAINT observer_gateway_site_tenant_draft_fk
+  FOREIGN KEY (observer_site_id, tenant_id)
+  REFERENCES public.observer_sites(id, digital_observer_organization_id) NOT VALID;
+
 CREATE TABLE public.observer_event_risk_claims (
   signal_id uuid NOT NULL,
   risk_engine_version text NOT NULL,
+  tenant_id uuid NOT NULL,
   observer_site_id uuid NOT NULL,
   incident_id uuid NOT NULL,
-  -- No tenant key is invented here. Home tenant derivation is a blocking
-  -- decision; observer_site_id is only the canonical processing partition.
+  -- tenant_id is derived from the candidate canonical Site mapping, never
+  -- from caller input or an optional enrollment claim alone.
   status text NOT NULL DEFAULT 'CLAIMED',
   owner_nonce uuid NOT NULL,
   owner_epoch bigint NOT NULL DEFAULT 1,
@@ -44,6 +64,9 @@ CREATE TABLE public.observer_event_risk_claims (
     FOREIGN KEY (incident_id) REFERENCES public.observer_correlated_events(id),
   CONSTRAINT observer_event_risk_claim_site_fk
     FOREIGN KEY (observer_site_id) REFERENCES public.observer_sites(id),
+  CONSTRAINT observer_event_risk_claim_site_tenant_fk
+    FOREIGN KEY (observer_site_id, tenant_id)
+    REFERENCES public.observer_sites(id, digital_observer_organization_id),
   CONSTRAINT observer_event_risk_claim_evaluation_fk
     FOREIGN KEY (risk_evaluation_id) REFERENCES public.digital_observer_risk_evaluations(id)
 );
@@ -51,6 +74,64 @@ CREATE TABLE public.observer_event_risk_claims (
 CREATE INDEX observer_event_risk_claim_recovery_idx
   ON public.observer_event_risk_claims (lease_expires_at)
   WHERE status <> 'COMPLETED';
+
+-- This column is Incident-wide. Per-Event owner_epoch alone cannot fence a
+-- different Event's later projection; a future RPC must CAS this generation.
+ALTER TABLE public.observer_correlated_events
+  ADD COLUMN risk_projection_generation bigint NOT NULL DEFAULT 0,
+  ADD COLUMN verification_projection_generation bigint NOT NULL DEFAULT 0,
+  ADD CONSTRAINT observer_incident_projection_generation_draft_check
+    CHECK (risk_projection_generation >= 0 AND verification_projection_generation >= 0) NOT VALID;
+
+-- A durable decision-time plan precedes effect writes. These JSON payloads
+-- are bounded and schema-validated by future RPCs; this SQL alone is NOT
+-- sufficient to prove semantic completeness or recipient authorization.
+CREATE TABLE public.observer_event_risk_effect_plans (
+  signal_id uuid NOT NULL,
+  risk_engine_version text NOT NULL,
+  tenant_id uuid NOT NULL,
+  observer_site_id uuid NOT NULL,
+  incident_id uuid NOT NULL,
+  risk_evaluation_id uuid NOT NULL,
+  recipient_settings_version text NOT NULL,
+  recipient_snapshot jsonb NOT NULL,
+  recipient_snapshot_digest text NOT NULL,
+  expected_fingerprints jsonb NOT NULL,
+  media_fault_audit_required boolean NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (signal_id, risk_engine_version),
+  CONSTRAINT observer_event_risk_plan_claim_fk
+    FOREIGN KEY (signal_id, risk_engine_version)
+    REFERENCES public.observer_event_risk_claims(signal_id, risk_engine_version),
+  CONSTRAINT observer_event_risk_plan_digest_check
+    CHECK (recipient_snapshot_digest ~ '^[a-f0-9]{64}$'),
+  CONSTRAINT observer_event_risk_plan_json_check
+    CHECK (jsonb_typeof(recipient_snapshot) = 'array'
+      AND jsonb_typeof(expected_fingerprints) = 'object')
+);
+
+CREATE TABLE public.observer_event_risk_effect_receipts (
+  signal_id uuid NOT NULL,
+  risk_engine_version text NOT NULL,
+  effect_key text NOT NULL,
+  tenant_id uuid NOT NULL,
+  observer_site_id uuid NOT NULL,
+  risk_evaluation_id uuid NOT NULL,
+  owner_epoch bigint NOT NULL,
+  effect_fingerprint text NOT NULL,
+  recipient_snapshot_digest text,
+  completed_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (signal_id, risk_engine_version, effect_key),
+  CONSTRAINT observer_event_risk_receipt_plan_fk
+    FOREIGN KEY (signal_id, risk_engine_version)
+    REFERENCES public.observer_event_risk_effect_plans(signal_id, risk_engine_version),
+  CONSTRAINT observer_event_risk_receipt_epoch_check CHECK (owner_epoch > 0),
+  CONSTRAINT observer_event_risk_receipt_key_check CHECK (length(effect_key) BETWEEN 1 AND 200),
+  CONSTRAINT observer_event_risk_receipt_fingerprint_check
+    CHECK (length(effect_fingerprint) BETWEEN 1 AND 256)
+);
+CREATE INDEX observer_event_risk_receipt_site_idx
+  ON public.observer_event_risk_effect_receipts(observer_site_id, completed_at);
 
 -- These redundant composite unique keys are prerequisites for Site-matching
 -- FKs. Assess existing table sizes and lock duration; choose an approved
@@ -75,6 +156,14 @@ ALTER TABLE public.observer_event_risk_claims
     REFERENCES public.digital_observer_risk_evaluations
       (id, observer_site_id, triggering_event_id, risk_engine_version);
 
+-- Only the Incident side of the polymorphic link can be represented by a
+-- normal FK. Signal-side Site equality must be checked by a reviewed RPC or
+-- narrowly scoped trigger, including existing rows before validation.
+ALTER TABLE public.observer_correlated_event_links
+  ADD CONSTRAINT observer_link_incident_site_draft_fk
+    FOREIGN KEY (correlated_event_id, observer_site_id)
+    REFERENCES public.observer_correlated_events(id, observer_site_id) NOT VALID;
+
 -- NOT VALID still protects new writes, but historical mismatches remain until
 -- separately reviewed and repaired. Never auto-fix, delete, or hide them.
 ALTER TABLE public.digital_observer_risk_evaluations
@@ -86,7 +175,13 @@ ALTER TABLE public.digital_observer_risk_evaluations
     REFERENCES public.observer_intelligence_signals(id, observer_site_id) NOT VALID;
 
 ALTER TABLE public.observer_event_risk_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.observer_event_risk_effect_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.observer_event_risk_effect_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.observer_event_risk_claims FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.observer_event_risk_effect_plans FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.observer_event_risk_effect_receipts FROM PUBLIC, anon, authenticated;
+-- Proposed service_role grants and RPC EXECUTE are deliberately omitted:
+-- effective role/schema/API settings and dependent callers are unverified.
 
 -- BLOCKED DESIGN ITEMS; no functions or grants are created by this sketch:
 -- 1. A service-only, SECURITY INVOKER claim RPC must derive Site/tenant from
@@ -107,12 +202,8 @@ REVOKE ALL ON TABLE public.observer_event_risk_claims FROM PUBLIC, anon, authent
 --    the Data API require a separate least-privilege security review.
 -- 5. Home tenant derivation, historical mismatch handling, claim
 --    retention and data-size limits require explicit decisions.
--- 6. Model A requires an authoritative, exactly-one Tenant relationship for
---    each non-garden Site and a verified enrollment/source chain. The current
---    nullable enrollment tenant_id and optional organization ID do not
---    establish this. Do not auto-assign existing Home records.
--- 7. This sketch has no durable effect plan, recipient/settings snapshot,
---    expected fingerprints, per-effect receipts, or Incident-wide projection
---    generation/CAS fencing (a per-Event owner_epoch alone is insufficient)
---    columns. They require a separately reviewed transactional schema/RPC
---    design before COMPLETED can be written. No table name is proposed here.
+-- 6. Model A's existing organization-row candidate still needs verified
+--    customer cardinality, Home mapping and new-write compatibility.
+-- 7. The proposed plan/receipt and projection columns are storage only; the
+--    atomic SQL functions, semantic verification, audit and recovery remain
+--    BLOCKED. No status in this draft proves end-to-end completion.
