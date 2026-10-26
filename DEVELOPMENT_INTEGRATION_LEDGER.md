@@ -1845,3 +1845,19 @@ deployment, `main` or Production change was made. This is not approval to
 apply the SQL or activate event-risk/Guard: four fenced writer RPCs, verified
 event-time Model A ownership, immutable recipient snapshot and live
 schema/RLS/crash qualification remain open. No exactly-once claim is made.
+
+Event-risk Risk-persistence review preservation receipt (2026-10-26): Draft
+PR #258 exact head `364672482f0f314fb672fbc0cd9549be9737fb74` is remotely
+preserved on `codex/event-risk-persist-review-20261026` and is **pending
+integration**, not merged or approved to apply. Its four files are confined to
+`review-only/event-risk-persist-transaction/`: guarded and ungranted Risk
+persistence SQL, a disposable PostgreSQL runner, and qualification/limits
+documentation. The source task reported 21 isolated PostgreSQL 17.6 synthetic
+assertions PASS for one transactional Risk/audit/receipt and claim-state write,
+semantic replay, competing owners, epoch fencing, Tenant/Site/Incident denial,
+and audit-failure rollback; this ledger-only task did not rerun them. Exact-head
+Digital Observer CI six gates plus quality passed in run `40273723207`,
+Management passed in run `40273723217`, and Snyk passed. Historical Home
+ownership, the deployed schema/ACL/RLS, three later writers, crash recovery,
+retention and live cost remain blocking. No migration was applied, no active
+route or Guard was enabled, and `main` and Production remain unchanged.

@@ -12816,6 +12816,60 @@
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Review the preserved source package separately. Runtime implementation still requires authoritative event-time Model A ownership, four atomic fenced Risk/effect writers, an immutable recipient snapshot and deployed-schema/RLS/crash qualification before connecting the active route; this merged unit is review-only and not ready to apply."
+    },
+    {
+      "id": "codex/event-risk-persist-review-20261026-pr258",
+      "project": "Digital Observer event-risk processing",
+      "title": "First fenced downstream Risk writer — guarded PostgreSQL review package",
+      "owner": "Event-risk persistence review task",
+      "sourceBranch": "codex/event-risk-persist-review-20261026",
+      "sourceCommits": [
+        "364672482f0f314fb672fbc0cd9549be9737fb74"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/event-risk-persist-review-20261026@364672482f0f314fb672fbc0cd9549be9737fb74"
+        ],
+        "sourceScope": "Draft PR #258 contains exactly four review-only files: QUALIFICATION.md, README.md, RPC-BODY-NOT-APPLIED.sql and run-isolated-postgres-qa.mjs under review-only/event-risk-persist-transaction/. No active route, migration or provider configuration changed.",
+        "disposition": "PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "ISOLATED_POSTGRES_RISK_TRANSACTION_PASS_LIVE_ADAPTER_BLOCKED",
+        "evidence": [
+          "Draft PR #258 exact head 364672482f0f314fb672fbc0cd9549be9737fb74: Digital Observer CI six gates plus canonical quality gate PASS, GitHub run 40273723207; Management tenant context PASS, run 40273723217; Snyk PASS",
+          "Source task reported 21 focused assertions PASS in a disposable network-disabled PostgreSQL 17.6 fixture, including atomic Risk/audit/receipt, semantic replay, audit rollback, owner epoch turnover, competing owners, and Tenant/Site/Incident rejection; not rerun by this ledger-only task",
+          "review-only/event-risk-persist-transaction/QUALIFICATION.md at source commit 364672482f0f314fb672fbc0cd9549be9737fb74"
+        ],
+        "limits": "Synthetic fixture only; no historical Home Tenant authority, deployed catalog/RLS/ACL, crash-restore, active adapter, full-stack Product or physical exactly-once proof. The other three downstream writers remain unimplemented. SQL is execution-guarded and ungranted."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseShaAtPreservation": "b305491c7e63eea4dcd3c9620bb32fd1f2e13c56",
+        "commit": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/258",
+        "requiredChecks": "EXACT_PR_HEAD_PASS_RUN_40273723207_AND_MANAGEMENT_40273723217; PR_REMAINS_DRAFT"
+      },
+      "dependencies": {
+        "status": "REVIEW_ONLY_SOURCE_CLAIM_AND_UNVERIFIED_MODEL_A_AUTHORITY",
+        "units": [
+          "codex/event-risk-atomic-claim-20261026-pr254",
+          "codex/event-ingest-replay-identity-20261025"
+        ],
+        "blockers": [
+          "Authoritative event-time Home Tenant/Site mapping",
+          "Three remaining fenced downstream writers and immutable recipient/settings plan",
+          "Exact deployed catalog, ACL/Data API, RLS, retention, recovery and cost qualification"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SOURCE_ISOLATED_POSTGRESQL_21_ASSERTIONS_REPORTED_PASS; LEDGER_ONLY_TURN_DID_NOT_RERUN; FULL_STACK_NOT_RUN",
+      "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Keep PR #258 Draft and review its guarded SQL against authoritative event-time Model A ownership and actual Development catalog. Qualify the remaining writers, ACL/Data API, immutability, retention, cost and crash/rollback before any separately reviewed migration or active route change. Do not merge #255-#258 as a shortcut."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
