@@ -12870,6 +12870,63 @@
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Keep PR #258 Draft and review its guarded SQL against authoritative event-time Model A ownership and actual Development catalog. Qualify the remaining writers, ACL/Data API, immutability, retention, cost and crash/rollback before any separately reviewed migration or active route change. Do not merge #255-#258 as a shortcut."
+    },
+    {
+      "id": "codex/event-risk-effect-plan-review-20261026-pr259",
+      "project": "Digital Observer event-risk processing",
+      "title": "Second fenced downstream effect-plan writer — guarded PostgreSQL review package",
+      "owner": "Event-risk effect-plan review task",
+      "sourceBranch": "codex/event-risk-effect-plan-review-20261026",
+      "sourceCommits": [
+        "38603021a089ab87e7c3b7db71504e2c588ef95f",
+        "784731da46aad974acfaa813e9efe948aab65204"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/event-risk-effect-plan-review-20261026@784731da46aad974acfaa813e9efe948aab65204"
+        ],
+        "sourceScope": "Draft PR #259 contains only guarded SQL, a network-disabled disposable PostgreSQL runner and qualification notes under review-only/event-risk-effect-plan-transaction/. No migration, active route, Guard or provider configuration changed.",
+        "disposition": "PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "ISOLATED_POSTGRES_EFFECT_PLAN_TRANSACTION_PASS_LIVE_AUTHORITY_AND_ACL_BLOCKED",
+        "evidence": [
+          "23 focused assertions PASS in a disposable network-disabled PostgreSQL 17.6 fixture: plan/audit/checkpoint atomicity, semantic replay, concurrent starts, fencing, Model A scope, Risk receipt mismatch, mutable settings conflict and mandatory audit rollback",
+          "review-only/event-risk-effect-plan-transaction/QUALIFICATION.md at source commit 784731da46aad974acfaa813e9efe948aab65204",
+          "Draft PR #259 exact head 784731da46aad974acfaa813e9efe948aab65204: Digital Observer CI six gates plus canonical quality PASS in run 40275897903; Management PASS in run 40275897884; Snyk PASS"
+        ],
+        "limits": "Synthetic fixture only. Independently authoritative decision-time recipient/settings/evidence producer is absent; PostgreSQL jsonb fingerprint differs from Node JSON.stringify; SECURITY INVOKER requires plan INSERT for service_role and permits direct-table bypass. Historical Home ownership, deployed catalog/RLS/ACL, crash recovery, downstream effect/complete writers and live adapter remain blocked."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseShaAtPreservation": "94646069050032b9dded67d2f835731a4e5ea347",
+        "commit": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/259",
+        "requiredChecks": "EXACT_PR_HEAD_PASS_RUN_40275897903_AND_MANAGEMENT_40275897884_AND_SNYK_PASS; PR_REMAINS_DRAFT"
+      },
+      "dependencies": {
+        "status": "REVIEW_ONLY_FIRST_WRITER_AND_UNVERIFIED_AUTHORITY_PRODUCER",
+        "units": [
+          "codex/event-risk-atomic-claim-20261026-pr254",
+          "codex/event-risk-persist-review-20261026-pr258",
+          "codex/event-ingest-replay-identity-20261025"
+        ],
+        "blockers": [
+          "Independently authoritative decision-time recipient/settings/evidence source and immutable snapshot",
+          "Cross-language canonical snapshot fingerprint and non-ASCII ordering",
+          "No direct-table bypass: dedicated function/plan ACL, RLS and Data API boundary",
+          "Authoritative historical Home Tenant/Site mapping and two remaining fenced writers"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ISOLATED_POSTGRESQL_23_ASSERTIONS_PASS; NO_EXISTING_DATABASE_CONNECTED; FULL_STACK_NOT_RUN",
+      "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Keep PR #259 Draft. Qualify an independent decision-time plan authority producer, versioned cross-language snapshot digest, and function-only write privilege boundary before any Development migration. Then separately qualify effect receipt and completion writers. Do not apply SQL or activate event-risk/Guard."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

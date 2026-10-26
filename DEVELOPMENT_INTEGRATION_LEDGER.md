@@ -1861,3 +1861,21 @@ Management passed in run `40273723217`, and Snyk passed. Historical Home
 ownership, the deployed schema/ACL/RLS, three later writers, crash recovery,
 retention and live cost remain blocking. No migration was applied, no active
 route or Guard was enabled, and `main` and Production remain unchanged.
+
+Event-risk effect-plan review preservation receipt (2026-10-26): Draft PR #259
+exact head `784731da46aad974acfaa813e9efe948aab65204` is remotely
+preserved on `codex/event-risk-effect-plan-review-20261026`, pending
+integration rather than merged or approved to apply. Its three files under
+`review-only/event-risk-effect-plan-transaction/` propose the exact second
+writer signature, a source-bound authority/plan transaction, a disposable
+PostgreSQL runner and qualification limits. Twenty-three isolated network-
+disabled PostgreSQL assertions passed, including atomic plan/audit/checkpoint,
+semantic replay and audit rollback. This does **not** establish a live
+decision-time recipient/settings producer, TypeScript/PostgreSQL snapshot
+digest equivalence, or a secure function-only privilege boundary: the fixture
+shows the `SECURITY INVOKER` caller would need direct plan `INSERT`. Exact-head
+Digital Observer CI six gates plus canonical quality passed in run
+`40275897903`; Management passed in run `40275897884`; Snyk passed. No migration, existing database,
+active event-risk route, Guard, provider resource, `main` or Production was
+changed. Preserve PR #258 as the first-writer dependency; do not merge or
+apply PR #259 until separately reviewed gates pass.
