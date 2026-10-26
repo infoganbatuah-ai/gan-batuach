@@ -36,3 +36,35 @@ Only a later, separately authorized process may apply schema/ACL changes,
 activate providers or real data, obtain external legal or hardware proof, or
 assemble an independently reviewable diligence data room. This commit is local
 only pending the separate preservation/integration workflow.
+
+## Local dependency and notice inventory
+
+`LICENSE-INVENTORY.json` is a mechanical, SHA-256-pinned supplement to the
+existing high-level `DIGITAL_OBSERVER_RUNTIME_DEPENDENCY_INVENTORY.md`, not a
+second runtime architecture inventory. Run `node
+scripts/qa/check-push50-license-inventory.mjs --self-test` to compare it with
+the tracked local source blobs; the generator reads sparse-hidden files via
+Git and does not install packages or use the network. Its sources are the
+single tracked npm v3 `package-lock.json`, the matching root `package.json`,
+the tracked `vendor/braces` manifest/license/provenance and the Connector's
+`THIRD_PARTY_NOTICES.txt`. No second tracked package-manager lockfile was found.
+
+The lock has **895 entries**: 24 direct runtime, 11 direct Development, 859
+other indirect locked entries and one local link target. Indirect includes
+transitive, peer or optional entries; the root declaration alone does not
+identify each cause. The linked `braces` entry has no license/version in that
+entry, but its tracked local target provides both; the two entries remain
+separately visible. `limiter@1.1.5` has no license metadata in the lock and is
+**UNVERIFIED**. Only `vendor/braces/LICENSE` is a tracked per-package license
+path, so 893 lock entries have no per-package notice *tracked in this repo*;
+that does not mean their installed packages lack license files. The Connector
+notice names four components without exact binary versions or a complete
+release-by-release redistribution check. The validator rejects stale source
+hashes/counts, invented notices or license metadata, and false
+`LICENSING_CLEARED` claims.
+
+This is **not** a current CVE scan, IP opinion, legal clearance, inventory of
+every runtime/provider binary, or approval to distribute Connector packages.
+`LICENSING_CLEARED=false` remains binding until exact shipped artifacts,
+license files/notices and qualified review are reconciled. No costs or supplier
+terms were inferred from lockfile metadata.
