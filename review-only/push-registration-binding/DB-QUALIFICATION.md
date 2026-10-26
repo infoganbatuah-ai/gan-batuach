@@ -5,8 +5,11 @@ are in [IMPLEMENTATION-QUALIFICATION.md](IMPLEMENTATION-QUALIFICATION.md).
 The broader partial-index suggestion below is historical; the current
 candidate is Observer-only and must not change shared Management rows.
 
-This is source-only qualification. No SQL has been executed or added to
-`supabase/migrations`; no Development or Production schema has changed.
+The source-only baseline below predates the disposable synthetic PostgreSQL
+qualification in [IMPLEMENTATION-QUALIFICATION.md](IMPLEMENTATION-QUALIFICATION.md).
+SQL was run only against a newly created, networkless, mountless synthetic
+test database, which was removed afterward. No SQL was added to
+`supabase/migrations`; no canonical Development or Production schema changed.
 
 ## Verified source contracts
 
@@ -42,16 +45,20 @@ This is source-only qualification. No SQL has been executed or added to
    `updated_at`, and `app_version`. Unique conflicts must not become upserts.
 5. Prove PostgreSQL concurrent insert/update, RLS (including admin and
    cross-profile), Site revocation, rollback, and no orphan active token in an
-   isolated Development database before activation. Synthetic service tests
-   are not database race or RLS proof.
+   isolated Development database before activation. The later disposable
+   PostgreSQL fixture proved selected race and RLS behavior, but not the
+   canonical Development catalog or Supabase Data API.
 
-Until this gate passes, the application rejects known conflicts and unique
-races, but direct Data API writes and concurrent different-token registration
-for one installation are **not proven atomically safe**. Do not present this
-source-only change as full DB enforcement or release readiness.
+Until the reviewed database candidate is applied and qualified in canonical
+Development, the application rejects known conflicts and unique races, but
+direct Data API writes and concurrent different-token registration for one
+installation are **not enforced there**. Do not present a disposable fixture
+PASS as active DB enforcement or release readiness.
 
-The scoped cancellation path is also source-only until its `profile_id`,
-`device_id`/token and metadata JSON filters are exercised under real RLS.
+The scoped cancellation path remains unqualified against the canonical Data
+API/RLS until its `profile_id`, `device_id`/token and metadata JSON filters
+are exercised there. The disposable fixture checked own-row visibility after
+Site loss, but did not exercise the PostgREST query builder or provider callbacks.
 Synthetic tests prove that a normal sequential rotation leaves one active
 token; they do not prove ordering against a concurrent provider callback or
 direct Data API mutation. The web/native UI disables only the server row and

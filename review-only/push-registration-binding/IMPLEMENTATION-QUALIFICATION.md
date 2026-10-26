@@ -1,10 +1,10 @@
 # Observer Push-token binding — guarded database candidate
 
-**Review-only; not applied or qualified.** `forward.sql` begins with an
-unconditional exception inside a transaction. It is outside
-`supabase/migrations`. No SQL, including a read-only query, was run for this
-unit. A static source check is not a SQL parser, PostgreSQL concurrency test,
-or RLS proof.
+**Review-only; not applied to Development or Production.** `forward.sql`
+begins with an unconditional exception inside a transaction. It is outside
+`supabase/migrations`. A disposable synthetic PostgreSQL qualification was
+run later, as recorded below; it is not deployed-catalog, Supabase Data API,
+or real-data proof. The review-only guard remains intact.
 
 ## Source and caller inventory
 
@@ -61,7 +61,7 @@ adds bounded indexed profile/Site/membership/session reads per write. Its
 cost and lock impact require a future isolated query-plan and concurrency
 measurement. No paid provider/service is added by this source package.
 
-## Exact future isolated PostgreSQL qualification (not authorized here)
+## Remaining canonical PostgreSQL and Data API qualification
 
 1. Verify canonical isolated Development database identity, recent recoverable
    backup, actual applied migration history, columns, current RLS/grants,
@@ -94,7 +94,10 @@ measurement. No paid provider/service is added by this source package.
    test concurrent provider callback versus user revoke. Measure plans, locks,
    latency and write volume. Record schema/RLS receipts and DB restore path.
 
-These are future test instructions, **not** executed fixtures or proof.
+The local fixture covers selected SQL behaviors from items 2–6, as itemized
+below. The canonical Development catalog, actual legacy rows, PostgREST role
+provenance, provider callback ordering, and application integration remain
+unqualified; this checklist is not a claim that those gates passed.
 
 ## Forward, rollback and blocking facts
 
@@ -153,8 +156,67 @@ Two material authorization gates remain open even after that source fix:
   client discards its local revocation target. A source-only assertion cannot
   prove this behavior.
 
-Next gate: authorize or provide one isolated local PostgreSQL runtime/image,
-with no connection to existing Development or Production data, then execute
-the role, race, RLS, rollback and Data API compatibility tests above. Status
-remains **SOURCE-ONLY / POSTGRESQL QUALIFICATION BLOCKED**. Neither Development
-nor Production has received this candidate.
+That first attempt was superseded by the later synthetic-only run below.
+Neither Development nor Production has received this candidate.
+
+## 2026-10-26 disposable synthetic PostgreSQL qualification
+
+The later owner-authorized test used the pre-existing
+`public.ecr.aws/supabase/postgres:17.6.1.167` image in container
+`digital-observer-pgqa-20261026`. Its verified state was `running`,
+`NetworkMode=none`, zero mounts and zero published ports. The Docker daemon
+was only the execution transport; no existing gbi/Development database,
+volume, account, Auth record, provider or network service was connected.
+Each run created a distinct database from `template0`, containing only fixed
+synthetic identities and the minimal source-grounded tables/roles/functions.
+The runner removed its successful disposable database and the exact databases
+left by earlier harness failures were separately removed; a final catalog
+query found no `pgqa_push_binding_%` database.
+
+`scripts/qa/qualify-push-registration-pg-synthetic.mjs` asserts container
+isolation before it creates a database. It reads the guarded source, verifies
+the exact unconditional guard, and strips that guard **in memory for the
+disposable database only**. The repository SQL was never executed as a file
+and its guard was not removed. The test installed the candidate there and
+queried the resulting index/trigger catalog. It exercised:
+
+- Legacy active-installation duplicates and malformed Site IDs: preflight
+  aborted and rolled back without transferring or deleting test rows.
+- Owner registration and liveness replay; a second token for one active
+  installation was rejected. Two concurrent PostgreSQL sessions racing for
+  one installation yielded one committed winner and one unique conflict.
+  A concurrent same-token race across profiles likewise yielded one winner.
+- Wrong Site, invalid Observer source, global admin without Site permission,
+  parent without Site,
+  cross-profile insert/update, admin transfer, metadata rebinding,
+  expired/revoked Auth session, and post-revocation reactivation were denied.
+  The owner could still read and revoke the exact active row after losing Site
+  membership, while a new registration after that loss was denied.
+- Authenticated `DELETE` reported no SQL error but affected zero Observer
+  rows because the existing table policy has no DELETE allowance. A
+  `service_role` DELETE reached the trigger and was explicitly denied.
+  The service role could perform only the candidate's narrow
+  provider-invalid disable, not register an Observer token.
+- Generic Gan Batuach Management insert, refresh and provider-invalid
+  disable remained successful in the synthetic shared table.
+- Transactional removal of the candidate trigger/function/index did not
+  remove token rows; `ROLLBACK` restored all three objects and the row count.
+
+The final run exited zero. A source-only check still passed its 13 guards.
+This is **synthetic PostgreSQL concurrency and RLS behavior**, not physical
+provider delivery, canonical LOCAL_SUPABASE migration qualification, actual
+PostgREST/JWT provenance, or a lossless rollback rehearsal with real data.
+The fixture emulates `auth.uid()`, `auth.role()` and JWT session claims using
+local PostgreSQL settings; it cannot prove that an external client cannot
+forge those settings through the actual Supabase Data API. Its schema omits
+unrelated production objects and historical rows. No release-ready or
+application-activated status follows from this result.
+
+Remaining gates: inspect the verified canonical Development catalog and
+actual legacy rows with separately authorized scope; reconcile route-level
+global-admin/organization-only permission parity without weakening Site
+ownership; prove exact Data API claim provenance and read-back behavior;
+qualify provider-callback ordering and Observer/Management delivery selector;
+prepare a new reviewed migration and a separately approved Development
+application/rollback rehearsal. Until then the package is **POSTGRESQL
+SYNTHETIC PASS / DEPLOYMENT BLOCKED**.
