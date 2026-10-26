@@ -39,6 +39,13 @@ assert.equal(correlateCanonicalEvents([entered, { ...exited, id: "00000000-0000-
 assert.equal(correlateCanonicalEvents([entered, { ...exited, id: "00000000-0000-4000-a000-000000000006", metadata: { ...exited.metadata, observation_provenance: "SHADOW_AI" } }])[0].status, "open", "shadow output cannot contaminate a real Incident");
 const later = event("00000000-0000-4000-a000-000000000007", "person_entered", 11 * 60_000);
 assert.equal(correlateCanonicalEvents([entered, exited, later]).length, 2, "a later situation after closure creates a new Incident");
+const lowEntry = { ...entered, severity: "info" };
+const higherEntry = event("00000000-0000-4000-a000-000000000008", "person_entered", 10_000);
+const escalated = correlateCanonicalEvents([lowEntry, higherEntry]);
+assert.equal(escalated.length, 1, "A later Event in the same open track updates the existing Incident");
+assert.equal(escalated[0].severity, "critical", "The local Incident projection preserves the database writer's monotonic severity escalation");
+assert.deepEqual(escalated[0].related_event_ids, [lowEntry.id, higherEntry.id], "Escalation retains both evidence references");
+assert.equal(correlateCanonicalEvents([higherEntry, lowEntry, higherEntry])[0].severity, "critical", "Retries and input order cannot lower Incident severity");
 assert.equal(correlateCanonicalEvents([exited]).length, 0, "exit without correlated entry cannot invent an Incident");
 assert.equal(legalIncidentTransition("open", "acknowledged"), true);
 assert.equal(legalIncidentTransition("acknowledged", "closed"), true);

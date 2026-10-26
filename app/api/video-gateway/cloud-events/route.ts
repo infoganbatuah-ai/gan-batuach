@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth";
@@ -21,6 +22,17 @@ export const maxDuration = 30;
 const namespacedId = (site: string, id: string) => {
   const hex = createHash("sha256").update(`${site}:${id}`).digest("hex");
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;
+};
+// observer_intelligence_signals.confidence is numeric(5,4). Quantize the
+// decimal sent to Postgres, not its binary floating-point approximation.
+const confidenceUnits = (value: number): number => {
+  const [mantissa, exponent = "0"] = value.toString().split("e");
+  const [whole, fraction = ""] = mantissa.split(".");
+  const digits = BigInt(whole + fraction);
+  const shift = 4 + Number(exponent) - fraction.length;
+  if (shift >= 0) return Number(digits * 10n ** BigInt(shift));
+  const divisor = 10n ** BigInt(-shift);
+  return Number((digits + divisor / 2n) / divisor);
 };
 
 export async function POST(request: Request) {
@@ -64,7 +76,7 @@ export async function POST(request: Request) {
     const severity: "info" | "medium" | "critical" = result.event.severity === "CRITICAL"
       ? "critical"
       : result.event.severity === "WARNING" ? "medium" : "info";
-    let signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
+    let signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
     if (signal.error) throw new Error("EVENT_READ_FAILED");
     if (!signal.data) {
       signal = await db.from("observer_intelligence_signals").insert({
@@ -79,13 +91,30 @@ export async function POST(request: Request) {
           ...(event.verification_evidence ? { verification_evidence: event.verification_evidence } : {}),
           received_at: new Date().toISOString(), received_late: backfill, delivery_mode: backfill ? "BACKFILL_RESYNC" : "LIVE", delivery_delay_ms: deliveryDelayMs,
           queued_at: event.delivery?.queued_at ?? event.timestamp, cloud_ingested_at: new Date().toISOString() }
-      }).select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").single();
-      if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
+      }).select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").single();
+      if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
       if (signal.error) throw new Error("EVENT_WRITE_FAILED");
     }
     const persistedSignal = signal.data;
     if (!persistedSignal) throw new Error("EVENT_WRITE_FAILED");
-    if (persistedSignal.metadata.camera_source_id !== camera.id || persistedSignal.metadata.event_type !== result.event.event_type || persistedSignal.metadata.first_seen !== event.timestamp) return fail("Event id was already used for a different observation.", 409);
+    const stored = persistedSignal.metadata ?? {};
+    // A retry may update delivery/media lifecycle metadata, but it may not
+    // change the immutable observation that owns this site-scoped source ID.
+    // Check this before risk, notification or Guard side effects run again.
+    if (persistedSignal.observer_site_id !== device.observer_site_id
+      || persistedSignal.source_type !== "system" || persistedSignal.source_id !== sourceId
+      || persistedSignal.signal_type !== "ai_camera" || persistedSignal.severity !== severity
+      || persistedSignal.confidence == null || !Number.isFinite(Number(persistedSignal.confidence))
+      || confidenceUnits(Number(persistedSignal.confidence)) !== confidenceUnits(event.confidence)
+      || stored.camera_source_id !== camera.id || stored.stream_id !== event.stream_id
+      || stored.event_type !== result.event.event_type || stored.first_seen !== event.timestamp
+      || (stored.track_id ?? null) !== (event.track_id ?? null)
+      || stored.evidence_kind !== event.evidence_kind || stored.recording_required !== result.shouldRecord
+      || stored.observation_provenance !== "REAL_CAMERA_AI" || stored.validated_event !== true
+      || !isDeepStrictEqual(stored.model_provenance ?? null, event.model_provenance ?? null)
+      || !isDeepStrictEqual(stored.verification_evidence ?? null, event.verification_evidence ?? null)) {
+      return fail("Event id was already used for a different observation.", 409);
+    }
     // Context learning is best-effort and cannot make a durable, authenticated
     // camera event fail. The projection itself accepts only REAL_CAMERA_AI rows.
     await refreshRealEventContextBaseline(db, device.observer_site_id).catch(() => undefined);
