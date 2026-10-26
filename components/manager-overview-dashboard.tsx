@@ -77,7 +77,7 @@ export function ManagerOverviewDashboard({
           {schedule.length ? <div className="manager-schedule-list">{schedule.slice(0, 6).map((item) => { const Icon = item.icon ?? CalendarDays; return <article key={item.id}><Icon size={19} /><strong>{item.title}</strong><time>{item.time}</time></article>; })}</div> : <ReferenceEmpty text="עדיין לא פורסמו פעילויות להיום" />}
         </ReferencePanel>
         <article className="manager-reference-panel manager-reference-card manager-live-camera-card">
-          <header><span><Camera size={22} /> מצלמות בשידור חי</span><Link href="/dashboard/garden/cameras">הצג הכל <ChevronLeft size={16} /></Link></header>
+          <header><span><Camera size={22} /> מצלמות הגן</span><Link href="/dashboard/garden/cameras">הצג הכל <ChevronLeft size={16} /></Link></header>
           <div className="manager-live-camera-scene">
             <Image src="/assets/hero-control-center.png" alt="אזור מצלמות הגן" fill sizes="(max-width: 720px) 100vw, 36vw" />
             <span className={`manager-camera-truth state-${safety.state}`}><i /> {safety.label}</span>
@@ -88,6 +88,11 @@ export function ManagerOverviewDashboard({
         <ReferencePanel title="התראות ופעילות אחרונה" icon={Megaphone} href="/dashboard/garden/notifications" linkLabel="הצג הכל">
           {updates.length ? <div className="manager-update-list">{updates.slice(0, 6).map((item) => <article key={item.id} className={item.tone ?? "purple"}><span /><div><strong>{item.title}</strong>{item.subtitle ? <small>{item.subtitle}</small> : null}</div>{item.time ? <time>{item.time}</time> : null}<ChevronLeft size={18} /></article>)}</div> : <ReferenceEmpty text="אין עדכונים חדשים כרגע" />}
         </ReferencePanel>
+      </section>
+
+      <section className="manager-reference-quick manager-reference-card">
+        <header><span><Activity size={23} /> פעולות מהירות</span><Link href="/dashboard/garden/command-center">כל הפעולות</Link></header>
+        <div>{quickActions.map(({ title, href, icon: Icon, tone }) => <Link className={tone} href={href} key={title}><span><Icon size={27} /></span><b>{title}</b></Link>)}</div>
       </section>
 
       <section className="manager-command-grid manager-command-grid-primary" aria-label="מצב תפעולי מרכזי">
@@ -149,11 +154,6 @@ export function ManagerOverviewDashboard({
           </div>
           {enrollment.informationRequired || enrollment.awaitingPayment || enrollment.waitlisted ? <p className="manager-attention-note">רישום: {enrollment.informationRequired} ממתינים למידע · {enrollment.awaitingPayment} לתשלום · {enrollment.waitlisted} ברשימת המתנה</p> : null}
         </ReferencePanel>
-      </section>
-
-      <section className="manager-reference-quick manager-reference-card">
-        <header><span><Activity size={23} /> פעולות מהירות</span><Link href="/dashboard/garden/command-center">כל הפעולות</Link></header>
-        <div>{quickActions.map(({ title, href, icon: Icon, tone }) => <Link className={tone} href={href} key={title}><span><Icon size={27} /></span><b>{title}</b></Link>)}</div>
       </section>
 
       <section className="manager-command-grid manager-finance-communication-grid">
