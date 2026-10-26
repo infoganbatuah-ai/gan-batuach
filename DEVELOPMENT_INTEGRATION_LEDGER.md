@@ -1782,3 +1782,16 @@ untouched.
 Remote preservation verified: `origin/codex/ux-v4-primary-screen-correction`
 contains validated head `0855814aea547b4b7098e3c8bfba76ac4f8a53c4`, including the
 implementation, fresh evidence and validation ledger update.
+
+UX-V4 PRIMARY-SCREEN CORRECTION Development integration receipt (2026-10-26):
+validated remote head `e0617705114940fba282209fb163a71a2d841eca` passed all
+nine required checks in PR #251 and merged ancestry-preserving to
+`integration/development` as
+`1d6bb1f50e8efc87b241d81d0ae0f7b7f64c5a94`. The merge tree is identical to
+the exact CI-tested head. Post-merge Manager/Parent 23/23, management dashboards
+9/9, Owner command center 6/6 and legacy consolidation 8/8 passed. Ten primary
+screenshots, 32 domain-regression screenshots, geometry review and the V5 owner
+package were regenerated from the exact merged Development SHA; the package
+reports 21 `REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION` and 0
+`BROKEN`. External owner visual acceptance remains pending. Production,
+`main` and RELEASE-GAP-01 remain untouched.

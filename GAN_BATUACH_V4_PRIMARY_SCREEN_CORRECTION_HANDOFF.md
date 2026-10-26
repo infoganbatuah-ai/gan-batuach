@@ -1,4 +1,4 @@
-# GAN BATUACH V4 PRIMARY SCREEN CORRECTION — ACTIVE HANDOFF
+# GAN BATUACH V4 PRIMARY SCREEN CORRECTION — DEVELOPMENT INTEGRATION RECEIPT
 
 - Task: `UX-V4 FINAL PRIMARY-SCREEN CORRECTION`
 - Owner: current Codex task `Continue Gan Batuach roadmap`
@@ -7,6 +7,9 @@
 - Source Development SHA: `af30b84f21a35e817738bf0329cf1a632a10a5ae`
 - Implementation commit: `e85eda2a62c5d988ac5790d843a14fce9bcb766b`
 - Fresh evidence commit: `72281329`
+- Validated remote head: `e0617705114940fba282209fb163a71a2d841eca`
+- Development PR: `#251`
+- Development merge: `1d6bb1f50e8efc87b241d81d0ae0f7b7f64c5a94`
 - Production: untouched
 - `main`: untouched
 - RELEASE-GAP-01: not started
@@ -39,22 +42,17 @@
 
 ## Current state
 
-The former PUSH 38 host-isolation blocker is obsolete. The five primary routes,
-fresh evidence and cumulative local gates are complete on the isolated feature
-worktree. The remaining work is repository integration: exact scoped commit,
-remote preservation, PR checks, merge to `integration/development`, and one
-fresh post-merge evidence run from the exact merged SHA.
+The former PUSH 38 host-isolation blocker is obsolete. PR #251 passed all nine
+exact-head checks and merged ancestry-preserving to `integration/development`
+as `1d6bb1f50e8efc87b241d81d0ae0f7b7f64c5a94`. The merge tree is identical
+to the exact CI-tested source head. Ten primary screenshots, 32 regression
+screenshots, geometry review and the 21-domain V5 owner package were regenerated
+from that exact merged Development SHA.
 
 ## Exact next action
 
-1. Re-fetch `origin/integration/development` and reconcile only if it advanced.
-2. Commit the scoped implementation, evidence, map, geometry and reports.
-3. Update the Development ledger with the exact validated commit and push it.
-4. Open a PR to `integration/development`, wait for all required checks, fix failures and merge.
-5. Verify the final remote integration SHA.
-6. Re-run the ten primary captures and 32 regression captures from that exact merged SHA in the isolated Development environment.
-7. Generate the final V5 package outside the canonical worktree and confirm counts 21/0/0.
-8. Verify the canonical Development worktree is clean. Keep `main`, Production and RELEASE-GAP-01 untouched.
+External owner visual review of the V5 package. No owner approval or UX
+completion is claimed. Keep `main`, Production and RELEASE-GAP-01 untouched.
 
-This handoff is preservation evidence only. It is not a visual PASS, owner
-approval, Development integration receipt or Production release.
+This receipt records Development integration and post-merge verification only.
+It is not a Production release or external owner acceptance.
