@@ -154,6 +154,10 @@ try {
   sql(`GRANT SELECT ON public.observer_event_risk_plan_authority TO service_role;
     GRANT SELECT,INSERT ON public.observer_event_risk_effect_plans TO service_role;
     GRANT EXECUTE ON FUNCTION public.start_event_risk_effects_v1(uuid,text,uuid,bigint,jsonb) TO service_role;`);
+  // This fixture permission exposes the live SECURITY INVOKER design gap:
+  // service_role could directly write a plan. Qualification stays review-only.
+  assert.equal(sql("SELECT has_table_privilege('service_role','public.observer_event_risk_effect_plans','INSERT');"), "t");
+  checks++;
   authorityInsert(s1, risk1, incident1, a1);
   authorityInsert(s2, risk2, incident2, a2);
   deny(call(s1, a1), /permission denied for function start_event_risk_effects_v1/, "anon");
