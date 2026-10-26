@@ -12816,6 +12816,45 @@
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Review the preserved source package separately. Runtime implementation still requires authoritative event-time Model A ownership, four atomic fenced Risk/effect writers, an immutable recipient snapshot and deployed-schema/RLS/crash qualification before connecting the active route; this merged unit is review-only and not ready to apply."
+    },
+    {
+      "id": "codex/event-time-acceptance-review-20261026",
+      "project": "Digital Observer event-risk processing",
+      "title": "Guarded conditional atomic acceptance writer for first-qualified live Home events",
+      "owner": "Event-time acceptance qualification task",
+      "sourceBranch": "codex/event-time-acceptance-review-20261026",
+      "sourceCommits": ["a6bd2ba572cac96ac4d73ca37403e43eb119eeb8"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/event-time-acceptance-review-20261026"],
+        "sourceScope": "Guarded ungranted review-only writer, byte-identical source registration SQL fixture dependency, disposable PostgreSQL test runner and documented activation blockers. PR #255 diagnosis remains separate and Draft; 61 source commits remain unmerged."
+      },
+      "validation": {
+        "status": "CONDITIONAL_ISOLATED_POSTGRES_PASS_NOT_READY_TO_APPLY",
+        "evidence": [
+          "review-only/event-time-acceptance-writer/README.md",
+          "Disposable network-disabled PostgreSQL 17.6: 31 transaction and negative assertions, 2026-10-26; cross-Site false binding denied by proposed writer",
+          "Source SHA-256, guard containment, Node syntax, ledger schema and Git diff checks"
+        ],
+        "limits": "No verified registration authority, trusted Gateway-to-database caller, signed event capture time, transfer cutover, canonical immutable audit equivalence, deployed trigger/RLS/crash qualification, or live route. Function has no EXECUTE grant; stale claim owner/fenced writers remain disconnected."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseSha": "b305491c7e63eea4dcd3c9620bb32fd1f2e13c56",
+        "pullRequest": "DRAFT_PENDING_CREATION"
+      },
+      "dependencies": {
+        "status": "UNMERGED_SOURCE_REGISTRATION_AND_PR255_DIAGNOSTIC",
+        "units": ["codex/event-ingest-replay-identity-20261025"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_ISOLATED_POSTGRESQL_CONDITIONAL_WRITER_ONLY; FULL_STACK_NOT_RUN",
+      "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Verify owner-qualified registration, trusted internal caller and Gateway capture-time provenance, then rehearse source transfer and real trigger/RLS/rollback on an authorized isolated target before any Development migration or route integration."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
