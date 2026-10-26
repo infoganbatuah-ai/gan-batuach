@@ -12834,7 +12834,7 @@
         "status": "CONDITIONAL_ISOLATED_POSTGRES_PASS_NOT_READY_TO_APPLY",
         "evidence": [
           "review-only/event-time-acceptance-writer/README.md",
-          "Disposable network-disabled PostgreSQL 17.6: 31 transaction and negative assertions, 2026-10-26; cross-Site false binding denied by proposed writer",
+          "Disposable network-disabled PostgreSQL 17.6: 33 transaction and negative assertions, 2026-10-26; cross-Site false binding denied by proposed writer",
           "Source SHA-256, guard containment, Node syntax, ledger schema and Git diff checks"
         ],
         "limits": "No verified registration authority, trusted Gateway-to-database caller, signed event capture time, transfer cutover, canonical immutable audit equivalence, deployed trigger/RLS/crash qualification, or live route. Function has no EXECUTE grant; stale claim owner/fenced writers remain disconnected."

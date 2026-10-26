@@ -117,16 +117,28 @@ BEGIN
       JOIN observer_home_review.registration_audit q
         ON q.audit_ref=b.binding_audit_ref AND q.action='BOUND'
         AND q.event_id=b.event_id AND q.registration_id=b.registration_id
+        AND q.version=b.registration_version
       WHERE b.event_id=s.id AND b.registration_id=a.registration_id
         AND b.registration_version=a.registration_version
         AND b.tenant_id=a.tenant_id AND b.site_id=a.site_id
         AND b.source_id=a.source_id
+        AND b.authority_ref=a.authority_ref AND b.acceptance_ref=a.acceptance_ref
     ) OR NOT EXISTS (
       SELECT 1 FROM observer_home_review.registration_audit q
       WHERE q.action='ACCEPTED' AND q.event_id=s.id
         AND q.registration_id=a.registration_id AND q.version=a.registration_version
     ) THEN
       RAISE EXCEPTION 'HOME_EVENT_MANDATORY_EFFECT_MISSING' USING ERRCODE='P0001';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM public.observer_correlated_event_links l
+      JOIN public.observer_correlated_events i ON i.id=l.correlated_event_id
+      WHERE l.source_type='observer_intelligence_signal' AND l.source_id=s.id
+        AND l.observer_site_id=a.site_id AND i.observer_site_id=a.site_id
+        AND i.primary_camera_source_id=a.source_id
+        AND i.related_event_ids @> ARRAY[s.id]
+    ) THEN
+      RAISE EXCEPTION 'HOME_INCIDENT_SCOPE_UNVERIFIED' USING ERRCODE='P0001';
     END IF;
     RETURN s.id;
   END IF;

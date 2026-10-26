@@ -150,6 +150,14 @@ try {
   assert.equal(count('observer_home_review.registration_audit'), 2);
   checks++;
 
+  psql(`UPDATE public.observer_correlated_event_links SET observer_site_id='${otherSite}'
+    WHERE source_type='observer_intelligence_signal' AND source_id='${firstId}';`);
+  denied(accept(first), /HOME_INCIDENT_SCOPE_UNVERIFIED/);
+  psql(`UPDATE public.observer_correlated_event_links SET observer_site_id='${site}'
+    WHERE source_type='observer_intelligence_signal' AND source_id='${firstId}';`);
+  assert.equal(psql(accept(first)), firstId);
+  checks++;
+
   const concurrent = observation('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   const raced = await Promise.all([psqlAsync(accept(concurrent)), psqlAsync(accept(concurrent))]);
   assert.equal(raced[0], raced[1]);
