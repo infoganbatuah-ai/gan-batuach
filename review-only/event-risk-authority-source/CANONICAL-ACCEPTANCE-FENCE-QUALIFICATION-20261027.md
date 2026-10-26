@@ -1,0 +1,32 @@
+# Canonical Home Signal/acceptance writer versus revocation — isolated qualification
+
+Status: **REVIEW ONLY / NOT READY TO APPLY**. The integration test runs the complete pinned `a6bd2ba5` SQL body, minimally adapted in memory, against the guarded `a1089050` registration proposal and the original `a6bd2ba5` synthetic Signal→Incident fixture. It does **not** substitute the simpler checkpoint from `de3d848c` for canonical Signal/Incident/acceptance/binding/audit behavior. No existing database, service, migration, route, ACL, Home device or provider was changed.
+
+## Duplication and source integrity
+
+Read `AGENTS.md`, the preceding `296aa990` registration writer, `de3d848c` synthetic fence, `a1089050` registration proposal, the complete `a6bd2ba5` acceptance writer and its fixture, PR #255–257, and `automation-7`. No equivalent complete-writer versus revocation test was found in the inspected sources or the targeted open-PR search. The six-hour `automation-7` is a status report, not an implementation unit. GitHub DNS prevented an exhaustive remote Git-history scan; duplicate absence is not claimed globally. No branch merge or cherry-pick was done.
+
+The runner reads the prior files via Git at exact commits, checks the source SQL SHA-256 (`a1089050`: `b0e313f5…`, `a6bd2ba5` writer: `0aa72235…`), asserts **11 exact single-occurrence anchors**, and applies the adaptation in memory. Any source drift aborts the test. The fixture, registration proposal, fence extension and adapted writer each abort directly before DDL; only the new network-disabled, mountless PostgreSQL container strips those guards in memory.
+
+## Exact difference from a6bd2ba5
+
+`adapt-canonical-home-acceptance-fence.mjs` is the reviewable exact-anchor patch list. It retains the original body and its Signal INSERT, synthetic correlation-trigger verification, acceptance, mandatory ACCEPTED audit, binding and BOUND audit. Only these boundaries change:
+
+1. Add `p_expected_epoch` and a synthetic verified-Gateway session reference; reject missing/expired/wrong-Source session before replay or new acceptance. This is a fixture, **not a real Gateway attestation**.
+2. Compare immutable acceptance `owner_epoch` and matching mandatory ACCEPTED audit epoch on replay. Same event with changed payload, scope or epoch is rejected. Replay after revocation returns the original event ID without new Signal/Incident/audit.
+3. Require `revoked IS DISTINCT FROM false` to be false and exact owner epoch **under the existing identity `FOR UPDATE` lock** before a new Signal INSERT. Keep the original current version-1 and Source/Site/Tenant/owner checks.
+4. Persist owner epoch on the immutable acceptance receipt and its mandatory audit in the same transaction as the existing Signal/Incident/binding path. The function signature and exact REVOKE declaration are updated; **no caller grant** is added.
+
+`CANONICAL-ACCEPTANCE-FENCE-NOT-APPLIED.sql` adds nullable epoch/revoked fields and a guarded synthetic revocation function. Nullable is deliberate: an old row without a qualified epoch or state fails closed; no automatic epoch-0 backfill is made. Revocation locks the same identity row first, requires exact fixture authority, current Model A scope and owner session, then atomically marks revoked, increments the epoch and writes mandatory REVOKED audit. A failed audit rolls the state back. Owner/Source transfer remains denied and is **outside this unit**.
+
+## Measured isolated result
+
+`node review-only/event-risk-authority-source/run-isolated-canonical-acceptance-fence-qa.mjs` passed **52 PostgreSQL assertions** against the actual adapted complete writer body. Both two-connection orders were exercised: (a) Signal/Incident/acceptance/binding/audits commit before revocation, then an identical replay survives without new effects; (b) revocation commits first, then the attempted first Signal is denied and no receipt appears. Additional assertions cover stale epoch and version, NULL legacy epoch/state, Tenant/Site/Source/owner mismatch, conflicting duplicate payload, expired/invalid Gateway fixture session, mandatory acceptance and revocation audit failures, Incident-trigger failure with atomic Signal rollback, direct-write/role denial, guard abort before DDL and old replay after a current owner change. A disposable PostgreSQL container with `--network none`, no mounts and a read-only root was removed after the run. `node --check` and the existing 42 registration-writer and 40 synthetic-fence assertions are separate regressions, not substitutes for these 52.
+
+## Schema mismatch and live blockers
+
+The `296aa990` registration writer operates only on `review_registration_writer` synthetic tables, while `a1089050`/`a6bd2ba5` use `observer_home_review`. The prior writer cannot be treated as a producer of a qualified version for this acceptance test; the runner installs two **synthetic** version-1 rows directly in the disposable database. That is a qualification fixture, not live registration authority. Any proposed merged schema must reconcile columns, version/epoch semantics, owner provenance, caller roles, event receipt constraints and audit target before use. This package proves **fail-closed behavior of the adapted acceptance body under fixtures**, not the end-to-end qualification→acceptance chain.
+
+Further blockers: independent Home ownership/authorized actor evidence; commit-time Supabase Auth session and real Gateway attestation; dedicated non-Data-API caller with reviewed table/function grants and RLS; actual Incident trigger and immutable audit semantics; an append-only epoch receipt migration compatible with existing data; and retention/legal hold plus lossless rollback rehearsal. Current mutable `observer_sites`, Source `created_by`, `app_metadata`, or a client-supplied UUID cannot replace those proofs. No historical Home ownership backfill, Production access or Guard action is authorized.
+
+Data owner: Digital Observer customer Tenant/Site and security owner. Sensitivity: owner/Source linkage, accepted event metadata and audit, no media or secrets. Proposed volume is one immutable acceptance/binding and mandatory audits per newly accepted event plus a revocation audit; exact retention and cost are unresolved. No paid provider or fixed charge was activated. Rollback must disable new admission while retaining canonical Signals, Incidents, versions, receipts and audit; dropping or rewriting incomplete work is not lossless.
