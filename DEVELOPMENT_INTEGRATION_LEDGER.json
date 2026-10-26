@@ -12803,7 +12803,7 @@
         "baseSha": "91653fafb3aa124c92f3a0b1c2416324e42da493",
         "commit": null,
         "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/254",
-        "requiredChecks": "EXACT_HEAD_CI_PENDING"
+        "requiredChecks": "EXACT_HEAD_CI_REQUIRED_ON_FINAL_PR_SHA; verify GitHub check runs before review"
       },
       "dependencies": {
         "status": "SOURCE_REVIEW_PACKAGE_AND_UNVERIFIED_MODEL_A_MIGRATION",
