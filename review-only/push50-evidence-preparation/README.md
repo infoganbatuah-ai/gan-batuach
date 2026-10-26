@@ -10,6 +10,12 @@ scripts/qa/check-push50-evidence-index.mjs --self-test` checks object presence,
 unchanged blobs, review guards and deliberately open external gates. It does
 **not** execute the referenced QA scripts or reperform their historical tests.
 
+`FOUNDATION-BOUNDARY-CROSSWALK.md` separately pins 18 critical PUSH 1–38
+foundation/current-boundary anchors by Git blob SHA and labels source contracts,
+historical receipts, migration text, local build proof and missing external
+proof. `node scripts/qa/check-push50-foundation-crosswalk.mjs --self-test`
+checks the pins and rejects promotion of strict PUSH 38 and external gates.
+
 | PUSH | Local evidence class | Still open |
 | --- | --- | --- |
 | 39 | Source tests and recorded disposable PostgreSQL dispatch transaction | Canonical RLS/Data API, provider reconciliation and real delivery/action receipts |
