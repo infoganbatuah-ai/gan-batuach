@@ -1,10 +1,43 @@
 # PUSH 43 partner-brand atomic write — future PostgreSQL gate
 
-Status: **source only, not applied, not qualified**. `forward.sql` begins with a
-transaction-aborting review guard and is deliberately outside
-`supabase/migrations/`. It must never be run against Production or Home. The
-active `savePartnerBrand` service still uses separate reads, a brand write and
-an audit insert; its synthetic tests do not close the ownership/write race.
+Status: **qualified only against a disposable, network-isolated PostgreSQL
+fixture; not applied to Development or Production**. `forward.sql` still begins
+with a transaction-aborting review guard and remains outside
+`supabase/migrations/`. The QA runner removes the guard **in memory only** for
+the disposable database. The active `savePartnerBrand` service still uses
+separate reads, a brand write and an audit insert; no adapter was activated.
+
+## 2026-10-26 disposable PostgreSQL result
+
+- Container: pre-existing `digital-observer-pgqa-20261026`, PostgreSQL 17.6.
+  Before execution, Docker inspection confirmed `NetworkMode=none`, no mounts,
+  no bound ports and a running container. The runner refuses any other target.
+- Scope: one randomized `do_p43_brand_qa_*` database created from `template0`
+  in that container, with only source-shaped synthetic PUSH 41/43 tables and
+  five synthetic profiles. No canonical data was copied or queried. Standard
+  `service_role`, `authenticated` and `anon` roles already existed; none were
+  created or changed cluster-wide. The fixture deliberately simplifies
+  unrelated columns and emulates `auth.role()` via a session claim.
+- Command: `node review-only/push43-partner-brand-atomic/run-isolated-postgres-qa.mjs --execute-disposable-qa`.
+  All thirteen reported stages passed, including the unchanged review guard
+  aborting before installation, candidate installation in the fixture only,
+  signature-specific EXECUTE privileges, service-role/forged-claim denial,
+  authorized owner create and membership-admin update, foreign/parent/global
+  denial, cross-organization/partner denial, malformed field/URL/notices,
+  revoked membership, domain-status preservation/reset/null, mandatory-audit
+  rollback, suspended partner/organization denial, concurrent status and
+  ownership changes, and two concurrent updates with one CAS winner.
+- An initial negative case found that the candidate accepted `https://%`,
+  which the application Zod URL parser rejects. The **review-only candidate**
+  was tightened to require a DNS-like HTTPS authority; the full runner then
+  passed. This SQL check is intentionally conservative and is not a complete
+  URL parser. Before any adapter activation, compare all accepted production
+  brand URL forms against the application parser; credentialed/other unusual
+  URLs may be accepted by the current app schema but denied by the proposal.
+- The runner's `finally` block dropped only its own randomized database after
+  success and failure. A separate catalog query returned zero
+  `do_p43_brand_qa_%` databases after the final run. No migration, service,
+  provider, or external route was activated.
 
 ## Existing contract and intended change
 
@@ -64,10 +97,18 @@ records. Never delete existing brands or audit events to simplify rollback.
 
 ## Still unverified
 
-- PostgreSQL syntax, transaction rollback, lock behavior and concurrent races.
-- Actual `service_role`/`anon`/`authenticated` grants, RLS and Data API exposure.
-- Deployed schema drift and migration status; `qa:migrations` is source-only.
-- Full application route/adaptor qualification and exact-head remote CI.
-
-No database connection, SQL execution, migration application or remote
-publication occurred in this package.
+- The test proves PostgreSQL behavior only for the disposable simplified
+  fixture, not the canonical Development schema, actual RLS/role inheritance,
+  current grants, PostgREST/Data API exposure, or trusted server-side actor
+  binding. Direct SQL can set fixture request claims and cannot prove a real
+  authenticated HTTP request cannot forge them.
+- Deployed schema drift and migration status remain unverified. The guarded
+  SQL is **not ready to apply**. No canonical Development or Production SQL was
+  executed.
+- Full application route/adapter compatibility, URL-policy parity for all
+  existing brand data, remote CI, and any external provider behavior remain
+  unverified. The current service still sanitizes responses with
+  `publicBrandProfile`; the proposed RPC returns an internal row and must not
+  be returned raw to clients.
+- The synthetic race demonstrates one observed lock/CAS interleaving, not an
+  exhaustive concurrency or production durability guarantee.

@@ -75,10 +75,13 @@ begin
   ) then
     raise exception 'PARTNER_BRAND_OPTIONAL_TYPE_INVALID';
   end if;
-  if (requested_brand->>'privacy_url') !~* '^https://[^[:space:]]+$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$'
-    or (requested_brand->>'terms_url') !~* '^https://[^[:space:]]+$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$'
-    or (requested_brand->>'logo_url' is not null and (requested_brand->>'logo_url') !~* '^https://[^[:space:]]+$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$')
-    or (requested_brand->>'support_url' is not null and (requested_brand->>'support_url') !~* '^https://[^[:space:]]+$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$')
+  -- Conservatively require a DNS-like HTTPS authority. The prior pattern
+  -- accepted malformed values such as https://% that brandProfileSchema rejects.
+  -- Application URL parsing remains mandatory; this is defense in depth.
+  if (requested_brand->>'privacy_url') !~* '^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$'
+    or (requested_brand->>'terms_url') !~* '^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$'
+    or (requested_brand->>'logo_url' is not null and (requested_brand->>'logo_url') !~* '^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$')
+    or (requested_brand->>'support_url' is not null and (requested_brand->>'support_url') !~* '^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?([/?#][^[:space:]]*)?$|^http://(localhost|127\.0\.0\.1)(:[0-9]+)?(/[^[:space:]]*)?$')
     or (requested_brand->>'customer_domain' is not null and (requested_brand->>'customer_domain') !~ '^[a-z0-9.-]{1,253}$')
     or (requested_brand->>'notification_sender_label' is not null
       and length(btrim(requested_brand->>'notification_sender_label')) not between 2 and 80) then
