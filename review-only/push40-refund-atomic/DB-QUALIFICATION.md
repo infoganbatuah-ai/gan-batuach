@@ -88,6 +88,69 @@ read/write occurred. Full repository `npm run typecheck` is not green because
 the untouched mobile runtime has unresolved `@capacitor/*` modules and their
 dependent implicit-any diagnostics; it reported no error in the changed route.
 
+## Invoice source-payment uniqueness proposal — 2026-10-26
+
+Source inventory: `ensureDraftInvoice` in `commercial-billing-service.ts`
+creates one internal draft per stable Checkout ID, with
+`metadata.checkout_intent_id` but no payment-event ID.
+`activateVerifiedCheckout` creates a paid invoice or updates that draft after
+payment confirmation and writes both `metadata.checkout_intent_id` and
+`metadata.source_payment_event_id`. `confirmRefund` subsequently updates the
+invoice's credited state and amount but does not change source metadata.
+The repository search found no other active invoice writer. The base invoice
+table has a unique `invoice_number`, and PUSH 40 added a partial unique
+`immutable_invoice_id` index; neither makes `source_payment_event_id` unique.
+These source findings do **not** prove canonical data has no legacy duplicate
+or that a future legal tax-document writer will not legitimately reference the
+same payment.
+
+`invoice-source-uniqueness.sql` is a **separate guarded, review-only**
+candidate. A future reviewed Development migration would take a bounded SHARE
+table lock, refuse malformed source metadata and duplicates without modifying
+rows, then create a global unique UUID-expression index for every non-null
+`metadata.source_payment_event_id` across invoice states, Sites and checkouts.
+It is intentionally stronger than an index only on paid invoices: a draft,
+credited or cross-Site row cannot later become a second paid match for the
+same payment. Draft and legacy rows lacking the key remain permitted but
+cannot qualify a refund. The candidate does not use `IF NOT EXISTS` because
+an unrelated index with the same name must not count as the expected proof.
+Its 5-second lock wait and 30-second statement timeouts are fail-closed QA
+bounds, **not** proof of acceptable lock impact on a real invoice table.
+
+The new disposable PostgreSQL runner verified the exact existing
+`digital-observer-pgqa-20261026` container had `NetworkMode=none`, no mounts
+and no ports, then created a new random database from `template0`. All nine
+recorded stages passed: original guard abort; duplicate preflight leaves both
+synthetic invoices intact; malformed source metadata abort; missing legacy
+metadata remains but cannot qualify; one exact paid invoice succeeds;
+cross-Site, checkout and payment mismatches fail; an uncommitted invoice is
+invisible to refund and rolls back without erasing the original; a second
+connection attempting a different-immutable-ID duplicate while a refund
+transaction remains open is rejected by the index; and final matching QA
+database catalog count is **zero**. This tested SQL behavior in a simplified
+PostgreSQL fixture, not the canonical Development catalog, PostgREST/Data API,
+real provider, invoice history or Production. The source/guard contract tests
+passed **3/3**. No actual invoice or refund was created or changed.
+
+Compatibility gate: before any real migration, read the canonical
+Development invoice catalog and history, classify every row with a source
+payment key and every duplicate/invalid/legacy exception, verify that a
+single invoice record per payment is the approved commercial and legal
+contract, assess index build lock/size and cost, and test the exact adapter
+and RLS. If multiple legal invoices for one payment are valid, **do not**
+install this index or activate refunds based on this proposal. Keep refund
+authorization fail-closed until a separately reviewed unique canonical
+payment-to-internal-invoice binding (including all writers) replaces it.
+No source row may be deleted, reassigned or silently backfilled to force a
+passing preflight.
+
+Rollback: a failed guarded/preflight transaction leaves invoice rows and the
+catalog unchanged. After a future successful index installation, leaving the
+unused index in place is the safe pre-activation rollback. Dropping it while
+refunds are active would reopen the race and is not an approved rollback;
+first disable/reconcile the adapter and preserve invoices, refunds and audits.
+No lossless canonical rollback has been rehearsed.
+
 ## Mandatory gates before any Development integration
 
 1. Verify actual canonical migration history, schema/RLS/grants and backup;
@@ -101,10 +164,12 @@ dependent implicit-any diagnostics; it reported no error in the changed route.
 3. Preflight existing refunds missing mandatory audit. Replay is intentionally
    blocked with `REFUND_AUDIT_REPAIR_REQUIRED`; do not fabricate an audit or
    silently treat such rows as complete.
-4. Verify invoice uniqueness for `source_payment_event_id` and checkout binding
-   against canonical data. The fixture rejects duplicates at read time, but a
-   concurrent invoice insert is not fully fenced by this function alone. A
-   reviewed uniqueness constraint or equivalent canonical invariant is needed.
+4. Verify and approve the separate review-only source-payment uniqueness
+   proposal against the canonical catalog and legal invoice lifecycle before
+   a future migration. The RPC alone still cannot fence a concurrent invoice
+   insert; its synthetic concurrency PASS depends on the proposed index being
+   installed. If the index is incompatible, retain refund fail-closed and
+   design a unique canonical binding before activation.
 5. Verify payment/checkout and invoice lifecycle compatibility, including
    signed legacy payment rows, invoices without exact metadata, and the fact
    that `payment.subscription_id` may be null before subscription activation.
