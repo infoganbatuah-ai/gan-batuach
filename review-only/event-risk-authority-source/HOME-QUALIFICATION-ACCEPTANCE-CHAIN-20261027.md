@@ -1,0 +1,25 @@
+# Home registration qualification → canonical Signal acceptance — isolated chain
+
+Status: **REVIEW ONLY / NOT READY TO APPLY OR ACTIVATE**. This unit closes the *synthetic contract-test* gap identified in `CANONICAL-ACCEPTANCE-FENCE-QUALIFICATION-20261027.md`: a qualified registration version is now produced by the pinned qualification function, then consumed by the pinned full Signal → Incident → acceptance → binding → mandatory-audit writer in **one disposable PostgreSQL schema**. The runner never seeds `registration_versions` directly. This is not Home-owner verification, a Development migration, or a live gateway test.
+
+## Pinned source and exact alignment
+
+- Registration source proposal: `a1089050`, SHA-256 `b0e313f5d76e7faf6c2d104da3873205df6974a0a3faf9d2980a280aa89cc2e5`.
+- Qualification writer: `296aa990`, SHA-256 `5de14e2bd4cfbee63416371becb948b7f96c3d605115befaaa86d0e5a4a12a2e`.
+- Full canonical acceptance writer: `a6bd2ba5`, SHA-256 `0aa722353c4dee721f45ae23afaac0f9d5d186a20d487cf9f025526170c8f293`.
+- The earlier full-writer fence adaptation remains the exact-anchor `adapt-canonical-home-acceptance-fence.mjs` from `5ca5acf5`. The new `adapt-home-qualification-chain.mjs` extracts the entire guarded qualification function body and asserts exact source hash and replacement anchors. It maps the synthetic writer schema and fixture names to the guarded `observer_home_review` schema; maps authorized actor and mandatory audit fields; treats NULL `current_version` as expected version zero **only for first qualification**; and checks non-NULL, non-revoked epoch zero, current synthetic owner scope, and the pinned current Model A Source/Site/Tenant tables. Ambiguous historical registration rows fail closed. The acceptance body, Source/Incident inserts and fencing checks are not replaced by a toy function.
+- `CHAIN-ALIGNMENT-NOT-APPLIED.sql` adds only review-proposal columns and a synthetic current-scope fixture. It deliberately has a top-level exception guard before DDL and a trailing `ROLLBACK`. It is **not** in `supabase/migrations`; it does not grant any caller EXECUTE or backfill a row. The runner strips the guard only in its disposable database, leaves the writer ungranted to `anon`, `authenticated`, and `service_role`, and uses the disposable superuser for contract assertions. No authorization model for a live caller is established.
+
+## Measured synthetic result
+
+`node review-only/event-risk-authority-source/run-isolated-home-qualification-chain-qa.mjs`: **PASS, 45 PostgreSQL assertions**. The container used `--network none`, no mounts and a read-only root, and was stopped/removed in `finally`. The runner verifies direct execution of the guarded alignment aborts before DDL. It inserts only synthetic identity, authority, session, Source/Site/Tenant and current-scope fixtures; `registration_versions` begins empty and is populated only through `qualify_registration_v1`.
+
+The assertions cover mandatory qualification-audit rollback; unknown epoch and changed current scope denial; wrong authority, untrusted caller and direct-write denial; qualification-then-first-Signal row-lock ordering; immutable replay and conflicting replay; cross-Site/Source and wrong-epoch rejection; idempotent same-request qualification versus stale new-request rejection; mandatory acceptance-audit rollback of Signal, Incident, acceptance and binding; qualification renewal racing revocation; revocation racing first acceptance; and no new Signal after revocation. The prior unchanged synthetic regressions also pass separately: registration writer **42**, synthetic fence **40**, canonical full-writer fence **52**, source-readiness gate **8**. Both new JavaScript files pass `node --check`.
+
+The event timestamp used for the row-lock race is obtained from PostgreSQL at microsecond precision: JavaScript millisecond truncation could otherwise make a just-created event appear before its qualification timestamp. This is a test-fixture correction, not a relaxation of the writer's event-time rule.
+
+## Boundaries and next dependency
+
+The synthetic authority and owner session fixtures do **not** prove independent Home ownership, actual owner presence, Supabase Auth provenance, real Gateway session, or historically correct Model A Tenant/Site ownership. The guarded alignment is not a reviewed deployable migration; real caller grants, table RLS/Data API exposure, applied-schema compatibility, retention and lossless rollback remain unresolved. Do not infer that existing Home rows can be assigned to a candidate Tenant or epoch zero. No real database, Development migration, Production database, adapter, route, Guard, provider or external service was changed. No event-risk processing was activated.
+
+Before any live use, an authorized owner must provide independently verifiable ownership/actor and Gateway-session sources; a separate schema/caller/RLS/rollback review must then qualify an additive Development migration. This synthetic PASS cannot substitute for those approvals or PostgreSQL tests on an authorized isolated integration database.
