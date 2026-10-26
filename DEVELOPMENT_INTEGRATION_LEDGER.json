@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-19T22:06:00Z",
+  "updatedAt": "2026-10-26T02:27:22Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -12600,6 +12600,126 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "External owner visual review of the exact merged Development V5 package. Do not touch main or Production and do not begin RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/event-ingest-replay-identity-20261025",
+      "project": "Digital Observer and affected PUSH 39-45 contracts",
+      "title": "Remote preservation of offline event-risk, replay-identity, Model A and PUSH 39-45 work",
+      "owner": "Event-risk and replay-identity development task",
+      "sourceBranch": "codex/event-ingest-replay-identity-20261025",
+      "sourceCommits": [
+        "ee5ee96cbc1769159605b760f1d535afaaec470c",
+        "2b3755bf47ac875460c6ddcf7436ccad5a097440",
+        "badaad7d02da5c45a8b7dce5fe4d335b9732e3ab",
+        "f5779cbbf1e8a4a89e7aa53551c972e01e2dc961",
+        "a4fa761b5d63b6b3a0f8937073b16c0f775c1c37",
+        "735e43a115ae3fba1933acf00d812a5cd97115aa",
+        "19de0155141feb8b2e5a3173f4054beca2a5ee23",
+        "f6a27c34b5da47384e86c14280f2ee3228443286",
+        "59f6c18822a592b5812ceac2a7ec4578a595d951",
+        "9c3b2dc631eec61829f04f28d75b9dd30bf2f572",
+        "d6d66e326cec732791ef56fc008d45465b234e84",
+        "e867ecea669093d5692313dc7f5ef8493641dfb1",
+        "790c6e6cb6abbaddf5c3efb041a3ca4b80e095ac",
+        "17e7e2cdd0c9afc6c179b75a7e9bd7f0b1971283",
+        "5f6489737f23cb180e5b78a255f9dde3e0e506c2",
+        "41e71f58080aea3dadbc6aeaf34866932af8c24a",
+        "10b41c8647c15e92f3dfc34285c08a4f0aa383bd",
+        "763ca851e985aa8b4e91dc39892e73faf020502a",
+        "2bf17b59f0c82a8d1b59bbff4d026d866d2d0999",
+        "982a6408927f87ab8d4cf80bbc45b27954dc4d49",
+        "118b2b6d2692159eb216c82bc3df6900a84bf9ee",
+        "f7141f53de0a5f37f206abc9482fe3d1f8fb6668",
+        "6e22ae529fd07e088086cd90f1c667499ddba95f",
+        "136958454e54f2daef8018cd5bb5be157cc8b80b",
+        "e617c689ceb0ae2cf8b552adf0cd286cd4d18e87",
+        "e57fe9c978a84b925cfe8646fef1a00ad7d1f272",
+        "8b98c80984ec9ee46ffeb6c8ef1d5b5416d98ee3",
+        "1bdd760141399becd41278bb22d668f17c96b75f",
+        "13ad851cf160f66f8f17e00be8f4001b8cab1d10",
+        "d7c28ace2d822332f06af36343ffdb02ae62c63b",
+        "9b1774f88e81fc61677c3f74f40dbe5f94783228",
+        "10b7adf6b0fbfeabaaeceaaffef9cc5b2efa27a8",
+        "d584c0d27e103fef7d35f716da0e116f2a86c9bf",
+        "d31a653f1879ff4c98ee44fa29082a0fe63075e9",
+        "7514a5fefc82050a7355c18476bd4bdd4fce77bf",
+        "6a9d2006f717dcc272958e93569b387a8428d9ba",
+        "47a3916ece8cd4b64b242994e01480d675cc322c",
+        "00dcdef38eda0c11c1f8be62ea7915661a2bef84",
+        "07ec9adb2c541b00fe45b70d84c17cad1225c50a",
+        "2b931aec8ede45654bf9052459e223b60df1d8dd",
+        "eb5b5c49ffce1a0982bc412033711fb29b11427e",
+        "28c9fe3d5f9d06bce5c29c65a73cb9365e3e0b82",
+        "768db8781de2e478d827d6ebbb634f2a3460d335",
+        "c0f381a7b0f4da96885da22225aca24a3dcba760",
+        "8ed2a6916e4a59199517bcd1e5ce92282842e1cb",
+        "2146926bfa9884efa468775afa3fd9ff40f115d3",
+        "f3c939d4ba3bee297e06b50a0a59948893ce1267",
+        "4da6111322abb714bbb9708d30359e68dc246206",
+        "6d4b9e04978e3b263b4e3bdcf2736990036a4f50",
+        "15eec95db2feb0d5c768a8e3df2507db1c7d1955",
+        "8b3f8dcf74ab2043428e1c23630eb411e1b1f12c",
+        "44039bc09283201d8c85d6b0ea3599da2ba288c9",
+        "7fb71efe7705a8cd20ac6645ea18e39822d381bd",
+        "0f0637cb7a95865479589d204a8f5728ff84737c",
+        "af70a15b81133eb22de234c18e92b99a996b29a8",
+        "86250890ac1eb0463223b57685abf24e52a61554",
+        "130918362033678464a78e75843d64a20ccb2c48",
+        "dfbe04f581effcd4582a54baf7ccff280e34f26d",
+        "2b14b0e55d6e9426ac21d11e316fc818f771081c",
+        "2c624dc9e781deb70ead5e2d9b76440a52ad8f5f",
+        "07c64662ec81d88c484f36ee96ac1a6f4c594b02",
+        "653bf3cf77466c489525d958947a3af1b0d7468c",
+        "341ff2bfb6ae0a297cbecce47a8cacac57c51a37"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "canonicalLedgerRemoteVerified": false,
+        "remoteRefs": [
+          "origin/codex/event-ingest-replay-identity-20261025@341ff2bfb6ae0a297cbecce47a8cacac57c51a37"
+        ],
+        "mergeBase": "f3401b181954b800e8e0f26702642ea18dba7e2a",
+        "sourceCommitCount": 63,
+        "remoteVerification": "GitHub exact ref SHA matched local HEAD on 2026-10-26; no exact-branch Actions run or GitHub deployment was present at verification time"
+      },
+      "validation": {
+        "status": "LOCAL_OFFLINE_PARTIAL_REMOTE_CI_NOT_RUN",
+        "evidence": [
+          "review-only/event-risk-processing-ownership/VALIDATION-AND-HANDOFF.md",
+          "review-only/push50-evidence-preparation/EVIDENCE-INDEX.json",
+          "git diff --check origin/integration/development...HEAD PASS on 2026-10-26"
+        ],
+        "limits": "Source reports describe local synthetic/offline checks; this preservation task did not rerun them. No PostgreSQL concurrency, live RLS, physical Guard, legal retention, native-device or external-provider proof is promoted to PASS. No exact-head remote CI or Product integration verification was run."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseShaAtPreservation": "b7e0517d334ff279ac64df0a1201690be7cfbd1d",
+        "commit": null,
+        "requiredChecks": "NOT_RUN_FOR_THIS_SOURCE_HEAD"
+      },
+      "dependencies": {
+        "status": "BLOCKED_PENDING_DEPENDENCY_AND_SCHEMA_REVIEW",
+        "units": [],
+        "blockers": [
+          "PUSH 39-45 existing integrated contracts",
+          "Model A authoritative Tenant/Site relationship",
+          "event-risk four downstream writer contracts"
+        ]
+      },
+      "migrations": [
+        "20261025224109_digital_observer_push43_delegated_usage_scope.sql"
+      ],
+      "migrationOrder": [
+        "20261025224109_digital_observer_push43_delegated_usage_scope.sql: pending dependency review; NOT APPLIED BY THIS TASK; actual Development and Production applied states UNVERIFIED"
+      ],
+      "localVerification": "NOT_RUN_IN_THIS_PRESERVATION_TASK; PRIOR_LOCAL_OFFLINE_RESULTS_ARE_SOURCE_REPORTS_ONLY",
+      "releaseEligibility": "BLOCKED_PENDING_INTEGRATION_CI_SCHEMA_AUTHORIZATION_AND_OWNER_RELEASE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED_BY_THIS_TASK"
+      },
+      "nextAction": "Review the 63-commit source against current integration and dependency/migration ledgers; create a scoped Development PR only after cost and CI preflight; run exact-head checks, then integrate eligible work without activating guarded SQL or event-risk/Guard runtime. Verify the actual isolated Development migration state before any authorized apply. Never touch main or Production without a separate frozen-candidate release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

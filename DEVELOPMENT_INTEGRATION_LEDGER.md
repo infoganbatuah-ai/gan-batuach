@@ -1,5 +1,27 @@
 # Canonical Development Integration Ledger
 
+2026-10-26 remote-preservation handoff — `codex/event-ingest-replay-identity-20261025`:
+GitHub exact ref verified at `341ff2bfb6ae0a297cbecce47a8cacac57c51a37`.
+The 63 original branch-only commits from `ee5ee96cbc1769159605b760f1d535afaaec470c`
+through that head are listed in the JSON ledger; merge-base with current
+`integration/development@b7e0517d334ff279ac64df0a1201690be7cfbd1d` is
+`f3401b181954b800e8e0f26702642ea18dba7e2a` (15 integration-only commits).
+This is **PUSHED_REMOTE / PRESERVED_PENDING_INTEGRATION**, not validated for
+integration or Production. The branch includes offline event-risk, replay,
+Model A, retention and affected PUSH 39–45 contracts plus one additive proposed
+migration, `20261025224109_digital_observer_push43_delegated_usage_scope.sql`.
+That migration was not applied by this preservation task; actual isolated
+Development and Production application states are **UNVERIFIED**, not NO.
+Review-only SQL remains NOT APPLIED; no database, runtime, Guard, provider,
+`main` or Production change occurred. Prior local test claims remain source
+receipts, not fresh CI or live proof. Branch push produced no exact-branch
+GitHub Actions run or GitHub deployment; Vercel live Preview Branch Tracking
+was OFF and its newest listed deployment predated the push. The JSON/Markdown
+ledger update is local on `integration/development` until separately reviewed
+for safe remote preservation; it does not merge the source commits or authorize
+activation. Next: reconcile dependencies and schema, then use an exact-head
+Development PR/CI path only after cost and security preflight.
+
 2026-10-23 PUSH44 CH1 final pre-activation, branch `codex/push44-ch1-final-preactivation`, implementation `3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b`: reused PR243 foundation (integrated `4c0d70555cf96c4f5e5d815df7720e5f29c9ea13`, exact-head9/9). Added one composed synthetic session/delegation/cookie/TLS/media E2E,23/23 cases, and actual encoded-byte gzip playlist accounting. Real CH1 local TS inspected/decoded25 distinct frames; no media retained/transmitted. Home QA owner mapping absent and media DNS NXDOMAIN remain specific blockers; owner attestation/delegation and permitted/bounded HTTPS path required before live request. No migrations, Production/Home/PR235 changes. Evidence: final follow-up in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`.
 
 2026-10-23 PUSH 44 CH1 private-media continuation: branch `codex/push44-ch1-private-gateway-20261023`, implementation `cf0952609b2b2c1c1a1195bb99e6352b9c7df403`; isolated existing-grant-core TLS gate, exact view-only delegation, canonical Development session adapter, passive generation reader and protected operator journal. 22 synthetic security/media/TLS cases; no real camera bytes or live authorization. Actual isolated Development schema/history: 257 expected, 227 baseline-covered + 30 applied, zero drift. No migration. See `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. Real delegation/native transport/external TLS are activation blockers, not waived by CI. PR235 Draft, main/Production/Home services unchanged.
