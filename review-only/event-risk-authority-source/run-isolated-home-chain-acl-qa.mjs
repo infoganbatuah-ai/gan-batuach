@@ -122,7 +122,7 @@ try {
       ('${gateway}','${camera}',true,now()+interval '1 hour');`);
   assert.equal(count("observer_home_review.registration_versions"), 0); checks++;
 
-  for (const role of ["qa_home_chain_executor", "anon", "authenticated", "service_role"]) {
+  for (const role of ["qa_home_chain_executor", "qa_home_chain_shadow", "anon", "authenticated", "service_role"]) {
     assert.equal(pg(`SELECT rolcanlogin||':'||rolbypassrls FROM pg_roles WHERE rolname='${role}';`),
       role === "service_role" ? "true:true" : "true:false"); checks++;
     for (const table of ["registration_identities", "registration_versions", "registration_audit",
@@ -152,6 +152,11 @@ try {
     "qa_revoke_registration_v1(uuid,bigint,uuid)",
     "accept_live_home_signal_v1(uuid,jsonb,bigint,uuid)"
   ]) {
+    assert.equal(pg(`SELECT NOT EXISTS (
+      SELECT 1 FROM pg_proc p,
+        aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
+      WHERE p.oid='observer_home_review.${signature}'::regprocedure
+        AND acl.grantee=0 AND acl.privilege_type='EXECUTE');`), "t"); checks++;
     assert.match(pg(`SELECT r.rolname||':'||p.prosecdef||':'||array_to_string(p.proconfig,',')
       FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner
       WHERE p.oid='observer_home_review.${signature}'::regprocedure;`),
