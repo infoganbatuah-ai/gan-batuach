@@ -78,7 +78,8 @@
     "canonicalSchemaAndDataApi": "BLOCKED_FOR_NEW_REVIEW_ONLY_RPCS",
     "providerAndNative": "NOT_PROVEN_FOR_OPEN_GATES",
     "retentionAndLegal": "ENGINEERING_BASELINE_ONLY",
-    "typecheck": "PRIOR_RUN_BLOCKED_UNRELATED_CAPACITOR_DEPENDENCIES_NOT_RERUN",
+    "typecheck": "LOCAL_OVERLAY_PASS_CLEAN_INSTALL_CI_NOT_PROVEN",
+    "webBuild": "LOCAL_WEBPACK_PASS_CANONICAL_TURBOPACK_BUILD_BLOCKED",
     "productionOrMain": "NOT_TOUCHED"
   },
   "costDefinitions": {

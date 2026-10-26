@@ -24,8 +24,10 @@ inheritance, PostgREST/Data API exposure or Production behavior. The bounded
 catalog receipt identifies effective Development privileges but not row-level
 application access for proposed RPCs. `PUSH 44` remains `PARTIAL`, Native
 Access `BLOCKED`, Guard `OFF`, retention v1 `ENGINEERING_BASELINE` only, and
-`PUSH 46` not started. A prior unrelated typecheck was blocked by Capacitor
-dependencies; this documentation-only unit does not relabel it PASS.
+`PUSH 46` not started. `OFFLINE-TYPECHECK-RECEIPT.md` records a later local
+typecheck PASS using an integrity-verified, ignored dependency overlay;
+`LOCAL-WEB-BUILD-RECEIPT.md` records a local Webpack build PASS. Neither
+qualifies a clean-install or canonical Turbopack CI build.
 
 Cost proof is absent here. Preserve both distinct measures from `DO-NS-196`:
 `infrastructure cost / registered users` and the owner-policy ceiling measure
