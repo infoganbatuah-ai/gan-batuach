@@ -47,12 +47,18 @@ new registration denial. Reconcile that route/DB permission delta before
 activation; do not silently broaden the trigger. The trigger does not change
 parent, garden-administrator, or other Management roles.
 
-Separate delivery gap: `preparePushForNotification` currently selects active
-tokens by `profile_id` without an Observer source filter. A generic Management
-token for the same profile may therefore be considered for an Observer alert.
-The Observer-only database index cannot solve delivery-domain separation.
-Qualify and correct the delivery selector in a separate scoped unit before
-claiming end-to-end notification isolation.
+Delivery-domain source fix (local code only): the two known callers of
+`preparePushForNotification` are Management Garden routes, not the Observer
+delivery service. Both that helper and `processManagementDeliveryBatch` now
+select only active `fcm_web` token metadata with no `observer_site_id`, before
+any result limit, and recheck returned metadata before provider submission.
+The Management batch additionally rejects missing/ambiguous notification
+`source_domain`; its existing recipient-authority RPC remains the Garden
+authorization gate. Observer delivery uses separate Site-scoped contracts and
+does not call either shared-token selector. Synthetic same-profile, multi-Site,
+legacy-metadata, wrong-Site and >20-token tests passed. This is not Data API,
+real-provider or canonical-database proof; legacy unclassified tokens fail
+closed and require explicit re-registration for Management Push delivery.
 
 No table is added, so data owner/retention/volume remain the shared token
 contract. The incremental index stores one entry per active Observer

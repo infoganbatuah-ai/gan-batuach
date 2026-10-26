@@ -173,7 +173,10 @@ test("consumer wiring uses the ordered site gate; token metadata is not delivery
   assert.match(native, /credentials: "same-origin", cache: "no-store", signal/);
   assert.match(web, /registerObserverPushAfterSiteGate/);
   assert.match(delivery, /\.eq\("profile_id", input\.profileId\)/);
-  assert.doesNotMatch(delivery.slice(delivery.indexOf("export async function preparePushForNotification")), /observer_site_id/);
+  const managementDelivery = delivery.slice(delivery.indexOf("export async function preparePushForNotification"));
+  assert.match(managementDelivery, /\.contains\("metadata", \{ source: MANAGEMENT_PUSH_TOKEN_SOURCE \}\)/);
+  assert.match(managementDelivery, /\.is\("metadata->observer_site_id", null\)/);
+  assert.match(managementDelivery, /isManagementPushTokenMetadata\(token\.metadata\)/);
   assert.match(observerDelivery, /loadRecipientAuthorization\(admin, \{ siteId: delivery\.observer_site_id/);
   assert.match(observerDelivery, /assertRecipientAuthorization\(recipient\.authorization/);
   assert.match(slotRoute, /getObserverSiteAccess\(supabase, profile, payload\.observer_site_id, \{ manage: true \}\)/);

@@ -12,6 +12,15 @@ export type PushProvider = "mock" | "mock_push" | "web_push" | "fcm" | "apns" | 
 export type PushLogStatus = "queued_mock" | "sent_mock" | "queued" | "sent" | "delivered" | "opened" | "failed" | "dead_letter" | "skipped_preferences" | "no_active_device" | "deduped";
 export type PushCategory = "registration" | "parent_approval" | "child_approval" | "payment_reminder" | "safety_alert" | "observer_alert" | "inspection_alert" | "camera_alert" | "system_notification";
 
+// The shared token table serves two products. These legacy Management callers
+// may send only to the Management web registration, never to an Observer Site.
+export const MANAGEMENT_PUSH_TOKEN_SOURCE = "fcm_web";
+export function isManagementPushTokenMetadata(metadata: unknown): boolean {
+  return typeof metadata === "object" && metadata !== null && !Array.isArray(metadata)
+    && (metadata as Record<string, unknown>).source === MANAGEMENT_PUSH_TOKEN_SOURCE
+    && !Object.hasOwn(metadata, "observer_site_id");
+}
+
 export type RegisterPushDeviceInput = {
   profileId: string;
   role: string;
@@ -248,9 +257,11 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
   const categoryPreference = await categoryPreferencesAllowPush(supabase, input.profileId, category, input.critical);
   const { data: tokens, error: tokensError } = await supabase
     .from("push_device_tokens")
-    .select("id, platform, device_token, is_active")
+    .select("id, platform, device_token, metadata")
     .eq("profile_id", input.profileId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .contains("metadata", { source: MANAGEMENT_PUSH_TOKEN_SOURCE })
+    .is("metadata->observer_site_id", null);
 
   if (tokensError) {
     const log = await supabase.from("push_notification_logs").insert({
@@ -290,7 +301,10 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
     return { ok: !skipped.error, logs: [], error: skipped.error?.message ?? null };
   }
 
-  const activeTokens = (tokens ?? []) as Array<{ id: string; platform: PushPlatform; device_token: string }>;
+  const activeTokens = (tokens ?? []) as Array<{ id: string; platform: PushPlatform; device_token: string; metadata: unknown }>;
+  if (activeTokens.some((token) => !isManagementPushTokenMetadata(token.metadata))) {
+    return { ok: false, logs: [], error: "PUSH_TOKEN_SOURCE_UNVERIFIED" };
+  }
   if (!activeTokens.length) {
     const noDevice = await supabase.from("push_notification_logs").insert({
       notification_id: input.notificationId ?? null,

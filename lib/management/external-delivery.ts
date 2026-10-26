@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getEmailProvider } from "@/lib/domain/email-provider";
 import { getPushProviderForPlatform } from "@/lib/domain/push-provider";
-import type { PushPlatform } from "@/lib/domain/push-service";
+import { isManagementPushTokenMetadata, MANAGEMENT_PUSH_TOKEN_SOURCE, type PushPlatform } from "@/lib/domain/push-service";
 
 type DeliveryIntent = {
   id: string;
@@ -17,6 +17,10 @@ type Decision = { status: "accepted_by_provider" | "unavailable" | "unverified_c
 
 const SAFE_TITLE = "עדכון חדש בגן בטוח";
 const SAFE_BODY = "יש לך עדכון חדש במערכת. יש להיכנס לחשבון לצפייה בפרטים.";
+const MANAGEMENT_NOTIFICATION_SOURCES = new Set([
+  "messaging", "tasks", "complaints", "inspections", "corrective_actions",
+  "tuition", "platform_subscription", "enrollment", "invitations"
+]);
 
 export function managementDeliveryCapability() {
   const enabled = process.env.GB_M31_EXTERNAL_DELIVERY_ENABLED === "true";
@@ -72,10 +76,20 @@ async function decideDelivery(db: ReturnType<typeof createAdminClient>, intent: 
     return { status: "failed_permanent", provider: "resend", code: result.failureReason ?? "provider_rejected_or_unknown" };
   }
   if (intent.channel === "push") {
-    const tokenResult = await admin.from("push_device_tokens").select("id,platform,device_token").eq("profile_id", recipient.id).eq("is_active", true).order("last_seen_at", { ascending: false }).limit(20);
+    if (!MANAGEMENT_NOTIFICATION_SOURCES.has(notification.source_domain)) {
+      return { status: "unavailable", provider: "authorization", code: "notification_source_unverified" };
+    }
+    const tokenResult = await admin.from("push_device_tokens").select("id,platform,device_token,metadata")
+      .eq("profile_id", recipient.id).eq("is_active", true)
+      .contains("metadata", { source: MANAGEMENT_PUSH_TOKEN_SOURCE })
+      .is("metadata->observer_site_id", null)
+      .order("last_seen_at", { ascending: false }).limit(20);
     if (tokenResult.error || !tokenResult.data?.length) return { status: "unavailable", provider: "fcm", code: "no_active_device" };
+    if (tokenResult.data.some((token) => !isManagementPushTokenMetadata(token.metadata))) {
+      return { status: "unavailable", provider: "authorization", code: "token_source_unverified" };
+    }
     let accepted = 0; let firstMessageId: string | null = null;
-    for (const token of tokenResult.data as Array<{ id: string; platform: PushPlatform; device_token: string }>) {
+    for (const token of tokenResult.data as Array<{ id: string; platform: PushPlatform; device_token: string; metadata: unknown }>) {
       const provider = getPushProviderForPlatform(token.platform);
       if (!provider.getReadiness().canSendRealMessages) continue;
       try {
