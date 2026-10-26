@@ -17,6 +17,8 @@ This map is a preparation artifact, **not a visual pass report**. The V5 collage
 
 The source collages are 1536 × 1024. Panel extraction must preserve labels and full screen boundaries; the crop itself is not an implementation screenshot. Parent assigned and multi-child share the closest approved dashboard panel, so their distinct states must be captured from separate actual authorized sessions and compared against the same visual blueprint without claiming a nonexistent dedicated multi-child reference.
 
+The five Desktop and five corresponding Mobile reference crops were extracted without altering pixels and kept in the local owner-evidence folder `gan-batuach-v6-reference-prep/v6-primary-reference-crops/` under this task's visualization workspace. They are source references only. They are intentionally outside the public Git repository; fresh actual captures must be stored and labeled separately.
+
 ## Remaining 16 direct comparisons
 
 Each row requires a specific reference panel crop and one actual route/state per Desktop and Mobile. A full collage against a route is insufficient. The listed routes are primary sampling points; extra P0 states remain in the existing product inventory.
