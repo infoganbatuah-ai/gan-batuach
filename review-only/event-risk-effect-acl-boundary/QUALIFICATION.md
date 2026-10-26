@@ -1,0 +1,38 @@
+# Third-writer privilege boundary — local review, NOT APPLIED
+
+Base: Draft PR #260 `e14464047b9aab5bb359d7012b50e14de7a0ad36`. This increment is local-only; the owner's authorization to publish PR #260 covered three earlier files, **not these files**. No SQL was sent to an existing database and no server route or Data API setting changed.
+
+## Evidence and current path
+
+* The dated Development catalog in `review-only/event-risk-processing-ownership/PERMISSIONS-AND-RPCS.md:22-65` reports `public` and `graphql_public` as exposed PostgREST schemas. It reports `service_role` with BYPASSRLS and effective SELECT/INSERT/UPDATE/DELETE on the inspected existing tables, including `public.immutable_audit_events`. `OBJECT-INVENTORY.json` independently labels the audit table's effective ACL unknown from source alone. This is **previously recorded Development evidence**, not a fresh live catalog query or Production claim.
+* The active route `app/api/video-gateway/cloud-events/route.ts:29` calls `createAdminClient()`. `lib/supabase/admin.ts` uses `SUPABASE_SERVICE_ROLE_KEY` in a Supabase Data API client. Other active code directly inserts audit events through that admin client. Revoking shared `service_role` audit INSERT globally would risk breaking those callers and is **not proposed** without their complete inventory and an authorized migration.
+* `supabase/config.toml:7` declares `public` and `graphql_public` for the local PUSH38 qualification project; it is not proof of the original Development or Production live setting. [Current Supabase Data API documentation](https://supabase.com/docs/guides/api/securing-your-api) confirms grants and RLS are distinct, older projects may auto-grant access to new public objects, functions get default PUBLIC EXECUTE, and an unexposed schema alone is not a substitute for explicit grants.
+* PR #260's invoker body needs receipt/audit INSERT under `service_role`. Its disposable fixture proved that role can directly forge a matching pair accepted as replay. Restricting EXECUTE alone does not remove the bypass.
+
+## Candidate boundary tested in isolation
+
+The narrow candidate **requires a new, independently authenticated direct PostgreSQL server transport**. It cannot be silently substituted into the current Supabase-JS/Data API path.
+
+| Principal | Function | Audit / receipt tables | Other source tables |
+| --- | --- | --- | --- |
+| `do_effect_executor` | Exact seven-argument `record_event_risk_effect_v1` EXECUTE | No SELECT/INSERT/UPDATE/DELETE | No direct grants |
+| `do_effect_writer` | NOLOGIN, NOINHERIT, sole SECURITY DEFINER owner | SELECT+INSERT, no UPDATE/DELETE; receipt RLS policies narrowly scoped | SELECT on exact required tables; `UPDATE(id)` or `UPDATE(signal_id)` solely for row locks |
+| `anon`, `authenticated`, `service_role`, PUBLIC | No EXECUTE | No proposed receipt grants | Existing rights **unchanged** |
+
+The test loads the **actual PR #260 SQL body** into a fresh container, changing only `SECURITY INVOKER` to `SECURITY DEFINER` and the caller check from `current_user = service_role` to `session_user = do_effect_executor` in memory. A direct PostgreSQL login has that stable `session_user`; a PostgREST request normally runs under the `authenticator` session and is intentionally **not** qualified by this guard. The writer role has no LOGIN, the executor is not a member of it, and the function keeps `search_path=pg_catalog,pg_temp` with fully qualified table references. The function creation and all exact grants/revokes would have to be one reviewed transaction so there is no PUBLIC-execute window. PostgreSQL's [function security documentation](https://www.postgresql.org/docs/17/sql-createfunction.html) is the applicable contract; merely flipping an existing public function to SECURITY DEFINER is unsafe without this entire reviewed boundary.
+
+The public schema remains source-compatible for the exact RPC name, but the executor is **not** an API role configured for PostgREST. A public-schema function may still be discoverable; exact EXECUTE revocation is essential. This is not proof of actual PostgREST cache behavior, network isolation, managed-role inheritance, or a supported new server credential. Do not expose `do_effect_executor` through the Data API, use `SET ROLE` as an authorization signal, or put its credential in a client bundle. A future transport would need secure server-only custody, connection limits, pooler compatibility, secret rotation, and an exact caller migration reviewed separately.
+
+## Isolated results (2026-10-26)
+
+`node review-only/event-risk-effect-acl-boundary/run-isolated-acl-qa.mjs` passed **36 assertions** in a new PostgreSQL 17.6 container with no network, mounts or published ports. It first verifies the PR #260 SQL guard aborts, then removes the guard only in the disposable fixture. It verifies: the executor can call the actual adapted function; target+audit+receipt are atomic; replay is idempotent; wrong owner nonce is fenced; direct audit and receipt INSERT/UPDATE are denied; forged audit+receipt cannot be submitted by executor; `SET ROLE` escalation is denied; anon/authenticated/service_role calls are denied; even a deliberately accidental PUBLIC EXECUTE grant is rejected by the direct-login guard and then revoked; exact EXECUTE revocation stops subsequent calls. It also positively confirms `service_role` retains direct audit INSERT in the synthetic representation of the current broad path, but a combined forged audit+receipt transaction fails on receipt privilege and rolls back the audit. No existing database, clone, route or provider was touched.
+
+The synthetic fixture does **not** reproduce the actual Supabase role hierarchy, all RLS policies, PostgREST configuration/cache, full audit hash trigger, deployment permissions or historical ownership. It proves a PostgreSQL ACL pattern, not a deployed security boundary.
+
+## Fail-closed decision and next gate
+
+**Current server path: BLOCKED.** `createAdminClient()` authenticates as broad `service_role`; direct audit INSERT remains available and the candidate's `session_user` check deliberately rejects that Data API session. No grant to `service_role` or global revocation of existing audit rights is safe from the available evidence. A privilege-only change inside PR #260 cannot satisfy both function execution and no direct audit/receipt writes on the current route.
+
+**Potential future path:** obtain explicit approval for a dedicated server-only PostgreSQL connection identity and a separately reviewed isolated Development privilege migration/route adapter. First inventory all audit writers and actual managed grants/default ACLs with authorized read-only catalog evidence, then rehearse exact role inheritance, RLS, Data API denial, function owner, wrapper grants, rollback and provider/pooler support against a separately authorized isolated Development environment. If that cannot be proven, keep the third writer uninstalled and leave the event-risk route/Guard inactive. No paid service, credential or Production action is implied by this proposal.
+
+**Rollback proposal, untested live:** revoke executor EXECUTE first and stop its route; preserve all canonical target/audit/receipt rows; only then restore the previous server adapter. Do not drop nonempty claim/receipt/audit tables or delete evidence. The isolated test verifies EXECUTE revocation, not a lossless deployment rollback.
