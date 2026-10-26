@@ -12816,6 +12816,50 @@
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Review the preserved source package separately. Runtime implementation still requires authoritative event-time Model A ownership, four atomic fenced Risk/effect writers, an immutable recipient snapshot and deployed-schema/RLS/crash qualification before connecting the active route; this merged unit is review-only and not ready to apply."
+    },
+    {
+      "id": "codex/home-registration-authority-review-20261026",
+      "project": "Digital Observer Home Model A registration",
+      "title": "Fail-closed owner authority and revocation evidence boundary",
+      "owner": "Home registration authority review task",
+      "sourceBranch": "codex/home-registration-authority-review-20261026",
+      "sourceCommits": [
+        "43f38f2e65d4af89b06746f5e3903e1d6cf6b576"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/home-registration-authority-review-20261026@43f38f2e65d4af89b06746f5e3903e1d6cf6b576"
+        ],
+        "sourceScope": "Review-only authority and revocation findings based on the 61-commit source branch; no source commit copied, no SQL writer or runtime route added."
+      },
+      "validation": {
+        "status": "SOURCE_REVIEW_ONLY_NO_POSTGRESQL_BEHAVIORAL_PROOF",
+        "evidence": [
+          "review-only/home-registration-authority/README.md",
+          "Static source comparison of access.ts, Home registration contracts and exact migration fields; git diff --check"
+        ],
+        "limits": "Current owner/session predicate is disconnected; no proven authority provenance, transactional qualification/revocation fence, mandatory audit or approved retention. No live, synthetic PostgreSQL, RLS, concurrency or external proof is claimed."
+      },
+      "integration": {
+        "status": "PENDING_REVIEW",
+        "base": "integration/development",
+        "baseSha": "b305491c7e63eea4dcd3c9620bb32fd1f2e13c56",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING_EXACT_HEAD_CI"
+      },
+      "dependencies": {
+        "status": "UNMERGED_SOURCE_CONTRACT_AND_BLOCKED_AUTHORITY",
+        "units": ["codex/event-ingest-replay-identity-20261025"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_STATIC_SOURCE_REVIEW_ONLY; TRANSACTIONAL_PROOF_NOT_RUN",
+      "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Determine independently verifiable Home owner/transfer authority and revocation state; only then implement a guarded transaction and race-test it in a disposable synthetic PostgreSQL database. Do not connect PR #256 acceptance writer."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
