@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "scope": "PUSH50_PREPARATION_ONLY",
+  "baselineCommit": "dfbe04f581effcd4582a54baf7ccff280e34f26d",
+  "activationReady": false,
+  "canonicalBoundaries": {
+    "modelA": "ONE_CUSTOMER_TENANT_WITH_SITES",
+    "guard": "OFF",
+    "nativeAccess": "BLOCKED",
+    "push44": "PARTIAL",
+    "push46": "NOT_STARTED",
+    "retentionV1": "ENGINEERING_BASELINE_NOT_EXTERNALLY_APPROVED"
+  },
+  "pushes": [
+    {
+      "push": 39,
+      "localEvidence": [
+        { "commit": "48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0", "path": "scripts/qa/check-digital-observer-push39.mjs", "tier": "SOURCE_TEST_ENTRYPOINT" },
+        { "commit": "dfbe04f581effcd4582a54baf7ccff280e34f26d", "path": "review-only/push39-dispatch-atomic/DB-QUALIFICATION.md", "tier": "HISTORICAL_SYNTHETIC_POSTGRES_RECEIPT" }
+      ],
+      "reviewOnly": { "path": "review-only/push39-dispatch-atomic/forward.sql", "state": "NOT_APPLIED", "applied": false },
+      "actuallyProven": "Source-defined delivery and fail-closed duplicate-attempt behavior; the guarded dispatch transaction passed a disposable synthetic PostgreSQL fixture, not canonical RLS/Data API or provider delivery.",
+      "externalGate": "OPEN",
+      "missing": "Canonical schema/role/Data API qualification, unknown external-send reconciliation, provider receipts and real action authorization."
+    },
+    {
+      "push": 40,
+      "localEvidence": [
+        { "commit": "be485dab83546c1acd550d9bd9c89b555d1d1e6b", "path": "scripts/qa/check-digital-observer-push40.mjs", "tier": "SOURCE_TEST_ENTRYPOINT" },
+        { "commit": "86250890ac1eb0463223b57685abf24e52a61554", "path": "review-only/push40-refund-atomic/DB-QUALIFICATION.md", "tier": "HISTORICAL_SYNTHETIC_POSTGRES_RECEIPT" }
+      ],
+      "reviewOnly": { "path": "review-only/push40-refund-atomic/forward.sql", "state": "NOT_APPLIED", "applied": false },
+      "actuallyProven": "Local commercial contracts and guarded refund/audit atomicity under a disposable synthetic PostgreSQL fixture; no real refund, provider settlement or applied RPC.",
+      "externalGate": "OPEN",
+      "missing": "Canonical schema/RLS/Data API role qualification, approved prices/provider/legal process, invoice-backed settlement and real customer proof."
+    },
+    {
+      "push": 43,
+      "localEvidence": [
+        { "commit": "b8f949a60bafc028827655f6fd5414dfa21ce633", "path": "scripts/qa/check-digital-observer-push43.mjs", "tier": "SOURCE_TEST_ENTRYPOINT" },
+        { "commit": "7fb71efe7705a8cd20ac6645ea18e39822d381bd", "path": "review-only/push43-partner-brand-atomic/DB-QUALIFICATION.md", "tier": "HISTORICAL_SYNTHETIC_POSTGRES_RECEIPT" }
+      ],
+      "reviewOnly": { "path": "review-only/push43-partner-brand-atomic/forward.sql", "state": "NOT_APPLIED", "applied": false },
+      "actuallyProven": "Local partner contracts and guarded brand-write atomicity in disposable synthetic PostgreSQL; not a deployed RPC or real partner integration.",
+      "externalGate": "OPEN",
+      "missing": "Canonical role/Data API qualification, authorized partner agreement, external provisioning and settlement evidence."
+    },
+    {
+      "push": 44,
+      "localEvidence": [
+        { "commit": "13ad851cf160f66f8f17e00be8f4001b8cab1d10", "path": "scripts/qa/check-digital-observer-push44.mjs", "tier": "SOURCE_TEST_ENTRYPOINT" },
+        { "commit": "bce3468250183859b916dd0b12bec5772bf1d5dc", "path": "DIGITAL_OBSERVER_PUSH_44_DEVICE_QUALIFICATION_MATRIX.md", "tier": "HISTORICAL_OWNER_REPORTED_REAL_DEVICE_RECEIPT" }
+      ],
+      "reviewOnly": null,
+      "actuallyProven": "The device matrix records owner-confirmed physical iPhone Development login, dashboard, cellular control-plane navigation and session expiry/revocation; this index does not reperform or extend that proof.",
+      "externalGate": "OPEN",
+      "missing": "Physical Secure Enclave enrollment/control return, authorized real cellular camera playback, APNs delivery, Android hardware and native release qualification."
+    },
+    {
+      "push": 45,
+      "localEvidence": [
+        { "commit": "067f475b636dffe7d1250523f8112f3018218e4d", "path": "scripts/qa/check-digital-observer-push45.mjs", "tier": "SOURCE_TEST_ENTRYPOINT" },
+        { "commit": "067f475b636dffe7d1250523f8112f3018218e4d", "path": "DIGITAL_OBSERVER_PUSH_45_EXTERNAL_COUNSEL_REVIEW_PACKAGE.md", "tier": "PENDING_EXTERNAL_REVIEW_PACKAGE" },
+        { "commit": "e57fe9c978a84b925cfe8646fef1a00ad7d1f272", "path": "review-only/event-risk-processing-ownership/RETENTION-DECISION-GATE.md", "tier": "ENGINEERING_BASELINE_RECEIPT" }
+      ],
+      "reviewOnly": null,
+      "actuallyProven": "Local privacy-control source and a retention engineering baseline; the counsel package states legal review is pending and the baseline is not an active deletion policy.",
+      "externalGate": "OPEN",
+      "missing": "Written jurisdiction/use-specific legal decision, approved notices/retention, supplier decisions and owner activation."
+    }
+  ],
+  "sharedEvidence": [
+    { "commit": "9c3b2dc631eec61829f04f28d75b9dd30bf2f572", "path": "review-only/event-risk-processing-ownership/PERMISSIONS-AND-RPCS.md", "tier": "BOUNDED_DEVELOPMENT_CATALOG_RECEIPT" },
+    { "commit": "bce3468250183859b916dd0b12bec5772bf1d5dc", "path": "DIGITAL_OBSERVER_NORTH_STAR_COMPLETION_MATRIX.md", "tier": "CANONICAL_CAPABILITY_MATRIX" },
+    { "commit": "c607e4c797b7dde41fade52e17db89b0d3a16712", "path": "DIGITAL_OBSERVER_EXTERNAL_ACTIVATION_PROOF_REGISTER.json", "tier": "EXTERNAL_GATE_REGISTER" }
+  ],
+  "sharedGaps": {
+    "canonicalSchemaAndDataApi": "BLOCKED_FOR_NEW_REVIEW_ONLY_RPCS",
+    "providerAndNative": "NOT_PROVEN_FOR_OPEN_GATES",
+    "retentionAndLegal": "ENGINEERING_BASELINE_ONLY",
+    "typecheck": "PRIOR_RUN_BLOCKED_UNRELATED_CAPACITOR_DEPENDENCIES_NOT_RERUN",
+    "productionOrMain": "NOT_TOUCHED"
+  },
+  "costDefinitions": {
+    "infrastructureRatio": "infrastructure cost / registered users",
+    "ownerCeilingRatio": "all-in attributable cost / active paying users",
+    "measuredAmounts": "NOT_INCLUDED_OR_VERIFIED_IN_THIS_INDEX"
+  }
+}
