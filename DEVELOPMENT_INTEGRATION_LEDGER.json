@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-26T04:13:46Z",
+  "updatedAt": "2026-10-26T09:58:40Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -12927,6 +12927,63 @@
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Keep PR #259 Draft. Qualify an independent decision-time plan authority producer, versioned cross-language snapshot digest, and function-only write privilege boundary before any Development migration. Then separately qualify effect receipt and completion writers. Do not apply SQL or activate event-risk/Guard."
+    },
+    {
+      "id": "codex/event-risk-effect-receipt-review-20261026-pr260",
+      "project": "Digital Observer event-risk processing",
+      "title": "Third fenced downstream EVENT_INCIDENT_LINK receipt writer — guarded PostgreSQL review package",
+      "owner": "Event-risk effect-receipt review task",
+      "sourceBranch": "codex/event-risk-effect-receipt-review-20261026",
+      "sourceCommits": [
+        "e14464047b9aab5bb359d7012b50e14de7a0ad36"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/event-risk-effect-receipt-review-20261026@e14464047b9aab5bb359d7012b50e14de7a0ad36"
+        ],
+        "sourceScope": "Draft PR #260 contains only guarded, ungranted SQL, a network-disabled disposable PostgreSQL runner and qualification notes under review-only/event-risk-effect-receipt-transaction/. Only EVENT_INCIDENT_LINK is supported; no migration, active route, Guard or provider configuration changed.",
+        "disposition": "PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "ISOLATED_POSTGRES_EFFECT_RECEIPT_TRANSACTION_PASS_LIVE_ACL_BLOCKED",
+        "evidence": [
+          "27 focused checks PASS in a disposable network-disabled PostgreSQL 17.6 fixture: canonical target verification, audit-plus-receipt atomicity, concurrency, replay, owner fencing, Tenant/Site denial, semantic tamper rejection and mandatory audit rollback",
+          "review-only/event-risk-effect-receipt-transaction/QUALIFICATION.md at source commit e14464047b9aab5bb359d7012b50e14de7a0ad36",
+          "Draft PR #260 exact head e14464047b9aab5bb359d7012b50e14de7a0ad36: Digital Observer CI six gates plus canonical quality PASS in run 40303206094; Management PASS in run 40303206155; Snyk PASS",
+          "GitHub deployments API returned zero deployments for the source branch after the PR push"
+        ],
+        "limits": "Synthetic fixture only. Direct service_role table INSERT was demonstrated to forge matching audit and receipt rows, which the RPC accepted as replay; live function-only ACL/Data API boundary is BLOCKED. Draft PRs #258/#259, authoritative decision-time producer, cross-language fingerprints, historical Home ownership, deployed schema/RLS, retention, crash recovery and full-stack proof remain open. All other effect keys are explicitly unsupported."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseShaAtPreservation": "0f923277fe1391323f3bacb469ef6b8aa6965600",
+        "commit": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/260",
+        "requiredChecks": "EXACT_PR_HEAD_PASS_RUN_40303206094_AND_MANAGEMENT_40303206155_AND_SNYK_PASS; PR_REMAINS_DRAFT"
+      },
+      "dependencies": {
+        "status": "REVIEW_ONLY_RISK_AND_PLAN_WRITERS_WITH_UNVERIFIED_AUTHORITY",
+        "units": [
+          "codex/event-risk-persist-review-20261026-pr258",
+          "codex/event-risk-effect-plan-review-20261026-pr259",
+          "codex/event-ingest-replay-identity-20261025"
+        ],
+        "blockers": [
+          "Dedicated non-exposed function-only writer boundary; direct service_role receipt/audit INSERT is unsafe",
+          "Authoritative decision-time plan producer and versioned cross-language fingerprint",
+          "Authoritative historical Home Tenant/Site mapping, deployed catalog and RLS/ACL",
+          "Other mandatory effect writers, completion, retention, cost and rollback qualification"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ISOLATED_POSTGRESQL_27_ASSERTIONS_PASS; NO_EXISTING_DATABASE_CONNECTED; FULL_STACK_NOT_RUN",
+      "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Keep PR #260 Draft. Resolve the demonstrated direct-table bypass with an independently reviewed privileged boundary and exact ACL/Data API tests, then qualify authoritative plan and target digest contracts. Do not apply SQL, merge the dependent drafts, or activate event-risk/Guard."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

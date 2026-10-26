@@ -1879,3 +1879,22 @@ Digital Observer CI six gates plus canonical quality passed in run
 active event-risk route, Guard, provider resource, `main` or Production was
 changed. Preserve PR #258 as the first-writer dependency; do not merge or
 apply PR #259 until separately reviewed gates pass.
+
+Event-risk effect-receipt review preservation receipt (2026-10-26): Draft
+PR #260 exact head `e14464047b9aab5bb359d7012b50e14de7a0ad36` is remotely
+preserved on `codex/event-risk-effect-receipt-review-20261026`, pending
+integration rather than merged or approved to apply. Its three files under
+`review-only/event-risk-effect-receipt-transaction/` propose the exact third
+writer signature for the existing canonical Event–Incident link only, with
+guarded/ungranted SQL, disposable PostgreSQL runner and qualification limits.
+Twenty-seven isolated network-disabled PostgreSQL checks passed, including
+atomic audit/receipt, concurrency, fencing, replay and audit rollback. The
+fixture also **proved a blocking direct-table privilege bypass**: a role with
+receipt and audit `INSERT` forged matching rows that the RPC accepted as
+replay. This proposal is not live-safe until an independently reviewed
+function-only ACL/Data API boundary and authoritative plan/fingerprint
+contracts are qualified. Exact-head six Digital Observer CI gates plus
+canonical quality passed in run `40303206094`; Management passed in
+`40303206155`; Snyk passed. No migration, existing database, active route,
+Guard, provider resource, `main` or Production was changed. Preserve Draft
+PRs #258/#259 as dependencies; do not merge or apply #260 to unblock them.
