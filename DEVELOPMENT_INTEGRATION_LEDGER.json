@@ -12847,7 +12847,7 @@
         "base": "integration/development",
         "baseSha": "b305491c7e63eea4dcd3c9620bb32fd1f2e13c56",
         "commit": null,
-        "pullRequest": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/257",
         "requiredChecks": "PENDING_EXACT_HEAD_CI"
       },
       "dependencies": {
