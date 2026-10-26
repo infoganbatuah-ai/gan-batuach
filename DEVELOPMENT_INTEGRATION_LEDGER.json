@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-26T03:53:00Z",
+  "updatedAt": "2026-10-26T04:13:46Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -12778,13 +12778,14 @@
       "owner": "Event-risk atomic claim qualification task",
       "sourceBranch": "codex/event-risk-atomic-claim-20261026",
       "sourceCommits": [
-        "b22d678ae2b5284ee3050a9d590e9abb2fa5c0db"
+        "b22d678ae2b5284ee3050a9d590e9abb2fa5c0db",
+        "dd731132e553a5d4c5d8b83908ed5cc7fef34146"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/event-risk-atomic-claim-20261026@b22d678ae2b5284ee3050a9d590e9abb2fa5c0db"
+          "origin/codex/event-risk-atomic-claim-20261026@dd731132e553a5d4c5d8b83908ed5cc7fef34146"
         ],
         "sourceScope": "PR #254 contains only review-only SQL copy, isolated synthetic schema, PostgreSQL test runner and qualification limits; the 61 unmerged source commits remain on their original remote branch."
       },
@@ -12798,12 +12799,12 @@
         "limits": "Synthetic fixture is not the deployed catalog. Four fenced writer RPCs, authoritative event-time Tenant/Site ownership, immutable recipient snapshot and actual crash/RLS qualification remain blocked. Active route unchanged; existing mocked replay still computes Risk twice. No exactly-once or full-stack claim."
       },
       "integration": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseSha": "91653fafb3aa124c92f3a0b1c2416324e42da493",
-        "commit": null,
+        "commit": "ef3791af51eb91dbf79225ab6446d7f5851c25b7",
         "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/254",
-        "requiredChecks": "EXACT_HEAD_CI_REQUIRED_ON_FINAL_PR_SHA; verify GitHub check runs before review"
+        "requiredChecks": "Digital Observer CI six gates plus canonical quality gate, Management tenant context and Snyk PASS at exact PR head dd731132e553a5d4c5d8b83908ed5cc7fef34146; merge commit ef3791af51eb91dbf79225ab6446d7f5851c25b7 verified by ancestry"
       },
       "dependencies": {
         "status": "SOURCE_REVIEW_PACKAGE_AND_UNVERIFIED_MODEL_A_MIGRATION",
@@ -12814,7 +12815,7 @@
       "localVerification": "PASS_ISOLATED_POSTGRESQL_CLAIM_PREFIX_ONLY; FULL_STACK_NOT_RUN",
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
-      "nextAction": "Review PR #254 and exact-head CI, then merge only the review-only qualification unit into integration/development if normal GitHub policy allows. The next runtime implementation still requires authoritative Event-time Model A ownership and atomic fenced Risk/effect writers in a reviewed Development migration before connecting the active route."
+      "nextAction": "Review the preserved source package separately. Runtime implementation still requires authoritative event-time Model A ownership, four atomic fenced Risk/effect writers, an immutable recipient snapshot and deployed-schema/RLS/crash qualification before connecting the active route; this merged unit is review-only and not ready to apply."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

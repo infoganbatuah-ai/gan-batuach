@@ -1831,3 +1831,17 @@ package were regenerated from the exact merged Development SHA; the package
 reports 21 `REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION` and 0
 `BROKEN`. External owner visual acceptance remains pending. Production,
 `main` and RELEASE-GAP-01 remain untouched.
+
+Event-risk atomic-claim qualification integration receipt (2026-10-26):
+PR #254 exact head `dd731132e553a5d4c5d8b83908ed5cc7fef34146` passed
+the six Digital Observer CI gates, canonical quality, Management context and
+Snyk, then merged ancestry-preserving into `integration/development` as
+`ef3791af51eb91dbf79225ab6446d7f5851c25b7`. The review-only SQL copy
+is byte-identical to its preserved proposal and remains execution-guarded;
+the isolated fixture is also guarded against direct execution. Eighteen
+focused checks passed in an ephemeral, network-disabled PostgreSQL 17
+container. No migration, active ingestion route, Development database, Vercel
+deployment, `main` or Production change was made. This is not approval to
+apply the SQL or activate event-risk/Guard: four fenced writer RPCs, verified
+event-time Model A ownership, immutable recipient snapshot and live
+schema/RLS/crash qualification remain open. No exactly-once claim is made.
