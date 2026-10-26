@@ -1,0 +1,28 @@
+# PUSH39 dispatch attempt/state atomicity — guarded proposal
+
+This package is **review only**. `forward.sql` deliberately aborts before the proposed RPC and is not under `supabase/migrations`. The disposable QA runner removes that guard in memory only, creates a random database from `template0` inside the exact networkless `digital-observer-pgqa-20261026` container, tests there, drops only that database, and verifies matching catalog count `0`. No canonical Development, gbi, Production, provider, or live route was touched.
+
+## Existing contract and source correction
+
+`dispatchQueuedDelivery` in `lib/domain/digital-observer/notification-delivery-service.ts` first claims a queued delivery by changing it to `dispatching`, calls the adapter, inserts `digital_observer_delivery_attempts`, and finally updates `digital_observer_notification_deliveries`. The migration `20261018010000_digital_observer_push39_orchestration.sql` provides unique `(delivery_id, attempt_number)` and `(provider_key, request_id)`, append-only attempt records, site-scoped reads, and revoked anonymous/authenticated writes. A `23505` at insert does **not** prove that the existing attempt has the same site, recipient, provider result, request, cost, or message ID.
+
+The focused source correction now raises `DELIVERY_ATTEMPT_DUPLICATE_UNVERIFIED` on `23505` and never advances delivery state based on an unexamined attempt. Other insert errors remain `DELIVERY_ATTEMPT_PERSIST_FAILED`. The existing source still has two database writes; if the final update fails, a persisted attempt remains while delivery stays `dispatching`. Focused in-memory tests exercise both outcomes without contacting a provider.
+
+## Proposed transaction
+
+The guarded SQL candidate `persist_digital_observer_dispatch_result_atomic` is `SECURITY INVOKER`, with empty `search_path`, explicit exact-signature `PUBLIC`/`anon`/`authenticated` revoke and `service_role` EXECUTE only. It is for a **trusted server-side call after the adapter returns**. It locks the claimed delivery and validates the expected Site, recipient decision snapshot (including FK deletion after send), provider key/mode, attempt number, stable request ID, `dispatching` state, and expiry. It rejects any existing attempt as **unverified**, even if its fields appear identical. It computes the known bounded transition, inserts one append-only attempt, and updates delivery state/metadata in the same PostgreSQL transaction. Any insert/unique/trigger/update error rolls back both writes. No RPC input can attest that a real provider was contacted.
+
+The simplified fixture mirrors the migration's exact attempt uniqueness and relevant delivery fields. The test covers the unchanged guard; service-only EXECUTE; Site/recipient/provider/mode/attempt mismatch; inserted-attempt and final-update fault rollback; duplicate identical and conflicting attempt fail-closed; successful send; retry with stable attempt identity; concurrent competing results with one committed winner; unknown outcome not treated as success; disabled adapter blocked; and Site consistency. These are synthetic PostgreSQL behaviors, **not** canonical schema, RLS, PostgREST/Data API, provider, or real delivery proof.
+
+## Non-atomic external send boundary
+
+The delivery claim and `adapter.send` precede the candidate RPC. No SQL transaction can atomically commit an external send together with a database write. If the provider accepts a message but the process dies before persistence, the outcome is **unknown**, not safely retryable or confirmed. If `23505` is raised in the current route, the delivery may remain `dispatching` after an already-issued provider call. Recovery must inspect durable request/attempt identity and a provider-confirmed status API or callback, under a separate authorized design; it must not blindly resend or label `unknown_outcome` as delivered. The current production adapter constructor remains disabled without separate owner authorization.
+
+## Required gates before any active use
+
+1. Verify the actual canonical Development schema, grants, RLS, Data API exposure, existing attempt/delivery rows and provider identity contracts read-only. The fixture is intentionally reduced. `service_role` is broad, so additionally review whether a private non-exposed schema or narrower trusted server role is possible. Do not make a publicly callable privileged RPC.
+2. Resolve mismatches between the current sandbox adapter's hardcoded provider key, the delivery's stored provider key, and disabled adapter records. The candidate fails closed if they disagree. Validate historical recipient snapshots before using them as recovery evidence.
+3. Decide a durable recovery state/lease and callback/provider reconciliation for a send that completed externally before this RPC. The candidate itself does not reclaim a stuck `dispatching` delivery or provide exactly-once physical delivery. Review `max_attempts`, rate limits and cost/audit semantics, including any legacy duplicate attempt.
+4. Only after a separately authorized migration and canonical PostgreSQL integration may a route be changed to call the RPC. Test same-transaction rollback under real RLS/role inheritance, application result mapping, exact-head CI, and rollback/recovery with in-flight claims. No provider activation is included.
+
+Rollback before cutover: leave this guarded proposal unapplied. A future additive RPC can be disabled by revoking EXECUTE, but with active claims or provider calls, preserve all attempt, delivery, callback and audit records and reconcile first. A lossless rollback is not yet proven.

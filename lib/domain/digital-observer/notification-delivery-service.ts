@@ -172,7 +172,11 @@ export async function dispatchQueuedDelivery(admin: AnySupabase, input: { delive
     error_code: result.safeErrorCode, usage_units: result.usageUnits,
     metadata: { confirmed_delivery: result.confirmedDelivery, raw_provider_response_stored: false }
   });
-  if (attempt.error && attempt.error.code !== "23505") throw new Error("DELIVERY_ATTEMPT_PERSIST_FAILED");
+  // A duplicate key does not prove that the stored attempt has the same
+  // provider result, recipient/Site or request identity. Never advance the
+  // delivery from an unverified attempt record.
+  if (attempt.error?.code === "23505") throw new Error("DELIVERY_ATTEMPT_DUPLICATE_UNVERIFIED");
+  if (attempt.error) throw new Error("DELIVERY_ATTEMPT_PERSIST_FAILED");
   const update = await admin.from("digital_observer_notification_deliveries").update({
     delivery_status: transition.status, attempt_count: attemptNumber, provider_message_id: result.providerMessageId,
     next_retry_at: transition.retryAt, sent_at: result.outcome === "success" ? now.toISOString() : null,
