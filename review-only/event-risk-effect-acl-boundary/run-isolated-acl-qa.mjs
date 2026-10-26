@@ -7,6 +7,20 @@ import { fileURLToPath } from "node:url";
 
 const dir = fileURLToPath(new URL(".", import.meta.url));
 const source = readFileSync(`${dir}../event-risk-effect-receipt-transaction/RPC-BODY-NOT-APPLIED.sql`, "utf8");
+const candidate = readFileSync(`${dir}DEDICATED-WRITER-CANDIDATE-NOT-APPLIED.sql`, "utf8");
+function rpcBody(sql) {
+  const start = sql.indexOf("CREATE FUNCTION public.record_event_risk_effect_v1(");
+  const end = sql.indexOf("$record_link_effect$;", start);
+  assert.ok(start >= 0 && end > start);
+  return sql.slice(start, end + "$record_link_effect$;".length);
+}
+const expectedCandidateBody = rpcBody(source)
+  .replace("SECURITY INVOKER", "SECURITY DEFINER")
+  .replace("IF current_user <> 'service_role' THEN", "IF session_user <> 'do_effect_executor' THEN")
+  .replace("'observer_event_risk_link_effect_recorded_v1','observer','service_role',",
+    "'observer_event_risk_link_effect_recorded_v1','observer','do_effect_writer',");
+assert.equal(rpcBody(candidate), expectedCandidateBody);
+assert.doesNotMatch(candidate, /REVOKE\s+(?:ALL|INSERT|SELECT|UPDATE|DELETE)[^;]*ON\s+public\.immutable_audit_events/i);
 const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
 const id = {
   signal: "77777777-7777-4777-8777-777777777777",
@@ -61,10 +75,9 @@ try {
   }
   assert.ok(ready);
   denied(source, /DRAFT_NOT_APPLIED/, "postgres");
+  denied(candidate, /DRAFT_NOT_APPLIED/, "postgres");
   query(`CREATE ROLE anon LOGIN; CREATE ROLE authenticated LOGIN;
     CREATE ROLE service_role LOGIN BYPASSRLS;
-    CREATE ROLE do_effect_writer NOLOGIN NOINHERIT;
-    CREATE ROLE do_effect_executor LOGIN NOINHERIT;
     CREATE TABLE public.observer_intelligence_signals
       (id uuid PRIMARY KEY,observer_site_id uuid,source_type text,signal_type text,metadata jsonb);
     CREATE TABLE public.observer_sites
@@ -107,55 +120,37 @@ try {
       (id uuid PRIMARY KEY DEFAULT gen_random_uuid(),event_type text,event_category text,
        actor_role text,target_type text,target_id uuid,incident_id uuid,metadata jsonb,risk_level text);
     ALTER TABLE public.immutable_audit_events ENABLE ROW LEVEL SECURITY;
-    CREATE POLICY audit_writer_insert ON public.immutable_audit_events
+    GRANT SELECT,INSERT,UPDATE,DELETE ON public.immutable_audit_events TO service_role;`);
+  const fixtureBody = candidate.slice(candidate.indexOf("CREATE ROLE do_effect_writer NOLOGIN NOINHERIT;"));
+  assert.ok(fixtureBody.startsWith("CREATE ROLE do_effect_writer NOLOGIN NOINHERIT;"));
+  assert.match(fixtureBody, /SECURITY DEFINER/);
+  assert.match(fixtureBody, /session_user <> 'do_effect_executor'/);
+  assert.doesNotMatch(fixtureBody, /IF current_user <> 'service_role'/);
+  query(`BEGIN; ${fixtureBody} COMMIT;`);
+  // The existing Development audit RLS policy was not copied. This synthetic
+  // policy is fixture-only; live compatibility remains an explicit blocker.
+  query(`CREATE POLICY audit_writer_insert ON public.immutable_audit_events
       FOR INSERT TO do_effect_writer WITH CHECK (true);
     CREATE POLICY audit_writer_read ON public.immutable_audit_events
-      FOR SELECT TO do_effect_writer USING (true);
-    GRANT SELECT,INSERT,UPDATE,DELETE ON public.immutable_audit_events TO service_role;`);
-  const body = source.slice(source.indexOf("CREATE TABLE public.observer_event_risk_effect_receipts ("));
-  assert.ok(body.startsWith("CREATE TABLE"));
-  let adapted = body.replace("SECURITY INVOKER", "SECURITY DEFINER")
-    .replace("IF current_user <> 'service_role' THEN", "IF session_user <> 'do_effect_executor' THEN");
-  assert.notEqual(adapted, body);
-  assert.match(adapted, /SECURITY DEFINER/);
-  assert.match(adapted, /session_user <> 'do_effect_executor'/);
-  query(adapted);
-  query(`CREATE POLICY receipt_writer_insert ON public.observer_event_risk_effect_receipts
-      FOR INSERT TO do_effect_writer WITH CHECK (true);
-    CREATE POLICY receipt_writer_read ON public.observer_event_risk_effect_receipts
-      FOR SELECT TO do_effect_writer USING (true);
-    GRANT SELECT,INSERT ON public.immutable_audit_events,
-      public.observer_event_risk_effect_receipts TO do_effect_writer;
-    GRANT SELECT ON public.observer_intelligence_signals,public.observer_sites,
-      public.digital_observer_organizations,public.observer_correlated_event_links,
-      public.observer_correlated_events,public.observer_event_risk_claims,
-      public.digital_observer_risk_evaluations,public.observer_event_risk_plan_authority,
-      public.observer_event_risk_effect_plans,public.digital_observer_camera_sources
-      TO do_effect_writer;
-    GRANT UPDATE(id) ON public.observer_intelligence_signals,public.observer_sites,
-      public.digital_observer_organizations,public.observer_correlated_event_links,
-      public.observer_correlated_events,public.digital_observer_risk_evaluations
-      TO do_effect_writer;
-    GRANT UPDATE(signal_id) ON public.observer_event_risk_claims TO do_effect_writer;
-    ALTER FUNCTION public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)
-      OWNER TO do_effect_writer;
-    REVOKE ALL ON FUNCTION public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)
-      FROM PUBLIC, anon, authenticated, service_role;
-    GRANT EXECUTE ON FUNCTION public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)
-      TO do_effect_executor;`);
+      FOR SELECT TO do_effect_writer USING (true);`);
   check("SELECT has_function_privilege('do_effect_executor','public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)','EXECUTE')", "t");
   for (const role of ["anon", "authenticated", "service_role"]) {
     check(`SELECT has_function_privilege('${role}','public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)','EXECUTE')`, "f");
   }
   for (const table of ["immutable_audit_events", "observer_event_risk_effect_receipts"]) {
-    for (const privilege of ["INSERT", "UPDATE"]) {
+    for (const privilege of ["SELECT", "INSERT", "UPDATE", "DELETE"]) {
       check(`SELECT has_table_privilege('do_effect_executor','public.${table}','${privilege}')`, "f");
-      denied(privilege === "INSERT"
-        ? `INSERT INTO public.${table} DEFAULT VALUES`
-        : `UPDATE public.${table} SET ${table === "immutable_audit_events" ? "event_type" : "effect_key"}='FORGED'`,
-      /permission denied/);
+      const operation = {
+        SELECT: `SELECT * FROM public.${table}`,
+        INSERT: `INSERT INTO public.${table} DEFAULT VALUES`,
+        UPDATE: `UPDATE public.${table} SET ${table === "immutable_audit_events" ? "event_type" : "effect_key"}='FORGED'`,
+        DELETE: `DELETE FROM public.${table}`
+      }[privilege];
+      denied(operation, /permission denied/);
     }
   }
+  check("SELECT rolcanlogin::text || ',' || rolinherit::text FROM pg_roles WHERE rolname='do_effect_writer'", "false,false");
+  check("SELECT prosecdef::text || ',' || pg_get_userbyid(proowner) FROM pg_proc WHERE oid='public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)'::regprocedure", "true,do_effect_writer");
   check("SELECT pg_has_role('do_effect_executor','do_effect_writer','member')", "f");
   denied("SET ROLE do_effect_writer", /permission denied/);
   check("SELECT has_table_privilege('service_role','public.immutable_audit_events','INSERT')", "t");
@@ -216,6 +211,32 @@ try {
   for (const role of ["anon", "authenticated", "service_role"]) {
     denied(invoke, /permission denied for function record_event_risk_effect_v1/, role);
   }
+  query(`UPDATE public.observer_event_risk_claims SET owner_epoch=2 WHERE signal_id='${id.signal}'`);
+  denied(invoke, /EFFECT_OWNER_FENCE_REJECTED/);
+  query(`UPDATE public.observer_event_risk_claims SET owner_epoch=1,
+    lease_expires_at=clock_timestamp()-interval '1 second' WHERE signal_id='${id.signal}'`);
+  denied(invoke, /EFFECT_OWNER_FENCE_REJECTED/);
+  query(`UPDATE public.observer_event_risk_claims SET lease_expires_at=clock_timestamp()+interval '10 minutes',
+    tenant_id='22222222-2222-4222-8222-222222222222' WHERE signal_id='${id.signal}'`);
+  denied(invoke, /EFFECT_CANONICAL_SCOPE_INVALID/);
+  query(`UPDATE public.observer_event_risk_claims SET tenant_id='${id.tenant}',
+    observer_site_id='44444444-4444-4444-8444-444444444444' WHERE signal_id='${id.signal}'`);
+  denied(invoke, /EFFECT_CANONICAL_SCOPE_INVALID/);
+  query(`UPDATE public.observer_event_risk_claims SET observer_site_id='${id.site}' WHERE signal_id='${id.signal}'`);
+  query(`CREATE FUNCTION public.synthetic_reject_effect_audit() RETURNS trigger
+    LANGUAGE plpgsql AS $$ BEGIN
+      IF NEW.event_type='observer_event_risk_link_effect_recorded_v1' THEN
+        RAISE EXCEPTION 'SYNTHETIC_AUDIT_REJECT';
+      END IF;
+      RETURN NEW;
+    END $$;
+    CREATE TRIGGER synthetic_audit_reject BEFORE INSERT ON public.immutable_audit_events
+      FOR EACH ROW EXECUTE FUNCTION public.synthetic_reject_effect_audit()`);
+  denied(invoke, /SYNTHETIC_AUDIT_REJECT/);
+  check("SELECT count(*) FROM public.observer_event_risk_effect_receipts", "0");
+  check("SELECT count(*) FROM public.immutable_audit_events WHERE event_type='observer_event_risk_link_effect_recorded_v1'", "0");
+  query(`DROP TRIGGER synthetic_audit_reject ON public.immutable_audit_events;
+    DROP FUNCTION public.synthetic_reject_effect_audit()`);
   query(`GRANT EXECUTE ON FUNCTION public.record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)
     TO PUBLIC`);
   denied(invoke, /EFFECT_CALLER_DENIED/, "anon");
@@ -229,6 +250,8 @@ try {
   check(`SELECT count(*) FROM public.observer_event_risk_effect_receipts`, "1");
   check(`SELECT count(*) FROM public.immutable_audit_events
     WHERE event_type='observer_event_risk_link_effect_recorded_v1'`, "1");
+  check(`SELECT actor_role FROM public.immutable_audit_events
+    WHERE event_type='observer_event_risk_link_effect_recorded_v1'`, "do_effect_writer");
   assert.equal(JSON.parse(query(invoke, "do_effect_executor")).reused, true);
   checks++;
   denied(invoke, /permission denied for function record_event_risk_effect_v1/, "service_role");
