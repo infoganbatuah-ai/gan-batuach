@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-26T03:37:00Z",
+  "updatedAt": "2026-10-26T03:53:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -12770,6 +12770,51 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve this ledger remotely, then review the remaining 61 source commits and pending PUSH 43 migration separately; do not claim exactly-once or activate event-risk or Guard."
+    },
+    {
+      "id": "codex/event-risk-atomic-claim-20261026-pr254",
+      "project": "Digital Observer event-risk processing",
+      "title": "Isolated PostgreSQL qualification of existing guarded claim, lease and recovery proposal",
+      "owner": "Event-risk atomic claim qualification task",
+      "sourceBranch": "codex/event-risk-atomic-claim-20261026",
+      "sourceCommits": [
+        "b22d678ae2b5284ee3050a9d590e9abb2fa5c0db"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/event-risk-atomic-claim-20261026@b22d678ae2b5284ee3050a9d590e9abb2fa5c0db"
+        ],
+        "sourceScope": "PR #254 contains only review-only SQL copy, isolated synthetic schema, PostgreSQL test runner and qualification limits; the 61 unmerged source commits remain on their original remote branch."
+      },
+      "validation": {
+        "status": "ISOLATED_POSTGRES_CLAIM_PREFIX_PASS_LIVE_ADAPTER_BLOCKED",
+        "evidence": [
+          "review-only/event-risk-atomic-claim-qualification/README.md",
+          "PostgreSQL 17.6 network-disabled ephemeral container: 16 focused claim/race/lease/ACL/audit assertions PASS, 2026-10-26",
+          "check-event-ingest, check-digital-observer-incidents, check-digital-observer-risk-decision, node --check and git diff --check PASS locally"
+        ],
+        "limits": "Synthetic fixture is not the deployed catalog. Four fenced writer RPCs, authoritative event-time Tenant/Site ownership, immutable recipient snapshot and actual crash/RLS qualification remain blocked. Active route unchanged; existing mocked replay still computes Risk twice. No exactly-once or full-stack claim."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseSha": "91653fafb3aa124c92f3a0b1c2416324e42da493",
+        "commit": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/254",
+        "requiredChecks": "EXACT_HEAD_CI_PENDING"
+      },
+      "dependencies": {
+        "status": "SOURCE_REVIEW_PACKAGE_AND_UNVERIFIED_MODEL_A_MIGRATION",
+        "units": ["codex/event-ingest-replay-identity-20261025"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_ISOLATED_POSTGRESQL_CLAIM_PREFIX_ONLY; FULL_STACK_NOT_RUN",
+      "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Review PR #254 and exact-head CI; next implementation must establish authoritative Event-time Model A ownership and atomic fenced Risk/effect writers in a reviewed Development migration before connecting the active route. Do not merge this PR in the current task."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
