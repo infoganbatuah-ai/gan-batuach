@@ -1,14 +1,24 @@
 -- OFFLINE PROPOSAL ONLY. Never source or migrate this file.
 -- A deliberately aborted transaction precedes every definition. There is no COMMIT.
--- The three bodies below depend on DRAFT-NOT-APPLIED.sql and a separately
--- verified, authoritative Model A Site -> customer Tenant mapping. Neither
--- prerequisite is deployed. These bodies are NOT qualified for application.
+-- The three bodies below depend on DRAFT-NOT-APPLIED.sql, the separately
+-- guarded Home acceptance schema, a frozen Incident binding, and a separately
+-- verified, authoritative Model A Site -> customer Tenant mapping. None of
+-- those prerequisites is deployed. These bodies are NOT qualified to apply.
 BEGIN;
 DO $draft_guard$
 BEGIN
   RAISE EXCEPTION 'DRAFT_NOT_APPLIED: separate migration and ownership approval required';
 END;
 $draft_guard$;
+
+-- BLOCKED additive dependency, not a deployable migration: the existing
+-- guarded Home binding has no immutable Incident reference. Its acceptance
+-- writer must set this in the same transaction as the canonical association;
+-- no historical row is inferred or backfilled here. Until that writer and
+-- its permissions are qualified, the claim body below cannot be installed.
+ALTER TABLE observer_home_review.event_bindings
+  ADD COLUMN incident_id uuid REFERENCES public.observer_correlated_events(id)
+  ON DELETE RESTRICT;
 
 -- PROPOSED BODY 1/7. Caller: server-side service_role only. One SQL function
 -- call is one transaction. The PK serializes contenders; a failed contender
@@ -25,6 +35,13 @@ DECLARE
   v_link public.observer_correlated_event_links%ROWTYPE;
   v_incident public.observer_correlated_events%ROWTYPE;
   v_claim public.observer_event_risk_claims%ROWTYPE;
+  v_registration observer_home_review.registration_identities%ROWTYPE;
+  v_version observer_home_review.registration_versions%ROWTYPE;
+  v_acceptance observer_home_review.event_acceptances%ROWTYPE;
+  v_binding observer_home_review.event_bindings%ROWTYPE;
+  v_camera public.digital_observer_camera_sources%ROWTYPE;
+  v_receipt_count bigint;
+  v_expected_metadata jsonb;
   v_event_type text;
 BEGIN
   IF current_user <> 'service_role' THEN
@@ -36,6 +53,85 @@ BEGIN
     RAISE EXCEPTION 'RISK_CLAIM_INPUT_INVALID' USING ERRCODE = '22023';
   END IF;
 
+  -- Read the immutable receipt only to identify the registration lock. The
+  -- second read below is authoritative. Every registration writer and revoker
+  -- must acquire this same identity lock before touching an accepted event.
+  SELECT * INTO v_acceptance FROM observer_home_review.event_acceptances
+    WHERE event_id = p_signal_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'RISK_EVENT_ACCEPTANCE_MISSING' USING ERRCODE = '23514';
+  END IF;
+  SELECT * INTO v_registration FROM observer_home_review.registration_identities
+    WHERE registration_id = v_acceptance.registration_id FOR SHARE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'RISK_REGISTRATION_UNVERIFIED' USING ERRCODE = '23514';
+  END IF;
+  SELECT * INTO v_acceptance FROM observer_home_review.event_acceptances
+    WHERE event_id = p_signal_id;
+  IF NOT FOUND OR v_acceptance.registration_id IS DISTINCT FROM v_registration.registration_id
+    OR v_registration.revoked IS DISTINCT FROM false
+    OR v_registration.owner_epoch IS DISTINCT FROM v_acceptance.owner_epoch
+    OR v_acceptance.tenant_id IS DISTINCT FROM v_registration.tenant_id
+    OR v_acceptance.site_id IS DISTINCT FROM v_registration.site_id
+    OR v_acceptance.source_id IS DISTINCT FROM v_registration.source_id
+    OR v_acceptance.owner_profile_id IS DISTINCT FROM v_registration.owner_profile_id THEN
+    RAISE EXCEPTION 'RISK_EVENT_ACCEPTANCE_UNVERIFIED' USING ERRCODE = '23514';
+  END IF;
+  SELECT * INTO v_version FROM observer_home_review.registration_versions
+    WHERE registration_id = v_acceptance.registration_id
+      AND version = v_acceptance.registration_version;
+  IF NOT FOUND OR v_version.tenant_id IS DISTINCT FROM v_acceptance.tenant_id
+    OR v_version.site_id IS DISTINCT FROM v_acceptance.site_id
+    OR v_version.source_id IS DISTINCT FROM v_acceptance.source_id
+    OR v_version.owner_profile_id IS DISTINCT FROM v_acceptance.owner_profile_id
+    OR v_version.authority_ref IS DISTINCT FROM v_acceptance.authority_ref THEN
+    RAISE EXCEPTION 'RISK_REGISTRATION_VERSION_UNVERIFIED' USING ERRCODE = '23514';
+  END IF;
+  SELECT * INTO v_binding FROM observer_home_review.event_bindings
+    WHERE event_id = p_signal_id;
+  IF NOT FOUND OR v_binding.registration_id IS DISTINCT FROM v_acceptance.registration_id
+    OR v_binding.registration_version IS DISTINCT FROM v_acceptance.registration_version
+    OR v_binding.tenant_id IS DISTINCT FROM v_acceptance.tenant_id
+    OR v_binding.site_id IS DISTINCT FROM v_acceptance.site_id
+    OR v_binding.source_id IS DISTINCT FROM v_acceptance.source_id
+    OR v_binding.owner_profile_id IS DISTINCT FROM v_acceptance.owner_profile_id
+    OR v_binding.authority_ref IS DISTINCT FROM v_acceptance.authority_ref
+    OR v_binding.acceptance_ref IS DISTINCT FROM v_acceptance.acceptance_ref THEN
+    RAISE EXCEPTION 'RISK_EVENT_BINDING_UNVERIFIED' USING ERRCODE = '23514';
+  END IF;
+  SELECT pg_catalog.count(*) INTO v_receipt_count
+    FROM observer_home_review.registration_audit q
+    WHERE q.action = 'ACCEPTED' AND q.event_id = p_signal_id
+      AND q.registration_id = v_acceptance.registration_id
+      AND q.version = v_acceptance.registration_version
+      AND q.owner_epoch = v_acceptance.owner_epoch;
+  IF v_receipt_count <> 1 THEN
+    RAISE EXCEPTION 'RISK_EVENT_ACCEPTANCE_AUDIT_INVALID' USING ERRCODE = '23514';
+  END IF;
+  SELECT pg_catalog.count(*) INTO v_receipt_count
+    FROM observer_home_review.registration_audit q
+    WHERE q.action = 'BOUND' AND q.audit_ref = v_binding.binding_audit_ref
+      AND q.event_id = p_signal_id
+      AND q.registration_id = v_acceptance.registration_id
+      AND q.version = v_acceptance.registration_version;
+  IF v_receipt_count <> 1 THEN
+    RAISE EXCEPTION 'RISK_EVENT_BINDING_AUDIT_INVALID' USING ERRCODE = '23514';
+  END IF;
+  -- The current reviewed acceptance writer only authorizes person_entered.
+  -- Do not let the old no-link person_exited/NOT_APPLICABLE return bypass this
+  -- receipt gate; exit support requires its own reviewed acceptance contract.
+  IF pg_catalog.jsonb_typeof(v_acceptance.observation_snapshot) IS DISTINCT FROM 'object'
+    OR NOT (v_acceptance.observation_snapshot ?& ARRAY[
+      'siteId','sourceId','cameraId','streamId','eventType','severity',
+      'confidence','occurredAt','trackId','evidenceKind','recordingRequired',
+      'modelProvenance','verificationEvidence'])
+    OR (SELECT pg_catalog.count(*) FROM pg_catalog.jsonb_object_keys(v_acceptance.observation_snapshot)) <> 13
+    OR v_acceptance.observation_snapshot->>'eventType' IS DISTINCT FROM 'person_entered'
+    OR v_acceptance.observation_snapshot->>'cameraId' IS DISTINCT FROM v_acceptance.source_id::text
+    OR v_acceptance.observation_snapshot->>'siteId' IS DISTINCT FROM v_acceptance.site_id::text THEN
+    RAISE EXCEPTION 'RISK_EVENT_OBSERVATION_UNVERIFIED' USING ERRCODE = '23514';
+  END IF;
+
   SELECT * INTO v_signal FROM public.observer_intelligence_signals
     WHERE id = p_signal_id FOR UPDATE;
   IF NOT FOUND OR v_signal.observer_site_id IS NULL
@@ -43,6 +139,25 @@ BEGIN
      OR v_signal.metadata->>'observation_provenance' <> 'REAL_CAMERA_AI'
      OR v_signal.metadata->>'validated_event' IS DISTINCT FROM 'true' THEN
     RAISE EXCEPTION 'RISK_EVENT_UNTRUSTED' USING ERRCODE = '23514';
+  END IF;
+  v_expected_metadata := pg_catalog.jsonb_build_object(
+    'camera_source_id',v_acceptance.source_id,
+    'stream_id',v_acceptance.observation_snapshot->>'streamId',
+    'event_type',v_acceptance.observation_snapshot->>'eventType',
+    'track_id',v_acceptance.observation_snapshot->>'trackId',
+    'first_seen',v_acceptance.observation_snapshot->>'occurredAt',
+    'evidence_kind',v_acceptance.observation_snapshot->>'evidenceKind',
+    'recording_required',v_acceptance.observation_snapshot->'recordingRequired',
+    'model_provenance',v_acceptance.observation_snapshot->'modelProvenance',
+    'verification_evidence',v_acceptance.observation_snapshot->'verificationEvidence',
+    'validated_event',true,'observation_provenance','REAL_CAMERA_AI');
+  IF v_signal.observer_site_id IS DISTINCT FROM v_acceptance.site_id
+    OR v_signal.source_id::text IS DISTINCT FROM v_acceptance.observation_snapshot->>'sourceId'
+    OR v_signal.severity IS DISTINCT FROM v_acceptance.observation_snapshot->>'severity'
+    OR v_signal.confidence IS DISTINCT FROM pg_catalog.round((v_acceptance.observation_snapshot->>'confidence')::numeric,4)
+    OR v_signal.created_at IS DISTINCT FROM (v_acceptance.observation_snapshot->>'occurredAt')::timestamptz
+    OR v_signal.metadata IS DISTINCT FROM v_expected_metadata THEN
+    RAISE EXCEPTION 'RISK_SIGNAL_ACCEPTANCE_CONFLICT' USING ERRCODE = '23514';
   END IF;
   v_event_type := v_signal.metadata->>'event_type';
   IF v_event_type NOT IN ('person_entered','person_exited') THEN
@@ -55,28 +170,27 @@ BEGIN
      OR v_site.active IS DISTINCT FROM true
      OR v_site.monitoring_enabled IS DISTINCT FROM true
      OR v_site.metadata->>'observer_monitoring_consent' IS DISTINCT FROM 'true'
-     OR v_site.digital_observer_organization_id IS NULL THEN
+     OR v_site.digital_observer_organization_id IS NULL
+     OR v_site.id IS DISTINCT FROM v_acceptance.site_id
+     OR v_site.owner_profile_id IS DISTINCT FROM v_acceptance.owner_profile_id
+     OR v_site.digital_observer_organization_id IS DISTINCT FROM v_acceptance.tenant_id THEN
     RAISE EXCEPTION 'RISK_TENANT_MAPPING_UNVERIFIED' USING ERRCODE = '23514';
   END IF;
   SELECT * INTO v_org FROM public.digital_observer_organizations
     WHERE id = v_site.digital_observer_organization_id FOR SHARE;
   IF NOT FOUND OR v_org.active IS DISTINCT FROM true
-     OR v_org.organization_type NOT IN ('family','business') THEN
+     OR v_org.organization_type NOT IN ('family','business')
+     OR v_org.owner_profile_id IS DISTINCT FROM v_acceptance.owner_profile_id THEN
     RAISE EXCEPTION 'RISK_TENANT_MAPPING_UNVERIFIED' USING ERRCODE = '23514';
   END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM public.digital_observer_camera_sources c
-    WHERE c.id::text = v_signal.metadata->>'camera_source_id'
-      AND c.observer_site_id = v_site.id
-  ) THEN
+  SELECT * INTO v_camera FROM public.digital_observer_camera_sources
+    WHERE id = v_acceptance.source_id FOR SHARE;
+  IF NOT FOUND OR v_camera.observer_site_id IS DISTINCT FROM v_site.id THEN
     RAISE EXCEPTION 'RISK_SOURCE_SCOPE_INVALID' USING ERRCODE = '23514';
   END IF;
   SELECT * INTO v_link FROM public.observer_correlated_event_links
     WHERE source_type = 'observer_intelligence_signal' AND source_id = p_signal_id
     FOR SHARE;
-  IF NOT FOUND AND v_event_type = 'person_exited' THEN
-    RETURN pg_catalog.jsonb_build_object('kind','NOT_APPLICABLE');
-  END IF;
   IF NOT FOUND OR v_link.observer_site_id IS DISTINCT FROM v_site.id THEN
     RAISE EXCEPTION 'RISK_LINK_SCOPE_INVALID' USING ERRCODE = '23514';
   END IF;
@@ -84,8 +198,8 @@ BEGIN
     WHERE id = v_link.correlated_event_id FOR SHARE;
   IF NOT FOUND OR v_incident.observer_site_id IS DISTINCT FROM v_site.id
      OR v_incident.provenance IS DISTINCT FROM 'REAL_CAMERA_AI'
-     OR v_incident.primary_camera_source_id::text
-        IS DISTINCT FROM v_signal.metadata->>'camera_source_id' THEN
+     OR v_incident.primary_camera_source_id IS DISTINCT FROM v_acceptance.source_id
+     OR v_binding.incident_id IS DISTINCT FROM v_incident.id THEN
     RAISE EXCEPTION 'RISK_INCIDENT_SCOPE_INVALID' USING ERRCODE = '23514';
   END IF;
 

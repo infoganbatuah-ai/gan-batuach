@@ -10,6 +10,9 @@ const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
 const signal = "77777777-7777-4777-8777-777777777777";
 const secondSignal = "88888888-8888-4888-8888-888888888888";
 const badSignal = "99999999-9999-4999-8999-999999999999";
+const orphanSignal = "10101010-1010-4010-8010-101010101010";
+const candidateSignal = "20202020-2020-4020-8020-202020202020";
+const exitSignal = "30303030-3030-4030-8030-303030303030";
 const site = "33333333-3333-4333-8333-333333333333";
 const otherSite = "44444444-4444-4444-8444-444444444444";
 const tenant = "11111111-1111-4111-8111-111111111111";
@@ -170,12 +173,136 @@ try {
 
   assert.equal(JSON.parse(sql(claim(secondSignal, nonce[0]), "service_role")).kind, "OWNED");
   sql(`UPDATE public.observer_sites SET digital_observer_organization_id='${otherTenant}' WHERE id='${site}'; UPDATE public.observer_event_risk_claims SET lease_expires_at=clock_timestamp()-interval '1 second' WHERE signal_id='${secondSignal}';`);
-  sqlError(claim(secondSignal, nonce[1], "recover_expired_event_risk_v1"), /RISK_CLAIM_SCOPE_CONFLICT/, "service_role");
+  sqlError(claim(secondSignal, nonce[1], "recover_expired_event_risk_v1"), /RISK_TENANT_MAPPING_UNVERIFIED/, "service_role");
   assert.equal(sql(`SELECT owner_epoch FROM public.observer_event_risk_claims WHERE signal_id='${secondSignal}';`), "1");
   cases++;
 
   assert.equal(sql(`SELECT count(*) FROM public.immutable_audit_events WHERE metadata::text LIKE '%${winningNonce}%';`), "0");
   cases++;
+
+  sql(`UPDATE public.observer_sites SET digital_observer_organization_id='${tenant}' WHERE id='${site}';`);
+  // The orphan deliberately advertises apparently valid camera metadata.
+  // It is not accepted by the immutable Home writer and must never claim.
+  sql(`INSERT INTO public.observer_intelligence_signals
+    (id,observer_site_id,source_type,signal_type,metadata,source_id,severity,confidence,created_at)
+    SELECT '${orphanSignal}',observer_site_id,source_type,signal_type,metadata,
+      '${orphanSignal}',severity,confidence,created_at
+    FROM public.observer_intelligence_signals WHERE id='${secondSignal}';
+    INSERT INTO public.observer_correlated_event_links
+    SELECT source_type,'${orphanSignal}',observer_site_id,correlated_event_id
+    FROM public.observer_correlated_event_links WHERE source_id='${secondSignal}';`);
+  const noArtifacts = id => {
+    assert.equal(sql(`SELECT count(*) FROM public.observer_event_risk_claims WHERE signal_id='${id}';`), "0");
+    assert.equal(sql(`SELECT count(*) FROM public.immutable_audit_events WHERE target_id='${id}';`), "0");
+    cases += 2;
+  };
+  sqlError(claim(orphanSignal, nonce[0]), /RISK_EVENT_ACCEPTANCE_MISSING/, "service_role");
+  noArtifacts(orphanSignal);
+
+  sql(`INSERT INTO public.observer_intelligence_signals
+    (id,observer_site_id,source_type,signal_type,metadata,source_id,severity,confidence,created_at)
+    SELECT '${candidateSignal}',observer_site_id,source_type,signal_type,metadata,
+      '${candidateSignal}',severity,confidence,created_at
+    FROM public.observer_intelligence_signals WHERE id='${secondSignal}';
+    INSERT INTO public.observer_correlated_event_links
+    SELECT source_type,'${candidateSignal}',observer_site_id,correlated_event_id
+    FROM public.observer_correlated_event_links WHERE source_id='${secondSignal}';
+    INSERT INTO observer_home_review.event_acceptances
+    SELECT '${candidateSignal}',registration_id,registration_version,tenant_id,
+      site_id,source_id,owner_profile_id,authority_ref,gen_random_uuid(),
+      owner_epoch,jsonb_set(observation_snapshot,'{sourceId}',to_jsonb('${candidateSignal}'::text))
+    FROM observer_home_review.event_acceptances WHERE event_id='${secondSignal}';
+    INSERT INTO observer_home_review.event_bindings
+    SELECT '${candidateSignal}',a.registration_id,a.registration_version,a.tenant_id,
+      a.site_id,a.source_id,a.owner_profile_id,a.authority_ref,a.acceptance_ref,
+      gen_random_uuid(),b.incident_id
+    FROM observer_home_review.event_acceptances a
+    JOIN observer_home_review.event_bindings b USING (registration_id)
+    WHERE a.event_id='${candidateSignal}' AND b.event_id='${secondSignal}';
+    INSERT INTO observer_home_review.registration_audit
+    SELECT gen_random_uuid(),'ACCEPTED',registration_id,registration_version,
+      event_id,owner_epoch FROM observer_home_review.event_acceptances
+    WHERE event_id='${candidateSignal}';
+    INSERT INTO observer_home_review.registration_audit
+    SELECT binding_audit_ref,'BOUND',registration_id,registration_version,
+      event_id,0 FROM observer_home_review.event_bindings
+    WHERE event_id='${candidateSignal}';`);
+  const deniedWithMutation = (mutation, expected) => {
+    sqlError(`BEGIN; ${mutation}; SET ROLE service_role; ${claim(candidateSignal, nonce[0])}`, expected);
+    noArtifacts(candidateSignal);
+  };
+  deniedWithMutation(`DELETE FROM observer_home_review.event_bindings WHERE event_id='${candidateSignal}'`,
+    /RISK_EVENT_BINDING_UNVERIFIED/);
+  deniedWithMutation(`DELETE FROM observer_home_review.registration_audit
+    WHERE action='ACCEPTED' AND event_id='${candidateSignal}'`,
+    /RISK_EVENT_ACCEPTANCE_AUDIT_INVALID/);
+  deniedWithMutation(`DELETE FROM observer_home_review.registration_audit
+    WHERE action='BOUND' AND event_id='${candidateSignal}'`,
+    /RISK_EVENT_BINDING_AUDIT_INVALID/);
+  sqlError(`INSERT INTO observer_home_review.event_acceptances
+    SELECT * FROM observer_home_review.event_acceptances WHERE event_id='${candidateSignal}';`,
+    /duplicate key value violates unique constraint/);
+  noArtifacts(candidateSignal);
+  deniedWithMutation(`INSERT INTO observer_home_review.registration_audit
+    SELECT gen_random_uuid(),action,registration_id,version,event_id,owner_epoch
+    FROM observer_home_review.registration_audit WHERE action='ACCEPTED' AND event_id='${candidateSignal}'`,
+    /RISK_EVENT_ACCEPTANCE_AUDIT_INVALID/);
+  deniedWithMutation(`UPDATE observer_home_review.event_bindings SET incident_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    WHERE event_id='${candidateSignal}'`, /RISK_INCIDENT_SCOPE_INVALID/);
+  deniedWithMutation(`UPDATE observer_home_review.registration_identities SET revoked=true`,
+    /RISK_EVENT_ACCEPTANCE_UNVERIFIED/);
+  deniedWithMutation(`UPDATE observer_home_review.registration_identities SET owner_epoch=1`,
+    /RISK_EVENT_ACCEPTANCE_UNVERIFIED/);
+  deniedWithMutation(`UPDATE public.digital_observer_camera_sources SET observer_site_id='${otherSite}'
+    WHERE id='55555555-5555-4555-8555-555555555555'`, /RISK_SOURCE_SCOPE_INVALID/);
+  deniedWithMutation(`UPDATE public.observer_sites SET digital_observer_organization_id='${otherTenant}'
+    WHERE id='${site}'`, /RISK_TENANT_MAPPING_UNVERIFIED/);
+  deniedWithMutation(`UPDATE observer_home_review.event_acceptances SET source_id='66666666-6666-4666-8666-666666666666'
+    WHERE event_id='${candidateSignal}'`, /RISK_EVENT_ACCEPTANCE_UNVERIFIED/);
+  deniedWithMutation(`UPDATE public.observer_intelligence_signals SET severity='critical'
+    WHERE id='${candidateSignal}'`, /RISK_SIGNAL_ACCEPTANCE_CONFLICT/);
+  deniedWithMutation(`UPDATE public.observer_intelligence_signals
+    SET metadata=jsonb_set(metadata,'{track_id}','"injected-track"'::jsonb)
+    WHERE id='${candidateSignal}'`, /RISK_SIGNAL_ACCEPTANCE_CONFLICT/);
+  deniedWithMutation(`UPDATE observer_home_review.event_acceptances
+    SET observation_snapshot=jsonb_set(observation_snapshot,'{eventType}','"person_exited"'::jsonb)
+    WHERE event_id='${candidateSignal}'`, /RISK_EVENT_OBSERVATION_UNVERIFIED/);
+  deniedWithMutation(`UPDATE public.observer_correlated_event_links
+    SET correlated_event_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    WHERE source_id='${candidateSignal}'`, /RISK_INCIDENT_SCOPE_INVALID/);
+  sqlError(claim(candidateSignal, nonce[0]), /permission denied for function claim_event_risk_v1/, "authenticated");
+  noArtifacts(candidateSignal);
+
+  // A source that says person_exited cannot reach the old NOT_APPLICABLE
+  // shortcut: the only qualified acceptance writer is person_entered-only.
+  sql(`INSERT INTO public.observer_intelligence_signals
+    (id,observer_site_id,source_type,signal_type,metadata,source_id,severity,confidence,created_at)
+    SELECT '${exitSignal}',observer_site_id,source_type,signal_type,
+      jsonb_set(metadata,'{event_type}','"person_exited"'::jsonb),
+      '${exitSignal}',severity,confidence,created_at
+    FROM public.observer_intelligence_signals WHERE id='${secondSignal}';`);
+  sqlError(claim(exitSignal, nonce[0]), /RISK_EVENT_ACCEPTANCE_MISSING/, "service_role");
+  noArtifacts(exitSignal);
+
+  // A committed revocation that overtakes the claim must be observed after
+  // the identity row lock, before any claim/lease/audit is created.
+  const revoking = sqlAsync(`BEGIN;
+    SELECT registration_id FROM observer_home_review.registration_identities FOR UPDATE;
+    SELECT pg_sleep(0.4);
+    UPDATE observer_home_review.registration_identities SET revoked=true,owner_epoch=1;
+    COMMIT;`, "postgres");
+  await new Promise(resolve => setTimeout(resolve, 100));
+  await assert.rejects(sqlAsync(claim(candidateSignal, nonce[0])), /RISK_EVENT_ACCEPTANCE_UNVERIFIED/);
+  await revoking;
+  noArtifacts(candidateSignal);
+  sql(`UPDATE observer_home_review.registration_identities SET revoked=false,owner_epoch=0;`);
+
+  assert.equal(JSON.parse(sql(claim(candidateSignal, nonce[0]), "service_role")).kind, "OWNED");
+  const firstAuditCount = sql(`SELECT count(*) FROM public.immutable_audit_events WHERE target_id='${candidateSignal}';`);
+  assert.equal(JSON.parse(sql(claim(candidateSignal, nonce[0]), "service_role")).kind, "BUSY");
+  assert.equal(sql(`SELECT count(*) FROM public.observer_event_risk_claims WHERE signal_id='${candidateSignal}';`), "1");
+  assert.equal(sql(`SELECT count(*) FROM public.immutable_audit_events WHERE target_id='${candidateSignal}';`), firstAuditCount);
+  cases += 3;
   console.log(`PASS: ${cases} isolated PostgreSQL checks; source claim/renew/recover bodies only; active route unchanged.`);
 } finally {
   if (container) {

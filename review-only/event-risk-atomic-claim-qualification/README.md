@@ -3,9 +3,12 @@
 Base: `origin/integration/development@91653fafb3aa124c92f3a0b1c2416324e42da493`.
 The already-existing candidate SQL comes from the separate, preserved
 `codex/event-ingest-replay-identity-20261025@341ff2bfb6ae0a297cbecce47a8cacac57c51a37`
-review package. `RPC-BODIES-SOURCE-NOT-APPLIED.sql` is a byte-for-byte copy
-(SHA-256 `39fe43792c181571a3ff729485924c9d2e1c368a45dbcc63a525390b0841dcdf`),
-not a second independent design. Its aborting guard remains intact. The runner
+review package. At the initial 2026-10-26 qualification,
+`RPC-BODIES-SOURCE-NOT-APPLIED.sql` was a byte-for-byte copy
+(then SHA-256 `39fe43792c181571a3ff729485924c9d2e1c368a45dbcc63a525390b0841dcdf`).
+The later claim-time Home authority gate below makes this a **local review
+amendment**, not a byte-identical copy or an approved replacement. Its aborting
+guard remains intact. The runner
 extracts the three function definitions **in memory for its disposable database
 only**. Never run the copied file as a migration. The other four proposed RPC
 bodies remain blocked in the source package; this branch does not invent them.
@@ -13,6 +16,45 @@ bodies remain blocked in the source package; this branch does not invent them.
 The synthetic fixture is separately guarded: direct SQL execution aborts
 before creating roles or tables. The runner removes that guard in memory only
 after confirming the `colima-gbi` local Unix-socket Docker context.
+
+## 2026-10-27 local Home acceptance gate amendment
+
+The previous claim body trusted a Signal's `REAL_CAMERA_AI` / `validated_event`
+metadata and current Site/Source mapping. A syntactically valid orphan Signal
+could therefore acquire a claim. PR #255 diagnoses Home event-time ownership;
+PR #258 qualifies a different Risk writer. Neither supplies this claim gate.
+
+The guarded candidate now requires an exact immutable Home acceptance,
+qualified registration version, current non-revoked registration identity and
+owner epoch, exact binding, exactly one matching ACCEPTED audit and the BOUND
+audit, all before claim/lease/audit insertion. It compares the **complete
+server-owned observation projection** with the canonical Signal fields and
+metadata, holds the registration lock against revocation, and compares current
+Model A Tenant/Site/Source/owner with frozen receipt scope. It rejects the
+unqualified `person_exited` path before the old `NOT_APPLICABLE` shortcut.
+The candidate additionally requires an immutable Incident ID in the binding
+and compares it with the canonical correlated link and Incident. This is a
+**BLOCKED additive dependency**: the existing Home binding proposal lacks
+that column and its writer does not populate it atomically. No historical
+Incident is inferred or backfilled.
+
+The disposable PostgreSQL fixture supplies synthetic Home identity, version,
+acceptance, binding and audit rows; these are not independently verified owner,
+Gateway or Supabase sessions. In the fixture only, `service_role` receives
+`UPDATE(owner_epoch)` so that `SELECT ... FOR SHARE` can lock the identity row.
+That privilege would let the role modify the epoch and is **not an acceptable
+live ACL**. A dedicated caller/lock strategy with proven owner, invoker grants,
+RLS and Data API exposure is still required. The current Development database
+has none of these Home objects; no live user rows or SQL writes were used.
+
+Focused result: 77 isolated PostgreSQL checks PASS, including an orphan with
+apparently valid metadata, missing/duplicate receipt or audit, binding and
+Incident mismatch, full Signal-payload tampering, current Site/Source transfer,
+revocation and epoch changes, a concurrent revocation race, caller denial,
+and replay. Every negative candidate left zero claim rows and claim audit rows.
+The disposable fixture has no Risk-effect writer, so this is **not** proof of
+durable effect absence in a real deployment. Original claim/recovery tests
+also remain covered. The proposal is **not ready to apply or activate**.
 
 `run-isolated-postgres-qa.mjs` launches the already-cached PostgreSQL 17.6
 image as an unprivileged, read-only, resource-limited, `--network none` container, with `/tmp`
