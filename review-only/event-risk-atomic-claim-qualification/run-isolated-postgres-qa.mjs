@@ -73,13 +73,27 @@ function claim(eventId, token, fn = "claim_event_risk_v1") {
 try {
   const source = readFileSync(`${dir}RPC-BODIES-SOURCE-NOT-APPLIED.sql`, "utf8");
   assert.match(source, /DRAFT_NOT_APPLIED/);
+  assert.doesNotMatch(source, /^\s*(?:COMMIT|ROLLBACK)\s*;/im);
   const firstBody = source.indexOf("CREATE FUNCTION public.claim_event_risk_v1(");
   assert.ok(firstBody > 0, "guarded source body missing");
   const body = source.slice(firstBody);
   assert.match(body, /CREATE FUNCTION public.recover_expired_event_risk_v1/);
+  const fixture = readFileSync(`${dir}isolated-schema.sql`, "utf8");
+  assert.match(fixture, /ISOLATED_FIXTURE_ONLY/);
+  assert.doesNotMatch(fixture, /^\s*(?:COMMIT|ROLLBACK)\s*;/im);
+  const firstFixtureStatement = fixture.indexOf("CREATE ROLE service_role LOGIN BYPASSRLS;");
+  assert.ok(firstFixtureStatement > 0, "guarded synthetic fixture missing");
+
+  const context = docker(["context", "show"]);
+  assert.equal(context.status, 0, context.stderr);
+  assert.equal(context.stdout.trim(), "colima-gbi", "synthetic test requires the local Development Docker context");
+  const endpoint = docker(["context", "inspect", "--format", "{{.Endpoints.docker.Host}}"]);
+  assert.equal(endpoint.status, 0, endpoint.stderr);
+  assert.match(endpoint.stdout.trim(), /^unix:\/\//, "remote Docker endpoints are forbidden");
 
   const launched = docker([
     "run", "--detach", "--rm", "--network", "none", "--read-only",
+    "--memory", "768m", "--cpus", "1", "--pids-limit", "128",
     "--user", "postgres", "--tmpfs", "/tmp:rw,nosuid,nodev,mode=1777",
     "--entrypoint", "/bin/sh", image, "-ec",
     "initdb -D /tmp/qa-data -A trust --no-instructions >/dev/null && exec postgres -D /tmp/qa-data -c listen_addresses= -c unix_socket_directories=/tmp",
@@ -94,7 +108,11 @@ try {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   assert.ok(ready, "isolated PostgreSQL did not become ready");
-  sql(readFileSync(`${dir}isolated-schema.sql`, "utf8"));
+  sqlError(fixture, /ISOLATED_FIXTURE_ONLY/);
+  assert.equal(sql("SELECT count(*) FROM pg_roles WHERE rolname='service_role';"), "0");
+  sqlError(source, /DRAFT_NOT_APPLIED/);
+  assert.equal(sql("SELECT count(*) FROM pg_proc WHERE proname='claim_event_risk_v1';"), "0");
+  sql(fixture.slice(firstFixtureStatement));
   sql(body);
 
   const raced = await Promise.all([
@@ -162,6 +180,9 @@ try {
 } finally {
   if (container) {
     const stopped = docker(["stop", "--time", "3", container]);
-    if (stopped.status !== 0) console.error("WARNING: isolated container cleanup requires attention");
+    if (stopped.status !== 0) {
+      process.exitCode = 1;
+      console.error("FAIL: isolated container cleanup requires attention");
+    }
   }
 }

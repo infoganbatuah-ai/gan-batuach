@@ -12792,7 +12792,7 @@
         "status": "ISOLATED_POSTGRES_CLAIM_PREFIX_PASS_LIVE_ADAPTER_BLOCKED",
         "evidence": [
           "review-only/event-risk-atomic-claim-qualification/README.md",
-          "PostgreSQL 17.6 network-disabled ephemeral container: 16 focused claim/race/lease/ACL/audit assertions PASS, 2026-10-26",
+          "PostgreSQL 17.6 network-disabled ephemeral container: 18 focused guard/claim/race/lease/ACL/audit assertions PASS, 2026-10-26",
           "check-event-ingest, check-digital-observer-incidents, check-digital-observer-risk-decision, node --check and git diff --check PASS locally"
         ],
         "limits": "Synthetic fixture is not the deployed catalog. Four fenced writer RPCs, authoritative event-time Tenant/Site ownership, immutable recipient snapshot and actual crash/RLS qualification remain blocked. Active route unchanged; existing mocked replay still computes Risk twice. No exactly-once or full-stack claim."
@@ -12814,7 +12814,7 @@
       "localVerification": "PASS_ISOLATED_POSTGRESQL_CLAIM_PREFIX_ONLY; FULL_STACK_NOT_RUN",
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
-      "nextAction": "Review PR #254 and exact-head CI; next implementation must establish authoritative Event-time Model A ownership and atomic fenced Risk/effect writers in a reviewed Development migration before connecting the active route. Do not merge this PR in the current task."
+      "nextAction": "Review PR #254 and exact-head CI, then merge only the review-only qualification unit into integration/development if normal GitHub policy allows. The next runtime implementation still requires authoritative Event-time Model A ownership and atomic fenced Risk/effect writers in a reviewed Development migration before connecting the active route."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

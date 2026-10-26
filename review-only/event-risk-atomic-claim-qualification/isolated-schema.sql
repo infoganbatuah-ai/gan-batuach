@@ -1,4 +1,13 @@
 -- Synthetic PostgreSQL 17 fixture only. Never apply to LOCAL_SUPABASE.
+-- A direct execution always aborts before creating roles or tables.
+BEGIN;
+DO $qa_fixture_guard$
+BEGIN
+  RAISE EXCEPTION 'ISOLATED_FIXTURE_ONLY: use the network-disabled disposable runner';
+END;
+$qa_fixture_guard$;
+
+-- The runner removes the guard in memory only after verifying local Docker isolation.
 CREATE ROLE service_role LOGIN BYPASSRLS;
 CREATE ROLE anon LOGIN;
 CREATE ROLE authenticated LOGIN;

@@ -10,14 +10,19 @@ extracts the three function definitions **in memory for its disposable database
 only**. Never run the copied file as a migration. The other four proposed RPC
 bodies remain blocked in the source package; this branch does not invent them.
 
+The synthetic fixture is separately guarded: direct SQL execution aborts
+before creating roles or tables. The runner removes that guard in memory only
+after confirming the `colima-gbi` local Unix-socket Docker context.
+
 `run-isolated-postgres-qa.mjs` launches the already-cached PostgreSQL 17.6
-image as an unprivileged, read-only, `--network none` container, with `/tmp`
+image as an unprivileged, read-only, resource-limited, `--network none` container, with `/tmp`
 as its only writable filesystem. It has no host mount, no host port, no link
 to LOCAL_SUPABASE, and is stopped and removed in `finally`. The synthetic
 schema uses the field shapes needed by the three copied functions; it is
 **not** a clone or proof of deployed catalog/RLS compatibility.
 
-Local result (2026-10-26): 16 isolated PostgreSQL assertions PASS. Two real
+Local result (2026-10-26): 18 isolated PostgreSQL assertions PASS, including
+direct-execution guards leaving no roles or functions. Two real
 database sessions contending for one Signal produced one OWNED and one BUSY,
 one claim row and one mandatory audit. Expiry permitted one higher-epoch
 takeover; the old owner could not renew. Recovery kept a synthetic persisted
