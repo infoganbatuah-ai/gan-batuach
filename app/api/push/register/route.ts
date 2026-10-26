@@ -3,7 +3,8 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { registerPushDevice } from "@/lib/domain/push-service";
-import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
+import { getObserverPushRegistrationSite } from "@/lib/domain/digital-observer/push-registration-access";
 
 const observerSources = new Set(["digital_observer_native", "digital_observer_fcm"]);
 const siteIdSchema = z.string().uuid();
@@ -43,11 +44,13 @@ export async function POST(request: Request) {
       if (observerClaim.invalid) return fail("רישום Push לאתר דורש מזהה אתר תקין ומקור מאושר.", 400);
       if (!payload.device_id?.trim()) return fail("רישום Push לתצפיתן דורש מזהה התקנה.", 400);
       // A client-supplied site label is never authority. Recheck the current
-      // Observer session and manage access before the token upsert.
+      // Observer session and exact registration Site binding before the insert.
       const observer = bearerSession ?? await getDigitalObserverApiUser(request);
-      if (!observer || observer.profile.id !== profile.id) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-      const site = await getObserverSiteAccess(observer.supabase, observer.profile, observerClaim.siteId, { manage: true });
-      if (!site || site.id !== observerClaim.siteId || site.active !== true) return fail("אין הרשאה לרשום Push באתר הזה.", 403);
+      if (!observer || observer.profile.id !== profile.id || observer.profile.active !== true) {
+        return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+      }
+      const site = await getObserverPushRegistrationSite(observer.supabase, observer.profile.id, observerClaim.siteId);
+      if (!site) return fail("אין הרשאה לרשום Push באתר הזה.", 403);
     }
     const result = await registerPushDevice(supabase as Parameters<typeof registerPushDevice>[0], {
       profileId: profile.id,

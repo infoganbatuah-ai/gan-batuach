@@ -41,11 +41,16 @@ The trigger does **not** use `public.can_manage_observer_site()` because that
 function contains a global administrator override. It deliberately fails
 closed for organization-only permission holders until the current deployed
 organization permission/override semantics are independently qualified. The
-current application route permits global admins and organization permissions;
-therefore an authorized actor in one of those categories could encounter a
-new registration denial. Reconcile that route/DB permission delta before
-activation; do not silently broaden the trigger. The trigger does not change
-parent, garden-administrator, or other Management roles.
+application registration route now uses the source-only
+`getObserverPushRegistrationSite` gate instead of general Observer manage
+access. It requires the exact active non-Garden Site owner or active
+owner/admin/operator membership, matching the guarded trigger's Site rule.
+Global administrators and organization-only permission holders remain denied
+for Observer token registration unless they also hold one of those direct
+Site relationships. This does not change their other Observer permissions,
+parent, garden-administrator, or Management roles. The gate and trigger have
+not been jointly verified through the canonical Data API; current proof is
+source-level and synthetic only. Do not silently broaden the trigger.
 
 Delivery-domain source fix (local code only): the two known callers of
 `preparePushForNotification` are Management Garden routes, not the Observer
