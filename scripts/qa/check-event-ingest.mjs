@@ -42,7 +42,11 @@ class Query {
       // Model the existing source uniqueness constraint, not an in-process route lock.
       if(this.table==="observer_intelligence_signals" && tables[this.table].some(row=>row.source_type===this.insertion.source_type && row.source_id===this.insertion.source_id)) return {data:null,error:{code:"23505"}};
       if(this.insertion.dedupe_key && tables[this.table].some(row=>row.dedupe_key===this.insertion.dedupe_key)) return {data:null,error:{code:"23505"}};
-      const row={id:randomUUID(),...this.insertion};tables[this.table].push(row);return {data:single?row:[row],error:null};
+      const row={id:randomUUID(),...this.insertion};
+      // Model the documented numeric(5,4) coercion at a decimal tie that
+      // binary Math.round(value * 10_000) handles incorrectly.
+      if(this.table==="observer_intelligence_signals" && row.confidence===.55085) row.confidence=.5509;
+      tables[this.table].push(row);return {data:single?row:[row],error:null};
     }
     if(this.table==="observer_intelligence_signals") signalReads++;
     const rows=tables[this.table]?.filter(row=>this.filters.every(f=>f(row)))??[];
@@ -264,5 +268,14 @@ assert.equal((await send({...detailed,model_provenance:{execution_provider:"loca
 assert.equal((await send({...detailed,verification_evidence:{...detailed.verification_evidence,source_sequence:12}})).status,409,"Changed nested evidence cannot reuse an Event ID");
 assert.equal((await send({...detailed,confidence:.9002})).status,409,"A distinct normalized confidence cannot reuse an Event ID");
 assert.equal((await send({...detailed,event_id:randomUUID(),confidence:.9002})).status,201,"A replay collision does not suppress a later legitimate Event");
+const decimalTie={...event,event_id:randomUUID(),confidence:.55085};
+// PostgreSQL numeric(5,4) rounds this decimal tie to .5509; binary
+// multiplication by 10,000 instead produces 5508.499999999999.
+const signalCountBeforeTie=tables.observer_intelligence_signals.length;
+assert.equal((await send(decimalTie)).status,201,"A valid decimal-tie confidence survives its first database round trip");
+assert.equal(tables.observer_intelligence_signals.length,signalCountBeforeTie+1);
+assert.equal(tables.observer_intelligence_signals.at(-1).confidence,.5509);
+assert.equal((await send(decimalTie)).status,201,"A retry compares the database's numeric(5,4) value to the original decimal observation");
+assert.equal((await send({...decimalTie,confidence:.5508})).status,409,"A genuinely different confidence remains a conflict after decimal normalization");
 console.log(JSON.stringify({localRace:{accepted:2,durableSignals:1,inAppIntents:2,riskEvaluations:riskEvaluationsDuringRace,database:"mocked_unique_constraint",moduleReload:"simulated",postgresqlIntegration:false}}));
 console.log("Event ingestion checks passed: token validation, revocation, scope, consent, immutable replay identity, Site-scoped tenant denial, mocked race behavior, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");

@@ -23,6 +23,17 @@ const namespacedId = (site: string, id: string) => {
   const hex = createHash("sha256").update(`${site}:${id}`).digest("hex");
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;
 };
+// observer_intelligence_signals.confidence is numeric(5,4). Quantize the
+// decimal sent to Postgres, not its binary floating-point approximation.
+const confidenceUnits = (value: number): number => {
+  const [mantissa, exponent = "0"] = value.toString().split("e");
+  const [whole, fraction = ""] = mantissa.split(".");
+  const digits = BigInt(whole + fraction);
+  const shift = 4 + Number(exponent) - fraction.length;
+  if (shift >= 0) return Number(digits * 10n ** BigInt(shift));
+  const divisor = 10n ** BigInt(-shift);
+  return Number((digits + divisor / 2n) / divisor);
+};
 
 export async function POST(request: Request) {
   try {
@@ -94,7 +105,7 @@ export async function POST(request: Request) {
       || persistedSignal.source_type !== "system" || persistedSignal.source_id !== sourceId
       || persistedSignal.signal_type !== "ai_camera" || persistedSignal.severity !== severity
       || persistedSignal.confidence == null || !Number.isFinite(Number(persistedSignal.confidence))
-      || Math.round(Number(persistedSignal.confidence) * 10_000) !== Math.round(event.confidence * 10_000)
+      || confidenceUnits(Number(persistedSignal.confidence)) !== confidenceUnits(event.confidence)
       || stored.camera_source_id !== camera.id || stored.stream_id !== event.stream_id
       || stored.event_type !== result.event.event_type || stored.first_seen !== event.timestamp
       || (stored.track_id ?? null) !== (event.track_id ?? null)
