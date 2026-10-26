@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-26T02:27:22Z",
+  "updatedAt": "2026-10-26T03:37:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -12719,7 +12719,57 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED_BY_THIS_TASK"
       },
-      "nextAction": "Review the 63-commit source against current integration and dependency/migration ledgers; create a scoped Development PR only after cost and CI preflight; run exact-head checks, then integrate eligible work without activating guarded SQL or event-risk/Guard runtime. Verify the actual isolated Development migration state before any authorized apply. Never touch main or Production without a separate frozen-candidate release instruction."
+      "nextAction": "The first two source commits were integrated separately in PR #253 with a focused fix; review the remaining 61 source commits and the pending PUSH 43 migration against current integration and dependencies. Do not activate guarded SQL, event-risk, Guard or runtime. Verify isolated Development migration state before any separately authorized apply. Never touch main or Production without a frozen-candidate owner release instruction."
+    },
+    {
+      "id": "codex/event-replay-prefix-20261026-pr253",
+      "project": "Digital Observer event ingestion and Incident projection",
+      "title": "Site-scoped replay identity and Incident severity escalation — scoped integration prefix",
+      "owner": "Event replay integration task",
+      "sourceBranch": "codex/event-replay-prefix-20261026",
+      "sourceCommits": [
+        "ee5ee96cbc1769159605b760f1d535afaaec470c",
+        "2b3755bf47ac875460c6ddcf7436ccad5a097440",
+        "39b2b9673c7aa0caaba4393f90e0898ca403e26d"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/event-replay-prefix-20261026@39b2b9673c7aa0caaba4393f90e0898ca403e26d",
+          "origin/integration/development@c9eec49a05d48fea2da149ae9ac55cd8127ecab1"
+        ],
+        "sourceScope": "Only the first two of 63 original source commits plus decimal-tie fix; remaining 61 commits and pending PUSH 43 migration are not part of PR #253"
+      },
+      "validation": {
+        "status": "PASS_EXACT_PR_AND_MERGE_HEAD_CI_AND_FOCUSED_POST_MERGE_LOCAL",
+        "evidence": [
+          "PR #253 head 39b2b9673c7aa0caaba4393f90e0898ca403e26d: Digital Observer CI six gates and canonical quality gate PASS, Management PASS, Snyk PASS; GitHub run 40264301154",
+          "Post-merge c9eec49a05d48fea2da149ae9ac55cd8127ecab1: check-event-ingest, check-digital-observer-incidents and check-digital-observer-risk-decision PASS locally; diff --check PASS",
+          "Post-merge c9eec49a05d48fea2da149ae9ac55cd8127ecab1 GitHub run 40264670600: six Digital Observer CI gates and canonical quality gate PASS"
+        ],
+        "limits": "Synthetic race still evaluates Risk twice while persisting one signal; no PostgreSQL concurrency, durable exactly-once, full-stack Product, Production or external Guard proof."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseSha": "2379a4c91076a85fe18a71a49272e0efceb08d3d",
+        "commit": "c9eec49a05d48fea2da149ae9ac55cd8127ecab1",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/253",
+        "requiredChecks": "PR_HEAD_PASS_AND_POST_MERGE_EXACT_HEAD_PASS_RUN_40264670600"
+      },
+      "dependencies": {
+        "status": "EXISTING_INTEGRATED_CONTRACTS_ONLY",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_FOCUSED_EVENT_INGEST_INCIDENTS_RISK_DECISION_AT_C9EEC49A; FULL_STACK_NOT_RUN",
+      "releaseEligibility": "NOT_READY_FOR_OWNER_RELEASE; EXACT_POST_MERGE_CI_AND_LIVE_DB_CONCURRENCY_PROOF_OUTSTANDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger remotely, then review the remaining 61 source commits and pending PUSH 43 migration separately; do not claim exactly-once or activate event-risk or Guard."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

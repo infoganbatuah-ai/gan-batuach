@@ -1,5 +1,19 @@
 # Canonical Development Integration Ledger
 
+2026-10-26 scoped event replay/Incident prefix — PR #253:
+The first two commits from the 63-commit offline source branch, plus the
+decimal-tie replay fix, were merged without squash into `integration/development`
+at `c9eec49a05d48fea2da149ae9ac55cd8127ecab1` from PR head
+`39b2b9673c7aa0caaba4393f90e0898ca403e26d`. The merge changed exactly
+five route/domain/QA files and no migrations. Exact PR-head six-gate CI,
+quality gate, Management and Snyk passed; focused event-ingest, Incident and
+Risk/Decision checks passed on the merged local tree. Exact merge-head six-gate
+CI and canonical quality gate passed in run `40264670600`. The mocked race still performs two Risk
+evaluations despite one persisted signal: durable exactly-once is **not**
+proven. Full-stack Product and live PostgreSQL concurrency proof are not
+claimed. The remaining 61 source commits and pending PUSH 43 migration remain
+outside PR #253. No event-risk/Guard activation, `main` or Production change.
+
 2026-10-26 remote-preservation handoff — `codex/event-ingest-replay-identity-20261025`:
 GitHub exact ref verified at `341ff2bfb6ae0a297cbecce47a8cacac57c51a37`.
 The 63 original branch-only commits from `ee5ee96cbc1769159605b760f1d535afaaec470c`
