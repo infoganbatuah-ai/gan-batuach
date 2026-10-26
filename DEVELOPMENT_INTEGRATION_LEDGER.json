@@ -12843,7 +12843,7 @@
         "status": "PRESERVED_PENDING_INTEGRATION",
         "base": "integration/development",
         "baseSha": "b305491c7e63eea4dcd3c9620bb32fd1f2e13c56",
-        "pullRequest": "DRAFT_PENDING_CREATION"
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/255"
       },
       "dependencies": {
         "status": "SOURCE_REVIEW_PACKAGE_UNMERGED",
