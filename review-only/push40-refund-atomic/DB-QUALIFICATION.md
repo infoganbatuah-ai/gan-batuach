@@ -16,11 +16,16 @@ committed refund. Exact replay returns the existing refund without restoring
 the missing audit. This is an internal ledger integrity gap, **not proof of a
 real provider refund**. No provider action was invoked here.
 
-The active route permits Site owner, owner/admin membership, and global admin
-through a generic role shortcut. The proposed RPC deliberately requires an
-active non-Garden Site plus direct owner or active owner/admin membership.
-Global administration alone is not accepted as a refund ownership proof; the
-route and candidate must be reconciled before activation.
+The previous active route permitted Site owner, owner/admin membership, and
+global admin through a generic role shortcut. The subsequent local route
+hardening requires a fresh exact-Site read with `active=true`, non-Garden
+classification and direct owner or active owner/admin membership before
+`requestRefund`; global admin, organization-only and billing-history access
+alone do not authorize a refund. Other billing actions are unchanged. Focused
+route tests use synthetic session and database boundaries, not live RLS or a
+real refund. The active RPC still lacks its own actor/Site authority fence, so
+revocation between the route check and RPC call remains a future activation
+gate. The proposed RPC independently requires the same direct relationship.
 
 ## Proposed guarded change
 
@@ -69,13 +74,30 @@ new recurring service is involved.
   syntax and Git diff checks passed. No real payment, invoice, refund, provider, customer or
   canonical Development/Production data was used.
 
+## Subsequent route-only authority qualification
+
+The local route change adds an exact Site/membership check before creating the
+privileged billing client for a refund. **21/21** focused source/route tests and
+the canonical PUSH 40 deterministic QA passed; focused ESLint and Git diff
+integrity checks passed. The tests exercise the real route module with synthetic I/O
+boundaries, including owner and owner/admin membership success, global admin
+without direct Site authority, organization-only, viewer, billing-only,
+revoked, wrong-Site, Garden, inactive Site and database failures. Cancel and
+reconcile branches remain outside this new check. No actual refund or database
+read/write occurred. Full repository `npm run typecheck` is not green because
+the untouched mobile runtime has unresolved `@capacitor/*` modules and their
+dependent implicit-any diagnostics; it reported no error in the changed route.
+
 ## Mandatory gates before any Development integration
 
 1. Verify actual canonical migration history, schema/RLS/grants and backup;
    this simplified fixture cannot prove PostgREST/Data API exposure, actor
    binding, real role inheritance or existing data compatibility.
-2. Reconcile the active route's global-admin shortcut with the exact direct
-   Site authority in the proposal. Do not silently broaden either side.
+2. Reverify the locally hardened route against the canonical Development
+   session/RLS and the future RPC adapter. A route-only check is not an atomic
+   refund authority fence; recheck direct Site ownership inside the RPC before
+   activating payment/refund handling. Any future global-admin refund power
+   requires a separate explicit product and security decision.
 3. Preflight existing refunds missing mandatory audit. Replay is intentionally
    blocked with `REFUND_AUDIT_REPAIR_REQUIRED`; do not fabricate an audit or
    silently treat such rows as complete.

@@ -31,6 +31,29 @@ async function authorizePackage(admin: any, siteType: string, packageId: string)
   if (!expected.includes(result.data.package_type)) throw new Error("PACKAGE_NOT_ELIGIBLE_FOR_SITE");
 }
 
+// Billing history access can include platform or organization roles. A refund
+// requires a direct, current relationship to the exact non-Garden Site.
+async function canAuthorizeSiteRefund(db: any, siteId: string, profileId: string) {
+  const siteResult = await db.from("observer_sites")
+    .select("id,active,site_type,garden_id,owner_profile_id")
+    .eq("id", siteId).maybeSingle();
+  const site = siteResult.data;
+  if (siteResult.error || !site || site.id !== siteId || site.active !== true
+    || typeof site.site_type !== "string" || site.site_type === "kindergarten"
+    || site.garden_id !== null) return false;
+  if (site.owner_profile_id === profileId) return true;
+
+  const membershipResult = await db.from("observer_site_memberships")
+    .select("observer_site_id,profile_id,member_role,active")
+    .eq("observer_site_id", siteId).eq("profile_id", profileId)
+    .eq("active", true).in("member_role", ["owner", "admin"])
+    .maybeSingle();
+  const membership = membershipResult.data;
+  return !membershipResult.error && membership?.observer_site_id === siteId
+    && membership.profile_id === profileId && membership.active === true
+    && (membership.member_role === "owner" || membership.member_role === "admin");
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
@@ -65,6 +88,9 @@ export async function POST(request: Request) {
     const input = schema.parse(await request.json());
     const site = await getObserverSiteAccess(session.supabase, session.profile, input.observer_site_id, { billing: true });
     if (!site) return fail("Billing access is unavailable for this Site.", 403);
+    if (input.action === "refund" && !await canAuthorizeSiteRefund(session.supabase, input.observer_site_id, session.profile.id)) {
+      return fail("Refund authorization requires a direct Site owner or administrator.", 403);
+    }
     if (!isAdminClientConfigured()) return fail("The billing service is not configured.", 503);
     const admin = createAdminClient() as any;
     if ("package_id" in input) await authorizePackage(admin, site.site_type, input.package_id);
@@ -91,11 +117,6 @@ export async function POST(request: Request) {
       const requestResult = await cancelSubscription(admin, { siteId: input.observer_site_id, actorId: session.profile.id, reason: input.reason, idempotencyKey: input.idempotency_key });
       return ok({ request: requestResult, immediate: false }, 201);
     }
-    const refundMembership = site.owner_profile_id === session.profile.id || session.profile.role === "admin"
-      ? { member_role: "owner" }
-      : (await (session.supabase as any).from("observer_site_memberships").select("member_role").eq("observer_site_id", input.observer_site_id)
-        .eq("profile_id", session.profile.id).eq("active", true).in("member_role", ["owner", "admin"]).maybeSingle()).data;
-    if (!refundMembership) return fail("Refund authorization requires a Site owner or administrator.", 403);
     const result = await requestRefund(admin, { siteId: input.observer_site_id, actorId: session.profile.id, paymentEventId: input.payment_event_id, amountMinor: input.amount_minor, currency: input.currency, reason: input.reason, idempotencyKey: input.idempotency_key });
     return ok({ ...result, completed: false, providerConfirmationRequired: true }, result.duplicate ? 200 : 201);
   } catch (error) {
