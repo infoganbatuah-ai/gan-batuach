@@ -8,6 +8,8 @@ const register = readFileSync("app/api/push/register/route.ts", "utf8");
 const unregister = readFileSync("app/api/push/unregister/route.ts", "utf8");
 const service = readFileSync("lib/domain/push-service.ts", "utf8");
 const migrations = readdirSync("supabase/migrations").filter((name) => name.endsWith(".sql"));
+const canonicalUuidPattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+const siteIdRejectPatterns = [...sql.matchAll(/metadata->>'observer_site_id'\s*!~\*\s*'([^']+)'/g)].map((match) => match[1]);
 
 const checks = [
   ["review guard", /^begin;\s*do \$\$ begin raise exception 'REVIEW_ONLY_PUSH_BINDING_MUST_NOT_RUN'; end \$\$;/m.test(sql)],
@@ -18,6 +20,8 @@ const checks = [
   ["binding immutability", sql.includes("OBSERVER_PUSH_REPLAY_BINDING_DENIED") && sql.includes("OBSERVER_PUSH_SOURCE_IMMUTABLE")],
   ["own scoped revoke", sql.includes("OBSERVER_PUSH_REVOKE_SCOPE_DENIED") && unregister.includes("observer_site_id")],
   ["site and session", sql.includes("digital_observer_current_session_active()") && sql.includes("observer_site_memberships")],
+  ["preflight and trigger use complete Site UUID syntax", siteIdRejectPatterns.length === 2
+    && siteIdRejectPatterns.every((pattern) => pattern === canonicalUuidPattern)],
   ["no global admin override", !/^[^\n-]*public\.is_admin\(\)/m.test(sql)],
   ["no broad privilege change", !/\b(grant|revoke)\s+.*\bon\s+table\b/i.test(sql)],
   ["current route still direct insert", service.includes('.from("push_device_tokens").insert(') && !register.includes('.rpc(')],

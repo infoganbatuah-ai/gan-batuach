@@ -96,7 +96,7 @@ begin
     or new.metadata->>'source' not in ('digital_observer_native','digital_observer_fcm')
     or new.metadata->>'observer_site_id' is null
     or new.metadata->>'observer_site_id' !~*
-      '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     or new.device_id is null or btrim(new.device_id) = ''
     or length(new.device_id) > 200
   ) then

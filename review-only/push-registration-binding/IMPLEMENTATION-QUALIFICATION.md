@@ -118,3 +118,43 @@ organization-only/global-admin grant parity deliberately excluded; delivery
 source separation remains open; Postgres syntax,
 concurrency, RLS, rollback and Management regression untested. Therefore this
 candidate is **not ready to apply**, and PUSH 44 DB enforcement is not proven.
+
+## 2026-10-26 isolated PostgreSQL qualification attempt
+
+The owner authorized a **new local, isolated, synthetic-only** database test,
+not a connection to an existing profile or provider. The worktree was clean at
+the start. No `psql`, `postgres`, `initdb`, `pg_ctl`, PostgreSQL app, or local
+Homebrew PostgreSQL installation was present. The active Docker context was
+`colima-gbi`; its socket denied access and Colima reported `gbi` as `Broken`.
+The other named Docker profile, `push38t`, was also `Broken`; remaining Colima
+profiles were stopped. No separate accessible PostgreSQL instance or image
+was established. **No database was created or connected, and no SQL was run.**
+An image download, new VM, or Homebrew installation exceeds this bounded
+attempt and requires a separate exact decision. Do not use `gbi` as the test
+source or infer its database condition from the Docker socket failure.
+
+Source review found that the trigger's `observer_site_id` UUID rejection
+pattern omitted one four-hex group, while the preflight used the complete
+five-group pattern. That would reject valid Site UUIDs. The guarded SQL source
+now uses the same complete pattern in both locations, and the source-only QA
+check asserts their equality. This is **not PostgreSQL syntax or behavior
+proof**; the unconditional execution guard remains in place.
+
+Two material authorization gates remain open even after that source fix:
+
+- The application `getObserverSiteAccess(..., { manage: true })` can admit
+  global-administrator or organization-based scope, while the proposed trigger
+  intentionally accepts only exact Site ownership or membership. Decide and
+  test that mismatch rather than silently broadening database authority.
+- `unregisterPushDevice` currently regards an empty update result followed by
+  an empty active-row read-back as confirmed. A SELECT policy hiding an active
+  row could therefore mimic successful revocation. Isolated RLS tests must
+  establish actual read-back visibility and a fail-closed contract before the
+  client discards its local revocation target. A source-only assertion cannot
+  prove this behavior.
+
+Next gate: authorize or provide one isolated local PostgreSQL runtime/image,
+with no connection to existing Development or Production data, then execute
+the role, race, RLS, rollback and Data API compatibility tests above. Status
+remains **SOURCE-ONLY / POSTGRESQL QUALIFICATION BLOCKED**. Neither Development
+nor Production has received this candidate.
