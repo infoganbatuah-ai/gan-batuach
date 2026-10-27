@@ -10,6 +10,7 @@ import { adaptHomeQualification } from "./adapt-home-qualification-chain.mjs";
 import { adaptCanonicalHomeAcceptance } from "./adapt-canonical-home-acceptance-fence.mjs";
 import { adaptFrozenIncidentAcceptance } from "./adapt-frozen-incident-acceptance.mjs";
 import { adaptHomeRiskPersistFence } from "./adapt-home-risk-persist-fence.mjs";
+import { adaptHomeEffectPlanFence } from "./adapt-home-effect-plan-fence.mjs";
 
 const dir = fileURLToPath(new URL(".", import.meta.url));
 const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
@@ -111,6 +112,10 @@ function persist(id, nonce = riskNonce, result = riskPayload) {
   return `SELECT public.persist_event_risk_v1('${id}','do-risk-v1','${nonce}',1,
     '${JSON.stringify(result).replaceAll("'", "''")}'::jsonb);`;
 }
+function plan(id, nonce, authorityId) {
+  return `SELECT public.start_event_risk_effects_v1('${id}','do-risk-v1','${nonce}',1,
+    '{"authority_id":"${authorityId}"}'::jsonb);`;
+}
 function revoke(r, epoch = 0) {
   return `SELECT observer_home_review.qa_revoke_registration_v1('${r}',${epoch},'${ownerSession}');`;
 }
@@ -131,6 +136,51 @@ function seedQualifiedReviewRegistration(r, c, g, auth, req) {
     INSERT INTO observer_home_review.qa_gateway_session_fixture VALUES
       ('${g}','${c}',true,now()+interval '1 hour');`);
   assert.equal(pg(qualify(r, req, auth)), "1"); checks++;
+}
+function insertSyntheticPlanAuthority(id, riskId, incidentId, cameraId, authorityId) {
+  const keys = ["EVENT_INCIDENT_LINK","RISK_DECISION","INCIDENT_RISK_PROJECTION",
+    "VERIFICATION_RESULT","DECISION_INTENT","INCIDENT_VERIFICATION_PROJECTION",
+    "RECIPIENT_PLAN","MANDATORY_DECISION_AUDIT","GUARD_ELIGIBILITY"];
+  const fingerprints = Object.fromEntries(keys.map(key => [key,"a".repeat(64)]));
+  const capturedAt = "2026-10-26T00:00:00Z";
+  const snapshot = { schemaVersion:1,
+    scope:{tenantId:otherTenant,siteId:otherSite,sourceId:cameraId,
+      eventId:id,incidentId,riskDecisionId:riskId},
+    decisionCode:"LOG_ONLY",severity:"GUARDED",settingsVersion:"synthetic-settings-v1",
+    policyVersion:"synthetic-policy-v1",capturedAt,recipients:[] };
+  const literal = value => JSON.stringify(value).replaceAll("'","''");
+  pg(`WITH content AS (SELECT '${literal(snapshot)}'::jsonb AS body),
+    signed AS (SELECT body || pg_catalog.jsonb_build_object('fingerprint',
+      pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(body::text,'UTF8')),'hex'))
+      AS value FROM content)
+    INSERT INTO public.observer_event_risk_plan_authority (
+      authority_id,signal_id,risk_engine_version,tenant_id,observer_site_id,
+      camera_source_id,incident_id,risk_evaluation_id,ownership_evidence_ref,
+      producer_contract_version,decision_code,recipient_settings_version,
+      recipient_policy_version,recipient_snapshot_schema_version,
+      recipient_snapshot_captured_at,recipient_snapshot,required_evidence_references,
+      watch_rule_ids,expected_fingerprints,media_fault_audit_required)
+    SELECT '${authorityId}','${id}','do-risk-v1','${otherTenant}','${otherSite}',
+      '${cameraId}','${incidentId}','${riskId}','synthetic-home-receipt',
+      'server-decision-v1','LOG_ONLY','synthetic-settings-v1','synthetic-policy-v1',
+      1,'${capturedAt}',value,'["synthetic-evidence"]'::jsonb,'[]'::jsonb,
+      '${literal(fingerprints)}'::jsonb,false FROM signed;`);
+}
+function preparePlanCase({r,c,g,auth,req,eventSource,nonce,authorityId}) {
+  seedQualifiedReviewRegistration(r,c,g,auth,req);
+  const value = observation(eventSource,otherSite,c,
+    { occurredAt: pg("SELECT clock_timestamp();") });
+  const id = pg(accept(r,value,0,g));
+  const incident = pg(`SELECT incident_id FROM observer_home_review.event_bindings
+    WHERE event_id='${id}';`);
+  assert.equal(JSON.parse(pg(`SELECT public.claim_event_risk_v1(
+    '${id}','do-risk-v1','${nonce}',300);`,"service_role")).kind,"OWNED");
+  const risk = pg(persist(id,nonce,{...riskPayload,
+    input_fingerprint:createHash("sha256").update(eventSource).digest("hex")}),"service_role");
+  assert.match(risk,/^[0-9a-f-]{36}$/);
+  insertSyntheticPlanAuthority(id,risk,incident,c,authorityId);
+  checks += 2;
+  return { id,incident,risk,nonce,authorityId,r };
 }
 function count(table) { return Number(pg(`SELECT count(*) FROM ${table};`)); }
 function asyncPg(statement, user = "postgres") {
@@ -289,6 +339,10 @@ try {
     "review-only/event-risk-persist-transaction/RPC-BODY-NOT-APPLIED.sql");
   const persistFence = adaptHomeRiskPersistFence(persistSource);
   denied(persistFence.sql, /DRAFT_NOT_APPLIED/);
+  const planSource = gitText("784731da46aad974acfaa813e9efe948aab65204",
+    "review-only/event-risk-effect-plan-transaction/RPC-BODY-NOT-APPLIED.sql");
+  const planFence = adaptHomeEffectPlanFence(planSource);
+  denied(planFence.sql,/DRAFT_NOT_APPLIED/);
   const riskMigration = readFileSync(`${dir}../../supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql`, "utf8");
   const riskTable = riskMigration.match(/create table if not exists public\.digital_observer_risk_evaluations \([\s\S]*?\n\);/i)?.[0];
   assert.ok(riskTable);
@@ -318,6 +372,7 @@ try {
       (incident_id,triggering_event_id,risk_engine_version);
     ${riskSource.slice(riskClaimStart, riskClaimEnd)}
     ${persistFence.sql.slice(persistFence.sql.indexOf("CREATE TABLE public.observer_event_risk_persistence_receipts ("))}
+    ${planFence.sql.slice(planFence.sql.indexOf("CREATE TABLE public.observer_event_risk_plan_authority ("))}
     GRANT USAGE ON SCHEMA observer_home_review TO service_role;
     GRANT SELECT ON ALL TABLES IN SCHEMA observer_home_review TO service_role;
     GRANT UPDATE(owner_epoch) ON observer_home_review.registration_identities TO service_role;
@@ -326,9 +381,13 @@ try {
     GRANT INSERT ON public.immutable_audit_events TO service_role;
     GRANT INSERT ON public.digital_observer_risk_evaluations TO service_role;
     GRANT INSERT ON public.observer_event_risk_persistence_receipts TO service_role;
+    GRANT UPDATE ON public.observer_event_risk_persistence_receipts TO service_role;
+    GRANT SELECT ON public.observer_event_risk_plan_authority TO service_role;
+    GRANT SELECT,INSERT ON public.observer_event_risk_effect_plans TO service_role;
     GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO service_role;
     GRANT EXECUTE ON FUNCTION public.claim_event_risk_v1(uuid,text,uuid,integer) TO service_role;
-    GRANT EXECUTE ON FUNCTION public.persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) TO service_role;`);
+    GRANT EXECUTE ON FUNCTION public.persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) TO service_role;
+    GRANT EXECUTE ON FUNCTION public.start_event_risk_effects_v1(uuid,text,uuid,bigint,jsonb) TO service_role;`);
   const riskResult = JSON.parse(pg(`SELECT public.claim_event_risk_v1(
     '${acceptedId}','do-risk-v1','12121212-3434-4567-8abc-121212121212',30);`, "service_role"));
   assert.equal(riskResult.kind, "OWNED");
@@ -536,6 +595,101 @@ try {
     WHERE signal_id='${eId}';`),"0");
   assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
     WHERE event_type='observer_event_risk_persisted_v1' AND target_id='${eId}';`),"0"); checks += 3;
+
+  // These plan cases are created by the actual guarded Home writer, Risk
+  // claim and fenced Risk persist candidate. Only the recipient authority
+  // is a disconnected synthetic fixture; no live producer is represented.
+  const f = preparePlanCase({
+    r:"99999999-dddd-4999-8999-999999999999",
+    c:"77777777-dddd-4777-8777-777777777777",
+    g:"cccccccc-1111-4ccc-8ccc-cccccccccccc",
+    auth:"eeeeeeee-dddd-4eee-8eee-eeeeeeeeeeee",
+    req:"11111111-dddd-4333-8444-555555555555",
+    eventSource:"88888888-dddd-4888-8999-aaaaaaaaaaaa",
+    nonce:"12121212-dddd-4567-8abc-121212121212",
+    authorityId:"abababab-dddd-4aba-8aba-abababababab",
+  });
+  const planF = plan(f.id,f.nonce,f.authorityId);
+  for (const [mutation,expected] of [
+    [`DELETE FROM public.observer_event_risk_persistence_receipts WHERE signal_id='${f.id}';`,
+      /PLAN_RISK_SCOPE_INVALID/],
+    [`UPDATE public.observer_event_risk_persistence_receipts
+      SET incident_id='${changedIncident}' WHERE signal_id='${f.id}';`,
+      /PLAN_RISK_SCOPE_INVALID/],
+    [`UPDATE public.observer_event_risk_persistence_receipts SET audit_event_id=(
+      SELECT id FROM public.immutable_audit_events
+      WHERE event_type='observer_event_risk_claim_acquired_v1' AND target_id='${f.id}'
+      LIMIT 1) WHERE signal_id='${f.id}';`,/PLAN_RISK_SCOPE_INVALID/],
+    [`UPDATE observer_home_review.registration_identities SET owner_epoch=1
+      WHERE registration_id='${f.r}';`,/PLAN_HOME_AUTHORITY_REVOKED_OR_CHANGED/],
+  ]) {
+    denied(`BEGIN; ${mutation} SET ROLE service_role; ${planF} ROLLBACK;`,expected);
+    assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_effect_plans
+      WHERE signal_id='${f.id}';`),"0");
+    assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+      WHERE event_type='observer_event_risk_effect_plan_frozen_v1' AND target_id='${f.id}';`),"0"); checks++;
+  }
+  // Plan gets the registration lock first, commits one plan/audit/checkpoint,
+  // then revocation advances the epoch. A later identical replay is denied.
+  const planFirst = asyncPg(`BEGIN; ${planF} SELECT 'PLAN_READY';
+    SELECT pg_sleep(2); COMMIT;`,"service_role");
+  await waitMarker(planFirst,"PLAN_READY");
+  const revokeAfterPlan = asyncPg(revoke(f.r));
+  const [plannedFirst,revokedAfterPlan] = await Promise.all([planFirst.done,revokeAfterPlan.done]);
+  assert.equal(plannedFirst.code,0,plannedFirst.error);
+  assert.equal(revokedAfterPlan.code,0,revokedAfterPlan.error);
+  assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_effect_plans
+    WHERE signal_id='${f.id}';`),"1");
+  assert.equal(pg(`SELECT status FROM public.observer_event_risk_claims
+    WHERE signal_id='${f.id}';`),"EFFECTS_PENDING");
+  denied(planF,/PLAN_HOME_AUTHORITY_REVOKED_OR_CHANGED/,"service_role");
+  assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+    WHERE event_type='observer_event_risk_effect_plan_frozen_v1' AND target_id='${f.id}';`),"1"); checks += 3;
+
+  const gCase = preparePlanCase({
+    r:"99999999-eeee-4999-8999-999999999999",
+    c:"77777777-eeee-4777-8777-777777777777",
+    g:"cccccccc-2222-4ccc-8ccc-cccccccccccc",
+    auth:"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    req:"11111111-eeee-4333-8444-555555555555",
+    eventSource:"88888888-eeee-4888-8999-aaaaaaaaaaaa",
+    nonce:"12121212-eeee-4567-8abc-121212121212",
+    authorityId:"abababab-eeee-4aba-8aba-abababababab",
+  });
+  const revokeFirstForPlan = asyncPg(`BEGIN; ${revoke(gCase.r)}
+    SELECT 'REVOKE_PLAN_READY'; SELECT pg_sleep(2); COMMIT;`);
+  await waitMarker(revokeFirstForPlan,"REVOKE_PLAN_READY");
+  const waitingPlan = asyncPg(plan(gCase.id,gCase.nonce,gCase.authorityId),"service_role");
+  const [revokedBeforePlan,planDenied] = await Promise.all([
+    revokeFirstForPlan.done,waitingPlan.done]);
+  assert.equal(revokedBeforePlan.code,0,revokedBeforePlan.error);
+  assert.notEqual(planDenied.code,0);
+  assert.match(planDenied.error,/PLAN_HOME_AUTHORITY_REVOKED_OR_CHANGED/);
+  assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_effect_plans
+    WHERE signal_id='${gCase.id}';`),"0");
+  assert.equal(pg(`SELECT status FROM public.observer_event_risk_claims
+    WHERE signal_id='${gCase.id}';`),"RISK_PERSISTED");
+  assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+    WHERE event_type='observer_event_risk_effect_plan_frozen_v1' AND target_id='${gCase.id}';`),"0"); checks += 3;
+
+  const h = preparePlanCase({
+    r:"99999999-ffff-4999-8999-999999999999",
+    c:"77777777-ffff-4777-8777-777777777777",
+    g:"cccccccc-3333-4ccc-8ccc-cccccccccccc",
+    auth:"eeeeeeee-ffff-4eee-8eee-eeeeeeeeeeee",
+    req:"11111111-ffff-4333-8444-555555555555",
+    eventSource:"88888888-ffff-4888-8999-aaaaaaaaaaaa",
+    nonce:"12121212-ffff-4567-8abc-121212121212",
+    authorityId:"abababab-ffff-4aba-8aba-abababababab",
+  });
+  assert.equal(JSON.parse(pg(plan(h.id,h.nonce,h.authorityId),"service_role")).reused,false);
+  assert.equal(JSON.parse(pg(plan(h.id,h.nonce,h.authorityId),"service_role")).reused,true);
+  denied(plan(h.id,h.nonce,"ffffffff-1111-4fff-8fff-ffffffffffff"),
+    /PLAN_AUTHORITY_UNVERIFIED/,"service_role");
+  assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_effect_plans
+    WHERE signal_id='${h.id}';`),"1");
+  assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+    WHERE event_type='observer_event_risk_effect_plan_frozen_v1' AND target_id='${h.id}';`),"1"); checks += 3;
   console.log(`PASS: ${checks} isolated qualification-to-canonical-acceptance assertions; no direct version seed or live authority.`);
 } finally {
   if (container) {
