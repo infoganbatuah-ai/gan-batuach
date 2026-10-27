@@ -23,11 +23,14 @@ let startAttempted = false;
 let cleanupSafe = false;
 const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   encrypted: false, isolatedHome: false, guestDiskInsideEncryptedVolume: false,
-  noHostMounts: false, guestHasDefaultRoute: null,
+  noHostMounts: false, noProxyEnv: false, guestHasDefaultRoute: null,
   guestIpv4OutputDrop: false, guestIpv6OutputDrop: false,
   guestIpv4ForwardDrop: false, guestIpv6ForwardDrop: false,
   managementSurvivedFirewall: false, dnsHasNoAllowRule: false,
-  firewallPersistence: "TEMPORARY_NOT_REBOOT_TESTED",
+  firewallPersistence: "NOT_TESTED", bootRouteAbsentBeforePolicy: false,
+  bootIpv6RouteAbsentBeforePolicy: false,
+  rebootVerified: false, postgresSentinelAfterReboot: false,
+  storageSentinelAfterReboot: false, sentinelRecoveredAfterReattach: false,
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
   originalVolumesAbsent: false, payloadHiddenAfterDetach: false, scratchCleaned: false };
@@ -99,7 +102,7 @@ try {
   const limaHome = join(mount, "lima");
   mkdirSync(limaHome, { mode: 0o700 });
   const config = join(mount, "isolated-lima.yaml");
-  writeFileSync(config, `vmType: vz\narch: aarch64\nimages:\n  - location: ${cachedBase}\n    arch: aarch64\ncpus: 2\nmemory: 2GiB\ndisk: 6GiB\nmounts: []\nnetworks: []\nportForwards: []\ncontainerd:\n  system: false\n  user: false\nssh:\n  loadDotSSHPubKeys: false\n  forwardAgent: false\nhostResolver:\n  enabled: false\nprovision: []\n`, { mode: 0o600, flag: "wx" });
+  writeFileSync(config, `vmType: vz\narch: aarch64\nimages:\n  - location: ${cachedBase}\n    arch: aarch64\ncpus: 2\nmemory: 2GiB\ndisk: 6GiB\nmounts: []\nnetworks: []\nportForwards: []\npropagateProxyEnv: false\ncontainerd:\n  system: false\n  user: false\nssh:\n  loadDotSSHPubKeys: false\n  forwardAgent: false\nhostResolver:\n  enabled: false\nprovision: []\n`, { mode: 0o600, flag: "wx" });
   const env = { LIMA_HOME: limaHome };
   run("/opt/homebrew/bin/limactl", ["validate", config], { env });
   evidence.isolatedHome = true;
@@ -115,13 +118,26 @@ try {
     "printf 'MOUNTS='; mount | grep -c 'virtiofs' || true; printf 'ROUTES='; ip -4 route | grep -c '^default ' || true; printf 'DOCKER='; command -v docker || true; printf 'POSTGRES='; command -v postgres || true"],
   env).stdout;
   evidence.noHostMounts = /MOUNTS=0(?:\r?\n|$)/.test(guestState);
+  evidence.noProxyEnv = guestRun(["sh", "-lc",
+    "env | cut -d= -f1 | grep -Eic '^(http_proxy|https_proxy|all_proxy|no_proxy)$' || true"], env).stdout.trim() === "0";
   evidence.guestHasDefaultRoute = /ROUTES=1(?:\r?\n|$)/.test(guestState);
   evidence.postgresTool = /(?:DOCKER|POSTGRES)=\//.test(guestState);
   assert.ok(evidence.noHostMounts, "GUEST_HAS_HOST_MOUNT");
+  assert.ok(evidence.noProxyEnv, "GUEST_INHERITED_PROXY_ENV");
   assert.ok(evidence.postgresTool, "GUEST_HAS_NO_OFFLINE_POSTGRES_RUNTIME");
 
+  // This scratch Docker daemon must not rewrite the forwarding chain after
+  // the fail-closed rule is installed. Only --network none is used below.
+  guestRun(["sudo", "test", "!", "-e", "/etc/docker/daemon.json"], env);
+  const daemonConfig = join(mount, "docker-daemon-qa.json");
+  writeFileSync(daemonConfig, '{"iptables":false,"ip6tables":false,"bridge":"none"}\n',
+    { mode: 0o600, flag: "wx" });
+  run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp", daemonConfig,
+    `${guest}:/tmp/docker-daemon-qa.json`], { env, timeout: 30000 });
+  guestRun(["sudo", "install", "-o", "root", "-g", "root", "-m", "0644",
+    "/tmp/docker-daemon-qa.json", "/etc/docker/daemon.json"], env);
   // Before any guest test data, start only the scratch guest's local Docker
-  // daemon, then place IPv4/IPv6 OUTPUT and FORWARD behind default-deny rules.
+  // daemon, then install the persistent firewall service.
   guestRun(["sudo", "systemctl", "start", "docker"], env, 30000);
   const sshParts = guestRun(["sh", "-lc", "printf '%s' \"$SSH_CONNECTION\""], env).stdout.trim().split(/\s+/);
   assert.equal(sshParts.length, 4, "GUEST_MANAGEMENT_PEER_UNKNOWN");
@@ -132,20 +148,51 @@ try {
   const initial6 = firewallRules("ip6tables", "OUTPUT", env);
   assert.deepEqual(initial4, ["-P OUTPUT ACCEPT"], "UNEXPECTED_GUEST_IPV4_OUTPUT_RULES");
   assert.deepEqual(initial6, ["-P OUTPUT ACCEPT"], "UNEXPECTED_GUEST_IPV6_OUTPUT_RULES");
-  // Guest-only emergency timer prevents stranding the disposable VM if a
-  // management connection is lost. It makes this a temporary, not reboot-safe,
-  // boundary. No real data is ever placed inside this guest.
-  guestRun(["sudo", "systemd-run", "--unit=do-qa-firewall-rollback",
-    "--on-active=180s", "/bin/sh", "-c",
-    "iptables -P OUTPUT ACCEPT; ip6tables -P OUTPUT ACCEPT"], env);
-  for (const binary of ["iptables", "ip6tables"]) {
-    guestRun(["sudo", binary, "-I", "FORWARD", "1", "-j", "DROP"], env);
-    guestRun(["sudo", binary, "-A", "OUTPUT", "-o", "lo", "-j", "ACCEPT"], env);
-    if (binary === "iptables") guestRun(["sudo", binary, "-A", "OUTPUT",
-      "-d", `${peerIp}/32`, "-p", "tcp", "--sport", guestSshPort,
-      "-m", "conntrack", "--ctstate", "ESTABLISHED", "-j", "ACCEPT"], env);
-    guestRun(["sudo", binary, "-P", "OUTPUT", "DROP"], env);
-  }
+  // This dedicated scratch guest may be discarded if management is lost.
+  // Unlike the previous probe, there is no timer that can reopen egress.
+  const lockScript = join(mount, "do-qa-egress-lock");
+  const lockUnit = join(mount, "do-qa-egress-lock.service");
+  writeFileSync(lockScript, `#!/bin/sh
+set -eu
+ip -4 route show default | wc -l > /run/do-qa-default-route-before-lock
+ip -6 route show default | wc -l > /run/do-qa-ipv6-default-route-before-lock
+iptables -I FORWARD 1 -j DROP
+ip6tables -I FORWARD 1 -j DROP
+iptables -C OUTPUT -o lo -j ACCEPT 2>/dev/null || iptables -A OUTPUT -o lo -j ACCEPT
+ip6tables -C OUTPUT -o lo -j ACCEPT 2>/dev/null || ip6tables -A OUTPUT -o lo -j ACCEPT
+iptables -C OUTPUT -d ${peerIp}/32 -p tcp --sport ${guestSshPort} -m conntrack --ctstate ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A OUTPUT -d ${peerIp}/32 -p tcp --sport ${guestSshPort} -m conntrack --ctstate ESTABLISHED -j ACCEPT
+iptables -P OUTPUT DROP
+ip6tables -P OUTPUT DROP
+`, { mode: 0o600, flag: "wx" });
+  writeFileSync(lockUnit, `[Unit]
+Description=Disposable QA fail-closed egress boundary
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target network-pre.target systemd-networkd.service NetworkManager.service docker.service
+Wants=network-pre.target
+FailureAction=poweroff
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/do-qa-egress-lock
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
+`, { mode: 0o600, flag: "wx" });
+  run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp", lockScript,
+    `${guest}:/tmp/do-qa-egress-lock`], { env, timeout: 30000 });
+  run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp", lockUnit,
+    `${guest}:/tmp/do-qa-egress-lock.service`], { env, timeout: 30000 });
+  guestRun(["sudo", "install", "-o", "root", "-g", "root", "-m", "0700",
+    "/tmp/do-qa-egress-lock", "/usr/local/sbin/do-qa-egress-lock"], env);
+  guestRun(["sudo", "install", "-o", "root", "-g", "root", "-m", "0644",
+    "/tmp/do-qa-egress-lock.service", "/etc/systemd/system/do-qa-egress-lock.service"], env);
+  guestRun(["sudo", "systemctl", "daemon-reload"], env);
+  guestRun(["sudo", "systemctl", "enable", "do-qa-egress-lock.service"], env);
+  guestRun(["sudo", "systemctl", "start", "do-qa-egress-lock.service"], env);
+  assert.equal(guestRun(["systemctl", "is-enabled", "do-qa-egress-lock.service"], env).stdout.trim(), "enabled");
+  assert.equal(guestRun(["systemctl", "is-active", "do-qa-egress-lock.service"], env).stdout.trim(), "active");
   verifyFirewall(env, peerIp, guestSshPort);
   guestRun(["true"], env);
   evidence.managementSurvivedFirewall = true;
@@ -209,27 +256,87 @@ try {
   const volumes = guestDocker(["volume", "ls", "--format", "{{.Name}}"], env).stdout.trim().split(/\r?\n/).sort();
   evidence.originalVolumesAbsent = JSON.stringify(volumes) === JSON.stringify(["qa_pgdata", "qa_storage"]);
   assert.ok(evidence.originalVolumesAbsent, "ORIGINAL_OR_UNEXPECTED_VOLUME_PRESENT");
-  verifyFirewall(env, peerIp, guestSshPort); // Fail if rollback fired mid-test.
+  verifyFirewall(env, peerIp, guestSshPort); // Fail if Docker rewrote the forwarding boundary.
   guestDocker(["stop", storage, pg], env, 30000);
+  const bootIdBefore = guestRun(["cat", "/proc/sys/kernel/random/boot_id"], env).stdout.trim();
+  run("/opt/homebrew/bin/limactl", ["stop", guest], { env, timeout: 60000 });
+  started = false;
+  run("/opt/homebrew/bin/limactl", ["start", "--tty=false", guest], { env, timeout: 180000 });
+  started = true;
+  const bootIdAfter = guestRun(["cat", "/proc/sys/kernel/random/boot_id"], env).stdout.trim();
+  assert.notEqual(bootIdAfter, bootIdBefore, "SCRATCH_VM_DID_NOT_REBOOT");
+  assert.equal(guestRun(["systemctl", "is-active", "do-qa-egress-lock.service"], env).stdout.trim(), "active");
+  verifyFirewall(env, peerIp, guestSshPort);
+  evidence.bootRouteAbsentBeforePolicy = guestRun(["cat", "/run/do-qa-default-route-before-lock"], env).stdout.trim() === "0";
+  evidence.bootIpv6RouteAbsentBeforePolicy = guestRun(["cat", "/run/do-qa-ipv6-default-route-before-lock"], env).stdout.trim() === "0";
+  assert.ok(evidence.bootRouteAbsentBeforePolicy, "NETWORK_ROUTE_PRECEDED_BOOT_FIREWALL");
+  assert.ok(evidence.bootIpv6RouteAbsentBeforePolicy, "IPV6_ROUTE_PRECEDED_BOOT_FIREWALL");
+  evidence.rebootVerified = true;
+  evidence.firewallPersistence = "REAPPLIED_BEFORE_NETWORK_AFTER_REBOOT";
+  guestRun(["sudo", "systemctl", "start", "docker"], env);
+  verifyFirewall(env, peerIp, guestSshPort);
+  const resumedPg = guestDocker(["run", "--detach", "--rm", "--network", "none", "--pull", "never",
+    "--read-only", "--tmpfs", "/tmp:rw,nosuid,nodev,size=64m", "--user", "postgres",
+    "--volume", "qa_pgdata:/var/lib/postgresql/data", "--entrypoint", "/bin/sh", pgImage,
+    "-ec", "exec postgres -D /var/lib/postgresql/data -c listen_addresses= -c unix_socket_directories=/tmp"],
+  env, 60000).stdout.trim();
+  assert.match(resumedPg, /^[0-9a-f]{64}$/);
+  let resumedReady = false;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const result = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+      "exec", resumedPg, "pg_isready", "-h", "/tmp", "-U", "postgres"],
+    { env, timeout: 10000, allowFailure: true });
+    if (result.status === 0) { resumedReady = true; break; }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  assert.ok(resumedReady, "REBOOTED_POSTGRES_NOT_READY");
+  evidence.postgresSentinelAfterReboot = guestDocker(["exec", resumedPg, "psql", "-X", "-h", "/tmp", "-U",
+    "postgres", "-d", "postgres", "-At", "-c", "SELECT value FROM qa_sentinel;"], env).stdout.trim() === "synthetic-only";
+  evidence.storageSentinelAfterReboot = guestDocker(["run", "--rm", "--network", "none", "--pull", "never",
+    "--volume", "qa_storage:/mnt:ro", "--entrypoint", "/bin/cat", pgImage, "/mnt/object"], env).stdout.trim() === "synthetic-storage-only";
+  assert.ok(evidence.postgresSentinelAfterReboot && evidence.storageSentinelAfterReboot,
+    "SYNTHETIC_SENTINEL_LOST_AFTER_REBOOT");
+  verifyFirewall(env, peerIp, guestSshPort);
+  guestDocker(["stop", resumedPg], env);
+  run("/opt/homebrew/bin/limactl", ["stop", guest], { env, timeout: 60000 });
+  started = false;
+  run("/usr/bin/hdiutil", ["detach", mount], { timeout: 60000 });
+  attached = false;
+  assert.ok(!existsSync(sentinel), "SENTINEL_VISIBLE_AFTER_DETACH");
+  run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-owners", "on", "-stdinpass",
+    "-mountpoint", mount, image], { input: `${secret}\n`, timeout: 120000 });
+  attached = true;
+  evidence.sentinelRecoveredAfterReattach = readFileSync(sentinel, "utf8") === "synthetic restore sentinel only\n" &&
+    readdirSync(join(mount, "lima", guest)).some(name => /disk/i.test(name));
+  assert.ok(evidence.sentinelRecoveredAfterReattach, "ENCRYPTED_VOLUME_SENTINEL_NOT_RECOVERED");
   evidence.status = "ARCHITECTURE_PROBE_PASS";
 } catch (error) {
   evidence.reason = String(error.message).slice(0, 900);
 } finally {
   if (startAttempted) {
     const env = { LIMA_HOME: join(mount, "lima") };
-    const listed = run("/opt/homebrew/bin/limactl", ["list", "--quiet"],
+    const listed = run("/opt/homebrew/bin/limactl", ["list", "--json"],
       { env, timeout: 30000, allowFailure: true });
     if (listed.status !== 0) {
       started = true;
       evidence.reason = "SCRATCH_VM_STATUS_UNVERIFIED";
-    } else if (listed.stdout.trim().split(/\r?\n/).includes(guest)) {
-      const stopped = run("/opt/homebrew/bin/limactl", ["stop", guest],
-        { env, timeout: 60000, allowFailure: true });
-      if (stopped.status !== 0) {
+    } else {
+      const guestInfo = listed.stdout.split(/\r?\n/).map(line => {
+        try { return JSON.parse(line); } catch { return null; }
+      }).find(item => item?.name === guest);
+      if (guestInfo?.status === "Running") {
+        const stopped = run("/opt/homebrew/bin/limactl", ["stop", guest],
+          { env, timeout: 60000, allowFailure: true });
+        if (stopped.status !== 0) {
+          started = true;
+          evidence.reason = "SCRATCH_VM_STOP_FAILED";
+        } else started = false;
+      } else if (guestInfo?.status === "Stopped" || !guestInfo) started = false;
+      else {
         started = true;
-        evidence.reason = "SCRATCH_VM_STOP_FAILED";
-      } else started = false;
-    } else started = false;
+        evidence.reason = "SCRATCH_VM_STATE_UNSAFE_FOR_DETACH";
+      }
+    }
   }
   if (!started && attached) {
     const detached = run("/usr/bin/hdiutil", ["detach", mount],
@@ -248,6 +355,7 @@ try {
     }
   }
   if (!evidence.scratchCleaned) evidence.reason ??= "SCRATCH_CLEANUP_INCOMPLETE";
+  if (!evidence.scratchCleaned) evidence.status = "BLOCKED";
   console.log(JSON.stringify(evidence));
   if (evidence.status !== "ARCHITECTURE_PROBE_PASS" || !evidence.scratchCleaned) process.exitCode = 1;
 }
