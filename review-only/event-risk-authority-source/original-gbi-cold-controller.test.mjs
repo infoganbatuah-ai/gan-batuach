@@ -42,7 +42,9 @@ function fixture(options = {}) {
       calls.push(`stop:${id}`);
       if (options.stopHang && id === PIN.stop[0][1])
         return new Promise((_, reject) => signal.addEventListener("abort", () => reject(new Error("STOP_ABORTED")), { once: true }));
+      if (options.ignoreStopAbort && id === PIN.stop[0][1]) return new Promise(() => {});
       if (options.stopFailure && id === PIN.stop[0][1]) throw new Error("STOP_FAILED");
+      if (options.stopReturnsEarly && id === PIN.stop[0][1]) return;
       running.set(id, false);
     },
     async inspectQuiescence() {
@@ -64,6 +66,7 @@ function fixture(options = {}) {
         abortUpstream: () => { calls.push("abortUpstream"); } };
     },
     async waitForDaemon() { calls.push("waitForDaemon"); if (options.daemonUnavailable) throw new Error("DAEMON_UNAVAILABLE"); },
+    async waitForPostgresHealthy() { calls.push("waitForPostgresHealthy"); },
     async startExisting(id) {
       calls.push(`start:${id}`);
       if (options.restartFailure && id === PIN.stop.at(-1)[1]) throw new Error("DB_RESTART_FAILED");
@@ -93,6 +96,14 @@ test("no-argument CLI is closed, explicit dry-run is static and read-only", () =
 test("no exact separate risk acceptance means no inspection or source action", async () => usingFixture({}, async f => {
   const result = await f.run({ approval: undefined });
   assert.equal(result.reason, "SOURCE_DOWNTIME_NOT_AUTHORIZED");
+  assert.deepEqual(f.calls, []);
+}));
+
+test("live adapter and incomplete fake adapter are rejected before source inspection", async () => usingFixture({}, async f => {
+  const live = { ...f.adapter, offlineFixture: false };
+  assert.equal((await f.run({ adapter: live })).reason, "LIVE_ADAPTER_NOT_AUTHORIZED");
+  const incomplete = { ...f.adapter, waitForPostgresHealthy: undefined };
+  assert.equal((await f.run({ adapter: incomplete })).reason, "ADAPTER_METHOD_MISSING:waitForPostgresHealthy");
   assert.deepEqual(f.calls, []);
 }));
 
@@ -157,6 +168,23 @@ test("stop timeout aborts and attempts exact source return; no export", async ()
   assert.equal(result.status, "BLOCKED");
   assert.match(result.reason, /STOP_TIMEOUT:kong/);
   assert.ok(f.calls.includes("waitForDaemon"));
+  assert.ok(!f.calls.includes("beginEncryptedExport"));
+}));
+
+test("early stop acknowledgement is rejected before proceeding to next container", async () => usingFixture({ stopReturnsEarly: true }, async f => {
+  const result = await f.run();
+  assert.match(result.reason, /STOP_NOT_CONFIRMED:kong/);
+  assert.equal(result.sourceReturned, false);
+  assert.ok(result.restartErrors.includes("LATE_STOP_POSSIBLE_AFTER_ABORT"));
+  assert.equal(f.calls.filter(x => x.startsWith("stop:")).length, 1);
+  assert.ok(!f.calls.includes("beginEncryptedExport"));
+}));
+
+test("uncooperative late stop never produces a source-return PASS", async () => usingFixture({ ignoreStopAbort: true }, async f => {
+  const result = await f.run({ deadlines: { apps: 8, db: 8, export: 8, restart: 100, total: 200 } });
+  assert.equal(result.status, "BLOCKED");
+  assert.equal(result.sourceReturned, false);
+  assert.match(result.reason, /LATE_STOP_POSSIBLE_AFTER_ABORT/);
   assert.ok(!f.calls.includes("beginEncryptedExport"));
 }));
 

@@ -170,11 +170,18 @@ export async function runControlledCapture({ adapter, outputPath, approval, cloc
   let archiveCreated = false;
   let archiveComplete = false;
   let archiveWriteUnsettled = false;
+  let lateStopRisk = false;
   let ownedArchiveIdentity;
   let stopAttempted = false;
   const start = clock.now();
   try {
-    if (writer !== writeBoundedCiphertext && adapter?.offlineFixture !== true) fail("TEST_WRITER_FORBIDDEN");
+    // This contract runner is deliberately restricted to fake adapters. A
+    // caller-supplied approval object is test input, not owner authorization.
+    if (adapter?.offlineFixture !== true) fail("LIVE_ADAPTER_NOT_AUTHORIZED");
+    for (const method of ["inspectSource", "stopGracefully", "isRunning", "inspectQuiescence",
+      "fileManifest", "beginEncryptedExport", "waitForDaemon", "startExisting",
+      "waitForPostgresHealthy", "verifySourceHealth"])
+      if (typeof adapter[method] !== "function") fail(`ADAPTER_METHOD_MISSING:${method}`);
     if (approval?.kind !== "SEPARATE_EXACT_OWNER_RISK_ACCEPTANCE") fail("SOURCE_DOWNTIME_NOT_AUTHORIZED");
     assert.equal(approval?.source, PIN.limaInstance, "APPROVAL_SOURCE_MISMATCH");
     assert.equal(approval?.acknowledgesNoCurrentRollback, true, "ROLLBACK_RISK_NOT_ACCEPTED");
@@ -190,13 +197,23 @@ export async function runControlledCapture({ adapter, outputPath, approval, cloc
       stopAttempted = true; // A stop can time out after reaching Docker.
       receipt.stopAttempted = true;
       receipt.sourceAction = true;
-      await timed(signal => adapter.stopGracefully(id, signal), budget, clock, `STOP_TIMEOUT:${service}`);
+      try {
+        await timed(signal => adapter.stopGracefully(id, signal), budget, clock, `STOP_TIMEOUT:${service}`);
+        if (await adapter.isRunning(id)) fail(`STOP_NOT_CONFIRMED:${service}`);
+      } catch (error) {
+        // Even a settled CLI can have sent a signal whose effect arrives later.
+        lateStopRisk = true;
+        throw error;
+      }
     }
     stopAttempted = true;
     receipt.stopAttempted = true;
     receipt.sourceAction = true;
-    await timed(signal => adapter.stopGracefully(ids.db, signal),
-      Math.min(deadlines.db, remaining(start, clock, deadlines.total)), clock, "STOP_TIMEOUT:db");
+    try {
+      await timed(signal => adapter.stopGracefully(ids.db, signal),
+        Math.min(deadlines.db, remaining(start, clock, deadlines.total)), clock, "STOP_TIMEOUT:db");
+      if (await adapter.isRunning(ids.db)) fail("STOP_NOT_CONFIRMED:db");
+    } catch (error) { lateStopRisk = true; throw error; }
     assertQuiescent(await adapter.inspectQuiescence());
     const before = canonicalManifest(await adapter.fileManifest());
     const stream = await adapter.beginEncryptedExport({ recipient, signalDeadlineMs: deadlines.export });
@@ -224,7 +241,10 @@ export async function runControlledCapture({ adapter, outputPath, approval, cloc
         await timed(async signal => {
           await adapter.waitForDaemon(signal);
           for (const service of RESTART) {
-            try { await adapter.startExisting(ids[service], signal); }
+            try {
+              if (!(await adapter.isRunning(ids[service]))) await adapter.startExisting(ids[service], signal);
+              if (service === "db") await adapter.waitForPostgresHealthy(signal);
+            }
             catch (error) { receipt.restartErrors.push(`${service}:${error.message}`); }
           }
           for (const id of expectedIds) {
@@ -233,6 +253,7 @@ export async function runControlledCapture({ adapter, outputPath, approval, cloc
           }
           if (receipt.restartErrors.length === 0) await adapter.verifySourceHealth(signal);
         }, deadlines.restart, clock, "SOURCE_RESTART_DEADLINE_EXCEEDED");
+        if (lateStopRisk) receipt.restartErrors.push("LATE_STOP_POSSIBLE_AFTER_ABORT");
         receipt.sourceReturned = receipt.restartErrors.length === 0;
       } catch (error) { receipt.restartErrors.push(error.message); }
     }
@@ -246,7 +267,8 @@ export async function runControlledCapture({ adapter, outputPath, approval, cloc
     }
     if (archiveWriteUnsettled) receipt.restartErrors.push("ARCHIVE_WRITER_ABORT_UNCONFIRMED_KEEP_PARTIAL");
   }
-  if (!receipt.sourceReturned && stopAttempted) receipt.reason = `SOURCE_RETURN_UNVERIFIED:${receipt.restartErrors.join("|")}`;
+  if (!receipt.sourceReturned && stopAttempted)
+    receipt.reason = `SOURCE_RETURN_UNVERIFIED:${receipt.reason ?? "UNKNOWN_CAUSE"}:${receipt.restartErrors.join("|")}`;
   if (archiveComplete && receipt.sourceReturned) receipt.status = "MOCK_CAPTURE_ONLY";
   return receipt;
 }
