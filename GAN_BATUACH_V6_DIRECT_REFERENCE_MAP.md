@@ -17,6 +17,8 @@ This map is a preparation artifact, **not a visual pass report**. The V5 collage
 
 The source collages are 1536 × 1024. Panel extraction must preserve labels and full screen boundaries; the crop itself is not an implementation screenshot. Parent assigned and multi-child share the closest approved dashboard panel, so their distinct states must be captured from separate actual authorized sessions and compared against the same visual blueprint without claiming a nonexistent dedicated multi-child reference.
 
+The older V5 file named `parent-assigned-desktop.webp` visibly shows a QA account with pending Garden affiliation and no verified attendance. Its filename is not proof of an assigned Parent state. V6 acceptance requires a fresh capture from a genuinely assigned, authorized QA child and a distinct multi-child QA account; neither state is verified by that older image.
+
 The five Desktop and five corresponding Mobile reference crops were extracted without altering pixels and kept in the local owner-evidence folder `gan-batuach-v6-reference-prep/v6-primary-reference-crops/` under this task's visualization workspace. They are source references only. They are intentionally outside the public Git repository; fresh actual captures must be stored and labeled separately.
 
 ## Remaining 16 direct comparisons
