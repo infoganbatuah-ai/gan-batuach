@@ -24,6 +24,10 @@ let cleanupSafe = false;
 const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   encrypted: false, isolatedHome: false, guestDiskInsideEncryptedVolume: false,
   noHostMounts: false, guestHasDefaultRoute: null,
+  guestIpv4OutputDrop: false, guestIpv6OutputDrop: false,
+  guestIpv4ForwardDrop: false, guestIpv6ForwardDrop: false,
+  managementSurvivedFirewall: false, dnsHasNoAllowRule: false,
+  firewallPersistence: "TEMPORARY_NOT_REBOOT_TESTED",
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
   originalVolumesAbsent: false, payloadHiddenAfterDetach: false, scratchCleaned: false };
@@ -44,6 +48,27 @@ function guestRun(args, env, timeout = 30000) {
 }
 function guestDocker(args, env, timeout = 30000) {
   return guestRun(["sudo", "docker", ...args], env, timeout);
+}
+function firewallRules(family, chain, env) {
+  return guestRun(["sudo", family, "-S", chain], env).stdout.trim().split(/\r?\n/);
+}
+function verifyFirewall(env, peerIp, guestSshPort) {
+  const v4out = firewallRules("iptables", "OUTPUT", env);
+  const v6out = firewallRules("ip6tables", "OUTPUT", env);
+  const v4forward = firewallRules("iptables", "FORWARD", env);
+  const v6forward = firewallRules("ip6tables", "FORWARD", env);
+  const managementRule = `-A OUTPUT -d ${peerIp}/32 -p tcp -m tcp --sport ${guestSshPort} -m conntrack --ctstate ESTABLISHED -j ACCEPT`;
+  evidence.guestIpv4OutputDrop = v4out[0] === "-P OUTPUT DROP" &&
+    v4out.includes("-A OUTPUT -o lo -j ACCEPT") && v4out.includes(managementRule) &&
+    v4out.filter(line => line.startsWith("-A OUTPUT ")).length === 2;
+  evidence.guestIpv6OutputDrop = JSON.stringify(v6out) ===
+    JSON.stringify(["-P OUTPUT DROP", "-A OUTPUT -o lo -j ACCEPT"]);
+  evidence.guestIpv4ForwardDrop = v4forward.find(line => line.startsWith("-A FORWARD ")) === "-A FORWARD -j DROP";
+  evidence.guestIpv6ForwardDrop = v6forward.find(line => line.startsWith("-A FORWARD ")) === "-A FORWARD -j DROP";
+  evidence.dnsHasNoAllowRule = [...v4out, ...v6out].every(line => !/--dport 53.*-j ACCEPT/.test(line));
+  assert.ok(evidence.guestIpv4OutputDrop && evidence.guestIpv6OutputDrop &&
+    evidence.guestIpv4ForwardDrop && evidence.guestIpv6ForwardDrop &&
+    evidence.dnsHasNoAllowRule, "GUEST_EGRESS_POLICY_NOT_FAIL_CLOSED");
 }
 
 try {
@@ -95,13 +120,42 @@ try {
   assert.ok(evidence.noHostMounts, "GUEST_HAS_HOST_MOUNT");
   assert.ok(evidence.postgresTool, "GUEST_HAS_NO_OFFLINE_POSTGRES_RUNTIME");
 
+  // Before any guest test data, start only the scratch guest's local Docker
+  // daemon, then place IPv4/IPv6 OUTPUT and FORWARD behind default-deny rules.
+  guestRun(["sudo", "systemctl", "start", "docker"], env, 30000);
+  const sshParts = guestRun(["sh", "-lc", "printf '%s' \"$SSH_CONNECTION\""], env).stdout.trim().split(/\s+/);
+  assert.equal(sshParts.length, 4, "GUEST_MANAGEMENT_PEER_UNKNOWN");
+  const [peerIp, , , guestSshPort] = sshParts;
+  assert.match(peerIp, /^(?:\d{1,3}\.){3}\d{1,3}$/);
+  assert.match(guestSshPort, /^\d{1,5}$/);
+  const initial4 = firewallRules("iptables", "OUTPUT", env);
+  const initial6 = firewallRules("ip6tables", "OUTPUT", env);
+  assert.deepEqual(initial4, ["-P OUTPUT ACCEPT"], "UNEXPECTED_GUEST_IPV4_OUTPUT_RULES");
+  assert.deepEqual(initial6, ["-P OUTPUT ACCEPT"], "UNEXPECTED_GUEST_IPV6_OUTPUT_RULES");
+  // Guest-only emergency timer prevents stranding the disposable VM if a
+  // management connection is lost. It makes this a temporary, not reboot-safe,
+  // boundary. No real data is ever placed inside this guest.
+  guestRun(["sudo", "systemd-run", "--unit=do-qa-firewall-rollback",
+    "--on-active=180s", "/bin/sh", "-c",
+    "iptables -P OUTPUT ACCEPT; ip6tables -P OUTPUT ACCEPT"], env);
+  for (const binary of ["iptables", "ip6tables"]) {
+    guestRun(["sudo", binary, "-I", "FORWARD", "1", "-j", "DROP"], env);
+    guestRun(["sudo", binary, "-A", "OUTPUT", "-o", "lo", "-j", "ACCEPT"], env);
+    if (binary === "iptables") guestRun(["sudo", binary, "-A", "OUTPUT",
+      "-d", `${peerIp}/32`, "-p", "tcp", "--sport", guestSshPort,
+      "-m", "conntrack", "--ctstate", "ESTABLISHED", "-j", "ACCEPT"], env);
+    guestRun(["sudo", binary, "-P", "OUTPUT", "DROP"], env);
+  }
+  verifyFirewall(env, peerIp, guestSshPort);
+  guestRun(["true"], env);
+  evidence.managementSurvivedFirewall = true;
+
   const localImageId = run("/opt/homebrew/bin/docker", ["-H", sourceDocker,
     "image", "inspect", pgImage, "--format", "{{.Id}}"], { timeout: 30000 }).stdout.trim();
   assert.equal(localImageId, pgImageId, "CACHED_POSTGRES_IMAGE_CHANGED");
   const imageTar = join(mount, "cached-postgres-image.tar");
   run("/opt/homebrew/bin/docker", ["-H", sourceDocker, "image", "save", "-o", imageTar, pgImage],
     { timeout: 120000 });
-  guestRun(["sudo", "systemctl", "start", "docker"], env, 30000);
   run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp", imageTar,
     `${guest}:/tmp/cached-postgres-image.tar`], { env, timeout: 120000 });
   guestDocker(["image", "load", "-i", "/tmp/cached-postgres-image.tar"], env, 120000);
@@ -155,6 +209,7 @@ try {
   const volumes = guestDocker(["volume", "ls", "--format", "{{.Name}}"], env).stdout.trim().split(/\r?\n/).sort();
   evidence.originalVolumesAbsent = JSON.stringify(volumes) === JSON.stringify(["qa_pgdata", "qa_storage"]);
   assert.ok(evidence.originalVolumesAbsent, "ORIGINAL_OR_UNEXPECTED_VOLUME_PRESENT");
+  verifyFirewall(env, peerIp, guestSshPort); // Fail if rollback fired mid-test.
   guestDocker(["stop", storage, pg], env, 30000);
   evidence.status = "ARCHITECTURE_PROBE_PASS";
 } catch (error) {
