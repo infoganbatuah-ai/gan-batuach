@@ -1,0 +1,20 @@
+# Current Development recovery gate — review only
+
+Status: **NOT PROVEN for the current database state**. This review used local source and receipts only. It did not connect to PostgreSQL or Supabase, run SQL, create a backup or clone, start a service, decrypt data, access a provider, or change a runtime.
+
+## Evidence checked
+
+| Evidence | Verified fact | Limit |
+| --- | --- | --- |
+| `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/recovered-development-backup.HvyUwd/RECOVERY_MANIFEST.md` and its five encrypted archive files | Captured 2026-10-22 UTC from original `gbi`; manifest records 256 expected/applied migrations (227 baseline + 29 later). All five encrypted file SHA-256 values still match the manifest on 2026-10-27. The manifest records full-stream decrypt/parse and Storage metadata/object comparison. | It explicitly says the archives remain on Kingston, were not uploaded to S3, and were **not restored into an isolated PostgreSQL instance**. Parsing a dump is not restore qualification. The set excludes Git/local-only state. |
+| `development/database/development-application-receipts.json` and the coordinator's bounded read-only migration-metadata reconciliation | Local Development migration receipt observed 2026-10-23T16:48:36.592Z with 30 post-baseline entries. The latest, `20261023161928_digital_observer_push44_session_validity.sql`, was recorded applied at 2026-10-23T16:47:11.77187+00:00. | This is after the 2026-10-22 snapshot and adds one post-baseline migration. Metadata consistency is not a current backup or restore. No new database query was run here. |
+| `development/database/baselines/development-c0cf2de7-20260919-v1/bootstrap-receipt.json` | 227-source baseline applied 2026-09-19 with schema equality PASS. | Predates both the recovery snapshot and the 30th post-baseline migration; `securityQa` and `productQa` are PENDING. It is not a backup or isolated restore receipt. |
+| `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima-safety.gUVg5H/manifest.json` | Encrypted stopped-VM archive created 2026-10-22T00:12:20Z; manifest records decrypt, zstd and tar parsing PASS. | Its own `independentRestore` is PENDING, and it is a pre-recovery VM safety copy, not a supported logical PostgreSQL backup of the current 30-migration state. This local manifest says `s3Upload: NOT_AUTHORIZED`; later remote upload claims were not rechecked under this read-only local scope. |
+
+No local receipt inspected in this bounded review establishes a consistent backup **after** the 30th migration, independent custody of that current backup, and a successful isolated PostgreSQL/Auth/Storage restore of that same current state. Prior claims of five S3 objects or other restores are not disproved; they are not evidence of this exact current-state gate without matching timestamp, source identity, content and restore receipt. Provider inspection was outside this task.
+
+## Decision and next authorized operation
+
+Do **not** mark backup/restore PASS or apply the four proposed UNIQUE indexes, claim schema, ACL/RLS, adapter or Guard on this evidence. Under the coordinator's stated preflight, do not run the four historical COUNT aggregates in `CLAIM-HISTORICAL-AGGREGATES-NOT-RUN.sql` yet. The separate owner authorization for those row aggregates remains necessary even if recovery coverage is later proven.
+
+First seek a matching current-state receipt. If none exists, obtain an exact owner authorization for a new **consistent, encrypted Development-only logical PostgreSQL/Auth/globals backup plus actual Storage object capture**, held independently of the original Kingston data, with checksum verification and an **isolated restore** into a safe destination. Identify storage capacity and any cost before acting; never overwrite the original, use the sparse VM image as the sole database backup, expose secrets, upload to S3 or change Production under this review. After current-state restore evidence is recorded, reverify exact `gbi`/container/database identity and only then reconsider the separately authorized, bounded read-only aggregate scan. No backup, clone, restore or query was executed for this report.
