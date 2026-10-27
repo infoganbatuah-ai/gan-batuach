@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { adaptHomeQualification } from "./adapt-home-qualification-chain.mjs";
 import { adaptCanonicalHomeAcceptance } from "./adapt-canonical-home-acceptance-fence.mjs";
+import { adaptFrozenIncidentAcceptance } from "./adapt-frozen-incident-acceptance.mjs";
 
 const dir = fileURLToPath(new URL(".", import.meta.url));
 const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
@@ -18,8 +19,9 @@ const originalAcceptance = gitText("a6bd2ba5", "review-only/event-time-acceptanc
 const originalQualification = readFileSync(`${dir}REGISTRATION-WRITER-ISOLATED-NOT-APPLIED.sql`, "utf8");
 const fence = readFileSync(`${dir}CANONICAL-ACCEPTANCE-FENCE-NOT-APPLIED.sql`, "utf8");
 const alignment = readFileSync(`${dir}CHAIN-ALIGNMENT-NOT-APPLIED.sql`, "utf8");
+const frozen = readFileSync(`${dir}FROZEN-INCIDENT-BINDING-NOT-APPLIED.sql`, "utf8");
 const qualification = adaptHomeQualification(originalQualification);
-const acceptance = adaptCanonicalHomeAcceptance(originalAcceptance);
+const acceptance = adaptFrozenIncidentAcceptance(adaptCanonicalHomeAcceptance(originalAcceptance).sql);
 const owner = "11111111-1111-4111-8111-111111111111";
 const tenant = "22222222-2222-4222-8222-222222222222";
 const otherTenant = "33333333-3333-4333-8333-333333333333";
@@ -32,11 +34,16 @@ const regB = "99999999-9999-4999-8999-999999999999";
 const ownerSession = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const gateway = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const gatewayB = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const gatewayC = "cccccccc-dddd-4ccc-8ccc-cccccccccccc";
 const authority = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const authorityB = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 const request = "ffffffff-ffff-4fff-8fff-ffffffffffff";
 const requestB = "11111111-2222-4333-8444-555555555555";
 const fingerprint = "f".repeat(64);
+const cameraC = "77777777-aaaa-4777-8777-777777777777";
+const regC = "99999999-aaaa-4999-8999-999999999999";
+const authorityC = "eeeeeeee-aaaa-4eee-8eee-eeeeeeeeeeee";
+const requestC = "11111111-aaaa-4333-8444-555555555555";
 let container, checks = 0;
 function docker(args, input) {
   const r = spawnSync("docker", args, { input, encoding: "utf8", timeout: 30000, maxBuffer: 5000000 });
@@ -106,7 +113,7 @@ async function waitMarker(running, marker) {
 try {
   assert.equal(createHash("sha256").update(source).digest("hex"),
     "b0e313f5d76e7faf6c2d104da3873205df6974a0a3faf9d2980a280aa89cc2e5");
-  for (const s of [fixture, source, fence, alignment, originalQualification, originalAcceptance]) {
+  for (const s of [fixture, source, fence, alignment, frozen, originalQualification, originalAcceptance]) {
     assert.match(s, /(?:ISOLATED_FIXTURE_ONLY|NOT_APPLIED|DRAFT_NOT_APPLIED)/);
   }
   assert.match(alignment, /ROLLBACK;\s*$/);
@@ -132,6 +139,7 @@ try {
   }
   assert.ok(ready);
   denied(alignment, /DRAFT_NOT_APPLIED/);
+  denied(frozen, /DRAFT_NOT_APPLIED/);
   assert.equal(pg("SELECT to_regclass('observer_home_review.registration_versions') IS NULL;"), "t"); checks++;
   pg(`BEGIN; ${strip(fixture, "CREATE ROLE anon LOGIN;")} COMMIT;`);
   pg(`BEGIN; ${strip(source, "CREATE SCHEMA observer_home_review;")} COMMIT;`);
@@ -140,6 +148,7 @@ try {
   pg(`BEGIN; ${qualification.sql} REVOKE ALL ON FUNCTION
     observer_home_review.qualify_registration_v1(uuid,uuid,uuid,uuid,bigint)
     FROM PUBLIC,anon,authenticated,service_role; COMMIT;`);
+  pg(`BEGIN; ${strip(frozen, "ALTER TABLE observer_home_review.event_bindings")} COMMIT;`);
   pg(`BEGIN; ${strip(acceptance.sql, "CREATE FUNCTION observer_home_review.accept_live_home_signal_v1(")} COMMIT;`);
   pg(`INSERT INTO observer_home_review.registration_identities
     (registration_id,tenant_id,site_id,source_id,owner_profile_id,owner_epoch,revoked)
@@ -207,7 +216,56 @@ try {
   assert.equal(count("observer_home_review.event_bindings"), 1);
   assert.equal(count("observer_home_review.registration_audit"), 3); checks += 7;
   const acceptedId = pg("SELECT event_id FROM observer_home_review.event_acceptances;");
+  const frozenIncident = pg(`SELECT b.incident_id FROM observer_home_review.event_bindings b
+    JOIN public.observer_correlated_event_links l ON l.source_id=b.event_id
+      AND l.source_type='observer_intelligence_signal'
+    WHERE b.event_id='${acceptedId}' AND b.incident_id=l.correlated_event_id;`);
+  assert.match(frozenIncident, /^[0-9a-f-]{36}$/); checks++;
   assert.equal(pg(accept(reg, a)), acceptedId); checks++;
+  // The writer, not a manually seeded fixture, supplied the Incident identity.
+  // A later correlation rewrite must not silently rebind the immutable receipt.
+  pg(`INSERT INTO public.observer_correlated_events
+    (observer_site_id,primary_camera_source_id,related_event_ids)
+    VALUES ('${site}','${camera}',ARRAY['${acceptedId}'::uuid]);`);
+  const changedIncident = pg(`SELECT id FROM public.observer_correlated_events
+    WHERE id<>'${frozenIncident}' ORDER BY id LIMIT 1;`);
+  pg(`UPDATE public.observer_correlated_event_links SET correlated_event_id='${changedIncident}'
+    WHERE source_type='observer_intelligence_signal' AND source_id='${acceptedId}';`);
+  denied(accept(reg, a), /HOME_EVENT_BINDING_CONFLICT/);
+  assert.equal(pg(`SELECT incident_id FROM observer_home_review.event_bindings WHERE event_id='${acceptedId}';`), frozenIncident); checks++;
+  pg(`UPDATE public.observer_correlated_event_links SET correlated_event_id='${frozenIncident}'
+    WHERE source_type='observer_intelligence_signal' AND source_id='${acceptedId}';`);
+  assert.equal(pg(accept(reg, a)), acceptedId); checks++;
+  // Install the actual guarded Risk claim body in this disposable schema.
+  // Unlike the standalone Risk fixture, its binding/Incident came from the
+  // complete acceptance writer and source-defined correlation trigger.
+  const riskFixture = readFileSync(`${dir}../event-risk-atomic-claim-qualification/isolated-schema.sql`, "utf8");
+  const riskSource = readFileSync(`${dir}../event-risk-atomic-claim-qualification/RPC-BODIES-SOURCE-NOT-APPLIED.sql`, "utf8");
+  assert.match(riskFixture, /ISOLATED_FIXTURE_ONLY/);
+  assert.match(riskSource, /DRAFT_NOT_APPLIED/);
+  const riskTablesStart = riskFixture.indexOf("CREATE TABLE public.observer_event_risk_claims (");
+  const riskTablesEnd = riskFixture.indexOf("-- Shape-compatible Home receipt fixture", riskTablesStart);
+  assert.ok(riskTablesStart > 0 && riskTablesEnd > riskTablesStart);
+  const riskClaimStart = riskSource.indexOf("CREATE FUNCTION public.claim_event_risk_v1(");
+  const riskClaimEnd = riskSource.indexOf("$claim$;", riskClaimStart) + "$claim$;".length;
+  assert.ok(riskClaimStart > 0 && riskClaimEnd > riskClaimStart);
+  pg(`ALTER TABLE public.digital_observer_organizations ADD COLUMN organization_type text NOT NULL DEFAULT 'family';
+    ALTER TABLE public.observer_correlated_events ADD COLUMN provenance text NOT NULL DEFAULT 'REAL_CAMERA_AI';
+    ${riskFixture.slice(riskTablesStart, riskTablesEnd)}
+    ${riskSource.slice(riskClaimStart, riskClaimEnd)}
+    GRANT USAGE ON SCHEMA observer_home_review TO service_role;
+    GRANT SELECT ON ALL TABLES IN SCHEMA observer_home_review TO service_role;
+    GRANT UPDATE(owner_epoch) ON observer_home_review.registration_identities TO service_role;
+    GRANT SELECT,UPDATE ON ALL TABLES IN SCHEMA public TO service_role;
+    GRANT INSERT,UPDATE ON public.observer_event_risk_claims TO service_role;
+    GRANT INSERT ON public.immutable_audit_events TO service_role;
+    GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO service_role;
+    GRANT EXECUTE ON FUNCTION public.claim_event_risk_v1(uuid,text,uuid,integer) TO service_role;`);
+  const riskResult = JSON.parse(pg(`SELECT public.claim_event_risk_v1(
+    '${acceptedId}','do-risk-v1','12121212-3434-4567-8abc-121212121212',30);`, "service_role"));
+  assert.equal(riskResult.kind, "OWNED");
+  assert.equal(pg(`SELECT incident_id FROM public.observer_event_risk_claims
+    WHERE signal_id='${acceptedId}';`), frozenIncident); checks += 2;
   pg(`CREATE FUNCTION public.qa_fail_acceptance_audit() RETURNS trigger LANGUAGE plpgsql AS $$
     BEGIN IF NEW.action='ACCEPTED' THEN RAISE EXCEPTION 'SYNTHETIC_ACCEPTANCE_AUDIT_FAILURE'; END IF;
       RETURN NEW; END $$;
@@ -216,10 +274,33 @@ try {
   denied(accept(reg, observation("aaaa2222-3333-4444-8555-666666666666")),
     /SYNTHETIC_ACCEPTANCE_AUDIT_FAILURE/);
   assert.equal(count("public.observer_intelligence_signals"), 1);
-  assert.equal(count("public.observer_correlated_events"), 1);
+  assert.equal(count("public.observer_correlated_events"), 2); // second is the isolated conflict probe
   assert.equal(count("observer_home_review.event_acceptances"), 1);
   assert.equal(count("observer_home_review.event_bindings"), 1); checks += 4;
   pg("DROP TRIGGER qa_fail_acceptance_audit ON observer_home_review.registration_audit; DROP FUNCTION public.qa_fail_acceptance_audit();");
+  for (const [table, stage] of [
+    ["public.observer_correlated_events", "INCIDENT"],
+    ["public.observer_correlated_event_links", "LINK"],
+    ["observer_home_review.event_bindings", "BINDING"],
+    ["observer_home_review.registration_audit", "BOUND_AUDIT"],
+  ]) {
+    const eventId = pg("SELECT gen_random_uuid();");
+    const beforeCounts = ["public.observer_intelligence_signals", "public.observer_correlated_events",
+      "public.observer_correlated_event_links", "observer_home_review.event_acceptances",
+      "observer_home_review.event_bindings", "observer_home_review.registration_audit"].map(count);
+    const failureCondition = stage === "BOUND_AUDIT" ? "NEW.action='BOUND'" : "true";
+    pg(`CREATE FUNCTION public.qa_fail_frozen_stage() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF ${failureCondition} THEN
+        RAISE EXCEPTION 'SYNTHETIC_${stage}_FAILURE'; END IF; RETURN NEW; END $$;
+      CREATE TRIGGER qa_fail_frozen_stage BEFORE INSERT ON ${table}
+      FOR EACH ROW EXECUTE FUNCTION public.qa_fail_frozen_stage();`);
+    denied(accept(reg, observation(eventId)), new RegExp(`SYNTHETIC_${stage}_FAILURE`));
+    const afterCounts = ["public.observer_intelligence_signals", "public.observer_correlated_events",
+      "public.observer_correlated_event_links", "observer_home_review.event_acceptances",
+      "observer_home_review.event_bindings", "observer_home_review.registration_audit"].map(count);
+    assert.deepEqual(afterCounts, beforeCounts, `${stage} left partial rows`); checks++;
+    pg(`DROP TRIGGER qa_fail_frozen_stage ON ${table}; DROP FUNCTION public.qa_fail_frozen_stage();`);
+  }
   denied(accept(reg, { ...a, streamId: "other" }), /HOME_EVENT_REPLAY_CONFLICT_OR_UNRECEIPTED/);
   denied(accept(reg, observation("33333333-4444-4555-8666-777777777777", otherSite)),
     /HOME_REGISTRATION_SCOPE_OR_TRANSFER_UNVERIFIED/);
@@ -267,6 +348,42 @@ try {
   assert.equal(count("public.observer_intelligence_signals"), 1);
   assert.equal(count("observer_home_review.event_acceptances"), 1);
   assert.equal(count("observer_home_review.registration_versions"), 3); checks += 3;
+  // Acceptance wins the registration lock first, then revocation waits. The
+  // committed Signal, Incident, frozen binding and audit survive the later
+  // revocation, while every new admission after that fence is denied.
+  pg(`INSERT INTO public.digital_observer_camera_sources
+      (id,observer_site_id,status,source_mode) VALUES
+      ('${cameraC}','${otherSite}','connected','live');
+    INSERT INTO observer_home_review.registration_identities
+      (registration_id,tenant_id,site_id,source_id,owner_profile_id,owner_epoch,revoked)
+      VALUES ('${regC}','${otherTenant}','${otherSite}','${cameraC}','${owner}',0,false);
+    INSERT INTO observer_home_review.qa_current_scope_fixture VALUES
+      ('${regC}','${otherTenant}','${otherSite}','${cameraC}','${owner}',true);
+    INSERT INTO observer_home_review.qa_owner_authority_fixture
+      (registration_id,tenant_id,site_id,source_id,owner_profile_id,verified,active,
+       expires_at,authority_ref,authorized_actor_id,fingerprint)
+      VALUES ('${regC}','${otherTenant}','${otherSite}','${cameraC}','${owner}',true,true,
+        now()+interval '1 hour','${authorityC}','${owner}','${fingerprint}');
+    INSERT INTO observer_home_review.qa_gateway_session_fixture VALUES
+      ('${gatewayC}','${cameraC}',true,now()+interval '1 hour');`);
+  assert.equal(pg(qualify(regC, requestC, authorityC)), "1"); checks++;
+  const cEvent = observation("88888888-aaaa-4888-8999-aaaaaaaaaaaa", otherSite, cameraC,
+    { occurredAt: pg("SELECT clock_timestamp();") });
+  const acceptanceFirst = asyncPg(`BEGIN; ${accept(regC,cEvent,0,gatewayC)}
+    SELECT 'ACCEPTED_READY'; SELECT pg_sleep(2); COMMIT;`);
+  await waitMarker(acceptanceFirst, "ACCEPTED_READY");
+  const revokeSecond = asyncPg(revoke(regC));
+  const [acceptedFirst, revokedSecond] = await Promise.all([acceptanceFirst.done, revokeSecond.done]);
+  assert.equal(acceptedFirst.code, 0, acceptedFirst.error);
+  assert.equal(revokedSecond.code, 0, revokedSecond.error);
+  const cAcceptedId = pg(`SELECT event_id FROM observer_home_review.event_acceptances
+    WHERE registration_id='${regC}';`);
+  assert.equal(pg(`SELECT count(*) FROM observer_home_review.event_bindings b
+    JOIN public.observer_correlated_event_links l ON l.source_id=b.event_id
+    JOIN public.observer_correlated_events i ON i.id=l.correlated_event_id
+    WHERE b.event_id='${cAcceptedId}' AND b.incident_id=i.id;`), "1");
+  denied(accept(regC, observation("99999999-aaaa-4999-8999-aaaaaaaaaaaa",otherSite,cameraC),0,gatewayC),
+    /HOME_REGISTRATION_SCOPE_OR_TRANSFER_UNVERIFIED/); checks += 3;
   console.log(`PASS: ${checks} isolated qualification-to-canonical-acceptance assertions; no direct version seed or live authority.`);
 } finally {
   if (container) {
