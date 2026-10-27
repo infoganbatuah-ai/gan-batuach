@@ -1,0 +1,91 @@
+{
+  "status": "SOURCE_PROPOSAL_ONLY_CATALOG_UNVERIFIED",
+  "scope": "Four composite referenced keys required by guarded claim-only schema; no SQL executed",
+  "branchBaseline": "3ad76bf2486fab228796191b64761017e1803e49",
+  "trackedMigrationsInspected": 257,
+  "references": {
+    "claimOnly": {
+      "path": "review-only/event-risk-authority-source/CLAIM-ONLY-SCHEMA-NOT-APPLIED.sql",
+      "sha256": "741d5be1954ed7c58d6f54a77b5211916c97fe0396ddfd762465bdb1d788b955"
+    },
+    "draft": {
+      "ref": "341ff2bfb6ae0a297cbecce47a8cacac57c51a37",
+      "path": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "sha256": "6a007b402564b819f6459b65dcd22a73bea29a3e70f8548e9f111a9f5eb5183b"
+    }
+  },
+  "keys": [
+    {
+      "id": "site_tenant",
+      "claimConstraint": "observer_event_risk_claim_site_tenant_fk",
+      "referencedTable": "public.observer_sites",
+      "referencedColumns": ["id", "digital_observer_organization_id"],
+      "columnEvidence": [
+        {"path": "supabase/migrations/20260603003000_digital_observer_multisite_foundation.sql", "sha256": "aa2683f45e7e5e645a3a1d26d525edf0094760bbb6ae95b90c00fb9b19dab346", "line": 2, "contract": "id uuid primary key"},
+        {"path": "supabase/migrations/20260820010000_digital_observer_product_runtime.sql", "sha256": "8e83a323ee503200b7e1d992a09d013a7f855d27657141f7085bc67847b6f3f3", "line": 171, "contract": "digital_observer_organization_id uuid references; nullable"}
+      ],
+      "proposedIndex": "observer_sites_id_org_draft_uidx",
+      "draftLine": 21,
+      "partial": false,
+      "trackedMigrationMatch": false,
+      "catalogInstalled": "UNVERIFIED",
+      "historicalRows": "UNVERIFIED",
+      "gates": ["exact unique key catalog check", "Home/business Tenant provenance", "nullable organization historical rows", "index build lock/cost review"]
+    },
+    {
+      "id": "signal_site",
+      "claimConstraint": "observer_event_risk_claim_signal_site_fk",
+      "referencedTable": "public.observer_intelligence_signals",
+      "referencedColumns": ["id", "observer_site_id"],
+      "columnEvidence": [
+        {"path": "supabase/migrations/20260611003000_digital_observer_intelligence_network.sql", "sha256": "f880fcf49682bfeef9a3abdaf1e48c7800f08aa55130ffa93670ad4105221a1f", "line": 5, "contract": "id uuid primary key"},
+        {"path": "supabase/migrations/20260611003000_digital_observer_intelligence_network.sql", "sha256": "f880fcf49682bfeef9a3abdaf1e48c7800f08aa55130ffa93670ad4105221a1f", "line": 10, "contract": "observer_site_id uuid references; nullable"}
+      ],
+      "proposedIndex": "observer_signal_id_site_draft_uidx",
+      "draftLine": 168,
+      "partial": false,
+      "trackedMigrationMatch": false,
+      "catalogInstalled": "UNVERIFIED",
+      "historicalRows": "UNVERIFIED",
+      "gates": ["exact unique key catalog check", "nullable historical Site identity", "index build lock/cost review"]
+    },
+    {
+      "id": "incident_site",
+      "claimConstraint": "observer_event_risk_claim_incident_site_fk",
+      "referencedTable": "public.observer_correlated_events",
+      "referencedColumns": ["id", "observer_site_id"],
+      "columnEvidence": [
+        {"path": "supabase/migrations/20260606003000_multi_camera_correlation_engine.sql", "sha256": "155487db9cd3eedf40df5b5c54600ddf69a6b93a16f49e3c8a785446af458314", "line": 2, "contract": "id uuid primary key"},
+        {"path": "supabase/migrations/20260606003000_multi_camera_correlation_engine.sql", "sha256": "155487db9cd3eedf40df5b5c54600ddf69a6b93a16f49e3c8a785446af458314", "line": 3, "contract": "observer_site_id uuid references; nullable"}
+      ],
+      "proposedIndex": "observer_incident_id_site_draft_uidx",
+      "draftLine": 170,
+      "partial": false,
+      "trackedMigrationMatch": false,
+      "catalogInstalled": "UNVERIFIED",
+      "historicalRows": "UNVERIFIED",
+      "gates": ["exact unique key catalog check", "nullable historical Site identity", "index build lock/cost review"]
+    },
+    {
+      "id": "risk_result_scope",
+      "claimConstraint": "observer_event_risk_claim_result_scope_fk",
+      "referencedTable": "public.digital_observer_risk_evaluations",
+      "referencedColumns": ["id", "observer_site_id", "triggering_event_id", "risk_engine_version"],
+      "columnEvidence": [
+        {"path": "supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql", "sha256": "62c859e9ae376ed365908642aff936c3fb531215dc31fab59a8f3e6451450bb6", "line": 29, "contract": "id uuid primary key"},
+        {"path": "supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql", "sha256": "62c859e9ae376ed365908642aff936c3fb531215dc31fab59a8f3e6451450bb6", "line": 30, "contract": "observer_site_id uuid not null"},
+        {"path": "supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql", "sha256": "62c859e9ae376ed365908642aff936c3fb531215dc31fab59a8f3e6451450bb6", "line": 32, "contract": "triggering_event_id uuid not null"},
+        {"path": "supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql", "sha256": "62c859e9ae376ed365908642aff936c3fb531215dc31fab59a8f3e6451450bb6", "line": 44, "contract": "risk_engine_version text not null"}
+      ],
+      "proposedIndex": "observer_risk_result_scope_draft_uidx",
+      "draftLine": 172,
+      "partial": false,
+      "trackedMigrationMatch": false,
+      "catalogInstalled": "UNVERIFIED",
+      "historicalRows": "UNVERIFIED",
+      "gates": ["exact unique key catalog check", "historical result scope consistency", "index build lock/cost review"]
+    }
+  ],
+  "activation": "BLOCKED_NO_MIGRATION_OR_SQL_EXECUTION",
+  "retention": "ENGINEERING_BASELINE_ONLY_NO_ROW_DELETION"
+}

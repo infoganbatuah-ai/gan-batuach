@@ -88,7 +88,7 @@
       "sha256": "741d5be1954ed7c58d6f54a77b5211916c97fe0396ddfd762465bdb1d788b955",
       "role": "guarded_claim_table_and_recovery_index_proposal_blocked_on_catalog",
       "owns": ["observer_event_risk_claims table", "observer_event_risk_claim_recovery_idx", "claim-table RLS and scoped revoke"],
-      "requires": ["claim_schema_sketch as pinned reference only", "canonical Tenant/Site historical compatibility", "referenced composite unique keys on Site, Signal, Incident and Risk result", "effective caller grants and Data API review"],
+      "requires": ["claim_schema_sketch as pinned reference only", "CLAIM-REFERENCED-UNIQUES-SOURCE-MATRIX-20261027.json: four matching keys are draft-only in inspected sources", "canonical Tenant/Site historical compatibility", "referenced composite unique keys on Site, Signal, Incident and Risk result", "effective caller grants and Data API review"],
       "locks": ["claim row PK for acquisition/CAS; DDL lock duration unmeasured"],
       "acl": "RLS enabled and PUBLIC/anon/authenticated table grants revoked in proposal only; service caller rights unresolved"
     },
@@ -162,5 +162,5 @@
   "futureIsolatedTestOrderOnly": ["home_source", "home_epoch_fence", "home_alignment", "registration_writer_fixture", "frozen_binding", "acceptance_source", "claim_schema_sketch:reference-only", "old_claim_rpc_sketch:reference-only", "claim_only_schema:BLOCKED-on-referenced-uniques-and-ACL", "claim_writer", "risk_persist", "effect_plan", "effect_receipt", "home_acl_fixture:synthetic-only"],
   "intentionalFunctionOverride": ["observer_home_review.bind_accepted_event_v1(uuid):home_source->frozen_binding"],
   "excludedWholeFiles": ["claim_schema_sketch", "old_claim_rpc_sketch", "home_acl_fixture"],
-  "openGates": ["claim-only extraction exists but referenced composite unique keys and historical row compatibility remain unverified; older Plan/Receipt collision excluded", "live Home ownership/session/Gateway provenance and historical Tenant/Site ambiguity", "authoritative recipient/settings/evidence producer and serialization", "privileged function-only ACL, RLS and Data API", "PostgreSQL compilation/concurrency/rollback tests not run", "retention/cost and live migration authority"]
+  "openGates": ["claim-only extraction exists; four exact referenced composite unique keys found in guarded draft only, not in 257 inspected tracked migrations; catalog and historical rows UNVERIFIED; older Plan/Receipt collision excluded", "live Home ownership/session/Gateway provenance and historical Tenant/Site ambiguity", "authoritative recipient/settings/evidence producer and serialization", "privileged function-only ACL, RLS and Data API", "PostgreSQL compilation/concurrency/rollback tests not run", "retention/cost and live migration authority"]
 }
