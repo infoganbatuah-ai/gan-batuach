@@ -4,7 +4,7 @@ Status: **NOT APPLIED; NOT READY TO APPLY**. This package changes no database, r
 
 ## Installed versus proposed
 
-The coordinator's bounded, catalog-only `BEGIN READ ONLY` receipt is `Digital-Observer-Installed-Catalog-ReadOnly-20261027.md` in the spec-3 output directory. It identifies original local Development/Integration PostgreSQL 17.6, container `supabase_db_gan-batuach-integration` in `colima-gbi`, and reports all four exact, valid, nonpartial composite keys **absent**, as well as the claim table and its four composite FKs **absent**. This is installed-catalog evidence, not historical-row, migration-ledger, effective-ACL, or RLS-behavior proof. The older source matrix deliberately retains its earlier `UNVERIFIED` snapshot; it is not an installed-state report.
+The coordinator's bounded, catalog-only `BEGIN READ ONLY` receipt is `Digital-Observer-Installed-Catalog-ReadOnly-20261027.md` in the spec-3 output directory. It identifies original local Development/Integration PostgreSQL 17.6, container `supabase_db_gan-batuach-integration` in `colima-gbi`, and reports all four exact, valid, nonpartial composite keys **absent**, as well as the claim table and its four composite FKs **absent**. This is installed-catalog evidence, not historical-row, effective-ACL, or RLS-behavior proof. A separate metadata-only read found `development_metadata.migrations`; its 30 receipts have now been reconciled to source in `CLAIM-DEVELOPMENT-MIGRATION-SOURCE-RECONCILIATION-20261027.md`. The older source matrix deliberately retains its earlier `UNVERIFIED` snapshot; it is not an installed-state report.
 
 The four proposed unique indexes are, in dependency order before the claim table:
 
@@ -36,7 +36,7 @@ Before claim activation, a failed candidate build must be diagnosed; remove **on
 | Missing fact | Evidence inspected | Consequence / future verification |
 |---|---|---|
 | Historical nullable scope and Tenant provenance | Source matrix and catalog-only receipt; no user-row query | Cannot assert old Home/Site records are Model A compatible. Obtain separately authorized bounded aggregate checks plus authority evidence. |
-| Actual migration ledger and current deployed DDL details | Catalog receipt notes `supabase_migrations.schema_migrations` absent at queried path | Cannot assign an applied migration version. Resolve supported canonical history location, then recheck exact definitions. |
+| Fresh live schema fingerprint and exact deployed DDL details | `development_metadata.migrations` has 30 source-matched receipts; no fresh live fingerprint or full DDL comparison in this unit | Source/receipt consistency does not prove current RLS, FK, index or application behavior. Recompute and compare under a separately scoped verification. |
 | Lock, storage and financial headroom | No relation-size/workload or supplier-usage measurement in receipt | Cannot choose an installation window or claim cost compliance. Measure before any write. |
 | Effective ACL, RLS and Data API behavior | Only RLS flags/broad catalog ACL, no role-boundary probe | Cannot safely expose claim writers or activate adapter. Run authorized role-boundary qualification. |
 | Recovery under real claims | Claim table absent; only source-level contracts | Cannot assert lossless rollback or live exactly-once behavior. Rehearse in isolated PostgreSQL before activation. |
