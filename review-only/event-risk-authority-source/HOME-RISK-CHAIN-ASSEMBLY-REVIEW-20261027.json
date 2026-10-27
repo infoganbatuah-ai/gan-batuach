@@ -1,0 +1,155 @@
+{
+  "status": "REVIEW_ONLY_BLOCKED_NOT_EXECUTABLE",
+  "baseline": "781f92a350f0f8e828e73f1b78afcb8018e7f0c9",
+  "retention": "ENGINEERING_BASELINE_ONLY_NO_ROW_DELETION",
+  "notes": "This is a source inventory and future isolated-test order, not SQL, a migration or an apply plan. No current deployed-schema assertion.",
+  "sources": [
+    {
+      "id": "home_source",
+      "ref": "a1089050",
+      "path": "review-only/event-time-ownership-qualification/HOME-REGISTRATION-SOURCE-NOT-APPLIED.sql",
+      "sha256": "b0e313f5d76e7faf6c2d104da3873205df6974a0a3faf9d2980a280aa89cc2e5",
+      "role": "guarded_schema_proposal",
+      "owns": ["observer_home_review schema", "registration_identities", "registration_versions", "event_acceptances", "event_bindings", "registration_audit", "bind_accepted_event_v1(uuid) base body"],
+      "requires": ["existing Model A organization/Site/Source/profile tables", "canonical Signal and Incident tables"],
+      "locks": ["binding helper: acceptance", "link", "Incident; outer acceptance caller must already hold registration identity"],
+      "acl": "private schema proposed; no live caller grants; actual Data API/role inheritance unverified"
+    },
+    {
+      "id": "home_epoch_fence",
+      "ref": "local",
+      "path": "review-only/event-risk-authority-source/CANONICAL-ACCEPTANCE-FENCE-NOT-APPLIED.sql",
+      "sha256": "ae92a12c7ee59b53b84edb1d98446e29484d4043e1e1c4c38e6f4e64e7ae8dd6",
+      "role": "guarded_review_extension_synthetic_authority",
+      "owns": ["registration_identities.owner_epoch", "registration_identities.revoked", "event_acceptances.owner_epoch", "registration_audit.owner_epoch", "qa_revoke_registration_v1(uuid,bigint,uuid)"],
+      "requires": ["home_source"],
+      "locks": ["registration identity FOR UPDATE first"],
+      "acl": "fixture-only authority/session; no live grant"
+    },
+    {
+      "id": "home_alignment",
+      "ref": "local",
+      "path": "review-only/event-risk-authority-source/CHAIN-ALIGNMENT-NOT-APPLIED.sql",
+      "sha256": "a2753cf331a8ccb53176797dc320af062adf14b86543e50d41bdcbc704e95e03",
+      "role": "guarded_disposable_fixture_alignment",
+      "owns": ["registration_versions.request_ref/fingerprint", "registration_audit.request_ref/authority_ref/fingerprint", "qa_current_scope_fixture"],
+      "requires": ["home_source", "home_epoch_fence"],
+      "locks": [],
+      "acl": "synthetic fixture, not a live authority grant"
+    },
+    {
+      "id": "registration_writer_fixture",
+      "ref": "local",
+      "path": "review-only/event-risk-authority-source/REGISTRATION-WRITER-ISOLATED-NOT-APPLIED.sql",
+      "sha256": "5de14e2bd4cfbee63416371becb948b7f96c3d605115befaaa86d0e5a4a12a2e",
+      "role": "synthetic_source_transformed_by_adapt_home_qualification_chain",
+      "owns": ["review_registration_writer fixture schema and qualify_registration_v1 body"],
+      "requires": ["home_source", "home_epoch_fence", "home_alignment", "exact-anchor adapter"],
+      "locks": ["adapted qualification: registration identity FOR UPDATE first"],
+      "acl": "not a live role model"
+    },
+    {
+      "id": "acceptance_source",
+      "ref": "a6bd2ba5",
+      "path": "review-only/event-time-acceptance-writer/ACCEPT-LIVE-HOME-SIGNAL-NOT-APPLIED.sql",
+      "sha256": "0aa722353c4dee721f45ae23afaac0f9d5d186a20d487cf9f025526170c8f293",
+      "role": "guarded_source_transformed_by_epoch_and_frozen_binding_adapters",
+      "owns": ["accept_live_home_signal_v1(uuid,jsonb) source body only"],
+      "requires": ["registration_writer_fixture", "canonical Incident correlation trigger", "frozen_binding", "exact-anchor adapters"],
+      "locks": ["registration identity FOR UPDATE", "Signal/Incident association", "acceptance and binding"],
+      "acl": "SECURITY INVOKER source; real service caller and underlying grants blocked"
+    },
+    {
+      "id": "frozen_binding",
+      "ref": "local",
+      "path": "review-only/event-risk-authority-source/FROZEN-INCIDENT-BINDING-NOT-APPLIED.sql",
+      "sha256": "794ba2082b881d005c9c50d5cfca897192b74fa624f1a51024bf2c8228554385",
+      "role": "guarded_single_incident_column_owner_and_explicit_bind_override",
+      "owns": ["event_bindings.incident_id sole DDL", "event_binding_incident_required NOT VALID", "bind_accepted_event_v1(uuid) replacement body"],
+      "requires": ["home_source", "canonical Incident correlation and unique Signal link"],
+      "locks": ["acceptance FOR UPDATE", "link FOR SHARE", "Incident FOR SHARE; caller identity first"],
+      "acl": "SECURITY INVOKER, explicit revoke; live grants blocked"
+    },
+    {
+      "id": "claim_schema_sketch",
+      "ref": "341ff2bfb6ae0a297cbecce47a8cacac57c51a37",
+      "path": "review-only/event-risk-processing-ownership/DRAFT-NOT-APPLIED.sql",
+      "sha256": "6a007b402564b819f6459b65dcd22a73bea29a3e70f8548e9f111a9f5eb5183b",
+      "role": "non_composable_schema_reference_only",
+      "owns": ["candidate observer_event_risk_claims table and recovery index", "also obsolete draft effect_plans/effect_receipts tables"],
+      "requires": ["historical Tenant/Site reconciliation", "one reviewed extraction of claim-only schema"],
+      "locks": [],
+      "acl": "draft revoke only; no live permission decision"
+    },
+    {
+      "id": "claim_writer",
+      "ref": "local",
+      "path": "review-only/event-risk-atomic-claim-qualification/RPC-BODIES-SOURCE-NOT-APPLIED.sql",
+      "sha256": "cea5c4c0994310802d5a9824633df83f7018343176f2df22014161fc4bbeb4db",
+      "role": "guarded_claim_renew_recover_bodies_no_duplicate_incident_ddl",
+      "owns": ["claim_event_risk_v1(uuid,text,uuid,integer)", "renew_event_risk_lease_v1(uuid,text,uuid,bigint,integer)", "recover_expired_event_risk_v1"],
+      "requires": ["acceptance_source", "frozen_binding", "claim_schema_sketch claim-only extraction", "immutable audit event schema"],
+      "locks": ["registration identity FOR SHARE", "Signal", "Site", "organization", "link", "Incident", "claim"],
+      "acl": "SECURITY INVOKER service_role proposal; direct-write and effective grants unqualified"
+    },
+    {
+      "id": "old_claim_rpc_sketch",
+      "ref": "341ff2bfb6ae0a297cbecce47a8cacac57c51a37",
+      "path": "review-only/event-risk-processing-ownership/RPC-BODIES-NOT-APPLIED.sql",
+      "sha256": "39fe43792c181571a3ff729485924c9d2e1c368a45dbcc63a525390b0841dcdf",
+      "role": "non_composable_older_RPC_reference_only",
+      "owns": ["older claim/renew/recover signatures that collide with claim_writer"],
+      "requires": ["claim_schema_sketch"],
+      "locks": [],
+      "acl": "not a live caller permission decision"
+    },
+    {
+      "id": "risk_persist",
+      "ref": "364672482f0f314fb672fbc0cd9549be9737fb74",
+      "path": "review-only/event-risk-persist-transaction/RPC-BODY-NOT-APPLIED.sql",
+      "sha256": "903f67acaf36f583bb75ee05622fba12cb032d0960a50797a49a046d4620bf73",
+      "role": "guarded_source_transformed_by_Home_risk_fence_adapter",
+      "owns": ["observer_event_risk_persistence_receipts", "persist_event_risk_v1(uuid,text,uuid,bigint,jsonb)"],
+      "requires": ["claim_writer", "existing Risk evaluation table/unique event-engine index", "mandatory immutable audit"],
+      "locks": ["registration identity FOR SHARE", "Signal", "Site", "organization", "link", "Incident", "claim", "Risk"],
+      "acl": "SECURITY INVOKER; real function-only write boundary blocked"
+    },
+    {
+      "id": "effect_plan",
+      "ref": "784731da46aad974acfaa813e9efe948aab65204",
+      "path": "review-only/event-risk-effect-plan-transaction/RPC-BODY-NOT-APPLIED.sql",
+      "sha256": "b15ed3e668716ecfdba9affb43fe9c1779d0813dace29ab9feec385c80b013c4",
+      "role": "guarded_source_transformed_by_Home_effect_plan_fence_adapter",
+      "owns": ["observer_event_risk_plan_authority", "observer_event_risk_effect_plans revised table", "start_event_risk_effects_v1(uuid,text,uuid,bigint,jsonb)"],
+      "requires": ["risk_persist", "independent decision-time recipient/settings/evidence producer", "canonical snapshot serialization"],
+      "locks": ["registration identity FOR SHARE", "Signal", "Site", "organization", "link", "Incident", "claim", "Risk", "plan"],
+      "acl": "SECURITY INVOKER; service_role direct table write bypass demonstrated in source fixture"
+    },
+    {
+      "id": "effect_receipt",
+      "ref": "e14464047b9aab5bb359d7012b50e14de7a0ad36",
+      "path": "review-only/event-risk-effect-receipt-transaction/RPC-BODY-NOT-APPLIED.sql",
+      "sha256": "a3ad63006db5d31b000f741b72d86d5a89a2690ae64832283e451c8561f2ee06",
+      "role": "guarded_source_transformed_by_Home_effect_receipt_fence_adapter",
+      "owns": ["observer_event_risk_effect_receipts revised table", "record_event_risk_effect_v1(uuid,text,uuid,bigint,text,text,text)"],
+      "requires": ["effect_plan", "canonical immutable Incident link", "mandatory immutable audit"],
+      "locks": ["registration identity FOR SHARE", "Signal", "Site", "organization", "link", "Incident", "claim", "Risk", "plan", "receipt"],
+      "acl": "SECURITY INVOKER direct audit+receipt table write bypass demonstrated; live grant blocked"
+    },
+    {
+      "id": "home_acl_fixture",
+      "ref": "local",
+      "path": "review-only/event-risk-authority-source/HOME-CHAIN-ACL-NOT-APPLIED.sql",
+      "sha256": "4e9052ba5bd53315bc9592c1f377366e282513a03eb8f1375f9323c6cc2cabce",
+      "role": "synthetic_only_noncomposable_acl_fixture",
+      "owns": ["qa_home_* roles", "fixture RLS policies", "fixture SECURITY DEFINER ownership switches"],
+      "requires": ["home_source", "registration_writer_fixture", "acceptance_source", "frozen_binding"],
+      "locks": [],
+      "acl": "NOT a production/development privilege proposal; exact real caller/owner/role inheritance decision absent"
+    }
+  ],
+  "futureIsolatedTestOrderOnly": ["home_source", "home_epoch_fence", "home_alignment", "registration_writer_fixture", "frozen_binding", "acceptance_source", "claim_schema_sketch:claim-only-extraction-BLOCKED", "old_claim_rpc_sketch:reference-only", "claim_writer", "risk_persist", "effect_plan", "effect_receipt", "home_acl_fixture:synthetic-only"],
+  "intentionalFunctionOverride": ["observer_home_review.bind_accepted_event_v1(uuid):home_source->frozen_binding"],
+  "excludedWholeFiles": ["claim_schema_sketch", "old_claim_rpc_sketch", "home_acl_fixture"],
+  "openGates": ["canonical claim-only schema extraction and revised plan/receipt collision resolution", "live Home ownership/session/Gateway provenance and historical Tenant/Site ambiguity", "authoritative recipient/settings/evidence producer and serialization", "privileged function-only ACL, RLS and Data API", "PostgreSQL compilation/concurrency/rollback tests not run", "retention/cost and live migration authority"]
+}
