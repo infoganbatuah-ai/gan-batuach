@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { adaptHomeQualification } from "./adapt-home-qualification-chain.mjs";
 import { adaptCanonicalHomeAcceptance } from "./adapt-canonical-home-acceptance-fence.mjs";
 import { adaptFrozenIncidentAcceptance } from "./adapt-frozen-incident-acceptance.mjs";
+import { adaptHomeRiskPersistFence } from "./adapt-home-risk-persist-fence.mjs";
 
 const dir = fileURLToPath(new URL(".", import.meta.url));
 const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
@@ -44,6 +45,16 @@ const cameraC = "77777777-aaaa-4777-8777-777777777777";
 const regC = "99999999-aaaa-4999-8999-999999999999";
 const authorityC = "eeeeeeee-aaaa-4eee-8eee-eeeeeeeeeeee";
 const requestC = "11111111-aaaa-4333-8444-555555555555";
+const cameraD = "77777777-bbbb-4777-8777-777777777777";
+const regD = "99999999-bbbb-4999-8999-999999999999";
+const gatewayD = "cccccccc-eeee-4ccc-8ccc-cccccccccccc";
+const authorityD = "eeeeeeee-bbbb-4eee-8eee-eeeeeeeeeeee";
+const requestD = "11111111-bbbb-4333-8444-555555555555";
+const cameraE = "77777777-cccc-4777-8777-777777777777";
+const regE = "99999999-cccc-4999-8999-999999999999";
+const gatewayE = "cccccccc-ffff-4ccc-8ccc-cccccccccccc";
+const authorityE = "eeeeeeee-cccc-4eee-8eee-eeeeeeeeeeee";
+const requestE = "11111111-cccc-4333-8444-555555555555";
 let container, checks = 0;
 function docker(args, input) {
   const r = spawnSync("docker", args, { input, encoding: "utf8", timeout: 30000, maxBuffer: 5000000 });
@@ -85,12 +96,45 @@ function accept(r, value, epoch = 0, session = r === reg ? gateway : gatewayB) {
   return `SELECT observer_home_review.accept_live_home_signal_v1(
     '${r}','${json}'::jsonb,${epoch},'${session}');`;
 }
+const riskPayload = {
+  risk_score: 42, peak_risk_score: 42, risk_band: "GUARDED",
+  evaluation_confidence: 0.8, contributing_factors: [], mitigating_factors: [],
+  matched_rules: [], baseline_context: {}, explanation: {},
+  recommended_decision: "LOG_ONLY", action_intents: ["LOG_ONLY"],
+  risk_engine_version: "do-risk-v1", factor_version: "factor-v1",
+  decision_version: "decision-v1", input_fingerprint: "a".repeat(64),
+  evaluated_at: "2026-10-26T00:00:00Z", expected_incident_generation: 0,
+  expected_previous_evaluation_id: null,
+};
+const riskNonce = "12121212-3434-4567-8abc-121212121212";
+function persist(id, nonce = riskNonce, result = riskPayload) {
+  return `SELECT public.persist_event_risk_v1('${id}','do-risk-v1','${nonce}',1,
+    '${JSON.stringify(result).replaceAll("'", "''")}'::jsonb);`;
+}
 function revoke(r, epoch = 0) {
   return `SELECT observer_home_review.qa_revoke_registration_v1('${r}',${epoch},'${ownerSession}');`;
 }
+function seedQualifiedReviewRegistration(r, c, g, auth, req) {
+  pg(`INSERT INTO public.digital_observer_camera_sources
+      (id,observer_site_id,status,source_mode) VALUES
+      ('${c}','${otherSite}','connected','live');
+    INSERT INTO observer_home_review.registration_identities
+      (registration_id,tenant_id,site_id,source_id,owner_profile_id,owner_epoch,revoked)
+      VALUES ('${r}','${otherTenant}','${otherSite}','${c}','${owner}',0,false);
+    INSERT INTO observer_home_review.qa_current_scope_fixture VALUES
+      ('${r}','${otherTenant}','${otherSite}','${c}','${owner}',true);
+    INSERT INTO observer_home_review.qa_owner_authority_fixture
+      (registration_id,tenant_id,site_id,source_id,owner_profile_id,verified,active,
+       expires_at,authority_ref,authorized_actor_id,fingerprint)
+      VALUES ('${r}','${otherTenant}','${otherSite}','${c}','${owner}',true,true,
+        now()+interval '1 hour','${auth}','${owner}','${fingerprint}');
+    INSERT INTO observer_home_review.qa_gateway_session_fixture VALUES
+      ('${g}','${c}',true,now()+interval '1 hour');`);
+  assert.equal(pg(qualify(r, req, auth)), "1"); checks++;
+}
 function count(table) { return Number(pg(`SELECT count(*) FROM ${table};`)); }
-function asyncPg(statement) {
-  const child = spawn("docker", psqlArgs(), { stdio: ["pipe", "pipe", "pipe"] });
+function asyncPg(statement, user = "postgres") {
+  const child = spawn("docker", psqlArgs(user), { stdio: ["pipe", "pipe", "pipe"] });
   let output = "", error = "";
   child.stdout.setEncoding("utf8"); child.stderr.setEncoding("utf8");
   child.stdout.on("data", x => { output += x; });
@@ -241,6 +285,13 @@ try {
   // complete acceptance writer and source-defined correlation trigger.
   const riskFixture = readFileSync(`${dir}../event-risk-atomic-claim-qualification/isolated-schema.sql`, "utf8");
   const riskSource = readFileSync(`${dir}../event-risk-atomic-claim-qualification/RPC-BODIES-SOURCE-NOT-APPLIED.sql`, "utf8");
+  const persistSource = gitText("364672482f0f314fb672fbc0cd9549be9737fb74",
+    "review-only/event-risk-persist-transaction/RPC-BODY-NOT-APPLIED.sql");
+  const persistFence = adaptHomeRiskPersistFence(persistSource);
+  denied(persistFence.sql, /DRAFT_NOT_APPLIED/);
+  const riskMigration = readFileSync(`${dir}../../supabase/migrations/20260906010000_digital_observer_risk_decision_engine.sql`, "utf8");
+  const riskTable = riskMigration.match(/create table if not exists public\.digital_observer_risk_evaluations \([\s\S]*?\n\);/i)?.[0];
+  assert.ok(riskTable);
   assert.match(riskFixture, /ISOLATED_FIXTURE_ONLY/);
   assert.match(riskSource, /DRAFT_NOT_APPLIED/);
   const riskTablesStart = riskFixture.indexOf("CREATE TABLE public.observer_event_risk_claims (");
@@ -250,17 +301,34 @@ try {
   const riskClaimEnd = riskSource.indexOf("$claim$;", riskClaimStart) + "$claim$;".length;
   assert.ok(riskClaimStart > 0 && riskClaimEnd > riskClaimStart);
   pg(`ALTER TABLE public.digital_observer_organizations ADD COLUMN organization_type text NOT NULL DEFAULT 'family';
-    ALTER TABLE public.observer_correlated_events ADD COLUMN provenance text NOT NULL DEFAULT 'REAL_CAMERA_AI';
+    ALTER TABLE public.observer_correlated_events
+      ADD COLUMN provenance text NOT NULL DEFAULT 'REAL_CAMERA_AI',
+      ADD COLUMN risk_projection_generation bigint NOT NULL DEFAULT 0,
+      ADD COLUMN latest_risk_evaluation_id uuid;
     ${riskFixture.slice(riskTablesStart, riskTablesEnd)}
+    DROP TABLE public.immutable_audit_events;
+    CREATE TABLE public.immutable_audit_events (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(), event_type text NOT NULL,
+      event_category text NOT NULL, actor_role text NOT NULL,
+      target_type text NOT NULL, target_id uuid NOT NULL, incident_id uuid NOT NULL,
+      metadata jsonb NOT NULL, risk_level text NOT NULL);
+    ${riskTable}
+    CREATE UNIQUE INDEX digital_observer_risk_event_version_uidx
+      ON public.digital_observer_risk_evaluations
+      (incident_id,triggering_event_id,risk_engine_version);
     ${riskSource.slice(riskClaimStart, riskClaimEnd)}
+    ${persistFence.sql.slice(persistFence.sql.indexOf("CREATE TABLE public.observer_event_risk_persistence_receipts ("))}
     GRANT USAGE ON SCHEMA observer_home_review TO service_role;
     GRANT SELECT ON ALL TABLES IN SCHEMA observer_home_review TO service_role;
     GRANT UPDATE(owner_epoch) ON observer_home_review.registration_identities TO service_role;
     GRANT SELECT,UPDATE ON ALL TABLES IN SCHEMA public TO service_role;
     GRANT INSERT,UPDATE ON public.observer_event_risk_claims TO service_role;
     GRANT INSERT ON public.immutable_audit_events TO service_role;
+    GRANT INSERT ON public.digital_observer_risk_evaluations TO service_role;
+    GRANT INSERT ON public.observer_event_risk_persistence_receipts TO service_role;
     GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO service_role;
-    GRANT EXECUTE ON FUNCTION public.claim_event_risk_v1(uuid,text,uuid,integer) TO service_role;`);
+    GRANT EXECUTE ON FUNCTION public.claim_event_risk_v1(uuid,text,uuid,integer) TO service_role;
+    GRANT EXECUTE ON FUNCTION public.persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) TO service_role;`);
   const riskResult = JSON.parse(pg(`SELECT public.claim_event_risk_v1(
     '${acceptedId}','do-risk-v1','12121212-3434-4567-8abc-121212121212',30);`, "service_role"));
   assert.equal(riskResult.kind, "OWNED");
@@ -384,6 +452,90 @@ try {
     WHERE b.event_id='${cAcceptedId}' AND b.incident_id=i.id;`), "1");
   denied(accept(regC, observation("99999999-aaaa-4999-8999-aaaaaaaaaaaa",otherSite,cameraC),0,gatewayC),
     /HOME_REGISTRATION_SCOPE_OR_TRANSFER_UNVERIFIED/); checks += 3;
+  // A claim acquired while Home was active cannot authorize Risk persistence
+  // after revocation; no evaluation, persistence receipt or audit is created.
+  denied(persist(acceptedId), /RISK_HOME_AUTHORITY_REVOKED_OR_CHANGED/, "service_role");
+  assert.equal(pg(`SELECT count(*) FROM public.digital_observer_risk_evaluations
+    WHERE triggering_event_id='${acceptedId}';`), "0"); checks++;
+
+  seedQualifiedReviewRegistration(regD,cameraD,gatewayD,authorityD,requestD);
+  const dEvent = observation("88888888-bbbb-4888-8999-aaaaaaaaaaaa",otherSite,cameraD,
+    { occurredAt: pg("SELECT clock_timestamp();") });
+  const dId = pg(accept(regD,dEvent,0,gatewayD));
+  const nonceD = "12121212-bbbb-4567-8abc-121212121212";
+  const payloadD = { ...riskPayload, input_fingerprint: "d".repeat(64) };
+  assert.equal(JSON.parse(pg(`SELECT public.claim_event_risk_v1(
+    '${dId}','do-risk-v1','${nonceD}',300);`,"service_role")).kind,"OWNED"); checks++;
+  for (const [table, trigger, mutation, expected] of [
+    ["observer_home_review.event_bindings", "event_bindings_no_mutation",
+      `DELETE FROM observer_home_review.event_bindings WHERE event_id='${dId}';`,
+      /RISK_HOME_BINDING_CONFLICT/],
+    ["observer_home_review.event_bindings", "event_bindings_no_mutation",
+      `UPDATE observer_home_review.event_bindings SET incident_id='${changedIncident}' WHERE event_id='${dId}';`,
+      /RISK_CANONICAL_SCOPE_INVALID/],
+    ["public.observer_correlated_event_links", null,
+      `DELETE FROM public.observer_correlated_event_links
+        WHERE source_type='observer_intelligence_signal' AND source_id='${dId}';`,
+      /RISK_CANONICAL_SCOPE_INVALID/],
+    ["public.observer_correlated_events", null,
+      `UPDATE public.observer_correlated_events SET related_event_ids='{}'::uuid[]
+        WHERE id=(SELECT incident_id FROM observer_home_review.event_bindings WHERE event_id='${dId}');`,
+      /RISK_CANONICAL_SCOPE_INVALID/],
+    ["observer_home_review.registration_audit", "registration_audit_no_mutation",
+      `DELETE FROM observer_home_review.registration_audit WHERE action='BOUND' AND event_id='${dId}';`,
+      /RISK_HOME_BINDING_AUDIT_INVALID/],
+    ["observer_home_review.registration_audit", "registration_audit_no_mutation",
+      `DELETE FROM observer_home_review.registration_audit WHERE action='ACCEPTED' AND event_id='${dId}';`,
+      /RISK_HOME_ACCEPTANCE_AUDIT_INVALID/],
+  ]) {
+    denied(`BEGIN; ${trigger ? `ALTER TABLE ${table} DISABLE TRIGGER ${trigger};` : ""} ${mutation}
+      SET ROLE service_role; ${persist(dId,nonceD,payloadD)} ROLLBACK;`,expected);
+    assert.equal(pg(`SELECT count(*) FROM public.digital_observer_risk_evaluations
+      WHERE triggering_event_id='${dId}';`),"0");
+    assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_persistence_receipts
+      WHERE signal_id='${dId}';`),"0");
+    assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+      WHERE event_type='observer_event_risk_persisted_v1' AND target_id='${dId}';`),"0"); checks++;
+  }
+  // Persist takes the registration SHARE lock first; revocation's UPDATE
+  // waits, then advances the epoch. The committed result remains immutable.
+  const persistFirst = asyncPg(`BEGIN; ${persist(dId,nonceD,payloadD)}
+    SELECT 'PERSIST_READY'; SELECT pg_sleep(2); COMMIT;`,"service_role");
+  await waitMarker(persistFirst,"PERSIST_READY");
+  const revokeAfterPersist = asyncPg(revoke(regD));
+  const [persistedFirst, revokedAfter] = await Promise.all([persistFirst.done,revokeAfterPersist.done]);
+  assert.equal(persistedFirst.code,0,persistedFirst.error);
+  assert.equal(revokedAfter.code,0,revokedAfter.error);
+  assert.equal(pg(`SELECT count(*) FROM public.digital_observer_risk_evaluations
+    WHERE triggering_event_id='${dId}';`),"1");
+  assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_persistence_receipts
+    WHERE signal_id='${dId}';`),"1");
+  denied(persist(dId,nonceD,payloadD),/RISK_HOME_AUTHORITY_REVOKED_OR_CHANGED/,"service_role");
+  assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+    WHERE event_type='observer_event_risk_persisted_v1' AND target_id='${dId}';`),"1"); checks += 3;
+
+  seedQualifiedReviewRegistration(regE,cameraE,gatewayE,authorityE,requestE);
+  const eEvent = observation("88888888-cccc-4888-8999-aaaaaaaaaaaa",otherSite,cameraE,
+    { occurredAt: pg("SELECT clock_timestamp();") });
+  const eId = pg(accept(regE,eEvent,0,gatewayE));
+  const nonceE = "12121212-cccc-4567-8abc-121212121212";
+  const payloadE = { ...riskPayload, input_fingerprint: "e".repeat(64) };
+  assert.equal(JSON.parse(pg(`SELECT public.claim_event_risk_v1(
+    '${eId}','do-risk-v1','${nonceE}',300);`,"service_role")).kind,"OWNED"); checks++;
+  const revokeFirst = asyncPg(`BEGIN; ${revoke(regE)} SELECT 'REVOKE_READY';
+    SELECT pg_sleep(2); COMMIT;`);
+  await waitMarker(revokeFirst,"REVOKE_READY");
+  const waitingPersist = asyncPg(persist(eId,nonceE,payloadE),"service_role");
+  const [revokedFirstForRisk,persistDenied] = await Promise.all([revokeFirst.done,waitingPersist.done]);
+  assert.equal(revokedFirstForRisk.code,0,revokedFirstForRisk.error);
+  assert.notEqual(persistDenied.code,0);
+  assert.match(persistDenied.error,/RISK_HOME_AUTHORITY_REVOKED_OR_CHANGED/);
+  assert.equal(pg(`SELECT count(*) FROM public.digital_observer_risk_evaluations
+    WHERE triggering_event_id='${eId}';`),"0");
+  assert.equal(pg(`SELECT count(*) FROM public.observer_event_risk_persistence_receipts
+    WHERE signal_id='${eId}';`),"0");
+  assert.equal(pg(`SELECT count(*) FROM public.immutable_audit_events
+    WHERE event_type='observer_event_risk_persisted_v1' AND target_id='${eId}';`),"0"); checks += 3;
   console.log(`PASS: ${checks} isolated qualification-to-canonical-acceptance assertions; no direct version seed or live authority.`);
 } finally {
   if (container) {
