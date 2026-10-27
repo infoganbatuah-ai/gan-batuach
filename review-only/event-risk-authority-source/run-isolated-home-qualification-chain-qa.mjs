@@ -650,7 +650,7 @@ try {
     r:"99999999-eeee-4999-8999-999999999999",
     c:"77777777-eeee-4777-8777-777777777777",
     g:"cccccccc-2222-4ccc-8ccc-cccccccccccc",
-    auth:"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    auth:"eeeeeeee-1111-4eee-8eee-eeeeeeeeeeee",
     req:"11111111-eeee-4333-8444-555555555555",
     eventSource:"88888888-eeee-4888-8999-aaaaaaaaaaaa",
     nonce:"12121212-eeee-4567-8abc-121212121212",
