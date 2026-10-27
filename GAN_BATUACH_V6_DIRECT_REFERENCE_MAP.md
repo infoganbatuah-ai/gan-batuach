@@ -19,6 +19,8 @@ The source collages are 1536 × 1024. Panel extraction must preserve labels and 
 
 The older V5 file named `parent-assigned-desktop.webp` visibly shows a QA account with pending Garden affiliation and no verified attendance. Its filename is not proof of an assigned Parent state. V6 acceptance requires a fresh capture from a genuinely assigned, authorized QA child and a distinct multi-child QA account; neither state is verified by that older image.
 
+The prepared `scripts/qa/capture-v5-primary-screen-correction.mjs` fails closed if the assigned persona lacks an active Garden enrollment or the multi-child persona has fewer than two authorized children. It also probes Child-context switching and records screenshots as `CAPTURED_PENDING_VISUAL_REVIEW`, never as an automatic visual pass. This script has not been run while the shared-host isolation remains active.
+
 The five Desktop and five corresponding Mobile reference crops were extracted without altering pixels and kept in the local owner-evidence folder `gan-batuach-v6-reference-prep/v6-primary-reference-crops/` under this task's visualization workspace. They are source references only. They are intentionally outside the public Git repository; fresh actual captures must be stored and labeled separately.
 
 ## Remaining 16 direct comparisons
