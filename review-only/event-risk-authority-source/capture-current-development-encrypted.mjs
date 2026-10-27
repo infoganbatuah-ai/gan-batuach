@@ -7,7 +7,8 @@ import { execFileSync, spawn } from "node:child_process";
 import { createReadStream, lstatSync, mkdtempSync, readFileSync, statfsSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { acquireCaptureLock, createComponentReceipt, compareStorageObservations, removeOwnedNewFile,
-  MAX_ENCRYPTED_BYTES, MIN_INTERNAL_FREE_BYTES } from "./component-backup-contract.mjs";
+  MAX_ENCRYPTED_BYTES, MIN_INTERNAL_FREE_BYTES, STORAGE_METADATA_COPY_SQL,
+  STORAGE_METADATA_PGOPTIONS } from "./component-backup-contract.mjs";
 import { writeBoundedCiphertext } from "./bounded-ciphertext-writer.mjs";
 
 const dockerBin = "/opt/homebrew/bin/docker";
@@ -26,7 +27,7 @@ const expectedDatabases = ["_supabase", "gan_batuach_baseline_builder_v2", "post
 const writers = ["supabase_kong_gan-batuach-integration", "supabase_auth_gan-batuach-integration",
   "supabase_rest_gan-batuach-integration", "supabase_realtime_gan-batuach-integration",
   "supabase_storage_gan-batuach-integration", "supabase_inbucket_gan-batuach-integration"];
-const inventorySource = readFileSync(new URL("./storage-file-inventory.mjs", import.meta.url), "utf8");
+const inventorySource = readFileSync(new URL("./storage-file-inventory-noatime.py", import.meta.url), "utf8");
 const receipt = createComponentReceipt({ expectedDatabases });
 const controller = new AbortController();
 const deadlineAt = Date.now() + 180_000;
@@ -144,11 +145,10 @@ async function capture(name, sourceArgs, recipient) {
 }
 async function metadataDigest() {
   remainingMs();
-  const sql = "COPY (SELECT row_to_json(o) FROM storage.objects AS o ORDER BY o.id) TO STDOUT";
   const source = spawn(dockerBin, [...dockerBase, "exec", "-u", "postgres",
-    "-e", "PGOPTIONS=-c default_transaction_read_only=on -c statement_timeout=10000", db,
+    "-e", STORAGE_METADATA_PGOPTIONS, db,
     "psql", "-X", "-q", "-A", "-t", "-U", "postgres", "-d", "postgres",
-    "-v", "ON_ERROR_STOP=1", "-c", sql], { stdio: ["ignore", "pipe", "pipe"] });
+    "-v", "ON_ERROR_STOP=1", "-c", STORAGE_METADATA_COPY_SQL], { stdio: ["ignore", "pipe", "pipe"] });
   const warnings = stderrBytes(source);
   const done = completion(source, "STORAGE_METADATA_READ_FAILED");
   const onAbort = () => source.kill();
@@ -171,7 +171,7 @@ async function metadataDigest() {
 }
 function storageInventory() {
   const raw = docker(["exec", "-e", "DO_STORAGE_ROOT=/mnt", storage,
-    "node", "--input-type=module", "-e", inventorySource], 60_000);
+    "python3", "-c", inventorySource], 60_000);
   const result = JSON.parse(raw);
   assert.ok(Number.isSafeInteger(result.count) && result.count === result.files?.length,
     "STORAGE_INVENTORY_INVALID");

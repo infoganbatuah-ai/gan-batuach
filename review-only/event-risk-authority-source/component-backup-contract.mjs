@@ -3,6 +3,10 @@ import { closeSync, fstatSync, lstatSync, openSync, unlinkSync } from "node:fs";
 
 export const MAX_ENCRYPTED_BYTES = 1024 ** 3;
 export const MIN_INTERNAL_FREE_BYTES = 3 * 1024 ** 3;
+export const STORAGE_METADATA_COPY_SQL =
+  "COPY (SELECT row_to_json(o) FROM storage.objects AS o ORDER BY o.id) TO STDOUT";
+export const STORAGE_METADATA_PGOPTIONS =
+  "PGOPTIONS=-c default_transaction_read_only=on -c statement_timeout=10000";
 
 const sha256 = /^[a-f0-9]{64}$/;
 

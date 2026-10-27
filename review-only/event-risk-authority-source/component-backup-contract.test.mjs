@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { acquireCaptureLock, compareStorageObservations, createComponentReceipt, removeOwnedNewFile } from "./component-backup-contract.mjs";
@@ -12,14 +11,14 @@ const times = { startedAtUtc: "2026-10-28T00:00:00.000Z", endedAtUtc: "2026-10-2
 const sample = (kind, name, bytes = 1) => ({ kind, name, file: `${name ?? kind}.age`, bytes,
   ciphertextSha256: hash(`${kind}:${name}`), ...times });
 function fixture(t) {
-  const root = mkdtempSync(join(tmpdir(), "do-storage-inventory-test."));
-  t.after(() => { assert.ok(root.startsWith(join(tmpdir(), "do-storage-inventory-test.")));
+  const root = mkdtempSync("/private/tmp/do-storage-inventory-test.");
+  t.after(() => { assert.ok(root.startsWith("/private/tmp/do-storage-inventory-test."));
     rmSync(root, { recursive: true }); });
   return root;
 }
 function inventory(root) {
-  const result = spawnSync(process.execPath, [join(import.meta.dirname, "storage-file-inventory.mjs")],
-    { env: { ...process.env, DO_STORAGE_ROOT: root }, encoding: "utf8" });
+  const result = spawnSync("python3", [join(import.meta.dirname, "storage-file-inventory-noatime.py")],
+    { env: { ...process.env, DO_STORAGE_ROOT: root, DO_OFFLINE_FIXTURE_ONLY: "1" }, encoding: "utf8" });
   return result;
 }
 
@@ -142,4 +141,15 @@ test("capture CLI without explicit component-only flag is blocked before source 
   assert.equal(output.status, "BLOCKED");
   assert.equal(output.reason, "EXPLICIT_COMPONENT_ONLY_MODE_REQUIRED");
   assert.equal(output.backupDirectory, null);
+});
+
+test("source qualification CLI without read-only flag is blocked before Docker access", () => {
+  const result = spawnSync(process.execPath,
+    [join(import.meta.dirname, "gbi-component-readonly-qualification.mjs")],
+    { encoding: "utf8", timeout: 5_000 });
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.status, "BLOCKED");
+  assert.equal(output.reason, "READ_ONLY_FLAG_REQUIRED");
+  assert.equal(output.actualCapture, false);
 });
