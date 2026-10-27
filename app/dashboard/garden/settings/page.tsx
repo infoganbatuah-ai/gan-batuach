@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Bell, Building2, Camera, CreditCard, KeyRound, PlugZap, ShieldCheck, UsersRound } from "lucide-react";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
+import { SettingsPrimaryProfileForm } from "@/components/settings-primary-profile-form";
 import {
   AccountVerificationSummary,
   SettingsLinkList,
@@ -73,16 +74,11 @@ export default async function SettingsPage() {
     <SettingsPlatformLayout navigation={<SettingsPlatformNavigation role={role} activeHref="/dashboard/garden/settings" />}>
       <div className="ux18-reference-column ux18-reference-profile-column">
         <SettingsSection id="profile" title="פרופיל אישי" description="פרטי החשבון שלך" icon={ShieldCheck}>
-          <div className="ux18-reference-identity">
-            <img src={profile.profile_image_url ?? "/assets/teacher-avatar.svg"} alt={`תמונת הפרופיל של ${profile.full_name ?? "מנהלת הגן"}`} />
-            <dl>
-              <div><dt>שם מלא</dt><dd>{profile.full_name ?? "לא הוגדר"}</dd></div>
-              <div><dt>תפקיד</dt><dd>{role === "owner" ? "בעלת גן" : "מנהלת גן"}</dd></div>
-              <div><dt>דוא״ל</dt><dd dir="ltr">{profile.email ?? user.email ?? "לא הוגדר"}</dd></div>
-              <div><dt>טלפון</dt><dd dir="ltr">{profile.phone ?? "לא הוגדר"}</dd></div>
-            </dl>
-          </div>
-          <AccountVerificationSummary email={profile.email ?? user.email} emailVerified={verification.emailVerified} phone={profile.phone} phoneVerified={verification.phoneVerified} />
+          <SettingsPrimaryProfileForm profile={profile} email={profile.email ?? user.email ?? ""} roleLabel={role === "owner" ? "בעלת גן" : "מנהלת גן"} />
+          <details className="ux18-primary-verification-details">
+            <summary>מצב אימות החשבון</summary>
+            <AccountVerificationSummary email={profile.email ?? user.email} emailVerified={verification.emailVerified} phone={profile.phone} phoneVerified={verification.phoneVerified} />
+          </details>
         </SettingsSection>
       </div>
 

@@ -1,11 +1,141 @@
 /* Route-scoped primary-screen geometry. The five reference panels, rather than
    secondary routes, determine the first viewport. Mobile compositions stay
-   independent and all hidden desktop content remains available below. */
+   independent; canonical actions retain their existing routes and handlers. */
+
+.ux18-primary-profile-form {
+  display: grid;
+  gap: 14px;
+}
+.ux18-primary-profile-fields {
+  display: grid;
+  grid-template-columns: minmax(86px, .72fr) minmax(0, 1.5fr);
+  align-items: start;
+  gap: 15px;
+  direction: ltr;
+}
+.ux18-primary-profile-photo {
+  width: min(100%, 112px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 4px solid #deedfc;
+  border-radius: 50%;
+  background: #eaf5ff;
+}
+.ux18-primary-profile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ux18-primary-profile-inputs {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  direction: rtl;
+}
+.ux18-primary-profile-inputs label,
+.ux18-primary-profile-photo-actions label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: #275898;
+  font-size: .72rem;
+  font-weight: 750;
+}
+.ux18-primary-profile-inputs input {
+  width: 100%;
+  min-width: 0;
+  min-height: 37px;
+  padding: 7px 10px;
+  border: 1px solid #d4e5f6;
+  border-radius: 7px;
+  color: #0b3777;
+  background: #fbfdff;
+  font: inherit;
+}
+.ux18-primary-profile-inputs input:read-only {
+  color: #547299;
+  background: #f4f8fd;
+}
+.ux18-primary-profile-photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 9px;
+}
+.ux18-primary-profile-photo-actions input[type="file"] {
+  width: min(100%, 228px);
+  color: #456a9c;
+  font-size: .68rem;
+}
+.ux18-primary-profile-photo-actions input[type="file"]::file-selector-button,
+.ux18-primary-profile-photo-actions > button {
+  min-height: 36px;
+  margin-inline-end: 7px;
+  padding: 6px 12px;
+  border: 1px solid #c9def4;
+  border-radius: 7px;
+  color: #0866ce;
+  background: #e8f3ff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.ux18-primary-profile-photo-actions small {
+  color: #50769d;
+  font-size: .65rem;
+}
+.ux18-primary-profile-save {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #076fe7;
+  font-weight: 850;
+  cursor: pointer;
+}
+.ux18-primary-profile-save:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+.ux18-primary-profile-inputs input:focus-visible,
+.ux18-primary-profile-photo-actions :focus-visible,
+.ux18-primary-profile-save:focus-visible,
+.ux18-primary-verification-details summary:focus-visible {
+  outline: 3px solid #78b8ff;
+  outline-offset: 2px;
+}
+.ux18-primary-profile-message {
+  margin: 0;
+  color: #0b6551;
+  font-size: .78rem;
+}
+.ux18-primary-profile-message.error { color: #af2634; }
+.ux18-primary-verification-details {
+  margin-top: 16px;
+  border-top: 1px solid #e0ecf8;
+  padding-top: 12px;
+}
+.ux18-primary-verification-details summary {
+  color: #0a63bd;
+  font-size: .75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .ux18-primary-profile-fields {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .ux18-primary-profile-inputs { width: 100%; }
+}
+
 @media (min-width: 1025px) {
   .role-app-shell.gb-app-shell:has(.manager-reference-dashboard),
   .role-app-shell.gb-app-shell:has(.parent-dashboard-home),
   .role-app-shell.gb-app-shell:has(.admin-literal-dashboard),
-  .role-app-shell.gb-app-shell:has(.ux18-settings-layout) {
+  .role-app-shell.gb-app-shell:has(.ux18-reference-profile-column) {
     width: 100%;
     max-width: none;
     margin: 0;
@@ -155,29 +285,29 @@
 
   /* Settings: the first screen is a single four-column workspace. Extra
      status detail remains in the Garden column beneath the reference cards. */
-  .role-app-shell.gb-app-shell:has(.ux18-settings-layout) {
+  .role-app-shell.gb-app-shell:has(.ux18-reference-profile-column) {
     grid-template-columns: 146px minmax(0, 1fr) !important;
   }
-  .role-app-shell:has(.ux18-settings-layout) .role-app-header {
+  .role-app-shell:has(.ux18-reference-profile-column) .role-app-header {
     min-height: 48px !important;
     max-height: 48px !important;
     padding-block: 4px !important;
   }
-  .role-app-shell:has(.ux18-settings-layout) .role-app-page {
+  .role-app-shell:has(.ux18-reference-profile-column) .role-app-page {
     padding: 5px 8px 18px !important;
   }
-  .ux18-settings-layout {
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-layout {
     grid-template-columns: minmax(0, .74fr) minmax(0, 3fr) !important;
     gap: 7px !important;
   }
-  .ux18-settings-content {
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-content {
     grid-template-columns: minmax(0, 1.06fr) minmax(0, .98fr) minmax(0, 1.06fr) !important;
     gap: 7px !important;
   }
-  .ux18-settings-navigation-list a {
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a {
     min-height: 42px !important;
   }
-  .ux18-reference-garden-column > .ux18-settings-status-grid {
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-reference-garden-column > .ux18-settings-status-grid {
     order: 4 !important;
   }
 }
