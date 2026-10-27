@@ -32,12 +32,12 @@ function verifyOrder(order) {
   assert.equal(names.length, byId.size, "missing source in future order");
   for (const name of names) assert.ok(byId.has(name), `unknown source: ${name}`);
   assert.ok(names.indexOf("frozen_binding") < names.indexOf("acceptance_source"), "frozen binding must precede acceptance");
-  for (const [before, after] of [["claim_writer", "risk_persist"], ["risk_persist", "effect_plan"], ["effect_plan", "effect_receipt"]]) {
+  for (const [before, after] of [["claim_only_schema", "claim_writer"], ["claim_writer", "risk_persist"], ["risk_persist", "effect_plan"], ["effect_plan", "effect_receipt"]]) {
     assert.ok(names.indexOf(before) < names.indexOf(after), `${before} must precede ${after}`);
   }
 }
 function verifyOwners(parts) {
-  const selected = ["home_source", "home_epoch_fence", "home_alignment", "registration_writer_fixture", "frozen_binding", "acceptance_source", "claim_writer", "risk_persist", "effect_plan", "effect_receipt"];
+  const selected = ["home_source", "home_epoch_fence", "home_alignment", "registration_writer_fixture", "frozen_binding", "acceptance_source", "claim_only_schema", "claim_writer", "risk_persist", "effect_plan", "effect_receipt"];
   const incident = selected.flatMap(id => [...parts.get(id).matchAll(/ALTER\s+TABLE\s+observer_home_review\.event_bindings\s+ADD\s+COLUMN\s+incident_id\b/gi)].map(() => id));
   assert.deepEqual(incident, ["frozen_binding"], "incident_id DDL must have one owner");
   assert.match(parts.get("frozen_binding"), /binding_audit_ref/);
@@ -51,6 +51,7 @@ function verifyOwners(parts) {
   assert.ok(manifest.excludedWholeFiles.includes("claim_schema_sketch"), "obsolete sketch must not be composed whole");
   assert.ok(manifest.excludedWholeFiles.includes("old_claim_rpc_sketch"), "older RPC sketch must not be composed whole");
   assert.ok(manifest.excludedWholeFiles.includes("home_acl_fixture"), "synthetic ACL must not become live ACL");
+  verifyClaimOnly(parts.get("claim_only_schema"), sketch);
   const homeBind = /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+observer_home_review\.bind_accepted_event_v1\s*\(\s*p_event_id\s+uuid\s*\)/i;
   assert.match(parts.get("home_source"), homeBind);
   assert.match(parts.get("frozen_binding"), homeBind);
@@ -59,6 +60,34 @@ function verifyOwners(parts) {
   // Old RPC sketch collides with the replacement claim writer; retain as a reference only.
   assert.match(parts.get("old_claim_rpc_sketch"), /CREATE\s+FUNCTION\s+public\.claim_event_risk_v1\s*\(/i);
   assert.match(parts.get("claim_writer"), /CREATE\s+FUNCTION\s+public\.claim_event_risk_v1\s*\(/i);
+}
+function verifyClaimOnly(text, sketch) {
+  const create = /CREATE\s+TABLE\s+public\.observer_event_risk_claims\s*\(/gi;
+  assert.equal([...text.matchAll(create)].length, 1, "claim table must have one DDL owner");
+  assert.match(sketch, create, "source claim table anchor missing");
+  assert.equal([...text.matchAll(/CREATE\s+INDEX\s+observer_event_risk_claim_recovery_idx\b/gi)].length, 1,
+    "claim recovery index must have one DDL owner");
+  assert.match(text, /PRIMARY KEY\s*\(signal_id,\s*risk_engine_version\)/i);
+  for (const column of ["signal_id uuid NOT NULL", "risk_engine_version text NOT NULL", "tenant_id uuid NOT NULL", "observer_site_id uuid NOT NULL", "incident_id uuid NOT NULL", "owner_nonce uuid NOT NULL", "owner_epoch bigint NOT NULL DEFAULT 1", "lease_expires_at timestamptz NOT NULL", "risk_evaluation_id uuid", "created_at timestamptz NOT NULL", "updated_at timestamptz NOT NULL", "completed_at timestamptz"]) {
+    assert.ok(text.includes(column) && sketch.includes(column), `claim column/source drift: ${column}`);
+  }
+  for (const status of ["CLAIMED", "RISK_PERSISTED", "EFFECTS_PENDING", "COMPLETED"]) {
+    assert.match(text, new RegExp(`status = '${status}'`), `claim status missing: ${status}`);
+    assert.match(sketch, new RegExp(`status = '${status}'`), `source status missing: ${status}`);
+  }
+  for (const name of ["observer_event_risk_claim_signal_fk", "observer_event_risk_claim_incident_fk", "observer_event_risk_claim_site_fk", "observer_event_risk_claim_site_tenant_fk", "observer_event_risk_claim_evaluation_fk", "observer_event_risk_claim_signal_site_fk", "observer_event_risk_claim_incident_site_fk", "observer_event_risk_claim_result_scope_fk"]) {
+    assert.ok(text.includes(name) && sketch.includes(name), `claim FK/source drift: ${name}`);
+  }
+  assert.match(text, /ON\s+public\.observer_event_risk_claims\s*\(lease_expires_at\)\s+WHERE status <> 'COMPLETED'/i);
+  assert.match(text, /ALTER TABLE public\.observer_event_risk_claims ENABLE ROW LEVEL SECURITY/i);
+  assert.match(text, /REVOKE ALL ON TABLE public\.observer_event_risk_claims FROM PUBLIC, anon, authenticated/i);
+  assert.doesNotMatch(text, /\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b/i, "claim-only must not own an RPC");
+  assert.doesNotMatch(text, /\bCREATE\s+TABLE\s+(?:public\.)?observer_event_risk_effect_(?:plans|receipts)\b/i,
+    "claim-only must not own Plan/Receipt");
+  assert.doesNotMatch(text, /\b(?:ALTER|CREATE)\s+(?:TABLE|INDEX)\s+(?:public\.)?(?:observer_sites|observer_correlated_events|observer_intelligence_signals|digital_observer_risk_evaluations)\b/i,
+    "claim-only must not change existing canonical tables");
+  assert.ok(manifest.openGates.some(gate => gate.includes("referenced composite unique keys")),
+    "unqualified FK dependencies must remain BLOCKED");
 }
 
 assert.equal(manifest.status, "REVIEW_ONLY_BLOCKED_NOT_EXECUTABLE");
@@ -86,5 +115,16 @@ rejects(() => verifyOrder([...manifest.futureIsolatedTestOrderOnly].reverse()), 
 const collision = new Map(texts);
 collision.set("old_claim_rpc_sketch", collision.get("old_claim_rpc_sketch").replace(/CREATE\s+FUNCTION\s+public\.claim_event_risk_v1/i, "CREATE FUNCTION public.not_the_claim"));
 rejects(() => verifyOwners(collision), /claim_event_risk_v1/);
+for (const [id, changed, expected] of [
+  ["claim_only_schema", value => value.replace("observer_event_risk_claim_signal_site_fk", "missing_signal_scope_fk"), /claim FK\/source drift/],
+  ["claim_only_schema", value => value.replace("status = 'EFFECTS_PENDING'", "status = 'SKIPPED'"), /claim status missing/],
+  ["claim_only_schema", value => `${value}\nCREATE TABLE public.observer_event_risk_effect_plans (id uuid);`, /must not own Plan\/Receipt/],
+  ["claim_only_schema", value => `${value}\nCREATE FUNCTION public.claim_event_risk_v1() RETURNS void LANGUAGE sql AS $$ SELECT NULL $$;`, /must not own an RPC/],
+  ["claim_only_schema", value => value.replace("observer_event_risk_claim_recovery_idx", "wrong_index"), /recovery index must have one DDL owner/],
+]) {
+  const changedParts = new Map(texts);
+  changedParts.set(id, changed(changedParts.get(id)));
+  rejects(() => verifyOwners(changedParts), expected);
+}
 
-console.log(`PASS: ${manifest.sources.length} pinned review sources; guards, order, DDL/function collision, receipt/audit and exclusion checks; ${negative} negative fixtures. Static only; NOT applied.`);
+console.log(`PASS: ${manifest.sources.length} pinned review sources; claim-only FK/status/index/RLS contract, guards, order, DDL/function collision, receipt/audit and exclusion checks; ${negative} negative fixtures. Static only; NOT applied.`);
