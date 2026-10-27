@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// One bounded, encrypted-only Development capture. Never invoke for Production.
+// Component-only Development capture. No common DB/Storage snapshot is claimed.
+// Operator must independently verify the owner-held age identity before a real run.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync, spawn } from "node:child_process";
-import { closeSync, createReadStream, createWriteStream, existsSync, mkdtempSync, openSync, readFileSync, readSync, rmSync, statSync, statfsSync, writeFileSync } from "node:fs";
+import { createReadStream, lstatSync, mkdtempSync, readFileSync, statfsSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { Transform } from "node:stream";
-import { pipeline } from "node:stream/promises";
+import { acquireCaptureLock, createComponentReceipt, compareStorageObservations, removeOwnedNewFile,
+  MAX_ENCRYPTED_BYTES, MIN_INTERNAL_FREE_BYTES } from "./component-backup-contract.mjs";
+import { writeBoundedCiphertext } from "./bounded-ciphertext-writer.mjs";
 
 const dockerBin = "/opt/homebrew/bin/docker";
 const ageBin = "/opt/homebrew/bin/age";
@@ -20,167 +22,248 @@ const dbId = "7c30223f1a6f2b7be78e85d2ba44a5eeccb0704a3113f36c03bb8e6f84744d0a";
 const backupRoot = "/Users/danielderi/DigitalObserverRecovery/current-gbi";
 const recipientManifest = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima-safety.gUVg5H/manifest.json";
 const expectedRecipientDigest = "1fc9645eff132753e75a26eb0856b6f9abe0a26af6002625346832a8a89d97b4";
-const maxEncryptedBytes = 1024 ** 3;
-const minInternalFreeBytes = 3 * 1024 ** 3;
 const expectedDatabases = ["_supabase", "gan_batuach_baseline_builder_v2", "postgres"];
 const writers = ["supabase_kong_gan-batuach-integration", "supabase_auth_gan-batuach-integration",
   "supabase_rest_gan-batuach-integration", "supabase_realtime_gan-batuach-integration",
   "supabase_storage_gan-batuach-integration", "supabase_inbucket_gan-batuach-integration"];
+const inventorySource = readFileSync(new URL("./storage-file-inventory.mjs", import.meta.url), "utf8");
+const receipt = createComponentReceipt({ expectedDatabases });
+const controller = new AbortController();
+const deadlineAt = Date.now() + 180_000;
 let directory = null;
-let totalEncryptedBytes = 0;
-let activeSource = null;
-let activeAge = null;
-const files = [];
-const evidence = { status: "BLOCKED", reason: null, source: db, storage,
-  databases: 0, encryptedBytes: 0, encryptedFiles: 0, stableSourceWindow: false,
-  walUnchanged: false, storageUnchanged: false, backupDirectory: null };
+let active = null;
+let postgresVersion = null;
+let captureLock = null;
 
-function safeExec(bin, args, timeout = 15000) {
-  return execFileSync(bin, args, { encoding: "utf8", timeout, maxBuffer: 4_000_000, stdio: ["ignore", "pipe", "pipe"] }).trim();
+function remainingMs() {
+  if (controller.signal.aborted || Date.now() >= deadlineAt) throw new Error("CAPTURE_DEADLINE_EXCEEDED");
+  return deadlineAt - Date.now();
 }
-function docker(args, timeout) { return safeExec(dockerBin, [...dockerBase, ...args], timeout); }
+function exec(bin, args, timeout = 15_000) {
+  return execFileSync(bin, args, { encoding: "utf8", timeout: Math.min(timeout, remainingMs()), maxBuffer: 4_000_000,
+    stdio: ["ignore", "pipe", "pipe"] }).trim();
+}
+function docker(args, timeout) { return exec(dockerBin, [...dockerBase, ...args], timeout); }
 function freeBytes() {
-  const s = statfsSync("/System/Volumes/Data");
-  return s.bavail * s.bsize;
+  const fs = statfsSync(backupRoot);
+  return Number(fs.bavail) * Number(fs.bsize);
 }
 function query(sql) {
   return docker(["exec", "-u", "postgres", db, "psql", "-X", "-A", "-t", "-U", "postgres", "-d", "postgres",
-    "-v", "ON_ERROR_STOP=1", "-c", `BEGIN READ ONLY; SET LOCAL statement_timeout='5s'; ${sql}; ROLLBACK;`], 15000)
+    "-v", "ON_ERROR_STOP=1", "-c", `BEGIN READ ONLY; SET LOCAL statement_timeout='5s'; ${sql}; ROLLBACK;`])
     .split(/\r?\n/).filter(line => !["BEGIN", "SET", "ROLLBACK"].includes(line)).join("\n");
 }
 function inspect(name) { return JSON.parse(docker(["inspect", name]))[0]; }
-async function storageDigest() {
-  const source = spawn(dockerBin, [...dockerBase, "exec", storage, "/bin/tar", "-C", "/mnt", "-cf", "-", "."],
-    { stdio: ["ignore", "pipe", "pipe"] });
-  const exit = new Promise((resolve, reject) => {
-    source.once("error", reject);
-    source.once("close", resolve);
-  });
-  source.stderr.resume();
-  const hash = createHash("sha256");
-  let bytes = 0;
-  for await (const chunk of source.stdout) { bytes += chunk.length; hash.update(chunk); }
-  const code = await exit;
-  assert.equal(code, 0, "STORAGE_DIGEST_SOURCE_FAILED");
-  return { hash: hash.digest("hex"), bytes };
-}
-function noActiveWriters() {
-  return query("SELECT count(*) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND state='active' AND backend_type='client backend'") === "0";
-}
 function assertSource() {
-  assert.ok(statSync(backupRoot).isDirectory());
-  assert.equal(statSync(backupRoot).mode & 0o077, 0, "BACKUP_DIRECTORY_NOT_PRIVATE");
-  assert.ok(freeBytes() > minInternalFreeBytes + maxEncryptedBytes, "INSUFFICIENT_INTERNAL_RESERVE");
+  const root = lstatSync(backupRoot);
+  assert.ok(root.isDirectory() && root.uid === process.getuid() && (root.mode & 0o077) === 0,
+    "BACKUP_DIRECTORY_NOT_PRIVATE");
+  assert.ok(freeBytes() >= MIN_INTERNAL_FREE_BYTES + MAX_ENCRYPTED_BYTES, "INSUFFICIENT_INTERNAL_RESERVE");
   const original = inspect(db);
   const objects = inspect(storage);
   assert.equal(original.Id, dbId, "DEVELOPMENT_DB_ID_CHANGED");
-  assert.equal(original.Config.Image, pgImage);
+  assert.equal(original.Config.Image, pgImage, "DEVELOPMENT_DB_IMAGE_CHANGED");
   assert.equal(original.Config.Labels["com.docker.compose.project"], "gan-batuach-integration");
   assert.equal(objects.Config.Labels["com.docker.compose.project"], "gan-batuach-integration");
-  assert.ok(original.State.Running && objects.State.Running);
+  assert.ok(original.State.Running && objects.State.Running, "SOURCE_NOT_RUNNING");
   assert.ok(original.Mounts.some(m => m.Name === db && m.Destination === "/var/lib/postgresql/data"));
   assert.ok(objects.Mounts.some(m => m.Name === storage && m.Destination === "/mnt"));
   assert.equal(original.NetworkSettings.Ports["5432/tcp"]?.[0]?.HostIp, "127.0.0.1");
   assert.equal(original.NetworkSettings.Ports["5432/tcp"]?.[0]?.HostPort, "55422");
   assert.ok(!Object.values(objects.NetworkSettings.Ports ?? {}).some(value => Array.isArray(value) && value.length),
     "STORAGE_HAS_PUBLISHED_PORT");
-  assert.equal(docker(["image", "inspect", pgImage, "--format", "{{.Id}}"]).trim(), pgImageId);
-  const names = query("SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate ORDER BY datname").split("\n");
-  assert.deepEqual(names, expectedDatabases, "DEVELOPMENT_DATABASE_SET_CHANGED");
-  evidence.databases = names.length;
-  const publicRecipient = JSON.parse(readFileSync(recipientManifest, "utf8")).publicRecipient;
-  assert.match(publicRecipient, /^age1[023456789acdefghjklmnpqrstuvwxyz]+$/);
-  assert.equal(createHash("sha256").update(publicRecipient).digest("hex"), expectedRecipientDigest);
-  const active = docker(["ps", "--filter", "label=com.docker.compose.project=gan-batuach-integration", "--format", "{{.Names}}"]).split("\n").filter(Boolean).sort();
-  assert.deepEqual(active, [db, ...writers].sort(), "UNEXPECTED_DEVELOPMENT_SERVICE_SET");
-  assert.equal(query("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relpersistence='u' AND c.relkind IN ('r','p') AND n.nspname NOT IN ('pg_catalog','information_schema')"), "0", "UNLOGGED_RELATIONS_PREVENT_WAL_STABILITY_PROOF");
-  return publicRecipient;
+  assert.equal(docker(["image", "inspect", pgImage, "--format", "{{.Id}}"]), pgImageId);
+  assert.deepEqual(query("SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate ORDER BY datname")
+    .split("\n"), expectedDatabases, "DEVELOPMENT_DATABASE_SET_CHANGED");
+  const activeNames = docker(["ps", "--filter", "label=com.docker.compose.project=gan-batuach-integration",
+    "--format", "{{.Names}}"] ).split("\n").filter(Boolean).sort();
+  assert.deepEqual(activeNames, [db, ...writers].sort(), "UNEXPECTED_DEVELOPMENT_SERVICE_SET");
+  postgresVersion = query("SHOW server_version");
+  assert.match(postgresVersion, /^17\./, "POSTGRES_MAJOR_CHANGED");
+  const recipient = JSON.parse(readFileSync(recipientManifest, "utf8")).publicRecipient;
+  assert.match(recipient, /^age1[023456789acdefghjklmnpqrstuvwxyz]+$/);
+  assert.equal(createHash("sha256").update(recipient).digest("hex"), expectedRecipientDigest,
+    "AGE_RECIPIENT_CHANGED");
+  return recipient;
+}
+function completion(child, reason) {
+  return new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("close", code => code === 0 ? resolve() : reject(new Error(reason)));
+  });
+}
+function stderrBytes(child) {
+  let bytes = 0;
+  child.stderr.on("data", chunk => { bytes += chunk.length; });
+  return () => bytes;
+}
+async function fileDigest(path) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path, { signal: controller.signal })) hash.update(chunk);
+  return hash.digest("hex");
 }
 async function capture(name, sourceArgs, recipient) {
-  const target = join(directory, `${name}.age`);
+  remainingMs();
+  assert.ok(receipt.remainingBytes > 0, "CUMULATIVE_CIPHERTEXT_CAP_EXCEEDED");
+  const path = join(directory, `${name}.age`);
   const source = spawn(dockerBin, [...dockerBase, ...sourceArgs], { stdio: ["ignore", "pipe", "pipe"] });
   const age = spawn(ageBin, ["-r", recipient], { stdio: ["pipe", "pipe", "pipe"] });
-  activeSource = source;
-  activeAge = age;
-  source.stderr.resume();
-  age.stderr.resume();
+  const sourceWarnings = stderrBytes(source);
+  const ageWarnings = stderrBytes(age);
+  const sourceDone = completion(source, "SOURCE_CAPTURE_FAILED");
+  const ageDone = completion(age, "AGE_ENCRYPTION_FAILED");
   source.stdout.pipe(age.stdin);
   age.stdin.on("error", () => {});
-  const exited = child => new Promise((resolve, reject) => {
-    child.once("error", reject);
-    child.once("close", code => resolve(code));
-  });
-  const sourceExit = exited(source);
-  const ageExit = exited(age);
-  const guard = new Transform({ transform(chunk, _encoding, callback) {
-    totalEncryptedBytes += chunk.length;
-    if (totalEncryptedBytes > maxEncryptedBytes) return callback(new Error("ENCRYPTED_BYTE_CAP_EXCEEDED"));
-    if (freeBytes() < minInternalFreeBytes) return callback(new Error("INTERNAL_FREE_FLOOR_BREACHED"));
-    callback(null, chunk);
-  } });
+  active = { source, age };
+  const startedAtUtc = new Date().toISOString();
+  let newCiphertextInode = null;
   try {
-    await pipeline(age.stdout, guard, createWriteStream(target, { flags: "wx", mode: 0o600 }));
-    assert.equal(await sourceExit, 0, "SOURCE_CAPTURE_FAILED");
-    assert.equal(await ageExit, 0, "AGE_ENCRYPTION_FAILED");
-    const size = statSync(target).size;
-    assert.ok(size > 0);
-    const fd = openSync(target, "r");
+    const { bytes } = await writeBoundedCiphertext({
+      ciphertext: age.stdout, outputPath: path, maxBytes: receipt.remainingBytes,
+      minFreeBytes: MIN_INTERNAL_FREE_BYTES, freeBytes,
+      upstreamCompletion: Promise.all([sourceDone, ageDone]), signal: controller.signal,
+      abortUpstream: () => { source.kill(); age.kill(); },
+    });
+    newCiphertextInode = lstatSync(path).ino;
+    assert.equal(sourceWarnings(), 0, "SOURCE_WARNINGS_REQUIRE_REVIEW");
+    assert.equal(ageWarnings(), 0, "AGE_WARNINGS_REQUIRE_REVIEW");
+    const handle = await import("node:fs/promises").then(fs => fs.open(path, "r"));
     const header = Buffer.alloc(32);
-    try { readSync(fd, header, 0, header.length, 0); } finally { closeSync(fd); }
-    const first = header.toString("utf8");
-    assert.ok(first.startsWith("age-encryption.org/v1"), "NOT_AGE_FORMAT");
-    const hash = createHash("sha256");
-    for await (const chunk of createReadStream(target)) hash.update(chunk);
-    files.push({ name: `${name}.age`, bytes: size, sha256: hash.digest("hex") });
+    try { await handle.read(header, 0, header.length, 0); } finally { await handle.close(); }
+    assert.ok(header.toString("utf8").startsWith("age-encryption.org/v1"), "NOT_AGE_FORMAT");
+    assert.equal(statSync(path).size, bytes, "CIPHERTEXT_FILE_SIZE_CHANGED");
+    return { file: `${name}.age`, outputInode: newCiphertextInode,
+      bytes, ciphertextSha256: await fileDigest(path),
+      startedAtUtc, endedAtUtc: new Date().toISOString() };
   } catch (error) {
-    source.kill(); age.kill();
+    // The writer removes its own partial file. Only a successful exclusive
+    // creation can be removed by this later validation path.
+    if (newCiphertextInode) removeOwnedNewFile(path, newCiphertextInode);
     throw error;
-  } finally {
-    activeSource = null; activeAge = null;
+  } finally { active = null; }
+}
+async function metadataDigest() {
+  remainingMs();
+  const sql = "COPY (SELECT row_to_json(o) FROM storage.objects AS o ORDER BY o.id) TO STDOUT";
+  const source = spawn(dockerBin, [...dockerBase, "exec", "-u", "postgres",
+    "-e", "PGOPTIONS=-c default_transaction_read_only=on -c statement_timeout=10000", db,
+    "psql", "-X", "-q", "-A", "-t", "-U", "postgres", "-d", "postgres",
+    "-v", "ON_ERROR_STOP=1", "-c", sql], { stdio: ["ignore", "pipe", "pipe"] });
+  const warnings = stderrBytes(source);
+  const done = completion(source, "STORAGE_METADATA_READ_FAILED");
+  const onAbort = () => source.kill();
+  controller.signal.addEventListener("abort", onAbort, { once: true });
+  const hash = createHash("sha256");
+  let rows = 0;
+  let bytes = 0;
+  try {
+    for await (const chunk of source.stdout) {
+      bytes += chunk.length;
+      if (bytes > 16 * 1024 ** 2) throw new Error("STORAGE_METADATA_SIZE_CAP");
+      for (const byte of chunk) if (byte === 10) rows += 1;
+      hash.update(chunk);
+    }
+    await done;
+    assert.equal(warnings(), 0, "STORAGE_METADATA_WARNINGS_REQUIRE_REVIEW");
+    return { metadataDigest: hash.digest("hex"), metadataRows: rows, metadataBytes: bytes };
+  } catch (error) { source.kill(); done.catch(() => {}); throw error; }
+  finally { controller.signal.removeEventListener("abort", onAbort); }
+}
+function storageInventory() {
+  const raw = docker(["exec", "-e", "DO_STORAGE_ROOT=/mnt", storage,
+    "node", "--input-type=module", "-e", inventorySource], 60_000);
+  const result = JSON.parse(raw);
+  assert.ok(Number.isSafeInteger(result.count) && result.count === result.files?.length,
+    "STORAGE_INVENTORY_INVALID");
+  assert.ok(Number.isSafeInteger(result.totalBytes) && result.totalBytes >= 0,
+    "STORAGE_INVENTORY_INVALID");
+  for (const file of result.files) {
+    assert.match(file.pathDigest, /^[a-f0-9]{64}$/);
+    assert.match(file.sha256, /^[a-f0-9]{64}$/);
+    assert.ok(Number.isSafeInteger(file.bytes) && file.bytes >= 0);
+  }
+  return result;
+}
+async function observeStorage() { return { ...await metadataDigest(), ...storageInventory() }; }
+function safeReason(error) {
+  const message = String(error?.message ?? "");
+  return /^[A-Z][A-Z0-9_]{4,80}$/.test(message) ? message : "CAPTURE_OR_PREFLIGHT_FAILED";
+}
+async function runComponent(kind, name, sourceArgs, recipient, details = {}) {
+  const startedAtUtc = new Date().toISOString();
+  let result;
+  try {
+    result = await capture(name ?? kind, sourceArgs, recipient);
+    receipt.addSuccess({ kind, name, ...result, details });
+  } catch (error) {
+    if (result) removeOwnedNewFile(join(directory, result.file), result.outputInode);
+    receipt.addFailure({ kind, name, reason: safeReason(error), startedAtUtc,
+      endedAtUtc: new Date().toISOString() });
+    throw error;
   }
 }
-const deadline = setTimeout(() => { activeSource?.kill(); activeAge?.kill(); }, 180_000);
-try {
+async function main() {
+  if (process.argv.length !== 3 || process.argv[2] !== "--capture-components-only")
+    throw new Error("EXPLICIT_COMPONENT_ONLY_MODE_REQUIRED");
+  remainingMs();
   const recipient = assertSource();
-  assert.ok(noActiveWriters(), "ACTIVE_DATABASE_CLIENT_AT_PREFLIGHT");
-  const walBefore = query("SELECT pg_current_wal_lsn()");
-  const storageBefore = await storageDigest();
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  assert.equal(query("SELECT pg_current_wal_lsn()"), walBefore, "SOURCE_WAL_MOVED_BEFORE_CAPTURE");
-  assert.deepEqual(await storageDigest(), storageBefore, "STORAGE_MOVED_BEFORE_CAPTURE");
-  assert.ok(noActiveWriters(), "ACTIVE_DATABASE_CLIENT_BEFORE_CAPTURE");
+  captureLock = acquireCaptureLock(join(backupRoot, ".component-capture.lock"));
   directory = mkdtempSync(join(backupRoot, "snapshot-"));
-  evidence.backupDirectory = directory;
-  for (const name of expectedDatabases) {
-    await capture(`db-${name}`, ["exec", "-u", "postgres", db, "pg_dump", "-U", "postgres", "-Fc", "-d", name], recipient);
+  for (const name of expectedDatabases) await runComponent("database", name,
+    ["exec", "-u", "postgres", db, "pg_dump", "-U", "postgres", "-Fc", "-d", name],
+    recipient, { sourceContainerId: dbId, postgresVersion });
+  await runComponent("globals", null,
+    ["exec", "-u", "postgres", db, "pg_dumpall", "-U", "postgres", "--globals-only"],
+    recipient, { sourceContainerId: dbId, postgresVersion });
+  const storageBefore = await observeStorage();
+  const storageStartedAtUtc = new Date().toISOString();
+  let storageResult;
+  try {
+    storageResult = await capture("storage-bytes", ["exec", storage, "/bin/tar", "-C", "/mnt", "-cf", "-", "."], recipient);
+    const storageAfter = await observeStorage();
+    const exceptions = compareStorageObservations(storageBefore, storageAfter);
+    if (exceptions.length) {
+      receipt.addFailure({ kind: "storage-bytes", reason: exceptions.join("+"),
+        startedAtUtc: storageStartedAtUtc, endedAtUtc: new Date().toISOString() });
+      throw new Error("STORAGE_SOURCE_CHANGED_DURING_CAPTURE");
+    }
+    receipt.addSuccess({ kind: "storage-bytes", ...storageResult,
+      details: { sourceContainer: storage, metadataRows: storageAfter.metadataRows,
+        metadataDigest: storageAfter.metadataDigest, metadataBytes: storageAfter.metadataBytes,
+        fileCount: storageAfter.count, logicalFileBytes: storageAfter.totalBytes,
+        sampledSourceFileManifest: storageAfter.files, metadataObjectMapping: "NOT_PROVEN",
+        archivedPerObjectHashVerification: "NOT_PROVEN", crossStoreAtomicity: "NOT_PROVEN" } });
+  } catch (error) {
+    if (storageResult) removeOwnedNewFile(join(directory, storageResult.file), storageResult.outputInode);
+    if (!receipt.receipt().components.some(item => item.id === "storage-bytes"))
+      receipt.addFailure({ kind: "storage-bytes", reason: safeReason(error),
+        startedAtUtc: storageStartedAtUtc, endedAtUtc: new Date().toISOString() });
+    throw error;
   }
-  await capture("cluster-globals", ["exec", "-u", "postgres", db, "pg_dumpall", "-U", "postgres", "--globals-only"], recipient);
-  await capture("storage-bytes", ["exec", storage, "/bin/tar", "-C", "/mnt", "-cf", "-", "."], recipient);
-  evidence.walUnchanged = query("SELECT pg_current_wal_lsn()") === walBefore;
-  evidence.storageUnchanged = JSON.stringify(await storageDigest()) === JSON.stringify(storageBefore);
-  assert.ok(evidence.walUnchanged, "SOURCE_WAL_CHANGED_DURING_CAPTURE");
-  assert.ok(evidence.storageUnchanged, "SOURCE_STORAGE_CHANGED_DURING_CAPTURE");
-  assert.ok(noActiveWriters(), "ACTIVE_DATABASE_CLIENT_AFTER_CAPTURE");
-  evidence.stableSourceWindow = true;
-  assert.ok(freeBytes() >= minInternalFreeBytes, "INTERNAL_FREE_FLOOR_BREACHED_AT_END");
-  const manifest = { scope: "isolated-development-only", createdAtUtc: new Date().toISOString(),
-    sourceContainerId: dbId, sourceImageId: pgImageId, publicRecipientSha256: expectedRecipientDigest,
-    databaseCount: expectedDatabases.length, files, totalEncryptedBytes };
-  writeFileSync(join(directory, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n", { mode: 0o600, flag: "wx" });
-  evidence.encryptedBytes = totalEncryptedBytes;
-  evidence.encryptedFiles = files.length;
-  evidence.status = "ENCRYPTED_CAPTURE_PASS_RESTORE_NOT_RUN";
-} catch (error) {
-  evidence.reason = error instanceof assert.AssertionError ? String(error.message).split("\n")[0].slice(0, 100)
-    : "CAPTURE_PREFLIGHT_OR_STREAM_FAILED_REVIEW_LOCAL_DIAGNOSTIC";
-} finally {
-  clearTimeout(deadline);
-  activeSource?.kill(); activeAge?.kill();
-  if (evidence.reason) {
-    evidence.status = "BLOCKED";
-    if (directory?.startsWith(`${backupRoot}/snapshot-`) && existsSync(directory)) rmSync(directory, { recursive: true });
-    evidence.backupDirectory = null;
+}
+
+const timeout = setTimeout(() => controller.abort(new Error("CAPTURE_DEADLINE_EXCEEDED")), 180_000);
+let failure = null;
+try { await main(); } catch (error) { failure = safeReason(error); }
+finally {
+  clearTimeout(timeout);
+  active?.source.kill();
+  active?.age.kill();
+  if (captureLock) {
+    try { captureLock.release(); } catch { failure = "CAPTURE_LOCK_CLEANUP_FAILED"; }
   }
-  console.log(JSON.stringify(evidence));
-  if (evidence.status !== "ENCRYPTED_CAPTURE_PASS_RESTORE_NOT_RUN") process.exitCode = 1;
+  const result = receipt.receipt({ scope: "original-isolated-development", createdAtUtc: new Date().toISOString(),
+    sourceContainerId: dbId, sourceImageId: pgImageId, postgresVersion,
+    publicRecipientSha256: expectedRecipientDigest,
+    storageMetadataObjectMapping: "NOT_PROVEN", crossStoreAtomicity: "NOT_PROVEN",
+    independentRestore: "NOT_RUN", reason: failure });
+  if (directory) {
+    try { writeFileSync(join(directory, "receipt.json"), JSON.stringify(result, null, 2) + "\n",
+      { mode: 0o600, flag: "wx" }); }
+    catch { failure = "RECEIPT_WRITE_FAILED"; }
+  }
+  console.log(JSON.stringify({ status: failure ? "BLOCKED" : result.status, reason: failure, backupDirectory: directory,
+    componentCount: result.components.length, encryptedBytes: result.totalEncryptedBytes,
+    atomicSnapshot: false, independentRestore: "NOT_RUN" }));
+  if (result.status !== "COMPONENT_BACKUPS_ONLY" || failure) process.exitCode = 1;
 }
