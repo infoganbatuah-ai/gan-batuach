@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Read-only fail-closed Development writer-gate inventory; never authorizes quiescence",
+  "source": {
+    "colimaHome": "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima",
+    "limaHome": "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima/_lima",
+    "limaInstance": "colima-gbi",
+    "dockerSocket": "unix:///Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima/gbi/docker.sock",
+    "dockerDaemonId": "cb406f3c-6987-4019-8ac7-bed803bf6a37",
+    "dockerDaemonName": "colima-gbi",
+    "colimaConfigSha256": "99b591d94bb332941d9ea2b62dbc8309252d3e0f74840fa86fea841c5611275e",
+    "network": "gan-batuach-integration-loopback",
+    "networkInternal": false
+  },
+  "ingress": [
+    {"host": "127.0.0.1", "port": 55421, "service": "kong", "guestPort": "8000/tcp"},
+    {"host": "127.0.0.1", "port": 55422, "service": "db", "guestPort": "5432/tcp"}
+  ],
+  "additionalObservedIngress": [
+    {"host": "127.0.0.1", "port": 55424, "service": "inbucket", "guestPort": "8025/tcp", "reason": "QA mail service; not assumed harmless"}
+  ],
+  "volumes": [
+    {"name": "supabase_db_gan-batuach-integration", "driver": "local", "scope": "local", "createdAt": "2026-09-28T03:45:51+03:00"},
+    {"name": "supabase_storage_gan-batuach-integration", "driver": "local", "scope": "local", "createdAt": "2026-09-28T03:46:16+03:00"}
+  ],
+  "containers": [
+    {"service": "db", "id": "7c30223f1a6f2b7be78e85d2ba44a5eeccb0704a3113f36c03bb8e6f84744d0a", "name": "supabase_db_gan-batuach-integration", "mounts": [{"name": "supabase_db_gan-batuach-integration", "destination": "/var/lib/postgresql/data"}], "published": {"5432/tcp": "55422"}},
+    {"service": "storage", "id": "10d09ce7f92239b42b390364f9d5552f893e1367b734267afa3bdfe020a91602", "name": "supabase_storage_gan-batuach-integration", "mounts": [{"name": "supabase_storage_gan-batuach-integration", "destination": "/mnt"}], "published": {}},
+    {"service": "rest", "id": "258505d581ef761d104499cab53cdda3a8fad4927e6a5077da3a024d8f0611ed", "name": "supabase_rest_gan-batuach-integration", "mounts": [], "published": {}},
+    {"service": "realtime", "id": "211cc3b6a89949ad7d867eebe9184a4541b8fa69c23ff848ebf0f1b4246317a7", "name": "supabase_realtime_gan-batuach-integration", "mounts": [], "published": {}},
+    {"service": "auth", "id": "621338a2731538c4155d397ae9ba664b221715ac70b3dc8eba49e3b7b004ac71", "name": "supabase_auth_gan-batuach-integration", "mounts": [], "published": {}},
+    {"service": "kong", "id": "89f1ab3290859f6cb45a231df78b12ff26108dbb2eeef934c168293b86dffeb3", "name": "supabase_kong_gan-batuach-integration", "mounts": [], "published": {"8000/tcp": "55421"}},
+    {"service": "inbucket", "id": "b9709ad9c976891cba175e54982fd72e1765031e223ab2f2206f2e24cd4b2b6e", "name": "supabase_inbucket_gan-batuach-integration", "mounts": [], "published": {"8025/tcp": "55424"}}
+  ],
+  "excludedBoundary": {
+    "unrelatedContainer": "digital-observer-pgqa-20261026",
+    "otherColimaProfile": "push38t",
+    "otherSameNamedGbiHome": "/Users/danielderi/.colima",
+    "productionAndHome": "Never inspected or modified by this dry-run"
+  },
+  "nonNegotiableGates": [
+    "all-existing-write-clients-drained-or-atomically-fenced",
+    "all-new-api-and-direct-db-and-docker-admin-writers-excluded-for-full-window",
+    "scheduled-and-in-database-writers-accounted-for",
+    "exact-id-automatic-resume-after-host-socket-and-guest-daemon-failure",
+    "bounded-window-and-rollback-verified-on-source"
+  ]
+}
