@@ -24,8 +24,11 @@ defines `observer_incident_signal_one_timeline_idx`, a unique index on
 `(source_type,source_id)` for canonical Signal links. Presence and current
 definition in a live database are **not verified** here. The new `NOT VALID`
 check rejects new NULL Incident bindings without claiming older receipts have
-been backfilled. Future migration planning must consolidate the same proposed
-column in the Risk claim package; it must not apply both `ADD COLUMN` clauses.
+been backfilled. The local review-chain copy of the Risk claim package now
+references this file as its sole `incident_id` definition and no longer repeats
+the `ADD COLUMN`. The separate source PR branches were not changed; a future
+migration author must take the consolidated review-chain version, not combine
+stale draft DDL from separate PRs.
 
 ## Isolated proof and boundaries
 

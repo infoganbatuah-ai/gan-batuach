@@ -11,14 +11,12 @@ BEGIN
 END;
 $draft_guard$;
 
--- BLOCKED additive dependency, not a deployable migration: the existing
--- guarded Home binding has no immutable Incident reference. Its acceptance
--- writer must set this in the same transaction as the canonical association;
--- no historical row is inferred or backfilled here. Until that writer and
--- its permissions are qualified, the claim body below cannot be installed.
-ALTER TABLE observer_home_review.event_bindings
-  ADD COLUMN incident_id uuid REFERENCES public.observer_correlated_events(id)
-  ON DELETE RESTRICT;
+-- BLOCKED additive dependency, not a deployable migration: the sole proposed
+-- event_bindings.incident_id definition and NOT VALID new-write constraint
+-- live in ../event-risk-authority-source/FROZEN-INCIDENT-BINDING-NOT-APPLIED.sql.
+-- The Home acceptance writer must populate the server-derived Incident ID in
+-- the same transaction as canonical association. Never infer/backfill old rows.
+-- Install neither body until the dependency and caller permissions are reviewed.
 
 -- PROPOSED BODY 1/7. Caller: server-side service_role only. One SQL function
 -- call is one transaction. The PK serializes contenders; a failed contender

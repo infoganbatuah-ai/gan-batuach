@@ -2,6 +2,8 @@
 -- Candidate depends on the separately guarded Home acceptance and correlation
 -- contracts. Existing rows require an independently reviewed, non-ambiguous
 -- migration; this file provides no backfill and no caller grants.
+-- This is the sole review-only definition of event_bindings.incident_id for
+-- the Home acceptance -> Risk claim -> Risk persist -> Effect Plan chain.
 BEGIN;
 DO $guard$ BEGIN
   RAISE EXCEPTION 'DRAFT_NOT_APPLIED: live correlation, authority and backfill unverified';
