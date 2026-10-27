@@ -5,7 +5,9 @@ import { createHash, randomBytes } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { createReadStream, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, rmdirSync, statSync, statfsSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
+import { writeBoundedCiphertext } from "./bounded-ciphertext-writer.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const prefix = join(worktree, ".cold-backup-qa.");
@@ -32,7 +34,6 @@ const contexts = ["source", "restore"].map((kind, index) => ({
   home: null, ids: [], volumes: [],
 }));
 let keyPath = null;
-let monitor = null;
 
 function run(bin, args, { env, input, timeout = 30000, allowFailure = false } = {}) {
   const result = spawnSync(bin, args, { env: { ...process.env, ...env }, input,
@@ -51,7 +52,7 @@ function docker(c, args, timeout = 30000, allowFailure = false) {
   return guest(c, ["sudo", "docker", ...args], timeout, allowFailure);
 }
 function freeBytes() {
-  const s = statfsSync("/");
+  const s = statfsSync(dirname(cipher));
   const free = Number(s.bavail) * Number(s.bsize);
   evidence.minimumObservedInternalFreeBytes = Math.min(evidence.minimumObservedInternalFreeBytes ?? free, free);
   if (free < floor) throw new Error("INTERNAL_FREE_FLOOR_BREACHED");
@@ -154,23 +155,18 @@ function exitOf(p) {
 async function archive(c, recipient) {
   const tar = child("/opt/homebrew/bin/limactl", ["shell", "--tty=false", c.guest, "--",
     "sudo", "tar", "-C", "/var/lib/docker/volumes", "-cf", "-", "qa_pgdata/_data", "qa_storage/_data"], envFor(c));
-  const age = child("/opt/homebrew/bin/age", ["-r", recipient, "-o", cipher]);
-  tar.p.stdout.pipe(age.p.stdin);
-  let exceeded = false;
-  monitor = setInterval(() => {
-    try {
-      freeBytes();
-      if (existsSync(cipher) && statSync(cipher).size > limit) throw new Error("CIPHERTEXT_CAP_BREACHED");
-    } catch {
-      exceeded = true; tar.p.kill(); age.p.kill();
-    }
-  }, 100);
-  try { await Promise.all([exitOf(tar.p), exitOf(age.p)]); }
+  const age = child("/opt/homebrew/bin/age", ["-r", recipient]);
+  const sourceToAge = pipeline(tar.p.stdout, age.p.stdin);
+  try {
+    const result = await writeBoundedCiphertext({
+      ciphertext: age.p.stdout, outputPath: cipher, maxBytes: limit,
+      minFreeBytes: floor, freeBytes,
+      upstreamCompletion: Promise.all([sourceToAge, exitOf(tar.p), exitOf(age.p)]),
+      abortUpstream: () => { tar.p.kill(); age.p.kill(); },
+    });
+    evidence.ciphertextBytes = result.bytes;
+  }
   catch (error) { throw new Error(`ENCRYPTED_EXPORT_FAILED:${tar.error().slice(0, 150)}:${age.error().slice(0, 150)}:${error.message}`); }
-  finally { clearInterval(monitor); monitor = null; }
-  assert.ok(!exceeded, "EXPORT_LIMIT_BREACHED");
-  evidence.ciphertextBytes = statSync(cipher).size;
-  assert.ok(evidence.ciphertextBytes > 0 && evidence.ciphertextBytes <= limit, "CIPHERTEXT_CAP_BREACHED");
   freeBytes();
   const hash = createHash("sha256");
   for await (const chunk of createReadStream(cipher)) hash.update(chunk);
@@ -293,7 +289,6 @@ try {
 } catch (error) {
   evidence.reason = String(error.message).slice(0, 400);
 } finally {
-  if (monitor) clearInterval(monitor);
   if (keyPath && existsSync(keyPath)) unlinkSync(keyPath);
   const cleaned = contexts.map(cleanup);
   if (cleaned.every(Boolean) && scratch.startsWith(prefix) && cipherDir.startsWith("/private/tmp/do-cold-cipher-qa.")) {
