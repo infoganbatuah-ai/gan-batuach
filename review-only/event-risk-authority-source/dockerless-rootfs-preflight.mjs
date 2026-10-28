@@ -6,6 +6,8 @@ import * as tar from "tar";
 
 const LAYER_COUNT = 29;
 const MAX_MEMBERS = 100_000;
+const MAX_MEMBER_BYTES = 256 * 1024 ** 2;
+const MAX_REGULAR_BYTES = 2 * 1024 ** 3;
 const TYPES = new Set(["File", "Directory", "SymbolicLink", "Link"]);
 
 function memberPath(value) {
@@ -45,6 +47,7 @@ export function evaluateDockerlessRootfsLayers(layers) {
     "QA_ROOTFS_LAYER_COUNT_INVALID");
   const state = new Map();
   let members = 0, symlinks = 0, hardlinks = 0, whiteouts = 0;
+  let regularBytes = 0, privilegedModes = 0;
   for (let index = 0; index < layers.length; index++) {
     const layer = layers[index];
     assert.equal(layer?.path, `layers/${String(index).padStart(2, "0")}/layer.tar`,
@@ -59,6 +62,16 @@ export function evaluateDockerlessRootfsLayers(layers) {
       assert.ok(!seen.has(path), "QA_ROOTFS_DUPLICATE_MEMBER");
       seen.add(path);
       assert.ok(TYPES.has(entry.type), "QA_ROOTFS_SPECIAL_NODE_DENIED");
+      assert.ok(Number.isSafeInteger(entry.uid) && entry.uid >= 0 && entry.uid <= 65535 &&
+        Number.isSafeInteger(entry.gid) && entry.gid >= 0 && entry.gid <= 65535 &&
+        Number.isSafeInteger(entry.mode) && entry.mode >= 0 && entry.mode <= 0o7777 &&
+        Number.isSafeInteger(entry.size) && entry.size >= 0 &&
+        entry.size <= MAX_MEMBER_BYTES, "QA_ROOTFS_METADATA_INVALID");
+      if (entry.type === "File") {
+        regularBytes += entry.size;
+        assert.ok(regularBytes <= MAX_REGULAR_BYTES, "QA_ROOTFS_BYTE_CAP_EXCEEDED");
+      }
+      if (entry.mode & 0o6000) privilegedModes++;
       const basename = posix.basename(path);
       if (basename.startsWith(".wh.")) {
         assertNoSymlinkParent(path, state);
@@ -97,7 +110,7 @@ export function evaluateDockerlessRootfsLayers(layers) {
   }
   return Object.freeze({ status: "OFFLINE_METADATA_ONLY", extractionAuthorized: false,
     layerCount: LAYER_COUNT, members, symlinks, hardlinks, whiteouts,
-    finalPaths: state.size });
+    finalPaths: state.size, regularBytes, privilegedModes });
 }
 
 export async function inspectDockerlessRootfsMetadata(checked) {
@@ -116,7 +129,8 @@ export async function inspectDockerlessRootfsMetadata(checked) {
       const parser = new tar.Parser({ strict: true, onReadEntry(inner) {
         if (++memberCount <= MAX_MEMBERS) layer.entries.push({
           path: inner.path, type: inner.type,
-          linkpath: inner.linkpath, size: inner.size });
+          linkpath: inner.linkpath, size: inner.size,
+          uid: inner.uid, gid: inner.gid, mode: inner.mode });
         else overflow = true;
         inner.resume();
       } });
@@ -130,5 +144,6 @@ export async function inspectDockerlessRootfsMetadata(checked) {
   });
   await Promise.all(pending);
   assert.equal(overflow, false, "QA_ROOTFS_MEMBER_CAP_EXCEEDED");
-  return evaluateDockerlessRootfsLayers(layers);
+  return Object.freeze({ ...evaluateDockerlessRootfsLayers(layers),
+    sourceSha256: checked.sha256 });
 }
