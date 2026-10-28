@@ -3,19 +3,24 @@
 import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { createReadStream, existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, constants as fsConstants, copyFileSync, createReadStream, existsSync,
+  mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statfsSync, statSync,
+  writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertFreshIsolatedTarget, COMPONENT_FILES, verifyComponentCiphertexts } from "./component-restore-preflight.mjs";
 import { createComponentReceipt } from "./component-backup-contract.mjs";
 import { verifyDecryptedStorageTar } from "./verify-decrypted-storage-tar.mjs";
 import { runGuardedComponentRestore } from "./component-restore-controller.mjs";
+import { assertQaImageTargetCapacity, assertQaImageTransferBoundary,
+  parseQaImageArguments, QA_POSTGRES_IMAGE, QA_POSTGRES_IMAGE_ID,
+  verifyIndependentQaImage } from "./synthetic-qa-image-input.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const cachedBase = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/cache/caches/b0992ab88f5a3c0c436bbb3065c01466f20dc1dd0eb0a60299d410176f21a1c3";
-const sourceDocker = "unix:///Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima/gbi/docker.sock";
-const pgImage = "public.ecr.aws/supabase/postgres:17.6.1.167";
-const pgImageId = "sha256:6942962433a569e87f228b4d4ab7e11db5deca64e43babb3a038443ad6c4f1bb";
+const qaImageInput = await verifyIndependentQaImage(parseQaImageArguments(process.argv.slice(2)));
+const pgImage = QA_POSTGRES_IMAGE;
+const pgImageId = QA_POSTGRES_IMAGE_ID;
 const scratch = mkdtempSync(join(worktree, ".restore-architecture-qa."));
 const image = join(scratch, "target.sparsebundle");
 const mount = mkdtempSync("/private/tmp/do-restore-qa.");
@@ -634,12 +639,16 @@ WantedBy=sysinit.target
   guestRun(["true"], env);
   evidence.managementSurvivedFirewall = true;
 
-  const localImageId = run("/opt/homebrew/bin/docker", ["-H", sourceDocker,
-    "image", "inspect", pgImage, "--format", "{{.Id}}"], { timeout: 30000 }).stdout.trim();
-  assert.equal(localImageId, pgImageId, "CACHED_POSTGRES_IMAGE_CHANGED");
+  assertQaImageTransferBoundary(evidence);
+  const imageTargetFs = statfsSync(mount);
+  assertQaImageTargetCapacity(Number(imageTargetFs.bavail) * Number(imageTargetFs.bsize),
+    qaImageInput.bytes);
   const imageTar = join(mount, "cached-postgres-image.tar");
-  run("/opt/homebrew/bin/docker", ["-H", sourceDocker, "image", "save", "-o", imageTar, pgImage],
-    { timeout: 120000 });
+  copyFileSync(qaImageInput.tarPath, imageTar, fsConstants.COPYFILE_EXCL);
+  chmodSync(imageTar, 0o600);
+  const stagedImage = await verifyIndependentQaImage({ tarPath: imageTar,
+    sha256: qaImageInput.sha256 });
+  assert.equal(stagedImage.bytes, qaImageInput.bytes, "QA_IMAGE_STAGED_SIZE_MISMATCH");
   run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp", imageTar,
     `${guest}:/tmp/cached-postgres-image.tar`], { env, timeout: 120000 });
   guestDocker(["image", "load", "-i", "/tmp/cached-postgres-image.tar"], env, 120000);

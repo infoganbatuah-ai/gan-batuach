@@ -278,3 +278,12 @@ test("guarded synthetic controller requires a fresh isolation measurement", asyn
     assert.deepEqual(calls, ["stopAndCleanup"]);
   } finally { f.cleanup(); }
 });
+
+test("guarded synthetic controller remains NO_GO without a new guest measurement", async () => {
+  const f = fixture();
+  try {
+    const { result, calls } = await runController(f, { measureFreshIsolation: async () => null });
+    assert.equal(result.status, "NO_GO");
+    assert.deepEqual(calls, ["stopAndCleanup"]);
+  } finally { f.cleanup(); }
+});
