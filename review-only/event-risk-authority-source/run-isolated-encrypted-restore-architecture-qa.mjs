@@ -27,6 +27,8 @@ const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   guestIpv4OutputDrop: false, guestIpv6OutputDrop: false,
   guestIpv4ForwardDrop: false, guestIpv6ForwardDrop: false,
   managementSurvivedFirewall: false, dnsHasNoAllowRule: false,
+  ipv4EgressProbeDenied: false, ipv6EgressProbeDenied: false,
+  dnsResolutionProbeDenied: false, egressProbesDeniedAfterReboot: false,
   firewallPersistence: "NOT_TESTED", bootRouteAbsentBeforePolicy: false,
   bootIpv6RouteAbsentBeforePolicy: false,
   rebootVerified: false, postgresSentinelAfterReboot: false,
@@ -72,6 +74,23 @@ function verifyFirewall(env, peerIp, guestSshPort) {
   assert.ok(evidence.guestIpv4OutputDrop && evidence.guestIpv6OutputDrop &&
     evidence.guestIpv4ForwardDrop && evidence.guestIpv6ForwardDrop &&
     evidence.dnsHasNoAllowRule, "GUEST_EGRESS_POLICY_NOT_FAIL_CLOSED");
+}
+function verifyDeniedEgress(env) {
+  // These probes run before any source data is present. Policy inspection alone
+  // cannot establish that packets are denied on the actual guest path.
+  guestRun(["sh", "-lc", "command -v timeout >/dev/null && command -v bash >/dev/null && command -v getent >/dev/null"], env);
+  const denied = args => {
+    const result = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", ...args],
+      { env, timeout: 10000, allowFailure: true });
+    return result.status !== 0 && result.status !== null && !result.error;
+  };
+  const ipv4 = denied(["timeout", "3", "bash", "-c", "exec 3<>/dev/tcp/1.1.1.1/443"]);
+  const ipv6 = denied(["timeout", "3", "bash", "-c", "exec 3<>/dev/tcp/2606:4700:4700::1111/443"]);
+  const dns = denied(["timeout", "3", "getent", "ahostsv4", "cloudflare.com"]);
+  assert.ok(ipv4 && ipv6 && dns, "GUEST_EGRESS_PROBE_SUCCEEDED");
+  evidence.ipv4EgressProbeDenied = ipv4;
+  evidence.ipv6EgressProbeDenied = ipv6;
+  evidence.dnsResolutionProbeDenied = dns;
 }
 
 try {
@@ -194,6 +213,7 @@ WantedBy=sysinit.target
   assert.equal(guestRun(["systemctl", "is-enabled", "do-qa-egress-lock.service"], env).stdout.trim(), "enabled");
   assert.equal(guestRun(["systemctl", "is-active", "do-qa-egress-lock.service"], env).stdout.trim(), "active");
   verifyFirewall(env, peerIp, guestSshPort);
+  verifyDeniedEgress(env);
   guestRun(["true"], env);
   evidence.managementSurvivedFirewall = true;
 
@@ -267,6 +287,8 @@ WantedBy=sysinit.target
   assert.notEqual(bootIdAfter, bootIdBefore, "SCRATCH_VM_DID_NOT_REBOOT");
   assert.equal(guestRun(["systemctl", "is-active", "do-qa-egress-lock.service"], env).stdout.trim(), "active");
   verifyFirewall(env, peerIp, guestSshPort);
+  verifyDeniedEgress(env);
+  evidence.egressProbesDeniedAfterReboot = true;
   evidence.bootRouteAbsentBeforePolicy = guestRun(["cat", "/run/do-qa-default-route-before-lock"], env).stdout.trim() === "0";
   evidence.bootIpv6RouteAbsentBeforePolicy = guestRun(["cat", "/run/do-qa-ipv6-default-route-before-lock"], env).stdout.trim() === "0";
   assert.ok(evidence.bootRouteAbsentBeforePolicy, "NETWORK_ROUTE_PRECEDED_BOOT_FIREWALL");
