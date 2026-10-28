@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Disposable architecture probe only: synthetic sentinel; never Development data.
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createReadStream, existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { assertFreshIsolatedTarget } from "./component-restore-preflight.mjs";
+import { assertFreshIsolatedTarget, COMPONENT_FILES, verifyComponentCiphertexts } from "./component-restore-preflight.mjs";
+import { createComponentReceipt } from "./component-backup-contract.mjs";
+import { verifyDecryptedStorageTar } from "./verify-decrypted-storage-tar.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const cachedBase = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/cache/caches/b0992ab88f5a3c0c436bbb3065c01466f20dc1dd0eb0a60299d410176f21a1c3";
@@ -36,6 +38,10 @@ const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   storageSentinelAfterReboot: false, sentinelRecoveredAfterReattach: false,
   postgresRestoredFromCustomDump: false, storageRestoredFromTar: false,
   preflightAcceptedFreshMeasuredProof: false,
+  syntheticFiveAgeCaptured: false, syntheticCiphertextSetVerified: false,
+  syntheticFiveAgeAuthenticated: false, syntheticStorageTarGatePassed: false,
+  syntheticNegativeCasesPassed: false, syntheticComponentScratchCleaned: false,
+  syntheticPhase: "NOT_STARTED",
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
   originalVolumesAbsent: false, payloadHiddenAfterDetach: false, scratchCleaned: false };
@@ -56,6 +62,45 @@ function guestRun(args, env, timeout = 30000) {
 }
 function guestDocker(args, env, timeout = 30000) {
   return guestRun(["sudo", "docker", ...args], env, timeout);
+}
+function binary(bin, args, { input, env, timeout = 30000, allowFailure = false } = {}) {
+  const result = spawnSync(bin, args, { input, env: env ? { ...process.env, ...env } : process.env,
+    encoding: null, timeout, maxBuffer: 8 * 1024 * 1024 });
+  if (result.error) throw result.error;
+  if (result.status !== 0 && !allowFailure)
+    throw new Error(`SYNTHETIC_BINARY_COMMAND_FAILED:${bin.split("/").at(-1)}:${result.status}`);
+  return result;
+}
+function guestDockerBinary(args, env) {
+  const result = binary("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker", ...args],
+    { env, timeout: 60000, allowFailure: true });
+  if (result.status !== 0) {
+    // The guest contains synthetic data only. Keep only bounded command stderr;
+    // never log stdout, which may contain a dump or archive.
+    const diagnostic = result.stderr.toString("utf8").trim().replace(/[^a-zA-Z0-9_ .:/-]/g, "?").slice(0, 180);
+    throw new Error(`SYNTHETIC_GUEST_CAPTURE_FAILED:${result.status}:${diagnostic}`);
+  }
+  return result.stdout;
+}
+const sha256 = value => createHash("sha256").update(value).digest("hex");
+function syntheticIdentity() {
+  const generated = binary("/opt/homebrew/bin/age-keygen", []).stdout;
+  const privateMatch = generated.toString("ascii").match(/^AGE-SECRET-KEY-1[A-Z0-9]+$/m);
+  const publicMatch = generated.toString("ascii").match(/^# public key: (age1[023456789acdefghjklmnpqrstuvwxyz]+)$/m);
+  assert.ok(privateMatch && publicMatch, "SYNTHETIC_AGE_IDENTITY_INVALID");
+  const key = Buffer.from(privateMatch[0], "ascii");
+  generated.fill(0);
+  return { key, recipient: publicMatch[1] };
+}
+function syntheticDecrypt(directory, ciphertext, output, key, expectedSuccess) {
+  const input = Buffer.concat([key, Buffer.from("\n")]);
+  try {
+    const result = binary("/usr/bin/python3", [join(dirname(fileURLToPath(import.meta.url)),
+      "synthetic-age-pty-fd-decrypt.py"), "--synthetic-decrypt", directory, ciphertext, output],
+    { input, timeout: 30000, allowFailure: true });
+    assert.equal(result.status === 0, expectedSuccess, "SYNTHETIC_AGE_AUTH_RESULT_MISMATCH");
+    assert.equal(existsSync(output), expectedSuccess, "SYNTHETIC_PARTIAL_PLAINTEXT_LEAK");
+  } finally { input.fill(0); }
 }
 function firewallRules(family, chain, env) {
   return guestRun(["sudo", family, "-S", chain], env).stdout.trim().split(/\r?\n/);
@@ -96,11 +141,147 @@ function verifyDeniedEgress(env) {
   evidence.dnsResolutionProbeDenied = dns;
 }
 
+async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSshPort }) {
+  // All persistent fixture material lives on the disposable AES-256 mount.
+  // The guest contains synthetic data only; neither original receipt nor owner
+  // identity is accepted by this function.
+  const directory = join(mount, "synthetic-components");
+  mkdirSync(directory, { mode: 0o700 });
+  writeFileSync(join(directory, ".synthetic-only"), "synthetic disposable QA\n",
+    { mode: 0o600, flag: "wx" });
+  const identity = syntheticIdentity();
+  try {
+    evidence.syntheticPhase = "PREPARE_DATABASES";
+    for (const database of ["_supabase", "gan_batuach_baseline_builder_v2"]) {
+      guestDocker(["exec", sourcePg, "createdb", "-h", "/tmp", "-U", "postgres", database], env);
+      guestDocker(["exec", sourcePg, "psql", "-X", "-h", "/tmp", "-U", "postgres",
+        "-d", database, "-v", "ON_ERROR_STOP=1", "-c",
+        "CREATE TABLE qa_sentinel (value text NOT NULL); INSERT INTO qa_sentinel VALUES ('synthetic-only');"], env);
+    }
+    const storageBytes = Buffer.from("synthetic-storage-only", "utf8");
+    const storageManifest = { fileCount: 1, logicalFileBytes: storageBytes.length,
+      crossStoreAtomicity: "NOT_PROVEN", sampledSourceFileManifest: [{
+        pathDigest: sha256("object"), sha256: sha256(storageBytes), bytes: storageBytes.length,
+      }] };
+    const definitions = [
+      ...["_supabase", "gan_batuach_baseline_builder_v2", "postgres"].map(database => ({
+        id: `database:${database}`, kind: "database", name: database,
+        produce: () => guestDockerBinary(["exec", sourcePg, "pg_dump", "-Fc", "-U", "postgres",
+          "-h", "/tmp", "-d", database], env),
+      })),
+      { id: "globals", kind: "globals", produce: () => guestDockerBinary(["exec", sourcePg,
+        "pg_dumpall", "--globals-only", "-U", "postgres", "-h", "/tmp"], env) },
+      { id: "storage-bytes", kind: "storage-bytes", details: storageManifest,
+        produce: () => guestDockerBinary(["run", "--rm", "--network", "none", "--pull", "never",
+          "--volume", "qa_storage:/mnt:ro", "--entrypoint", "/bin/tar", pgImage,
+          "-C", "/mnt", "-cf", "-", "."], env) },
+    ];
+    const builder = createComponentReceipt({ expectedDatabases: ["_supabase",
+      "gan_batuach_baseline_builder_v2", "postgres"] });
+    for (const definition of definitions) {
+      evidence.syntheticPhase = `CAPTURE_${definition.id.replace(/[^a-z0-9]/gi, "_")}`;
+      const startedAtUtc = new Date().toISOString();
+      const plain = definition.produce();
+      assert.ok(plain.length > 0 && plain.length < 8 * 1024 * 1024,
+        "SYNTHETIC_COMPONENT_PLAINTEXT_CAP");
+      if (definition.kind === "database") assert.ok(plain.subarray(0, 5).equals(Buffer.from("PGDMP")),
+        "SYNTHETIC_DATABASE_DUMP_FORMAT");
+      const encrypted = binary("/opt/homebrew/bin/age", ["-r", identity.recipient],
+        { input: plain, timeout: 30000 }).stdout;
+      plain.fill(0);
+      const file = COMPONENT_FILES[definition.id];
+      writeFileSync(join(directory, file), encrypted, { mode: 0o600, flag: "wx" });
+      builder.addSuccess({ kind: definition.kind, name: definition.name, file,
+        startedAtUtc, endedAtUtc: new Date().toISOString(), bytes: encrypted.length,
+        ciphertextSha256: sha256(encrypted), details: definition.details });
+    }
+    evidence.syntheticFiveAgeCaptured = true;
+    const expected = { expectedScope: "synthetic-disposable-guest",
+      expectedRecipientSha256: sha256(identity.recipient), expectedSourceContainerId: sourcePg };
+    const receipt = builder.receipt({ scope: expected.expectedScope,
+      publicRecipientSha256: expected.expectedRecipientSha256,
+      sourceContainerId: sourcePg, independentRestore: "NOT_RUN" });
+    const receiptPath = join(directory, "receipt.json");
+    writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600, flag: "wx" });
+    evidence.syntheticPhase = "VERIFY_CIPHERTEXT_SET";
+    // Recheck the same guest immediately before accepting its component set.
+    verifyFirewall(env, peerIp, guestSshPort);
+    verifyDeniedEgress(env);
+    evidence.noHostMounts = guestRun(["sh", "-lc", "mount | grep -c 'virtiofs' || true"], env).stdout.trim() === "0";
+    evidence.noProxyEnv = guestRun(["sh", "-lc",
+      "env | cut -d= -f1 | grep -Eic '^(http_proxy|https_proxy|all_proxy|no_proxy)$' || true"], env).stdout.trim() === "0";
+    evidence.originalVolumesAbsent = JSON.stringify(guestDocker(["volume", "ls", "--format", "{{.Name}}"],
+      env).stdout.trim().split(/\r?\n/).sort()) === JSON.stringify(["qa_pgdata", "qa_storage"]);
+    evidence.pgNetworkNone = guestDocker(["inspect", sourcePg, "--format",
+      "{{.HostConfig.NetworkMode}}"], env).stdout.trim() === "none";
+    evidence.checkedAtMs = Date.now();
+    assertFreshIsolatedTarget(evidence);
+    const verified = await verifyComponentCiphertexts(receiptPath,
+      { ...expected, deadlineAt: Date.now() + 60_000 });
+    assert.equal(verified.status, "CIPHERTEXT_SET_VERIFIED_NOT_DECRYPTED");
+    assert.equal(verified.components.length, 5);
+    evidence.syntheticCiphertextSetVerified = true;
+    for (const definition of definitions) {
+      evidence.syntheticPhase = `DECRYPT_${definition.id.replace(/[^a-z0-9]/gi, "_")}`;
+      const file = COMPONENT_FILES[definition.id];
+      const plaintext = join(directory, `${file}.plain`);
+      syntheticDecrypt(directory, join(directory, file), plaintext, identity.key, true);
+      if (definition.kind === "database") assert.equal(readFileSync(plaintext).subarray(0, 5).toString(), "PGDMP");
+    }
+    evidence.syntheticFiveAgeAuthenticated = true;
+    evidence.syntheticPhase = "VERIFY_STORAGE_GATE";
+    const storagePlain = join(directory, "storage-bytes.age.plain");
+    const storageResult = await verifyDecryptedStorageTar(createReadStream(storagePlain), receipt);
+    assert.equal(storageResult.status, "STORAGE_ARCHIVE_FILES_VERIFIED");
+    evidence.syntheticStorageTarGatePassed = true;
+    evidence.syntheticPhase = "NEGATIVE_CASES";
+    const wrong = syntheticIdentity();
+    try { syntheticDecrypt(directory, join(directory, "postgres.age"),
+      join(directory, "wrong-key.plain"), wrong.key, false); }
+    finally { wrong.key.fill(0); }
+    for (const definition of definitions) {
+      const file = COMPONENT_FILES[definition.id];
+      const tampered = Buffer.from(readFileSync(join(directory, file)));
+      tampered[tampered.length - 1] ^= 1;
+      const tamperedPath = join(directory, `tampered-${file}`);
+      writeFileSync(tamperedPath, tampered, { mode: 0o600, flag: "wx" });
+      syntheticDecrypt(directory, tamperedPath, join(directory, `tampered-${file}.plain`),
+        identity.key, false);
+    }
+    const badReceiptPath = join(directory, "bad-receipt.json");
+    writeFileSync(badReceiptPath, JSON.stringify({ ...receipt,
+      totalEncryptedBytes: receipt.totalEncryptedBytes + 1 }), { mode: 0o600, flag: "wx" });
+    await assert.rejects(verifyComponentCiphertexts(badReceiptPath, expected),
+      /RESTORE_CIPHERTEXT_TOTAL_MISMATCH/);
+    await assert.rejects(verifyComponentCiphertexts(receiptPath,
+      { ...expected, deadlineAt: Date.now() - 1 }), /RESTORE_PREFLIGHT_DEADLINE/);
+    const corruptTar = Buffer.from(readFileSync(storagePlain));
+    const sentinelOffset = corruptTar.indexOf(storageBytes);
+    assert.ok(sentinelOffset >= 0, "SYNTHETIC_STORAGE_PAYLOAD_NOT_FOUND");
+    corruptTar[sentinelOffset] ^= 1;
+    const corruptCiphertext = binary("/opt/homebrew/bin/age", ["-r", identity.recipient],
+      { input: corruptTar }).stdout;
+    corruptTar.fill(0);
+    const corruptPath = join(directory, "corrupt-storage.age");
+    writeFileSync(corruptPath, corruptCiphertext, { mode: 0o600, flag: "wx" });
+    const corruptPlain = join(directory, "corrupt-storage.plain");
+    syntheticDecrypt(directory, corruptPath, corruptPlain, identity.key, true);
+    await assert.rejects(verifyDecryptedStorageTar(createReadStream(corruptPlain), receipt),
+      /TAR_FILE_HASH_MISMATCH/);
+    evidence.syntheticNegativeCasesPassed = true;
+    evidence.syntheticPhase = "COMPLETE";
+  } finally {
+    identity.key.fill(0);
+    rmSync(directory, { recursive: true });
+    evidence.syntheticComponentScratchCleaned = !existsSync(directory);
+  }
+}
+
 try {
   assert.ok(existsSync(cachedBase), "LOCAL_BASE_IMAGE_MISSING");
   assert.ok(statSync(cachedBase).size > 300_000_000,
     "LOCAL_BASE_IMAGE_INVALID");
-  run("/usr/bin/hdiutil", ["create", "-size", "8g", "-type", "SPARSEBUNDLE",
+  run("/usr/bin/hdiutil", ["create", "-size", "12g", "-type", "SPARSEBUNDLE",
     "-encryption", "AES-256", "-stdinpass", "-fs", "APFS", "-volname",
     "DO_RESTORE_QA", "-nospotlight", image], { input: `${secret}\n`, timeout: 120000 });
   run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-owners", "on", "-stdinpass", "-mountpoint", mount, image],
@@ -330,6 +511,7 @@ WantedBy=sysinit.target
   evidence.checkedAtMs = Date.now();
   assertFreshIsolatedTarget(evidence); // Measured in this guest, never loaded from an external receipt.
   evidence.preflightAcceptedFreshMeasuredProof = true;
+  await verifySyntheticFiveAgeComponents({ env, sourcePg: resumedPg, peerIp, guestSshPort });
   // Exercise the real PostgreSQL custom-format restore engine and a disjoint
   // Storage volume, still using only synthetic data inside the encrypted guest.
   guestDocker(["volume", "create", "qa_restored_pgdata"], env);

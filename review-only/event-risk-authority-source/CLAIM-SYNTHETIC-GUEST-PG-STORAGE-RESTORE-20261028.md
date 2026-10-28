@@ -1,6 +1,6 @@
 # Encrypted isolated guest: synthetic PostgreSQL and Storage restore
 
-**2026-10-28, review-only. Result: synthetic restore mechanics PASS; five-age-archive end-to-end and real Development restore NOT RUN.** The current original `gbi` component capture remains `COMPONENT_BACKUPS_ONLY`. No original receipt/ciphertext, owner age identity, Notes or clipboard was opened in this unit.
+**2026-10-28, review-only. Result at this checkpoint: synthetic restore mechanics PASS; five-age-archive end-to-end and real Development restore NOT RUN.** A later synthetic capture/decrypt qualification is recorded in [CLAIM-FIVE-SYNTHETIC-AGE-COMPONENTS-20261028.md](CLAIM-FIVE-SYNTHETIC-AGE-COMPONENTS-20261028.md); all-three-database/globals restore and real Development restore remain NOT RUN. The current original `gbi` component capture remains `COMPONENT_BACKUPS_ONLY`. No original receipt/ciphertext, owner age identity, Notes or clipboard was opened in this unit.
 
 ## New measured result
 
@@ -12,7 +12,7 @@ The first extended run failed when a dump file expected inside the source contai
 
 The follow-up run bound `component-restore-preflight.mjs` directly to fresh measurements from this same disposable guest, after reboot and before creating either restored volume. It rechecked host mounts, inherited proxy variables, exact synthetic volume inventory and PostgreSQL network mode, then stamped the in-process evidence and called `assertFreshIsolatedTarget`. The result included `preflightAcceptedFreshMeasuredProof=true`, both restore flags and `scratchCleaned=true`. The 24 existing preflight synthetic tests and JavaScript syntax/diff checks passed. No externally supplied proof JSON was accepted in this guest path. This narrows the isolation-proof gap; it does not turn the probe into a five-component restore adapter.
 
-## Remaining exact NO-GO
+## Remaining exact NO-GO at this checkpoint
 
 This is **not** the requested full five-archive age restore adapter. The synthetic PG dump and Storage tar were transported within the encrypted guest, but were not encrypted as five age components, authenticated/decrypted using the TTY→FD bridge, or compared against a component receipt. Globals and all three database names were not restored; no Auth/roles/RLS/migration/metadata-to-object verification occurred. The preflight now accepts fresh measured evidence in this live synthetic guest, but the full component controller still uses a test adapter; it has not orchestrated age decrypt and restore. Fault injection for wrong key, ciphertext/tar corruption, lost egress policy and partial real restore cleanup has not been run in a concrete guest adapter; prior 24 tests covered only a fake adapter.
 
