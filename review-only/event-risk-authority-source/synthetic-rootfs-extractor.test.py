@@ -12,6 +12,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+from unittest import mock
 
 
 MODULE = pathlib.Path(__file__).with_name("synthetic-rootfs-extractor.py")
@@ -213,6 +214,116 @@ class ExtractorTest(unittest.TestCase):
         self.assertIsNone(extractor.APPROVED_REAL_QA_EXTRACTOR)
         with self.assertRaisesRegex(extractor.UnsafeLayer, "REAL_QA_EXTRACTOR_DISABLED"):
             extractor.extract_approved_qa_rootfs("/real/archive", self.target)
+        self.assertEqual(os.listdir(self.target), [])
+
+    def test_intermediate_parent_swap_cannot_redirect_extraction(self):
+        outer = tempfile.mkdtemp(prefix="do-qa-parent-race-")
+        moved = outer + "-moved"
+        other = tempfile.mkdtemp(prefix="do-qa-parent-other-")
+        target_name = "do-qa-synthetic-rootfs-" + secrets.token_hex(12)
+        for base in (outer, other):
+            os.mkdir(os.path.join(base, "inner"), 0o700)
+            os.mkdir(os.path.join(base, "inner", target_name), 0o700)
+        external = pathlib.Path(other, "inner", "sentinel")
+        external.write_bytes(b"do not touch")
+        intended_parent = os.path.join(outer, "inner")
+        intended_target = os.path.join(intended_parent, target_name)
+        original_open = os.open
+        swapped = False
+
+        def swap_before_open(path, flags, mode=0o777, *, dir_fd=None):
+            nonlocal swapped
+            if not swapped and (path == intended_parent or
+                                (path == os.path.basename(outer) and dir_fd is not None)):
+                os.rename(outer, moved)
+                os.symlink(other, outer)
+                swapped = True
+            return original_open(path, flags, mode, dir_fd=dir_fd)
+
+        try:
+            with mock.patch.object(extractor.os, "open", side_effect=swap_before_open):
+                with self.assertRaises(OSError):
+                    extractor.extract_synthetic_layers(
+                        [layer(0, [("payload", "file", b"wrong target")])],
+                        intended_parent, intended_target, purpose="synthetic-fixture-only")
+            self.assertTrue(swapped)
+            self.assertEqual(external.read_bytes(), b"do not touch")
+            self.assertEqual(os.listdir(os.path.join(other, "inner", target_name)), [])
+            self.assertEqual(os.listdir(os.path.join(moved, "inner", target_name)), [])
+        finally:
+            if os.path.islink(outer):
+                os.unlink(outer)
+            if os.path.isdir(outer):
+                shutil.rmtree(outer)
+            if os.path.isdir(moved):
+                shutil.rmtree(moved)
+            shutil.rmtree(other)
+
+    def test_rollback_does_not_delete_swapped_directory(self):
+        receipt = self.extract(layer(0, [("tree", "dir"),
+                                        ("tree/old", "file", b"original")]))
+        external = os.path.join(self.parent, "external-dir")
+        os.mkdir(external, 0o700)
+        external_sentinel = pathlib.Path(external, "sentinel")
+        external_sentinel.write_bytes(b"external must survive")
+        old_tree = os.path.join(self.target, "tree")
+        original_open = os.open
+        swapped = False
+
+        def swap_directory_before_open(path, flags, mode=0o777, *, dir_fd=None):
+            nonlocal swapped
+            if path == "tree" and dir_fd is not None and not swapped:
+                os.rename(old_tree, old_tree + "-moved")
+                os.rename(external, old_tree)
+                swapped = True
+            return original_open(path, flags, mode, dir_fd=dir_fd)
+
+        try:
+            with mock.patch.object(extractor.os, "open", side_effect=swap_directory_before_open):
+                with self.assertRaises(extractor.UnsafeLayer):
+                    extractor.rollback_synthetic_target(self.parent, self.target,
+                        receipt["target_inode"], receipt["target_device"])
+            self.assertTrue(swapped)
+            self.assertEqual(pathlib.Path(old_tree, "sentinel").read_bytes(),
+                             b"external must survive")
+        finally:
+            if os.path.isdir(old_tree) and not os.path.exists(external):
+                os.rename(old_tree, external)
+
+    def test_pax_override_escape_and_gnu_sparse_type_are_denied(self):
+        pax = io.BytesIO()
+        with tarfile.open(fileobj=pax, mode="w", format=tarfile.PAX_FORMAT) as archive:
+            info = tarfile.TarInfo("harmless")
+            info.pax_headers = {"path": "../outside-sentinel"}
+            info.size = 4
+            archive.addfile(info, io.BytesIO(b"evil"))
+        pax_data = pax.getvalue()
+        with self.assertRaisesRegex(extractor.UnsafeLayer, "PATH_TRAVERSAL"):
+            self.extract(extractor.SyntheticLayer(0, pax_data,
+                hashlib.sha256(pax_data).hexdigest()))
+        self.assertEqual(os.listdir(self.target), [])
+
+        sparse = io.BytesIO()
+        with tarfile.open(fileobj=sparse, mode="w", format=tarfile.GNU_FORMAT) as archive:
+            info = tarfile.TarInfo("sparse")
+            info.type = tarfile.GNUTYPE_SPARSE
+            archive.addfile(info)
+        sparse_data = sparse.getvalue()
+        with self.assertRaises(extractor.UnsafeLayer):
+            self.extract(extractor.SyntheticLayer(0, sparse_data,
+                hashlib.sha256(sparse_data).hexdigest()))
+        self.assertEqual(os.listdir(self.target), [])
+
+        pax_sparse = io.BytesIO()
+        with tarfile.open(fileobj=pax_sparse, mode="w", format=tarfile.PAX_FORMAT) as archive:
+            info = tarfile.TarInfo("pax-sparse")
+            info.size = 4
+            info.pax_headers = {"GNU.sparse.map": "0,4", "GNU.sparse.size": "4"}
+            archive.addfile(info, io.BytesIO(b"data"))
+        sparse_data = pax_sparse.getvalue()
+        with self.assertRaisesRegex(extractor.UnsafeLayer, "SPARSE"):
+            self.extract(extractor.SyntheticLayer(0, sparse_data,
+                hashlib.sha256(sparse_data).hexdigest()))
         self.assertEqual(os.listdir(self.target), [])
 
 

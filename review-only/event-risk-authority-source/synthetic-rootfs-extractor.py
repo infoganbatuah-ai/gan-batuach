@@ -96,6 +96,8 @@ def _validate(layers: list[SyntheticLayer]) -> list[list[tarfile.TarInfo]]:
             if entry.type not in (tarfile.REGTYPE, tarfile.AREGTYPE,
                                   tarfile.DIRTYPE, tarfile.SYMTYPE, tarfile.LNKTYPE):
                 raise UnsafeLayer("SYNTHETIC_SPECIAL_NODE_DENIED")
+            if entry.sparse is not None:
+                raise UnsafeLayer("SYNTHETIC_SPARSE_MEMBER_DENIED")
             if not (0 <= entry.uid <= 65535 and 0 <= entry.gid <= 65535 and
                     0 <= entry.mode <= 0o7777 and 0 <= entry.size <= MAX_MEMBER_BYTES):
                 raise UnsafeLayer("SYNTHETIC_METADATA_INVALID")
@@ -143,8 +145,15 @@ def _remove_at(parent_fd: int, name: str, budget: list[int]) -> None:
     if stat.S_ISDIR(info.st_mode):
         child_fd = os.open(name, _DIR_FLAGS, dir_fd=parent_fd)
         try:
+            opened = os.fstat(child_fd)
+            if (opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino):
+                raise UnsafeLayer("SYNTHETIC_CLEANUP_DIRECTORY_CHANGED")
             for child in os.listdir(child_fd):
                 _remove_at(child_fd, child, budget)
+            current = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            if not stat.S_ISDIR(current.st_mode) or (current.st_dev, current.st_ino) != (
+                    info.st_dev, info.st_ino):
+                raise UnsafeLayer("SYNTHETIC_CLEANUP_DIRECTORY_CHANGED")
         finally:
             os.close(child_fd)
         os.rmdir(name, dir_fd=parent_fd)
@@ -152,22 +161,40 @@ def _remove_at(parent_fd: int, name: str, budget: list[int]) -> None:
         os.unlink(name, dir_fd=parent_fd)
 
 
-def _target_fds(parent: str, target: str) -> tuple[int, int, str, os.stat_result]:
+def _open_scratch_parent(parent: str, target: str) -> tuple[int, str]:
+    """Pin every parent component beneath the temporary root, without symlinks."""
     if not isinstance(parent, str) or not isinstance(target, str):
         raise UnsafeLayer("SYNTHETIC_TARGET_INVALID")
-    parent = os.path.realpath(parent)
-    scratch = os.path.realpath(tempfile.gettempdir())
+    if not os.path.isabs(parent) or not os.path.isabs(target):
+        raise UnsafeLayer("SYNTHETIC_TARGET_INVALID")
+    parent = os.path.normpath(parent)
+    scratch = os.path.normpath(tempfile.gettempdir())
     if os.path.commonpath((parent, scratch)) != scratch or \
-            os.path.realpath(os.path.dirname(target)) != parent:
+            os.path.normpath(os.path.dirname(target)) != parent:
         raise UnsafeLayer("SYNTHETIC_TARGET_OUTSIDE_SCRATCH")
     name = os.path.basename(target)
     if not _NAME.fullmatch(name):
         raise UnsafeLayer("SYNTHETIC_TARGET_NAME_INVALID")
-    parent_fd = os.open(parent, _DIR_FLAGS)
+    parent_fd = os.open(scratch, _DIR_FLAGS)
     try:
+        for part in os.path.relpath(parent, scratch).split(os.sep):
+            if part == ".":
+                continue
+            next_fd = os.open(part, _DIR_FLAGS, dir_fd=parent_fd)
+            os.close(parent_fd)
+            parent_fd = next_fd
         parent_info = os.fstat(parent_fd)
         if parent_info.st_uid != os.getuid() or stat.S_IMODE(parent_info.st_mode) != 0o700:
             raise UnsafeLayer("SYNTHETIC_PARENT_NOT_PRIVATE")
+        return parent_fd, name
+    except BaseException:
+        os.close(parent_fd)
+        raise
+
+
+def _target_fds(parent: str, target: str) -> tuple[int, int, str, os.stat_result]:
+    parent_fd, name = _open_scratch_parent(parent, target)
+    try:
         root_fd = os.open(name, _DIR_FLAGS, dir_fd=parent_fd)
         try:
             info = os.fstat(root_fd)
@@ -204,17 +231,7 @@ def rollback_synthetic_target(parent: str, target: str, inode: int, device: int)
 
 def _target_fds_for_cleanup(parent: str, target: str):
     # Same path/ownership checks as creation, but target may be populated.
-    if not isinstance(parent, str) or not isinstance(target, str):
-        raise UnsafeLayer("SYNTHETIC_TARGET_INVALID")
-    parent = os.path.realpath(parent)
-    scratch = os.path.realpath(tempfile.gettempdir())
-    if os.path.commonpath((parent, scratch)) != scratch or \
-            os.path.realpath(os.path.dirname(target)) != parent:
-        raise UnsafeLayer("SYNTHETIC_TARGET_OUTSIDE_SCRATCH")
-    name = os.path.basename(target)
-    if not _NAME.fullmatch(name):
-        raise UnsafeLayer("SYNTHETIC_TARGET_NAME_INVALID")
-    parent_fd = os.open(parent, _DIR_FLAGS)
+    parent_fd, name = _open_scratch_parent(parent, target)
     try:
         parent_info = os.fstat(parent_fd)
         if parent_info.st_uid != os.getuid() or stat.S_IMODE(parent_info.st_mode) != 0o700:
