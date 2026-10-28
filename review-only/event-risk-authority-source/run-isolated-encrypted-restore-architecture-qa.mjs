@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { assertFreshIsolatedTarget, COMPONENT_FILES, verifyComponentCiphertexts } from "./component-restore-preflight.mjs";
 import { createComponentReceipt } from "./component-backup-contract.mjs";
 import { verifyDecryptedStorageTar } from "./verify-decrypted-storage-tar.mjs";
+import { runGuardedComponentRestore } from "./component-restore-controller.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const cachedBase = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/cache/caches/b0992ab88f5a3c0c436bbb3065c01466f20dc1dd0eb0a60299d410176f21a1c3";
@@ -45,6 +46,7 @@ const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   syntheticAgeAuthRolesRlsMigrationsVerified: false,
   syntheticAgeStorageMetadataBytesMatched: false, syntheticRestoreFaultCleaned: false,
   syntheticGuestStageCleaned: false,
+  syntheticControllerPass: false, syntheticRestoreTargetVolumesCleaned: false,
   syntheticPhase: "NOT_STARTED",
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
@@ -105,11 +107,12 @@ function syntheticIdentity() {
   generated.fill(0);
   return { key, recipient: publicMatch[1] };
 }
-function syntheticDecrypt(directory, ciphertext, output, key, expectedSuccess) {
+function syntheticDecrypt(directory, decryptedDirectory, ciphertext, output, key, expectedSuccess) {
   const input = Buffer.concat([key, Buffer.from("\n")]);
   try {
     const result = binary("/usr/bin/python3", [join(dirname(fileURLToPath(import.meta.url)),
-      "synthetic-age-pty-fd-decrypt.py"), "--synthetic-decrypt", directory, ciphertext, output],
+      "synthetic-age-pty-fd-decrypt.py"), "--synthetic-decrypt", directory, decryptedDirectory,
+      ciphertext, output],
     { input, timeout: 30000, allowFailure: true });
     assert.equal(result.status === 0, expectedSuccess, "SYNTHETIC_AGE_AUTH_RESULT_MISMATCH");
     assert.equal(existsSync(output), expectedSuccess, "SYNTHETIC_PARTIAL_PLAINTEXT_LEAK");
@@ -274,16 +277,28 @@ async function restoreSyntheticAgeComponents({ env, directory, storageBytes }) {
     evidence.syntheticGuestStageCleaned = removed.status === 0 && toRemove.every(path =>
       run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "test", "!", "-e", path],
         { env, timeout: 10000, allowFailure: true }).status === 0);
+    // Disposable restored volumes, never the fixture source volumes.
+    const targets = ["qa_age_restored_0", "qa_age_restored_1", "qa_age_restored_2",
+      "qa_age_restored_storage", "qa_age_fault_pgdata"];
+    for (const volume of targets) run("/opt/homebrew/bin/limactl", ["shell", guest, "--",
+      "sudo", "docker", "volume", "rm", volume], { env, timeout: 10000, allowFailure: true });
+    evidence.syntheticRestoreTargetVolumesCleaned = targets.every(volume =>
+      run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+        "volume", "inspect", volume], { env, timeout: 10000, allowFailure: true }).status !== 0);
   }
 }
 
 async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSshPort }) {
-  // All persistent fixture material lives on the disposable AES-256 mount.
-  // The guest contains synthetic data only; neither original receipt nor owner
-  // identity is accepted by this function.
-  const directory = join(mount, "synthetic-components");
+  // Ciphertext and synthetic receipt live in disposable scratch; decrypted
+  // plaintext lives only on the disposable AES-256 mount and guest staging.
+  // Neither original receipt nor owner identity is accepted here.
+  const directory = join(scratch, "synthetic-components");
+  const decryptedDirectory = join(mount, "synthetic-decrypted");
   mkdirSync(directory, { mode: 0o700 });
+  mkdirSync(decryptedDirectory, { mode: 0o700 });
   writeFileSync(join(directory, ".synthetic-only"), "synthetic disposable QA\n",
+    { mode: 0o600, flag: "wx" });
+  writeFileSync(join(decryptedDirectory, ".synthetic-only"), "synthetic disposable QA\n",
     { mode: 0o600, flag: "wx" });
   const identity = syntheticIdentity();
   try {
@@ -361,41 +376,80 @@ async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSs
       sourceContainerId: sourcePg, independentRestore: "NOT_RUN" });
     const receiptPath = join(directory, "receipt.json");
     writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600, flag: "wx" });
-    evidence.syntheticPhase = "VERIFY_CIPHERTEXT_SET";
-    // Recheck the same guest immediately before accepting its component set.
-    verifyFirewall(env, peerIp, guestSshPort);
-    verifyDeniedEgress(env);
-    evidence.noHostMounts = guestRun(["sh", "-lc", "mount | grep -c 'virtiofs' || true"], env).stdout.trim() === "0";
-    evidence.noProxyEnv = guestRun(["sh", "-lc",
-      "env | cut -d= -f1 | grep -Eic '^(http_proxy|https_proxy|all_proxy|no_proxy)$' || true"], env).stdout.trim() === "0";
-    evidence.originalVolumesAbsent = JSON.stringify(guestDocker(["volume", "ls", "--format", "{{.Name}}"],
-      env).stdout.trim().split(/\r?\n/).sort()) === JSON.stringify(["qa_pgdata", "qa_storage"]);
-    evidence.pgNetworkNone = guestDocker(["inspect", sourcePg, "--format",
-      "{{.HostConfig.NetworkMode}}"], env).stdout.trim() === "none";
-    evidence.checkedAtMs = Date.now();
-    assertFreshIsolatedTarget(evidence);
-    const verified = await verifyComponentCiphertexts(receiptPath,
-      { ...expected, deadlineAt: Date.now() + 60_000 });
-    assert.equal(verified.status, "CIPHERTEXT_SET_VERIFIED_NOT_DECRYPTED");
-    assert.equal(verified.components.length, 5);
-    evidence.syntheticCiphertextSetVerified = true;
-    for (const definition of definitions) {
-      evidence.syntheticPhase = `DECRYPT_${definition.id.replace(/[^a-z0-9]/gi, "_")}`;
-      const file = COMPONENT_FILES[definition.id];
-      const plaintext = join(directory, `${file}.plain`);
-      syntheticDecrypt(directory, join(directory, file), plaintext, identity.key, true);
-      if (definition.kind === "database") assert.equal(readFileSync(plaintext).subarray(0, 5).toString(), "PGDMP");
-    }
-    evidence.syntheticFiveAgeAuthenticated = true;
-    evidence.syntheticPhase = "VERIFY_STORAGE_GATE";
-    const storagePlain = join(directory, "storage-bytes.age.plain");
-    const storageResult = await verifyDecryptedStorageTar(createReadStream(storagePlain), receipt);
-    assert.equal(storageResult.status, "STORAGE_ARCHIVE_FILES_VERIFIED");
-    evidence.syntheticStorageTarGatePassed = true;
-    evidence.syntheticPhase = "NEGATIVE_CASES";
+    const storagePlain = join(decryptedDirectory, "storage-bytes.age.plain");
+    const adapter = {
+      async decryptAndAuthenticate(verified) {
+        assert.equal(verified.status, "CIPHERTEXT_SET_VERIFIED_NOT_DECRYPTED");
+        evidence.syntheticCiphertextSetVerified = true;
+        for (const definition of definitions) {
+          evidence.syntheticPhase = `DECRYPT_${definition.id.replace(/[^a-z0-9]/gi, "_")}`;
+          const file = COMPONENT_FILES[definition.id];
+          const plaintext = join(decryptedDirectory, `${file}.plain`);
+          syntheticDecrypt(directory, decryptedDirectory, join(directory, file), plaintext, identity.key, true);
+          if (definition.kind === "database")
+            assert.equal(readFileSync(plaintext).subarray(0, 5).toString(), "PGDMP");
+        }
+        evidence.syntheticFiveAgeAuthenticated = true;
+      },
+      async verifyStorageTarBeforeExtraction() {
+        evidence.syntheticPhase = "VERIFY_STORAGE_GATE";
+        const storageResult = await verifyDecryptedStorageTar(createReadStream(storagePlain), receipt);
+        assert.equal(storageResult.status, "STORAGE_ARCHIVE_FILES_VERIFIED");
+        evidence.syntheticStorageTarGatePassed = true;
+      },
+      async restoreAll() {
+        await restoreSyntheticAgeComponents({ env, directory: decryptedDirectory, storageBytes });
+        assert.ok(evidence.syntheticGuestStageCleaned && evidence.syntheticRestoreTargetVolumesCleaned,
+          "SYNTHETIC_RESTORE_CLEANUP_UNVERIFIED");
+        return { globals: evidence.syntheticAgeGlobalsRestored,
+          databases: evidence.syntheticAgeThreeDatabasesRestored ? definitions
+            .filter(item => item.kind === "database").map(item => item.id) : [],
+          storage: evidence.syntheticAgeStorageMetadataBytesMatched };
+      },
+      async verifyRestoredState() {
+        evidence.syntheticPhase = "NEGATIVE_CASES";
+        await verifyNegativeCases();
+        return { auth: evidence.syntheticAgeAuthRolesRlsMigrationsVerified,
+          roles: evidence.syntheticAgeAuthRolesRlsMigrationsVerified,
+          rls: evidence.syntheticAgeAuthRolesRlsMigrationsVerified,
+          migrations: evidence.syntheticAgeAuthRolesRlsMigrationsVerified,
+          metadataBytes: evidence.syntheticAgeStorageMetadataBytesMatched };
+      },
+      async stopAndCleanup() {
+        const targets = ["qa_age_restored_0", "qa_age_restored_1", "qa_age_restored_2",
+          "qa_age_restored_storage", "qa_age_fault_pgdata"];
+        for (const volume of targets) {
+          const holders = guestDocker(["ps", "-q", "--filter", `volume=${volume}`], env).stdout.trim();
+          for (const holder of holders.split(/\r?\n/).filter(Boolean)) {
+            assert.match(holder, /^[0-9a-f]{12,64}$/);
+            guestDocker(["stop", holder], env);
+          }
+          run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+            "volume", "rm", volume], { env, timeout: 10000, allowFailure: true });
+        }
+        const noActiveRestoreTarget = targets.every(volume =>
+          guestDocker(["ps", "-q", "--filter", `volume=${volume}`], env).stdout.trim() === "" &&
+          run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+            "volume", "inspect", volume], { env, timeout: 10000, allowFailure: true }).status !== 0);
+        const stageFiles = [...Object.values(COMPONENT_FILES).map(file => `/tmp/do-qa-${file}.plain`),
+          "/tmp/do-qa-truncated-postgres.dump"];
+        guestRun(["rm", "-f", ...stageFiles], env);
+        const guestPlaintextStageRemoved = stageFiles.every(path =>
+          run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "test", "!", "-e", path],
+            { env, timeout: 10000, allowFailure: true }).status === 0);
+        for (const file of readdirSync(decryptedDirectory)) {
+          if (file !== ".synthetic-only" && file !== ".component-restore.lock")
+            rmSync(join(decryptedDirectory, file));
+        }
+        evidence.syntheticRestoreTargetVolumesCleaned = noActiveRestoreTarget;
+        evidence.syntheticGuestStageCleaned = guestPlaintextStageRemoved;
+        return { noActiveRestoreTarget, guestPlaintextStageRemoved };
+      },
+    };
+    async function verifyNegativeCases() {
     const wrong = syntheticIdentity();
-    try { syntheticDecrypt(directory, join(directory, "postgres.age"),
-      join(directory, "wrong-key.plain"), wrong.key, false); }
+    try { syntheticDecrypt(directory, decryptedDirectory, join(directory, "postgres.age"),
+      join(decryptedDirectory, "wrong-key.plain"), wrong.key, false); }
     finally { wrong.key.fill(0); }
     for (const definition of definitions) {
       const file = COMPONENT_FILES[definition.id];
@@ -403,7 +457,8 @@ async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSs
       tampered[tampered.length - 1] ^= 1;
       const tamperedPath = join(directory, `tampered-${file}`);
       writeFileSync(tamperedPath, tampered, { mode: 0o600, flag: "wx" });
-      syntheticDecrypt(directory, tamperedPath, join(directory, `tampered-${file}.plain`),
+      syntheticDecrypt(directory, decryptedDirectory, tamperedPath,
+        join(decryptedDirectory, `tampered-${file}.plain`),
         identity.key, false);
     }
     const badReceiptPath = join(directory, "bad-receipt.json");
@@ -422,18 +477,36 @@ async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSs
     corruptTar.fill(0);
     const corruptPath = join(directory, "corrupt-storage.age");
     writeFileSync(corruptPath, corruptCiphertext, { mode: 0o600, flag: "wx" });
-    const corruptPlain = join(directory, "corrupt-storage.plain");
-    syntheticDecrypt(directory, corruptPath, corruptPlain, identity.key, true);
+    const corruptPlain = join(decryptedDirectory, "corrupt-storage.plain");
+    syntheticDecrypt(directory, decryptedDirectory, corruptPath, corruptPlain, identity.key, true);
     await assert.rejects(verifyDecryptedStorageTar(createReadStream(corruptPlain), receipt),
       /TAR_FILE_HASH_MISMATCH/);
     evidence.syntheticNegativeCasesPassed = true;
-    await restoreSyntheticAgeComponents({ env, directory, storageBytes });
-    assert.ok(evidence.syntheticGuestStageCleaned, "SYNTHETIC_GUEST_STAGE_NOT_CLEANED");
+    }
+    evidence.syntheticPhase = "VERIFY_CIPHERTEXT_SET";
+    const result = await runGuardedComponentRestore({ receiptPath, expected,
+      target: decryptedDirectory, forbiddenRoots: [directory], deadlineAt: Date.now() + 600_000,
+      measureFreshIsolation: async () => {
+        verifyFirewall(env, peerIp, guestSshPort);
+        verifyDeniedEgress(env);
+        evidence.noHostMounts = guestRun(["sh", "-lc", "mount | grep -c 'virtiofs' || true"], env).stdout.trim() === "0";
+        evidence.noProxyEnv = guestRun(["sh", "-lc",
+          "env | cut -d= -f1 | grep -Eic '^(http_proxy|https_proxy|all_proxy|no_proxy)$' || true"], env).stdout.trim() === "0";
+        evidence.originalVolumesAbsent = JSON.stringify(guestDocker(["volume", "ls", "--format", "{{.Name}}"],
+          env).stdout.trim().split(/\r?\n/).sort()) === JSON.stringify(["qa_pgdata", "qa_storage"]);
+        evidence.pgNetworkNone = guestDocker(["inspect", sourcePg, "--format",
+          "{{.HostConfig.NetworkMode}}"], env).stdout.trim() === "none";
+        evidence.checkedAtMs = Date.now();
+        return evidence;
+      }, adapter });
+    assert.equal(result.status, "SYNTHETIC_CONTROLLER_PASS", result.reason);
+    evidence.syntheticControllerPass = true;
     evidence.syntheticPhase = "COMPLETE";
   } finally {
     identity.key.fill(0);
     rmSync(directory, { recursive: true });
-    evidence.syntheticComponentScratchCleaned = !existsSync(directory);
+    rmSync(decryptedDirectory, { recursive: true });
+    evidence.syntheticComponentScratchCleaned = !existsSync(directory) && !existsSync(decryptedDirectory);
   }
 }
 

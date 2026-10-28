@@ -25,13 +25,16 @@ def fail(code):
     raise SystemExit(1)
 
 
-def decrypt(root, ciphertext, output):
+def decrypt(root, target, ciphertext, output):
     root = Path(root).resolve(strict=True)
     if not root.is_dir() or root.name != "synthetic-components" or not (root / ".synthetic-only").is_file():
         fail("SYNTHETIC_TARGET_REQUIRED")
+    target = Path(target).resolve(strict=True)
+    if not target.is_dir() or target.name != "synthetic-decrypted" or not (target / ".synthetic-only").is_file():
+        fail("SYNTHETIC_DECRYPT_TARGET_REQUIRED")
     ciphertext = Path(ciphertext).resolve(strict=True)
     output = Path(output)
-    if ciphertext.parent != root or output.parent.resolve(strict=True) != root or output.exists():
+    if ciphertext.parent != root or output.parent.resolve(strict=True) != target or output.exists() or root == target:
         fail("SYNTHETIC_PATH_DENIED")
     if ciphertext.stat().st_size > MAX_SYNTHETIC_CIPHERTEXT:
         fail("SYNTHETIC_CIPHERTEXT_CAP")
@@ -58,7 +61,7 @@ def decrypt(root, ciphertext, output):
         os.write(write_fd, from_pty)
         os.close(write_fd)
         write_fd = None
-        fd, temporary = tempfile.mkstemp(prefix=".age-partial-", dir=root)
+        fd, temporary = tempfile.mkstemp(prefix=".age-partial-", dir=target)
         os.fchmod(fd, 0o600)
         try:
             with os.fdopen(fd, "wb") as plain, open(ciphertext, "rb") as encrypted:
@@ -87,6 +90,6 @@ def decrypt(root, ciphertext, output):
 
 if __name__ == "__main__":
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    if len(sys.argv) != 5 or sys.argv[1] != "--synthetic-decrypt":
+    if len(sys.argv) != 6 or sys.argv[1] != "--synthetic-decrypt":
         fail("NO_REAL_ARCHIVE_MODE")
     decrypt(*sys.argv[2:])

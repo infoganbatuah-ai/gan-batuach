@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { COMPONENT_FILES, verifyComponentCiphertexts, runSyntheticRestoreContract } from "./component-restore-preflight.mjs";
 import { MAX_ENCRYPTED_BYTES, MIN_INTERNAL_FREE_BYTES } from "./component-backup-contract.mjs";
+import { runGuardedComponentRestore } from "./component-restore-controller.mjs";
 
 const sha = data => createHash("sha256").update(data).digest("hex");
 const age = "/opt/homebrew/bin/age";
@@ -157,3 +159,122 @@ for (const failureAt of ["decryptAndAuthenticate", "verifyStorageTarBeforeExtrac
     } finally { f.cleanup(); }
   });
 }
+
+function controllerAdapter(failAt, cleanupPass = true) {
+  const calls = [];
+  const step = (name, value) => async () => {
+    calls.push(name);
+    if (name === failAt) throw new Error(name === "restoreAll" ? "POST_GLOBALS_FAILURE" :
+      name === "decryptAndAuthenticate" ? "WRONG_KEY" : "CORRUPT_CONTENT");
+    return value;
+  };
+  return { calls, decryptAndAuthenticate: step("decryptAndAuthenticate"),
+    verifyStorageTarBeforeExtraction: step("verifyStorageTarBeforeExtraction"),
+    restoreAll: step("restoreAll", { globals: true,
+      databases: Object.keys(COMPONENT_FILES).filter(id => id.startsWith("database:")), storage: true }),
+    verifyRestoredState: step("verifyRestoredState", { auth: true, roles: true,
+      rls: true, migrations: true, metadataBytes: true }),
+    stopAndCleanup: step("stopAndCleanup", { noActiveRestoreTarget: cleanupPass,
+      guestPlaintextStageRemoved: cleanupPass }) };
+}
+async function runController(f, options = {}) {
+  const a = options.adapter ?? controllerAdapter();
+  const result = await runGuardedComponentRestore({ receiptPath: f.receiptPath,
+    expected: f.expected, target: options.target ?? f.target,
+    forbiddenRoots: [f.source], adapter: a,
+    measureFreshIsolation: options.measureFreshIsolation ?? (async () => proof()),
+    availableBytes: enough, deadlineAt: options.deadlineAt });
+  return { result, calls: a.calls };
+}
+
+test("guarded synthetic controller orders authenticated restore and verifies cleanup", async () => {
+  const f = fixture();
+  try {
+    const { result, calls } = await runController(f);
+    assert.equal(result.status, "SYNTHETIC_CONTROLLER_PASS");
+    assert.equal(result.independentRestore, "NOT_RUN_ON_REAL_DATA");
+    assert.deepEqual(calls, ["decryptAndAuthenticate", "verifyStorageTarBeforeExtraction",
+      "restoreAll", "verifyRestoredState", "stopAndCleanup"]);
+    assert.equal(existsSync(join(f.target, ".component-restore.lock")), false);
+  } finally { f.cleanup(); }
+});
+
+for (const failAt of ["decryptAndAuthenticate", "verifyStorageTarBeforeExtraction", "restoreAll"]) {
+  test(`guarded synthetic controller denies ${failAt} failure`, async () => {
+    const f = fixture();
+    try {
+      const { result, calls } = await runController(f, { adapter: controllerAdapter(failAt) });
+      assert.equal(result.status, "NO_GO");
+      assert.equal(calls.at(-1), "stopAndCleanup");
+      assert.ok(!calls.includes("verifyRestoredState"));
+      assert.equal(existsSync(join(f.target, ".component-restore.lock")), false);
+    } finally { f.cleanup(); }
+  });
+}
+
+test("guarded synthetic controller rejects receipt mismatch before decrypt", async () => {
+  const f = fixture();
+  try {
+    f.receipt.totalEncryptedBytes++;
+    f.saveReceipt();
+    const { result, calls } = await runController(f);
+    assert.equal(result.status, "NO_GO");
+    assert.deepEqual(calls, ["stopAndCleanup"]);
+  } finally { f.cleanup(); }
+});
+
+test("guarded synthetic controller rejects source-target alias", async () => {
+  const f = fixture();
+  try {
+    const { result } = await runController(f, { target: f.source });
+    assert.equal(result.reason, "RESTORE_TARGET_SOURCE_ALIAS");
+  } finally { f.cleanup(); }
+});
+
+test("guarded synthetic controller fails closed on cleanup uncertainty", async () => {
+  const f = fixture();
+  try {
+    const { result } = await runController(f, { adapter: controllerAdapter(null, false) });
+    assert.equal(result.reason, "RESTORE_CLEANUP_UNVERIFIED");
+    assert.equal(result.status, "NO_GO");
+  } finally { f.cleanup(); }
+});
+
+test("guarded synthetic controller fails closed on cleanup exception", async () => {
+  const f = fixture();
+  try {
+    const a = controllerAdapter();
+    a.stopAndCleanup = async () => { throw new Error("DETACH_FAILED"); };
+    const { result } = await runController(f, { adapter: a });
+    assert.equal(result.reason, "RESTORE_CLEANUP_UNVERIFIED");
+    assert.equal(existsSync(join(f.target, ".component-restore.lock")), false);
+  } finally { f.cleanup(); }
+});
+
+test("guarded synthetic controller fails closed on residual plaintext", async () => {
+  const f = fixture();
+  try {
+    writeFileSync(join(f.target, "residual.dump"), "synthetic-only", { mode: 0o600 });
+    const { result } = await runController(f);
+    assert.equal(result.reason, "RESTORE_CLEANUP_UNVERIFIED");
+  } finally { f.cleanup(); }
+});
+
+test("guarded controller CLI has no real-data mode", () => {
+  const result = spawnSync(process.execPath,
+    [join(dirname(fileURLToPath(import.meta.url)), "component-restore-controller.mjs")],
+    { encoding: "utf8" });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /REAL_RESTORE_ADAPTER_NOT_IMPLEMENTED/);
+});
+
+test("guarded synthetic controller requires a fresh isolation measurement", async () => {
+  const f = fixture();
+  try {
+    const { result, calls } = await runController(f, {
+      measureFreshIsolation: async () => ({ ...proof(), checkedAtMs: Date.now() - 90_000 }),
+    });
+    assert.equal(result.status, "NO_GO");
+    assert.deepEqual(calls, ["stopAndCleanup"]);
+  } finally { f.cleanup(); }
+});
