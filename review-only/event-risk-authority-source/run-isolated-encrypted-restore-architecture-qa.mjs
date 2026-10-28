@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertFreshIsolatedTarget } from "./component-restore-preflight.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const cachedBase = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/cache/caches/b0992ab88f5a3c0c436bbb3065c01466f20dc1dd0eb0a60299d410176f21a1c3";
@@ -34,6 +35,7 @@ const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   rebootVerified: false, postgresSentinelAfterReboot: false,
   storageSentinelAfterReboot: false, sentinelRecoveredAfterReattach: false,
   postgresRestoredFromCustomDump: false, storageRestoredFromTar: false,
+  preflightAcceptedFreshMeasuredProof: false,
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
   originalVolumesAbsent: false, payloadHiddenAfterDetach: false, scratchCleaned: false };
@@ -319,6 +321,15 @@ WantedBy=sysinit.target
     "--volume", "qa_storage:/mnt:ro", "--entrypoint", "/bin/cat", pgImage, "/mnt/object"], env).stdout.trim() === "synthetic-storage-only";
   assert.ok(evidence.postgresSentinelAfterReboot && evidence.storageSentinelAfterReboot,
     "SYNTHETIC_SENTINEL_LOST_AFTER_REBOOT");
+  evidence.noHostMounts = guestRun(["sh", "-lc", "mount | grep -c 'virtiofs' || true"], env).stdout.trim() === "0";
+  evidence.noProxyEnv = guestRun(["sh", "-lc",
+    "env | cut -d= -f1 | grep -Eic '^(http_proxy|https_proxy|all_proxy|no_proxy)$' || true"], env).stdout.trim() === "0";
+  const rebootedVolumes = guestDocker(["volume", "ls", "--format", "{{.Name}}"], env).stdout.trim().split(/\r?\n/).sort();
+  evidence.originalVolumesAbsent = JSON.stringify(rebootedVolumes) === JSON.stringify(["qa_pgdata", "qa_storage"]);
+  evidence.pgNetworkNone = guestDocker(["inspect", resumedPg, "--format", "{{.HostConfig.NetworkMode}}"], env).stdout.trim() === "none";
+  evidence.checkedAtMs = Date.now();
+  assertFreshIsolatedTarget(evidence); // Measured in this guest, never loaded from an external receipt.
+  evidence.preflightAcceptedFreshMeasuredProof = true;
   // Exercise the real PostgreSQL custom-format restore engine and a disjoint
   // Storage volume, still using only synthetic data inside the encrypted guest.
   guestDocker(["volume", "create", "qa_restored_pgdata"], env);
