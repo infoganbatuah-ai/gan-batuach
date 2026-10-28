@@ -77,6 +77,9 @@ const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   audits.push(input);
 }},"@/lib/domain/digital-observer/risk-decision-service":{evaluateAndPersistIncidentRisk:async()=>{riskCalls++;return {status:"not_applicable"};}},"server-only":{}};
 const tokenLib=load("lib/domain/gateway-device-enrollment.ts",mocks);
+const liveClaimActivation=load("lib/domain/digital-observer/event-risk-claim-activation.ts",mocks).EVENT_RISK_CLAIM_ACTIVATION;
+assert.equal(liveClaimActivation.enabled,false,"The candidate claim adapter is disabled in the live route");
+assert.equal(liveClaimActivation.runner,null,"No unfenced Data API writer is an activation substitute");
 const token=tokenLib.issueGatewayDeviceAccessToken({device_id:deviceId,gateway_id:gatewayId,observer_site_id:siteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
 const route=load("app/api/video-gateway/cloud-events/route.ts",mocks);
 const event={event_id:randomUUID(),camera_source_id:cameraId,stream_id:"stream",event_type:"person_detected",severity:"INFO",confidence:.9,timestamp:new Date().toISOString(),evidence_kind:"object_detection"};
@@ -284,5 +287,98 @@ assert.equal(tables.observer_intelligence_signals.length,signalCountBeforeTie+1)
 assert.equal(tables.observer_intelligence_signals.at(-1).confidence,.5509);
 assert.equal((await send(decimalTie)).status,201,"A retry compares the database's numeric(5,4) value to the original decimal observation");
 assert.equal((await send({...decimalTie,confidence:.5508})).status,409,"A genuinely different confidence remains a conflict after decimal normalization");
+
+// The candidate claim boundary is disabled in the real route. Override only
+// its activation export in this disconnected harness; the fenced runner and
+// RPC below are synthetic and do not qualify the draft PostgreSQL writers.
+let claimedRiskRuns=0, claimedNotificationRuns=0, claimedGuardRuns=0, claimRpcRuns=0;
+const syntheticRunner=async claim=>{
+  claimedRiskRuns++;
+  assert.equal(claim.siteId,siteId);
+  assert.equal(claim.engineVersion,"do-risk-v1");
+  assert(Number.isSafeInteger(claim.ownerEpoch) && claim.ownerEpoch>0);
+  return {status:"not_applicable"};
+};
+const claimMocks={...mocks,
+  "@/lib/domain/digital-observer/event-risk-claim-activation":{
+    EVENT_RISK_CLAIM_ACTIVATION:{enabled:true,runner:syntheticRunner}
+  },
+  "@/lib/domain/event-engine/notifications":{
+    recordEventNotifications:async()=>{claimedNotificationRuns++;return {push_pending:false};}
+  },
+  "@/lib/domain/digital-observer/guard-autonomy-service":{
+    dispatchDigitalGuardActionsForValidatedEvent:async()=>{claimedGuardRuns++;return {status:"suppressed"};}
+  }
+};
+const claimRouteA=load("app/api/video-gateway/cloud-events/route.ts",claimMocks,new Map());
+const claimRouteB=load("app/api/video-gateway/cloud-events/route.ts",claimMocks,new Map());
+const claimSend=(handler,body,auth=token)=>handler.POST(new Request("http://test.invalid/api/video-gateway/cloud-events",{
+  method:"POST",headers:{"content-type":"application/json","x-video-gateway-device-token":auth},body:JSON.stringify(body)
+}));
+const claimEntry=id=>({...sharedProducerEntry,event_id:id,track_id:`claim-${id}`});
+const claimBase={risk:claimedRiskRuns,notifications:claimedNotificationRuns,guard:claimedGuardRuns};
+const noClaimEffects=()=>{
+  assert.equal(claimedRiskRuns,claimBase.risk,"A denied claim cannot calculate Risk");
+  assert.equal(claimedNotificationRuns,claimBase.notifications,"A denied claim cannot issue notifications");
+  assert.equal(claimedGuardRuns,claimBase.guard,"A denied claim cannot reach Guard eligibility");
+};
+const {runner:qualifiedRunner}=claimMocks["@/lib/domain/digital-observer/event-risk-claim-activation"].EVENT_RISK_CLAIM_ACTIVATION;
+claimMocks["@/lib/domain/digital-observer/event-risk-claim-activation"].EVENT_RISK_CLAIM_ACTIVATION.runner=null;
+const noWriterRoute=load("app/api/video-gateway/cloud-events/route.ts",claimMocks,new Map());
+assert.equal((await claimSend(noWriterRoute,claimEntry(randomUUID()))).status,500,"Missing fenced writer fails before an RPC claim");
+noClaimEffects();
+claimMocks["@/lib/domain/digital-observer/event-risk-claim-activation"].EVENT_RISK_CLAIM_ACTIVATION.runner=qualifiedRunner;
+assert.equal((await claimSend(claimRouteA,claimEntry(randomUUID()))).status,500,"Missing claim RPC fails closed");
+noClaimEffects();
+db.rpc=async()=>{claimRpcRuns++;return {data:null,error:{code:"RISK_TENANT_MAPPING_UNVERIFIED"}};};
+assert.equal((await claimSend(claimRouteA,claimEntry(randomUUID()))).status,500,"An unverified Tenant mapping cannot enter Risk");
+noClaimEffects();
+assert.equal((await claimSend(claimRouteA,{...claimEntry(randomUUID()),camera_source_id:otherCameraId})).status,403,"A wrong-Site camera is denied before claim");
+noClaimEffects();
+db.rpc=async()=>{claimRpcRuns++;return {data:{kind:"OWNED",owner_epoch:1,lease_expires_at:new Date(Date.now()-1000).toISOString()},error:null};};
+assert.equal((await claimSend(claimRouteA,claimEntry(randomUUID()))).status,500,"An expired owner lease cannot start Risk");
+noClaimEffects();
+db.rpc=async()=>{claimRpcRuns++;return {data:{kind:"BUSY",retry_after:new Date(Date.now()+30000).toISOString()},error:null};};
+assert.equal((await claimSend(claimRouteA,claimEntry(randomUUID()))).status,202,"A BUSY contender is deferred before downstream effects");
+noClaimEffects();
+for(const kind of ["RESUME_EFFECTS","COMPLETED"]){
+  db.rpc=async()=>{claimRpcRuns++;return {data:{kind,evaluation_id:randomUUID()},error:null};};
+  assert.equal((await claimSend(claimRouteA,claimEntry(randomUUID()))).status,500,`${kind} needs a separate durable recovery reader`);
+  noClaimEffects();
+}
+db.rpc=async()=>{claimRpcRuns++;return {data:{kind:"NOT_APPLICABLE"},error:null};};
+assert.equal((await claimSend(claimRouteA,claimEntry(randomUUID()))).status,500,"An entry cannot be downgraded to no-Incident Risk");
+noClaimEffects();
+const syntheticClaims=new Set();
+db.rpc=async(name,args)=>{
+  claimRpcRuns++;
+  assert.equal(name,"claim_event_risk_v1");
+  assert.equal(args.p_engine_version,"do-risk-v1");
+  assert.equal(args.p_lease_seconds,30);
+  assert.equal(typeof args.p_owner_nonce,"string");
+  if(syntheticClaims.has(args.p_signal_id)) return {data:{kind:"BUSY",retry_after:new Date(Date.now()+30000).toISOString()},error:null};
+  syntheticClaims.add(args.p_signal_id);
+  return {data:{kind:"OWNED",owner_epoch:1,lease_expires_at:new Date(Date.now()+30000).toISOString()},error:null};
+};
+const claimedEvent=claimEntry(randomUUID());
+const recipientsBeforeClaim=structuredClone(tables.digital_observer_authorized_recipients);
+const legacyRiskBeforeClaim=riskCalls;
+raceReads.arrivals=0;
+raceReads.gate=new Promise(resolve=>{raceReads.release=resolve;});
+raceReads.enabled=true;
+const claimReplies=await Promise.all([claimSend(claimRouteA,claimedEvent),claimSend(claimRouteB,claimedEvent)]);
+assert.deepEqual(claimReplies.map(reply=>reply.status).sort(),[201,202],"Two route modules admit one synthetic owner and defer the contender");
+assert.equal(raceReads.arrivals,2);
+assert.equal(claimedRiskRuns,1,"Only the valid synthetic claim owner reaches the fenced Risk runner");
+assert.equal(claimedNotificationRuns,1,"BUSY does not enter recipient effects");
+assert.equal(claimedGuardRuns,1,"BUSY does not enter Guard eligibility");
+assert.equal(riskCalls,legacyRiskBeforeClaim,"The isolated candidate never uses the unfenced legacy Risk writer");
+assert.deepEqual(tables.digital_observer_authorized_recipients,recipientsBeforeClaim,"Claim retry never mutates recipient ownership");
+assert.equal((await claimSend(claimRouteB,claimedEvent)).status,202,"A retry cannot acquire a second synthetic owner");
+assert.equal(claimedRiskRuns,1);
+assert.equal(claimedNotificationRuns,1);
+assert.equal(claimedGuardRuns,1);
+delete db.rpc;
+console.log(JSON.stringify({isolatedClaimBoundary:{routeModules:2,owned:1,deferred:1,claimedRiskRuns,claimRpcRuns,liveEnabled:false,postgresqlIntegration:false}}));
 console.log(JSON.stringify({localRace:{accepted:2,durableSignals:1,inAppIntents:2,riskEvaluations:riskEvaluationsDuringRace,database:"mocked_unique_constraint",routeModules:2,postgresqlIntegration:false}}));
 console.log("Event ingestion checks passed: token validation, revocation, scope, consent, immutable replay identity, Site-scoped tenant denial, mocked race behavior, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");

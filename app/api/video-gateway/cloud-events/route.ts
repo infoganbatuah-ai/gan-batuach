@@ -15,6 +15,8 @@ import { openMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle"
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
 import { refreshRealEventContextBaseline } from "@/lib/domain/digital-observer/home-learning-sampler";
 import { evaluateAndPersistIncidentRisk } from "@/lib/domain/digital-observer/risk-decision-service";
+import { evaluateRiskBehindClaim, type RiskClaimDatabase } from "@/lib/domain/digital-observer/event-risk-claim-boundary";
+import { EVENT_RISK_CLAIM_ACTIVATION } from "@/lib/domain/digital-observer/event-risk-claim-activation";
 import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 
 export const dynamic = "force-dynamic";
@@ -121,7 +123,18 @@ export async function POST(request: Request) {
     // The Incident trigger runs in the durable signal write above. Canonical
     // entry/exit Events must then receive one explainable Incident-level Risk
     // evaluation before the Gateway delivery is acknowledged.
-    const riskResult = await evaluateAndPersistIncidentRisk({ db, signal: persistedSignal });
+    const riskResult = EVENT_RISK_CLAIM_ACTIVATION.enabled
+      ? await evaluateRiskBehindClaim({
+        db: db as unknown as RiskClaimDatabase,
+        signal: persistedSignal,
+        expectedSiteId: device.observer_site_id,
+        runner: EVENT_RISK_CLAIM_ACTIVATION.runner
+      })
+      : await evaluateAndPersistIncidentRisk({ db, signal: persistedSignal });
+    if (riskResult.status === "deferred") {
+      // A BUSY contender does not enter notification or Guard side effects.
+      return ok({ status: "processing", signal_id: persistedSignal.id }, 202);
+    }
     if (event.media_failure_reason && persistedSignal.metadata.recording_required && persistedSignal.metadata.media_status !== "available") {
       const observedAt = new Date().toISOString();
       const lifecycle = openMediaFault(persistedSignal.metadata, event.media_failure_reason, observedAt);
