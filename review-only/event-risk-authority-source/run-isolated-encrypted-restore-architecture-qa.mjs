@@ -33,6 +33,7 @@ const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   bootIpv6RouteAbsentBeforePolicy: false,
   rebootVerified: false, postgresSentinelAfterReboot: false,
   storageSentinelAfterReboot: false, sentinelRecoveredAfterReattach: false,
+  postgresRestoredFromCustomDump: false, storageRestoredFromTar: false,
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
   originalVolumesAbsent: false, payloadHiddenAfterDetach: false, scratchCleaned: false };
@@ -318,8 +319,49 @@ WantedBy=sysinit.target
     "--volume", "qa_storage:/mnt:ro", "--entrypoint", "/bin/cat", pgImage, "/mnt/object"], env).stdout.trim() === "synthetic-storage-only";
   assert.ok(evidence.postgresSentinelAfterReboot && evidence.storageSentinelAfterReboot,
     "SYNTHETIC_SENTINEL_LOST_AFTER_REBOOT");
+  // Exercise the real PostgreSQL custom-format restore engine and a disjoint
+  // Storage volume, still using only synthetic data inside the encrypted guest.
+  guestDocker(["volume", "create", "qa_restored_pgdata"], env);
+  guestDocker(["run", "--rm", "--network", "none", "--pull", "never", "--user", "root",
+    "--volume", "qa_restored_pgdata:/data", "--entrypoint", "/bin/sh", pgImage,
+    "-ec", "chown postgres:postgres /data"], env);
+  const restoredPg = guestDocker(["run", "--detach", "--rm", "--network", "none", "--pull", "never",
+    "--read-only", "--tmpfs", "/tmp:rw,nosuid,nodev,size=64m", "--user", "postgres",
+    "--volume", "qa_restored_pgdata:/var/lib/postgresql/data", "--entrypoint", "/bin/sh", pgImage,
+    "-ec", "initdb -D /var/lib/postgresql/data -A trust --no-instructions >/dev/null && exec postgres -D /var/lib/postgresql/data -c listen_addresses= -c unix_socket_directories=/tmp"],
+  env, 60000).stdout.trim();
+  assert.match(restoredPg, /^[0-9a-f]{64}$/);
+  assert.equal(guestDocker(["inspect", restoredPg, "--format", "{{.HostConfig.NetworkMode}}"], env).stdout.trim(), "none");
+  let restoreReady = false;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const readiness = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+      "exec", restoredPg, "pg_isready", "-h", "/tmp", "-U", "postgres"],
+    { env, timeout: 10000, allowFailure: true });
+    if (readiness.status === 0) { restoreReady = true; break; }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  assert.ok(restoreReady, "SYNTHETIC_RESTORE_POSTGRES_NOT_READY");
+  // Keep the synthetic dump off the host filesystem and fail if either side
+  // of the stream fails. Real restore will require authenticated age staging.
+  guestRun(["bash", "-o", "pipefail", "-c",
+    `sudo docker exec ${resumedPg} pg_dump -Fc -U postgres -h /tmp -d postgres | sudo docker exec -i ${restoredPg} pg_restore --exit-on-error -U postgres -h /tmp -d postgres`],
+  env, 120000);
+  evidence.postgresRestoredFromCustomDump = guestDocker(["exec", restoredPg, "psql", "-X", "-h", "/tmp",
+    "-U", "postgres", "-d", "postgres", "-At", "-c", "SELECT value FROM qa_sentinel;"],
+  env).stdout.trim() === "synthetic-only";
+  assert.ok(evidence.postgresRestoredFromCustomDump, "SYNTHETIC_PG_RESTORE_MISMATCH");
+  guestDocker(["volume", "create", "qa_restored_storage"], env);
+  guestDocker(["run", "--rm", "--network", "none", "--pull", "never",
+    "--volume", "qa_storage:/src:ro", "--volume", "qa_restored_storage:/dest",
+    "--entrypoint", "/bin/sh", pgImage, "-ec",
+    "tar -C /src -cf /tmp/do-synthetic-storage.tar . && tar -tf /tmp/do-synthetic-storage.tar >/dev/null && tar -C /dest -xf /tmp/do-synthetic-storage.tar"],
+  env);
+  evidence.storageRestoredFromTar = guestDocker(["run", "--rm", "--network", "none", "--pull", "never",
+    "--volume", "qa_restored_storage:/mnt:ro", "--entrypoint", "/bin/cat", pgImage, "/mnt/object"],
+  env).stdout.trim() === "synthetic-storage-only";
+  assert.ok(evidence.storageRestoredFromTar, "SYNTHETIC_STORAGE_RESTORE_MISMATCH");
   verifyFirewall(env, peerIp, guestSshPort);
-  guestDocker(["stop", resumedPg], env);
+  guestDocker(["stop", restoredPg, resumedPg], env);
   run("/opt/homebrew/bin/limactl", ["stop", guest], { env, timeout: 60000 });
   started = false;
   run("/usr/bin/hdiutil", ["detach", mount], { timeout: 60000 });
