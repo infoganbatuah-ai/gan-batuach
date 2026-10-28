@@ -1,5 +1,7 @@
 # Native no-NIC synthetic guest: review-only preflight
 
+Update on 2026-10-29: the two-read-only-disk candidate below was corrected in the subsequent [offline-input residency receipt](CLAIM-QA-OFFLINE-INPUT-RESIDENCY-20261029.md). A future Linux boot requires a **writable, disposable scratch RAW boot disk**; only the offline input disk is read-only. No boot is authorized or claimed by either design.
+
 Date: 2026-10-29. Branch: `codex/event-risk-effect-acl-review-20261026`. Scope: local source review, native Swift typecheck, and deterministic Node contract tests. **No VM boot, source-file copying/conversion, SQL, backup, database or network execution.**
 
 ## Supported mechanism and its limits

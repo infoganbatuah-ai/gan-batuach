@@ -1,6 +1,7 @@
 // Native configuration construction ONLY. No VZVirtualMachine is instantiated
-// and this file contains no start call. The two URLs must first pass independent
-// no-follow, exact-hash, format, scratch-ownership and capacity checks.
+// and this file contains no start call. The boot URL must be a disposable,
+// independently verified scratch RAW copy; the offline input disk stays read-only.
+// Both URLs still need no-follow, hash, format, ownership and capacity checks.
 import Foundation
 import Virtualization
 
@@ -9,7 +10,7 @@ enum QANoNicPreflightError: Error {
 }
 
 @available(macOS 13.0, *)
-func buildReadOnlyNoNicReviewConfiguration(bootRaw: URL, offlineInputsRaw: URL)
+func buildNoNicReviewConfiguration(bootScratchRaw: URL, offlineInputsRaw: URL)
     throws -> VZVirtualMachineConfiguration {
     let config = VZVirtualMachineConfiguration()
     config.cpuCount = 2
@@ -28,7 +29,9 @@ func buildReadOnlyNoNicReviewConfiguration(bootRaw: URL, offlineInputsRaw: URL)
     config.keyboards = []
     config.pointingDevices = []
 
-    let boot = try VZDiskImageStorageDeviceAttachment(url: bootRaw, readOnly: true)
+    // Linux cannot safely run on a read-only boot root. Never pass the original
+    // QCOW2 file or a unique recovery copy here; writable means scratch only.
+    let boot = try VZDiskImageStorageDeviceAttachment(url: bootScratchRaw, readOnly: false)
     let inputs = try VZDiskImageStorageDeviceAttachment(url: offlineInputsRaw, readOnly: true)
     config.storageDevices = [
         VZVirtioBlockDeviceConfiguration(attachment: boot),

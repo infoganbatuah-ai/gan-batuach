@@ -8,12 +8,24 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import * as tar from "tar";
 import { APPROVED_QA_ATTESTOR_PUBLIC_KEY_PEM, assertQaAttestorPinned,
+  assertQaImageLocallyResident, assertQaImageNotDatalessFlags,
   assertQaImageTargetCapacity, assertQaImageTransferBoundary, inspectQaDockerSaveArchive,
   parseQaImageArguments,
   MAX_QA_BASE_IMAGE_BYTES, QA_POSTGRES_IMAGE, QA_POSTGRES_IMAGE_ID, verifyIndependentQaBaseImage,
   verifyIndependentQaImage, verifyQaImageAttestation } from "./synthetic-qa-image-input.mjs";
 
 const sha = value => createHash("sha256").update(value).digest("hex");
+
+test("dataless File Provider placeholder is denied before opening contents", () => {
+  assert.throws(() => assertQaImageLocallyResident({ size: 616522752, blocks: 0 }),
+    /QA_IMAGE_NOT_LOCALLY_RESIDENT_NO_HYDRATION/);
+  assert.throws(() => assertQaImageLocallyResident({ size: 1330063360, blocks: 0 }),
+    /QA_IMAGE_NOT_LOCALLY_RESIDENT_NO_HYDRATION/);
+  assert.doesNotThrow(() => assertQaImageLocallyResident({ size: 1024, blocks: 8 }));
+  assert.throws(() => assertQaImageNotDatalessFlags("compressed,dataless"),
+    /QA_IMAGE_NOT_LOCALLY_RESIDENT_NO_HYDRATION/);
+  assert.doesNotThrow(() => assertQaImageNotDatalessFlags("compressed"));
+});
 
 function dockerSaveFixture({ architecture = "arm64", tamperLayer = -1,
   omitLayer = -1, imageTag = QA_POSTGRES_IMAGE, extraEntry = false } = {}) {

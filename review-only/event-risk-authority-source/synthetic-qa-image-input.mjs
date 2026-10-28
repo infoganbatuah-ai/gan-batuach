@@ -4,6 +4,7 @@ import { createHash, createPublicKey, verify as verifySignature } from "node:cry
 import { constants, closeSync, createReadStream, fstatSync, lstatSync, openSync,
   readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
+import { execFileSync } from "node:child_process";
 import * as tar from "tar";
 
 export const QA_POSTGRES_IMAGE = "public.ecr.aws/supabase/postgres:17.6.1.167";
@@ -22,6 +23,29 @@ const HEX64 = /^[a-f0-9]{64}$/;
 function within(path, root) { return path === root || path.startsWith(root + sep); }
 function assertOutsideOriginal(path, code) {
   assert.ok(!within(path, SOURCE_ROOT) && !within(path, PROJECT_ROOT), code);
+}
+
+// On macOS a File Provider placeholder can advertise the expected logical
+// length while allocating zero blocks. Opening it can trigger a network fetch.
+// These QA inputs must already be local; reject sparse/dataless candidates.
+export function assertQaImageLocallyResident(stat) {
+  assert.ok(Number.isSafeInteger(stat?.size) && stat.size > 0 &&
+    Number.isSafeInteger(stat?.blocks) && stat.blocks > 0,
+  "QA_IMAGE_NOT_LOCALLY_RESIDENT_NO_HYDRATION");
+}
+
+export function assertQaImageNotDatalessFlags(flags) {
+  assert.ok(typeof flags === "string" &&
+    !flags.trim().split(",").includes("dataless"),
+  "QA_IMAGE_NOT_LOCALLY_RESIDENT_NO_HYDRATION");
+}
+
+function assertNoMacDatalessFlag(path) {
+  // Node's Stats omits macOS st_flags. The system stat command reads metadata
+  // only; even a partly hydrated File Provider file must never be opened here.
+  const flags = execFileSync("/usr/bin/stat", ["-f", "%Sf", path],
+    { encoding: "utf8", timeout: 3000 }).trim();
+  assertQaImageNotDatalessFlags(flags);
 }
 
 export function assertQaImageTransferBoundary(proof) {
@@ -72,6 +96,8 @@ async function verifyArtifact({ path, sha256, maxBytes, kind }) {
   assert.ok(before.isFile() && before.nlink === 1 && before.uid === process.getuid() &&
     (before.mode & 0o077) === 0 && before.size > 0 &&
     before.size <= maxBytes, "QA_IMAGE_FILE_UNSAFE");
+  assertQaImageLocallyResident(before);
+  assertNoMacDatalessFlag(actual);
   const fd = openSync(actual, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const opened = fstatSync(fd);

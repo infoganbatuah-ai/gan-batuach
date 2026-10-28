@@ -24,13 +24,14 @@ export function reviewNoNicSyntheticGuestPlan(plan) {
   assert.ok(boot && typeof boot === "object" && transfer &&
     typeof transfer === "object", "QA_GUEST_DISK_DESCRIPTOR_REQUIRED");
   assert.deepEqual(Object.keys(boot).sort(), ["role", "kind", "format",
-    "original", "sourceSha256"].sort(), "QA_GUEST_BOOT_DISK_EXTRA_FIELD");
+    "original", "sourceSha256", "readOnly"].sort(),
+  "QA_GUEST_BOOT_DISK_EXTRA_FIELD");
   assert.deepEqual(Object.keys(transfer).sort(), ["role", "kind", "readOnly",
     "hostMount", "networkBacked", "entries"].sort(),
   "QA_GUEST_TRANSFER_DISK_EXTRA_FIELD");
   assert.ok(boot?.role === "FRESH_PRIVATE_SCRATCH_BOOT" &&
     boot.kind === "file-backed-virtio-block" && boot.format === "raw" &&
-    boot.original === false && boot.sourceSha256 ===
+    boot.original === false && boot.readOnly === false && boot.sourceSha256 ===
       RECORDED_QA_SOURCE_IDS.ubuntuArm64Sha256,
   "QA_GUEST_BOOT_DISK_NOT_QUALIFIED");
   assert.ok(transfer?.role === "OFFLINE_QA_INPUT_ONLY" &&
