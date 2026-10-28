@@ -1,0 +1,23 @@
+# Component restore preflight contract — synthetic only
+
+**2026-10-28; local review-only implementation. Real restore: NO-GO / NOT RUN.** The existing five-file current `gbi` component capture remains `COMPONENT_BACKUPS_ONLY`, not an atomic database-plus-Storage recovery point. The restricted receipt and owner key were **not** opened or used in this unit.
+
+## Implemented, not activated
+
+- `component-restore-preflight.mjs` pins the original Development source container ID, public-recipient digest and scope for a future real adapter. Its direct CLI has no restore mode and exits `REAL_RESTORE_ADAPTER_NOT_IMPLEMENTED`.
+- The reusable ciphertext gate requires a private regular receipt in a private directory and exactly five known component filenames. It rejects symlinks, unexpected IDs, duplicate/missing components, changed source/recipient, non-component status, a prior restore claim, size/hash mismatch, non-age headers, total ciphertext above 1 GiB, insufficient 3 GiB-plus-1 GiB internal reserve and deadline expiry. It hashes through opened file descriptors, requires no file metadata change during reading and never decrypts. In this unit it was run only on fresh synthetic age ciphertext.
+- The synthetic orchestration contract checks source/target path disjointness, a fresh isolated-target proof object, encrypted target, no host mounts/proxy/original volumes, IPv4/IPv6/DNS denial and networkless data containers, then takes an exclusive target lock. Its ordered adapter calls are authenticated decrypt, Storage tar verification **before** extraction, globals, three distinct database restores, Auth/roles/RLS/schema/migration checks and Storage metadata/byte checks. All failure paths return `BLOCKED` and invoke cleanup; a pre-existing lock is preserved. It can return only `SYNTHETIC_COMPONENT_RESTORE_CONTRACT_PASS`, never real restore PASS.
+- The prior separate guest rehearsal measured actual denied IPv4/IPv6/DNS attempts before synthetic data and after reboot, with no host mounts or original volumes. The separate age FD self-test exercised a disposable identity through an inherited pipe. These facts are prerequisites, not evidence that the new contract ran on a real target.
+
+## Tests and exact gaps
+
+`node --test review-only/event-risk-authority-source/component-restore-preflight.test.mjs`: **24/24 PASS**. Cases include exact five-file success ordering; receipt scope/recipient/count/duplicate/size/hash/total-cap faults; tampered ciphertext; symlink/world-readable file denial; unencrypted/stale/egress-capable/host-mounted target denial; space/deadline; source-target alias; existing lock; wrong-key, tar-failure and PostgreSQL-restore-failure adapter faults with cleanup invocation. The test uses generated synthetic age ciphertext and a fake restore adapter. Node syntax, direct-real-mode denial and diff checks passed. No real PostgreSQL, Auth or Storage restore was run in this contract test.
+
+**Blocking implementation facts:**
+
+1. There is no production-capable adapter that creates and attests a fresh encrypted disjoint guest, enforces its no-egress policy immediately before plaintext transfer, and returns measured proof bound to that guest rather than a caller-provided JSON object. The synthetic contract currently accepts a test-double proof object; it must never be accepted as real isolation evidence.
+2. There is no controller joining hidden owner TTY input and the age FD pipe to all five pinned ciphertexts, with authenticated decryption and plaintext staging only inside the encrypted target. The prior tools separately prove only key compatibility and synthetic pipe transport. No owner key action should be requested until this controller is implemented and tested.
+3. There is no real adapter for Storage tar verification followed by safe extraction, globals and three PostgreSQL 17.6 restores into new databases, or bounded post-restore Auth/roles/RLS/migration/Storage metadata-to-byte checks. The existing Storage tar gate proves only file-manifest equality when supplied a decrypted stream, not metadata-object mapping.
+4. Cleanup is delegated to the adapter. Tests prove invocation, not actual removal of partial real-data staging, guest shutdown, image detach or absence of plaintext outside the encrypted target. Real fault injection and post-cleanup inspection are mandatory.
+
+**One next engineering unit:** implement and synthetically fault-test that concrete disposable-guest restore adapter and owner-TTY/decrypt bridge behind the current fail-closed preflight; only then consider one owner-present real restore run. Do not present a key-entry command yet. No source SQL, real backup decrypt, Production/Home operation, cloud upload, cost commitment, remote push or `main` change occurred.
