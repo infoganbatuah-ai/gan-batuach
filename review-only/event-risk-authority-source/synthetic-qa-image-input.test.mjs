@@ -1,17 +1,81 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { chmodSync, linkSync, mkdtempSync, readFileSync, rmSync, symlinkSync,
+import { chmodSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync,
   truncateSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import * as tar from "tar";
 import { APPROVED_QA_ATTESTOR_PUBLIC_KEY_PEM, assertQaAttestorPinned,
-  assertQaImageTargetCapacity, assertQaImageTransferBoundary, parseQaImageArguments,
+  assertQaImageTargetCapacity, assertQaImageTransferBoundary, inspectQaDockerSaveArchive,
+  parseQaImageArguments,
   MAX_QA_BASE_IMAGE_BYTES, QA_POSTGRES_IMAGE, QA_POSTGRES_IMAGE_ID, verifyIndependentQaBaseImage,
   verifyIndependentQaImage, verifyQaImageAttestation } from "./synthetic-qa-image-input.mjs";
 
 const sha = value => createHash("sha256").update(value).digest("hex");
+
+function dockerSaveFixture({ architecture = "arm64", tamperLayer = -1,
+  omitLayer = -1, imageTag = QA_POSTGRES_IMAGE, extraEntry = false } = {}) {
+  const root = mkdtempSync(join(tmpdir(), "do-docker-save-qa."));
+  const source = join(root, "source");
+  mkdirSync(source, { mode: 0o700 });
+  const layers = [], diffIds = [], files = [];
+  for (let index = 0; index < 29; index++) {
+    const path = `layers/${String(index).padStart(2, "0")}/layer.tar`;
+    const original = Buffer.from(`synthetic uncompressed layer ${index}\n`);
+    diffIds.push(`sha256:${sha(original)}`);
+    layers.push(path);
+    if (index === omitLayer) continue;
+    mkdirSync(join(source, "layers", String(index).padStart(2, "0")),
+      { recursive: true, mode: 0o700 });
+    writeFileSync(join(source, path), index === tamperLayer
+      ? Buffer.from(`changed synthetic layer ${index}\n`) : original);
+    files.push(path);
+  }
+  const config = Buffer.from(JSON.stringify({ architecture, os: "linux",
+    rootfs: { type: "layers", diff_ids: diffIds } }));
+  writeFileSync(join(source, "supabase-postgres-arm64-config.json"), config);
+  writeFileSync(join(source, "manifest.json"), JSON.stringify([{
+    Config: "supabase-postgres-arm64-config.json", RepoTags: [imageTag], Layers: layers
+  }]));
+  const tarPath = join(root, "docker-save.tar");
+  if (extraEntry) {
+    writeFileSync(join(source, "unexpected.txt"), "not an image member");
+    files.push("unexpected.txt");
+  }
+  tar.c({ file: tarPath, cwd: source, sync: true, portable: true },
+    ["supabase-postgres-arm64-config.json", "manifest.json", ...files]);
+  return { tarPath, imageId: `sha256:${sha(config)}`,
+    cleanup() { rmSync(root, { recursive: true }); } };
+}
+
+test("offline Docker-save parser binds ARM64 config, tag, layer order and 29 diff IDs", async () => {
+  const f = dockerSaveFixture();
+  try {
+    assert.deepEqual(await inspectQaDockerSaveArchive(f.tarPath, f.imageId), {
+      imageId: f.imageId, architecture: "arm64", layerCount: 29,
+      layerDigestKind: "uncompressed-diff-id" });
+    await assert.rejects(inspectQaDockerSaveArchive(f.tarPath,
+      `sha256:${"0".repeat(64)}`), /QA_DOCKER_SAVE_IMAGE_ID_MISMATCH/);
+  } finally { f.cleanup(); }
+});
+
+test("offline Docker-save parser rejects wrong architecture, missing and modified layers", async () => {
+  for (const variant of [
+    { input: { architecture: "amd64" }, error: /QA_DOCKER_SAVE_ARCH_INVALID/ },
+    { input: { omitLayer: 7 }, error: /QA_DOCKER_SAVE_ENTRY_COUNT_INVALID/ },
+    { input: { tamperLayer: 12 }, error: /QA_DOCKER_SAVE_LAYER_DIGEST_MISMATCH/ },
+    { input: { extraEntry: true }, error: /QA_DOCKER_SAVE_ENTRY_INVALID/ },
+    { input: { imageTag: "unapproved.example/postgres:latest" },
+      error: /QA_DOCKER_SAVE_TAG_INVALID/ }
+  ]) {
+    const f = dockerSaveFixture(variant.input);
+    try { await assert.rejects(inspectQaDockerSaveArchive(f.tarPath, f.imageId),
+      variant.error); }
+    finally { f.cleanup(); }
+  }
+});
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), "do-independent-image-qa."));
@@ -204,8 +268,11 @@ test("guest runner has neither original image source nor network pull path", () 
   assert.doesNotMatch(script, /\/Volumes\/DIGITAL_OBSERVER\/Development\/gan-batuach/);
   assert.match(script, /verifyIndependentQaBaseImage\(qaArguments\.base\)/);
   assert.match(script, /verifyIndependentQaImage\(qaArguments\.postgres\)/);
+  assert.match(script, /verifyPinnedQaDockerSave\(/);
   assert.ok(script.indexOf("assertQaAttestorPinned()") <
     script.indexOf("verifyIndependentQaBaseImage(qaArguments.base"));
+  assert.ok(script.indexOf("assertQaAttestorPinned()") <
+    script.indexOf("verifyPinnedQaDockerSave("));
   assert.ok(script.indexOf("verifyQaImageAttestation({") <
     script.indexOf("mkdtempSync(join(worktree"));
   assert.match(script, /assertQaImageTransferBoundary\(evidence\)/);

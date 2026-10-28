@@ -14,14 +14,15 @@ import { verifyDecryptedStorageTar } from "./verify-decrypted-storage-tar.mjs";
 import { runGuardedComponentRestore } from "./component-restore-controller.mjs";
 import { assertQaImageTargetCapacity, assertQaImageTransferBoundary,
   assertQaAttestorPinned, parseQaImageArguments, QA_POSTGRES_IMAGE, QA_POSTGRES_IMAGE_ID,
-  verifyIndependentQaBaseImage, verifyIndependentQaImage,
+  verifyIndependentQaBaseImage, verifyIndependentQaImage, verifyPinnedQaDockerSave,
   verifyQaImageAttestation } from "./synthetic-qa-image-input.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const qaArguments = parseQaImageArguments(process.argv.slice(2));
 assertQaAttestorPinned(); // Null until a separately reviewed owner-approved attestor is pinned.
 const qaBaseInput = await verifyIndependentQaBaseImage(qaArguments.base);
-const qaImageInput = await verifyIndependentQaImage(qaArguments.postgres);
+const qaImageInput = await verifyPinnedQaDockerSave(
+  await verifyIndependentQaImage(qaArguments.postgres));
 const qaAttestation = verifyQaImageAttestation({ base: qaBaseInput,
   postgres: qaImageInput, ...qaArguments.attestation });
 assert.equal(qaAttestation.status, "SIGNED_SYNTHETIC_QA_IMAGE_ATTESTATION_ACCEPTED");

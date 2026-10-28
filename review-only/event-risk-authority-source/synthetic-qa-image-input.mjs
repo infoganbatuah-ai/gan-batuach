@@ -4,10 +4,11 @@ import { createHash, createPublicKey, verify as verifySignature } from "node:cry
 import { constants, closeSync, createReadStream, fstatSync, lstatSync, openSync,
   readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
+import * as tar from "tar";
 
 export const QA_POSTGRES_IMAGE = "public.ecr.aws/supabase/postgres:17.6.1.167";
 export const QA_POSTGRES_IMAGE_ID =
-  "sha256:6942962433a569e87f228b4d4ab7e11db5deca64e43babb3a038443ad6c4f1bb";
+  "sha256:ed2c675a446d78a346e88f18afb6ae0cf46f64251f8c9186446bdf1526dd3655";
 export const MAX_QA_IMAGE_TAR_BYTES = 2 * 1024 ** 3;
 export const MAX_QA_BASE_IMAGE_BYTES = 2 * 1024 ** 3;
 // No independently verified QA attestor is pinned yet. Deliberate hard NO-GO.
@@ -91,7 +92,98 @@ export async function verifyIndependentQaImage({ tarPath, sha256 }) {
     maxBytes: MAX_QA_IMAGE_TAR_BYTES, kind: "postgres-docker-save" });
   return Object.freeze({ ...checked, tarPath: checked.path,
     imageReference: QA_POSTGRES_IMAGE, imageId: QA_POSTGRES_IMAGE_ID,
-    provenance: "OWNER_ATTESTATION_REQUIRED" });
+    archiveIntegrity: "NOT_VERIFIED", provenance: "OWNER_ATTESTATION_REQUIRED" });
+}
+
+// Reads Docker-save entries without extraction, Docker, a guest, or a network.
+// docker-save contains uncompressed layer.tar members: their SHA-256 values
+// must match config.rootfs.diff_ids. The original OCI compressed blobs are
+// not present here, so their registry digests cannot be rechecked from this tar.
+export async function inspectQaDockerSaveArchive(tarPath,
+  expectedImageId = QA_POSTGRES_IMAGE_ID) {
+  assert.match(expectedImageId, /^sha256:[a-f0-9]{64}$/, "QA_IMAGE_ID_INVALID");
+  const entries = new Map();
+  const pending = [];
+  let invalidEntry = false;
+  await tar.t({ file: tarPath, strict: true, noResume: true,
+    onReadEntry(entry) {
+      const path = entry.path;
+      const valid = entry.type === "File" &&
+        (path === "manifest.json" || path === "supabase-postgres-arm64-config.json" ||
+          /^layers\/(0[0-9]|1[0-9]|2[0-8])\/layer\.tar$/.test(path)) &&
+        !entries.has(path) && Number.isSafeInteger(entry.size) && entry.size > 0;
+      if (!valid) {
+        invalidEntry = true;
+        entry.resume();
+        return;
+      }
+      const meta = path === "manifest.json" || path === "supabase-postgres-arm64-config.json";
+      if (meta && entry.size > 64 * 1024) {
+        invalidEntry = true;
+        entry.resume();
+        return;
+      }
+      const hash = createHash("sha256");
+      const buffers = [];
+      let bytes = 0;
+      const complete = new Promise((accept, reject) => {
+        entry.on("data", chunk => {
+          bytes += chunk.length;
+          hash.update(chunk);
+          if (meta) buffers.push(chunk);
+        });
+        entry.on("end", () => {
+          try {
+            assert.equal(bytes, entry.size, "QA_DOCKER_SAVE_ENTRY_TRUNCATED");
+            entries.set(path, { bytes, sha256: hash.digest("hex"),
+              content: meta ? Buffer.concat(buffers) : null });
+            accept();
+          } catch (error) { reject(error); }
+        });
+        entry.on("error", reject);
+      });
+      pending.push(complete);
+      entry.resume();
+    }
+  });
+  await Promise.all(pending);
+  assert.equal(invalidEntry, false, "QA_DOCKER_SAVE_ENTRY_INVALID");
+  assert.equal(entries.size, 31, "QA_DOCKER_SAVE_ENTRY_COUNT_INVALID");
+  const manifest = JSON.parse(entries.get("manifest.json")?.content?.toString("utf8") ?? "null");
+  assert.ok(Array.isArray(manifest) && manifest.length === 1,
+    "QA_DOCKER_SAVE_MANIFEST_INVALID");
+  const image = manifest[0];
+  const configPath = "supabase-postgres-arm64-config.json";
+  assert.equal(image.Config, configPath, "QA_DOCKER_SAVE_CONFIG_INVALID");
+  assert.deepEqual(image.RepoTags, [QA_POSTGRES_IMAGE], "QA_DOCKER_SAVE_TAG_INVALID");
+  assert.ok(Array.isArray(image.Layers) && image.Layers.length === 29,
+    "QA_DOCKER_SAVE_LAYER_COUNT_INVALID");
+  assert.equal(`sha256:${entries.get(configPath)?.sha256}`, expectedImageId,
+    "QA_DOCKER_SAVE_IMAGE_ID_MISMATCH");
+  const config = JSON.parse(entries.get(configPath).content.toString("utf8"));
+  assert.equal(config.architecture, "arm64", "QA_DOCKER_SAVE_ARCH_INVALID");
+  assert.equal(config.os, "linux", "QA_DOCKER_SAVE_OS_INVALID");
+  assert.equal(config.rootfs?.type, "layers", "QA_DOCKER_SAVE_ROOTFS_INVALID");
+  assert.ok(Array.isArray(config.rootfs.diff_ids) && config.rootfs.diff_ids.length === 29,
+    "QA_DOCKER_SAVE_DIFF_ID_COUNT_INVALID");
+  for (let index = 0; index < 29; index++) {
+    const path = `layers/${String(index).padStart(2, "0")}/layer.tar`;
+    assert.equal(image.Layers[index], path, "QA_DOCKER_SAVE_LAYER_ORDER_INVALID");
+    assert.equal(config.rootfs.diff_ids[index], `sha256:${entries.get(path)?.sha256}`,
+      "QA_DOCKER_SAVE_LAYER_DIGEST_MISMATCH");
+  }
+  return Object.freeze({ imageId: expectedImageId, architecture: "arm64",
+    layerCount: 29, layerDigestKind: "uncompressed-diff-id" });
+}
+
+export async function verifyPinnedQaDockerSave(checked) {
+  const inspection = await inspectQaDockerSaveArchive(checked.tarPath);
+  // Rehash after traversal to detect a swapped or changed input between the
+  // initial private-file check and archive inspection.
+  await verifyArtifact({ path: checked.tarPath, sha256: checked.sha256,
+    maxBytes: MAX_QA_IMAGE_TAR_BYTES, kind: "postgres-docker-save" });
+  return Object.freeze({ ...checked, ...inspection,
+    archiveIntegrity: "STRUCTURE_AND_DIFF_IDS_VERIFIED" });
 }
 
 export async function verifyIndependentQaBaseImage({ path, sha256 }) {
