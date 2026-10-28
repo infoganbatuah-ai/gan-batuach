@@ -1,6 +1,6 @@
 # Five synthetic age components in the disposable encrypted restore target
 
-**2026-10-28, review-only. Synthetic ciphertext capture, receipt verification, age authentication and Storage tar gate: PASS. Full five-component database restore and real Development restore: NOT RUN.** This unit never opened the real component receipt/ciphertexts, owner recovery identity, Notes or clipboard. No source or Production SQL was executed.
+**2026-10-28, review-only. Synthetic ciphertext capture, receipt verification, age authentication and Storage tar gate: PASS. Full five-component database restore was NOT RUN at this checkpoint; the later synthetic full-restore result is in [CLAIM-FIVE-SYNTHETIC-AGE-FULL-RESTORE-20261028.md](CLAIM-FIVE-SYNTHETIC-AGE-FULL-RESTORE-20261028.md). Real Development restore remains NOT RUN.** This unit never opened the real component receipt/ciphertexts, owner recovery identity, Notes or clipboard. No source or Production SQL was executed.
 
 ## Measured result
 

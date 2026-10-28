@@ -41,6 +41,10 @@ const evidence = { status: "BLOCKED", reason: null, targetImagePath: image,
   syntheticFiveAgeCaptured: false, syntheticCiphertextSetVerified: false,
   syntheticFiveAgeAuthenticated: false, syntheticStorageTarGatePassed: false,
   syntheticNegativeCasesPassed: false, syntheticComponentScratchCleaned: false,
+  syntheticAgeGlobalsRestored: false, syntheticAgeThreeDatabasesRestored: false,
+  syntheticAgeAuthRolesRlsMigrationsVerified: false,
+  syntheticAgeStorageMetadataBytesMatched: false, syntheticRestoreFaultCleaned: false,
+  syntheticGuestStageCleaned: false,
   syntheticPhase: "NOT_STARTED",
   postgresTool: false, pgNetworkNone: false, storageNetworkNone: false,
   postgresVersion: null, pgSentinel: false, storageSentinel: false,
@@ -81,6 +85,15 @@ function guestDockerBinary(args, env) {
     throw new Error(`SYNTHETIC_GUEST_CAPTURE_FAILED:${result.status}:${diagnostic}`);
   }
   return result.stdout;
+}
+async function detachScratchMount() {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const result = run("/usr/bin/hdiutil", ["detach", mount],
+      { timeout: 60000, allowFailure: true });
+    if (result.status === 0) return true;
+    if (attempt < 3) await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 1000));
+  }
+  return false;
 }
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 function syntheticIdentity() {
@@ -141,6 +154,129 @@ function verifyDeniedEgress(env) {
   evidence.dnsResolutionProbeDenied = dns;
 }
 
+async function restoreSyntheticAgeComponents({ env, directory, storageBytes }) {
+  const names = ["_supabase", "gan_batuach_baseline_builder_v2", "postgres"];
+  const staged = Object.values(COMPONENT_FILES).map(file => `/tmp/do-qa-${file}.plain`);
+  const containers = [];
+  const psqlValue = (container, database, sql) => guestDocker(["exec", container,
+    "psql", "-X", "-qAt", "-h", "/tmp", "-U", "qa_restore_admin", "-d", database,
+    "-v", "ON_ERROR_STOP=1", "-c", sql], env).stdout.trim();
+  function startTarget(volume) {
+    guestDocker(["volume", "create", volume], env);
+    guestDocker(["run", "--rm", "--network", "none", "--pull", "never", "--user", "root",
+      "--volume", `${volume}:/data`, "--entrypoint", "/bin/sh", pgImage,
+      "-ec", "chown postgres:postgres /data"], env);
+    const container = guestDocker(["run", "--detach", "--rm", "--network", "none", "--pull", "never",
+      "--read-only", "--tmpfs", "/tmp:rw,nosuid,nodev,size=64m", "--user", "postgres",
+      "--volume", `${volume}:/var/lib/postgresql/data`, "--entrypoint", "/bin/sh", pgImage,
+      "-ec", "initdb -D /var/lib/postgresql/data -U qa_restore_admin -A trust --no-instructions >/dev/null && exec postgres -D /var/lib/postgresql/data -c listen_addresses= -c unix_socket_directories=/tmp"],
+    env, 60000).stdout.trim();
+    assert.match(container, /^[0-9a-f]{64}$/);
+    containers.push(container);
+    assert.equal(guestDocker(["inspect", container, "--format", "{{.HostConfig.NetworkMode}}"],
+      env).stdout.trim(), "none", "SYNTHETIC_RESTORE_CONTAINER_NETWORKED");
+    let ready = false;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const check = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+        "exec", container, "pg_isready", "-h", "/tmp", "-U", "qa_restore_admin"],
+      { env, timeout: 10000, allowFailure: true });
+      if (check.status === 0) { ready = true; break; }
+    }
+    assert.ok(ready, "SYNTHETIC_AGE_RESTORE_POSTGRES_NOT_READY");
+    return container;
+  }
+  try {
+    evidence.syntheticPhase = "STAGE_AUTHENTICATED_COMPONENTS";
+    for (const file of Object.values(COMPONENT_FILES)) {
+      run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp",
+        join(directory, `${file}.plain`), `${guest}:/tmp/do-qa-${file}.plain`],
+      { env, timeout: 30000 });
+    }
+    evidence.syntheticPhase = "RESTORE_GLOBALS_AND_DATABASES";
+    for (const [index, database] of names.entries()) {
+      const volume = `qa_age_restored_${index}`;
+      const container = startTarget(volume);
+      guestRun(["bash", "-o", "pipefail", "-c",
+        `cat /tmp/do-qa-globals.age.plain | sudo docker exec -i ${container} psql -X -v ON_ERROR_STOP=1 -U qa_restore_admin -h /tmp -d postgres`],
+      env, 60000);
+      assert.equal(psqlValue(container, "postgres",
+        "SELECT count(*) FROM pg_roles WHERE rolname IN ('postgres','qa_restored_reader');"), "2");
+      if (database !== "postgres") guestDocker(["exec", container, "createdb", "-h", "/tmp",
+        "-U", "qa_restore_admin", database], env);
+      guestRun(["bash", "-o", "pipefail", "-c",
+        `cat /tmp/do-qa-${database}.age.plain | sudo docker exec -i ${container} pg_restore --single-transaction --exit-on-error -U qa_restore_admin -h /tmp -d ${database}`],
+      env, 60000);
+      assert.equal(psqlValue(container, database, "SELECT value FROM qa_sentinel;"), "synthetic-only");
+      assert.equal(psqlValue(container, database,
+        "SELECT version FROM supabase_migrations.schema_migrations;"), "synthetic_0001");
+      if (database === "postgres") {
+        assert.equal(psqlValue(container, database, "SELECT id FROM auth.users;"), "synthetic-user-1");
+        assert.equal(psqlValue(container, database,
+          "SELECT relrowsecurity FROM pg_class WHERE oid='qa_contract.secure_record'::regclass;"), "t");
+        assert.equal(psqlValue(container, database,
+          "SELECT count(*) FROM pg_policies WHERE schemaname='qa_contract' AND tablename='secure_record' AND policyname='qa_tenant_select';"), "1");
+        assert.equal(psqlValue(container, database,
+          "SELECT has_table_privilege('qa_restored_reader','qa_contract.secure_record','SELECT');"), "t");
+        assert.equal(psqlValue(container, database,
+          "SET ROLE qa_restored_reader; SELECT string_agg(value, ',') FROM qa_contract.secure_record;"), "allowed");
+        const metadata = psqlValue(container, database,
+          "SELECT name || ':' || bytes || ':' || sha256 FROM storage.objects;");
+        assert.equal(metadata, `object:${storageBytes.length}:${sha256(storageBytes)}`);
+      }
+    }
+    evidence.syntheticAgeGlobalsRestored = true;
+    evidence.syntheticAgeThreeDatabasesRestored = true;
+    evidence.syntheticAgeAuthRolesRlsMigrationsVerified = true;
+    evidence.syntheticPhase = "RESTORE_STORAGE_FROM_AUTHENTICATED_TAR";
+    guestDocker(["volume", "create", "qa_age_restored_storage"], env);
+    guestRun(["bash", "-o", "pipefail", "-c",
+      `cat /tmp/do-qa-storage-bytes.age.plain | sudo docker run --rm -i --network none --pull never --read-only --volume qa_age_restored_storage:/dest --entrypoint /bin/tar ${pgImage} -C /dest -xf -`],
+    env, 60000);
+    const recoveredObject = guestDockerBinary(["run", "--rm", "--network", "none", "--pull", "never",
+      "--volume", "qa_age_restored_storage:/mnt:ro", "--entrypoint", "/bin/cat", pgImage,
+      "/mnt/object"], env);
+    assert.ok(recoveredObject.equals(storageBytes), "SYNTHETIC_STORAGE_METADATA_BYTE_MISMATCH");
+    evidence.syntheticAgeStorageMetadataBytesMatched = true;
+    evidence.syntheticPhase = "INJECT_MID_RESTORE_FAILURE";
+    const faultContainer = startTarget("qa_age_fault_pgdata");
+    // Commit the first restore phase, then fail the next one. The fault target
+    // must not be reported complete and its partial role state must be removed.
+    guestRun(["bash", "-o", "pipefail", "-c",
+      `cat /tmp/do-qa-globals.age.plain | sudo docker exec -i ${faultContainer} psql -X -v ON_ERROR_STOP=1 -U qa_restore_admin -h /tmp -d postgres`],
+    env, 60000);
+    assert.equal(psqlValue(faultContainer, "postgres",
+      "SELECT count(*) FROM pg_roles WHERE rolname IN ('postgres','qa_restored_reader');"), "2");
+    const badDump = readFileSync(join(directory, "postgres.age.plain")).subarray(0, 64);
+    writeFileSync(join(directory, "truncated-postgres.dump"), badDump,
+      { mode: 0o600, flag: "wx" });
+    run("/opt/homebrew/bin/limactl", ["copy", "--backend=scp",
+      join(directory, "truncated-postgres.dump"), `${guest}:/tmp/do-qa-truncated-postgres.dump`],
+    { env, timeout: 30000 });
+    const fault = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "bash", "-o",
+      "pipefail", "-c", `cat /tmp/do-qa-truncated-postgres.dump | sudo docker exec -i ${faultContainer} pg_restore --single-transaction --exit-on-error -U qa_restore_admin -h /tmp -d postgres`],
+    { env, timeout: 30000, allowFailure: true });
+    assert.notEqual(fault.status, 0, "SYNTHETIC_FAULT_RESTORE_ACCEPTED");
+    guestDocker(["stop", faultContainer], env);
+    containers.pop();
+    guestDocker(["volume", "rm", "qa_age_fault_pgdata"], env);
+    const residual = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
+      "volume", "inspect", "qa_age_fault_pgdata"], { env, timeout: 10000, allowFailure: true });
+    assert.notEqual(residual.status, 0, "SYNTHETIC_FAULT_VOLUME_REMAINED");
+    evidence.syntheticRestoreFaultCleaned = true;
+  } finally {
+    for (const container of containers.reverse()) {
+      run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker", "stop", container],
+        { env, timeout: 30000, allowFailure: true });
+    }
+    const toRemove = [...staged, "/tmp/do-qa-truncated-postgres.dump"];
+    const removed = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "rm", "-f", ...toRemove],
+      { env, timeout: 10000, allowFailure: true });
+    evidence.syntheticGuestStageCleaned = removed.status === 0 && toRemove.every(path =>
+      run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "test", "!", "-e", path],
+        { env, timeout: 10000, allowFailure: true }).status === 0);
+  }
+}
+
 async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSshPort }) {
   // All persistent fixture material lives on the disposable AES-256 mount.
   // The guest contains synthetic data only; neither original receipt nor owner
@@ -159,6 +295,28 @@ async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSs
         "CREATE TABLE qa_sentinel (value text NOT NULL); INSERT INTO qa_sentinel VALUES ('synthetic-only');"], env);
     }
     const storageBytes = Buffer.from("synthetic-storage-only", "utf8");
+    guestDocker(["exec", sourcePg, "psql", "-X", "-h", "/tmp", "-U", "postgres",
+      "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c",
+      `CREATE ROLE qa_restored_reader NOLOGIN;
+       CREATE SCHEMA auth;
+       CREATE TABLE auth.users (id text PRIMARY KEY, email text NOT NULL);
+       INSERT INTO auth.users VALUES ('synthetic-user-1', 'synthetic@example.invalid');
+       CREATE SCHEMA storage;
+       CREATE TABLE storage.objects (name text PRIMARY KEY, bytes integer NOT NULL, sha256 text NOT NULL);
+       INSERT INTO storage.objects VALUES ('object', ${storageBytes.length}, '${sha256(storageBytes)}');
+       CREATE SCHEMA qa_contract;
+       CREATE TABLE qa_contract.secure_record (tenant text NOT NULL, value text NOT NULL);
+       INSERT INTO qa_contract.secure_record VALUES ('synthetic-tenant', 'allowed'), ('other-tenant', 'denied');
+       ALTER TABLE qa_contract.secure_record ENABLE ROW LEVEL SECURITY;
+       CREATE POLICY qa_tenant_select ON qa_contract.secure_record FOR SELECT TO qa_restored_reader
+         USING (tenant = 'synthetic-tenant');
+       GRANT USAGE ON SCHEMA qa_contract TO qa_restored_reader;
+       GRANT SELECT ON qa_contract.secure_record TO qa_restored_reader;`], env);
+    for (const database of ["_supabase", "gan_batuach_baseline_builder_v2", "postgres"]) {
+      guestDocker(["exec", sourcePg, "psql", "-X", "-h", "/tmp", "-U", "postgres",
+        "-d", database, "-v", "ON_ERROR_STOP=1", "-c",
+        "CREATE SCHEMA supabase_migrations; CREATE TABLE supabase_migrations.schema_migrations (version text PRIMARY KEY); INSERT INTO supabase_migrations.schema_migrations VALUES ('synthetic_0001');"], env);
+    }
     const storageManifest = { fileCount: 1, logicalFileBytes: storageBytes.length,
       crossStoreAtomicity: "NOT_PROVEN", sampledSourceFileManifest: [{
         pathDigest: sha256("object"), sha256: sha256(storageBytes), bytes: storageBytes.length,
@@ -269,6 +427,8 @@ async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSs
     await assert.rejects(verifyDecryptedStorageTar(createReadStream(corruptPlain), receipt),
       /TAR_FILE_HASH_MISMATCH/);
     evidence.syntheticNegativeCasesPassed = true;
+    await restoreSyntheticAgeComponents({ env, directory, storageBytes });
+    assert.ok(evidence.syntheticGuestStageCleaned, "SYNTHETIC_GUEST_STAGE_NOT_CLEANED");
     evidence.syntheticPhase = "COMPLETE";
   } finally {
     identity.key.fill(0);
@@ -512,52 +672,15 @@ WantedBy=sysinit.target
   assertFreshIsolatedTarget(evidence); // Measured in this guest, never loaded from an external receipt.
   evidence.preflightAcceptedFreshMeasuredProof = true;
   await verifySyntheticFiveAgeComponents({ env, sourcePg: resumedPg, peerIp, guestSshPort });
-  // Exercise the real PostgreSQL custom-format restore engine and a disjoint
-  // Storage volume, still using only synthetic data inside the encrypted guest.
-  guestDocker(["volume", "create", "qa_restored_pgdata"], env);
-  guestDocker(["run", "--rm", "--network", "none", "--pull", "never", "--user", "root",
-    "--volume", "qa_restored_pgdata:/data", "--entrypoint", "/bin/sh", pgImage,
-    "-ec", "chown postgres:postgres /data"], env);
-  const restoredPg = guestDocker(["run", "--detach", "--rm", "--network", "none", "--pull", "never",
-    "--read-only", "--tmpfs", "/tmp:rw,nosuid,nodev,size=64m", "--user", "postgres",
-    "--volume", "qa_restored_pgdata:/var/lib/postgresql/data", "--entrypoint", "/bin/sh", pgImage,
-    "-ec", "initdb -D /var/lib/postgresql/data -A trust --no-instructions >/dev/null && exec postgres -D /var/lib/postgresql/data -c listen_addresses= -c unix_socket_directories=/tmp"],
-  env, 60000).stdout.trim();
-  assert.match(restoredPg, /^[0-9a-f]{64}$/);
-  assert.equal(guestDocker(["inspect", restoredPg, "--format", "{{.HostConfig.NetworkMode}}"], env).stdout.trim(), "none");
-  let restoreReady = false;
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const readiness = run("/opt/homebrew/bin/limactl", ["shell", guest, "--", "sudo", "docker",
-      "exec", restoredPg, "pg_isready", "-h", "/tmp", "-U", "postgres"],
-    { env, timeout: 10000, allowFailure: true });
-    if (readiness.status === 0) { restoreReady = true; break; }
-    await new Promise(resolve => setTimeout(resolve, 250));
-  }
-  assert.ok(restoreReady, "SYNTHETIC_RESTORE_POSTGRES_NOT_READY");
-  // Keep the synthetic dump off the host filesystem and fail if either side
-  // of the stream fails. Real restore will require authenticated age staging.
-  guestRun(["bash", "-o", "pipefail", "-c",
-    `sudo docker exec ${resumedPg} pg_dump -Fc -U postgres -h /tmp -d postgres | sudo docker exec -i ${restoredPg} pg_restore --exit-on-error -U postgres -h /tmp -d postgres`],
-  env, 120000);
-  evidence.postgresRestoredFromCustomDump = guestDocker(["exec", restoredPg, "psql", "-X", "-h", "/tmp",
-    "-U", "postgres", "-d", "postgres", "-At", "-c", "SELECT value FROM qa_sentinel;"],
-  env).stdout.trim() === "synthetic-only";
-  assert.ok(evidence.postgresRestoredFromCustomDump, "SYNTHETIC_PG_RESTORE_MISMATCH");
-  guestDocker(["volume", "create", "qa_restored_storage"], env);
-  guestDocker(["run", "--rm", "--network", "none", "--pull", "never",
-    "--volume", "qa_storage:/src:ro", "--volume", "qa_restored_storage:/dest",
-    "--entrypoint", "/bin/sh", pgImage, "-ec",
-    "tar -C /src -cf /tmp/do-synthetic-storage.tar . && tar -tf /tmp/do-synthetic-storage.tar >/dev/null && tar -C /dest -xf /tmp/do-synthetic-storage.tar"],
-  env);
-  evidence.storageRestoredFromTar = guestDocker(["run", "--rm", "--network", "none", "--pull", "never",
-    "--volume", "qa_restored_storage:/mnt:ro", "--entrypoint", "/bin/cat", pgImage, "/mnt/object"],
-  env).stdout.trim() === "synthetic-storage-only";
-  assert.ok(evidence.storageRestoredFromTar, "SYNTHETIC_STORAGE_RESTORE_MISMATCH");
+  // The authenticated five-component route supersedes the older unencrypted
+  // direct-pipe sentinel restore; do not run a second, weaker restore.
+  evidence.postgresRestoredFromCustomDump = evidence.syntheticAgeThreeDatabasesRestored;
+  evidence.storageRestoredFromTar = evidence.syntheticAgeStorageMetadataBytesMatched;
   verifyFirewall(env, peerIp, guestSshPort);
-  guestDocker(["stop", restoredPg, resumedPg], env);
+  guestDocker(["stop", resumedPg], env);
   run("/opt/homebrew/bin/limactl", ["stop", guest], { env, timeout: 60000 });
   started = false;
-  run("/usr/bin/hdiutil", ["detach", mount], { timeout: 60000 });
+  assert.ok(await detachScratchMount(), "SCRATCH_IMAGE_DETACH_FAILED");
   attached = false;
   assert.ok(!existsSync(sentinel), "SENTINEL_VISIBLE_AFTER_DETACH");
   run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-owners", "on", "-stdinpass",
@@ -596,9 +719,8 @@ WantedBy=sysinit.target
     }
   }
   if (!started && attached) {
-    const detached = run("/usr/bin/hdiutil", ["detach", mount],
-      { timeout: 60000, allowFailure: true });
-    if (detached.status !== 0) evidence.reason = "SCRATCH_IMAGE_DETACH_FAILED";
+    const detached = await detachScratchMount();
+    if (!detached) evidence.reason = "SCRATCH_IMAGE_DETACH_FAILED";
     else attached = false;
   }
   if (!started && !attached) {
