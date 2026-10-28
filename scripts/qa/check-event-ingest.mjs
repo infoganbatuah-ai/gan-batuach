@@ -241,16 +241,23 @@ const raceEvent={...sharedProducerEntry,event_id:randomUUID(),track_id:"race-tra
 const signalsBeforeRace=tables.observer_intelligence_signals.length;
 const deliveriesBeforeRace=tables.digital_observer_notification_deliveries.length;
 const riskBeforeRace=riskCalls;
+// Two separately loaded route modules model independent workers sharing only
+// the database. A process-local promise/map cannot serialize this boundary.
+const reloadedRoute=load("app/api/video-gateway/cloud-events/route.ts",mocks,new Map());
 raceReads.gate=new Promise(resolve=>{raceReads.release=resolve;});
 raceReads.enabled=true;
-const [firstRace,secondRace]=await Promise.all([send(raceEvent),send(raceEvent)]);
+const [firstRace,secondRace]=await Promise.all([
+  send(raceEvent),
+  reloadedRoute.POST(new Request("http://test.invalid/api/video-gateway/cloud-events",{
+    method:"POST",headers:{"content-type":"application/json","x-video-gateway-device-token":token},body:JSON.stringify(raceEvent)
+  }))
+]);
 assert.deepEqual([firstRace.status,secondRace.status],[201,201],"The mocked unique-key conflict is reread as an idempotent outcome");
 assert.equal(raceReads.arrivals,2,"Both requests observed the pre-insert snapshot");
 assert.equal(tables.observer_intelligence_signals.length,signalsBeforeRace+1,"The mocked database uniqueness constraint permits one durable signal");
 assert.equal(tables.digital_observer_notification_deliveries.length,deliveriesBeforeRace+2,"The existing dedupe key permits one in-app intent per authorized recipient");
 const riskEvaluationsDuringRace=riskCalls-riskBeforeRace;
-assert.equal(riskEvaluationsDuringRace,2,"Current route recomputes Risk in both requests; this is not a cross-worker idempotency proof");
-const reloadedRoute=load("app/api/video-gateway/cloud-events/route.ts",mocks,new Map());
+assert.equal(riskEvaluationsDuringRace,2,"Independent route modules recompute Risk twice; database ownership must precede computation");
 const notificationCountBeforeReload=tables.digital_observer_notification_deliveries.length;
 const reloadedReply=await reloadedRoute.POST(new Request("http://test.invalid/api/video-gateway/cloud-events",{
   method:"POST",headers:{"content-type":"application/json","x-video-gateway-device-token":token},body:JSON.stringify(raceEvent)
@@ -277,5 +284,5 @@ assert.equal(tables.observer_intelligence_signals.length,signalCountBeforeTie+1)
 assert.equal(tables.observer_intelligence_signals.at(-1).confidence,.5509);
 assert.equal((await send(decimalTie)).status,201,"A retry compares the database's numeric(5,4) value to the original decimal observation");
 assert.equal((await send({...decimalTie,confidence:.5508})).status,409,"A genuinely different confidence remains a conflict after decimal normalization");
-console.log(JSON.stringify({localRace:{accepted:2,durableSignals:1,inAppIntents:2,riskEvaluations:riskEvaluationsDuringRace,database:"mocked_unique_constraint",moduleReload:"simulated",postgresqlIntegration:false}}));
+console.log(JSON.stringify({localRace:{accepted:2,durableSignals:1,inAppIntents:2,riskEvaluations:riskEvaluationsDuringRace,database:"mocked_unique_constraint",routeModules:2,postgresqlIntegration:false}}));
 console.log("Event ingestion checks passed: token validation, revocation, scope, consent, immutable replay identity, Site-scoped tenant denial, mocked race behavior, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");
