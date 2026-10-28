@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { chmodSync, constants as fsConstants, copyFileSync, createReadStream, existsSync,
-  mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statfsSync, statSync,
+  mkdtempSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statfsSync,
   writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,12 +13,18 @@ import { createComponentReceipt } from "./component-backup-contract.mjs";
 import { verifyDecryptedStorageTar } from "./verify-decrypted-storage-tar.mjs";
 import { runGuardedComponentRestore } from "./component-restore-controller.mjs";
 import { assertQaImageTargetCapacity, assertQaImageTransferBoundary,
-  parseQaImageArguments, QA_POSTGRES_IMAGE, QA_POSTGRES_IMAGE_ID,
-  verifyIndependentQaImage } from "./synthetic-qa-image-input.mjs";
+  assertQaAttestorPinned, parseQaImageArguments, QA_POSTGRES_IMAGE, QA_POSTGRES_IMAGE_ID,
+  verifyIndependentQaBaseImage, verifyIndependentQaImage,
+  verifyQaImageAttestation } from "./synthetic-qa-image-input.mjs";
 
 const worktree = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
-const cachedBase = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/cache/caches/b0992ab88f5a3c0c436bbb3065c01466f20dc1dd0eb0a60299d410176f21a1c3";
-const qaImageInput = await verifyIndependentQaImage(parseQaImageArguments(process.argv.slice(2)));
+const qaArguments = parseQaImageArguments(process.argv.slice(2));
+assertQaAttestorPinned(); // Null until a separately reviewed owner-approved attestor is pinned.
+const qaBaseInput = await verifyIndependentQaBaseImage(qaArguments.base);
+const qaImageInput = await verifyIndependentQaImage(qaArguments.postgres);
+const qaAttestation = verifyQaImageAttestation({ base: qaBaseInput,
+  postgres: qaImageInput, ...qaArguments.attestation });
+assert.equal(qaAttestation.status, "SIGNED_SYNTHETIC_QA_IMAGE_ATTESTATION_ACCEPTED");
 const pgImage = QA_POSTGRES_IMAGE;
 const pgImageId = QA_POSTGRES_IMAGE_ID;
 const scratch = mkdtempSync(join(worktree, ".restore-architecture-qa."));
@@ -516,9 +522,6 @@ async function verifySyntheticFiveAgeComponents({ env, sourcePg, peerIp, guestSs
 }
 
 try {
-  assert.ok(existsSync(cachedBase), "LOCAL_BASE_IMAGE_MISSING");
-  assert.ok(statSync(cachedBase).size > 300_000_000,
-    "LOCAL_BASE_IMAGE_INVALID");
   run("/usr/bin/hdiutil", ["create", "-size", "12g", "-type", "SPARSEBUNDLE",
     "-encryption", "AES-256", "-stdinpass", "-fs", "APFS", "-volname",
     "DO_RESTORE_QA", "-nospotlight", image], { input: `${secret}\n`, timeout: 120000 });
@@ -537,13 +540,23 @@ try {
   assert.ok(/Owners:\s*Enabled/i.test(ownersLine),
     `SCRATCH_VOLUME_OWNERSHIP_NOT_ENABLED:${ownersLine.trim()}`);
 
+  const initialTargetFs = statfsSync(mount);
+  assertQaImageTargetCapacity(Number(initialTargetFs.bavail) * Number(initialTargetFs.bsize),
+    qaBaseInput.bytes, qaImageInput.bytes);
+  const baseImage = join(mount, "qa-base-image");
+  copyFileSync(qaBaseInput.path, baseImage, fsConstants.COPYFILE_EXCL);
+  chmodSync(baseImage, 0o600);
+  const stagedBase = await verifyIndependentQaBaseImage({ path: baseImage,
+    sha256: qaBaseInput.sha256 });
+  assert.equal(stagedBase.bytes, qaBaseInput.bytes, "QA_BASE_STAGED_SIZE_MISMATCH");
+
   const sentinel = join(mount, "synthetic-sentinel.txt");
   writeFileSync(sentinel, "synthetic restore sentinel only\n", { mode: 0o600, flag: "wx" });
   assert.equal(readFileSync(sentinel, "utf8"), "synthetic restore sentinel only\n");
   const limaHome = join(mount, "lima");
   mkdirSync(limaHome, { mode: 0o700 });
   const config = join(mount, "isolated-lima.yaml");
-  writeFileSync(config, `vmType: vz\narch: aarch64\nimages:\n  - location: ${cachedBase}\n    arch: aarch64\ncpus: 2\nmemory: 2GiB\ndisk: 6GiB\nmounts: []\nnetworks: []\nportForwards: []\npropagateProxyEnv: false\ncontainerd:\n  system: false\n  user: false\nssh:\n  loadDotSSHPubKeys: false\n  forwardAgent: false\nhostResolver:\n  enabled: false\nprovision: []\n`, { mode: 0o600, flag: "wx" });
+  writeFileSync(config, `vmType: vz\narch: aarch64\nimages:\n  - location: ${baseImage}\n    arch: aarch64\ncpus: 2\nmemory: 2GiB\ndisk: 6GiB\nmounts: []\nnetworks: []\nportForwards: []\npropagateProxyEnv: false\ncontainerd:\n  system: false\n  user: false\nssh:\n  loadDotSSHPubKeys: false\n  forwardAgent: false\nhostResolver:\n  enabled: false\nprovision: []\n`, { mode: 0o600, flag: "wx" });
   const env = { LIMA_HOME: limaHome };
   run("/opt/homebrew/bin/limactl", ["validate", config], { env });
   evidence.isolatedHome = true;
@@ -641,8 +654,8 @@ WantedBy=sysinit.target
 
   assertQaImageTransferBoundary(evidence);
   const imageTargetFs = statfsSync(mount);
-  assertQaImageTargetCapacity(Number(imageTargetFs.bavail) * Number(imageTargetFs.bsize),
-    qaImageInput.bytes);
+  assert.ok(Number(imageTargetFs.bavail) * Number(imageTargetFs.bsize) >=
+    2 * qaImageInput.bytes + 1024 ** 3, "QA_IMAGE_STAGE_CAPACITY_UNPROVEN");
   const imageTar = join(mount, "cached-postgres-image.tar");
   copyFileSync(qaImageInput.tarPath, imageTar, fsConstants.COPYFILE_EXCL);
   chmodSync(imageTar, 0o600);
@@ -806,7 +819,8 @@ WantedBy=sysinit.target
     else attached = false;
   }
   if (!started && !attached) {
-    evidence.payloadHiddenAfterDetach = ["synthetic-sentinel.txt", "lima", "cached-postgres-image.tar"]
+    evidence.payloadHiddenAfterDetach = ["synthetic-sentinel.txt", "lima", "qa-base-image",
+      "cached-postgres-image.tar"]
       .every(name => !existsSync(join(mount, name)));
     cleanupSafe = evidence.payloadHiddenAfterDetach && scratch.startsWith(`${worktree}/.restore-architecture-qa.`);
     if (cleanupSafe) {

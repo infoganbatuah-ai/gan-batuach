@@ -1,19 +1,27 @@
 // Local QA image input only. This module never invokes Docker or a provider.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, createPublicKey, verify as verifySignature } from "node:crypto";
 import { constants, closeSync, createReadStream, fstatSync, lstatSync, openSync,
-  realpathSync } from "node:fs";
-import { basename, dirname, isAbsolute, join, sep } from "node:path";
+  readFileSync, realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
 
 export const QA_POSTGRES_IMAGE = "public.ecr.aws/supabase/postgres:17.6.1.167";
 export const QA_POSTGRES_IMAGE_ID =
   "sha256:6942962433a569e87f228b4d4ab7e11db5deca64e43babb3a038443ad6c4f1bb";
 export const MAX_QA_IMAGE_TAR_BYTES = 2 * 1024 ** 3;
+export const MAX_QA_BASE_IMAGE_BYTES = 2 * 1024 ** 3;
+// No independently verified QA attestor is pinned yet. Deliberate hard NO-GO.
+// A future reviewed change must pin the owner-approved public key and its SPKI digest.
+export const APPROVED_QA_ATTESTOR_PUBLIC_KEY_PEM = null;
+export const APPROVED_QA_ATTESTOR_SPKI_SHA256 = null;
 const SOURCE_ROOT = "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach";
 const PROJECT_ROOT = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach";
 const HEX64 = /^[a-f0-9]{64}$/;
 
 function within(path, root) { return path === root || path.startsWith(root + sep); }
+function assertOutsideOriginal(path, code) {
+  assert.ok(!within(path, SOURCE_ROOT) && !within(path, PROJECT_ROOT), code);
+}
 
 export function assertQaImageTransferBoundary(proof) {
   for (const field of ["encrypted", "noHostMounts", "noProxyEnv",
@@ -24,37 +32,45 @@ export function assertQaImageTransferBoundary(proof) {
   }
 }
 
-export function assertQaImageTargetCapacity(freeBytes, imageBytes) {
-  assert.ok(Number.isSafeInteger(freeBytes) && Number.isSafeInteger(imageBytes) &&
-    imageBytes > 0 && imageBytes <= MAX_QA_IMAGE_TAR_BYTES &&
-    freeBytes >= 2 * imageBytes + 1024 ** 3, "QA_IMAGE_TARGET_CAPACITY_UNPROVEN");
+export function assertQaImageTargetCapacity(freeBytes, baseBytes, postgresBytes) {
+  assert.ok(Number.isSafeInteger(freeBytes) && Number.isSafeInteger(baseBytes) &&
+    Number.isSafeInteger(postgresBytes) && baseBytes > 0 &&
+    baseBytes <= MAX_QA_BASE_IMAGE_BYTES && postgresBytes > 0 &&
+    postgresBytes <= MAX_QA_IMAGE_TAR_BYTES &&
+    freeBytes >= baseBytes + 2 * postgresBytes + 7 * 1024 ** 3,
+  "QA_IMAGE_TARGET_CAPACITY_UNPROVEN");
 }
 
 export function parseQaImageArguments(args) {
-  assert.ok(Array.isArray(args) && args.length === 4, "QA_IMAGE_ARGUMENTS_REQUIRED");
-  const [flagPath, tarPath, flagDigest, sha256] = args;
-  assert.equal(flagPath, "--qa-image-tar", "QA_IMAGE_ARGUMENTS_INVALID");
-  assert.equal(flagDigest, "--qa-image-sha256", "QA_IMAGE_ARGUMENTS_INVALID");
-  assert.ok(typeof tarPath === "string" && isAbsolute(tarPath), "QA_IMAGE_PATH_NOT_ABSOLUTE");
-  assert.match(sha256, HEX64, "QA_IMAGE_DIGEST_REQUIRED");
-  return { tarPath, sha256 };
+  assert.ok(Array.isArray(args) && args.length === 12, "QA_IMAGE_ARGUMENTS_REQUIRED");
+  const expected = ["--qa-base-image", "--qa-base-sha256", "--qa-image-tar",
+    "--qa-image-sha256", "--qa-attestation-payload", "--qa-attestation-signature"];
+  for (let index = 0; index < expected.length; index++)
+    assert.equal(args[index * 2], expected[index], "QA_IMAGE_ARGUMENTS_INVALID");
+  for (const index of [1, 5, 9, 11])
+    assert.ok(typeof args[index] === "string" && isAbsolute(args[index]),
+      "QA_IMAGE_PATH_NOT_ABSOLUTE");
+  for (const index of [3, 7]) assert.match(args[index], HEX64, "QA_IMAGE_DIGEST_REQUIRED");
+  return { base: { path: args[1], sha256: args[3] },
+    postgres: { tarPath: args[5], sha256: args[7] },
+    attestation: { payloadPath: args[9], signaturePath: args[11] } };
 }
 
-export async function verifyIndependentQaImage({ tarPath, sha256 }) {
-  assert.ok(typeof tarPath === "string" && isAbsolute(tarPath), "QA_IMAGE_PATH_NOT_ABSOLUTE");
+async function verifyArtifact({ path, sha256, maxBytes, kind }) {
+  assert.ok(typeof path === "string" && isAbsolute(path), "QA_IMAGE_PATH_NOT_ABSOLUTE");
   assert.match(sha256, HEX64, "QA_IMAGE_DIGEST_REQUIRED");
-  const absolute = join(realpathSync(dirname(tarPath)), basename(tarPath));
-  const actual = realpathSync(tarPath);
+  assertOutsideOriginal(resolve(path), "QA_IMAGE_SOURCE_NOT_INDEPENDENT");
+  const absolute = join(realpathSync(dirname(path)), basename(path));
+  const actual = realpathSync(path);
   assert.equal(actual, absolute, "QA_IMAGE_SYMLINK_DENIED");
-  assert.ok(!within(actual, SOURCE_ROOT) && !within(actual, PROJECT_ROOT),
-    "QA_IMAGE_SOURCE_NOT_INDEPENDENT");
+  assertOutsideOriginal(actual, "QA_IMAGE_SOURCE_NOT_INDEPENDENT");
   const parent = lstatSync(dirname(actual));
   assert.ok(parent.isDirectory() && parent.uid === process.getuid() &&
     (parent.mode & 0o077) === 0, "QA_IMAGE_PARENT_NOT_PRIVATE");
   const before = lstatSync(actual);
   assert.ok(before.isFile() && before.nlink === 1 && before.uid === process.getuid() &&
     (before.mode & 0o077) === 0 && before.size > 0 &&
-    before.size <= MAX_QA_IMAGE_TAR_BYTES, "QA_IMAGE_FILE_UNSAFE");
+    before.size <= maxBytes, "QA_IMAGE_FILE_UNSAFE");
   const fd = openSync(actual, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const opened = fstatSync(fd);
@@ -67,7 +83,91 @@ export async function verifyIndependentQaImage({ tarPath, sha256 }) {
     "QA_IMAGE_CHANGED_DURING_READ");
     assert.equal(hash.digest("hex"), sha256, "QA_IMAGE_DIGEST_MISMATCH");
   } finally { closeSync(fd); }
-  return Object.freeze({ tarPath: actual, sha256, bytes: before.size,
+  return Object.freeze({ path: actual, sha256, bytes: before.size, kind });
+}
+
+export async function verifyIndependentQaImage({ tarPath, sha256 }) {
+  const checked = await verifyArtifact({ path: tarPath, sha256,
+    maxBytes: MAX_QA_IMAGE_TAR_BYTES, kind: "postgres-docker-save" });
+  return Object.freeze({ ...checked, tarPath: checked.path,
     imageReference: QA_POSTGRES_IMAGE, imageId: QA_POSTGRES_IMAGE_ID,
     provenance: "OWNER_ATTESTATION_REQUIRED" });
+}
+
+export async function verifyIndependentQaBaseImage({ path, sha256 }) {
+  return verifyArtifact({ path, sha256, maxBytes: MAX_QA_BASE_IMAGE_BYTES,
+    kind: "lima-base-aarch64" });
+}
+
+export function assertQaAttestorPinned(publicKeyPem = APPROVED_QA_ATTESTOR_PUBLIC_KEY_PEM,
+  spkiSha256 = APPROVED_QA_ATTESTOR_SPKI_SHA256) {
+  assert.ok(typeof publicKeyPem === "string" && publicKeyPem.length > 0 &&
+    typeof spkiSha256 === "string" && HEX64.test(spkiSha256), "QA_ATTESTOR_NOT_PINNED");
+  const key = createPublicKey(publicKeyPem);
+  assert.equal(key.asymmetricKeyType, "ed25519", "QA_ATTESTOR_KEY_TYPE_INVALID");
+  const actual = createHash("sha256").update(key.export({ format: "der", type: "spki" })).digest("hex");
+  assert.equal(actual, spkiSha256, "QA_ATTESTOR_KEY_PIN_MISMATCH");
+  return key;
+}
+
+function readPrivateEvidence(path, maxBytes) {
+  assert.ok(typeof path === "string" && isAbsolute(path), "QA_ATTESTATION_PATH_INVALID");
+  assertOutsideOriginal(resolve(path), "QA_ATTESTATION_SOURCE_NOT_INDEPENDENT");
+  const actual = realpathSync(path);
+  assert.equal(actual, join(realpathSync(dirname(path)), basename(path)),
+    "QA_ATTESTATION_SYMLINK_DENIED");
+  assertOutsideOriginal(actual, "QA_ATTESTATION_SOURCE_NOT_INDEPENDENT");
+  const parent = lstatSync(dirname(actual));
+  const before = lstatSync(actual);
+  assert.ok(parent.isDirectory() && parent.uid === process.getuid() &&
+    (parent.mode & 0o077) === 0 && before.isFile() && before.nlink === 1 &&
+    before.uid === process.getuid() && (before.mode & 0o077) === 0 &&
+    before.size > 0 && before.size <= maxBytes, "QA_ATTESTATION_FILE_UNSAFE");
+  const fd = openSync(actual, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const opened = fstatSync(fd);
+    assert.equal(opened.ino, before.ino, "QA_ATTESTATION_CHANGED_DURING_OPEN");
+    const content = readFileSync(fd);
+    const after = fstatSync(fd);
+    assert.ok(after.ino === before.ino && after.size === before.size &&
+      after.mtimeMs === before.mtimeMs && after.ctimeMs === before.ctimeMs,
+    "QA_ATTESTATION_CHANGED_DURING_READ");
+    return content;
+  } finally { closeSync(fd); }
+}
+
+export function verifyQaImageAttestation({ base, postgres, payloadPath, signaturePath,
+  trustedPublicKeyPem = APPROVED_QA_ATTESTOR_PUBLIC_KEY_PEM,
+  trustedPublicKeySha256 = APPROVED_QA_ATTESTOR_SPKI_SHA256,
+  now = Date.now() }) {
+  // The pinned public key is a reviewed trust anchor, never a CLI argument.
+  // With the current null pin this fails before reading any input artifact.
+  const key = assertQaAttestorPinned(trustedPublicKeyPem, trustedPublicKeySha256);
+  const payloadBytes = readPrivateEvidence(payloadPath, 4096);
+  const signature = readPrivateEvidence(signaturePath, 64);
+  assert.equal(signature.length, 64, "QA_ATTESTATION_SIGNATURE_SIZE_INVALID");
+  assert.ok(verifySignature(null, payloadBytes, key, signature),
+    "QA_ATTESTATION_SIGNATURE_INVALID");
+  const payload = JSON.parse(payloadBytes.toString("utf8"));
+  assert.equal(payload.schema, "do-synthetic-qa-images-v1", "QA_ATTESTATION_SCHEMA_INVALID");
+  assert.equal(payload.environment, "independent-approved-qa", "QA_ATTESTATION_ENV_INVALID");
+  assert.equal(payload.purpose, "synthetic-disposable-guest-only", "QA_ATTESTATION_PURPOSE_INVALID");
+  assert.equal(payload.noDevelopmentData, true, "QA_ATTESTATION_SOURCE_DATA_UNPROVEN");
+  assert.equal(payload.noProductionData, true, "QA_ATTESTATION_PRODUCTION_DATA_UNPROVEN");
+  assert.ok(Number.isSafeInteger(now), "QA_ATTESTATION_TIME_INVALID");
+  for (const field of ["issuedAt", "expiresAt"])
+    assert.equal(new Date(payload[field]).toISOString(), payload[field],
+      "QA_ATTESTATION_TIME_INVALID");
+  const issued = Date.parse(payload.issuedAt);
+  const expires = Date.parse(payload.expiresAt);
+  assert.ok(issued <= now && now < expires && expires - issued <= 24 * 60 * 60 * 1000,
+    "QA_ATTESTATION_EXPIRED_OR_UNBOUNDED");
+  assert.equal(payload.base?.sha256, base?.sha256, "QA_ATTESTATION_BASE_MISMATCH");
+  assert.equal(payload.base?.bytes, base?.bytes, "QA_ATTESTATION_BASE_MISMATCH");
+  assert.equal(payload.postgres?.sha256, postgres?.sha256, "QA_ATTESTATION_POSTGRES_MISMATCH");
+  assert.equal(payload.postgres?.bytes, postgres?.bytes, "QA_ATTESTATION_POSTGRES_MISMATCH");
+  assert.equal(payload.postgres?.imageId, QA_POSTGRES_IMAGE_ID,
+    "QA_ATTESTATION_POSTGRES_IMAGE_MISMATCH");
+  return { status: "SIGNED_SYNTHETIC_QA_IMAGE_ATTESTATION_ACCEPTED",
+    attestorSpkiSha256: trustedPublicKeySha256, expiresAt: payload.expiresAt };
 }
