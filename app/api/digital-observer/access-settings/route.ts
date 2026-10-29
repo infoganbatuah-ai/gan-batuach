@@ -1,9 +1,9 @@
-import crypto from "node:crypto";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { encryptField } from "@/lib/security/encryption";
+import { hashForLegacyLookup, hashForLookup } from "@/lib/security/field-encryption";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
 const createRecipientSchema = z.object({
@@ -36,10 +36,11 @@ function destinationHint(value: string) {
   return digits.length >= 4 ? `***${digits.slice(-4)}` : "פרטי קשר שמורים";
 }
 
-function deviceHash(value: string) {
-  const pepper = process.env.FIELD_HASH_PEPPER || process.env.FIELD_ENCRYPTION_KEY_CURRENT || process.env.FIELD_ENCRYPTION_KEY;
-  if (!pepper) throw new Error("DEVICE_HASH_CONFIGURATION_REQUIRED");
-  return crypto.createHmac("sha256", pepper).update(value).digest("hex");
+function deviceHashes(value: string) {
+  const current = hashForLookup(value);
+  if (!current) throw new Error("DEVICE_HASH_CONFIGURATION_REQUIRED");
+  const legacy = hashForLegacyLookup(value);
+  return { current, legacy: legacy && legacy !== current ? legacy : null };
 }
 
 export async function POST(request: Request) {
@@ -81,16 +82,45 @@ export async function POST(request: Request) {
       const admin: SupabaseClient = createAdminClient();
       const tokenLookup = await admin.from("push_device_tokens").select("id", { count: "exact", head: true }).eq("profile_id", profile.id).eq("is_active", true);
       const pushTokenRegistered = !tokenLookup.error && (tokenLookup.count ?? 0) > 0;
-      const result = await admin.from("digital_observer_device_slots").upsert({
+      const hashes = deviceHashes(payload.device_reference);
+      const candidateHashes = [hashes.current, hashes.legacy].filter((value): value is string => Boolean(value));
+      const existingDevices = await admin
+        .from("digital_observer_device_slots")
+        .select("id,device_reference_hash")
+        .eq("observer_site_id", payload.observer_site_id)
+        .in("device_reference_hash", candidateHashes)
+        .limit(2);
+      if (existingDevices.error) {
+        console.error("Digital Observer device hash lookup failed", { code: existingDevices.error.code });
+        return fail("לא ניתן לאמת את רישום המכשיר.", 400);
+      }
+      if ((existingDevices.data?.length ?? 0) > 1) {
+        return fail("נמצאו רישומי מכשיר כפולים הדורשים בדיקה לפני עדכון.", 409);
+      }
+
+      const deviceRecord = {
         observer_site_id: payload.observer_site_id,
         profile_id: profile.id,
         device_label: payload.device_label,
         platform: payload.platform,
-        device_reference_hash: deviceHash(payload.device_reference),
+        device_reference_hash: hashes.current,
         active: true,
         last_seen_at: new Date().toISOString(),
         metadata: { push_token_registered: pushTokenRegistered, provider_activation_required: !pushTokenRegistered }
-      }, { onConflict: "observer_site_id,device_reference_hash" }).select("id,device_label,platform,active,last_seen_at").single();
+      };
+      const existingDevice = existingDevices.data?.[0];
+      const result = existingDevice
+        ? await admin
+            .from("digital_observer_device_slots")
+            .update(deviceRecord)
+            .eq("id", existingDevice.id)
+            .select("id,device_label,platform,active,last_seen_at")
+            .single()
+        : await admin
+            .from("digital_observer_device_slots")
+            .upsert(deviceRecord, { onConflict: "observer_site_id,device_reference_hash" })
+            .select("id,device_label,platform,active,last_seen_at")
+            .single();
       if (result.error?.message?.includes("DIGITAL_OBSERVER_DEVICE_LIMIT_REACHED")) return fail("אפשר לחבר עד שני מכשירים. יש להסיר מכשיר קיים לפני הוספת מכשיר נוסף.", 409);
       if (result.error) {
         console.error("Digital Observer device registration failed", { code: result.error.code });
