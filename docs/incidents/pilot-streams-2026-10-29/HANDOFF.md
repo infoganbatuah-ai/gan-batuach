@@ -45,3 +45,12 @@ Deliver exactly one complete summary to specification chat
 `01a17446-bdbb-76d1-971d-1d3b23e1565d`, identifying this as a parallel incident
 that does not cancel the primary camera task. Delivery acknowledgment belongs
 in the current chat's tool history; do not send duplicate follow-ups.
+
+Delivery attempt: **REJECTED / NOT DELIVERED** by automatic approval review.
+The reviewer did not recognize a trusted human message authorizing disclosure
+of the detailed internal incident report, operational identifiers, paths and
+hashes to that destination. No workaround, second attempt or indirect delivery
+was made. A direct human authorization identifying this report and destination
+is required before retrying. The attempted summary referenced documentation
+commit `72a94701fc4a45b0e9abedc624f99b2091b660ae`; this delivery-status addendum
+is preserved separately. The camera incident and coverage artifacts are intact.
