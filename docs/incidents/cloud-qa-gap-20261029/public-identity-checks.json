@@ -1,0 +1,25 @@
+{
+  "observedUtc": "2026-10-29T18:08:30.135587+00:00",
+  "checks": [
+    {
+      "url": "https://gan-batuach.vercel.app/api/health",
+      "httpStatus": 200,
+      "health": {
+        "ok": true,
+        "status": "ok",
+        "app": "ok",
+        "version": "unknown",
+        "supabase": "ok",
+        "timestamp": "2026-10-29T18:08:31.817Z"
+      }
+    },
+    {
+      "url": "https://gan-batuach.vercel.app/api/development/version",
+      "httpStatus": 404
+    },
+    {
+      "url": "https://api.vercel.com/v13/deployments/gan-batuach.vercel.app",
+      "httpStatus": 403
+    }
+  ]
+}

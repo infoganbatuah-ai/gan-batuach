@@ -1,0 +1,9 @@
+{
+  "observedUtc": "2026-10-29T18:13:50.123418+00:00",
+  "origin": "https://127.0.0.1:3101",
+  "updateDeliveryHold": true,
+  "ingressModuleHashMatches": true,
+  "sourceDependencyHashesMatch": true,
+  "unauthenticatedStatus": 401,
+  "tlsVerified": true
+}

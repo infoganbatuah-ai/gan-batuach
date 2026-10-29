@@ -1,0 +1,12 @@
+{
+  "scope": "HOME_QA_MEMORY_ONLY_AUTH_REPEATED_MEDIA_SAMPLES",
+  "startedUtc": "2026-10-29T18:04:46.615298+00:00",
+  "continuousPlayback": false,
+  "browserPlayback": false,
+  "credentialsPersisted": false,
+  "rounds": [],
+  "logoutPassed": null,
+  "error": "CalledProcessError",
+  "observedSeconds": 0.595,
+  "completedUtc": "2026-10-29T18:04:47.210436+00:00"
+}

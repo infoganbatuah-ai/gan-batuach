@@ -1,0 +1,9 @@
+{
+  "validLocal": true,
+  "wrongPortDenied": true,
+  "remoteDenied": true,
+  "credentialsDenied": true,
+  "wrongStreamDenied": true,
+  "traversalDenied": true,
+  "fragmentDenied": true
+}

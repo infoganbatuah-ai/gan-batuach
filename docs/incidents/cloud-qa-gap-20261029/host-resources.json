@@ -1,0 +1,20 @@
+{
+  "observedUtc": "2026-10-29T18:11:33.506044+00:00",
+  "loadAverage": [
+    9.03271484375,
+    14.5068359375,
+    18.25048828125
+  ],
+  "filesystems": [
+    {
+      "mountClass": "HOME",
+      "availableBytes": 310235136,
+      "capacityBytes": 245107195904
+    },
+    {
+      "mountClass": "PROJECT",
+      "availableBytes": 1666655391744,
+      "capacityBytes": 2048198492160
+    }
+  ]
+}

@@ -1,0 +1,457 @@
+{
+  "scope": "HOME_QA_MEMORY_ONLY_AUTH_REPEATED_MEDIA_SAMPLES",
+  "startedUtc": "2026-10-29T18:05:09.936262+00:00",
+  "continuousPlayback": false,
+  "browserPlayback": false,
+  "credentialsPersisted": false,
+  "rounds": [
+    {
+      "index": 0,
+      "elapsedSeconds": 45.226,
+      "results": [
+        {
+          "label": "DVR CH11",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 9.751
+        },
+        {
+          "label": "DVR CH1",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.308
+        },
+        {
+          "label": "DVR CH6",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.654
+        },
+        {
+          "label": "DVR CH8",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.576
+        },
+        {
+          "label": "DVR CH2",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 9.156
+        },
+        {
+          "label": "Tapo",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.422
+        },
+        {
+          "label": "DVR CH4",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.997
+        },
+        {
+          "label": "DVR CH5",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 9.281
+        },
+        {
+          "label": "DVR CH10",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            1
+          ],
+          "error": "DECODE_FAILED",
+          "elapsedSeconds": 2.171
+        },
+        {
+          "label": "DVR CH7",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.325
+        },
+        {
+          "label": "DVR CH3",
+          "passed": false,
+          "stage": "claim",
+          "authorizationStatus": 200,
+          "claimStatus": 503,
+          "error": "MEDIA_CLAIM_FAILED",
+          "elapsedSeconds": 0.718
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "elapsedSeconds": 110.547,
+      "results": [
+        {
+          "label": "DVR CH11",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.356
+        },
+        {
+          "label": "DVR CH1",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.359
+        },
+        {
+          "label": "DVR CH6",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.266
+        },
+        {
+          "label": "DVR CH8",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.262
+        },
+        {
+          "label": "DVR CH2",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.295
+        },
+        {
+          "label": "Tapo",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.322
+        },
+        {
+          "label": "DVR CH4",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.225
+        },
+        {
+          "label": "DVR CH5",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.194
+        },
+        {
+          "label": "DVR CH10",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.25
+        },
+        {
+          "label": "DVR CH7",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": false,
+          "elapsedSeconds": 8.262
+        },
+        {
+          "label": "DVR CH3",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.832
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "elapsedSeconds": 175.585,
+      "results": [
+        {
+          "label": "DVR CH11",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": false,
+          "elapsedSeconds": 8.543
+        },
+        {
+          "label": "DVR CH1",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 11.66
+        },
+        {
+          "label": "DVR CH6",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.378
+        },
+        {
+          "label": "DVR CH8",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.329
+        },
+        {
+          "label": "DVR CH2",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.292
+        },
+        {
+          "label": "Tapo",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.354
+        },
+        {
+          "label": "DVR CH4",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.269
+        },
+        {
+          "label": "DVR CH5",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": false,
+          "elapsedSeconds": 8.189
+        },
+        {
+          "label": "DVR CH10",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": false,
+          "elapsedSeconds": 8.354
+        },
+        {
+          "label": "DVR CH7",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.278
+        },
+        {
+          "label": "DVR CH3",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "playlistAdvanced": true,
+          "elapsedSeconds": 8.198
+        }
+      ]
+    }
+  ],
+  "logoutPassed": true,
+  "normalLoginVerified": true,
+  "refreshStatus": 200,
+  "refreshIdentityVerified": true,
+  "observedSeconds": 175.662,
+  "completedUtc": "2026-10-29T18:08:05.601989+00:00"
+}

@@ -1,0 +1,136 @@
+{
+  "generatedAt": "2026-10-29T18:02:28.430Z",
+  "evidence": "Existing pilot session, read-only browser API document, redacted field extraction",
+  "route": "/api/digital-observer/camera-health?site=[REDACTED]",
+  "configuredCapacity": 17,
+  "expectedPhysicalCameras": 11,
+  "emptyChannels": 6,
+  "healthyExpectedCameras": 0,
+  "summary": "OFFLINE",
+  "cameras": [
+    {
+      "label": "DVR CH1",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:38.595+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH2",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:39.966+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "SOURCE_UNREACHABLE",
+        "FRAME_STALE",
+        "RELAY_FAILED",
+        "PLAYBACK_FAILED",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH3",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:40.905+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH4",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:42.272+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH5",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:43.598+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH6",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:44.527+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH7",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:45.466+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH8",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:46.392+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "SOURCE_UNREACHABLE",
+        "FRAME_STALE",
+        "RELAY_FAILED",
+        "PLAYBACK_FAILED",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH10",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:49.057+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "DVR CH11",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-22T08:13:49.986+00:00",
+      "lastHeartbeatAt": "2026-09-22T08:13:43.22+00:00",
+      "reasons": [
+        "FRAME_STALE",
+        "COMPONENT_OFFLINE"
+      ]
+    },
+    {
+      "label": "Tapo",
+      "summary": "OFFLINE",
+      "lastFrameAt": "2026-09-21T02:39:23.438+00:00",
+      "lastHeartbeatAt": "2026-09-21T02:46:36.001+00:00",
+      "reasons": [
+        "SOURCE_UNREACHABLE",
+        "FRAME_STALE",
+        "RELAY_FAILED",
+        "PLAYBACK_FAILED",
+        "COMPONENT_OFFLINE"
+      ]
+    }
+  ],
+  "activeRegisteredComponents": 2,
+  "uiMatchesBackend": true,
+  "visualVerification": "CUA screenshot and accessibility tree: empty live grid, offline (11), no live media; camera images not captured",
+  "tenantBoundaryRetested": false,
+  "aliasDeploymentShaVerified": false
+}

@@ -1,0 +1,19 @@
+{
+  "observedUtc": "2026-10-29T18:12:28.600631+00:00",
+  "rows": [
+    {
+      "port": 18082,
+      "present": true,
+      "fileCount": 251,
+      "totalBytes": 35382700,
+      "cappedAt5000": false
+    },
+    {
+      "port": 18083,
+      "present": true,
+      "fileCount": 41,
+      "totalBytes": 11297777,
+      "cappedAt5000": false
+    }
+  ]
+}

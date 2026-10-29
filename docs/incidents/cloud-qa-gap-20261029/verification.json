@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "twoLiveSessionsSignedOut": true,
+    "sixRoundsElevenSources": true,
+    "all66AuthorizationChecks200": true,
+    "bothNormalRefreshesVerified": true,
+    "cloudInventoryMatchesQaCounts": true,
+    "qaIngressTlsAndHoldVerified": true,
+    "qaTargetsLoopback": true,
+    "noContinuousSoakSuccessClaim": true,
+    "probeSyntax": true
+  },
+  "allPassed": true,
+  "meaning": "Evidence verification; not product acceptance",
+  "probeSourceSha256": "db6209a4034540f9da5e68388d1484136eda7f9a76e3c6000aab61aa8448f4be",
+  "unitTests": 5
+}

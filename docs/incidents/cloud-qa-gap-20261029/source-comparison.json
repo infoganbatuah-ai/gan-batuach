@@ -1,0 +1,33 @@
+{
+  "note": "Source comparison, not proof of currently loaded compiled modules",
+  "files": [
+    {
+      "path": "lib/domain/digital-observer/camera-health-model.ts",
+      "checkoutSha256": "1500685ae180166a895c4a9b4c2be32dd527777c6640f480be31a4a434a263a3",
+      "qaSourceSha256": "1500685ae180166a895c4a9b4c2be32dd527777c6640f480be31a4a434a263a3",
+      "sourceFilesEqual": true,
+      "qaSourceDirty": false
+    },
+    {
+      "path": "lib/domain/digital-observer/camera-live-status.ts",
+      "checkoutSha256": "91647297b3332b51f5affbab2827a981fa5ffed6b99ac4b899063f57f95a2a18",
+      "qaSourceSha256": "91647297b3332b51f5affbab2827a981fa5ffed6b99ac4b899063f57f95a2a18",
+      "sourceFilesEqual": true,
+      "qaSourceDirty": false
+    },
+    {
+      "path": "lib/domain/digital-observer/camera-health-data.ts",
+      "checkoutSha256": "a1794b83af5f2d1db8400911192d7fe464044cb6fd54f20212b20acf61c8cee1",
+      "qaSourceSha256": "a1794b83af5f2d1db8400911192d7fe464044cb6fd54f20212b20acf61c8cee1",
+      "sourceFilesEqual": true,
+      "qaSourceDirty": false
+    },
+    {
+      "path": "app/api/digital-observer/dvr-gateway/route.ts",
+      "checkoutSha256": "357ae3cfa23e815f380dac71a85ef72e8c03aa9fb5870fa63267c28f45c6a1b2",
+      "qaSourceSha256": "23e6b97fc56195ec4ec3e8f695d0d9f7c24b5a5cf08383ca3b07a5b7ca282f5e",
+      "sourceFilesEqual": false,
+      "qaSourceDirty": false
+    }
+  ]
+}

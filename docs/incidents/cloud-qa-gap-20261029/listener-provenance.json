@@ -1,0 +1,29 @@
+{
+  "observedUtc": "2026-10-29T18:05:44.232137+00:00",
+  "listeners": [
+    {
+      "port": 3100,
+      "pid": 69730,
+      "cwd": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/push38-aws-signing",
+      "cwdGitSha": "f4fc7ff2d40d93704050114752b4c9007d5f4467"
+    },
+    {
+      "port": 3101,
+      "pid": 13124,
+      "cwd": "/Users/danielderi/Library/Application Support/Digital Observer/push38-qualification/loopback-tls-v3-20261029",
+      "cwdGitSha": null
+    },
+    {
+      "port": 18082,
+      "pid": 39587,
+      "cwd": "/Users/danielderi/Library/Application Support/Digital Observer/observer-gateway/ota/slots/0.2.101-p38-health/runtime",
+      "cwdGitSha": null
+    },
+    {
+      "port": 18083,
+      "pid": 12699,
+      "cwd": "/Users/danielderi/Library/Application Support/Digital Observer/observer-connector/ota/slots/0.2.40-p38-health/runtime/Digital Observer.app/Contents/Resources/runtime",
+      "cwdGitSha": null
+    }
+  ]
+}

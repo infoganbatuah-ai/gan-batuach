@@ -1,0 +1,684 @@
+{
+  "batches": [
+    {
+      "name": "first",
+      "startedUtc": "2026-10-29T18:05:09.936262+00:00",
+      "completedUtc": "2026-10-29T18:08:05.601989+00:00",
+      "observedSeconds": 175.662,
+      "passedPerRound": [
+        9,
+        10,
+        8
+      ],
+      "normalLoginVerified": true,
+      "refreshStatus": 200,
+      "refreshIdentityVerified": true,
+      "logoutPassed": true
+    },
+    {
+      "name": "diagnostic",
+      "startedUtc": "2026-10-29T18:10:49.833775+00:00",
+      "completedUtc": "2026-10-29T18:13:51.303671+00:00",
+      "observedSeconds": 181.466,
+      "passedPerRound": [
+        10,
+        10,
+        11
+      ],
+      "normalLoginVerified": true,
+      "refreshStatus": 200,
+      "refreshIdentityVerified": true,
+      "logoutPassed": true
+    }
+  ],
+  "perSource": [
+    {
+      "label": "DVR CH1",
+      "passes": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH2",
+      "passes": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH3",
+      "passes": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        "MEDIA_CLAIM_FAILED",
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        503,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        null,
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH4",
+      "passes": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH5",
+      "passes": [
+        true,
+        true,
+        false,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        "PLAYLIST_NOT_ADVANCING",
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH6",
+      "passes": [
+        true,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        null,
+        "PLAYLIST_NOT_ADVANCING",
+        "PLAYLIST_NOT_ADVANCING",
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH7",
+      "passes": [
+        true,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        "PLAYLIST_NOT_ADVANCING",
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH8",
+      "passes": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH10",
+      "passes": [
+        false,
+        true,
+        false,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        "DECODE_FAILED",
+        null,
+        "PLAYLIST_NOT_ADVANCING",
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "DVR CH11",
+      "passes": [
+        true,
+        true,
+        false,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        "PLAYLIST_NOT_ADVANCING",
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "Tapo",
+      "passes": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "errors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allSourceAuthorizations200": true,
+      "claimStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "decodedFrameSamples": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    }
+  ],
+  "healthLifecycleDeltas": [
+    {
+      "port": 18082,
+      "progressingRelays": [
+        2,
+        9,
+        7,
+        8,
+        9,
+        8,
+        9
+      ],
+      "delta": {
+        "starts": 27,
+        "upstreamEnded": 2,
+        "inputSocketError": 2,
+        "warmHandoffs": 9,
+        "warmHandoffFailures": 4,
+        "warmHandoffConfirmationFailures": 4,
+        "silentResponseRescues": 11,
+        "exclusiveRescueReopens": 16,
+        "exclusiveRescuePostReleaseRetrySucceeded": 12,
+        "exclusiveRescuePostReleaseRetryFailed": 0
+      }
+    },
+    {
+      "port": 18083,
+      "progressingRelays": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "delta": {
+        "starts": 0,
+        "upstreamEnded": 0,
+        "inputSocketError": 0,
+        "warmHandoffs": 0,
+        "warmHandoffFailures": 0,
+        "warmHandoffConfirmationFailures": 0,
+        "silentResponseRescues": 0,
+        "exclusiveRescueReopens": 0,
+        "exclusiveRescuePostReleaseRetrySucceeded": null,
+        "exclusiveRescuePostReleaseRetryFailed": null
+      }
+    }
+  ],
+  "runtimeChanges": false,
+  "forcedReconnectCommands": 0,
+  "normalGrantAndReclaimAttempts": 66,
+  "newSessionsCreated": 2,
+  "sessionsSignedOut": 2,
+  "continuousBrowserSoakProven": false,
+  "cloudPlaybackPassed": false,
+  "push38": "NOT_DONE"
+}

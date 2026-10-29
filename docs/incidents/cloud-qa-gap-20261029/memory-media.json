@@ -1,0 +1,1487 @@
+{
+  "scope": "HOME_QA_MEMORY_ONLY_AUTH_REPEATED_MEDIA_SAMPLES",
+  "startedUtc": "2026-10-29T18:10:49.833775+00:00",
+  "continuousPlayback": false,
+  "browserPlayback": false,
+  "credentialsPersisted": false,
+  "rounds": [
+    {
+      "index": 0,
+      "elapsedSeconds": 51.575,
+      "results": [
+        {
+          "label": "DVR CH11",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            135,
+            148
+          ],
+          "segmentBytes": [
+            140248,
+            135172
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.446
+        },
+        {
+          "label": "DVR CH1",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            70,
+            79
+          ],
+          "segmentBytes": [
+            164876,
+            211500
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.464
+        },
+        {
+          "label": "DVR CH6",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            380,
+            380
+          ],
+          "segmentBytes": [
+            146264,
+            146264
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": false,
+          "segmentContentChanged": false,
+          "error": "PLAYLIST_NOT_ADVANCING",
+          "elapsedSeconds": 8.509
+        },
+        {
+          "label": "DVR CH8",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            629,
+            636
+          ],
+          "segmentBytes": [
+            131036,
+            121824
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.493
+        },
+        {
+          "label": "DVR CH2",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            576,
+            583
+          ],
+          "segmentBytes": [
+            156228,
+            146076
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.434
+        },
+        {
+          "label": "Tapo",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            9363,
+            9367
+          ],
+          "segmentBytes": [
+            285196,
+            281060
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.586
+        },
+        {
+          "label": "DVR CH4",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            257,
+            263
+          ],
+          "segmentBytes": [
+            167696,
+            153784
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.361
+        },
+        {
+          "label": "DVR CH5",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            239,
+            245
+          ],
+          "segmentBytes": [
+            179916,
+            186120
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.297
+        },
+        {
+          "label": "DVR CH10",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            237,
+            249
+          ],
+          "segmentBytes": [
+            165440,
+            169388
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.318
+        },
+        {
+          "label": "DVR CH7",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            490,
+            492
+          ],
+          "segmentBytes": [
+            214884,
+            217328
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.345
+        },
+        {
+          "label": "DVR CH3",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            264,
+            268
+          ],
+          "segmentBytes": [
+            136488,
+            139308
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.23
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "elapsedSeconds": 116.21,
+      "results": [
+        {
+          "label": "DVR CH11",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            164,
+            171
+          ],
+          "segmentBytes": [
+            154912,
+            139308
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.287
+        },
+        {
+          "label": "DVR CH1",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            126,
+            134
+          ],
+          "segmentBytes": [
+            215824,
+            205108
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.298
+        },
+        {
+          "label": "DVR CH6",
+          "passed": false,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            381,
+            381
+          ],
+          "segmentBytes": [
+            163372,
+            163372
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": false,
+          "segmentContentChanged": false,
+          "error": "PLAYLIST_NOT_ADVANCING",
+          "elapsedSeconds": 8.24
+        },
+        {
+          "label": "DVR CH8",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            675,
+            684
+          ],
+          "segmentBytes": [
+            103400,
+            107160
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.226
+        },
+        {
+          "label": "DVR CH2",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            630,
+            638
+          ],
+          "segmentBytes": [
+            147580,
+            151716
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.263
+        },
+        {
+          "label": "Tapo",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            9396,
+            9400
+          ],
+          "segmentBytes": [
+            282188,
+            406644
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.34
+        },
+        {
+          "label": "DVR CH4",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            301,
+            308
+          ],
+          "segmentBytes": [
+            146076,
+            147768
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.232
+        },
+        {
+          "label": "DVR CH5",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            262,
+            265
+          ],
+          "segmentBytes": [
+            172772,
+            169576
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.177
+        },
+        {
+          "label": "DVR CH10",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            295,
+            303
+          ],
+          "segmentBytes": [
+            144008,
+            142880
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.299
+        },
+        {
+          "label": "DVR CH7",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            530,
+            538
+          ],
+          "segmentBytes": [
+            165440,
+            184992
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.285
+        },
+        {
+          "label": "DVR CH3",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            302,
+            314
+          ],
+          "segmentBytes": [
+            137428,
+            135924
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.2
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "elapsedSeconds": 181.347,
+      "results": [
+        {
+          "label": "DVR CH11",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            183,
+            183
+          ],
+          "segmentBytes": [
+            132352,
+            137052
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 11.366
+        },
+        {
+          "label": "DVR CH1",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            179,
+            185
+          ],
+          "segmentBytes": [
+            210748,
+            164688
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.378
+        },
+        {
+          "label": "DVR CH6",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            382,
+            393
+          ],
+          "segmentBytes": [
+            143820,
+            160928
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.351
+        },
+        {
+          "label": "DVR CH8",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            720,
+            721
+          ],
+          "segmentBytes": [
+            120132,
+            101896
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.641
+        },
+        {
+          "label": "DVR CH2",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            684,
+            692
+          ],
+          "segmentBytes": [
+            191760,
+            182172
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.472
+        },
+        {
+          "label": "Tapo",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            9430,
+            9434
+          ],
+          "segmentBytes": [
+            279368,
+            280872
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.662
+        },
+        {
+          "label": "DVR CH4",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            346,
+            347
+          ],
+          "segmentBytes": [
+            154536,
+            148144
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.457
+        },
+        {
+          "label": "DVR CH5",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            345,
+            352
+          ],
+          "segmentBytes": [
+            180480,
+            166568
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.406
+        },
+        {
+          "label": "DVR CH10",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            340,
+            352
+          ],
+          "segmentBytes": [
+            143820,
+            140436
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.228
+        },
+        {
+          "label": "DVR CH7",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            588,
+            595
+          ],
+          "segmentBytes": [
+            180104,
+            165064
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.282
+        },
+        {
+          "label": "DVR CH3",
+          "passed": true,
+          "stage": "decode",
+          "authorizationStatus": 200,
+          "claimStatus": 200,
+          "mediaSequence": [
+            337,
+            339
+          ],
+          "segmentBytes": [
+            128404,
+            137428
+          ],
+          "decodedFrames": [
+            2,
+            2
+          ],
+          "decodeExitCodes": [
+            0,
+            0
+          ],
+          "decodeErrorFlags": [
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            },
+            {
+              "invalid": false,
+              "corrupt": false,
+              "missing": false,
+              "error": false,
+              "no frame": false,
+              "end of file": false
+            }
+          ],
+          "playlistAdvanced": true,
+          "segmentContentChanged": true,
+          "elapsedSeconds": 8.235
+        }
+      ]
+    }
+  ],
+  "logoutPassed": true,
+  "normalLoginVerified": true,
+  "refreshStatus": 200,
+  "refreshIdentityVerified": true,
+  "observedSeconds": 181.466,
+  "completedUtc": "2026-10-29T18:13:51.303671+00:00"
+}

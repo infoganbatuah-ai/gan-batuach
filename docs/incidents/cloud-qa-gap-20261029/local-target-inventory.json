@@ -1,0 +1,226 @@
+{
+  "observedUtc": "2026-10-29T18:07:40.018128+00:00",
+  "devices": [
+    {
+      "profile": "PHYSICAL_GATEWAY",
+      "channel": "HOME_QA",
+      "cloudOrigin": "https://127.0.0.1:3101",
+      "currentVersion": "0.2.101-p38-health",
+      "otaState": "ROLLED_BACK",
+      "failureCategory": "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP",
+      "deviceRefHash": "fee586478997"
+    },
+    {
+      "profile": "SOFTWARE_CONNECTOR",
+      "channel": "HOME_QA",
+      "cloudOrigin": "https://127.0.0.1:3101",
+      "currentVersion": "0.2.40-p38-health",
+      "otaState": "ROLLED_BACK",
+      "failureCategory": "EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY",
+      "deviceRefHash": "60dc47549575"
+    }
+  ],
+  "localDatabaseProject": "gan-batuach-push38t",
+  "inventoryCount": 17,
+  "sources": [
+    {
+      "channel": "9",
+      "assignment": "CHANNEL_EMPTY",
+      "status": "disabled",
+      "health_status": "unknown",
+      "last_seen_at": null,
+      "last_health_check_at": "2026-10-29T18:05:02.331+00:00",
+      "frame_at": null,
+      "label": "DVR CH9",
+      "sourceRefHash": "5a3e264bd94d"
+    },
+    {
+      "channel": "12",
+      "assignment": "CHANNEL_EMPTY",
+      "status": "disabled",
+      "health_status": "unknown",
+      "last_seen_at": null,
+      "last_health_check_at": "2026-10-29T18:05:02.352+00:00",
+      "frame_at": null,
+      "label": "DVR CH12",
+      "sourceRefHash": "ee4d88e58c47"
+    },
+    {
+      "channel": "11",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.344+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.344+00:00",
+      "frame_at": null,
+      "label": "DVR CH11",
+      "sourceRefHash": "c990cf1258d8"
+    },
+    {
+      "channel": "14",
+      "assignment": "CHANNEL_EMPTY",
+      "status": "disabled",
+      "health_status": "unknown",
+      "last_seen_at": null,
+      "last_health_check_at": "2026-10-29T18:05:02.364+00:00",
+      "frame_at": null,
+      "label": "DVR CH14",
+      "sourceRefHash": "e366e8a055cb"
+    },
+    {
+      "channel": "1",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.226+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.226+00:00",
+      "frame_at": null,
+      "label": "DVR CH1",
+      "sourceRefHash": "2e5426248935"
+    },
+    {
+      "channel": "6",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.305+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.305+00:00",
+      "frame_at": null,
+      "label": "DVR CH6",
+      "sourceRefHash": "78ddba4a26b3"
+    },
+    {
+      "channel": "8",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.324+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.324+00:00",
+      "frame_at": null,
+      "label": "DVR CH8",
+      "sourceRefHash": "e836ec6972a3"
+    },
+    {
+      "channel": "13",
+      "assignment": "CHANNEL_EMPTY",
+      "status": "disabled",
+      "health_status": "unknown",
+      "last_seen_at": null,
+      "last_health_check_at": "2026-10-29T18:05:02.358+00:00",
+      "frame_at": null,
+      "label": "DVR CH13",
+      "sourceRefHash": "e5bd723f7200"
+    },
+    {
+      "channel": "2",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.246+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.246+00:00",
+      "frame_at": null,
+      "label": "DVR CH2",
+      "sourceRefHash": "712f2b913c78"
+    },
+    {
+      "channel": "1",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:56.988+00:00",
+      "last_health_check_at": "2026-10-29T18:05:56.988+00:00",
+      "frame_at": null,
+      "label": "Tapo",
+      "sourceRefHash": "a89f6a66068a"
+    },
+    {
+      "channel": "4",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.275+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.275+00:00",
+      "frame_at": null,
+      "label": "DVR CH4",
+      "sourceRefHash": "448d17201cf9"
+    },
+    {
+      "channel": "5",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.294+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.294+00:00",
+      "frame_at": null,
+      "label": "DVR CH5",
+      "sourceRefHash": "785b33519ef7"
+    },
+    {
+      "channel": "10",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.337+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.337+00:00",
+      "frame_at": null,
+      "label": "DVR CH10",
+      "sourceRefHash": "d0d3d4d80645"
+    },
+    {
+      "channel": "7",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.316+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.316+00:00",
+      "frame_at": null,
+      "label": "DVR CH7",
+      "sourceRefHash": "44a0a5bd84dd"
+    },
+    {
+      "channel": "15",
+      "assignment": "CHANNEL_EMPTY",
+      "status": "disabled",
+      "health_status": "unknown",
+      "last_seen_at": null,
+      "last_health_check_at": "2026-10-29T18:05:02.371+00:00",
+      "frame_at": null,
+      "label": "DVR CH15",
+      "sourceRefHash": "c1ececc224e4"
+    },
+    {
+      "channel": "16",
+      "assignment": "CHANNEL_EMPTY",
+      "status": "disabled",
+      "health_status": "unknown",
+      "last_seen_at": null,
+      "last_health_check_at": "2026-10-29T18:05:02.377+00:00",
+      "frame_at": null,
+      "label": "DVR CH16",
+      "sourceRefHash": "01a2827a0a83"
+    },
+    {
+      "channel": "3",
+      "assignment": "ASSIGNED",
+      "status": "connected",
+      "health_status": "healthy",
+      "last_seen_at": "2026-10-29T18:05:02.266+00:00",
+      "last_health_check_at": "2026-10-29T18:05:02.266+00:00",
+      "frame_at": null,
+      "label": "DVR CH3",
+      "sourceRefHash": "5063d1b886bb"
+    }
+  ],
+  "registrations": [
+    {
+      "profile": "SOFTWARE_CONNECTOR",
+      "state": "ACTIVE",
+      "last_seen_at": "2026-10-29T18:07:23.601+00:00"
+    },
+    {
+      "profile": "PHYSICAL_GATEWAY",
+      "state": "ACTIVE",
+      "last_seen_at": "2026-10-29T18:07:23.334+00:00"
+    }
+  ]
+}

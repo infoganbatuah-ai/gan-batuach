@@ -1,0 +1,103 @@
+{
+  "scope": "SOURCE_MODEL_REPLAY_AGAINST_REDACTED_QA_SNAPSHOT_NOT_LIVE_API",
+  "observedUtc": "2026-10-29T18:07:40.018128+00:00",
+  "rows": [
+    {
+      "label": "DVR CH11",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH1",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH6",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH8",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH2",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "Tapo",
+      "uiLiveEligibility": true,
+      "healthSummary": "HEALTHY",
+      "healthReasons": [],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH4",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH5",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH10",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH7",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    },
+    {
+      "label": "DVR CH3",
+      "uiLiveEligibility": true,
+      "healthSummary": "OFFLINE",
+      "healthReasons": [
+        "FRAME_STALE"
+      ],
+      "lastFrameEvidence": "last_seen_at fallback; not proof of decoded frame"
+    }
+  ]
+}

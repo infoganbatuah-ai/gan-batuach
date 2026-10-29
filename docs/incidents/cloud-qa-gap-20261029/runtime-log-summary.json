@@ -1,0 +1,147 @@
+{
+  "observedUtc": "2026-10-29T18:11:24.180353+00:00",
+  "logWindowBytes": 131072,
+  "processes": [
+    {
+      "pid": 39587,
+      "logs": [
+        {
+          "filename": "com.ganbatuach.video-gateway.err.log",
+          "eventCounts": {},
+          "diagnosticFlags": {},
+          "lastStructuredEvents": [
+            {
+              "status": 500
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 401
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 500
+            }
+          ]
+        },
+        {
+          "filename": "com.ganbatuach.video-gateway.out.log",
+          "eventCounts": {
+            "edge_runtime_listening": 369,
+            "edge_runtime_stopped": 20
+          },
+          "diagnosticFlags": {},
+          "lastStructuredEvents": [
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pid": 12699,
+      "logs": [
+        {
+          "filename": "com.ganbatuach.software-connector.tapo.err.log",
+          "eventCounts": {},
+          "diagnosticFlags": {
+            "Invalid data found": 1,
+            "timed out": 4,
+            "No space left": 1
+          },
+          "lastStructuredEvents": [
+            {
+              "status": 500
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 401
+            },
+            {
+              "status": 500
+            },
+            {
+              "status": 502
+            },
+            {
+              "status": 401
+            },
+            {
+              "status": 502
+            }
+          ]
+        },
+        {
+          "filename": "com.ganbatuach.software-connector.tapo.out.log",
+          "eventCounts": {
+            "edge_runtime_listening": 176,
+            "edge_runtime_stopped": 14
+          },
+          "diagnosticFlags": {},
+          "lastStructuredEvents": [
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_stopped"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_stopped"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_listening"
+            },
+            {
+              "event": "edge_runtime_stopped"
+            },
+            {
+              "event": "edge_runtime_listening"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
