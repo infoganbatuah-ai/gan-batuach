@@ -1,0 +1,90 @@
+{
+  "observations": [
+    {
+      "name": "first_without_owner",
+      "startedUtc": "2026-10-29T18:40:11.190486+00:00",
+      "observedSeconds": 90.009,
+      "samples": 16,
+      "healthErrors": 3
+    },
+    {
+      "name": "corrected_owner_evidence",
+      "startedUtc": "2026-10-29T18:41:47.090185+00:00",
+      "observedSeconds": 90.038,
+      "samples": 16,
+      "healthErrors": 0
+    }
+  ],
+  "replayCounts": {
+    "INSUFFICIENT_EVIDENCE": 142,
+    "DIRECT_RTSP_NOT_NVR": 16,
+    "NO_STALL_SIGNATURE": 18
+  },
+  "perDvrChannel": [
+    {
+      "channel": 1,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 5,
+        "NO_STALL_SIGNATURE": 11
+      }
+    },
+    {
+      "channel": 2,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 9,
+        "NO_STALL_SIGNATURE": 7
+      }
+    },
+    {
+      "channel": 3,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 4,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 5,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 6,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 7,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 8,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 10,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    },
+    {
+      "channel": 11,
+      "counts": {
+        "INSUFFICIENT_EVIDENCE": 16
+      }
+    }
+  ],
+  "gatewayRestartInitiatedByTask": false,
+  "restartRootCause": "UNPROVEN",
+  "activeQualificationBlockedByDisk": true
+}

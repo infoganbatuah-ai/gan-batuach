@@ -1,0 +1,19 @@
+{
+  "checks": {
+    "aliasDeploymentCommitLinkedInProvider": true,
+    "installedPolicyMatchesGit": true,
+    "diskThresholdMatchesInstalledSource": true,
+    "liveGateDeniedBeforeAuth": true,
+    "twoPassiveWindowsComplete": true,
+    "fullReplayDenominator": true,
+    "noRecoveryActionExecuted": true,
+    "missingEvidenceNotSuccess": true,
+    "probeSyntax": true
+  },
+  "allPassed": true,
+  "unitTests": {
+    "Python": 6,
+    "Node": 10
+  },
+  "meaning": "Tool/evidence validation, not live product acceptance"
+}

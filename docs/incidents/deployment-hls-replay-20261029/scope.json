@@ -1,0 +1,18 @@
+{
+  "baseCommit": "f260ee32c42628515da8c6ed4e4b239942e8bea0",
+  "branch": "codex/product-cloud-passive-soak-20261029",
+  "ownerThread": "01a18865-ce48-7603-9fcd-98a7e3e87d66",
+  "unit": "Deployment identity closure, fail-closed QA resource gate and installed-policy stall replay",
+  "runtimeChanges": false,
+  "productionChanges": false,
+  "mainChanges": false,
+  "databaseWrites": false,
+  "backupRouteTouched": false,
+  "credentialsRequestedOrPersisted": false,
+  "newAuthSessions": 0,
+  "activeMediaDecodeRuns": 0,
+  "forcedReconnectCommands": 0,
+  "otaHoldReleased": false,
+  "preservation": "LOCAL_ONLY_PENDING_REMOTE_AND_LEDGER",
+  "rollback": "Revert this scoped code/evidence commit on its feature branch; no live state requires rollback. Never revert a runtime slot or release the OTA hold for this unit."
+}

@@ -24,6 +24,16 @@ SECRET = pathlib.Path('/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/re
 WORKDIR = '/Users/danielderi/.codex/worktrees/7763/Gan-Batuach'
 OUTPUT = pathlib.Path(__file__).resolve().parents[2] / 'docs/incidents/cloud-qa-gap-20261029/memory-media.json'
 DEADLINE = float('inf')
+MINIMUM_FREE_DISK_BYTES = 8 * 1024 * 1024 * 1024
+
+
+def inspect_disk_headroom():
+    # Match the installed 0.2.101 qualification gate on the actual Edge
+    # filesystem. A spacious output/project volume cannot satisfy this gate.
+    filesystem = os.statvfs(pathlib.Path.home() / 'Library/Application Support/Digital Observer')
+    available = filesystem.f_bavail * filesystem.f_frsize
+    return {'availableBytes': available, 'minimumBytes': MINIMUM_FREE_DISK_BYTES,
+            'activeQualificationAllowed': available >= MINIMUM_FREE_DISK_BYTES}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -136,6 +146,8 @@ def main():
         raise RuntimeError('QA_INTERRUPTED')
     previous_handlers = {s: signal.signal(s, interrupt) for s in (signal.SIGINT, signal.SIGTERM)}
     try:
+        report['hostPreflight'] = inspect_disk_headroom()
+        assert report['hostPreflight']['activeQualificationAllowed'], 'QA_DISK_HEADROOM_INSUFFICIENT'
         label = subprocess.check_output(['docker', '--context', 'colima-push38t', 'inspect', '--format',
                                          '{{ index .Config.Labels "com.supabase.cli.project" }}',
                                          'supabase_db_gan-batuach-push38t'], text=True, stderr=subprocess.DEVNULL, timeout=10).strip()

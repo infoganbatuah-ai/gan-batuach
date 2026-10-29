@@ -1,0 +1,82 @@
+{
+  "observedUtc": "2026-10-29T18:44:21.240957+00:00",
+  "gatewayProcess": [
+    "44692 02:48 /usr/local/bin/node"
+  ],
+  "launchd": {
+    "state": "running",
+    "runs": "36",
+    "pid": "44692",
+    "last exit code": "1"
+  },
+  "logs": [
+    {
+      "name": "com.ganbatuach.video-gateway.err.log",
+      "mtimeUtc": "2026-10-29T18:41:12.000506+00:00",
+      "bytesInspected": 65536,
+      "flags": {
+        "ENOSPC": 0,
+        "EADDRINUSE": 0,
+        "ECONNRESET": 0,
+        "uncaught": 0,
+        "UnhandledPromiseRejection": 0,
+        "SIGKILL": 0
+      },
+      "structuredTail": []
+    },
+    {
+      "name": "com.ganbatuach.video-gateway.out.log",
+      "mtimeUtc": "2026-10-29T18:41:35.005848+00:00",
+      "bytesInspected": 65536,
+      "flags": {
+        "ENOSPC": 0,
+        "EADDRINUSE": 0,
+        "ECONNRESET": 0,
+        "uncaught": 0,
+        "UnhandledPromiseRejection": 0,
+        "SIGKILL": 0
+      },
+      "structuredTail": [
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        },
+        {
+          "event": "edge_runtime_listening"
+        }
+      ]
+    }
+  ],
+  "errorClasses": [],
+  "errorCodes": [],
+  "stackSites": []
+}

@@ -1,0 +1,83 @@
+{
+  "observedUtc": "2026-10-29T18:43:48.524181+00:00",
+  "gateways": [
+    {
+      "port": 18082,
+      "status": "degraded",
+      "streamCount": 10,
+      "failedStreamCount": 0,
+      "health_reason_codes": [
+        "EXPECTED_RELAY_NOT_PROGRESSING"
+      ],
+      "version": "0.2.101-p38-health",
+      "buildSha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+      "media": {
+        "activeRelays": 4,
+        "canonicalRelays": 4,
+        "liveRelayProcesses": 4,
+        "candidateHandoffs": 0,
+        "provisionalHandoffs": 0,
+        "maximumConcurrentProbations": 2,
+        "maximumRoutineProbations": 1,
+        "progressingRelays": 4,
+        "renewingRelays": 0,
+        "availableRelays": 4,
+        "stalledRelays": 0
+      },
+      "recorder": {
+        "login_attempts": 1,
+        "login_succeeded": 1,
+        "last_login_status": 200,
+        "last_login_range_status": 200,
+        "rotations": 0,
+        "proactive_attempts": 0,
+        "proactive_succeeded": 0,
+        "logout_attempts": 0,
+        "logout_succeeded": 0,
+        "logout_failed": 0,
+        "active_sessions": 1
+      },
+      "pids": [
+        "44705"
+      ]
+    },
+    {
+      "port": 18083,
+      "status": "healthy",
+      "streamCount": 1,
+      "failedStreamCount": 0,
+      "health_reason_codes": [],
+      "version": "0.2.40-p38-health",
+      "buildSha": "d80fb794f0dac331191ff7620b757449dc260b74",
+      "media": {
+        "activeRelays": 1,
+        "canonicalRelays": 1,
+        "liveRelayProcesses": 1,
+        "candidateHandoffs": 0,
+        "provisionalHandoffs": 0,
+        "maximumConcurrentProbations": 2,
+        "maximumRoutineProbations": 1,
+        "progressingRelays": 1,
+        "renewingRelays": 0,
+        "availableRelays": 1,
+        "stalledRelays": 0
+      },
+      "recorder": {
+        "login_attempts": 142,
+        "login_succeeded": 0,
+        "last_login_status": 0,
+        "last_login_range_status": 0,
+        "rotations": 0,
+        "proactive_attempts": 0,
+        "proactive_succeeded": 0,
+        "logout_attempts": 0,
+        "logout_succeeded": 0,
+        "logout_failed": 0,
+        "active_sessions": 0
+      },
+      "pids": [
+        "12699"
+      ]
+    }
+  ]
+}

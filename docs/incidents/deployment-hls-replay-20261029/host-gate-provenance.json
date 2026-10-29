@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+  "path": "scripts/qa/qualification-host-readiness.mjs",
+  "sha256": "98a88bd5af53e9b73dd08ffe0e52808dd599c1a8464d353c28d4c95aec0a5c3b",
+  "minimumBytes": 8589934592,
+  "probeMatchesExistingGate": true
+}

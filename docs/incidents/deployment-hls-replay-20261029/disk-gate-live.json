@@ -1,0 +1,17 @@
+{
+  "scope": "HOME_QA_MEMORY_ONLY_AUTH_REPEATED_MEDIA_SAMPLES",
+  "startedUtc": "2026-10-29T18:40:04.180461+00:00",
+  "continuousPlayback": false,
+  "browserPlayback": false,
+  "credentialsPersisted": false,
+  "rounds": [],
+  "logoutPassed": null,
+  "hostPreflight": {
+    "availableBytes": 290287616,
+    "minimumBytes": 8589934592,
+    "activeQualificationAllowed": false
+  },
+  "error": "QA_DISK_HEADROOM_INSUFFICIENT",
+  "observedSeconds": 0.0,
+  "completedUtc": "2026-10-29T18:40:04.180821+00:00"
+}

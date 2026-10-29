@@ -1,0 +1,1073 @@
+{
+  "scope": "HOME_QA_PASSIVE_ONLY_NOT_ACTIVE_QUALIFICATION",
+  "startedUtc": "2026-10-29T18:41:47.090185+00:00",
+  "plannedSeconds": 90,
+  "intervalSeconds": 6,
+  "samples": [
+    {
+      "elapsedSeconds": 0.001,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 0,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": []
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 139,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 446721,
+              "relay_age_ms": 446720,
+              "input_idle_ms": null,
+              "output_idle_ms": 265.409423828125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 6.005,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 0,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": []
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 139,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 452699,
+              "relay_age_ms": 452699,
+              "input_idle_ms": null,
+              "output_idle_ms": 227.623046875,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 12.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 0,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": []
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 139,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 458703,
+              "relay_age_ms": 458703,
+              "input_idle_ms": null,
+              "output_idle_ms": 222.508544921875,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 18.003,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 0,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": []
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 139,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 464721,
+              "relay_age_ms": 464721,
+              "input_idle_ms": null,
+              "output_idle_ms": 261.475341796875,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 24.037,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 0,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": []
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 139,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 472399,
+              "relay_age_ms": 472399,
+              "input_idle_ms": null,
+              "output_idle_ms": 1681.750732421875,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 30.01,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 1,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 2936,
+              "relay_age_ms": 2936,
+              "input_idle_ms": 40,
+              "output_idle_ms": 832.324462890625,
+              "bytes": 275492,
+              "chunks": 97,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 139,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 476757,
+              "relay_age_ms": 476757,
+              "input_idle_ms": null,
+              "output_idle_ms": 280.4892578125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 36.006,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 1,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 8875,
+              "relay_age_ms": 8876,
+              "input_idle_ms": 25,
+              "output_idle_ms": 409.380615234375,
+              "bytes": 737534,
+              "chunks": 343,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 130,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 482695,
+              "relay_age_ms": 482695,
+              "input_idle_ms": null,
+              "output_idle_ms": 1811.3681640625,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 42.005,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 1,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 14874,
+              "relay_age_ms": 14875,
+              "input_idle_ms": 16,
+              "output_idle_ms": 484.10986328125,
+              "bytes": 1207666,
+              "chunks": 552,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 8383,
+              "relay_age_ms": 8383,
+              "input_idle_ms": null,
+              "output_idle_ms": 1833.7900390625,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 48.01,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 1,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 20878,
+              "relay_age_ms": 20879,
+              "input_idle_ms": 24,
+              "output_idle_ms": 465.99072265625,
+              "bytes": 1679781,
+              "chunks": 694,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 14384,
+              "relay_age_ms": 14384,
+              "input_idle_ms": null,
+              "output_idle_ms": 1839.52001953125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 54.008,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 26887,
+              "relay_age_ms": 26888,
+              "input_idle_ms": 38,
+              "output_idle_ms": 471.360595703125,
+              "bytes": 2146687,
+              "chunks": 889,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 2339,
+              "relay_age_ms": 2339,
+              "input_idle_ms": 2,
+              "output_idle_ms": 394.23486328125,
+              "bytes": 264101,
+              "chunks": 110,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 20396,
+              "relay_age_ms": 20396,
+              "input_idle_ms": null,
+              "output_idle_ms": 1882.572021484375,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 60.007,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 33386,
+              "relay_age_ms": 33385,
+              "input_idle_ms": 23,
+              "output_idle_ms": 2192.774169921875,
+              "bytes": 2628369,
+              "chunks": 1091,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 8838,
+              "relay_age_ms": 8838,
+              "input_idle_ms": 22,
+              "output_idle_ms": 2803.37841796875,
+              "bytes": 743745,
+              "chunks": 314,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 26897,
+              "relay_age_ms": 26897,
+              "input_idle_ms": null,
+              "output_idle_ms": 373.663818359375,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 66.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 38873,
+              "relay_age_ms": 38874,
+              "input_idle_ms": 891,
+              "output_idle_ms": 377.3876953125,
+              "bytes": 2972808,
+              "chunks": 1122,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 14325,
+              "relay_age_ms": 14325,
+              "input_idle_ms": 282,
+              "output_idle_ms": 644.8623046875,
+              "bytes": 1192219,
+              "chunks": 352,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 32380,
+              "relay_age_ms": 32380,
+              "input_idle_ms": null,
+              "output_idle_ms": 1851.628173828125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 72.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 44872,
+              "relay_age_ms": 44873,
+              "input_idle_ms": 53,
+              "output_idle_ms": 410.807373046875,
+              "bytes": 3552665,
+              "chunks": 1337,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 20324,
+              "relay_age_ms": 20324,
+              "input_idle_ms": 31,
+              "output_idle_ms": 1080.884033203125,
+              "bytes": 1672297,
+              "chunks": 587,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 38381,
+              "relay_age_ms": 38381,
+              "input_idle_ms": null,
+              "output_idle_ms": 1844.298095703125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 78.01,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 50911,
+              "relay_age_ms": 50912,
+              "input_idle_ms": 18,
+              "output_idle_ms": 1521.21533203125,
+              "bytes": 4024206,
+              "chunks": 1555,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 26363,
+              "relay_age_ms": 26363,
+              "input_idle_ms": 15,
+              "output_idle_ms": 1055.508056640625,
+              "bytes": 2141469,
+              "chunks": 792,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 44423,
+              "relay_age_ms": 44423,
+              "input_idle_ms": null,
+              "output_idle_ms": 1899.267578125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 84.007,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 56882,
+              "relay_age_ms": 56883,
+              "input_idle_ms": 19,
+              "output_idle_ms": 383.172119140625,
+              "bytes": 4493090,
+              "chunks": 1795,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 32334,
+              "relay_age_ms": 32334,
+              "input_idle_ms": 51,
+              "output_idle_ms": 1050.119140625,
+              "bytes": 2605906,
+              "chunks": 1026,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 50388,
+              "relay_age_ms": 50388,
+              "input_idle_ms": null,
+              "output_idle_ms": 1872.756591796875,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 90.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "status": "degraded",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 2,
+            "upstreamEnded": 0,
+            "inputSocketError": 0,
+            "warmHandoffs": 0,
+            "warmHandoffFailures": 0,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 62898,
+              "relay_age_ms": 62899,
+              "input_idle_ms": 32,
+              "output_idle_ms": 385.656982421875,
+              "bytes": 4963985,
+              "chunks": 2001,
+              "encoder": "libx264"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 38351,
+              "relay_age_ms": 38350,
+              "input_idle_ms": 55,
+              "output_idle_ms": 1017.988525390625,
+              "bytes": 3080680,
+              "chunks": 1230,
+              "encoder": "libx264"
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "status": "healthy",
+          "heartbeatConsecutiveFailures": 0,
+          "lifecycle": {
+            "starts": 140,
+            "upstreamEnded": 1,
+            "inputSocketError": 0,
+            "warmHandoffs": 131,
+            "warmHandoffFailures": 1,
+            "silentResponseRescues": 0,
+            "exclusiveRescueReopens": 0
+          },
+          "inputs": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "owner_state": "CURRENT",
+              "native_input_ended": false,
+              "age_ms": 56406,
+              "relay_age_ms": 56406,
+              "input_idle_ms": null,
+              "output_idle_ms": 1829.977783203125,
+              "bytes": 0,
+              "chunks": 0,
+              "encoder": "copy"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "observedSeconds": 90.038,
+  "completed": true
+}

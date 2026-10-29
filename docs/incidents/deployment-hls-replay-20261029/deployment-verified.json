@@ -1,0 +1,21 @@
+{
+  "observedUtc": "2026-10-29T18:39:45.515010+00:00",
+  "evidence": "Existing connected Vercel browser, deployment overview + Assigned Domains popover",
+  "deploymentId": "dpl_GneHPHF1NyWZYrrepnL7rw4JEFrr",
+  "overview": "https://vercel.com/gan-batuach-s-projects/gan-batuach/GneHPHF1NyWZYrrepnL7rw4JEFrr",
+  "state": "Ready",
+  "environment": "Production",
+  "gitBranch": "main",
+  "commitSha": "2da8f75abce610a9a979eecd752d7a6a1011641e",
+  "deploymentUrl": "https://gan-batuach-88da6kcwb-gan-batuach-s-projects.vercel.app",
+  "assignedDomains": [
+    "ganbatuach.com",
+    "gan-batuach.vercel.app",
+    "gan-batuach-gan-batuach-s-projects.vercel.app",
+    "gan-batuach-git-main-gan-batuach-s-projects.vercel.app"
+  ],
+  "aliasToShaVerified": true,
+  "settingsChanged": false,
+  "newCredentialRequestedOrStored": false,
+  "productionChanged": false
+}

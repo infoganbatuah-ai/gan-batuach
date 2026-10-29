@@ -1,0 +1,1447 @@
+{
+  "contract": "observer-read-only-policy-replay-v1",
+  "policySha256": "68b8a5f2c181f8cf58a216c2f4c7b0ec2d2243f410f85ba9a351bdc4f995a8c8",
+  "sourceCommit": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+  "counts": {
+    "INSUFFICIENT_EVIDENCE": 142,
+    "DIRECT_RTSP_NOT_NVR": 16,
+    "NO_STALL_SIGNATURE": 18
+  },
+  "samples": [
+    {
+      "elapsedSeconds": 0.001,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 6.005,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 12.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 18.003,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 24.037,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 30.01,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 40,
+              "outputIdleMs": 832.324462890625
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 36.006,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 25,
+              "outputIdleMs": 409.380615234375
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 42.005,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 16,
+              "outputIdleMs": 484.10986328125
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 48.01,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 24,
+              "outputIdleMs": 465.99072265625
+            },
+            {
+              "channel": 2,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 54.008,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 38,
+              "outputIdleMs": 471.360595703125
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 2,
+              "outputIdleMs": 394.23486328125
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 60.007,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 23,
+              "outputIdleMs": 2192.774169921875
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 22,
+              "outputIdleMs": 2803.37841796875
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 66.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 891,
+              "outputIdleMs": 377.3876953125
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 282,
+              "outputIdleMs": 644.8623046875
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 72.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 53,
+              "outputIdleMs": 410.807373046875
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 31,
+              "outputIdleMs": 1080.884033203125
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 78.01,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 18,
+              "outputIdleMs": 1521.21533203125
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 15,
+              "outputIdleMs": 1055.508056640625
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 84.007,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 19,
+              "outputIdleMs": 383.172119140625
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 51,
+              "outputIdleMs": 1050.119140625
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 90.004,
+      "gateways": [
+        {
+          "port": 18082,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 32,
+              "outputIdleMs": 385.656982421875
+            },
+            {
+              "channel": 2,
+              "signature": "NO_STALL_SIGNATURE",
+              "policyMode": null,
+              "actionExecuted": false,
+              "correlatedDeferral": false,
+              "heartbeatEvidenceKnown": true,
+              "inputIdleMs": 55,
+              "outputIdleMs": 1017.988525390625
+            },
+            {
+              "channel": 3,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 4,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 5,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 6,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 7,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 8,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 10,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            },
+            {
+              "channel": 11,
+              "signature": "INSUFFICIENT_EVIDENCE",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        },
+        {
+          "port": 18083,
+          "gatewayEvidence": "PRESENT",
+          "correlatedSources": 0,
+          "results": [
+            {
+              "channel": 1,
+              "signature": "DIRECT_RTSP_NOT_NVR",
+              "policyMode": null,
+              "actionExecuted": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actionExecuted": false,
+  "transportReplay": false,
+  "limitation": "Policy selection replay only; health counters are not a byte-level transport replay or authority to restart an owner."
+}

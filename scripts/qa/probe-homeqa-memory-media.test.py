@@ -70,6 +70,7 @@ class ProbeTests(unittest.TestCase):
                     raise RuntimeError('QA_INTERRUPTED')
                 return {'label': source['label'], 'passed': True}
             with patch.object(probe, 'SECRET', secret), patch.object(probe, 'OUTPUT', output), \
+                    patch.object(probe, 'inspect_disk_headroom', return_value={'activeQualificationAllowed': True}), \
                     patch.object(probe.subprocess, 'check_output', side_effect=command), \
                     patch.object(probe, 'call', side_effect=request), \
                     patch.object(probe, 'decode_sample', side_effect=decode), \
@@ -100,6 +101,21 @@ class ProbeTests(unittest.TestCase):
         self.assertEqual(report['error'], 'QA_INTERRUPTED')
         self.assertEqual(len(report['rounds']), 0)
         self.assertEqual(headers['authorization'], 'Bearer SYNTHETIC_ACCESS')
+
+    def test_disk_pressure_blocks_before_credentials_or_network(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = pathlib.Path(folder)/'report.json'
+            with patch.object(probe, 'OUTPUT', output), \
+                    patch.object(probe, 'inspect_disk_headroom', return_value={'activeQualificationAllowed': False}), \
+                    patch.object(probe.subprocess, 'check_output') as command, \
+                    patch.object(probe, 'call') as network, contextlib.redirect_stdout(io.StringIO()):
+                probe.main()
+            command.assert_not_called()
+            network.assert_not_called()
+            report = json.loads(output.read_text())
+            self.assertEqual(report['error'], 'QA_DISK_HEADROOM_INSUFFICIENT')
+            self.assertEqual(report['rounds'], [])
+            self.assertIsNone(report['logoutPassed'])
 
 
 if __name__ == '__main__':

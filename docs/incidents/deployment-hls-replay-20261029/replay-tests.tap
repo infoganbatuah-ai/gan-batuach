@@ -1,0 +1,18 @@
+✔ healthy software owner does not enter rescue (1.481959ms)
+✔ fresh software input and stale output expose a selector gap without executing recovery (0.168167ms)
+✔ the installed hardware signature already selects the existing rescue lane (0.130708ms)
+✔ correlated silent input retains the healthy-session deferral (0.122ms)
+✔ an actual native response end retains its existing recovery authority (0.127417ms)
+✔ null telemetry is missing evidence and never a fresh zero (0.102667ms)
+✔ renewal, fallback, and direct RTSP are not treated as productive DVR owners (0.109292ms)
+✔ unknown heartbeat does not become evidence for a healthy-session deferral (0.111542ms)
+✔ missing and duplicated channels are represented explicitly (0.542792ms)
+✔ an unexpected gateway cannot be interpreted as either QA device (0.815084ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 162.789292

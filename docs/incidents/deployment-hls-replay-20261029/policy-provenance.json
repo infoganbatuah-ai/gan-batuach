@@ -1,0 +1,8 @@
+{
+  "installedVersion": "0.2.101-p38-health",
+  "sourceCommit": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+  "policySha256": "68b8a5f2c181f8cf58a216c2f4c7b0ec2d2243f410f85ba9a351bdc4f995a8c8",
+  "gitPolicySha256": "68b8a5f2c181f8cf58a216c2f4c7b0ec2d2243f410f85ba9a351bdc4f995a8c8",
+  "exactMatch": true,
+  "scope": "read-only policy provenance; no import of server/runtime entry point"
+}

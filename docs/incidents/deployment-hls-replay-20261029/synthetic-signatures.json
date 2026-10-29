@@ -1,0 +1,133 @@
+{
+  "scope": "SYNTHETIC_POLICY_SELECTION_NOT_TRANSPORT_PROOF",
+  "rows": [
+    {
+      "label": "healthy",
+      "syntheticInput": {
+        "owner_state": "CURRENT",
+        "relay_age_ms": 60000,
+        "input_idle_ms": 100,
+        "output_idle_ms": 100,
+        "native_input_ended": false,
+        "encoder": "libx264",
+        "renewing": false,
+        "progressing": true
+      },
+      "result": {
+        "signature": "NO_STALL_SIGNATURE",
+        "policyMode": null,
+        "actionExecuted": false,
+        "correlatedDeferral": false,
+        "heartbeatEvidenceKnown": true,
+        "inputIdleMs": 100,
+        "outputIdleMs": 100
+      }
+    },
+    {
+      "label": "software-output-with-fresh-input",
+      "syntheticInput": {
+        "owner_state": "CURRENT",
+        "relay_age_ms": 60000,
+        "input_idle_ms": 100,
+        "output_idle_ms": 25000,
+        "native_input_ended": false,
+        "encoder": "libx264",
+        "renewing": false,
+        "progressing": true
+      },
+      "result": {
+        "signature": "SOFTWARE_OUTPUT_STALL_FRESH_INPUT",
+        "policyMode": null,
+        "actionExecuted": false,
+        "correlatedDeferral": false,
+        "heartbeatEvidenceKnown": true,
+        "inputIdleMs": 100,
+        "outputIdleMs": 25000
+      }
+    },
+    {
+      "label": "hardware-output-with-fresh-input",
+      "syntheticInput": {
+        "owner_state": "CURRENT",
+        "relay_age_ms": 60000,
+        "input_idle_ms": 100,
+        "output_idle_ms": 25000,
+        "native_input_ended": false,
+        "encoder": "videotoolbox",
+        "renewing": false,
+        "progressing": true
+      },
+      "result": {
+        "signature": "HARDWARE_OUTPUT_STALL",
+        "policyMode": "OUTPUT_RESCUE",
+        "actionExecuted": false,
+        "correlatedDeferral": false,
+        "heartbeatEvidenceKnown": true,
+        "inputIdleMs": 100,
+        "outputIdleMs": 25000
+      }
+    },
+    {
+      "label": "correlated-silent-response",
+      "syntheticInput": {
+        "owner_state": "CURRENT",
+        "relay_age_ms": 60000,
+        "input_idle_ms": 12000,
+        "output_idle_ms": 12000,
+        "native_input_ended": false,
+        "encoder": "libx264",
+        "renewing": false,
+        "progressing": true
+      },
+      "result": {
+        "signature": "SILENT_INPUT_AND_OUTPUT",
+        "policyMode": "OUTPUT_RESCUE",
+        "actionExecuted": false,
+        "correlatedDeferral": true,
+        "heartbeatEvidenceKnown": true,
+        "inputIdleMs": 12000,
+        "outputIdleMs": 12000
+      }
+    },
+    {
+      "label": "native-response-ended",
+      "syntheticInput": {
+        "owner_state": "CURRENT",
+        "relay_age_ms": 60000,
+        "input_idle_ms": 100,
+        "output_idle_ms": 5000,
+        "native_input_ended": true,
+        "encoder": "libx264",
+        "renewing": false,
+        "progressing": true
+      },
+      "result": {
+        "signature": "NATIVE_RESPONSE_ENDED",
+        "policyMode": "OUTPUT_RESCUE",
+        "actionExecuted": false,
+        "correlatedDeferral": false,
+        "heartbeatEvidenceKnown": true,
+        "inputIdleMs": 100,
+        "outputIdleMs": 5000
+      }
+    },
+    {
+      "label": "missing-input-age",
+      "syntheticInput": {
+        "owner_state": "CURRENT",
+        "relay_age_ms": 60000,
+        "input_idle_ms": null,
+        "output_idle_ms": 25000,
+        "native_input_ended": false,
+        "encoder": "libx264",
+        "renewing": false,
+        "progressing": true
+      },
+      "result": {
+        "signature": "INSUFFICIENT_EVIDENCE",
+        "policyMode": null,
+        "actionExecuted": false
+      }
+    }
+  ]
+}
