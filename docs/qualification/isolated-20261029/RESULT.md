@@ -40,3 +40,21 @@ Read-only review of committed evidence from `79cc7b42`, preserved as `dvr-existi
 First provide an execution context where Apple VZ reports supported with the standard virtualization entitlement; do not bypass platform restrictions or reuse an existing live VM. Then implement and review a bounded offline guest control/result mechanism while retaining zero NICs and zero host shares; explicitly reconcile the existing exact-two-disk/no-serial contract before adding any device. Build fresh disposable encrypted guest storage and EFI variable store. Pin the guest script, measure actual guest NIC/routes/egress denial and read-only ISO behavior from boot through restart, and recover tamper-evident results. Only then qualify the guest-local no-follow OCI materializer against the 29 verified layers (links, whiteouts, privilege-bit stripping, limits, inode-specific cleanup), followed by fresh synthetic PostgreSQL/storage restores and live authorization checks. No real backup/key is required for these synthetic steps. Until then independent restore remains NOT RUN.
 
 Preservation: local evidence commit only; remote push and canonical integration-ledger registration intentionally pending coordinator review. No main, integration or Production change.
+
+## 29 October context recheck (later evidence)
+
+The earlier VZ rejection was specific to the sandboxed execution context.
+On the same host, a read-only `VZVirtualMachine.isSupported` check returned
+`VZ_UNAVAILABLE` inside that context and `VZ_SUPPORTED` outside it. The signed
+native configuration then passed beyond the hardware gate outside the sandbox
+and exposed a separate defect: its EFI variable store was nil. The preflight
+now creates a fresh scratch EFI variable store and passes its URL explicitly.
+With two disposable 1-MiB sparse files and the standard virtualization
+entitlement, `config.validate()` returned
+`NATIVE_CONFIGURATION_VALIDATED disks=2 nics=0 VM_NOT_CREATED`. The same
+binary still reports VZ unavailable in the sandbox. No VM was instantiated or
+booted, no official QA image or backup was opened, and no original disk or
+database was touched. The context recheck validates configuration only;
+guest boot, guest-measured isolation and restore remain open. The 20 contract
+tests pass with the existing local dependency tree temporarily linked and
+then removed. See `context-recheck-20261029.json` for the exact outcomes.

@@ -10,12 +10,16 @@ enum QANoNicPreflightError: Error {
 }
 
 @available(macOS 13.0, *)
-func buildNoNicReviewConfiguration(bootScratchRaw: URL, offlineInputsRaw: URL)
+func buildNoNicReviewConfiguration(bootScratchRaw: URL, offlineInputsRaw: URL,
+                                    scratchVariableStore: URL)
     throws -> VZVirtualMachineConfiguration {
     let config = VZVirtualMachineConfiguration()
     config.cpuCount = 2
     config.memorySize = 2 * 1024 * 1024 * 1024
-    config.bootLoader = VZEFIBootLoader()
+    let bootLoader = VZEFIBootLoader()
+    bootLoader.variableStore = try VZEFIVariableStore(
+        creatingVariableStoreAt: scratchVariableStore)
+    config.bootLoader = bootLoader
 
     // Apple's API exposes only the devices explicitly placed in these arrays.
     // Lima's `networks: []` is not equivalent: it retains a default NIC.

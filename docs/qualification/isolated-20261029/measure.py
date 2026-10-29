@@ -27,7 +27,7 @@ try:
  shutil.copyfile(source/'ubuntu-qa-boot.raw', raw); raw.chmod(0o600)
  r['scratchRaw'] = measure(raw)
  assert r['scratchRaw']['sha256'] == expected['ubuntu-qa-boot.raw']
- result = subprocess.run(['/private/tmp/do-qa-native-preflight', str(raw), str(source/'offline-qa-inputs.iso')], capture_output=True, text=True, timeout=30)
+ result = subprocess.run(['/private/tmp/do-qa-native-preflight', str(raw), str(source/'offline-qa-inputs.iso'), str(scratch/'efi-variables')], capture_output=True, text=True, timeout=30)
  r['native'] = {'exitCode': result.returncode, 'stdout': result.stdout, 'stderr': result.stderr}
  r['inputIsoAfter'] = measure(source/'offline-qa-inputs.iso')
  assert r['inputIsoAfter']['sha256'] == expected['offline-qa-inputs.iso']

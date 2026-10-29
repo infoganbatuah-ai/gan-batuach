@@ -1,0 +1,16 @@
+{
+  "observedUtc": "2026-10-29T21:50:59Z",
+  "scope": "signed native configuration validation with two newly created 1 MiB disposable sparse files only",
+  "sandboxSupport": "VZ_UNAVAILABLE",
+  "outsideSandboxSupport": "VZ_SUPPORTED",
+  "outsideSandboxBeforeFix": "NATIVE_CONFIGURATION_REJECTED: variableStore is nil",
+  "change": "fresh scratch EFI variable store passed to VZEFIBootLoader before config.validate",
+  "outsideSandboxAfterFix": "NATIVE_CONFIGURATION_VALIDATED disks=2 nics=0 VM_NOT_CREATED",
+  "sandboxAfterFix": "NATIVE_CONFIGURATION_REJECTED: Virtualization is not available on this hardware",
+  "contractTests": "20/20 PASS using existing local dependencies, temporary link removed",
+  "vmCreated": false,
+  "guestBooted": false,
+  "officialQaArchiveOpened": false,
+  "originalBackupOpened": false,
+  "restoreVerified": false
+}
