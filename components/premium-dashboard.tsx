@@ -96,7 +96,7 @@ export function CleanSection({ title, subtitle, action, children }: { title: str
 }
 
 export function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
-  return <GlobalStatePanel kind="empty" title={title} description={text} action={action} compact className="premium-empty-state" />;
+  return <GlobalStatePanel kind="empty" title={title} description={text} action={action} compact className="premium-empty-state" headingLevel={2} />;
 }
 
 export function AppHomeShell({ children, className = "" }: { children: ReactNode; className?: string }) {

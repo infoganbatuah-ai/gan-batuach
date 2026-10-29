@@ -67,4 +67,8 @@ const observerLayout = read("app/digital-observer/layout.tsx");
 assert.match(ganLayout, /ganBatuachShareImage/, "Gan Batuach needs its own share image");
 assert.match(observerLayout, /digitalObserverShareImage/, "Digital Observer needs a separate share image");
 
+const globalStates = read("components/global-state-system.tsx");
+assert.match(globalStates, /GlobalLoadingState[\s\S]*headingLevel=\{2\}/, "Streaming loading UI must not add a second H1");
+assert.match(globalStates, /GlobalEmptyState[\s\S]*headingLevel=\{2\}/, "Embedded empty states must not add a second H1");
+
 console.log(`SEO contract PASS: ${privateLayouts.length} private route groups, privacy-safe garden discovery, permanent canonical redirect, robots/sitemap and editorial schema checks.`);
