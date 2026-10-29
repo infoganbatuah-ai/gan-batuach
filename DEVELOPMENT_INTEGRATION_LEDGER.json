@@ -12991,22 +12991,28 @@
       "title": "Restore authorized complaint SLA escalation for modern Supabase secret keys",
       "owner": "Production complaint SLA incident hotfix",
       "sourceBranch": "codex/complaint-sla-service-role-hotfix-20261029",
-      "sourceCommits": ["0e86d7fb36c4df9d57300afba5a9206549c3e4a7"],
+      "sourceCommits": [
+        "0e86d7fb36c4df9d57300afba5a9206549c3e4a7",
+        "39b3312863b9701c2a0890f96b0dd19cfac10eaa"
+      ],
       "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/complaint-sla-service-role-hotfix-20261029@0e86d7fb36c4df9d57300afba5a9206549c3e4a7",
-          "origin/main@1e231b245baa60ee40d1968fb1a4f7b0598ab9eb"
+          "origin/codex/complaint-sla-row-alias-fix-20261029@39b3312863b9701c2a0890f96b0dd19cfac10eaa",
+          "origin/main@4e28d73f8a578637cc25522b193b550ad6d87482"
         ],
-        "sourceScope": "One forward-only function replacement migration, one focused SLA authorization regression, and mandatory high/critical dependency remediations. PUSH 38 and cumulative unreleased Product work are excluded.",
+        "sourceScope": "Two ordered forward-only function replacement migrations, one focused SLA authorization regression, and mandatory high/critical dependency remediations. The second migration corrects an ambiguous PL/pgSQL row/table alias exposed by isolated runtime testing. PUSH 38 and cumulative unreleased Product work are excluded.",
         "disposition": "ALREADY_IN_MAIN_AND_INTEGRATED"
       },
       "validation": {
         "status": "EXACT_HEAD_REQUIRED_CHECKS_PASS",
         "evidence": [
           "PR #261 exact head 0e86d7fb36c4df9d57300afba5a9206549c3e4a7: six Digital Observer CI gates, canonical quality, Management context and Snyk PASS",
+          "PR #262 exact head 39b3312863b9701c2a0890f96b0dd19cfac10eaa: six Digital Observer CI gates, canonical quality, Management context and Snyk PASS",
           "Focused complaint SLA contract 6/6 PASS; unauthorized Production route probe returned HTTP 401 before release",
+          "Isolated Development no-work runs returned 0 then 0 with no event/audit changes; rollback-only overdue fixture returned 1 then 0, status escalated, exactly one event and one audit row; authenticated role was denied",
           "Local Production build PASS with 541 routes and npm audit reported zero vulnerabilities"
         ],
         "limits": "Production migration application and authorized cron result are recorded separately after provider verification. No customer notification or email is sent by this function."
@@ -13014,21 +13020,25 @@
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": "2576f23b9656de5b40e60e4f786446049fdfa054",
+        "commit": "62473e7ec1a6de44767cf118820f64961400e917",
         "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/261",
+        "followUpPullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/262",
         "requiredChecks": "ALL_REQUIRED_CHECKS_PASS_ON_EXACT_HEAD"
       },
       "dependencies": {"status": "SELF_CONTAINED_FORWARD_FUNCTION_REPLACEMENT", "units": [], "blockers": []},
-      "migrations": ["20261029215625_complaint_sla_secret_key_auth_hotfix.sql"],
-      "migrationOrder": ["20261029215625"],
-      "localVerification": "FOCUSED_6_OF_6_PASS; DEVELOPMENT_DATABASE_APPLICATION_PENDING_LEDGER_APPROVAL",
+      "migrations": [
+        "20261029215625_complaint_sla_secret_key_auth_hotfix.sql",
+        "20261029225418_complaint_sla_row_alias_fix.sql"
+      ],
+      "migrationOrder": ["20261029215625", "20261029225418"],
+      "localVerification": "FOCUSED_6_OF_6_PASS; FIRST_DEVELOPMENT_MIGRATION_RECORDED; NO_WORK_0_THEN_0; ELIGIBLE_FIXTURE_1_THEN_0_ONE_EVENT_ONE_AUDIT_ROLLBACK; AUTHENTICATED_DENIED; SECOND_CANONICAL_APPLICATION_PENDING_LEDGER_APPROVAL",
       "releaseEligibility": "RELEASED_MAIN_PENDING_PROVIDER_VERIFICATION",
       "productionDeployment": {
         "status": "RELEASED_MAIN",
-        "mergeCommit": "1e231b245baa60ee40d1968fb1a4f7b0598ab9eb",
-        "mergedAt": "2026-10-29T22:48:28Z"
+        "mergeCommit": "4e28d73f8a578637cc25522b193b550ad6d87482",
+        "mergedAt": "2026-10-29T23:19:21Z"
       },
-      "nextAction": "Apply and verify the exact migration in isolated Development, then apply only that migration in Production and prove authorized cron success, unauthorized rejection, service_role-only RPC ACL and no duplicate effects."
+      "nextAction": "Record the second migration through the canonical isolated Development applicator, then apply both reviewed migrations in order in Production and prove authorized cron success, unauthorized rejection, service_role-only RPC ACL and no duplicate effects."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

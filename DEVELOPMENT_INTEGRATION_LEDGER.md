@@ -1909,3 +1909,19 @@ PUBLIC, anon and authenticated EXECUTE remain revoked and service_role remains
 the sole RPC grantee. PUSH 38 and all other blocked work remain excluded from
 Production. Isolated Development and Production application evidence are
 recorded separately after provider verification.
+
+Complaint SLA row-alias correction receipt (2026-10-29): isolated Development
+runtime qualification of the first hotfix exposed a second, previously masked
+PL/pgSQL defect: the row variable and table alias both used `c`, so PostgreSQL
+rejected `c.garden_id` as ambiguous. PR #262 exact head
+`39b3312863b9701c2a0890f96b0dd19cfac10eaa` replaces only that function through
+the ordered forward-only migration `20261029225418`, using distinct row and
+table identifiers while preserving the service_role-only EXECUTE boundary.
+The exact head passed the six Digital Observer CI gates, canonical quality,
+Management context and Snyk, then merged to `main` as
+`4e28d73f8a578637cc25522b193b550ad6d87482` and was integrated ancestry-
+preserving as `62473e7ec1a6de44767cf118820f64961400e917`. Runtime qualification
+returned 0 then 0 for the empty case, and a rollback-only overdue fixture
+returned 1 then 0 with exactly one event and one audit row; authenticated was
+denied. No real notification was sent. Canonical Development and Production
+application receipts are recorded separately after provider verification.
