@@ -11,13 +11,12 @@ import hashlib
 import os
 import stat
 import struct
+import zlib
 from pathlib import Path
 
 SOURCE_SHA256 = "50e24e1fb79e89116e939d90aa7738f7af48c442fa1bc2510131e0b39c50348e"
 SOURCE_BYTES = 616_522_752
-SOURCE_PATH = Path("/Users/danielderi/Documents/Codex/2026-10-25/"
-                   "digital-observer-spec-3/work/qa-official-inputs/"
-                   "ubuntu-24.04-server-cloudimg-arm64.img")
+SOURCE_NAME = "ubuntu-24.04-server-cloudimg-arm64.img"
 SCRATCH_PREFIX = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/.qa-offline-vz-"
 MIN_FREE_AFTER_BYTES = 3 * 1024 ** 3
 MAX_VIRTUAL_BYTES = 16 * 1024 ** 3
@@ -69,9 +68,32 @@ def parse_header(fd, file_size):
     require(incompatible == compatible == autoclear == 0,
             "QCOW_EXTENDED_FEATURE_UNSUPPORTED")
     header_length, = struct.unpack_from(">I", h, 100)
-    require(header_length == 104, "QCOW_HEADER_EXTENSION_UNSUPPORTED")
-    require(all(x == 0 for x in read_exact(fd, cluster - 104, 104, file_size)),
-            "QCOW_HEADER_EXTENSION_UNSUPPORTED")
+    require(header_length in (104, 112), "QCOW_HEADER_EXTENSION_UNSUPPORTED")
+    if header_length == 112:
+        require(read_exact(fd, 8, 104, file_size) == bytes(8),
+                "QCOW_ADDITIONAL_FIELD_UNSUPPORTED")
+    # The pinned Ubuntu image has one advisory feature-name table followed by
+    # an end marker. All actual feature masks above must remain zero.
+    extensions = read_exact(fd, cluster - header_length, header_length, file_size)
+    cursor = 0
+    seen_feature_names = False
+    while True:
+        require(cursor + 8 <= len(extensions), "QCOW_EXTENSION_TRUNCATED")
+        kind, length = struct.unpack_from(">II", extensions, cursor)
+        cursor += 8
+        if kind == 0:
+            require(length == 0 and all(x == 0 for x in extensions[cursor:]),
+                    "QCOW_EXTENSION_TRAILING_DATA")
+            break
+        padded = (length + 7) & ~7
+        require(cursor + padded <= len(extensions), "QCOW_EXTENSION_RANGE_INVALID")
+        require(kind == 0x6803F857 and not seen_feature_names and
+                length > 0 and length % 48 == 0,
+                "QCOW_HEADER_EXTENSION_UNSUPPORTED")
+        seen_feature_names = True
+        require(all(x == 0 for x in extensions[cursor + length:cursor + padded]),
+                "QCOW_EXTENSION_PADDING_INVALID")
+        cursor += padded
     require(l1_offset >= cluster and l1_offset % cluster == 0,
             "QCOW_L1_OFFSET_INVALID")
     read_exact(fd, l1_size * 8, l1_offset, file_size)
@@ -89,6 +111,27 @@ def table_offset(value, cluster, file_size, label):
         require(offset >= cluster and offset % cluster == 0 and
                 offset + cluster <= file_size, f"QCOW_{label}_OFFSET_INVALID")
     return offset
+
+
+def compressed_cluster(fd, file_size, cluster, value):
+    require((value & COPY_FLAG) == 0, "QCOW_COMPRESSED_COPY_FLAG_INVALID")
+    cluster_bits = cluster.bit_length() - 1
+    x = 62 - (cluster_bits - 8)
+    offset = value & ((1 << x) - 1)
+    sectors = ((value >> x) & ((1 << (62 - x)) - 1)) + 1
+    require(0 < offset < (1 << 56) and 0 < sectors <= 2 * cluster // 512,
+            "QCOW_COMPRESSED_DESCRIPTOR_INVALID")
+    span = sectors * 512 - offset % 512
+    require(0 < span <= 2 * cluster, "QCOW_COMPRESSED_SPAN_INVALID")
+    data = read_exact(fd, span, offset, file_size)
+    try:
+        decoder = zlib.decompressobj(wbits=-15)
+        result = decoder.decompress(data, cluster + 1)
+    except zlib.error as error:
+        raise QACowError("QCOW_COMPRESSED_DEFLATE_INVALID") from error
+    require(len(result) == cluster and decoder.eof,
+            "QCOW_COMPRESSED_OUTPUT_INVALID")
+    return result
 
 
 def raw_clusters(fd, file_size, cluster, virtual, l1_size, l1_offset):
@@ -109,8 +152,12 @@ def raw_clusters(fd, file_size, cluster, virtual, l1_size, l1_offset):
             if l2_offset not in l2_cache:
                 l2_cache[l2_offset] = read_exact(fd, cluster, l2_offset, file_size)
             l2_value, = struct.unpack_from(">Q", l2_cache[l2_offset], l2_index * 8)
-            require((l2_value & COMPRESSED_FLAG) == 0,
-                    "QCOW_COMPRESSED_CLUSTER_UNSUPPORTED")
+            if l2_value & COMPRESSED_FLAG:
+                yield guest_offset, compressed_cluster(fd, file_size, cluster,
+                                                       l2_value), True
+                guest_offset += size
+                remaining -= size
+                continue
             zero_flag = bool(l2_value & 1)
             data_offset = table_offset(l2_value & ~(COPY_FLAG | 1),
                                        cluster, file_size, "L2")
@@ -172,8 +219,6 @@ def local_source_stat(path):
 
 
 def run_pinned_cli(scratch):
-    source = SOURCE_PATH
-    before = local_source_stat(source)
     scratch = Path(scratch)
     require(str(scratch).startswith(SCRATCH_PREFIX) and
             scratch.resolve() == scratch and not scratch.is_symlink(),
@@ -181,6 +226,8 @@ def run_pinned_cli(scratch):
     ss = scratch.stat()
     require(stat.S_ISDIR(ss.st_mode) and ss.st_uid == os.getuid() and
             stat.S_IMODE(ss.st_mode) == 0o700, "QCOW_SCRATCH_NOT_PRIVATE")
+    source = scratch / SOURCE_NAME
+    before = local_source_stat(source)
     free = os.statvfs(scratch).f_bavail * os.statvfs(scratch).f_frsize
     require(free >= MAX_VIRTUAL_BYTES + MIN_FREE_AFTER_BYTES,
             "QCOW_SCRATCH_CAPACITY_UNPROVEN")

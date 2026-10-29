@@ -5,15 +5,18 @@ import os
 import struct
 import tempfile
 import unittest
+import zlib
 
-from qa_qcow2_to_raw import QACowError, convert, parse_header, raw_clusters
+from qa_qcow2_to_raw import (QACowError, COMPRESSED_FLAG, convert,
+                             parse_header, raw_clusters)
 
 
 CLUSTER = 512
 
 
 def fixture(*, backing=0, crypt=0, snapshots=0, incompatible=0,
-            data_entry=None, l1_entry=None, extension=False):
+            data_entry=None, l1_entry=None, extension=False,
+            feature_names=False):
     # Header, L1, L2 and guest payload occupy four independent clusters.
     image = bytearray(4 * CLUSTER)
     image[:4] = b"QFI\xfb"
@@ -26,6 +29,10 @@ def fixture(*, backing=0, crypt=0, snapshots=0, incompatible=0,
     struct.pack_into(">I", image, 100, 104)
     if extension:
         image[104] = 1
+    if feature_names:
+        struct.pack_into(">I", image, 100, 112)
+        struct.pack_into(">II", image, 112, 0x6803F857, 384)
+        image[120] = 1  # Advisory feature-name table; no feature mask set.
     struct.pack_into(">Q", image, CLUSTER,
                      2 * CLUSTER if l1_entry is None else l1_entry)
     struct.pack_into(">Q", image, 2 * CLUSTER,
@@ -62,6 +69,27 @@ class SyntheticQCowTests(unittest.TestCase):
                 convert(source.fileno(), raw.fileno(), len(data), "0" * 64)
             self.assertEqual(os.fstat(raw.fileno()).st_size, 0)
 
+    def test_advisory_feature_names_with_zero_feature_masks(self):
+        cluster, virtual, l1_size, l1_offset = self.parse(fixture(feature_names=True))
+        self.assertEqual((cluster, virtual, l1_size, l1_offset),
+                         (512, 1024, 1, 512))
+
+    def test_raw_deflate_compressed_cluster(self):
+        image = bytearray(fixture())
+        compressor = zlib.compressobj(wbits=-15)
+        compressed = compressor.compress(b"B" * CLUSTER) + compressor.flush()
+        offset = 3 * CLUSTER + 17
+        image[offset:offset + len(compressed)] = compressed
+        struct.pack_into(">Q", image, 2 * CLUSTER, COMPRESSED_FLAG | offset)
+        data = bytes(image)
+        with tempfile.TemporaryFile() as source, tempfile.TemporaryFile() as raw:
+            source.write(data)
+            source.flush()
+            size, _ = convert(source.fileno(), raw.fileno(), len(data),
+                              hashlib.sha256(data).hexdigest())
+            self.assertEqual(os.pread(raw.fileno(), size, 0),
+                             b"B" * CLUSTER + bytes(CLUSTER))
+
     def test_unsupported_header_features_fail_closed(self):
         cases = [
             (dict(backing=512), "QCOW_BACKING_FILE_DENIED"),
@@ -76,8 +104,6 @@ class SyntheticQCowTests(unittest.TestCase):
 
     def test_unsupported_cluster_entries_fail_closed(self):
         cases = [
-            (dict(data_entry=(1 << 62) | 3 * CLUSTER),
-             "QCOW_COMPRESSED_CLUSTER_UNSUPPORTED"),
             (dict(data_entry=(1 << 63)),
              "QCOW_L2_COPIED_ZERO_OFFSET_INVALID"),
             (dict(data_entry=1 | 3 * CLUSTER),
