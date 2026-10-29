@@ -1,0 +1,6 @@
+{
+  "status": "AUTO_REVIEW_REJECTED_NOT_DELIVERED",
+  "redactedSummaryAttempted": true,
+  "reason": "Explicit human authorization for messaging the destination thread was not recognized",
+  "retryOrWorkaround": false
+}
