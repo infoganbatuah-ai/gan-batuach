@@ -1,0 +1,106 @@
+{
+  "observedUtc": "2026-10-29T16:06:16.434341+00:00",
+  "environment": "EXISTING_AUTHENTICATED_CLOUD_PILOT",
+  "origin": "https://gan-batuach.vercel.app",
+  "siteMatchesPriorHomeQaEvidence": true,
+  "tenantIsolationIndependentlyVerified": false,
+  "routes": [
+    "/digital-observer/rules",
+    "/digital-observer/cameras",
+    "/digital-observer/cameras?status=offline",
+    "/digital-observer/cameras?camera=[REDACTED]"
+  ],
+  "activeVideoCountUi": 0,
+  "offlineCountUi": 11,
+  "livePageText": "אין כרגע מצלמה עם וידאו חי",
+  "rulesStatus": "ממתין ל-Gateway ולספק AI",
+  "perSource": [
+    {
+      "label": "DVR CH1",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH2",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH3",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH4",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH5",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH6",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH7",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH8",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH10",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "DVR CH11",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    },
+    {
+      "label": "Tapo / IP",
+      "cloudUi": "OFFLINE",
+      "cloudDecodedFrames": null,
+      "cloudProgressSeconds": null,
+      "result": "FAIL_NO_PLAYER"
+    }
+  ],
+  "detailInspected": "DVR CH1",
+  "detailVideoElementCount": 0,
+  "detailText": "ה-DVR לא החזיר וידאו בערוץ זה",
+  "detailLastCheckUi": "22.09.2026, 11:13",
+  "cloudBackendDirectReadPerformed": false,
+  "productionChanges": false,
+  "credentialsReadOrStored": false,
+  "localPilotTab": "Owned by existing QA task; not taken over",
+  "newSessionsCreated": false,
+  "evidenceType": "CUA accessibility snapshots and read-only video DOM count; summarized and redacted; no media captured"
+}

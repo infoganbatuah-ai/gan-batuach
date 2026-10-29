@@ -1,0 +1,29 @@
+{
+  "task": "product cloud read-only and bounded passive HOME_QA soak",
+  "thread": "01a18865-ce48-7603-9fcd-98a7e3e87d66",
+  "owner": "codex/product-cloud-passive-soak-20261029",
+  "checkoutBaseSha": "2da8f75abce610a9a979eecd752d7a6a1011641e",
+  "priorEvidenceSha": "d54eaf8548f1e26a799ca14592381b4f875426c4",
+  "priorEvidenceManifestEntriesVerified": 21,
+  "priorTests": "6/6 and 4/4 historical evidence; not rerun or promoted to live proof",
+  "instructionsRead": [
+    "canonical AGENTS.md",
+    "prior RESULT_HE.md at d54eaf85",
+    "spec-3 Product-Soak command",
+    "spec-3 latest handoff via read_thread"
+  ],
+  "privacy": "No credentials/tokens read or saved, no source URLs or camera media saved",
+  "scope": "Evidence-only local branch; prior feature code not merged into this checkout",
+  "limitations": [
+    "Cloud tenant ownership not independently retested; site matches prior authorized QA site",
+    "Cloud backend direct query not performed; no production mutation",
+    "Local browser tab is owned by prior QA task; did not take over or create token session",
+    "No fresh decoded frame measurement; passive chunks/output progress only",
+    "No real user token renewal tested; recorder counters only",
+    "No long soak, forced reconnect, cross-tenant test, AI or backup restore"
+  ],
+  "rollback": "No runtime/configuration changes: stop finite observer; preserve evidence. Existing pilot cloud session retained. No session created, no logout of owner session. Prior Auth repair rollback remains owned by prior task.",
+  "productionGate": "Cloud shows old offline state and no player. Repair may require production telemetry/configuration/code; exact root cause unproven. No repair attempted. Separate explicit gate required before Production changes.",
+  "preservation": "LOCAL_ONLY_PENDING_REMOTE_AND_LEDGER; no push/integration/release attempted",
+  "backup": "Untouched; pending backup route not duplicated"
+}

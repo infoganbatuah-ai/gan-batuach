@@ -1,0 +1,44 @@
+{
+  "observedUtc": "2026-10-29T16:06:20.010025+00:00",
+  "scope": "LOCAL_QA_READ_ONLY",
+  "authChecks": [
+    {
+      "credential": "missing",
+      "httpStatus": 401,
+      "pass": true
+    },
+    {
+      "credential": "invalid",
+      "httpStatus": 401,
+      "pass": true
+    }
+  ],
+  "gateways": [
+    {
+      "port": 18082,
+      "deviceAuthorizationStatus": "ready",
+      "softwareVersion": "0.2.101-p38-health",
+      "buildSha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+      "recorderHeartbeat": {
+        "attempts": 358,
+        "responses_ok": 358,
+        "failures": 0,
+        "consecutive_failures": 0,
+        "authentication_rejected": 0
+      }
+    },
+    {
+      "port": 18083,
+      "deviceAuthorizationStatus": "ready",
+      "softwareVersion": "0.2.40-p38-health",
+      "buildSha": "d80fb794f0dac331191ff7620b757449dc260b74",
+      "recorderHeartbeat": {
+        "attempts": 0,
+        "responses_ok": 0,
+        "failures": 0,
+        "consecutive_failures": 0,
+        "authentication_rejected": 0
+      }
+    }
+  ]
+}

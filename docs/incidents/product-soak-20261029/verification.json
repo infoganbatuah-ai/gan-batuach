@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "probeSyntax": true,
+    "finiteSoakCompleted": true,
+    "sevenSamplesTwoGateways": true,
+    "elevenSourceResults": true,
+    "authDenials": true,
+    "noDecodedFrameClaim": true,
+    "soakFailureAccuratelyRecorded": true
+  },
+  "allPassed": true,
+  "meaning": "Evidence consistency checks only; live soak/product acceptance FAILED"
+}
