@@ -81,6 +81,21 @@ export function hashForLookup(value: string | null | undefined) {
   return crypto.createHmac("sha256", pepper).update(normalized).digest("hex");
 }
 
+export function hashForLegacyLookup(value: string | null | undefined) {
+  const normalized = String(value ?? "").replace(/\s+/g, "").trim();
+  if (!normalized) return null;
+
+  const dedicatedPepper = process.env.FIELD_HASH_PEPPER || "";
+  const legacyPepper = process.env.FIELD_ENCRYPTION_KEY_CURRENT || process.env.FIELD_ENCRYPTION_KEY || "";
+  if (!legacyPepper || legacyPepper === dedicatedPepper) return null;
+
+  // Before FIELD_HASH_PEPPER became mandatory, Production lookup hashes fell
+  // back to the field-encryption key. Keep a read-only compatibility hash so
+  // existing opaque identifiers can be migrated lazily to the dedicated
+  // pepper without continuing to write legacy hashes.
+  return crypto.createHmac("sha256", legacyPepper).update(normalized).digest("hex");
+}
+
 export function encryptionMetadata() {
   return {
     algorithm,

@@ -1898,3 +1898,14 @@ canonical quality passed in run `40303206094`; Management passed in
 `40303206155`; Snyk passed. No migration, existing database, active route,
 Guard, provider resource, `main` or Production was changed. Preserve Draft
 PRs #258/#259 as dependencies; do not merge or apply #260 to unblock them.
+
+Complaint SLA Production incident hotfix receipt (2026-10-29): PR #261 exact
+head `0e86d7fb36c4df9d57300afba5a9206549c3e4a7` passed the six Digital Observer
+CI gates, canonical quality, Management context and Snyk, then merged to
+`main` as `1e231b245baa60ee40d1968fb1a4f7b0598ab9eb`. The same ancestry was advanced
+into `integration/development` as `2576f23b9656de5b40e60e4f786446049fdfa054`.
+The focused migration removes only the invalid legacy role-claim GUC check;
+PUBLIC, anon and authenticated EXECUTE remain revoked and service_role remains
+the sole RPC grantee. PUSH 38 and all other blocked work remain excluded from
+Production. Isolated Development and Production application evidence are
+recorded separately after provider verification.
