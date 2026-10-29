@@ -1,0 +1,251 @@
+{
+  "observedUtc": "2026-10-29T07:23:33Z",
+  "scope": "EXISTING_LOCAL_HLS_ONLY_NOT_PRODUCT_PLAYBACK",
+  "noNetworkRequests": true,
+  "ports": {
+    "18082": {
+      "expected": 10,
+      "passed": 10,
+      "channels": [
+        {
+          "channel": 1,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613391667204,
+          "segmentMtimeNs": 1793258613379422117,
+          "sequence": 286,
+          "generationHash": "166ce41b1d1245d1",
+          "bytes": 188188,
+          "sha256": "3d332b39669562a480d42b6b6de5c3cd1d86d80a4632a7cc8297bfe0b9fc280c",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "7a00361780273c4c45206944bb0a295b",
+            "7a00361780273c4c45206944bb0a295b"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 2,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613046035415,
+          "segmentMtimeNs": 1793258613045222735,
+          "sequence": 338,
+          "generationHash": "fc8ed5aaff434fd0",
+          "bytes": 136676,
+          "sha256": "a5b319d71099461b902d1af2a7140e300f5212233621138c0db293b0638e5930",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "63717a179ae0dac55cffd0d8cf26aafa",
+            "63717a179ae0dac55cffd0d8cf26aafa"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 3,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258612982827402,
+          "segmentMtimeNs": 1793258612981783301,
+          "sequence": 418,
+          "generationHash": "87e8a805adcde3db",
+          "bytes": 108100,
+          "sha256": "d073ca5585d25a9e7d10f5e0cd3fdeb6abcae3dcbe4578731782edf6046e090a",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "f595b57f263a0a0b5bdae2c0b5b4c9a2",
+            "ae2a6457fc93ded8a13b0a17533884c3"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 4,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613042192807,
+          "segmentMtimeNs": 1793258613041415377,
+          "sequence": 172,
+          "generationHash": "cef8435081a4f707",
+          "bytes": 185180,
+          "sha256": "93c22359b4940a212e7cd29543ac90ed113d92302c30b496da3a17b8302cd7cb",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "13d170ffc3c7092aaf831da1ef103cc2",
+            "6d2e3e8088a5ca44f6dcf0d40993e80a"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 5,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613098694912,
+          "segmentMtimeNs": 1793258613097628936,
+          "sequence": 280,
+          "generationHash": "5f16d72367613514",
+          "bytes": 121636,
+          "sha256": "ccef7f7d12cc69e469f9cc2036a5783ac6da42134bdf9407a7e2f5637129512d",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "6bdcab971d386cf8f8034eeb03691da8",
+            "6bdcab971d386cf8f8034eeb03691da8"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 6,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613071688527,
+          "segmentMtimeNs": 1793258613070608425,
+          "sequence": 277,
+          "generationHash": "f97e9cb6f20ac383",
+          "bytes": 96068,
+          "sha256": "86380ae4c8a972cc9d1f76e6f231c422b7c2c03353649da89f9053218decdf16",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "2359dacacc9b798d59b63ebb4e66d3c6",
+            "c997ddec832fcc7aaf556b5164a33a58"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 7,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613003080753,
+          "segmentMtimeNs": 1793258613001596478,
+          "sequence": 347,
+          "generationHash": "4ccc6b3567c57d33",
+          "bytes": 145700,
+          "sha256": "96bb9aa2a2850352acaa0ac309247311d787b4a9aacdc9f80762e9451ce5df15",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "03820a51551c2d6b5b4e28fd1a47ae34",
+            "03820a51551c2d6b5b4e28fd1a47ae34"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 8,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613193278387,
+          "segmentMtimeNs": 1793258613192560749,
+          "sequence": 353,
+          "generationHash": "94d30831031a7852",
+          "bytes": 109416,
+          "sha256": "92dabeb050261cbb1d566be166bc7f028aac7c25bf75412d847122b91c331ae4",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "ba91a80a6752453ae9c385c0dea5fa65",
+            "ba91a80a6752453ae9c385c0dea5fa65"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 10,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258612434245967,
+          "segmentMtimeNs": 1793258612428278072,
+          "sequence": 602,
+          "generationHash": "16dae6b3ef33c43b",
+          "bytes": 175028,
+          "sha256": "11ccefa6ce3d7b4b2496762e95a3b3b59761c72176d0a7bb8e94750701fa8ed6",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "f8aebe5e7f2df35e145fa53d5a0cc279",
+            "ca63b49cbd5caa1acebf9d848cd2a0e8"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        },
+        {
+          "channel": 11,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258612389164685,
+          "segmentMtimeNs": 1793258612387173734,
+          "sequence": 541,
+          "generationHash": "2f4652c92b803d25",
+          "bytes": 148144,
+          "sha256": "3d25bbdd4aea1216e77c63236d64c0bdc39a24faf80a7613361bc2fc9f5aa810",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "1c23c922588e4a85ec67a9034e53bfb7",
+            "1c23c922588e4a85ec67a9034e53bfb7"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        }
+      ]
+    },
+    "18083": {
+      "expected": 1,
+      "passed": 1,
+      "channels": [
+        {
+          "channel": 1,
+          "presentBothSamples": true,
+          "playlistMtimeNs": 1793258613963904174,
+          "segmentMtimeNs": 1793258613962792988,
+          "sequence": 11464,
+          "generationHash": "ef21bb69dade3a97",
+          "bytes": 287828,
+          "sha256": "28943a9ecaa6154b5ba3bc0bc128a5229ca2689f07c769286b3268437f39bd6a",
+          "decodedFrames": 2,
+          "decodePassed": true,
+          "frameHashes": [
+            "291c9a71da3241b0ba1e027285e8822d",
+            "c5074b2c955ee4f381275cb42c8798a3"
+          ],
+          "decoderExitCode": 0,
+          "fresh": true,
+          "changed": true,
+          "advanced": true,
+          "pass": true
+        }
+      ]
+    }
+  },
+  "pass": true
+}
