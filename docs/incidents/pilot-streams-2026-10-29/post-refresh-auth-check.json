@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-29T01:21:01.435865+00:00",
+  "components": {
+    "gateway": {
+      "uptime_ms": 922833,
+      "authorization": "ready",
+      "version": "0.2.101-p38-health",
+      "media": {
+        "progressingRelays": 8,
+        "availableRelays": 8,
+        "stalledRelays": 2
+      }
+    },
+    "connector": {
+      "uptime_ms": 924012,
+      "authorization": "ready",
+      "version": "0.2.40-p38-health",
+      "media": {
+        "progressingRelays": 1,
+        "availableRelays": 1,
+        "stalledRelays": 0
+      }
+    }
+  },
+  "method": "Read-only verification after normal runtime operation; no manual refresh/authenticate request",
+  "verified_tls_anonymous_status": 401
+}

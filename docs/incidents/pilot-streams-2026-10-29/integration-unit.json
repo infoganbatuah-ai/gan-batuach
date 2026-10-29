@@ -1,0 +1,58 @@
+{
+  "contract": "observer-incident-integration-unit-v1",
+  "recorded_at_utc": "2026-10-29T01:21:49.213323+00:00",
+  "unit": "PILOT_STREAM_TLS_RECOVERY_20261029",
+  "owner_chat": "01a18505-5d8c-7731-829c-0c3eb9c4a6cc",
+  "source_branch": "codex/pilot-stream-incident-20261029",
+  "source_commit": "8930486ef0d198c3bb0d1c61e6e767ed79ef966a",
+  "diagnostic_ancestry": [
+    "72a94701fc4a45b0e9abedc624f99b2091b660ae",
+    "14376b72af3f79ec66dac1a717f68d8e2c0cb539"
+  ],
+  "target_branch": "integration/development",
+  "local_preserved": true,
+  "remote_preserved": false,
+  "integration_status": "PENDING",
+  "release_eligible": false,
+  "required_full_ci_status": "NOT_RUN_ON_NEW_MERGE_CANDIDATE",
+  "remote_preservation_blocker": "Provider no-build branch-trigger settings not freshly verified; no push initiated. Preserve this feature branch and exact source SHA, then register with the canonical integration owner.",
+  "owned_paths": [
+    "scripts/qa/pilot-loopback-tls.mjs",
+    "scripts/qa/pilot-loopback-tls-service.mjs",
+    "scripts/qa/pilot-loopback-tls.test.mjs",
+    "scripts/qa/pilot-loopback-tls-install.py",
+    "scripts/qa/pilot-loopback-tls-install.test.py",
+    "docs/incidents/pilot-streams-2026-10-29/"
+  ],
+  "migrations": [],
+  "local_qa_application": "APPLIED_ON_OWNER_APPROVAL_SAME_SIGNED_VERSIONS",
+  "production_application": "NO",
+  "main_changed": false,
+  "source_identity_or_tenant_changes": false,
+  "new_vendor_resources": false,
+  "validation": {
+    "node_tests": "11/11 PASS",
+    "python_tests": "4/4 PASS",
+    "tls_live_rotation": "PASS_WITH_IDENTICAL_ISSUER_CAMERA_PIDS_AND_RELEASE_POINTERS",
+    "local_tls_auth_observation": "21/21 PASS",
+    "tapo_observation": "21/21 PROGRESSING",
+    "dvr_all_ten_effective_availability": "10/21; NOT_FULL_PASS",
+    "product_playback_restored": false,
+    "full_push38_soak_pass": false
+  },
+  "open_operations": [
+    "NEW_OTA_RELEASE_DELIVERY_HELD_LOCALLY_PENDING_REVIEWED_RELEASE",
+    "DVR_RELAY_STABILITY_UNRESOLVED",
+    "PRODUCT_PRODUCTION_TO_HOME_QA_IDENTITY_MEDIA_MAPPING_UNRESOLVED"
+  ],
+  "cross_chat_handoff": {
+    "destination": "01a17446-bdbb-76d1-971d-1d3b23e1565d",
+    "human_authorized": true,
+    "delivered": false,
+    "attempts_after_approval": 2,
+    "blocker": "Tool cannot steer idle chat without active turn id; native app access denied for safety reasons. No workaround.",
+    "prepared_document": "SPEC_HANDOFF_HE.md",
+    "deduplication": "Check destination for source SHA8930486e before any later supported retry or manual delivery."
+  },
+  "next_integration_action": "Keep source ancestry; review new isolated QA files and evidence, verify no-build remote preservation, pass required candidate CI, then integrate as one owned unit with no overwrite of concurrent work. No main/Production authorization."
+}

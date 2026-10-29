@@ -36,6 +36,27 @@ observation completes.
 
 ## Original diagnosis and delivery history
 
+Final recovery source commit: `8930486ef0d198c3bb0d1c61e6e767ed79ef966a`.
+The five-minute observation completed: TLS/auth 21/21 and Tapo 21/21;
+effective all-ten-DVR availability only 10/21; strict all-source progression
+FAIL retained. A further read after approximately 15 minutes of process uptime
+still showed both authorizations ready on the same 101/40 versions and TLS401;
+DVR remained degraded. See post-refresh-auth-check.json.
+
+Delivery after human approval: **NOT DELIVERED / TECHNICAL BLOCK**. Two attempts
+through send_message_to_thread returned `Cannot steer conversation ... without
+an active turn id`. A direct history check found no recovery summary in the
+destination. Navigating to the existing chat succeeded, but native app access
+was denied for safety reasons. No alternate app, credential, CLI, database
+injection or indirect-message workaround was used. Authorization is present;
+the blocker is technical/platform access. SPEC_HANDOFF_HE.md is the complete
+prepared handoff for a single manual delivery or a later supported-tool retry
+after deduplication. Do not ask the owner to approve the same disclosure again.
+
+Canonical integration handoff is integration-unit.json. Remote preservation,
+exact-candidate full CI and Development integration remain explicitly pending;
+no shared ledger or another task's source branch was overwritten.
+
 Owner: parallel incident chat `01a18505-5d8c-7731-829c-0c3eb9c4a6cc`.
 Worktree: `/Users/danielderi/.codex/worktrees/87c7/Gan-Batuach`.
 Owned paths: only this incident directory. No Product, runtime or migration files.
