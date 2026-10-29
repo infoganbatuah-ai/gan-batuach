@@ -28,18 +28,25 @@ export default async function ArticlePage({ params }: Props) {
   const articles = await getPublishedArticles();
   const article = articles.find((item) => item.slug === slug);
   if (!article) notFound();
+  const related = articles
+    .filter((item) => item.slug !== slug)
+    .map((item) => ({ item, overlap: item.tags.filter((tag) => article.tags.includes(tag)).length }))
+    .sort((a, b) => b.overlap - a.overlap)
+    .slice(0, 3)
+    .map(({ item }) => item);
   const managementTopic = ["kindergarten-management-system", "kindergarten-registration-guide", "digital-child-profile", "parent-platform-transparency"].includes(slug);
   const url = `${SITE_URL}/articles/${slug}`;
-  const articleSchema = { "@context": "https://schema.org", "@type": "Article", headline: article.title, description: article.summary, image: [article.image_url, ...getInlineImages(article.body).map((item) => item.src)].map((path) => new URL(path, SITE_URL).href), datePublished: article.published_at, dateModified: article.updated_at ?? article.published_at, author: { "@type": "Organization", name: "מערכת גן בטוח" }, publisher: { "@type": "Organization", name: "גן בטוח", url: SITE_URL }, mainEntityOfPage: url, inLanguage: "he-IL" };
+  const articleSchema = { "@context": "https://schema.org", "@type": "Article", headline: article.title, description: article.summary, image: [article.image_url, ...getInlineImages(article.body).map((item) => item.src)].map((path) => new URL(path, SITE_URL).href), datePublished: article.published_at, dateModified: article.updated_at ?? article.published_at, author: { "@type": "Organization", name: "מערכת התוכן של גן בטוח", url: `${SITE_URL}/articles` }, editor: { "@type": "Organization", name: "צוות בדיקת המקורות של גן בטוח" }, publisher: { "@type": "Organization", name: "גן בטוח", url: SITE_URL, logo: { "@type": "ImageObject", url: `${SITE_URL}/assets/company-symbol.png` } }, mainEntityOfPage: { "@type": "WebPage", "@id": url }, articleSection: article.tags[0], keywords: article.tags.join(", "), isAccessibleForFree: true, inLanguage: "he-IL" };
   const crumbs = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "ראשי", item: SITE_URL }, { "@type": "ListItem", position: 2, name: "כתבות", item: `${SITE_URL}/articles` }, { "@type": "ListItem", position: 3, name: article.title, item: url }] };
   // FAQ markup describes the visible questions; rich-result eligibility is Google's decision.
   const faqSchema = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: article.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) };
   return <><BrandHeader /><main className="editorial-page editorial-article">
     {[articleSchema, crumbs, ...(article.faqs.length ? [faqSchema] : [])].map((schema, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />)}
     <nav className="editorial-crumbs" aria-label="פירורי לחם"><Link href="/">ראשי</Link> / <Link href="/articles">כתבות</Link> / {article.title}</nav>
-    <article><header className="editorial-heading"><span className="editorial-kicker">{article.tags.join(" · ")}</span><h1>{article.title}</h1><p>{article.summary}</p><small>מערכת גן בטוח · {new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.published_at))}</small></header>
+    <article><header className="editorial-heading"><span className="editorial-kicker">{article.tags.join(" · ")}</span><h1>{article.title}</h1><p>{article.summary}</p><small>מאת מערכת התוכן של גן בטוח · פורסם <time dateTime={article.published_at}>{new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.published_at))}</time> · נבדק ועודכן <time dateTime={article.updated_at ?? article.published_at}>{new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.updated_at ?? article.published_at))}</time></small></header>
       <figure className="editorial-cover"><Image src={article.image_url} alt={article.image_alt} width={1440} height={810} sizes="(max-width: 800px) 100vw, 900px" unoptimized={!article.image_url.startsWith("/")} fetchPriority="high" loading="eager" /></figure>
       <div className="editorial-reading"><aside className="editorial-facts"><b>למי רלוונטי?</b><p>גילאים: {article.ages}</p><p>קבוצות גן: {article.garden_groups.join(" · ")}</p></aside>
+        <section className="editorial-answer-box" aria-labelledby="short-answer"><h2 id="short-answer">התשובה בקצרה</h2><p>{article.summary}</p><p>העמוד נבדק מול המקורות המפורטים בסופו; במקרה של שינוי בדין או בהנחיות, המקור הרשמי גובר.</p></section>
         <ArticleContent body={article.body} />
         {article.slug === "what-is-gan-batuach" && <p>חשוב להבחין: מיזם ״הגן הבטוח״ של <a href="https://www.sii.org.il/he/lobby/information/children/safekindergarten" target="_blank" rel="noopener noreferrer">מכון התקנים הישראלי</a> הוא מיזם נפרד. גן בטוח אינו מציג את הסטנדרט הפרטי שלו כתעודה מטעם המכון.</p>}
         <p className="editorial-product-link">להרחבה על {managementTopic ? <Link href="/kindergarten-management">מערכת ניהול הגן של גן בטוח</Link> : <Link href="/safety-standard">מודל הבקרה ותו התקן הפרטי של גן בטוח</Link>}.</p>
@@ -48,6 +55,6 @@ export default async function ArticlePage({ params }: Props) {
         <section><h2>שאלות ותשובות</h2>{article.faqs.map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</section>
         <p className="editorial-disclaimer">המידע כללי ואינו ייעוץ משפטי, רפואי או תחליף לבדיקת סטטוס הרישוי והדין החל על המסגרת.</p>
       </div></article>
-    <section className="editorial-related"><h2>ממשיכים לקרוא</h2><div className="editorial-related-grid">{articles.filter((item) => item.slug !== slug).slice(0, 3).map((item) => <Link key={item.slug} href={`/articles/${item.slug}`}>{item.title} ←</Link>)}</div></section>
+    <section className="editorial-related"><h2>ממשיכים לקרוא באותו נושא</h2><div className="editorial-related-grid">{related.map((item) => <Link key={item.slug} href={`/articles/${item.slug}`}>{item.title} ←</Link>)}</div></section>
   </main></>;
 }

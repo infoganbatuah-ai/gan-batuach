@@ -35,7 +35,7 @@ import type { KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import "./articles/articles.css";
 
 type HomeGarden = {
-  id: string; name: string; city: string; address?: string | null;
+  id: string; name: string; city: string;
   image_url?: string | null; safe_status?: string | null;
   supported_age_groups?: KindergartenAgeGroup[];
 };
@@ -79,7 +79,7 @@ async function getHomeGardens() {
     const supabase = createAdminClient();
     const { data } = await supabase
       .from("gardens")
-      .select("id, name, city, address, image_url, rating, owner_name, framework_type, ages, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, manager:profiles!gardens_manager_id_fkey(full_name)")
+      .select("id, name, city, image_url, rating, owner_name, framework_type, ages, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, manager:profiles!gardens_manager_id_fkey(full_name)")
       .eq("public_profile_enabled", true)
       .limit(3);
     return await Promise.all((data ?? []).filter((garden: HomeGarden) => !/\[demo\]|\bdemo\b/i.test(garden.name)).map(async (garden: HomeGarden) => ({ ...garden, supported_age_groups: await getKindergartenAgeGroups(supabase, garden.id, garden) })));
@@ -244,7 +244,7 @@ export default async function HomePage() {
                   <div className="gb-public-garden-thumb">{garden.image_url ? <Image src={garden.image_url} alt={garden.name} width={560} height={320} unoptimized /> : <Building2 size={34} />}</div>
                   <StatusChip tone={garden.safe_status === "safe" ? "success" : "warning"} icon={ShieldCheck}>{garden.safe_status === "safe" ? "גן בטוח" : "בתהליך"}</StatusChip>
                   <h3>{garden.name}</h3>
-                  <p><MapPin size={16} /> {garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"}</p>
+                  <p><MapPin size={16} /> {garden.city} · כתובת מדויקת אינה מוצגת בתוצאות החיפוש</p>
                   <small>{formatAgeGroups(garden.supported_age_groups ?? [])}</small>
                   <b>{formatPublicPriceRange(garden.supported_age_groups ?? [])}</b>
                 </PremiumCard>

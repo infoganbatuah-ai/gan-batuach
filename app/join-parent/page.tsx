@@ -13,13 +13,13 @@ export default async function JoinParentPage({ searchParams }: { searchParams: P
   const params = await searchParams;
   const supabase = createAdminClient();
   const selectedGardenRes = params.gardenId
-    ? await supabase.from("gardens" as any).select("id, name, city, address, logo_url, image_url, public_profile_enabled").eq("id", params.gardenId).eq("public_profile_enabled", true).maybeSingle()
+    ? await supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, public_profile_enabled").eq("id", params.gardenId).eq("public_profile_enabled", true).maybeSingle()
     : { data: null };
   const selectedGarden = selectedGardenRes.data as any;
   const selectedAgeGroups = selectedGarden ? await getKindergartenAgeGroups(supabase, selectedGarden.id, selectedGarden) : [];
   const { data: gardens } = await supabase
     .from("gardens" as any)
-    .select("id, name, city, address, logo_url, image_url, ages, framework_type, public_profile_enabled")
+    .select("id, name, city, logo_url, image_url, ages, framework_type, public_profile_enabled")
     .eq("public_profile_enabled", true)
     .order("name")
     .limit(24);
@@ -48,7 +48,7 @@ export default async function JoinParentPage({ searchParams }: { searchParams: P
                 <article className="public-garden-card registration-choice-card" key={garden.id}>
                   {garden.image_url || garden.logo_url ? <img className="garden-card-image" src={garden.image_url ?? garden.logo_url} alt={garden.name} /> : <div className="garden-image-placeholder"><Building2 /> {garden.name}</div>}
                   <h3>{garden.name}</h3>
-                  <p>{garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"}</p>
+                  <p>{garden.city} · כתובת מדויקת תימסר רק במסגרת תהליך מורשה</p>
                   <div className="garden-facts"><span><Baby size={16} /> מקבל: {formatAgeGroups(garden.ageGroups)}</span></div>
                   <Link className="button primary" href={`/join-parent?gardenId=${garden.id}`}>בחירת הגן והמשך</Link>
                 </article>

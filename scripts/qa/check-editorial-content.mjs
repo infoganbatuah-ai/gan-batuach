@@ -19,6 +19,7 @@ const enhancements = loadModule("lib/editorial/enhancements.ts");
 const gan = loadModule("lib/editorial/articles.ts", { "./enhancements": enhancements }).initialArticles;
 const observer = loadModule("lib/editorial/observer-articles.ts").observerArticles;
 const articles = [...gan, ...observer];
+const approvedSourceHosts = new Set(["parents.education.gov.il", "library.mevaker.gov.il", "main.knesset.gov.il", "www.knesset.gov.il", "www.gov.il", "gov.il", "www.sii.org.il"]);
 assert.equal(gan.length, 12, "All 12 Gan guides should be present");
 assert.ok(observer.length >= 3, "Observer needs a separate body of guides");
 assert.equal(new Set(articles.map((article) => article.slug)).size, articles.length, "Duplicate article slug");
@@ -32,6 +33,7 @@ for (const article of articles) {
   assert.ok(article.body.split(/^## /m).length >= 4, `${article.slug}: needs at least three practical sections`);
   assert.ok(article.body.replace(/!\[[^\]]+\]\([^)]*\)/g, "").split(/\s+/).length >= 280, `${article.slug}: too short`);
   assert.ok(article.sources.length >= 2 && article.sources.every((source) => source.label && source.url.startsWith("https://")), `${article.slug}: missing official references`);
+  assert.ok(article.sources.every((source) => approvedSourceHosts.has(new URL(source.url).hostname)), `${article.slug}: source outside the approved primary-source domains`);
   assert.ok(article.faqs.length >= 2 && article.image_alt.length > 12, `${article.slug}: missing FAQ or alt text`);
   assert.ok(article.meta_description.length >= 65 && article.meta_description.length <= 180, `${article.slug}: meta description length`);
   for (const image of [article.image_url, ...images.map((match) => match[2])]) {
