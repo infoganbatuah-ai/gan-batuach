@@ -28,3 +28,13 @@ The unchanged guest-rootfs review contract passes 5/5 Node tests with the
 existing local dependencies temporarily linked for the test; the link was
 removed afterward. An initial Node invocation without that dependency link
 failed to import `tar` and is not counted as a passing run.
+
+An additional synthetic Docker-save planner now checks a pinned outer archive
+digest, one manifest/config pair, exactly 29 ordered layer references, a
+content-addressed config, arm64/linux, and each uncompressed layer diff ID.
+It rejects extra or duplicate entries, links, traversal, duplicate JSON keys,
+and inputs above 32 MiB. The planner accepts bytes only and does not read a
+path, extract a layer, boot a guest, or enable the real-QA gate. Its planned
+payloads require separate conversion and extractor validation before any use.
+Six hostile-fixture tests pass. This is not a streaming parser for the actual
+Docker-save archive and does not change the VZ or restore status.
