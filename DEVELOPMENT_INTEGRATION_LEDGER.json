@@ -12995,7 +12995,7 @@
         "0e86d7fb36c4df9d57300afba5a9206549c3e4a7",
         "39b3312863b9701c2a0890f96b0dd19cfac10eaa"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "DEPLOYED_PRODUCTION",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -13015,7 +13015,7 @@
           "Isolated Development no-work runs returned 0 then 0 with no event/audit changes; rollback-only overdue fixture returned 1 then 0, status escalated, exactly one event and one audit row; authenticated role was denied",
           "Local Production build PASS with 541 routes and npm audit reported zero vulnerabilities"
         ],
-        "limits": "Production migration application and authorized cron result are recorded separately after provider verification. No customer notification or email is sent by this function."
+        "limits": "No customer notification or email is sent by this function. Existing Supabase advisor backlog outside this function was not changed by this focused incident hotfix; the post-change advisor scan returned no finding for escalate_overdue_complaints."
       },
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
@@ -13032,13 +13032,30 @@
       ],
       "migrationOrder": ["20261029215625", "20261029225418"],
       "localVerification": "FOCUSED_6_OF_6_PASS; BOTH_DEVELOPMENT_MIGRATIONS_RECORDED; NO_WORK_0_THEN_0; ELIGIBLE_FIXTURE_1_THEN_0_ONE_EVENT_ONE_AUDIT_ROLLBACK; AUTHENTICATED_DENIED; SERVICE_ROLE_ONLY_ACL",
-      "releaseEligibility": "RELEASED_MAIN_PENDING_PROVIDER_VERIFICATION",
+      "releaseEligibility": "DEPLOYED_PRODUCTION_VERIFIED",
       "productionDeployment": {
-        "status": "RELEASED_MAIN",
+        "status": "DEPLOYED_PRODUCTION",
         "mergeCommit": "4e28d73f8a578637cc25522b193b550ad6d87482",
-        "mergedAt": "2026-10-29T23:19:21Z"
+        "mergedAt": "2026-10-29T23:19:21Z",
+        "vercelDeploymentId": "AUaBi4ui1z6JT3NuXbset1sbrSiT",
+        "vercelDeploymentHost": "gan-batuach-ia3jzb9ot-gan-batuach-s-projects.vercel.app",
+        "vercelState": "READY",
+        "supabaseProject": "kuaywzvucllxjsxarogb",
+        "supabaseMigrationHistory": [
+          "20261029232605 complaint_sla_secret_key_auth_hotfix",
+          "20261029232610 complaint_sla_row_alias_fix"
+        ],
+        "authorizedCronAt": "2026-10-29T23:28:52.890Z",
+        "authorizedCronHttpStatus": 200,
+        "supabaseRpcAt": "2026-10-29T23:28:54.379Z",
+        "supabaseRpcHttpStatus": 200,
+        "processed": 0,
+        "unauthorizedCronHttpStatus": 401,
+        "postRunEligible": 0,
+        "postRunSlaEvents": 0,
+        "postRunSlaAudits": 0
       },
-      "nextAction": "Apply both reviewed migrations in order in Production and prove authorized cron success, unauthorized rejection, service_role-only RPC ACL and no duplicate effects."
+      "nextAction": "Incident closed. Keep the hourly Vercel cron enabled and monitor normal scheduled runs; no further hotfix action is pending."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

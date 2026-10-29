@@ -1925,3 +1925,19 @@ returned 0 then 0 for the empty case, and a rollback-only overdue fixture
 returned 1 then 0 with exactly one event and one audit row; authenticated was
 denied. No real notification was sent. Canonical Development and Production
 application receipts are recorded separately after provider verification.
+
+Complaint SLA Production closure receipt (2026-10-29): Supabase project
+`kuaywzvucllxjsxarogb` applied the two reviewed migrations in order as provider
+history versions `20261029232605` and `20261029232610`. The final function has
+no legacy role-claim guard and no ambiguous row/table identifier; EXECUTE is
+granted only to `service_role` (plus owner `postgres`), while authenticated
+execution is denied. Direct service-role qualification returned 0 then 0. The
+READY Vercel Production deployment `AUaBi4ui1z6JT3NuXbset1sbrSiT` is exact
+commit `4e28d73f8a578637cc25522b193b550ad6d87482`. A Vercel-authorized cron run at
+`2026-10-29T23:28:52.890Z` returned HTTP 200; Supabase logged the corresponding
+RPC POST at `2026-10-29T23:28:54.379Z` as HTTP 200 with scalar result 0. An
+unauthorized domain request returned 401. After the live run, eligible rows,
+SLA events and SLA audits were all zero, so no duplicate effect or real
+notification was created. The post-change Supabase advisor scan returned no
+finding for this function. PUSH 38 and all unrelated development remained
+excluded.
