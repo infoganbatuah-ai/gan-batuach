@@ -1,0 +1,35 @@
+{
+  "observedUtc": "2026-10-29T21:45:54.764319+00:00",
+  "availableBytes": 14913048576,
+  "minimumBytes": 8589934592,
+  "loadAverage": [
+    11.21240234375,
+    18.916015625,
+    25.4677734375
+  ],
+  "cpuCount": 8,
+  "gateways": [
+    {
+      "port": 18082,
+      "status": "degraded",
+      "version": "0.2.101-p38-health",
+      "buildSha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+      "progressingRelays": 7,
+      "inputCount": 10,
+      "pids": [
+        "67645"
+      ]
+    },
+    {
+      "port": 18083,
+      "status": "healthy",
+      "version": "0.2.40-p38-health",
+      "buildSha": "d80fb794f0dac331191ff7620b757449dc260b74",
+      "progressingRelays": 1,
+      "inputCount": 1,
+      "pids": [
+        "12699"
+      ]
+    }
+  ]
+}

@@ -131,7 +131,7 @@ def decode_sample(source, access):
     return result
 
 
-def main():
+def main(observer=None):
     global DEADLINE
     assert not OUTPUT.exists(), 'EVIDENCE_ALREADY_EXISTS'
     report = {'scope': 'HOME_QA_MEMORY_ONLY_AUTH_REPEATED_MEDIA_SAMPLES',
@@ -199,22 +199,50 @@ def main():
                             'label': 'Tapo' if tapo else 'DVR CH' + str(channel)})
         assert len(sources) == 11 and len({s['id'] for s in sources}) == 11, 'ASSIGNED_INVENTORY_MISMATCH'
         assert sorted(s['label'] for s in sources) == sorted(['DVR CH' + str(c) for c in (1,2,3,4,5,6,7,8,10,11)] + ['Tapo']), 'CHANNEL_SCOPE_MISMATCH'
-        for round_index in range(3):
-            assert time.monotonic() < DEADLINE, 'QA_WINDOW_EXPIRED'
-            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-                results = list(pool.map(lambda source: decode_sample(source, access), sources))
-            report['rounds'].append({'index': round_index, 'elapsedSeconds': round(time.monotonic()-start, 3), 'results': results})
+        def refresh_auth():
+            nonlocal access, session
+            status, renewed = call(AUTH + '/auth/v1/token?grant_type=refresh_token',
+                                   {'refresh_token': session['refresh_token']}, headers)
+            report['refreshStatus'] = status
+            assert status == 200, 'NORMAL_AUTH_REFRESH_FAILED'
+            access = renewed.get('access_token') or access
+            assert renewed['user']['id'] == identity['user_id'], 'REFRESH_IDENTITY_MISMATCH'
+            session = renewed
+            report['refreshIdentityVerified'] = True
+            return {'httpStatus': status, 'identityVerified': True}
+
+        def authorize_source(source):
+            status, body = call(PRODUCT + '/api/digital-observer/dvr-gateway',
+                                {'observer_site_id': SITE, 'camera_source_id': source['id'], 'mode': 'live'},
+                                {'authorization': 'Bearer '+access})
+            grant = body.get('data', {}).get('playback', {}).get('grant')
+            assert status == 200 and grant, 'SOURCE_AUTH_FAILED'
+            claim_status, claim = call(f"http://127.0.0.1:{source['port']}/playback/claim", {'grant': grant})
+            assert claim_status == 200, 'MEDIA_CLAIM_FAILED'
+            url = claim.get('playback', {}).get('hls_url', '')
+            assert media_allowed(source, url), 'MEDIA_SCOPE_REJECTED'
+            # This URL remains inside the observer's process memory. The
+            # observer must save only derived, redacted measurements.
+            return {'url': url, 'authorizationStatus': status, 'claimStatus': claim_status}
+
+        def checkpoint(observation):
+            report['observation'] = observation
             OUTPUT.write_text(json.dumps(report, indent=2)+'\n')
-            if round_index == 0:
-                status, renewed = call(AUTH + '/auth/v1/token?grant_type=refresh_token',
-                                       {'refresh_token': session['refresh_token']}, headers)
-                report['refreshStatus'] = status
-                assert status == 200, 'NORMAL_AUTH_REFRESH_FAILED'
-                access = renewed.get('access_token') or access
-                assert renewed['user']['id'] == identity['user_id'], 'REFRESH_IDENTITY_MISMATCH'
-                report['refreshIdentityVerified'] = True
-            if round_index < 2:
-                time.sleep(max(0, min(15, DEADLINE - time.monotonic())))
+
+        if observer is not None:
+            report['scope'] = 'HOME_QA_MEMORY_ONLY_BOUNDED_HLS_OBSERVATION'
+            report['observation'] = observer(sources, authorize_source, refresh_auth, checkpoint)
+        else:
+            for round_index in range(3):
+                assert time.monotonic() < DEADLINE, 'QA_WINDOW_EXPIRED'
+                with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                    results = list(pool.map(lambda source: decode_sample(source, access), sources))
+                report['rounds'].append({'index': round_index, 'elapsedSeconds': round(time.monotonic()-start, 3), 'results': results})
+                OUTPUT.write_text(json.dumps(report, indent=2)+'\n')
+                if round_index == 0:
+                    refresh_auth()
+                if round_index < 2:
+                    time.sleep(max(0, min(15, DEADLINE - time.monotonic())))
     except Exception as error:
         message = str(error)
         report['error'] = message if re.fullmatch('[A-Z0-9_]{1,70}', message) else type(error).__name__
@@ -235,6 +263,7 @@ def main():
             signal.signal(signum, handler)
     print(json.dumps({'rounds': len(report['rounds']), 'passedPerRound': [sum(r['passed'] for r in batch['results']) for batch in report['rounds']],
                       'error': report.get('error'), 'logoutPassed': report['logoutPassed']}))
+    return report
 
 
 if __name__ == '__main__':

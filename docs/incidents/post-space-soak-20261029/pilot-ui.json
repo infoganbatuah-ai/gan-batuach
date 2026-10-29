@@ -1,0 +1,14 @@
+{
+  "observedUtc": "2026-10-29T21:50:28.123026+00:00",
+  "scope": "CLOUD_PILOT_READ_ONLY_UI",
+  "origin": "https://gan-batuach.vercel.app",
+  "route": "/digital-observer/cameras",
+  "activeLiveCameras": 0,
+  "offlineCount": 11,
+  "text": "אין כרגע מצלמה עם וידאו חי",
+  "visualEvidence": "CUA accessibility tree and screenshot inspected in existing pilot browser profile; no private camera media captured",
+  "localQaProductBrowserAuthenticated": false,
+  "localQaVerification": "Normal pilot identity through API; HLS frames decoded from memory; not local product UI playback",
+  "productionChanged": false,
+  "cloudSessionCreated": false
+}

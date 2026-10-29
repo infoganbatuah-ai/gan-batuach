@@ -1,0 +1,407 @@
+{
+  "plannedSeconds": 300,
+  "observedSeconds": 300.693,
+  "startedUtc": "2026-10-29T21:47:15.616293+00:00",
+  "completedUtc": "2026-10-29T21:52:16.493508+00:00",
+  "records": 21,
+  "totalSourceSamples": 231,
+  "totalFreshDecodedFrames": 420,
+  "errorCounts": {
+    "TimeoutError": 7,
+    "PLAYLIST_FAILED": 1,
+    "HLS_NOT_ADVANCING_20_SECONDS": 3
+  },
+  "perSource": [
+    {
+      "label": "DVR CH1",
+      "samples": 21,
+      "advances": 14,
+      "freshDecodedFrames": 30,
+      "sequenceResets": 0,
+      "errorSamples": 5,
+      "maxObservedNoAdvanceSeconds": 78.755,
+      "authorizationAttempts": 3,
+      "successfulClaims": 3,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 0.012,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 15.378,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "stalled_reclaim",
+          "claimElapsedSeconds": 91.637,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 105.031,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "stalled_reclaim",
+          "claimElapsedSeconds": 93.222,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 105.031,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH11",
+      "samples": 21,
+      "advances": 16,
+      "freshDecodedFrames": 34,
+      "sequenceResets": 0,
+      "errorSamples": 1,
+      "maxObservedNoAdvanceSeconds": 13.082,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 0.013,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 15.378,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 150.231,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 150.231,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH6",
+      "samples": 21,
+      "advances": 16,
+      "freshDecodedFrames": 34,
+      "sequenceResets": 0,
+      "errorSamples": 1,
+      "maxObservedNoAdvanceSeconds": 14.048,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 0.758,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 79.947,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 150.621,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 150.621,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH8",
+      "samples": 21,
+      "advances": 18,
+      "freshDecodedFrames": 38,
+      "sequenceResets": 0,
+      "errorSamples": 1,
+      "maxObservedNoAdvanceSeconds": 2.122,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 0.782,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 16.504,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 151.238,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 151.238,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "Tapo",
+      "samples": 21,
+      "advances": 20,
+      "freshDecodedFrames": 42,
+      "sequenceResets": 0,
+      "errorSamples": 0,
+      "maxObservedNoAdvanceSeconds": 0,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": true,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 2.472,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 16.578,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 151.539,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 151.539,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH2",
+      "samples": 21,
+      "advances": 19,
+      "freshDecodedFrames": 40,
+      "sequenceResets": 0,
+      "errorSamples": 1,
+      "maxObservedNoAdvanceSeconds": 0,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 2.53,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 16.841,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 151.997,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 151.997,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH4",
+      "samples": 21,
+      "advances": 20,
+      "freshDecodedFrames": 42,
+      "sequenceResets": 0,
+      "errorSamples": 0,
+      "maxObservedNoAdvanceSeconds": 0,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": true,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 3.251,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 16.896,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 151.999,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 151.999,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH5",
+      "samples": 21,
+      "advances": 19,
+      "freshDecodedFrames": 40,
+      "sequenceResets": 0,
+      "errorSamples": 1,
+      "maxObservedNoAdvanceSeconds": 0,
+      "authorizationAttempts": 3,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "authorization_retry",
+          "claimElapsedSeconds": 18.224,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 62.728,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 152.488,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 152.488,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH10",
+      "samples": 21,
+      "advances": 20,
+      "freshDecodedFrames": 42,
+      "sequenceResets": 0,
+      "errorSamples": 0,
+      "maxObservedNoAdvanceSeconds": 0,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": true,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 5.275,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 18.251,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 152.924,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 152.924,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH7",
+      "samples": 21,
+      "advances": 19,
+      "freshDecodedFrames": 40,
+      "sequenceResets": 0,
+      "errorSamples": 0,
+      "maxObservedNoAdvanceSeconds": 2.456,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": true,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 7.476,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 19.403,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 153.299,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 153.299,
+          "causalRecoveryProven": false
+        }
+      ]
+    },
+    {
+      "label": "DVR CH3",
+      "samples": 21,
+      "advances": 18,
+      "freshDecodedFrames": 38,
+      "sequenceResets": 0,
+      "errorSamples": 1,
+      "maxObservedNoAdvanceSeconds": 8.094,
+      "authorizationAttempts": 2,
+      "successfulClaims": 2,
+      "boundedSampleChecksPass": false,
+      "lastSampleAdvanced": true,
+      "reclaimEvents": [
+        {
+          "reason": "initial",
+          "claimElapsedSeconds": 9.049,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 70.842,
+          "causalRecoveryProven": false
+        },
+        {
+          "reason": "scheduled_reclaim_after_auth_refresh",
+          "claimElapsedSeconds": 153.603,
+          "laterProgressObserved": true,
+          "firstLaterProgressElapsedSeconds": 153.603,
+          "causalRecoveryProven": false
+        }
+      ]
+    }
+  ],
+  "authRefresh": [
+    {
+      "elapsedSeconds": 150.23,
+      "httpStatus": 200,
+      "identityVerified": true
+    }
+  ],
+  "logoutPassed": true,
+  "gateways": [
+    {
+      "port": 18082,
+      "samePidsAtEndpoints": true,
+      "sameVersionAtEndpoints": true,
+      "sameBuildAtEndpoints": true,
+      "healthySamples": 8,
+      "totalSamples": 21,
+      "authReadySamples": 17,
+      "lifecycleDelta": {
+        "starts": 28,
+        "upstreamEnded": 3,
+        "inputSocketError": 6,
+        "warmHandoffs": 2,
+        "warmHandoffFailures": 9,
+        "silentResponseRescues": 11,
+        "exclusiveRescueReopens": 13
+      },
+      "lifecycleCounterDecreased": false,
+      "healthReadErrors": 4,
+      "authStates": {
+        "ready": 17,
+        "UNOBSERVED": 4
+      }
+    },
+    {
+      "port": 18083,
+      "samePidsAtEndpoints": true,
+      "sameVersionAtEndpoints": true,
+      "sameBuildAtEndpoints": true,
+      "healthySamples": 21,
+      "totalSamples": 21,
+      "authReadySamples": 21,
+      "lifecycleDelta": {
+        "starts": 0,
+        "upstreamEnded": 0,
+        "inputSocketError": 0,
+        "warmHandoffs": 0,
+        "warmHandoffFailures": 0,
+        "silentResponseRescues": 0,
+        "exclusiveRescueReopens": 0
+      },
+      "lifecycleCounterDecreased": false,
+      "healthReadErrors": 0,
+      "authStates": {
+        "ready": 21
+      }
+    }
+  ],
+  "noProductionPlaybackProof": true,
+  "continuousBrowserPlayback": false,
+  "allSourceStabilityChecksPass": false,
+  "formalQualificationPass": false,
+  "minimumDiskBytesDuringActive": 13671018496,
+  "hostNormalizedLoadBefore": 1.40155029296875,
+  "hostNormalizedLoadAfter": 5.1668701171875,
+  "hostLoadNotControlled": true
+}

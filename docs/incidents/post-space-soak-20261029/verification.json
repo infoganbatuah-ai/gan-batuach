@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "diskGatePassedThroughout": true,
+    "completedFiveMinuteWindow": true,
+    "allElevenSourcesAtEachSample": true,
+    "reclaimBudgetRespected": true,
+    "eachSourceSuccessfullyReclaimed": true,
+    "refreshIdentityVerified": true,
+    "localLogoutPassed": true,
+    "authDenialsPassed": true,
+    "passiveWindowCompleted": true,
+    "failedStabilityNotPromoted": true,
+    "versionAndPidEndpointsMatch": true
+  },
+  "allPassed": true,
+  "unitTests": {
+    "session": 8,
+    "progress": 7,
+    "replay": 10
+  },
+  "meaning": "Tool/evidence checks; DVR stability acceptance FAILED; no formal qualification or Production pass"
+}

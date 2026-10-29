@@ -1,0 +1,33 @@
+{
+  "observedUtc": "2026-10-29T21:52:28.507394+00:00",
+  "availableBytes": 13668511744,
+  "loadAverage": [
+    41.3349609375,
+    33.96923828125,
+    30.10107421875
+  ],
+  "gateways": [
+    {
+      "port": 18082,
+      "status": "healthy",
+      "version": "0.2.101-p38-health",
+      "buildSha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+      "deviceAuthorizationStatus": "ready",
+      "progressingRelays": 9,
+      "pids": [
+        "67645"
+      ]
+    },
+    {
+      "port": 18083,
+      "status": "healthy",
+      "version": "0.2.40-p38-health",
+      "buildSha": "d80fb794f0dac331191ff7620b757449dc260b74",
+      "deviceAuthorizationStatus": "ready",
+      "progressingRelays": 1,
+      "pids": [
+        "12699"
+      ]
+    }
+  ]
+}

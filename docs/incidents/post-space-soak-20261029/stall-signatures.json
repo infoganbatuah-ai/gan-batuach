@@ -1,0 +1,52 @@
+{
+  "counts": {
+    "INSUFFICIENT_EVIDENCE": 58,
+    "NO_STALL_SIGNATURE": 147,
+    "OWNER_NOT_CONFIRMED": 2,
+    "DIRECT_RTSP_NOT_NVR": 21,
+    "SILENT_INPUT_AND_OUTPUT": 1,
+    "OUTPUT_GAP_WITHOUT_RECOVERY_PROOF": 2
+  },
+  "observedSignatures": [
+    {
+      "elapsedSeconds": 90.003,
+      "port": 18082,
+      "correlatedSources": 1,
+      "channel": 11,
+      "signature": "SILENT_INPUT_AND_OUTPUT",
+      "policyMode": "OUTPUT_RESCUE",
+      "actionExecuted": false,
+      "correlatedDeferral": false,
+      "heartbeatEvidenceKnown": true,
+      "inputIdleMs": 11042,
+      "outputIdleMs": 8891.456787109375
+    },
+    {
+      "elapsedSeconds": 180.015,
+      "port": 18082,
+      "correlatedSources": 0,
+      "channel": 3,
+      "signature": "OUTPUT_GAP_WITHOUT_RECOVERY_PROOF",
+      "policyMode": null,
+      "actionExecuted": false,
+      "correlatedDeferral": false,
+      "heartbeatEvidenceKnown": true,
+      "inputIdleMs": 45,
+      "outputIdleMs": 8973.06298828125
+    },
+    {
+      "elapsedSeconds": 180.015,
+      "port": 18082,
+      "correlatedSources": 0,
+      "channel": 8,
+      "signature": "OUTPUT_GAP_WITHOUT_RECOVERY_PROOF",
+      "policyMode": null,
+      "actionExecuted": false,
+      "correlatedDeferral": false,
+      "heartbeatEvidenceKnown": true,
+      "inputIdleMs": 5030,
+      "outputIdleMs": 9265.208740234375
+    }
+  ],
+  "actionsExecuted": false
+}

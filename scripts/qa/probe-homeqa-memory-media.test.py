@@ -30,7 +30,7 @@ class ProbeTests(unittest.TestCase):
                 probe.call(probe.AUTH+'/auth/v1/user')
             network.assert_not_called()
 
-    def run_fixture(self, refresh_status, interrupted=False):
+    def run_fixture(self, refresh_status, interrupted=False, observer=None):
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
             secret, output = root/'identity.json', root/'report.json'
@@ -75,7 +75,7 @@ class ProbeTests(unittest.TestCase):
                     patch.object(probe, 'call', side_effect=request), \
                     patch.object(probe, 'decode_sample', side_effect=decode), \
                     patch.object(probe.time, 'sleep'), contextlib.redirect_stdout(stdout):
-                probe.main()
+                probe.main(observer=observer)
             report = json.loads(output.read_text())
             for sensitive in ('SYNTHETIC_PASSWORD_ONLY', 'SYNTHETIC_ACCESS', 'SYNTHETIC_REFRESH', 'SYNTHETIC_RENEWED'):
                 self.assertNotIn(sensitive, output.read_text()+stdout.getvalue())
@@ -116,6 +116,24 @@ class ProbeTests(unittest.TestCase):
             self.assertEqual(report['error'], 'QA_DISK_HEADROOM_INSUFFICIENT')
             self.assertEqual(report['rounds'], [])
             self.assertIsNone(report['logoutPassed'])
+
+    def test_observer_can_refresh_and_checkpoint_without_receiving_auth_tokens(self):
+        def observe(sources, _authorize, refresh, checkpoint):
+            result = {'sourceCount': len(sources), 'refresh': refresh()}
+            checkpoint(result)
+            return result
+        report, headers = self.run_fixture(200, observer=observe)
+        self.assertEqual(report['observation']['sourceCount'], 11)
+        self.assertTrue(report['observation']['refresh']['identityVerified'])
+        self.assertEqual(headers['authorization'], 'Bearer SYNTHETIC_RENEWED')
+
+    def test_observer_failure_after_refresh_still_logs_out_latest_session(self):
+        def observe(_sources, _authorize, refresh, _checkpoint):
+            refresh()
+            raise RuntimeError('OBSERVATION_FAILED')
+        report, headers = self.run_fixture(200, observer=observe)
+        self.assertEqual(report['error'], 'OBSERVATION_FAILED')
+        self.assertEqual(headers['authorization'], 'Bearer SYNTHETIC_RENEWED')
 
 
 if __name__ == '__main__':

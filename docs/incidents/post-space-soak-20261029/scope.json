@@ -1,0 +1,17 @@
+{
+  "baseCommit": "cd0153342b3b1a72458ac1b3cd84674c0347cf1f",
+  "thread": "01a18865-ce48-7603-9fcd-98a7e3e87d66",
+  "branch": "codex/product-cloud-passive-soak-20261029",
+  "scope": "Post-space bounded QA HLS observation and normal application grant/claim reconnects",
+  "productionChanges": false,
+  "mainChanges": false,
+  "runtimeRestartCommands": 0,
+  "physicalCameraCommands": 0,
+  "otaHoldReleased": false,
+  "newProviderOrCharge": false,
+  "mediaOrCredentialsSaved": false,
+  "backupRouteTouched": false,
+  "ownerStorageCleanup": "Reported by coordinator; only actual free space verified here; no cleanup or recovered Downloads inspection performed by this unit",
+  "rollback": "Only QA tools/evidence changed. No runtime configuration to roll back. Auth logout is handled by finally. No service/viewer created.",
+  "preservation": "LOCAL_ONLY_PENDING_REMOTE_AND_LEDGER"
+}

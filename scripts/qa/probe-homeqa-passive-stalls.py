@@ -12,26 +12,32 @@ COUNTERS = ('starts', 'upstreamEnded', 'inputSocketError', 'warmHandoffs',
             'warmHandoffFailures', 'silentResponseRescues', 'exclusiveRescueReopens')
 
 
-def main():
+def main(duration_seconds=90, interval_seconds=6):
+    assert 30 <= duration_seconds <= 600 and 6 <= interval_seconds <= 30, 'OBSERVATION_BOUNDS_REJECTED'
+    assert duration_seconds % interval_seconds == 0, 'OBSERVATION_INTERVAL_REJECTED'
     assert not OUT.exists(), 'EVIDENCE_ALREADY_EXISTS'
     started = time.monotonic()
     report = {'scope': 'HOME_QA_PASSIVE_ONLY_NOT_ACTIVE_QUALIFICATION',
               'startedUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              'plannedSeconds': 90, 'intervalSeconds': 6, 'samples': []}
-    for index in range(16):
+              'plannedSeconds': duration_seconds, 'intervalSeconds': interval_seconds, 'samples': []}
+    sample_count = duration_seconds // interval_seconds + 1
+    for index in range(sample_count):
         if index:
-            time.sleep(max(0, started + index * 6 - time.monotonic()))
+            time.sleep(max(0, started + index * interval_seconds - time.monotonic()))
         sample = {'elapsedSeconds': round(time.monotonic()-started, 3), 'gateways': []}
         for port in (18082, 18083):
             gateway = {'port': port}
             try:
-                assert time.monotonic()-started < 100, 'OBSERVATION_BUDGET_EXPIRED'
+                assert time.monotonic()-started < duration_seconds+10, 'OBSERVATION_BUDGET_EXPIRED'
                 with urllib.request.urlopen(f'http://127.0.0.1:{port}/health', timeout=3) as response:
                     raw = response.read(2 * 1024 * 1024 + 1)
                 assert len(raw) <= 2 * 1024 * 1024, 'HEALTH_RESPONSE_LIMIT'
                 data = json.loads(raw)
                 media = data.get('mediaHeartbeat', {})
                 gateway.update(status=data.get('status'),
+                               version=data.get('edgeRuntime', {}).get('software_version'),
+                               buildSha=data.get('edgeRuntime', {}).get('build_sha'),
+                               deviceAuthorizationStatus=data.get('deviceAuthorization', {}).get('status'),
                                heartbeatConsecutiveFailures=data.get('recorderSessionHeartbeat', {}).get('consecutive_failures'),
                                lifecycle={k: media.get('lifecycle', {}).get(k) for k in COUNTERS}, inputs=[])
                 for item in media.get('inputs', []):
@@ -43,9 +49,9 @@ def main():
             sample['gateways'].append(gateway)
         report['samples'].append(sample)
         report['observedSeconds'] = round(time.monotonic()-started, 3)
-        report['completed'] = index == 15
+        report['completed'] = index == sample_count-1
         OUT.write_text(json.dumps(report, indent=2)+'\n')
-        if time.monotonic()-started >= 100:
+        if time.monotonic()-started >= duration_seconds+10:
             break
     print(json.dumps({'completed': report['completed'], 'seconds': report['observedSeconds'], 'samples': len(report['samples'])}))
 

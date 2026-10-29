@@ -1,0 +1,16 @@
+{
+  "observedUtc": "2026-10-29T21:50:32.651515+00:00",
+  "scope": "QA_ONLY_GET_AUTH_DENIALS",
+  "checks": [
+    {
+      "credential": "missing",
+      "status": 401,
+      "pass": true
+    },
+    {
+      "credential": "invalid",
+      "status": 401,
+      "pass": true
+    }
+  ]
+}

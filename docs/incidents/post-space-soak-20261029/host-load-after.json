@@ -1,0 +1,81 @@
+{
+  "observedUtc": "2026-10-29T21:53:13.334589+00:00",
+  "topKnownProcessClasses": [
+    {
+      "pid": 75050,
+      "cpuPercent": 15.4,
+      "processClass": "node"
+    },
+    {
+      "pid": 75052,
+      "cpuPercent": 15.2,
+      "processClass": "node"
+    },
+    {
+      "pid": 75056,
+      "cpuPercent": 13.6,
+      "processClass": "node"
+    },
+    {
+      "pid": 44346,
+      "cpuPercent": 6.7,
+      "processClass": "Google Chrome Helper (Aperitif Renderer)"
+    },
+    {
+      "pid": 70819,
+      "cpuPercent": 5.2,
+      "processClass": "ffmpeg"
+    },
+    {
+      "pid": 74860,
+      "cpuPercent": 5.2,
+      "processClass": "ffmpeg"
+    },
+    {
+      "pid": 44958,
+      "cpuPercent": 4.6,
+      "processClass": "com.apple.Virtualization.VirtualMachine"
+    },
+    {
+      "pid": 38106,
+      "cpuPercent": 3.5,
+      "processClass": "com.apple.Virtualization.VirtualMachine"
+    },
+    {
+      "pid": 74836,
+      "cpuPercent": 3.5,
+      "processClass": "ffmpeg"
+    },
+    {
+      "pid": 72480,
+      "cpuPercent": 3.0,
+      "processClass": "ffmpeg"
+    },
+    {
+      "pid": 69032,
+      "cpuPercent": 2.5,
+      "processClass": "ffmpeg"
+    },
+    {
+      "pid": 12690,
+      "cpuPercent": 2.4,
+      "processClass": "node"
+    },
+    {
+      "pid": 26652,
+      "cpuPercent": 1.6,
+      "processClass": "Google Chrome Helper (Aperitif)"
+    },
+    {
+      "pid": 67645,
+      "cpuPercent": 0.9,
+      "processClass": "node"
+    },
+    {
+      "pid": 68648,
+      "cpuPercent": 0.7,
+      "processClass": "ffmpeg"
+    }
+  ],
+  "causalAttribution": "Not established; process CPU snapshot is not a historical ownership trace"
+}
