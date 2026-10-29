@@ -557,7 +557,7 @@
 
 .gb-public-reason-card p,
 .gb-public-home-garden-card p {
-  color: #657394;
+  color: #536382;
   font-weight: 750;
   line-height: 1.7;
   margin: 0;
@@ -1305,6 +1305,12 @@
 .gb-action-card small {
   color: var(--gb-muted);
   font-weight: 800;
+}
+
+/* Public marketing cards use tinted backgrounds; keep supporting copy above
+   WCAG AA contrast without changing the product dashboard palette. */
+.gb-public-page .gb-action-card small {
+  color: #4f617f;
 }
 
 .gb-form-field {

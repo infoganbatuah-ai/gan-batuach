@@ -70,5 +70,8 @@ assert.match(observerLayout, /digitalObserverShareImage/, "Digital Observer need
 const globalStates = read("components/global-state-system.tsx");
 assert.match(globalStates, /GlobalLoadingState[\s\S]*headingLevel=\{2\}/, "Streaming loading UI must not add a second H1");
 assert.match(globalStates, /GlobalEmptyState[\s\S]*headingLevel=\{2\}/, "Embedded empty states must not add a second H1");
+const globalStyles = read("app/globals.css");
+assert.match(globalStyles, /\.gb-public-page \.gb-action-card small\s*\{\s*color:\s*#4f617f;/, "Public action copy needs AA contrast on tinted cards");
+assert.match(globalStyles, /\.gb-public-reason-card p,[\s\S]*color:\s*#536382;/, "Public supporting copy needs AA contrast");
 
 console.log(`SEO contract PASS: ${privateLayouts.length} private route groups, privacy-safe garden discovery, permanent canonical redirect, robots/sitemap and editorial schema checks.`);
