@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(path, "utf8");
 const sql = read("supabase/migrations/20260913170000_management_complaint_sla.sql");
 const cronAuthHotfix = read("supabase/migrations/20261029215625_complaint_sla_secret_key_auth_hotfix.sql");
+const cronRowAliasFix = read("supabase/migrations/20261029225418_complaint_sla_row_alias_fix.sql");
 const submit = read("app/api/parent/complaints/route.ts");
 const actions = read("app/api/complaints/[id]/actions/route.ts");
 const parentPage = read("app/dashboard/parent/complaints/page.tsx");
@@ -51,16 +52,21 @@ test("complaint transitions and overdue escalation are locked and audited", () =
 
 test("complaint escalation cron supports modern secret keys without widening RPC access", () => {
   assert.doesNotMatch(cronAuthHotfix, /request\.jwt\.claim\.role/);
+  assert.doesNotMatch(cronRowAliasFix, /request\.jwt\.claim\.role/);
   assert.match(
-    cronAuthHotfix,
+    cronRowAliasFix,
     /revoke all on function public\.escalate_overdue_complaints\(timestamptz, integer\)\s+from public, anon, authenticated;/
   );
   assert.match(
-    cronAuthHotfix,
+    cronRowAliasFix,
     /grant execute on function public\.escalate_overdue_complaints\(timestamptz, integer\)\s+to service_role;/
   );
-  assert.match(cronAuthHotfix, /for update of c skip locked/);
-  assert.match(cronAuthHotfix, /status::text not in \('closed', 'resolved', 'escalated'\)/);
+  assert.match(cronRowAliasFix, /for complaint_row in/);
+  assert.match(cronRowAliasFix, /from public\.complaints as complaint_candidate/);
+  assert.doesNotMatch(cronRowAliasFix, /\bc public\.complaints%rowtype/);
+  assert.doesNotMatch(cronRowAliasFix, /from public\.complaints c\b/);
+  assert.match(cronRowAliasFix, /for update of complaint_candidate skip locked/);
+  assert.match(cronRowAliasFix, /status::text not in \('closed', 'resolved', 'escalated'\)/);
   assert.match(cron, /request\.headers\.get\("authorization"\) !== `Bearer \$\{secret\}`/);
   assert.match(cron, /status: 401/);
   assert.match(cron, /status: 503/);
