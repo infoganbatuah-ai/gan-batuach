@@ -1,0 +1,13 @@
+{
+  "method": "STANDARD_PASSWORD_AUTH",
+  "endpointScope": "HOME_QA_LOOPBACK_ONLY",
+  "status": 422,
+  "code": "email_provider_disabled",
+  "loginPassed": false,
+  "sessionCreated": false,
+  "manualJwt": false,
+  "signingKeyRead": false,
+  "tokenPersisted": false,
+  "productPlaybackGrantRequested": false,
+  "productDataChanged": false
+}

@@ -1,0 +1,9 @@
+{
+  "projectScopedToHomeQa": true,
+  "newRegistrationsDisabled": true,
+  "anonymousSignInDisabled": true,
+  "emailProviderEnabledInCandidate": true,
+  "emailConfirmationRetained": true,
+  "smsProviderUnchanged": true,
+  "appliedToRuntime": false
+}

@@ -62,7 +62,10 @@ enable_anonymous_sign_ins = false
 minimum_password_length = 12
 
 [auth.email]
-enable_signup = false
+# The CLI maps this to GOTRUE_EXTERNAL_EMAIL_ENABLED; false also blocks
+# existing-user password login. Global auth.enable_signup=false above keeps
+# new registrations disabled while allowing normal HOME_QA sign-in.
+enable_signup = true
 enable_confirmations = true
 
 [auth.sms]

@@ -1,0 +1,8 @@
+{
+  "GOTRUE_EXTERNAL_EMAIL_ENABLED": "false",
+  "GOTRUE_EXTERNAL_PHONE_ENABLED": "false",
+  "GOTRUE_DISABLE_SIGNUP": "true",
+  "GOTRUE_MAILER_AUTOCONFIRM": "false",
+  "GOTRUE_JWT_EXP": "3600",
+  "authProjectLabel": "gan-batuach-push38t"
+}
