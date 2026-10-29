@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import os
 import posixpath
 import re
@@ -22,8 +23,11 @@ APPROVED_REAL_QA_EXTRACTOR = None
 MAX_LAYERS = 29
 MAX_LAYER_BYTES = 8 * 1024 * 1024
 MAX_TOTAL_BYTES = 32 * 1024 * 1024
+MAX_TOTAL_REGULAR_BYTES = 32 * 1024 * 1024
 MAX_MEMBERS = 4096
+MAX_TREE_NODES = 8192
 MAX_MEMBER_BYTES = 4 * 1024 * 1024
+MAX_SYNTHETIC_MANIFEST_BYTES = 16 * 1024
 _DIR_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 _NAME = re.compile(r"do-qa-synthetic-rootfs-[a-f0-9]{24}$")
 
@@ -39,6 +43,50 @@ class SyntheticLayer:
     sha256: str
 
 
+def _unique_json_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise UnsafeLayer("SYNTHETIC_MANIFEST_DUPLICATE_KEY")
+        result[key] = value
+    return result
+
+
+def extract_synthetic_oci_fixture(manifest_bytes: bytes, manifest_sha256: str,
+                                  layers: list[SyntheticLayer], parent: str,
+                                  target: str, *, purpose: str) -> dict:
+    """Exercise a pinned, 29-layer arm64 OCI fixture; never accepts the QA image."""
+    if purpose != "synthetic-fixture-only":
+        raise UnsafeLayer("SYNTHETIC_PURPOSE_REQUIRED")
+    if not isinstance(manifest_bytes, bytes) or not 0 < len(manifest_bytes) <= MAX_SYNTHETIC_MANIFEST_BYTES or \
+            not isinstance(manifest_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", manifest_sha256) or \
+            hashlib.sha256(manifest_bytes).hexdigest() != manifest_sha256:
+        raise UnsafeLayer("SYNTHETIC_MANIFEST_DIGEST_OR_BUDGET_INVALID")
+    try:
+        manifest = json.loads(manifest_bytes, object_pairs_hook=_unique_json_pairs)
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise UnsafeLayer("SYNTHETIC_MANIFEST_JSON_INVALID") from error
+    if not isinstance(manifest, dict) or set(manifest) != {
+            "schemaVersion", "architecture", "layers"} or \
+            type(manifest["schemaVersion"]) is not int or manifest["schemaVersion"] != 2 or \
+            manifest["architecture"] != "arm64" or \
+            not isinstance(manifest["layers"], list) or len(manifest["layers"]) != 29 or \
+            not isinstance(layers, list) or len(layers) != 29:
+        raise UnsafeLayer("SYNTHETIC_OCI_MANIFEST_SHAPE_INVALID")
+    for index, (descriptor, layer) in enumerate(zip(manifest["layers"], layers)):
+        if not isinstance(descriptor, dict) or set(descriptor) != {"digest"} or \
+                not isinstance(descriptor["digest"], str) or \
+                not re.fullmatch(r"sha256:[0-9a-f]{64}", descriptor["digest"]) or \
+                not isinstance(layer, SyntheticLayer) or layer.index != index or \
+                not isinstance(layer.sha256, str) or \
+                not re.fullmatch(r"[0-9a-f]{64}", layer.sha256) or \
+                descriptor["digest"] != "sha256:" + layer.sha256:
+            raise UnsafeLayer("SYNTHETIC_OCI_LAYER_DESCRIPTOR_INVALID")
+    receipt = extract_synthetic_layers(layers, parent, target, purpose=purpose)
+    return {**receipt, "manifest_sha256": manifest_sha256,
+            "architecture": "arm64", "layer_count": 29}
+
+
 def _path(value: str) -> str:
     if not isinstance(value, str) or not value or len(value) > 4096:
         raise UnsafeLayer("SYNTHETIC_PATH_INVALID")
@@ -46,7 +94,8 @@ def _path(value: str) -> str:
         raise UnsafeLayer("SYNTHETIC_PATH_INVALID")
     clean = value.rstrip("/")
     parts = clean.split("/")
-    if not clean or len(parts) > 64 or any(p in ("", ".", "..") for p in parts):
+    if not clean or len(parts) > 64 or any(p in ("", ".", "..") or
+                                           len(p.encode("utf-8")) > 255 for p in parts):
         raise UnsafeLayer("SYNTHETIC_PATH_TRAVERSAL")
     return clean
 
@@ -69,7 +118,8 @@ def _symlink_target(path: str, value: str) -> str:
 def _validate(layers: list[SyntheticLayer]) -> list[list[tarfile.TarInfo]]:
     if not isinstance(layers, list) or not 1 <= len(layers) <= MAX_LAYERS:
         raise UnsafeLayer("SYNTHETIC_LAYER_COUNT_INVALID")
-    total = members = 0
+    total = members = regular_bytes = 0
+    tree_nodes = set()
     planned = []
     for index, layer in enumerate(layers):
         if not isinstance(layer, SyntheticLayer) or layer.index != index:
@@ -85,6 +135,7 @@ def _validate(layers: list[SyntheticLayer]) -> list[list[tarfile.TarInfo]]:
         except tarfile.TarError as error:
             raise UnsafeLayer("SYNTHETIC_LAYER_TAR_INVALID") from error
         seen = set()
+        layer_types = {}
         for entry in entries:
             members += 1
             if members > MAX_MEMBERS:
@@ -93,6 +144,12 @@ def _validate(layers: list[SyntheticLayer]) -> list[list[tarfile.TarInfo]]:
             if name in seen:
                 raise UnsafeLayer("SYNTHETIC_DUPLICATE_MEMBER")
             seen.add(name)
+            layer_types[name] = entry.isdir()
+            parts = name.split("/")
+            tree_nodes.update("/".join(parts[:depth]) for depth in
+                              range(1, len(parts) + 1))
+            if len(tree_nodes) > MAX_TREE_NODES:
+                raise UnsafeLayer("SYNTHETIC_TREE_NODE_CAP_EXCEEDED")
             if entry.type not in (tarfile.REGTYPE, tarfile.AREGTYPE,
                                   tarfile.DIRTYPE, tarfile.SYMTYPE, tarfile.LNKTYPE):
                 raise UnsafeLayer("SYNTHETIC_SPECIAL_NODE_DENIED")
@@ -101,6 +158,10 @@ def _validate(layers: list[SyntheticLayer]) -> list[list[tarfile.TarInfo]]:
             if not (0 <= entry.uid <= 65535 and 0 <= entry.gid <= 65535 and
                     0 <= entry.mode <= 0o7777 and 0 <= entry.size <= MAX_MEMBER_BYTES):
                 raise UnsafeLayer("SYNTHETIC_METADATA_INVALID")
+            if entry.isfile():
+                regular_bytes += entry.size
+                if regular_bytes > MAX_TOTAL_REGULAR_BYTES:
+                    raise UnsafeLayer("SYNTHETIC_REGULAR_BYTE_CAP_EXCEEDED")
             base = posixpath.basename(name)
             if base.startswith(".wh."):
                 if not entry.isfile() or entry.size != 0 or base == ".wh.":
@@ -109,6 +170,11 @@ def _validate(layers: list[SyntheticLayer]) -> list[list[tarfile.TarInfo]]:
                 _symlink_target(name, entry.linkname)
             elif entry.islnk():
                 _path(entry.linkname)  # tar hardlinks are archive-root relative
+        for name in seen:
+            parts = name.split("/")
+            if any(layer_types.get("/".join(parts[:depth])) is False for depth in
+                   range(1, len(parts))):
+                raise UnsafeLayer("SYNTHETIC_SAME_LAYER_PARENT_NOT_DIRECTORY")
         planned.append(entries)
     return planned
 

@@ -3,6 +3,7 @@
 import hashlib
 import importlib.util
 import io
+import json
 import os
 import pathlib
 import secrets
@@ -208,6 +209,80 @@ class ExtractorTest(unittest.TestCase):
         with self.assertRaisesRegex(extractor.UnsafeLayer, "MEMBER_CAP"):
             self.extract(layer(0, [(f"m/{index}", "file", b"")
                                    for index in range(4097)]))
+        self.assertEqual(os.listdir(self.target), [])
+
+    def test_exact_layer_bound_and_cumulative_regular_byte_budget(self):
+        tiny = [layer(index, [(f"file-{index}", "file", b"x")])
+                for index in range(29)]
+        self.assertEqual(self.extract(*tiny)["operations"], 29)
+        extractor.rollback_synthetic_target(self.parent, self.target,
+            os.stat(self.target).st_ino, os.stat(self.target).st_dev)
+        os.mkdir(self.target, 0o700)
+        with self.assertRaisesRegex(extractor.UnsafeLayer, "LAYER_COUNT"):
+            self.extract(*tiny, layer(29, [("extra", "file")]))
+        with mock.patch.object(extractor, "MAX_TOTAL_REGULAR_BYTES", 1):
+            with self.assertRaisesRegex(extractor.UnsafeLayer, "REGULAR_BYTE_CAP"):
+                self.extract(tiny[0], tiny[1])
+        self.assertEqual(os.listdir(self.target), [])
+
+    def test_pinned_synthetic_oci_manifest_and_all_29_layers(self):
+        layers = [layer(index, [(f"layer-{index}", "file", b"x")])
+                  for index in range(29)]
+        manifest = {"schemaVersion": 2, "architecture": "arm64",
+                    "layers": [{"digest": "sha256:" + item.sha256}
+                               for item in layers]}
+        encoded = json.dumps(manifest, separators=(",", ":")).encode()
+        pinned = hashlib.sha256(encoded).hexdigest()
+
+        def run(data=encoded, digest=pinned, items=layers):
+            return extractor.extract_synthetic_oci_fixture(data, digest,
+                items, self.parent, self.target, purpose="synthetic-fixture-only")
+
+        for data, digest, items, expected in [
+            (encoded, "0" * 64, layers, "MANIFEST_DIGEST"),
+            (encoded, pinned, layers[:-1], "MANIFEST_SHAPE"),
+            (encoded.replace(b'"arm64"', b'"amd64"'),
+             hashlib.sha256(encoded.replace(b'"arm64"', b'"amd64"')).hexdigest(),
+             layers, "MANIFEST_SHAPE"),
+            (encoded, pinned, [layers[1], layers[0], *layers[2:]], "LAYER_DESCRIPTOR"),
+        ]:
+            with self.subTest(expected=expected):
+                with self.assertRaisesRegex(extractor.UnsafeLayer, expected):
+                    run(data, digest, items)
+                self.assertEqual(os.listdir(self.target), [])
+        duplicate = b'{"schemaVersion":2,"schemaVersion":2,"architecture":"arm64","layers":[]}'
+        with self.assertRaisesRegex(extractor.UnsafeLayer, "DUPLICATE_KEY"):
+            run(duplicate, hashlib.sha256(duplicate).hexdigest())
+        self.assertEqual(os.listdir(self.target), [])
+        tampered = extractor.SyntheticLayer(0, layers[0].data, "0" * 64)
+        with self.assertRaisesRegex(extractor.UnsafeLayer, "LAYER_DESCRIPTOR"):
+            run(items=[tampered, *layers[1:]])
+        with self.assertRaisesRegex(extractor.UnsafeLayer, "DIGEST"):
+            altered = layers[0].data[:-1] + b"!"
+            run(items=[extractor.SyntheticLayer(0, altered, layers[0].sha256),
+                       *layers[1:]])
+        self.assertEqual(os.listdir(self.target), [])
+        receipt = run()
+        self.assertEqual((receipt["layer_count"], receipt["architecture"]),
+                         (29, "arm64"))
+        self.assertEqual(receipt["manifest_sha256"], pinned)
+
+    def test_tree_budget_component_length_and_parent_ambiguity_precede_writes(self):
+        cases = [
+            ("PATH_TRAVERSAL", layer(0, [("x" * 256, "file")])) ,
+            ("SAME_LAYER_PARENT", layer(0, [("a", "file"),
+                                            ("a/child", "file")])),
+            ("SAME_LAYER_PARENT", layer(0, [("a", "symlink", "target"),
+                                            ("a/child", "file")])),
+        ]
+        for expected, item in cases:
+            with self.subTest(expected=expected):
+                with self.assertRaisesRegex(extractor.UnsafeLayer, expected):
+                    self.extract(item)
+                self.assertEqual(os.listdir(self.target), [])
+        with mock.patch.object(extractor, "MAX_TREE_NODES", 2):
+            with self.assertRaisesRegex(extractor.UnsafeLayer, "TREE_NODE_CAP"):
+                self.extract(layer(0, [("one/two/three", "file")]))
         self.assertEqual(os.listdir(self.target), [])
 
     def test_real_qa_entrypoint_is_still_disabled(self):
