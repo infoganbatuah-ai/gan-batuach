@@ -1,0 +1,105 @@
+{
+  "observed_date": "2026-10-29",
+  "environment": "PRODUCTION_READ_ONLY",
+  "scope": "ONE_PILOT_SITE_NO_PERSONAL_IDENTIFIERS_RETAINED",
+  "database_writes": 0,
+  "site": {
+    "active": true,
+    "monitoring_enabled": true,
+    "runtime_status": "learning_readiness",
+    "engine_mode": "standard_biometric",
+    "subscription_status": "trial"
+  },
+  "enrollments": [
+    {
+      "profile": "SOFTWARE_CONNECTOR",
+      "status": "delivered",
+      "identity_scheme": "LEGACY_HMAC",
+      "lifecycle_state": "ACTIVE",
+      "last_seen_at": "2026-09-21T02:46:36.001Z",
+      "tenant_bound": true,
+      "gateway_bound": true,
+      "revoked": false,
+      "clone_flag": false
+    },
+    {
+      "profile": "PHYSICAL_GATEWAY",
+      "status": "delivered",
+      "identity_scheme": "LEGACY_HMAC",
+      "lifecycle_state": "ACTIVE",
+      "last_seen_at": "2026-09-22T08:13:43.220Z",
+      "tenant_bound": true,
+      "gateway_bound": true,
+      "revoked": false,
+      "clone_flag": false
+    }
+  ],
+  "source_inventory": {
+    "total": 17,
+    "dvr_slots": 16,
+    "dvr_assigned_channels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11
+    ],
+    "disabled_empty_channels": [
+      9,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "rtsp_sources": 1,
+    "source_status_counts": {
+      "connected_stale": 8,
+      "offline": 3,
+      "disabled": 6
+    },
+    "camera_stream_id_null_count": 17,
+    "mapping_caution": "Canonical sources can use metadata bindings. Null legacy camera_stream_id alone is not proof of a broken source mapping."
+  },
+  "ui": {
+    "authenticated_existing_session": true,
+    "live_video_sources": 0,
+    "offline_sources": 11,
+    "rules_banner": "ממתין ל-Gateway ולספק AI",
+    "rules_list_sources": 17,
+    "latest_displayed_updates": "2026-09-20 through 2026-09-22",
+    "today_valid_evidence_event_displayed": false
+  },
+  "provider_health": {
+    "project_status": "ACTIVE_HEALTHY",
+    "security_advisor_findings": "Existing ERROR security-definer views, WARN mutable search_path/definer execute and leaked-password protection; not causally attributed to this outage; no changes made.",
+    "logs_window_utc": [
+      "2026-10-29T00:00:00Z",
+      "2026-10-29T00:25:00Z"
+    ],
+    "logs_group_counts": {
+      "postgrest_logs": 24,
+      "auth_logs": 48,
+      "edge_logs": 215,
+      "postgres_logs": 9
+    },
+    "log_counts_are_not_error_counts": true
+  },
+  "security_advisor_links": [
+    "https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view",
+    "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+    "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+  ],
+  "sql_policy": "SELECT only, capped per-site projections; no credential/hash/private-key columns selected",
+  "limitations": [
+    "No independent role-boundary penetration test",
+    "No deployed commit verification",
+    "No fresh provider-invoice or media-policy verification",
+    "No raw media fetched"
+  ]
+}

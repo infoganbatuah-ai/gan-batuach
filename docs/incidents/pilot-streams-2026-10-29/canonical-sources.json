@@ -1,0 +1,36 @@
+{
+  "audited_at": "2026-10-29",
+  "product_base_sha": "2da8f75abce610a9a979eecd752d7a6a1011641e",
+  "integration_sha": "aea078ce67cf3061be5f0a6c314545dcc533a85d",
+  "qualification_sha": "f4fc7ff2d40d93704050114752b4c9007d5f4467",
+  "sources": [
+    {
+      "path": "AGENTS.md",
+      "git_blob": "96344e7b4382c11cf93378d248ab0de6dbe5074c"
+    },
+    {
+      "path": "DIGITAL_OBSERVER_CANONICAL_MASTER_ROADMAP.md",
+      "git_blob": "c346bacd571f3294df3df5d8e0cbe7e89dc92f72"
+    },
+    {
+      "path": "DIGITAL_OBSERVER_NORTH_STAR_COMPLETION_MATRIX.md",
+      "git_blob": "d7d32c7e7d7329f9a19c3a7971728614d3e5e36a"
+    },
+    {
+      "path": "DIGITAL_OBSERVER_CAPABILITY_PUSH_OWNERSHIP_MAP.json",
+      "git_blob": "40a3173e3136730c961cc63b270b735e0384c93b"
+    },
+    {
+      "path": "DIGITAL_OBSERVER_PUSH_38_RELIABILITY_QUALIFICATION_REPORT.md",
+      "git_blob": "0c461c0eca3721f9233445cb402bd88eda567f88"
+    },
+    {
+      "path": "DIGITAL_OBSERVER_PUSH_38_FINITE_EPOCH_DRAIN_CLOSURE_EVIDENCE.json",
+      "git_blob": "aac4d1255363a90e7b2d7263d99d1a69768d0ec9"
+    },
+    {
+      "path": "DIGITAL_OBSERVER_PUSH_38_TRUST_FIRST_LIVE_HANDOFF.json",
+      "git_blob": "7f64599fa951c9f7d5f5f68ab7e9289fbb4caf34"
+    }
+  ]
+}

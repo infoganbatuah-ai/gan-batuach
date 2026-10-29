@@ -1,0 +1,513 @@
+{
+  "scope": "READ_ONLY_EXISTING_LOCAL_ENDPOINTS",
+  "camera_commands": 0,
+  "runtime_changes": 0,
+  "samples": [
+    {
+      "at": "2026-10-29T00:23:06.640205+00:00",
+      "components": {
+        "observer-gateway": {
+          "http_status": 200,
+          "read_only": true,
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "unavailable",
+          "discovery": {
+            "channelCount": 16,
+            "assignedCount": 10,
+            "unassignedCount": 6,
+            "connectedCount": 10,
+            "failedAssignedCount": 0,
+            "checkedAt": "2026-10-29T00:11:37.017Z"
+          },
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2,
+            "liveRelayProcesses": 10
+          },
+          "channels": [
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 261.950927734375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 688.730712890625,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 9319.66796875,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 8,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 45423.0341796875,
+              "owner_state": "NONE"
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 17301.53515625,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 584.931396484375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 669.457763671875,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 10,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null,
+              "owner_state": "NONE"
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 695.938720703125,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 169.10693359375,
+              "owner_state": "CURRENT"
+            }
+          ],
+          "recorder": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0,
+            "last_response_at": "2026-10-29T00:23:05.686Z"
+          },
+          "ai": {
+            "object_detection": true,
+            "face_detection": false,
+            "face_recognition": false,
+            "biometric_matching": false,
+            "consent_verified": false
+          }
+        },
+        "observer-connector": {
+          "http_status": 200,
+          "read_only": true,
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "unavailable",
+          "discovery": {
+            "channelCount": 1,
+            "assignedCount": 1,
+            "unassignedCount": 0,
+            "connectedCount": 1,
+            "failedAssignedCount": 0,
+            "checkedAt": "2026-10-29T00:21:41.767Z"
+          },
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0,
+            "liveRelayProcesses": 1
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 225.55908203125,
+              "owner_state": "CURRENT"
+            }
+          ],
+          "recorder": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0,
+            "last_response_at": null
+          },
+          "ai": {
+            "object_detection": true,
+            "face_detection": false,
+            "face_recognition": false,
+            "biometric_matching": false,
+            "consent_verified": false
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-10-29T00:23:16.687978+00:00",
+      "components": {
+        "observer-gateway": {
+          "http_status": 200,
+          "read_only": true,
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "unavailable",
+          "discovery": {
+            "channelCount": 16,
+            "assignedCount": 10,
+            "unassignedCount": 6,
+            "connectedCount": 10,
+            "failedAssignedCount": 0,
+            "checkedAt": "2026-10-29T00:11:37.017Z"
+          },
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2,
+            "liveRelayProcesses": 10
+          },
+          "channels": [
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1895.853515625,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1606.479736328125,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 8,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 55434.0341796875,
+              "owner_state": "NONE"
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1097.0419921875,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 959.503173828125,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1491.130859375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 10,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null,
+              "owner_state": "NONE"
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1351.6455078125,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1252.6181640625,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1589.022216796875,
+              "owner_state": "WARMING_CONTINUITY"
+            }
+          ],
+          "recorder": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0,
+            "last_response_at": "2026-10-29T00:23:14.709Z"
+          },
+          "ai": {
+            "object_detection": true,
+            "face_detection": false,
+            "face_recognition": false,
+            "biometric_matching": false,
+            "consent_verified": false
+          }
+        },
+        "observer-connector": {
+          "http_status": 200,
+          "read_only": true,
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "unavailable",
+          "discovery": {
+            "channelCount": 1,
+            "assignedCount": 1,
+            "unassignedCount": 0,
+            "connectedCount": 1,
+            "failedAssignedCount": 0,
+            "checkedAt": "2026-10-29T00:21:41.767Z"
+          },
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0,
+            "liveRelayProcesses": 1
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 260.611083984375,
+              "owner_state": "CURRENT"
+            }
+          ],
+          "recorder": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0,
+            "last_response_at": null
+          },
+          "ai": {
+            "object_detection": true,
+            "face_detection": false,
+            "face_recognition": false,
+            "biometric_matching": false,
+            "consent_verified": false
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-10-29T00:23:26.696575+00:00",
+      "components": {
+        "observer-gateway": {
+          "http_status": 200,
+          "read_only": true,
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "unavailable",
+          "discovery": {
+            "channelCount": 16,
+            "assignedCount": 10,
+            "unassignedCount": 6,
+            "connectedCount": 10,
+            "failedAssignedCount": 0,
+            "checkedAt": "2026-10-29T00:11:37.017Z"
+          },
+          "media": {
+            "progressingRelays": 7,
+            "availableRelays": 9,
+            "stalledRelays": 1,
+            "liveRelayProcesses": 8
+          },
+          "channels": [
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 226.290771484375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 133.20849609375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 85.1318359375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 115.754150390625,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 10,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null,
+              "owner_state": "NONE"
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 192.12646484375,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2846.899658203125,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 125.779296875,
+              "owner_state": "CURRENT"
+            },
+            {
+              "channel": 8,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 1394.851806640625,
+              "owner_state": "RENEWING"
+            },
+            {
+              "channel": 2,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 7187.778564453125,
+              "owner_state": "RENEWING"
+            }
+          ],
+          "recorder": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0,
+            "last_response_at": "2026-10-29T00:23:24.673Z"
+          },
+          "ai": {
+            "object_detection": true,
+            "face_detection": false,
+            "face_recognition": false,
+            "biometric_matching": false,
+            "consent_verified": false
+          }
+        },
+        "observer-connector": {
+          "http_status": 200,
+          "read_only": true,
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "unavailable",
+          "discovery": {
+            "channelCount": 1,
+            "assignedCount": 1,
+            "unassignedCount": 0,
+            "connectedCount": 1,
+            "failedAssignedCount": 0,
+            "checkedAt": "2026-10-29T00:21:41.767Z"
+          },
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0,
+            "liveRelayProcesses": 1
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 170.31640625,
+              "owner_state": "CURRENT"
+            }
+          ],
+          "recorder": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0,
+            "last_response_at": null
+          },
+          "ai": {
+            "object_detection": true,
+            "face_detection": false,
+            "face_recognition": false,
+            "biometric_matching": false,
+            "consent_verified": false
+          }
+        }
+      }
+    }
+  ],
+  "ota": {
+    "observer-gateway": {
+      "current": {
+        "version": "0.2.101-p38-health",
+        "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+        "artifact_sha256": "9cf3aa53cde89f76ec28e6b96c1be2acc9bed38642bd478f13244c0418cfa6a0"
+      },
+      "recovery": {
+        "state": "ROLLED_BACK",
+        "updated_at": "2026-10-24T14:21:08.261Z",
+        "failure_category": "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP",
+        "failed_version": "0.2.102-p38-health",
+        "recovered_version": "0.2.101-p38-health",
+        "recovery_category": "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED"
+      },
+      "identity_origin_is_home_qa_loopback": true
+    },
+    "observer-connector": {
+      "current": {
+        "version": "0.2.40-p38-health",
+        "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+        "artifact_sha256": "2537bbb1007fd8698b059985888c5a1a7d613944cec79b5e72d7ae22165e5566"
+      },
+      "recovery": {
+        "state": "ROLLED_BACK",
+        "updated_at": "2026-10-20T11:34:23.625Z",
+        "failure_category": "EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY",
+        "failed_version": "0.2.41-p38-health",
+        "recovered_version": "0.2.40-p38-health",
+        "recovery_category": "EDGE_UPDATE_SIGNED_KNOWN_GOOD_RECOVERED"
+      },
+      "identity_origin_is_home_qa_loopback": true
+    }
+  },
+  "qa_tls": "CERTIFICATE_EXPIRED",
+  "qa_upstream": {
+    "ok": true,
+    "status": "ok",
+    "supabase": "ok"
+  },
+  "tunnel": {
+    "status": 200,
+    "ready_connections": 4
+  }
+}
