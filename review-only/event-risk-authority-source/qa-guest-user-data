@@ -1,0 +1,40 @@
+#cloud-config
+network:
+  config: disabled
+bootcmd:
+  - [sh, -c, 'printf "DOQA_BOOT nonce=doqa-no-nic-20261030-02 stage=cloud-init-bootcmd\n" | dd of=/dev/vdd bs=4096 conv=fsync status=none']
+write_files:
+  - path: /root/doqa-probe.sh
+    owner: root:root
+    permissions: '0700'
+    content: |
+      #!/bin/sh
+      set -eu
+      nonce=doqa-no-nic-20261030-02
+      [ -b /dev/vdd ] || exit 40
+      if [ -c /dev/hvc0 ]; then exec 3>/dev/hvc0; else exec 3>/dev/null; fi
+      trap 'code=$?; printf "DOQA_RESULT nonce=%s status=FAIL code=%s\n" "$nonce" "$code" | dd of=/dev/vdd bs=4096 conv=fsync status=none; poweroff' EXIT
+      printf 'DOQA_BEGIN nonce=%s\n' "$nonce" >&3
+      nic_count=0
+      for nic in /sys/class/net/*; do
+        [ "${nic##*/}" = lo ] || nic_count=$((nic_count + 1))
+      done
+      [ "$nic_count" -eq 0 ]
+      [ -r /sys/block/vdb/ro ] && [ "$(cat /sys/block/vdb/ro)" = 1 ]
+      [ -r /sys/block/vdc/ro ] && [ "$(cat /sys/block/vdc/ro)" = 1 ]
+      command -v ip >/dev/null
+      [ -z "$(ip -4 route show default)" ]
+      [ -z "$(ip -6 route show default)" ]
+      if ip -4 route get 198.51.100.1 >/dev/null 2>&1; then exit 41; fi
+      mkdir -p /run/doqa-input
+      mount -t iso9660 -o ro,nosuid,nodev,noexec /dev/vdb /run/doqa-input
+      [ "$(find /run/doqa-input -mindepth 1 -maxdepth 1 -type f | wc -l)" -eq 3 ]
+      cd /run/doqa-input
+      sha256sum -c SHA256SUMS >/dev/null
+      status=PASS
+      printf 'DOQA_RESULT nonce=%s status=%s nic=%s ipv4_default=%s ipv6_default=%s route_get=%s input_ro=%s seed_ro=%s input_hashes=%s\n' "$nonce" "$status" "$nic_count" 0 0 unreachable 1 1 match | dd of=/dev/vdd bs=4096 conv=fsync status=none
+      printf 'DOQA_RESULT nonce=%s status=%s\n' "$nonce" "$status" >&3
+      trap - EXIT
+      poweroff
+runcmd:
+  - [sh, /root/doqa-probe.sh]
