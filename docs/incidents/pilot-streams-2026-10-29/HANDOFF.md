@@ -1,5 +1,41 @@
 # Pilot stream incident handoff — 2026-10-29
 
+## Superseding owner-authorized recovery unit
+
+The human owner explicitly approved the certificate/pin recovery, controlled
+same-version service reload and detailed disclosure to the specification chat
+in the next turn. The rejection recorded below is historical; it is not a new
+request for the same authorization.
+
+Current result: HOME_QA TLS and both device authorizations recovered; actual
+leaf rotation verified with unchanged camera PIDs/release pointers. Scheduled
+local maintenance is installed. See RECOVERY_RESULT_HE.md and the separate
+recovery evidence files. Product Production playback remains unresolved and
+the DVR has not passed an all-source stability qualification.
+
+Additional owned paths: the five new `scripts/qa/pilot-loopback-tls*` files.
+No pre-existing Product/runtime source file was replaced. Applied changes are
+limited to private local QA certificate/pin files and service definitions, with
+protected verified configuration backups. Source patches in other worktrees
+and integration/development were not overwritten. There are no migrations.
+
+Installed issuer/leaf service: Application Support private path class
+`Digital Observer/push38-qualification/loopback-tls-v3-20261029`.
+The existing live `remote-ingress` label is now persistent; the stale duplicate
+`qa-control-ingress` is retained with RunAtLoad=false. The existing signed OTA
+self-healing process remains, but new release discovery/download is held by
+the local ingress. Future release ownership must reconcile that explicit hold
+without removing certificate maintenance or changing identity bindings.
+
+Validation scope: focused Node/Python checks and local live TLS/auth/rotation;
+not all six exact-candidate CI gates, not Product playback, not a new PUSH38
+soak or a reboot/restore exercise. Keep remote preservation and integration
+pending until their corresponding evidence exists. The final recovery commit
+and exact validation are included in the cross-chat summary after the bounded
+observation completes.
+
+## Original diagnosis and delivery history
+
 Owner: parallel incident chat `01a18505-5d8c-7731-829c-0c3eb9c4a6cc`.
 Worktree: `/Users/danielderi/.codex/worktrees/87c7/Gan-Batuach`.
 Owned paths: only this incident directory. No Product, runtime or migration files.

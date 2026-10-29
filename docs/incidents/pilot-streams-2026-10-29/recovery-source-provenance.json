@@ -1,0 +1,16 @@
+{
+  "source_modules_match_installed": {
+    "pilot-loopback-tls.mjs": {
+      "match": true,
+      "sha256": "da98e5b8f51790fcdbe52e6cc1cc50482c4edaf00e4c8e7f68bf90b594ff0d79"
+    },
+    "pilot-loopback-tls-service.mjs": {
+      "match": true,
+      "sha256": "7b4ecfbadc2bed57b34ff02ea8a78a47d6794869dc0b9ec4356f9fcf2e9f7247"
+    }
+  },
+  "protected_backup_class": "USER_APPLICATION_SUPPORT/push38-qualification/loopback-tls-v3-20261029/recovery-backup",
+  "new_global_os_trust": false,
+  "new_monthly_vendor_cost": 0,
+  "note": "Zero incremental fixed supplier resource; not a claim of total project cost compliance."
+}

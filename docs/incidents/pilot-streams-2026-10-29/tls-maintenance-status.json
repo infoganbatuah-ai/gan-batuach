@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-29T01:09:09.535Z",
+  "state": "HEALTHY",
+  "renewed": false,
+  "caSha256": "252d7bf19f088805d710214018e4a6f2ce433cf394fc0e45f8294adab072cc22",
+  "leafSha256": "5d5db964a712ecb93b351b95e533205aa9605442e9b57bd64bc71fdeb9716e62",
+  "caExpiresAt": "2029-10-28T01:05:35.000Z",
+  "leafExpiresAt": "2026-11-28T01:08:25.000Z",
+  "leafRemainingMs": 2591955514,
+  "caRenewalRequired": false,
+  "liveStatus": 401,
+  "tlsVerified": true
+}

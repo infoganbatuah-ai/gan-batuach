@@ -1,0 +1,54 @@
+{
+  "at": "2026-10-29T01:14:51.577309+00:00",
+  "profiles": {
+    "observer-gateway": {
+      "version": "0.2.101-p38-health",
+      "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+      "artifact_sha256_matches": true,
+      "qa_ca_pin_matches": true
+    },
+    "observer-connector": {
+      "version": "0.2.40-p38-health",
+      "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+      "artifact_sha256_matches": true,
+      "qa_ca_pin_matches": true
+    }
+  },
+  "services": {
+    "com.ganbatuach.push38.remote-ingress": {
+      "registered": true,
+      "state": "running",
+      "last exit code": "(never exited)"
+    },
+    "com.ganbatuach.push38.qa-tls-maintenance": {
+      "registered": true,
+      "state": "not running",
+      "last exit code": "0"
+    },
+    "com.ganbatuach.video-gateway": {
+      "registered": true,
+      "state": "running",
+      "last exit code": "(never exited)"
+    },
+    "com.ganbatuach.software-connector.tapo": {
+      "registered": true,
+      "state": "running",
+      "last exit code": "(never exited)"
+    },
+    "com.ganbatuach.video-gateway.ota-agent": {
+      "registered": true,
+      "state": "running",
+      "last exit code": "(never exited)"
+    },
+    "com.ganbatuach.software-connector.tapo.ota-agent": {
+      "registered": true,
+      "state": "running",
+      "last exit code": "(never exited)"
+    }
+  },
+  "new_global_os_trust": false,
+  "production_modified": false,
+  "maintenance_interval_seconds": 21600,
+  "run_at_load": true,
+  "tls_maintenance_healthy": true
+}

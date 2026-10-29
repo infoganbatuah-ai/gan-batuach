@@ -1,0 +1,30 @@
+{
+  "status": "APPLIED_SAME_SIGNED_VERSIONS",
+  "observations": [
+    {
+      "profile": "observer-connector",
+      "version": "0.2.40-p38-health",
+      "authorization": "unknown"
+    },
+    {
+      "profile": "observer-gateway",
+      "version": "0.2.101-p38-health",
+      "authorization": "unknown"
+    }
+  ],
+  "certificates": {
+    "caSha256": "252d7bf19f088805d710214018e4a6f2ce433cf394fc0e45f8294adab072cc22",
+    "leafSha256": "c6efbf6dab7d3fa0ab5dfa490c7d5132c81fa521d59a961aaa5f49b3f23d8ea3",
+    "caExpiresAt": "2029-10-28T01:05:35.000Z",
+    "leafExpiresAt": "2026-11-28T01:05:35.000Z",
+    "leafRemainingMs": 2591999441,
+    "caRenewalRequired": false
+  },
+  "current_pointers_unchanged": true,
+  "update_delivery_hold": true,
+  "issuer_in_os_trust_store": false,
+  "production_changed": false,
+  "identity_store_changed_by_installer": false,
+  "backup_verified": true,
+  "maintenance_interval_seconds": 21600
+}

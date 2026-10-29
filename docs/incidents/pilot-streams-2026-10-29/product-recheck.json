@@ -1,0 +1,12 @@
+{
+  "observed_at_utc": "2026-10-29T01:12:56.500044+00:00",
+  "method": "Existing authenticated user tab; Product rules page reloaded after HOME_QA TLS recovery",
+  "product_origin": "https://gan-batuach.vercel.app",
+  "rules_banner": "ממתין ל-Gateway ולספק AI",
+  "source_freshness": "Historical September 20–22 updates still displayed",
+  "all_sources_displayed_unavailable": true,
+  "product_live_video_restored": false,
+  "production_state_changed": false,
+  "no_credentials_copied": true,
+  "limits": "This is a fresh UI read. No Product playback grant was requested and no media fetched."
+}

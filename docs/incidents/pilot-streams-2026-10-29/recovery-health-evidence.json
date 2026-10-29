@@ -1,0 +1,2252 @@
+{
+  "contract": "pilot-local-qa-recovery-observation-v1",
+  "duration_ms": 300030,
+  "samples": [
+    {
+      "index": 0,
+      "at": "2026-10-29T01:08:02.750969+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 9,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 295.084716796875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 459.505126953125
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3323.936767578125
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 10630.239501953125
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 10453.289306640625
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 29.865478515625
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 8134.71630859375
+            },
+            {
+              "channel": 6,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 4433.763427734375
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 89.947021484375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 894.365478515625
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 1,
+      "at": "2026-10-29T01:08:17.755236+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 665.90771484375
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 4465.6689453125
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 4246.82568359375
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 25610.239501953125
+            },
+            {
+              "channel": 11,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 25433.289306640625
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 593.009033203125
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1098.47021484375
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 939.53955078125
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 769.53857421875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 895.233154296875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1876.6533203125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 2,
+      "at": "2026-10-29T01:08:32.755304+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 667.822021484375
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 369.672119140625
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 743.012451171875
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 40601.239501953125
+            },
+            {
+              "channel": 11,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 40424.289306640625
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 279.064697265625
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2104.215087890625
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 319.151611328125
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 187.35302734375
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 413.97802734375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 873.723876953125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 3,
+      "at": "2026-10-29T01:08:47.755657+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 9,
+            "availableRelays": 9,
+            "stalledRelays": 1
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1376.234130859375
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1100.959716796875
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1859.025146484375
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 55603.239501953125
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1163.181396484375
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1117.081787109375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1456.328857421875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5047.558837890625
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2868.64892578125
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 6826.74658203125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1897.7412109375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 4,
+      "at": "2026-10-29T01:09:02.754223+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 9,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2124.928955078125
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 6998.67529296875
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7396.818603515625
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 897.935546875
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 414.171875
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 462.59228515625
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1475.936279296875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3268.427734375
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3824.003173828125
+            },
+            {
+              "channel": 5,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 17920.64892578125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 931.542236328125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 5,
+      "at": "2026-10-29T01:09:17.631434+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 10,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 728.077392578125
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1328.724853515625
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 724.8388671875
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 329.498291015625
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2611.24853515625
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 618.879638671875
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 892.361328125
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2424.43994140625
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2049.412841796875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1011.009521484375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1936.696533203125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 6,
+      "at": "2026-10-29T01:09:32.637152+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 10,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 801.2783203125
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1553.567626953125
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 737.18994140625
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3102.6494140625
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 735.952392578125
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 602.16650390625
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1505.374755859375
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1652.0927734375
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2860.70166015625
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 652.69580078125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 886.561279296875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 7,
+      "at": "2026-10-29T01:09:47.638455+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1969.107177734375
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2265.763427734375
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2137.39404296875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 21.565185546875
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5701.26123046875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7418.46826171875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2000.66943359375
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2265.411865234375
+            },
+            {
+              "channel": 2,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 14201.994873046875
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 11705.208984375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 27.64404296875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 8,
+      "at": "2026-10-29T01:10:02.633621+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 9,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1840.36376953125
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 266.064453125
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 88.074951171875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 181.85546875
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 347.310791015625
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 337.196044921875
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 35.141845703125
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 174.320068359375
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 9.0703125
+            },
+            {
+              "channel": 6,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 10539.430419921875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 884.2724609375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 9,
+      "at": "2026-10-29T01:10:17.635335+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 10,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1676.834716796875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 811.114501953125
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 6788.143798828125
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5176.397705078125
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 699.48876953125
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 6899.046142578125
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 703.59326171875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 819.85888671875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2185.77880859375
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1300.198486328125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1882.65625
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 10,
+      "at": "2026-10-29T01:10:32.633121+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1312.39892578125
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3111.767578125
+            },
+            {
+              "channel": 8,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 21783.143798828125
+            },
+            {
+              "channel": 7,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1286.7802734375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 30.14208984375
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1562.109130859375
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1470.07080078125
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 349.362548828125
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 36.605224609375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 857.511474609375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 11,
+      "at": "2026-10-29T01:10:47.629734+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 8668.752685546875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5828.570556640625
+            },
+            {
+              "channel": 8,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 36780.143798828125
+            },
+            {
+              "channel": 7,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 16283.7802734375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 511.316650390625
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7855.0341796875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7739.8408203125
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 685.4775390625
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 6245.410888671875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1895.700927734375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 12,
+      "at": "2026-10-29T01:11:02.634971+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 8,
+            "stalledRelays": 2
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7121.85205078125
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 797.3935546875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1023.910888671875
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 10400.42724609375
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 31289.7802734375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 4871.334716796875
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 576.20263671875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7106.071044921875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1192.433349609375
+            },
+            {
+              "channel": 4,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 795.55859375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 13,
+      "at": "2026-10-29T01:11:17.634798+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 6,
+            "availableRelays": 6,
+            "stalledRelays": 4
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1333.4755859375
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 788.35107421875
+            },
+            {
+              "channel": 7,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 46288.7802734375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1697.54833984375
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 7606.512451171875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1720.20166015625
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 216.146484375
+            },
+            {
+              "channel": 4,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1913.566650390625
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 14,
+      "at": "2026-10-29T01:11:32.626009+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 6,
+            "availableRelays": 7,
+            "stalledRelays": 3
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 4365.582763671875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 6222.453857421875
+            },
+            {
+              "channel": 7,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3654.715576171875
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 290.8173828125
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 31.657470703125
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 244.05517578125
+            },
+            {
+              "channel": 4,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 3627.669189453125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 836.134521484375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 15,
+      "at": "2026-10-29T01:11:47.627454+00:00",
+      "components": {
+        "gateway": {
+          "status": "recovering",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 10,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 929.791748046875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 4971.990966796875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 991.757080078125
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 9.318115234375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 988.13525390625
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 915.375732421875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 842.779296875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 905.428466796875
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1233.808349609375
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1481.7958984375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1882.971923828125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 16,
+      "at": "2026-10-29T01:12:02.635233+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 8,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 15938.791748046875
+            },
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1412.943359375
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1536.345458984375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1395.888671875
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1344.40234375
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 15851.779296875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 42.49658203125
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5852.18994140625
+            },
+            {
+              "channel": 10,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 3841.208984375
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 3808.685302734375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 889.175537109375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 17,
+      "at": "2026-10-29T01:12:17.636898+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 9,
+            "availableRelays": 9,
+            "stalledRelays": 1
+          },
+          "channels": [
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 282.638916015625
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2102.247802734375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 549.056640625
+            },
+            {
+              "channel": 11,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": null
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 12711.004150390625
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 525.6552734375
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 653.733154296875
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 682.351318359375
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 185.748779296875
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 549.636962890625
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1887.22021484375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 18,
+      "at": "2026-10-29T01:12:32.635498+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 10,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1028.807861328125
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 11005.566162109375
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1018.609619140625
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 929.024169921875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1173.618408203125
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1162.295166015625
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 887.296630859375
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 10883.445068359375
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5124.916748046875
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 445.19970703125
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 892.65771484375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 19,
+      "at": "2026-10-29T01:12:47.634159+00:00",
+      "components": {
+        "gateway": {
+          "status": "degraded",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 9,
+            "availableRelays": 9,
+            "stalledRelays": 1
+          },
+          "channels": [
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1709.52880859375
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1862.35400390625
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 175.539794921875
+            },
+            {
+              "channel": 11,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1558.14794921875
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 150.61865234375
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 5487.846435546875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1717.310791015625
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1863.330322265625
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1650.131591796875
+            },
+            {
+              "channel": 3,
+              "progressing": false,
+              "renewing": false,
+              "output_idle_ms": 25875.445068359375
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 1901.38134765625
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    },
+    {
+      "index": 20,
+      "at": "2026-10-29T01:13:02.631135+00:00",
+      "components": {
+        "gateway": {
+          "status": "healthy",
+          "version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 9,
+            "availableRelays": 10,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 8,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 213.616455078125
+            },
+            {
+              "channel": 7,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 322.5263671875
+            },
+            {
+              "channel": 2,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 130.09765625
+            },
+            {
+              "channel": 6,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 361.39404296875
+            },
+            {
+              "channel": 10,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 269.10009765625
+            },
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 3576.425537109375
+            },
+            {
+              "channel": 5,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 8415.393310546875
+            },
+            {
+              "channel": 3,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 885.9267578125
+            },
+            {
+              "channel": 4,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 2008.9921875
+            },
+            {
+              "channel": 11,
+              "progressing": false,
+              "renewing": true,
+              "output_idle_ms": 2508.590576171875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        },
+        "connector": {
+          "status": "healthy",
+          "version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74",
+          "authorization": "ready",
+          "media": {
+            "progressingRelays": 1,
+            "availableRelays": 1,
+            "stalledRelays": 0
+          },
+          "channels": [
+            {
+              "channel": 1,
+              "progressing": true,
+              "renewing": false,
+              "output_idle_ms": 876.044921875
+            }
+          ],
+          "heartbeat": {
+            "consecutive_failures": 0,
+            "authentication_rejected": 0
+          }
+        }
+      },
+      "tls_auth_boundary": "VERIFIED_TLS_ANONYMOUS_DENIED"
+    }
+  ],
+  "strict_all_source_progression_pass": false,
+  "product_playback_tested": false,
+  "is_push38_soak": false,
+  "camera_commands": 0,
+  "production_changes": false
+}

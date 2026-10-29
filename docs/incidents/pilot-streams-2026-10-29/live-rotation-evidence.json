@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-29T01:08:26.112Z",
+  "test": "REAL_LEAF_ROTATION_WITH_THRESHOLD_CLOCK_INJECTION",
+  "system_clock_unchanged": true,
+  "renewed": true,
+  "issuer_unchanged": true,
+  "leaf_changed": true,
+  "tls_peer_verified": true,
+  "anonymous_status": 401,
+  "all_service_pids_unchanged": true,
+  "release_pointers_unchanged": true,
+  "beforeLeafSha256": "c6efbf6dab7d3fa0ab5dfa490c7d5132c81fa521d59a961aaa5f49b3f23d8ea3",
+  "afterLeafSha256": "5d5db964a712ecb93b351b95e533205aa9605442e9b57bd64bc71fdeb9716e62",
+  "leafExpiresAt": "2026-11-28T01:08:25.000Z"
+}
