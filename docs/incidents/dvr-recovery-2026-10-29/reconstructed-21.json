@@ -1,0 +1,240 @@
+{
+  "source_sha256": "543e1599fdf1ccea720c934b75505e6e4e2c5260c591bc69ec0ecd93d090d547",
+  "samples": [
+    {
+      "index": 0,
+      "at": "2026-10-29T01:08:02.750969+00:00",
+      "missing": [
+        5
+      ],
+      "not_progressing": [
+        5,
+        6
+      ],
+      "renewing": [
+        6
+      ],
+      "pass_all": false
+    },
+    {
+      "index": 1,
+      "at": "2026-10-29T01:08:17.755236+00:00",
+      "missing": [],
+      "not_progressing": [
+        3,
+        11
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 2,
+      "at": "2026-10-29T01:08:32.755304+00:00",
+      "missing": [],
+      "not_progressing": [
+        3,
+        11
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 3,
+      "at": "2026-10-29T01:08:47.755657+00:00",
+      "missing": [],
+      "not_progressing": [
+        3
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 4,
+      "at": "2026-10-29T01:09:02.754223+00:00",
+      "missing": [],
+      "not_progressing": [
+        5
+      ],
+      "renewing": [
+        5
+      ],
+      "pass_all": false
+    },
+    {
+      "index": 5,
+      "at": "2026-10-29T01:09:17.631434+00:00",
+      "missing": [],
+      "not_progressing": [],
+      "renewing": [],
+      "pass_all": true
+    },
+    {
+      "index": 6,
+      "at": "2026-10-29T01:09:32.637152+00:00",
+      "missing": [],
+      "not_progressing": [],
+      "renewing": [],
+      "pass_all": true
+    },
+    {
+      "index": 7,
+      "at": "2026-10-29T01:09:47.638455+00:00",
+      "missing": [],
+      "not_progressing": [
+        2,
+        3
+      ],
+      "renewing": [
+        2,
+        3
+      ],
+      "pass_all": false
+    },
+    {
+      "index": 8,
+      "at": "2026-10-29T01:10:02.633621+00:00",
+      "missing": [],
+      "not_progressing": [
+        6
+      ],
+      "renewing": [
+        6
+      ],
+      "pass_all": false
+    },
+    {
+      "index": 9,
+      "at": "2026-10-29T01:10:17.635335+00:00",
+      "missing": [],
+      "not_progressing": [],
+      "renewing": [],
+      "pass_all": true
+    },
+    {
+      "index": 10,
+      "at": "2026-10-29T01:10:32.633121+00:00",
+      "missing": [],
+      "not_progressing": [
+        7,
+        8
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 11,
+      "at": "2026-10-29T01:10:47.629734+00:00",
+      "missing": [],
+      "not_progressing": [
+        7,
+        8
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 12,
+      "at": "2026-10-29T01:11:02.634971+00:00",
+      "missing": [],
+      "not_progressing": [
+        3,
+        4
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 13,
+      "at": "2026-10-29T01:11:17.634798+00:00",
+      "missing": [],
+      "not_progressing": [
+        1,
+        3,
+        4,
+        7
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 14,
+      "at": "2026-10-29T01:11:32.626009+00:00",
+      "missing": [],
+      "not_progressing": [
+        1,
+        3,
+        4,
+        7
+      ],
+      "renewing": [
+        3
+      ],
+      "pass_all": false
+    },
+    {
+      "index": 15,
+      "at": "2026-10-29T01:11:47.627454+00:00",
+      "missing": [],
+      "not_progressing": [],
+      "renewing": [],
+      "pass_all": true
+    },
+    {
+      "index": 16,
+      "at": "2026-10-29T01:12:02.635233+00:00",
+      "missing": [],
+      "not_progressing": [
+        3,
+        10
+      ],
+      "renewing": [
+        3,
+        10
+      ],
+      "pass_all": false
+    },
+    {
+      "index": 17,
+      "at": "2026-10-29T01:12:17.636898+00:00",
+      "missing": [],
+      "not_progressing": [
+        11
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 18,
+      "at": "2026-10-29T01:12:32.635498+00:00",
+      "missing": [],
+      "not_progressing": [],
+      "renewing": [],
+      "pass_all": true
+    },
+    {
+      "index": 19,
+      "at": "2026-10-29T01:12:47.634159+00:00",
+      "missing": [],
+      "not_progressing": [
+        3
+      ],
+      "renewing": [],
+      "pass_all": false
+    },
+    {
+      "index": 20,
+      "at": "2026-10-29T01:13:02.631135+00:00",
+      "missing": [],
+      "not_progressing": [
+        11
+      ],
+      "renewing": [
+        11
+      ],
+      "pass_all": false
+    }
+  ],
+  "passed": 5,
+  "failed": 16,
+  "interpretation": "Missing relay input is failure, renewing alone is not progression. Checkpoints are health metadata, not decoded playback."
+}

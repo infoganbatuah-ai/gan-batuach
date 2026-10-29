@@ -1,0 +1,155 @@
+{
+  "baseline_sha256": "d123b747936408ec6de61b4908045522626d789399979d70b24995c9ff426dab",
+  "baseline_counts": {
+    "pushes": 52,
+    "capabilities": 197
+  },
+  "push38": "NOT DONE",
+  "other_status_changes": 0,
+  "affected_capabilities": [
+    {
+      "id": "DO-NS-001",
+      "capability": "Universal Camera Platform",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-004",
+      "capability": "Software Connector exception",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-005",
+      "capability": "Physical Gateway last resort",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-010",
+      "capability": "Recordings/playback",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-012",
+      "capability": "Camera Health",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-013",
+      "capability": "Universal Camera Controls",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-029",
+      "capability": "Multi-Camera Tracking",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-030",
+      "capability": "Cross-Camera Correlation",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-034",
+      "capability": "Semantic camera naming suggestions",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-049",
+      "capability": "Autonomous camera actions",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-058",
+      "capability": "Natural-language camera/action commands",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-076",
+      "capability": "Phone + camera sensor fusion",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-080",
+      "capability": "Cross-camera missing-person search",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-082",
+      "capability": "Existing VMS/NVR/camera estate integration",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-095",
+      "capability": "Cross-camera investigation",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-120",
+      "capability": "Deep-link/open-camera in customer VMS",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-135",
+      "capability": "Thousands of streams",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-140",
+      "capability": "Failover",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-145",
+      "capability": "Self-healing",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-146",
+      "capability": "DVR session recovery",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-147",
+      "capability": "Relay recovery",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-150",
+      "capability": "Resync",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-151",
+      "capability": "Camera Health reliability",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    },
+    {
+      "id": "DO-NS-163",
+      "capability": "Per-camera economics",
+      "status_changed": false,
+      "impact": "Live DVR/QA playback evidence gap remains; see RESULT_HE.md. No capability promoted."
+    }
+  ]
+}

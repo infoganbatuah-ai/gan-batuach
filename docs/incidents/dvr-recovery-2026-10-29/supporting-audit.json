@@ -1,0 +1,89 @@
+{
+  "at": "2026-10-29T07:14:43.880218+00:00",
+  "configuration_mutations": 0,
+  "runtime_restarts_by_this_task": 0,
+  "camera_commands": 0,
+  "production_changes": 0,
+  "maintenance": {
+    "at": "2026-10-29T07:09:10.812Z",
+    "state": "HEALTHY",
+    "renewed": false,
+    "caExpiresAt": "2029-10-28T01:05:35.000Z",
+    "leafExpiresAt": "2026-11-28T01:08:25.000Z",
+    "caRenewalRequired": false,
+    "liveStatus": 401,
+    "tlsVerified": true
+  },
+  "log_audit": {
+    "observer-gateway": {
+      "tail_limit_bytes": 100000,
+      "last_events": [
+        {
+          "at": "2026-10-29T07:07:34.475Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:08:34.624Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:09:34.792Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:10:35.313Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:13:45.559Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        }
+      ]
+    },
+    "observer-connector": {
+      "tail_limit_bytes": 100000,
+      "last_events": [
+        {
+          "at": "2026-10-29T07:09:33.947Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:10:34.372Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:11:54.779Z",
+          "state": "OTA_AGENT_ERROR"
+        },
+        {
+          "at": "2026-10-29T07:13:00.990Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        },
+        {
+          "at": "2026-10-29T07:14:01.408Z",
+          "state": "OTA_AGENT_ERROR",
+          "reason": "EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED"
+        }
+      ]
+    },
+    "gateway_port_errors": {
+      "historical_occurrences": 2,
+      "current_duplicate_listener_proven": false,
+      "limit": "Historical EADDRINUSE lines have no timestamp; not attributed to current restart. One listener witnessed at 07:07 UTC."
+    }
+  },
+  "cloudflare_local": {
+    "sha256": "a3504f0cc52e7fe7c24d4cab4fdb8203732c75f07c0ba73db5336ffa8d714edc",
+    "catchall404": true,
+    "hostname_entries": 0,
+    "remote_dashboard_not_checked": true
+  }
+}

@@ -1,0 +1,11 @@
+6dbd31c3fc101259a3814cf91d693eeb2b3887b78a5137f347dc64b68fed5d56  docs/incidents/dvr-recovery-2026-10-29/RESULT_HE.md
+45ea6a6c502929ebbf7f0065f6df8f15f4e0d5569a617bcfd90f30e6be71aa6e  docs/incidents/dvr-recovery-2026-10-29/coverage-impact.json
+4a160235c0add54f7a5997815d0e01a072210439de4899c702c94dd3cd814662  docs/incidents/dvr-recovery-2026-10-29/installer-tests.log
+e5012f3686c8015e056c73e94c491f5cf4e452e132b01a695d3d6cda3e5c94ea  docs/incidents/dvr-recovery-2026-10-29/live-health.json
+adc3a8a924292deafb135acb65b5244cc24b04fe614a6d6e654d6acdc0da1979  docs/incidents/dvr-recovery-2026-10-29/live-startup-health.json
+2f6af289f7466550ef6e57f31198202f4b1795cf934465c8f9b6252e00d83968  docs/incidents/dvr-recovery-2026-10-29/reconstructed-21.json
+fc13db52e850c3cff1e8723ea545775676f1420c15ea093847a2a82102459de3  docs/incidents/dvr-recovery-2026-10-29/reconstruction-check.log
+fd4732dbfd183c39c5c0a1008d7b87d657a6112c0cf12e083dcfbf4dab790774  docs/incidents/dvr-recovery-2026-10-29/supporting-audit.json
+baae4ae3c5b27df00cddb724e2278058d97839497b073297ad161ff152c0a00d  docs/incidents/dvr-recovery-2026-10-29/tls-tests.tap
+b928a57fa7b95a63c043a7770129d3203ddb01a23bd36ef8512b225bca585040  scripts/qa/dvr-recovery-observe.py
+2484af9d74976f4618df72f81319b3f489e21e01c804d51ca14570f721dd49ca  scripts/qa/dvr-recovery-reconstruct.py

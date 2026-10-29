@@ -1,0 +1,584 @@
+{
+  "at": "2026-10-29T07:05:53.133953+00:00",
+  "scope": "existing local health only; no playback or camera commands",
+  "samples": [
+    {
+      "at": "2026-10-29T07:05:53.168243+00:00",
+      "dvr": {
+        "status": "degraded",
+        "read_only": true,
+        "reasons": [
+          "EXPECTED_RELAY_NOT_PROGRESSING"
+        ],
+        "runtime": {
+          "software_version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 0,
+          "assignedCount": 0,
+          "unassignedCount": 0,
+          "connectedCount": 0,
+          "failedAssignedCount": 0,
+          "checkedAt": null
+        },
+        "media": {
+          "activeRelays": 0,
+          "canonicalRelays": 0,
+          "liveRelayProcesses": 0,
+          "progressingRelays": 0,
+          "renewingRelays": 0,
+          "availableRelays": 0,
+          "stalledRelays": 0
+        },
+        "channels": [],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "retry_failures": 0
+          },
+          {
+            "channel": 2,
+            "retry_failures": 0
+          },
+          {
+            "channel": 3,
+            "retry_failures": 0
+          },
+          {
+            "channel": 4,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 1,
+          "responses_ok": 1,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 1,
+          "login_succeeded": 1,
+          "active_sessions": 1,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      },
+      "tapo": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 1,
+          "assignedCount": 1,
+          "unassignedCount": 0,
+          "connectedCount": 1,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:05:47.366Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "h264",
+            "output_idle_ms": 1152.368896484375
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 45,
+            "exits": 44,
+            "last_start_reason": "otherHandoff",
+            "last_failure_reason": "WARM_HANDOFF",
+            "last_exit_code": null,
+            "last_runtime_ms": 482664,
+            "last_handoff_mode": "STANDARD",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2439,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 0,
+          "responses_ok": 0,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 50,
+          "login_succeeded": 0,
+          "active_sessions": 0,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      }
+    },
+    {
+      "at": "2026-10-29T07:06:03.195566+00:00",
+      "dvr": {
+        "status": "degraded",
+        "read_only": true,
+        "reasons": [
+          "EXPECTED_RELAY_NOT_PROGRESSING"
+        ],
+        "runtime": {
+          "software_version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 0,
+          "assignedCount": 0,
+          "unassignedCount": 0,
+          "connectedCount": 0,
+          "failedAssignedCount": 0,
+          "checkedAt": null
+        },
+        "media": {
+          "activeRelays": 0,
+          "canonicalRelays": 0,
+          "liveRelayProcesses": 0,
+          "progressingRelays": 0,
+          "renewingRelays": 0,
+          "availableRelays": 0,
+          "stalledRelays": 0
+        },
+        "channels": [],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "retry_failures": 0
+          },
+          {
+            "channel": 2,
+            "retry_failures": 0
+          },
+          {
+            "channel": 3,
+            "retry_failures": 0
+          },
+          {
+            "channel": 4,
+            "retry_failures": 0
+          },
+          {
+            "channel": 5,
+            "retry_failures": 0
+          },
+          {
+            "channel": 6,
+            "retry_failures": 0
+          },
+          {
+            "channel": 7,
+            "retry_failures": 0
+          },
+          {
+            "channel": 8,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 2,
+          "responses_ok": 2,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 1,
+          "login_succeeded": 1,
+          "active_sessions": 1,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      },
+      "tapo": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 1,
+          "assignedCount": 1,
+          "unassignedCount": 0,
+          "connectedCount": 1,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:05:47.366Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "h264",
+            "output_idle_ms": 1167.464599609375
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 45,
+            "exits": 44,
+            "last_start_reason": "otherHandoff",
+            "last_failure_reason": "WARM_HANDOFF",
+            "last_exit_code": null,
+            "last_runtime_ms": 482664,
+            "last_handoff_mode": "STANDARD",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2439,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 0,
+          "responses_ok": 0,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 50,
+          "login_succeeded": 0,
+          "active_sessions": 0,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      }
+    },
+    {
+      "at": "2026-10-29T07:06:13.210159+00:00",
+      "dvr": {
+        "status": "degraded",
+        "read_only": true,
+        "reasons": [
+          "EXPECTED_RELAY_NOT_PROGRESSING"
+        ],
+        "runtime": {
+          "software_version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 16,
+          "assignedCount": 10,
+          "unassignedCount": 6,
+          "connectedCount": 10,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:06:08.559Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 25.31396484375
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 1,
+            "last_start_reason": "initialOrDemand",
+            "retry_failures": 0
+          },
+          {
+            "channel": 2,
+            "retry_failures": 0
+          },
+          {
+            "channel": 3,
+            "retry_failures": 0
+          },
+          {
+            "channel": 4,
+            "retry_failures": 0
+          },
+          {
+            "channel": 5,
+            "retry_failures": 0
+          },
+          {
+            "channel": 6,
+            "retry_failures": 0
+          },
+          {
+            "channel": 7,
+            "retry_failures": 0
+          },
+          {
+            "channel": 8,
+            "retry_failures": 0
+          },
+          {
+            "channel": 10,
+            "retry_failures": 0
+          },
+          {
+            "channel": 11,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 3,
+          "responses_ok": 3,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 1,
+          "login_succeeded": 1,
+          "active_sessions": 1,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": true,
+          "reason": "synthetic_hevc_to_h264_passed",
+          "software_fallback_channels": 0
+        }
+      },
+      "tapo": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 1,
+          "assignedCount": 1,
+          "unassignedCount": 0,
+          "connectedCount": 1,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:05:47.366Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "h264",
+            "output_idle_ms": 1030.32568359375
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 46,
+            "exits": 45,
+            "last_start_reason": "otherHandoff",
+            "last_failure_reason": "WARM_HANDOFF",
+            "last_exit_code": null,
+            "last_runtime_ms": 482691,
+            "last_handoff_mode": "STANDARD",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2351,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 0,
+          "responses_ok": 0,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 50,
+          "login_succeeded": 0,
+          "active_sessions": 0,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      }
+    }
+  ],
+  "services": [
+    {
+      "label": "com.ganbatuach.push38.qa-control-ingress",
+      "registered": false,
+      "state": null,
+      "pid": null,
+      "run_at_load": false,
+      "keep_alive": null,
+      "sha256": "f9845c58130d23abcc5a050aefb9478801fd28c944bfaef15bcd936aeb70582b"
+    },
+    {
+      "label": "com.ganbatuach.push38.qa-control-plane",
+      "registered": true,
+      "state": "not running",
+      "pid": null,
+      "run_at_load": true,
+      "keep_alive": null,
+      "sha256": "dc565cc020197a8f850bdd85b112dcefd07ae555c9f1c8695b09a918389716b6"
+    },
+    {
+      "label": "com.ganbatuach.push38.qa-tls-maintenance",
+      "registered": true,
+      "state": "not running",
+      "pid": null,
+      "run_at_load": true,
+      "keep_alive": null,
+      "sha256": "0a13ea8b301fe22eb9e8bc59bf77f8f0cc4a8d89edc5ee170b283d25dc67454b"
+    },
+    {
+      "label": "com.ganbatuach.push38.remote-ingress",
+      "registered": true,
+      "state": "running",
+      "pid": 13124,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "c62ae7ad86346278b94cb92f5fd03d26fca99e3fa3088d8601123ff393a4d7e2"
+    },
+    {
+      "label": "com.ganbatuach.software-connector.tapo.ota-agent",
+      "registered": true,
+      "state": "running",
+      "pid": 12724,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "bb8701c369d7d10873fbab35d164702dc62315aad548075245188e435a6fdf60"
+    },
+    {
+      "label": "com.ganbatuach.software-connector.tapo",
+      "registered": true,
+      "state": "running",
+      "pid": 12690,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "42c6761facf750af1a2900bf40475bd75266d31586b5ea31405ee0ba9ddc2fd8"
+    },
+    {
+      "label": "com.ganbatuach.storage-safety",
+      "registered": true,
+      "state": "not running",
+      "pid": null,
+      "run_at_load": true,
+      "keep_alive": null,
+      "sha256": "479be6f69416ef57373acb75ca820e67887d1a3d1c7ffa873e596dc9d9f57fef"
+    },
+    {
+      "label": "com.ganbatuach.video-gateway-awake",
+      "registered": true,
+      "state": "running",
+      "pid": 857,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "39c671aaf06bb1f56aeab49259c51ce9a4189631bae262a499ff5305b8436f14"
+    },
+    {
+      "label": "com.ganbatuach.video-gateway.ota-agent",
+      "registered": true,
+      "state": "running",
+      "pid": 12727,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "47f33052cfed8102012e40aa04309a193890f919d33fd92922ed404340f3e2f5"
+    },
+    {
+      "label": "com.ganbatuach.video-gateway",
+      "registered": true,
+      "state": "running",
+      "pid": 50308,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "f8a0c98a5e2166189bed8297c6e23f70224f616c710d04dcfe7e094e703b69f7"
+    }
+  ],
+  "tls_anonymous_status": 404,
+  "tls_leaf": {
+    "notBefore": "Oct 29 01:05:35 2026 GMT",
+    "notAfter": "Oct 28 01:05:35 2029 GMT"
+  }
+}

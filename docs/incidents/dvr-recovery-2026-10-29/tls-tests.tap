@@ -1,0 +1,20 @@
+▶ HOME_QA stable issuer, bounded renewal, recovery and TLS isolation
+  ✔ validates only loopback and an issuer-pinned chain (1.028542ms)
+  ✔ refuses overwrite of existing certificate material (1.518083ms)
+  ✔ does not renew or signal before threshold (8.965625ms)
+  ✔ renewal keeps issuer and server key stable and requests reload (76.177542ms)
+  ✔ failed reload rolls back leaf bytes (53.048667ms)
+  ✔ concurrent renewal lock fails without deleting another lock (1.454667ms)
+  ✔ unsafe permissions and symlinked files fail closed (5.428833ms)
+  ✔ pin tampering is rejected (2.666333ms)
+  ✔ wake after expired leaf can recover without changing issuer (128.464375ms)
+  ✔ real TLS accepts approved peer, rejects wrong issuer and wrong hostname (348.084416ms)
+✔ HOME_QA stable issuer, bounded renewal, recovery and TLS isolation (1216.904542ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1366.918167

@@ -1,0 +1,1323 @@
+{
+  "at": "2026-10-29T07:13:36.509229+00:00",
+  "scope": "existing local health only; no playback or camera commands",
+  "samples": [
+    {
+      "at": "2026-10-29T07:13:37.619871+00:00",
+      "dvr": {
+        "status": "degraded",
+        "read_only": true,
+        "reasons": [
+          "EXPECTED_RELAY_NOT_PROGRESSING"
+        ],
+        "runtime": {
+          "software_version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 16,
+          "assignedCount": 10,
+          "unassignedCount": 6,
+          "connectedCount": 10,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:06:08.559Z"
+        },
+        "media": {
+          "activeRelays": 7,
+          "canonicalRelays": 9,
+          "liveRelayProcesses": 10,
+          "progressingRelays": 7,
+          "renewingRelays": 0,
+          "availableRelays": 7,
+          "stalledRelays": 3
+        },
+        "channels": [
+          {
+            "channel": 6,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 430.5615234375
+          },
+          {
+            "channel": 5,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 26.931884765625
+          },
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 13228.73095703125
+          },
+          {
+            "channel": 2,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 398.74853515625
+          },
+          {
+            "channel": 8,
+            "progressing": false,
+            "renewing": false,
+            "owner_state": "NONE",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": null
+          },
+          {
+            "channel": 3,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 5371.874267578125
+          },
+          {
+            "channel": 11,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 460.27392578125
+          },
+          {
+            "channel": 7,
+            "progressing": false,
+            "renewing": false,
+            "owner_state": "NONE",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 24455.914794921875
+          },
+          {
+            "channel": 10,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 11239.576416015625
+          },
+          {
+            "channel": 4,
+            "progressing": false,
+            "renewing": false,
+            "owner_state": "NONE",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 45041,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2740,
+            "hardware_output_stalled_input_idle_ms": 2845,
+            "hardware_output_stalled_output_idle_ms": 3400.580810546875,
+            "silent_response_input_idle_ms": 9754,
+            "silent_response_output_idle_ms": 9843.417236328125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 2
+          },
+          {
+            "channel": 2,
+            "starts": 8,
+            "exits": 7,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 19499,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2434,
+            "hardware_output_stalled_input_idle_ms": 109,
+            "hardware_output_stalled_output_idle_ms": 3592.7353515625,
+            "silent_response_input_idle_ms": 20533,
+            "silent_response_output_idle_ms": 39191.937255859375,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 3,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_STREAM_ENDED",
+            "last_exit_code": 0,
+            "last_runtime_ms": 114654,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 1727,
+            "hardware_output_stalled_input_idle_ms": 2698,
+            "hardware_output_stalled_output_idle_ms": 3227.31396484375,
+            "silent_response_input_idle_ms": 54687,
+            "silent_response_output_idle_ms": 54801.056396484375,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 4,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "EXCLUSIVE_RESCUE_REOPEN",
+            "last_exit_code": null,
+            "last_runtime_ms": 30651,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2833,
+            "hardware_output_stalled_input_idle_ms": 2680,
+            "hardware_output_stalled_output_idle_ms": 3149.068603515625,
+            "silent_response_input_idle_ms": 40553,
+            "silent_response_output_idle_ms": 8692.41748046875,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 6
+          },
+          {
+            "channel": 5,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 34448,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2227,
+            "hardware_output_stalled_input_idle_ms": 2901,
+            "hardware_output_stalled_output_idle_ms": 3328.24853515625,
+            "silent_response_input_idle_ms": 8147,
+            "silent_response_output_idle_ms": 8685.997314453125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 6,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 87487,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2237,
+            "hardware_output_stalled_input_idle_ms": 8372,
+            "hardware_output_stalled_output_idle_ms": 8810.5947265625,
+            "silent_response_input_idle_ms": 10076,
+            "silent_response_output_idle_ms": 10110.319091796875,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 2
+          },
+          {
+            "channel": 7,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "WARM_HANDOFF_ABORTED",
+            "last_exit_code": null,
+            "last_runtime_ms": 18657,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 329,
+            "hardware_output_stalled_output_idle_ms": 25958.71728515625,
+            "silent_response_input_idle_ms": 8052,
+            "silent_response_output_idle_ms": 8058.785400390625,
+            "retry_failures": 1,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 8,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "HARDWARE_OUTPUT_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 51330,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 1638,
+            "hardware_output_stalled_input_idle_ms": 2693,
+            "hardware_output_stalled_output_idle_ms": 3462.575439453125,
+            "silent_response_input_idle_ms": 8406,
+            "silent_response_output_idle_ms": 8527.638427734375,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 10,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "source_timeout",
+            "last_exit_code": null,
+            "last_runtime_ms": 7198,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 838,
+            "hardware_output_stalled_output_idle_ms": 5515.206298828125,
+            "silent_response_input_idle_ms": 10380,
+            "silent_response_output_idle_ms": 51146.206298828125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 3
+          },
+          {
+            "channel": 11,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "source_timeout",
+            "last_exit_code": null,
+            "last_runtime_ms": 13000,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 724,
+            "hardware_output_stalled_output_idle_ms": 4920.592529296875,
+            "silent_response_input_idle_ms": 8867,
+            "silent_response_output_idle_ms": 8926.741455078125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          }
+        ],
+        "heartbeat": {
+          "attempts": 43,
+          "responses_ok": 39,
+          "failures": 4,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 1,
+          "login_succeeded": 1,
+          "active_sessions": 1,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": true,
+          "reason": "synthetic_hevc_to_h264_passed",
+          "software_fallback_channels": 10
+        }
+      },
+      "tapo": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 1,
+          "assignedCount": 1,
+          "unassignedCount": 0,
+          "connectedCount": 1,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:05:47.366Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "h264",
+            "output_idle_ms": 1618.032958984375
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 46,
+            "exits": 45,
+            "last_start_reason": "otherHandoff",
+            "last_failure_reason": "WARM_HANDOFF",
+            "last_exit_code": null,
+            "last_runtime_ms": 482691,
+            "last_handoff_mode": "STANDARD",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2351,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 0,
+          "responses_ok": 0,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 50,
+          "login_succeeded": 0,
+          "active_sessions": 0,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      }
+    },
+    {
+      "at": "2026-10-29T07:13:49.907807+00:00",
+      "dvr": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 16,
+          "assignedCount": 10,
+          "unassignedCount": 6,
+          "connectedCount": 10,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:06:08.559Z"
+        },
+        "media": {
+          "activeRelays": 9,
+          "canonicalRelays": 9,
+          "liveRelayProcesses": 10,
+          "progressingRelays": 9,
+          "renewingRelays": 1,
+          "availableRelays": 10,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 6,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 106.053955078125
+          },
+          {
+            "channel": 5,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 324.877197265625
+          },
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 118.969482421875
+          },
+          {
+            "channel": 3,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 162.904052734375
+          },
+          {
+            "channel": 11,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 444.79443359375
+          },
+          {
+            "channel": 7,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 38.199462890625
+          },
+          {
+            "channel": 10,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 225.205810546875
+          },
+          {
+            "channel": 2,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 242.506103515625
+          },
+          {
+            "channel": 8,
+            "progressing": false,
+            "renewing": true,
+            "owner_state": "RENEWING",
+            "native_input_ended": true,
+            "input_codec": "hevc",
+            "output_idle_ms": 2276.77294921875
+          },
+          {
+            "channel": 4,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "WARMING_CONTINUITY",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 203.088623046875
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 45041,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2740,
+            "hardware_output_stalled_input_idle_ms": 2845,
+            "hardware_output_stalled_output_idle_ms": 3400.580810546875,
+            "silent_response_input_idle_ms": 9754,
+            "silent_response_output_idle_ms": 9843.417236328125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 2
+          },
+          {
+            "channel": 2,
+            "starts": 9,
+            "exits": 8,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_RESPONSE_RETIRED",
+            "last_exit_code": null,
+            "last_runtime_ms": 217083,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2434,
+            "hardware_output_stalled_input_idle_ms": 109,
+            "hardware_output_stalled_output_idle_ms": 3592.7353515625,
+            "silent_response_input_idle_ms": 20533,
+            "silent_response_output_idle_ms": 39191.937255859375,
+            "retry_failures": 1,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 3,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_STREAM_ENDED",
+            "last_exit_code": 0,
+            "last_runtime_ms": 114654,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 1727,
+            "hardware_output_stalled_input_idle_ms": 2698,
+            "hardware_output_stalled_output_idle_ms": 3227.31396484375,
+            "silent_response_input_idle_ms": 54687,
+            "silent_response_output_idle_ms": 54801.056396484375,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 4,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "EXCLUSIVE_RESCUE_REOPEN",
+            "last_exit_code": null,
+            "last_runtime_ms": 30651,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2833,
+            "hardware_output_stalled_input_idle_ms": 2680,
+            "hardware_output_stalled_output_idle_ms": 3149.068603515625,
+            "silent_response_input_idle_ms": 40553,
+            "silent_response_output_idle_ms": 8692.41748046875,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 6
+          },
+          {
+            "channel": 5,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 34448,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2227,
+            "hardware_output_stalled_input_idle_ms": 2901,
+            "hardware_output_stalled_output_idle_ms": 3328.24853515625,
+            "silent_response_input_idle_ms": 8147,
+            "silent_response_output_idle_ms": 8685.997314453125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 6,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 87487,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2237,
+            "hardware_output_stalled_input_idle_ms": 8372,
+            "hardware_output_stalled_output_idle_ms": 8810.5947265625,
+            "silent_response_input_idle_ms": 10076,
+            "silent_response_output_idle_ms": 10110.319091796875,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 2
+          },
+          {
+            "channel": 7,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "WARM_HANDOFF_ABORTED",
+            "last_exit_code": null,
+            "last_runtime_ms": 18657,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 329,
+            "hardware_output_stalled_output_idle_ms": 25958.71728515625,
+            "silent_response_input_idle_ms": 8052,
+            "silent_response_output_idle_ms": 8058.785400390625,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 8,
+            "starts": 4,
+            "exits": 3,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_RESPONSE_RETIRED",
+            "last_exit_code": null,
+            "last_runtime_ms": 176307,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 1638,
+            "hardware_output_stalled_input_idle_ms": 2693,
+            "hardware_output_stalled_output_idle_ms": 3462.575439453125,
+            "silent_response_input_idle_ms": 8406,
+            "silent_response_output_idle_ms": 8527.638427734375,
+            "retry_failures": 1,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 10,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "source_timeout",
+            "last_exit_code": null,
+            "last_runtime_ms": 7198,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 838,
+            "hardware_output_stalled_output_idle_ms": 5515.206298828125,
+            "silent_response_input_idle_ms": 10380,
+            "silent_response_output_idle_ms": 51146.206298828125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 3
+          },
+          {
+            "channel": 11,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "source_timeout",
+            "last_exit_code": null,
+            "last_runtime_ms": 13000,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 724,
+            "hardware_output_stalled_output_idle_ms": 4920.592529296875,
+            "silent_response_input_idle_ms": 8867,
+            "silent_response_output_idle_ms": 8926.741455078125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          }
+        ],
+        "heartbeat": {
+          "attempts": 44,
+          "responses_ok": 40,
+          "failures": 4,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 1,
+          "login_succeeded": 1,
+          "active_sessions": 1,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": true,
+          "reason": "synthetic_hevc_to_h264_passed",
+          "software_fallback_channels": 10
+        }
+      },
+      "tapo": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 1,
+          "assignedCount": 1,
+          "unassignedCount": 0,
+          "connectedCount": 1,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:05:47.366Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "h264",
+            "output_idle_ms": 1725.87158203125
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 46,
+            "exits": 45,
+            "last_start_reason": "otherHandoff",
+            "last_failure_reason": "WARM_HANDOFF",
+            "last_exit_code": null,
+            "last_runtime_ms": 482691,
+            "last_handoff_mode": "STANDARD",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2351,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 0,
+          "responses_ok": 0,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 50,
+          "login_succeeded": 0,
+          "active_sessions": 0,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      }
+    },
+    {
+      "at": "2026-10-29T07:13:59.926074+00:00",
+      "dvr": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.101-p38-health",
+          "build_sha": "2cc9e2b67b0a2a6757adc64e3bf7bf4dff193952"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 16,
+          "assignedCount": 10,
+          "unassignedCount": 6,
+          "connectedCount": 10,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:06:08.559Z"
+        },
+        "media": {
+          "activeRelays": 10,
+          "canonicalRelays": 10,
+          "liveRelayProcesses": 10,
+          "progressingRelays": 10,
+          "renewingRelays": 0,
+          "availableRelays": 10,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 6,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 1454.7607421875
+          },
+          {
+            "channel": 5,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 1425.76220703125
+          },
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 2424.784423828125
+          },
+          {
+            "channel": 3,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 58.7509765625
+          },
+          {
+            "channel": 11,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 859.34765625
+          },
+          {
+            "channel": 7,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 174.474609375
+          },
+          {
+            "channel": 10,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 192.460205078125
+          },
+          {
+            "channel": 2,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 1893.674560546875
+          },
+          {
+            "channel": 8,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 2227.9072265625
+          },
+          {
+            "channel": 4,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "hevc",
+            "output_idle_ms": 1430.0966796875
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 45041,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2740,
+            "hardware_output_stalled_input_idle_ms": 2845,
+            "hardware_output_stalled_output_idle_ms": 3400.580810546875,
+            "silent_response_input_idle_ms": 9754,
+            "silent_response_output_idle_ms": 9843.417236328125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 2
+          },
+          {
+            "channel": 2,
+            "starts": 9,
+            "exits": 8,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_RESPONSE_RETIRED",
+            "last_exit_code": null,
+            "last_runtime_ms": 217083,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2434,
+            "hardware_output_stalled_input_idle_ms": 109,
+            "hardware_output_stalled_output_idle_ms": 3592.7353515625,
+            "silent_response_input_idle_ms": 20533,
+            "silent_response_output_idle_ms": 39191.937255859375,
+            "retry_failures": 1,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 3,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_STREAM_ENDED",
+            "last_exit_code": 0,
+            "last_runtime_ms": 114654,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 1727,
+            "hardware_output_stalled_input_idle_ms": 2698,
+            "hardware_output_stalled_output_idle_ms": 3227.31396484375,
+            "silent_response_input_idle_ms": 54687,
+            "silent_response_output_idle_ms": 54801.056396484375,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 4,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "EXCLUSIVE_RESCUE_REOPEN",
+            "last_exit_code": null,
+            "last_runtime_ms": 30651,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 5828,
+            "hardware_output_stalled_input_idle_ms": 2680,
+            "hardware_output_stalled_output_idle_ms": 3149.068603515625,
+            "silent_response_input_idle_ms": 40553,
+            "silent_response_output_idle_ms": 8692.41748046875,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 6
+          },
+          {
+            "channel": 5,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 34448,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2227,
+            "hardware_output_stalled_input_idle_ms": 2901,
+            "hardware_output_stalled_output_idle_ms": 3328.24853515625,
+            "silent_response_input_idle_ms": 8147,
+            "silent_response_output_idle_ms": 8685.997314453125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 6,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "outputRescue",
+            "last_failure_reason": "SILENT_RESPONSE_STALL_OWNER_RELEASE",
+            "last_exit_code": null,
+            "last_runtime_ms": 87487,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2237,
+            "hardware_output_stalled_input_idle_ms": 8372,
+            "hardware_output_stalled_output_idle_ms": 8810.5947265625,
+            "silent_response_input_idle_ms": 10076,
+            "silent_response_output_idle_ms": 10110.319091796875,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 2
+          },
+          {
+            "channel": 7,
+            "starts": 5,
+            "exits": 4,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "WARM_HANDOFF_ABORTED",
+            "last_exit_code": null,
+            "last_runtime_ms": 18657,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 329,
+            "hardware_output_stalled_output_idle_ms": 25958.71728515625,
+            "silent_response_input_idle_ms": 8052,
+            "silent_response_output_idle_ms": 8058.785400390625,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 8,
+            "starts": 4,
+            "exits": 3,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "SOURCE_RESPONSE_RETIRED",
+            "last_exit_code": null,
+            "last_runtime_ms": 176307,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 1638,
+            "hardware_output_stalled_input_idle_ms": 2693,
+            "hardware_output_stalled_output_idle_ms": 3462.575439453125,
+            "silent_response_input_idle_ms": 8406,
+            "silent_response_output_idle_ms": 8527.638427734375,
+            "retry_failures": 1,
+            "correlated_silent_response_sources": 7
+          },
+          {
+            "channel": 10,
+            "starts": 3,
+            "exits": 2,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "source_timeout",
+            "last_exit_code": null,
+            "last_runtime_ms": 7198,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 838,
+            "hardware_output_stalled_output_idle_ms": 5515.206298828125,
+            "silent_response_input_idle_ms": 10380,
+            "silent_response_output_idle_ms": 51146.206298828125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 3
+          },
+          {
+            "channel": 11,
+            "starts": 6,
+            "exits": 5,
+            "last_start_reason": "recovery",
+            "last_failure_reason": "source_timeout",
+            "last_exit_code": null,
+            "last_runtime_ms": 13000,
+            "last_handoff_mode": "OUTPUT_RESCUE",
+            "last_handoff_result": "FAILED",
+            "last_handoff_failure": "EXCLUSIVE_RESCUE_CONFIRMATION_INCOMPLETE",
+            "last_handoff_first_output_latency_ms": null,
+            "hardware_output_stalled_input_idle_ms": 724,
+            "hardware_output_stalled_output_idle_ms": 4920.592529296875,
+            "silent_response_input_idle_ms": 8867,
+            "silent_response_output_idle_ms": 8926.741455078125,
+            "retry_failures": 0,
+            "correlated_silent_response_sources": 7
+          }
+        ],
+        "heartbeat": {
+          "attempts": 45,
+          "responses_ok": 41,
+          "failures": 4,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 1,
+          "login_succeeded": 1,
+          "active_sessions": 1,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": true,
+          "reason": "synthetic_hevc_to_h264_passed",
+          "software_fallback_channels": 10
+        }
+      },
+      "tapo": {
+        "status": "healthy",
+        "read_only": true,
+        "reasons": [],
+        "runtime": {
+          "software_version": "0.2.40-p38-health",
+          "build_sha": "d80fb794f0dac331191ff7620b757449dc260b74"
+        },
+        "authorization": "ready",
+        "discovery": {
+          "channelCount": 1,
+          "assignedCount": 1,
+          "unassignedCount": 0,
+          "connectedCount": 1,
+          "failedAssignedCount": 0,
+          "checkedAt": "2026-10-29T07:05:47.366Z"
+        },
+        "media": {
+          "activeRelays": 1,
+          "canonicalRelays": 1,
+          "liveRelayProcesses": 1,
+          "progressingRelays": 1,
+          "renewingRelays": 0,
+          "availableRelays": 1,
+          "stalledRelays": 0
+        },
+        "channels": [
+          {
+            "channel": 1,
+            "progressing": true,
+            "renewing": false,
+            "owner_state": "CURRENT",
+            "native_input_ended": false,
+            "input_codec": "h264",
+            "output_idle_ms": 1975.382568359375
+          }
+        ],
+        "diagnostics": [
+          {
+            "channel": 1,
+            "starts": 46,
+            "exits": 45,
+            "last_start_reason": "otherHandoff",
+            "last_failure_reason": "WARM_HANDOFF",
+            "last_exit_code": null,
+            "last_runtime_ms": 482691,
+            "last_handoff_mode": "STANDARD",
+            "last_handoff_result": "PROMOTED",
+            "last_handoff_failure": null,
+            "last_handoff_first_output_latency_ms": 2351,
+            "retry_failures": 0
+          }
+        ],
+        "heartbeat": {
+          "attempts": 0,
+          "responses_ok": 0,
+          "failures": 0,
+          "consecutive_failures": 0,
+          "authentication_rejected": 0
+        },
+        "lifecycle": {
+          "login_attempts": 50,
+          "login_succeeded": 0,
+          "active_sessions": 0,
+          "rotations": 0,
+          "last_rotation_reason": null
+        },
+        "hardware": {
+          "available": false,
+          "reason": "not_tested",
+          "software_fallback_channels": 0
+        }
+      }
+    }
+  ],
+  "services": [
+    {
+      "label": "com.ganbatuach.push38.qa-control-ingress",
+      "registered": false,
+      "state": null,
+      "pid": null,
+      "run_at_load": false,
+      "keep_alive": null,
+      "sha256": "f9845c58130d23abcc5a050aefb9478801fd28c944bfaef15bcd936aeb70582b"
+    },
+    {
+      "label": "com.ganbatuach.push38.qa-control-plane",
+      "registered": true,
+      "state": "not running",
+      "pid": null,
+      "run_at_load": true,
+      "keep_alive": null,
+      "sha256": "dc565cc020197a8f850bdd85b112dcefd07ae555c9f1c8695b09a918389716b6"
+    },
+    {
+      "label": "com.ganbatuach.push38.qa-tls-maintenance",
+      "registered": true,
+      "state": "not running",
+      "pid": null,
+      "run_at_load": true,
+      "keep_alive": null,
+      "sha256": "0a13ea8b301fe22eb9e8bc59bf77f8f0cc4a8d89edc5ee170b283d25dc67454b"
+    },
+    {
+      "label": "com.ganbatuach.push38.remote-ingress",
+      "registered": true,
+      "state": "running",
+      "pid": 13124,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "c62ae7ad86346278b94cb92f5fd03d26fca99e3fa3088d8601123ff393a4d7e2"
+    },
+    {
+      "label": "com.ganbatuach.software-connector.tapo.ota-agent",
+      "registered": true,
+      "state": "running",
+      "pid": 12724,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "bb8701c369d7d10873fbab35d164702dc62315aad548075245188e435a6fdf60"
+    },
+    {
+      "label": "com.ganbatuach.software-connector.tapo",
+      "registered": true,
+      "state": "running",
+      "pid": 12690,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "42c6761facf750af1a2900bf40475bd75266d31586b5ea31405ee0ba9ddc2fd8"
+    },
+    {
+      "label": "com.ganbatuach.storage-safety",
+      "registered": true,
+      "state": "not running",
+      "pid": null,
+      "run_at_load": true,
+      "keep_alive": null,
+      "sha256": "479be6f69416ef57373acb75ca820e67887d1a3d1c7ffa873e596dc9d9f57fef"
+    },
+    {
+      "label": "com.ganbatuach.video-gateway-awake",
+      "registered": true,
+      "state": "running",
+      "pid": 857,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "39c671aaf06bb1f56aeab49259c51ce9a4189631bae262a499ff5305b8436f14"
+    },
+    {
+      "label": "com.ganbatuach.video-gateway.ota-agent",
+      "registered": true,
+      "state": "running",
+      "pid": 12727,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "47f33052cfed8102012e40aa04309a193890f919d33fd92922ed404340f3e2f5"
+    },
+    {
+      "label": "com.ganbatuach.video-gateway",
+      "registered": true,
+      "state": "running",
+      "pid": 50308,
+      "run_at_load": true,
+      "keep_alive": true,
+      "sha256": "f8a0c98a5e2166189bed8297c6e23f70224f616c710d04dcfe7e094e703b69f7"
+    }
+  ],
+  "tls_anonymous_status": 401,
+  "tls_leaf": {
+    "notBefore": "Oct 29 01:05:35 2026 GMT",
+    "notAfter": "Oct 28 01:05:35 2029 GMT"
+  }
+}
