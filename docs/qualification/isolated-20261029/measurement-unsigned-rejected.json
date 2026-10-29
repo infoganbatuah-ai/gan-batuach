@@ -1,0 +1,46 @@
+{
+  "startedUtc": "2026-10-29T04:09:37Z",
+  "inputs": {
+    "ubuntu-24.04-server-cloudimg-arm64.img": {
+      "bytes": 616522752,
+      "allocatedBytes": 616525824,
+      "sha256": "50e24e1fb79e89116e939d90aa7738f7af48c442fa1bc2510131e0b39c50348e"
+    },
+    "supabase-postgres-arm64-docker-save.tar": {
+      "bytes": 1330063360,
+      "allocatedBytes": 1330065408,
+      "sha256": "51c3b993f6ec02b579665fcd56c4f126107dd474e97f6fcf723e66c703c30e27"
+    },
+    "ubuntu-qa-boot.raw": {
+      "bytes": 3758096384,
+      "allocatedBytes": 1976303616,
+      "sha256": "70c4b0a60310b3a995a359b2a85258590608057f90b81567bbe27ac650aa00f4"
+    },
+    "offline-qa-inputs.iso": {
+      "bytes": 1947686912,
+      "allocatedBytes": 1947688960,
+      "sha256": "c3bc6ba91070169e485df78b3e2ec56f581eafcc007f31888f58a7297d193edb"
+    }
+  },
+  "vmCreated": false,
+  "ownerKeyAccessed": false,
+  "freeBytesBefore": 17204613120,
+  "scratchRaw": {
+    "bytes": 3758096384,
+    "allocatedBytes": 3758096384,
+    "sha256": "70c4b0a60310b3a995a359b2a85258590608057f90b81567bbe27ac650aa00f4"
+  },
+  "native": {
+    "exitCode": 2,
+    "stdout": "NATIVE_CONFIGURATION_REJECTED domain=VZErrorDomain code=2 reason=Invalid virtual machine configuration. The process doesn\u2019t have the \u201ccom.apple.security.virtualization\u201d entitlement.\n",
+    "stderr": ""
+  },
+  "inputIsoAfter": {
+    "bytes": 1947686912,
+    "allocatedBytes": 1947688960,
+    "sha256": "c3bc6ba91070169e485df78b3e2ec56f581eafcc007f31888f58a7297d193edb"
+  },
+  "scratchRemoved": true,
+  "freeBytesAfter": 17197834240,
+  "finishedUtc": "2026-10-29T04:10:04Z"
+}

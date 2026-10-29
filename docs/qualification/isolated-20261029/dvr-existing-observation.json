@@ -1,0 +1,79 @@
+{
+  "duration_ms": 300030,
+  "checkpoints": 21,
+  "tls_verified_anonymous_denied": 21,
+  "strict_all_source_progression_pass": false,
+  "gateway": {
+    "auth_ready": 21,
+    "available_counts": {
+      "9": 4,
+      "8": 5,
+      "10": 10,
+      "6": 1,
+      "7": 1
+    },
+    "progressing_counts": {
+      "8": 8,
+      "9": 6,
+      "10": 5,
+      "6": 2
+    },
+    "per_channel": {
+      "1": {
+        "progressing": 19,
+        "renewing": 0
+      },
+      "2": {
+        "progressing": 20,
+        "renewing": 1
+      },
+      "3": {
+        "progressing": 12,
+        "renewing": 3
+      },
+      "4": {
+        "progressing": 18,
+        "renewing": 0
+      },
+      "5": {
+        "progressing": 19,
+        "renewing": 1
+      },
+      "6": {
+        "progressing": 19,
+        "renewing": 2
+      },
+      "7": {
+        "progressing": 17,
+        "renewing": 0
+      },
+      "8": {
+        "progressing": 19,
+        "renewing": 0
+      },
+      "10": {
+        "progressing": 20,
+        "renewing": 1
+      },
+      "11": {
+        "progressing": 17,
+        "renewing": 1
+      }
+    }
+  },
+  "connector": {
+    "auth_ready": 21,
+    "available_counts": {
+      "1": 21
+    },
+    "progressing_counts": {
+      "1": 21
+    },
+    "per_channel": {
+      "1": {
+        "progressing": 21,
+        "renewing": 0
+      }
+    }
+  }
+}

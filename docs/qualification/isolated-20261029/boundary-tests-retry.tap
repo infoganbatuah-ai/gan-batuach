@@ -1,0 +1,28 @@
+✔ all synthetic transitions finish without returning a restore PASS (1.74075ms)
+✔ egress lock must precede archive transfer (0.463333ms)
+✔ unverified archive source and recipient are rejected (7.520959ms)
+✔ host mounts and Home or Production route fail closed (0.215167ms)
+✔ existing database and non-private scratch are forbidden (0.298125ms)
+✔ all five components and three new synthetic databases are required (0.515709ms)
+✔ Model A tenant/site and recipient receipt mismatches fail closed (0.267625ms)
+✔ cleanup proof is mandatory after restore and failure (0.27975ms)
+✔ fixture evidence cannot be silently relabeled as real proof (0.11025ms)
+✔ review contract records exact source and sanitized mode policy but never authorizes extraction (3.667917ms)
+✔ wrong image, architecture or unverified layer metadata is rejected (0.479ms)
+✔ stale or incomplete egress and host-mount evidence cannot form a plan (0.153875ms)
+✔ target path, ownership, mode, freshness and capacity fail closed (0.351208ms)
+✔ rollback is inode-specific and never deletes a target (0.342708ms)
+✔ native two-disk no-NIC design is not boot proof (0.837792ms)
+✔ Lima networks empty is rejected because default network remains (0.740042ms)
+✔ network, share, socket, serial, forwarding and hidden devices reject (2.890208ms)
+✔ disk count, raw scratch conversion, and exact offline inputs reject (0.617792ms)
+✔ real data and executable runtime state never pass (0.197959ms)
+✔ native candidate has no VM construction or start path (0.791875ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.381917

@@ -1,0 +1,67 @@
+✔ all synthetic transitions finish without returning a restore PASS (3.280084ms)
+✔ egress lock must precede archive transfer (0.49225ms)
+✔ unverified archive source and recipient are rejected (0.695708ms)
+✔ host mounts and Home or Production route fail closed (0.143625ms)
+✔ existing database and non-private scratch are forbidden (0.2835ms)
+✔ all five components and three new synthetic databases are required (0.588833ms)
+✔ Model A tenant/site and recipient receipt mismatches fail closed (0.23325ms)
+✔ cleanup proof is mandatory after restore and failure (0.255167ms)
+✔ fixture evidence cannot be silently relabeled as real proof (0.117667ms)
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'tar' imported from /Users/danielderi/.codex/worktrees/7763/Gan-Batuach/review-only/event-risk-authority-source/dockerless-rootfs-preflight.mjs
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:691:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:740:52)
+    at #resolve (node:internal/modules/esm/loader:673:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:593:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.16.0
+✖ review-only/event-risk-authority-source/guest-rootfs-materialization-contract.test.mjs (56.9195ms)
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'tar' imported from /Users/danielderi/.codex/worktrees/7763/Gan-Batuach/review-only/event-risk-authority-source/synthetic-qa-image-input.mjs
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:691:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:740:52)
+    at #resolve (node:internal/modules/esm/loader:673:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:593:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.16.0
+✖ review-only/event-risk-authority-source/no-nic-synthetic-guest-preflight.test.mjs (57.266834ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 9
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.0505
+
+✖ failing tests:
+
+test at review-only/event-risk-authority-source/guest-rootfs-materialization-contract.test.mjs:1:1
+✖ review-only/event-risk-authority-source/guest-rootfs-materialization-contract.test.mjs (56.9195ms)
+  'test failed'
+
+test at review-only/event-risk-authority-source/no-nic-synthetic-guest-preflight.test.mjs:1:1
+✖ review-only/event-risk-authority-source/no-nic-synthetic-guest-preflight.test.mjs (57.266834ms)
+  'test failed'
