@@ -1,0 +1,11 @@
+{
+  "loginPassed": true,
+  "normalAuth": true,
+  "manualJwt": false,
+  "authUserVerified": true,
+  "localWindowSeconds": 1200,
+  "authTokenExpiresInSeconds": 3600,
+  "sessionFileMode": "0600",
+  "productDataChanged": false,
+  "logoutRequired": true
+}

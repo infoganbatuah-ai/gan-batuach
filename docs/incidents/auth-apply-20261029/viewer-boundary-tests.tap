@@ -1,0 +1,12 @@
+✔ exact local identity inventory and 20-minute window accepted (8.005541ms)
+✔ expired or overlong session and cloud Auth rejected (3.583166ms)
+✔ source, device, port and inventory mismatches rejected (1.026708ms)
+✔ only exact loopback source media destination accepted (0.772541ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 415.910417

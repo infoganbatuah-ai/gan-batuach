@@ -1,0 +1,16 @@
+{
+  "validRequestBody": true,
+  "results": [
+    {
+      "credential": "missing",
+      "status": 401,
+      "denied": true
+    },
+    {
+      "credential": "invalid",
+      "status": 401,
+      "denied": true
+    }
+  ],
+  "crossTenantRealIdentityTested": false
+}

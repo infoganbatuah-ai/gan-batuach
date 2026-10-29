@@ -1,0 +1,6 @@
+{
+  "loginPassed": false,
+  "status": 404,
+  "code": "AUTH_REJECTED",
+  "sessionCreated": false
+}

@@ -1,0 +1,118 @@
+{
+  "scope": "NORMAL_AUTH_HOME_QA_LOCAL_PLAYER",
+  "results": [
+    {
+      "index": 0,
+      "label": "DVR CH1",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 5.871,
+      "decodedFrames": 152,
+      "error": null
+    },
+    {
+      "index": 1,
+      "label": "DVR CH2",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 8.138,
+      "decodedFrames": 208,
+      "error": null
+    },
+    {
+      "index": 2,
+      "label": "DVR CH3",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 8.051,
+      "decodedFrames": 205,
+      "error": null
+    },
+    {
+      "index": 3,
+      "label": "DVR CH4",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 7.986,
+      "decodedFrames": 204,
+      "error": null
+    },
+    {
+      "index": 4,
+      "label": "DVR CH5",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 7.996,
+      "decodedFrames": 204,
+      "error": null
+    },
+    {
+      "index": 5,
+      "label": "DVR CH6",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 7.992,
+      "decodedFrames": 204,
+      "error": null
+    },
+    {
+      "index": 6,
+      "label": "DVR CH7",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 8.008,
+      "decodedFrames": 205,
+      "error": null
+    },
+    {
+      "index": 7,
+      "label": "DVR CH8",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 7.981,
+      "decodedFrames": 203,
+      "error": null
+    },
+    {
+      "index": 8,
+      "label": "DVR CH10",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 8.075,
+      "decodedFrames": 206,
+      "error": null
+    },
+    {
+      "index": 9,
+      "label": "DVR CH11",
+      "pass": true,
+      "width": 640,
+      "height": 480,
+      "advancedSeconds": 8.086,
+      "decodedFrames": 207,
+      "error": null
+    },
+    {
+      "index": 10,
+      "label": "Tapo",
+      "pass": true,
+      "width": 2304,
+      "height": 1296,
+      "advancedSeconds": 7.936,
+      "decodedFrames": 128,
+      "error": null
+    }
+  ],
+  "allElevenPassed": true,
+  "completed": true,
+  "logoutPassed": true
+}

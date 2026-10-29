@@ -1,0 +1,74 @@
+{
+  "normalAuthSessionUsed": true,
+  "assigned": 11,
+  "authorization": [
+    {
+      "kind": "DVR",
+      "channel": 1,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 11,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 8,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 6,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 2,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "TAPO",
+      "channel": 1,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 4,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 5,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 10,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 7,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 3,
+      "sourceAuthorizationStatus": 200,
+      "grantIssued": true
+    }
+  ],
+  "allAuthorized": true,
+  "grantsRedeemed": false
+}

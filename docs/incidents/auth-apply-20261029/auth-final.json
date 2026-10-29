@@ -1,0 +1,9 @@
+{
+  "running": true,
+  "health": "healthy",
+  "emailLoginEnabled": true,
+  "signupDisabled": true,
+  "emailConfirmationRetained": true,
+  "projectCorrect": true,
+  "noPublishedPorts": true
+}

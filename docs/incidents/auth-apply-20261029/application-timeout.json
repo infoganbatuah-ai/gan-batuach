@@ -1,0 +1,13 @@
+{
+  "scope": "HOME_QA_AUTH_ONLY",
+  "imagePinned": true,
+  "onlyEnvironmentChange": "GOTRUE_EXTERNAL_EMAIL_ENABLED:false->true",
+  "signupDisabled": true,
+  "emailConfirmationRetained": true,
+  "applied": false,
+  "backupSnapshotSha256": "fbef93a37477394e1283850dac031436a070685ae8ed142b9404c978dc4b7f4a",
+  "rollbackContainer": "supabase_auth_gan-batuach-push38t_rollback_1793284372",
+  "protectedBackupDirectory": "/private/tmp/observer-qa-auth-rollback-u5wuo85n",
+  "failure": "TimeoutError",
+  "rolledBack": true
+}

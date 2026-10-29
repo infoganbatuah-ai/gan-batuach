@@ -1,0 +1,109 @@
+{
+  "scope": "NORMAL_AUTH_GRANTED_HTTP_MEDIA_NOT_BROWSER_PLAYBACK",
+  "results": [
+    {
+      "kind": "DVR",
+      "channel": 1,
+      "pass": false,
+      "error": "TimeoutError"
+    },
+    {
+      "kind": "DVR",
+      "channel": 11,
+      "pass": false,
+      "error": "TimeoutError"
+    },
+    {
+      "kind": "DVR",
+      "channel": 8,
+      "pass": false,
+      "error": "TimeoutError"
+    },
+    {
+      "kind": "DVR",
+      "channel": 6,
+      "pass": false,
+      "error": "TimeoutError"
+    },
+    {
+      "kind": "DVR",
+      "channel": 2,
+      "pass": false,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 153596,
+      "segmentSha256": "56bfb860028ddc00ded9f126b8d077854d62f967b051518841f7fd286463b33e",
+      "playlistAdvanced": false
+    },
+    {
+      "kind": "TAPO",
+      "channel": 1,
+      "pass": true,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 275420,
+      "segmentSha256": "31deefcbdca23d6bc791e7e631937375a31983a37781c0cc3ece6eca4de10286",
+      "playlistAdvanced": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 4,
+      "pass": false,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 151152,
+      "segmentSha256": "fea888540f1e2b356f44adeebaf48ead9fca84b0c389821ddfb8f95434b6462c",
+      "playlistAdvanced": false
+    },
+    {
+      "kind": "DVR",
+      "channel": 5,
+      "pass": true,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 125772,
+      "segmentSha256": "2885092b59f1e5213ed766a8ca1e5732d03b1ee23e48b7eda0d1f7678d4f6420",
+      "playlistAdvanced": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 10,
+      "pass": true,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 180292,
+      "segmentSha256": "1c0cd364c8e2b52ac6cd620ef2f1a332c1febbbafda55cf39df07efc592d11b5",
+      "playlistAdvanced": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 7,
+      "pass": true,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 191572,
+      "segmentSha256": "d17e728a30eeb6b122cc948f564b0e8f828031bd4eb2054c3757c189f73169fb",
+      "playlistAdvanced": true
+    },
+    {
+      "kind": "DVR",
+      "channel": 3,
+      "pass": true,
+      "authorizationStatus": 200,
+      "claimStatus": 200,
+      "decodedFrames": 2,
+      "segmentBytes": 141940,
+      "segmentSha256": "77cfec01b54438a7cc12d0df75fed1b3ac318a83b9f7caf1baf2a28699b28935",
+      "playlistAdvanced": true
+    }
+  ],
+  "passed": 5,
+  "expected": 11,
+  "noPrivateUrlsLogged": true
+}

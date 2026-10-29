@@ -1,0 +1,32 @@
+{
+  "scope": "HOME_QA_AUTH_ONLY",
+  "imagePinned": true,
+  "onlyEnvironmentChange": "GOTRUE_EXTERNAL_EMAIL_ENABLED:false->true",
+  "signupDisabled": true,
+  "emailConfirmationRetained": true,
+  "applied": true,
+  "backupSnapshotSha256": "d17508b3c61634f5aea431a4e1b04b8ee67dd9ad93ff4c1ee2fa4d71028939fa",
+  "rollbackContainer": "supabase_auth_gan-batuach-push38t_rollback_1793284544",
+  "protectedBackupDirectory": "/private/tmp/observer-qa-auth-rollback-wj5ukguu",
+  "authHealthy": true,
+  "databaseSameContainerAndStart": true,
+  "edgeBefore": {
+    "18082": {
+      "reachable": false
+    },
+    "18083": {
+      "reachable": true,
+      "uptimeMs": 48606625
+    }
+  },
+  "edgeAfter": {
+    "18082": {
+      "reachable": false
+    },
+    "18083": {
+      "reachable": true,
+      "uptimeMs": 48614615
+    }
+  },
+  "rollbackPreservedStopped": true
+}

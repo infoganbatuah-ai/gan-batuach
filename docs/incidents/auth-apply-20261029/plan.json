@@ -1,0 +1,8 @@
+{
+  "scope": "HOME_QA_AUTH_ONLY",
+  "imagePinned": true,
+  "onlyEnvironmentChange": "GOTRUE_EXTERNAL_EMAIL_ENABLED:false->true",
+  "signupDisabled": true,
+  "emailConfirmationRetained": true,
+  "applied": false
+}
