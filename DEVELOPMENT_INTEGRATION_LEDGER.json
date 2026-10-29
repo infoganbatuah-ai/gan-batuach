@@ -12984,6 +12984,51 @@
       "releaseEligibility": "BLOCKED_NOT_READY_TO_APPLY_OR_ACTIVATE",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Keep PR #260 Draft. Resolve the demonstrated direct-table bypass with an independently reviewed privileged boundary and exact ACL/Data API tests, then qualify authoritative plan and target digest contracts. Do not apply SQL, merge the dependent drafts, or activate event-risk/Guard."
+    },
+    {
+      "id": "codex/complaint-sla-service-role-hotfix-20261029-pr261",
+      "project": "Gan Batuach Management complaint SLA",
+      "title": "Restore authorized complaint SLA escalation for modern Supabase secret keys",
+      "owner": "Production complaint SLA incident hotfix",
+      "sourceBranch": "codex/complaint-sla-service-role-hotfix-20261029",
+      "sourceCommits": ["0e86d7fb36c4df9d57300afba5a9206549c3e4a7"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/complaint-sla-service-role-hotfix-20261029@0e86d7fb36c4df9d57300afba5a9206549c3e4a7",
+          "origin/main@1e231b245baa60ee40d1968fb1a4f7b0598ab9eb"
+        ],
+        "sourceScope": "One forward-only function replacement migration, one focused SLA authorization regression, and mandatory high/critical dependency remediations. PUSH 38 and cumulative unreleased Product work are excluded.",
+        "disposition": "ALREADY_IN_MAIN_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_REQUIRED_CHECKS_PASS",
+        "evidence": [
+          "PR #261 exact head 0e86d7fb36c4df9d57300afba5a9206549c3e4a7: six Digital Observer CI gates, canonical quality, Management context and Snyk PASS",
+          "Focused complaint SLA contract 6/6 PASS; unauthorized Production route probe returned HTTP 401 before release",
+          "Local Production build PASS with 541 routes and npm audit reported zero vulnerabilities"
+        ],
+        "limits": "Production migration application and authorized cron result are recorded separately after provider verification. No customer notification or email is sent by this function."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "2576f23b9656de5b40e60e4f786446049fdfa054",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/261",
+        "requiredChecks": "ALL_REQUIRED_CHECKS_PASS_ON_EXACT_HEAD"
+      },
+      "dependencies": {"status": "SELF_CONTAINED_FORWARD_FUNCTION_REPLACEMENT", "units": [], "blockers": []},
+      "migrations": ["20261029215625_complaint_sla_secret_key_auth_hotfix.sql"],
+      "migrationOrder": ["20261029215625"],
+      "localVerification": "FOCUSED_6_OF_6_PASS; DEVELOPMENT_DATABASE_APPLICATION_PENDING_LEDGER_APPROVAL",
+      "releaseEligibility": "RELEASED_MAIN_PENDING_PROVIDER_VERIFICATION",
+      "productionDeployment": {
+        "status": "RELEASED_MAIN",
+        "mergeCommit": "1e231b245baa60ee40d1968fb1a4f7b0598ab9eb",
+        "mergedAt": "2026-10-29T22:48:28Z"
+      },
+      "nextAction": "Apply and verify the exact migration in isolated Development, then apply only that migration in Production and prove authorized cron success, unauthorized rejection, service_role-only RPC ACL and no duplicate effects."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
