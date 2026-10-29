@@ -13031,14 +13031,14 @@
         "20261029225418_complaint_sla_row_alias_fix.sql"
       ],
       "migrationOrder": ["20261029215625", "20261029225418"],
-      "localVerification": "FOCUSED_6_OF_6_PASS; FIRST_DEVELOPMENT_MIGRATION_RECORDED; NO_WORK_0_THEN_0; ELIGIBLE_FIXTURE_1_THEN_0_ONE_EVENT_ONE_AUDIT_ROLLBACK; AUTHENTICATED_DENIED; SECOND_CANONICAL_APPLICATION_PENDING_LEDGER_APPROVAL",
+      "localVerification": "FOCUSED_6_OF_6_PASS; BOTH_DEVELOPMENT_MIGRATIONS_RECORDED; NO_WORK_0_THEN_0; ELIGIBLE_FIXTURE_1_THEN_0_ONE_EVENT_ONE_AUDIT_ROLLBACK; AUTHENTICATED_DENIED; SERVICE_ROLE_ONLY_ACL",
       "releaseEligibility": "RELEASED_MAIN_PENDING_PROVIDER_VERIFICATION",
       "productionDeployment": {
         "status": "RELEASED_MAIN",
         "mergeCommit": "4e28d73f8a578637cc25522b193b550ad6d87482",
         "mergedAt": "2026-10-29T23:19:21Z"
       },
-      "nextAction": "Record the second migration through the canonical isolated Development applicator, then apply both reviewed migrations in order in Production and prove authorized cron success, unauthorized rejection, service_role-only RPC ACL and no duplicate effects."
+      "nextAction": "Apply both reviewed migrations in order in Production and prove authorized cron success, unauthorized rejection, service_role-only RPC ACL and no duplicate effects."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

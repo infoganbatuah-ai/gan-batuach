@@ -7887,19 +7887,19 @@
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": ["20261029215625"],
       "developmentApprovalEvidence": "PR #262 exact head 39b3312863b9701c2a0890f96b0dd19cfac10eaa passed all required GitHub checks. The exact SQL was applied transactionally in isolated Development for runtime qualification: no-work 0 then 0; overdue rollback-only fixture 1 then 0 with exactly one event and one audit row; authenticated role denied; ACL service_role-only. Focused suite 6/6, migration health, domain 30/30, security 11/11, release contract, 541-route Production build and zero-vulnerability audit passed.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-10-29T23:22:37.640988+00:00",
+      "developmentEvidence": "development_metadata.migrations receipt verified read-only in the isolated Development database; canonical application then reverified no-work 0/0, rollback-only overdue fixture 1/0 with exactly one event and one audit, authenticated denial and service_role-only ACL",
+      "developmentHistoryDigest": "e9c8ad15e56ef7cbe2a55a564d07a055208cf53a8706d4c53617eca7d0b9a918",
       "productionApplied": "NO",
       "productionEvidence": "PR #262 merged to main as 4e28d73f8a578637cc25522b193b550ad6d87482; Production migration sequence is pending provider application.",
       "recovery": "Forward-only function replacement using unambiguous identifiers. The verified Development backup predates both hotfix migrations. If verification fails, restore the isolated backup or use a reviewed forward-only corrective migration; never edit either applied migration.",
-      "developmentStatusReason": "Validated and integrated; canonical Development receipt pending",
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied through the canonical isolated Development applicator and runtime reverified",
+      "developmentSchemaFingerprint": "21e4c601a074c2fa27458b16fb109c5ddd55edf94da3954de80ee1756c4c5266"
     }
   ],
   "developmentExpected": 259,
-  "developmentAppliedVerified": 258,
+  "developmentAppliedVerified": 259,
   "blockers": [],
   "localObservations": [
     {
