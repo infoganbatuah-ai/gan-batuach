@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -72,6 +72,7 @@ export async function saveArticle(form: FormData) {
     updated_at: new Date().toISOString()
   }, { onConflict: "slug" });
   if (error) throw new Error(`שמירת הכתבה נכשלה: ${error.message}`);
+  updateTag("editorial-articles");
   revalidatePath("/"); revalidatePath("/articles"); revalidatePath(`/articles/${slug}`);
   revalidatePath("/digital-observer"); revalidatePath("/digital-observer/guides"); revalidatePath(`/digital-observer/guides/${slug}`); revalidatePath("/sitemap.xml");
   redirect("/dashboard/admin/articles?saved=1");

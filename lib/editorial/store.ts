@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { DEFAULT_ARTICLE_IMAGE, initialArticles, legacyArticles, type Article } from "./articles";
 import { observerArticles } from "./observer-articles";
@@ -30,13 +31,25 @@ function withEditorialUpgrade(revision: Article): Article {
 
 // Published editorial copy ships with the site, so search engines can index it
 // even before the content migration is installed. Admin revisions override it.
+async function fetchRevisions(): Promise<Article[]> {
+  const { data, error } = await createAdminClient().from("editorial_articles").select("*").limit(250);
+  if (error) throw error;
+  return (data ?? []) as Article[];
+}
+
+// Database-backed admin revisions change infrequently, but metadata and page
+// rendering both need them. Reusing the bounded query prevents crawler traffic
+// from paying an extra database round-trip on every HTML response. The admin
+// action expires this tag immediately after a successful save.
+const persistedRevisions = unstable_cache(fetchRevisions, ["editorial-articles-v1"], {
+  tags: ["editorial-articles"],
+  revalidate: 300
+});
+
 const revisions = cache(async (): Promise<Article[]> => {
   if (!isAdminClientConfigured()) return [];
-  try {
-    const { data, error } = await createAdminClient().from("editorial_articles").select("*").limit(250);
-    if (error) return [];
-    return (data ?? []) as Article[];
-  } catch { return []; }
+  try { return await persistedRevisions(); }
+  catch { return []; }
 });
 
 export async function getPublishedArticles(channel: EditorialChannel = "gan") {
