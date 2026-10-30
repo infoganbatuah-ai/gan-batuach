@@ -13074,14 +13074,14 @@
         "c9e8fbe646900e2cdec85eb4db05c6eef233ecb1",
         "a30face24b1e00b773dd210b9433bfbf28a6ee59"
       ],
-      "state": "PRESERVED_PENDING_INTEGRATION",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/seo-aeo-geo-reconciliation-20261030@a30face24b1e00b773dd210b9433bfbf28a6ee59"
         ],
         "sourceScope": "Public Gan Batuach and Digital Observer metadata, social previews, editorial pages and 30 optimized editorial images; no Production provider setting, analytics activation, main merge or deployment.",
-        "disposition": "PRESERVED_PENDING_INTEGRATION"
+        "disposition": "ALREADY_INTEGRATED"
       },
       "validation": {
         "status": "EXACT_HEAD_LOCAL_SIX_GATES_AND_RENDERED_CRAWL_PASS",
@@ -13176,6 +13176,61 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Keep the verified commit in integration/development and include it only in the next explicit owner-authorized consolidated release; compare Production field and lab LCP after deployment."
+    },
+    {
+      "id": "codex/seo-retention-accuracy-20261030",
+      "project": "Digital Observer public SEO/AEO claim accuracy",
+      "title": "Qualify public video-retention claims against the approved policy state",
+      "owner": "SEO/AEO/GEO reconciliation task",
+      "sourceBranch": "codex/seo-retention-accuracy-20261030",
+      "sourceCommits": [
+        "3cef7cca1704c0df9648632e9b9fda8bff860ca6"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/seo-retention-accuracy-20261030@3cef7cca1704c0df9648632e9b9fda8bff860ca6"
+        ],
+        "sourceScope": "Two public Digital Observer retention statements only; no runtime policy, database, provider, main or Production change.",
+        "disposition": "ALREADY_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_TREE_CUMULATIVE_GATES_AND_PRODUCTION_BUILD_PASS",
+        "evidence": [
+          "Canonical product-history review established that fixed 48-hour retention is an engineering baseline rather than an externally approved universal promise",
+          "Public homepage now states that retention follows the selected package and policy; the trust page explicitly warns against relying on one fixed duration unless it appears in the account or signed agreement",
+          "TypeScript, targeted ESLint, git diff check, SEO contract and editorial QA PASS",
+          "Domain gate 46/46, security gate 50/50 plus vendored dependency guards, 259-migration health and release-contract PASS",
+          "Exact cumulative integration tree Production build PASS with 557/557 static pages"
+        ],
+        "limits": "This change corrects public wording only. It does not approve a retention policy, change runtime deletion behavior or deploy to Production; any account-specific duration remains governed by the approved package, policy and agreement."
+      },
+      "integration": {
+        "status": "LOCAL_VERIFIED",
+        "base": "integration/development",
+        "baseShaAtPreservation": "b32021dcd",
+        "commit": "6d27d835b9f8ae48c41878919bfb7ddcc0d55c5b",
+        "pullRequest": null,
+        "requiredChecks": "CUMULATIVE_TYPECHECK_ESLINT_SEO_EDITORIAL_DOMAIN_SECURITY_MIGRATION_RELEASE_CONTRACT_AND_PRODUCTION_BUILD_PASS"
+      },
+      "dependencies": {
+        "status": "SEO_RECONCILIATION_UNIT",
+        "units": [
+          "codex/seo-aeo-geo-reconciliation-20261030"
+        ],
+        "blockers": [
+          "Activation requires the next explicit owner-authorized consolidated release"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PRODUCTION_BUILD_557_OF_557; CUMULATIVE_GATES_PASS; NO_MAIN_OR_PRODUCTION_DEPLOYMENT",
+      "releaseEligibility": "READY_FOR_OWNER_RELEASE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Keep the verified accuracy correction in integration/development and include it only in the next explicit owner-authorized consolidated release; after release verify rendered wording and Search Console recrawl."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

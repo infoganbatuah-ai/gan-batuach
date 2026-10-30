@@ -1976,3 +1976,17 @@ image preload, 1,592 ms LCP, 35 ms TTFB and 0 CLS; the measured resource load
 delay fell from 1,445 ms to 75 ms. The unit adds no migration and remains
 Development-only, ready for the next explicit owner-authorized consolidated
 release.
+
+Digital Observer public-claim accuracy receipt (2026-10-30): product-history
+reconciliation confirmed that a fixed 48-hour video-retention period is an
+engineering baseline, not a universally approved public promise. Exact source
+`origin/codex/seo-retention-accuracy-20261030@3cef7cca1704c0df9648632e9b9fda8bff860ca6`
+was remotely preserved and merged ancestry-preserving as
+`6d27d835b9f8ae48c41878919bfb7ddcc0d55c5b`. The public Digital Observer home
+and trust pages now state that retention follows the selected package and
+approved policy, and that a fixed duration is authoritative only when shown in
+the account or signed agreement. The cumulative integration tree passed
+TypeScript, targeted ESLint, SEO/editorial, Domain 46/46, Security 50/50,
+259-migration health, release-contract and the 557-page Production build. The
+unit changes no runtime retention behavior and remains Development-only for the
+next explicit owner-authorized consolidated release.
