@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-26T09:58:40Z",
+  "updatedAt": "2026-10-30T01:10:04Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -13056,6 +13056,68 @@
         "postRunSlaAudits": 0
       },
       "nextAction": "Incident closed. Keep the hourly Vercel cron enabled and monitor normal scheduled runs; no further hotfix action is pending."
+    },
+    {
+      "id": "codex/seo-aeo-geo-reconciliation-20261030",
+      "project": "Gan Batuach and Digital Observer public SEO/AEO editorial surfaces",
+      "title": "Brand-separated crawlable editorial authority, canonical privacy controls and measured mobile performance",
+      "owner": "SEO/AEO/GEO reconciliation task",
+      "sourceBranch": "codex/seo-aeo-geo-reconciliation-20261030",
+      "sourceCommits": [
+        "480cd146e3f7f9d8aa49354a651d94924aaf91d3",
+        "e38e90aef0db651eba9207d71d1ee80b92e4b1ce",
+        "020a3736378047837589b16920f556a00aa9aa53",
+        "b8ec073711bef22a848ff2f432b3866bc68c2aff",
+        "a14c856a56288744893d8cb65e3dd5ac1321c005",
+        "187312c9bf32fc37f5ce67b82e023c30f443fd08",
+        "13324f198648b08c88250e18f586ca3e8554746c",
+        "c9e8fbe646900e2cdec85eb4db05c6eef233ecb1"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/seo-aeo-geo-reconciliation-20261030@c9e8fbe646900e2cdec85eb4db05c6eef233ecb1"
+        ],
+        "sourceScope": "Public Gan Batuach and Digital Observer metadata, social previews, editorial pages and 30 optimized editorial images; no Production provider setting, analytics activation, main merge or deployment.",
+        "disposition": "PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_LOCAL_SIX_GATES_AND_RENDERED_CRAWL_PASS",
+        "evidence": [
+          "Exact source head c9e8fbe646900e2cdec85eb4db05c6eef233ecb1: TypeScript PASS; lint baseline PASS with zero regressions; Production build PASS with 557/557 static pages",
+          "Domain gate 46/46 PASS; security gate 50/50 PASS plus vendored braces guards; migration health PASS for 258 files; release-contract PASS",
+          "Rendered sitemap crawl PASS: 46 public HTML pages, 51 valid structured-data blocks, one H1/title/canonical/description per page, metadata inside initial head, three private-route noindex probes, 308 canonical redirect and filtered-directory canonical",
+          "Editorial QA PASS: 12 Gan guides, 3 Digital Observer guides and 30 distinct optimized images; source-host validation and SEO contract PASS",
+          "Chrome DevTools mobile Fast 4G plus 4x CPU: home LCP 1692ms/TTFB 147ms/CLS 0; Gan guide LCP 1597ms/TTFB 249ms/CLS 0; Observer guide repeated LCP 2433ms and 2402ms, TTFB 185ms and 385ms, CLS 0",
+          "Lighthouse mobile on home, Gan guide and Observer guide: Accessibility 100, Best Practices 100, SEO 100 and Agentic Browsing 100"
+        ],
+        "limits": "Local lab measurements have no CrUX field data and do not guarantee ranking. Search Console property access, exact Alternate page report URLs, sitemap acceptance, URL Inspection, Bing/IndexNow, analytics and www DNS remain provider-side verification items after the owner-authorized release."
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "base": "integration/development",
+        "baseShaAtPreservation": "83249b44366386462d9a72f1a17dafa5321edaa6",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "LOCAL_EXACT_HEAD_SIX_GATES_PASS; REMOTE_BRANCH_PRESERVED; INTEGRATION_CHECKS_REQUIRED_AFTER_MERGE"
+      },
+      "dependencies": {
+        "status": "EXISTING_EDITORIAL_SCHEMA_ONLY",
+        "units": [],
+        "blockers": [
+          "Existing 20260913150000_editorial_articles.sql is developmentApplied YES but Production remains UNVERIFIED; this unit adds no migration",
+          "Search Console property and www DNS require provider verification and correction after the owner-authorized release"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "LOCAL_PRODUCTION_BUILD_557_OF_557; RENDERED_CRAWL_46_OF_46; LIGHTHOUSE_THREE_SURFACES_ALL_100; NO_PRODUCTION_PROVIDER_MUTATION",
+      "releaseEligibility": "PENDING_DEVELOPMENT_INTEGRATION_AND_OWNER_RELEASE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Integration owner should ancestry-preserve this branch into integration/development, rerun exact cumulative gates, reconcile the existing editorial migration against Development and later the frozen Production candidate, then include it only in the next explicit owner-authorized consolidated release. After release, verify Search Console URL Inspection/sitemap/canonical samples and correct www DNS before requesting reindexing."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

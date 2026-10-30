@@ -356,8 +356,11 @@
 .gb-public-button.soft {
   background: #f3f0ff;
   border-color: #e6deff;
-  color: #7650f2;
+  color: #6840dc;
 }
+
+.gb-public-page .gb-status-chip.gb-tone-success { color: #0a7a55; }
+.gb-public-page .gb-status-chip.gb-tone-warning { color: #9a6612; }
 
 .gb-public-button.large {
   border-radius: 22px;
@@ -554,7 +557,7 @@
 
 .gb-public-reason-card p,
 .gb-public-home-garden-card p {
-  color: #657394;
+  color: #536382;
   font-weight: 750;
   line-height: 1.7;
   margin: 0;
@@ -1302,6 +1305,12 @@
 .gb-action-card small {
   color: var(--gb-muted);
   font-weight: 800;
+}
+
+/* Public marketing cards use tinted backgrounds; keep supporting copy above
+   WCAG AA contrast without changing the product dashboard palette. */
+.gb-public-page .gb-action-card small {
+  color: #4f617f;
 }
 
 .gb-form-field {

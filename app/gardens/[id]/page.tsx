@@ -25,8 +25,13 @@ import { parentTrustTone, trustBadgeLabel } from "@/lib/domain/parent-trust";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { privateRouteMetadata } from "@/lib/seo/private-metadata";
 
 export const dynamic = "force-dynamic";
+// A dedicated publication-consent field for garden profiles and exact
+// addresses does not yet exist. Keep individual profiles out of search until
+// that contract is explicit; the safe public directory remains indexable.
+export const metadata = privateRouteMetadata;
 
 function dateText(value?: string | null) {
   return value ? new Date(value).toLocaleDateString("he-IL") : "טרם נקבע";
@@ -55,12 +60,8 @@ function PublicGardenHeader() {
 export default async function PublicGardenProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = createAdminClient();
-  const [gardenRes, staff, children, parents, inspections, trustRes, badgeRes] = await Promise.all([
-    supabase.from("gardens").select("*, manager:profiles!gardens_manager_id_fkey(full_name, phone)").eq("id", id).single(),
-    supabase.from("staff").select("id, role_title, approved_to_work").eq("garden_id", id).limit(10),
-    supabase.from("children").select("id", { count: "exact", head: true }).eq("garden_id", id).eq("status", "active"),
-    supabase.from("parents").select("id", { count: "exact", head: true }).eq("garden_id", id),
-    supabase.from("inspections").select("id, weighted_score, completed_at, violation_count, status").eq("garden_id", id).order("completed_at", { ascending: false }).limit(3),
+  const [gardenRes, trustRes, badgeRes] = await Promise.all([
+    supabase.from("gardens").select("id,name,city,image_url,children_capacity,safe_status,last_inspection_score,last_inspection_at,next_inspection_at,public_profile_enabled,manager:profiles!gardens_manager_id_fkey(full_name)").eq("id", id).single(),
     supabase.from("parent_trust_profiles" as any).select("*").eq("garden_id", id).eq("approved_for_parent_visibility", true).maybeSingle(),
     supabase.from("parent_trust_badges" as any).select("*").eq("garden_id", id).eq("active", true).order("issued_at", { ascending: false }).limit(1).maybeSingle()
   ]);
@@ -81,7 +82,7 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
   const trustTone = parentTrustTone(Number(trust?.trust_score ?? 0));
   const gardenName = cleanSyntheticLabel(garden.name, "גן ילדים");
   const gardenCity = cleanSyntheticLabel(garden.city, "");
-  const managerName = cleanSyntheticLabel(garden.manager?.full_name ?? garden.owner_name, "מנהלת הגן");
+  const managerName = cleanSyntheticLabel(garden.manager?.full_name, "מנהלת הגן");
 
   return (
     <>
@@ -91,7 +92,7 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
           <div>
             <StatusChip tone="primary" icon={ShieldCheck}>פרופיל גן ציבורי</StatusChip>
             <h1>{gardenName}</h1>
-            <p><MapPin size={18} /> {gardenCity} · {garden.address ?? "כתובת כללית לפי הרשאת הגן"} · מנהלת: {managerName}</p>
+            <p><MapPin size={18} /> {gardenCity} · הכתובת המדויקת אינה מוצגת לציבור · מנהלת: {managerName}</p>
             <div className="gb-public-hero-actions">
               <Link className="gb-public-button primary large" href="#registration">בקשת הצטרפות</Link>
               <Link className="gb-public-button soft large" href={`/app/login?gardenId=${garden.id}&audience=parent`}>התחברות הורה</Link>
@@ -103,9 +104,8 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
           </div>
         </section>
 
-        <DashboardGrid columns={4}>
+        <DashboardGrid columns={3}>
           <MetricCard icon={ShieldCheck} label="סטטוס" value={garden.safe_status === "safe" ? "גן בטוח" : "בתהליך"} hint="מידע ציבורי בלבד" tone={garden.safe_status === "safe" ? "success" : "warning"} />
-          <MetricCard icon={UsersRound} label="ילדים פעילים" value={children.count ?? 0} hint={`${parents.count ?? 0} הורים מחוברים`} tone="primary" />
           <MetricCard icon={ClipboardCheck} label="ציון ביקורת" value={garden.last_inspection_score ?? "טרם"} hint={`אחרונה: ${dateText(garden.last_inspection_at)}`} tone="info" />
           <MetricCard icon={CalendarDays} label="ביקורת הבאה" value={dateText(garden.next_inspection_at)} hint="לפי תכנית הפיקוח" tone="muted" />
         </DashboardGrid>
@@ -141,32 +141,13 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
             <PremiumCard className="gb-garden-info-card">
               <span><Camera size={26} /></span>
               <h3>צוות, מצלמות ופיקוח</h3>
-              <p>צוות רשום: <strong>{staff.data?.length ?? 0}</strong>. מצלמות וצפייה זמינות רק למורשים לפי מדיניות, בלי חשיפת כתובות או סיסמאות.</p>
+              <p>מצלמות, מסמכי צוות ודוחות מפורטים זמינים רק למשתמשים מורשים. הפרופיל הציבורי אינו חושף פרטי ילדים, נתוני חיבור או חומרי מצלמות.</p>
               <div className="gb-directory-garden-tags">
                 <span><UsersRound size={15} /> קיבולת: {garden.children_capacity ?? "לא צוין"}</span>
                 <span><ShieldCheck size={15} /> מצלמות לפי הרשאה בלבד</span>
                 <span><ClipboardCheck size={15} /> דוחות מלאים להורים מורשים בלבד</span>
               </div>
             </PremiumCard>
-          </DashboardGrid>
-        </section>
-
-        <section className="gb-public-section">
-          <SectionHeader eyebrow="ביקורות" title="סיכום ביקורות אחרונות" subtitle="פירוט פנימי, ראיות וליקויים מלאים אינם מוצגים לציבור אלא אם אושרו לפרסום." />
-          <DashboardGrid min="260px">
-            {(inspections.data ?? []).length === 0 ? (
-              <PremiumCard className="gb-garden-info-card">
-                <h3>אין ביקורות ציבוריות עדיין</h3>
-                <p>לאחר ביצוע ביקורת ואישור הצגה ציבורית, הסיכום יופיע כאן.</p>
-              </PremiumCard>
-            ) : (inspections.data ?? []).map((inspection: any) => (
-              <PremiumCard key={inspection.id} className="gb-garden-inspection-card">
-                <StatusChip tone={inspection.status === "done" ? "success" : "warning"} icon={ClipboardCheck}>{inspection.status ?? "במעקב"}</StatusChip>
-                <h3>ציון {inspection.weighted_score ?? "-"}</h3>
-                <p>{dateText(inspection.completed_at)}</p>
-                <span>{inspection.violation_count ?? 0} ליקויים לתיקון</span>
-              </PremiumCard>
-            ))}
           </DashboardGrid>
         </section>
 
