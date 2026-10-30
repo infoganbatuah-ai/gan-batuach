@@ -1966,6 +1966,16 @@ new record. The Vercel deployment inventory showed no new Preview or Production
 deployment after the feature and integration pushes; Production remains exact
 main commit `4e28d73f8a578637cc25522b193b550ad6d87482`.
 
+Google Safe Browsing follow-up (2026-10-30): the public transparency report
+still labels an unspecified subset of the apex domain as deceptive, while
+Search Console supplies no example URL. Exact report checks for current login,
+registration and password-reset paths returned no path-specific unsafe result.
+A fresh isolated-browser inspection loaded the Production apex without an
+interstitial and observed only same-origin document, script, RSC, monitoring
+and API requests; the bounded live/source scan found no injected third-party
+script, iframe or malicious redirect. The evidence supports a provider review;
+the external submission remains pending the owner's action-time confirmation.
+
 Digital Observer LCP follow-up receipt (2026-10-30): exact source
 `origin/codex/seo-performance-lcp-20261030@ccbc4296d71802d83c98a083669aa0a6514534c3`
 was remotely preserved and merged ancestry-preserving as
