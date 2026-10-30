@@ -169,7 +169,7 @@
       "commitsNotInMain": [
         "d95d323d10abb2abef563271fde6327bd1f5b66e"
       ],
-      "state": "PRESERVED_PENDING_INTEGRATION",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -12833,7 +12833,7 @@
           "origin/codex/event-risk-persist-review-20261026@364672482f0f314fb672fbc0cd9549be9737fb74"
         ],
         "sourceScope": "Draft PR #258 contains exactly four review-only files: QUALIFICATION.md, README.md, RPC-BODY-NOT-APPLIED.sql and run-isolated-postgres-qa.mjs under review-only/event-risk-persist-transaction/. No active route, migration or provider configuration changed.",
-        "disposition": "PRESERVED_PENDING_INTEGRATION"
+        "disposition": "ALREADY_INTEGRATED"
       },
       "validation": {
         "status": "ISOLATED_POSTGRES_RISK_TRANSACTION_PASS_LIVE_ADAPTER_BLOCKED",
@@ -13092,32 +13092,86 @@
           "Chrome DevTools mobile Fast 4G plus 4x CPU: home LCP 1692ms/TTFB 147ms/CLS 0; Gan guide LCP 1597ms/TTFB 249ms/CLS 0; Observer guide repeated LCP 2433ms and 2402ms, TTFB 185ms and 385ms, CLS 0",
           "Lighthouse mobile on home, Gan guide and Observer guide: Accessibility 100, Best Practices 100, SEO 100 and Agentic Browsing 100"
         ],
-        "limits": "Local lab measurements have no CrUX field data and do not guarantee ranking. Search Console property access, exact Alternate page report URLs, sitemap acceptance, URL Inspection, Bing/IndexNow, analytics and www DNS remain provider-side verification items after the owner-authorized release."
+        "limits": "Local lab measurements have no CrUX field data and do not guarantee ranking. Search Console now reports the former alternate-canonical reason at zero with validation passed; 21 existing Production URLs remain crawled-not-indexed until the owner-authorized content release and subsequent recrawl. Bing/IndexNow and analytics remain future provider-side work."
       },
       "integration": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "LOCAL_VERIFIED",
         "base": "integration/development",
         "baseShaAtPreservation": "83249b44366386462d9a72f1a17dafa5321edaa6",
-        "commit": null,
+        "commit": "fc4e332441db879af8efce81e45f960da4b37340",
         "pullRequest": null,
-        "requiredChecks": "LOCAL_EXACT_HEAD_SIX_GATES_PASS; REMOTE_BRANCH_PRESERVED; INTEGRATION_CHECKS_REQUIRED_AFTER_MERGE"
+        "requiredChecks": "CUMULATIVE_TYPECHECK_LINT_BUILD_DOMAIN_SECURITY_MIGRATION_RELEASE_CONTRACT_SEO_EDITORIAL_LEDGER_AND_RENDERED_CRAWL_PASS"
       },
       "dependencies": {
         "status": "EXISTING_EDITORIAL_SCHEMA_ONLY",
         "units": [],
         "blockers": [
           "Existing 20260913150000_editorial_articles.sql is developmentApplied YES but Production remains UNVERIFIED; this unit adds no migration",
-          "Search Console property and www DNS require provider verification and correction after the owner-authorized release"
+          "Production content activation, recrawl and index-request follow-up require the next explicit owner-authorized consolidated release"
         ]
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "LOCAL_PRODUCTION_BUILD_557_OF_557; RENDERED_CRAWL_46_OF_46; LIGHTHOUSE_THREE_SURFACES_ALL_100; NO_PRODUCTION_PROVIDER_MUTATION",
-      "releaseEligibility": "PENDING_DEVELOPMENT_INTEGRATION_AND_OWNER_RELEASE",
+      "localVerification": "LOCAL_PRODUCTION_BUILD_557_OF_557; RENDERED_CRAWL_46_OF_46; LIGHTHOUSE_THREE_SURFACES_ALL_100; DEVELOPMENT_DRIFT_259_OF_259; LOCAL_INTEGRATION_RUNTIME_STARTED_ON_EXACT_MERGE; NO_MAIN_OR_PRODUCTION_CONTENT_DEPLOYMENT",
+      "releaseEligibility": "READY_FOR_OWNER_RELEASE",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Integration owner should ancestry-preserve this branch into integration/development, rerun exact cumulative gates, reconcile the existing editorial migration against Development and later the frozen Production candidate, then include it only in the next explicit owner-authorized consolidated release. After release, verify Search Console URL Inspection/sitemap/canonical samples and correct www DNS before requesting reindexing."
+      "nextAction": "Keep this verified unit in integration/development for the next explicit owner-authorized consolidated release. At release time reconcile the existing editorial migration against the frozen Production candidate; after deployment verify sitemap/canonicals and request recrawl/indexing for the released public URLs."
+    },
+    {
+      "id": "codex/seo-performance-lcp-20261030",
+      "project": "Digital Observer public performance and crawl rendering",
+      "title": "Early high-priority discovery of the Digital Observer hero image",
+      "owner": "SEO/AEO/GEO reconciliation task",
+      "sourceBranch": "codex/seo-performance-lcp-20261030",
+      "sourceCommits": [
+        "ccbc4296d71802d83c98a083669aa0a6514534c3"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/seo-performance-lcp-20261030@ccbc4296d71802d83c98a083669aa0a6514534c3"
+        ],
+        "sourceScope": "One resource-hint client component and its public Digital Observer page integration; no database, provider, main or Production content change.",
+        "disposition": "ALREADY_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_TREE_BUILD_TYPECHECK_SEO_ESLINT_AND_DEVTOOLS_PERFORMANCE_PASS",
+        "evidence": [
+          "Next.js 16.4.1 Production build PASS with 557/557 static pages; TypeScript, targeted ESLint, git diff check and SEO contract PASS",
+          "Rendered head contains image preload for /assets/digital-observer/home-camera-grid.jpg with fetchpriority=high",
+          "Chrome DevTools mobile Slow 4G plus 4x CPU: LCP 1592ms, TTFB 35ms, CLS 0; hero request initial/final priority High",
+          "Hero resource load delay reduced from the measured 1445ms baseline to 75ms; request queued at 111ms and completed at 164ms"
+        ],
+        "limits": "Synthetic local lab data has no CrUX field data and does not guarantee ranking. Production remains on the previously released main commit until an explicit owner-authorized consolidated release."
+      },
+      "integration": {
+        "status": "LOCAL_VERIFIED",
+        "base": "integration/development",
+        "baseShaAtPreservation": "fc4e332441db879af8efce81e45f960da4b37340",
+        "commit": "e08b3735b184b71425127db75fe412021874f4ae",
+        "pullRequest": null,
+        "requiredChecks": "EXACT_FEATURE_TREE_BUILD_AND_PERFORMANCE_PASS; TREE_IDENTICAL_TO_INTEGRATION_MERGE"
+      },
+      "dependencies": {
+        "status": "SEO_RECONCILIATION_UNIT",
+        "units": [
+          "codex/seo-aeo-geo-reconciliation-20261030"
+        ],
+        "blockers": [
+          "Activation requires the next explicit owner-authorized consolidated release"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PRODUCTION_BUILD_557_OF_557; HIGH_PRIORITY_PRELOAD_PRESENT; MOBILE_SLOW_4G_CPU4_LCP_1592MS_CLS_0; NO_MAIN_OR_PRODUCTION_DEPLOYMENT",
+      "releaseEligibility": "READY_FOR_OWNER_RELEASE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Keep the verified commit in integration/development and include it only in the next explicit owner-authorized consolidated release; compare Production field and lab LCP after deployment."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
