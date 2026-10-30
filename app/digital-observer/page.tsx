@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Bell, BrainCircuit, Building2, Camera, Check, FileSearch, Home, LockKeyhole, Radar, ShieldCheck } from "lucide-react";
+import { DigitalObserverHeroPreload } from "@/components/digital-observer/digital-observer-hero-preload";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { digitalObserverMetadata } from "@/lib/seo/digital-observer-metadata";
 
@@ -22,6 +23,7 @@ const productSchema = {
 
 export default function DigitalObserverPublicPage() {
   return <main className="do-public" dir="rtl">
+    <DigitalObserverHeroPreload />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
     <header className="do-public-header"><Link className="do-auth-brand dark" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>מצלמות חכמות, החלטות אנושיות</small></span></Link><nav aria-label="ניווט ראשי"><Link href="#how">איך זה עובד</Link><Link href="#uses">לבית ולעסק</Link><Link href="/digital-observer/video-investigation">חקירת וידאו</Link><Link href="/digital-observer/guides">מדריכים</Link><Link href="/digital-observer/pricing">מחירים</Link><Link href="/digital-observer/trust">פרטיות ואמון</Link></nav><div><Link className="do-button secondary" href="/digital-observer/login">התחברות</Link><Link className="do-button primary" href="/digital-observer/register">יצירת חשבון</Link></div></header>
     <section className="do-public-hero">
