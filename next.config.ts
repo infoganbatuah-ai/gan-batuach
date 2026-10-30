@@ -9,6 +9,10 @@ if (qaDevHost && !/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(qaDevHost)) {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
+  // Editorial metadata must be present in the initial <head> for Google,
+  // Bing and HTML-limited AI/search crawlers alike. This intentionally trades
+  // a small amount of dynamic-route TTFB for deterministic indexability.
+  htmlLimitedBots: /.*/,
   ...(process.env.NODE_ENV === "development" && qaDevHost
     ? { allowedDevOrigins: [qaDevHost] }
     : {}),
