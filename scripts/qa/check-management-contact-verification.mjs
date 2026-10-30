@@ -70,15 +70,17 @@ test("self-service registration uses confirmation signup and enrolls only new ac
   assert.match(registration, /next_path: payload\.invitation_token[\s\S]+"\/app\/verify-contact"/);
 });
 
-test("email resend is non-enumerating and phone confirmation uses phone-change OTP", () => {
+test("email resend is non-enumerating and SMS authentication is disabled", () => {
   const email = source("app/api/auth/verification/email/resend/route.ts");
   assert.match(email, /auth\.resend\(/);
   assert.match(email, /type: "signup"/);
   assert.match(email, /return ok\(\{ accepted: true \}\)/);
   assert.doesNotMatch(email, /return fail\([^\n]+error/);
   const phone = source("app/api/auth/verification/phone/confirm/route.ts");
-  assert.match(phone, /type: "phone_change"/);
-  assert.match(phone, /phone_confirmed_at/);
+  assert.match(phone, /SMS מושבת לפי מדיניות הבעלים/);
+  assert.match(phone, /, 410\)/);
+  assert.doesNotMatch(phone, /verifyOtp\(/);
+  assert.doesNotMatch(phone, /type: "phone_change"/);
 });
 
 test("password recovery keeps account enumeration closed and consumes the recovery session", () => {

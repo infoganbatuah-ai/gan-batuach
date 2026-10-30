@@ -30,11 +30,12 @@ import { BrandHeader } from "@/components/brand-header";
 import { ArticleCarousel } from "@/components/editorial/article-carousel";
 import { getPublishedArticles } from "@/lib/editorial/store";
 import { SITE_URL } from "@/lib/editorial/articles";
+import { ganBatuachShareImage } from "@/lib/seo/brand-assets";
 import type { KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import "./articles/articles.css";
 
 type HomeGarden = {
-  id: string; name: string; city: string; address?: string | null;
+  id: string; name: string; city: string;
   image_url?: string | null; safe_status?: string | null;
   supported_age_groups?: KindergartenAgeGroup[];
 };
@@ -43,8 +44,8 @@ export const metadata = {
   title: { absolute: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים" },
   description: "גן בטוח מחבר תו תקן פרטי לגני ילדים, בקרה ופיקוח, מערכת לניהול גן ילדים מקצה לקצה ופורטל הורים. מידע ברור על בטיחות ושקיפות.",
   alternates: { canonical: SITE_URL },
-  openGraph: { title: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים", description: "ניהול גן ילדים מקצה לקצה, בקרה ופיקוח ופורטל הורים במקום אחד.", url: SITE_URL, images: ["/assets/hero-control-center.png"] },
-  twitter: { card: "summary_large_image" as const }
+  openGraph: { type: "website" as const, locale: "he_IL", siteName: "גן בטוח", title: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים", description: "ניהול גן ילדים מקצה לקצה, בקרה ופיקוח ופורטל הורים במקום אחד.", url: SITE_URL, images: [ganBatuachShareImage] },
+  twitter: { card: "summary_large_image" as const, title: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים", description: "ניהול גן ילדים מקצה לקצה, בקרה ופיקוח ופורטל הורים במקום אחד.", images: [ganBatuachShareImage.url] }
 };
 
 const heroPills = [
@@ -61,7 +62,7 @@ const moduleCards = [
   { icon: HeartHandshake, title: "דשבורד הורים", text: "כרטיס ילד, עדכונים, תשלומים, הודעות ובקשות הצטרפות.", href: "/parents", tone: "success" as const },
   { icon: UsersRound, title: "דשבורד צוות", text: "משמרות, נוכחות, משימות, מסמכים ותקשורת עם הגן.", href: "/staff", tone: "info" as const },
   { icon: ClipboardCheck, title: "דשבורד מפקח", text: "ביקורת חודשית, ליקויים, תיקונים ודוחות מסודרים.", href: "/join-inspector", tone: "info" as const },
-  { icon: Bot, title: "תצפיתן דיגיטלי", text: "AI זהיר במצב shadow עם בדיקה אנושית לפני פעולה.", href: "/digital-observer", tone: "warning" as const }
+  { icon: Bot, title: "תצפית דיגיטלית בגן", text: "כלי מצלמות בבדיקות מבוקרות, עם בדיקה אנושית לפני פעולה.", href: "/ai-observer", tone: "warning" as const }
 ];
 
 const trustReasons = [
@@ -78,7 +79,7 @@ async function getHomeGardens() {
     const supabase = createAdminClient();
     const { data } = await supabase
       .from("gardens")
-      .select("id, name, city, address, image_url, rating, owner_name, framework_type, ages, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, manager:profiles!gardens_manager_id_fkey(full_name)")
+      .select("id, name, city, image_url, rating, owner_name, framework_type, ages, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, manager:profiles!gardens_manager_id_fkey(full_name)")
       .eq("public_profile_enabled", true)
       .limit(3);
     return await Promise.all((data ?? []).filter((garden: HomeGarden) => !/\[demo\]|\bdemo\b/i.test(garden.name)).map(async (garden: HomeGarden) => ({ ...garden, supported_age_groups: await getKindergartenAgeGroups(supabase, garden.id, garden) })));
@@ -171,11 +172,11 @@ export default async function HomePage() {
         </section>
 
         <section className="gb-public-section">
-          <SectionHeader eyebrow="כלים שמשרתים את היום־יום" title="מה מקבלים במערכת לניהול גן ילדים?" subtitle="הכלים מוצגים לפי הצורך של כל גן והרשאות המשתמשים; זמינות מצלמות ונתונים ציבוריים תלויה בהגדרות ובהתאמה לדין." action={<Link className="gb-public-button soft" href="/join-kindergarten">ניהול גן</Link>} />
+          <SectionHeader eyebrow="כלים שמשרתים את היום־יום" title="מה מקבלים במערכת לניהול גן ילדים?" subtitle="הכלים מוצגים לפי הצורך של כל גן והרשאות המשתמשים; זמינות מצלמות ונתונים ציבוריים תלויה בהגדרות ובהתאמה לדין." action={<Link className="gb-public-button soft" href="/kindergarten-management">מערכת ניהול הגן</Link>} />
           <DashboardGrid min="240px">
             <PremiumCard><h3>רישום וכרטיס ילד</h3><p>רישום ילדים, פרטי קשר וכרטיס דיגיטלי למידע חיוני כמו אלרגיות, רגישויות, רקע מהגן הקודם והערות צוות רלוונטיות — לפי הרשאות.</p></PremiumCard>
             <PremiumCard><h3>הורים וצוות מחוברים</h3><p>כניסה נפרדת לצוות ולהורים, הודעות, נוכחות, משמרות, מסמכים ותשלומים כדי שהמידע החשוב לא ילך לאיבוד.</p></PremiumCard>
-            <PremiumCard><h3>מצלמות ותצפיתן דיגיטלי</h3><p>התממשקות למצלמות הגן בכפוף לדין ולהרשאות. התצפיתן הדיגיטלי נמצא בבדיקות מבוקרות ומספק אינדיקציות לבדיקה אנושית, לא קביעה אוטומטית.</p></PremiumCard>
+            <PremiumCard><h3>מצלמות ותצפית בגן</h3><p>התממשקות למצלמות הגן כפופה לדין ולהרשאות. כלי התצפית נמצאים בבדיקות לקראת התאמה לגנים, כדי לספק אינדיקציות לבדיקה אנושית — לא קביעה אוטומטית.</p></PremiumCard>
             <PremiumCard><h3>צוות, למידה ואיכות</h3><p>מעקב אחר מסמכים, הכשרות, השתלמויות ויעדי למידה, לצד ממצאי ביקורת וציון איכות כשיש נתונים מאומתים. אישורי העסקה נבדקים במסלול המוסמך בלבד.</p></PremiumCard>
           </DashboardGrid>
         </section>
@@ -243,7 +244,7 @@ export default async function HomePage() {
                   <div className="gb-public-garden-thumb">{garden.image_url ? <Image src={garden.image_url} alt={garden.name} width={560} height={320} unoptimized /> : <Building2 size={34} />}</div>
                   <StatusChip tone={garden.safe_status === "safe" ? "success" : "warning"} icon={ShieldCheck}>{garden.safe_status === "safe" ? "גן בטוח" : "בתהליך"}</StatusChip>
                   <h3>{garden.name}</h3>
-                  <p><MapPin size={16} /> {garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"}</p>
+                  <p><MapPin size={16} /> {garden.city} · כתובת מדויקת אינה מוצגת בתוצאות החיפוש</p>
                   <small>{formatAgeGroups(garden.supported_age_groups ?? [])}</small>
                   <b>{formatPublicPriceRange(garden.supported_age_groups ?? [])}</b>
                 </PremiumCard>

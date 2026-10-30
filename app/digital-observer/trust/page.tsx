@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { BellRing, Eye, FileText, Headphones, LockKeyhole, ShieldCheck, Trash2, UserCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { digitalObserverMetadata } from "@/lib/seo/digital-observer-metadata";
 
-export const metadata: Metadata = {
-  title: { absolute: "פרטיות, אמון ותמיכה | תצפיתן דיגיטלי" },
-  description: "כללי הגישה למצלמות, שמירת אירועים, AI, מחיקת מידע ותמיכת התצפיתן הדיגיטלי."
-};
+export const metadata = digitalObserverMetadata("/digital-observer/trust", "פרטיות, אמון ותמיכה | תצפיתן דיגיטלי", "כללי הגישה למצלמות, שמירת אירועים, AI, מחיקת מידע ותמיכת התצפיתן הדיגיטלי.");
 
 export default function DigitalObserverTrustPage() {
   return (
@@ -31,7 +28,7 @@ export default function DigitalObserverTrustPage() {
       <section className="do-panel do-trust-panel" id="terms">
         <div className="do-section-head"><div><h2>כללי שימוש ושמירת מידע</h2><p>המסמכים המלאים עדיין דורשים סקירה משפטית חיצונית לפני הפעלה ציבורית.</p></div><span className="do-badge warn">טיוטה לבדיקה משפטית</span></div>
         <div className="do-trust-grid">
-          <article><strong>שמירת אירועים</strong><p>מקטעים נשמרים לפי החבילה ועד 48 שעות במוצר זה. עותק שהורד למכשיר נשאר באחריות המשתמש.</p></article>
+          <article><strong>שמירת אירועים</strong><p>משך השמירה נקבע לפי החבילה והמדיניות המאושרת שמוצגת בחשבון. אין להסתמך על פרק זמן קבוע לפני אישור החבילה; עותק שהורד למכשיר נשאר באחריות המשתמש.</p></article>
           <article><strong>מחיקת חשבון</strong><p>בקשת מחיקה צריכה להסיר הרשאות, מקורות מצלמה, אירועים ומדיה לפי תהליך מבוקר ומתועד.</p></article>
           <article><strong>התראות</strong><p>Push, Email, SMS, WhatsApp ושיחות מופעלים רק דרך ספק מאושר והסכמה מתאימה. בדמו אין שליחה אמיתית.</p></article>
           <article><strong>חירום</strong><p>התצפיתן הדיגיטלי אינו מוקד חירום. במקרה חירום יש לפנות מיד לגורמי החירום הרלוונטיים.</p></article>

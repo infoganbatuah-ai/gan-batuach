@@ -18,16 +18,19 @@ const siteId=randomUUID(),cameraId=randomUUID(),gatewayId=randomUUID(),deviceId=
 const tables={
   video_gateway_device_enrollments:[{id:deviceId,gateway_id:gatewayId,observer_site_id:siteId,status:"delivered"}],
   observer_sites:[{id:siteId,garden_id:null,site_type:"home",monitoring_enabled:true,metadata:{observer_monitoring_consent:true}}],
+  observer_site_subscriptions:[{id:randomUUID(),observer_site_id:siteId,commercial_state:"active",entitlement_snapshot:{ai_processing:true,evidence_storage:true,video_retention:24},trial_end:null,grace_period_ends_at:null}],
   digital_observer_camera_sources:[{id:cameraId,observer_site_id:siteId,display_name:"כניסה",status:"connected",source_mode:"gateway_test",metadata:{gateway_id:gatewayId,gateway_stream_id:"stream",zone_type:"ENTRANCE"}}],
   observer_monitoring_schedules:[{observer_site_id:siteId,status:"active",timezone:"UTC",schedule:{quiet_hours:{start:"00:00",end:"06:00"}}}],
   observer_intelligence_signals:[], digital_observer_authorized_recipients:[], observer_alert_channel_settings:[],
   digital_observer_notification_deliveries:[], provider_webhook_events:[], digital_observer_event_clips:[], immutable_audit_events:[]
 };
 let failImmutableAuditWrites=false, immutableAuditFailures=0;
+let signalReads=0;
+const raceReads={enabled:false,arrivals:0,gate:null,release:null};
 class Query {
-  constructor(table){this.table=table;this.filters=[];}
+  constructor(table){this.table=table;this.filters=[];this.equalities={};}
   select(){return this;}
-  eq(key,val){this.filters.push(row=>row[key]===val);return this;}
+  eq(key,val){this.equalities[key]=val;this.filters.push(row=>row[key]===val);return this;}
   insert(row){this.insertion=row;return this;}
   update(row){this.patch=row;return this;}
   then(resolve,reject){return this.execute(false).then(resolve,reject);}
@@ -36,29 +39,43 @@ class Query {
   async execute(single){
     if(this.insertion){
       if(this.table==="immutable_audit_events" && failImmutableAuditWrites) return {data:null,error:{code:"FIXTURE_AUDIT_FAILURE",message:"fixture audit failure"}};
+      // Model the existing source uniqueness constraint, not an in-process route lock.
+      if(this.table==="observer_intelligence_signals" && tables[this.table].some(row=>row.source_type===this.insertion.source_type && row.source_id===this.insertion.source_id)) return {data:null,error:{code:"23505"}};
       if(this.insertion.dedupe_key && tables[this.table].some(row=>row.dedupe_key===this.insertion.dedupe_key)) return {data:null,error:{code:"23505"}};
-      const row={id:randomUUID(),...this.insertion};tables[this.table].push(row);return {data:single?row:[row],error:null};
+      const row={id:randomUUID(),...this.insertion};
+      // Model the documented numeric(5,4) coercion at a decimal tie that
+      // binary Math.round(value * 10_000) handles incorrectly.
+      if(this.table==="observer_intelligence_signals" && row.confidence===.55085) row.confidence=.5509;
+      tables[this.table].push(row);return {data:single?row:[row],error:null};
     }
+    if(this.table==="observer_intelligence_signals") signalReads++;
     const rows=tables[this.table]?.filter(row=>this.filters.every(f=>f(row)))??[];
+    // Force two route requests to observe the same pre-insert snapshot.
+    if(this.table==="observer_intelligence_signals" && this.equalities.source_id && raceReads.enabled){
+      raceReads.arrivals++;
+      if(raceReads.arrivals===2){raceReads.enabled=false;raceReads.release();}
+      else await raceReads.gate;
+    }
     if(this.patch) for(const row of rows) Object.assign(row,this.patch);
     return {data:single?rows[0]??null:rows,error:null};
   }
 }
 let uploads=0;
 const db={from:table=>new Query(table),storage:{from:()=>({upload:async()=>{uploads++;return {error:null};}})}};
-let pushCalls=0, pushStatus="sent";
+let pushCalls=0;
+let riskCalls=0;
 const audits=[];
 const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   ok:(data,status=200)=>Response.json({data},{status}),fail:(error,status=400)=>Response.json({error},{status}),handleRouteError:()=>Response.json({error:"route_failure"},{status:500})
 },"@/lib/domain/digital-observer/storage-contract.mjs":{
   createStorageObjectId:({tenantId,siteId,evidenceId,variant,extension})=>`${tenantId}/${siteId}/${evidenceId}/${variant}.${extension}`,
   createSupabaseStorageBackend:({client})=>({write:async({objectId,bytes,contentType})=>{const result=await client.storage.from("digital-observer-event-media").upload(objectId,bytes,{contentType,upsert:true});if(result.error)throw new Error("storage_write_failed");return {object_id:objectId};}})
-},"@/lib/domain/push-service":{preparePushForNotification:async()=>{pushCalls++;return {logs:pushStatus?[{status:pushStatus}]:[],error:null};}},
+},"@/lib/domain/push-service":{preparePushForNotification:async()=>{pushCalls++;return {logs:[{status:"sent"}],error:null};}},
 "@/lib/security/audit-log-service":{writeAuditEvent:async input=>{
   const result=await db.from("immutable_audit_events").insert(input);
   if(result.error){immutableAuditFailures++;return;}
   audits.push(input);
-}},"@/lib/domain/digital-observer/risk-decision-service":{evaluateAndPersistIncidentRisk:async()=>({status:"not_applicable"})},"server-only":{}};
+}},"@/lib/domain/digital-observer/risk-decision-service":{evaluateAndPersistIncidentRisk:async()=>{riskCalls++;return {status:"not_applicable"};}},"server-only":{}};
 const tokenLib=load("lib/domain/gateway-device-enrollment.ts",mocks);
 const token=tokenLib.issueGatewayDeviceAccessToken({device_id:deviceId,gateway_id:gatewayId,observer_site_id:siteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
 const route=load("app/api/video-gateway/cloud-events/route.ts",mocks);
@@ -72,6 +89,16 @@ let value=(await response.json()).data;assert.equal(value.recording_required,fal
 assert.equal(tables.observer_intelligence_signals[0].metadata.observation_provenance,"REAL_CAMERA_AI","Authenticated Gateway events are explicitly marked as real camera AI");
 assert.equal(tables.observer_intelligence_signals[0].metadata.stream_id,"stream","Authenticated Gateway events retain their source stream binding");
 assert.equal((await send(event)).status,201);assert.equal(tables.observer_intelligence_signals.length,1,"Retries must not insert a second event");
+const riskCallsBeforeConflicts=riskCalls;
+assert.equal((await send({...event,track_id:"different-track"})).status,409,"A reused event ID cannot change the tracked observation");
+assert.equal((await send({...event,confidence:.72})).status,409,"A reused event ID cannot change its confidence or downstream risk input");
+assert.equal((await send({...event,model_provenance:{model:"different-model",runtime:"qa",execution_provider:"qa"}})).status,409,"A reused event ID cannot add different model provenance");
+assert.equal((await send({...event,verification_evidence:{distinct_source_frames:2,directional_confirmations:0,source_sequence:1,source_anchor_verified:true,tracking_duration_ms:100}})).status,409,"A reused event ID cannot substitute verification evidence");
+tables.digital_observer_camera_sources[0].metadata.verified_event_models={person_detected:true};
+assert.equal((await send({...event,evidence_kind:"validated_rule"})).status,409,"A reused event ID cannot substitute another compatible evidence kind");
+delete tables.digital_observer_camera_sources[0].metadata.verified_event_models;
+assert.equal(tables.observer_intelligence_signals.length,1,"Conflicting retries do not create or replace durable observations");
+assert.equal(riskCalls,riskCallsBeforeConflicts,"Conflicting retries are rejected before Incident Risk evaluation");
 assert.equal((await send({...event,event_id:randomUUID(),timestamp:new Date(Date.now()-2*86400000).toISOString()})).status,201,"An authenticated backlog older than one day must not be lost");
 assert.equal(tables.observer_intelligence_signals[1].metadata.received_late,true);
 assert.equal((await send({...event,event_id:randomUUID(),timestamp:new Date(Date.now()+180000).toISOString()})).status,422);
@@ -154,22 +181,8 @@ assert.equal(pushCalls,0,"Push requires explicit recipient/channel opt-in");
 tables.observer_alert_channel_settings.push({observer_site_id:siteId,member_profile_id:owner,channel:"push",enabled:true,severity_levels:["critical"]});
 await send(critical);
 await send(critical);
-assert.equal(pushCalls,1,"Repeated delivery requests must not resend an accepted Push");
-assert.equal(tables.digital_observer_notification_deliveries.filter(d=>d.channel==="push"&&d.delivery_status==="sent").length,1);
-pushStatus="sent_mock";
-await send({...critical,event_id:randomUUID()});
-assert.equal(tables.digital_observer_notification_deliveries.filter(d=>d.channel==="push"&&d.delivery_status==="mocked"&&d.sent_at===null).length,1,"Mock provider acceptance cannot appear as a real sent notification");
-pushStatus="";
-const failedPushEvent={...critical,event_id:randomUUID()};
-const failedPushSaved=(await (await send(failedPushEvent)).json()).data;
-assert.equal(failedPushSaved.notifications_pending,true);
-const failedDelivery=tables.digital_observer_notification_deliveries.find(d=>d.signal_id===failedPushSaved.signal_id&&d.channel==="push");
-failedDelivery.next_retry_at=null;
-assert.equal((await (await send(failedPushEvent)).json()).data.notifications_pending,true);
-failedDelivery.next_retry_at=null;
-assert.equal((await (await send(failedPushEvent)).json()).data.notifications_pending,false);
-assert.equal(failedDelivery.attempt_count,3);
-assert.equal(failedDelivery.delivery_status,"failed");
+assert.equal(pushCalls,0,"A recipient preference cannot activate external Push without an authorized PUSH 39 action intent and provider gate");
+assert.equal(tables.digital_observer_notification_deliveries.filter(d=>d.channel==="push").length,0,"Raw Event ingestion never bypasses the canonical external-delivery flow");
 tables.observer_sites[0].metadata.observer_monitoring_consent=false;
 assert.equal((await send({...offHours,event_id:randomUUID()})).status,403,"Off-hours compatibility never bypasses site monitoring consent");
 tables.observer_sites[0].metadata.observer_monitoring_consent=true;
@@ -178,5 +191,91 @@ assert.equal((await send({...offHours,event_id:randomUUID()})).status,403,"Off-h
 tables.digital_observer_camera_sources[0].metadata.monitoring_enabled=true;
 tables.video_gateway_device_enrollments[0].status="revoked";
 assert.equal((await send(event)).status,401);
+assert.equal(tables.observer_intelligence_signals.length,6);
+tables.video_gateway_device_enrollments[0].status="delivered";
+tables.digital_observer_camera_sources[0].metadata.zone_type="ENTRANCE";
+const separateObservation={...event,event_id:randomUUID()};
+assert.equal((await send(separateObservation)).status,201,"A distinct event ID remains distinct even at the same camera and timestamp");
+assert.equal(tables.observer_intelligence_signals.length,7);
+const otherSiteId=randomUUID(),otherCameraId=randomUUID(),otherGatewayId=randomUUID(),otherDeviceId=randomUUID();
+const tenantA=randomUUID(),tenantB=randomUUID();
+tables.video_gateway_device_enrollments[0].tenant_id=tenantA;
+tables.observer_sites[0].owner_profile_id=tenantA;
+tables.video_gateway_device_enrollments.push({id:otherDeviceId,gateway_id:otherGatewayId,observer_site_id:otherSiteId,tenant_id:tenantB,status:"delivered"});
+tables.observer_sites.push({id:otherSiteId,owner_profile_id:tenantB,garden_id:null,site_type:"home",monitoring_enabled:true,metadata:{observer_monitoring_consent:true}});
+tables.observer_site_subscriptions.push({id:randomUUID(),observer_site_id:otherSiteId,commercial_state:"active",entitlement_snapshot:{ai_processing:true,evidence_storage:true,video_retention:24},trial_end:null,grace_period_ends_at:null});
+tables.digital_observer_camera_sources.push({id:otherCameraId,observer_site_id:otherSiteId,display_name:"Other entrance",status:"connected",source_mode:"gateway_test",metadata:{gateway_id:otherGatewayId,gateway_stream_id:"stream",zone_type:"ENTRANCE"}});
+const otherToken=tokenLib.issueGatewayDeviceAccessToken({device_id:otherDeviceId,gateway_id:otherGatewayId,observer_site_id:otherSiteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
+assert.equal((await send({...event,camera_source_id:otherCameraId},otherToken)).status,201,"The same producer event ID at another authorized site is independently namespaced");
+assert.notEqual(tables.observer_intelligence_signals.at(-1).source_id,tables.observer_intelligence_signals[0].source_id,"Different sites cannot share the durable source key");
 assert.equal(tables.observer_intelligence_signals.length,8);
-console.log("Event ingestion checks passed: token validation, revocation, scope, consent, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");
+const crossSiteBefore=riskCalls;
+const crossSiteReadsBefore=signalReads;
+for(const denied of [
+  await send({...event,camera_source_id:otherCameraId},token),
+  await send({...event,camera_source_id:cameraId},otherToken)
+]){
+  assert.equal(denied.status,403,"An authorized device cannot claim the other tenant's camera");
+  const body=await denied.text();
+  assert([siteId,cameraId,otherSiteId,otherCameraId,tenantA,tenantB,"event_summary"].every(value=>!body.includes(value)),"Cross-tenant denial reveals no stored identifiers or metadata");
+}
+const mismatchedClaim=tokenLib.issueGatewayDeviceAccessToken({device_id:deviceId,gateway_id:gatewayId,observer_site_id:otherSiteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
+assert.equal((await send({...event,camera_source_id:otherCameraId},mismatchedClaim)).status,401,"The existing enrollment must match the signed Site claim before source lookup");
+assert.equal(signalReads,crossSiteReadsBefore,"Source ownership is checked before any replay lookup");
+assert.equal(riskCalls,crossSiteBefore,"Cross-tenant requests stop before replay comparison and risk evaluation");
+
+tables.digital_observer_camera_sources[0].metadata.crossing_line={axis:"y",position:.5,inside:"positive"};
+tables.digital_observer_camera_sources[1].metadata.crossing_line={axis:"y",position:.5,inside:"positive"};
+const sharedProducerEntry={...event,event_id:randomUUID(),event_type:"person_entered",severity:"CRITICAL",evidence_kind:"line_crossing",track_id:"shared-track"};
+assert.equal((await send(sharedProducerEntry)).status,201);
+assert.equal((await send({...sharedProducerEntry,camera_source_id:otherCameraId},otherToken)).status,201);
+const persistedEntries=tables.observer_intelligence_signals.slice(-2);
+assert.notEqual(persistedEntries[0].id,persistedEntries[1].id,"One producer ID at two Sites becomes two distinct durable signal IDs");
+assert.notEqual(persistedEntries[0].source_id,persistedEntries[1].source_id,"One producer ID at two Sites has separate unique keys");
+const {correlateCanonicalEvents}=load("lib/domain/digital-observer/incident-correlation.ts",mocks);
+const projected=correlateCanonicalEvents(persistedEntries);
+assert.equal(projected.length,2,"The existing incident projector keeps the two Site observations in separate incidents");
+assert.notEqual(projected[0].observer_site_id,projected[1].observer_site_id);
+
+const raceEvent={...sharedProducerEntry,event_id:randomUUID(),track_id:"race-track"};
+const signalsBeforeRace=tables.observer_intelligence_signals.length;
+const deliveriesBeforeRace=tables.digital_observer_notification_deliveries.length;
+const riskBeforeRace=riskCalls;
+raceReads.gate=new Promise(resolve=>{raceReads.release=resolve;});
+raceReads.enabled=true;
+const [firstRace,secondRace]=await Promise.all([send(raceEvent),send(raceEvent)]);
+assert.deepEqual([firstRace.status,secondRace.status],[201,201],"The mocked unique-key conflict is reread as an idempotent outcome");
+assert.equal(raceReads.arrivals,2,"Both requests observed the pre-insert snapshot");
+assert.equal(tables.observer_intelligence_signals.length,signalsBeforeRace+1,"The mocked database uniqueness constraint permits one durable signal");
+assert.equal(tables.digital_observer_notification_deliveries.length,deliveriesBeforeRace+2,"The existing dedupe key permits one in-app intent per authorized recipient");
+const riskEvaluationsDuringRace=riskCalls-riskBeforeRace;
+assert.equal(riskEvaluationsDuringRace,2,"Current route recomputes Risk in both requests; this is not a cross-worker idempotency proof");
+const reloadedRoute=load("app/api/video-gateway/cloud-events/route.ts",mocks,new Map());
+const notificationCountBeforeReload=tables.digital_observer_notification_deliveries.length;
+const reloadedReply=await reloadedRoute.POST(new Request("http://test.invalid/api/video-gateway/cloud-events",{
+  method:"POST",headers:{"content-type":"application/json","x-video-gateway-device-token":token},body:JSON.stringify(raceEvent)
+}));
+assert.equal(reloadedReply.status,201,"A route-module reload can reread the same persisted fixture event");
+assert.equal(tables.observer_intelligence_signals.length,signalsBeforeRace+1,"A simulated restart does not insert another signal into the shared fixture store");
+assert.equal(tables.digital_observer_notification_deliveries.length,notificationCountBeforeReload,"A simulated restart does not duplicate notification intents");
+const detailed={...event,event_id:randomUUID(),confidence:.90005,
+  model_provenance:{model:"qa-model",runtime:"local",execution_provider:"local"},
+  verification_evidence:{distinct_source_frames:2,directional_confirmations:0,source_sequence:11,source_anchor_verified:true,tracking_duration_ms:100}};
+assert.equal((await send(detailed)).status,201);
+const detailedSignal=tables.observer_intelligence_signals.at(-1);
+detailedSignal.confidence=.9001; // Simulate the existing numeric(5,4) database column.
+assert.equal((await send({...detailed,model_provenance:{execution_provider:"local",runtime:"local",model:"qa-model"}})).status,201,"Nested JSON key order and database precision do not invent a replay conflict");
+assert.equal((await send({...detailed,verification_evidence:{...detailed.verification_evidence,source_sequence:12}})).status,409,"Changed nested evidence cannot reuse an Event ID");
+assert.equal((await send({...detailed,confidence:.9002})).status,409,"A distinct normalized confidence cannot reuse an Event ID");
+assert.equal((await send({...detailed,event_id:randomUUID(),confidence:.9002})).status,201,"A replay collision does not suppress a later legitimate Event");
+const decimalTie={...event,event_id:randomUUID(),confidence:.55085};
+// PostgreSQL numeric(5,4) rounds this decimal tie to .5509; binary
+// multiplication by 10,000 instead produces 5508.499999999999.
+const signalCountBeforeTie=tables.observer_intelligence_signals.length;
+assert.equal((await send(decimalTie)).status,201,"A valid decimal-tie confidence survives its first database round trip");
+assert.equal(tables.observer_intelligence_signals.length,signalCountBeforeTie+1);
+assert.equal(tables.observer_intelligence_signals.at(-1).confidence,.5509);
+assert.equal((await send(decimalTie)).status,201,"A retry compares the database's numeric(5,4) value to the original decimal observation");
+assert.equal((await send({...decimalTie,confidence:.5508})).status,409,"A genuinely different confidence remains a conflict after decimal normalization");
+console.log(JSON.stringify({localRace:{accepted:2,durableSignals:1,inAppIntents:2,riskEvaluations:riskEvaluationsDuringRace,database:"mocked_unique_constraint",moduleReload:"simulated",postgresqlIntegration:false}}));
+console.log("Event ingestion checks passed: token validation, revocation, scope, consent, immutable replay identity, Site-scoped tenant denial, mocked race behavior, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");

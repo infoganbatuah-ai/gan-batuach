@@ -71,6 +71,17 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
     lease.bytes += bytes.length;
     retainedBytes += bytes.length;
   }
+  async function copySegmentAsync(lease, segment, readSegment) {
+    const input = await readSegment(segment.name);
+    if (!Buffer.isBuffer(input) || !input.length || input.length > maxSegmentBytes) throw Error("segment_size_invalid");
+    if (retainedBytes + input.length > maxBytes) throw Error("evidence_memory_limit");
+    const streamBytes = [...leases.values()].filter(item => item.streamId === lease.streamId).reduce((n, item) => n + item.bytes, 0);
+    if (streamBytes + input.length > maxBytesPerStream) throw Error("evidence_stream_memory_limit");
+    const bytes = Buffer.from(input);
+    lease.segments.set(segment.sequence, { ...segment, bytes, sha256: digest(bytes) });
+    lease.bytes += bytes.length;
+    retainedBytes += bytes.length;
+  }
   return {
     updateManifest(manifest) {
       sweep();
@@ -203,6 +214,36 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
       leases.set(id, lease);
       try {
         for (const segment of segments) copySegment(lease, segment, readSegment);
+        return { status: "prepared", lease_id: id, segment: { ...last }, bytes: lease.segments.get(last.sequence).bytes, signal: lease.controller.signal };
+      } catch (error) { release(id); return failure(["segment_size_invalid", "evidence_memory_limit", "evidence_stream_memory_limit"].includes(error.message) ? error.message : "source_segment_unavailable"); }
+    },
+    async prepareAsync({ streamId, sourceGeneration, sequenceFloor, playlistText, readSegment }) {
+      sweep();
+      const binding = bindings.get(streamId);
+      if (!binding) return failure("monitoring_not_authorized");
+      if (typeof streamId !== "string" || !streamId || typeof sourceGeneration !== "string" || !sourceGeneration
+        || !Number.isSafeInteger(sequenceFloor) || sequenceFloor < 0) return failure("source_identity_invalid");
+      if (leases.size >= maxLeases) return failure("evidence_lease_limit");
+      if ([...leases.values()].filter(lease => lease.streamId === streamId).length >= maxLeasesPerStream) return failure("evidence_stream_lease_limit");
+      const parsed = parseEventClipPlaylist(playlistText, streamId);
+      if (!parsed) return failure("playlist_invalid");
+      const last = parsed.segments.at(-1);
+      if (last.sequence < sequenceFloor) return failure("current_generation_not_ready");
+      const generationSegments = parsed.segments.filter(s => s.sequence >= sequenceFloor && s.discontinuity === last.discontinuity);
+      const requiredDuration = last.duration_seconds + 3;
+      const segments = [];
+      let selectedDuration = 0;
+      for (let index = generationSegments.length - 1; index >= 0; index -= 1) {
+        segments.unshift(generationSegments[index]);
+        selectedDuration += generationSegments[index].duration_seconds;
+        if (selectedDuration >= requiredDuration) break;
+      }
+      const id = randomUUID();
+      const lease = { streamId, sourceGeneration, binding, controller: new AbortController(), observedAt: new Date(now()).toISOString(), expires: now() + leaseMs,
+        segments: new Map(), bytes: 0, anchor: null, last, ended: parsed.ended };
+      leases.set(id, lease);
+      try {
+        for (const segment of segments) await copySegmentAsync(lease, segment, readSegment);
         return { status: "prepared", lease_id: id, segment: { ...last }, bytes: lease.segments.get(last.sequence).bytes, signal: lease.controller.signal };
       } catch (error) { release(id); return failure(["segment_size_invalid", "evidence_memory_limit", "evidence_stream_memory_limit"].includes(error.message) ? error.message : "source_segment_unavailable"); }
     },

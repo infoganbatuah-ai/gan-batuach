@@ -36,8 +36,8 @@ export const DIGITAL_OBSERVER_USE_CASES = [
   {
     key: "home",
     path: "/digital-observer/home",
-    title: "ניטור ביתי",
-    audience: "משפחות ובעלי בתים",
+    title: "תצפיתן לבית פרטי",
+    audience: "משפחות ובעלי בתים פרטיים",
     problem: "קבלת תמונת מצב כשאינכם בבית בלי לחשוף סיסמאות מצלמה ובלי להציף בהתראות.",
     solution: "חיבור דרך Gateway, בחירת מטרות ניטור ושליטה בהתרעות ובהרשאות.",
     cameraSetup: "מצלמה ביתית, IP, RTSP או ONVIF במוכנות לחיבור.",
@@ -48,7 +48,7 @@ export const DIGITAL_OBSERVER_USE_CASES = [
   {
     key: "business",
     path: "/digital-observer/business",
-    title: "ניטור עסקי",
+    title: "תצפיתן לעסקים",
     audience: "בעלי עסקים ומנהלי תפעול",
     problem: "עסקים צריכים בריאות מצלמות, פעילות מחוץ לשעות והתראות תפעוליות במערכת אחת.",
     solution: "חיבור מקורות המצלמה ל-Gateway והצגת בריאות, אירועים פתוחים וכללי ניטור לפי אתר.",

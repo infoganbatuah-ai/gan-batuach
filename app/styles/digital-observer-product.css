@@ -1268,6 +1268,23 @@
 .do-notice div { display: grid; gap: 3px; }
 .do-notice small { line-height: 1.55; }
 
+.do-mobile-runtime-banner {
+  position: fixed;
+  z-index: 10000;
+  inset: env(safe-area-inset-top, 0) 12px auto;
+  margin-inline: auto;
+  max-width: 720px;
+  border: 1px solid #e7c675;
+  border-radius: 12px;
+  background: #fff8df;
+  color: #6a4700;
+  box-shadow: 0 10px 28px rgb(18 40 70 / 18%);
+  padding: 10px 14px;
+  text-align: center;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
 .do-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2055,7 +2072,7 @@
 .do-site-template-grid button.selected { border-color: var(--do-teal); background: #eefbf9; box-shadow: inset 0 0 0 1px var(--do-teal); }
 
 .do-route-state { min-height: 100dvh; padding: max(32px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); background: #f4f8fb; color: var(--do-ink); display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; }
-.do-route-state h1 { margin: 0; font-size: clamp(24px, 4vw, 38px); }
+.do-route-state h1, .do-route-state-title { margin: 0; font-size: clamp(24px, 4vw, 38px); }
 .do-route-state p { margin: 0; max-width: 560px; color: var(--do-muted); line-height: 1.7; }
 .do-route-state-mark { width: 72px; height: 72px; border-radius: 50%; background: var(--do-navy); color: #fff; display: grid; place-items: center; position: relative; }
 .do-route-state-mark > svg { width: 30px; height: 30px; }

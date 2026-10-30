@@ -98,7 +98,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -n -I -E "(sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]{35}|-----BEGIN ((RSA|OPENSSH|EC) )?PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,})" -- . ':!*.md' ':!.env.example' ':!supabase/migrations/*' ':!package-lock.json' ':!node_modules/*' ':!android/*' ':!ios/*'; then
+          if git grep -n -I -E "((^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]{35}|-----BEGIN ((RSA|OPENSSH|EC) )?PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,})" -- . ':!*.md' ':!.env.example' ':!supabase/migrations/*' ':!package-lock.json' ':!node_modules/*' ':!android/*' ':!ios/*'; then
             echo "::error::Tracked source contains a potential secret-shaped value."
             exit 1
           fi

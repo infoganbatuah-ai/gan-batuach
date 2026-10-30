@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
 import { LockKeyhole, MapPinned, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { ObserverAuthDevicePreview } from "@/components/digital-observer/observer-auth-device-preview";
@@ -16,6 +18,9 @@ const loginErrors: Record<string, string> = {
 
 export default async function DigitalObserverLoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  // Native QA opens this route on every launch. Resume only a verified,
+  // active Observer session; explicit errors still render the login form.
+  if (!params?.error && await getDigitalObserverApiUser()) redirect("/digital-observer/dashboard");
   const initialType = params?.type === "business" ? "business" : "home";
   return (
     <main className="do-auth-page" dir="rtl">
