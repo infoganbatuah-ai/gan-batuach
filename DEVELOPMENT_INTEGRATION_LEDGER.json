@@ -13071,13 +13071,14 @@
         "a14c856a56288744893d8cb65e3dd5ac1321c005",
         "187312c9bf32fc37f5ce67b82e023c30f443fd08",
         "13324f198648b08c88250e18f586ca3e8554746c",
-        "c9e8fbe646900e2cdec85eb4db05c6eef233ecb1"
+        "c9e8fbe646900e2cdec85eb4db05c6eef233ecb1",
+        "a30face24b1e00b773dd210b9433bfbf28a6ee59"
       ],
       "state": "PRESERVED_PENDING_INTEGRATION",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/seo-aeo-geo-reconciliation-20261030@c9e8fbe646900e2cdec85eb4db05c6eef233ecb1"
+          "origin/codex/seo-aeo-geo-reconciliation-20261030@a30face24b1e00b773dd210b9433bfbf28a6ee59"
         ],
         "sourceScope": "Public Gan Batuach and Digital Observer metadata, social previews, editorial pages and 30 optimized editorial images; no Production provider setting, analytics activation, main merge or deployment.",
         "disposition": "PRESERVED_PENDING_INTEGRATION"
