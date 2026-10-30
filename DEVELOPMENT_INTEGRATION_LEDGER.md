@@ -1957,6 +1957,15 @@ shows the former alternate-canonical reason at zero with validation passed; the
 current Production sitemap is accepted with 40 discovered URLs. No main merge
 or Production content deployment occurred.
 
+Provider-domain and crawl verification (2026-10-30): Cloudflare now has a
+DNS-only `www` CNAME to the project-specific Vercel target. Vercel reports
+`www.ganbatuach.com` as Valid Configuration with a permanent 308 redirect to
+`https://ganbatuach.com/`; direct TLS and both Vercel target addresses returned
+the expected secure redirect. Public resolvers 1.1.1.1 and 8.8.8.8 resolved the
+new record. The Vercel deployment inventory showed no new Preview or Production
+deployment after the feature and integration pushes; Production remains exact
+main commit `4e28d73f8a578637cc25522b193b550ad6d87482`.
+
 Digital Observer LCP follow-up receipt (2026-10-30): exact source
 `origin/codex/seo-performance-lcp-20261030@ccbc4296d71802d83c98a083669aa0a6514534c3`
 was remotely preserved and merged ancestry-preserving as

@@ -13090,9 +13090,12 @@
           "Rendered sitemap crawl PASS: 46 public HTML pages, 51 valid structured-data blocks, one H1/title/canonical/description per page, metadata inside initial head, three private-route noindex probes, 308 canonical redirect and filtered-directory canonical",
           "Editorial QA PASS: 12 Gan guides, 3 Digital Observer guides and 30 distinct optimized images; source-host validation and SEO contract PASS",
           "Chrome DevTools mobile Fast 4G plus 4x CPU: home LCP 1692ms/TTFB 147ms/CLS 0; Gan guide LCP 1597ms/TTFB 249ms/CLS 0; Observer guide repeated LCP 2433ms and 2402ms, TTFB 185ms and 385ms, CLS 0",
-          "Lighthouse mobile on home, Gan guide and Observer guide: Accessibility 100, Best Practices 100, SEO 100 and Agentic Browsing 100"
+          "Lighthouse mobile on home, Gan guide and Observer guide: Accessibility 100, Best Practices 100, SEO 100 and Agentic Browsing 100",
+          "Search Console provider verification: alternate-page-with-proper-canonical count 0 and validation passed; sitemap success with 40 currently deployed URLs; representative live URL test available to Google",
+          "Cloudflare and Vercel provider verification: www CNAME points to the project-specific Vercel target, Vercel reports Valid Configuration, TLS succeeds and HTTPS returns permanent 308 to https://ganbatuach.com/",
+          "Vercel deployment inventory after feature and integration pushes shows no new Preview or Production deployment; latest deployment remains main commit 4e28d73f8a578637cc25522b193b550ad6d87482"
         ],
-        "limits": "Local lab measurements have no CrUX field data and do not guarantee ranking. Search Console now reports the former alternate-canonical reason at zero with validation passed; 21 existing Production URLs remain crawled-not-indexed until the owner-authorized content release and subsequent recrawl. Bing/IndexNow and analytics remain future provider-side work."
+        "limits": "Local lab measurements have no CrUX field data and do not guarantee ranking. Search Console now reports the former alternate-canonical reason at zero with validation passed; 21 existing Production URLs remain crawled-not-indexed until the owner-authorized content release and subsequent recrawl. Search Console also retains one deceptive-pages security label without example URLs; a clean live/source audit is complete and provider review submission awaits the required owner confirmation. Bing/IndexNow and analytics remain future provider-side work."
       },
       "integration": {
         "status": "LOCAL_VERIFIED",
