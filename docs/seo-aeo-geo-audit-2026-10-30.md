@@ -98,4 +98,3 @@ Earlier local lab measurements on the reconciled content showed LCP around 1.25â
 4. Provider coordinator fixes/redirects `www`, verifies Search Console/Bing ownership, submits the canonical sitemap and records representative URL Inspection evidence after the consolidated deployment.
 5. Keep analytics inactive until privacy/consent ownership is decided.
 6. Expand the Digital Observer integration/API cluster only when real supported contracts are available; do not publish speculative capability claims.
-
