@@ -1,23 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Bell, Camera, Mail, Phone, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SITE_TYPES } from "@/lib/domain/digital-observer-product";
+import { digitalObserverMetadata } from "@/lib/seo/digital-observer-metadata";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export const metadata: Metadata = {
-  title: { absolute: "בקשת הדגמה | תצפיתן דיגיטלי" },
-  description: "בקשת הדגמה בטוחה של התצפיתן הדיגיטלי לבית, לעסק ולאתר מנוטר.",
-  alternates: { canonical: "/digital-observer/request-demo" },
-  openGraph: {
-    title: "בקשת הדגמה | תצפיתן דיגיטלי",
-    description: "הדגמת ניטור מצלמות חכם לבית ולעסק, ללא הפעלת שירותים חיים.",
-    url: "/digital-observer/request-demo"
-  }
-};
+export const metadata = digitalObserverMetadata("/digital-observer/request-demo", "בקשת הדגמה | תצפיתן דיגיטלי", "בקשת הדגמה של תצפיתן דיגיטלי לניטור מצלמות בבית או בעסק, ללא הפעלת שירותים חיים.");
 
 function pick(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
