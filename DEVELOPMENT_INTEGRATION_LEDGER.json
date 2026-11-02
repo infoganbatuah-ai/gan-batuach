@@ -13296,18 +13296,19 @@
       "sourceCommits": [
         "72b0ccb3b574480bf17588777b0cfe613f54d488"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/event-observation-integration-20261103"
+          "origin/codex/event-observation-integration-20261103",
+          "origin/integration/development"
         ],
         "implementationCommit": "72b0ccb3b574480bf17588777b0cfe613f54d488",
-        "status": "PUSHED_REMOTE_SOURCE_AND_LEDGER_VERIFIED",
-        "verifiedCommit": "969f4cbf4ff2a1e0c0991f75581b06fba084f98e"
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED",
+        "verifiedCommit": "25e2c9f7d97a0a0802d22551c0269d0e69e90c47"
       },
       "validation": {
-        "status": "ALL_SIX_LOCAL_GATES_PASS_REMOTE_EXACT_HEAD_CI_PENDING",
+        "status": "ALL_SIX_EXACT_HEAD_CI_AND_CUMULATIVE_DETERMINISTIC_PASS",
         "evidence": [
           "Typecheck and canonical lint baseline PASS",
           "Canonical npm run build with Turbopack16.4.3 PASS in demo without live activation",
@@ -13315,13 +13316,16 @@
           "Migration-file health, release-contract, ledger-schema and tracked-source secret-pattern checks PASS",
           "Fresh npm audit --audit-level=high exit0: 26 moderate findings; no high or critical findings reported"
         ],
-        "limits": "Synthetic route/store only; two concurrent Risk evaluations remain observed. No exactly-once, live PostgreSQL, physical device or Production claim. Legacy incompatible capture-time rows fail closed; no repair or mutation performed."
+        "limits": "Synthetic route/store only; two concurrent Risk evaluations remain observed. No exactly-once, live PostgreSQL, physical device or Production claim. Legacy incompatible capture-time rows fail closed; no repair or mutation performed.",
+        "exactHead": "25e2c9f7d97a0a0802d22551c0269d0e69e90c47",
+        "ciRun": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/41535933219",
+        "additionalChecks": "Management tenant context and Snyk SUCCESS on exact source head"
       },
       "integration": {
-        "status": "PENDING_REQUIRED_EXACT_HEAD_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "4601370b7828a22155ae25e73f7bae3a66f1ef03",
-        "commit": null,
+        "commit": "14aac1bd280cfbac64e89963f0e7a79b6371034a",
         "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/264"
       },
       "dependencies": {
@@ -13333,17 +13337,27 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Functional code/test port from preserved original1bdd760141399becd41278bb22d668f17c96b75f, reconciled with decimal fix39b2b9673c7aa0caaba4393f90e0898ca403e26d. Original branch ancestry and unrelated packages remain pending; no original-commit inclusion claim. Four source/test paths only.",
-      "localVerification": "PASS_LOCAL_DETERMINISTIC_GATES_NOT_FULL_STACK",
-      "releaseEligibility": "NOT_READY_REMOTE_CI_AND_CUMULATIVE_DEVELOPMENT_VERIFICATION_PENDING",
+      "localVerification": "PASS_CUMULATIVE_DETERMINISTIC_NOT_FULL_STACK",
+      "releaseEligibility": "NOT_READY_LIVE_DATABASE_ROLE_HARDWARE_AND_FULL_STACK_QUALIFICATION_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Require all exact-head checks on PR264, merge with ancestry into Development and verify cumulative Development. Broad mobile candidate, main and Production remain excluded.",
+      "nextAction": "Scoped unit is preserved and integrated. Keep live database/role/hardware and full-stack qualification pending; broad mobile/source packages remain separately pending. No main or Production release is authorized.",
       "publicationAuthorization": {
         "source": "DIRECT_OWNER_ASYNC_REPLY",
         "callId": "call_9b661b0466ba482ba138032e6707c068",
         "answer": "מאשר פרסום ושילוב בהיקף הזה",
         "scope": "Four code/test files at72b0ccb3 plus summarized Development ledger, feature publication, Development PR, required CI and conditional Development merge; excludes broad mobile candidate, main and Production"
+      },
+      "cumulativeVerification": {
+        "commit": "14aac1bd280cfbac64e89963f0e7a79b6371034a",
+        "local": "Typecheck, lint, canonical build, Domain46/46, security, migration health, release contract and ledger PASS",
+        "remoteCI": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/41537215702",
+        "remoteResult": "All six gates and canonical quality gate SUCCESS",
+        "privateEvidence": "event-observation-integration-evidence-20261103/cumulative/QUALIFICATION.json",
+        "evidenceSHA256": "9c8b69cf4fa77fd42e5d5878eb349ca8d142f3a5239f5dac7ecf95dd26e05804",
+        "classification": "PRIVATE_LOCAL_SYNTHETIC_NO_PROVIDER_NO_DEVICE",
+        "migrationApplication": "NOT_APPLICABLE_NO_MIGRATIONS"
       }
     }
   ],
