@@ -13373,7 +13373,7 @@
       "preservation": {
         "remoteVerified": false,
         "remoteRefs": [],
-        "status": "LOCAL_PUBLICATION_NOT_ATTEMPTED"
+        "status": "DIRECT_OWNER_AUTHORIZED_PUBLICATION_PENDING_PUSH"
       },
       "validation": {
         "status": "ANDROID_CLEAN_BUILD_AND_LINT_PASS_EXACT_SOURCE_REMOTE_CI_PENDING",
@@ -13406,7 +13406,13 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Preserve scoped source and summary ledger, open Development PR, require every exact-head CI check and merge with ancestry. Broad mobile candidate, main and Production remain excluded."
+      "nextAction": "Preserve scoped source and summary ledger, open Development PR, require every exact-head CI check and merge with ancestry. Broad mobile candidate, main and Production remain excluded.",
+      "publicationAuthorization": {
+        "source": "DIRECT_OWNER_ASYNC_REPLY",
+        "callId": "call_50d93884234e476e8c8dd0528f0d1261",
+        "answer": "מאשר פרסום ושילוב של תיקון Android",
+        "scope": "Five duplicate XML deletions at6df5e6648 plus summarized Development ledger, same feature publication, Development PR, required exact-head CI, conditional ancestry merge and result registration; excludes broad mobile candidate, main and Production"
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

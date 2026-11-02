@@ -2037,3 +2037,6 @@ Source `codex/push44-android-resource-fix-20261103@6df5e6648d1a3ffed33efd19fa26b
 Fresh locked install and capacitor sync PASS. Exact-source clean unsigned Android release build and lintRelease PASS with Java21.0.13, SDK36 and Gradle8.14.3. App lint reports0 errors and17 warnings; the existing vendor Capacitor lint baseline filters6 errors and was not changed. The21814586-byte localhost-only APK SHA256 `013652b876934381f5f25aa9fe8bfd91cb1f54e29509be14d67330c5be3d7604` is identical to the independently built combined local fix. Private proof `push44-android-resource-evidence-20261103/QUALIFICATION.json`, SHA256 `a22cdf74de53a1ba7a46160c6273cd88c1c82c9e68f3bb85b425a15e7f8c20fa`.
 
 Source and ledger are local at this receipt; remote preservation, required exact-head CI and Development integration are pending. No migration, provider connection, device installation, full-stack PASS or main/Production release is claimed.
+
+
+Direct owner publication/integration authorization received in `call_50d93884234e476e8c8dd0528f0d1261`: “מאשר פרסום ושילוב של תיקון Android”. It covers this five-deletion source unit and summary/result ledger through required-CI-gated Development integration. It excludes the broad mobile candidate, main and Production. Publication is pending at this receipt.
