@@ -13301,7 +13301,7 @@
         "remoteVerified": false,
         "remoteRefs": [],
         "implementationCommit": "72b0ccb3b574480bf17588777b0cfe613f54d488",
-        "status": "PUBLICATION_APPROVAL_PENDING_AFTER_AUTOMATIC_REJECTION"
+        "status": "DIRECT_OWNER_AUTHORIZED_PUBLICATION_PENDING_PUSH"
       },
       "validation": {
         "status": "ALL_SIX_LOCAL_GATES_PASS_REMOTE_CI_NOT_RUN",
@@ -13315,7 +13315,7 @@
         "limits": "Synthetic route/store only; two concurrent Risk evaluations remain observed. No exactly-once, live PostgreSQL, physical device or Production claim. Legacy incompatible capture-time rows fail closed; no repair or mutation performed."
       },
       "integration": {
-        "status": "PENDING_REQUIRED_EXACT_HEAD_CI_AND_OWNER_PUBLICATION_APPROVAL",
+        "status": "PENDING_REQUIRED_EXACT_HEAD_CI",
         "base": "integration/development",
         "baseCommit": "4601370b7828a22155ae25e73f7bae3a66f1ef03",
         "commit": null
@@ -13334,7 +13334,13 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After direct owner resolves standing public-push restriction, preserve this exact source commit and ledger, open a Development PR, require all exact-head checks, merge with ancestry and verify cumulative Development. No main or Production release."
+      "nextAction": "Publish authorized scoped source and summary ledger, open Development PR, require all exact-head checks, merge with ancestry and verify cumulative Development. No main or Production release.",
+      "publicationAuthorization": {
+        "source": "DIRECT_OWNER_ASYNC_REPLY",
+        "callId": "call_9b661b0466ba482ba138032e6707c068",
+        "answer": "מאשר פרסום ושילוב בהיקף הזה",
+        "scope": "Four code/test files at72b0ccb3 plus summarized Development ledger, feature publication, Development PR, required CI and conditional Development merge; excludes broad mobile candidate, main and Production"
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
