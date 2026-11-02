@@ -2028,3 +2028,12 @@ Publication receipt: the remote feature branch was verified at `969f4cbf4ff2a1e0
 
 
 Final scoped integration receipt (2026-11-03 local date): PR264 merged with ancestry at `14aac1bd280cfbac64e89963f0e7a79b6371034a`; original scoped source72b0ccb3 is an ancestor. All six CI gates plus canonical quality gate, Management and Snyk passed on exact feature head25e2c9f7d. All six gates and canonical quality gate also passed on the merge commit (run41537215702). Cumulative isolated local TypeScript, lint, canonical build, Domain46/46, security, migration-file health, release contract and ledger checks passed on14aac1bd2. Canonical shared installed dependencies were stale and were left untouched; the isolated locked dependency tree was used. Private evidence `event-observation-integration-evidence-20261103/cumulative/QUALIFICATION.json`, SHA256 `9c8b69cf4fa77fd42e5d5878eb349ca8d142f3a5239f5dac7ecf95dd26e05804`. No migration was added or applied. The unit is INTEGRATED_DEVELOPMENT, with full-stack/live-role/hardware qualification and any main/Production release explicitly pending.
+
+
+## PUSH44 Android resource cleanup — 2026-11-03
+
+Source `codex/push44-android-resource-fix-20261103@6df5e6648d1a3ffed33efd19fa26bb94bde6c96f` removes only five byte-identical `config 2.xml` through `config 6.xml` copies whose spaces break Android resource merging. Normal capacitor sync generates the canonical ignored config.xml. No other pending mobile source is imported.
+
+Fresh locked install and capacitor sync PASS. Exact-source clean unsigned Android release build and lintRelease PASS with Java21.0.13, SDK36 and Gradle8.14.3. App lint reports0 errors and17 warnings; the existing vendor Capacitor lint baseline filters6 errors and was not changed. The21814586-byte localhost-only APK SHA256 `013652b876934381f5f25aa9fe8bfd91cb1f54e29509be14d67330c5be3d7604` is identical to the independently built combined local fix. Private proof `push44-android-resource-evidence-20261103/QUALIFICATION.json`, SHA256 `a22cdf74de53a1ba7a46160c6273cd88c1c82c9e68f3bb85b425a15e7f8c20fa`.
+
+Source and ledger are local at this receipt; remote preservation, required exact-head CI and Development integration are pending. No migration, provider connection, device installation, full-stack PASS or main/Production release is claimed.

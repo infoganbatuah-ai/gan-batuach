@@ -13359,6 +13359,54 @@
         "classification": "PRIVATE_LOCAL_SYNTHETIC_NO_PROVIDER_NO_DEVICE",
         "migrationApplication": "NOT_APPLICABLE_NO_MIGRATIONS"
       }
+    },
+    {
+      "id": "codex/push44-android-resource-fix-20261103",
+      "project": "Digital Observer",
+      "title": "PUSH44 clean Android build: remove invalid duplicate XML resources",
+      "owner": "Specification chat integration owner",
+      "sourceBranch": "codex/push44-android-resource-fix-20261103",
+      "sourceCommits": [
+        "6df5e6648d1a3ffed33efd19fa26bb94bde6c96f"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_PUBLICATION_NOT_ATTEMPTED"
+      },
+      "validation": {
+        "status": "ANDROID_CLEAN_BUILD_AND_LINT_PASS_EXACT_SOURCE_REMOTE_CI_PENDING",
+        "evidence": [
+          "Fresh locked offline install803 packages and capacitor sync android PASS",
+          "Gradle8.14.3 with Java21.0.13 and Android SDK36 clean assembleRelease PASS",
+          "lintRelease PASS:0 app errors,17 warnings; existing vendor Capacitor baseline filters6 errors and was not changed",
+          "Unsigned APK21814586bytes SHA256013652b876934381f5f25aa9fe8bfd91cb1f54e29509be14d67330c5be3d7604; localhost only and no Google services JSON"
+        ],
+        "privateEvidence": "push44-android-resource-evidence-20261103/QUALIFICATION.json",
+        "evidenceSHA256": "a22cdf74de53a1ba7a46160c6273cd88c1c82c9e68f3bb85b425a15e7f8c20fa",
+        "classification": "PRIVATE_LOCAL_ANDROID_NO_DEVICE_NO_PROVIDER",
+        "limits": "No physical-device, push-delivery, role/backend or full-stack proof. Non-blocking app lint warnings and vendor baseline findings remain."
+      },
+      "integration": {
+        "status": "PENDING_REQUIRED_EXACT_HEAD_CI",
+        "base": "integration/development",
+        "baseCommit": "e8bc36c1993b5382165d9c5c1b599ed666d8a61c",
+        "commit": null
+      },
+      "dependencies": {
+        "status": "CURRENT_CANONICAL_BASELINE_NO_OTHER_PENDING_UNIT_REQUIRED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "No conflicts. Five public tracked files have invalid Android resource names and are byte-identical duplicates of the normal cap sync generated config.xml. Discovery/test source dc5c3afc remains local; its unrelated combined-candidate ancestors are not imported or claimed included.",
+      "localVerification": "PASS_ANDROID_CLEAN_BUILD_AND_LINT_NOT_FULL_STACK",
+      "releaseEligibility": "NOT_READY_DEVICE_SERVICE_FULL_STACK_AND_MOBILE_RELEASE_QUALIFICATION_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve scoped source and summary ledger, open Development PR, require every exact-head CI check and merge with ancestry. Broad mobile candidate, main and Production remain excluded."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
