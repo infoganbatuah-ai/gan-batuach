@@ -2014,3 +2014,11 @@ run `41111342798`, and Snyk on the exact source head. The branch was merged
 ancestry-preserving to `integration/development` as
 `3b160a4272bd52edf67906abe120a8ce63329fe4`. No migration, main merge,
 Production deployment or provider setting changed.
+
+## Scoped immutable observation integration — 2026-11-03
+
+Source `codex/event-observation-integration-20261103@72b0ccb3b574480bf17588777b0cfe613f54d488` ports only the functional comparator from preserved source `1bdd760141399becd41278bb22d668f17c96b75f`. It retains the canonical decimal-tie fix and capture-time behavior. The four code/test files exclude all other source-branch units, Home registration/ownership proposals, mobile, billing and migrations. This is a scoped functional port; original source history remains preserved separately and is not claimed integrated by ancestry.
+
+All six local quality gates passed on the source commit: static quality, canonical Turbopack build, Domain46/46, security, migration-file health and release contract. Repository secret-pattern checks passed. Fresh npm high-threshold audit exited0 with26 moderate findings; there was no high/critical finding reported. The existing mocked race still evaluates Risk twice; no exactly-once, actual PostgreSQL or full-stack proof is claimed.
+
+Automatic approval review rejected publication to the public repository under the standing no-push/PR restriction. Direct owner approval was requested once and remains pending. The source and this ledger are local; remote preservation, required exact-head CI and Development integration are NOT complete. No main, Production, provider, camera or database operation was performed.
