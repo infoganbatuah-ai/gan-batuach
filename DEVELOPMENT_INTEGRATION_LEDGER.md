@@ -2014,3 +2014,14 @@ run `41111342798`, and Snyk on the exact source head. The branch was merged
 ancestry-preserving to `integration/development` as
 `3b160a4272bd52edf67906abe120a8ce63329fe4`. No migration, main merge,
 Production deployment or provider setting changed.
+
+## Scoped immutable observation integration — 2026-11-03
+
+Source `codex/event-observation-integration-20261103@72b0ccb3b574480bf17588777b0cfe613f54d488` ports only the functional comparator from preserved source `1bdd760141399becd41278bb22d668f17c96b75f`. It retains the canonical decimal-tie fix and capture-time behavior. The four code/test files exclude all other source-branch units, Home registration/ownership proposals, mobile, billing and migrations. This is a scoped functional port; original source history remains preserved separately and is not claimed integrated by ancestry.
+
+All six local quality gates passed on the source commit: static quality, canonical Turbopack build, Domain46/46, security, migration-file health and release contract. Repository secret-pattern checks passed. Fresh npm high-threshold audit exited0 with26 moderate findings; there was no high/critical finding reported. The existing mocked race still evaluates Risk twice; no exactly-once, actual PostgreSQL or full-stack proof is claimed.
+
+Automatic approval review initially rejected public publication under the standing no-push/PR restriction. The owner subsequently explicitly authorized the four-file source commit, summary ledger, Development PR, required CI and conditional Development integration in direct reply `call_9b661b0466ba482ba138032e6707c068`: “מאשר פרסום ושילוב בהיקף הזה”. Publication, exact-head CI and integration remain pending at this receipt. The broad mobile candidate, main and Production are outside that approval; no provider, camera or database operation was performed.
+
+
+Publication receipt: the remote feature branch was verified at `969f4cbf4ff2a1e0c0991f75581b06fba084f98e`, containing source72b0ccb3 and the summary ledger. [PR264](https://github.com/infoganbatuah-ai/gan-batuach/pull/264) targets `integration/development@4601370b7828a22155ae25e73f7bae3a66f1ef03`. All exact-head remote checks and cumulative Development verification are pending at this receipt.
