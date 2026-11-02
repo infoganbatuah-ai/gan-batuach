@@ -13296,15 +13296,18 @@
       "sourceCommits": [
         "72b0ccb3b574480bf17588777b0cfe613f54d488"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "PUSHED_REMOTE",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/event-observation-integration-20261103"
+        ],
         "implementationCommit": "72b0ccb3b574480bf17588777b0cfe613f54d488",
-        "status": "DIRECT_OWNER_AUTHORIZED_PUBLICATION_PENDING_PUSH"
+        "status": "PUSHED_REMOTE_SOURCE_AND_LEDGER_VERIFIED",
+        "verifiedCommit": "969f4cbf4ff2a1e0c0991f75581b06fba084f98e"
       },
       "validation": {
-        "status": "ALL_SIX_LOCAL_GATES_PASS_REMOTE_CI_NOT_RUN",
+        "status": "ALL_SIX_LOCAL_GATES_PASS_REMOTE_EXACT_HEAD_CI_PENDING",
         "evidence": [
           "Typecheck and canonical lint baseline PASS",
           "Canonical npm run build with Turbopack16.4.3 PASS in demo without live activation",
@@ -13318,7 +13321,8 @@
         "status": "PENDING_REQUIRED_EXACT_HEAD_CI",
         "base": "integration/development",
         "baseCommit": "4601370b7828a22155ae25e73f7bae3a66f1ef03",
-        "commit": null
+        "commit": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/264"
       },
       "dependencies": {
         "status": "CANONICAL_REPLAY_PREFIX_PRESENT",
@@ -13334,7 +13338,7 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Publish authorized scoped source and summary ledger, open Development PR, require all exact-head checks, merge with ancestry and verify cumulative Development. No main or Production release.",
+      "nextAction": "Require all exact-head checks on PR264, merge with ancestry into Development and verify cumulative Development. Broad mobile candidate, main and Production remain excluded.",
       "publicationAuthorization": {
         "source": "DIRECT_OWNER_ASYNC_REPLY",
         "callId": "call_9b661b0466ba482ba138032e6707c068",
