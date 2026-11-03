@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 import { createServerClient } from "@supabase/ssr";
 import { config } from "../development/local-database.mjs";
 import { localCredentials } from "../development/local-client.mjs";
+import { assertChildSwitchCommitted, isExpectedChildDashboardUrl, requireChildSwitchTarget } from "./check-uxv6-child-context-contract.mjs";
 
 const require = createRequire(import.meta.url);
 const playwright = require(process.env.GB_M35_PLAYWRIGHT_MODULE ?? "/Users/danielderi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
@@ -114,16 +115,24 @@ try {
         }
       }
       if (target.id === "parent-multi-child") {
-        const previousName = await page.locator(".parent-primary-attendance-identity strong").textContent();
-        const otherChild = page.locator(".parent-child-context-card:not(.is-active)").first();
-        const otherHref = await otherChild.getAttribute("href");
-        assert.ok(otherHref?.includes("child="), "Multi-Child selector has no child-scoped destination");
+        const selector = page.locator(".parent-child-card-selector");
+        const previousId = await selector.locator('input[name="child"]').inputValue();
+        const previousActiveCards = await selector.locator(".parent-child-context-card.is-active").evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute("href"), ariaCurrent: card.getAttribute("aria-current") })));
+        const otherChild = selector.locator(".parent-child-context-card:not(.is-active)").first();
+        const targetHref = await otherChild.getAttribute("href");
+        const expectedId = requireChildSwitchTarget({ baseUrl: base, previousId, previousActiveCards, targetHref });
         await otherChild.click();
-        await page.waitForURL((url) => url.pathname === "/dashboard/parent" && url.searchParams.has("child"));
-        await page.waitForFunction((previous) => document.querySelector(".parent-primary-attendance-identity strong")?.textContent !== previous, previousName);
-        assert.equal(await page.locator(".parent-child-context-card.is-active").getAttribute("href"), otherHref, "Selected Child card did not follow the chosen context");
-        const nextName = await page.locator(".parent-primary-attendance-identity strong").textContent();
-        assert.notEqual(nextName, previousName, "Switching Child did not update the selected Child content");
+        await page.waitForURL((url) => isExpectedChildDashboardUrl(url.href, base, expectedId));
+        await page.waitForFunction((id) => document.querySelector('.parent-child-card-selector input[name="child"]')?.value === id, expectedId);
+        const activeCards = await selector.locator(".parent-child-context-card.is-active").evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute("href"), ariaCurrent: card.getAttribute("aria-current") })));
+        assertChildSwitchCommitted({
+          baseUrl: base,
+          expectedId,
+          actualUrl: page.url(),
+          selectedId: await selector.locator('input[name="child"]').inputValue(),
+          activeCards,
+          primaryHref: await page.locator(".parent-dashboard-home > .parent-child-card.parent-child-card-link").getAttribute("href"),
+        });
       }
       await page.close();
     }
