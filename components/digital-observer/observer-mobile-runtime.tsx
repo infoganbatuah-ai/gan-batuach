@@ -8,6 +8,7 @@ import { Preferences } from "@capacitor/preferences";
 import { PushNotifications, type PushNotificationSchema } from "@capacitor/push-notifications";
 import { useEffect, useState } from "react";
 import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
+import { openMobilePlaybackPublisher } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
@@ -72,6 +73,7 @@ export function ObserverMobileRuntime() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     let disposed = false;
+    const playbackPublisher = openMobilePlaybackPublisher();
     let sites: RuntimeSite[] = [];
     let pendingPushSiteId = "";
     let checking = false;
@@ -193,29 +195,36 @@ export function ObserverMobileRuntime() {
 
     const start = async () => {
       const status = await Network.getStatus();
+      if (disposed || !playbackPublisher.networkOffline(!status.connected)) return;
       setOnline(status.connected);
       setStale(!status.connected);
       if (status.connected) await bootstrap(); else await enqueue("runtime_revalidate");
+      if (disposed || !playbackPublisher.isCurrent()) return;
 
       const network = await Network.addListener("networkStatusChange", async (next) => {
-        if (disposed) return;
+        if (disposed || !playbackPublisher.networkOffline(!next.connected)) return;
         setOnline(next.connected);
         setStale(!next.connected);
         emit(next.connected ? "digital-observer:mobile-online" : "digital-observer:mobile-offline", { connectionType: next.connectionType });
         if (next.connected) await bootstrap();
       });
+      if (disposed || !playbackPublisher.isCurrent()) { await network.remove(); return; }
       removers.push(() => network.remove());
 
       const appState = await App.addListener("appStateChange", async ({ isActive }) => {
-        if (!isActive && !disposed) setStale(true);
+        if (disposed || !playbackPublisher.appInactive(!isActive)) return;
+        if (!isActive) setStale(true);
         emit(isActive ? "digital-observer:mobile-resume" : "digital-observer:mobile-suspend");
         if (isActive) await bootstrap();
       });
+      if (disposed || !playbackPublisher.isCurrent()) { await appState.remove(); return; }
       removers.push(() => appState.remove());
 
       const appUrl = await App.addListener("appUrlOpen", ({ url }) => { void authorizeAndOpen(url).catch(() => emit("digital-observer:mobile-link-denied")); });
+      if (disposed || !playbackPublisher.isCurrent()) { await appUrl.remove(); return; }
       removers.push(() => appUrl.remove());
       const launch = await App.getLaunchUrl();
+      if (disposed || !playbackPublisher.isCurrent()) return;
       if (launch?.url) void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
 
       if (pushAvailable) {
@@ -234,9 +243,10 @@ export function ObserverMobileRuntime() {
       window.addEventListener("pageshow", bootstrap);
     };
 
-    void start().catch(() => setStale(true));
+    void start().catch(() => { if (!disposed && playbackPublisher.isCurrent()) setStale(true); });
     return () => {
       disposed = true;
+      playbackPublisher.close();
       window.removeEventListener("digital-observer:enable-native-push", enablePush);
       window.removeEventListener("pageshow", bootstrap);
       void Promise.all(removers.map((remove) => remove()));

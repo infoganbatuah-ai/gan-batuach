@@ -3,6 +3,7 @@
 import Hls from "hls.js";
 import { CameraOff, LoaderCircle, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { subscribeMobilePlayback } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
 
 type PlayerState = "loading" | "playing" | "error";
 
@@ -217,6 +218,14 @@ export function ObserverLivePlayer({
     window.addEventListener("digital-observer:mobile-offline", networkOffline);
     window.addEventListener("digital-observer:mobile-resume", appResume);
     window.addEventListener("digital-observer:mobile-online", networkOnline);
+    let observedPublisher = false;
+    const unsubscribePlayback = subscribeMobilePlayback((snapshot) => {
+      if (cancelled) return;
+      if (!snapshot && !observedPublisher) return;
+      observedPublisher = !!snapshot;
+      if (snapshot?.appInactive) appSuspend(); else appResume();
+      if (snapshot?.networkOffline) networkOffline(); else networkOnline();
+    });
     const markUnavailable = (reason: string) => {
       if (cancelled || mobileSuspendedRef.current || recoveryScheduledRef.current) return;
       recoveryScheduledRef.current = true;
@@ -292,6 +301,7 @@ export function ObserverLivePlayer({
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
+      unsubscribePlayback();
       window.removeEventListener("digital-observer:mobile-suspend", appSuspend);
       window.removeEventListener("digital-observer:mobile-offline", networkOffline);
       window.removeEventListener("digital-observer:mobile-resume", appResume);
