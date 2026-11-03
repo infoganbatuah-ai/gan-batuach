@@ -8,7 +8,7 @@ const source = readFileSync(new URL("../../components/digital-observer/observer-
 const js = ts.transpileModule(source, {compilerOptions: {module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX}}).outputText;
 const tick = async () => { for (let i=0;i<12;i++) await Promise.resolve(); };
 function harness({native=true}={}) {
-  let now=0, cursor=0, rerender=false, effect, cleanup, timerId=0;
+  let now=0, cursor=0, rerender=false, effect, cleanup, timerId=0, sourceId="camera";
   const slots=[], timers=new Map(), removedTimers=[], listeners=new Map(), requests=[], hlsInstances=[], calls={play:0,src:0,fetch:0};
   const video={currentTime:0, muted:true, canPlayType:()=>native?"maybe":"", pause(){}, load(){}, removeAttribute(){}, play(){calls.play++;return Promise.resolve();}, set src(v){calls.src++;this._src=v;}, get src(){return this._src;}};
   const React={
@@ -21,10 +21,10 @@ function harness({native=true}={}) {
   function addTimer(fn,ms,repeat){const id=++timerId;timers.set(id,{fn,ms,repeat});return id;}
   const env={exports:{},require(id){if(id==="react")return React;if(id==="hls.js")return {__esModule:true,default:FakeHls};if(id==="react/jsx-runtime")return {jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};if(id==="lucide-react")return new Proxy({}, {get:()=>()=>null});throw Error("unexpected import");},
     window:win,Date:class extends Date{static now(){return now;}},setTimeout:(fn,ms)=>addTimer(fn,ms,false),clearTimeout:id=>{if(timers.has(id))removedTimers.push(timers.get(id).fn);timers.delete(id);},setInterval:(fn,ms)=>addTimer(fn,ms,true),clearInterval:id=>timers.delete(id),
-    fetch(){calls.fetch++;return new Promise((resolve,reject)=>requests.push({resolve,reject}));}};
+    fetch(_url,options){calls.fetch++;return new Promise((resolve,reject)=>requests.push({resolve,reject,body:options?.body}));}};
   runInNewContext(js,env);
   let tree;
-  function render(){cursor=0;effect=null;tree=env.exports.ObserverLivePlayer({observerSiteId:"site",cameraSourceId:"camera",name:"synthetic"});if(effect){cleanup?.();cleanup=effect();}rerender=false;}
+  function render(){cursor=0;effect=null;tree=env.exports.ObserverLivePlayer({observerSiteId:"site",cameraSourceId:sourceId,name:"synthetic"});if(effect){cleanup?.();cleanup=effect();}rerender=false;}
   function flush(){if(rerender)render();}
   function event(name){for(const fn of listeners.get(name)||[])fn();}
   function resolve(i){requests[i].resolve({ok:true,json:async()=>({data:{playback:{hls_url:"https://example.invalid/stream"}}})});}
@@ -32,7 +32,7 @@ function harness({native=true}={}) {
   function advance(ms){now+=ms;for(const t of [...timers.values()])if(t.repeat)t.fn();}
   function childVideo(){return tree.props.children.find(x=>x?.type==="video");}
   render();
-  return {calls,requests,hlsInstances,removedTimers,event,resolve,timeout,advance,flush,childVideo,get state(){return slots.find(x=>x==="loading"||x==="playing"||x==="error");},unmount(){cleanup?.();},video};
+  return {calls,requests,hlsInstances,removedTimers,event,resolve,timeout,advance,flush,childVideo,changeSource(id){sourceId=id;render();},get state(){return slots.find(x=>x==="loading"||x==="playing"||x==="error");},unmount(){cleanup?.();},video};
 }
 
 test("offline fences pending native success and heartbeat, reconnects once on resume",async()=>{
@@ -76,4 +76,34 @@ test("active media error schedules exactly one recovery and reconnects",async()=
 test("active fatal HLS error retains bounded recovery",async()=>{
  const h=harness({native:false});h.resolve(0);await tick();const player=h.hlsInstances[0];player.events.error(null,{fatal:true});player.events.error(null,{fatal:true});
  assert.equal(h.timeout(5000).length,1);assert.equal(h.state,"error");h.unmount();
+});
+for (const [first,second,partial,final] of [
+ ["mobile-suspend","mobile-offline","mobile-online","mobile-resume"],
+ ["mobile-suspend","mobile-offline","mobile-resume","mobile-online"],
+ ["mobile-offline","mobile-suspend","mobile-resume","mobile-online"],
+ ["mobile-offline","mobile-suspend","mobile-online","mobile-resume"],
+]) {
+ test(`overlapping causes ${first}/${second} clear only after ${final}`,async()=>{
+  const h=harness();const fire=name=>h.event("digital-observer:"+name);
+  fire(first);fire(first);fire(second);fire(second);fire(partial);fire(partial);h.flush();h.advance(31000);h.resolve(0);await tick();
+  assert.equal(h.calls.fetch,1);assert.equal(h.calls.src,0);assert.equal(h.calls.play,0);assert.equal(h.timeout(5000).length,0);assert.notEqual(h.state,"error");
+  fire(final);fire(final);h.flush();assert.equal(h.calls.fetch,2);h.resolve(1);await tick();assert.equal(h.calls.play,1);h.unmount();
+ });
+}
+test("overlapping causes fence HLS callbacks and queued recovery through partial resume",async()=>{
+ const h=harness({native:false});h.resolve(0);await tick();const player=h.hlsInstances[0];player.events.error(null,{fatal:true});const queued=h.timeout(5000)[0].fn;
+ h.event("digital-observer:mobile-offline");h.event("digital-observer:mobile-suspend");h.event("digital-observer:mobile-online");queued();player.events.attached();player.events.manifest();player.events.error(null,{fatal:true});h.flush();h.advance(31000);
+ assert.equal(player.loads,0);assert.equal(h.calls.play,0);assert.equal(h.calls.fetch,1);assert.equal(h.timeout(5000).length,0);assert.notEqual(h.state,"error");
+ h.event("digital-observer:mobile-resume");h.flush();assert.equal(h.calls.fetch,2);h.resolve(1);await tick();assert.equal(h.hlsInstances.length,2);h.unmount();
+});
+test("reasons survive source changes and final reconnect uses the current camera",async()=>{
+ const h=harness();h.event("digital-observer:mobile-suspend");h.event("digital-observer:mobile-offline");h.changeSource("new-camera");h.event("digital-observer:mobile-online");h.flush();h.advance(31000);h.resolve(0);await tick();
+ assert.equal(h.calls.fetch,1);assert.equal(h.calls.play,0);assert.equal(h.timeout(5000).length,0);
+ h.event("digital-observer:mobile-resume");h.flush();assert.equal(h.calls.fetch,2);assert.equal(JSON.parse(h.requests[1].body).camera_source_id,"new-camera");h.resolve(1);await tick();assert.equal(h.calls.play,1);h.unmount();
+});
+test("pending HLS and claim completion stay blocked during partial recovery and unmount",async()=>{
+ const h=harness({native:false});h.event("digital-observer:mobile-suspend");h.event("digital-observer:mobile-offline");h.event("digital-observer:mobile-online");
+ h.requests[0].resolve({ok:true,json:async()=>({data:{playback:{claim_url:"https://example.invalid/playback/claim",allowed_origin:"https://example.invalid",grant:"synthetic"}}})});
+ await tick();h.advance(31000);assert.equal(h.calls.fetch,1);assert.equal(h.hlsInstances.length,0);assert.equal(h.calls.play,0);assert.equal(h.timeout(5000).length,0);
+ h.unmount();h.event("digital-observer:mobile-resume");h.flush();assert.equal(h.calls.fetch,1);
 });

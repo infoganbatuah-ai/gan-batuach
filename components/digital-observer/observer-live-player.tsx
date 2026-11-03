@@ -146,6 +146,7 @@ export function ObserverLivePlayer({
   const recoveryScheduledRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileSuspendedRef = useRef(false);
+  const mobileSuspensionReasonsRef = useRef({ appInactive: false, networkOffline: false });
   const mountedRef = useRef(false);
   const mediaActiveRef = useRef(false);
   const retryGenerationRef = useRef(0);
@@ -180,8 +181,10 @@ export function ObserverLivePlayer({
     lastProgressAtRef.current = Date.now();
     recoveryScheduledRef.current = false;
     const retry = () => { if (!cancelled && !mobileSuspendedRef.current) requestRetry(); };
-    const suspendForMobile = () => {
-      if (cancelled || mobileSuspendedRef.current) return;
+    const suspendForMobile = (reason: "appInactive" | "networkOffline") => {
+      if (cancelled) return;
+      mobileSuspensionReasonsRef.current[reason] = true;
+      if (mobileSuspendedRef.current) return;
       mobileSuspendedRef.current = true;
       mediaActiveRef.current = false;
       connectionGeneration += 1;
@@ -197,16 +200,23 @@ export function ObserverLivePlayer({
       setUnavailableReason("הניגון הושהה עד לחזרת האפליקציה או הרשת");
       setState("loading");
     };
-    const resumeForMobile = () => {
-      if (!mobileSuspendedRef.current || cancelled) return;
+    const resumeForMobile = (reason: "appInactive" | "networkOffline") => {
+      if (cancelled || !mobileSuspensionReasonsRef.current[reason]) return;
+      mobileSuspensionReasonsRef.current[reason] = false;
+      if (mobileSuspensionReasonsRef.current.appInactive || mobileSuspensionReasonsRef.current.networkOffline) return;
+      if (!mobileSuspendedRef.current) return;
       mobileSuspendedRef.current = false;
       invalidatePlaybackSession(observerSiteId, cameraSourceId);
       setRetryNonce((value) => value + 1);
     };
-    window.addEventListener("digital-observer:mobile-suspend", suspendForMobile);
-    window.addEventListener("digital-observer:mobile-offline", suspendForMobile);
-    window.addEventListener("digital-observer:mobile-resume", resumeForMobile);
-    window.addEventListener("digital-observer:mobile-online", resumeForMobile);
+    const appSuspend = () => suspendForMobile("appInactive");
+    const networkOffline = () => suspendForMobile("networkOffline");
+    const appResume = () => resumeForMobile("appInactive");
+    const networkOnline = () => resumeForMobile("networkOffline");
+    window.addEventListener("digital-observer:mobile-suspend", appSuspend);
+    window.addEventListener("digital-observer:mobile-offline", networkOffline);
+    window.addEventListener("digital-observer:mobile-resume", appResume);
+    window.addEventListener("digital-observer:mobile-online", networkOnline);
     const markUnavailable = (reason: string) => {
       if (cancelled || mobileSuspendedRef.current || recoveryScheduledRef.current) return;
       recoveryScheduledRef.current = true;
@@ -282,10 +292,10 @@ export function ObserverLivePlayer({
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
-      window.removeEventListener("digital-observer:mobile-suspend", suspendForMobile);
-      window.removeEventListener("digital-observer:mobile-offline", suspendForMobile);
-      window.removeEventListener("digital-observer:mobile-resume", resumeForMobile);
-      window.removeEventListener("digital-observer:mobile-online", resumeForMobile);
+      window.removeEventListener("digital-observer:mobile-suspend", appSuspend);
+      window.removeEventListener("digital-observer:mobile-offline", networkOffline);
+      window.removeEventListener("digital-observer:mobile-resume", appResume);
+      window.removeEventListener("digital-observer:mobile-online", networkOnline);
       hls?.destroy();
       videoElement.removeAttribute("src");
       videoElement.load();
