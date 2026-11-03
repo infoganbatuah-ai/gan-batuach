@@ -13898,29 +13898,34 @@
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-v6-true-reference-correction@c28a76a0942a5afcfd6b8d3d8e0950914146ff13"
+          "origin/codex/ux-v6-true-reference-correction@c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
+          "origin/codex/ux-v6-development-qualification-20261104@be074f8f979c8879dfea8cb11be8b68beb524741"
         ],
         "validatedRemoteHead": "c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
         "qualificationBranch": "codex/ux-v6-development-qualification-20261104",
-        "qualificationCommitLocal": "822edaaa613410bc9bd998858d9a3b98e2e9098c"
+        "qualificationCommitLocal": "be074f8f979c8879dfea8cb11be8b68beb524741",
+        "qualificationRemoteObserved": "be074f8f979c8879dfea8cb11be8b68beb524741"
       },
       "validation": {
-        "status": "SOURCE_CONTRACT_9_PASS_CANDIDATE_PRODUCT_UNVERIFIED",
+        "status": "SOURCE_CONTRACT_9_PASS_AT_SOURCE_CURRENT_STATIC_CONTRACT_PREPARED_NOT_RUN_CANDIDATE_PRODUCT_UNVERIFIED",
         "evidence": [
           "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-child-context-contract-validation-20261104-c28a76a/result.json#sha256=ca288d89540dbfe8118c3f301cb2da2a00b346b52d83ea85386f8dc390b923e2",
-          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-development-admission-20261104-c28a76a/admission-result.json#sha256=db99b84948b51ba6fa9ebe9e20ad56bab2fb5d5fb6ac84a3273cd0cb0086b407"
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-development-admission-20261104-c28a76a/admission-result.json#sha256=db99b84948b51ba6fa9ebe9e20ad56bab2fb5d5fb6ac84a3273cd0cb0086b407",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-current-base-bounded-regression-20261104-be074f8/gate-and-source-preparation.json#sha256=b1456b4136c74b94c9a974a7b6943dec503cb1ce57c2b92a27fcac26ef51b532"
         ],
         "candidateChecks": [
           "git diff --check df83708b... 822edaaa... PASS",
-          "Node 24.16.0 --check two mjs files PASS; nice setpriority refused, so priority not elevated"
+          "Node 24.16.0 --check two mjs files PASS at prior checkpoint; nice setpriority refused, so priority not elevated",
+          "Current eight-core host load 39.96 then 84.34 exceeds <=8 gate; dashboard suite and new static contract NOT_RUN",
+          "Vercel gan-batuach deployment branch search returned No matches found for candidate branch; limited UI observation, not cross-project proof"
         ],
-        "limits": "No current-candidate typecheck, lint, build, domain/security, Product/Auth/RLS, Desktop/Mobile capture or visual comparison. Source-only nine-test result does not transfer as full candidate acceptance."
+        "limits": "New primary-route composition source contract is prepared but NOT_RUN. No current-candidate typecheck, lint, build, domain/security, Product/Auth/RLS, Desktop/Mobile capture or visual comparison. Source-only nine-test result does not transfer as full candidate acceptance. All-in ₪15 and CI cost gates remain unverified."
       },
       "integration": {
         "status": "PENDING_QUALIFICATION_NOT_CANONICAL",
-        "base": "df83708b5fd0d2d40007e1864463068ef80db7e4",
+        "base": "36a2b3c0009156ae4c81606a4bb787ca44b5b48c",
         "candidateBranch": "codex/ux-v6-development-qualification-20261104",
-        "candidateCommitLocal": "822edaaa613410bc9bd998858d9a3b98e2e9098c",
+        "candidateCommitLocal": "be074f8f979c8879dfea8cb11be8b68beb524741",
         "pullRequest": null,
         "requiredChecks": "NOT_RUN"
       },
@@ -13936,7 +13941,7 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "STATIC_DIFF_AND_MJS_SYNTAX_ONLY; CANDIDATE_PRODUCT_TESTS_PENDING_RESOURCE_AND_LOCKED_DEPENDENCIES",
+      "localVerification": "PRIOR_STATIC_DIFF_AND_MJS_SYNTAX_ONLY; NEW_PRIMARY_SOURCE_CONTRACT_PREPARED_NOT_RUN; DASHBOARD_SUITE_NOT_RUN_LOAD_GATE; CANDIDATE_PRODUCT_TESTS_PENDING_RESOURCE_AND_LOCKED_DEPENDENCIES",
       "releaseEligibility": "NO_PRODUCT_VISUAL_CI_OR_EXTERNAL_OWNER_APPROVAL",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
