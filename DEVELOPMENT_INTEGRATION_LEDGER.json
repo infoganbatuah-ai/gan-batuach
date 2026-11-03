@@ -13495,28 +13495,38 @@
       "sourceCommits": [
         "eae96872b55fb92f86e0767f8217762366e69e74"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "status": "LOCAL_COMMITTED_PUBLICATION_PENDING_DIRECT_OWNER"
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-capacitor-local-url-boundary-20261103@9449504ad769d8f34805ef3027a315b4dad64624",
+          "origin/integration/development@ae6c0f8500d825f5a3af199381148f8626bec68a"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
-        "status": "PASS_LOCAL_SOURCE_ANDROID_BUILD_LINT_AND_TARGETED_QA_REMOTE_CI_PENDING",
+        "status": "PASS_SOURCE_ALL_REQUIRED_CI_AND_EXACT_MERGE_ANDROID_BUILD_LINT_TARGETED_QA",
         "evidence": [
           "Actual base/fixed configuration comparison confirms three remote lookalike/userinfo regressions; root30 scenarios PASS",
           "Root focused2/2 and existing PUSH44 suite PASS; executor typecheck/lint:ci PASS",
-          "Executor clean unsigned Android assembleRelease/lintRelease PASS; root byte-verifies APK21815234bytes and receipt; app0errors16warnings/vendorbaselineunchanged"
+          "Executor clean unsigned Android assembleRelease/lintRelease PASS; root byte-verifies APK21815234bytes and receipt; app0errors16warnings/vendorbaselineunchanged",
+          "PR270 head9449504: all7 Digital Observer CI41617651503 +Management41617651504 +Snyk PASS",
+          "Exact merge ae6c0f8500d825f5a3af199381148f8626bec68a: clean unsigned Android assembleRelease/lintRelease and PUSH44 actual-config QA PASS; APK identical to source; app0errors16warnings/vendorbaseline unchanged"
         ],
         "privateEvidence": "push44-local-url-evidence.7KdMQN8T/root-review.json",
         "evidenceSHA256": "736012aece8f3d1041b8d5749e50d5156a1539a7da3bbb6758c978852ebb549c",
         "classification": "PRIVATE_LOCAL_SOURCE_ANDROID_NO_DEVICE_NO_PROVIDER",
-        "limits": "Root did not rebuild native artifact; executor build evidence independently inspected and bytes verified. No device/provider/full-stack/remote CI or complete security audit proof."
+        "limits": "Root independently rebuilt exact merge and verified packaged localhost configuration and artifact identity. No device/provider/full-stack or Production proof;16 app warnings and unchanged vendor findings remain.",
+        "cumulativePrivateEvidence": "push44-local-url-evidence.7KdMQN8T/cumulative/QUALIFICATION.json",
+        "cumulativeEvidenceSHA256": "09f8b6d38a68c5ae0e5834528220fb47adb2023098fc6500a918a999fb358d1b"
       },
       "integration": {
-        "status": "PENDING_PUBLICATION_AUTHORIZATION_AND_ALL_REQUIRED_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "5ff49a35036a6d961a3e9e63ab98c9a36ebe8463",
-        "commit": null
+        "commit": "ae6c0f8500d825f5a3af199381148f8626bec68a",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/270",
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "CANONICAL_BASELINE_ONLY",
@@ -13527,12 +13537,17 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Three scoped source/QA files only. URL parser requires exact parsed local HTTP hostname and no userinfo. WHATWG normalized IPv4 loopback accepted; trailing-dot localhost excluded. Existing URL value/env precedence/plugins preserved. No dependencies/schema/provider/native baseline changes.",
-      "localVerification": "PASS_LOCAL_SOURCE_AND_EXECUTOR_ANDROID_BUILD_NOT_DEVICE_OR_FULL_STACK",
+      "localVerification": "PASS_EXACT_MERGE_ANDROID_BUILD_LINT_TARGETED_QA_NOT_DEVICE_OR_FULL_STACK",
       "releaseEligibility": "NOT_READY_DEVICE_PROVIDER_FULL_STACK_AND_OWNER_RELEASE_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Obtain direct approval for this exact public source plus summary/result ledger, then scoped feature PR to Development with all required exact-head checks and ancestry-preserving integration; no broad mobile/main/Production."
+      "nextAction": "Scoped URL classification fix integrated in Development. Device/provider/full-stack qualification and owner-controlled release remain pending prerequisites.",
+      "publicationAuthorization": {
+        "callId": "call_272c56f299e2415c8cbd0b8699a93252",
+        "answer": "מאשר פרסום ושילוב בהיקף הזה",
+        "scope": "Exact approved source/summary ledger through9449504 on same remote feature, required-CI-gated Development integration and result ledger; broad mobile/main/Production excluded."
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
