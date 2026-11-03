@@ -13559,30 +13559,39 @@
       "sourceCommits": [
         "19b6260b2a1f5099e0335eb5a33675c316ad8131"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_ONLY_PUBLICATION_APPROVAL_PENDING"
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-playback-suspend-boundary-20261103@dd7eda9716d5ad820463220289a60945779cf9eb",
+          "origin/integration/development@db5bac3962f8a7c07e1037165083e15fabcf199f"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
-        "status": "PASS_LOCAL_ACTUAL_COMPONENT_AND_WEB_BUILD_ONLY",
+        "status": "PASS_ALL_REQUIRED_CI_AND_EXACT_MERGE_LOCAL_WEB_QUALIFICATION",
         "evidence": [
           "Root actual pinned base reproduces offline heartbeat error/retry and late native src/play; fixed component suppresses both",
           "Root focused actual-component10/10 and PUSH44 QA PASS; independent native/Hls.js old-completion/new-pending races PASS",
           "Executor locked dependencies/typecheck/lint:ci and bounded demo/noactivation canonical Web build557/557 PASS",
-          "Root inspected exact source diff, clean worktree, executor receipt/build-log hashes; did not repeat build"
+          "Root inspected exact source diff, clean worktree, executor receipt/build-log hashes; did not repeat build",
+          "PR272 exact approveddd7: all7 DigitalObserverCI41648158857, Management41648158861 and Snyk PASS",
+          "Source merge db5bac3962f8a7c07e1037165083e15fabcf199f: automaticCI41648945909 all7 PASS; exact-merge bounded demo/noactivation Web build/typecheck/lint:ci/PUSH44 PASS"
         ],
         "privateEvidence": "push44-playback-suspend-evidence.Y8neSZH1/root-review.json",
         "evidenceSHA256": "355f16fe55425f02d4b637493496f28ed1cd416e2246f45c605afbad95920c3c",
         "classification": "PRIVATE_LOCAL_COMPONENT_WEB_NO_DEVICE_OR_PROVIDER",
-        "limits": "No real browser/device/media/provider/DB/fullstack/remote CI/Production proof. Legacy lint baseline unchanged; one existing targeted hooks warning."
+        "limits": "Root exact-merge Web/component checks PASS; no real browser/device/media/provider/DB/fullstack/native-build or Production proof. Existing lint baseline unchanged.",
+        "cumulativePrivateEvidence": "push44-playback-suspend-evidence.Y8neSZH1/cumulative/QUALIFICATION.json",
+        "cumulativeEvidenceSHA256": "f42a72ccc048a369e5ebf291849192aadf969f1acfb5b05bdeed431cd7047aed"
       },
       "integration": {
-        "status": "PENDING_DIRECT_PUBLICATION_AUTHORIZATION_AND_REQUIRED_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "3bb01c231416b6f32d7132a0bfd85c85eddba0e6",
-        "commit": null
+        "commit": "db5bac3962f8a7c07e1037165083e15fabcf199f",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/272",
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "CANONICAL_BASELINE_ONLY",
@@ -13593,15 +13602,16 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Three source/QA paths only. Historical9fbb reviewed for suspension concept, not merged/cherry-picked; no presence or visibility port and no ancestry claim. Broad mobile excluded.",
-      "localVerification": "PASS_SYNTHETIC_ACTUAL_COMPONENT_AND_WEB_BUILD_NOT_FULL_STACK",
+      "localVerification": "PASS_EXACT_MERGE_DEMO_WEB_BUILD_TYPECHECK_LINT_PUSH44_NOT_FULL_STACK",
       "releaseEligibility": "NOT_READY_DEVICE_PROVIDER_FULL_STACK_AND_OWNER_RELEASE_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Obtain direct owner authority for exact public source plus summary/result ledger; then feature PR, required exact-head CI and gated Development integration. No main/Production/provider/SQL.",
+      "nextAction": "Scoped playback suspension fix integrated in Development. Real device/media/provider/DB/fullstack qualification and owner-controlled main/Production release remain gated.",
       "publicationAuthorization": {
-        "status": "NOT_YET_REQUESTED",
-        "scope": "Prior186–189 approvals consumed for different payloads; this source and summary ledger remain local."
+        "callId": "call_9b1bffe164dd45b4b0d928dbb1fd054c",
+        "answer": "מאשר פרסום ושילוב בהיקף הזה",
+        "scope": "Exact approved source19b6260 and summaryhead dd7eda971; public feature PR, required-CI-gated Development integration and result ledger. No broadmobile/main/Production/SQL/provider/device authority."
       }
     }
   ],
