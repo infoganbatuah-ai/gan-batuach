@@ -38,6 +38,7 @@ const iosEntitlements = readFileSync(new URL("../../ios/App/App/App.entitlements
 const iosProject = readFileSync(new URL("../../ios/App/App.xcodeproj/project.pbxproj", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
 execFileSync("python3", [fileURLToPath(new URL("./check-push44-android-backup.py", import.meta.url))], { stdio: "pipe" });
+execFileSync(process.execPath, ["--test", fileURLToPath(new URL("./check-push44-capacitor-local-url.mjs", import.meta.url))], { stdio: "pipe" });
 
 assert.equal(contract.DIGITAL_OBSERVER_MOBILE_RUNTIME_CONTRACT, "digital-observer-mobile-runtime-v1");
 for (const publicPath of ["/digital-observer/login", "/digital-observer/register", "/digital-observer/forgot-password", "/digital-observer/verify", "/digital-observer/home"]) {

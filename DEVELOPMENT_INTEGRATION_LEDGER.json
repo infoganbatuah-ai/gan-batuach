@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-02T22:13:11.058350+00:00",
+  "updatedAt": "2026-11-03T00:45:58.098631+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -13485,6 +13485,54 @@
         "answer": "מאשר פרסום ושילוב בהיקף הזה",
         "scope": "Exact four-file source and summary/result ledger on samefeature; required-CI-gated Development integration only; broadmobile/main/Production excluded."
       }
+    },
+    {
+      "id": "codex/push44-capacitor-local-url-boundary-20261103",
+      "project": "Digital Observer",
+      "title": "PUSH44 exact parsed local HTTP cleartext URL boundary",
+      "owner": "Camera source implementation; specification independent review/integration",
+      "sourceBranch": "codex/push44-capacitor-local-url-boundary-20261103",
+      "sourceCommits": [
+        "eae96872b55fb92f86e0767f8217762366e69e74"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "status": "LOCAL_COMMITTED_PUBLICATION_PENDING_DIRECT_OWNER"
+      },
+      "validation": {
+        "status": "PASS_LOCAL_SOURCE_ANDROID_BUILD_LINT_AND_TARGETED_QA_REMOTE_CI_PENDING",
+        "evidence": [
+          "Actual base/fixed configuration comparison confirms three remote lookalike/userinfo regressions; root30 scenarios PASS",
+          "Root focused2/2 and existing PUSH44 suite PASS; executor typecheck/lint:ci PASS",
+          "Executor clean unsigned Android assembleRelease/lintRelease PASS; root byte-verifies APK21815234bytes and receipt; app0errors16warnings/vendorbaselineunchanged"
+        ],
+        "privateEvidence": "push44-local-url-evidence.7KdMQN8T/root-review.json",
+        "evidenceSHA256": "736012aece8f3d1041b8d5749e50d5156a1539a7da3bbb6758c978852ebb549c",
+        "classification": "PRIVATE_LOCAL_SOURCE_ANDROID_NO_DEVICE_NO_PROVIDER",
+        "limits": "Root did not rebuild native artifact; executor build evidence independently inspected and bytes verified. No device/provider/full-stack/remote CI or complete security audit proof."
+      },
+      "integration": {
+        "status": "PENDING_PUBLICATION_AUTHORIZATION_AND_ALL_REQUIRED_CI",
+        "base": "integration/development",
+        "baseCommit": "5ff49a35036a6d961a3e9e63ab98c9a36ebe8463",
+        "commit": null
+      },
+      "dependencies": {
+        "status": "CANONICAL_BASELINE_ONLY",
+        "units": [
+          "codex/push44-android-backup-exclusion-20261103"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "Three scoped source/QA files only. URL parser requires exact parsed local HTTP hostname and no userinfo. WHATWG normalized IPv4 loopback accepted; trailing-dot localhost excluded. Existing URL value/env precedence/plugins preserved. No dependencies/schema/provider/native baseline changes.",
+      "localVerification": "PASS_LOCAL_SOURCE_AND_EXECUTOR_ANDROID_BUILD_NOT_DEVICE_OR_FULL_STACK",
+      "releaseEligibility": "NOT_READY_DEVICE_PROVIDER_FULL_STACK_AND_OWNER_RELEASE_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain direct approval for this exact public source plus summary/result ledger, then scoped feature PR to Development with all required exact-head checks and ancestry-preserving integration; no broad mobile/main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
