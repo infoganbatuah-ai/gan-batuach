@@ -42,6 +42,8 @@ type GardenRow = {
 type Props = {
   leads: LeadRow[];
   gardens?: GardenRow[];
+  leadsAvailable?: boolean;
+  gardensAvailable?: boolean;
 };
 
 const labels: Record<string, string> = {
@@ -217,17 +219,19 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
   );
 }
 
-function FlowSection({ title, hint, children, empty }: { title: string; hint: string; children: ReactNode; empty: boolean }) {
+function FlowSection({ title, hint, children, empty, available }: { title: string; hint: string; children: ReactNode; empty: boolean; available: boolean }) {
   return (
     <section className="dashboard-section flow-board-section">
       <div className="section-heading"><h2>{title}</h2><p>{hint}</p></div>
-      {empty ? <div className="empty-state"><strong>אין פריטים כרגע</strong><span>כשהסטטוס יתאים, הוא יופיע כאן.</span></div> : <div className="procedure-list">{children}</div>}
+      {!available ? <div className="empty-state"><strong>הנתונים אינם זמינים כרגע</strong></div> : empty ? <div className="empty-state"><strong>אין פריטים כרגע</strong><span>כשהסטטוס יתאים, הוא יופיע כאן.</span></div> : <div className="procedure-list">{children}</div>}
     </section>
   );
 }
 
-export function AdminLeadsManager({ leads, gardens = [] }: Props) {
+export function AdminLeadsManager({ leads: inputLeads, gardens: inputGardens = [], leadsAvailable = true, gardensAvailable = true }: Props) {
   const [message, setMessage] = useState("");
+  const leads = leadsAvailable ? inputLeads : [];
+  const gardens = gardensAvailable ? inputGardens : [];
   const activeLeadStatuses = ["new", "registration_pending", "new_garden_onboarding", "lead_submitted", "contacted", "qualified", "approved", "onboarding"];
   const demoLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "demo_booking" && activeLeadStatuses.includes(String(lead.status ?? "new")));
   const parentOriginLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "parent_request" && activeLeadStatuses.includes(String(lead.status ?? "new")));
@@ -244,37 +248,37 @@ export function AdminLeadsManager({ leads, gardens = [] }: Props) {
   return (
     <>
       {message ? <div className={message.includes("נכשל") || message.includes("לא ") ? "error-banner" : "success-banner"}>{message}</div> : null}
-      <FlowSection title="בקשות הדגמה" hint="גנים שקבעו הדגמה מהאתר וממתינים לשיחת המשך." empty={demoLeads.length === 0}>
+      <FlowSection available={leadsAvailable} title="בקשות הדגמה" hint="גנים שקבעו הדגמה מהאתר וממתינים לשיחת המשך." empty={demoLeads.length === 0}>
         {demoLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
-      <FlowSection title="בקשות שהגיעו מהורים" hint="פניות הורים שמבקשים מהגן להצטרף. מצרפים פרטי מנהלת לפני המרה." empty={parentOriginLeads.length === 0}>
+      <FlowSection available={leadsAvailable} title="בקשות שהגיעו מהורים" hint="פניות הורים שמבקשים מהגן להצטרף. מצרפים פרטי מנהלת לפני המרה." empty={parentOriginLeads.length === 0}>
         {parentOriginLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
-      <FlowSection title="בקשות גן חדשות" hint="בודקים בקשה ראשונית ושולחים פרטי כניסה למנהלת." empty={gardenLeads.length === 0}>
+      <FlowSection available={leadsAvailable} title="בקשות גן חדשות" hint="בודקים בקשה ראשונית ושולחים פרטי כניסה למנהלת." empty={gardenLeads.length === 0}>
         {gardenLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
-      <FlowSection title="הפניות" hint="הפניות הורים, שותפים או גנים שדורשות טיפול מסחרי." empty={referralLeads.length === 0}>
+      <FlowSection available={leadsAvailable} title="הפניות" hint="הפניות הורים, שותפים או גנים שדורשות טיפול מסחרי." empty={referralLeads.length === 0}>
         {referralLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
-      <FlowSection title="צריך ליצור קשר" hint="בקשות שדורשות שיחה קצרה לפני אישור." empty={reviewLeads.length === 0}>
+      <FlowSection available={leadsAvailable} title="צריך ליצור קשר" hint="בקשות שדורשות שיחה קצרה לפני אישור." empty={reviewLeads.length === 0}>
         {reviewLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
-      <FlowSection title="נשלחו פרטי כניסה" hint="המנהלת כבר יכולה להתחבר ולהשלים את פרופיל הגן." empty={credentialsSent.length === 0}>
+      <FlowSection available={gardensAvailable} title="נשלחו פרטי כניסה" hint="המנהלת כבר יכולה להתחבר ולהשלים את פרופיל הגן." empty={credentialsSent.length === 0}>
         {credentialsSent.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
-      <FlowSection title="בתהליך השלמה" hint="המנהלת עובדת על פרופיל הגן." empty={inProgress.length === 0}>
+      <FlowSection available={gardensAvailable} title="בתהליך השלמה" hint="המנהלת עובדת על פרופיל הגן." empty={inProgress.length === 0}>
         {inProgress.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
-      <FlowSection title="ממתינים לאישור סופי" hint="הפרופיל הושלם ונשלח לבדיקה שלך." empty={pendingFinal.length === 0}>
+      <FlowSection available={gardensAvailable} title="ממתינים לאישור סופי" hint="הפרופיל הושלם ונשלח לבדיקה שלך." empty={pendingFinal.length === 0}>
         {pendingFinal.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
-      <FlowSection title="נדרשים תיקונים" hint="הגן חזר למנהלת עם הערה ברורה." empty={corrections.length === 0}>
+      <FlowSection available={gardensAvailable} title="נדרשים תיקונים" hint="הגן חזר למנהלת עם הערה ברורה." empty={corrections.length === 0}>
         {corrections.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
-      <FlowSection title="גנים פעילים" hint="גנים שעברו אישור סופי ועלו לאוויר." empty={active.length === 0}>
+      <FlowSection available={gardensAvailable} title="גנים פעילים" hint="גנים שעברו אישור סופי ועלו לאוויר." empty={active.length === 0}>
         {active.slice(0, 12).map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
-      <FlowSection title="מושהים" hint="גנים שנעצרו ולא זמינים לעבודה רגילה." empty={suspended.length === 0}>
+      <FlowSection available={gardensAvailable} title="מושהים" hint="גנים שנעצרו ולא זמינים לעבודה רגילה." empty={suspended.length === 0}>
         {suspended.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
     </>
