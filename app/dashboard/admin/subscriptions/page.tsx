@@ -21,13 +21,14 @@ export default async function AdminSubscriptionsPage() {
     ]);
     for (const [label, error] of [["subscriptions", subscriptions.error], ["plans", plans.error], ["gardens", gardens.error], ["payments", payments.error]] as const) logSupabaseError(label, error);
     return {
-      subscriptions: (subscriptions.data ?? []) as unknown as SubscriptionSummary[],
-      plans: (plans.data ?? []) as unknown as SubscriptionPlanSummary[],
-      gardens: (gardens.data ?? []) as unknown as SubscriptionGardenSummary[],
-      payments: (payments.data ?? []) as unknown as SubscriptionPaymentSummary[],
+      subscriptions: (subscriptions.error ? [] : subscriptions.data ?? []) as unknown as SubscriptionSummary[],
+      plans: (plans.error ? [] : plans.data ?? []) as unknown as SubscriptionPlanSummary[],
+      gardens: (gardens.error ? [] : gardens.data ?? []) as unknown as SubscriptionGardenSummary[],
+      payments: (payments.error ? [] : payments.data ?? []) as unknown as SubscriptionPaymentSummary[],
+      subscriptionsAvailable: !subscriptions.error, plansAvailable: !plans.error, gardensAvailable: !gardens.error, paymentsAvailable: !payments.error,
       queryError: [subscriptions.error, plans.error, gardens.error, payments.error].some(Boolean) ? "חלק מנתוני המנויים לא נטענו" : null
     };
-  }, { subscriptions: [] as SubscriptionSummary[], plans: [] as SubscriptionPlanSummary[], gardens: [] as SubscriptionGardenSummary[], payments: [] as SubscriptionPaymentSummary[], queryError: null as string | null });
+  }, { subscriptions: [] as SubscriptionSummary[], plans: [] as SubscriptionPlanSummary[], gardens: [] as SubscriptionGardenSummary[], payments: [] as SubscriptionPaymentSummary[], subscriptionsAvailable: false, plansAvailable: false, gardensAvailable: false, paymentsAvailable: false, queryError: null as string | null });
 
   const active = result.data.subscriptions.filter((item) => String(item.status) === "active").length;
   const trials = result.data.subscriptions.filter((item) => ["trial", "demo_active"].includes(String(item.status))).length;
@@ -39,14 +40,14 @@ export default async function AdminSubscriptionsPage() {
       <div className="finance-platform">
         <FinanceHero eyebrow="ניהול פלטפורמה" title="מנויי גנים" text="תוכניות, סטטוסי מנוי, מוכנות תשלום ופעולות אדמין — בלי לחשוף או לערבב את ספר שכר הלימוד המשפחתי." />
         <FinanceMetrics>
-          <FinanceMetric label="מנויים פעילים" value={active} hint="לא כולל ניסיון" icon={CheckCircle2} tone="green" />
-          <FinanceMetric label="בתקופת ניסיון" value={trials} hint="ללא הצלחת חיוב מדומה" icon={ShieldCheck} tone="blue" />
-          <FinanceMetric label="תשלומים שנכשלו" value={failed} hint="דורש טיפול" icon={CreditCard} tone={failed ? "red" : "green"} />
-          <FinanceMetric label="מוקפאים / חסומים" value={suspended} hint="היסטוריה נשמרת" icon={AlertTriangle} tone={suspended ? "orange" : "green"} />
+          <FinanceMetric label="מנויים פעילים" value={result.data.subscriptionsAvailable ? active : "לא זמין"} hint="לא כולל ניסיון" icon={CheckCircle2} tone={result.data.subscriptionsAvailable ? "green" : "orange"} />
+          <FinanceMetric label="בתקופת ניסיון" value={result.data.subscriptionsAvailable ? trials : "לא זמין"} hint="ללא הצלחת חיוב מדומה" icon={ShieldCheck} tone={result.data.subscriptionsAvailable ? "blue" : "orange"} />
+          <FinanceMetric label="תשלומים שנכשלו" value={result.data.paymentsAvailable ? failed : "לא זמין"} hint="דורש טיפול" icon={CreditCard} tone={!result.data.paymentsAvailable ? "orange" : failed ? "red" : "green"} />
+          <FinanceMetric label="מוקפאים / חסומים" value={result.data.subscriptionsAvailable ? suspended : "לא זמין"} hint="היסטוריה נשמרת" icon={AlertTriangle} tone={!result.data.subscriptionsAvailable || suspended ? "orange" : "green"} />
         </FinanceMetrics>
         <FinanceTruthBanner title="הפרדה מלאה" text="מסך זה מנהל מנוי גן → גן בטוח בלבד. לא מוצגים כאן יתרות של ילדים, הורים או שכר לימוד." />
         <AdminDataError message={result.error ?? result.data.queryError} />
-        <section className="finance-section"><header><div><h3>ניהול מנויים ותוכניות</h3><p>כל מחיר נלקח מהתוכנית ומה־snapshot הקנוני; אין ערך קשיח בממשק.</p></div><span className="finance-status green"><WalletCards size={15} /> ללא פרטי כרטיס</span></header><SubscriptionAdminManager plans={result.data.plans} subscriptions={result.data.subscriptions} gardens={result.data.gardens} payments={result.data.payments} /></section>
+        <section className="finance-section"><header><div><h3>ניהול מנויים ותוכניות</h3><p>כל מחיר נלקח מהתוכנית ומה־snapshot הקנוני; אין ערך קשיח בממשק.</p></div><span className="finance-status green"><WalletCards size={15} /> ללא פרטי כרטיס</span></header><SubscriptionAdminManager plans={result.data.plans} subscriptions={result.data.subscriptions} gardens={result.data.gardens} payments={result.data.payments} plansAvailable={result.data.plansAvailable} subscriptionsAvailable={result.data.subscriptionsAvailable} gardensAvailable={result.data.gardensAvailable} paymentsAvailable={result.data.paymentsAvailable} /></section>
       </div>
     </AdminAppFrame>
   );
