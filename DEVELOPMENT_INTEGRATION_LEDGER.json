@@ -13819,35 +13819,44 @@
       "sourceCommits": [
         "ed09e16a07447af2603e9b8e81ff0200ef0aaba2"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_ONLY_PUBLICATION_APPROVAL_PENDING"
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push46-pilot-query-failure-boundary-20261103@99ec8b05dcae8b06f372642f32b89d6d8c4143a0",
+          "origin/integration/development@df83708b5fd0d2d40007e1864463068ef80db7e4"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
-        "status": "PASS_LOCAL_ACTUAL_PAGE_AND_WEB_WITH_DISCLOSED_PROCESS_EXCEPTION",
+        "status": "PASS_ALL_REQUIRED_CI_AND_EXACT_MERGE_LOCAL_WEB_QUALIFICATION",
         "evidence": [
           "Root pinned-base actual page proof:9/10 individual resolved query errors hidden; original evidence reused without replay",
           "Root17/17 actual-page/safeAdminData regressions PASS plus independent error-with-stale-data/valid independent readiness/admin-denial cases PASS",
           "Root asserted unchanged requireRole and all query predicates plus exactly one domain CI hook",
-          "Worker offline lockeddeps/typecheck/lintCI and one clean demo/noactivation Web build557/557 PASS; source/receipt/build bytes+hashes reviewed once, no root Web rebuild"
+          "Worker offline lockeddeps/typecheck/lintCI and one clean demo/noactivation Web build557/557 PASS; source/receipt/build bytes+hashes reviewed once, no root Web rebuild",
+          "PR280 exact approved 99ec8b05d: all7 DigitalObserverCI41707053471, Management41707053684 and Snyk PASS",
+          "Source merge df83708b5fd0d2d40007e1864463068ef80db7e4: automaticCI41717618969 all7 PASS; exact-merge bounded demo/noactivation Web build/typecheck/lint:ci/pilot-query PASS"
         ],
         "privateEvidence": "push46-pilot-query-evidence.awqv087x/root-review.json",
         "evidenceSHA256": "270842a89a84d11c6910bd28aa70d7af01006adae4a0b21c5d98cd52ccd3c09c",
         "classification": "PRIVATE_LOCAL_ACTUAL_PAGE_WEB_NO_PROVIDER_OR_REAL_PILOT",
-        "limits": "Synthetic server page; no browser/live backend/customer/external pilot/provider/SQL/DB/fullstack/remoteCI/Production proof. Direct page lint exits1 on20 preexisting errors+1 warning; canonical lintCI0/0 and overall baseline unchanged.",
+        "limits": "Root exact-merge local Web and synthetic component qualification only; no real browser/device/media/provider/SQL/DB/fullstack/native-build or Production proof. Existing lint baseline unchanged.",
         "processException": {
           "status": "DISCLOSED_PROCESS_EXCEPTION_NOT_COMPLIANT",
           "workerReport": "Worker inadvertently searched tracked .env.example despite no-env-file-read instruction. Reported output only example/placeholder/empty values, no active environment or actual credentials. Template unchanged.",
           "rootReview": "No environment file re-read by root. Source payload has exactly three allowed paths and no environment file change; no secrets found by reported limited scan, not full audit. Active-environment absence and contents are worker-reported; no independent secret/config read was attempted."
-        }
+        },
+        "cumulativePrivateEvidence": "push46-pilot-query-evidence.awqv087x/cumulative/QUALIFICATION.json",
+        "cumulativeEvidenceSHA256": "5f75bd8badfcb6ccb3eb2c29a19d0bcfb268d79acab8afe31820b7e31c5bc575"
       },
       "integration": {
-        "status": "PENDING_DIRECT_PUBLICATION_AUTHORIZATION_AND_REQUIRED_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "20b225476881f340af3b7d8467deb662056e7233",
-        "commit": null
+        "commit": "df83708b5fd0d2d40007e1864463068ef80db7e4",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/280",
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "EXISTING_CANONICAL_PAGE_ONLY_EXTERNAL_PILOT_NOT_STARTED",
@@ -13859,15 +13868,16 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Three scoped page/QA/gate paths only. No shared safeAdminData, auth, role, table/query predicate, tenant/RLS/schema, dependency, provider, pilot-start or main/Production changes.",
-      "localVerification": "PASS_SYNTHETIC_ACTUAL_PAGE_AND_DEMO_WEB_NOT_FULL_STACK",
+      "localVerification": "PASS_EXACT_MERGE_DEMO_WEB_BUILD_TYPECHECK_LINT_PILOT_QUERY_NOT_FULL_STACK",
       "releaseEligibility": "REAL_HOME_PILOT_NOT_STARTED_EXTERNAL_ENTRY_GATES_UNMET",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Obtain direct owner authorization for exact public source+summary/result ledger; required exact-head CI and enabled Management/Snyk before any gated Development integration. No real pilot/provider/SQL/main/Production.",
+      "nextAction": "Existing admin pilot query-failure boundary integrated in Development. Real Home pilot NOT_STARTED; legal/consent/site/device/duration/SLO/cost and live DB/full-stack gates remain unmet. No main/Production release.",
       "publicationAuthorization": {
-        "status": "PENDING_DIRECT_OWNER_DECISION",
-        "scope": "Prior186–193 approvals consumed exact scopes; forwarded manager request does not expand authority. Source/summary remain local."
+        "callId": "call_27c8a5bad932449f8071a8f818c6503e",
+        "answer": "מאשר פרסום ושילוב בהיקף הזה",
+        "scope": "Exact approved source ed09e16a0 and summary head 99ec8b05dcae8b06f372642f32b89d6d8c4143a0; public feature PR, required-CI-gated Development integration and result ledger. No realpilot/broadmobile/main/Production/SQL/provider/device/newcost authority. Process exception disclosed in reviewed payload remains retained."
       }
     },
     {
