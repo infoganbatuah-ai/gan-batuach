@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 type LeadRow = {
   id: string;
@@ -141,7 +142,7 @@ function GardenCard({ garden, onDone }: { garden: GardenRow; onDone: (message: s
       <div className="procedure-meta">
         {["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "correction_required", "lead_approved_credentials_sent", "profile_incomplete"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("resend_credentials", "קישור שחזור התבקש בדוא״ל")}>שליחת קישור שחזור</button> : null}
         {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("approve_final_profile", "הגן אושר וממתין למנוי")}>אישור למנוי</button> : null}
-        {status === "payment_pending" ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("activate_after_payment", "הגן הופעל אחרי תשלום/override")}>הפעלה אחרי תשלום</button> : null}
+        {status === "payment_pending" ? <Link className="button secondary" href="/dashboard/admin/billing" prefetch={false}>מעבר לחיוב</Link> : null}
         {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("request_corrections", "הוחזר לתיקונים")}>החזרה לתיקון</button> : null}
         {status === "active" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("suspend", "הגן הושהה")}>השהיה</button> : null}
         {status !== "active" && status !== "archived" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("archive", "הועבר לארכיון")}>ארכוב</button> : null}
@@ -241,6 +242,7 @@ export function AdminLeadsManager({ leads: inputLeads, gardens: inputGardens = [
   const credentialsSent = gardens.filter((garden) => ["credentials_sent", "lead_approved_credentials_sent"].includes(String(garden.approval_flow_status ?? garden.status)));
   const inProgress = gardens.filter((garden) => ["onboarding_in_progress", "profile_incomplete"].includes(String(garden.approval_flow_status ?? garden.status)));
   const pendingFinal = gardens.filter((garden) => ["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(String(garden.approval_flow_status ?? garden.status)));
+  const paymentPending = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "payment_pending");
   const corrections = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "correction_required");
   const active = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "active");
   const suspended = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "suspended");
@@ -271,6 +273,9 @@ export function AdminLeadsManager({ leads: inputLeads, gardens: inputGardens = [
       </FlowSection>
       <FlowSection available={gardensAvailable} title="ממתינים לאישור סופי" hint="הפרופיל הושלם ונשלח לבדיקה שלך." empty={pendingFinal.length === 0}>
         {pendingFinal.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
+      </FlowSection>
+      <FlowSection available={gardensAvailable} title="ממתינים למנוי או לתשלום" hint="גנים שממתינים להמשך טיפול בחיוב." empty={paymentPending.length === 0}>
+        {paymentPending.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
       <FlowSection available={gardensAvailable} title="נדרשים תיקונים" hint="הגן חזר למנהלת עם הערה ברורה." empty={corrections.length === 0}>
         {corrections.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
