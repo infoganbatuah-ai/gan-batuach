@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { rows: result.error ? [] : result.data ?? [], failed: Boolean(result.error) };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { rows: [] as T[], failed: true };
   }
 }
 
@@ -63,7 +63,7 @@ export default async function FirstPilotPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("first pilot command center", async () => {
     const supabase = await createClient();
-    const [profiles, scores, gates, dataPolicies, agreements, trainings, issues, feedback, health, metrics, risks, exitCriteria] = await Promise.all([
+    const queries = await Promise.all([
       safeQuery<Row>("pilot kindergarten profiles", () => supabase.from("pilot_kindergarten_profiles" as any).select("*").order("created_at", { ascending: false }).limit(20)),
       safeQuery<Row>("first pilot readiness scores", () => supabase.from("first_pilot_readiness_scores" as any).select("*").order("calculated_at", { ascending: false }).limit(20)),
       safeQuery<Row>("pilot approval gates", () => supabase.from("pilot_approval_gates" as any).select("*").order("gate_area").order("gate_key").limit(80)),
@@ -77,7 +77,8 @@ export default async function FirstPilotPage() {
       safeQuery<Row>("pilot risks", () => supabase.from("pilot_risks" as any).select("*").order("severity").order("risk_category").limit(100)),
       safeQuery<Row>("pilot exit criteria", () => supabase.from("pilot_exit_criteria" as any).select("*").order("criteria_key").limit(80))
     ]);
-    return { profiles, scores, gates, dataPolicies, agreements, trainings, issues, feedback, health, metrics, risks, exitCriteria };
+    const [profiles, scores, gates, dataPolicies, agreements, trainings, issues, feedback, health, metrics, risks, exitCriteria] = queries.map((query) => query.rows);
+    return { profiles, scores, gates, dataPolicies, agreements, trainings, issues, feedback, health, metrics, risks, exitCriteria, errors: queries.map((query) => query.failed) };
   }, {
     profiles: [] as Row[],
     scores: [] as Row[],
@@ -90,13 +91,17 @@ export default async function FirstPilotPage() {
     health: [] as Row[],
     metrics: [] as Row[],
     risks: [] as Row[],
-    exitCriteria: [] as Row[]
+    exitCriteria: [] as Row[],
+    errors: Array(12).fill(true) as boolean[]
   });
 
   const data = result.data;
+  const { errors } = data;
+  const unavailable = "לא זמין כרגע";
   const profile = data.profiles[0];
   const score = data.scores[0];
   const readinessScore = Number(score?.readiness_score ?? profile?.health_score ?? 0);
+  const scoreAvailable = !errors[1] && (score?.readiness_score != null || !errors[0]);
   const openIssues = data.issues.filter((issue) => !["fixed", "verified", "deferred"].includes(String(issue.status)));
   const criticalIssues = openIssues.filter((issue) => issue.severity === "critical").length;
   const highIssues = openIssues.filter((issue) => issue.severity === "high").length;
@@ -118,8 +123,8 @@ export default async function FirstPilotPage() {
           eyebrow="Controlled Kindergarten Pilot"
           title="פיילוט גן ראשון"
           subtitle="מרכז שליטה להפעלת גן אמיתי ראשון בצורה מבוקרת: שערי אישור, מדיניות נתונים, הדרכה, תמיכה, מצלמות, תצפיתן, תשלומים וחסמים. הפיילוט אינו מפעיל production אוטומטית."
-          badge={`${readinessScore}/100`}
-          badgeTone={scoreTone(readinessScore)}
+          badge={scoreAvailable ? `${readinessScore}/100` : unavailable}
+          badgeTone={scoreAvailable ? scoreTone(readinessScore) : "warn"}
           actions={<><Link className="button primary" href="/dashboard/admin/legal-review">סקירה משפטית</Link><Link className="button secondary" href="/dashboard/admin/security-review">בדיקת אבטחה</Link></>}
         >
           <div className="setup-checklist">
@@ -129,21 +134,21 @@ export default async function FirstPilotPage() {
             <span>Parent camera visibility כבוי כברירת מחדל</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני הפיילוט אינם זמינים כרגע." : null)} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Pilot health" value={`${readinessScore}/100`} hint={label(score?.status ?? profile?.pilot_status)} tone={scoreTone(readinessScore)} />
-          <RoleMetricCard label="Pilot status" value={label(profile?.pilot_status)} hint={profile?.kindergarten_name ?? "גן טרם נבחר"} tone={toneForStatus(profile?.pilot_status)} />
-          <RoleMetricCard label="Approval gates" value={`${approvedGates}/${data.gates.length}`} hint={`${blockingGates} חוסמים`} tone={blockingGates ? "bad" : "good"} />
-          <RoleMetricCard label="Data allowed" value={`${allowedData}/${data.dataPolicies.length}`} hint="ברירת מחדל חסומה" tone={allowedData <= 1 ? "good" : "warn"} />
-          <RoleMetricCard label="Agreements" value={`${agreementPercent}%`} hint="הסכמים והודעות" tone={scoreTone(agreementPercent)} />
-          <RoleMetricCard label="Training" value={`${trainingPercent}%`} hint="מנהלת, צוות, הורים" tone={scoreTone(trainingPercent)} />
-          <RoleMetricCard label="Open issues" value={openIssues.length} hint={`${criticalIssues} critical · ${highIssues} high`} tone={criticalIssues ? "bad" : openIssues.length ? "warn" : "good"} />
-          <RoleMetricCard label="Exit criteria" value={`${exitPercent}%`} hint="לפני סיום פיילוט" tone={scoreTone(exitPercent)} />
+          <RoleMetricCard label="Pilot health" value={scoreAvailable ? `${readinessScore}/100` : unavailable} hint={errors[1] ? unavailable : score?.status != null ? label(score.status) : errors[0] ? unavailable : label(profile?.pilot_status)} tone={scoreAvailable ? scoreTone(readinessScore) : "warn"} />
+          <RoleMetricCard label="Pilot status" value={errors[0] ? unavailable : label(profile?.pilot_status)} hint={errors[0] ? unavailable : profile?.kindergarten_name ?? "גן טרם נבחר"} tone={errors[0] ? "warn" : toneForStatus(profile?.pilot_status)} />
+          <RoleMetricCard label="Approval gates" value={errors[2] ? unavailable : `${approvedGates}/${data.gates.length}`} hint={errors[2] ? unavailable : `${blockingGates} חוסמים`} tone={errors[2] ? "warn" : blockingGates ? "bad" : "good"} />
+          <RoleMetricCard label="Data allowed" value={errors[3] ? unavailable : `${allowedData}/${data.dataPolicies.length}`} hint={errors[3] ? unavailable : "ברירת מחדל חסומה"} tone={errors[3] ? "warn" : allowedData <= 1 ? "good" : "warn"} />
+          <RoleMetricCard label="Agreements" value={errors[4] ? unavailable : `${agreementPercent}%`} hint="הסכמים והודעות" tone={errors[4] ? "warn" : scoreTone(agreementPercent)} />
+          <RoleMetricCard label="Training" value={errors[5] ? unavailable : `${trainingPercent}%`} hint="מנהלת, צוות, הורים" tone={errors[5] ? "warn" : scoreTone(trainingPercent)} />
+          <RoleMetricCard label="Open issues" value={errors[6] ? unavailable : openIssues.length} hint={errors[6] ? unavailable : `${criticalIssues} critical · ${highIssues} high`} tone={errors[6] ? "warn" : criticalIssues ? "bad" : openIssues.length ? "warn" : "good"} />
+          <RoleMetricCard label="Exit criteria" value={errors[11] ? unavailable : `${exitPercent}%`} hint="לפני סיום פיילוט" tone={errors[11] ? "warn" : scoreTone(exitPercent)} />
         </section>
 
         <CleanSection title="Pilot Kindergarten Profile" subtitle="הפרופיל נשאר placeholder עד בחירת גן אמיתי ואישור מסמכי הפיילוט.">
-          {profile ? (
+          {errors[0] ? <div>{unavailable}</div> : profile ? (
             <article className="card procedure-card">
               <div>
                 <StatusBadge tone={toneForStatus(profile.pilot_status)}>{label(profile.pilot_status)}</StatusBadge>
@@ -157,13 +162,13 @@ export default async function FirstPilotPage() {
                 <StatusBadge tone="default">owner {profile.pilot_owner ?? "TBD"}</StatusBadge>
               </div>
             </article>
-          ) : <EmptyState title="אין פרופיל פיילוט" text="הרצת המיגרציה של Phase 168 תיצור פרופיל placeholder מבוקר." />}
+          ) : <EmptyState title="אין פרופיל פיילוט" text="אין פרופיל זמין." />}
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Pilot Approval Gates" subtitle="אי אפשר להעביר ל־active_pilot בלי אישור כל השערים החוסמים.">
             <div className="camera-infra-list">
-              {data.gates.map((gate) => (
+              {errors[2] ? <div>{unavailable}</div> : data.gates.map((gate) => (
                 <article className="camera-infra-row" key={gate.id ?? gate.gate_key}>
                   <div>
                     <strong>{gate.title}</strong>
@@ -177,7 +182,7 @@ export default async function FirstPilotPage() {
 
           <CleanSection title="Pilot Data Policy" subtitle="קטגוריות מידע אמיתיות חסומות עד אישור מפורש.">
             <div className="camera-infra-list">
-              {data.dataPolicies.map((policy) => (
+              {errors[3] ? <div>{unavailable}</div> : data.dataPolicies.map((policy) => (
                 <article className="camera-infra-row" key={policy.id ?? policy.policy_key}>
                   <div>
                     <strong>{label(policy.data_category)}</strong>
@@ -194,7 +199,7 @@ export default async function FirstPilotPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Agreement Checklist" subtitle="הסכמי פיילוט, הודעות פרטיות, מצלמות ו־AI לפני כל שימוש אמיתי.">
             <div className="procedure-list">
-              {data.agreements.map((item) => (
+              {errors[4] ? <div>{unavailable}</div> : data.agreements.map((item) => (
                 <article className="card procedure-card" key={item.id ?? item.checklist_key}>
                   <div>
                     <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
@@ -209,7 +214,7 @@ export default async function FirstPilotPage() {
 
           <CleanSection title="Training & Onboarding" subtitle="הכנה למנהלת, צוות, הורים, מפקח ותמיכה.">
             <div className="camera-infra-list">
-              {data.trainings.map((training) => (
+              {errors[5] ? <div>{unavailable}</div> : data.trainings.map((training) => (
                 <article className="camera-infra-row" key={training.id ?? training.training_key}>
                   <div>
                     <strong>{training.title}</strong>
@@ -224,7 +229,7 @@ export default async function FirstPilotPage() {
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Pilot Support Desk & Issues" subtitle="תמיכה, באגים וחסמי פיילוט. Critical חוסם הפעלה או הרחבה.">
-            {data.issues.length === 0 ? <EmptyState title="אין בעיות פיילוט" /> : (
+            {errors[6] ? <div>{unavailable}</div> : data.issues.length === 0 ? <EmptyState title="אין בעיות פיילוט" /> : (
               <div className="camera-infra-list">
                 {data.issues.map((issue) => (
                   <article className="camera-infra-row" key={issue.id ?? issue.issue_key}>
@@ -242,7 +247,7 @@ export default async function FirstPilotPage() {
 
           <CleanSection title="Feedback System" subtitle="איסוף משוב ממנהלת, צוות, הורים, מפקח ותמיכה.">
             <div className="camera-infra-list">
-              {data.feedback.map((item) => (
+              {errors[7] ? <div>{unavailable}</div> : data.feedback.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.feedback_key}>
                   <div>
                     <strong>{item.title}</strong>
@@ -257,7 +262,7 @@ export default async function FirstPilotPage() {
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Daily Pilot Health Check" subtitle="בדיקה יומית לאחר תחילת onboarding מבוקר.">
-            <article className="card procedure-card">
+            {errors[8] ? <div>{unavailable}</div> : <article className="card procedure-card">
               <div>
                 <StatusBadge tone={toneForStatus(latestHealth?.status)}>{label(latestHealth?.status)}</StatusBadge>
                 <h3>{dailyHealthDone}/8 פעולות יומיות סומנו</h3>
@@ -265,12 +270,12 @@ export default async function FirstPilotPage() {
                 <small>{latestHealth?.check_date ?? "No date"}</small>
               </div>
               <div className="procedure-meta"><StatusBadge tone={scoreTone(Number(latestHealth?.score ?? 0))}>{latestHealth?.score ?? 0}/100</StatusBadge></div>
-            </article>
+            </article>}
           </CleanSection>
 
           <CleanSection title="Pilot Success Metrics" subtitle="מדדי אימוץ, תקשורת, תמיכה ושביעות רצון.">
             <div className="camera-infra-list">
-              {data.metrics.map((metric) => (
+              {errors[9] ? <div>{unavailable}</div> : data.metrics.map((metric) => (
                 <article className="camera-infra-row" key={metric.id ?? metric.metric_key}>
                   <div>
                     <strong>{metric.metric_name}</strong>
@@ -286,17 +291,17 @@ export default async function FirstPilotPage() {
 
         <CleanSection title="Camera, Observer, Payment & Notification Readiness" subtitle="כל יכולת מסוכנת נשארת חסומה או במצב בדיקה עד אישור מפורש.">
           <div className="premium-action-grid">
-            <ActionCard icon={ShieldCheck} title="Camera pilot" text={`Camera data: ${label(cameraPolicy?.approval_status)}. Parent viewing disabled unless approved.`} href="/dashboard/admin/camera-gateway" />
-            <ActionCard icon={HeartPulse} title="Observer pilot" text={`AI processing: ${label(aiPolicy?.approval_status)}. Shadow mode only, no parent raw AI.`} href="/dashboard/admin/observer-pilot" />
+            <ActionCard icon={ShieldCheck} title="Camera pilot" text={errors[3] ? unavailable : `Camera data: ${label(cameraPolicy?.approval_status)}. Parent viewing disabled unless approved.`} href="/dashboard/admin/camera-gateway" />
+            <ActionCard icon={HeartPulse} title="Observer pilot" text={errors[3] ? unavailable : `AI processing: ${label(aiPolicy?.approval_status)}. Shadow mode only, no parent raw AI.`} href="/dashboard/admin/observer-pilot" />
             <ActionCard icon={ClipboardCheck} title="Payments" text="Sandbox/test mode until provider, invoice and agreement approval are ready." href="/dashboard/admin/integrations" />
-            <ActionCard icon={GraduationCap} title="Training" text={`${trainingPercent}% complete across manager, staff, parent, inspector and support tracks.`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={GraduationCap} title="Training" text={errors[5] ? unavailable : `${trainingPercent}% complete across manager, staff, parent, inspector and support tracks.`} href="/dashboard/admin/customer-success" />
           </div>
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Pilot Risk Register" subtitle="סיכונים משפטיים, פרטיות, אבטחה, UX, מצלמות, AI, תשלום ותמיכה.">
             <div className="procedure-list">
-              {data.risks.map((risk) => (
+              {errors[10] ? <div>{unavailable}</div> : data.risks.map((risk) => (
                 <article className="card procedure-card" key={risk.id ?? risk.risk_key}>
                   <div>
                     <StatusBadge tone={toneForStatus(risk.severity)}>{label(risk.severity)}</StatusBadge>
@@ -312,7 +317,7 @@ export default async function FirstPilotPage() {
 
           <CleanSection title="Pilot Exit Criteria" subtitle="תנאים לפני סימון הפיילוט כהושלם והחלטה על הצעד הבא.">
             <div className="camera-infra-list">
-              {data.exitCriteria.map((criteria) => (
+              {errors[11] ? <div>{unavailable}</div> : data.exitCriteria.map((criteria) => (
                 <article className="camera-infra-row" key={criteria.id ?? criteria.criteria_key}>
                   <div>
                     <strong>{criteria.title}</strong>
@@ -325,7 +330,9 @@ export default async function FirstPilotPage() {
           </CleanSection>
         </section>
 
-        {criticalIssues || blockingGates ? (
+        {errors[2] || errors[6] ? (
+          <div className="error-banner"><AlertTriangle size={16} /> זמינות שערי האישור והבעיות אינה מלאה; לא ניתן לקבוע מוכנות. {!errors[2] && blockingGates ? `${blockingGates} שערים חוסמים ידועים.` : ""} {!errors[6] && criticalIssues ? `${criticalIssues} בעיות קריטיות ידועות.` : ""}</div>
+        ) : criticalIssues || blockingGates ? (
           <div className="error-banner"><AlertTriangle size={16} /> הפיילוט עדיין חסום: {blockingGates} שערי אישור לא מאושרים ו־{criticalIssues} חסמים קריטיים פתוחים.</div>
         ) : (
           <div className="success-banner"><UsersRound size={16} /> הפיילוט נראה מוכן לשלב הבא, בכפוף לאישור משפטי/פרטיות/אבטחה חיצוני.</div>
