@@ -77,6 +77,14 @@ export function ObserverMobileRuntime() {
     let sites: RuntimeSite[] = [];
     let pendingPushSiteId = "";
     let checking = false;
+    let checkingVersion = 0;
+    let recheckRequested = false;
+    let networkOffline = false;
+    let networkKnown = false;
+    let appInactive = false;
+    let networkObservations = 0;
+    let interruptionVersion = 0;
+    let listenerFailure = false;
     const removers: Array<() => Promise<void>> = [];
 
     const registerDevice = async (siteId: string, pushToken?: string) => {
@@ -115,14 +123,20 @@ export function ObserverMobileRuntime() {
     const bootstrap = async () => {
       // Public sign-in and recovery routes must not redirect on an expected 401.
       if (!mobileRuntimeRequiresSession(window.location.pathname)) return;
-      if (checking || disposed) return;
+      if (disposed || !playbackPublisher.isCurrent()) return;
+      if (checking) {
+        if (checkingVersion !== interruptionVersion) recheckRequested = true;
+        return;
+      }
       checking = true;
+      const startedVersion = interruptionVersion;
+      checkingVersion = startedVersion;
       setStale(true);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10_000);
       try {
         const response = await fetch("/api/digital-observer/mobile/runtime", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
-        if (disposed) return;
+        if (disposed || !playbackPublisher.isCurrent()) return;
         if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
         const payload = await response.json() as RuntimeResponse;
         sites = payload.data?.sites ?? [];
@@ -136,10 +150,12 @@ export function ObserverMobileRuntime() {
           const permission = await PushNotifications.checkPermissions();
           if (permission.receive === "granted") await PushNotifications.register();
         }
-        if (!disposed) setStale(false);
+        if (!disposed && playbackPublisher.isCurrent() && !listenerFailure && networkKnown && !networkOffline && !appInactive && startedVersion === interruptionVersion) setStale(false);
       } catch (error) {
+        if (disposed || !playbackPublisher.isCurrent()) return;
         await enqueue("runtime_revalidate");
-        if (!disposed) setStale(true);
+        if (disposed || !playbackPublisher.isCurrent()) return;
+        setStale(true);
         if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
           && mobileRuntimeRequiresSession(window.location.pathname)) {
           sites = [];
@@ -150,6 +166,10 @@ export function ObserverMobileRuntime() {
       } finally {
         clearTimeout(timeout);
         checking = false;
+        if (recheckRequested && !disposed && playbackPublisher.isCurrent()) {
+          recheckRequested = false;
+          if (!networkOffline && !appInactive) void bootstrap();
+        }
       }
     };
 
@@ -194,31 +214,51 @@ export function ObserverMobileRuntime() {
     };
 
     const start = async () => {
-      const status = await Network.getStatus();
-      if (disposed || !playbackPublisher.networkOffline(!status.connected)) return;
-      setOnline(status.connected);
-      setStale(!status.connected);
-      if (status.connected) await bootstrap(); else await enqueue("runtime_revalidate");
-      if (disposed || !playbackPublisher.isCurrent()) return;
-
-      const network = await Network.addListener("networkStatusChange", async (next) => {
+      const listenerFailed = () => {
+        if (disposed || !playbackPublisher.isCurrent()) return;
+        listenerFailure = true;
+        setStale(true);
+      };
+      // Start both registrations before awaiting either plugin, status, or authentication.
+      const networkRegistration = Network.addListener("networkStatusChange", async (next) => {
         if (disposed || !playbackPublisher.networkOffline(!next.connected)) return;
+        networkObservations++;
+        networkKnown = true;
+        networkOffline = !next.connected;
+        if (networkOffline) interruptionVersion++;
         setOnline(next.connected);
-        setStale(!next.connected);
+        if (!next.connected) setStale(true);
         emit(next.connected ? "digital-observer:mobile-online" : "digital-observer:mobile-offline", { connectionType: next.connectionType });
         if (next.connected) await bootstrap();
-      });
-      if (disposed || !playbackPublisher.isCurrent()) { await network.remove(); return; }
-      removers.push(() => network.remove());
-
-      const appState = await App.addListener("appStateChange", async ({ isActive }) => {
+      }).then(async (network) => {
+        if (disposed || !playbackPublisher.isCurrent()) await network.remove();
+        else removers.push(() => network.remove());
+      }).catch(listenerFailed);
+      const appRegistration = App.addListener("appStateChange", async ({ isActive }) => {
         if (disposed || !playbackPublisher.appInactive(!isActive)) return;
+        appInactive = !isActive;
+        if (appInactive) interruptionVersion++;
         if (!isActive) setStale(true);
         emit(isActive ? "digital-observer:mobile-resume" : "digital-observer:mobile-suspend");
         if (isActive) await bootstrap();
-      });
-      if (disposed || !playbackPublisher.isCurrent()) { await appState.remove(); return; }
-      removers.push(() => appState.remove());
+      }).then(async (appState) => {
+        if (disposed || !playbackPublisher.isCurrent()) await appState.remove();
+        else removers.push(() => appState.remove());
+      }).catch(listenerFailed);
+
+      const status = await Network.getStatus();
+      if (disposed || !playbackPublisher.isCurrent()) return;
+      if (networkObservations === 0) {
+        if (!playbackPublisher.networkOffline(!status.connected)) return;
+        networkKnown = true;
+        networkOffline = !status.connected;
+        if (networkOffline) interruptionVersion++;
+        setOnline(status.connected);
+        if (!status.connected) setStale(true);
+        if (status.connected) await bootstrap(); else await enqueue("runtime_revalidate");
+      }
+      await Promise.all([networkRegistration, appRegistration]);
+      if (disposed || !playbackPublisher.isCurrent()) return;
 
       const appUrl = await App.addListener("appUrlOpen", ({ url }) => { void authorizeAndOpen(url).catch(() => emit("digital-observer:mobile-link-denied")); });
       if (disposed || !playbackPublisher.isCurrent()) { await appUrl.remove(); return; }
