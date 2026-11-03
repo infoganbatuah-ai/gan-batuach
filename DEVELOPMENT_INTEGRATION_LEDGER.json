@@ -13432,29 +13432,38 @@
       "sourceCommits": [
         "6ff9f65a43595696783a194485187a7967010f16"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "PUBLICATION_PENDING_DIRECT_OWNER_SCOPE_APPROVAL"
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-android-backup-exclusion-20261103@002aac8c5b7dd2b0a2a19fafb42d7da090bbddc8",
+          "origin/integration/development@16fd9bd76f9fe7e69084686ea8c104dece398b3a"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
-        "status": "LOCAL_ANDROID_BUILD_LINT_AND_TARGETED_REGRESSION_PASS_REMOTE_CI_PENDING",
+        "status": "PASS_SOURCE_AND_MERGE_ALL_REQUIRED_CI_ANDROID_BUILD_LINT_AND_TARGETED_QA",
         "evidence": [
           "Exact-source clean unsigned assembleRelease PASS; actual APK manifest and compiled resource inspected",
           "Python parsed-XML regression4/4 and PUSH44 deterministic suite PASS",
-          "App lint0errors16warnings; DataExtractionRules warning removed, vendor baseline unchanged"
+          "App lint0errors16warnings; DataExtractionRules warning removed, vendor baseline unchanged",
+          "PR268 head002a: CI41551647763 all7 +Management41551647764+Snyk PASS",
+          "Merge16fd: CI41552213901 all7PASS; exactmerge clean assembleRelease/lintRelease and PUSH44 deterministicQA PASS; unsignedAPK identical to source"
         ],
         "privateEvidence": "push44-android-backup-evidence.PSN75uUg/root-review.json",
         "evidenceSHA256": "47f133b8b2fc6d236b0d9adab8e9f9c4543c96651f6fc30aa17becd58933069e",
         "classification": "PRIVATE_LOCAL_ANDROID_NO_DEVICE_NO_PROVIDER",
-        "limits": "No root rebuild; inspected actual executor logs/results and independently checked APK/regressions. No device/OEM/cross-platform-transfer/API36.1/fullstack/Production proof. No push or PR."
+        "limits": "Exact-source and cumulative-merge local build/configuration proof only. No device/OEM D2D, API36.1 cross-platform-transfer, provider/full-stack or Production proof;16 app warnings and unchanged vendor baseline findings remain.",
+        "cumulativePrivateEvidence": "push44-android-backup-evidence.PSN75uUg/cumulative/QUALIFICATION.json",
+        "cumulativeEvidenceSHA256": "fc0a7be27b13a50d718133d5c53351ed4fd2091d9eceb46acb862a4561b928dc"
       },
       "integration": {
-        "status": "PENDING_PUBLICATION_AND_ALL_REQUIRED_EXACT_HEAD_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "e53e4aa1dd0ba9ea9284b41466836e3b451271ac",
-        "commit": null
+        "commit": "16fd9bd76f9fe7e69084686ea8c104dece398b3a",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/268",
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "CANONICAL_BASELINE_ONLY",
@@ -13465,12 +13474,17 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "No broad mobile source imported. Extends existing no-backup intent with explicit cloud/D2D exclusion of nine documented storage domains and legacy fullBackupContent=false. No permissions, SDK, dependencies or baseline changed. Cross-platform-transfer/API36.1 is outside verified scope.",
-      "localVerification": "PASS_LOCAL_ANDROID_POLICY_BUILD_AND_APK_NOT_DEVICE_OR_FULL_STACK",
+      "localVerification": "PASS_EXACT_MERGE_ANDROID_BUILD_LINT_AND_TARGETED_QA_NOT_DEVICE_OR_FULL_STACK",
       "releaseEligibility": "NOT_READY_DEVICE_OEM_PROVIDER_FULL_STACK_AND_RELEASE_QUALIFICATION_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Obtain direct owner approval for public four-file policy source plus summary/result ledger, then same feature Development PR, all required exact-head CI and conditional ancestry-preserving integration. Previous event/resource-cleanup public approvals do not cover this new payload."
+      "nextAction": "Scoped cloud/D2D configuration fix integrated in Development. Device/OEM behavior, API36.1 cross-platform-transfer, provider/full-stack qualification and owner-controlled release remain pending their prerequisites.",
+      "publicationAuthorization": {
+        "callId": "call_3ab5cddb8f6445bdacf3c7a13d0653e5",
+        "answer": "מאשר פרסום ושילוב בהיקף הזה",
+        "scope": "Exact four-file source and summary/result ledger on samefeature; required-CI-gated Development integration only; broadmobile/main/Production excluded."
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
