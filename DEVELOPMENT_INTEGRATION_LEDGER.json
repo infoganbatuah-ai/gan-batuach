@@ -13808,6 +13808,67 @@
         "answer": "מאשר פרסום ושילוב בהיקף הזה",
         "scope": "Exact approved source 4250b0f5a and summary head b4fee7954e97e7588a2f242d58236ca5f6f5151c; public feature PR, required-CI-gated Development integration and result ledger. No broadmobile/main/Production/SQL/provider/device authority."
       }
+    },
+    {
+      "id": "codex/push46-pilot-query-failure-boundary-20261103",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH46-PILOT-QUERY-FAILURE-BOUNDARY-20261103-01",
+      "title": "PUSH46 existing pilot dashboard query-failure truthfulness repair",
+      "owner": "Camera source implementation; specification independent review/integration",
+      "sourceBranch": "codex/push46-pilot-query-failure-boundary-20261103",
+      "sourceCommits": [
+        "ed09e16a07447af2603e9b8e81ff0200ef0aaba2"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_ONLY_PUBLICATION_APPROVAL_PENDING"
+      },
+      "validation": {
+        "status": "PASS_LOCAL_ACTUAL_PAGE_AND_WEB_WITH_DISCLOSED_PROCESS_EXCEPTION",
+        "evidence": [
+          "Root pinned-base actual page proof:9/10 individual resolved query errors hidden; original evidence reused without replay",
+          "Root17/17 actual-page/safeAdminData regressions PASS plus independent error-with-stale-data/valid independent readiness/admin-denial cases PASS",
+          "Root asserted unchanged requireRole and all query predicates plus exactly one domain CI hook",
+          "Worker offline lockeddeps/typecheck/lintCI and one clean demo/noactivation Web build557/557 PASS; source/receipt/build bytes+hashes reviewed once, no root Web rebuild"
+        ],
+        "privateEvidence": "push46-pilot-query-evidence.awqv087x/root-review.json",
+        "evidenceSHA256": "270842a89a84d11c6910bd28aa70d7af01006adae4a0b21c5d98cd52ccd3c09c",
+        "classification": "PRIVATE_LOCAL_ACTUAL_PAGE_WEB_NO_PROVIDER_OR_REAL_PILOT",
+        "limits": "Synthetic server page; no browser/live backend/customer/external pilot/provider/SQL/DB/fullstack/remoteCI/Production proof. Direct page lint exits1 on20 preexisting errors+1 warning; canonical lintCI0/0 and overall baseline unchanged.",
+        "processException": {
+          "status": "DISCLOSED_PROCESS_EXCEPTION_NOT_COMPLIANT",
+          "workerReport": "Worker inadvertently searched tracked .env.example despite no-env-file-read instruction. Reported output only example/placeholder/empty values, no active environment or actual credentials. Template unchanged.",
+          "rootReview": "No environment file re-read by root. Source payload has exactly three allowed paths and no environment file change; no secrets found by reported limited scan, not full audit. Active-environment absence and contents are worker-reported; no independent secret/config read was attempted."
+        }
+      },
+      "integration": {
+        "status": "PENDING_DIRECT_PUBLICATION_AUTHORIZATION_AND_REQUIRED_CI",
+        "base": "integration/development",
+        "baseCommit": "20b225476881f340af3b7d8467deb662056e7233",
+        "commit": null
+      },
+      "dependencies": {
+        "status": "EXISTING_CANONICAL_PAGE_ONLY_EXTERNAL_PILOT_NOT_STARTED",
+        "units": [],
+        "blockers": [
+          "Real Home pilot still requires legal/privacy/consent, named site/profile, direct zero-install path, device proof, duration/SLO and cost authority; this repair does not satisfy these gates"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "Three scoped page/QA/gate paths only. No shared safeAdminData, auth, role, table/query predicate, tenant/RLS/schema, dependency, provider, pilot-start or main/Production changes.",
+      "localVerification": "PASS_SYNTHETIC_ACTUAL_PAGE_AND_DEMO_WEB_NOT_FULL_STACK",
+      "releaseEligibility": "REAL_HOME_PILOT_NOT_STARTED_EXTERNAL_ENTRY_GATES_UNMET",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain direct owner authorization for exact public source+summary/result ledger; required exact-head CI and enabled Management/Snyk before any gated Development integration. No real pilot/provider/SQL/main/Production.",
+      "publicationAuthorization": {
+        "status": "PENDING_DIRECT_OWNER_DECISION",
+        "scope": "Prior186–193 approvals consumed exact scopes; forwarded manager request does not expand authority. Source/summary remain local."
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
