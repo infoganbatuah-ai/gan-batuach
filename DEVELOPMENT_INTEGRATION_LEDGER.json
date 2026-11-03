@@ -13689,30 +13689,39 @@
       "sourceCommits": [
         "1601fd572e4e675104c7be02d990d036f68b6444"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_ONLY_PUBLICATION_APPROVAL_PENDING"
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-playback-known-state-replay-20261103@42783ddd2ad79d5683631c8cb215c3e4625976b8",
+          "origin/integration/development@873b0563827f1e7479402306c841152dcbb8ef30"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
-        "status": "PASS_LOCAL_ACTUAL_RUNTIME_PLAYER_AND_WEB_BUILD_ONLY",
+        "status": "PASS_ALL_REQUIRED_CI_AND_EXACT_MERGE_LOCAL_WEB_QUALIFICATION",
         "evidence": [
           "Root actual canonical Runtime+Player base reproduces gateway fetch/src/play after known offline or prior inactive+offline events and late mount",
           "Root focused27/27 and PUSH44 QA PASS; independent late-consumer, two-reason partial/final recovery and reentrant replacement-publisher/old-runtime-event checks PASS",
           "Executor locked dependencies/typecheck/lint:ci and bounded sequential demo/noactivation Web build557/557 PASS",
-          "Root inspected six-path source/QA diff, clean source worktree, exact receipt/build-log bytes and hashes; no repeated Web or native build"
+          "Root inspected six-path source/QA diff, clean source worktree, exact receipt/build-log bytes and hashes; no repeated Web or native build",
+          "PR276 exact approved 42783ddd2: all7 DigitalObserverCI41659933435, Management41659933401 and Snyk PASS",
+          "Source merge 873b0563827f1e7479402306c841152dcbb8ef30: automaticCI41660688105 all7 PASS; exact-merge bounded demo/noactivation Web build/typecheck/lint:ci/PUSH44 PASS"
         ],
         "privateEvidence": "push44-known-state-evidence.SNhzVWqs/root-review.json",
         "evidenceSHA256": "acbe1a8bc84fe5dcb39b4e76dc5d117e73b1845642d9405c8e8b3feaf72fd685",
         "classification": "PRIVATE_LOCAL_ACTUAL_RUNTIME_PLAYER_WEB_NO_DEVICE_OR_PROVIDER",
-        "limits": "Synthetic components only; no real browser/device/media/provider/SQL/DB/fullstack/remote CI/Production proof. Unknown native state remains unobserved; existing lint baseline and targeted hooks warning unchanged."
+        "limits": "Root exact-merge local Web and synthetic component qualification only; no real browser/device/media/provider/SQL/DB/fullstack/native-build or Production proof. Existing lint baseline unchanged.",
+        "cumulativePrivateEvidence": "push44-known-state-evidence.SNhzVWqs/cumulative/QUALIFICATION.json",
+        "cumulativeEvidenceSHA256": "094e6367ed4230a81e39c513a406e087e8cb9dbe7c275a2259f49f2fcc63001b"
       },
       "integration": {
-        "status": "PENDING_DIRECT_PUBLICATION_AUTHORIZATION_AND_REQUIRED_CI",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "e0bacaecaa9ce0a2af7a01717adc0e5468f32b33",
-        "commit": null
+        "commit": "873b0563827f1e7479402306c841152dcbb8ef30",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/276",
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "CANONICAL_BASELINE_ONLY",
@@ -13723,15 +13732,16 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "Six scoped source/QA paths only; minimal client-memory helper and owner/replay guards. Previous17 regression meanings preserved; no new native API, state persistence, initial unobserved App-state inference, presence/visibility redesign or broadmobile port.",
-      "localVerification": "PASS_SYNTHETIC_ACTUAL_RUNTIME_PLAYER_AND_WEB_BUILD_NOT_FULL_STACK",
+      "localVerification": "PASS_EXACT_MERGE_DEMO_WEB_BUILD_TYPECHECK_LINT_PUSH44_NOT_FULL_STACK",
       "releaseEligibility": "NOT_READY_DEVICE_PROVIDER_FULL_STACK_AND_OWNER_RELEASE_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Obtain direct owner authority for exact public source plus summary/result ledger; feature PR, all required exact-head CI and enabled Management/Snyk before gated Development integration. No main/Production/provider/SQL.",
+      "nextAction": "Scoped known native playback-state replay integrated in Development. Real device/media/provider/DB/fullstack qualification and owner-controlled main/Production release remain gated.",
       "publicationAuthorization": {
-        "status": "PENDING_DIRECT_OWNER_DECISION",
-        "scope": "Prior186–191 approvals consumed for other exact payloads; this source and summary ledger remain local."
+        "callId": "call_fb76c2843544496c8c3f604d6111422e",
+        "answer": "מאשר פרסום ושילוב בהיקף הזה",
+        "scope": "Exact approved source 1601fd572 and summary head 42783ddd2ad79d5683631c8cb215c3e4625976b8; public feature PR, required-CI-gated Development integration and result ledger. No broadmobile/main/Production/SQL/provider/device authority."
       }
     }
   ],
