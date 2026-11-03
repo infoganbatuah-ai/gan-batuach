@@ -1,0 +1,54 @@
+name: PUSH 38 export Gateway finite-response public manifest
+
+on:
+  push:
+    branches: [codex/push-38-aws-signing]
+    paths:
+      - .github/workflows/push38-export-gateway-finite-response-continuity.yml
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: push38-export-gateway-finite-response-continuity
+  cancel-in-progress: false
+
+jobs:
+  export-signed-public-manifest:
+    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38-aws-signing'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: true
+      - name: Download exact successful signing artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: push38-homeqa-gateway-finite-response-continuity-37190663275
+          path: ${{ runner.temp }}/signed
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: infoganbatuah-ai/gan-batuach
+          run-id: 37190663275
+      - name: Verify and publish only public signed material
+        env:
+          DESTINATION: push38-public-manifests/gateway-0.2.76-finite-response-continuity
+        run: |
+          set -euo pipefail
+          test "$(find "$RUNNER_TEMP/signed" -maxdepth 1 -type f | wc -l | tr -d ' ')" = "2"
+          test -f "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.json"
+          test -f "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.evidence.json"
+          test "$(jq -r '.release_id' "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.json")" = "qa-p38-health-gateway-finite-response-continuity-10c4c6d33593"
+          test "$(jq -r '.artifact_sha256' "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.json")" = "10c4c6d33593f4c2796789eecb24faa0abd9c26448c8a6190600f61742dd140c"
+          test "$(jq -r '.artifact_size' "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.json")" = "135864938"
+          test "$(jq -r '.source_commit' "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.evidence.json")" = "591d5b97fa24a31ab540a7ceaef8ec9e5ad9335f"
+          ! grep -Eiq 'private[_ -]?key|secret[_ -]?access|session[_ -]?token' "$RUNNER_TEMP/signed"/*.json
+          mkdir -p "$DESTINATION"
+          install -m 0644 "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.json" "$DESTINATION/"
+          install -m 0644 "$RUNNER_TEMP/signed/gateway_remediation_finite_response_continuity.evidence.json" "$DESTINATION/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DESTINATION/gateway_remediation_finite_response_continuity.json" "$DESTINATION/gateway_remediation_finite_response_continuity.evidence.json"
+          git commit -m "evidence(push38): preserve signed Gateway 0.2.76 manifest"
+          git push origin HEAD:codex/push-38-aws-signing

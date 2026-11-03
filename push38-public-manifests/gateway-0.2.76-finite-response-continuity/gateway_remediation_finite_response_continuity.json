@@ -1,0 +1,31 @@
+{
+  "protocol": "observer-edge-update-v1",
+  "release_id": "qa-p38-health-gateway-finite-response-continuity-10c4c6d33593",
+  "version": "0.2.76-p38-health",
+  "build_sha": "591d5b97fa24a31ab540a7ceaef8ec9e5ad9335f",
+  "channel": "HOME_QA",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "profile": "PHYSICAL_GATEWAY",
+  "artifact_url": "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com/digital-observer-releases/home-qa/qa-p38-health-gateway-finite-response-continuity-10c4c6d33593/10c4c6d33593f4c2796789eecb24faa0abd9c26448c8a6190600f61742dd140c.tar.gz",
+  "artifact_sha256": "10c4c6d33593f4c2796789eecb24faa0abd9c26448c8a6190600f61742dd140c",
+  "artifact_size": 135864938,
+  "signing_key_id": "observer-kms-release-v1",
+  "compatibility": {
+    "minimum_current_version": "0.2.75-p38-health",
+    "maximum_current_version": "0.2.75-p38-health",
+    "minimum_config_version": 1,
+    "maximum_config_version": 1,
+    "security_floor_version": "0.2.75-p38-health"
+  },
+  "released_at": "2026-10-04T09:02:49.249Z",
+  "rollout": {
+    "stage": "INTERNAL_QA",
+    "cohort_seed": "push38-home-qa-exact-device",
+    "cohort_percent": 0,
+    "explicit_device_ids": [
+      "62df97e2-3c0b-427f-9108-bde029bc10e7"
+    ]
+  },
+  "signature": "bHo9zpPIxWfFu5-RmqvrE3Dylfh-HuiAeM8cGo_3fDZCuUJ-a9RF1NeqmSh50P4mVJ4IhIDSKd6i9iP0iqVjBw"
+}
