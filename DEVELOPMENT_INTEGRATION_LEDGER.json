@@ -13743,6 +13743,61 @@
         "answer": "מאשר פרסום ושילוב בהיקף הזה",
         "scope": "Exact approved source 1601fd572 and summary head 42783ddd2ad79d5683631c8cb215c3e4625976b8; public feature PR, required-CI-gated Development integration and result ledger. No broadmobile/main/Production/SQL/provider/device authority."
       }
+    },
+    {
+      "id": "codex/push44-native-bootstrap-lifecycle-boundary-20261103",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-NATIVE-BOOTSTRAP-LIFECYCLE-BOUNDARY-20261103-01",
+      "title": "PUSH44 capture native lifecycle changes while session bootstrap is pending",
+      "owner": "Camera source implementation; specification independent review/integration",
+      "sourceBranch": "codex/push44-native-bootstrap-lifecycle-boundary-20261103",
+      "sourceCommits": [
+        "4250b0f5af068873b4a1ae088a7022e0e0b2b601"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_ONLY_PUBLICATION_APPROVAL_PENDING"
+      },
+      "validation": {
+        "status": "PASS_LOCAL_ACTUAL_RUNTIME_PLAYER_AND_WEB_BUILD_ONLY",
+        "evidence": [
+          "Root pinned-base actual Runtime+Player proof: offline/inactive events lost while auth bootstrap pending; late revalidation success clears newer protective stale state",
+          "Root focused38/38 (21 integrated plus17 existing), PUSH44 and independent original three failure cases/fixed protection plus bounded interrupted-request recovery PASS",
+          "Executor offline locked dependencies/typecheck/lint:ci and one bounded sequential demo/noactivation Web build557/557 PASS",
+          "Root reviewed exact two-path diff and verified receipt/build-log bytes and hashes; no repeated Web/native build"
+        ],
+        "privateEvidence": "push44-bootstrap-evidence.Z6xuYQ1K/root-review.json",
+        "evidenceSHA256": "0bf957b949e23767bb5b4ad3b5aa9100799921486e06842fc7db7deb11e2fa21",
+        "classification": "PRIVATE_LOCAL_ACTUAL_RUNTIME_PLAYER_WEB_NO_DEVICE_OR_PROVIDER",
+        "limits": "Synthetic components only; no real browser/native plugin/device/live media/provider/SQL/DB/fullstack/remoteCI/Production proof. Existing lint baseline unchanged; public-route check only skips auth, not complete navigation qualification."
+      },
+      "integration": {
+        "status": "PENDING_DIRECT_PUBLICATION_AUTHORIZATION_AND_REQUIRED_CI",
+        "base": "integration/development",
+        "baseCommit": "553a32e07d35f95ea71f52ab00dda472d37db618",
+        "commit": null
+      },
+      "dependencies": {
+        "status": "CANONICAL_BASELINE_ONLY",
+        "units": [
+          "codex/push44-playback-known-state-replay-20261103"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "Two scoped Runtime/QA paths only; listener admission, status ordering, late settlement and interrupted-request follow-up. No Player/helper/lockfile/native API/provider/database/policy changes. Existing192 ownership and191 separate causes, generations, session/auth/origin/TTL/freshness/active retry controls preserved.",
+      "localVerification": "PASS_SYNTHETIC_ACTUAL_RUNTIME_PLAYER_AND_WEB_BUILD_NOT_FULL_STACK",
+      "releaseEligibility": "NOT_READY_DEVICE_PROVIDER_FULL_STACK_AND_OWNER_RELEASE_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain direct owner authorization for exact public source plus summary/result ledger; PR and required exact-head CI plus enabled Management/Snyk before gated Development integration. No main/Production/provider/SQL.",
+      "publicationAuthorization": {
+        "status": "PENDING_DIRECT_OWNER_DECISION",
+        "scope": "Prior186–192 approvals consumed for different exact payloads; this source/summary remain local."
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
