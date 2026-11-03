@@ -13453,7 +13453,7 @@
         "privateEvidence": "push44-android-backup-evidence.PSN75uUg/root-review.json",
         "evidenceSHA256": "47f133b8b2fc6d236b0d9adab8e9f9c4543c96651f6fc30aa17becd58933069e",
         "classification": "PRIVATE_LOCAL_ANDROID_NO_DEVICE_NO_PROVIDER",
-        "limits": "No root rebuild; inspected actual executor logs/results and independently checked APK/regressions. No device/OEM/cross-platform-transfer/API36.1/fullstack/Production proof. No push or PR.",
+        "limits": "Exact-source and cumulative-merge local build/configuration proof only. No device/OEM D2D, API36.1 cross-platform-transfer, provider/full-stack or Production proof;16 app warnings and unchanged vendor baseline findings remain.",
         "cumulativePrivateEvidence": "push44-android-backup-evidence.PSN75uUg/cumulative/QUALIFICATION.json",
         "cumulativeEvidenceSHA256": "fc0a7be27b13a50d718133d5c53351ed4fd2091d9eceb46acb862a4561b928dc"
       },
