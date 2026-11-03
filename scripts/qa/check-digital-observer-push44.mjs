@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { registerHooks } from "node:module";
+import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
 registerHooks({
@@ -35,6 +37,7 @@ const iosPrivacy = readFileSync(new URL("../../ios/App/App/PrivacyInfo.xcprivacy
 const iosEntitlements = readFileSync(new URL("../../ios/App/App/App.entitlements", import.meta.url), "utf8");
 const iosProject = readFileSync(new URL("../../ios/App/App.xcodeproj/project.pbxproj", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+execFileSync("python3", [fileURLToPath(new URL("./check-push44-android-backup.py", import.meta.url))], { stdio: "pipe" });
 
 assert.equal(contract.DIGITAL_OBSERVER_MOBILE_RUNTIME_CONTRACT, "digital-observer-mobile-runtime-v1");
 for (const publicPath of ["/digital-observer/login", "/digital-observer/register", "/digital-observer/forgot-password", "/digital-observer/verify", "/digital-observer/home"]) {

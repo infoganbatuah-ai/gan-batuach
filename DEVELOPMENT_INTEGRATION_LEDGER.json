@@ -13422,6 +13422,55 @@
         "answer": "מאשר פרסום ושילוב של תיקון Android",
         "scope": "Five duplicate XML deletions at6df5e6648 plus summarized Development ledger, same feature publication, Development PR, required exact-head CI, conditional ancestry merge and result registration; excludes broad mobile candidate, main and Production"
       }
+    },
+    {
+      "id": "codex/push44-android-backup-exclusion-20261103",
+      "project": "Digital Observer",
+      "title": "PUSH44 explicit Android cloud and device-transfer backup exclusions",
+      "owner": "Camera implementation chat; specification integration review",
+      "sourceBranch": "codex/push44-android-backup-exclusion-20261103",
+      "sourceCommits": [
+        "6ff9f65a43595696783a194485187a7967010f16"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "PUBLICATION_PENDING_DIRECT_OWNER_SCOPE_APPROVAL"
+      },
+      "validation": {
+        "status": "LOCAL_ANDROID_BUILD_LINT_AND_TARGETED_REGRESSION_PASS_REMOTE_CI_PENDING",
+        "evidence": [
+          "Exact-source clean unsigned assembleRelease PASS; actual APK manifest and compiled resource inspected",
+          "Python parsed-XML regression4/4 and PUSH44 deterministic suite PASS",
+          "App lint0errors16warnings; DataExtractionRules warning removed, vendor baseline unchanged"
+        ],
+        "privateEvidence": "push44-android-backup-evidence.PSN75uUg/root-review.json",
+        "evidenceSHA256": "47f133b8b2fc6d236b0d9adab8e9f9c4543c96651f6fc30aa17becd58933069e",
+        "classification": "PRIVATE_LOCAL_ANDROID_NO_DEVICE_NO_PROVIDER",
+        "limits": "No root rebuild; inspected actual executor logs/results and independently checked APK/regressions. No device/OEM/cross-platform-transfer/API36.1/fullstack/Production proof. No push or PR."
+      },
+      "integration": {
+        "status": "PENDING_PUBLICATION_AND_ALL_REQUIRED_EXACT_HEAD_CI",
+        "base": "integration/development",
+        "baseCommit": "e53e4aa1dd0ba9ea9284b41466836e3b451271ac",
+        "commit": null
+      },
+      "dependencies": {
+        "status": "CANONICAL_BASELINE_ONLY",
+        "units": [
+          "codex/push44-android-resource-fix-20261103"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "No broad mobile source imported. Extends existing no-backup intent with explicit cloud/D2D exclusion of nine documented storage domains and legacy fullBackupContent=false. No permissions, SDK, dependencies or baseline changed. Cross-platform-transfer/API36.1 is outside verified scope.",
+      "localVerification": "PASS_LOCAL_ANDROID_POLICY_BUILD_AND_APK_NOT_DEVICE_OR_FULL_STACK",
+      "releaseEligibility": "NOT_READY_DEVICE_OEM_PROVIDER_FULL_STACK_AND_RELEASE_QUALIFICATION_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain direct owner approval for public four-file policy source plus summary/result ledger, then same feature Development PR, all required exact-head CI and conditional ancestry-preserving integration. Previous event/resource-cleanup public approvals do not cover this new payload."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
