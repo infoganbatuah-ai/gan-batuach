@@ -118,13 +118,14 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
             const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id);
             const enrollment = enrollmentRows.find(item => String(item.child_id ?? item.permanent_child_file_id ?? item.id ?? "") === id);
             const garden = ((family.gardens ?? []) as unknown as DashboardRow[]).find(item => item.id === (enrollment?.garden_id ?? enrollment?.kindergarten_id));
+            const childState = enrollment?.status ? formatStatus(String(enrollment.status)) : "טרם שויך";
             return <ParentChildContextCard
               key={id}
               href={`/dashboard/parent?child=${encodeURIComponent(id)}`}
               active={id === selectedChildId}
               name={cleanSyntheticLabel(String(child.full_name ?? child.child?.full_name ?? ""), "ילד/ה")}
               garden={cleanSyntheticLabel(String(garden?.name ?? ""), enrollment ? "הקשר הגן" : "טרם שויך לגן")}
-              status={id === selectedChildId ? "נבחר" : "הצגה"}
+              status={`${id === selectedChildId ? "נבחר · " : ""}${childState}`}
               image={(child as DashboardRow).photo_url as string | null | undefined}
             />;
           })}<Link className="parent-child-context-add" href="#child-profile"><Plus aria-hidden="true" /><span><b>הוספת ילד</b><small>פרופיל ובקשת שיוך</small></span></Link></div>
