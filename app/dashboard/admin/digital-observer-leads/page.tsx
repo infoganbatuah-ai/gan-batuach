@@ -40,12 +40,12 @@ export default async function AdminDigitalObserverLeadsPage() {
     ]);
     [leads, events, conversion].forEach((query, index) => logSupabaseError("digital observer leads query " + index, query.error));
     return {
-      leads: leads.data ?? [],
-      events: events.data ?? [],
-      conversion: conversion.data ?? [],
-      queryError: leads.error ? "לא ניתן לטעון לידים של Digital Observer כרגע" : null
+      leads: leads.error ? [] : leads.data ?? [],
+      events: events.error ? [] : events.data ?? [],
+      conversion: conversion.error ? [] : conversion.data ?? [],
+      errors: [leads, events, conversion].map((query) => Boolean(query.error))
     };
-  }, { leads: [] as any[], events: [] as any[], conversion: [] as any[], queryError: null as string | null });
+  }, { leads: [] as any[], events: [] as any[], conversion: [] as any[], errors: [true, true, true] });
   const data = result.data;
   const newLeads = data.leads.filter((lead) => lead.lead_status === "new" || lead.status === "new").length;
   const demoRequests = data.leads.filter((lead) => lead.source === "digital_observer_demo").length;
@@ -62,13 +62,13 @@ export default async function AdminDigitalObserverLeadsPage() {
         </div>
         <Link className="button primary" href="/digital-observer/request-demo">Open demo form <ArrowLeft size={18} /></Link>
       </div>
-      <AdminDataError message={result.error ?? data.queryError} />
+      <AdminDataError message={result.error ?? (data.errors.some(Boolean) ? "חלק מנתוני Digital Observer אינם זמינים כרגע" : null)} />
 
       <section className="grid cols-4 dashboard-panels">
-        <article className="metric-card"><UserPlus /><strong>{newLeads}</strong><span>New leads</span></article>
-        <article className="metric-card"><Radar /><strong>{demoRequests}</strong><span>Demo requests</span></article>
-        <article className="metric-card"><CheckCircle2 /><strong>{qualified}</strong><span>Qualified</span></article>
-        <article className="metric-card"><Building2 /><strong>{converted}</strong><span>Converted readiness</span></article>
+        <article className="metric-card"><UserPlus /><strong>{data.errors[0] ? "לא זמין" : newLeads}</strong><span>New leads</span></article>
+        <article className="metric-card"><Radar /><strong>{data.errors[0] ? "לא זמין" : demoRequests}</strong><span>Demo requests</span></article>
+        <article className="metric-card"><CheckCircle2 /><strong>{data.errors[0] ? "לא זמין" : qualified}</strong><span>Qualified</span></article>
+        <article className="metric-card"><Building2 /><strong>{data.errors[0] ? "לא זמין" : converted}</strong><span>Converted readiness</span></article>
       </section>
 
       <section className="dashboard-section">
@@ -76,7 +76,7 @@ export default async function AdminDigitalObserverLeadsPage() {
           <h2>Lead queue</h2>
           <p>Admin actions are readiness actions: contact, qualify, reject, convert to observer site, assign follow-up and send onboarding link.</p>
         </div>
-        {data.leads.length === 0 ? (
+        {data.errors[0] ? <div className="empty-state">Lead data is unavailable.</div> : data.leads.length === 0 ? (
           <div className="empty-state"><strong>No Digital Observer leads yet</strong><span>Demo, pricing and start forms will create standalone leads here.</span></div>
         ) : (
           <div className="procedure-list">
@@ -106,7 +106,7 @@ export default async function AdminDigitalObserverLeadsPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>Conversion readiness</h2><p>Leads convert into observer site records only.</p></div>
           <div className="risk-list">
-            {data.conversion.map((item) => (
+            {data.errors[2] ? <div>Conversion data is unavailable.</div> : data.conversion.length === 0 ? <div>No conversion data yet.</div> : data.conversion.map((item) => (
               <div key={item.readiness_key}>{item.step_name} <b>{item.status}</b></div>
             ))}
           </div>
@@ -114,7 +114,7 @@ export default async function AdminDigitalObserverLeadsPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>Recent funnel events</h2><p>Internal CTA and form analytics without external analytics provider.</p></div>
           <div className="risk-list">
-            {data.events.length === 0 ? <div>No events yet <b>ready</b></div> : data.events.slice(0, 10).map((event, index) => (
+            {data.errors[1] ? <div>Event data is unavailable.</div> : data.events.length === 0 ? <div>No events yet</div> : data.events.slice(0, 10).map((event, index) => (
               <div key={`${event.event_type}-${index}`}>{event.event_type} · {event.source ?? "source"} <b>{event.site_type ?? "site"}</b></div>
             ))}
           </div>
