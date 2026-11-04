@@ -13899,33 +13899,45 @@
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/ux-v6-true-reference-correction@c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
-          "origin/codex/ux-v6-development-qualification-20261104@be074f8f979c8879dfea8cb11be8b68beb524741"
+          "origin/codex/ux-v6-development-qualification-20261104@be074f8f979c8879dfea8cb11be8b68beb524741",
+          "origin/codex/ux-v6-development-qualification-20261104@e1f32a15b7e436f1489e345e79129a78aae13dd3"
         ],
         "validatedRemoteHead": "c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
         "qualificationBranch": "codex/ux-v6-development-qualification-20261104",
-        "qualificationCommitLocal": "be074f8f979c8879dfea8cb11be8b68beb524741",
-        "qualificationRemoteObserved": "be074f8f979c8879dfea8cb11be8b68beb524741"
+        "qualificationCommitLocal": "7469c17e88ed13f3a6c8a5bb089fa7a573090203",
+        "qualificationRemoteObserved": "e1f32a15b7e436f1489e345e79129a78aae13dd3",
+        "qualificationSourceLocalOnly": true
       },
       "validation": {
-        "status": "SOURCE_CONTRACT_9_PASS_AT_SOURCE_CURRENT_STATIC_CONTRACT_PREPARED_NOT_RUN_CANDIDATE_PRODUCT_UNVERIFIED",
+        "status": "DASHBOARD_9_PASS_AND_STATIC_COMPOSITION_5_PASS_AT_7469_FULL_CI_PRODUCT_OPEN",
         "evidence": [
           "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-child-context-contract-validation-20261104-c28a76a/result.json#sha256=ca288d89540dbfe8118c3f301cb2da2a00b346b52d83ea85386f8dc390b923e2",
           "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-development-admission-20261104-c28a76a/admission-result.json#sha256=db99b84948b51ba6fa9ebe9e20ad56bab2fb5d5fb6ac84a3273cd0cb0086b407",
-          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-current-base-bounded-regression-20261104-be074f8/gate-and-source-preparation.json#sha256=b1456b4136c74b94c9a974a7b6943dec503cb1ce57c2b92a27fcac26ef51b532"
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-current-base-bounded-regression-20261104-be074f8/gate-and-source-preparation.json#sha256=b1456b4136c74b94c9a974a7b6943dec503cb1ce57c2b92a27fcac26ef51b532",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-ci-wiring-local-checkpoint-recovery-20261104-e1/receipt.json#sha256=b0ce36679d90f7f8982f063de9a6b9611c18e035b9c5ce174373a03cd8203414",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-ci-wiring-local-checkpoint-recovery-20261104-e1/verification.json#sha256=719190c16d70d8380c491d4c13dabc277407233c7950c971a915d81c0296bc29"
         ],
         "candidateChecks": [
+          "git diff --check and canonical domain manifest preservation PASS: 49 entries; previous47 and other keys unchanged",
+          "management-role-dashboards: 9 PASS, 0 fail/skip/cancel; actual pinned Node exit0; read-model behavior assertions plus source guards",
+          "uxv6-primary-screen-source-composition: 5 PASS, 0 fail/skip/cancel; actual pinned Node exit0; STATIC_SOURCE_COMPOSITION_ONLY"
+        ],
+        "limits": "Two targeted suites passed on exact source7469; historical child-context9 remains separate atc28. No current full typecheck/lint/build/security CI, authenticated Product/Auth/RLS, rendered Desktop/Mobile visual acceptance or canonical integration. Local7469 is not pushed; last verified qualification remotee1. All-in monthly cost remains UNKNOWN_NOT_PASS.",
+        "historicalCandidateChecks": [
           "git diff --check df83708b... 822edaaa... PASS",
           "Node 24.16.0 --check two mjs files PASS at prior checkpoint; nice setpriority refused, so priority not elevated",
           "Current eight-core host load 39.96 then 84.34 exceeds <=8 gate; dashboard suite and new static contract NOT_RUN",
           "Vercel gan-batuach deployment branch search returned No matches found for candidate branch; limited UI observation, not cross-project proof"
         ],
-        "limits": "New primary-route composition source contract is prepared but NOT_RUN. No current-candidate typecheck, lint, build, domain/security, Product/Auth/RLS, Desktop/Mobile capture or visual comparison. Source-only nine-test result does not transfer as full candidate acceptance. All-in ₪15 and CI cost gates remain unverified."
+        "validatedCandidateSource": "7469c17e88ed13f3a6c8a5bb089fa7a573090203",
+        "validatedBy": "ux-v5_COORDINATOR",
+        "recordedAtUTC": "2026-11-04T01:08:16.735765+00:00"
       },
       "integration": {
         "status": "PENDING_QUALIFICATION_NOT_CANONICAL",
         "base": "36a2b3c0009156ae4c81606a4bb787ca44b5b48c",
         "candidateBranch": "codex/ux-v6-development-qualification-20261104",
-        "candidateCommitLocal": "be074f8f979c8879dfea8cb11be8b68beb524741",
+        "candidateCommitLocal": "7469c17e88ed13f3a6c8a5bb089fa7a573090203",
         "pullRequest": null,
         "requiredChecks": "NOT_RUN"
       },
@@ -13941,12 +13953,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PRIOR_STATIC_DIFF_AND_MJS_SYNTAX_ONLY; NEW_PRIMARY_SOURCE_CONTRACT_PREPARED_NOT_RUN; DASHBOARD_SUITE_NOT_RUN_LOAD_GATE; CANDIDATE_PRODUCT_TESTS_PENDING_RESOURCE_AND_LOCKED_DEPENDENCIES",
+      "localVerification": "DASHBOARD9_AND_STATIC_COMPOSITION5_ACTUAL_PASS_AT7469; CANONICAL_CI_PRODUCT_VISUAL_OPEN",
       "releaseEligibility": "NO_PRODUCT_VISUAL_CI_OR_EXTERNAL_OWNER_APPROVAL",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Qualify the isolated merged candidate with focused Product/role tests, exact-candidate required CI and direct Desktop/Mobile reference captures after resource/dependency gates; draft PR to integration/development when eligible. Sole integration owner must reconcile current remote head and preserve ancestry before any canonical merge. No main or Production."
+      "nextAction": "Preserve validated7469 remotely only after current no-preview admission; exact-source CI only after free-only runner/storage/provider admission. Executor delivery repeatedly returned stale task finals without tools; do not claim executor active or duplicate cards. Canonical integration, full Product/Auth/RLS/visual and cost compliance remain open; no main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
