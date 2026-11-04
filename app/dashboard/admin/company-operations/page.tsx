@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { data: result.error ? [] : result.data ?? [], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { data: [] as T[], available: false };
   }
 }
 
@@ -25,10 +25,10 @@ async function safeCount(label: string, run: () => any) {
   try {
     const result = (await run()) as { count: number | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? 0 : result.count ?? 0;
+    return { count: result.error ? 0 : result.count ?? 0, available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return 0;
+    return { count: 0, available: false };
   }
 }
 
@@ -96,23 +96,20 @@ export default async function CompanyOperationsPage() {
       safeQuery<Row>("observer site subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("subscription_status,monthly_price,annual_price").limit(500))
     ]);
     return {
-      lifecycles,
-      releases,
-      roadmap,
-      feedback,
-      incidents,
-      monitoring,
-      templates,
-      finalScores,
-      blockers,
-      providerHealth,
-      supportTickets,
-      inspectionsDue,
-      overdueInspections,
-      activeGardens,
-      observerSites,
-      subscriptions,
-      observerSubscriptions
+      lifecycles: lifecycles.data, releases: releases.data, roadmap: roadmap.data, feedback: feedback.data,
+      incidents: incidents.data, monitoring: monitoring.data, templates: templates.data, finalScores: finalScores.data,
+      blockers: blockers.data, providerHealth: providerHealth.data, supportTickets: supportTickets.count,
+      inspectionsDue: inspectionsDue.count, overdueInspections: overdueInspections.count,
+      activeGardens: activeGardens.count, observerSites: observerSites.count,
+      subscriptions: subscriptions.data, observerSubscriptions: observerSubscriptions.data,
+      availability: {
+        lifecycles: lifecycles.available, releases: releases.available, roadmap: roadmap.available, feedback: feedback.available,
+        incidents: incidents.available, monitoring: monitoring.available, templates: templates.available, finalScores: finalScores.available,
+        blockers: blockers.available, providerHealth: providerHealth.available, supportTickets: supportTickets.available,
+        inspectionsDue: inspectionsDue.available, overdueInspections: overdueInspections.available,
+        activeGardens: activeGardens.available, observerSites: observerSites.available,
+        subscriptions: subscriptions.available, observerSubscriptions: observerSubscriptions.available
+      }
     };
   }, {
     lifecycles: [] as Row[],
@@ -131,10 +128,20 @@ export default async function CompanyOperationsPage() {
     activeGardens: 0,
     observerSites: 0,
     subscriptions: [] as Row[],
-    observerSubscriptions: [] as Row[]
+    observerSubscriptions: [] as Row[],
+    availability: {
+      lifecycles: false, releases: false, roadmap: false, feedback: false, incidents: false, monitoring: false,
+      templates: false, finalScores: false, blockers: false, providerHealth: false, supportTickets: false,
+      inspectionsDue: false, overdueInspections: false, activeGardens: false, observerSites: false,
+      subscriptions: false, observerSubscriptions: false
+    }
   });
 
   const data = result.data;
+  const available = data.availability;
+  const unknown = "לא זמין";
+  const unavailable = (name: string) => <p className="muted">{name}: {unknown}</p>;
+  const partialError = Object.values(available).some((value) => !value) ? "חלק מנתוני התפעול אינם זמינים כרגע." : null;
   const score = data.finalScores[0] ?? {};
   const companyScore = Number(score.company_readiness_score ?? 0);
   const ganMrr = data.subscriptions
@@ -155,8 +162,8 @@ export default async function CompanyOperationsPage() {
           eyebrow="Company Operating System"
           title="מערכת ההפעלה של החברה אחרי Phase 190"
           subtitle="מעכשיו עובדים במחזורי שחרור חודשיים, פידבק לקוחות, תמיכה, מכירות, אבטחה, ספקים, תשלומים, פיקוח ותפעול מוצרי Gan Batuach ו-Digital Observer."
-          badge={`${companyScore}/100`}
-          badgeTone={scoreTone(companyScore)}
+          badge={available.finalScores ? `${companyScore}/100` : unknown}
+          badgeTone={available.finalScores ? scoreTone(companyScore) : "default"}
           actions={<><Link className="button primary" href="/dashboard/admin/final-production-launch">Final launch</Link><Link className="button secondary" href="/dashboard/admin/provider-production">Providers</Link></>}
         >
           <div className="setup-checklist">
@@ -166,22 +173,23 @@ export default async function CompanyOperationsPage() {
             <span>Support and sales operations</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? partialError} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Active kindergartens" value={data.activeGardens} hint="Gan Batuach customers" tone={data.activeGardens ? "good" : "warn"} />
-          <RoleMetricCard label="Observer sites" value={data.observerSites} hint="Digital Observer sites" tone={data.observerSites ? "good" : "warn"} />
-          <RoleMetricCard label="Gan Batuach MRR" value={money(ganMrr)} hint="separate revenue stream" tone="good" />
-          <RoleMetricCard label="Observer MRR" value={money(observerMrr)} hint="separate revenue stream" tone="good" />
-          <RoleMetricCard label="Open support" value={data.supportTickets} hint="tickets not closed" tone={data.supportTickets > 15 ? "warn" : "default"} />
-          <RoleMetricCard label="Inspections due" value={data.inspectionsDue} hint={`${data.overdueInspections} overdue`} tone={data.overdueInspections ? "bad" : "warn"} />
-          <RoleMetricCard label="Incidents" value={openIncidents} hint="production runbooks" tone={openIncidents ? "warn" : "good"} />
-          <RoleMetricCard label="Providers degraded" value={degradedProviders} hint="provider health" tone={degradedProviders ? "bad" : "good"} />
+          <RoleMetricCard label="Active kindergartens" value={available.activeGardens ? data.activeGardens : unknown} hint="Gan Batuach customers" tone={!available.activeGardens ? "default" : data.activeGardens ? "good" : "warn"} />
+          <RoleMetricCard label="Observer sites" value={available.observerSites ? data.observerSites : unknown} hint="Digital Observer sites" tone={!available.observerSites ? "default" : data.observerSites ? "good" : "warn"} />
+          <RoleMetricCard label="Gan Batuach MRR" value={available.subscriptions ? money(ganMrr) : unknown} hint="separate revenue stream" tone={available.subscriptions ? "good" : "default"} />
+          <RoleMetricCard label="Observer MRR" value={available.observerSubscriptions ? money(observerMrr) : unknown} hint="separate revenue stream" tone={available.observerSubscriptions ? "good" : "default"} />
+          <RoleMetricCard label="Open support" value={available.supportTickets ? data.supportTickets : unknown} hint="tickets not closed" tone={!available.supportTickets ? "default" : data.supportTickets > 15 ? "warn" : "default"} />
+          <RoleMetricCard label="Inspections due" value={available.inspectionsDue ? data.inspectionsDue : unknown} hint={available.overdueInspections ? `${data.overdueInspections} overdue` : unknown} tone={!available.inspectionsDue || !available.overdueInspections ? "default" : data.overdueInspections ? "bad" : "warn"} />
+          <RoleMetricCard label="Incidents" value={available.incidents ? openIncidents : unknown} hint="production runbooks" tone={!available.incidents ? "default" : openIncidents ? "warn" : "good"} />
+          <RoleMetricCard label="Providers degraded" value={available.providerHealth ? degradedProviders : unknown} hint="provider health" tone={!available.providerHealth ? "default" : degradedProviders ? "bad" : "good"} />
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Customer Operations" subtitle="מחזור לקוח ברור לשני המוצרים, בלי ערבוב בין גנים לבין אתרי תצפיתן.">
             <div className="camera-infra-list">
+              {!available.lifecycles && unavailable("Customer lifecycles")}
               {data.lifecycles.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.lifecycle_key}>
                   <div>
@@ -197,6 +205,7 @@ export default async function CompanyOperationsPage() {
 
           <CleanSection title="Monthly Releases" subtitle="תחליף מסודר לשלבים ממוספרים: תכנון, QA, אישור, שחרור או rollback.">
             <div className="procedure-list compact-list">
+              {!available.releases && unavailable("Monthly releases")}
               {data.releases.map((item) => (
                 <div className="mini-row" key={item.id ?? item.release_key}>
                   <span>{item.release_name}</span>
@@ -208,9 +217,10 @@ export default async function CompanyOperationsPage() {
           </CleanSection>
         </section>
 
-        <CleanSection title="Roadmap & Feedback Loop" subtitle={`High priority open items: ${roadmapCritical}. פידבק לקוחות נכנס ל-roadmap ואז לריליס חודשי.`}>
+        <CleanSection title="Roadmap & Feedback Loop" subtitle={`High priority open items: ${available.roadmap ? roadmapCritical : unknown}. פידבק לקוחות נכנס ל-roadmap ואז לריליס חודשי.`}>
           <div className="communication-template-grid">
-            {data.roadmap.map((item) => (
+            {!available.roadmap && unavailable("Roadmap items")}
+              {data.roadmap.map((item) => (
               <article className="communication-template-card" key={item.id ?? item.roadmap_key}>
                 <div>
                   <strong>{item.title}</strong>
@@ -226,6 +236,7 @@ export default async function CompanyOperationsPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Support & Feedback" subtitle="פידבק ממנהלים, הורים, צוות, מפקחים, מכירות ו-Digital Observer.">
             <div className="camera-infra-list">
+              {!available.feedback && unavailable("Customer feedback")}
               {data.feedback.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.feedback_key}>
                   <div>
@@ -240,6 +251,7 @@ export default async function CompanyOperationsPage() {
 
           <CleanSection title="Incident Response" subtitle="זיהוי, חומרה, בעלים, הקטנה, תקשורת, סגירה ופוסטמורטם.">
             <div className="camera-infra-list">
+              {!available.incidents && unavailable("Incident response")}
               {data.incidents.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.incident_key}>
                   <div>
@@ -257,6 +269,7 @@ export default async function CompanyOperationsPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Post-Launch Monitoring" subtitle="בריאות תפעולית אחרי השקה: ספקים, תשלומים, הודעות, DB, איטיות ותמיכה.">
             <div className="procedure-list compact-list">
+              {!available.monitoring && unavailable("Post-launch monitoring")}
               {data.monitoring.map((item) => (
                 <div className="mini-row" key={item.id ?? item.monitor_key}>
                   <span>{label(item.monitor_area)}</span>
@@ -269,6 +282,7 @@ export default async function CompanyOperationsPage() {
 
           <CleanSection title="Launch Communications" subtitle="הודעות ללקוחות, הורים, צוות, מפקחים, תמיכה ושותפים. שליחה אמיתית נשארת דרך provider approval.">
             <div className="procedure-list compact-list">
+              {!available.templates && unavailable("Launch templates")}
               {data.templates.map((item) => (
                 <div className="mini-row" key={item.id ?? item.template_key}>
                   <span>{item.subject}</span>
@@ -291,7 +305,7 @@ export default async function CompanyOperationsPage() {
           </div>
         </CleanSection>
 
-        {openBlockers ? (
+        {!available.blockers ? <CleanSection title="Launch Blockers Still Open" subtitle="נתוני החסמים אינם זמינים; לא ניתן להסיק שאין חסמים.">{unavailable("Launch blockers")}</CleanSection> : openBlockers ? (
           <CleanSection title="Launch Blockers Still Open" subtitle="תפעול החברה מתחיל, אבל חסמי השקה נשארים גלויים עד סגירה.">
             <div className="camera-infra-list">
               {data.blockers.map((item) => (
