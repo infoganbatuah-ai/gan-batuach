@@ -14,15 +14,19 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { data: result.error ? [] : result.data ?? [], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { data: [] as T[], available: false };
   }
 }
 
 function money(value: unknown) {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(Number(value ?? 0));
+}
+
+function measuredMoney(value: unknown) {
+  return value == null ? "TBD" : money(value);
 }
 
 function label(value?: string | null) {
@@ -80,7 +84,8 @@ export default async function RegionalScaleUpPage() {
       safeQuery<Row>("regional rollout risks", () => supabase.from("regional_rollout_risks" as any).select("*").order("severity").order("created_at", { ascending: false }).limit(120)),
       safeQuery<Row>("regional expansion decisions", () => supabase.from("regional_expansion_decisions" as any).select("*").order("created_at", { ascending: false }).limit(20))
     ]);
-    return { scores, cohorts, growth, capacity, automation, support, inspectorCapacity, workloads, revenue, economics, infrastructure, cameraObserver, adoption, churn, health, csTasks, training, sales, demand, risks, decisions };
+    const availability = { scores: scores.available, cohorts: cohorts.available, growth: growth.available, capacity: capacity.available, automation: automation.available, support: support.available, inspectorCapacity: inspectorCapacity.available, workloads: workloads.available, revenue: revenue.available, economics: economics.available, infrastructure: infrastructure.available, cameraObserver: cameraObserver.available, adoption: adoption.available, churn: churn.available, health: health.available, csTasks: csTasks.available, training: training.available, sales: sales.available, demand: demand.available, risks: risks.available, decisions: decisions.available };
+    return { scores: scores.data, cohorts: cohorts.data, growth: growth.data, capacity: capacity.data, automation: automation.data, support: support.data, inspectorCapacity: inspectorCapacity.data, workloads: workloads.data, revenue: revenue.data, economics: economics.data, infrastructure: infrastructure.data, cameraObserver: cameraObserver.data, adoption: adoption.data, churn: churn.data, health: health.data, csTasks: csTasks.data, training: training.data, sales: sales.data, demand: demand.data, risks: risks.data, decisions: decisions.data, availability, queryError: Object.values(availability).some((available) => !available) ? "חלק מנתוני הסקייל האזורי לא נטענו" : null };
   }, {
     scores: [] as Row[],
     cohorts: [] as Row[],
@@ -102,28 +107,38 @@ export default async function RegionalScaleUpPage() {
     sales: [] as Row[],
     demand: [] as Row[],
     risks: [] as Row[],
-    decisions: [] as Row[]
+    decisions: [] as Row[],
+    availability: { scores: false, cohorts: false, growth: false, capacity: false, automation: false, support: false, inspectorCapacity: false, workloads: false, revenue: false, economics: false, infrastructure: false, cameraObserver: false, adoption: false, churn: false, health: false, csTasks: false, training: false, sales: false, demand: false, risks: false, decisions: false },
+    queryError: null as string | null
   });
 
   const data = result.data;
+  const available = data.availability;
+  const unavailable = "לא זמין";
   const score = data.scores[0] ?? {};
-  const readiness = Number(score.scale_readiness_score ?? 0);
-  const targetKindergartens = Number(score.target_kindergartens ?? data.cohorts.reduce((sum, cohort) => sum + Number(cohort.target_kindergartens ?? 0), 0));
-  const activeKindergartens = Number(score.active_kindergartens ?? data.growth.reduce((sum, row) => sum + Number(row.active_kindergartens ?? 0), 0));
+  const readiness = available.scores ? Number(score.scale_readiness_score ?? 0) : null;
+  function snapshotNumber(field: string, fallbackAvailable: boolean, fallback: () => number) {
+    if (!available.scores) return null;
+    if (score[field] != null) return Number(score[field]);
+    return fallbackAvailable ? Number(fallback()) : null;
+  }
+  const targetKindergartens = snapshotNumber("target_kindergartens", available.cohorts, () => data.cohorts.reduce((sum, cohort) => sum + Number(cohort.target_kindergartens ?? 0), 0));
+  const activeKindergartens = snapshotNumber("active_kindergartens", available.growth, () => data.growth.reduce((sum, row) => sum + Number(row.active_kindergartens ?? 0), 0));
   const latestRevenue = data.revenue[0] ?? {};
   const latestEconomics = data.economics[0] ?? {};
   const parentMetrics = data.adoption.filter((item) => item.role_area === "parent");
   const staffMetrics = data.adoption.filter((item) => item.role_area === "staff");
   const managerMetrics = data.adoption.filter((item) => item.role_area === "manager");
-  const parentAdoption = avg(parentMetrics, "adoption_score") || Number(score.adoption_score ?? 0);
-  const staffAdoption = avg(staffMetrics, "adoption_score");
-  const managerAdoption = avg(managerMetrics, "adoption_score");
-  const highRisks = data.risks.filter((risk) => ["high", "critical"].includes(String(risk.severity)) && !["mitigated", "closed", "accepted"].includes(String(risk.status)));
-  const openChurn = data.churn.filter((signal) => !["mitigated", "accepted", "closed"].includes(String(signal.status)));
-  const infraWatch = data.infrastructure.filter((check) => ["watch", "needs_optimization", "blocked"].includes(String(check.status)));
-  const launchDecision = String(score.launch_decision ?? data.decisions[0]?.decision ?? "not_ready");
-  const recommendedSupport = data.support.find((item) => Number(item.garden_count) === 100) ?? data.support[0] ?? {};
-  const recommendedInspectors = data.inspectorCapacity.find((item) => Number(item.garden_count) === 100) ?? data.inspectorCapacity[0] ?? {};
+  const parentAdoption = !available.adoption ? null : avg(parentMetrics, "adoption_score") || (available.scores ? Number(score.adoption_score ?? 0) : null);
+  const staffAdoption = available.adoption ? avg(staffMetrics, "adoption_score") : null;
+  const managerAdoption = available.adoption ? avg(managerMetrics, "adoption_score") : null;
+  const highRisks = available.risks ? data.risks.filter((risk) => ["high", "critical"].includes(String(risk.severity)) && !["mitigated", "closed", "accepted"].includes(String(risk.status))) : null;
+  const openChurn = available.churn ? data.churn.filter((signal) => !["mitigated", "accepted", "closed"].includes(String(signal.status))) : null;
+  const riskTotal = highRisks === null || openChurn === null ? null : highRisks.length + openChurn.length;
+  const infraWatch = available.infrastructure ? data.infrastructure.filter((check) => ["watch", "needs_optimization", "blocked"].includes(String(check.status))) : null;
+  const launchDecision = !available.scores ? null : score.launch_decision != null ? String(score.launch_decision) : available.decisions ? String(data.decisions[0]?.decision ?? "not_ready") : null;
+  const recommendedSupport = data.support.find((item) => Number(item.garden_count) === 100);
+  const recommendedInspectors = data.inspectorCapacity.find((item) => Number(item.garden_count) === 100);
 
   return (
     <DashboardShell role="admin" title="Regional Scale-Up">
@@ -132,32 +147,32 @@ export default async function RegionalScaleUpPage() {
           eyebrow="Regional Scale-Up"
           title="סקייל אזורי מבוקר ל־50–100 גנים"
           subtitle="מרכז בקרה להתרחבות אזורית: קיבולת קליטה, עומס תמיכה, כיסוי מפקחים, הכנסות, אימוץ משתמשים, תשתיות וסיכוני נטישה. עדיין לא השקה ארצית."
-          badge={`${readiness}/100`}
-          badgeTone={toneForScore(readiness)}
+          badge={readiness === null ? unavailable : `${readiness}/100`}
+          badgeTone={readiness === null ? "default" : toneForScore(readiness)}
           actions={<><Link className="button primary" href="/dashboard/admin/commercial-rollout">10–25 Rollout</Link><Link className="button secondary" href="/dashboard/admin/customer-success">Customer Success</Link></>}
         >
           <div className="setup-checklist">
             <span>50–100 kindergartens</span>
             <span>Regional only</span>
             <span>Capacity validation</span>
-            <span>{label(launchDecision)}</span>
+            <span>{launchDecision === null ? unavailable : label(launchDecision)}</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? data.queryError} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Scale readiness" value={`${readiness}/100`} hint={label(launchDecision)} tone={toneForScore(readiness)} />
-          <RoleMetricCard label="Target gardens" value={targetKindergartens || "50-100"} hint={`${data.cohorts.length} regional cohorts`} tone="warn" />
-          <RoleMetricCard label="Active gardens" value={activeKindergartens} hint="regional rollout only" tone={activeKindergartens ? "warn" : "bad"} />
-          <RoleMetricCard label="Support need" value={recommendedSupport.recommended_support_staff ?? "TBD"} hint={label(recommendedSupport.recommendation)} tone={toneForStatus(recommendedSupport.recommendation)} />
-          <RoleMetricCard label="Inspectors needed" value={recommendedInspectors.inspectors_needed ?? "TBD"} hint={`${recommendedInspectors.garden_count ?? 100} gardens forecast`} tone={toneForStatus(recommendedInspectors.overload_risk)} />
-          <RoleMetricCard label="Forecast MRR" value={money(latestRevenue.forecast_mrr_nis)} hint={`${money(latestRevenue.mrr_nis)} current`} tone={toneForStatus(latestRevenue.status)} />
-          <RoleMetricCard label="Contribution" value={money(latestEconomics.contribution_margin_nis)} hint={`${latestEconomics.break_even_kindergartens ?? "TBD"} break-even gardens`} tone={toneForStatus(latestEconomics.status)} />
-          <RoleMetricCard label="Open risks" value={highRisks.length + openChurn.length} hint={`${infraWatch.length} infra checks to watch`} tone={highRisks.length || openChurn.length ? "bad" : "good"} />
+          <RoleMetricCard label="Scale readiness" value={readiness === null ? unavailable : `${readiness}/100`} hint={launchDecision === null ? unavailable : label(launchDecision)} tone={readiness === null ? "default" : toneForScore(readiness)} />
+          <RoleMetricCard label="Target gardens" value={targetKindergartens === null ? unavailable : targetKindergartens || "50-100"} hint={available.cohorts ? `${data.cohorts.length} regional cohorts` : unavailable} tone={targetKindergartens === null ? "default" : "warn"} />
+          <RoleMetricCard label="Active gardens" value={activeKindergartens ?? unavailable} hint="regional rollout only" tone={activeKindergartens === null ? "default" : activeKindergartens ? "warn" : "bad"} />
+          <RoleMetricCard label="Support need" value={available.support ? recommendedSupport?.recommended_support_staff ?? "TBD" : unavailable} hint={!available.support ? unavailable : recommendedSupport ? label(recommendedSupport.recommendation) : "TBD"} tone={available.support && recommendedSupport ? toneForStatus(recommendedSupport.recommendation) : "default"} />
+          <RoleMetricCard label="Inspectors needed" value={available.inspectorCapacity ? recommendedInspectors?.inspectors_needed ?? "TBD" : unavailable} hint={!available.inspectorCapacity ? unavailable : `${recommendedInspectors?.garden_count ?? "TBD"} gardens forecast`} tone={available.inspectorCapacity && recommendedInspectors ? toneForStatus(recommendedInspectors.overload_risk) : "default"} />
+          <RoleMetricCard label="Forecast MRR" value={available.revenue ? measuredMoney(latestRevenue.forecast_mrr_nis) : unavailable} hint={available.revenue ? `${measuredMoney(latestRevenue.mrr_nis)} current` : unavailable} tone={available.revenue && latestRevenue.forecast_mrr_nis != null ? toneForStatus(latestRevenue.status) : "default"} />
+          <RoleMetricCard label="Contribution" value={available.economics ? measuredMoney(latestEconomics.contribution_margin_nis) : unavailable} hint={available.economics ? `${latestEconomics.break_even_kindergartens ?? "TBD"} break-even gardens` : unavailable} tone={available.economics && latestEconomics.contribution_margin_nis != null ? toneForStatus(latestEconomics.status) : "default"} />
+          <RoleMetricCard label="Open risks" value={riskTotal ?? unavailable} hint={infraWatch === null ? unavailable : `${infraWatch.length} infra checks to watch`} tone={riskTotal === null ? "default" : riskTotal ? "bad" : "good"} />
         </section>
 
         <CleanSection title="Regional Rollout Cohorts" subtitle="Cohorts אזוריים של 50–100 גנים לפי עיר, אזור, מקור מכירה, רשת גנים או cluster ביקוש הורים.">
-          {data.cohorts.length === 0 ? <EmptyState title="אין cohort אזורי" text="לאחר הרצת המיגרציה יופיע cohort בסיסי לסקייל מבוקר." /> : (
+          {!available.cohorts ? <div className="empty-mini">Regional cohorts: {unavailable}</div> : data.cohorts.length === 0 ? <EmptyState title="אין cohort אזורי" text="לאחר הרצת המיגרציה יופיע cohort בסיסי לסקייל מבוקר." /> : (
             <div className="procedure-list">
               {data.cohorts.map((cohort) => (
                 <article className="card procedure-card" key={cohort.id ?? cohort.cohort_key}>
@@ -180,6 +195,7 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="City / Region Growth Planning" subtitle="ביקוש הורים, לידים, דמו, המרה וכיסוי מפקחים לפי עיר.">
             <div className="camera-infra-list">
+              {!available.growth && <div className="empty-mini">Growth plans: {unavailable}</div>}
               {data.growth.map((plan) => (
                 <article className="camera-infra-row" key={plan.id ?? plan.planning_key}>
                   <div>
@@ -195,6 +211,7 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Regional Demand Dashboard" subtitle="איפה הביקוש הכי חזק ואיפה כדאי לתעדף outreach.">
             <div className="procedure-list compact-list">
+              {!available.demand && <div className="empty-mini">Regional demand: {unavailable}</div>}
               {data.demand.map((item) => (
                 <div className="mini-row" key={item.id ?? item.demand_key}>
                   <span>{item.city}</span>
@@ -209,6 +226,7 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Onboarding Capacity & Automation" subtitle="כמה גנים ניתן לקלוט בשבוע, איפה נדרש אדם, ומה אפשר להפוך למשימה אוטומטית.">
             <div className="camera-infra-list">
+              {!available.capacity && <div className="empty-mini">Onboarding capacity: {unavailable}</div>}
               {data.capacity.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.capacity_key}>
                   <div>
@@ -220,6 +238,7 @@ export default async function RegionalScaleUpPage() {
               ))}
             </div>
             <div className="procedure-list compact-list">
+              {!available.automation && <div className="empty-mini">Automation tasks: {unavailable}</div>}
               {data.automation.map((task) => (
                 <div className="mini-row" key={task.id ?? task.task_key}>
                   <span>{task.title}</span>
@@ -232,6 +251,7 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Support Load & Staffing" subtitle="תחזית עומס תמיכה ל־50, 100, 250 ו־500 גנים.">
             <div className="camera-infra-list">
+              {!available.support && <div className="empty-mini">Support forecasts: {unavailable}</div>}
               {data.support.map((forecast) => (
                 <article className="camera-infra-row" key={forecast.id ?? forecast.forecast_key}>
                   <div>
@@ -249,6 +269,7 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Inspector Capacity & Workload" subtitle="מפקחים נדרשים לפי ביקור חודשי, זמן נסיעה, ביקורי המשך ותלונות.">
             <div className="camera-infra-list">
+              {!available.inspectorCapacity && <div className="empty-mini">Inspector capacity: {unavailable}</div>}
               {data.inspectorCapacity.map((forecast) => (
                 <article className="camera-infra-row" key={forecast.id ?? forecast.forecast_key}>
                   <div>
@@ -260,6 +281,7 @@ export default async function RegionalScaleUpPage() {
               ))}
             </div>
             <div className="procedure-list compact-list">
+              {!available.workloads && <div className="empty-mini">Inspector workloads: {unavailable}</div>}
               {data.workloads.map((workload) => (
                 <div className="mini-row" key={workload.id ?? workload.workload_key}>
                   <span>{workload.assigned_kindergartens} assigned · {workload.monthly_inspections_due} due</span>
@@ -272,20 +294,22 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Revenue, Pricing & Unit Economics" subtitle="אימות מחיר 800 ₪ בסיס + 200 ₪ לכיתה נוספת מול עלויות תמיכה, פיקוח, תשתית ותקשורת.">
             <div className="camera-infra-list">
+              {!available.revenue && <div className="empty-mini">Revenue validation: {unavailable}</div>}
               {data.revenue.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.snapshot_key}>
                   <div>
-                    <strong>{money(item.forecast_mrr_nis)} forecast MRR</strong>
-                    <span>{money(item.mrr_nis)} current · {money(item.arr_nis)} ARR · {item.average_classes_per_kindergarten} avg classes</span>
+                    <strong>{measuredMoney(item.forecast_mrr_nis)} forecast MRR</strong>
+                    <span>{measuredMoney(item.mrr_nis)} current · {measuredMoney(item.arr_nis)} ARR · {item.average_classes_per_kindergarten} avg classes</span>
                   </div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
                 </article>
               ))}
+              {!available.economics && <div className="empty-mini">Unit economics: {unavailable}</div>}
               {data.economics.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.economics_key}>
                   <div>
-                    <strong>{money(item.contribution_margin_nis)} contribution margin</strong>
-                    <span>Support {money(item.support_cost_nis)} · inspector {money(item.inspector_cost_nis)} · infrastructure {money(item.infrastructure_cost_nis)}</span>
+                    <strong>{measuredMoney(item.contribution_margin_nis)} contribution margin</strong>
+                    <span>Support {measuredMoney(item.support_cost_nis)} · inspector {measuredMoney(item.inspector_cost_nis)} · infrastructure {measuredMoney(item.infrastructure_cost_nis)}</span>
                   </div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
                   <small>break-even {item.break_even_kindergartens ?? "TBD"} gardens</small>
@@ -298,6 +322,7 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Infrastructure & Database Scale" subtitle="Vercel, Supabase, DB, storage, audit logs, background jobs and communication volume.">
             <div className="procedure-list compact-list">
+              {!available.infrastructure && <div className="empty-mini">Infrastructure checks: {unavailable}</div>}
               {data.infrastructure.map((check) => (
                 <div className="mini-row" key={check.id ?? check.check_key}>
                   <span>{label(check.area)} · {check.metric_name}</span>
@@ -310,6 +335,7 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Camera & AI Observer Scale" subtitle="מצלמות ו־AI נשארים readiness/shadow עד שיש עומס Gateway, סקירת אנוש וחסימת raw AI להורים.">
             <div className="camera-infra-list">
+              {!available.cameraObserver && <div className="empty-mini">Camera observer readiness: {unavailable}</div>}
               {data.cameraObserver.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.readiness_key}>
                   <div>
@@ -327,11 +353,12 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Parent, Staff & Manager Adoption" subtitle="אימוץ לפי תפקיד ואזור, כולל שימוש יומי, הודעות, תשלומים, משימות ו-command center.">
             <div className="camera-infra-kpis">
-              <RoleMetricCard label="Parents" value={`${parentAdoption}%`} hint={`${parentMetrics.length} records`} tone={toneForScore(parentAdoption)} />
-              <RoleMetricCard label="Staff" value={`${staffAdoption}%`} hint={`${staffMetrics.length} records`} tone={toneForScore(staffAdoption)} />
-              <RoleMetricCard label="Managers" value={`${managerAdoption}%`} hint={`${managerMetrics.length} records`} tone={toneForScore(managerAdoption)} />
+              <RoleMetricCard label="Parents" value={parentAdoption === null ? unavailable : `${parentAdoption}%`} hint={available.adoption ? `${parentMetrics.length} records` : unavailable} tone={parentAdoption === null ? "default" : toneForScore(parentAdoption)} />
+              <RoleMetricCard label="Staff" value={staffAdoption === null ? unavailable : `${staffAdoption}%`} hint={available.adoption ? `${staffMetrics.length} records` : unavailable} tone={staffAdoption === null ? "default" : toneForScore(staffAdoption)} />
+              <RoleMetricCard label="Managers" value={managerAdoption === null ? unavailable : `${managerAdoption}%`} hint={available.adoption ? `${managerMetrics.length} records` : unavailable} tone={managerAdoption === null ? "default" : toneForScore(managerAdoption)} />
             </div>
             <div className="procedure-list compact-list">
+              {!available.adoption && <div className="empty-mini">Adoption metrics: {unavailable}</div>}
               {data.adoption.map((metric) => (
                 <div className="mini-row" key={metric.id ?? metric.metric_key}>
                   <span>{label(metric.role_area)} · {metric.city ?? metric.region ?? "regional"}</span>
@@ -344,6 +371,7 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Churn Risk & Customer Health 2.0" subtitle="נטישה מתוך שימוש נמוך, פניות חוזרות, תשלומים כושלים, קליטה חסרה ושביעות רצון.">
             <div className="procedure-list compact-list">
+              {!available.health && <div className="empty-mini">Customer health: {unavailable}</div>}
               {data.health.map((item) => (
                 <div className="mini-row" key={item.id ?? item.score_key}>
                   <span>{item.customer_name ?? "Customer"}</span>
@@ -351,6 +379,7 @@ export default async function RegionalScaleUpPage() {
                   <small>usage {item.usage_score} · payment {item.payment_score} · support {item.support_score} · satisfaction {item.satisfaction_score}</small>
                 </div>
               ))}
+              {!available.churn && <div className="empty-mini">Churn signals: {unavailable}</div>}
               {data.churn.map((signal) => (
                 <div className="mini-row" key={signal.id ?? signal.signal_key}>
                   <span>{label(signal.signal_type)}</span>
@@ -365,6 +394,7 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Customer Success, Training & Knowledge Scaling" subtitle="משימות CS ותוכן הדרכה לבעיות שחוזרות בגנים רבים.">
             <div className="procedure-list compact-list">
+              {!available.csTasks && <div className="empty-mini">Customer success tasks: {unavailable}</div>}
               {data.csTasks.map((task) => (
                 <div className="mini-row" key={task.id ?? task.task_key}>
                   <span>{task.title}</span>
@@ -372,6 +402,7 @@ export default async function RegionalScaleUpPage() {
                   <small>{label(task.task_type)} · owner {task.owner ?? "TBD"} · due {dateText(task.due_date)}</small>
                 </div>
               ))}
+              {!available.training && <div className="empty-mini">Training content: {unavailable}</div>}
               {data.training.map((item) => (
                 <div className="mini-row" key={item.id ?? item.content_key}>
                   <span>{label(item.issue_area)}</span>
@@ -384,6 +415,7 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Sales Operations Scaling" subtitle="קצב לידים, דמואים, follow-ups, המרה, סיבות הפסד וביצועי referral.">
             <div className="camera-infra-list">
+              {!available.sales && <div className="empty-mini">Sales operations: {unavailable}</div>}
               {data.sales.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.snapshot_key}>
                   <div>
@@ -400,6 +432,7 @@ export default async function RegionalScaleUpPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Regional Rollout Risk Register" subtitle="סיכוני טכנולוגיה, תמיכה, תשלומים, פרטיות, מצלמות, AI, פיקוח, הצלחת לקוחות ומוניטין.">
             <div className="procedure-list compact-list">
+              {!available.risks && <div className="empty-mini">Rollout risks: {unavailable}</div>}
               {data.risks.map((risk) => (
                 <div className="mini-row" key={risk.id ?? risk.risk_key}>
                   <span>{risk.title}</span>
@@ -412,6 +445,7 @@ export default async function RegionalScaleUpPage() {
 
           <CleanSection title="Expansion Decision Engine" subtitle="המלצה אחרי 50–100: לייצב, להמשיך ל־250, עיר חדשה, לגייס תמיכה/מפקחים או לדחות מצלמות/AI.">
             <div className="procedure-list compact-list">
+              {!available.decisions && <div className="empty-mini">Expansion decisions: {unavailable}</div>}
               {data.decisions.map((decision) => (
                 <div className="mini-row" key={decision.id ?? decision.decision_key}>
                   <span>{label(decision.decision)}</span>
@@ -425,22 +459,22 @@ export default async function RegionalScaleUpPage() {
 
         <CleanSection title="Executive Regional Dashboard" subtitle="תמונת הנהלה נקייה: הכנסות, אימוץ, תמיכה, פיקוח, תשתיות, נטישה והפעולה הבאה.">
           <section className="grid cols-4">
-            <ActionCard icon={MapPinned} title="Regional cohorts" text={`${data.cohorts.length} active planning records · ${targetKindergartens || "50-100"} target gardens`} href="/dashboard/admin/regional-scale-up" />
+            <ActionCard icon={MapPinned} title="Regional cohorts" text={`${available.cohorts ? data.cohorts.length : unavailable} active planning records · ${targetKindergartens === null ? unavailable : targetKindergartens || "50-100"} target gardens`} href="/dashboard/admin/regional-scale-up" />
             <ActionCard icon={Building2} title="Commercial rollout" text="Validate 10-25 before scaling to regional cohort" href="/dashboard/admin/commercial-rollout" />
-            <ActionCard icon={Headphones} title="Support capacity" text={`${recommendedSupport.recommended_support_staff ?? "TBD"} staff · ${label(recommendedSupport.recommendation)}`} href="/dashboard/admin/customer-success" />
-            <ActionCard icon={ClipboardCheck} title="Inspector capacity" text={`${recommendedInspectors.inspectors_needed ?? "TBD"} inspectors needed for ${recommendedInspectors.garden_count ?? 100} gardens`} href="/dashboard/admin/inspectors" />
-            <ActionCard icon={Banknote} title="Revenue validation" text={`${money(latestRevenue.forecast_mrr_nis)} forecast MRR · price validation active`} href="/dashboard/admin/billing" />
-            <ActionCard icon={Gauge} title="System health" text={`${infraWatch.length} checks require monitoring before expansion`} href="/dashboard/admin/system-health" />
+            <ActionCard icon={Headphones} title="Support capacity" text={available.support ? `${recommendedSupport?.recommended_support_staff ?? "TBD"} staff · ${recommendedSupport ? label(recommendedSupport.recommendation) : "TBD"}` : unavailable} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={ClipboardCheck} title="Inspector capacity" text={available.inspectorCapacity ? `${recommendedInspectors?.inspectors_needed ?? "TBD"} inspectors needed for ${recommendedInspectors?.garden_count ?? "TBD"} gardens` : unavailable} href="/dashboard/admin/inspectors" />
+            <ActionCard icon={Banknote} title="Revenue validation" text={`${available.revenue ? measuredMoney(latestRevenue.forecast_mrr_nis) : unavailable} forecast MRR · price validation active`} href="/dashboard/admin/billing" />
+            <ActionCard icon={Gauge} title="System health" text={`${infraWatch === null ? unavailable : infraWatch.length} checks require monitoring before expansion`} href="/dashboard/admin/system-health" />
             <ActionCard icon={Database} title="Database scale" text="Slow queries, RLS and audit growth must be watched" href="/dashboard/admin/database-integrity" />
             <ActionCard icon={Camera} title="Camera readiness" text="Readiness only until gateway load is validated" href="/dashboard/admin/camera-gateway" />
             <ActionCard icon={Brain} title="Observer scale" text="Shadow mode and human review remain mandatory" href="/dashboard/admin/observer-pilot" />
-            <ActionCard icon={UsersRound} title="Parent adoption" text={`${parentAdoption}% parent activation readiness`} href="/dashboard/admin/customer-success" />
-            <ActionCard icon={UserCheck} title="Customer health" text={`${openChurn.length} churn signals open`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={UsersRound} title="Parent adoption" text={parentAdoption === null ? unavailable : `${parentAdoption}% parent activation readiness`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={UserCheck} title="Customer health" text={`${openChurn === null ? unavailable : openChurn.length} churn signals open`} href="/dashboard/admin/customer-success" />
             <ActionCard icon={TrendingUp} title="Growth loop" text="Demand clusters and referrals feed the next region" href="/dashboard/admin/growth" />
             <ActionCard icon={Route} title="Sales operations" text="Follow-ups, demos and regional demand pipeline" href="/dashboard/admin/commercial-launch" />
             <ActionCard icon={Activity} title="Infrastructure" text="Vercel, Supabase, storage and comms volume" href="/dashboard/admin/system-health" />
-            <ActionCard icon={GraduationCap} title="Training scale" text={`${data.training.length} knowledge items tracked`} href="/dashboard/admin/customer-success" />
-            <ActionCard icon={ShieldAlert} title="Expansion blockers" text={`${highRisks.length} high/critical regional risks`} href="/dashboard/admin/final-compliance-review" />
+            <ActionCard icon={GraduationCap} title="Training scale" text={`${available.training ? data.training.length : unavailable} knowledge items tracked`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={ShieldAlert} title="Expansion blockers" text={`${highRisks === null ? unavailable : highRisks.length} high/critical regional risks`} href="/dashboard/admin/final-compliance-review" />
             <ActionCard icon={LineChart} title="Regional report" text="50-100 rollout summary and next expansion recommendation" href="/dashboard/admin/reports" />
           </section>
         </CleanSection>
