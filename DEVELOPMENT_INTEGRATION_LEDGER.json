@@ -13900,13 +13900,14 @@
         "remoteRefs": [
           "origin/codex/ux-v6-true-reference-correction@c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
           "origin/codex/ux-v6-development-qualification-20261104@be074f8f979c8879dfea8cb11be8b68beb524741",
-          "origin/codex/ux-v6-development-qualification-20261104@e1f32a15b7e436f1489e345e79129a78aae13dd3"
+          "origin/codex/ux-v6-development-qualification-20261104@e1f32a15b7e436f1489e345e79129a78aae13dd3",
+          "origin/codex/ux-v6-development-qualification-20261104@1ea6de8e29e5d7ec267b0c53147b691add3cab26"
         ],
         "validatedRemoteHead": "c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
         "qualificationBranch": "codex/ux-v6-development-qualification-20261104",
         "qualificationCommitLocal": "7469c17e88ed13f3a6c8a5bb089fa7a573090203",
-        "qualificationRemoteObserved": "e1f32a15b7e436f1489e345e79129a78aae13dd3",
-        "qualificationSourceLocalOnly": true
+        "qualificationRemoteObserved": "1ea6de8e29e5d7ec267b0c53147b691add3cab26",
+        "qualificationSourceLocalOnly": false
       },
       "validation": {
         "status": "DASHBOARD_9_PASS_AND_STATIC_COMPOSITION_5_PASS_AT_7469_FULL_CI_PRODUCT_OPEN",
@@ -13922,7 +13923,7 @@
           "management-role-dashboards: 9 PASS, 0 fail/skip/cancel; actual pinned Node exit0; read-model behavior assertions plus source guards",
           "uxv6-primary-screen-source-composition: 5 PASS, 0 fail/skip/cancel; actual pinned Node exit0; STATIC_SOURCE_COMPOSITION_ONLY"
         ],
-        "limits": "Two targeted suites passed on exact source7469; historical child-context9 remains separate atc28. No current full typecheck/lint/build/security CI, authenticated Product/Auth/RLS, rendered Desktop/Mobile visual acceptance or canonical integration. Local7469 is not pushed; last verified qualification remotee1. All-in monthly cost remains UNKNOWN_NOT_PASS.",
+        "limits": "Two targeted suites passed on exact source7469; historical child-context9 remains separate atc28. PR #282 exact candidate 1ea6de8 passed build, domain, security, migration, release-contract and management-context gates, but Gate 1 failed because this unit incorrectly listed its own source commit SHAs as separate dependency unit IDs. This ledger-only correction removes that schema error; exact-new-candidate CI remains pending. No authenticated Product/Auth/RLS, rendered Desktop/Mobile visual acceptance or canonical integration. All-in monthly cost remains UNKNOWN_NOT_PASS.",
         "historicalCandidateChecks": [
           "git diff --check df83708b... 822edaaa... PASS",
           "Node 24.16.0 --check two mjs files PASS at prior checkpoint; nice setpriority refused, so priority not elevated",
@@ -13938,18 +13939,12 @@
         "base": "36a2b3c0009156ae4c81606a4bb787ca44b5b48c",
         "candidateBranch": "codex/ux-v6-development-qualification-20261104",
         "candidateCommitLocal": "7469c17e88ed13f3a6c8a5bb089fa7a573090203",
-        "pullRequest": null,
-        "requiredChecks": "NOT_RUN"
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/282",
+        "requiredChecks": "GATE1_LEDGER_DEPENDENCY_SCHEMA_FAILED_AT_1EA6; NEW_CANDIDATE_PENDING"
       },
       "dependencies": {
-        "status": "OPEN_UNQUALIFIED_PREDECESSOR_COMMITS",
-        "units": [
-          "8dd8ef8fc26bef70689a259f721c12ea61126e91",
-          "79be3dc034d6144ef9bb744a0dd58e1a97f7bf80",
-          "78f3b727a1859041be11161b4db4f89e139a2cbb",
-          "61f660328dd26cf776e5745ecd4d69031819578e",
-          "cbd16ab1b9288cb68d3bf963f242f8db0b11a53e"
-        ]
+        "status": "SOURCE_COMMITS_RECORDED_IN_THIS_UNIT_NO_SEPARATE_DEPENDENCY_UNIT",
+        "units": []
       },
       "migrations": [],
       "migrationOrder": [],
@@ -13958,7 +13953,7 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Preserve validated7469 remotely only after current no-preview admission; exact-source CI only after free-only runner/storage/provider admission. Executor delivery repeatedly returned stale task finals without tools; do not claim executor active or duplicate cards. Canonical integration, full Product/Auth/RLS/visual and cost compliance remain open; no main/Production."
+      "nextAction": "Run exact-new-candidate PR #282 CI after the ledger dependency schema correction, then keep the PR draft until full Product/Auth/RLS and direct Desktop/Mobile reference evidence is complete. Sole integration owner must reconcile the canonical ledger and merge only with required checks green. All-in cost compliance remains open; no main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
