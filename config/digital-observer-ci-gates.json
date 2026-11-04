@@ -108,6 +108,7 @@
     { "name": "horizontal-ai-scale", "args": ["scripts/qa/check-digital-observer-horizontal-scale.mjs"] },
     { "name": "high-availability", "args": ["scripts/qa/check-digital-observer-high-availability.mjs"] },
     { "name": "reliability-qualification", "args": ["scripts/qa/check-digital-observer-reliability-qualification.mjs"] },
+    { "name": "push38-monitor-accuracy", "args": ["scripts/qa/check-push38b-monitor-accuracy.mjs"] },
     { "name": "push38-gateway-event-loop-retry", "args": ["scripts/qa/check-push38-gateway-event-loop-retry.mjs"] },
     { "name": "push38-gateway-hardware-rescue-deadline-release", "args": ["scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs"] },
     { "name": "push38-dvr-endpoint-recovery", "args": ["scripts/qa/check-push38-dvr-endpoint-recovery.mjs"] },
