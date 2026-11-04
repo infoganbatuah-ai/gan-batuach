@@ -13,7 +13,9 @@ const integrationOverrides = new Set([
   "digital-guard-persisted-learning.mjs",
   "push44-owner-qa-proxy.mjs",
   "probe-admin-dashboard-schema.mjs",
-  "run-completion-role-boundary-probes.mjs"
+  "run-completion-role-boundary-probes.mjs",
+  "start-push38t-ingress.mjs",
+  "start-push38t-qualification.mjs"
 ]);
 const deterministicOverrides = new Set([
   "build-ci-test-manifest.mjs",
@@ -65,6 +67,14 @@ function packageCommands(file) {
 }
 
 const inventoryScopeNotes = new Map([
+  [
+    "start-push38t-ingress.mjs",
+    "runtime integration setup only; isolated QA HTTPS/TLS and session material plus separate runtime authority required; normal PR CI must not execute; no hardware/provider proof"
+  ],
+  [
+    "start-push38t-qualification.mjs",
+    "runtime integration setup only; isolated QA Docker/Supabase, loopback adapter and Next services require separate runtime authority; optional private delivery/keychain separately gated; normal PR CI must not execute; no hardware/provider proof"
+  ],
   [
     "check-management-role-dashboards.mjs",
     "read-model behavior assertions and source guards; no live Auth/RLS proof"
