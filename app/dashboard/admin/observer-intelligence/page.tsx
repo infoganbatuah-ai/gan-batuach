@@ -16,17 +16,29 @@ export default async function AdminObserverIntelligencePage() {
       supabase.from("observer_correlated_events" as any).select("id,kindergarten_id,status,severity,confidence").order("created_at", { ascending: false }).limit(500),
       supabase.from("camera_streams" as any).select("id,garden_id,kindergarten_id,status,stream_status,health_status,gateway_registration_status,active").limit(1000),
       supabase.from("kindergarten_learning_profiles" as any).select("*").order("updated_at", { ascending: false }).limit(500)
-    ]);
-    [gardens, summaries, correlated, cameras, learning].forEach((query, index) => logSupabaseError(`observer intelligence ${index}`, query.error));
+    ].map(async (query, index) => {
+      try {
+        const response = await query;
+        if (response.error) {
+          logSupabaseError(`observer intelligence ${index}`, response.error);
+          return { data: [], available: false };
+        }
+        return { data: response.data ?? [], available: true };
+      } catch (error) {
+        logSupabaseError(`observer intelligence ${index}`, error);
+        return { data: [], available: false };
+      }
+    }));
     return {
       gardens: gardens.data ?? [],
       summaries: summaries.data ?? [],
       correlatedEvents: correlated.data ?? [],
       cameras: cameras.data ?? [],
       learningProfiles: learning.data ?? [],
-      queryError: [summaries, correlated, cameras, learning].some((query) => query.error) ? "חלק מנתוני observer intelligence לא נטענו" : null
+      availability: { gardens: gardens.available, summaries: summaries.available, correlatedEvents: correlated.available, cameras: cameras.available, learningProfiles: learning.available },
+      queryError: [gardens, summaries, correlated, cameras, learning].some((query) => !query.available) ? "חלק מנתוני observer intelligence אינם זמינים כרגע" : null
     };
-  }, { gardens: [] as any[], summaries: [] as any[], correlatedEvents: [] as any[], cameras: [] as any[], learningProfiles: [] as any[], queryError: null as string | null });
+  }, { gardens: [] as any[], summaries: [] as any[], correlatedEvents: [] as any[], cameras: [] as any[], learningProfiles: [] as any[], availability: { gardens: false, summaries: false, correlatedEvents: false, cameras: false, learningProfiles: false }, queryError: null as string | null });
   const firstGardenId = result.data.gardens[0]?.id ?? "";
   const cameraWarnings = (result.data.cameras as any[]).filter((camera) => {
     const status = String(camera.status ?? camera.stream_status ?? camera.health_status ?? camera.gateway_registration_status ?? "");
@@ -52,6 +64,7 @@ export default async function AdminObserverIntelligencePage() {
         correlatedEvents={result.data.correlatedEvents}
         cameraWarnings={cameraWarnings}
         learningProfiles={result.data.learningProfiles}
+        availability={result.data.availability}
       />
     </DashboardShell>
   );
