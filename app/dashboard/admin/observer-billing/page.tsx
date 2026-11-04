@@ -20,40 +20,49 @@ function statusClass(status?: string) {
   return "pill bad";
 }
 
+async function safeQuery<T>(run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+  try {
+    const result = await run();
+    return { rows: result.error ? [] : result.data ?? [], error: result.error, failed: Boolean(result.error) };
+  } catch (error) {
+    return { rows: [], error, failed: true };
+  }
+}
+
 export default async function AdminObserverBillingPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("observer billing", async () => {
     const supabase = await createClient();
     const [subscriptions, events, usage, packages] = await Promise.all([
-      supabase
+      safeQuery(() => supabase
         .from("observer_site_subscriptions" as any)
         .select("*, observer_sites(name, site_type), observer_monitoring_packages(name, package_type, monthly_price, annual_price, currency)")
         .order("created_at", { ascending: false })
-        .limit(300),
-      supabase
+        .limit(300)),
+      safeQuery(() => supabase
         .from("observer_billing_events" as any)
         .select("*, observer_sites(name, site_type)")
         .order("created_at", { ascending: false })
-        .limit(300),
-      supabase
+        .limit(300)),
+      safeQuery(() => supabase
         .from("observer_usage_tracking" as any)
         .select("*, observer_sites(name, site_type)")
         .order("period_start", { ascending: false })
-        .limit(300),
-      supabase
+        .limit(300)),
+      safeQuery(() => supabase
         .from("observer_monitoring_packages" as any)
         .select("id, name, package_type, monthly_price, annual_price, currency, active")
-        .order("sort_order", { ascending: true })
+        .order("sort_order", { ascending: true }))
     ]);
     [subscriptions, events, usage, packages].forEach((query, index) => logSupabaseError("observer billing query " + index, query.error));
     return {
-      subscriptions: subscriptions.data ?? [],
-      events: events.data ?? [],
-      usage: usage.data ?? [],
-      packages: packages.data ?? [],
-      queryError: subscriptions.error ? "לא ניתן לטעון מנויי Digital Observer כרגע" : null
+      subscriptions: subscriptions.rows,
+      events: events.rows,
+      usage: usage.rows,
+      packages: packages.rows,
+      errors: [subscriptions, events, usage, packages].map((query) => query.failed)
     };
-  }, { subscriptions: [] as any[], events: [] as any[], usage: [] as any[], packages: [] as any[], queryError: null as string | null });
+  }, { subscriptions: [] as any[], events: [] as any[], usage: [] as any[], packages: [] as any[], errors: [true, true, true, true] });
   const data = result.data;
   const active = data.subscriptions.filter((item: any) => item.status === "active").length;
   const trials = data.subscriptions.filter((item: any) => item.status === "trial").length;
@@ -80,29 +89,31 @@ export default async function AdminObserverBillingPage() {
         </div>
         <span className="pill warn">חיוב מדומה בלבד</span>
       </div>
-      <AdminDataError message={result.error ?? data.queryError} />
+      <AdminDataError message={result.error ?? (data.errors.some(Boolean) ? "חלק מנתוני החיוב אינם זמינים כרגע" : null)} />
 
       <section className="grid cols-4 dashboard-panels">
-        <article className="metric-card"><PackageCheck /><strong>{active}</strong><span>מנויים פעילים</span></article>
-        <article className="metric-card"><CalendarClock /><strong>{trials}</strong><span>תקופות ניסיון</span></article>
-        <article className="metric-card"><AlertTriangle /><strong>{overdue}</strong><span>ממתינים להסדרה</span></article>
-        <article className="metric-card"><CreditCard /><strong>{money(revenueReady)}</strong><span>הכנסה במוכנות</span></article>
+        <article className="metric-card"><PackageCheck /><strong>{data.errors[0] ? "לא זמין" : active}</strong><span>מנויים פעילים</span></article>
+        <article className="metric-card"><CalendarClock /><strong>{data.errors[0] ? "לא זמין" : trials}</strong><span>תקופות ניסיון</span></article>
+        <article className="metric-card"><AlertTriangle /><strong>{data.errors[0] ? "לא זמין" : overdue}</strong><span>ממתינים להסדרה</span></article>
+        <article className="metric-card"><CreditCard /><strong>{data.errors[0] ? "לא זמין" : money(revenueReady)}</strong><span>הכנסה במוכנות</span></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2>מחזור חיי מנוי</h2><p>ניסיון, פעיל, ממתין לתשלום, באיחור, מושהה או מבוטל.</p></div>
           <div className="risk-list">
+            {data.errors[0] ? <div>נתוני המנויים אינם זמינים כרגע</div> : <>
             <div>פעילים <b>{active}</b></div>
             <div>בניסיון <b>{trials}</b></div>
             <div>ממתינים להסדרה <b>{overdue}</b></div>
             <div>מושהים <b>{suspended}</b></div>
+            </>}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>התפלגות חבילות</h2><p>חבילות המוצר העצמאי בלבד.</p></div>
           <div className="risk-list">
-            {Object.keys(packageDistribution).length === 0 ? <div>אין מנויי standalone עדיין <b>mock</b></div> : Object.entries(packageDistribution).map(([name, count]) => <div key={name}>{name} <b>{count}</b></div>)}
+            {data.errors[0] ? <div>נתוני המנויים אינם זמינים כרגע</div> : Object.keys(packageDistribution).length === 0 ? <div>אין מנויי standalone עדיין <b>mock</b></div> : Object.entries(packageDistribution).map(([name, count]) => <div key={name}>{name} <b>{count}</b></div>)}
           </div>
         </article>
       </section>
@@ -112,7 +123,7 @@ export default async function AdminObserverBillingPage() {
           <h2>מנויי התצפיתן העצמאי</h2>
           <p>אין כאן מנויי Gan Batuach, ואין כאן תשלומי הורים לגנים. זהו זרם מסחרי נפרד של Digital Observer.</p>
         </div>
-        {data.subscriptions.length === 0 ? (
+        {data.errors[0] ? <div className="empty-state">נתוני המנויים אינם זמינים כרגע</div> : data.subscriptions.length === 0 ? (
           <div className="empty-state"><strong>אין עדיין מנויי Digital Observer standalone</strong><span>לאחר יצירת אתרי standalone ושיוך חבילות יופיעו כאן מנויים.</span></div>
         ) : (
           <div className="procedure-list">
@@ -140,7 +151,7 @@ export default async function AdminObserverBillingPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>אירועי אוטומציית חיוב</h2><p>תזכורות מדומות ואירועי מחזור חיי התשלום.</p></div>
           <div className="risk-list">
-            {data.events.length === 0 ? <div>אין אירועי billing עדיין <b>mock</b></div> : data.events.slice(0, 10).map((event: any) => (
+            {data.errors[1] ? <div>נתוני האירועים אינם זמינים כרגע</div> : data.events.length === 0 ? <div>אין אירועי billing עדיין <b>mock</b></div> : data.events.slice(0, 10).map((event: any) => (
               <div key={event.id}>{event.event_type} · {event.observer_sites?.name ?? "אתר"} <b>{event.status}</b></div>
             ))}
           </div>
@@ -148,7 +159,7 @@ export default async function AdminObserverBillingPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>שימוש ומגבלות</h2><p>מצלמות, AI, אחסון והתראות לצורך אכיפת החבילה בשרת.</p></div>
           <div className="risk-list">
-            {data.usage.length === 0 ? <div>אין usage tracking עדיין <b>observe only</b></div> : data.usage.slice(0, 10).map((item: any) => (
+            {data.errors[2] ? <div>נתוני השימוש אינם זמינים כרגע</div> : data.usage.length === 0 ? <div>אין usage tracking עדיין <b>observe only</b></div> : data.usage.slice(0, 10).map((item: any) => (
               <div key={item.id}>{item.observer_sites?.name ?? "אתר"} · {item.period_start} <b>{item.active_cameras} מצלמות · {item.ai_events_count} אירועים</b></div>
             ))}
           </div>
