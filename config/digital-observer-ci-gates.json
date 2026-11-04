@@ -77,6 +77,7 @@
     "scripts/run-persistent-home-gateway.mjs"
   ],
   "domain": [
+    { "name": "observer-growth-query-boundary", "args": ["--test", "scripts/qa/check-observer-growth-query-boundary.mjs"] },
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
     { "name": "event-ingest", "args": ["scripts/qa/check-event-ingest.mjs"] },
     { "name": "event-outbox", "args": ["scripts/qa/check-event-outbox.mjs"] },

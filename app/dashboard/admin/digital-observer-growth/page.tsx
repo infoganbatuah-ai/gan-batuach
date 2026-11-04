@@ -26,13 +26,13 @@ export default async function AdminDigitalObserverGrowthPage() {
     ]);
     [leads, events, demoContent, templates].forEach((query, index) => logSupabaseError("digital observer growth query " + index, query.error));
     return {
-      leads: leads.data ?? [],
-      events: events.data ?? [],
-      demoContent: demoContent.data ?? [],
-      templates: templates.data ?? [],
-      queryError: leads.error ? "לא ניתן לטעון נתוני צמיחה של Digital Observer כרגע" : null
+      leads: leads.error ? [] : leads.data ?? [],
+      events: events.error ? [] : events.data ?? [],
+      demoContent: demoContent.error ? [] : demoContent.data ?? [],
+      templates: templates.error ? [] : templates.data ?? [],
+      errors: [leads, events, demoContent, templates].map((query) => Boolean(query.error))
     };
-  }, { leads: [] as any[], events: [] as any[], demoContent: [] as any[], templates: [] as any[], queryError: null as string | null });
+  }, { leads: [] as any[], events: [] as any[], demoContent: [] as any[], templates: [] as any[], errors: [true, true, true, true] });
   const data = result.data;
   const sourceDemand = countBy(data.leads, "source");
   const siteDemand = countBy(data.leads, "site_type");
@@ -50,32 +50,32 @@ export default async function AdminDigitalObserverGrowthPage() {
         </div>
         <Link className="button primary" href="/dashboard/admin/digital-observer-leads">Lead queue</Link>
       </div>
-      <AdminDataError message={result.error ?? data.queryError} />
+      <AdminDataError message={result.error ?? (data.errors.some(Boolean) ? "חלק מנתוני Digital Observer אינם זמינים כרגע" : null)} />
 
       <section className="grid cols-4 dashboard-panels">
-        <article className="metric-card"><TrendingUp /><strong>{data.leads.length}</strong><span>Leads</span></article>
-        <article className="metric-card"><BarChart3 /><strong>{data.events.length}</strong><span>Tracked events</span></article>
-        <article className="metric-card"><LineChart /><strong>{avgScore}/100</strong><span>Avg interest score</span></article>
-        <article className="metric-card"><PackageCheck /><strong>{data.templates.length}</strong><span>Follow-up templates</span></article>
+        <article className="metric-card"><TrendingUp /><strong>{data.errors[0] ? "לא זמין" : data.leads.length}</strong><span>Leads</span></article>
+        <article className="metric-card"><BarChart3 /><strong>{data.errors[1] ? "לא זמין" : data.events.length}</strong><span>Tracked events</span></article>
+        <article className="metric-card"><LineChart /><strong>{data.errors[0] ? "לא זמין" : `${avgScore}/100`}</strong><span>Avg interest score</span></article>
+        <article className="metric-card"><PackageCheck /><strong>{data.errors[3] ? "לא זמין" : data.templates.length}</strong><span>Follow-up templates</span></article>
       </section>
 
       <section className="grid cols-3 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2>Lead source demand</h2><p>Campaign and page attribution readiness.</p></div>
           <div className="risk-list">
-            {Object.entries(sourceDemand).length === 0 ? <div>No source data <b>ready</b></div> : Object.entries(sourceDemand).map(([key, value]) => <div key={key}>{key} <b>{value}</b></div>)}
+            {data.errors[0] ? <div>Lead data is unavailable.</div> : Object.entries(sourceDemand).length === 0 ? <div>No source data</div> : Object.entries(sourceDemand).map(([key, value]) => <div key={key}>{key} <b>{value}</b></div>)}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>Site type demand</h2><p>Home, business, warehouse, store, office, parking and custom demand.</p></div>
           <div className="risk-list">
-            {Object.entries(siteDemand).length === 0 ? <div>No site data <b>ready</b></div> : Object.entries(siteDemand).map(([key, value]) => <div key={key}>{key} <b>{value}</b></div>)}
+            {data.errors[0] ? <div>Lead data is unavailable.</div> : Object.entries(siteDemand).length === 0 ? <div>No site data</div> : Object.entries(siteDemand).map(([key, value]) => <div key={key}>{key} <b>{value}</b></div>)}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>City demand</h2><p>Useful for regional outreach and sales follow-up.</p></div>
           <div className="risk-list">
-            {Object.entries(cityDemand).length === 0 ? <div>No city data <b>ready</b></div> : Object.entries(cityDemand).slice(0, 10).map(([key, value]) => <div key={key}><MapPin size={14} /> {key} <b>{value}</b></div>)}
+            {data.errors[0] ? <div>Lead data is unavailable.</div> : Object.entries(cityDemand).length === 0 ? <div>No city data</div> : Object.entries(cityDemand).slice(0, 10).map(([key, value]) => <div key={key}><MapPin size={14} /> {key} <b>{value}</b></div>)}
           </div>
         </article>
       </section>
@@ -84,13 +84,13 @@ export default async function AdminDigitalObserverGrowthPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>CTA and funnel events</h2><p>Homepage, pricing, demo, start and package selection events.</p></div>
           <div className="risk-list">
-            {Object.entries(eventCounts).length === 0 ? <div>No event data <b>ready</b></div> : Object.entries(eventCounts).map(([key, value]) => <div key={key}>{key} <b>{value}</b></div>)}
+            {data.errors[1] ? <div>Event data is unavailable.</div> : Object.entries(eventCounts).length === 0 ? <div>No event data</div> : Object.entries(eventCounts).map(([key, value]) => <div key={key}>{key} <b>{value}</b></div>)}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>Safe demo content</h2><p>Demo data must stay synthetic.</p></div>
           <div className="risk-list">
-            {data.demoContent.length === 0 ? <div>No demo content <b>missing</b></div> : data.demoContent.map((item) => (
+            {data.errors[2] ? <div>Demo content data is unavailable.</div> : data.demoContent.length === 0 ? <div>No demo content <b>missing</b></div> : data.demoContent.map((item) => (
               <div key={item.demo_key}><Camera size={14} /> {item.title} <b>{item.uses_real_people || item.uses_real_credentials ? "blocked" : item.status}</b></div>
             ))}
           </div>
@@ -103,7 +103,7 @@ export default async function AdminDigitalObserverGrowthPage() {
           <p>Email, WhatsApp, SMS, push and in-app readiness. Real sending remains controlled by provider mode.</p>
         </div>
         <div className="procedure-list">
-          {data.templates.map((template) => (
+          {data.errors[3] ? <div>Template data is unavailable.</div> : data.templates.length === 0 ? <div>No templates yet.</div> : data.templates.map((template) => (
             <article className="card procedure-card" key={template.template_key}>
               <div>
                 <span className="pill">{template.channel}</span>
