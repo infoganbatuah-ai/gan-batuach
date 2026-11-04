@@ -39,9 +39,15 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 | External API / webhooks | lib/domain/digital-observer/external-api-service.ts | /api/digital-observer/external/v1/* | service accounts; external API receipts/usage; webhook endpoints; integration sources | qa:digital-observer-push42 | PUSH 42 independent consumer and external provider proof pending | GATE 3 + GATE 4 |
 | OEM / SDK / white-label | lib/domain/digital-observer/partner-platform-service.ts | /api/digital-observer/partner/v1/*; /api/digital-observer/embed/v1/* | partners; partner customers/Sites; brand profiles; delegated service accounts; embedded sessions | qa:digital-observer-push43 | PUSH 43 real OEM partner and vendor proof pending | GATE 3 + GATE 4 |
 | Native mobile runtime | lib/domain/digital-observer/mobile-runtime.ts | /api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings | existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores | qa:digital-observer-push44 | Signed owner-iPhone QA shell PASS; authenticated Product, provider receipt, remote playback and store proof pending | GATE 3 + GATE 4 |
+| Management role dashboard read model | lib/management/dashboard-read-model.ts; canonical role dashboard pages | Role-scoped dashboard reads | Existing authorized management projections | `management-role-dashboards`: derived attendance/tuition, authorized Child selection, private-message preview, camera readiness and source guards | Source-level behavior assertions and guards only; authenticated Product/Auth/RLS/browser proof remains separate | GATE 3 |
+| UX-V6 primary screen composition | Owner, Parent, Admin and Settings primary routes and scoped CSS | Existing guarded routes | Existing authorized role data | `uxv6-primary-screen-source-composition`: five static source-structure assertions | Static source composition only; not rendered visual fidelity, browser interaction, Auth/RLS or owner approval | GATE 3 + external owner visual review |
+| UX-V6 capture admission and verdict safety | Pure capture admission/result contract; capture runner is excluded from CI | None | None | `uxv6-capture-admission-contract`: five in-memory node:test cases for exact Development admission, fixture refusal, scenario inventory and pending-visual-review verdict | Source-level contract only; no actual Product, Auth/RLS, 32 screenshots, visual match or owner approval | GATE 3; separate Development capture and external visual review remain open |
 
 ## TIER 1 CANONICAL SUITES
 
+- `uxv6-capture-admission-contract`: `node scripts/qa/check-uxv6-capture-admission-contract.mjs` (five pure cases; canonical domain gate now has 50 entries; no browser, database or capture runner)
+- `management-role-dashboards`: `node --experimental-strip-types scripts/qa/check-management-role-dashboards.mjs` (read-model behavior assertions plus source guards; no authenticated Product proof)
+- `uxv6-primary-screen-source-composition`: `node scripts/qa/check-uxv6-current-product-contract.mjs` (five static source-composition assertions; no browser or visual proof)
 - `event-journal`: `node scripts/qa/check-event-journal.mjs`
 - `event-ingest`: `node scripts/qa/check-event-ingest.mjs`
 - `event-outbox`: `node scripts/qa/check-event-outbox.mjs`
@@ -139,7 +145,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **554** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory table: **555 listed** files after the focused UX-V6 addition. This is not a full regeneration of the script inventory; classifications remain conservative and environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -320,7 +326,7 @@ Inventory count: **554** files. Classifications are conservative; environment-de
 | `scripts/qa/check-management-production-hardening.mjs` | node scripts/qa/check-management-production-hardening.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-management-reporting-rls.sql` | SQL fixture (not directly executable) | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | YES / CONTROLLED | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-reporting.mjs` | npm run qa:management-reporting | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
-| `scripts/qa/check-management-role-dashboards.mjs` | npm run qa:management-dashboards | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-management-role-dashboards.mjs` | node --experimental-strip-types scripts/qa/check-management-role-dashboards.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | read-model behavior assertions and source guards; no live Auth/RLS proof |
 | `scripts/qa/check-management-signed-invitations.mjs` | node scripts/qa/check-management-signed-invitations.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-staff-candidate-job-discovery.mjs` | npm run qa:management-staff-candidate-job-discovery | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-management-staff-hiring-lifecycle.mjs` | npm run qa:management-staff-hiring-lifecycle | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -501,6 +507,7 @@ Inventory count: **554** files. Classifications are conservative; environment-de
 | `scripts/qa/check-ux18-settings-functional.mjs` | npm run qa:ux18-functional | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux19-global-states.mjs` | npm run qa:ux19-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux20-full-product.mjs` | npm run qa:ux20-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-uxv6-current-product-contract.mjs` | node scripts/qa/check-uxv6-current-product-contract.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | UI / E2E | CANONICAL CI | five static source-composition assertions only; rendered Desktop/Mobile comparison remains external |
 | `scripts/qa/check-vendored-braces-security.mjs` | npm run qa:ci:security; npm run qa:vendored-braces-security | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-vercel-deployment-package.mjs` | node scripts/qa/check-vercel-deployment-package.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-video-gateway-activity-insights.mjs` | node scripts/qa/check-video-gateway-activity-insights.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |

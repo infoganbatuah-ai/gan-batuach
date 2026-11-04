@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-03T00:45:58.098631+00:00",
+  "updatedAt": "2026-11-03T22:51:42.577306+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -13879,6 +13879,84 @@
         "answer": "מאשר פרסום ושילוב בהיקף הזה",
         "scope": "Exact approved source ed09e16a0 and summary head 99ec8b05dcae8b06f372642f32b89d6d8c4143a0; public feature PR, required-CI-gated Development integration and result ledger. No realpilot/broadmobile/main/Production/SQL/provider/device/newcost authority. Process exception disclosed in reviewed payload remains retained."
       }
+    },
+    {
+      "id": "codex/ux-v6-true-reference-correction",
+      "project": "Gan Batuach Management",
+      "title": "UX-V6 primary-reference source correction and reconciled Development qualification",
+      "owner": "UX-V6 Development qualification task; canonical integration owner pending",
+      "sourceBranch": "codex/ux-v6-true-reference-correction",
+      "sourceCommits": [
+        "8dd8ef8fc26bef70689a259f721c12ea61126e91",
+        "79be3dc034d6144ef9bb744a0dd58e1a97f7bf80",
+        "78f3b727a1859041be11161b4db4f89e139a2cbb",
+        "61f660328dd26cf776e5745ecd4d69031819578e",
+        "cbd16ab1b9288cb68d3bf963f242f8db0b11a53e",
+        "c28a76a0942a5afcfd6b8d3d8e0950914146ff13"
+      ],
+      "state": "IMPLEMENTING",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v6-true-reference-correction@c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
+          "origin/codex/ux-v6-development-qualification-20261104@be074f8f979c8879dfea8cb11be8b68beb524741",
+          "origin/codex/ux-v6-development-qualification-20261104@e1f32a15b7e436f1489e345e79129a78aae13dd3",
+          "origin/codex/ux-v6-development-qualification-20261104@1ea6de8e29e5d7ec267b0c53147b691add3cab26",
+          "origin/codex/ux-v6-development-qualification-20261104@2cb4646d1fc414f950095d04c452ee3a1932b672"
+        ],
+        "validatedRemoteHead": "c28a76a0942a5afcfd6b8d3d8e0950914146ff13",
+        "qualificationBranch": "codex/ux-v6-development-qualification-20261104",
+        "qualificationCommitLocal": "8822d27341c03eae2fe8ac3d562014c748ba330c",
+        "qualificationRemoteObserved": "2cb4646d1fc414f950095d04c452ee3a1932b672",
+        "qualificationSourceLocalOnly": true
+      },
+      "validation": {
+        "status": "PURE_CAPTURE_ADMISSION_CONTRACT_5_PASS_AT_8822_EXACT_CI_PRODUCT_OPEN",
+        "evidence": [
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-child-context-contract-validation-20261104-c28a76a/result.json#sha256=ca288d89540dbfe8118c3f301cb2da2a00b346b52d83ea85386f8dc390b923e2",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-development-admission-20261104-c28a76a/admission-result.json#sha256=db99b84948b51ba6fa9ebe9e20ad56bab2fb5d5fb6ac84a3273cd0cb0086b407",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-current-base-bounded-regression-20261104-be074f8/gate-and-source-preparation.json#sha256=b1456b4136c74b94c9a974a7b6943dec503cb1ce57c2b92a27fcac26ef51b532",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-ci-wiring-local-checkpoint-recovery-20261104-e1/receipt.json#sha256=b0ce36679d90f7f8982f063de9a6b9611c18e035b9c5ce174373a03cd8203414",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-ci-wiring-local-checkpoint-recovery-20261104-e1/verification.json#sha256=719190c16d70d8380c491d4c13dabc277407233c7950c971a915d81c0296bc29",
+          "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-capture-admission-contract-validation-20261104-8822/result.json#sha256=a7b463bd804f487e0f34c6f27995ef196e2df5f906a79a5188c030b972f6e123"
+        ],
+        "candidateChecks": [
+          "At source7469: git diff --check and canonical domain manifest preservation PASS: 49 entries; previous47 and other keys unchanged",
+          "management-role-dashboards: 9 PASS, 0 fail/skip/cancel; actual pinned Node exit0; read-model behavior assertions plus source guards",
+          "uxv6-primary-screen-source-composition: 5 PASS, 0 fail/skip/cancel; actual pinned Node exit0; STATIC_SOURCE_COMPOSITION_ONLY",
+          "uxv6-capture-admission-contract: actual pinned Node five pure in-memory cases PASS, 0 fail/skip/cancel, exit0 at source8822; no capture runner, Product, Auth/RLS or rendered visual proof"
+        ],
+        "limits": "Capture contract five pure cases passed on source8822. Dashboard9/static composition5 passed separately at source7469; historical Child-context9 atc28. PR #282 six gates/quality/management passed only on remote2cb before source8822 and the new Domain wiring. Exact-new-candidate CI remains PENDING. The private QA identities lack an explicitly marked unassigned parent; 32 screenshots, rendered visual review, authenticated Product/Auth/RLS and canonical integration remain NOT_RUN/OPEN. All-in monthly cost remains UNKNOWN_NOT_PASS.",
+        "historicalCandidateChecks": [
+          "git diff --check df83708b... 822edaaa... PASS",
+          "Node 24.16.0 --check two mjs files PASS at prior checkpoint; nice setpriority refused, so priority not elevated",
+          "Current eight-core host load 39.96 then 84.34 exceeds <=8 gate; dashboard suite and new static contract NOT_RUN",
+          "Vercel gan-batuach deployment branch search returned No matches found for candidate branch; limited UI observation, not cross-project proof"
+        ],
+        "validatedCandidateSource": "8822d27341c03eae2fe8ac3d562014c748ba330c",
+        "validatedBy": "Gan executor: pure capture admission contract only",
+        "recordedAtUTC": "2026-11-04T02:26:44.925681+00:00"
+      },
+      "integration": {
+        "status": "PENDING_QUALIFICATION_NOT_CANONICAL",
+        "base": "36a2b3c0009156ae4c81606a4bb787ca44b5b48c",
+        "candidateBranch": "codex/ux-v6-development-qualification-20261104",
+        "candidateCommitLocal": "8822d27341c03eae2fe8ac3d562014c748ba330c",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/282",
+        "requiredChecks": "NEW_HEAD_PENDING_EXACT_CI; HISTORIC_2CB_GREEN_NOT_TRANSFERABLE"
+      },
+      "dependencies": {
+        "status": "SOURCE_COMMITS_RECORDED_IN_THIS_UNIT_NO_SEPARATE_DEPENDENCY_UNIT",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "DASHBOARD9_STATIC5_AT7469; CHILD9_ATC28; PURE_CAPTURE_ADMISSION5_AT8822; PRODUCT_VISUAL_AUTH_RLS_OPEN",
+      "releaseEligibility": "NO_PRODUCT_VISUAL_CI_OR_EXTERNAL_OWNER_APPROVAL",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Wire the pure five-case contract into the existing Domain gate, commit and preserve the exact feature candidate remotely, run required exact-head PR #282 CI and prove the new suite reached the Domain job. Keep PR draft and canonical Development integration pending a sole owner, fixture/capture/visual/Product/security qualification and all-in cost review. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
