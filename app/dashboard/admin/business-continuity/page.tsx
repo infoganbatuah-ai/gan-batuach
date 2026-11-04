@@ -22,7 +22,17 @@ import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 
+async function settleRows<T extends { data: unknown; error: unknown }>(query: PromiseLike<T>) {
+  try {
+    const result = await query;
+    return { ...result, data: result.error ? [] : result.data ?? [] };
+  } catch (error) {
+    return { data: [], error };
+  }
+}
+
 type ContinuityData = {
+  availability: boolean[];
   backups: any[];
   restoreTests: any[];
   plans: any[];
@@ -37,6 +47,7 @@ type ContinuityData = {
 };
 
 const emptyData: ContinuityData = {
+  availability: Array<boolean>(11).fill(false),
   backups: [],
   restoreTests: [],
   plans: [],
@@ -161,9 +172,9 @@ export default async function AdminBusinessContinuityPage() {
       supabase.from("business_continuity_audit_events" as any).select("id,event_type,severity,source_table,title,created_at").order("created_at", { ascending: false }).limit(80),
       supabase.from("recovery_objectives" as any).select("id,objective_key,system_area,rto_minutes,rpo_minutes,priority,status,notes,updated_at").order("priority"),
       supabase.from("retention_alignment_checks" as any).select("id,check_key,data_domain,retention_policy_status,deletion_request_supported,legal_hold_supported,backup_erasure_notes,last_reviewed_at,updated_at").order("data_domain")
-    ]);
+    ].map((query) => settleRows(query)));
 
-    [
+    const queries = [
       backupsRes,
       restoreTestsRes,
       plansRes,
@@ -175,9 +186,11 @@ export default async function AdminBusinessContinuityPage() {
       auditEventsRes,
       objectivesRes,
       retentionChecksRes
-    ].forEach((query, index) => logSupabaseError(`business continuity query ${index}`, (query as any).error));
+    ];
+    queries.forEach((query, index) => logSupabaseError(`business continuity query ${index}`, query.error));
 
     return {
+      availability: queries.map((query) => !query.error),
       backups: (backupsRes.data ?? []) as any[],
       restoreTests: (restoreTestsRes.data ?? []) as any[],
       plans: (plansRes.data ?? []) as any[],
@@ -193,6 +206,11 @@ export default async function AdminBusinessContinuityPage() {
   }, emptyData);
 
   const data = result.data;
+  const has = (...indices: number[]) => indices.every((index) => data.availability[index]);
+  const unknown = "לא זמין";
+  const unavailable = (name: string) => <p className="muted">{name}: {unknown}</p>;
+  const partialError = data.availability.some((value) => !value) ? "חלק מנתוני ההמשכיות אינם זמינים כרגע." : null;
+  const modelAvailable = has(0, 1, 2, 3, 4);
   const continuityScore = calculateContinuityScore(data);
   const activeIncidents = data.incidents.filter((incident) => !["resolved", "closed"].includes(String(incident.status)));
   const providerIssues = data.providers.filter((provider) => provider.status !== "healthy");
@@ -220,39 +238,39 @@ export default async function AdminBusinessContinuityPage() {
       <div className="commercial-dashboard">
         <PremiumDashboardHero
           eyebrow="Business Continuity"
-          title="המערכת נשארת זמינה גם כשמשהו מתקלקל"
-          subtitle="מרכז אחד לגיבויים, בדיקות שחזור, בריאות ספקים, אירועים תפעוליים, מצב אופליין ותוכניות התאוששות."
-          badge={`${continuityScore}/100`}
-          badgeTone={continuityScore >= 80 ? "good" : continuityScore >= 55 ? "warn" : "bad"}
+          title="מרכז תיעוד המשכיות עסקית"
+          subtitle="רשומות ותכנון של גיבויים, שחזור, ספקים ואירועים. המידע במסך אינו הוכחה לגיבוי, שחזור, זמינות או תאימות שבוצעו בפועל."
+          badge={modelAvailable ? `${continuityScore}/100` : unknown}
+          badgeTone={!modelAvailable ? "default" : continuityScore >= 80 ? "good" : continuityScore >= 55 ? "warn" : "bad"}
           actions={<Link className="button secondary" href="/dashboard/admin/security-center">מרכז אבטחה</Link>}
         >
           <div className="setup-checklist">
-            <span>גיבוי מתועד</span>
-            <span>שחזור נבדק</span>
-            <span>ספקים במעקב</span>
+            <span>רשומות גיבוי</span>
+            <span>רשומות שחזור ותכנון</span>
+            <span>רשומות ספקים</span>
           </div>
         </PremiumDashboardHero>
 
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? partialError} />
 
         <section className="grid cols-5 dashboard-kpis">
-          <RoleMetricCard label="ציון חוסן" value={`${continuityScore}%`} hint="גיבוי, ספקים, שחזור ואירועים" tone={continuityScore >= 80 ? "good" : continuityScore >= 55 ? "warn" : "bad"} />
-          <RoleMetricCard label="מוכנות גיבוי" value={`${backupAverage}%`} hint={`${data.backups.length} אזורי כיסוי`} tone={backupAverage >= 80 ? "good" : backupAverage >= 55 ? "warn" : "bad"} />
-          <RoleMetricCard label="בדיקות שחזור" value={`${restoreReady}/${data.restoreTests.length}`} hint={`אחרונה: ${dateText(lastRestore?.completed_at)}`} tone={restoreReady === data.restoreTests.length && data.restoreTests.length ? "good" : "warn"} />
-          <RoleMetricCard label="ספקים בבעיה" value={providerIssues.length} hint={`${data.providers.length} ספקים במעקב`} tone={providerIssues.length ? "bad" : "good"} />
-          <RoleMetricCard label="אירועים פעילים" value={activeIncidents.length} hint={`${openRecommendations.length} המלצות פתוחות`} tone={activeIncidents.length ? "bad" : openRecommendations.length ? "warn" : "good"} />
+          <RoleMetricCard label="ציון חוסן" value={modelAvailable ? `${continuityScore}%` : unknown} hint="מודל רשומות: גיבוי, ספקים, שחזור ואירועים" tone={!modelAvailable ? "default" : continuityScore >= 80 ? "good" : continuityScore >= 55 ? "warn" : "bad"} />
+          <RoleMetricCard label="מוכנות גיבוי" value={has(0) ? `${backupAverage}%` : unknown} hint={has(0) ? `${data.backups.length} אזורי כיסוי` : unknown} tone={!has(0) ? "default" : backupAverage >= 80 ? "good" : backupAverage >= 55 ? "warn" : "bad"} />
+          <RoleMetricCard label="שחזור: עברו או מתוכננות" value={has(1) ? `${restoreReady}/${data.restoreTests.length}` : unknown} hint={has(1) ? `אחרונה שהושלמה: ${dateText(lastRestore?.completed_at)}` : unknown} tone={!has(1) ? "default" : restoreReady === data.restoreTests.length && data.restoreTests.length ? "good" : "warn"} />
+          <RoleMetricCard label="ספקים בבעיה" value={has(3) ? providerIssues.length : unknown} hint={has(3) ? `${data.providers.length} רשומות ספקים` : unknown} tone={!has(3) ? "default" : providerIssues.length ? "bad" : "good"} />
+          <RoleMetricCard label="אירועים פעילים" value={has(4) ? activeIncidents.length : unknown} hint={has(5) ? `${openRecommendations.length} המלצות פתוחות` : unknown} tone={!has(4) ? "default" : activeIncidents.length ? "bad" : !has(5) ? "default" : openRecommendations.length ? "warn" : "good"} />
         </section>
 
         <section className="grid cols-4 action-grid">
           <ActionCard title="בדיקת שחזור" text="מסד נתונים, קבצים ומשתמשים" href="/dashboard/admin/business-continuity#restore-tests" icon={ArchiveRestore} tone="warn" />
           <ActionCard title="בריאות ספקים" text="Supabase, Vercel, תקשורת ומצלמות" href="/dashboard/admin/business-continuity#providers" icon={HeartPulse} />
-          <ActionCard title="אירוע תפעולי" text="מעקב השפעה והחלמה" href="/dashboard/admin/business-continuity#incidents" icon={Siren} tone={activeIncidents.length ? "bad" : "default"} />
+          <ActionCard title="אירוע תפעולי" text="מעקב השפעה והחלמה" href="/dashboard/admin/business-continuity#incidents" icon={Siren} tone={has(4) && activeIncidents.length ? "bad" : "default"} />
           <ActionCard title="מצב אופליין" text="עבודה בתור עד חזרת חיבור" href="/dashboard/admin/business-continuity#offline" icon={WifiOff} />
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="כיסוי גיבויים" subtitle="כל תחום קריטי מקבל תדירות, יעדי שחזור ומעקב readiness.">
-            {data.backups.length ? (
+            {!has(0) ? unavailable("כיסוי גיבויים") : data.backups.length ? (
               <div className="stack-list">
                 {data.backups
                   .filter((backup) => coverageItems.includes(String(backup.backup_key)))
@@ -273,7 +291,7 @@ export default async function AdminBusinessContinuityPage() {
           </CleanSection>
 
           <CleanSection title="המלצות התאוששות" subtitle="פעולות שמקטינות סיכון לפני פיילוט אמיתי.">
-            {openRecommendations.length ? (
+            {!has(5) ? unavailable("המלצות התאוששות") : openRecommendations.length ? (
               <div className="stack-list">
                 {openRecommendations.slice(0, 8).map((item) => (
                   <article className="list-item" key={item.id}>
@@ -293,8 +311,9 @@ export default async function AdminBusinessContinuityPage() {
         </section>
 
         <section className="grid cols-3 dashboard-panels" id="restore-tests">
-          <CleanSection title="בדיקות שחזור" subtitle="בדיקות יבשות שמוכיחות שאפשר לחזור לפעילות.">
+          <CleanSection title="בדיקות שחזור" subtitle="רשומות בדיקות שעברו או מתוכננות; סטטוס שמור אינו הוכחת שחזור בפועל.">
             <div className="stack-list">
+              {!has(1) && unavailable("בדיקות שחזור")}
               {data.restoreTests.map((test) => (
                 <article className="list-item" key={test.id}>
                   <div>
@@ -310,6 +329,7 @@ export default async function AdminBusinessContinuityPage() {
 
           <CleanSection title="יעדי התאוששות" subtitle="כמה מהר חוזרים וכמה מידע מותר לאבד.">
             <div className="stack-list">
+              {!has(9) && unavailable("יעדי התאוששות")}
               {data.objectives.map((objective) => (
                 <article className="list-item" key={objective.id}>
                   <div>
@@ -325,6 +345,7 @@ export default async function AdminBusinessContinuityPage() {
 
           <CleanSection title="תוכניות התאוששות" subtitle="מה עושים כשספק או מערכת נופלים.">
             <div className="stack-list">
+              {!has(2) && unavailable("תוכניות התאוששות")}
               {data.plans.slice(0, 10).map((plan) => (
                 <article className="list-item" key={plan.id}>
                   <div>
@@ -342,6 +363,7 @@ export default async function AdminBusinessContinuityPage() {
         <section className="grid cols-2 dashboard-panels" id="providers">
           <CleanSection title="בריאות ספקים" subtitle="ספקי תשתית, תקשורת, מצלמות, תצפיתן ותשלומים.">
             <div className="stack-list">
+              {!has(3) && unavailable("בריאות ספקים")}
               {data.providers.map((provider) => (
                 <article className="list-item" key={provider.id}>
                   <div>
@@ -355,8 +377,9 @@ export default async function AdminBusinessContinuityPage() {
             </div>
           </CleanSection>
 
-          <CleanSection title="Failover מוכן" subtitle="נפילה לא חייבת לעצור את הגן.">
+          <CleanSection title="כללי Failover מתועדים" subtitle="תכנון בלבד; הרשומות אינן מעידות על הפעלה או בדיקת Failover בפועל.">
             <div className="procedure-list">
+              {!has(6) && unavailable("כללי Failover")}
               {data.failoverRules.map((rule) => (
                 <article className="procedure-card card" key={rule.id}>
                   <StatusBadge tone={toneForStatus(rule.status)}>{statusLabel(rule.status)}</StatusBadge>
@@ -373,7 +396,7 @@ export default async function AdminBusinessContinuityPage() {
 
         <section className="grid cols-2 dashboard-panels" id="incidents">
           <CleanSection title="אירועים תפעוליים" subtitle="השפעה, טיפול, שורש תקלה ו־postmortem.">
-            {data.incidents.length ? (
+            {!has(4) ? unavailable("אירועים תפעוליים") : data.incidents.length ? (
               <div className="stack-list">
                 {data.incidents.map((incident) => (
                   <article className="list-item" key={incident.id}>
@@ -394,7 +417,7 @@ export default async function AdminBusinessContinuityPage() {
           </CleanSection>
 
           <CleanSection title="יומן המשכיות" subtitle="גיבויים, שחזורים, ספקים ואירועים נשמרים ל־audit.">
-            {data.auditEvents.length ? (
+            {!has(8) ? unavailable("יומן המשכיות") : data.auditEvents.length ? (
               <div className="stack-list">
                 {data.auditEvents.slice(0, 8).map((event) => (
                   <article className="list-item" key={event.id}>
@@ -416,6 +439,7 @@ export default async function AdminBusinessContinuityPage() {
         <section className="grid cols-2 dashboard-panels" id="offline">
           <CleanSection title="מצבי עבודה בזמן תקלה" subtitle="מה כל תפקיד יכול לעשות כשאין חיבור מלא.">
             <div className="stack-list">
+              {!has(7) && unavailable("מצבי עבודה בזמן תקלה")}
               {data.offlineModes.map((mode) => (
                 <article className="list-item" key={mode.id}>
                   <div>
@@ -431,6 +455,7 @@ export default async function AdminBusinessContinuityPage() {
 
           <CleanSection title="התאמת שמירה ופרטיות" subtitle="גיבויים צריכים לכבד מחיקה, שמירה והחזקה משפטית.">
             <div className="stack-list">
+              {!has(10) && unavailable("התאמת שמירה ופרטיות")}
               {data.retentionChecks.map((check) => (
                 <article className="list-item" key={check.id}>
                   <div>
