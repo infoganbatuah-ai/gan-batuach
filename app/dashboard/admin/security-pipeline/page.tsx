@@ -28,26 +28,40 @@ export default async function AdminSecurityPipelinePage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("security pipeline", async () => {
     const supabase = await createClient();
+    async function safeQuery<T>(index: number, run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+      try {
+        const query = await run();
+        logSupabaseError(`security pipeline query ${index}`, query.error);
+        return { data: query.error ? [] as T[] : query.data ?? [], available: !query.error };
+      } catch (error) {
+        logSupabaseError(`security pipeline query ${index}`, error);
+        return { data: [] as T[], available: false };
+      }
+    }
     const [runsRes, findingsRes, controlsRes, readinessRes, securityFindingsRes] = await Promise.all([
-      supabase.from("security_pipeline_runs" as any).select("*").order("created_at", { ascending: false }).limit(80),
-      supabase.from("security_pipeline_findings" as any).select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("security_pipeline_controls" as any).select("*").order("control_area").limit(100),
-      supabase.from("security_readiness_checks" as any).select("*").in("category", ["ci_cd", "sast", "dast", "dependency_scanning", "secret_scanning", "migration_safety", "branch_protection"]).order("severity").limit(120),
-      supabase.from("security_findings" as any).select("*").order("detected_at", { ascending: false }).limit(120)
+      safeQuery(0, () => supabase.from("security_pipeline_runs" as any).select("*").order("created_at", { ascending: false }).limit(80)),
+      safeQuery(1, () => supabase.from("security_pipeline_findings" as any).select("*").order("created_at", { ascending: false }).limit(200)),
+      safeQuery(2, () => supabase.from("security_pipeline_controls" as any).select("*").order("control_area").limit(100)),
+      safeQuery(3, () => supabase.from("security_readiness_checks" as any).select("*").in("category", ["ci_cd", "sast", "dast", "dependency_scanning", "secret_scanning", "migration_safety", "branch_protection"]).order("severity").limit(120)),
+      safeQuery(4, () => supabase.from("security_findings" as any).select("*").order("detected_at", { ascending: false }).limit(120))
     ]);
-    [runsRes, findingsRes, controlsRes, readinessRes, securityFindingsRes].forEach((query, index) => logSupabaseError(`security pipeline query ${index}`, (query as any).error));
+    const available = [runsRes, findingsRes, controlsRes, readinessRes, securityFindingsRes].map((query) => query.available);
     return {
       runs: runsRes.data ?? [],
       findings: findingsRes.data ?? [],
       controls: controlsRes.data ?? [],
       readiness: readinessRes.data ?? [],
       securityFindings: securityFindingsRes.data ?? [],
-      queryError: [runsRes.error, findingsRes.error, controlsRes.error, readinessRes.error, securityFindingsRes.error].some(Boolean)
-        ? "חלק מנתוני security pipeline לא נטענו. ייתכן שמיגרציית Phase 157 עדיין לא הורצה."
+      available,
+      queryError: available.some((value) => !value)
+        ? "חלק מנתוני security pipeline אינם זמינים כרגע."
         : null
     };
-  }, { runs: [] as any[], findings: [] as any[], controls: [] as any[], readiness: [] as any[], securityFindings: [] as any[], queryError: null as string | null });
+  }, { available: Array<boolean>(5).fill(false), runs: [] as any[], findings: [] as any[], controls: [] as any[], readiness: [] as any[], securityFindings: [] as any[], queryError: null as string | null });
 
+  const known = (...indices: number[]) => indices.every((index) => result.data.available[index]);
+  const unavailable = "לא זמין";
+  const scoreKnown = known(0, 1, 2);
   const runs = result.data.runs;
   const findings = result.data.findings;
   const openFindings = findings.filter((finding: any) => ["open", "triaged"].includes(String(finding.status)));
@@ -71,23 +85,24 @@ export default async function AdminSecurityPipelinePage() {
           <p className="eyebrow">CI/CD Security Gates</p>
           <h1>מרכז Security Pipeline.</h1>
           <p>נראות לשערי typecheck, build, dependency audit, secret scanning, CodeQL, migration safety ו-readiness לייצור.</p>
+          <p>הציונים והתגים מתארים רשומות נתונים בלבד; אינם אישור Production, הוכחת CI עדכני או סקירת אבטחה מלאה.</p>
         </div>
         <div className="profile-actions">
-          <span className={`pill ${toneForScore(readinessScore)}`}>{readinessScore}/100</span>
-          <span className={critical || high ? "pill bad" : "pill good"}>{critical || high ? "Production blocked" : "No high blockers"}</span>
+          <span className={scoreKnown ? `pill ${toneForScore(readinessScore)}` : "pill"}>{scoreKnown ? `${readinessScore}/100` : unavailable}</span>
+          <span className={known(1) ? critical || high ? "pill bad" : "pill good" : "pill"}>{known(1) ? critical || high ? "Production blocked" : "No high blockers" : unavailable}</span>
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="Last security scan" value={lastRun?.status ?? "no runs"} tone={toneForStatus(lastRun?.status)} />
-        <StatCard label="Dependency scan" value={lastRun?.dependency_scan_status ?? "pending"} tone={toneForStatus(lastRun?.dependency_scan_status)} />
-        <StatCard label="Secret scan" value={lastRun?.secret_scan_status ?? "pending"} tone={toneForStatus(lastRun?.secret_scan_status)} />
-        <StatCard label="CodeQL" value={lastRun?.codeql_status ?? "readiness"} tone={toneForStatus(lastRun?.codeql_status)} />
-        <StatCard label="Critical findings" value={critical} tone={critical ? "bad" : "good"} />
-        <StatCard label="High findings" value={high} tone={high ? "bad" : "good"} />
-        <StatCard label="Controls ready" value={`${controlsReady}/${requiredControls || result.data.controls.length}`} tone={toneForScore(requiredControls ? (controlsReady / requiredControls) * 100 : 0)} />
-        <StatCard label="Build gate" value={lastRun?.build_status ?? "pending"} tone={toneForStatus(lastRun?.build_status)} />
+        <StatCard label="Last security scan" value={known(0) ? lastRun?.status ?? "no runs" : unavailable} tone={known(0) ? toneForStatus(lastRun?.status) : "default"} />
+        <StatCard label="Dependency scan" value={known(0) ? lastRun?.dependency_scan_status ?? "pending" : unavailable} tone={known(0) ? toneForStatus(lastRun?.dependency_scan_status) : "default"} />
+        <StatCard label="Secret scan" value={known(0) ? lastRun?.secret_scan_status ?? "pending" : unavailable} tone={known(0) ? toneForStatus(lastRun?.secret_scan_status) : "default"} />
+        <StatCard label="CodeQL" value={known(0) ? lastRun?.codeql_status ?? "readiness" : unavailable} tone={known(0) ? toneForStatus(lastRun?.codeql_status) : "default"} />
+        <StatCard label="Critical findings" value={known(1) ? critical : unavailable} tone={known(1) ? critical ? "bad" : "good" : "default"} />
+        <StatCard label="High findings" value={known(1) ? high : unavailable} tone={known(1) ? high ? "bad" : "good" : "default"} />
+        <StatCard label="Controls ready" value={known(2) ? `${controlsReady}/${requiredControls || result.data.controls.length}` : unavailable} tone={known(2) ? toneForScore(requiredControls ? (controlsReady / requiredControls) * 100 : 0) : "default"} />
+        <StatCard label="Build gate" value={known(0) ? lastRun?.build_status ?? "pending" : unavailable} tone={known(0) ? toneForStatus(lastRun?.build_status) : "default"} />
       </section>
 
       <section className="grid cols-3 dashboard-panels">
@@ -97,8 +112,8 @@ export default async function AdminSecurityPipelinePage() {
             {["typecheck_status", "build_status", "diff_check_status", "dependency_scan_status", "secret_scan_status", "codeql_status", "migration_safety_status"].map((key) => (
               <div className="mini-row" key={key}>
                 <span>{key.replace("_status", "").replaceAll("_", " ")}</span>
-                <strong className={`pill ${toneForStatus(lastRun?.[key] ?? "pending")}`}>{lastRun?.[key] ?? "pending"}</strong>
-                <small>{lastRun?.workflow_name ?? ".github/workflows/security-checks.yml"}</small>
+                <strong className={known(0) ? `pill ${toneForStatus(lastRun?.[key] ?? "pending")}` : "pill"}>{known(0) ? lastRun?.[key] ?? "pending" : unavailable}</strong>
+                <small>{known(0) ? lastRun?.workflow_name ?? ".github/workflows/security-checks.yml" : unavailable}</small>
               </div>
             ))}
           </div>
@@ -106,7 +121,7 @@ export default async function AdminSecurityPipelinePage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><ShieldAlert size={20} /> Security Findings</h2><p>Critical/High חוסמים production readiness.</p></div>
           <div className="procedure-list compact-list">
-            {openFindings.length === 0 ? <div className="empty-mini">אין findings פתוחים.</div> : openFindings.slice(0, 10).map((finding: any) => (
+            {!known(1) ? <div className="empty-mini">נתוני הממצאים אינם זמינים.</div> : openFindings.length === 0 ? <div className="empty-mini">אין findings פתוחים.</div> : openFindings.slice(0, 10).map((finding: any) => (
               <div className="mini-row" key={finding.id}>
                 <span>{finding.finding_key}</span>
                 <strong className={`pill ${severityTone(finding.severity)}`}>{finding.severity}</strong>
@@ -130,7 +145,7 @@ export default async function AdminSecurityPipelinePage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Code2 size={20} /> Controls</h2><p>Provider-ready security gate controls.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.controls.map((control: any) => (
+            {!known(2) ? <div className="empty-mini">נתוני הבקרות אינם זמינים.</div> : result.data.controls.map((control: any) => (
               <div className="mini-row" key={control.id}>
                 <span>{control.title}</span>
                 <strong className={`pill ${toneForStatus(control.status)}`}>{control.status}</strong>
@@ -142,7 +157,7 @@ export default async function AdminSecurityPipelinePage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Activity size={20} /> Readiness Checks</h2><p>מוכנות ISO ו-security governance.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.readiness.map((check: any) => (
+            {!known(3) ? <div className="empty-mini">נתוני בדיקות המוכנות אינם זמינים.</div> : result.data.readiness.map((check: any) => (
               <div className="mini-row" key={check.id}>
                 <span>{check.title}</span>
                 <strong className={`pill ${toneForStatus(check.status)}`}>{check.status}</strong>
