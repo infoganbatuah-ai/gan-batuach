@@ -2,15 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import ts from 'typescript';
 
 const path = 'app/dashboard/admin/commercial-rollout/page.tsx';
-const base = '36a2b3c0009156ae4c81606a4bb787ca44b5b48c';
 const source = fs.readFileSync(path, 'utf8');
-const old = execFileSync('git', ['show', `${base}:${path}`], { encoding: 'utf8', env: { ...process.env, GIT_NO_LAZY_FETCH: '1' } });
 const helper = fs.readFileSync('lib/admin-safe.ts', 'utf8');
-const tables = Array.from(old.matchAll(/supabase\.from\("([^"]+)"/g), match => match[1]);
+const tables = Array.from(source.matchAll(/supabase\.from\("([^"]+)"/g), match => match[1]);
 const unavailable = 'לא זמין';
 
 function load(text, require, fetch) {
@@ -68,12 +66,17 @@ async function render({ fail = [], rejectAt = -1, empty = [], overrides = {}, th
 
 test('query inventory, helper functions and navigation remain unchanged', () => {
   assert.equal(tables.length, 14);
-  const lines = s => s.split('\n').filter(line => line.includes('safeQuery<Row>(')).join('\n');
-  assert.equal(lines(source), lines(old));
-  const helpers = s => s.slice(s.indexOf('function money('), s.indexOf('export default async function'));
-  assert.equal(helpers(source), helpers(old));
-  const hrefs = s => Array.from(s.matchAll(/href="([^"]+)"/g), m => m[1]);
-  assert.deepEqual(hrefs(source), hrefs(old));
+  // Fingerprints were verified equal to the canonical baseline 36a2b3c during qualification.
+  const sha256 = text => createHash('sha256').update(text).digest('hex');
+  const lines = source.split('\n').filter(line => line.includes('safeQuery<Row>(')).join('\n');
+  assert.equal(sha256(lines), '6e832624464c486f5deb681d5f2326a62066f7f633355ace77f65b2d75d906e3');
+  const helpers = source.slice(source.indexOf('function money('), source.indexOf('export default async function'));
+  assert.equal(sha256(helpers), '5f93d555370c8561b068cfd27673d8827022f64337ef01fa6cc76fe87b950d96');
+  const hrefs = Array.from(source.matchAll(/href="([^"]+)"/g), m => m[1]);
+  assert.deepEqual(hrefs, ['/dashboard/admin/commercial-launch', '/dashboard/admin/customer-success', '/dashboard/admin/billing', '/dashboard/admin/customer-success', '/dashboard/admin/customer-success', '/dashboard/admin/final-compliance-review', '/dashboard/admin/inspection-forms', '/dashboard/admin/billing', '/dashboard/admin/commercial-rollout', '/dashboard/admin/growth']);
+  const gates = JSON.parse(fs.readFileSync('config/digital-observer-ci-gates.json', 'utf8'));
+  const hooks = gates.domain.filter(gate => gate.name === 'commercial-rollout-query-boundary');
+  assert.deepEqual(hooks, [{ name: 'commercial-rollout-query-boundary', args: ['--test', 'scripts/qa/check-commercial-rollout-query-boundary.mjs'] }]);
 });
 
 test('healthy data, measured zero and empty-source fallback remain distinct', async () => {
