@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { data: result.error ? [] : result.data ?? [], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { data: [] as T[], available: false };
   }
 }
 
@@ -51,17 +51,25 @@ export default async function SecurityReviewPage() {
       safeQuery<Row>("external security findings", () => supabase.from("external_security_findings" as any).select("*").order("severity").order("due_date").limit(160)),
       safeQuery<Row>("external tester access modes", () => supabase.from("external_tester_access_modes" as any).select("*").order("mode_key").limit(20))
     ]);
-    return { scores, scopes, users, plans, findings, accessModes };
+    return {
+      scores: scores.data, scopes: scopes.data, users: users.data,
+      plans: plans.data, findings: findings.data, accessModes: accessModes.data,
+      availability: [scores, scopes, users, plans, findings, accessModes].map((source) => source.available)
+    };
   }, {
     scores: [] as Row[],
     scopes: [] as Row[],
     users: [] as Row[],
     plans: [] as Row[],
     findings: [] as Row[],
-    accessModes: [] as Row[]
+    accessModes: [] as Row[],
+    availability: Array<boolean>(6).fill(false)
   });
 
   const data = result.data;
+  const available = data.availability;
+  const unavailable = "לא זמין";
+  const queryError = result.error ?? (available.some((value) => !value) ? "לא ניתן לטעון חלק מהנתונים כרגע" : null);
   const score = data.scores[0];
   const readinessScore = Number(score?.readiness_score ?? 0);
   const readyScopes = data.scopes.filter((scope) => ["ready_for_external_tester", "approved", "completed"].includes(String(scope.approval_status))).length;
@@ -79,8 +87,8 @@ export default async function SecurityReviewPage() {
           eyebrow="External Penetration Test Readiness"
           title="מרכז הכנה לבדיקת חדירה חיצונית"
           subtitle="חבילת scope, משתמשי בדיקה, תוכניות בדיקה וממצאים לחברת אבטחה מורשית. אין כאן בדיקות הרסניות ואין גישה לסודות או לנתוני ייצור."
-          badge={`${readinessScore}/100`}
-          badgeTone={scoreTone(readinessScore)}
+          badge={available[0] ? `${readinessScore}/100` : unavailable}
+          badgeTone={available[0] ? scoreTone(readinessScore) : "default"}
           actions={<><Link className="button primary" href="/dashboard/admin/security-center">מרכז אבטחה</Link><Link className="button secondary" href="/dashboard/admin/security-pipeline">Security Pipeline</Link></>}
         >
           <div className="setup-checklist">
@@ -89,17 +97,17 @@ export default async function SecurityReviewPage() {
             <span>אין production secrets או נתונים אמיתיים</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={queryError} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="PT readiness" value={`${readinessScore}/100`} hint="Readiness only" tone={scoreTone(readinessScore)} />
-          <RoleMetricCard label="Scopes ready" value={`${readyScopes}/${data.scopes.length}`} hint="מסלולי בדיקה" tone={readyScopes === data.scopes.length && data.scopes.length ? "good" : "warn"} />
-          <RoleMetricCard label="Test users" value={`${generatedUsers}/${data.users.length}`} hint="credentials לא נשמרים כאן" tone={generatedUsers ? "good" : "warn"} />
-          <RoleMetricCard label="Test plans" value={data.plans.length} hint={`${criticalPlans.length} high/critical`} tone="good" />
-          <RoleMetricCard label="Open findings" value={openFindings.length} hint="ממתינים לטיפול" tone={openFindings.length ? "warn" : "good"} />
-          <RoleMetricCard label="Critical" value={criticalFindings} hint="חוסם פיילוט" tone={criticalFindings ? "bad" : "good"} />
-          <RoleMetricCard label="High" value={highFindings} hint="חוסם production" tone={highFindings ? "bad" : "good"} />
-          <RoleMetricCard label="Retest pending" value={retestPending} hint="תוקן וממתין אימות" tone={retestPending ? "warn" : "good"} />
+          <RoleMetricCard label="PT readiness" value={available[0] ? `${readinessScore}/100` : unavailable} hint="Readiness only" tone={available[0] ? scoreTone(readinessScore) : "default"} />
+          <RoleMetricCard label="Scopes ready" value={available[1] ? `${readyScopes}/${data.scopes.length}` : unavailable} hint="מסלולי בדיקה" tone={available[1] ? readyScopes === data.scopes.length && data.scopes.length ? "good" : "warn" : "default"} />
+          <RoleMetricCard label="Test users" value={available[2] ? `${generatedUsers}/${data.users.length}` : unavailable} hint="credentials לא נשמרים כאן" tone={available[2] ? generatedUsers ? "good" : "warn" : "default"} />
+          <RoleMetricCard label="Test plans" value={available[3] ? data.plans.length : unavailable} hint={available[3] ? `${criticalPlans.length} high/critical` : unavailable} tone={available[3] ? "good" : "default"} />
+          <RoleMetricCard label="Open findings" value={available[4] ? openFindings.length : unavailable} hint="ממתינים לטיפול" tone={available[4] ? openFindings.length ? "warn" : "good" : "default"} />
+          <RoleMetricCard label="Critical" value={available[4] ? criticalFindings : unavailable} hint="חוסם פיילוט" tone={available[4] ? criticalFindings ? "bad" : "good" : "default"} />
+          <RoleMetricCard label="High" value={available[4] ? highFindings : unavailable} hint="חוסם production" tone={available[4] ? highFindings ? "bad" : "good" : "default"} />
+          <RoleMetricCard label="Retest pending" value={available[4] ? retestPending : unavailable} hint="תוקן וממתין אימות" tone={available[4] ? retestPending ? "warn" : "good" : "default"} />
         </section>
 
         <section className="grid cols-2 dashboard-panels">
@@ -110,7 +118,7 @@ export default async function SecurityReviewPage() {
         </section>
 
         <CleanSection title="Penetration Test Scopes" subtitle="מה מותר לבדוק, באיזו סביבה, ומה מחוץ לתחום.">
-          {data.scopes.length === 0 ? <EmptyState title="אין scope מוגדר" text="הרצת מיגרציית Phase 167 תוסיף scope." /> : (
+          {!available[1] ? <EmptyState title="נתוני היקף הבדיקה לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : data.scopes.length === 0 ? <EmptyState title="אין scope מוגדר" text="הרצת מיגרציית Phase 167 תוסיף scope." /> : (
             <div className="procedure-list">
               {data.scopes.map((scope) => (
                 <article className="card procedure-card" key={scope.id ?? scope.scope_key}>
@@ -131,7 +139,7 @@ export default async function SecurityReviewPage() {
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Security Test User Pack" subtitle="משתמשי בדיקה מתועדים. credentials לא נשמרים במסד הנתונים.">
-            <div className="camera-infra-list">
+            {!available[2] ? <EmptyState title="רשומות משתמשי הבדיקה לא זמינות" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="camera-infra-list">
               {data.users.map((user) => (
                 <article className="camera-infra-row" key={user.id ?? user.user_key}>
                   <div>
@@ -142,11 +150,11 @@ export default async function SecurityReviewPage() {
                   <StatusBadge tone={toneForStatus(user.mfa_state)}>{label(user.mfa_state)}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
 
           <CleanSection title="External Security Findings" subtitle="ממצאי PT ייכנסו לכאן ויעברו triage, fix, retest, verify.">
-            {data.findings.length === 0 ? <EmptyState title="אין ממצאים" /> : (
+            {!available[4] ? <EmptyState title="נתוני הממצאים לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : data.findings.length === 0 ? <EmptyState title="אין ממצאים" /> : (
               <div className="camera-infra-list">
                 {data.findings.map((finding) => (
                   <article className="camera-infra-row" key={finding.id ?? finding.finding_key}>
@@ -164,7 +172,7 @@ export default async function SecurityReviewPage() {
         </section>
 
         <CleanSection title="Security Test Plans" subtitle="תוכניות בדיקה שמיועדות לחברה חיצונית מורשית, עם תוצאה צפויה ופעולות אסורות.">
-          <div className="procedure-list">
+          {!available[3] ? <EmptyState title="תוכניות הבדיקה לא זמינות" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="procedure-list">
             {data.plans.map((plan) => (
               <article className="card procedure-card" key={plan.id ?? plan.plan_key}>
                 <div>
@@ -179,12 +187,12 @@ export default async function SecurityReviewPage() {
                 </div>
               </article>
             ))}
-          </div>
+          </div>}
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="External Tester Access Mode" subtitle="מה בודק חיצוני יכול לראות ומה חסום לחלוטין.">
-            <div className="camera-infra-list">
+            {!available[5] ? <EmptyState title="נתוני תכנון הגישה לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="camera-infra-list">
               {data.accessModes.map((mode) => (
                 <article className="camera-infra-row" key={mode.id ?? mode.mode_key}>
                   <div>
@@ -195,7 +203,7 @@ export default async function SecurityReviewPage() {
                   <StatusBadge tone="good">{mode.testing_environment}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
 
           <CleanSection title="Critical Security Areas" subtitle="נקודות שחייבות כיסוי בבדיקת החדירה.">
