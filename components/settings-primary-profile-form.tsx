@@ -64,7 +64,6 @@ export function SettingsPrimaryProfileForm({ profile, email, roleLabel }: { prof
     </div>
     <div className="ux18-primary-profile-photo-actions">
       <UploadImageField label={photo ? "החלפת תמונה" : "העלאת תמונה"} bucket="profile-photos" prefix="profile-images" onUploaded={setPhoto} />
-      {photo ? <button type="button" onClick={() => setPhoto("")}>הסרת תמונה</button> : null}
     </div>
     <button className="ux18-primary-profile-save" type="submit" disabled={saving}>{saving ? "שומר..." : "שמירת שינויים"}</button>
     {message ? <p className={`ux18-primary-profile-message ${messageKind}`} role={messageKind === "error" ? "alert" : "status"}>{message}</p> : null}
