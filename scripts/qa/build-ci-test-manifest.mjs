@@ -24,6 +24,7 @@ const deterministicOverrides = new Set([
 ]);
 
 function domain(file) {
+  if (file === "check-uxv6-current-product-contract.mjs") return "UI / E2E";
   const rules = [
     [/(camera|gateway|connector|dvr|onvif|rtsp)/, "CAMERA / GATEWAY / CONNECTOR"],
     [/(inference|detector|vision|object)/, "AI / INFERENCE"],
@@ -63,13 +64,42 @@ function packageCommands(file) {
   return names.length ? names.join("; ") : file.endsWith(".sql") ? "SQL fixture (not directly executable)" : `node ${target}`;
 }
 
+const inventoryScopeNotes = new Map([
+  [
+    "check-management-role-dashboards.mjs",
+    "read-model behavior assertions and source guards; no live Auth/RLS proof"
+  ],
+  [
+    "check-uxv6-current-product-contract.mjs",
+    "five static source-composition assertions only; rendered Desktop/Mobile comparison remains external"
+  ],
+  [
+    "check-uxv6-capture-admission-contract.mjs",
+    "five pure admission/verdict cases only; actual Product/Auth/RLS/capture and visual review remain external"
+  ]
+]);
+const suiteScopeNotes = new Map([
+  [
+    "uxv6-capture-admission-contract",
+    "five pure cases; no browser, database or capture runner"
+  ],
+  [
+    "management-role-dashboards",
+    "read-model behavior assertions plus source guards; no authenticated Product proof"
+  ],
+  [
+    "uxv6-primary-screen-source-composition",
+    "five static source-composition assertions; no browser or visual proof"
+  ]
+]);
+
 function missingDependency(file) {
   const source = readFileSync(`scripts/qa/${file}`, "utf8");
   const packageName = ["@electric-sql", "pglite"].join("/");
   if (source.includes(packageName) && !packageJson.dependencies?.[packageName] && !packageJson.devDependencies?.[packageName]) {
     return packageName;
   }
-  return "none known";
+  return inventoryScopeNotes.get(file) || "none known";
 }
 
 const rows = qaFiles.map((file) => {
@@ -106,7 +136,10 @@ const capabilityRows = [
   ["Investigation", "lib/domain/digital-observer/investigation-search-service.ts", "/api/digital-observer/investigation", "canonical Event/Incident/Evidence projections", "qa:digital-observer-investigation", "PUSH 13", "GATE 3"],
   ["External API / webhooks", "lib/domain/digital-observer/external-api-service.ts", "/api/digital-observer/external/v1/*", "service accounts; external API receipts/usage; webhook endpoints; integration sources", "qa:digital-observer-push42", "PUSH 42 independent consumer and external provider proof pending", "GATE 3 + GATE 4"],
   ["OEM / SDK / white-label", "lib/domain/digital-observer/partner-platform-service.ts", "/api/digital-observer/partner/v1/*; /api/digital-observer/embed/v1/*", "partners; partner customers/Sites; brand profiles; delegated service accounts; embedded sessions", "qa:digital-observer-push43", "PUSH 43 real OEM partner and vendor proof pending", "GATE 3 + GATE 4"],
-  ["Native mobile runtime", "lib/domain/digital-observer/mobile-runtime.ts", "/api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings", "existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores", "qa:digital-observer-push44", "Signed owner-iPhone QA shell PASS; authenticated Product, provider receipt, remote playback and store proof pending", "GATE 3 + GATE 4"]
+  ["Native mobile runtime", "lib/domain/digital-observer/mobile-runtime.ts", "/api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings", "existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores", "qa:digital-observer-push44", "Signed owner-iPhone QA shell PASS; authenticated Product, provider receipt, remote playback and store proof pending", "GATE 3 + GATE 4"],
+  ["Management role dashboard read model", "lib/management/dashboard-read-model.ts; canonical role dashboard pages", "Role-scoped dashboard reads", "Existing authorized management projections", "`management-role-dashboards`: derived attendance/tuition, authorized Child selection, private-message preview, camera readiness and source guards", "Source-level behavior assertions and guards only; authenticated Product/Auth/RLS/browser proof remains separate", "GATE 3"],
+  ["UX-V6 primary screen composition", "Owner, Parent, Admin and Settings primary routes and scoped CSS", "Existing guarded routes", "Existing authorized role data", "`uxv6-primary-screen-source-composition`: five static source-structure assertions", "Static source composition only; not rendered visual fidelity, browser interaction, Auth/RLS or owner approval", "GATE 3 + external owner visual review"],
+  ["UX-V6 capture admission and verdict safety", "Pure capture admission/result contract; capture runner is excluded from CI", "None", "None", "`uxv6-capture-admission-contract`: five in-memory node:test cases for exact Development admission, fixture refusal, scenario inventory and pending-visual-review verdict", "Source-level contract only; no actual Product, Auth/RLS, 32 screenshots, visual match or owner approval", "GATE 3; separate Development capture and external visual review remain open"]
 ];
 
 const lines = [
@@ -140,7 +173,7 @@ const lines = [
   "",
   "## TIER 1 CANONICAL SUITES",
   "",
-  ...[...config.domain, ...config.security].map((suite) => `- \`${suite.name}\`: \`node ${suite.args.join(" ")}\``),
+  ...[...config.domain, ...config.security].map((suite) => `- \`${suite.name}\`: \`node ${suite.args.join(" ")}\`` + (suiteScopeNotes.has(suite.name) ? ` (${suiteScopeNotes.get(suite.name)})` : "")),
   "",
   "## COMPLETE QA SCRIPT INVENTORY",
   "",
