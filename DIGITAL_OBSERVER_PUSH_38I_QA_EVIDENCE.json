@@ -1,0 +1,54 @@
+{
+  "protocol": "observer-push38i-qa-evidence-v1",
+  "observed_date": "2026-09-13",
+  "source_commit": "069c91593f8b1f74519f8ac2f85b80d4002f9166",
+  "signing_class": "QA_ONLY",
+  "signing_key_id": "qa-p38f-ed25519-20260913",
+  "evidence_level": "isolated_macOS_launchd_and_read_only_live_dry_run",
+  "profiles": [
+    {
+      "profile": "PHYSICAL_GATEWAY",
+      "release_id": "qa-p38i-gateway-069c91593f8b",
+      "version": "0.2.8-p38i",
+      "artifact_sha256": "c202aafe65ac7f3cf14e8bc51b9bdfcb84702fa1b1de2629fc03685af316e028",
+      "installed_agent": "PASS",
+      "automatic_update": "PASS",
+      "persistent_crash_rollback": "PASS",
+      "known_good_restore_sha256": "c202aafe65ac7f3cf14e8bc51b9bdfcb84702fa1b1de2629fc03685af316e028",
+      "failed_release_quarantined": true,
+      "agent_restart_preserved_runtime": true,
+      "persistent_fixture_preserved": true,
+      "live_baseline_match": false,
+      "live_changed_file_count": 1
+    },
+    {
+      "profile": "SOFTWARE_CONNECTOR",
+      "release_id": "qa-p38i-connector-069c91593f8b",
+      "version": "0.2.8-p38i",
+      "artifact_sha256": "244ccc5661bcde5e85fcfe6b6712fc7096ee099e63153783ed2bafac6a8aa882",
+      "installed_agent": "PASS",
+      "automatic_update": "PASS",
+      "persistent_crash_rollback": "PASS",
+      "known_good_restore_sha256": "244ccc5661bcde5e85fcfe6b6712fc7096ee099e63153783ed2bafac6a8aa882",
+      "failed_release_quarantined": true,
+      "agent_restart_preserved_runtime": true,
+      "persistent_fixture_preserved": true,
+      "strict_qa_signature": "PASS",
+      "live_baseline_match": true,
+      "live_changed_file_count": 0
+    }
+  ],
+  "interrupted_rollback_recovery_core": "PASS_BOTH_PROFILES",
+  "release_negative_qa": "PASS_BOTH_PROFILES",
+  "live_dry_run_writes": 0,
+  "live_dry_run_compatible": false,
+  "live_gateway_drift": {
+    "file": "services/video-gateway/journal-loop.mjs",
+    "current_sha256": "d53d531be773c3e7948b6c400f1d89142f36c6b5d636acf972af10fc2e58a169",
+    "captured_baseline_member_sha256": "1c3013914b8a12ab3dad45f44559af245e0cfc166822af97eabf5a17a8a11151"
+  },
+  "live_home_mutations": 0,
+  "live_bootstrap_ready": false,
+  "pre_soak_started": false,
+  "v8_started": false
+}
