@@ -13967,6 +13967,46 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve the local ancestry merge and scoped canonical ledger update by a normal nonforce integration/development push after no-preview admission, verify exact remote SHA and required final-head CI. Then run separately authorized isolated Product/Auth/RLS and fresh direct Desktop/Mobile reference qualification, sixteen-domain regression and all-in ₪15 review before any release readiness. No main or Production."
+    },
+    {
+      "id": "codex/ux-v6-settings-required-photo-removal-fix-20261104",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV6-SETTINGS-PHOTO-CONTROLS-PRESERVATION-CI-CANDIDATE-20261104-2441",
+      "title": "Settings required-photo removal control and deterministic Domain gate candidate",
+      "owner": "Gan Batuach UX-V6 Settings executor; canonical integration owner separate",
+      "sourceBranch": "codex/ux-v6-settings-required-photo-removal-fix-20261104",
+      "sourceCommits": ["2441f075f29d7760056bbf2d8c49f95c90c6f8f0"],
+      "state": "IMPLEMENTING",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_ONLY_REMOTE_AND_LEDGER_INTEGRATION_PENDING"
+      },
+      "validation": {
+        "status": "PURE_COMPONENT_ONLY_PASS_CI_CANDIDATE_NOT_YET_RUN",
+        "evidence": [
+          "Six actual in-memory component tests passed, zero failed/skipped/cancelled, exit 0 at source 2441; bounded receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-settings-required-photo-controls-validation-20261104-2441/result.json SHA256 7905ced170b7d6c3b0c13cd3254ee284e794897f8241f2544ac6f9408aa2f86d"
+        ],
+        "classification": "PURE_COMPONENT_ONLY_NO_AUTH_RLS_PRODUCT_VISUAL_OR_PROVIDER",
+        "limits": "New Domain registration and companion manifest are candidate metadata; exact-head hosted CI is pending. No authenticated Product, image upload/provider, Auth/RLS, rendered visual, tenant isolation, all-in cost, owner acceptance or Production proof."
+      },
+      "integration": {
+        "status": "NOT_INTEGRATED",
+        "base": "integration/development",
+        "baseCommit": "d0032dd4fd0d1c8ca4bacb14dc731fcc98b82ac1",
+        "commit": null,
+        "pullRequest": null
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV6_BASELINE",
+        "units": ["codex/ux-v6-true-reference-correction"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SIX_PURE_COMPONENT_CASES_PASS_AT_SOURCE_2441; CI_REGISTRATION_JSON_PARSE_UNIQUE_HOOK_AND_DIFF_CHECK_PASS; PRODUCT_NOT_RUN",
+      "releaseEligibility": "NOT_READY_REMOTE_EXACT_CI_PRODUCT_VISUAL_AUTH_RLS_COST_AND_OWNER_REVIEW_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review and commit scoped Domain hook, manifest and ledger on this feature branch. Verify all connected Vercel project branch triggers and no-new-deployment/cost gate before a normal non-force feature push and one Draft PR. Exact-candidate CI must prove this suite ran. Canonical merge belongs to the separate integration owner; no main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
