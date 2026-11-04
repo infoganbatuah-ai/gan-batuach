@@ -13973,29 +13973,33 @@
       "project": "Gan Batuach Management",
       "taskId": "GB-UXV6-SETTINGS-PHOTO-CONTROLS-PRESERVATION-CI-CANDIDATE-20261104-2441",
       "title": "Settings required-photo removal control and deterministic Domain gate candidate",
-      "owner": "Gan Batuach UX-V6 Settings executor; canonical integration owner separate",
+      "owner": "Gan Batuach UX-V6 Settings executor; sole scoped Development integration owner for PR #283",
       "sourceBranch": "codex/ux-v6-settings-required-photo-removal-fix-20261104",
-      "sourceCommits": ["2441f075f29d7760056bbf2d8c49f95c90c6f8f0"],
-      "state": "IMPLEMENTING",
+      "sourceCommits": ["2441f075f29d7760056bbf2d8c49f95c90c6f8f0", "fe78474a921884620f0927a48909ea7727c408e2"],
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_ONLY_REMOTE_AND_LEDGER_INTEGRATION_PENDING"
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/ux-v6-settings-required-photo-removal-fix-20261104@fe78474a921884620f0927a48909ea7727c408e2", "origin/integration/development@2d88274f23d847a137b30c564ad86ee5258250ef"],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
-        "status": "PURE_COMPONENT_ONLY_PASS_CI_CANDIDATE_NOT_YET_RUN",
+        "status": "EXACT_PR_CI_GREEN_PURE_COMPONENT_ONLY_PRODUCT_OPEN",
         "evidence": [
-          "Six actual in-memory component tests passed, zero failed/skipped/cancelled, exit 0 at source 2441; bounded receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-settings-required-photo-controls-validation-20261104-2441/result.json SHA256 7905ced170b7d6c3b0c13cd3254ee284e794897f8241f2544ac6f9408aa2f86d"
+          "Six actual in-memory component tests passed, zero failed/skipped/cancelled, exit 0 at source 2441; bounded receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-settings-required-photo-controls-validation-20261104-2441/result.json SHA256 7905ced170b7d6c3b0c13cd3254ee284e794897f8241f2544ac6f9408aa2f86d",
+          "PR #283 exact feature fe78474a into base d0032dd4: Digital Observer CI run 41826693506 all six gates and canonical quality PASS; Management run 41826693519 PASS; Snyk PASS. Domain job 126563118198 logs settings-required-photo-controls PASS exit0 464ms; pull/283/merge checkout 37bbc552 is a CI test merge, not the canonical merge.",
+          "Canonical GitHub merge 2d88274f23d847a137b30c564ad86ee5258250ef has parents d0032dd4 and fe78474a, tree 3b99bd5378373e3ec2404c1badb980b6c82219b9 matches reviewed feature tree; no migration."
         ],
         "classification": "PURE_COMPONENT_ONLY_NO_AUTH_RLS_PRODUCT_VISUAL_OR_PROVIDER",
-        "limits": "New Domain registration and companion manifest are candidate metadata; exact-head hosted CI is pending. No authenticated Product, image upload/provider, Auth/RLS, rendered visual, tenant isolation, all-in cost, owner acceptance or Production proof."
+        "limits": "Exact PR source and merge-check CI passed. No authenticated Product, image upload/provider, Auth/RLS, rendered visual, tenant isolation, all-in cost, owner acceptance or Production proof. Canonical ledger-only checkpoint CI and Product QA are separate."
       },
       "integration": {
-        "status": "NOT_INTEGRATED",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "d0032dd4fd0d1c8ca4bacb14dc731fcc98b82ac1",
-        "commit": null,
-        "pullRequest": null
+        "commit": "2d88274f23d847a137b30c564ad86ee5258250ef",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/283",
+        "sourceAncestryVerified": true,
+        "integrationTaskId": "GB-UXV6-SETTINGS-PR283-CANONICAL-DEVELOPMENT-INCLUSION-20261104-fe78474a"
       },
       "dependencies": {
         "status": "CANONICAL_UXV6_BASELINE",
@@ -14003,10 +14007,10 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "SIX_PURE_COMPONENT_CASES_PASS_AT_SOURCE_2441; CI_REGISTRATION_JSON_PARSE_UNIQUE_HOOK_AND_DIFF_CHECK_PASS; PRODUCT_NOT_RUN",
-      "releaseEligibility": "NOT_READY_REMOTE_EXACT_CI_PRODUCT_VISUAL_AUTH_RLS_COST_AND_OWNER_REVIEW_PENDING",
+      "localVerification": "SIX_PURE_COMPONENT_CASES_PASS_AT_SOURCE_2441; EXACT_PR_CI_ALL_REQUIRED_GREEN; CANONICAL_MERGE_TREE_EQUALS_REVIEWED_SOURCE; PRODUCT_NOT_RUN",
+      "releaseEligibility": "NOT_READY_PRODUCT_VISUAL_AUTH_RLS_COST_AND_OWNER_REVIEW_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Review and commit scoped Domain hook, manifest and ledger on this feature branch. Verify all connected Vercel project branch triggers and no-new-deployment/cost gate before a normal non-force feature push and one Draft PR. Exact-candidate CI must prove this suite ran. Canonical merge belongs to the separate integration owner; no main or Production."
+      "nextAction": "Preserve this canonical ledger-only checkpoint with a normal Development push, read back exact remote head and observe its CI/no-deployment state. Separately qualify authenticated Product/Settings upload and role isolation, fresh Desktop/Mobile reference composition, provider truth and all-in ₪15 before any owner release decision. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
