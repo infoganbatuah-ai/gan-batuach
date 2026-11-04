@@ -72,6 +72,8 @@ export function ObserverIntelligencePanel({
   const correlatedAvailable = !qualified || availability.correlatedEvents;
   const camerasAvailable = !qualified || availability.cameras;
   const learningAvailable = !qualified || availability.learningProfiles;
+  // Failed choices leave the Admin's scoped site unknown, not healthy-empty.
+  const learningContextAvailable = learningAvailable && gardensAvailable;
   const unavailable = "לא זמין";
   const [gardenId, setSelectedGardenId] = useState(fixedKindergartenId ?? gardens[0]?.id ?? "");
   const selectedGardenId = qualified
@@ -169,7 +171,7 @@ export function ObserverIntelligencePanel({
         <article className="metric-card"><Brain /><strong>{summariesAvailable ? metrics.open : unavailable}</strong><span>דורש review</span></article>
         <article className="metric-card"><TriangleAlert /><strong>{summariesAvailable ? metrics.high : unavailable}</strong><span>עדיפות גבוהה</span></article>
         <article className="metric-card"><Camera /><strong>{camerasAvailable ? cameraWarnings : unavailable}</strong><span>אזהרות מצלמה</span></article>
-        <article className="metric-card"><ShieldCheck /><strong>{learningAvailable ? scopedLearning?.learning_maturity ?? "new" : unavailable}</strong><span>Learning maturity</span></article>
+        <article className="metric-card"><ShieldCheck /><strong>{learningContextAvailable ? scopedLearning?.learning_maturity ?? "new" : unavailable}</strong><span>Learning maturity</span></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
@@ -181,8 +183,8 @@ export function ObserverIntelligencePanel({
         <article className="card action-panel">
           <h2>Context readiness</h2>
           <div className="risk-list">
-            <div>Learning confidence <b>{learningAvailable ? percent(scopedLearning?.confidence_level) : unavailable}</b></div>
-            <div>Anomaly readiness <b>{learningAvailable ? percent(scopedLearning?.anomaly_readiness_score) : unavailable}</b></div>
+            <div>Learning confidence <b>{learningContextAvailable ? percent(scopedLearning?.confidence_level) : unavailable}</b></div>
+            <div>Anomaly readiness <b>{learningContextAvailable ? percent(scopedLearning?.anomaly_readiness_score) : unavailable}</b></div>
             <div>Correlated events <b>{correlatedAvailable ? correlatedEvents.filter((event) => !selectedGardenId || event.kindergarten_id === selectedGardenId).length : unavailable}</b></div>
             <div>Parent auto notify <b>לא פעיל</b></div>
           </div>

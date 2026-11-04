@@ -176,11 +176,11 @@ for (const [index, [table]] of expected.entries()) for (const kind of ["returned
     else { assert.equal(view.select.value, "garden-a"); assert.equal(generate(view).disabled, false); }
     assert.deepEqual(view.metrics.slice(0, 2), index === 1 ? ["לא זמין", "לא זמין"] : ["1", "1"]);
     assert.equal(view.metrics[2], index === 3 ? "לא זמין" : "1");
-    assert.equal(view.metrics[3], index === 4 ? "לא זמין" : index === 0 ? "new" : "MATURE_SENTINEL");
+    assert.equal(view.metrics[3], index === 4 || index === 0 ? "לא זמין" : "MATURE_SENTINEL");
     assert.equal(view.text.includes("SUMMARY_SENTINEL"), index !== 1);
     assert.equal(view.buttons.filter((button) => button.text !== "יצירת סיכומי מצב mock").length, index === 1 ? 0 : 5);
     assert.equal(view.context[2], index === 2 ? "Correlated events לא זמין" : "Correlated events 1");
-    if (index === 4) { assert.equal(view.context[0], "Learning confidence לא זמין"); assert.equal(view.context[1], "Anomaly readiness לא זמין"); }
+    if (index === 4 || index === 0) { assert.equal(view.context[0], "Learning confidence לא זמין"); assert.equal(view.context[1], "Anomaly readiness לא זמין"); }
     assert.deepEqual(plain(result.warnings), [["Admin Supabase query unavailable:", `observer intelligence ${index}`]]);
     assert.ok(!JSON.stringify(result.warnings).includes("PRIVATE_ERROR_SENTINEL")); assert.equal(runner.calls.length, 0);
   });
@@ -200,6 +200,26 @@ test("loader failure is unavailable and denied admission constructs nothing", as
 test("mixed failures retain healthy cameras and learning", async () => {
   const result = await page({ failures: { 1: { kind: "reject" }, 2: { kind: "returned", stale: true } } });
   const view = panelRunner().render(result.props); assert.deepEqual(view.metrics, ["לא זמין", "לא זמין", "1", "MATURE_SENTINEL"]); assert.equal(generate(view).disabled, false);
+});
+test("unknown Admin garden context is not healthy empty and does not affect fixed Garden context", async () => {
+  for (const kind of ["returned", "reject"]) {
+    const result = await page({ failures: { 0: { kind, stale: true } } });
+    assert.deepEqual(plain(result.props.learningProfiles), fixtures[4]);
+    assert.equal(result.props.availability.learningProfiles, true);
+    const view = panelRunner().render(result.props);
+    assert.deepEqual(view.metrics, ["1", "1", "1", "לא זמין"]);
+    assert.deepEqual(view.context.slice(0, 3), ["Learning confidence לא זמין", "Anomaly readiness לא זמין", "Correlated events 1"]);
+    assert.ok(view.text.includes("SUMMARY_SENTINEL"));
+    const gardenView = panelRunner().render({ ...result.props, role: "garden", fixedKindergartenId: "garden-a" });
+    assert.equal(gardenView.metrics[3], "MATURE_SENTINEL");
+    assert.equal(gardenView.context[0], "Learning confidence 92%");
+  }
+  const data = structuredClone(fixtures); data[0] = [];
+  const control = await page({ data });
+  assert.equal(control.props.availability.gardens, true);
+  const view = panelRunner().render(control.props);
+  assert.equal(view.metrics[3], "new");
+  assert.deepEqual(view.context.slice(0, 2), ["Learning confidence 0%", "Anomaly readiness 0%"]);
 });
 test("camera warning policy remains unchanged across fallbacks and active flag", async () => {
   const data = structuredClone(fixtures);
