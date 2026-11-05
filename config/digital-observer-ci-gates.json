@@ -651,6 +651,13 @@
         "--test",
         "scripts/qa/check-observer-watch-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "predictive-safety-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-predictive-safety-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
