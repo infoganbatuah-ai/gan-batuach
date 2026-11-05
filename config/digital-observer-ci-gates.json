@@ -945,6 +945,13 @@
         "--test",
         "scripts/qa/check-admin-gardens-alias-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-garden-profile-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-garden-profile-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
