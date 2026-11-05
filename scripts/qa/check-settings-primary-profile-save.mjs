@@ -7,12 +7,15 @@ import { runInNewContext } from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const requireProject = createRequire(resolve(root, "package.json"));
-const ts = requireProject("typescript");
+const modulesRoot = resolve(process.env.GB_QA_MODULES_ROOT ?? resolve(root, "node_modules"));
+const ts = createRequire(import.meta.url)(resolve(modulesRoot, "typescript"));
 const source = readFileSync(resolve(root, "components/settings-primary-profile-form.tsx"), "utf8");
 const compiled = ts.transpileModule(source, {
+  fileName: "components/settings-primary-profile-form.tsx",
+  reportDiagnostics: true,
   compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
-}).outputText;
+});
+assert.deepEqual(compiled.diagnostics ?? [], [], "Settings TSX transpilation must succeed");
 
 function mount(profile, requests) {
   const module = { exports: {} };
@@ -35,10 +38,10 @@ function mount(profile, requests) {
     },
     fetch: async (url, options) => {
       requests.push({ url, options });
-      return { ok: true, json: async () => ({ profile: { id: "test-profile" } }) };
+      return { ok: true, json: async () => ({ data: { profile: { id: "test-profile" } } }) };
     }
   };
-  runInNewContext(compiled, context, { filename: "settings-primary-profile-form.js", timeout: 1000 });
+  runInNewContext(compiled.outputText, context, { filename: "settings-primary-profile-form.js", timeout: 1000 });
   const form = module.exports.SettingsPrimaryProfileForm({ profile, email: "owner@example.test", roleLabel: "מנהלת גן" });
   assert.equal(form.type, "form");
   return form;
