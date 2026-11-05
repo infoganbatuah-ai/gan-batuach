@@ -938,6 +938,13 @@
         "--test",
         "scripts/qa/check-admin-procedures-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-gardens-alias-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-gardens-alias-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
