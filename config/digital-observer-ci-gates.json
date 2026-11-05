@@ -616,6 +616,13 @@
         "--test",
         "scripts/qa/qualification-run-guard.test.mjs"
       ]
+    },
+    {
+      "name": "ai-worker-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-ai-worker-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
