@@ -52,16 +52,26 @@ export default async function AdminRegulatoryControlCenterPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("regulatory control center", async () => {
     const supabase = await createClient();
+    async function query<T>(index: number, run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+      try {
+        const response = await run();
+        logSupabaseError(`regulatory query ${index}`, response.error);
+        return { data: response.error ? [] as T[] : response.data ?? [], available: !response.error };
+      } catch (error) {
+        logSupabaseError(`regulatory query ${index}`, error);
+        return { data: [] as T[], available: false };
+      }
+    }
     const [modesRes, matrixRes, registryRes, privacyRes, visibilityRes, auditRes, aiMatrixRes] = await Promise.all([
-      supabase.from("regulatory_policy_modes" as any).select("*").order("vertical_key").order("mode_key"),
-      supabase.from("vertical_capability_matrix" as any).select("*").order("vertical_key").order("capability_category").order("capability_name").limit(500),
-      supabase.from("legal_feature_registry" as any).select("*").order("feature_category").order("feature_name").limit(200),
-      supabase.from("privacy_by_design_controls" as any).select("*").order("principle").limit(200),
-      supabase.from("parent_visibility_policy_rules" as any).select("*").order("visibility_status").order("source_type").limit(120),
-      supabase.from("regulatory_policy_audit_events" as any).select("*").order("created_at", { ascending: false }).limit(80),
-      supabase.from("ai_vertical_capability_matrix" as any).select("*").order("vertical_key").limit(250)
+      query(0, () => supabase.from("regulatory_policy_modes" as any).select("*").order("vertical_key").order("mode_key")),
+      query(1, () => supabase.from("vertical_capability_matrix" as any).select("*").order("vertical_key").order("capability_category").order("capability_name").limit(500)),
+      query(2, () => supabase.from("legal_feature_registry" as any).select("*").order("feature_category").order("feature_name").limit(200)),
+      query(3, () => supabase.from("privacy_by_design_controls" as any).select("*").order("principle").limit(200)),
+      query(4, () => supabase.from("parent_visibility_policy_rules" as any).select("*").order("visibility_status").order("source_type").limit(120)),
+      query(5, () => supabase.from("regulatory_policy_audit_events" as any).select("*").order("created_at", { ascending: false }).limit(80)),
+      query(6, () => supabase.from("ai_vertical_capability_matrix" as any).select("*").order("vertical_key").limit(250))
     ]);
-    [modesRes, matrixRes, registryRes, privacyRes, visibilityRes, auditRes, aiMatrixRes].forEach((query, index) => logSupabaseError(`regulatory query ${index}`, (query as any).error));
+    const available = [modesRes, matrixRes, registryRes, privacyRes, visibilityRes, auditRes, aiMatrixRes].map((response) => response.available);
     return {
       modes: (modesRes.data ?? []) as any[],
       matrix: (matrixRes.data ?? []) as any[],
@@ -70,8 +80,9 @@ export default async function AdminRegulatoryControlCenterPage() {
       visibility: (visibilityRes.data ?? []) as any[],
       audit: (auditRes.data ?? []) as any[],
       aiMatrix: (aiMatrixRes.data ?? []) as any[],
-      queryError: [modesRes.error, matrixRes.error, registryRes.error, privacyRes.error, visibilityRes.error, auditRes.error, aiMatrixRes.error].some(Boolean)
-        ? "חלק מנתוני הרגולציה לא נטענו. ייתכן שמיגרציית PHASE 145 עדיין לא הורצה."
+      available,
+      queryError: available.some((known) => !known)
+        ? "חלק מנתוני הרגולציה אינם זמינים. הנתונים האחרים מוצגים בנפרד."
         : null
     };
   }, {
@@ -82,6 +93,7 @@ export default async function AdminRegulatoryControlCenterPage() {
     visibility: [] as any[],
     audit: [] as any[],
     aiMatrix: [] as any[],
+    available: Array<boolean>(7).fill(false),
     queryError: null as string | null
   });
 
@@ -102,39 +114,43 @@ export default async function AdminRegulatoryControlCenterPage() {
     return groups;
   }, {});
 
+  const known = (index: number) => data.available[index];
+  const readinessKnown = known(1) && known(3) && known(4);
+  const unavailable = "לא זמין";
+
   return (
     <DashboardShell role="admin" title="רגולציה">
       <div className="commercial-dashboard">
         <PremiumDashboardHero
           eyebrow="Israeli Regulatory Mode"
           title="מרכז רגולציה, פרטיות והפעלת יכולות"
-          subtitle="שכבת מדיניות שמחליטה מה מותר, מה כבוי ומה דורש בדיקה משפטית בכל ורטיקל. Digital Observer Core נשאר שלם, וההפעלה בפועל נשלטת לפי מדיניות."
-          badge={`${readinessScore}/100`}
-          badgeTone={toneForScore(readinessScore)}
+          subtitle="רשומות מדיניות ודרישות בלבד — לא הוכחת עמידה בדין הישראלי, הרשאה משפטית, אכיפת AI/שמע/פנים/ביומטריה, חשיפה להורים, הסכמה או בדיקה מקצועית. Digital Observer Core נשאר שלם; המסך אינו מפעיל יכולות."
+          badge={readinessKnown ? `${readinessScore}/100` : unavailable}
+          badgeTone={readinessKnown ? toneForScore(readinessScore) : "default"}
           actions={<><Link className="button primary" href="/dashboard/admin/ai-platform">פלטפורמת AI</Link><Link className="button secondary" href="/dashboard/admin/security-center">אבטחה</Link></>}
         >
           <div className="setup-checklist">
-            <span>GAN_BATUACH_ISRAEL_MODE פעיל</span>
-            <span>אין שמע, זיהוי פנים או פרופיל ביומטרי לילדים</span>
-            <span>בדיקה אנושית חובה לפני פעולה רגישה</span>
+            <span>{!known(0) ? unavailable : ganMode ? `רשומת GAN_BATUACH_ISRAEL_MODE: ${statusLabel(ganMode.status)} — לא הוכחת הפעלה` : "GAN_BATUACH_ISRAEL_MODE: לא נטען"}</span>
+            <span>דרישה: אין שמע, זיהוי פנים או פרופיל ביומטרי לילדים</span>
+            <span>דרישה: בדיקה אנושית חובה לפני פעולה רגישה</span>
           </div>
         </PremiumDashboardHero>
         <AdminDataError message={result.error ?? data.queryError} />
 
         <div className="premium-metric-grid">
-          <RoleMetricCard label="מצב ישראל" value={ganMode?.status ? statusLabel(ganMode.status) : "לא נטען"} hint="GAN_BATUACH_ISRAEL_MODE" tone={ganMode?.status === "enabled" ? "good" : "warn"} />
-          <RoleMetricCard label="יכולות מותרות" value={enabled} hint="Gan Batuach" tone="good" />
-          <RoleMetricCard label="יכולות כבויות" value={disabled} hint="שמע, פנים וביומטריה" tone="bad" />
-          <RoleMetricCard label="בדיקה משפטית" value={legalReview} hint="יכולות לא מופעלות" tone={legalReview ? "warn" : "good"} />
-          <RoleMetricCard label="פרטיות" value={`${privacyScore}/100`} hint="Privacy by Design" tone={toneForScore(privacyScore)} />
-          <RoleMetricCard label="AI" value={`${aiCompliance}%`} hint="תאימות יכולות" tone={toneForScore(aiCompliance)} />
-          <RoleMetricCard label="הורים" value={`${parentVisibilityScore}%`} hint="גבולות חשיפה" tone={toneForScore(parentVisibilityScore)} />
-          <RoleMetricCard label="ממשל מידע" value={`${dataGovernanceScore}/100`} hint="מזעור, מטרה, גישה ושמירה" tone={toneForScore(dataGovernanceScore)} />
+          <RoleMetricCard label="מצב ישראל" value={known(0) ? (ganMode?.status ? statusLabel(ganMode.status) : "לא נטען") : unavailable} hint="GAN_BATUACH_ISRAEL_MODE" tone={known(0) ? (ganMode?.status === "enabled" ? "good" : "warn") : "default"} />
+          <RoleMetricCard label="יכולות מותרות" value={known(1) ? (enabled) : unavailable} hint="Gan Batuach" tone={known(1) ? ("good") : "default"} />
+          <RoleMetricCard label="יכולות כבויות" value={known(1) ? (disabled) : unavailable} hint="שמע, פנים וביומטריה" tone={known(1) ? ("bad") : "default"} />
+          <RoleMetricCard label="בדיקה משפטית" value={known(1) ? (legalReview) : unavailable} hint="יכולות לא מופעלות" tone={known(1) ? (legalReview ? "warn" : "good") : "default"} />
+          <RoleMetricCard label="פרטיות" value={known(3) ? (`${privacyScore}/100`) : unavailable} hint="Privacy by Design" tone={known(3) ? (toneForScore(privacyScore)) : "default"} />
+          <RoleMetricCard label="AI" value={known(1) ? (`${aiCompliance}%`) : unavailable} hint="תאימות יכולות" tone={known(1) ? (toneForScore(aiCompliance)) : "default"} />
+          <RoleMetricCard label="הורים" value={known(4) ? (`${parentVisibilityScore}%`) : unavailable} hint="גבולות חשיפה" tone={known(4) ? (toneForScore(parentVisibilityScore)) : "default"} />
+          <RoleMetricCard label="ממשל מידע" value={known(3) ? (`${dataGovernanceScore}/100`) : unavailable} hint="מזעור, מטרה, גישה ושמירה" tone={known(3) ? (toneForScore(dataGovernanceScore)) : "default"} />
         </div>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
-            <h2><Ban size={20} /> הגבלות חובה לגן בטוח</h2>
+            <h2><Ban size={20} /> דרישות — הגבלות חובה לגן בטוח</h2>
             <div className="setup-checklist">
               <span>הקלטת שמע, ניתוח שמע, מילות מפתח וזיהוי דיבור כבויים.</span>
               <span>זיהוי פנים, התאמת פנים ו-embeddings כבויים.</span>
@@ -143,7 +159,7 @@ export default async function AdminRegulatoryControlCenterPage() {
             </div>
           </article>
           <article className="card action-panel">
-            <h2><CheckCircle2 size={20} /> יכולות מותרות עם ביקורת</h2>
+            <h2><CheckCircle2 size={20} /> דרישות — יכולות מותרות עם ביקורת</h2>
             <div className="setup-checklist">
               <span>Pose estimation ו-skeleton tracking ללא זיהוי מתמשך.</span>
               <span>Motion analytics, fall detection, density, restricted area ו-inactivity.</span>
@@ -154,7 +170,7 @@ export default async function AdminRegulatoryControlCenterPage() {
         </section>
 
         <CleanSection title="מטריצת יכולות לפי ורטיקל" subtitle="כל יכולת מקבלת סטטוס: מותר, כבוי או בדיקה משפטית.">
-          {data.matrix.length === 0 ? <EmptyState title="אין מטריצת יכולות" text="לאחר הרצת המיגרציה תופיע כאן שכבת המדיניות לכל ורטיקל." /> : (
+          {!known(1) ? <div className="empty-mini">{unavailable}</div> : data.matrix.length === 0 ? <EmptyState title="אין מטריצת יכולות" text="לאחר הרצת המיגרציה תופיע כאן שכבת המדיניות לכל ורטיקל." /> : (
             <div className="grid cols-2 dashboard-panels">
               {Object.entries(groupedByVertical).map(([vertical, items]) => (
                 <article className="card action-panel" key={vertical}>
@@ -177,7 +193,7 @@ export default async function AdminRegulatoryControlCenterPage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><EyeOff size={20} /> מדיניות חשיפה להורים</h2>
-            {data.visibility.length === 0 ? <div className="empty-mini">אין כללי חשיפה.</div> : data.visibility.map((rule: any) => (
+            {!known(4) ? <div className="empty-mini">{unavailable}</div> : data.visibility.length === 0 ? <div className="empty-mini">אין כללי חשיפה.</div> : data.visibility.map((rule: any) => (
               <div className="list-item" key={rule.id}>
                 <div><strong>{rule.source_type}</strong><span>{rule.rule_summary}</span></div>
                 <StatusBadge tone={statusTone(rule.visibility_status)}>{statusLabel(rule.visibility_status)}</StatusBadge>
@@ -186,7 +202,7 @@ export default async function AdminRegulatoryControlCenterPage() {
           </article>
           <article className="card action-panel">
             <h2><LockKeyhole size={20} /> Privacy by Design</h2>
-            {data.privacy.length === 0 ? <div className="empty-mini">אין בקרות פרטיות.</div> : data.privacy.map((control: any) => (
+            {!known(3) ? <div className="empty-mini">{unavailable}</div> : data.privacy.length === 0 ? <div className="empty-mini">אין בקרות פרטיות.</div> : data.privacy.map((control: any) => (
               <div className="list-item" key={control.id}>
                 <div><strong>{control.control_name}</strong><span>{control.evidence_summary}</span></div>
                 <StatusBadge tone={toneForScore(Number(control.readiness_score ?? 0))}>{control.readiness_score}/100</StatusBadge>
@@ -196,7 +212,7 @@ export default async function AdminRegulatoryControlCenterPage() {
         </section>
 
         <CleanSection title="Legal Feature Registry" subtitle="רישום משפטי של תכונה, סטטוס, ורטיקלים מותרים והגבלות.">
-          {data.registry.length === 0 ? <EmptyState title="אין רישום תכונות" text="המיגרציה מוסיפה רישום משפטי ראשוני." /> : (
+          {!known(2) ? <div className="empty-mini">{unavailable}</div> : data.registry.length === 0 ? <EmptyState title="אין רישום תכונות" text="המיגרציה מוסיפה רישום משפטי ראשוני." /> : (
             <div className="procedure-list">
               {data.registry.map((feature: any) => (
                 <article className="card procedure-card" key={feature.id}>
@@ -217,7 +233,7 @@ export default async function AdminRegulatoryControlCenterPage() {
         </CleanSection>
 
         <CleanSection title="יומן רגולטורי" subtitle="שינויים במדיניות, יכולות והגבלות חייבים להיות מתועדים.">
-          {data.audit.length === 0 ? <EmptyState title="אין אירועי רגולציה" text="שינויי מדיניות עתידיים יופיעו כאן." /> : (
+          {!known(5) ? <div className="empty-mini">{unavailable}</div> : data.audit.length === 0 ? <EmptyState title="אין אירועי רגולציה" text="שינויי מדיניות עתידיים יופיעו כאן." /> : (
             <div className="procedure-list">
               {data.audit.map((event: any) => (
                 <article className="card procedure-card" key={event.id}>

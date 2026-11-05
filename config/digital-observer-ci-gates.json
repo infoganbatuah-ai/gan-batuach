@@ -798,6 +798,13 @@
         "--test",
         "scripts/qa/check-database-integrity-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "regulatory-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-regulatory-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
