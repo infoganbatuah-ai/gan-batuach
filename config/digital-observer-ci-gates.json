@@ -602,6 +602,13 @@
         "--test",
         "scripts/qa/check-observer-calibration-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-replay-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-replay-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
