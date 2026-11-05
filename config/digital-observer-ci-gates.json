@@ -609,6 +609,13 @@
         "--test",
         "scripts/qa/check-observer-replay-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "qualification-run-guard",
+      "args": [
+        "--test",
+        "scripts/qa/qualification-run-guard.test.mjs"
+      ]
     }
   ],
   "security": [

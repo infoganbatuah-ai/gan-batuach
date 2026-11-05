@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assertQualificationFailureGate, assertQualificationRunStart,
@@ -136,3 +136,91 @@ test("a global failure blocker cannot be bypassed with a new run id", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// These fixtures model metadata only; no live runner, service or historical run is used.
+const interiorRunId = "synthetic-interior-run";
+const interiorStartedAt = "2026-11-04T00:00:00.000Z";
+const interiorPoints = () => [1, 2, 3].map(sequence => ({
+  contract: "observer-reliability-checkpoint-v1", run_id: interiorRunId, sequence,
+  sampled_at: `2026-11-04T00:0${sequence}:00.000Z`
+}));
+
+function withInteriorFixture(points, verify) {
+  const root = mkdtempSync(join(tmpdir(), "push38-interior-regression-"));
+  const statePath = join(root, "state.json");
+  const checkpointsPath = join(root, "checkpoints.ndjson");
+  try {
+    writeFileSync(statePath, `${JSON.stringify({
+      contract: "observer-reliability-soak-state-v1", run_id: interiorRunId,
+      status: "RUNNING", started_at: interiorStartedAt,
+      started_at_ms: Date.parse(interiorStartedAt), checkpoint_count: points.length,
+      last_checkpoint_at: points.at(-1)?.sampled_at ?? null
+    })}\n`, { flag: "wx", mode: 0o600 });
+    writeFileSync(checkpointsPath, points.map(point => JSON.stringify(point)).join("\n") +
+      (points.length ? "\n" : ""), { flag: "wx", mode: 0o600 });
+    const before = [readFileSync(statePath), readFileSync(checkpointsPath)];
+    try {
+      verify({ outputRoot: root, runId: interiorRunId, resume: true,
+        expectedStartedAt: interiorStartedAt, expectedSequence: points.length });
+    } finally {
+      assert.deepEqual(readFileSync(statePath), before[0]);
+      assert.deepEqual(readFileSync(checkpointsPath), before[1]);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+for (const count of [0, 1, 3]) {
+  test(`valid ${count}-checkpoint resume preserves state and extra metadata`, () => {
+    const points = interiorPoints().slice(0, count).map(point => ({ ...point,
+      synthetic_extra: { preserved: true } }));
+    withInteriorFixture(points, options => {
+      const result = assertQualificationRunStart(options);
+      assert.equal(result.mode, "VERIFIED_RESUME");
+      assert.equal(result.checkpoint_count, count);
+      assert.equal(result.state.run_id, interiorRunId);
+    });
+  });
+}
+
+const interiorCorruptions = [
+  { name: "foreign middle run id", change: points => { points[1].run_id = "foreign"; },
+    code: "durable_soak_resume_checkpoint_run_id_mismatch" },
+  { name: "middle sequence gap", change: points => { points[1].sequence = 99; },
+    code: "durable_soak_resume_checkpoint_sequence_invalid" },
+  { name: "duplicate middle sequence", change: points => { points[1].sequence = 1; },
+    code: "durable_soak_resume_checkpoint_sequence_invalid" },
+  { name: "missing middle sequence", change: points => { delete points[1].sequence; },
+    code: "durable_soak_resume_checkpoint_sequence_invalid" },
+  { name: "string middle sequence", change: points => { points[1].sequence = "2"; },
+    code: "durable_soak_resume_checkpoint_sequence_invalid" },
+  { name: "foreign middle contract", change: points => { points[1].contract = "foreign-v1"; },
+    code: "durable_soak_resume_checkpoint_record_invalid" },
+  { name: "null middle record", change: points => { points[1] = null; },
+    code: "durable_soak_resume_checkpoint_record_invalid" },
+  { name: "array middle record", change: points => { points[1] = []; },
+    code: "durable_soak_resume_checkpoint_record_invalid" },
+  { name: "middle invalid timestamp", change: points => { points[1].sampled_at = "invalid"; },
+    code: "durable_soak_resume_checkpoint_timestamp_invalid" },
+  { name: "middle timestamp before start", change: points => {
+    points[1].sampled_at = "2026-11-03T23:59:00.000Z"; },
+    code: "durable_soak_resume_checkpoint_timestamp_invalid" },
+  { name: "middle timestamp tied to previous", change: points => {
+    points[1].sampled_at = points[0].sampled_at; },
+    code: "durable_soak_resume_checkpoint_timestamp_invalid" },
+  { name: "middle timestamp later than tail", change: points => {
+    points[1].sampled_at = "2026-11-04T00:09:00.000Z"; },
+    code: "durable_soak_resume_checkpoint_timestamp_invalid" },
+  { name: "non-string middle timestamp", change: points => { points[1].sampled_at = 123; },
+    code: "durable_soak_resume_checkpoint_timestamp_invalid" }
+];
+for (const { name, change, code } of interiorCorruptions) {
+  test(`resume rejects ${name} without changing evidence`, () => {
+    const points = interiorPoints();
+    change(points);
+    withInteriorFixture(points, options => {
+      assert.throws(() => assertQualificationRunStart(options), { message: code });
+    });
+  });
+}

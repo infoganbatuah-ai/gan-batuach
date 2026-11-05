@@ -71,6 +71,23 @@ export function assertQualificationResumeState({ outputRoot, runId,
     if (state.last_checkpoint_at !== last.sampled_at)
       fail("durable_soak_resume_checkpoint_timestamp_mismatch");
   }
+  const startedAtMs = Date.parse(expectedStartedAt);
+  let previousSampledAtMs = startedAtMs;
+  for (const [index, checkpoint] of checkpoints.entries()) {
+    if (!checkpoint || typeof checkpoint !== "object" || Array.isArray(checkpoint) ||
+      checkpoint.contract !== "observer-reliability-checkpoint-v1")
+      fail("durable_soak_resume_checkpoint_record_invalid");
+    if (checkpoint.run_id !== runId)
+      fail("durable_soak_resume_checkpoint_run_id_mismatch");
+    if (checkpoint.sequence !== index + 1)
+      fail("durable_soak_resume_checkpoint_sequence_invalid");
+    const sampledAtMs = typeof checkpoint.sampled_at === "string"
+      ? Date.parse(checkpoint.sampled_at) : NaN;
+    if (!Number.isFinite(sampledAtMs) || sampledAtMs < startedAtMs ||
+      (index > 0 && sampledAtMs <= previousSampledAtMs))
+      fail("durable_soak_resume_checkpoint_timestamp_invalid");
+    previousSampledAtMs = sampledAtMs;
+  }
   return { mode: "VERIFIED_RESUME", state, checkpoint_count: checkpoints.length };
 }
 
