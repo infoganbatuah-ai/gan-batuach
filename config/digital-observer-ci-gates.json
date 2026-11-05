@@ -497,6 +497,13 @@
         "--test",
         "scripts/qa/check-launch-readiness-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "first-pilot-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-first-pilot-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
