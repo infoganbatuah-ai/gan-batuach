@@ -574,6 +574,13 @@
         "--test",
         "scripts/qa/check-observer-core-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-packages-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-packages-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

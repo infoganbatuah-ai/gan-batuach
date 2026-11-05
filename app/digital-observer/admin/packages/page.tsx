@@ -1,22 +1,36 @@
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverPackagesAdmin } from "@/components/observer-packages-admin";
 import { createDigitalObserverAdminDataClient, requireDigitalObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
+import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
+
+async function safeQuery<T>(run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+  try {
+    const result = await run();
+    return { rows: result.error ? [] : result.data ?? [], error: result.error, failed: Boolean(result.error) };
+  } catch (error) {
+    return { rows: [], error, failed: true };
+  }
+}
 
 export default async function DigitalObserverAdminPackagesPage() {
   const { profile } = await requireDigitalObserverAdmin("/digital-observer/admin/packages");
-  const supabase = createDigitalObserverAdminDataClient();
-  const [packages, sites, subscriptions, usage] = await Promise.all([
-    supabase.from("observer_monitoring_packages" as any).select("*").order("sort_order", { ascending: true }),
-    supabase.from("observer_sites" as any).select("id,name,site_type,active,observer_package_id,observer_subscription_status").is("garden_id", null).neq("site_type", "kindergarten").order("name").limit(500),
-    supabase.from("observer_site_subscriptions" as any).select("*,observer_sites(name,site_type),observer_monitoring_packages(name,package_type)").order("created_at", { ascending: false }).limit(300),
-    supabase.from("observer_site_usage_snapshots" as any).select("*,observer_sites(name,site_type)").order("period_start", { ascending: false }).limit(300)
-  ]);
+  const result = await safeAdminData("observer standalone packages", async () => {
+    const supabase = createDigitalObserverAdminDataClient();
+    const [packages, sites, subscriptions, usage] = await Promise.all([
+      safeQuery(() => supabase.from("observer_monitoring_packages" as any).select("*").order("sort_order", { ascending: true })),
+      safeQuery(() => supabase.from("observer_sites" as any).select("id,name,site_type,active,observer_package_id,observer_subscription_status").is("garden_id", null).neq("site_type", "kindergarten").order("name").limit(500)),
+      safeQuery(() => supabase.from("observer_site_subscriptions" as any).select("*,observer_sites(name,site_type),observer_monitoring_packages(name,package_type)").order("created_at", { ascending: false }).limit(300)),
+      safeQuery(() => supabase.from("observer_site_usage_snapshots" as any).select("*,observer_sites(name,site_type)").order("period_start", { ascending: false }).limit(300))
+    ]);
+    [packages, sites, subscriptions, usage].forEach((query, index) => logSupabaseError("observer standalone packages query " + index, query.error));
+    return { packages: packages.rows, sites: sites.rows, subscriptions: subscriptions.rows, usage: usage.rows, errors: [packages, sites, subscriptions, usage].map((query) => query.failed) };
+  }, { packages: [], sites: [], subscriptions: [], usage: [], errors: [true, true, true, true] });
 
   return <ObserverAppShell profile={profile} mode="admin" activeHref="/digital-observer/admin/packages" title="חבילות ותמחור" statusLabel="מקור אמת במסד">
     <div className="do-page-stack do-admin-tools">
       <div className="do-notice warn"><span>שמירת חבילה אינה מפעילה חיוב חי. הפעלה מסחרית חסומה בשרת עד אישור מפורש וחיבור ספק.</span></div>
-      {packages.error ? <div className="do-notice bad" role="alert"><span>החבילות אינן זמינות עד החלת המיגרציה העדכנית.</span></div> : null}
-      <ObserverPackagesAdmin packages={packages.data ?? []} sites={sites.data ?? []} subscriptions={subscriptions.data ?? []} usage={usage.data ?? []} />
+      {result.error || result.data.errors.some(Boolean) ? <div className="do-notice bad" role="alert"><span>{result.error ?? "חלק מנתוני החבילות אינם זמינים כרגע"}</span></div> : null}
+      <ObserverPackagesAdmin packages={result.data.packages} sites={result.data.sites} subscriptions={result.data.subscriptions} usage={result.data.usage} errors={result.data.errors} />
     </div>
   </ObserverAppShell>;
 }

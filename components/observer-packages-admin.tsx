@@ -91,12 +91,14 @@ export function ObserverPackagesAdmin({
   packages,
   sites,
   subscriptions,
-  usage
+  usage,
+  errors
 }: {
   packages: ObserverPackage[];
   sites: ObserverSite[];
   subscriptions: ObserverSubscription[];
   usage: UsageSnapshot[];
+  errors: boolean[];
 }) {
   const router = useRouter();
   const [selectedPackageId, setSelectedPackageId] = useState(packages[0]?.id ?? "");
@@ -193,10 +195,10 @@ export function ObserverPackagesAdmin({
   return (
     <div className="stack">
       <section className="grid cols-4 dashboard-panels">
-        <article className="metric-card"><PackageCheck /><strong>{packages.length}</strong><span>חבילות</span></article>
-        <article className="metric-card"><ShieldCheck /><strong>{packageStats.active}</strong><span>פעילות</span></article>
-        <article className="metric-card"><Bot /><strong>{standaloneSites.length}</strong><span>אתרים עצמאיים</span></article>
-        <article className="metric-card"><Gauge /><strong>{usage.length}</strong><span>דוחות שימוש</span></article>
+        <article className="metric-card"><PackageCheck /><strong>{errors[0] ? "לא זמין" : packages.length}</strong><span>חבילות</span></article>
+        <article className="metric-card"><ShieldCheck /><strong>{errors[0] ? "לא זמין" : packageStats.active}</strong><span>פעילות</span></article>
+        <article className="metric-card"><Bot /><strong>{errors[1] ? "לא זמין" : standaloneSites.length}</strong><span>אתרים עצמאיים</span></article>
+        <article className="metric-card"><Gauge /><strong>{errors[3] ? "לא זמין" : usage.length}</strong><span>דוחות שימוש</span></article>
       </section>
 
       {message ? <div className={message.includes("נכשלה") || message.includes("לא ") ? "notice warning" : "notice success"}>{message}</div> : null}
@@ -207,6 +209,7 @@ export function ObserverPackagesAdmin({
             <h2>חבילת Digital Observer</h2>
             <p>מוצר עצמאי בלבד. בגני ילדים התצפיתן הדיגיטלי כלול במנוי גן בטוח.</p>
           </div>
+          {errors[0] ? <div className="empty-state">נתוני החבילות אינם זמינים כרגע</div> : <>
           <label className="form-field">
             <span>עריכת חבילה קיימת</span>
             <select value={selectedPackageId} onChange={(event) => setSelectedPackageId(event.target.value)}>
@@ -244,6 +247,7 @@ export function ObserverPackagesAdmin({
             <input type="hidden" name="sort_order" value="100" />
             <button className="button primary full" type="submit" disabled={isPending}><Save size={18} /> שמירת חבילה</button>
           </form>
+          </>}
         </article>
 
         <article className="card action-panel">
@@ -251,7 +255,7 @@ export function ObserverPackagesAdmin({
             <h2>שיוך לאתר עצמאי</h2>
             <p>אתרי גן ילדים חסומים לשיוך חבילת תצפיתן עצמאית כדי לא לפגוע במנוי גן בטוח.</p>
           </div>
-          <form action={assignPackage} className="form-grid compact-form">
+          {errors[0] || errors[1] ? <div className="empty-state">נתוני החבילות או האתרים אינם זמינים כרגע</div> : <form action={assignPackage} className="form-grid compact-form">
             <label className="form-field full"><span>אתר</span><select name="observer_site_id" value={selectedSiteId} onChange={(event) => setSelectedSiteId(event.target.value)} required>{sites.map((site) => <option key={site.id} value={site.id}>{site.name} · {siteTypeLabel(site.site_type)}</option>)}</select></label>
             <label className="form-field"><span>חבילה</span><select name="package_id" required>{packages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label className="form-field"><span>סטטוס</span><select name="status" defaultValue="trial"><option value="trial">ניסיון</option><option value="pending_payment">ממתין לתשלום</option><option value="expired">פג תוקף</option><option value="suspended">מושהה</option><option value="cancelled">בוטל</option></select></label>
@@ -264,14 +268,14 @@ export function ObserverPackagesAdmin({
             <label className="form-field full"><span>שעות פעילות (JSON מתקדם)</span><textarea name="active_hours" defaultValue="{}" rows={3} /></label>
             <label className="form-field full"><span>חריגות ממגבלות (JSON מתקדם)</span><textarea name="override_limits" defaultValue="{}" rows={3} /></label>
             <button className="button primary full" type="submit" disabled={isPending}>שיוך חבילה</button>
-          </form>
-          <button className="button secondary full" type="button" onClick={snapshotUsage} disabled={isPending || !selectedSiteId}>חישוב שימוש חודשי</button>
+          </form>}
+          <button className="button secondary full" type="button" onClick={snapshotUsage} disabled={isPending || errors[1] || !selectedSiteId || !sites.some((site) => site.id === selectedSiteId)}>חישוב שימוש חודשי</button>
         </article>
       </section>
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>חבילות קיימות</h2><p>חבילות התצפיתן העצמאי בלבד; המחירים אינם משנים את מנוי גן בטוח.</p></div>
-        <div className="procedure-list">
+        {errors[0] ? <div className="empty-state">נתוני החבילות אינם זמינים כרגע</div> : <div className="procedure-list">
           {packages.map((item) => (
             <article className="card procedure-card" key={item.id}>
               <div>
@@ -288,14 +292,14 @@ export function ObserverPackagesAdmin({
               </div>
             </article>
           ))}
-        </div>
+        </div>}
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2>מנויי אתרים</h2><p>אתרי התצפיתן העצמאי בלבד.</p></div>
           <div className="risk-list">
-            {subscriptions.length === 0 ? <div>אין שיוכים עדיין <b>מוכן להגדרה</b></div> : subscriptions.map((item) => (
+            {errors[2] ? <div>נתוני המנויים אינם זמינים כרגע</div> : subscriptions.length === 0 ? <div>אין שיוכים עדיין <b>מוכן להגדרה</b></div> : subscriptions.map((item) => (
               <div key={item.id}>{item.observer_sites?.name ?? "אתר"} · {item.observer_monitoring_packages?.name ?? "חבילה"} <b>{item.status}</b></div>
             ))}
           </div>
@@ -303,7 +307,7 @@ export function ObserverPackagesAdmin({
         <article className="card action-panel">
           <div className="section-heading"><h2>Usage tracking</h2><p>בסיס לחיוב עתידי, לא חסימה לגני ילדים.</p></div>
           <div className="risk-list">
-            {usage.length === 0 ? <div>אין snapshots עדיין <b>חשב שימוש</b></div> : usage.slice(0, 8).map((item) => (
+            {errors[3] ? <div>נתוני השימוש אינם זמינים כרגע</div> : usage.length === 0 ? <div>אין snapshots עדיין <b>חשב שימוש</b></div> : usage.slice(0, 8).map((item) => (
               <div key={item.id}>{item.observer_sites?.name ?? "אתר"} · {item.period_start} עד {item.period_end} <b>{item.active_cameras} מצלמות · {item.ai_events_count} אירועים</b></div>
             ))}
           </div>
