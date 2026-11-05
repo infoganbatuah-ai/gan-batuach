@@ -1007,6 +1007,13 @@
         "--test",
         "scripts/qa/check-observer-intelligence-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "scale-100-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-scale-100-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
