@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-03T22:51:42.577306+00:00",
+  "updatedAt": "2026-11-05T23:29:45.969048+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14011,6 +14011,66 @@
       "releaseEligibility": "NOT_READY_PRODUCT_VISUAL_AUTH_RLS_COST_AND_OWNER_REVIEW_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Preserve this canonical ledger-only checkpoint with a normal Development push, read back exact remote head and observe its CI/no-deployment state. Separately qualify authenticated Product/Settings upload and role isolation, fresh Desktop/Mobile reference composition, provider truth and all-in ₪15 before any owner release decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-primary-settings-product-20261105",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Owner primary Settings density, truthful account rows, and optional-photo profile save",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #284",
+      "sourceBranch": "codex/ux-v7-primary-settings-product-20261105",
+      "sourceCommits": [
+        "aaa98190044f69705b479d3d6f47beb98671a498",
+        "ac294dad74e6b7bcb6492fb039acc19a56720d03",
+        "567508902ef78ca80e71ec5d9cb2692c074204fc",
+        "12952a8678c34907cc93b78b5e79bb25b2743ddd",
+        "1dcad66102ad0dfac1030bd8fe70e6028d22cbf1",
+        "1fb7051b5a5c809221824397e8f1756c993ceba4",
+        "b72c3f2afba48eef77f4f616d4072f86d8bc2099"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-primary-settings-product-20261105@b72c3f2afba48eef77f4f616d4072f86d8bc2099",
+          "origin/integration/development@37753822928f25f84b861428f5f67661b855625a"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_PRODUCT_VISUAL_OPEN",
+        "evidence": [
+          "PR #284 exact source b72c3f2a into base 3b6e345b: Digital Observer CI run 42128571714 all six gates plus canonical quality PASS; management-context run 42128571994 PASS; Snyk PASS.",
+          "Focused local profile-photo and primary-screen contract tests 13/13 PASS; git diff --check clean.",
+          "Vercel live project UI: sole Git-connected project gan-batuach, Preview Branch Tracking OFF, production-only ignored-build behavior, feature branch absent from deployment branch choices after push."
+        ],
+        "classification": "OWNER_SETTINGS_PRIMARY_UI_AND_TEST_CONTRACT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Candidate Product screenshots, actual role-boundary probes, visual reference comparison, all-in cost compliance, and external owner approval remain unverified. Baseline screenshots at 3b6 are not candidate evidence."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "3b6e345b9eacfbaed8e48555ca5e41840a37aac9",
+        "commit": "37753822928f25f84b861428f5f67661b855625a",
+        "tree": "232985917264f9711a7b57350adfed78b9e39773",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/284",
+        "sourceAncestryVerified": true,
+        "mergeTreeEqualsSourceTree": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV6_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v6-settings-required-photo-removal-fix-20261104"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PR_CI_GREEN; AUTHENTICATED_CANDIDATE_PRODUCT_AND_VISUAL_NOT_YET_RUN",
+      "releaseEligibility": "NOT_READY_FRESH_CANDIDATE_VISUAL_ROLE_QA_COST_AND_OWNER_REVIEW_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact merged Development Product with authorized synthetic Owner at 1440x1024 and 390x844, compare direct primary Settings crop and check role/keyboard/RTL/overflow. Then run post-merge focused QA and report any visual mismatch for correction. Preserve Production/main."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
