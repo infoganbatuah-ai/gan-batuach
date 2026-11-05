@@ -896,6 +896,13 @@
         "--test",
         "scripts/qa/check-admin-rating-system-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-reports-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-reports-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
