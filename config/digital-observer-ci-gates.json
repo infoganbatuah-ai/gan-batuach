@@ -532,6 +532,13 @@
         "--test",
         "scripts/qa/check-subscription-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "commercial-launch-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-commercial-launch-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

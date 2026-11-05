@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { rows: result.error ? [] : result.data ?? [], failed: Boolean(result.error) };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { rows: [] as T[], failed: true };
   }
 }
 
@@ -56,7 +56,7 @@ export default async function CommercialLaunchPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("commercial launch", async () => {
     const supabase = await createClient();
-    const [readiness, pricing, packages, pipeline, demos, offers, contracts, slas, onboarding, handoffs, collateral, scripts, objections, referrals, renewals, churn, forecast, metrics, tasks, checklist] = await Promise.all([
+    const queries = await Promise.all([
       safeQuery<Row>("commercial launch readiness", () => supabase.from("commercial_launch_readiness_scores" as any).select("*").order("calculated_at", { ascending: false }).limit(1)),
       safeQuery<Row>("commercial pricing models", () => supabase.from("commercial_pricing_models" as any).select("*").eq("active", true).order("effective_from", { ascending: false }).limit(5)),
       safeQuery<Row>("commercial packages", () => supabase.from("commercial_packages" as any).select("*").order("created_at", { ascending: false }).limit(20)),
@@ -78,7 +78,8 @@ export default async function CommercialLaunchPage() {
       safeQuery<Row>("commercial sales tasks", () => supabase.from("commercial_sales_tasks" as any).select("*, commercial_sales_pipeline(kindergarten_name, stage)").order("due_at", { ascending: true }).limit(80)),
       safeQuery<Row>("commercial launch checklist", () => supabase.from("commercial_launch_checklist" as any).select("*").order("category").order("checklist_key").limit(120))
     ]);
-    return { readiness, pricing, packages, pipeline, demos, offers, contracts, slas, onboarding, handoffs, collateral, scripts, objections, referrals, renewals, churn, forecast, metrics, tasks, checklist };
+    const [readiness, pricing, packages, pipeline, demos, offers, contracts, slas, onboarding, handoffs, collateral, scripts, objections, referrals, renewals, churn, forecast, metrics, tasks, checklist] = queries.map((query) => query.rows);
+    return { readiness, pricing, packages, pipeline, demos, offers, contracts, slas, onboarding, handoffs, collateral, scripts, objections, referrals, renewals, churn, forecast, metrics, tasks, checklist, errors: queries.map((query) => query.failed) };
   }, {
     readiness: [] as Row[],
     pricing: [] as Row[],
@@ -99,10 +100,12 @@ export default async function CommercialLaunchPage() {
     forecast: [] as Row[],
     metrics: [] as Row[],
     tasks: [] as Row[],
-    checklist: [] as Row[]
+    checklist: [] as Row[],
+    errors: Array(20).fill(true) as boolean[]
   });
 
   const data = result.data;
+  const errors = data.errors;
   const score = data.readiness[0];
   const pricing = data.pricing[0];
   const forecast = data.forecast[0];
@@ -119,6 +122,9 @@ export default async function CommercialLaunchPage() {
   const checklistPct = pct(completedChecklist, data.checklist.length);
   const openTasks = data.tasks.filter((task) => !["completed", "cancelled"].includes(String(task.status)));
   const contractReady = data.contracts.filter((contract) => ["signed", "sent", "under_review"].includes(String(contract.status))).length;
+  const projectedMrrAvailable = !errors[16] && (forecast?.projected_mrr_nis != null || !errors[3]);
+  const projectedArrAvailable = !errors[16] && (forecast?.projected_arr_nis != null || !errors[3]);
+  const forecastPipelineAvailable = !errors[16] && (forecast?.pipeline_value_nis != null || !errors[3]);
 
   return (
     <DashboardShell role="admin" title="Commercial Launch">
@@ -127,32 +133,33 @@ export default async function CommercialLaunchPage() {
           eyebrow="Commercial Launch Readiness"
           title="מוכנות מסחרית ומכירות"
           subtitle="מרכז ניהול למכירה אמיתית: תמחור, pipeline, דמואים, הצעות, חוזים, SLA, העברה ל־Customer Success, חידושים ותחזית הכנסות."
-          badge={`${commercialScore}/100`}
-          badgeTone={scoreTone(commercialScore)}
+          badge={errors[0] ? "לא זמין" : `${commercialScore}/100`}
+          badgeTone={errors[0] ? "warn" : scoreTone(commercialScore)}
           actions={<><Link className="button primary" href="/dashboard/admin/growth">Growth</Link><Link className="button secondary" href="/dashboard/admin/customer-success">Customer Success</Link></>}
         >
           <div className="setup-checklist">
-            <span>Gan Batuach Standard</span>
-            <span>{money(pricing?.base_price_nis ?? 800)} בסיס</span>
-            <span>{money(pricing?.additional_class_price_nis ?? 200)} כיתה נוספת</span>
+            <span>{errors[1] ? "תמחור לא זמין" : "Gan Batuach Standard"}</span>
+            <span>{errors[1] ? "לא זמין" : money(pricing?.base_price_nis ?? 800)} בסיס</span>
+            <span>{errors[1] ? "לא זמין" : money(pricing?.additional_class_price_nis ?? 200)} כיתה נוספת</span>
             <span>חוזים: DRAFT FOR LEGAL REVIEW</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני המוכנות המסחרית אינם זמינים כרגע." : null)} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Commercial score" value={`${commercialScore}/100`} hint={label(score?.status)} tone={scoreTone(commercialScore)} />
-          <RoleMetricCard label="Pipeline active" value={activePipeline.length} hint={`${data.pipeline.length} opportunities`} tone={activePipeline.length ? "warn" : "good"} />
-          <RoleMetricCard label="Signed customers" value={signedCustomers} hint="contracts signed" tone={signedCustomers ? "good" : "warn"} />
-          <RoleMetricCard label="Pilot customers" value={pilotCustomers} hint="handoff/onboarding" tone={pilotCustomers ? "warn" : "default"} />
-          <RoleMetricCard label="Trial customers" value={trialCustomers} hint="approved, not active" tone={trialCustomers ? "warn" : "default"} />
-          <RoleMetricCard label="Projected MRR" value={money(forecast?.projected_mrr_nis ?? weightedMrr)} hint={`Pipeline ${money(forecast?.pipeline_value_nis ?? pipelineValue)}`} tone="good" />
-          <RoleMetricCard label="Renewal risks" value={renewalRisks} hint="high/critical" tone={renewalRisks ? "bad" : "good"} />
-          <RoleMetricCard label="Launch checklist" value={`${checklistPct}%`} hint={`${completedChecklist}/${data.checklist.length}`} tone={scoreTone(checklistPct)} />
+          <RoleMetricCard label="Commercial score" value={errors[0] ? "לא זמין" : `${commercialScore}/100`} hint={errors[0] ? "לא זמין" : label(score?.status)} tone={errors[0] ? "warn" : scoreTone(commercialScore)} />
+          <RoleMetricCard label="Pipeline active" value={errors[3] ? "לא זמין" : activePipeline.length} hint={errors[3] ? "לא זמין" : `${data.pipeline.length} opportunities`} tone={errors[3] || activePipeline.length ? "warn" : "good"} />
+          <RoleMetricCard label="Signed customers" value={errors[6] ? "לא זמין" : signedCustomers} hint="contracts signed" tone={errors[6] ? "warn" : signedCustomers ? "good" : "warn"} />
+          <RoleMetricCard label="Pilot customers" value={errors[3] ? "לא זמין" : pilotCustomers} hint="handoff/onboarding" tone={errors[3] || pilotCustomers ? "warn" : "default"} />
+          <RoleMetricCard label="Trial customers" value={errors[3] ? "לא זמין" : trialCustomers} hint="approved, not active" tone={errors[3] || trialCustomers ? "warn" : "default"} />
+          <RoleMetricCard label="Projected MRR" value={projectedMrrAvailable ? money(forecast?.projected_mrr_nis ?? weightedMrr) : "לא זמין"} hint={`Pipeline ${forecastPipelineAvailable ? money(forecast?.pipeline_value_nis ?? pipelineValue) : "לא זמין"}`} tone={projectedMrrAvailable ? "good" : "warn"} />
+          <RoleMetricCard label="Renewal risks" value={errors[14] || errors[15] ? "לא זמין" : renewalRisks} hint="high/critical" tone={errors[14] || errors[15] ? "warn" : renewalRisks ? "bad" : "good"} />
+          <RoleMetricCard label="Launch checklist" value={errors[19] ? "לא זמין" : `${checklistPct}%`} hint={errors[19] ? "לא זמין" : `${completedChecklist}/${data.checklist.length}`} tone={errors[19] ? "warn" : scoreTone(checklistPct)} />
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Pricing Model Center" subtitle="תמחור Gan Batuach Standard, בלי add-ons מפוצלים לערך המרכזי.">
+            {errors[1] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <article className="card procedure-card">
               <div>
                 <StatusBadge tone="good">{pricing?.package_name ?? "Gan Batuach Standard"}</StatusBadge>
@@ -165,9 +172,11 @@ export default async function CommercialLaunchPage() {
                 <StatusBadge tone="default">ILS</StatusBadge>
               </div>
             </article>
+            )}
           </CleanSection>
 
           <CleanSection title="Package Positioning" subtitle="חבילה אחת ברורה: ניהול, אמון, ציות, תשלומים, מוכנות מצלמות ו־AI.">
+            {errors[2] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {data.packages.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.package_key}>
@@ -179,11 +188,12 @@ export default async function CommercialLaunchPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
         </section>
 
         <CleanSection title="Sales Opportunity Dashboard" subtitle="הזדמנויות פתוחות, הכנסה צפויה, הסתברות ופעולת מעקב.">
-          {data.pipeline.length === 0 ? <EmptyState title="אין הזדמנויות מסחריות" text="Pipeline מסחרי יופיע כאן לאחר הפעלת המיגרציה או יצירת לידים." /> : (
+          {errors[3] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.pipeline.length === 0 ? <EmptyState title="אין הזדמנויות מסחריות" text="Pipeline מסחרי יופיע כאן לאחר הפעלת המיגרציה או יצירת לידים." /> : (
             <div className="procedure-list">
               {data.pipeline.map((item) => (
                 <article className="card procedure-card" key={item.id ?? item.opportunity_key}>
@@ -206,26 +216,27 @@ export default async function CommercialLaunchPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Demo / Proposal / Contract" subtitle="דמו, הצעה וחוזה נשארים מוכנות מסחרית עד אישור משפטי.">
             <div className="camera-infra-list">
-              <article className="camera-infra-row"><div><strong>Demo lifecycle</strong><span>{data.demos.length} demos · follow-up and outcome tracking</span></div><StatusBadge tone="warn">{data.demos.filter((demo) => demo.status === "follow_up_needed").length} follow-up</StatusBadge></article>
-              <article className="camera-infra-row"><div><strong>Offer generator</strong><span>{data.offers.length} PDF-ready offer summaries</span></div><StatusBadge tone="good">{data.offers.filter((offer) => offer.pdf_ready).length} ready</StatusBadge></article>
-              <article className="camera-infra-row"><div><strong>Contract readiness</strong><span>{data.contracts.length} contracts · legal review required</span></div><StatusBadge tone={contractReady ? "warn" : "bad"}>{contractReady} in motion</StatusBadge></article>
-              <article className="camera-infra-row"><div><strong>SLA readiness</strong><span>{data.slas.length} service scope and limitations records</span></div><StatusBadge tone="warn">review</StatusBadge></article>
+              <article className="camera-infra-row"><div><strong>Demo lifecycle</strong><span>{errors[4] ? "לא זמין" : `${data.demos.length} demos · follow-up and outcome tracking`}</span></div><StatusBadge tone="warn">{errors[4] ? "לא זמין" : `${data.demos.filter((demo) => demo.status === "follow_up_needed").length} follow-up`}</StatusBadge></article>
+              <article className="camera-infra-row"><div><strong>Offer generator</strong><span>{errors[5] ? "לא זמין" : `${data.offers.length} PDF-ready offer summaries`}</span></div><StatusBadge tone={errors[5] ? "warn" : "good"}>{errors[5] ? "לא זמין" : `${data.offers.filter((offer) => offer.pdf_ready).length} ready`}</StatusBadge></article>
+              <article className="camera-infra-row"><div><strong>Contract readiness</strong><span>{errors[6] ? "לא זמין" : `${data.contracts.length} contracts · legal review required`}</span></div><StatusBadge tone={errors[6] ? "warn" : contractReady ? "warn" : "bad"}>{errors[6] ? "לא זמין" : `${contractReady} in motion`}</StatusBadge></article>
+              <article className="camera-infra-row"><div><strong>SLA readiness</strong><span>{errors[7] ? "לא זמין" : `${data.slas.length} service scope and limitations records`}</span></div><StatusBadge tone="warn">{errors[7] ? "לא זמין" : "review"}</StatusBadge></article>
             </div>
           </CleanSection>
 
           <CleanSection title="Revenue Forecasting" subtitle="MRR, ARR, pipeline value and conversion assumptions.">
             <div className="camera-infra-kpis">
-              <RoleMetricCard label="Current MRR" value={money(forecast?.current_mrr_nis)} />
-              <RoleMetricCard label="Projected MRR" value={money(forecast?.projected_mrr_nis ?? weightedMrr)} tone="good" />
-              <RoleMetricCard label="Current ARR" value={money(forecast?.current_arr_nis)} />
-              <RoleMetricCard label="Projected ARR" value={money(forecast?.projected_arr_nis ?? weightedMrr * 12)} tone="good" />
+              <RoleMetricCard label="Current MRR" value={errors[16] ? "לא זמין" : money(forecast?.current_mrr_nis)} tone={errors[16] ? "warn" : "default"} />
+              <RoleMetricCard label="Projected MRR" value={projectedMrrAvailable ? money(forecast?.projected_mrr_nis ?? weightedMrr) : "לא זמין"} tone={projectedMrrAvailable ? "good" : "warn"} />
+              <RoleMetricCard label="Current ARR" value={errors[16] ? "לא זמין" : money(forecast?.current_arr_nis)} tone={errors[16] ? "warn" : "default"} />
+              <RoleMetricCard label="Projected ARR" value={projectedArrAvailable ? money(forecast?.projected_arr_nis ?? weightedMrr * 12) : "לא זמין"} tone={projectedArrAvailable ? "good" : "warn"} />
             </div>
-            <p className="help-text">ARPK: {money(metrics?.average_revenue_per_kindergarten_nis ?? 800)} · average classes {metrics?.average_classes_per_kindergarten ?? 1}</p>
+            <p className="help-text">ARPK: {errors[17] ? "לא זמין" : money(metrics?.average_revenue_per_kindergarten_nis ?? 800)} · average classes {errors[17] ? "לא זמין" : metrics?.average_classes_per_kindergarten ?? 1}</p>
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Customer Success Handoff" subtitle="מה עובר ממכירות לקליטה ותמיכה אחרי סגירה.">
+            {errors[9] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {data.handoffs.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.handoff_key}>
@@ -237,9 +248,11 @@ export default async function CommercialLaunchPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="Onboarding & Sales Tasks" subtitle="משימות follow-up, הצעה, תשלום, קליטה, הדרכה וחידוש.">
+            {errors[18] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {openTasks.map((task) => (
                 <article className="camera-infra-row" key={task.id ?? task.task_key}>
@@ -252,21 +265,24 @@ export default async function CommercialLaunchPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Collateral, Demo Scripts & Objections" subtitle="חומרי מכירה פנימיים בשפה פשוטה ולא טכנית.">
             <div className="premium-action-grid">
-              <ActionCard icon={BriefcaseBusiness} title="Collateral" text={`${data.collateral.length} sales and onboarding items`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
-              <ActionCard icon={Target} title="Demo scripts" text={`${data.scripts.length} audience scripts`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
-              <ActionCard icon={Handshake} title="Objections" text={`${data.objections.length} clear answers`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
-              <ActionCard icon={PackageCheck} title="Referral readiness" text={`${data.referrals.length} referral tracks, not active by default`} href="/dashboard/admin/growth" />
+              <ActionCard icon={BriefcaseBusiness} title="Collateral" text={errors[10] ? "לא זמין" : `${data.collateral.length} sales and onboarding items`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
+              <ActionCard icon={Target} title="Demo scripts" text={errors[11] ? "לא זמין" : `${data.scripts.length} audience scripts`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
+              <ActionCard icon={Handshake} title="Objections" text={errors[12] ? "לא זמין" : `${data.objections.length} clear answers`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
+              <ActionCard icon={PackageCheck} title="Referral readiness" text={errors[13] ? "לא זמין" : `${data.referrals.length} referral tracks, not active by default`} href="/dashboard/admin/growth" />
             </div>
           </CleanSection>
 
           <CleanSection title="Renewal & Churn Risk" subtitle="חידושים, בריאות לקוח וסיכוני נטישה לפני launch מסחרי.">
-            {data.renewals.length === 0 && data.churn.length === 0 ? <EmptyState title="אין סיכוני חידוש פעילים" text="סיכונים יופיעו לאחר לקוחות משלמים או סימני churn." /> : (
+            {errors[14] && <div className="empty-state">נתוני החידוש אינם זמינים כרגע</div>}
+            {errors[15] && <div className="empty-state">נתוני הנטישה אינם זמינים כרגע</div>}
+            {data.renewals.length === 0 && data.churn.length === 0 && !errors[14] && !errors[15] ? <EmptyState title="אין סיכוני חידוש פעילים" text="סיכונים יופיעו לאחר לקוחות משלמים או סימני churn." /> : (
               <div className="camera-infra-list">
                 {[...data.renewals, ...data.churn].slice(0, 8).map((item) => (
                   <article className="camera-infra-row" key={item.id ?? item.renewal_key ?? item.signal_key}>
@@ -283,6 +299,7 @@ export default async function CommercialLaunchPage() {
         </section>
 
         <CleanSection title="Commercial Launch Checklist" subtitle="מה חייב לעבוד לפני מכירה מסחרית רחבה.">
+          {errors[19] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
           <div className="procedure-list">
             {data.checklist.map((item) => (
               <article className="card procedure-card" key={item.id ?? item.checklist_key}>
@@ -298,13 +315,14 @@ export default async function CommercialLaunchPage() {
               </article>
             ))}
           </div>
+          )}
         </CleanSection>
 
         <CleanSection title="Commercial AI Assistant Readiness" subtitle="שאלות שהדשבורד יכול לענות עליהן מתוך CRM/growth data בלבד.">
           <div className="premium-action-grid">
-            <ActionCard icon={CalendarClock} title="Follow-up today" text={`${openTasks.length} open commercial tasks`} href="/dashboard/admin/commercial-launch" />
-            <ActionCard icon={LineChart} title="Projected MRR" text={money(forecast?.projected_mrr_nis ?? weightedMrr)} href="/dashboard/admin/billing" />
-            <ActionCard icon={RefreshCcw} title="Renewal risk" text={`${renewalRisks} high/critical risks`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={CalendarClock} title="Follow-up today" text={errors[18] ? "לא זמין" : `${openTasks.length} open commercial tasks`} href="/dashboard/admin/commercial-launch" />
+            <ActionCard icon={LineChart} title="Projected MRR" text={projectedMrrAvailable ? money(forecast?.projected_mrr_nis ?? weightedMrr) : "לא זמין"} href="/dashboard/admin/billing" />
+            <ActionCard icon={RefreshCcw} title="Renewal risk" text={errors[14] || errors[15] ? "לא זמין" : `${renewalRisks} high/critical risks`} href="/dashboard/admin/customer-success" />
             <ActionCard icon={UsersRound} title="Strongest demand" text="Use parent demand clusters in Growth" href="/dashboard/admin/growth" />
           </div>
         </CleanSection>
