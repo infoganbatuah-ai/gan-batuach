@@ -700,6 +700,13 @@
         "--test",
         "scripts/qa/check-scale-validation-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "company-operations-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-company-operations-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
