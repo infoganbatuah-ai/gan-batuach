@@ -126,7 +126,8 @@
     { "name": "push43-oem-sdk-contract", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
     { "name": "push44-mobile-runtime-contract", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
     { "name": "push45-privacy-compliance", "args": ["scripts/qa/check-digital-observer-push45.mjs"] },
-    { "name": "pilot-query-failure-boundary", "args": ["--test", "scripts/qa/check-pilot-query-failure-boundary.mjs"] }
+    { "name": "pilot-query-failure-boundary", "args": ["--test", "scripts/qa/check-pilot-query-failure-boundary.mjs"] },
+    { "name": "privacy-rights-query-boundary", "args": ["--test", "scripts/qa/check-privacy-rights-query-boundary.mjs"] }
   ],
   "security": [
     { "name": "push44-ch1-private-media", "args": ["--test", "scripts/qa/check-push44-ch1-private-media.mjs"] },

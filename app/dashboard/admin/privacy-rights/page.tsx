@@ -160,15 +160,25 @@ export default async function AdminPrivacyRightsPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("privacy rights", async () => {
     const supabase = await createClient();
+    async function safeQuery<T>(index: number, run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+      try {
+        const query = await run();
+        logSupabaseError(`privacy rights query ${index}`, query.error);
+        return { data: query.error ? [] as T[] : query.data ?? [], available: !query.error };
+      } catch (error) {
+        logSupabaseError(`privacy rights query ${index}`, error);
+        return { data: [] as T[], available: false };
+      }
+    }
     const [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes] = await Promise.all([
-      supabase.from("privacy_rights_requests" as any).select("*, requester:requested_by(full_name,email,role), child:child_id(full_name), garden:garden_id(name,city)").order("created_at", { ascending: false }).limit(160),
-      supabase.from("legal_holds" as any).select("*").order("created_at", { ascending: false }).limit(120),
-      supabase.from("data_retention_policies" as any).select("*").order("data_category").limit(120),
-      supabase.from("privacy_request_scope_items" as any).select("*").order("created_at", { ascending: false }).limit(300),
-      supabase.from("privacy_execution_actions" as any).select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("retention_review_queue" as any).select("*").order("due_at", { ascending: true }).limit(120)
+      safeQuery(0, () => supabase.from("privacy_rights_requests" as any).select("*, requester:requested_by(full_name,email,role), child:child_id(full_name), garden:garden_id(name,city)").order("created_at", { ascending: false }).limit(160)),
+      safeQuery(1, () => supabase.from("legal_holds" as any).select("*").order("created_at", { ascending: false }).limit(120)),
+      safeQuery(2, () => supabase.from("data_retention_policies" as any).select("*").order("data_category").limit(120)),
+      safeQuery(3, () => supabase.from("privacy_request_scope_items" as any).select("*").order("created_at", { ascending: false }).limit(300)),
+      safeQuery(4, () => supabase.from("privacy_execution_actions" as any).select("*").order("created_at", { ascending: false }).limit(200)),
+      safeQuery(5, () => supabase.from("retention_review_queue" as any).select("*").order("due_at", { ascending: true }).limit(120))
     ]);
-    [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes].forEach((query, index) => logSupabaseError(`privacy rights query ${index}`, (query as any).error));
+    const available = [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes].map((query) => query.available);
     return {
       requests: requestsRes.data ?? [],
       holds: holdsRes.data ?? [],
@@ -176,11 +186,12 @@ export default async function AdminPrivacyRightsPage() {
       scope: scopeRes.data ?? [],
       execution: executionRes.data ?? [],
       queue: queueRes.data ?? [],
-      queryError: [requestsRes.error, holdsRes.error, policiesRes.error, scopeRes.error, executionRes.error, queueRes.error].some(Boolean)
-        ? "חלק מנתוני זכויות הפרטיות לא נטענו. ייתכן שמיגרציית Phase 156 עדיין לא הורצה."
+      available,
+      queryError: available.some((value) => !value)
+        ? "חלק מנתוני זכויות הפרטיות אינם זמינים. אין להסיק מכך שאין בקשות או חובות שימור."
         : null
     };
-  }, { requests: [] as any[], holds: [] as any[], policies: [] as any[], scope: [] as any[], execution: [] as any[], queue: [] as any[], queryError: null as string | null });
+  }, { requests: [] as any[], holds: [] as any[], policies: [] as any[], scope: [] as any[], execution: [] as any[], queue: [] as any[], available: Array<boolean>(6).fill(false), queryError: null as string | null });
 
   const requests = result.data.requests;
   const open = requests.filter((request: any) => !["completed", "rejected", "cancelled"].includes(String(request.status))).length;
@@ -197,6 +208,9 @@ export default async function AdminPrivacyRightsPage() {
     scopeByRequest.set(item.privacy_request_id, list);
   }
 
+  const known = (...indices: number[]) => indices.every((index) => result.data.available[index]);
+  const unavailable = "לא זמין";
+
   return (
     <DashboardShell role="admin" title="Privacy Rights">
       <div className="dashboard-hero-card admin-hero-card">
@@ -206,27 +220,29 @@ export default async function AdminPrivacyRightsPage() {
           <p>גישה, תיקון, ייצוא, מחיקה, אנונימיזציה ו-legal hold עם בדיקה אנושית מלאה וללא מחיקה עיוורת.</p>
         </div>
         <div className="profile-actions">
-          <span className={`pill ${scoreTone(readiness)}`}>{readiness}/100</span>
+          <span className={`pill ${known(0, 1, 2) ? scoreTone(readiness) : "default"}`}>{known(0, 1, 2) ? `${readiness}/100` : unavailable}</span>
           <span className="pill warn">No automatic deletion</span>
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
+      <p className="muted">תצוגת מטא־נתונים בלבד, לא הוכחת אכיפת פרטיות או עמידה בדין. No automatic deletion ו־Safe Deletion Rules הן דרישות וכוונות תכנון, לא הוכחת ביצוע מחיקה, שימור או legal hold.</p>
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="Open requests" value={open} tone={open ? "warn" : "good"} />
-        <StatCard label="Deletion / anonymization" value={deletion} tone={deletion ? "bad" : "good"} />
-        <StatCard label="Export requests" value={exportRequests} tone={exportRequests ? "warn" : "good"} />
-        <StatCard label="Active legal holds" value={activeHolds} tone={activeHolds ? "bad" : "good"} />
-        <StatCard label="Retention policies" value={result.data.policies.length} tone="good" />
-        <StatCard label="Legal review policies" value={legalReviewPolicies} tone={legalReviewPolicies ? "warn" : "good"} />
-        <StatCard label="Scoped requests" value={scoped} tone={scoped ? "good" : "warn"} />
-        <StatCard label="Retention queue" value={result.data.queue.length} tone={result.data.queue.length ? "warn" : "good"} />
+        <StatCard label="Open requests" value={known(0) ? open : unavailable} tone={known(0) ? open ? "warn" : "good" : "default"} />
+        <StatCard label="Deletion / anonymization" value={known(0) ? deletion : unavailable} tone={known(0) ? deletion ? "bad" : "good" : "default"} />
+        <StatCard label="Export requests" value={known(0) ? exportRequests : unavailable} tone={known(0) ? exportRequests ? "warn" : "good" : "default"} />
+        <StatCard label="Active legal holds" value={known(1) ? activeHolds : unavailable} tone={known(1) ? activeHolds ? "bad" : "good" : "default"} />
+        <StatCard label="Retention policies" value={known(2) ? result.data.policies.length : unavailable} tone={known(2) ? "good" : "default"} />
+        <StatCard label="Legal review policies" value={known(2) ? legalReviewPolicies : unavailable} tone={known(2) ? legalReviewPolicies ? "warn" : "good" : "default"} />
+        <StatCard label="Scoped requests" value={known(0) ? scoped : unavailable} tone={known(0) ? scoped ? "good" : "warn" : "default"} />
+        <StatCard label="Retention queue" value={known(5) ? result.data.queue.length : unavailable} tone={known(5) ? result.data.queue.length ? "warn" : "good" : "default"} />
       </section>
 
       <section className="grid cols-3 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><Archive size={20} /> Retention Registry</h2><p>מדיניות לפי קטגוריית מידע.</p></div>
           <div className="procedure-list compact-list">
+            {!known(2) && <p>{unavailable}</p>}
             {result.data.policies.slice(0, 12).map((policy: any) => (
               <div className="mini-row" key={policy.id}>
                 <span>{policy.title}</span>
@@ -239,7 +255,7 @@ export default async function AdminPrivacyRightsPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Gavel size={20} /> Legal Holds</h2><p>חסימות מחיקה בשל ראיות וחובות שימור.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.holds.length === 0 ? <div className="empty-mini">אין legal holds פעילים.</div> : result.data.holds.slice(0, 10).map((hold: any) => (
+            {!known(1) ? <div className="empty-mini">{unavailable}</div> : result.data.holds.length === 0 ? <div className="empty-mini">אין legal holds פעילים.</div> : result.data.holds.slice(0, 10).map((hold: any) => (
               <div className="mini-row" key={hold.id}>
                 <span>{hold.hold_reason}</span>
                 <strong className={`pill ${statusTone(hold.status)}`}>{hold.status}</strong>
@@ -261,7 +277,7 @@ export default async function AdminPrivacyRightsPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2><UserCheck size={20} /> Privacy Requests</h2><p>Review, scope, legal hold and completion workflow.</p></div>
-        {requests.length === 0 ? <div className="empty-state"><strong>No privacy requests</strong><span>User requests will appear here.</span></div> : <div className="procedure-list">
+        {!known(0) ? <div className="empty-state">{unavailable}</div> : requests.length === 0 ? <div className="empty-state"><strong>No privacy requests</strong><span>User requests will appear here.</span></div> : <div className="procedure-list">
           {requests.map((request: any) => {
             const requestScope = scopeByRequest.get(request.id) ?? [];
             return (
@@ -273,7 +289,7 @@ export default async function AdminPrivacyRightsPage() {
                   <small>
                     {request.requester?.full_name ?? "Unknown user"} · {request.garden?.name ?? "No garden"} · {request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""}
                   </small>
-                  {requestScope.length ? <div className="risk-list">
+                  {!known(3) ? <div className="risk-list">היקף בקשה: {unavailable}</div> : requestScope.length ? <div className="risk-list">
                     <div>Scoped tables <b>{requestScope.length}</b></div>
                     <div>Records <b>{requestScope.reduce((sum, item) => sum + Number(item.estimated_record_count ?? 0), 0)}</b></div>
                     <div>Retention blocks <b>{requestScope.filter((item) => item.blocked_by_retention).length}</b></div>
