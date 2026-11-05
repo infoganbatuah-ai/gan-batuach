@@ -134,7 +134,7 @@ test("primary Settings keeps replacement, never offers removal, and saves the ex
   assert.equal(app.requests[0].payload.profile_image_url, photoUrl);
 });
 
-test("primary Settings still blocks a no-photo save and accepts a replacement upload", async () => {
+test("primary Settings saves other profile fields without a photo and accepts a later upload", async () => {
   const app = renderActual(primary, "SettingsPrimaryProfileForm", {
     profile: { full_name: fields.full_name, profile_image_url: null },
     email: "test@example.invalid",
@@ -143,15 +143,15 @@ test("primary Settings still blocks a no-photo save and accepts a replacement up
   let tree = app.render();
   assert.equal(uploadOf(tree).props.label, "העלאת תמונה");
   await submit(tree);
-  assert.equal(app.requests.length, 0);
-  assert.ok(nodes(app.render(), (node) => node.props?.role === "alert").length);
+  assert.equal(app.requests.length, 1);
+  assert.equal("profile_image_url" in app.requests[0].payload, false);
   uploadOf(tree).props.onUploaded(replacementUrl);
   tree = app.render();
   assert.equal(uploadOf(tree).props.label, "החלפת תמונה");
   assert.equal(removeButtons(tree).length, 0);
   await submit(tree);
-  assert.equal(app.requests.length, 1);
-  assert.equal(app.requests[0].payload.profile_image_url, replacementUrl);
+  assert.equal(app.requests.length, 2);
+  assert.equal(app.requests[1].payload.profile_image_url, replacementUrl);
 });
 
 test("generic required-photo form hides removal but still allows replacement", async () => {
