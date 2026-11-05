@@ -868,6 +868,13 @@
         "--test",
         "scripts/qa/check-admin-inspector-applications-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-kindergarten-applications-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-kindergarten-applications-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

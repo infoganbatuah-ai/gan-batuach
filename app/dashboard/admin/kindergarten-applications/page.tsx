@@ -56,16 +56,23 @@ export default async function AdminKindergartenApplicationsPage() {
   const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("kindergarten applications", async () => {
     const supabase = await createClient();
+    async function settle<T>(label: string, query: () => PromiseLike<{ data: T | null; error: unknown }>) {
+      const settled = await safeAdminData(label, async () => {
+        const response = await query();
+        logSupabaseError(label, response.error);
+        return { data: response.error ? null : response.data, available: !response.error };
+      }, { data: null, available: false });
+      return settled.data;
+    }
     const [gardensRes, onboardingRes, feeGroupsRes, ageSetupsRes, documentsRes, profilesRes, subscriptionsRes] = await Promise.all([
-      supabase.from("gardens" as any).select("id,name,city,address,phone,email,owner_name,status,approval_flow_status,final_approval_status,manager_id,public_profile_enabled,admin_correction_note,created_at").in("approval_flow_status", ["activation_in_progress", "onboarding_submitted", "pending_final_approval", "correction_required", "payment_pending", "active", "suspended", "archived"]).order("created_at", { ascending: false }).limit(250),
-      supabase.from("kindergarten_onboarding_records" as any).select("*").order("updated_at", { ascending: false }).limit(250),
-      supabase.from("kindergarten_fee_groups" as any).select("id,garden_id,group_name,age_range,monthly_fee,show_price_public,capacity,active").order("group_name").limit(1000),
-      supabase.from("kindergarten_age_group_setups" as any).select("garden_id,age_group,children_count,monthly_child_price,annual_child_price,billing_cycle").limit(1000),
-      supabase.from("documents" as any).select("id,garden_id,name,document_type,status").limit(1000),
-      supabase.from("profiles" as any).select("id,full_name,phone,email,self_service_role,self_service_status,active").limit(1000),
-      supabase.from("kindergarten_subscriptions" as any).select("id,garden_id,status,billing_status,metadata,created_at").limit(500)
+      settle("kindergarten applications gardens", () => supabase.from("gardens" as any).select("id,name,city,address,phone,email,owner_name,status,approval_flow_status,final_approval_status,manager_id,public_profile_enabled,admin_correction_note,created_at").in("approval_flow_status", ["activation_in_progress", "onboarding_submitted", "pending_final_approval", "correction_required", "payment_pending", "active", "suspended", "archived"]).order("created_at", { ascending: false }).limit(250)),
+      settle("kindergarten applications onboarding", () => supabase.from("kindergarten_onboarding_records" as any).select("*").order("updated_at", { ascending: false }).limit(250)),
+      settle("kindergarten applications fees", () => supabase.from("kindergarten_fee_groups" as any).select("id,garden_id,group_name,age_range,monthly_fee,show_price_public,capacity,active").order("group_name").limit(1000)),
+      settle("kindergarten applications ages", () => supabase.from("kindergarten_age_group_setups" as any).select("garden_id,age_group,children_count,monthly_child_price,annual_child_price,billing_cycle").limit(1000)),
+      settle("kindergarten applications documents", () => supabase.from("documents" as any).select("id,garden_id,name,document_type,status").limit(1000)),
+      settle("kindergarten applications profiles", () => supabase.from("profiles" as any).select("id,full_name,phone,email,self_service_role,self_service_status,active").limit(1000)),
+      settle("kindergarten applications subscriptions", () => supabase.from("kindergarten_subscriptions" as any).select("id,garden_id,status,billing_status,metadata,created_at").limit(500))
     ]);
-    [gardensRes, onboardingRes, feeGroupsRes, ageSetupsRes, documentsRes, profilesRes, subscriptionsRes].forEach((query, index) => logSupabaseError(`kindergarten applications ${index}`, (query as any).error));
     const onboardingByGarden = new Map((onboardingRes.data ?? []).map((item: any) => [item.garden_id, item]));
     const profilesById = new Map((profilesRes.data ?? []).map((item: any) => [item.id, item]));
     const subscriptionsByGarden = new Map((subscriptionsRes.data ?? []).map((item: any) => [item.garden_id, item]));
@@ -92,11 +99,14 @@ export default async function AdminKindergartenApplicationsPage() {
     }));
     return {
       rows,
-      queryError: [gardensRes.error, onboardingRes.error, feeGroupsRes.error, ageSetupsRes.error, documentsRes.error, profilesRes.error, subscriptionsRes.error].some(Boolean) ? "חלק מנתוני בקשות הגנים לא נטענו" : null
+      available: { gardens: gardensRes.available, onboarding: onboardingRes.available, fees: feeGroupsRes.available, ages: ageSetupsRes.available, documents: documentsRes.available, profiles: profilesRes.available, subscriptions: subscriptionsRes.available },
+      queryError: [gardensRes, onboardingRes, feeGroupsRes, ageSetupsRes, documentsRes, profilesRes, subscriptionsRes].some((source) => !source.available) ? "חלק מנתוני בקשות הגנים לא נטענו" : null
     };
-  }, { rows: [] as any[], queryError: null as string | null });
+  }, { rows: [] as any[], available: { gardens: false, onboarding: false, fees: false, ages: false, documents: false, profiles: false, subscriptions: false }, queryError: null as string | null });
 
   const rows = result.data.rows;
+  const available = result.data.available;
+  const progressAvailable = available.gardens && available.onboarding;
   const pendingReview = rows.filter((row) => ["onboarding_submitted", "pending_final_approval"].includes(String(row.approval_flow_status))).length;
   const paymentPending = rows.filter((row) => row.approval_flow_status === "payment_pending").length;
   const active = rows.filter((row) => row.approval_flow_status === "active").length;
@@ -113,23 +123,25 @@ export default async function AdminKindergartenApplicationsPage() {
             icon={ClipboardCheck}
             action={<><Link className="admin-link-button" href="/dashboard/admin/kindergarten-activation">מרכז הפעלה</Link><Link className="admin-link-button" href="/dashboard/admin/billing">חיוב</Link></>}
           />
-          <StatusChip tone={progressTone(avgProgress)}>{avgProgress}% התקדמות ממוצעת</StatusChip>
+          <StatusChip tone={progressAvailable ? progressTone(avgProgress) : "muted"}>{progressAvailable ? `${avgProgress}% התקדמות ממוצעת` : "התקדמות ממוצעת לא זמינה"}</StatusChip>
         </PremiumCard>
         <AdminDataError message={result.error ?? result.data.queryError} />
 
         <DashboardGrid columns={4}>
-          <MetricCard label="רישומים ישנים לבדיקה" value={pendingReview} hint="Legacy בלבד; לא שער בזרימה החדשה" tone={pendingReview ? "warning" : "success"} icon={ClipboardCheck} />
-          <MetricCard label="לקראת הסדרת מנוי" value={paymentPending} hint="Trial / ספק תשלום" tone={paymentPending ? "warning" : "success"} icon={CreditCard} />
-          <MetricCard label="פעילות או בניסיון" value={active} hint="סטטוס הגן פעיל" tone="success" icon={ShieldCheck} />
-          <MetricCard label="התקדמות ממוצעת" value={`${avgProgress}%`} hint="אשף מנהלת" tone={progressTone(avgProgress)} icon={ClipboardCheck} />
+          <MetricCard label="רישומים ישנים לבדיקה" value={available.gardens ? pendingReview : "לא זמין"} hint="Legacy בלבד; לא שער בזרימה החדשה" tone={available.gardens ? pendingReview ? "warning" : "success" : "muted"} icon={ClipboardCheck} />
+          <MetricCard label="לקראת הסדרת מנוי" value={available.gardens ? paymentPending : "לא זמין"} hint="Trial / ספק תשלום" tone={available.gardens ? paymentPending ? "warning" : "success" : "muted"} icon={CreditCard} />
+          <MetricCard label="פעילות או בניסיון" value={available.gardens ? active : "לא זמין"} hint="סטטוס הגן פעיל" tone={available.gardens ? "success" : "muted"} icon={ShieldCheck} />
+          <MetricCard label="התקדמות ממוצעת" value={progressAvailable ? `${avgProgress}%` : "לא זמין"} hint="אשף מנהלת" tone={progressAvailable ? progressTone(avgProgress) : "muted"} icon={ClipboardCheck} />
         </DashboardGrid>
 
         <PremiumCard className="admin-section-card" size="lg">
           <SectionHeader title="גנים בתהליך קליטה" subtitle="הורים רואים רק גנים פעילים שהמנהלת בחרה לפרסם. סטטוס ניסיון אינו נספר כהכנסה פעילה." icon={ClipboardCheck} />
-          {rows.length === 0 ? <EmptyState title="אין בקשות גנים" text="בקשות מרישום עצמי או המרת ליד יופיעו כאן." /> : (
+          {!available.gardens ? <p className="empty-state">נתוני בקשות הגנים אינם זמינים כרגע.</p> : rows.length === 0 ? <EmptyState title="אין בקשות גנים" text="בקשות מרישום עצמי או המרת ליד יופיעו כאן." /> : (
             <div className="procedure-list">
               {rows.map((row) => {
                 const visiblePrices = row.feeGroups.filter((group: any) => group.show_price_public && group.active);
+                const groupsAvailable = available.ages && (row.ageSetups.length > 0 || available.fees);
+                const amountAvailable = available.onboarding && (row.onboarding?.subscription_monthly_amount != null || available.subscriptions);
                 return (
                   <article className="card procedure-card" key={row.id}>
                     <div>
@@ -137,23 +149,23 @@ export default async function AdminKindergartenApplicationsPage() {
                       <h3>{row.name}</h3>
                       <p>{row.city ?? "עיר לא צוינה"} · {row.address ?? "כתובת לא צוינה"} · נוצר {dateText(row.created_at)}</p>
                       <div className="lead-conversion-meta">
-                        <span>מנהלת: {row.manager?.full_name ?? row.owner_name ?? "לא צוינה"}</span>
-                        <span>חשבון מנהלת: {row.manager?.active ? "פעיל" : "דורש טיפול"}</span>
-                      <span>מסמכים: {row.documents.length}</span>
-                        <span>מנוי: {formatApprovalStatus(row.subscription?.status) ?? "לא נוצר"}</span>
-                        <span>מחיר גן בטוח לאחר ניסיון: {money(row.onboarding?.subscription_monthly_amount ?? row.subscription?.metadata?.monthly_amount_nis ?? 700)}/חודש</span>
+                        <span>מנהלת: {available.profiles ? row.manager?.full_name ?? row.owner_name ?? "לא צוינה" : "לא זמין"}</span>
+                        <span>חשבון מנהלת: {available.profiles ? row.manager?.active ? "פעיל" : "דורש טיפול" : "לא זמין"}</span>
+                      <span>מסמכים: {available.documents ? row.documents.length : "לא זמין"}</span>
+                        <span>מנוי: {available.subscriptions ? formatApprovalStatus(row.subscription?.status) ?? "לא נוצר" : "לא זמין"}</span>
+                        <span>מחיר גן בטוח לאחר ניסיון: {amountAvailable ? `${money(row.onboarding?.subscription_monthly_amount ?? row.subscription?.metadata?.monthly_amount_nis ?? 700)}/חודש` : "לא זמין"}</span>
                       </div>
                       <div className="grid cols-2 dashboard-panels">
                         <article className="card action-panel">
                           <h4><ClipboardCheck size={16} /> קבוצות וכיתות</h4>
-                          {(row.ageSetups.length ? row.ageSetups : row.feeGroups).slice(0, 6).map((item: any) => (
+                          {groupsAvailable ? (row.ageSetups.length ? row.ageSetups : row.feeGroups).slice(0, 6).map((item: any) => (
                             <p key={`${item.age_group ?? item.group_name}-${item.id ?? ""}`}>{item.age_group ?? item.group_name} · קיבולת {item.children_count ?? item.capacity ?? 0} · {money(item.monthly_child_price ?? item.monthly_fee ?? 0)}</p>
-                          ))}
-                          {!row.ageSetups.length && !row.feeGroups.length ? <p>טרם הוגדרו קבוצות.</p> : null}
+                          )) : <p>נתוני קבוצות אינם זמינים כרגע.</p>}
+                          {groupsAvailable && !row.ageSetups.length && !row.feeGroups.length ? <p>טרם הוגדרו קבוצות.</p> : null}
                         </article>
                         <article className="card action-panel">
                           <h4><CreditCard size={16} /> מחירים להורים</h4>
-                          {visiblePrices.length ? visiblePrices.map((group: any) => <p key={group.id}>{group.group_name}: {money(group.monthly_fee)}/חודש</p>) : <p>אין מחירים שפורסמו להורים.</p>}
+                          {!available.fees ? <p>מחירי הורים אינם זמינים כרגע.</p> : visiblePrices.length ? visiblePrices.map((group: any) => <p key={group.id}>{group.group_name}: {money(group.monthly_fee)}/חודש</p>) : <p>אין מחירים שפורסמו להורים.</p>}
                           <small>זהו שכר לימוד הורה לגן, לא מנוי Gan Batuach.</small>
                         </article>
                       </div>
