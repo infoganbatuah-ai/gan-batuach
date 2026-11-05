@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { rows: result.error ? [] : result.data ?? [], failed: Boolean(result.error) };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { rows: [] as T[], failed: true };
   }
 }
 
@@ -57,7 +57,7 @@ export default async function CommercialRolloutPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("commercial rollout", async () => {
     const supabase = await createClient();
-    const [scores, cohorts, profiles, checklists, payments, adoption, inspections, support, risks, criteria, expansion, feedback, pricing, staffing] = await Promise.all([
+    const queries = await Promise.all([
       safeQuery<Row>("commercial rollout scores", () => supabase.from("commercial_rollout_readiness_scores" as any).select("*, commercial_rollout_cohorts(cohort_name, rollout_status)").order("calculated_at", { ascending: false }).limit(1)),
       safeQuery<Row>("commercial rollout cohorts", () => supabase.from("commercial_rollout_cohorts" as any).select("*").order("start_date", { ascending: true }).limit(50)),
       safeQuery<Row>("commercial rollout kindergarten profiles", () => supabase.from("commercial_rollout_kindergarten_profiles" as any).select("*, commercial_rollout_cohorts(cohort_name, rollout_status)").order("created_at", { ascending: false }).limit(100)),
@@ -73,7 +73,8 @@ export default async function CommercialRolloutPage() {
       safeQuery<Row>("commercial rollout pricing insights", () => supabase.from("commercial_rollout_pricing_insights" as any).select("*").order("created_at", { ascending: false }).limit(40)),
       safeQuery<Row>("commercial rollout staffing forecasts", () => supabase.from("commercial_rollout_staffing_forecasts" as any).select("*").order("forecast_type").order("garden_count").limit(40))
     ]);
-    return { scores, cohorts, profiles, checklists, payments, adoption, inspections, support, risks, criteria, expansion, feedback, pricing, staffing };
+    const [scores, cohorts, profiles, checklists, payments, adoption, inspections, support, risks, criteria, expansion, feedback, pricing, staffing] = queries.map((query) => query.rows);
+    return { scores, cohorts, profiles, checklists, payments, adoption, inspections, support, risks, criteria, expansion, feedback, pricing, staffing, errors: queries.map((query) => query.failed) };
   }, {
     scores: [] as Row[],
     cohorts: [] as Row[],
@@ -88,10 +89,12 @@ export default async function CommercialRolloutPage() {
     expansion: [] as Row[],
     feedback: [] as Row[],
     pricing: [] as Row[],
-    staffing: [] as Row[]
+    staffing: [] as Row[],
+    errors: Array(14).fill(true) as boolean[]
   });
 
   const data = result.data;
+  const errors = data.errors;
   const score = data.scores[0] ?? {};
   const readiness = Number(score.rollout_readiness_score ?? 0);
   const activeProfiles = data.profiles.filter((profile) => !["cancelled", "suspended"].includes(String(profile.subscription_status)));
@@ -105,11 +108,18 @@ export default async function CommercialRolloutPage() {
   const parentMetrics = data.adoption.filter((item) => item.role_area === "parent");
   const staffMetrics = data.adoption.filter((item) => item.role_area === "staff");
   const managerMetrics = data.adoption.filter((item) => item.role_area === "manager");
-  const parentActivation = avg(parentMetrics, "adoption_score") || Number(score.parent_activation_score ?? 0);
-  const staffActivation = avg(staffMetrics, "adoption_score") || Number(score.staff_activation_score ?? 0);
-  const managerAdoption = avg(managerMetrics, "adoption_score") || Number(score.manager_adoption_score ?? 0);
+  const parentActivation = parentMetrics.length ? avg(parentMetrics, "adoption_score") : Number(score.parent_activation_score ?? 0);
+  const staffActivation = staffMetrics.length ? avg(staffMetrics, "adoption_score") : Number(score.staff_activation_score ?? 0);
+  const managerAdoption = managerMetrics.length ? avg(managerMetrics, "adoption_score") : Number(score.manager_adoption_score ?? 0);
   const supportTickets = data.support.reduce((sum, item) => sum + Number(item.tickets_count ?? 0), 0);
   const launchDecision = String(score.launch_decision ?? data.expansion[0]?.decision ?? "not_ready");
+  const decisionAvailable = !errors[0] && (score.launch_decision != null || !errors[10]);
+  const onboardingAvailable = !errors[3] && (data.checklists.length > 0 || !errors[0]);
+  const parentAvailable = !errors[5] && (parentMetrics.length > 0 || !errors[0]);
+  const staffAvailable = !errors[5] && (staffMetrics.length > 0 || !errors[0]);
+  const managerAvailable = !errors[5] && (managerMetrics.length > 0 || !errors[0]);
+  const collectedAvailable = !errors[4] && (data.payments.length > 0 || !errors[0]);
+  const expectedAvailable = !errors[2] && (data.profiles.length > 0 || !errors[0]);
 
   return (
     <DashboardShell role="admin" title="Commercial Rollout">
@@ -118,32 +128,32 @@ export default async function CommercialRolloutPage() {
           eyebrow="First Commercial Rollout"
           title="רולאאוט מסחרי מבוקר ל־10–25 גנים"
           subtitle="מרכז בקרה ללקוחות אמיתיים: קליטה, תשלומים, אימוץ הורים וצוות, פיקוח, תמיכה, סיכונים והכנסות. אין כאן mass launch."
-          badge={`${readiness}/100`}
-          badgeTone={toneForScore(readiness)}
+          badge={errors[0] ? "לא זמין" : `${readiness}/100`}
+          badgeTone={errors[0] ? "warn" : toneForScore(readiness)}
           actions={<><Link className="button primary" href="/dashboard/admin/commercial-launch">Commercial Launch</Link><Link className="button secondary" href="/dashboard/admin/customer-success">Customer Success</Link></>}
         >
           <div className="setup-checklist">
             <span>10–25 kindergartens only</span>
             <span>Controlled rollout</span>
             <span>Revenue validation</span>
-            <span>{label(launchDecision)}</span>
+            <span>{decisionAvailable ? label(launchDecision) : "לא זמין"}</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני הרולאאוט אינם זמינים כרגע." : null)} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Readiness" value={`${readiness}/100`} hint={label(launchDecision)} tone={toneForScore(readiness)} />
-          <RoleMetricCard label="Target gardens" value={targetKindergartens || "10-25"} hint={`${data.cohorts.length} cohorts`} tone="warn" />
-          <RoleMetricCard label="Active rollout" value={activeProfiles.length} hint={`${data.profiles.length} tracked profiles`} tone={activeProfiles.length ? "warn" : "bad"} />
-          <RoleMetricCard label="Onboarding" value={`${onboardingProgress}%`} hint={`${completedChecklist}/${data.checklists.length} checklist`} tone={toneForScore(onboardingProgress)} />
-          <RoleMetricCard label="Parent activation" value={`${parentActivation}%`} hint="target 70%" tone={toneForScore(parentActivation)} />
-          <RoleMetricCard label="Staff activation" value={`${staffActivation}%`} hint="weekly usage" tone={toneForScore(staffActivation)} />
-          <RoleMetricCard label="Revenue collected" value={money(collectedRevenue || score.revenue_collected_nis)} hint={`Expected ${money(expectedRevenue || score.expected_revenue_nis)}`} tone={collectedRevenue ? "good" : "warn"} />
-          <RoleMetricCard label="High risks" value={highRisks.length} hint={`${failedPayments} failed payments`} tone={highRisks.length ? "bad" : "good"} />
+          <RoleMetricCard label="Readiness" value={errors[0] ? "לא זמין" : `${readiness}/100`} hint={decisionAvailable ? label(launchDecision) : "לא זמין"} tone={errors[0] ? "warn" : toneForScore(readiness)} />
+          <RoleMetricCard label="Target gardens" value={errors[1] ? "לא זמין" : data.cohorts.length ? targetKindergartens : "10-25"} hint={errors[1] ? "לא זמין" : `${data.cohorts.length} cohorts`} tone="warn" />
+          <RoleMetricCard label="Active rollout" value={errors[2] ? "לא זמין" : activeProfiles.length} hint={errors[2] ? "לא זמין" : `${data.profiles.length} tracked profiles`} tone={errors[2] ? "warn" : activeProfiles.length ? "warn" : "bad"} />
+          <RoleMetricCard label="Onboarding" value={onboardingAvailable ? `${onboardingProgress}%` : "לא זמין"} hint={errors[3] ? "לא זמין" : `${completedChecklist}/${data.checklists.length} checklist`} tone={onboardingAvailable ? toneForScore(onboardingProgress) : "warn"} />
+          <RoleMetricCard label="Parent activation" value={parentAvailable ? `${parentActivation}%` : "לא זמין"} hint="target 70%" tone={parentAvailable ? toneForScore(parentActivation) : "warn"} />
+          <RoleMetricCard label="Staff activation" value={staffAvailable ? `${staffActivation}%` : "לא זמין"} hint="weekly usage" tone={staffAvailable ? toneForScore(staffActivation) : "warn"} />
+          <RoleMetricCard label="Revenue collected" value={collectedAvailable ? money(data.payments.length ? collectedRevenue : score.revenue_collected_nis) : "לא זמין"} hint={`Expected ${expectedAvailable ? money(data.profiles.length ? expectedRevenue : score.expected_revenue_nis) : "לא זמין"}`} tone={collectedAvailable && collectedRevenue ? "good" : "warn"} />
+          <RoleMetricCard label="High risks" value={errors[8] ? "לא זמין" : highRisks.length} hint={errors[4] ? "לא זמין" : `${failedPayments} failed payments`} tone={errors[8] ? "warn" : highRisks.length ? "bad" : "good"} />
         </section>
 
         <CleanSection title="Rollout Cohorts" subtitle="Batch מבוקר של 10–25 גנים, עם סטטוס, owner ותנאי הצלחה.">
-          {data.cohorts.length === 0 ? <EmptyState title="אין cohorts מסחריים" text="לאחר הרצת המיגרציה יופיע cohort ראשון של 10–25 גנים." /> : (
+          {errors[1] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.cohorts.length === 0 ? <EmptyState title="אין cohorts מסחריים" text="לאחר הרצת המיגרציה יופיע cohort ראשון של 10–25 גנים." /> : (
             <div className="procedure-list">
               {data.cohorts.map((cohort) => (
                 <article className="card procedure-card" key={cohort.id ?? cohort.cohort_key}>
@@ -164,7 +174,7 @@ export default async function CommercialRolloutPage() {
         </CleanSection>
 
         <CleanSection title="Kindergarten Rollout Profiles" subtitle="כל גן מחובר למקור lead/conversion, קליטה, תשלום, פיקוח ותמיכה.">
-          {data.profiles.length === 0 ? <EmptyState title="אין גנים ברולאאוט" /> : (
+          {errors[2] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.profiles.length === 0 ? <EmptyState title="אין גנים ברולאאוט" /> : (
             <div className="procedure-list">
               {data.profiles.map((profile) => {
                 const profileAdoption = data.adoption.filter((item) => item.rollout_profile_id === profile.id);
@@ -180,7 +190,7 @@ export default async function CommercialRolloutPage() {
                     <div className="procedure-meta">
                       <StatusBadge tone={toneForStatus(profile.onboarding_status)}>{label(profile.onboarding_status)}</StatusBadge>
                       <StatusBadge tone={toneForStatus(profile.payment_status)}>{label(profile.payment_status)}</StatusBadge>
-                      <span>{money(profile.expected_monthly_price_nis)} MRR · health {profile.customer_health_score}/100 · risks {profileRisks.length} · adoption {avg(profileAdoption, "adoption_score")}%</span>
+                      <span>{money(profile.expected_monthly_price_nis)} MRR · health {profile.customer_health_score}/100 · risks {errors[8] ? "לא זמין" : profileRisks.length} · adoption {errors[5] ? "לא זמין" : `${avg(profileAdoption, "adoption_score")}%`}</span>
                     </div>
                   </article>
                 );
@@ -191,6 +201,7 @@ export default async function CommercialRolloutPage() {
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Revenue & Payment Validation" subtitle="Gan Batuach subscription נפרד מכספי הורים שמנותבים לגן.">
+            {errors[4] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {data.payments.map((payment) => (
                 <article className="camera-infra-row" key={payment.id ?? payment.validation_key}>
@@ -203,16 +214,17 @@ export default async function CommercialRolloutPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="Adoption Metrics" subtitle="הורים, צוות ומנהלים נמדדים בנפרד.">
             <div className="camera-infra-kpis">
-              <RoleMetricCard label="Manager" value={`${managerAdoption}%`} hint={`${managerMetrics.length} records`} tone={toneForScore(managerAdoption)} />
-              <RoleMetricCard label="Parent" value={`${parentActivation}%`} hint={`${parentMetrics.length} records`} tone={toneForScore(parentActivation)} />
-              <RoleMetricCard label="Staff" value={`${staffActivation}%`} hint={`${staffMetrics.length} records`} tone={toneForScore(staffActivation)} />
-              <RoleMetricCard label="Support tickets" value={supportTickets} hint="rollout support load" tone={supportTickets > 10 ? "bad" : "warn"} />
+              <RoleMetricCard label="Manager" value={managerAvailable ? `${managerAdoption}%` : "לא זמין"} hint={errors[5] ? "לא זמין" : `${managerMetrics.length} records`} tone={managerAvailable ? toneForScore(managerAdoption) : "warn"} />
+              <RoleMetricCard label="Parent" value={parentAvailable ? `${parentActivation}%` : "לא זמין"} hint={errors[5] ? "לא זמין" : `${parentMetrics.length} records`} tone={parentAvailable ? toneForScore(parentActivation) : "warn"} />
+              <RoleMetricCard label="Staff" value={staffAvailable ? `${staffActivation}%` : "לא זמין"} hint={errors[5] ? "לא זמין" : `${staffMetrics.length} records`} tone={staffAvailable ? toneForScore(staffActivation) : "warn"} />
+              <RoleMetricCard label="Support tickets" value={errors[7] ? "לא זמין" : supportTickets} hint="rollout support load" tone={errors[7] ? "warn" : supportTickets > 10 ? "bad" : "warn"} />
             </div>
-            <div className="procedure-list compact-list">
+            {errors[5] ? <div className="empty-state">נתוני האימוץ אינם זמינים כרגע</div> : <div className="procedure-list compact-list">
               {data.adoption.map((metric) => (
                 <div className="mini-row" key={metric.id ?? metric.metric_key}>
                   <span>{label(metric.role_area)}</span>
@@ -220,12 +232,13 @@ export default async function CommercialRolloutPage() {
                   <small>{metric.activated_count}/{metric.invited_count} activated · {metric.weekly_active_count} weekly active</small>
                 </div>
               ))}
-            </div>
+            </div>}
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Inspection Operations" subtitle="חודשיות, GPS, חתימה, PDF, findings ו-corrective actions.">
+            {errors[6] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {data.inspections.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.validation_key}>
@@ -237,9 +250,11 @@ export default async function CommercialRolloutPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="Support Operations" subtitle="כמות פניות, זמן תגובה, בעיות חוזרות, הכשרה ושביעות רצון.">
+            {errors[7] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {data.support.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.support_key}>
@@ -252,11 +267,13 @@ export default async function CommercialRolloutPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Rollout Risk Register" subtitle="סיכוני קליטה, תשלום, תמיכה, פרטיות, מצלמות, AI, אימוץ ונטישה.">
+            {errors[8] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="procedure-list compact-list">
               {data.risks.map((risk) => (
                 <div className="mini-row" key={risk.id ?? risk.risk_key}>
@@ -266,10 +283,12 @@ export default async function CommercialRolloutPage() {
                 </div>
               ))}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="Success Criteria & Launch Decision" subtitle="החלטה אחרי cohort: לייצב, 50 גנים, regional rollout או scale.">
             <div className="procedure-list compact-list">
+              {errors[9] && <div className="empty-state">נתוני הקריטריונים אינם זמינים כרגע</div>}
               {data.criteria.map((item) => (
                 <div className="mini-row" key={item.id ?? item.criteria_key}>
                   <span>{item.title}</span>
@@ -277,6 +296,7 @@ export default async function CommercialRolloutPage() {
                   <small>{item.actual_value ?? "-"} / {item.threshold_value ?? "-"} · {item.notes}</small>
                 </div>
               ))}
+              {errors[10] && <div className="empty-state">נתוני ההרחבה אינם זמינים כרגע</div>}
               {data.expansion.map((item) => (
                 <div className="mini-row" key={item.id ?? item.readiness_key}>
                   <span>{item.report_summary}</span>
@@ -291,6 +311,7 @@ export default async function CommercialRolloutPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Sales Feedback Loop & Pricing Validation" subtitle="התנגדויות, פרטיות, מצלמות, onboarding ותמחור חוזרים ל-website, demo, FAQ וחומרי מכירה.">
             <div className="procedure-list compact-list">
+              {errors[11] && <div className="empty-state">נתוני המשוב אינם זמינים כרגע</div>}
               {data.feedback.map((item) => (
                 <div className="mini-row" key={item.id ?? item.feedback_key}>
                   <span>{item.summary}</span>
@@ -298,6 +319,7 @@ export default async function CommercialRolloutPage() {
                   <small>update {label(item.recommended_update_target)} · owner {item.owner ?? "TBD"}</small>
                 </div>
               ))}
+              {errors[12] && <div className="empty-state">נתוני התמחור אינם זמינים כרגע</div>}
               {data.pricing.map((item) => (
                 <div className="mini-row" key={item.id ?? item.insight_key}>
                   <span>{item.recommendation}</span>
@@ -309,6 +331,7 @@ export default async function CommercialRolloutPage() {
           </CleanSection>
 
           <CleanSection title="Support & Inspector Staffing Forecast" subtitle="תחזית משאבים ל־25, 50, 100 ו־500 גנים.">
+            {errors[13] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="camera-infra-list">
               {data.staffing.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.forecast_key}>
@@ -320,18 +343,19 @@ export default async function CommercialRolloutPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
         </section>
 
         <CleanSection title="Executive Rollout Dashboard" subtitle="Revenue, adoption, support, churn risk, blockers and next actions.">
           <section className="grid cols-4">
-            <ActionCard icon={Banknote} title="Revenue validation" text={`${money(collectedRevenue)} collected · ${money(expectedRevenue)} expected`} href="/dashboard/admin/billing" />
-            <ActionCard icon={UsersRound} title="Adoption" text={`Parents ${parentActivation}% · Staff ${staffActivation}% · Manager ${managerAdoption}%`} href="/dashboard/admin/customer-success" />
-            <ActionCard icon={Headphones} title="Support load" text={`${supportTickets} tickets · repeated issues tracked`} href="/dashboard/admin/customer-success" />
-            <ActionCard icon={ShieldAlert} title="Blockers" text={`${highRisks.length} high/critical risks · ${score.open_blockers ?? 0} blockers`} href="/dashboard/admin/final-compliance-review" />
-            <ActionCard icon={CalendarCheck} title="Inspection readiness" text={`${score.inspection_score ?? 0}/100 inspection operations`} href="/dashboard/admin/inspection-forms" />
+            <ActionCard icon={Banknote} title="Revenue validation" text={`${errors[4] ? "לא זמין" : money(collectedRevenue)} collected · ${errors[2] ? "לא זמין" : money(expectedRevenue)} expected`} href="/dashboard/admin/billing" />
+            <ActionCard icon={UsersRound} title="Adoption" text={`Parents ${parentAvailable ? `${parentActivation}%` : "לא זמין"} · Staff ${staffAvailable ? `${staffActivation}%` : "לא זמין"} · Manager ${managerAvailable ? `${managerAdoption}%` : "לא זמין"}`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={Headphones} title="Support load" text={errors[7] ? "לא זמין" : `${supportTickets} tickets · repeated issues tracked`} href="/dashboard/admin/customer-success" />
+            <ActionCard icon={ShieldAlert} title="Blockers" text={`${errors[8] ? "לא זמין" : highRisks.length} high/critical risks · ${errors[0] ? "לא זמין" : score.open_blockers ?? 0} blockers`} href="/dashboard/admin/final-compliance-review" />
+            <ActionCard icon={CalendarCheck} title="Inspection readiness" text={errors[0] ? "לא זמין" : `${score.inspection_score ?? 0}/100 inspection operations`} href="/dashboard/admin/inspection-forms" />
             <ActionCard icon={Receipt} title="Payment split" text="Gan Batuach subscription vs parent tuition separation" href="/dashboard/admin/billing" />
-            <ActionCard icon={BarChart3} title="Next cohort" text={label(launchDecision)} href="/dashboard/admin/commercial-rollout" />
+            <ActionCard icon={BarChart3} title="Next cohort" text={decisionAvailable ? label(launchDecision) : "לא זמין"} href="/dashboard/admin/commercial-rollout" />
             <ActionCard icon={TrendingUp} title="Growth loop" text="Use rollout feedback to update sales and website assets" href="/dashboard/admin/growth" />
           </section>
         </CleanSection>

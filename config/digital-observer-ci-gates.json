@@ -539,6 +539,13 @@
         "--test",
         "scripts/qa/check-commercial-launch-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "commercial-rollout-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-commercial-rollout-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
