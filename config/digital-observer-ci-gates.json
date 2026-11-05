@@ -630,6 +630,13 @@
         "--test",
         "scripts/qa/check-ai-events-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-learning-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-learning-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
