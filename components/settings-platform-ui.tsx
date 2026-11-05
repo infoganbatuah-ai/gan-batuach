@@ -77,7 +77,7 @@ export function SettingsPlatformNavigation({ role, activeHref }: { role: Setting
     <div className="ux18-settings-navigation-list">
       {areas.map((area) => {
         const Icon = area.icon;
-        const active = area.href.split("#")[0] === activeHref;
+        const active = area.href === activeHref;
         return <Link key={`${area.label}-${area.href}`} href={area.href} aria-current={active ? "page" : undefined} className={active ? "is-active" : undefined}>
           <Icon aria-hidden="true" /><span><b>{area.label}</b><small>{area.description}</small></span><ChevronLeft aria-hidden="true" />
         </Link>;

@@ -123,6 +123,32 @@
   cursor: pointer;
 }
 
+.ux18-settings-fact-list { display: grid; }
+.ux18-settings-fact-list > div,
+.ux18-settings-fact-list > a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  border-bottom: 1px solid #e6eef8;
+  color: #153f7b;
+  text-decoration: none;
+}
+.ux18-settings-fact-list > :last-child { border-bottom: 0; }
+.ux18-settings-fact-list > :is(div, a) > svg:first-child {
+  width: 29px;
+  height: 29px;
+  padding: 7px;
+  border-radius: 50%;
+  color: #0874ef;
+  background: #edf6ff;
+}
+.ux18-settings-fact-list b { min-width: 0; font-size: .76rem; }
+.ux18-settings-fact-list span { color: #5e79a0; font-size: .68rem; }
+.ux18-settings-fact-list > a > svg:last-child { width: 16px; height: 16px; }
+.ux18-settings-fact-list > a:focus-visible { outline: 3px solid #78b8ff; outline-offset: 2px; }
+
 @media (max-width: 650px) {
   .ux18-primary-profile-fields {
     grid-template-columns: 1fr;
@@ -306,6 +332,18 @@
   }
   .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a {
     min-height: 42px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-section > header {
+    min-height: 52px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-section-body {
+    padding: 7px 10px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-link-list > a {
+    min-height: 43px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-reference-garden-summary {
+    min-height: 64px !important;
   }
   .role-app-shell:has(.ux18-reference-profile-column) .ux18-reference-garden-column > .ux18-settings-status-grid {
     order: 4 !important;
