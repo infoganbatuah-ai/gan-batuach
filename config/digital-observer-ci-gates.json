@@ -427,6 +427,13 @@
         "--test",
         "scripts/qa/check-admin-sms-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-whatsapp-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-whatsapp-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
