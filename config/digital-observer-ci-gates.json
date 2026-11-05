@@ -833,6 +833,13 @@
         "--test",
         "scripts/qa/check-admin-inspections-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-notifications-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-notifications-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

@@ -12,15 +12,23 @@ export default async function AdminNotificationsPage() {
     const supabase = await createClient();
     const { data, error } = await supabase.from("notifications" as any).select("*").order("created_at", { ascending: false }).limit(150);
     logSupabaseError("התראות", error);
-    return { rows: (data ?? []) as any[] };
-  }, { rows: [] as any[] });
+    return { rows: (error ? [] : data ?? []) as any[], available: !error };
+  }, { rows: [] as any[], available: false });
   return (
     <AdminAppFrame profile={profile} activeHref="/dashboard/admin/notifications" title="מרכז התראות" subtitle="פיקוח, מסמכים, מצלמות, AI, הודעות, משימות ואישורי רישום." badge="התראות">
       <PremiumCard size="lg" className="admin-section-card">
-        <SectionHeader eyebrow="Notification Center" title="כל התראות המערכת במקום אחד" subtitle="כל התראה צריכה מקור, הקשר, חומרה ופעולת המשך ברורה." icon={BellRing} />
+        <SectionHeader eyebrow="Notification Center" title="עד 150 ההתראות האחרונות, לפי הרשומות שנטענו" subtitle="כל התראה צריכה מקור, הקשר, חומרה ופעולת המשך ברורה." icon={BellRing} />
         <StatusChip tone="warning">Control Center</StatusChip>
       </PremiumCard>
-      <NotificationCenter notifications={result.data.rows} />
+      {result.data.available ? (
+        <NotificationCenter notifications={result.data.rows} />
+      ) : (
+        <div className="card" role="status" aria-label="נתוני התראות לא זמינים">
+          <h2>נתוני ההתראות אינם זמינים</h2>
+          <p>{result.error ?? "לא ניתן לטעון את הנתונים כרגע"}</p>
+          <p>לא ניתן לקבוע אילו התראות ממתינות לקריאה.</p>
+        </div>
+      )}
     </AdminAppFrame>
   );
 }
