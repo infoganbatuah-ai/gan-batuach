@@ -32,21 +32,25 @@ export default async function AdminPilotCenterPage() {
       supabase.from("production_configuration_readiness" as any).select("*").order("category")
     ]);
     [pilotsRes, participantsRes, feedbackRes, issuesRes, blockersRes, checklistRes, readinessRes, configRes].forEach((query, index) => logSupabaseError(`pilot center query ${index}`, (query as any).error));
+    const errors = [pilotsRes.error, participantsRes.error, feedbackRes.error, issuesRes.error, blockersRes.error, checklistRes.error, readinessRes.error, configRes.error].map(Boolean);
+    const pilots = errors[0] ? [] : pilotsRes.data ?? [];
+    const participants = errors[1] ? [] : participantsRes.data ?? [];
+    const feedback = errors[2] ? [] : feedbackRes.data ?? [];
+    const issues = errors[3] ? [] : issuesRes.data ?? [];
+    const blockers = errors[4] ? [] : blockersRes.data ?? [];
+    const checklist = errors[5] ? [] : checklistRes.data ?? [];
+    const readiness = errors[6] ? [] : readinessRes.data ?? [];
+    const configuration = errors[7] ? [] : configRes.data ?? [];
     return {
-      pilots: pilotsRes.data ?? [],
-      participants: participantsRes.data ?? [],
-      feedback: feedbackRes.data ?? [],
-      issues: issuesRes.data ?? [],
-      blockers: blockersRes.data ?? [],
-      checklist: checklistRes.data ?? [],
-      readiness: readinessRes.data ?? [],
-      configuration: configRes.data ?? [],
-      summary: buildLaunchReadinessSummary({ readiness: readinessRes.data ?? [], configuration: configRes.data ?? [], pilots: pilotsRes.data ?? [], participants: participantsRes.data ?? [], issues: issuesRes.data ?? [], blockers: blockersRes.data ?? [], checklist: checklistRes.data ?? [] }),
-      queryError: [pilotsRes.error, participantsRes.error, feedbackRes.error, issuesRes.error, blockersRes.error, checklistRes.error, readinessRes.error, configRes.error].some(Boolean) ? "חלק מנתוני הפיילוט לא נטענו" : null
+      pilots, participants, feedback, issues, blockers, checklist, readiness, configuration, errors,
+      summary: buildLaunchReadinessSummary({ readiness, configuration, pilots, participants, issues, blockers, checklist }),
+      queryError: errors.some(Boolean) ? "חלק מנתוני הפיילוט לא נטענו" : null
     };
-  }, { pilots: [] as any[], participants: [] as any[], feedback: [] as any[], issues: [] as any[], blockers: [] as any[], checklist: [] as any[], readiness: [] as any[], configuration: [] as any[], summary: buildLaunchReadinessSummary(), queryError: null as string | null });
+  }, { pilots: [] as any[], participants: [] as any[], feedback: [] as any[], issues: [] as any[], blockers: [] as any[], checklist: [] as any[], readiness: [] as any[], configuration: [] as any[], errors: Array(8).fill(true) as boolean[], summary: buildLaunchReadinessSummary(), queryError: null as string | null });
 
   const { summary } = result.data;
+  const { errors } = result.data;
+  const unavailable = "לא זמין כרגע";
   const openIssues = result.data.issues.filter((issue: any) => !["verified", "accepted_risk"].includes(String(issue.status))).slice(0, 8);
 
   return (
@@ -58,36 +62,36 @@ export default async function AdminPilotCenterPage() {
           <p>מעקב אחרי גני פיילוט, משתתפים, קליטה, תצפיתן, משובים, בעיות וחסמי השקה.</p>
         </div>
         <div className="profile-actions">
-          <span className="pill good"><Rocket size={16} /> Pilot ready layer</span>
+          <span className="pill"><Rocket size={16} /> מעקב פיילוט</span>
           <Link className="button secondary" href="/dashboard/admin/launch-readiness">מוכנות השקה</Link>
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="Launch score" value={`${summary.overallScore}%`} tone={summary.overallScore >= 85 ? "good" : summary.overallScore >= 60 ? "warn" : "bad"} />
-        <StatCard label="פיילוטים פעילים" value={summary.activePilots} tone="good" />
-        <StatCard label="פיילוטים הושלמו" value={summary.completedPilots} tone="good" />
-        <StatCard label="משתתפים פעילים" value={summary.participantsActive} tone="good" />
-        <StatCard label="בעיות פתוחות" value={summary.openIssues} tone={summary.openIssues ? "warn" : "good"} />
-        <StatCard label="Critical" value={summary.criticalIssues} tone={summary.criticalIssues ? "bad" : "good"} />
-        <StatCard label="חסמים" value={summary.openBlockers} tone={summary.openBlockers ? "bad" : "good"} />
-        <StatCard label="Checklist" value={`${summary.checklistPercent}%`} tone={summary.checklistPercent >= 80 ? "good" : "warn"} />
+        <StatCard label="Launch score" value={errors[6] ? unavailable : `${summary.overallScore}%`} tone={errors[6] ? "warn" : summary.overallScore >= 85 ? "good" : summary.overallScore >= 60 ? "warn" : "bad"} />
+        <StatCard label="פיילוטים פעילים" value={errors[0] ? unavailable : summary.activePilots} tone={errors[0] ? "warn" : "good"} />
+        <StatCard label="פיילוטים הושלמו" value={errors[0] ? unavailable : summary.completedPilots} tone={errors[0] ? "warn" : "good"} />
+        <StatCard label="משתתפים פעילים" value={errors[1] ? unavailable : summary.participantsActive} tone={errors[1] ? "warn" : "good"} />
+        <StatCard label="בעיות פתוחות" value={errors[3] ? unavailable : summary.openIssues} tone={errors[3] || summary.openIssues ? "warn" : "good"} />
+        <StatCard label="Critical" value={errors[3] ? unavailable : summary.criticalIssues} tone={errors[3] ? "warn" : summary.criticalIssues ? "bad" : "good"} />
+        <StatCard label="חסמים" value={errors[4] ? unavailable : summary.openBlockers} tone={errors[4] ? "warn" : summary.openBlockers ? "bad" : "good"} />
+        <StatCard label="Checklist" value={errors[5] ? unavailable : `${summary.checklistPercent}%`} tone={errors[5] ? "warn" : summary.checklistPercent >= 80 ? "good" : "warn"} />
       </section>
 
       <section className="pilot-readiness-grid">
-        <article className="pilot-score-card"><strong>Onboarding</strong><i><b>{summary.componentScores.onboarding}%</b></i><p>מנהלת, הורה וצוות</p></article>
-        <article className="pilot-score-card"><strong>Communication</strong><i><b>{summary.componentScores.communication}%</b></i><p>אימייל, WhatsApp, SMS, Push</p></article>
-        <article className="pilot-score-card"><strong>Cameras</strong><i><b>{summary.componentScores.camera}%</b></i><p>Gateway, הרשאות ובריאות</p></article>
-        <article className="pilot-score-card"><strong>Observer</strong><i><b>{summary.componentScores.observer}%</b></i><p>Shadow mode וביקורת אנושית</p></article>
-        <article className="pilot-score-card"><strong>Security</strong><i><b>{summary.componentScores.security}%</b></i><p>RLS, סודות וגיבויים</p></article>
-        <article className="pilot-score-card"><strong>Support</strong><i><b>{summary.componentScores.support}%</b></i><p>הדרכה ותמיכה בפיילוט</p></article>
+        <article className="pilot-score-card"><strong>Onboarding</strong><i><b>{errors[6] ? unavailable : `${summary.componentScores.onboarding}%`}</b></i><p>מנהלת, הורה וצוות</p></article>
+        <article className="pilot-score-card"><strong>Communication</strong><i><b>{errors[6] ? unavailable : `${summary.componentScores.communication}%`}</b></i><p>אימייל, WhatsApp, SMS, Push</p></article>
+        <article className="pilot-score-card"><strong>Cameras</strong><i><b>{errors[6] ? unavailable : `${summary.componentScores.camera}%`}</b></i><p>Gateway, הרשאות ובריאות</p></article>
+        <article className="pilot-score-card"><strong>Observer</strong><i><b>{errors[6] ? unavailable : `${summary.componentScores.observer}%`}</b></i><p>Shadow mode וביקורת אנושית</p></article>
+        <article className="pilot-score-card"><strong>Security</strong><i><b>{errors[6] ? unavailable : `${summary.componentScores.security}%`}</b></i><p>RLS, סודות וגיבויים</p></article>
+        <article className="pilot-score-card"><strong>Support</strong><i><b>{errors[6] ? unavailable : `${summary.componentScores.support}%`}</b></i><p>הדרכה ותמיכה בפיילוט</p></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><Users size={20} /> Pilot kindergartens</h2><p>סטטוס פיילוט, קליטה והפעלת תצפיתן.</p></div>
-          {result.data.pilots.length === 0 ? <div className="empty-state"><strong>אין גני פיילוט עדיין</strong><span>לאחר שיוך גן לפיילוט, הוא יופיע כאן.</span></div> : <div className="procedure-list compact-list">
+          {errors[0] ? <div>{unavailable}</div> : result.data.pilots.length === 0 ? <div className="empty-state"><strong>אין גני פיילוט עדיין</strong><span>לאחר שיוך גן לפיילוט, הוא יופיע כאן.</span></div> : <div className="procedure-list compact-list">
             {result.data.pilots.map((pilot: any) => (
               <div className="mini-row" key={pilot.id}>
                 <span>{pilot.pilot_name}</span>
@@ -108,7 +112,7 @@ export default async function AdminPilotCenterPage() {
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><Users size={20} /> Participants</h2><p>מנהלות, הורים, צוות ומפקחים בפיילוט.</p></div>
-          {result.data.participants.length === 0 ? <div className="empty-state"><strong>אין משתתפים עדיין</strong><span>סטטוס מוזמנים ופעילים יופיע כאן.</span></div> : <div className="procedure-list compact-list">
+          {errors[1] ? <div>{unavailable}</div> : result.data.participants.length === 0 ? <div className="empty-state"><strong>אין משתתפים עדיין</strong><span>סטטוס מוזמנים ופעילים יופיע כאן.</span></div> : <div className="procedure-list compact-list">
             {result.data.participants.slice(0, 12).map((participant: any) => (
               <div className="mini-row" key={participant.id}>
                 <span>{participant.profiles?.full_name ?? participant.participant_role}</span>
@@ -128,7 +132,7 @@ export default async function AdminPilotCenterPage() {
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><MessageSquareText size={20} /> Latest feedback</h2><p>משובים אחרונים ממשתמשי הפיילוט.</p></div>
-          {result.data.feedback.length === 0 ? <div className="empty-state"><strong>אין משוב עדיין</strong><span>משוב מהדשבורדים יופיע כאן.</span></div> : <div className="procedure-list compact-list">
+          {errors[2] ? <div>{unavailable}</div> : result.data.feedback.length === 0 ? <div className="empty-state"><strong>אין משוב עדיין</strong><span>משוב מהדשבורדים יופיע כאן.</span></div> : <div className="procedure-list compact-list">
             {result.data.feedback.slice(0, 10).map((item: any) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.user_role} · {item.category}</span>
@@ -140,7 +144,7 @@ export default async function AdminPilotCenterPage() {
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><CheckCircle2 size={20} /> Open issues</h2><p>בעיות שצריך לפתור או לאשר לפני הרחבת הפיילוט.</p></div>
-          {openIssues.length === 0 ? <div className="empty-state"><strong>אין בעיות פתוחות</strong><span>מעולה. חסמי השקה יופיעו במסך מוכנות השקה.</span></div> : <div className="procedure-list compact-list">
+          {errors[3] ? <div>{unavailable}</div> : openIssues.length === 0 ? <div className="empty-state"><strong>אין בעיות פתוחות</strong><span>מעולה. חסמי השקה יופיעו במסך מוכנות השקה.</span></div> : <div className="procedure-list compact-list">
             {openIssues.map((issue: any) => (
               <div className="mini-row" key={issue.id}>
                 <span>{issue.title}</span>

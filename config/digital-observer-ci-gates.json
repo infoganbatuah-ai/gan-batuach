@@ -483,6 +483,13 @@
         "--test",
         "scripts/qa/check-pilot-health-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "pilot-center-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-pilot-center-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
