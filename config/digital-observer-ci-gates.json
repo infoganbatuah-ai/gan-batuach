@@ -812,6 +812,13 @@
         "--test",
         "scripts/qa/check-audit-logs-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "system-health-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-system-health-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
