@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { data: result.error ? [] : result.data ?? [], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { data: [] as T[], available: false };
   }
 }
 
@@ -58,7 +58,14 @@ export default async function ExternalValidationPage() {
       safeQuery<Row>("launch blockers", () => supabase.from("launch_blockers" as any).select("*").order("severity").limit(80)),
       safeQuery<Row>("mobile submission", () => supabase.from("mobile_store_submission_status" as any).select("*").order("platform").limit(40))
     ]);
-    return { scores, reviewers, scopes, findings, legalItems, securityFindings, pt, isoConsultant, isoCertification, evidence, providerEvidence, launchBlockers, mobileSubmission };
+    return {
+      scores: scores.data, reviewers: reviewers.data, scopes: scopes.data, findings: findings.data,
+      legalItems: legalItems.data, securityFindings: securityFindings.data, pt: pt.data,
+      isoConsultant: isoConsultant.data, isoCertification: isoCertification.data,
+      evidence: evidence.data, providerEvidence: providerEvidence.data,
+      launchBlockers: launchBlockers.data, mobileSubmission: mobileSubmission.data,
+      availability: [scores, reviewers, scopes, findings, legalItems, securityFindings, pt, isoConsultant, isoCertification, evidence, providerEvidence, launchBlockers, mobileSubmission].map((source) => source.available)
+    };
   }, {
     scores: [] as Row[],
     reviewers: [] as Row[],
@@ -72,10 +79,14 @@ export default async function ExternalValidationPage() {
     evidence: [] as Row[],
     providerEvidence: [] as Row[],
     launchBlockers: [] as Row[],
-    mobileSubmission: [] as Row[]
+    mobileSubmission: [] as Row[],
+    availability: Array<boolean>(13).fill(false)
   });
 
   const data = result.data;
+  const available = data.availability;
+  const unavailable = "לא זמין";
+  const queryError = result.error ?? (available.some((value) => !value) ? "לא ניתן לטעון חלק מהנתונים כרגע" : null);
   const score = data.scores[0] ?? {};
   const overall = Number(score.external_validation_score ?? 0);
   const openFindings = data.findings.filter((item) => !["verified", "closed", "accepted_risk"].includes(String(item.status)));
@@ -94,8 +105,8 @@ export default async function ExternalValidationPage() {
           eyebrow="External Validation Execution"
           title="אימות חיצוני לפני Production מלא"
           subtitle="מרכז אחד לניהול עורכי דין, פרטיות, מצלמות, AI, בדיקת חדירה, ISO, חנויות מובייל, תשלומים וספקים. זה לא אישור משפטי, לא ISO ולא בדיקת חדירה בפועל."
-          badge={`${overall}/100`}
-          badgeTone={scoreTone(overall)}
+          badge={available[0] ? `${overall}/100` : unavailable}
+          badgeTone={available[0] ? scoreTone(overall) : "default"}
           actions={<><Link className="button primary" href="/dashboard/admin/legal-review">Legal review</Link><Link className="button secondary" href="/dashboard/admin/security-review">Security review</Link></>}
         >
           <div className="setup-checklist">
@@ -105,21 +116,21 @@ export default async function ExternalValidationPage() {
             <span>External professionals required</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={queryError} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Validation score" value={`${overall}/100`} hint={label(score.launch_recommendation)} tone={scoreTone(overall)} />
-          <RoleMetricCard label="Reviewers" value={`${activeReviewers}/${data.reviewers.length}`} hint="engaged / total" tone={activeReviewers ? "good" : "warn"} />
-          <RoleMetricCard label="Open findings" value={openFindings.length} hint={`${criticalBlockers} launch blockers`} tone={criticalBlockers ? "bad" : "warn"} />
-          <RoleMetricCard label="Legal open" value={legalOpen} hint="review items" tone={legalOpen ? "warn" : "good"} />
-          <RoleMetricCard label="Security open" value={securityOpen} hint="PT findings" tone={securityOpen ? "bad" : "good"} />
-          <RoleMetricCard label="ISO readiness" value={`${score.iso_readiness ?? 0}%`} hint="consultant/cert body" tone={scoreTone(Number(score.iso_readiness ?? 0))} />
-          <RoleMetricCard label="Evidence vault" value={`${evidenceReceived}/${data.evidence.length}`} hint="reports and approvals" tone={evidenceReceived ? "good" : "warn"} />
-          <RoleMetricCard label="Critical blockers" value={launchCritical} hint="launch readiness" tone={launchCritical ? "bad" : "good"} />
+          <RoleMetricCard label="Validation score" value={available[0] ? `${overall}/100` : unavailable} hint={available[0] ? label(score.launch_recommendation) : unavailable} tone={available[0] ? scoreTone(overall) : "default"} />
+          <RoleMetricCard label="Reviewers" value={available[1] ? `${activeReviewers}/${data.reviewers.length}` : unavailable} hint="engaged / total" tone={available[1] ? activeReviewers ? "good" : "warn" : "default"} />
+          <RoleMetricCard label="Open findings" value={available[3] ? openFindings.length : unavailable} hint={available[3] ? `${criticalBlockers} launch blockers` : unavailable} tone={available[3] ? criticalBlockers ? "bad" : "warn" : "default"} />
+          <RoleMetricCard label="Legal open" value={available[4] ? legalOpen : unavailable} hint="review items" tone={available[4] ? legalOpen ? "warn" : "good" : "default"} />
+          <RoleMetricCard label="Security open" value={available[5] ? securityOpen : unavailable} hint="PT findings" tone={available[5] ? securityOpen ? "bad" : "good" : "default"} />
+          <RoleMetricCard label="ISO readiness" value={available[0] ? `${score.iso_readiness ?? 0}%` : unavailable} hint="consultant/cert body" tone={available[0] ? scoreTone(Number(score.iso_readiness ?? 0)) : "default"} />
+          <RoleMetricCard label="Evidence vault" value={available[9] ? `${evidenceReceived}/${data.evidence.length}` : unavailable} hint="reports and approvals" tone={available[9] ? evidenceReceived ? "good" : "warn" : "default"} />
+          <RoleMetricCard label="Critical blockers" value={available[11] ? launchCritical : unavailable} hint="launch readiness" tone={available[11] ? launchCritical ? "bad" : "good" : "default"} />
         </section>
 
         <CleanSection title="External Blockers" subtitle="חסמים שלא ניתן לפתור פנימית בלבד.">
-          {blockers.length ? (
+          {!available[0] ? <EmptyState title="נתוני החסמים החיצוניים לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : blockers.length ? (
             <div className="procedure-list compact-list">
               {blockers.map((blocker: string) => (
                 <div className="mini-row" key={blocker}>
@@ -134,7 +145,7 @@ export default async function ExternalValidationPage() {
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Reviewers Registry" subtitle="מי בודק מה, ומה סטטוס ההתקשרות.">
-            <div className="camera-infra-list">
+            {!available[1] ? <EmptyState title="נתוני הסוקרים לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="camera-infra-list">
               {data.reviewers.map((reviewer) => (
                 <article className="camera-infra-row" key={reviewer.id ?? reviewer.reviewer_key}>
                   <div>
@@ -145,11 +156,11 @@ export default async function ExternalValidationPage() {
                   <StatusBadge tone="default">{reviewer.findings_count ?? 0} findings</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
 
           <CleanSection title="External Review Scopes" subtitle="היקף, החרגות, reviewer וחבילת ראיות.">
-            <div className="camera-infra-list">
+            {!available[2] ? <EmptyState title="היקפי הבדיקה לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="camera-infra-list">
               {data.scopes.map((scope) => (
                 <article className="camera-infra-row" key={scope.id ?? scope.scope_key}>
                   <div>
@@ -159,12 +170,12 @@ export default async function ExternalValidationPage() {
                   <StatusBadge tone={toneForStatus(scope.status)}>{label(scope.status)}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
         </section>
 
         <CleanSection title="Unified External Findings" subtitle="Legal, Privacy, Camera, AI, PT, ISO, App Store, Payment and Cloud findings. Critical findings block launch.">
-          <div className="communication-template-grid">
+          {!available[3] ? <EmptyState title="הממצאים לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="communication-template-grid">
             {data.findings.map((finding) => (
               <article className="communication-template-card" key={finding.id ?? finding.finding_key}>
                 <div>
@@ -176,20 +187,20 @@ export default async function ExternalValidationPage() {
                 <StatusBadge tone={toneForStatus(finding.status)}>{label(finding.status)}</StatusBadge>
               </article>
             ))}
-          </div>
+          </div>}
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Penetration Test Execution" subtitle="מעקב אחרי PT חיצוני מורשה בלבד. אין בדיקות הרסניות ואין production אמיתי בלי אישור.">
             <div className="procedure-list compact-list">
-              {data.pt.map((item) => (
+              {!available[6] ? <EmptyState title="רשומות בדיקת החדירה לא זמינות" text="לא ניתן לטעון את הנתונים כרגע." /> : data.pt.map((item) => (
                 <div className="mini-row" key={item.id ?? item.execution_key}>
                   <span>{item.testing_company ?? "TBD"} · {item.environment}</span>
                   <strong><StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge></strong>
                   <small>{item.rules_of_engagement} · remediation {label(item.remediation_status)}</small>
                 </div>
               ))}
-              {data.securityFindings.map((item) => (
+              {!available[5] ? <EmptyState title="ממצאי האבטחה לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : data.securityFindings.map((item) => (
                 <div className="mini-row" key={item.id ?? item.finding_key}>
                   <span>{item.finding_title}</span>
                   <strong><StatusBadge tone={toneForStatus(item.severity)}>{label(item.severity)}</StatusBadge></strong>
@@ -201,14 +212,14 @@ export default async function ExternalValidationPage() {
 
           <CleanSection title="ISO Execution" subtitle="ISO consultant ו-certification body. לא מסמנים certified בלי תעודה רשמית.">
             <div className="procedure-list compact-list">
-              {data.isoConsultant.map((item) => (
+              {!available[7] ? <EmptyState title="רשומות יועץ ISO לא זמינות" text="לא ניתן לטעון את הנתונים כרגע." /> : data.isoConsultant.map((item) => (
                 <div className="mini-row" key={item.id ?? item.execution_key}>
                   <span>{item.iso_consultant ?? "ISO consultant TBD"}</span>
                   <strong><StatusBadge tone={toneForStatus(item.gap_analysis_status)}>{label(item.gap_analysis_status)}</StatusBadge></strong>
                   <small>gaps {item.gaps_found} · evidence {item.evidence_reviewed}</small>
                 </div>
               ))}
-              {data.isoCertification.map((item) => (
+              {!available[8] ? <EmptyState title="רשומות גוף ההסמכה לא זמינות" text="לא ניתן לטעון את הנתונים כרגע." /> : data.isoCertification.map((item) => (
                 <div className="mini-row" key={item.id ?? item.execution_key}>
                   <span>{item.certification_body ?? "Certification body TBD"}</span>
                   <strong><StatusBadge tone={toneForStatus(item.certificate_status)}>{label(item.certificate_status)}</StatusBadge></strong>
@@ -221,7 +232,7 @@ export default async function ExternalValidationPage() {
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Provider Compliance Evidence" subtitle="ספקי Email/SMS/WhatsApp/Push/Payments/Invoices/Camera/AI/Cloud.">
-            <div className="camera-infra-list">
+            {!available[10] ? <EmptyState title="נתוני ראיות הספקים לא זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="camera-infra-list">
               {data.providerEvidence.map((provider) => (
                 <article className="camera-infra-row" key={provider.id ?? provider.evidence_key}>
                   <div>
@@ -232,11 +243,11 @@ export default async function ExternalValidationPage() {
                   <StatusBadge tone={toneForStatus(provider.security_review_status)}>{label(provider.security_review_status)}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
 
           <CleanSection title="Evidence Vault" subtitle="מטאדאטה לראיות חיצוניות. מסמכים רגישים נשארים פרטיים ומבוקרי גישה.">
-            <div className="camera-infra-list">
+            {!available[9] ? <EmptyState title="מטאדאטה הראיות לא זמינה" text="לא ניתן לטעון את הנתונים כרגע." /> : <div className="camera-infra-list">
               {data.evidence.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.evidence_key}>
                   <div>
@@ -247,20 +258,20 @@ export default async function ExternalValidationPage() {
                   <StatusBadge tone={toneForStatus(item.sensitivity)}>{label(item.sensitivity)}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
         </section>
 
         <CleanSection title="Connected Work Centers" subtitle="המרכז הזה מחבר, לא מחליף, את מסכי הביצוע הקיימים.">
           <section className="grid cols-4">
-            <ActionCard icon={Gavel} title="Legal review" text={`${legalOpen} open legal items`} href="/dashboard/admin/legal-review" tone={legalOpen ? "warn" : "good"} />
-            <ActionCard icon={Camera} title="Camera review" text={`${score.camera_compliance_review ?? 0}% readiness`} href="/dashboard/admin/camera-compliance" />
-            <ActionCard icon={ShieldAlert} title="Security review" text={`${securityOpen} open findings`} href="/dashboard/admin/security-review" tone={securityOpen ? "bad" : "good"} />
-            <ActionCard icon={BadgeCheck} title="ISO handoff" text={`${score.iso_readiness ?? 0}% ISO readiness`} href="/dashboard/admin/iso-certification-handoff" />
-            <ActionCard icon={AppWindow} title="App Store review" text={`${score.app_store_readiness ?? 0}% mobile readiness`} href="/dashboard/admin/mobile-submission" />
-            <ActionCard icon={Banknote} title="Payments" text={`${score.payment_review ?? 0}% payment review`} href="/dashboard/admin/provider-production" />
-            <ActionCard icon={FileArchive} title="Evidence" text={`${evidenceReceived} received/reviewed`} href="/dashboard/admin/iso-evidence" />
-            <ActionCard icon={UserCheck} title="Launch blockers" text={`${launchCritical} critical open`} href="/dashboard/admin/launch-readiness" tone={launchCritical ? "bad" : "good"} />
+            <ActionCard icon={Gavel} title="Legal review" text={available[4] ? `${legalOpen} open legal items` : unavailable} href="/dashboard/admin/legal-review" tone={available[4] ? legalOpen ? "warn" : "good" : "default"} />
+            <ActionCard icon={Camera} title="Camera review" text={available[0] ? `${score.camera_compliance_review ?? 0}% readiness` : unavailable} href="/dashboard/admin/camera-compliance" />
+            <ActionCard icon={ShieldAlert} title="Security review" text={available[5] ? `${securityOpen} open findings` : unavailable} href="/dashboard/admin/security-review" tone={available[5] ? securityOpen ? "bad" : "good" : "default"} />
+            <ActionCard icon={BadgeCheck} title="ISO handoff" text={available[0] ? `${score.iso_readiness ?? 0}% ISO readiness` : unavailable} href="/dashboard/admin/iso-certification-handoff" />
+            <ActionCard icon={AppWindow} title="App Store review" text={available[0] ? `${score.app_store_readiness ?? 0}% mobile readiness` : unavailable} href="/dashboard/admin/mobile-submission" />
+            <ActionCard icon={Banknote} title="Payments" text={available[0] ? `${score.payment_review ?? 0}% payment review` : unavailable} href="/dashboard/admin/provider-production" />
+            <ActionCard icon={FileArchive} title="Evidence" text={available[9] ? `${evidenceReceived} received/reviewed` : unavailable} href="/dashboard/admin/iso-evidence" />
+            <ActionCard icon={UserCheck} title="Launch blockers" text={available[11] ? `${launchCritical} critical open` : unavailable} href="/dashboard/admin/launch-readiness" tone={available[11] ? launchCritical ? "bad" : "good" : "default"} />
             <ActionCard icon={LockKeyhole} title="Claims guardrails" text="No ISO/legal/security claims before approval" href="/dashboard/admin/final-compliance-review" />
             <ActionCard icon={ShieldCheck} title="Capability matrix" text="Sensitive AI remains restricted" href="/dashboard/admin/capability-legal-review" />
             <ActionCard icon={ClipboardCheck} title="Master QA" text="Remediation and verification" href="/dashboard/admin/master-qa" />

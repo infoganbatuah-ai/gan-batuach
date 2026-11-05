@@ -714,6 +714,13 @@
         "--test",
         "scripts/qa/check-business-continuity-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "external-validation-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-external-validation-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
