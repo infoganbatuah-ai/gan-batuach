@@ -109,7 +109,7 @@ export default async function CustomerSuccessPage() {
       supabase.from("customer_success_readiness" as any).select("*").order("material_type").limit(80)
     ]);
 
-    [
+    const queries = [
       gardensRes,
       profilesRes,
       staffRes,
@@ -129,27 +129,14 @@ export default async function CustomerSuccessPage() {
       adoptionRes,
       reportsRes,
       readinessRes
-    ].forEach((query, index) => logSupabaseError(`customer success query ${index}`, (query as any).error));
+    ];
+    const errors = queries.map((query, index) => {
+      logSupabaseError(`customer success query ${index}`, query.error);
+      return Boolean(query.error);
+    });
+    const rows = (index: number) => errors[index] ? [] : (queries[index].data ?? []) as any[];
 
-    const gardens = (gardensRes.data ?? []) as any[];
-    const profiles = (profilesRes.data ?? []) as any[];
-    const staff = (staffRes.data ?? []) as any[];
-    const parents = (parentsRes.data ?? []) as any[];
-    const documents = (documentsRes.data ?? []) as any[];
-    const subscriptions = (subscriptionsRes.data ?? []) as any[];
-    const health = (healthRes.data ?? []) as any[];
-    const lifecycle = (lifecycleRes.data ?? []) as any[];
-    const tickets = (ticketsRes.data ?? []) as any[];
-    const training = (trainingRes.data ?? []) as any[];
-    const completions = (completionsRes.data ?? []) as any[];
-    const knowledge = (knowledgeRes.data ?? []) as any[];
-    const tasks = (tasksRes.data ?? []) as any[];
-    const risks = (risksRes.data ?? []) as any[];
-    const playbooks = (playbooksRes.data ?? []) as any[];
-    const surveys = (surveysRes.data ?? []) as any[];
-    const adoption = (adoptionRes.data ?? []) as any[];
-    const reports = (reportsRes.data ?? []) as any[];
-    const readiness = (readinessRes.data ?? []) as any[];
+    const [gardens, profiles, staff, parents, documents, subscriptions, health, lifecycle, tickets, training, completions, knowledge, tasks, risks, playbooks, surveys, adoption, reports, readiness] = queries.map((_, index) => rows(index));
 
     const activeGardens = gardens.filter((garden) => ["active", "approved", "safe"].includes(lifecycleFromGarden(garden)) || garden.safe_status === "safe").length;
     const onboardingGardens = gardens.filter((garden) => lifecycleFromGarden(garden) === "onboarding").length;
@@ -163,8 +150,9 @@ export default async function CustomerSuccessPage() {
     const paymentCompletion = pct(subscriptions.filter((sub) => ["active", "paid"].includes(String(sub.billing_status))).length, subscriptions.length);
     const trainingCompletion = pct(completions.filter((item) => item.completion_status === "completed").length, completions.length);
     const averageHealth = avg(health, "customer_health_score") || Math.round((managerOnboarding + staffOnboarding + parentOnboarding + documentCompletion + paymentCompletion) / 5);
-    const queryError = [healthRes.error, ticketsRes.error, trainingRes.error, knowledgeRes.error].some(Boolean)
-      ? "חלק מנתוני Customer Success לא נטענו. ייתכן שמיגרציה עדיין לא הופעלה."
+    const healthAvailable = !errors[6] && (avg(health, "customer_health_score") > 0 || !errors.slice(0, 6).some(Boolean));
+    const queryError = errors.some(Boolean)
+      ? "חלק מנתוני Customer Success אינם זמינים כעת."
       : null;
 
     return {
@@ -199,6 +187,8 @@ export default async function CustomerSuccessPage() {
       paymentCompletion,
       trainingCompletion,
       averageHealth,
+      healthAvailable,
+      errors,
       queryError
     };
   }, {
@@ -233,6 +223,8 @@ export default async function CustomerSuccessPage() {
     paymentCompletion: 0,
     trainingCompletion: 0,
     averageHealth: 0,
+    healthAvailable: false,
+    errors: Array(19).fill(true) as boolean[],
     queryError: null as string | null
   });
 
@@ -247,8 +239,8 @@ export default async function CustomerSuccessPage() {
           eyebrow="Customer Success"
           title="מרכז הצלחת לקוחות, תמיכה והדרכה"
           subtitle="מעקב יזום אחרי קליטה, אימוץ, תמיכה, הדרכות, שביעות רצון, סיכוני חידוש ושימור לקוחות."
-          badge={`${data.averageHealth}/100`}
-          badgeTone={tone(data.averageHealth)}
+          badge={data.healthAvailable ? `${data.averageHealth}/100` : "לא זמין"}
+          badgeTone={data.healthAvailable ? tone(data.averageHealth) : "warn"}
           actions={<><Link className="button primary" href="/dashboard/admin/leads">לידים</Link><Link className="button secondary" href="/dashboard/admin/billing">חידושים</Link></>}
         >
           <div className="setup-checklist">
@@ -260,20 +252,20 @@ export default async function CustomerSuccessPage() {
         <AdminDataError message={result.error ?? data.queryError} />
 
         <section className="grid cols-4 dashboard-kpis">
-          <RoleMetricCard label="בריאות לקוח" value={`${data.averageHealth}/100`} tone={tone(data.averageHealth)} />
-          <RoleMetricCard label="גנים פעילים" value={data.activeGardens} tone="good" />
-          <RoleMetricCard label="בקליטה" value={data.onboardingGardens} tone={data.onboardingGardens ? "warn" : "good"} />
-          <RoleMetricCard label="סיכון חידוש" value={data.atRisk} tone={data.atRisk ? "bad" : "good"} />
-          <RoleMetricCard label="פניות פתוחות" value={data.openTickets} tone={data.openTickets ? "warn" : "good"} hint={data.urgentTickets ? `${data.urgentTickets} דחופות` : undefined} />
-          <RoleMetricCard label="השלמת צוות" value={`${data.staffOnboarding}%`} tone={tone(data.staffOnboarding)} />
-          <RoleMetricCard label="אימוץ הורים" value={`${data.parentOnboarding}%`} tone={tone(data.parentOnboarding)} />
-          <RoleMetricCard label="הדרכות" value={`${data.trainingCompletion}%`} tone={data.completions.length ? tone(data.trainingCompletion) : "warn"} />
+          <RoleMetricCard label="בריאות לקוח" value={data.healthAvailable ? `${data.averageHealth}/100` : "לא זמין"} tone={data.healthAvailable ? tone(data.averageHealth) : "warn"} />
+          <RoleMetricCard label="גנים פעילים" value={data.errors[0] ? "לא זמין" : data.activeGardens} tone={data.errors[0] ? "warn" : "good"} />
+          <RoleMetricCard label="בקליטה" value={data.errors[0] ? "לא זמין" : data.onboardingGardens} tone={data.errors[0] || data.onboardingGardens ? "warn" : "good"} />
+          <RoleMetricCard label="סיכון חידוש" value={data.errors[6] || data.errors[13] ? "לא זמין" : data.atRisk} tone={data.errors[6] || data.errors[13] ? "warn" : data.atRisk ? "bad" : "good"} />
+          <RoleMetricCard label="פניות פתוחות" value={data.errors[8] ? "לא זמין" : data.openTickets} tone={data.errors[8] || data.openTickets ? "warn" : "good"} hint={!data.errors[8] && data.urgentTickets ? `${data.urgentTickets} דחופות` : undefined} />
+          <RoleMetricCard label="השלמת צוות" value={data.errors[2] ? "לא זמין" : `${data.staffOnboarding}%`} tone={data.errors[2] ? "warn" : tone(data.staffOnboarding)} />
+          <RoleMetricCard label="אימוץ הורים" value={data.errors[3] ? "לא זמין" : `${data.parentOnboarding}%`} tone={data.errors[3] ? "warn" : tone(data.parentOnboarding)} />
+          <RoleMetricCard label="הדרכות" value={data.errors[10] ? "לא זמין" : `${data.trainingCompletion}%`} tone={data.errors[10] ? "warn" : data.completions.length ? tone(data.trainingCompletion) : "warn"} />
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><HeartHandshake size={20} /> לקוחות שדורשים תשומת לב</h2>
-            {lowHealth.length === 0 ? <EmptyState title="אין לקוחות בסיכון נמוך כרגע" text="כאשר בריאות לקוח תרד, הלקוח יופיע כאן עם המלצה." /> : lowHealth.map((row) => (
+            {data.errors[6] ? <div className="empty-mini">נתוני בריאות אינם זמינים.</div> : lowHealth.length === 0 ? <EmptyState title="אין לקוחות בסיכון נמוך כרגע" text="כאשר בריאות לקוח תרד, הלקוח יופיע כאן עם המלצה." /> : lowHealth.map((row) => (
               <div className="list-item" key={row.id}>
                 <div><strong>{row.gardens?.name ?? "גן"}</strong><span>{row.explanation ?? "נדרש מעקב יזום"}</span></div>
                 <StatusBadge tone={tone(Number(row.customer_health_score ?? 0))}>{row.customer_health_score}/100</StatusBadge>
@@ -282,7 +274,7 @@ export default async function CustomerSuccessPage() {
           </article>
           <article className="card action-panel">
             <h2><TicketCheck size={20} /> תמיכה</h2>
-            {data.tickets.length === 0 ? <EmptyState title="אין פניות תמיכה" text="פניות WhatsApp, מייל ותוך-מערכת יופיעו כאן." /> : data.tickets.slice(0, 8).map((ticket) => (
+            {data.errors[8] ? <div className="empty-mini">נתוני התמיכה אינם זמינים.</div> : data.tickets.length === 0 ? <EmptyState title="אין פניות תמיכה" text="פניות WhatsApp, מייל ותוך-מערכת יופיעו כאן." /> : data.tickets.slice(0, 8).map((ticket) => (
               <div className="list-item" key={ticket.id}>
                 <div><strong>{ticket.subject}</strong><span>{ticket.gardens?.name ?? ticket.channel} · {date(ticket.created_at)}</span></div>
                 <StatusBadge tone={tone(ticket.status)}>{statusLabel(ticket.status)}</StatusBadge>
@@ -293,18 +285,18 @@ export default async function CustomerSuccessPage() {
 
         <CleanSection title="קליטה ואימוץ" subtitle="מדדי הצלחה מהיום הראשון אחרי הפעלה.">
           <section className="grid cols-5 dashboard-kpis">
-            <RoleMetricCard label="מנהלת" value={`${data.managerOnboarding}%`} tone={tone(data.managerOnboarding)} />
-            <RoleMetricCard label="צוות" value={`${data.staffOnboarding}%`} tone={tone(data.staffOnboarding)} />
-            <RoleMetricCard label="הורים" value={`${data.parentOnboarding}%`} tone={tone(data.parentOnboarding)} />
-            <RoleMetricCard label="מסמכים" value={`${data.documentCompletion}%`} tone={tone(data.documentCompletion)} />
-            <RoleMetricCard label="תשלום" value={`${data.paymentCompletion}%`} tone={tone(data.paymentCompletion)} />
+            <RoleMetricCard label="מנהלת" value={data.errors[0] || data.errors[1] ? "לא זמין" : `${data.managerOnboarding}%`} tone={data.errors[0] || data.errors[1] ? "warn" : tone(data.managerOnboarding)} />
+            <RoleMetricCard label="צוות" value={data.errors[2] ? "לא זמין" : `${data.staffOnboarding}%`} tone={data.errors[2] ? "warn" : tone(data.staffOnboarding)} />
+            <RoleMetricCard label="הורים" value={data.errors[3] ? "לא זמין" : `${data.parentOnboarding}%`} tone={data.errors[3] ? "warn" : tone(data.parentOnboarding)} />
+            <RoleMetricCard label="מסמכים" value={data.errors[4] ? "לא זמין" : `${data.documentCompletion}%`} tone={data.errors[4] ? "warn" : tone(data.documentCompletion)} />
+            <RoleMetricCard label="תשלום" value={data.errors[5] ? "לא זמין" : `${data.paymentCompletion}%`} tone={data.errors[5] ? "warn" : tone(data.paymentCompletion)} />
           </section>
         </CleanSection>
 
         <section className="grid cols-3 dashboard-panels">
           <article className="card action-panel">
             <h2><GraduationCap size={20} /> Training Hub</h2>
-            {data.training.length === 0 ? <div className="empty-mini">אין פריטי הדרכה.</div> : data.training.slice(0, 8).map((item) => (
+            {data.errors[9] ? <div className="empty-mini">נתוני ההדרכה אינם זמינים.</div> : data.training.length === 0 ? <div className="empty-mini">אין פריטי הדרכה.</div> : data.training.slice(0, 8).map((item) => (
               <div className="list-item" key={item.id}>
                 <div><strong>{item.title}</strong><span>{item.audience_role} · {item.estimated_minutes} דקות</span></div>
                 <StatusBadge tone={item.required_for_onboarding ? "warn" : "good"}>{item.content_type}</StatusBadge>
@@ -313,7 +305,7 @@ export default async function CustomerSuccessPage() {
           </article>
           <article className="card action-panel">
             <h2><BookOpenCheck size={20} /> Help Center</h2>
-            {data.knowledge.length === 0 ? <div className="empty-mini">אין מאמרי ידע.</div> : data.knowledge.slice(0, 8).map((article) => (
+            {data.errors[11] ? <div className="empty-mini">נתוני הידע אינם זמינים.</div> : data.knowledge.length === 0 ? <div className="empty-mini">אין מאמרי ידע.</div> : data.knowledge.slice(0, 8).map((article) => (
               <div className="list-item" key={article.id}>
                 <div><strong>{article.title}</strong><span>{article.summary}</span></div>
                 <StatusBadge tone={tone(article.status)}>{article.category}</StatusBadge>
@@ -322,7 +314,7 @@ export default async function CustomerSuccessPage() {
           </article>
           <article className="card action-panel">
             <h2><RefreshCcw size={20} /> Playbooks</h2>
-            {data.playbooks.length === 0 ? <div className="empty-mini">אין playbooks.</div> : data.playbooks.slice(0, 8).map((playbook) => (
+            {data.errors[14] ? <div className="empty-mini">נתוני playbooks אינם זמינים.</div> : data.playbooks.length === 0 ? <div className="empty-mini">אין playbooks.</div> : data.playbooks.slice(0, 8).map((playbook) => (
               <div className="list-item" key={playbook.id}>
                 <div><strong>{playbook.title}</strong><span>{playbook.description}</span></div>
                 <StatusBadge tone="good">{playbook.playbook_type}</StatusBadge>
@@ -334,7 +326,7 @@ export default async function CustomerSuccessPage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><AlertTriangle size={20} /> Renewal Risk</h2>
-            {data.risks.length === 0 ? <EmptyState title="אין סיכוני חידוש פתוחים" text="ירידת שימוש, בעיות פתוחות ותשלומים יופיעו כאן." /> : data.risks.slice(0, 8).map((risk) => (
+            {data.errors[13] ? <div className="empty-mini">נתוני סיכוני החידוש אינם זמינים.</div> : data.risks.length === 0 ? <EmptyState title="אין סיכוני חידוש פתוחים" text="ירידת שימוש, בעיות פתוחות ותשלומים יופיעו כאן." /> : data.risks.slice(0, 8).map((risk) => (
               <div className="list-item" key={risk.id}>
                 <div><strong>{risk.gardens?.name ?? risk.signal_type}</strong><span>{risk.explanation ?? risk.recommended_action}</span></div>
                 <StatusBadge tone={tone(risk.severity)}>{risk.risk_score}/100</StatusBadge>
@@ -344,9 +336,9 @@ export default async function CustomerSuccessPage() {
           <article className="card action-panel">
             <h2><Sparkles size={20} /> Customer Success AI</h2>
             <div className="parent-trust-list">
-              <span>מי בסיכון? {data.atRisk ? `${data.atRisk} לקוחות דורשים בדיקה.` : "אין סיכון גבוה כרגע."}</span>
-              <span>מה חסר בקליטה? צוות {data.staffOnboarding}%, הורים {data.parentOnboarding}%, מסמכים {data.documentCompletion}%.</span>
-              <span>מה לפתור קודם? {data.urgentTickets ? `${data.urgentTickets} פניות דחופות.` : openTasks.length ? `${openTasks.length} משימות פתוחות.` : "אין חסם דחוף."}</span>
+              <span>מי בסיכון? {data.errors[6] || data.errors[13] ? "נתוני הסיכון אינם זמינים במלואם." : data.atRisk ? `${data.atRisk} לקוחות דורשים בדיקה.` : "אין סיכון גבוה כרגע."}</span>
+              <span>מה חסר בקליטה? צוות {data.errors[2] ? "לא זמין" : `${data.staffOnboarding}%`}, הורים {data.errors[3] ? "לא זמין" : `${data.parentOnboarding}%`}, מסמכים {data.errors[4] ? "לא זמין" : `${data.documentCompletion}%`}.</span>
+              <span>מה לפתור קודם? {data.errors[8] ? "נתוני העדיפות אינם זמינים." : data.urgentTickets ? `${data.urgentTickets} פניות דחופות.` : data.errors[12] ? "נתוני המשימות אינם זמינים." : openTasks.length ? `${openTasks.length} משימות פתוחות.` : "אין חסם דחוף."}</span>
             </div>
           </article>
         </section>
@@ -355,7 +347,7 @@ export default async function CustomerSuccessPage() {
           <section className="grid cols-2 dashboard-panels">
             <article className="card action-panel">
               <h2><LifeBuoy size={20} /> משימות Customer Success</h2>
-              {openTasks.length === 0 ? <EmptyState title="אין משימות פתוחות" text="משימות מעקב, תשלום, מסמכים וחידוש יופיעו כאן." /> : openTasks.slice(0, 8).map((task) => (
+              {data.errors[12] ? <div className="empty-mini">נתוני המשימות אינם זמינים.</div> : openTasks.length === 0 ? <EmptyState title="אין משימות פתוחות" text="משימות מעקב, תשלום, מסמכים וחידוש יופיעו כאן." /> : openTasks.slice(0, 8).map((task) => (
                 <div className="list-item" key={task.id}>
                   <div><strong>{task.title}</strong><span>{task.gardens?.name ?? task.task_type} · {task.due_at ? date(task.due_at) : "ללא יעד"}</span></div>
                   <StatusBadge tone={tone(task.status)}>{statusLabel(task.status)}</StatusBadge>
@@ -364,7 +356,9 @@ export default async function CustomerSuccessPage() {
             </article>
             <article className="card action-panel">
               <h2><LineChart size={20} /> דוחות וסקרים</h2>
-              {[...data.reports, ...data.surveys].length === 0 ? <EmptyState title="אין דוחות או סקרים" text="סקרי NPS, שביעות רצון ודוחות אימוץ יופיעו כאן." /> : [...data.reports, ...data.surveys].slice(0, 8).map((item) => (
+              {data.errors[17] && <div className="empty-mini">נתוני הדוחות אינם זמינים.</div>}
+              {data.errors[15] && <div className="empty-mini">נתוני הסקרים אינם זמינים.</div>}
+              {[...data.reports, ...data.surveys].length === 0 && !data.errors[17] && !data.errors[15] ? <EmptyState title="אין דוחות או סקרים" text="סקרי NPS, שביעות רצון ודוחות אימוץ יופיעו כאן." /> : [...data.reports, ...data.surveys].slice(0, 8).map((item) => (
                 <div className="list-item" key={item.id}>
                   <div><strong>{item.title ?? item.report_type}</strong><span>{item.summary ?? item.gardens?.name ?? item.survey_type}</span></div>
                   <StatusBadge tone={tone(item.status ?? item.satisfaction_score ?? 0)}>{item.status ?? `${item.satisfaction_score ?? 0}/5`}</StatusBadge>
@@ -375,7 +369,7 @@ export default async function CustomerSuccessPage() {
         </CleanSection>
 
         <CleanSection title="Product Adoption" subtitle="שימוש בפיצ׳רים לפי הורים, צוות, מצלמות, AI, מסמכים ותשלומים.">
-          {data.adoption.length === 0 ? <EmptyState title="אין עדיין נתוני אימוץ" text="לאחר הפעלת analytics תקופתיים יופיעו כאן שימושים ופיצ׳רים לא מנוצלים." /> : (
+          {data.errors[16] ? <div className="empty-mini">נתוני האימוץ אינם זמינים.</div> : data.adoption.length === 0 ? <EmptyState title="אין עדיין נתוני אימוץ" text="לאחר הפעלת analytics תקופתיים יופיעו כאן שימושים ופיצ׳רים לא מנוצלים." /> : (
             <div className="analytics-region-grid">
               {data.adoption.slice(0, 12).map((item) => (
                 <article key={item.id}>

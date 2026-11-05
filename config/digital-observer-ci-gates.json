@@ -504,6 +504,13 @@
         "--test",
         "scripts/qa/check-first-pilot-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "customer-success-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-customer-success-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
