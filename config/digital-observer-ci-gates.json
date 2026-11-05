@@ -420,6 +420,13 @@
         "--test",
         "scripts/qa/check-camera-infrastructure-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-sms-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-sms-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
