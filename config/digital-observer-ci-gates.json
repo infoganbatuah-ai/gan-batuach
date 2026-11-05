@@ -756,6 +756,13 @@
         "--test",
         "scripts/qa/check-iso-readiness-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "security-pipeline-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-security-pipeline-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
