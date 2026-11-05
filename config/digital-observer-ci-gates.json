@@ -707,6 +707,13 @@
         "--test",
         "scripts/qa/check-company-operations-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "business-continuity-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-business-continuity-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
