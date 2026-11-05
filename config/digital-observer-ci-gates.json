@@ -644,6 +644,13 @@
         "--test",
         "scripts/qa/check-advanced-learning-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-watch-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-watch-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
