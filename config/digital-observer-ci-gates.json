@@ -1000,6 +1000,13 @@
         "--test",
         "scripts/qa/check-ai-platform-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-intelligence-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-intelligence-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
