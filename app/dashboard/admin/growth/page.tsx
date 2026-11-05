@@ -89,15 +89,15 @@ export default async function GrowthCommandCenterPage() {
     ].forEach((query, index) => logSupabaseError(`growth query ${index}`, (query as any).error));
 
     return {
-      growthLeads: (growthLeadsRes.data ?? []) as any[],
-      legacyLeads: (legacyLeadsRes.data ?? []) as any[],
-      demandClusters: (demandRes.data ?? []) as any[],
-      campaignMetrics: (campaignRes.data ?? []) as any[],
-      followUps: (followUpsRes.data ?? []) as any[],
-      communications: (commsRes.data ?? []) as any[],
-      events: (eventsRes.data ?? []) as any[],
-      referrals: (referralsRes.data ?? []) as any[],
-      queryError: [growthLeadsRes, legacyLeadsRes, demandRes, campaignRes, followUpsRes, commsRes, eventsRes, referralsRes].some((query: any) => query.error) ? "חלק מנתוני הצמיחה אינם זמינים. ודאו שמיגרציית Phase 143 רצה." : null
+      growthLeads: (growthLeadsRes.error ? [] : growthLeadsRes.data ?? []) as any[],
+      legacyLeads: (legacyLeadsRes.error ? [] : legacyLeadsRes.data ?? []) as any[],
+      demandClusters: (demandRes.error ? [] : demandRes.data ?? []) as any[],
+      campaignMetrics: (campaignRes.error ? [] : campaignRes.data ?? []) as any[],
+      followUps: (followUpsRes.error ? [] : followUpsRes.data ?? []) as any[],
+      communications: (commsRes.error ? [] : commsRes.data ?? []) as any[],
+      events: (eventsRes.error ? [] : eventsRes.data ?? []) as any[],
+      referrals: (referralsRes.error ? [] : referralsRes.data ?? []) as any[],
+      errors: [growthLeadsRes, legacyLeadsRes, demandRes, campaignRes, followUpsRes, commsRes, eventsRes, referralsRes].map((query: any) => Boolean(query.error))
     };
   }, {
     growthLeads: [] as any[],
@@ -108,10 +108,14 @@ export default async function GrowthCommandCenterPage() {
     communications: [] as any[],
     events: [] as any[],
     referrals: [] as any[],
-    queryError: null as string | null
+    errors: Array(8).fill(true) as boolean[]
   });
 
-  const growthLeads = result.data.growthLeads.length ? result.data.growthLeads : result.data.legacyLeads.map((lead) => ({
+  const errors = result.data.errors;
+  const leadsAvailable = !errors[0] && (result.data.growthLeads.length > 0 || !errors[1]);
+  const campaignsAvailable = !errors[3] && (result.data.campaignMetrics.length > 0 || !errors[7]);
+  const visitsAvailable = !errors[6] && (result.data.events.length > 0 || leadsAvailable);
+  const growthLeads = !leadsAvailable ? [] : result.data.growthLeads.length ? result.data.growthLeads : result.data.legacyLeads.map((lead) => ({
     ...lead,
     lead_source: lead.source === "demo_booking" ? "demo_booking" : lead.source === "parent_request" ? "parent_request" : "kindergarten_registration",
     interest_score: lead.lead_score ?? 0,
@@ -132,7 +136,7 @@ export default async function GrowthCommandCenterPage() {
   });
   const topCities = [...cityMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
   const funnel = [
-    { label: "ביקורים", value: result.data.events.filter((event) => event.event_type === "visit").length || total },
+    { label: "ביקורים", value: result.data.events.length ? result.data.events.filter((event) => event.event_type === "visit").length : total },
     { label: "לידים", value: total },
     { label: "הדגמות", value: demos },
     { label: "התאמה", value: growthLeads.filter((lead) => ["qualified", "approved", "converted"].includes(String(lead.status))).length },
@@ -146,28 +150,28 @@ export default async function GrowthCommandCenterPage() {
         eyebrow="Growth Engine"
         title="צמיחה, ביקוש הורים והמרת גנים."
         subtitle="מרכז אחד שמאחד הדגמות, רישומי גנים, בקשות הורים, קמפיינים והפניות לצינור המרה מדיד."
-        badge={`${pct(converted, total)}% המרה`}
-        badgeTone={tone(pct(converted, total))}
+        badge={leadsAvailable ? `${pct(converted, total)}% המרה` : "לא זמין"}
+        badgeTone={leadsAvailable ? tone(pct(converted, total)) : "warn"}
         actions={<><Link className="button primary" href="/dashboard/admin/leads">מרכז לידים</Link><Link className="button secondary" href="/book-demo">קבע הדגמה</Link></>}
       >
         <div className="mini-list">
-          <span><Flame size={16} /> {highDemand} גנים בביקוש גבוה</span>
-          <span><Target size={16} /> {avgInterest}/100 עניין ממוצע</span>
+          <span><Flame size={16} /> {errors[2] ? "לא זמין" : highDemand} גנים בביקוש גבוה</span>
+          <span><Target size={16} /> {leadsAvailable ? `${avgInterest}/100` : "לא זמין"} עניין ממוצע</span>
         </div>
       </PremiumDashboardHero>
-      <AdminDataError message={result.error ?? result.data.queryError} />
+      <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני הצמיחה אינם זמינים כרגע." : null)} />
 
       <section className="role-grid">
-        <RoleMetricCard label="לידים" value={total} hint="כל מקורות הצמיחה" tone="good" />
-        <RoleMetricCard label="הדגמות" value={demos} hint="קבע הדגמה" tone="warn" />
-        <RoleMetricCard label="בקשות הורים" value={parentDemand} hint="לחץ מהשטח" tone="good" />
-        <RoleMetricCard label="צינור פעיל" value={activePipeline} hint="דורש מעקב" tone={activePipeline ? "warn" : "good"} />
-        <RoleMetricCard label="המרות" value={converted} hint="גן שנכנס להפעלה" tone="good" />
-        <RoleMetricCard label="ציון עניין" value={avgInterest} hint="0-100" tone={tone(avgInterest)} />
+        <RoleMetricCard label="לידים" value={leadsAvailable ? total : "לא זמין"} hint="כל מקורות הצמיחה" tone={leadsAvailable ? "good" : "warn"} />
+        <RoleMetricCard label="הדגמות" value={leadsAvailable ? demos : "לא זמין"} hint="קבע הדגמה" tone="warn" />
+        <RoleMetricCard label="בקשות הורים" value={leadsAvailable ? parentDemand : "לא זמין"} hint="לחץ מהשטח" tone={leadsAvailable ? "good" : "warn"} />
+        <RoleMetricCard label="צינור פעיל" value={leadsAvailable ? activePipeline : "לא זמין"} hint="דורש מעקב" tone={!leadsAvailable || activePipeline ? "warn" : "good"} />
+        <RoleMetricCard label="המרות" value={leadsAvailable ? converted : "לא זמין"} hint="גן שנכנס להפעלה" tone={leadsAvailable ? "good" : "warn"} />
+        <RoleMetricCard label="ציון עניין" value={leadsAvailable ? avgInterest : "לא זמין"} hint="0-100" tone={leadsAvailable ? tone(avgInterest) : "warn"} />
       </section>
 
       <CleanSection title="מרכז המרה" subtitle="הלידים החשובים ביותר לטיפול עכשיו." action={<Link className="button secondary" href="/dashboard/admin/leads">פתיחת ניהול לידים</Link>}>
-        {growthLeads.length === 0 ? <EmptyState title="אין לידים להצגה" text="לידים מטפסי האתר יופיעו כאן אחרי שליחת טופס." /> : (
+        {!leadsAvailable ? <div className="empty-state">נתוני הלידים אינם זמינים כרגע</div> : growthLeads.length === 0 ? <EmptyState title="אין לידים להצגה" text="לידים מטפסי האתר יופיעו כאן אחרי שליחת טופס." /> : (
           <div className="procedure-list">
             {growthLeads.slice(0, 8).map((lead) => (
               <article className="card procedure-card" key={lead.id}>
@@ -188,7 +192,7 @@ export default async function GrowthCommandCenterPage() {
       </CleanSection>
 
       <CleanSection title="Parent Demand" subtitle="איפה ההורים יוצרים ביקוש לגנים להצטרף." action={<Link className="button secondary" href="/parents-demand">טופס הורים</Link>}>
-        {result.data.demandClusters.length === 0 ? <EmptyState title="אין עדיין אשכולות ביקוש" text="בקשות הורים ייצרו אשכול לפי שם גן, עיר וכתובת." /> : (
+        {errors[2] ? <div className="empty-state">נתוני הביקוש אינם זמינים כרגע</div> : result.data.demandClusters.length === 0 ? <EmptyState title="אין עדיין אשכולות ביקוש" text="בקשות הורים ייצרו אשכול לפי שם גן, עיר וכתובת." /> : (
           <div className="mobile-card-list">
             {result.data.demandClusters.slice(0, 6).map((cluster) => (
               <article className="card" key={cluster.id}>
@@ -211,7 +215,7 @@ export default async function GrowthCommandCenterPage() {
       <CleanSection title="צינור המרה" subtitle="Visit → Lead → Demo → Qualification → Approval → Activation">
         <div className="role-grid">
           {funnel.map((step, index) => (
-            <RoleMetricCard key={step.label} label={`${index + 1}. ${step.label}`} value={step.value} hint={index === 0 ? "תחילת מסע" : `${pct(step.value, total || step.value)}% מהלידים`} />
+            <RoleMetricCard key={step.label} label={`${index + 1}. ${step.label}`} value={(index === 0 ? visitsAvailable : leadsAvailable) ? step.value : "לא זמין"} hint={index === 0 ? "תחילת מסע" : leadsAvailable ? `${pct(step.value, total || step.value)}% מהלידים` : "לא זמין"} />
           ))}
         </div>
       </CleanSection>
@@ -220,7 +224,7 @@ export default async function GrowthCommandCenterPage() {
         <div className="three-column-grid">
           <article className="card">
             <h3><CalendarCheck size={18} /> משימות מעקב</h3>
-            {result.data.followUps.length === 0 ? <p>אין משימות פתוחות.</p> : result.data.followUps.slice(0, 5).map((task) => (
+            {errors[4] ? <p>נתוני המשימות אינם זמינים כרגע.</p> : result.data.followUps.length === 0 ? <p>אין משימות פתוחות.</p> : result.data.followUps.slice(0, 5).map((task) => (
               <div className="mini-row" key={task.id}>
                 <span>{task.title}</span>
                 <StatusBadge tone={tone(task.status)}>{statusLabel(task.status)}</StatusBadge>
@@ -229,7 +233,7 @@ export default async function GrowthCommandCenterPage() {
           </article>
           <article className="card">
             <h3><Mail size={18} /> תקשורת לידים</h3>
-            {result.data.communications.length === 0 ? <p>תבניות WhatsApp, SMS ומייל מוכנות במודל הנתונים.</p> : result.data.communications.slice(0, 5).map((item) => (
+            {errors[5] ? <p>נתוני התקשורת אינם זמינים כרגע.</p> : result.data.communications.length === 0 ? <p>תבניות WhatsApp, SMS ומייל מוכנות במודל הנתונים.</p> : result.data.communications.slice(0, 5).map((item) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.template_key ?? item.channel}</span>
                 <StatusBadge tone={tone(item.status)}>{statusLabel(item.status)}</StatusBadge>
@@ -238,20 +242,20 @@ export default async function GrowthCommandCenterPage() {
           </article>
           <article className="card">
             <h3><Megaphone size={18} /> קמפיינים והפניות</h3>
-            {(result.data.campaignMetrics.length ? result.data.campaignMetrics : result.data.referrals).slice(0, 5).map((item) => (
+            {!campaignsAvailable ? <p>נתוני הקמפיינים וההפניות אינם זמינים כרגע.</p> : (result.data.campaignMetrics.length ? result.data.campaignMetrics : result.data.referrals).slice(0, 5).map((item) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.campaign_name ?? item.referred_garden_name ?? item.campaign_key ?? "קמפיין"}</span>
                 <strong>{item.leads ?? item.status ?? 0}</strong>
               </div>
             ))}
-            {result.data.campaignMetrics.length === 0 && result.data.referrals.length === 0 ? <p>אין עדיין נתוני קמפיין או הפניה.</p> : null}
+            {campaignsAvailable && result.data.campaignMetrics.length === 0 && result.data.referrals.length === 0 ? <p>אין עדיין נתוני קמפיין או הפניה.</p> : null}
           </article>
         </div>
       </CleanSection>
 
       <CleanSection title="Regional Growth" subtitle="איפה הצמיחה מרוכזת עכשיו.">
         <div className="role-grid">
-          {topCities.length === 0 ? <RoleMetricCard label="ערים" value="-" hint="אין נתונים" /> : topCities.map(([city, count]) => (
+          {!leadsAvailable ? <RoleMetricCard label="ערים" value="לא זמין" hint="לא זמין" tone="warn" /> : topCities.length === 0 ? <RoleMetricCard label="ערים" value="-" hint="אין נתונים" /> : topCities.map(([city, count]) => (
             <RoleMetricCard key={city} label={city} value={count} hint="לידים" tone={count >= 3 ? "good" : "default"} />
           ))}
         </div>

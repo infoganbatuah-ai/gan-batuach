@@ -546,6 +546,13 @@
         "--test",
         "scripts/qa/check-commercial-rollout-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "growth-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-growth-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
