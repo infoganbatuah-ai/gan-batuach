@@ -399,6 +399,13 @@
         "--test",
         "scripts/qa/check-camera-permissions-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "camera-audit-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-camera-audit-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

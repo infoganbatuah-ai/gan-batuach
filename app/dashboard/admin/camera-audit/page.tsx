@@ -13,13 +13,14 @@ export default async function AdminCameraAuditPage() {
     const columns = "id, garden_id, kindergarten_id, name, area, source_type, camera_type, protocol, status, stream_status, health_status, active, parent_view_allowed, parent_viewing_allowed, live_preview_status, playback_hls_ready, playback_webrtc_ready, gateway_stream_id, video_gateway_stream_id, last_seen, last_successful_connection_at, last_stream_activity_at, failure_count, reconnect_attempts, recording_enabled, retention_days, archive_policy, is_demo, demo_batch_id, gardens(name, city)";
     const cameras = await supabase.from("camera_streams" as any).select(columns).limit(500);
     logSupabaseError("camera audit camera_streams", cameras.error);
-    const rows = (cameras.data ?? []) as any[];
+    const rows = (cameras.error ? [] : cameras.data ?? []) as any[];
     return {
       cameras: rows,
+      available: !cameras.error,
       summary: buildCameraAuditSummary(rows),
       queryError: cameras.error ? "לא ניתן לטעון את אודיט המצלמות כרגע" : null
     };
-  }, { cameras: [] as any[], summary: buildCameraAuditSummary([]), queryError: null as string | null });
+  }, { cameras: [] as any[], available: false, summary: buildCameraAuditSummary([]), queryError: null as string | null });
 
   const rows = result.data.cameras as any[];
   const summary = result.data.summary;
@@ -36,21 +37,21 @@ export default async function AdminCameraAuditPage() {
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
       <section className="grid cols-4 dashboard-panels">
-        <article className="card metric-card"><span>סה״כ מצלמות</span><strong>{summary.total}</strong></article>
-        <article className="card metric-card"><span>פעילות</span><strong>{summary.online}</strong></article>
-        <article className="card metric-card"><span>אופליין / שגיאה</span><strong>{summary.offline}</strong></article>
-        <article className="card metric-card"><span>דמו</span><strong>{summary.demo}</strong></article>
-        <article className="card metric-card"><span>חסר מקור צפייה</span><strong>{summary.missingPlaybackSource}</strong></article>
-        <article className="card metric-card"><span>בעיית הרשאה</span><strong>{summary.permissionIssues}</strong></article>
-        <article className="card metric-card"><span>ללא שיוך גן</span><strong>{summary.orphan}</strong></article>
-        <article className="card metric-card"><span>מוכנות</span><strong>{summary.productionReady ? "תקין" : "לטיפול"}</strong></article>
+        <article className="card metric-card"><span>סה״כ מצלמות</span><strong>{result.data.available ? summary.total : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>פעילות</span><strong>{result.data.available ? summary.online : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>אופליין / שגיאה</span><strong>{result.data.available ? summary.offline : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>דמו</span><strong>{result.data.available ? summary.demo : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>חסר מקור צפייה</span><strong>{result.data.available ? summary.missingPlaybackSource : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>בעיית הרשאה</span><strong>{result.data.available ? summary.permissionIssues : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>ללא שיוך גן</span><strong>{result.data.available ? summary.orphan : "לא זמין"}</strong></article>
+        <article className="card metric-card"><span>מוכנות</span><strong>{result.data.available ? summary.productionReady ? "תקין" : "לטיפול" : "לא זמין"}</strong></article>
       </section>
       <section className="dashboard-section">
         <div className="section-heading">
           <h2>ממצאי מצלמות</h2>
           <p>האבחון הזה מיועד לאדמין בלבד. הורים לא רואים מזהים, מקורות, Gateway או נתוני RLS.</p>
         </div>
-        {rows.length === 0 ? (
+        {!result.data.available ? <div className="empty-state"><strong>נתוני אודיט המצלמות אינם זמינים</strong><span>לא ניתן לקבוע מלאי, ממצאים או מוכנות כרגע.</span></div> : rows.length === 0 ? (
           <div className="empty-state"><strong>אין מצלמות לאודיט</strong><span>כאשר גנים יוסיפו מצלמות, תופיע כאן תמונת מוכנות מלאה.</span></div>
         ) : (
           <div className="procedure-list">
