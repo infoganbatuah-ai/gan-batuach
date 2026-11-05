@@ -434,6 +434,13 @@
         "--test",
         "scripts/qa/check-admin-whatsapp-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-email-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-email-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

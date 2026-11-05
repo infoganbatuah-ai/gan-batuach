@@ -2,6 +2,8 @@ import { AlertTriangle, CheckCircle2, Mail, MousePointerClick, RefreshCw, Shield
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ResendLiveTestButton } from "@/components/resend-live-test-button";
 import { StatCard } from "@/components/stat-card";
+import { AdminDataError } from "@/components/admin-data-state";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { requireRole } from "@/lib/auth";
 import { getEmailProductionReadiness } from "@/lib/domain/email-provider";
 import { createClient } from "@/lib/supabase/server";
@@ -42,18 +44,28 @@ function pillForStatus(status: string) {
 
 export default async function AdminEmailProductionPage() {
   await requireRole(["admin"]);
-  const supabase = await createClient();
   const readiness = getEmailProductionReadiness();
-  const [templatesRes, logsRes, preferencesRes, providersRes, communicationLogsRes] = await Promise.all([
-    supabase.from("email_templates" as any).select("*").order("category").order("template_name").limit(120),
-    supabase.from("email_delivery_logs" as any).select("*").order("created_at", { ascending: false }).limit(160),
-    supabase.from("email_category_preferences" as any).select("id", { count: "exact", head: true }),
-    supabase.from("email_provider_configs" as any).select("*").order("provider"),
-    supabase.from("communication_logs" as any).select("id, status", { count: "exact" }).eq("channel", "email").order("created_at", { ascending: false }).limit(200)
-  ]);
-
-  if (templatesRes.error) console.error("[admin-email-production] templates failed", { error: templatesRes.error.message });
-  if (logsRes.error) console.error("[admin-email-production] logs failed", { error: logsRes.error.message });
+  const unavailable = { data: null, count: null, available: false };
+  const result = await safeAdminData("admin-email-production", async () => {
+    const supabase = await createClient();
+    async function readSource<T extends { data: unknown; error: unknown; count?: number | null }>(label: string, query: () => PromiseLike<T>) {
+      const source = await safeAdminData(label, async () => {
+        const response = await query();
+        logSupabaseError(label, response.error);
+        return { data: response.error ? null : response.data, count: response.error ? null : response.count, available: !response.error };
+      }, unavailable);
+      return source.data;
+    }
+    const [templatesRes, logsRes, preferencesRes, providersRes, communicationLogsRes] = await Promise.all([
+      readSource("admin-email templates", () => supabase.from("email_templates" as any).select("*").order("category").order("template_name").limit(120)),
+      readSource("admin-email logs", () => supabase.from("email_delivery_logs" as any).select("*").order("created_at", { ascending: false }).limit(160)),
+      readSource("admin-email preferences", () => supabase.from("email_category_preferences" as any).select("id", { count: "exact", head: true })),
+      readSource("admin-email providers", () => supabase.from("email_provider_configs" as any).select("*").order("provider")),
+      readSource("admin-email communication logs", () => supabase.from("communication_logs" as any).select("id, status", { count: "exact" }).eq("channel", "email").order("created_at", { ascending: false }).limit(200))
+    ]);
+    return { templatesRes, logsRes, preferencesRes, providersRes, communicationLogsRes };
+  }, { templatesRes: unavailable, logsRes: unavailable, preferencesRes: unavailable, providersRes: unavailable, communicationLogsRes: unavailable });
+  const { templatesRes, logsRes, preferencesRes, providersRes, communicationLogsRes } = result.data;
 
   const templates = (templatesRes.data ?? []) as any[];
   const logs = (logsRes.data ?? []) as any[];
@@ -89,15 +101,16 @@ export default async function AdminEmailProductionPage() {
       <ResendLiveTestButton enabled={readiness.canSendRealMessages} />
 
       <div className="grid cols-4 dashboard-kpis">
-        <StatCard label="תבניות" value={templates.length} tone={templates.length ? "good" : "warn"} />
-        <StatCard label="פעילות" value={activeTemplates} tone={activeTemplates ? "good" : "warn"} />
-        <StatCard label="בתור" value={queued} tone={queued ? "warn" : "good"} />
-        <StatCard label="נמסר" value={delivered} tone="good" />
-        <StatCard label="נפתח" value={opened} tone="good" />
-        <StatCard label="נלחץ" value={clicked} tone="good" />
-        <StatCard label="כשלונות" value={failed} tone={failed ? "bad" : "good"} />
-        <StatCard label="Retry מתוזמן" value={retryScheduled} tone={retryScheduled ? "warn" : "good"} />
+        <StatCard label="תבניות" value={templatesRes.available ? templates.length : "לא זמין"} tone={templatesRes.available ? templates.length ? "good" : "warn" : "default"} />
+        <StatCard label="פעילות" value={templatesRes.available ? activeTemplates : "לא זמין"} tone={templatesRes.available ? activeTemplates ? "good" : "warn" : "default"} />
+        <StatCard label="בתור" value={logsRes.available ? queued : "לא זמין"} tone={logsRes.available ? queued ? "warn" : "good" : "default"} />
+        <StatCard label="נמסר" value={logsRes.available ? delivered : "לא זמין"} tone={logsRes.available ? "good" : "default"} />
+        <StatCard label="נפתח" value={logsRes.available ? opened : "לא זמין"} tone={logsRes.available ? "good" : "default"} />
+        <StatCard label="נלחץ" value={logsRes.available ? clicked : "לא זמין"} tone={logsRes.available ? "good" : "default"} />
+        <StatCard label="כשלונות" value={logsRes.available && communicationLogsRes.available ? failed : "לא זמין"} tone={logsRes.available && communicationLogsRes.available ? failed ? "bad" : "good" : "default"} />
+        <StatCard label="Retry מתוזמן" value={logsRes.available ? retryScheduled : "לא זמין"} tone={logsRes.available ? retryScheduled ? "warn" : "good" : "default"} />
       </div>
+      <AdminDataError message={result.error ?? (Object.values(result.data).some((source) => !source.available) ? "לא ניתן לטעון חלק מנתוני האימייל כרגע" : null)} />
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
@@ -113,13 +126,13 @@ export default async function AdminEmailProductionPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Mail size={20} /> קטגוריות אימייל</h2><p>תבניות מוכנות לאירועים מרכזיים.</p></div>
           <div className="tag-cloud">{Object.values(categoryLabels).map((label) => <span key={label}>{label}</span>)}</div>
-          <p className="muted">העדפות קטגוריה: {preferencesRes.count ?? 0} · ספקים במסד: {providers.length}</p>
+          <p className="muted">העדפות קטגוריה: {preferencesRes.available ? preferencesRes.count ?? 0 : "לא זמין"} · ספקים במסד: {providersRes.available ? providers.length : "לא זמין"}</p>
         </article>
       </section>
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>תבניות אימייל</h2><p>נושא, תוכן טקסט ותוכן HTML מוכנים לשליחה עתידית.</p></div>
-        {templates.length === 0 ? <div className="empty-state"><strong>אין תבניות אימייל להצגה</strong><span>לאחר הרצת המיגרציה תבניות הבסיס יופיעו כאן.</span></div> : <div className="procedure-list">{templates.map((template) => (
+        {!templatesRes.available ? <div className="empty-state"><strong>נתוני תבניות האימייל אינם זמינים</strong><span>לא ניתן לקבוע את מלאי התבניות כרגע.</span></div> : templates.length === 0 ? <div className="empty-state"><strong>אין תבניות אימייל להצגה</strong><span>לאחר הרצת המיגרציה תבניות הבסיס יופיעו כאן.</span></div> : <div className="procedure-list">{templates.map((template) => (
           <article className="card procedure-card" key={template.id}>
             <div>
               <span className={pillForStatus(template.status)}>{statusLabels[template.status] ?? template.status}</span>
@@ -137,7 +150,7 @@ export default async function AdminEmailProductionPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>לוג אימייל</h2><p>queued / sent / delivered / opened / clicked / failed נשמרים כאן ומעודכנים מ-webhook חתום.</p></div>
-        {logs.length === 0 ? <div className="empty-state"><strong>אין אימיילים בתור עדיין</strong><span>כאשר הודעת אימייל תיווצר במצב בדיקה, היא תופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
+        {!logsRes.available ? <div className="empty-state"><strong>נתוני לוג האימייל אינם זמינים</strong><span>לא ניתן לקבוע סטטוסי מסירה כרגע.</span></div> : logs.length === 0 ? <div className="empty-state"><strong>אין אימיילים בתור עדיין</strong><span>כאשר הודעת אימייל תיווצר במצב בדיקה, היא תופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
           <article className="card procedure-card" key={log.id}>
             <div>
               <span className={pillForStatus(log.status)}>{statusLabels[log.status] ?? log.status}</span>
