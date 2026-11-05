@@ -980,6 +980,13 @@
         "--test",
         "scripts/qa/check-leads-payment-stage.mjs"
       ]
+    },
+    {
+      "name": "admin-join-requests-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-join-requests-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
