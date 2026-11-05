@@ -448,6 +448,13 @@
         "--test",
         "scripts/qa/check-admin-push-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-communication-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-communication-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
