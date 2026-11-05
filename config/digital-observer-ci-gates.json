@@ -987,6 +987,12 @@
         "--test",
         "scripts/qa/check-admin-join-requests-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "push38-monitor-accuracy",
+      "args": [
+        "scripts/qa/check-push38b-monitor-accuracy.mjs"
+      ]
     }
   ],
   "security": [
