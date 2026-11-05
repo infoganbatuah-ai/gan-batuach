@@ -469,6 +469,13 @@
         "--test",
         "scripts/qa/check-admin-push-production-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "pilot-readiness-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-pilot-readiness-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
