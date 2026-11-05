@@ -826,6 +826,13 @@
         "--test",
         "scripts/qa/check-admin-documents-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-inspections-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-inspections-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
