@@ -903,6 +903,13 @@
         "--test",
         "scripts/qa/check-admin-reports-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-attendance-compliance-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-attendance-compliance-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
