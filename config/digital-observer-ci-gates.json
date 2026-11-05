@@ -490,6 +490,13 @@
         "--test",
         "scripts/qa/check-pilot-center-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "launch-readiness-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-launch-readiness-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

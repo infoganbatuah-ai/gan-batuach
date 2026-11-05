@@ -38,32 +38,44 @@ export default async function AdminLaunchReadinessPage() {
       supabase.from("launch_executive_reports" as any).select("*").order("created_at", { ascending: false }).limit(20)
     ]);
     [readinessRes, configRes, issuesRes, blockersRes, checklistRes, pilotsRes, participantsRes, successRes, performanceRes, productionScoreRes, validationsRes, riskRegisterRes, goLiveRes, reportsRes].forEach((query, index) => logSupabaseError(`launch readiness query ${index}`, (query as any).error));
+    const errors = [readinessRes.error, configRes.error, issuesRes.error, blockersRes.error, checklistRes.error, pilotsRes.error, participantsRes.error, successRes.error, performanceRes.error, productionScoreRes.error, validationsRes.error, riskRegisterRes.error, goLiveRes.error, reportsRes.error].map(Boolean);
+    const readiness = errors[0] ? [] : readinessRes.data ?? [];
+    const configuration = errors[1] ? [] : configRes.data ?? [];
+    const issues = errors[2] ? [] : issuesRes.data ?? [];
+    const blockers = errors[3] ? [] : blockersRes.data ?? [];
+    const checklist = errors[4] ? [] : checklistRes.data ?? [];
+    const pilots = errors[5] ? [] : pilotsRes.data ?? [];
+    const participants = errors[6] ? [] : participantsRes.data ?? [];
     return {
-      readiness: readinessRes.data ?? [],
-      configuration: configRes.data ?? [],
-      issues: issuesRes.data ?? [],
-      blockers: blockersRes.data ?? [],
-      checklist: checklistRes.data ?? [],
-      pilots: pilotsRes.data ?? [],
-      participants: participantsRes.data ?? [],
-      success: successRes.data ?? [],
-      performance: performanceRes.data ?? [],
-      productionScores: productionScoreRes.data ?? [],
-      validations: validationsRes.data ?? [],
-      riskRegister: riskRegisterRes.data ?? [],
-      decisions: goLiveRes.data ?? [],
-      reports: reportsRes.data ?? [],
-      summary: buildLaunchReadinessSummary({ readiness: readinessRes.data ?? [], configuration: configRes.data ?? [], issues: issuesRes.data ?? [], blockers: blockersRes.data ?? [], checklist: checklistRes.data ?? [], pilots: pilotsRes.data ?? [], participants: participantsRes.data ?? [] }),
-      queryError: [readinessRes.error, configRes.error, issuesRes.error, blockersRes.error, checklistRes.error, pilotsRes.error, participantsRes.error, successRes.error, performanceRes.error, productionScoreRes.error, validationsRes.error, riskRegisterRes.error, goLiveRes.error, reportsRes.error].some(Boolean) ? "חלק מנתוני מוכנות ההשקה לא נטענו. ייתכן שמיגרציית Phase 144 עדיין לא רצה." : null
+      readiness, configuration, issues, blockers, checklist, pilots, participants, errors,
+      success: errors[7] ? [] : successRes.data ?? [],
+      performance: errors[8] ? [] : performanceRes.data ?? [],
+      productionScores: errors[9] ? [] : productionScoreRes.data ?? [],
+      validations: errors[10] ? [] : validationsRes.data ?? [],
+      riskRegister: errors[11] ? [] : riskRegisterRes.data ?? [],
+      decisions: errors[12] ? [] : goLiveRes.data ?? [],
+      reports: errors[13] ? [] : reportsRes.data ?? [],
+      summary: buildLaunchReadinessSummary({ readiness, configuration, issues, blockers, checklist, pilots, participants }),
+      queryError: errors.some(Boolean) ? "חלק מנתוני מוכנות ההשקה אינם זמינים כרגע." : null
     };
-  }, { readiness: [] as any[], configuration: [] as any[], issues: [] as any[], blockers: [] as any[], checklist: [] as any[], pilots: [] as any[], participants: [] as any[], success: [] as any[], performance: [] as any[], productionScores: [] as any[], validations: [] as any[], riskRegister: [] as any[], decisions: [] as any[], reports: [] as any[], summary: buildLaunchReadinessSummary(), queryError: null as string | null });
+  }, { readiness: [] as any[], configuration: [] as any[], issues: [] as any[], blockers: [] as any[], checklist: [] as any[], pilots: [] as any[], participants: [] as any[], success: [] as any[], performance: [] as any[], productionScores: [] as any[], validations: [] as any[], riskRegister: [] as any[], decisions: [] as any[], reports: [] as any[], errors: Array(14).fill(true) as boolean[], summary: buildLaunchReadinessSummary(), queryError: null as string | null });
 
   const { summary } = result.data;
+  const { errors } = result.data;
+  const unavailable = "לא זמין כרגע";
+  const heroReady = [0, 2, 3, 4].every((i) => !errors[i]);
   const openBlockers = result.data.blockers.filter((blocker: any) => !["verified", "accepted_risk"].includes(String(blocker.status)));
   const openIssues = result.data.issues.filter((issue: any) => !["verified", "accepted_risk"].includes(String(issue.status)));
   const productionScores = result.data.productionScores;
   const weightedTotal = productionScores.reduce((sum: number, item: any) => sum + Number(item.weight ?? 1), 0);
   const productionReadinessScore = weightedTotal ? Math.round(productionScores.reduce((sum: number, item: any) => sum + Number(item.score ?? 0) * Number(item.weight ?? 1), 0) / weightedTotal) : summary.overallScore;
+  const productionAvailable = !errors[9] && (Boolean(weightedTotal) || !errors[0]);
+  const areaValue = (area: string, fallback: number, needsReadiness: boolean) => {
+    if (errors[9]) return unavailable;
+    const row = productionScores.find((item) => item.readiness_area === area);
+    if (row?.score != null) return `${row.score}%`;
+    return needsReadiness && errors[0] ? unavailable : `${fallback}%`;
+  };
   const validationPassed = result.data.validations.filter((item: any) => ["passed", "not_required"].includes(String(item.status))).length;
   const validationBlocked = result.data.validations.filter((item: any) => ["failed", "blocked"].includes(String(item.status))).length;
   const openRisks = result.data.riskRegister.filter((risk: any) => !["resolved", "closed", "accepted"].includes(String(risk.status)));
@@ -72,27 +84,27 @@ export default async function AdminLaunchReadinessPage() {
 
   return (
     <DashboardShell role="admin" title="Launch Readiness">
-      <PremiumDashboardHero eyebrow="השקה" title="מוכנות לפיילוט והשקה." subtitle="חסמים, צ׳קליסט, פיילוט וביצועים במקום אחד." badge={<><Rocket size={16} /> {summary.launchStatus}</>} badgeTone={summary.launchStatus === "ready" ? "good" : summary.launchStatus === "blocked" ? "bad" : "warn"} actions={<Link className="button secondary" href="/dashboard/admin/pilot-center">מרכז פיילוט</Link>} />
+      <PremiumDashboardHero eyebrow="השקה" title="מוכנות לפיילוט והשקה." subtitle="חסמים, צ׳קליסט, פיילוט וביצועים במקום אחד." badge={<><Rocket size={16} /> {heroReady ? summary.launchStatus : unavailable}</>} badgeTone={!heroReady ? "warn" : summary.launchStatus === "ready" ? "good" : summary.launchStatus === "blocked" ? "bad" : "warn"} actions={<Link className="button secondary" href="/dashboard/admin/pilot-center">מרכז פיילוט</Link>} />
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="Readiness" value={`${summary.overallScore}%`} tone={summary.overallScore >= 85 ? "good" : summary.overallScore >= 60 ? "warn" : "bad"} />
-        <StatCard label="Production" value={`${productionReadinessScore}%`} tone={productionReadinessScore >= 85 ? "good" : productionReadinessScore >= 65 ? "warn" : "bad"} />
-        <StatCard label="Checklist" value={`${summary.checklistPercent}%`} tone={summary.checklistPercent >= 80 ? "good" : "warn"} />
-        <StatCard label="חסמים פתוחים" value={summary.openBlockers} tone={summary.openBlockers ? "bad" : "good"} />
-        <StatCard label="בעיות פתוחות" value={summary.openIssues} tone={summary.openIssues ? "warn" : "good"} />
-        <StatCard label="Critical" value={summary.criticalIssues} tone={summary.criticalIssues ? "bad" : "good"} />
-        <StatCard label="High" value={summary.highIssues} tone={summary.highIssues ? "bad" : "good"} />
-        <StatCard label="Validation" value={`${validationPassed}/${result.data.validations.length || 0}`} tone={validationBlocked ? "bad" : validationPassed ? "good" : "warn"} />
-        <StatCard label="Risks" value={openRisks.length} tone={criticalRisks ? "bad" : openRisks.length ? "warn" : "good"} />
-        <StatCard label="Config ready" value={`${summary.configurationReady}/${result.data.configuration.length}`} tone={summary.configurationPending ? "warn" : "good"} />
-        <StatCard label="פיילוטים פעילים" value={summary.activePilots} tone="good" />
+        <StatCard label="Readiness" value={errors[0] ? unavailable : `${summary.overallScore}%`} tone={errors[0] ? "warn" : summary.overallScore >= 85 ? "good" : summary.overallScore >= 60 ? "warn" : "bad"} />
+        <StatCard label="Production" value={productionAvailable ? `${productionReadinessScore}%` : unavailable} tone={!productionAvailable ? "warn" : productionReadinessScore >= 85 ? "good" : productionReadinessScore >= 65 ? "warn" : "bad"} />
+        <StatCard label="Checklist" value={errors[4] ? unavailable : `${summary.checklistPercent}%`} tone={errors[4] ? "warn" : summary.checklistPercent >= 80 ? "good" : "warn"} />
+        <StatCard label="חסמים פתוחים" value={errors[3] ? unavailable : summary.openBlockers} tone={errors[3] ? "warn" : summary.openBlockers ? "bad" : "good"} />
+        <StatCard label="בעיות פתוחות" value={errors[2] ? unavailable : summary.openIssues} tone={errors[2] || summary.openIssues ? "warn" : "good"} />
+        <StatCard label="Critical" value={errors[2] ? unavailable : summary.criticalIssues} tone={errors[2] ? "warn" : summary.criticalIssues ? "bad" : "good"} />
+        <StatCard label="High" value={errors[2] ? unavailable : summary.highIssues} tone={errors[2] ? "warn" : summary.highIssues ? "bad" : "good"} />
+        <StatCard label="Validation" value={errors[10] ? unavailable : `${validationPassed}/${result.data.validations.length || 0}`} tone={errors[10] ? "warn" : validationBlocked ? "bad" : validationPassed ? "good" : "warn"} />
+        <StatCard label="Risks" value={errors[11] ? unavailable : openRisks.length} tone={errors[11] ? "warn" : criticalRisks ? "bad" : openRisks.length ? "warn" : "good"} />
+        <StatCard label="Config ready" value={errors[1] ? unavailable : `${summary.configurationReady}/${result.data.configuration.length}`} tone={errors[1] || summary.configurationPending ? "warn" : "good"} />
+        <StatCard label="פיילוטים פעילים" value={errors[5] ? unavailable : summary.activePilots} tone={errors[5] ? "warn" : "good"} />
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2><Rocket size={20} /> החלטת Go-Live</h2><p>החלטה ניהולית אחת שמסכמת אם אפשר לעלות לפיילוט או לייצור.</p></div>
-          {latestDecision ? (
+          <div className="section-heading"><h2><Rocket size={20} /> החלטת Go-Live</h2><p>רשומה שמורה בלבד; אינה אישור לפרסום או לייצור.</p></div>
+          {errors[12] ? <div>{unavailable}</div> : latestDecision ? (
             <div className="procedure-list compact-list">
               <div className="mini-row">
                 <span>סטטוס החלטה</span>
@@ -105,12 +117,12 @@ export default async function AdminLaunchReadinessPage() {
                 <small>{latestDecision.next_review_at ? `סקירה הבאה: ${new Intl.DateTimeFormat("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(latestDecision.next_review_at))}` : "אין תאריך סקירה"}</small>
               </div>
             </div>
-          ) : <div className="empty-state"><strong>אין החלטת Go-Live</strong><span>מיגרציית Phase 144 תיצור החלטת pilot_ready ראשונית.</span></div>}
+          ) : <div className="empty-state"><strong>אין החלטת Go-Live</strong><span>אין החלטה זמינה.</span></div>}
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><ClipboardCheck size={20} /> Production Readiness</h2><p>ציון 0-100 לפי פלטפורמה, ציות, אבטחה, תשלומים, מצלמות, AI ותפעול.</p></div>
           <div className="role-grid compact">
-            {productionScores.length === 0 ? <RoleMetricCard label="Production" value={`${productionReadinessScore}%`} hint="מבוסס על scoring ישן" /> : productionScores.slice(0, 6).map((item: any) => (
+            {errors[9] ? <div>{unavailable}</div> : productionScores.length === 0 ? productionAvailable ? <RoleMetricCard label="Production" value={`${productionReadinessScore}%`} hint="מבוסס על scoring ישן" /> : <div>{unavailable}</div> : productionScores.slice(0, 6).map((item: any) => (
               <RoleMetricCard key={item.id} label={item.readiness_area} value={`${item.score}%`} hint={item.status} tone={item.score >= 80 ? "good" : item.score >= 65 ? "warn" : "bad"} />
             ))}
           </div>
@@ -121,69 +133,69 @@ export default async function AdminLaunchReadinessPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><ShieldCheck size={20} /> Validation</h2><p>מסעות משתמשים ופיצ׳רים שחייבים להיבדק לפני לקוח אמיתי.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.validations.slice(0, 8).map((item: any) => (
+            {errors[10] ? <div>{unavailable}</div> : result.data.validations.slice(0, 8).map((item: any) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.title}</span>
                 <strong className={readinessTone(item.status)}>{item.status}</strong>
                 <small>{item.validation_area} · {item.result_summary}</small>
               </div>
             ))}
-            {result.data.validations.length === 0 ? <div className="empty-state"><strong>אין בדיקות validation</strong><span>מיגרציית Phase 144 תוסיף בדיקות מסע ותכונות.</span></div> : null}
+            {!errors[10] && result.data.validations.length === 0 ? <div className="empty-state"><strong>אין בדיקות validation</strong><span>אין בדיקות זמינות.</span></div> : null}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><AlertTriangle size={20} /> Risk Register</h2><p>סיכונים טכניים, תפעוליים, משפטיים, אבטחתיים ועסקיים.</p></div>
           <div className="procedure-list compact-list">
-            {openRisks.slice(0, 6).map((risk: any) => (
+            {errors[11] ? <div>{unavailable}</div> : openRisks.slice(0, 6).map((risk: any) => (
               <div className="mini-row" key={risk.id}>
                 <span>{risk.title}</span>
                 <strong className={risk.severity === "critical" || risk.severity === "high" ? "pill bad" : "pill warn"}>{risk.severity}</strong>
                 <small>{risk.risk_type} · {risk.status} · {risk.mitigation}</small>
               </div>
             ))}
-            {openRisks.length === 0 ? <div className="empty-state"><strong>אין סיכונים פתוחים</strong><span>סיכוני השקה יופיעו כאן.</span></div> : null}
+            {!errors[11] && openRisks.length === 0 ? <div className="empty-state"><strong>אין סיכונים פתוחים</strong><span>סיכוני השקה יופיעו כאן.</span></div> : null}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><FileText size={20} /> Executive Reports</h2><p>דוחות מוכנות, סיכון, סיכום השקה ופריסה.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.reports.slice(0, 6).map((report: any) => (
+            {errors[13] ? <div>{unavailable}</div> : result.data.reports.slice(0, 6).map((report: any) => (
               <div className="mini-row" key={report.id}>
                 <span>{report.title}</span>
                 <strong className={readinessTone(report.status)}>{report.status}</strong>
                 <small>{report.report_type} · {report.report_path}</small>
               </div>
             ))}
-            {result.data.reports.length === 0 ? <div className="empty-state"><strong>אין דוחות מנהלים</strong><span>מיגרציית Phase 144 תוסיף דוחות בסיס.</span></div> : null}
+            {!errors[13] && result.data.reports.length === 0 ? <div className="empty-state"><strong>אין דוחות מנהלים</strong><span>אין דוחות זמינים.</span></div> : null}
           </div>
         </article>
       </section>
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="Security" value={`${productionScores.find((item: any) => item.readiness_area === "security")?.score ?? summary.componentScores.security}%`} tone="warn" />
-        <StatCard label="Billing" value={`${productionScores.find((item: any) => item.readiness_area === "payments")?.score ?? 0}%`} tone="warn" />
-        <StatCard label="Mobile" value={`${productionScores.find((item: any) => item.readiness_area === "mobile")?.score ?? 0}%`} tone="warn" />
-        <StatCard label="Camera" value={`${productionScores.find((item: any) => item.readiness_area === "cameras")?.score ?? summary.componentScores.camera}%`} tone="warn" />
-        <StatCard label="AI" value={`${productionScores.find((item: any) => item.readiness_area === "ai")?.score ?? summary.componentScores.observer}%`} tone="warn" />
-        <StatCard label="Support" value={`${productionScores.find((item: any) => item.readiness_area === "support")?.score ?? summary.componentScores.support}%`} tone="warn" />
-        <StatCard label="Pilot" value={`${productionScores.find((item: any) => item.readiness_area === "pilot")?.score ?? 0}%`} tone="good" />
-        <StatCard label="Operations" value={`${productionScores.find((item: any) => item.readiness_area === "operations")?.score ?? 0}%`} tone="warn" />
+        <StatCard label="Security" value={areaValue("security", summary.componentScores.security, true)} tone="warn" />
+        <StatCard label="Billing" value={areaValue("payments", 0, false)} tone="warn" />
+        <StatCard label="Mobile" value={areaValue("mobile", 0, false)} tone="warn" />
+        <StatCard label="Camera" value={areaValue("cameras", summary.componentScores.camera, true)} tone="warn" />
+        <StatCard label="AI" value={areaValue("ai", summary.componentScores.observer, true)} tone="warn" />
+        <StatCard label="Support" value={areaValue("support", summary.componentScores.support, true)} tone="warn" />
+        <StatCard label="Pilot" value={areaValue("pilot", 0, false)} tone={errors[9] ? "warn" : "good"} />
+        <StatCard label="Operations" value={areaValue("operations", 0, false)} tone="warn" />
       </section>
 
       <section className="pilot-readiness-grid">
-        <article className="pilot-score-card"><strong>Onboarding</strong><i><b>{summary.componentScores.onboarding}%</b></i><p>ליד, מנהלת, הורה וצוות</p></article>
-        <article className="pilot-score-card"><strong>Communication</strong><i><b>{summary.componentScores.communication}%</b></i><p>אימייל, WhatsApp, SMS, Push</p></article>
-        <article className="pilot-score-card"><strong>Cameras</strong><i><b>{summary.componentScores.camera}%</b></i><p>Gateway, הרשאות ובריאות</p></article>
-        <article className="pilot-score-card"><strong>Observer</strong><i><b>{summary.componentScores.observer}%</b></i><p>Shadow mode וביקורת אנושית</p></article>
-        <article className="pilot-score-card"><strong>Security</strong><i><b>{summary.componentScores.security}%</b></i><p>RLS, סודות וגיבויים</p></article>
-        <article className="pilot-score-card"><strong>Support</strong><i><b>{summary.componentScores.support}%</b></i><p>תמיכה, הדרכה והסלמה</p></article>
+        <article className="pilot-score-card"><strong>Onboarding</strong><i><b>{errors[0] ? unavailable : `${summary.componentScores.onboarding}%`}</b></i><p>ליד, מנהלת, הורה וצוות</p></article>
+        <article className="pilot-score-card"><strong>Communication</strong><i><b>{errors[0] ? unavailable : `${summary.componentScores.communication}%`}</b></i><p>אימייל, WhatsApp, SMS, Push</p></article>
+        <article className="pilot-score-card"><strong>Cameras</strong><i><b>{errors[0] ? unavailable : `${summary.componentScores.camera}%`}</b></i><p>Gateway, הרשאות ובריאות</p></article>
+        <article className="pilot-score-card"><strong>Observer</strong><i><b>{errors[0] ? unavailable : `${summary.componentScores.observer}%`}</b></i><p>Shadow mode וביקורת אנושית</p></article>
+        <article className="pilot-score-card"><strong>Security</strong><i><b>{errors[0] ? unavailable : `${summary.componentScores.security}%`}</b></i><p>RLS, סודות וגיבויים</p></article>
+        <article className="pilot-score-card"><strong>Support</strong><i><b>{errors[0] ? unavailable : `${summary.componentScores.support}%`}</b></i><p>תמיכה, הדרכה והסלמה</p></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><Gauge size={20} /> ציון מוכנות</h2><p>מה מוכן ומה עדיין דורש טיפול.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.readiness.map((item: any) => (
+            {errors[0] ? <div>{unavailable}</div> : result.data.readiness.map((item: any) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.category}</span>
                 <strong className={readinessTone(item.status)}>{item.score}%</strong>
@@ -202,7 +214,7 @@ export default async function AdminLaunchReadinessPage() {
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><AlertTriangle size={20} /> חסמי השקה</h2><p>דברים שחייבים לפתור לפני הרחבה.</p></div>
-          {openBlockers.length === 0 ? <div className="empty-state"><strong>אין חסמי השקה פתוחים</strong><span>אם יתגלה חסם, הוא יופיע כאן לפי חומרה.</span></div> : <div className="procedure-list compact-list">
+          {errors[3] ? <div>{unavailable}</div> : openBlockers.length === 0 ? <div className="empty-state"><strong>אין חסמי השקה פתוחים</strong><span>אם יתגלה חסם, הוא יופיע כאן לפי חומרה.</span></div> : <div className="procedure-list compact-list">
             {openBlockers.map((blocker: any) => (
               <div className="mini-row" key={blocker.id}>
                 <span>{blocker.title}</span>
@@ -226,7 +238,7 @@ export default async function AdminLaunchReadinessPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Settings size={20} /> חיבורים והגדרות</h2><p>תקשורת, מצלמות, אבטחה וגיבויים.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.configuration.map((item: any) => (
+            {errors[1] ? <div>{unavailable}</div> : result.data.configuration.map((item: any) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.title}</span>
                 <strong className={readinessTone(item.readiness_status)}>{item.readiness_status}</strong>
@@ -245,7 +257,7 @@ export default async function AdminLaunchReadinessPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><CheckCircle2 size={20} /> רשימת השקה</h2><p>שערים עיקריים לפני עלייה לאוויר.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.checklist.map((item: any) => (
+            {errors[4] ? <div>{unavailable}</div> : result.data.checklist.map((item: any) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.title}</span>
                 <strong className={readinessTone(item.status)}>{item.status}</strong>
@@ -264,7 +276,7 @@ export default async function AdminLaunchReadinessPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Gauge size={20} /> ביצועים</h2><p>בדיקות עומס וזמינות לפי תחום.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.performance.map((item: any) => (
+            {errors[8] ? <div>{unavailable}</div> : result.data.performance.map((item: any) => (
               <div className="mini-row" key={item.id}>
                 <span>{item.health_area}</span>
                 <strong className={readinessTone(item.status)}>{item.status}</strong>
@@ -284,7 +296,7 @@ export default async function AdminLaunchReadinessPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>Open launch issues</h2><p>פתוחות, investigating או fixed עד verification.</p></div>
-        {openIssues.length === 0 ? <div className="empty-state"><strong>אין בעיות פתוחות</strong><span>בעיות פיילוט והשקה יופיעו כאן.</span></div> : <div className="procedure-list">
+        {errors[2] ? <div>{unavailable}</div> : openIssues.length === 0 ? <div className="empty-state"><strong>אין בעיות פתוחות</strong><span>בעיות פיילוט והשקה יופיעו כאן.</span></div> : <div className="procedure-list">
           {openIssues.slice(0, 12).map((issue: any) => (
             <article className="card procedure-card" key={issue.id}>
               <div>
