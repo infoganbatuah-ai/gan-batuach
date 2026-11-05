@@ -749,6 +749,13 @@
         "--test",
         "scripts/qa/check-iso-evidence-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "iso-readiness-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-iso-readiness-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

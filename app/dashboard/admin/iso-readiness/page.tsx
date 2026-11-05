@@ -32,16 +32,26 @@ export default async function AdminIsoReadinessPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("iso readiness", async () => {
     const supabase = await createClient();
+    async function safeQuery<T>(index: number, run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+      try {
+        const query = await run();
+        logSupabaseError(`iso readiness query ${index}`, query.error);
+        return { data: query.error ? [] as T[] : query.data ?? [], available: !query.error };
+      } catch (error) {
+        logSupabaseError(`iso readiness query ${index}`, error);
+        return { data: [] as T[], available: false };
+      }
+    }
     const [controlsRes, assetsRes, risksRes, auditsRes, permitAlertsRes, policiesRes, securityChecksRes] = await Promise.all([
-      supabase.from("iso_controls" as any).select("*").order("standard").order("control_id"),
-      supabase.from("asset_inventory" as any).select("*").order("asset_type"),
-      supabase.from("risk_register" as any).select("*").order("severity").order("created_at", { ascending: false }),
-      supabase.from("internal_audits" as any).select("*").order("created_at", { ascending: false }),
-      supabase.from("permit_expiry_alerts" as any).select("*").neq("status", "resolved").order("expires_at"),
-      supabase.from("security_policies_repository" as any).select("*").order("policy_type"),
-      supabase.from("security_readiness_checks" as any).select("*").in("category", ["iso_27001", "iso_27017", "iso_27701", "rls", "audit_logging", "encryption"]).order("severity")
+      safeQuery(0, () => supabase.from("iso_controls" as any).select("*").order("standard").order("control_id")),
+      safeQuery(1, () => supabase.from("asset_inventory" as any).select("*").order("asset_type")),
+      safeQuery(2, () => supabase.from("risk_register" as any).select("*").order("severity").order("created_at", { ascending: false })),
+      safeQuery(3, () => supabase.from("internal_audits" as any).select("*").order("created_at", { ascending: false })),
+      safeQuery(4, () => supabase.from("permit_expiry_alerts" as any).select("*").neq("status", "resolved").order("expires_at")),
+      safeQuery(5, () => supabase.from("security_policies_repository" as any).select("*").order("policy_type")),
+      safeQuery(6, () => supabase.from("security_readiness_checks" as any).select("*").in("category", ["iso_27001", "iso_27017", "iso_27701", "rls", "audit_logging", "encryption"]).order("severity"))
     ]);
-    [controlsRes, assetsRes, risksRes, auditsRes, permitAlertsRes, policiesRes, securityChecksRes].forEach((query, index) => logSupabaseError(`iso readiness query ${index}`, (query as any).error));
+    const available = [controlsRes, assetsRes, risksRes, auditsRes, permitAlertsRes, policiesRes, securityChecksRes].map((query) => query.available);
     const summary = buildIsoReadinessSummary({
       controls: controlsRes.data ?? [],
       assets: assetsRes.data ?? [],
@@ -58,11 +68,13 @@ export default async function AdminIsoReadinessPage() {
       policies: policiesRes.data ?? [],
       securityChecks: securityChecksRes.data ?? [],
       summary,
-      queryError: [controlsRes.error, assetsRes.error, risksRes.error, auditsRes.error, permitAlertsRes.error].some(Boolean)
-        ? "חלק מנתוני ISO לא נטענו. ייתכן שמיגרציית PHASE 150 עדיין לא הורצה."
+      available,
+      queryError: available.some((value) => !value)
+        ? "חלק מנתוני ISO אינם זמינים כרגע."
         : null
     };
   }, {
+    available: Array<boolean>(7).fill(false),
     controls: [] as any[],
     assets: [] as any[],
     risks: [] as any[],
@@ -75,6 +87,10 @@ export default async function AdminIsoReadinessPage() {
   });
 
   const { summary } = result.data;
+  const known = (...indices: number[]) => indices.every((index) => result.data.available[index]);
+  const unavailable = "לא זמין";
+  const readinessKnown = known(0, 1, 2, 3, 4);
+  const standardsKnown = known(0, 2);
   const openRisks = result.data.risks.filter((risk: any) => !["verified", "accepted_risk", "closed"].includes(String(risk.remediation_status)));
   const missingEvidence = result.data.controls.filter((control: any) => ["missing", "expired", "partial"].includes(String(control.evidence_status)));
   const cloudAssets = result.data.assets.filter((asset: any) => ["Vercel", "Supabase", "GitHub"].includes(String(asset.provider)));
@@ -85,27 +101,30 @@ export default async function AdminIsoReadinessPage() {
         eyebrow="ISO Certification Readiness"
         title="מרכז מוכנות ISO 27001, 27017 ו-27701"
         subtitle="בקרות, ראיות, נכסי ענן, סיכונים, ביקורות פנימיות ואישורי חובה לגני ילדים בישראל."
-        badge={`${summary.isoReadinessScore}/100`}
-        badgeTone={toneForScore(summary.isoReadinessScore)}
+        badge={readinessKnown ? `${summary.isoReadinessScore}/100` : unavailable}
+        badgeTone={readinessKnown ? toneForScore(summary.isoReadinessScore) : "default"}
         actions={<Link className="button secondary" href="/api/admin/iso-readiness">API readiness</Link>}
       >
         <div className="mini-stack">
-          <span>Controls {summary.counts.controls}</span>
-          <span>Assets {summary.counts.assets}</span>
-          <span>Open gaps {summary.openGaps.length}</span>
+          <span>Controls {known(0) ? summary.counts.controls : unavailable}</span>
+          <span>Assets {known(1) ? summary.counts.assets : unavailable}</span>
+          <span>Open gaps {known(0, 2) ? summary.openGaps.length : unavailable}</span>
         </div>
       </PremiumDashboardHero>
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
-        <RoleMetricCard label="ISO 27001" value={`${summary.iso27001}%`} hint="Security controls" tone={toneForScore(summary.iso27001)} />
-        <RoleMetricCard label="ISO 27017" value={`${summary.iso27017}%`} hint="Cloud controls" tone={toneForScore(summary.iso27017)} />
-        <RoleMetricCard label="ISO 27701" value={`${summary.iso27701}%`} hint="Privacy controls" tone={toneForScore(summary.iso27701)} />
-        <RoleMetricCard label="Open risks" value={openRisks.length} hint="Risk register" tone={openRisks.some((risk: any) => risk.severity === "critical" || risk.severity === "high") ? "bad" : openRisks.length ? "warn" : "good"} />
+        <RoleMetricCard label="ISO 27001" value={standardsKnown ? `${summary.iso27001}%` : unavailable} hint="Security controls" tone={standardsKnown ? toneForScore(summary.iso27001) : "default"} />
+        <RoleMetricCard label="ISO 27017" value={standardsKnown ? `${summary.iso27017}%` : unavailable} hint="Cloud controls" tone={standardsKnown ? toneForScore(summary.iso27017) : "default"} />
+        <RoleMetricCard label="ISO 27701" value={standardsKnown ? `${summary.iso27701}%` : unavailable} hint="Privacy controls" tone={standardsKnown ? toneForScore(summary.iso27701) : "default"} />
+        <RoleMetricCard label="Open risks" value={known(2) ? openRisks.length : unavailable} hint="Risk register" tone={known(2) ? openRisks.some((risk: any) => risk.severity === "critical" || risk.severity === "high") ? "bad" : openRisks.length ? "warn" : "good" : "default"} />
       </section>
 
       <CleanSection title="פערים פתוחים" subtitle="מחושב דינמית מתוך בקרות, ראיות, מדיניות וסיכונים.">
-        {summary.openGaps.length === 0 ? <EmptyState title="אין פערים פתוחים" text="כאשר בקרת ISO או סיכון יהיו חסרים, הם יופיעו כאן." /> : (
+        {!known(0) && <EmptyState title="נתוני פערי הבקרות אינם זמינים" />}
+        {!known(2) && <EmptyState title="נתוני פערי הסיכונים אינם זמינים" />}
+        {!known(0, 2) && (known(0) || known(2)) && <p>מוצגים רק הפערים מהמקור הזמין; הרשימה חלקית.</p>}
+        {known(0, 2) && summary.openGaps.length === 0 ? <EmptyState title="אין פערים פתוחים" text="כאשר בקרת ISO או סיכון יהיו חסרים, הם יופיעו כאן." /> : (
           <div className="procedure-list compact-list">
             {summary.openGaps.map((gap) => (
               <div className="mini-row" key={gap.key}>
@@ -121,7 +140,7 @@ export default async function AdminIsoReadinessPage() {
       <section className="grid cols-2 dashboard-panels">
         <CleanSection title="בקרות ISO" subtitle="סטטוס יישום, ראיות ומדיניות לכל תקן.">
           <div className="procedure-list compact-list">
-            {result.data.controls.map((control: any) => (
+            {!known(0) ? <EmptyState title="נתוני הבקרות אינם זמינים" /> : result.data.controls.map((control: any) => (
               <div className="mini-row" key={control.id}>
                 <span>{control.control_id} · {control.title}</span>
                 <strong><StatusBadge tone={toneForStatus(control.implementation_status)}>{control.implementation_status}</StatusBadge></strong>
@@ -132,7 +151,7 @@ export default async function AdminIsoReadinessPage() {
         </CleanSection>
         <CleanSection title="נכסי ענן ומידע" subtitle="Supabase, Vercel, GitHub, מצלמות ו-AI pipelines.">
           <div className="procedure-list compact-list">
-            {result.data.assets.map((asset: any) => (
+            {!known(1) ? <EmptyState title="נתוני הנכסים אינם זמינים" /> : result.data.assets.map((asset: any) => (
               <div className="mini-row" key={asset.id}>
                 <span>{asset.asset_name}</span>
                 <strong><StatusBadge tone={toneForStatus(asset.security_status)}>{asset.security_status}</StatusBadge></strong>
@@ -145,7 +164,7 @@ export default async function AdminIsoReadinessPage() {
 
       <section className="grid cols-3 dashboard-panels">
         <CleanSection title="Risk register" subtitle="סיכונים פתוחים לתיקון לפני הסמכה.">
-          {openRisks.length === 0 ? <EmptyState title="אין סיכונים פתוחים" /> : (
+          {!known(2) ? <EmptyState title="נתוני הסיכונים אינם זמינים" /> : openRisks.length === 0 ? <EmptyState title="אין סיכונים פתוחים" /> : (
             <div className="procedure-list compact-list">
               {openRisks.slice(0, 8).map((risk: any) => (
                 <div className="mini-row" key={risk.id}>
@@ -159,7 +178,7 @@ export default async function AdminIsoReadinessPage() {
         </CleanSection>
         <CleanSection title="ביקורות פנימיות" subtitle="ממצאים, corrective actions וסגירה.">
           <div className="procedure-list compact-list">
-            {result.data.audits.map((audit: any) => (
+            {!known(3) ? <EmptyState title="נתוני הביקורות אינם זמינים" /> : result.data.audits.map((audit: any) => (
               <div className="mini-row" key={audit.id}>
                 <span>{audit.audit_scope}</span>
                 <strong><StatusBadge tone={toneForStatus(audit.closure_status)}>{audit.closure_status}</StatusBadge></strong>
@@ -169,7 +188,7 @@ export default async function AdminIsoReadinessPage() {
           </div>
         </CleanSection>
         <CleanSection title="אישורי חובה בישראל" subtitle="התראות 6 חודשים לפני תוקף.">
-          {result.data.permitAlerts.length === 0 ? <EmptyState title="אין אישורים קרובים לפקיעה" text="סריקת cron תוסיף התראות כאשר תוקף מתקרב." /> : (
+          {!known(4) ? <EmptyState title="נתוני התראות התוקף אינם זמינים" /> : result.data.permitAlerts.length === 0 ? <EmptyState title="אין אישורים קרובים לפקיעה" text="סריקת cron תוסיף התראות כאשר תוקף מתקרב." /> : (
             <div className="procedure-list compact-list">
               {result.data.permitAlerts.slice(0, 8).map((alert: any) => (
                 <div className="mini-row" key={alert.id}>
@@ -186,7 +205,7 @@ export default async function AdminIsoReadinessPage() {
       <CleanSection title="מנגנוני ראיות הנדסיים" subtitle="הקישור בין דשבורד ISO לבין שכבות האבטחה בפועל.">
         <div className="premium-action-grid">
           <ActionCard title="RLS tenant isolation" text="JWT garden_id / room_uuid + can_access_garden" href="/dashboard/admin/security" icon={LockKeyhole} />
-          <ActionCard title="Cloud assets" text={`${cloudAssets.length} נכסי Vercel/Supabase/GitHub`} href="/dashboard/admin/system-health" icon={Cloud} />
+          <ActionCard title="Cloud assets" text={known(1) ? `${cloudAssets.length} נכסי Vercel/Supabase/GitHub` : unavailable} href="/dashboard/admin/system-health" icon={Cloud} />
           <ActionCard title="Immutable audit" text="UPDATE/DELETE חסומים ב-trigger" href="/dashboard/admin/audit-logs" icon={Archive} />
           <ActionCard title="AI privacy" text="Skeleton-only, no face, no audio" href="/dashboard/admin/ai-governance" icon={ShieldCheck} />
           <ActionCard title="Camera compliance" text="WebRTC/token/watermark readiness" href="/dashboard/admin/camera-compliance" icon={Database} />
@@ -195,9 +214,9 @@ export default async function AdminIsoReadinessPage() {
       </CleanSection>
 
       <section className="grid cols-2 dashboard-panels">
-        <CleanSection title="Security checks" subtitle="בדיקות שמזינות readiness בפועל.">
+        <CleanSection title="Security checks" subtitle="רשומות בדיקות אבטחה ומטא-דאטה; אינן קלט לחישוב ציון המוכנות כאן.">
           <div className="procedure-list compact-list">
-            {result.data.securityChecks.map((check: any) => (
+            {!known(6) ? <EmptyState title="נתוני בדיקות האבטחה אינם זמינים" /> : result.data.securityChecks.map((check: any) => (
               <div className="mini-row" key={check.id}>
                 <span>{check.title}</span>
                 <strong><StatusBadge tone={toneForStatus(check.status)}>{check.status}</StatusBadge></strong>
@@ -208,10 +227,10 @@ export default async function AdminIsoReadinessPage() {
         </CleanSection>
         <CleanSection title="Evidence focus" subtitle="הפריטים הקריטיים לאיסוף לפני audit.">
           <div className="procedure-list compact-list">
-            <div className="mini-row"><span>Missing/partial evidence</span><strong>{missingEvidence.length}</strong><small>בקרות שדורשות קובץ, בדיקה או אישור פורמלי</small></div>
-            <div className="mini-row"><span>Approved policies</span><strong>{result.data.policies.filter((policy: any) => policy.status === "approved").length}</strong><small>מתוך {result.data.policies.length} מדיניות קיימות</small></div>
-            <div className="mini-row"><span>Open internal audits</span><strong>{result.data.audits.filter((audit: any) => audit.closure_status !== "closed").length}</strong><small>נדרש closure לפני audit חיצוני</small></div>
-            <div className="mini-row"><span>High cloud risks</span><strong>{openRisks.filter((risk: any) => risk.severity === "critical" || risk.severity === "high").length}</strong><small>צריכים בעלות ומועד סגירה</small></div>
+            <div className="mini-row"><span>Missing/partial evidence</span><strong>{known(0) ? missingEvidence.length : unavailable}</strong><small>בקרות שדורשות קובץ, בדיקה או אישור פורמלי</small></div>
+            <div className="mini-row"><span>Approved policies</span><strong>{known(5) ? result.data.policies.filter((policy: any) => policy.status === "approved").length : unavailable}</strong><small>מתוך {known(5) ? result.data.policies.length : unavailable} מדיניות קיימות</small></div>
+            <div className="mini-row"><span>Open internal audits</span><strong>{known(3) ? result.data.audits.filter((audit: any) => audit.closure_status !== "closed").length : unavailable}</strong><small>נדרש closure לפני audit חיצוני</small></div>
+            <div className="mini-row"><span>High cloud risks</span><strong>{known(2) ? openRisks.filter((risk: any) => risk.severity === "critical" || risk.severity === "high").length : unavailable}</strong><small>צריכים בעלות ומועד סגירה</small></div>
           </div>
         </CleanSection>
       </section>
