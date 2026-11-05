@@ -791,6 +791,13 @@
         "--test",
         "scripts/qa/check-privacy-rights-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "database-integrity-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-database-integrity-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
