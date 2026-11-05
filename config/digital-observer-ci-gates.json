@@ -959,6 +959,13 @@
         "--test",
         "scripts/qa/check-admin-inspection-forms-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-duplicates-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-duplicates-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
