@@ -44,7 +44,9 @@ function tone(status: string) {
   return "neutral";
 }
 
-export function PushDiagnostics({ devices, logs }: { devices: DeviceToken[]; logs: PushLog[] }) {
+export function PushDiagnostics({ devices: sourceDevices, logs: sourceLogs, devicesAvailable = true, logsAvailable = true }: { devices: DeviceToken[]; logs: PushLog[]; devicesAvailable?: boolean; logsAvailable?: boolean }) {
+  const devices = devicesAvailable ? sourceDevices : [];
+  const logs = logsAvailable ? sourceLogs : [];
   const activeDevices = devices.filter((device) => device.is_active).length;
   const failedLogs = logs.filter((log) => log.status === "failed" || log.status === "no_active_device").length;
   const mockLogs = logs.filter((log) => log.status === "sent_mock" || log.status === "queued_mock").length;
@@ -52,9 +54,9 @@ export function PushDiagnostics({ devices, logs }: { devices: DeviceToken[]; log
   return (
     <div className="stack">
       <section className="card-grid three">
-        <div className="metric-card"><span>מכשירים פעילים</span><strong>{activeDevices}</strong><small>Web / Android / iOS</small></div>
-        <div className="metric-card"><span>Push במצב בדיקה</span><strong>{mockLogs}</strong><small>לא נשלח Push אמיתי</small></div>
-        <div className="metric-card"><span>דורש טיפול</span><strong>{failedLogs}</strong><small>כשלונות או בלי מכשיר פעיל</small></div>
+        <div className="metric-card"><span>מכשירים פעילים</span><strong>{devicesAvailable ? activeDevices : "לא זמין"}</strong><small>Web / Android / iOS</small></div>
+        <div className="metric-card"><span>Push במצב בדיקה</span><strong>{logsAvailable ? mockLogs : "לא זמין"}</strong><small>לא נשלח Push אמיתי</small></div>
+        <div className="metric-card"><span>דורש טיפול</span><strong>{logsAvailable ? failedLogs : "לא זמין"}</strong><small>כשלונות או בלי מכשיר פעיל</small></div>
       </section>
 
       <section className="form-card compact-form">
@@ -64,7 +66,7 @@ export function PushDiagnostics({ devices, logs }: { devices: DeviceToken[]; log
           <p>טוקנים מוצגים באופן חלקי בלבד. מפתחות FCM/APNs/VAPID נשארים בשרת.</p>
         </div>
         <div className="card-list">
-          {devices.length ? devices.map((device) => (
+          {!devicesAvailable ? <div className="empty-state"><h3>נתוני המכשירים אינם זמינים</h3><p>לא ניתן לקבוע אילו מכשירים רשומים כרגע.</p></div> : devices.length ? devices.map((device) => (
             <article className="info-card" key={device.id}>
               <div className="card-row">
                 <div>
@@ -90,7 +92,7 @@ export function PushDiagnostics({ devices, logs }: { devices: DeviceToken[]; log
           <h2>לוג משלוחים</h2>
         </div>
         <div className="card-list">
-          {logs.length ? logs.map((log) => (
+          {!logsAvailable ? <div className="empty-state"><h3>נתוני לוג ה-Push אינם זמינים</h3><p>לא ניתן לקבוע סטטוסי משלוח כרגע.</p></div> : logs.length ? logs.map((log) => (
             <article className="info-card" key={log.id}>
               <div className="card-row">
                 <div>
