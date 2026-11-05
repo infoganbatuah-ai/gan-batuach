@@ -48,10 +48,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = await run() as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { rows: result.error ? [] : result.data ?? [], failed: Boolean(result.error) };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { rows: [] as T[], failed: true };
   }
 }
 
@@ -63,7 +63,7 @@ export default async function DigitalObserverCorePage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("digital observer core", async () => {
     const supabase = await createClient();
-    const [capabilities, profiles, services, packages, policies, boundaries, roadmap, matrix] = await Promise.all([
+    const queries = await Promise.all([
       safeQuery<Row>("observer core capabilities", () => supabase.from("digital_observer_core_capabilities" as any).select("*").order("core_module").order("capability_name").limit(300)),
       safeQuery<Row>("observer vertical profiles", () => supabase.from("observer_vertical_profiles" as any).select("*").order("profile_status").order("vertical_key").limit(80)),
       safeQuery<Row>("observer core services", () => supabase.from("observer_core_services_registry" as any).select("*").order("service_type").order("service_name").limit(120)),
@@ -73,7 +73,8 @@ export default async function DigitalObserverCorePage() {
       safeQuery<Row>("observer roadmap", () => supabase.from("observer_roadmap_registry" as any).select("*").order("vertical_key").order("module_name").limit(120)),
       safeQuery<Row>("vertical capability matrix observer core", () => supabase.from("vertical_capability_matrix" as any).select("*").in("vertical_key", ["digital_observer_core", "gan_batuach", "school_safe", "business_observer", "home_observer", "municipality_observer", "enterprise_observer"]).order("vertical_key").order("capability_name").limit(350))
     ]);
-    return { capabilities, profiles, services, packages, policies, boundaries, roadmap, matrix };
+    const [capabilities, profiles, services, packages, policies, boundaries, roadmap, matrix] = queries.map((query) => query.rows);
+    return { capabilities, profiles, services, packages, policies, boundaries, roadmap, matrix, errors: queries.map((query) => query.failed) };
   }, {
     capabilities: [] as Row[],
     profiles: [] as Row[],
@@ -82,10 +83,12 @@ export default async function DigitalObserverCorePage() {
     policies: [] as Row[],
     boundaries: [] as Row[],
     roadmap: [] as Row[],
-    matrix: [] as Row[]
+    matrix: [] as Row[],
+    errors: Array(8).fill(true) as boolean[]
   });
 
   const data = result.data;
+  const errors = data.errors;
   const summary = buildObserverCoreSummary({
     capabilities: data.capabilities,
     profiles: data.profiles,
@@ -95,6 +98,9 @@ export default async function DigitalObserverCorePage() {
   });
   const legalReviewItems = data.matrix.filter((item) => item.capability_status === "legal_review_required" || item.legal_status === "legal_review_required");
   const restrictedItems = data.matrix.filter((item) => item.capability_status === "restricted" || item.legal_status === "restricted");
+  const scoreAvailable = [0, 1, 2, 4, 6].every((index) => !errors[index]);
+  const restrictedAvailable = !errors[7] && (data.matrix.length > 0 || !errors[4]);
+  const legalAvailable = !errors[7] && (data.matrix.length > 0 || !errors[1]);
   const groupedMatrix = data.matrix.reduce((groups: Record<string, Row[]>, item) => {
     groups[item.vertical_key] = [...(groups[item.vertical_key] ?? []), item];
     return groups;
@@ -107,8 +113,8 @@ export default async function DigitalObserverCorePage() {
           eyebrow="Digital Observer Core"
           title="מרכז הפרדת תצפיתן דיגיטלי לוורטיקלים"
           subtitle="מפת יכולות שמכינה את Digital Observer Core להיות פלטפורמת מודיעין עצמאית, בלי לשבור את Gan Batuach ובלי לשכפל קוד."
-          badge={`${summary.readinessScore}/100`}
-          badgeTone={toneForScore(summary.readinessScore)}
+          badge={scoreAvailable ? `${summary.readinessScore}/100` : "לא זמין"}
+          badgeTone={scoreAvailable ? toneForScore(summary.readinessScore) : "warn"}
           actions={<><Link className="button primary" href="/dashboard/admin/regulatory">רגולציה</Link><Link className="button secondary" href="/dashboard/admin/ai-governance">ממשל AI</Link></>}
         >
           <div className="setup-checklist">
@@ -117,28 +123,29 @@ export default async function DigitalObserverCorePage() {
             <span>Gan Batuach נשאר מצב גן ישראלי מפוקח</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני הליבה אינם זמינים כרגע" : null)} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="יכולות Core" value={summary.totalCapabilities} hint={`${summary.reusableCapabilities} ניתנות לשימוש חוזר`} tone="good" />
-          <RoleMetricCard label="מיפוי הפרדה" value={`${summary.extractReadyCount}/${summary.totalCapabilities}`} hint="קיים, מופה או מוכן" tone={toneForScore(Math.round((summary.extractReadyCount / Math.max(summary.totalCapabilities, 1)) * 100))} />
-          <RoleMetricCard label="שירותים" value={summary.mappedServices} hint="AI, מצלמות, Workflow ועוד" tone="good" />
-          <RoleMetricCard label="פרופילים" value={`${summary.activeProfiles + summary.futureProfiles}/${data.profiles.length}`} hint="Gan Batuach + עתידיים" tone="good" />
-          <RoleMetricCard label="Gan Batuach פעיל" value={summary.ganBatuachEnabled} hint="יכולות מאושרות בפרופיל" tone="good" />
-          <RoleMetricCard label="Gan Batuach כבוי" value={summary.ganBatuachDisabled} hint="שמע, פנים, ביומטריה" tone="bad" />
-          <RoleMetricCard label="מוגבל" value={restrictedItems.length || summary.restrictedCount} hint="דורש מדיניות" tone="warn" />
-          <RoleMetricCard label="בדיקה משפטית" value={legalReviewItems.length || summary.legalReviewCount} hint="לא מופעל אוטומטית" tone="warn" />
+          <RoleMetricCard label="יכולות Core" value={errors[0] ? "לא זמין" : summary.totalCapabilities} hint={errors[0] ? "לא זמין" : `${summary.reusableCapabilities} ניתנות לשימוש חוזר`} tone={errors[0] ? "warn" : "good"} />
+          <RoleMetricCard label="מיפוי הפרדה" value={errors[0] ? "לא זמין" : `${summary.extractReadyCount}/${summary.totalCapabilities}`} hint="קיים, מופה או מוכן" tone={errors[0] ? "warn" : toneForScore(Math.round((summary.extractReadyCount / Math.max(summary.totalCapabilities, 1)) * 100))} />
+          <RoleMetricCard label="שירותים" value={errors[2] ? "לא זמין" : summary.mappedServices} hint="AI, מצלמות, Workflow ועוד" tone={errors[2] ? "warn" : "good"} />
+          <RoleMetricCard label="פרופילים" value={errors[1] ? "לא זמין" : `${summary.activeProfiles + summary.futureProfiles}/${data.profiles.length}`} hint="Gan Batuach + עתידיים" tone={errors[1] ? "warn" : "good"} />
+          <RoleMetricCard label="Gan Batuach פעיל" value={errors[1] ? "לא זמין" : summary.ganBatuachEnabled} hint="יכולות מאושרות בפרופיל" tone={errors[1] ? "warn" : "good"} />
+          <RoleMetricCard label="Gan Batuach כבוי" value={errors[1] ? "לא זמין" : summary.ganBatuachDisabled} hint="שמע, פנים, ביומטריה" tone={errors[1] ? "warn" : "bad"} />
+          <RoleMetricCard label="מוגבל" value={restrictedAvailable ? (data.matrix.length ? restrictedItems.length : summary.restrictedCount) : "לא זמין"} hint="דורש מדיניות" tone="warn" />
+          <RoleMetricCard label="בדיקה משפטית" value={legalAvailable ? (data.matrix.length ? legalReviewItems.length : summary.legalReviewCount) : "לא זמין"} hint="לא מופעל אוטומטית" tone="warn" />
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><ShieldCheck size={20} /> Gan Batuach Profile</h2>
-            <div className="setup-checklist">
+            {errors[1] ? <div className="empty-state">נתוני הפרופיל אינם זמינים כרגע</div> : <div className="setup-checklist">
+              <span>הגדרת מדיניות בלבד; המצב בפועל לא אומת.</span>
               <span>מופעל: פיקוח, ציות, פורטל הורים, ציר זמן ילד, Pose ו-Motion analytics.</span>
               <span>כבוי: שמע, זיהוי פנים, ביומטריה בלתי מוגבלת.</span>
               <span>מוגבל: soft biometrics, gait analytics ומעקב זהות מתמשך.</span>
               <span>כל אירוע רגיש נשאר תחת בדיקה אנושית.</span>
-            </div>
+            </div>}
           </article>
           <article className="card action-panel">
             <h2><Layers3 size={20} /> Future Architecture</h2>
@@ -152,7 +159,7 @@ export default async function DigitalObserverCorePage() {
         </section>
 
         <CleanSection title="Core Capability Inventory" subtitle="כל היכולות שניתן להפוך בעתיד לליבה משותפת, עם גבול מידע ויעד חבילה.">
-          {data.capabilities.length === 0 ? <EmptyState title="אין מלאי יכולות" text="לאחר הרצת המיגרציה יופיע כאן מיפוי Digital Observer Core." /> : (
+          {errors[0] ? <div className="empty-state">נתוני היכולות אינם זמינים כרגע</div> : data.capabilities.length === 0 ? <EmptyState title="אין מלאי יכולות" text="לאחר הרצת המיגרציה יופיע כאן מיפוי Digital Observer Core." /> : (
             <div className="procedure-list">
               {data.capabilities.map((capability) => (
                 <article className="card procedure-card" key={capability.id}>
@@ -174,7 +181,7 @@ export default async function DigitalObserverCorePage() {
 
         <section className="camera-infra-grid">
           <CleanSection title="Vertical Capability Matrix" subtitle="מה פעיל, כבוי, מוגבל או דורש בדיקה בכל ורטיקל.">
-            {Object.keys(groupedMatrix).length === 0 ? <EmptyState title="אין מטריצה" text="המיגרציה מרחיבה את המטריצה הקיימת במקום ליצור כפילות." /> : (
+            {errors[7] ? <div className="empty-state">נתוני המטריצה אינם זמינים כרגע</div> : Object.keys(groupedMatrix).length === 0 ? <EmptyState title="אין מטריצה" text="המיגרציה מרחיבה את המטריצה הקיימת במקום ליצור כפילות." /> : (
               <div className="camera-infra-list">
                 {Object.entries(groupedMatrix).map(([vertical, items]) => (
                   <article className="camera-infra-row" key={vertical}>
@@ -190,7 +197,7 @@ export default async function DigitalObserverCorePage() {
           </CleanSection>
 
           <CleanSection title="Vertical Profiles" subtitle="פרופילים שמגדירים יכולות מותרות, כבויות ומוגבלות.">
-            <div className="camera-infra-list">
+            {errors[1] ? <div className="empty-state">נתוני הפרופילים אינם זמינים כרגע</div> : <div className="camera-infra-list">
               {data.profiles.map((profile) => (
                 <article className="camera-infra-row" key={profile.id}>
                   <div>
@@ -201,13 +208,13 @@ export default async function DigitalObserverCorePage() {
                   <StatusBadge tone="default">{(profile.allowed_capabilities ?? []).length} enabled</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
         </section>
 
         <section className="camera-infra-grid">
           <CleanSection title="Core Services Registry" subtitle="שירותים שיישארו תחילה בתוך Gan Batuach וממופים להפרדה עתידית.">
-            <div className="camera-infra-list">
+            {errors[2] ? <div className="empty-state">נתוני השירותים אינם זמינים כרגע</div> : <div className="camera-infra-list">
               {data.services.map((service) => (
                 <article className="camera-infra-row" key={service.id}>
                   <div><strong>{service.service_name}</strong><span>{service.service_summary} · {service.current_module_path}</span></div>
@@ -215,11 +222,11 @@ export default async function DigitalObserverCorePage() {
                   <StatusBadge tone="default">{service.future_package_key}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
 
           <CleanSection title="Shared Package Mapping" subtitle="החבילות העתידיות, בלי לבצע extraction בפועל בשלב הזה.">
-            <div className="camera-infra-list">
+            {errors[3] ? <div className="empty-state">נתוני החבילות אינם זמינים כרגע</div> : <div className="camera-infra-list">
               {data.packages.map((pkg) => (
                 <article className="camera-infra-row" key={pkg.id}>
                   <div><strong>{pkg.package_name}</strong><span>{pkg.future_path} · {(pkg.included_modules ?? []).join(", ")}</span></div>
@@ -227,14 +234,14 @@ export default async function DigitalObserverCorePage() {
                   <StatusBadge tone="default">P{pkg.extraction_priority}</StatusBadge>
                 </article>
               ))}
-            </div>
+            </div>}
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><Database size={20} /> Data Boundary Mapping</h2>
-            {data.boundaries.map((boundary) => (
+            {errors[5] ? <div className="empty-state">נתוני גבולות המידע אינם זמינים כרגע</div> : data.boundaries.map((boundary) => (
               <div className="list-item" key={boundary.id}>
                 <div><strong>{boundary.data_domain}</strong><span>{boundary.sharing_rule}</span></div>
                 <StatusBadge tone={boundary.contains_child_data || boundary.contains_biometric_data ? "bad" : boundary.contains_pii ? "warn" : "good"}>{statusLabel(boundary.boundary_type)}</StatusBadge>
@@ -243,7 +250,7 @@ export default async function DigitalObserverCorePage() {
           </article>
           <article className="card action-panel">
             <h2><AlertTriangle size={20} /> Cross-Vertical Policy</h2>
-            {data.policies.map((policy) => (
+            {errors[4] ? <div className="empty-state">נתוני המדיניות אינם זמינים כרגע</div> : data.policies.map((policy) => (
               <div className="list-item" key={policy.id}>
                 <div><strong>{policy.feature_key}</strong><span>{policy.restriction_summary}</span></div>
                 <StatusBadge tone={statusTone(policy.policy_status)}>{statusLabel(policy.policy_status)}</StatusBadge>
@@ -253,7 +260,7 @@ export default async function DigitalObserverCorePage() {
         </section>
 
         <CleanSection title="Observer Roadmap Registry" subtitle="מודולים עתידיים נשמרים כמפת דרך בלבד.">
-          {data.roadmap.length === 0 ? <EmptyState title="אין מפת דרך" text="מודולים עתידיים כמו School Safe ו-Business Observer יופיעו כאן." /> : (
+          {errors[6] ? <div className="empty-state">נתוני מפת הדרך אינם זמינים כרגע</div> : data.roadmap.length === 0 ? <EmptyState title="אין מפת דרך" text="מודולים עתידיים כמו School Safe ו-Business Observer יופיעו כאן." /> : (
             <div className="premium-action-grid">
               {data.roadmap.map((item) => (
                 <article className="premium-action-card" key={item.id}>

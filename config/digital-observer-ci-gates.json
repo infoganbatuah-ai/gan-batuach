@@ -567,6 +567,13 @@
         "--test",
         "scripts/qa/check-observer-growth-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-core-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-core-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
