@@ -42,13 +42,12 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 | Management role dashboard read model | lib/management/dashboard-read-model.ts; canonical role dashboard pages | Role-scoped dashboard reads | Existing authorized management projections | `management-role-dashboards`: derived attendance/tuition, authorized Child selection, private-message preview, camera readiness and source guards | Source-level behavior assertions and guards only; authenticated Product/Auth/RLS/browser proof remains separate | GATE 3 |
 | UX-V6 primary screen composition | Owner, Parent, Admin and Settings primary routes and scoped CSS | Existing guarded routes | Existing authorized role data | `uxv6-primary-screen-source-composition`: five static source-structure assertions | Static source composition only; not rendered visual fidelity, browser interaction, Auth/RLS or owner approval | GATE 3 + external owner visual review |
 | UX-V6 capture admission and verdict safety | Pure capture admission/result contract; capture runner is excluded from CI | None | None | `uxv6-capture-admission-contract`: five in-memory node:test cases for exact Development admission, fixture refusal, scenario inventory and pending-visual-review verdict | Source-level contract only; no actual Product, Auth/RLS, 32 screenshots, visual match or owner approval | GATE 3; separate Development capture and external visual review remain open |
-
 | UX-V6 required profile photo controls | Primary Owner/Manager Settings and shared profile form | Existing authorized Settings routes | Existing authorized profile data | `settings-required-photo-controls`: six in-memory component cases for required-photo removal refusal and optional-photo behavior | Pure component behavior only; no authenticated Product, upload/provider, Auth/RLS or rendered visual proof | GATE 3; separate Product and visual qualification remain open |
 
 ## TIER 1 CANONICAL SUITES
 
-- `settings-required-photo-controls`: `node scripts/qa/check-settings-required-photo-controls.mjs` (six pure component cases; no browser, database or upload provider)
 - `uxv6-capture-admission-contract`: `node scripts/qa/check-uxv6-capture-admission-contract.mjs` (five pure cases; no browser, database or capture runner)
+- `settings-required-photo-controls`: `node scripts/qa/check-settings-required-photo-controls.mjs` (six pure component cases; no browser, database or upload provider)
 - `management-role-dashboards`: `node --experimental-strip-types scripts/qa/check-management-role-dashboards.mjs` (read-model behavior assertions plus source guards; no authenticated Product proof)
 - `uxv6-primary-screen-source-composition`: `node scripts/qa/check-uxv6-current-product-contract.mjs` (five static source-composition assertions; no browser or visual proof)
 - `event-journal`: `node scripts/qa/check-event-journal.mjs`
@@ -79,7 +78,6 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `horizontal-ai-scale`: `node scripts/qa/check-digital-observer-horizontal-scale.mjs`
 - `high-availability`: `node scripts/qa/check-digital-observer-high-availability.mjs`
 - `reliability-qualification`: `node scripts/qa/check-digital-observer-reliability-qualification.mjs`
-- `push38-monitor-accuracy`: `node scripts/qa/check-push38b-monitor-accuracy.mjs`
 - `push38-gateway-event-loop-retry`: `node scripts/qa/check-push38-gateway-event-loop-retry.mjs`
 - `push38-gateway-hardware-rescue-deadline-release`: `node scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs`
 - `push38-dvr-endpoint-recovery`: `node scripts/qa/check-push38-dvr-endpoint-recovery.mjs`
@@ -99,6 +97,97 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `push44-mobile-runtime-contract`: `node scripts/qa/check-digital-observer-push44.mjs`
 - `push45-privacy-compliance`: `node scripts/qa/check-digital-observer-push45.mjs`
 - `pilot-query-failure-boundary`: `node --test scripts/qa/check-pilot-query-failure-boundary.mjs`
+- `camera-compliance-query-boundary`: `node --test scripts/qa/check-camera-compliance-query-boundary.mjs`
+- `camera-permissions-query-boundary`: `node --test scripts/qa/check-camera-permissions-query-boundary.mjs`
+- `camera-audit-query-boundary`: `node --test scripts/qa/check-camera-audit-query-boundary.mjs`
+- `camera-gateway-query-boundary`: `node --test scripts/qa/check-camera-gateway-query-boundary.mjs`
+- `camera-infrastructure-query-boundary`: `node --test scripts/qa/check-camera-infrastructure-query-boundary.mjs`
+- `admin-sms-query-boundary`: `node --test scripts/qa/check-admin-sms-query-boundary.mjs`
+- `admin-whatsapp-query-boundary`: `node --test scripts/qa/check-admin-whatsapp-query-boundary.mjs`
+- `admin-email-query-boundary`: `node --test scripts/qa/check-admin-email-query-boundary.mjs`
+- `admin-push-query-boundary`: `node --test scripts/qa/check-admin-push-query-boundary.mjs`
+- `admin-communication-query-boundary`: `node --test scripts/qa/check-admin-communication-query-boundary.mjs`
+- `admin-communications-query-boundary`: `node --test scripts/qa/check-admin-communications-query-boundary.mjs`
+- `admin-push-production-query-boundary`: `node --test scripts/qa/check-admin-push-production-query-boundary.mjs`
+- `pilot-readiness-query-boundary`: `node --test scripts/qa/check-pilot-readiness-query-boundary.mjs`
+- `pilot-health-query-boundary`: `node --test scripts/qa/check-pilot-health-query-boundary.mjs`
+- `pilot-center-query-boundary`: `node --test scripts/qa/check-pilot-center-query-boundary.mjs`
+- `launch-readiness-query-boundary`: `node --test scripts/qa/check-launch-readiness-query-boundary.mjs`
+- `first-pilot-query-boundary`: `node --test scripts/qa/check-first-pilot-query-boundary.mjs`
+- `customer-success-query-boundary`: `node --test scripts/qa/check-customer-success-query-boundary.mjs`
+- `activation-query-boundary`: `node --test scripts/qa/check-activation-query-boundary.mjs`
+- `billing-query-boundary`: `node --test scripts/qa/check-billing-query-boundary.mjs`
+- `subscription-query-boundary`: `node --test scripts/qa/check-subscription-query-boundary.mjs`
+- `commercial-launch-query-boundary`: `node --test scripts/qa/check-commercial-launch-query-boundary.mjs`
+- `commercial-rollout-query-boundary`: `node --test scripts/qa/check-commercial-rollout-query-boundary.mjs`
+- `growth-query-boundary`: `node --test scripts/qa/check-growth-query-boundary.mjs`
+- `observer-leads-query-boundary`: `node --test scripts/qa/check-observer-leads-query-boundary.mjs`
+- `observer-growth-query-boundary`: `node --test scripts/qa/check-observer-growth-query-boundary.mjs`
+- `observer-core-query-boundary`: `node --test scripts/qa/check-observer-core-query-boundary.mjs`
+- `observer-packages-query-boundary`: `node --test scripts/qa/check-observer-packages-query-boundary.mjs`
+- `observer-billing-query-boundary`: `node --test scripts/qa/check-observer-billing-query-boundary.mjs`
+- `observer-network-query-boundary`: `node --test scripts/qa/check-observer-network-query-boundary.mjs`
+- `observer-calibration-query-boundary`: `node --test scripts/qa/check-observer-calibration-query-boundary.mjs`
+- `observer-replay-query-boundary`: `node --test scripts/qa/check-observer-replay-query-boundary.mjs`
+- `qualification-run-guard`: `node --test scripts/qa/qualification-run-guard.test.mjs`
+- `ai-worker-query-boundary`: `node --test scripts/qa/check-ai-worker-query-boundary.mjs`
+- `ai-events-query-boundary`: `node --test scripts/qa/check-ai-events-query-boundary.mjs`
+- `observer-learning-query-boundary`: `node --test scripts/qa/check-observer-learning-query-boundary.mjs`
+- `advanced-learning-query-boundary`: `node --test scripts/qa/check-advanced-learning-query-boundary.mjs`
+- `observer-watch-query-boundary`: `node --test scripts/qa/check-observer-watch-query-boundary.mjs`
+- `predictive-safety-query-boundary`: `node --test scripts/qa/check-predictive-safety-query-boundary.mjs`
+- `risk-intelligence-query-boundary`: `node --test scripts/qa/check-risk-intelligence-query-boundary.mjs`
+- `compliance-center-query-boundary`: `node --test scripts/qa/check-compliance-center-query-boundary.mjs`
+- `national-inspections-query-boundary`: `node --test scripts/qa/check-national-inspections-query-boundary.mjs`
+- `inspection-workforce-query-boundary`: `node --test scripts/qa/check-inspection-workforce-query-boundary.mjs`
+- `regional-scale-up-query-boundary`: `node --test scripts/qa/check-regional-scale-up-query-boundary.mjs`
+- `scale-validation-query-boundary`: `node --test scripts/qa/check-scale-validation-query-boundary.mjs`
+- `company-operations-query-boundary`: `node --test scripts/qa/check-company-operations-query-boundary.mjs`
+- `business-continuity-query-boundary`: `node --test scripts/qa/check-business-continuity-query-boundary.mjs`
+- `external-validation-query-boundary`: `node --test scripts/qa/check-external-validation-query-boundary.mjs`
+- `legal-review-query-boundary`: `node --test scripts/qa/check-legal-review-query-boundary.mjs`
+- `security-review-query-boundary`: `node --test scripts/qa/check-security-review-query-boundary.mjs`
+- `iso-certification-handoff-query-boundary`: `node --test scripts/qa/check-iso-certification-handoff-query-boundary.mjs`
+- `iso-evidence-query-boundary`: `node --test scripts/qa/check-iso-evidence-query-boundary.mjs`
+- `iso-readiness-query-boundary`: `node --test scripts/qa/check-iso-readiness-query-boundary.mjs`
+- `security-pipeline-query-boundary`: `node --test scripts/qa/check-security-pipeline-query-boundary.mjs`
+- `security-center-query-boundary`: `node --test scripts/qa/check-security-center-query-boundary.mjs`
+- `identity-security-query-boundary`: `node --test scripts/qa/check-identity-security-query-boundary.mjs`
+- `incident-center-query-boundary`: `node --test scripts/qa/check-incident-center-query-boundary.mjs`
+- `privacy-rights-query-boundary`: `node --test scripts/qa/check-privacy-rights-query-boundary.mjs`
+- `database-integrity-query-boundary`: `node --test scripts/qa/check-database-integrity-query-boundary.mjs`
+- `regulatory-query-boundary`: `node --test scripts/qa/check-regulatory-query-boundary.mjs`
+- `audit-logs-query-boundary`: `node --test scripts/qa/check-audit-logs-query-boundary.mjs`
+- `system-health-query-boundary`: `node --test scripts/qa/check-system-health-query-boundary.mjs`
+- `admin-documents-query-boundary`: `node --test scripts/qa/check-admin-documents-query-boundary.mjs`
+- `admin-inspections-query-boundary`: `node --test scripts/qa/check-admin-inspections-query-boundary.mjs`
+- `admin-notifications-query-boundary`: `node --test scripts/qa/check-admin-notifications-query-boundary.mjs`
+- `admin-requests-query-boundary`: `node --test scripts/qa/check-admin-requests-query-boundary.mjs`
+- `admin-complaints-query-boundary`: `node --test scripts/qa/check-admin-complaints-query-boundary.mjs`
+- `admin-tasks-query-boundary`: `node --test scripts/qa/check-admin-tasks-query-boundary.mjs`
+- `admin-inspector-applications-query-boundary`: `node --test scripts/qa/check-admin-inspector-applications-query-boundary.mjs`
+- `admin-kindergarten-applications-query-boundary`: `node --test scripts/qa/check-admin-kindergarten-applications-query-boundary.mjs`
+- `admin-inspectors-query-boundary`: `node --test scripts/qa/check-admin-inspectors-query-boundary.mjs`
+- `admin-kindergarten-analytics-query-boundary`: `node --test scripts/qa/check-admin-kindergarten-analytics-query-boundary.mjs`
+- `admin-rating-system-query-boundary`: `node --test scripts/qa/check-admin-rating-system-query-boundary.mjs`
+- `admin-reports-query-boundary`: `node --test scripts/qa/check-admin-reports-query-boundary.mjs`
+- `admin-attendance-compliance-query-boundary`: `node --test scripts/qa/check-admin-attendance-compliance-query-boundary.mjs`
+- `admin-inspection-deadlines-query-boundary`: `node --test scripts/qa/check-admin-inspection-deadlines-query-boundary.mjs`
+- `admin-notices-query-boundary`: `node --test scripts/qa/check-admin-notices-query-boundary.mjs`
+- `admin-policies-query-boundary`: `node --test scripts/qa/check-admin-policies-query-boundary.mjs`
+- `admin-procedures-query-boundary`: `node --test scripts/qa/check-admin-procedures-query-boundary.mjs`
+- `admin-gardens-alias-query-boundary`: `node --test scripts/qa/check-admin-gardens-alias-query-boundary.mjs`
+- `admin-garden-profile-query-boundary`: `node --test scripts/qa/check-admin-garden-profile-query-boundary.mjs`
+- `admin-inspection-forms-query-boundary`: `node --test scripts/qa/check-admin-inspection-forms-query-boundary.mjs`
+- `admin-duplicates-query-boundary`: `node --test scripts/qa/check-admin-duplicates-query-boundary.mjs`
+- `leads-query-boundary`: `node --test scripts/qa/check-leads-query-boundary.mjs`
+- `leads-payment-stage`: `node --test scripts/qa/check-leads-payment-stage.mjs`
+- `admin-join-requests-query-boundary`: `node --test scripts/qa/check-admin-join-requests-query-boundary.mjs`
+- `push38-monitor-accuracy`: `node scripts/qa/check-push38b-monitor-accuracy.mjs`
+- `ai-platform-query-boundary`: `node --test scripts/qa/check-ai-platform-query-boundary.mjs`
+- `observer-intelligence-query-boundary`: `node --test scripts/qa/check-observer-intelligence-query-boundary.mjs`
+- `scale-100-query-boundary`: `node --test scripts/qa/check-scale-100-query-boundary.mjs`
+- `final-production-launch-query-boundary`: `node --test scripts/qa/check-final-production-launch-query-boundary.mjs`
 - `push44-ch1-private-media`: `node --test scripts/qa/check-push44-ch1-private-media.mjs`
 - `push44-synthetic-edge`: `node --test scripts/qa/check-push44-synthetic-edge.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
@@ -152,7 +241,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **572** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **663** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -223,14 +312,63 @@ Inventory count: **572** files. Classifications are conservative; environment-de
 | `scripts/qa/capture-v4-primary-screen-correction.mjs` | npm run qa:ux-v4-primary-visual | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-v5-domain-regression.mjs` | npm run qa:ux-v5-domain-regression | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/capture-v5-primary-screen-correction.mjs` | node scripts/qa/capture-v5-primary-screen-correction.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | UI / E2E | INTEGRATION / SUPPORT | none known |
+| `scripts/qa/check-activation-query-boundary.mjs` | node scripts/qa/check-activation-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-attendance-compliance-query-boundary.mjs` | node scripts/qa/check-admin-attendance-compliance-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-communication-query-boundary.mjs` | node scripts/qa/check-admin-communication-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-communications-query-boundary.mjs` | node scripts/qa/check-admin-communications-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-complaints-query-boundary.mjs` | node scripts/qa/check-admin-complaints-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-documents-query-boundary.mjs` | node scripts/qa/check-admin-documents-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-duplicates-query-boundary.mjs` | node scripts/qa/check-admin-duplicates-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-email-query-boundary.mjs` | node scripts/qa/check-admin-email-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-garden-profile-query-boundary.mjs` | node scripts/qa/check-admin-garden-profile-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-gardens-alias-query-boundary.mjs` | node scripts/qa/check-admin-gardens-alias-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-inspection-deadlines-query-boundary.mjs` | node scripts/qa/check-admin-inspection-deadlines-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-inspection-forms-query-boundary.mjs` | node scripts/qa/check-admin-inspection-forms-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-inspections-query-boundary.mjs` | node scripts/qa/check-admin-inspections-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-inspector-applications-query-boundary.mjs` | node scripts/qa/check-admin-inspector-applications-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-inspectors-query-boundary.mjs` | node scripts/qa/check-admin-inspectors-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-join-requests-query-boundary.mjs` | node scripts/qa/check-admin-join-requests-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-kindergarten-analytics-query-boundary.mjs` | node scripts/qa/check-admin-kindergarten-analytics-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-kindergarten-applications-query-boundary.mjs` | node scripts/qa/check-admin-kindergarten-applications-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-notices-query-boundary.mjs` | node scripts/qa/check-admin-notices-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-notifications-query-boundary.mjs` | node scripts/qa/check-admin-notifications-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-policies-query-boundary.mjs` | node scripts/qa/check-admin-policies-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-procedures-query-boundary.mjs` | node scripts/qa/check-admin-procedures-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-push-production-query-boundary.mjs` | node scripts/qa/check-admin-push-production-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-push-query-boundary.mjs` | node scripts/qa/check-admin-push-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-rating-system-query-boundary.mjs` | node scripts/qa/check-admin-rating-system-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-reports-query-boundary.mjs` | node scripts/qa/check-admin-reports-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-requests-query-boundary.mjs` | node scripts/qa/check-admin-requests-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-sms-query-boundary.mjs` | node scripts/qa/check-admin-sms-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-tasks-query-boundary.mjs` | node scripts/qa/check-admin-tasks-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-admin-whatsapp-query-boundary.mjs` | node scripts/qa/check-admin-whatsapp-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-advanced-learning-query-boundary.mjs` | node scripts/qa/check-advanced-learning-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
+| `scripts/qa/check-ai-events-query-boundary.mjs` | node scripts/qa/check-ai-events-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-ai-governance-query-boundary.mjs` | node scripts/qa/check-ai-governance-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-ai-platform-query-boundary.mjs` | node scripts/qa/check-ai-platform-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-ai-worker-query-boundary.mjs` | node scripts/qa/check-ai-worker-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-audit-logs-query-boundary.mjs` | node scripts/qa/check-audit-logs-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-billing-query-boundary.mjs` | node scripts/qa/check-billing-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-braces-depth-backport.mjs` | npm run qa:ci:security | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-business-continuity-query-boundary.mjs` | node scripts/qa/check-business-continuity-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-camera-audit-query-boundary.mjs` | node scripts/qa/check-camera-audit-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-camera-compliance-query-boundary.mjs` | node scripts/qa/check-camera-compliance-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-camera-gateway-query-boundary.mjs` | node scripts/qa/check-camera-gateway-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-camera-infrastructure-query-boundary.mjs` | node scripts/qa/check-camera-infrastructure-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
+| `scripts/qa/check-camera-permissions-query-boundary.mjs` | node scripts/qa/check-camera-permissions-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-canonical-api-error-boundary.mjs` | node scripts/qa/check-canonical-api-error-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-cloud-discovery-observer-persistence.mjs` | node scripts/qa/check-cloud-discovery-observer-persistence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-cloud-discovery-safety.mjs` | node scripts/qa/check-cloud-discovery-safety.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-commercial-launch-query-boundary.mjs` | node scripts/qa/check-commercial-launch-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-commercial-rollout-query-boundary.mjs` | node scripts/qa/check-commercial-rollout-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-company-operations-query-boundary.mjs` | node scripts/qa/check-company-operations-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-compliance-center-query-boundary.mjs` | node scripts/qa/check-compliance-center-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-connector-commercial.mjs` | node scripts/qa/check-connector-commercial.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-connector-health-recovery.mjs` | node scripts/qa/check-connector-health-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-connector-install-intents-db.mjs` | node scripts/qa/check-connector-install-intents-db.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-continuous-monitor.mjs` | node scripts/qa/check-continuous-monitor.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-customer-success-query-boundary.mjs` | node scripts/qa/check-customer-success-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-database-integrity-query-boundary.mjs` | node scripts/qa/check-database-integrity-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | CANONICAL CI | none known |
 | `scripts/qa/check-development-baseline.mjs` | npm run qa:development-baseline | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | SUPPORTING | none known |
 | `scripts/qa/check-development-migration-drift.mjs` | npm run qa:development-drift-contract | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | SUPPORTING | none known |
 | `scripts/qa/check-digital-guard-public-readiness.mjs` | node scripts/qa/check-digital-guard-public-readiness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -288,15 +426,29 @@ Inventory count: **572** files. Classifications are conservative; environment-de
 | `scripts/qa/check-event-poll-isolation.mjs` | node scripts/qa/check-event-poll-isolation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-event-temporal-coverage.mjs` | node scripts/qa/check-event-temporal-coverage.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-event-tracker-configuration.mjs` | node scripts/qa/check-event-tracker-configuration.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | TRACKING / ZONES | CANONICAL CI | none known |
+| `scripts/qa/check-external-validation-query-boundary.mjs` | node scripts/qa/check-external-validation-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-final-production-launch-query-boundary.mjs` | node scripts/qa/check-final-production-launch-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-first-pilot-query-boundary.mjs` | node scripts/qa/check-first-pilot-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-growth-query-boundary.mjs` | node scripts/qa/check-growth-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-guard-journal-search.mjs` | node scripts/qa/check-guard-journal-search.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVENT / JOURNAL | SUPPORTING | none known |
 | `scripts/qa/check-guard-server-credential.mjs` | node scripts/qa/check-guard-server-credential.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | SECURITY / TENANT ISOLATION | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/check-home-qa-enrollment.mjs` | node scripts/qa/check-home-qa-enrollment.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-home-qa-trust-issuance.mjs` | node scripts/qa/check-home-qa-trust-issuance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-identity-security-query-boundary.mjs` | node scripts/qa/check-identity-security-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-immutable-audit-pgcrypto.mjs` | node scripts/qa/check-immutable-audit-pgcrypto.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-incident-center-query-boundary.mjs` | node scripts/qa/check-incident-center-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | INCIDENT | CANONICAL CI | none known |
+| `scripts/qa/check-inspection-workforce-query-boundary.mjs` | node scripts/qa/check-inspection-workforce-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-installed-ota-health-truth.mjs` | node scripts/qa/check-installed-ota-health-truth.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-integration-workflow.mjs` | npm run qa:integration-workflow | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-iso-certification-handoff-query-boundary.mjs` | node scripts/qa/check-iso-certification-handoff-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-iso-evidence-query-boundary.mjs` | node scripts/qa/check-iso-evidence-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVIDENCE | CANONICAL CI | none known |
+| `scripts/qa/check-iso-readiness-query-boundary.mjs` | node scripts/qa/check-iso-readiness-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-journal-owner-lock.mjs` | node scripts/qa/check-journal-owner-lock.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVENT / JOURNAL | CANONICAL CI | none known |
+| `scripts/qa/check-launch-readiness-query-boundary.mjs` | node scripts/qa/check-launch-readiness-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-leads-payment-stage.mjs` | node scripts/qa/check-leads-payment-stage.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-leads-query-boundary.mjs` | node scripts/qa/check-leads-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-legacy-identity-bridge.mjs` | node scripts/qa/check-legacy-identity-bridge.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
+| `scripts/qa/check-legal-review-query-boundary.mjs` | node scripts/qa/check-legal-review-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-live-kms-custody.mjs` | node scripts/qa/check-live-kms-custody.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-local-playback-grant.mjs` | node scripts/qa/check-local-playback-grant.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-managed-device-identity.mjs` | node scripts/qa/check-managed-device-identity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -347,16 +499,33 @@ Inventory count: **572** files. Classifications are conservative; environment-de
 | `scripts/qa/check-management-task-workflows.mjs` | npm run qa:management-task-workflows | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-manager-parent-live-contract.mjs` | npm run qa:manager-parent-live-contract | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-migration-health.mjs` | npm run qa:migrations | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | SUPPORTING | none known |
+| `scripts/qa/check-national-inspections-query-boundary.mjs` | node scripts/qa/check-national-inspections-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-north-star-completion-ledger.mjs` | node scripts/qa/check-north-star-completion-ledger.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-object-inference.mjs` | npm run qa:event-journal | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | AI / INFERENCE | CANONICAL CI | none known |
+| `scripts/qa/check-observer-billing-query-boundary.mjs` | node scripts/qa/check-observer-billing-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-calibration-query-boundary.mjs` | node scripts/qa/check-observer-calibration-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | FEEDBACK / CALIBRATION | CANONICAL CI | none known |
+| `scripts/qa/check-observer-core-query-boundary.mjs` | node scripts/qa/check-observer-core-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-observer-engine-separation.mjs` | npm run qa:observer-engine-separation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-growth-query-boundary.mjs` | node scripts/qa/check-observer-growth-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-intelligence-query-boundary.mjs` | node scripts/qa/check-observer-intelligence-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-leads-query-boundary.mjs` | node scripts/qa/check-observer-leads-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-learning-query-boundary.mjs` | node scripts/qa/check-observer-learning-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
 | `scripts/qa/check-observer-live-camera-thumbnails.mjs` | node scripts/qa/check-observer-live-camera-thumbnails.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-observer-loopback-csp.mjs` | node scripts/qa/check-observer-loopback-csp.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-observer-network-query-boundary.mjs` | node scripts/qa/check-observer-network-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-packages-query-boundary.mjs` | node scripts/qa/check-observer-packages-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-observer-replay-query-boundary.mjs` | node scripts/qa/check-observer-replay-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-observer-site-selection.mjs` | npm run qa:observer-site-selection | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-observer-watch-query-boundary.mjs` | node scripts/qa/check-observer-watch-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | WATCH RULES | CANONICAL CI | none known |
 | `scripts/qa/check-offline-buffer-resync.mjs` | node scripts/qa/check-offline-buffer-resync.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-persistent-home-gateway.mjs` | node scripts/qa/check-persistent-home-gateway.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-pilot-center-query-boundary.mjs` | node scripts/qa/check-pilot-center-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-pilot-health-query-boundary.mjs` | node scripts/qa/check-pilot-health-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-pilot-query-failure-boundary.mjs` | node scripts/qa/check-pilot-query-failure-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-pilot-readiness-query-boundary.mjs` | node scripts/qa/check-pilot-readiness-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-post-push18-live-view.mjs` | node scripts/qa/check-post-push18-live-view.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-predictive-safety-query-boundary.mjs` | node scripts/qa/check-predictive-safety-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-privacy-rights-query-boundary.mjs` | node scripts/qa/check-privacy-rights-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | PRIVACY | CANONICAL CI | none known |
 | `scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs` | node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | EVIDENCE | CANONICAL CI | none known |
 | `scripts/qa/check-product-observer-real-source.mjs` | npm run qa:product-observer-real-source | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-production-credential-remediation.mjs` | npm run qa:management-credential-remediation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
@@ -499,13 +668,24 @@ Inventory count: **572** files. Classifications are conservative; environment-de
 | `scripts/qa/check-r2-keychain.mjs` | node scripts/qa/check-r2-keychain.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-real-detection-event-bridge.mjs` | npm run qa:real-detection-event-bridge | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-real-event-context-baseline.mjs` | node scripts/qa/check-real-event-context-baseline.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
+| `scripts/qa/check-regional-scale-up-query-boundary.mjs` | node scripts/qa/check-regional-scale-up-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-regulatory-query-boundary.mjs` | node scripts/qa/check-regulatory-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-remote-edge-signer.mjs` | node scripts/qa/check-remote-edge-signer.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-remote-playback-boundary.mjs` | node scripts/qa/check-remote-playback-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-risk-intelligence-query-boundary.mjs` | node scripts/qa/check-risk-intelligence-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | RISK / DECISION | CANONICAL CI | none known |
+| `scripts/qa/check-scale-100-query-boundary.mjs` | node scripts/qa/check-scale-100-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-scale-validation-query-boundary.mjs` | node scripts/qa/check-scale-validation-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-security-center-query-boundary.mjs` | node scripts/qa/check-security-center-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
+| `scripts/qa/check-security-pipeline-query-boundary.mjs` | node scripts/qa/check-security-pipeline-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
+| `scripts/qa/check-security-review-query-boundary.mjs` | node scripts/qa/check-security-review-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-seo-contract.mjs` | npm run qa:seo | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-settings-required-photo-controls.mjs` | node scripts/qa/check-settings-required-photo-controls.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | six pure component cases; no browser, database or upload provider |
 | `scripts/qa/check-single-use-auth-code.mjs` | node scripts/qa/check-single-use-auth-code.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | SUPPORTING | none known |
 | `scripts/qa/check-software-connector.mjs` | npm run qa:software-connector | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-spatial-entry-geometry.mjs` | node scripts/qa/check-spatial-entry-geometry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | TRACKING / ZONES | CANONICAL CI | none known |
 | `scripts/qa/check-storage-policy-safety.mjs` | npm run qa:storage-policy-safety | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
+| `scripts/qa/check-subscription-query-boundary.mjs` | node scripts/qa/check-subscription-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
+| `scripts/qa/check-system-health-query-boundary.mjs` | node scripts/qa/check-system-health-query-boundary.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-universal-connectivity.mjs` | node scripts/qa/check-universal-connectivity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux03-owner-command-center.mjs` | npm run qa:ux03-owner-command-center | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux04-children-classrooms-profile.mjs` | npm run qa:ux04-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -619,7 +799,7 @@ Inventory count: **572** files. Classifications are conservative; environment-de
 | `scripts/qa/push44-owner-qa-proxy.mjs` | node scripts/qa/push44-owner-qa-proxy.mjs | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/qualification-host-readiness.mjs` | node scripts/qa/qualification-host-readiness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/qualification-run-guard.mjs` | node scripts/qa/qualification-run-guard.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
-| `scripts/qa/qualification-run-guard.test.mjs` | node scripts/qa/qualification-run-guard.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/qualification-run-guard.test.mjs` | node scripts/qa/qualification-run-guard.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/reconcile-live-gateway-dvr-endpoint.mjs` | node scripts/qa/reconcile-live-gateway-dvr-endpoint.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/reconcile-live-tapo-endpoint.mjs` | node scripts/qa/reconcile-live-tapo-endpoint.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/reconcile-push38-home-identity.mjs` | node scripts/qa/reconcile-push38-home-identity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
