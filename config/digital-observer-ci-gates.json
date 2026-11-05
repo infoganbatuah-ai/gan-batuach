@@ -665,6 +665,13 @@
         "--test",
         "scripts/qa/check-risk-intelligence-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "compliance-center-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-compliance-center-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
