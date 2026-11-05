@@ -67,10 +67,11 @@ export default async function AdminKindergartenAnalyticsPage() {
       .order("created_at", { ascending: false })
       .limit(1000);
     logSupabaseError("kindergarten city analytics", gardensRes.error);
-    const gardens = (gardensRes.data ?? []) as any[];
-    return { gardens, rows: buildCityRows(gardens), queryError: gardensRes.error ? "חלק מנתוני הגנים לא נטענו" : null };
-  }, { gardens: [] as any[], rows: [] as CityRow[], queryError: null as string | null });
+    const gardens = (gardensRes.error ? [] : gardensRes.data ?? []) as any[];
+    return { gardens, rows: buildCityRows(gardens), available: !gardensRes.error, queryError: gardensRes.error ? "חלק מנתוני הגנים לא נטענו" : null };
+  }, { gardens: [] as any[], rows: [] as CityRow[], available: false, queryError: null as string | null });
 
+  const available = result.data.available;
   const rows = result.data.rows;
   const gardens = result.data.gardens;
   const total = gardens.length;
@@ -85,20 +86,20 @@ export default async function AdminKindergartenAnalyticsPage() {
           eyebrow="City & District Readiness"
           title="גנים לפי עיר ומחוז תפעולי"
           subtitle="מבט אדמין על פריסת גנים, סטטוס הפעלה ומוכנות אזורית. המחוז נגזר מהעיר ומשמש לתפעול פנימי בלבד."
-          badge={`${rows.length} ערים`}
-          badgeTone={rows.length ? "good" : "warn"}
+          badge={available ? `${rows.length} ערים` : "נתוני ערים לא זמינים"}
+          badgeTone={available ? rows.length ? "good" : "warn" : "default"}
           actions={<><Link className="button secondary" href="/dashboard/admin/kindergarten-applications">בקשות גנים</Link><Link className="button secondary" href="/dashboard/admin/kindergarten-activation">הפעלת גנים</Link></>}
         />
         <AdminDataError message={result.error ?? result.data.queryError} />
         <div className="premium-metric-grid">
-          <RoleMetricCard label="סה״כ גנים" value={total} />
-          <RoleMetricCard label="פעילים" value={active} tone={active ? "good" : "warn"} />
-          <RoleMetricCard label="ממתינים לאישור" value={pending} tone={pending ? "warn" : "good"} />
-          <RoleMetricCard label="ממתינים למנוי" value={paymentPending} tone={paymentPending ? "bad" : "good"} />
+          <RoleMetricCard label="סה״כ גנים" value={available ? total : "לא זמין"} />
+          <RoleMetricCard label="פעילים" value={available ? active : "לא זמין"} tone={available ? active ? "good" : "warn" : "default"} />
+          <RoleMetricCard label="ממתינים לאישור" value={available ? pending : "לא זמין"} tone={available ? pending ? "warn" : "good" : "default"} />
+          <RoleMetricCard label="ממתינים למנוי" value={available ? paymentPending : "לא זמין"} tone={available ? paymentPending ? "bad" : "good" : "default"} />
         </div>
 
         <CleanSection title="פריסה לפי עיר" subtitle="הכתובת הציבורית נשארת לפי כללי public-safe. כאן מוצגת תמונת תפעול לאדמין בלבד.">
-          {rows.length === 0 ? <EmptyState title="אין נתוני גנים" text="לאחר פתיחת בקשות גן, הן יופיעו כאן לפי עיר ומחוז." /> : (
+          {!available ? <p className="empty-state">נתוני הפריסה לפי עיר אינם זמינים כרגע.</p> : rows.length === 0 ? <EmptyState title="אין נתוני גנים" text="לאחר פתיחת בקשות גן, הן יופיעו כאן לפי עיר ומחוז." /> : (
             <div className="analytics-region-grid kindergarten-city-analytics">
               {rows.map((row) => (
                 <article key={`${row.district}-${row.city}`}>
@@ -121,7 +122,7 @@ export default async function AdminKindergartenAnalyticsPage() {
         </CleanSection>
 
         <CleanSection title="גנים אחרונים" subtitle="בדיקת סטטוס מהירה לפי רשומות קיימות.">
-          <div className="procedure-list">
+          {!available ? <p className="empty-state">נתוני הגנים האחרונים אינם זמינים כרגע.</p> : <div className="procedure-list">
             {gardens.slice(0, 20).map((garden: any) => (
               <article className="card procedure-card" key={garden.id}>
                 <div>
@@ -135,7 +136,7 @@ export default async function AdminKindergartenAnalyticsPage() {
                 </div>
               </article>
             ))}
-          </div>
+          </div>}
         </CleanSection>
 
         <section className="warning-banner"><ShieldCheck /> נתוני עיר/מחוז הם תפעוליים. פרסום כתובת לציבור נשאר תלוי באישור public-safe בלבד.</section>
