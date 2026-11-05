@@ -693,6 +693,13 @@
         "--test",
         "scripts/qa/check-regional-scale-up-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "scale-validation-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-scale-validation-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

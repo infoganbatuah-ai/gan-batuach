@@ -10,16 +10,32 @@ import { buildScaleReadinessScore, scaleTone, tenantIsolationAudit } from "@/lib
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
+async function settleRows<T extends { data: unknown; error: unknown }>(query: PromiseLike<T>) {
+  try {
+    const result = await query;
+    return { ...result, data: result.error ? [] : result.data ?? [] };
+  } catch (error) {
+    return { data: [], error };
+  }
+}
+
+async function settleCount(label: string, run: () => PromiseLike<{ count: number | null; error: unknown }>) {
+  try {
+    const { count, error } = await run();
+    logSupabaseError(label, error);
+    return { value: error ? 0 : count ?? 0, available: !error };
+  } catch (error) {
+    logSupabaseError(label, error);
+    return { value: 0, available: false };
+  }
+}
+
 async function countRows(supabase: SupabaseServerClient, table: string) {
-  const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
-  logSupabaseError(`scale count ${table}`, error);
-  return error ? 0 : count ?? 0;
+  return settleCount(`scale count ${table}`, () => supabase.from(table as any).select("id", { count: "exact", head: true }));
 }
 
 async function countFiltered(supabase: SupabaseServerClient, table: string, apply: (query: any) => any) {
-  const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
-  logSupabaseError(`scale count ${table}`, error);
-  return error ? 0 : count ?? 0;
+  return settleCount(`scale count ${table}`, () => apply(supabase.from(table as any).select("id", { count: "exact", head: true })));
 }
 
 function todayIsoDate() {
@@ -99,9 +115,9 @@ export default async function AdminScaleValidationPage() {
       supabase.from("performance_readiness_checks" as any).select("id,check_key,health_area,status,latest_value,threshold_value,checked_at,recommended_action").limit(200),
       supabase.from("pilot_issues" as any).select("id,garden_id,severity,status,affected_role,title").limit(1000),
       supabase.from("kindergarten_onboarding_records" as any).select("id,garden_id,status,progress_percent,submitted_at,completed_at").limit(1000)
-    ]);
+    ].map((query) => settleRows(query)));
 
-    [
+    const rowResults = [
       gardensRes,
       profilesRes,
       parentsRes,
@@ -122,14 +138,18 @@ export default async function AdminScaleValidationPage() {
       performanceRes,
       pilotIssuesRes,
       onboardingRes
-    ].forEach((query, index) => logSupabaseError(`scale validation query ${index}`, (query as any).error));
+    ];
+    rowResults.forEach((query, index) => logSupabaseError(`scale validation query ${index}`, query.error));
 
-    const [totalGardens, activeGardens, managers, inspectors] = await Promise.all([
+    const countResults = await Promise.all([
       countRows(supabase, "gardens"),
       countFiltered(supabase, "gardens", (query) => query.in("status", ["active", "safe", "approved"])),
       countFiltered(supabase, "profiles", (query) => query.in("role", ["manager", "owner"]).eq("active", true)),
       countFiltered(supabase, "profiles", (query) => query.eq("role", "inspector").eq("active", true))
     ]);
+    const [totalGardens, activeGardens, managers, inspectors] = countResults.map((query) => query.value);
+    const availability = [...rowResults.map((query) => !query.error), ...countResults.map((query) => query.available)];
+    const known = <T,>(indices: number[], read: () => T) => indices.every((index) => availability[index]) ? read() : null;
 
     const gardens = (gardensRes.data ?? []) as any[];
     const profiles = (profilesRes.data ?? []) as any[];
@@ -183,23 +203,24 @@ export default async function AdminScaleValidationPage() {
       const health = Math.max(0, Math.min(100, 100 - offlineCameras * 14 - openRequired * 8 - observerEvents * 3));
       return {
         ...garden,
-        kids,
-        parents: (parentCounts[gardenId] ?? 0) + (parentLinkCounts[gardenId] ?? 0),
-        staffTotal,
-        activeCameras,
-        offlineCameras,
-        inspections: inspectionCounts[gardenId] ?? 0,
-        openRequired,
-        observerEvents,
-        parentSignals,
-        staffSignals,
-        managerSignals,
-        health
+        kids: known([4], () => kids),
+        parents: known([2, 5], () => (parentCounts[gardenId] ?? 0) + (parentLinkCounts[gardenId] ?? 0)),
+        staffTotal: known([3], () => staffTotal),
+        activeCameras: known([6], () => activeCameras),
+        offlineCameras: known([6], () => offlineCameras),
+        inspections: known([7], () => inspectionCounts[gardenId] ?? 0),
+        openRequired: known([8], () => openRequired),
+        observerEvents: known([9], () => observerEvents),
+        parentSignals: known([10, 11, 12], () => parentSignals),
+        staffSignals: known([13, 14, 15], () => staffSignals),
+        managerSignals: known([16], () => managerSignals),
+        health: known([6, 8, 9], () => health)
       };
     });
 
     const activeCameraCount = cameras.filter((camera) => camera.active !== false && !["offline", "failed", "error", "disabled", "pending_gateway"].includes(String(camera.status))).length;
     const offlineCameraCount = cameras.filter((camera) => ["offline", "failed", "error", "disabled", "pending_gateway"].includes(String(camera.status)) || ["offline", "failed", "unhealthy"].includes(String(camera.health_status))).length;
+    // Design-model reference only: this page does not perform a tenant/RLS audit.
     const unresolvedIsolationChecks = 0;
     const slowApiChecks = performanceChecks.filter((check) => check.health_area === "api" && ["degraded", "offline"].includes(String(check.status))).length;
     const slowDashboardChecks = performanceChecks.filter((check) => check.health_area === "database" && ["degraded", "offline"].includes(String(check.status))).length;
@@ -231,6 +252,8 @@ export default async function AdminScaleValidationPage() {
     });
 
     return {
+      availability,
+      onboardingHasRows: onboarding.length > 0,
       totalGardens,
       activeGardens,
       managers,
@@ -255,9 +278,11 @@ export default async function AdminScaleValidationPage() {
       pilotIssues,
       comparison,
       readiness,
-      queryError: [gardensRes.error, profilesRes.error, parentsRes.error, staffRes.error, childrenRes.error, camerasRes.error].some(Boolean) ? "חלק מנתוני הסקייל לא נטענו. ייתכן שטבלאות readiness עדיין לא קיימות בסביבה." : null
+      queryError: availability.some((value) => !value) ? "חלק מנתוני הסקייל אינם זמינים כרגע." : null
     };
   }, {
+    availability: Array<boolean>(24).fill(false),
+    onboardingHasRows: false,
     totalGardens: 0,
     activeGardens: 0,
     managers: 0,
@@ -307,6 +332,21 @@ export default async function AdminScaleValidationPage() {
 
   const data = result.data;
   const readiness = data.readiness;
+  const has = (...indices: number[]) => indices.every((index) => data.availability[index]);
+  const unknown = "לא זמין";
+  const value = (indices: number[], measured: number) => has(...indices) ? measured : unknown;
+  const componentAvailability = {
+    tenantCoverage: has(21, 22, 23, 2, 3, 4),
+    performanceScore: has(17),
+    stabilityScore: has(9, 18),
+    onboardingScore: has(19) && (data.onboardingHasRows || has(21)),
+    adoptionScore: has(10, 11, 13, 14, 16),
+    cameraScore: has(6)
+  };
+  const modelAvailable = componentAvailability.tenantCoverage && componentAvailability.performanceScore && componentAvailability.stabilityScore && componentAvailability.onboardingScore && componentAvailability.adoptionScore;
+  const readinessText = modelAvailable ? `${readiness.readinessScore}/100` : unknown;
+  const readinessTone = modelAvailable ? readiness.tone : "default";
+  const componentPercent = (field: keyof typeof componentAvailability) => componentAvailability[field] ? `${readiness[field]}%` : unknown;
   const openCriticalIssues = data.pilotIssues.filter((issue: any) => ["critical", "high"].includes(String(issue.severity)) && !["verified", "accepted_risk"].includes(String(issue.status))).length;
   const degradedChecks = data.performanceChecks.filter((check: any) => ["degraded", "offline"].includes(String(check.status)));
 
@@ -317,50 +357,51 @@ export default async function AdminScaleValidationPage() {
           eyebrow="Multi-Kindergarten Scale"
           title="מוכנות הרחבה לריבוי גנים"
           subtitle="תיקוף בידוד לקוחות, עומסים, פעילות, מצלמות, תצפיתן ופיקוח לפני מעבר מעשרות למאות גנים."
-          badge={`${readiness.readinessScore}/100`}
-          badgeTone={readiness.tone}
+          badge={readinessText}
+          badgeTone={readinessTone}
           actions={<><Link className="button primary" href="/dashboard/admin/customer-success">Customer Success</Link><Link className="button secondary" href="/dashboard/admin/security-center">אבטחה</Link></>}
         >
           <div className="setup-checklist">
             <span>מיקוד: סקייל ותפעול</span>
             <span>ללא שינוי הרשאות</span>
             <span>ללא פיצ׳רים ניסיוניים</span>
+            <span>מודל תכנון בלבד · בידוד לקוחות לא אומת במסך זה</span>
           </div>
         </PremiumDashboardHero>
         <AdminDataError message={result.error ?? data.queryError} />
 
         <section className="grid cols-4 dashboard-kpis">
-          <RoleMetricCard label="ציון סקייל" value={`${readiness.readinessScore}/100`} hint="ביצועים, בידוד, יציבות ואימוץ" tone={readiness.tone} />
-          <RoleMetricCard label="גנים פעילים" value={`${data.activeGardens}/${data.totalGardens}`} hint="יעד פיילוט: 5-10" tone={data.activeGardens >= 5 ? "good" : "warn"} />
-          <RoleMetricCard label="משתמשים" value={data.managers + data.inspectors + data.parents + data.staff} hint={`${data.children} ילדים`} tone="good" />
-          <RoleMetricCard label="מצלמות" value={`${data.activeCameraCount}/${data.cameras}`} hint={`${data.offlineCameraCount} לא תקינות`} tone={data.offlineCameraCount ? "warn" : "good"} />
-          <RoleMetricCard label="פיקוחים" value={data.inspections} hint={`${data.requiredInspections} דרישות פתוחות`} tone={data.requiredInspections ? "warn" : "good"} />
-          <RoleMetricCard label="אירועי תצפיתן" value={data.observerEvents} hint="שבוע אחרון" tone={data.observerEvents > 20 ? "warn" : "good"} />
-          <RoleMetricCard label="בעיות פיילוט" value={openCriticalIssues} hint="קריטי/גבוה" tone={openCriticalIssues ? "bad" : "good"} />
-          <RoleMetricCard label="ביצועים" value={degradedChecks.length} hint="בדיקות degraded/offline" tone={degradedChecks.length ? "warn" : "good"} />
+          <RoleMetricCard label="ציון סקייל" value={readinessText} hint="מודל תכנון · בידוד לא אומת" tone={readinessTone} />
+          <RoleMetricCard label="גנים פעילים" value={`${value([21], data.activeGardens)}/${value([20], data.totalGardens)}`} hint="יעד פיילוט: 5-10" tone={!has(20, 21) ? "default" : data.activeGardens >= 5 ? "good" : "warn"} />
+          <RoleMetricCard label="משתמשים" value={value([22, 23, 2, 3], data.managers + data.inspectors + data.parents + data.staff)} hint={`${value([4], data.children)} ילדים`} tone={has(22, 23, 2, 3, 4) ? "good" : "default"} />
+          <RoleMetricCard label="מצלמות" value={has(6) ? `${data.activeCameraCount}/${data.cameras}` : unknown} hint={has(6) ? `${data.offlineCameraCount} לא תקינות` : unknown} tone={!has(6) ? "default" : data.offlineCameraCount ? "warn" : "good"} />
+          <RoleMetricCard label="פיקוחים" value={value([7], data.inspections)} hint={has(8) ? `${data.requiredInspections} דרישות פתוחות` : unknown} tone={!has(7, 8) ? "default" : data.requiredInspections ? "warn" : "good"} />
+          <RoleMetricCard label="אירועי תצפיתן" value={value([9], data.observerEvents)} hint="שבוע אחרון" tone={!has(9) ? "default" : data.observerEvents > 20 ? "warn" : "good"} />
+          <RoleMetricCard label="בעיות פיילוט" value={value([18], openCriticalIssues)} hint="קריטי/גבוה" tone={!has(18) ? "default" : openCriticalIssues ? "bad" : "good"} />
+          <RoleMetricCard label="ביצועים" value={value([17], degradedChecks.length)} hint="בדיקות degraded/offline" tone={!has(17) ? "default" : degradedChecks.length ? "warn" : "good"} />
         </section>
 
         <section className="scale-score-grid">
-          <article><ShieldCheck /><span>בידוד לקוחות</span><strong>{readiness.isolationScore}%</strong></article>
-          <article><Gauge /><span>ביצועים</span><strong>{readiness.performanceScore}%</strong></article>
-          <article><LineChart /><span>אימוץ</span><strong>{readiness.adoptionScore}%</strong></article>
-          <article><Camera /><span>מצלמות</span><strong>{readiness.cameraScore}%</strong></article>
-          <article><Activity /><span>יציבות</span><strong>{readiness.stabilityScore}%</strong></article>
-          <article><UsersRound /><span>קליטה</span><strong>{readiness.onboardingScore}%</strong></article>
+          <article><ShieldCheck /><span>בידוד לקוחות</span><strong>לא אומת · היקף תכנון בלבד</strong></article>
+          <article><Gauge /><span>ביצועים</span><strong>{componentPercent("performanceScore")}</strong></article>
+          <article><LineChart /><span>אימוץ</span><strong>{componentPercent("adoptionScore")}</strong></article>
+          <article><Camera /><span>מצלמות</span><strong>{componentPercent("cameraScore")}</strong></article>
+          <article><Activity /><span>יציבות</span><strong>{componentPercent("stabilityScore")}</strong></article>
+          <article><UsersRound /><span>קליטה</span><strong>{componentPercent("onboardingScore")}</strong></article>
         </section>
 
         <CleanSection title="השוואת גנים" subtitle="תמונת סקייל: משתמשים, מצלמות, פיקוח ואימוץ לפי גן.">
-          {data.comparison.length === 0 ? <EmptyState title="אין גנים להשוואה" text="ברגע שגנים יופעלו, תופיע כאן השוואה תפעולית." /> : (
+          {!has(0) ? <p className="muted">השוואת גנים: {unknown}</p> : data.comparison.length === 0 ? <EmptyState title="אין גנים להשוואה" text="ברגע שגנים יופעלו, תופיע כאן השוואה תפעולית." /> : (
             <div className="scale-comparison-table">
               <div className="scale-comparison-head"><span>גן</span><span>משתמשים</span><span>מצלמות</span><span>פיקוח</span><span>אימוץ</span><span>בריאות</span></div>
               {data.comparison.slice(0, 12).map((garden: any) => (
                 <Link href={`/dashboard/admin/gardens/${garden.id}`} className="scale-comparison-row" key={garden.id}>
                   <span><strong>{garden.name}</strong><small>{garden.city ?? "עיר חסרה"} · {garden.status}</small></span>
-                  <span>{garden.parents} הורים · {garden.staffTotal} צוות · {garden.kids} ילדים</span>
-                  <span>{garden.activeCameras} פעילות · {garden.offlineCameras} בעיה</span>
-                  <span>{garden.inspections} בוצעו · {garden.openRequired} פתוח</span>
-                  <span>{garden.parentSignals + garden.staffSignals + garden.managerSignals}</span>
-                  <StatusBadge tone={scaleTone(garden.health)}>{garden.health}/100</StatusBadge>
+                  <span>{garden.parents ?? unknown} הורים · {garden.staffTotal ?? unknown} צוות · {garden.kids ?? unknown} ילדים</span>
+                  <span>{garden.activeCameras ?? unknown} פעילות · {garden.offlineCameras ?? unknown} בעיה</span>
+                  <span>{garden.inspections ?? unknown} בוצעו · {garden.openRequired ?? unknown} פתוח</span>
+                  <span>{garden.parentSignals == null || garden.staffSignals == null || garden.managerSignals == null ? unknown : garden.parentSignals + garden.staffSignals + garden.managerSignals}</span>
+                  <StatusBadge tone={garden.health == null ? "default" : scaleTone(garden.health)}>{garden.health == null ? unknown : `${garden.health}/100`}</StatusBadge>
                 </Link>
               ))}
             </div>
@@ -370,16 +411,17 @@ export default async function AdminScaleValidationPage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><ShieldCheck size={20} /> Tenant isolation audit</h2>
+            <p className="muted">היקף תכנון בלבד · לא בוצעה כאן בדיקת בידוד או RLS.</p>
             {tenantIsolationAudit.map((item) => (
               <div className="list-item" key={item.role}>
                 <div><strong>{item.role}</strong><span>{item.scope}</span><small>{item.evidence}</small></div>
-                <StatusBadge tone="good">Scoped</StatusBadge>
+                <StatusBadge tone="default">לא אומת</StatusBadge>
               </div>
             ))}
           </article>
           <article className="card action-panel">
             <h2><Gauge size={20} /> Performance readiness</h2>
-            {data.performanceChecks.length === 0 ? <div className="empty-mini">אין בדיקות ביצועים רשומות עדיין.</div> : data.performanceChecks.slice(0, 8).map((check: any) => (
+            {!has(17) ? <p className="muted">Performance readiness: {unknown}</p> : data.performanceChecks.length === 0 ? <div className="empty-mini">אין בדיקות ביצועים רשומות עדיין.</div> : data.performanceChecks.slice(0, 8).map((check: any) => (
               <div className="list-item" key={check.id ?? check.check_key}>
                 <div><strong>{check.check_key}</strong><span>{check.health_area} · {check.latest_value ?? "לא נמדד"} / {check.threshold_value ?? "יעד חסר"}</span></div>
                 <StatusBadge tone={scaleTone(check.status)}>{check.status}</StatusBadge>
@@ -391,15 +433,15 @@ export default async function AdminScaleValidationPage() {
         <section className="grid cols-3 dashboard-panels">
           <article className="card action-panel">
             <h2><UsersRound size={20} /> Parent activity</h2>
-            <p>{data.notificationsOpened} התראות נפתחו · {data.cameraViews} צפיות מצלמה · {data.documentUsage} פעולות מסמכים.</p>
+            <p>{value([10], data.notificationsOpened)} התראות נפתחו · {value([11], data.cameraViews)} צפיות מצלמה · {value([12], data.documentUsage)} פעולות מסמכים.</p>
           </article>
           <article className="card action-panel">
             <h2><Activity size={20} /> Staff activity</h2>
-            <p>{data.attendanceUpdates} עדכוני נוכחות · {data.childUpdates} עדכוני ילדים · {data.completedTasks} משימות הושלמו.</p>
+            <p>{value([13], data.attendanceUpdates)} עדכוני נוכחות · {value([14], data.childUpdates)} עדכוני ילדים · {value([15], data.completedTasks)} משימות הושלמו.</p>
           </article>
           <article className="card action-panel">
             <h2><BarChart3 size={20} /> Manager activity</h2>
-            <p>{data.managerUsage} פעולות ניהול במדדי הפיילוט. נדרש מעקב מתמשך לפי גן.</p>
+            <p>{value([16], data.managerUsage)} פעולות ניהול במדדי הפיילוט. נדרש מעקב מתמשך לפי גן.</p>
           </article>
         </section>
 
