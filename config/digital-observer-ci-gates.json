@@ -784,6 +784,13 @@
         "--test",
         "scripts/qa/check-incident-center-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "privacy-rights-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-privacy-rights-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
