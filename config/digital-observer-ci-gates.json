@@ -777,6 +777,13 @@
         "--test",
         "scripts/qa/check-identity-security-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "incident-center-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-incident-center-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
