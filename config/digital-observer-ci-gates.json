@@ -973,6 +973,13 @@
         "--test",
         "scripts/qa/check-leads-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "leads-payment-stage",
+      "args": [
+        "--test",
+        "scripts/qa/check-leads-payment-stage.mjs"
+      ]
     }
   ],
   "security": [
