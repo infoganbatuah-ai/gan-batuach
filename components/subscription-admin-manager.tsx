@@ -51,10 +51,14 @@ export type SubscriptionSummary = {
 };
 export type SubscriptionPaymentSummary = { billing_status?: string | null };
 
-export function SubscriptionAdminManager({ plans, subscriptions, gardens, payments }: { plans: SubscriptionPlanSummary[]; subscriptions: SubscriptionSummary[]; gardens: SubscriptionGardenSummary[]; payments: SubscriptionPaymentSummary[] }) {
+export function SubscriptionAdminManager({ plans: inputPlans, subscriptions: inputSubscriptions, gardens: inputGardens, payments: inputPayments, plansAvailable = true, subscriptionsAvailable = true, gardensAvailable = true, paymentsAvailable = true }: { plans: SubscriptionPlanSummary[]; subscriptions: SubscriptionSummary[]; gardens: SubscriptionGardenSummary[]; payments: SubscriptionPaymentSummary[]; plansAvailable?: boolean; subscriptionsAvailable?: boolean; gardensAvailable?: boolean; paymentsAvailable?: boolean }) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const plans = plansAvailable ? inputPlans : [];
+  const subscriptions = subscriptionsAvailable ? inputSubscriptions : [];
+  const gardens = gardensAvailable ? inputGardens : [];
+  const payments = paymentsAvailable ? inputPayments : [];
   const failedPaymentCount = payments.filter((payment) => payment.billing_status === "failed").length;
 
   async function savePlan(event: FormEvent<HTMLFormElement>, close: () => void) {
@@ -119,7 +123,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
     <>
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
-      <CollapsibleActionPanel title="יצירת תוכנית מנוי" buttonLabel="תוכנית חדשה" description="מודל Gan Batuach הוא מנוי שנתי לגן. Enterprise מיועד לרשתות גדולות בעתיד.">
+      {!plansAvailable ? <div className="finance-empty">נתוני התוכניות אינם זמינים כרגע.</div> : <CollapsibleActionPanel title="יצירת תוכנית מנוי" buttonLabel="תוכנית חדשה" description="מודל Gan Batuach הוא מנוי שנתי לגן. Enterprise מיועד לרשתות גדולות בעתיד.">
         {({ close }) => (
           <form className="card form wizard-form" onSubmit={(event) => savePlan(event, close)}>
             <div className="form-grid">
@@ -147,9 +151,9 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
             <div className="profile-actions"><button className="button primary"><Save size={16} /> שמירה</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
           </form>
         )}
-      </CollapsibleActionPanel>
+      </CollapsibleActionPanel>}
 
-      <CollapsibleActionPanel title="שיוך / עדכון מנוי לגן" buttonLabel="עדכון מנוי" description="אדמין משייך מנוי שנתי של Gan Batuach או Enterprise עתידי לרשתות. אין חבילת תצפיתן נפרדת לגנים.">
+      {!plansAvailable || !gardensAvailable ? <div className="finance-empty">נתוני התוכניות או הגנים אינם זמינים כרגע.</div> : <CollapsibleActionPanel title="שיוך / עדכון מנוי לגן" buttonLabel="עדכון מנוי" description="אדמין משייך מנוי שנתי של Gan Batuach או Enterprise עתידי לרשתות. אין חבילת תצפיתן נפרדת לגנים.">
         {({ close }) => (
           <form className="card form wizard-form" onSubmit={(event) => saveSubscription(event, close)}>
             <div className="form-grid">
@@ -161,12 +165,12 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
             <div className="profile-actions"><button className="button primary"><Save size={16} /> שמירת מנוי</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
           </form>
         )}
-      </CollapsibleActionPanel>
+      </CollapsibleActionPanel>}
 
       <section className="finance-section">
         <div className="section-heading"><h2>מנויים פעילים</h2><p>ניהול מנוי שנתי של Gan Batuach, כולל ניטור בטיחות כחלק מהמערכת.</p></div>
         <div className="finance-history">
-          {subscriptions.length === 0 ? <div className="finance-empty"><strong>אין עדיין מנויים</strong><span>צרו מנוי ראשון לגן כדי להתחיל מעקב.</span></div> : subscriptions.map((subscription) => (
+          {!subscriptionsAvailable ? <div className="finance-empty">נתוני המנויים אינם זמינים כרגע.</div> : subscriptions.length === 0 ? <div className="finance-empty"><strong>אין עדיין מנויים</strong><span>צרו מנוי ראשון לגן כדי להתחיל מעקב.</span></div> : subscriptions.map((subscription) => (
             <article className="finance-history-row" key={subscription.id}>
               <span><ShieldAlert size={21} /></span>
               <div className="section-heading">
@@ -179,7 +183,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
         </div>
       </section>
 
-      <div className="finance-provider-state"><span><ShieldAlert size={20} />ספק סליקה אינו מאומת</span><p>המערכת אינה מציגה רשימת ספקים כיכולת זמינה. הפעלה תתאפשר רק לאחר הגדרה, אימות ייצור, webhook מאומת וכוונת חיוב מפורשת.{failedPaymentCount > 0 ? ` ${failedPaymentCount} תשלומים דורשים בדיקה.` : ""}</p></div>
+      <div className="finance-provider-state"><span><ShieldAlert size={20} />ספק סליקה אינו מאומת</span><p>המערכת אינה מציגה רשימת ספקים כיכולת זמינה. הפעלה תתאפשר רק לאחר הגדרה, אימות ייצור, webhook מאומת וכוונת חיוב מפורשת.{!paymentsAvailable ? " נתוני התשלומים אינם זמינים כרגע." : failedPaymentCount > 0 ? ` ${failedPaymentCount} תשלומים דורשים בדיקה.` : ""}</p></div>
     </>
   );
 }

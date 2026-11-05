@@ -525,6 +525,13 @@
         "--test",
         "scripts/qa/check-billing-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "subscription-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-subscription-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
