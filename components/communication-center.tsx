@@ -35,6 +35,8 @@ type CommunicationSettings = {
   email_fallback_enabled?: boolean;
 };
 
+const unavailableLogs: CommunicationLog[] = [];
+
 const channelLabels: Record<string, string> = {
   in_app: "התראה במערכת",
   sms: "SMS",
@@ -62,19 +64,25 @@ function toneForStatus(status: string) {
 
 export function CommunicationCenter({
   role,
-  logs,
-  templates,
+  logs: sourceLogs,
+  templates: sourceTemplates,
   settings,
   apiPath,
+  logsAvailable = true,
+  templatesAvailable = true,
   capability = { in_app: "available", push: "not_configured", email: "not_configured", whatsapp: "not_configured", sms: "not_configured" }
 }: {
   role: "admin" | "garden";
   logs: CommunicationLog[];
   templates: CommunicationTemplate[];
+  logsAvailable?: boolean;
+  templatesAvailable?: boolean;
   settings?: CommunicationSettings | null;
   apiPath: string;
   capability?: DeliveryCapability;
 }) {
+  const logs = logsAvailable ? sourceLogs : unavailableLogs;
+  const templates = templatesAvailable ? sourceTemplates : [];
   const [channel, setChannel] = useState("all");
   const [status, setStatus] = useState("all");
   const [defaultChannel, setDefaultChannel] = useState(settings?.default_parent_channel ?? "in_app");
@@ -127,9 +135,9 @@ export function CommunicationCenter({
     <div className="stack">
       <DeliveryReadinessStrip capability={capability} />
       <section className="card-grid three">
-        <div className="metric-card"><span>הודעות</span><strong>{logs.length}</strong><small>כל הערוצים</small></div>
-        <div className="metric-card"><span>מצב בדיקה</span><strong>{mockCount}</strong><small>לא נשלח SMS/WhatsApp אמיתי</small></div>
-        <div className="metric-card"><span>דורש בדיקה</span><strong>{failedCount}</strong><small>טלפון חסר, העדפה או ספק</small></div>
+        <div className="metric-card"><span>הודעות</span><strong>{logsAvailable ? logs.length : "לא זמין"}</strong><small>כל הערוצים</small></div>
+        <div className="metric-card"><span>מצב בדיקה</span><strong>{logsAvailable ? mockCount : "לא זמין"}</strong><small>לא נשלח SMS/WhatsApp אמיתי</small></div>
+        <div className="metric-card"><span>דורש בדיקה</span><strong>{logsAvailable ? failedCount : "לא זמין"}</strong><small>טלפון חסר, העדפה או ספק</small></div>
       </section>
 
       {role === "garden" ? (
@@ -184,7 +192,7 @@ export function CommunicationCenter({
       </section>
 
       <section className="card-list">
-        {filteredLogs.length ? filteredLogs.map((log) => (
+        {!logsAvailable ? <div className="empty-state"><h3>נתוני לוג התקשורת אינם זמינים</h3><p>לא ניתן לקבוע סטטוסי משלוח כרגע.</p></div> : filteredLogs.length ? filteredLogs.map((log) => (
           <article className="info-card" key={log.id}>
             <div className="card-row">
               <div>
@@ -218,7 +226,7 @@ export function CommunicationCenter({
           <p>התבניות מוכנות לחיבור עתידי ל-WhatsApp Business API, SMS וספקי Email.</p>
         </div>
         <div className="card-list">
-          {templates.slice(0, 12).map((template) => (
+          {!templatesAvailable ? <div className="empty-state"><h3>נתוני תבניות התקשורת אינם זמינים</h3><p>לא ניתן לקבוע אילו תבניות זמינות כרגע.</p></div> : templates.slice(0, 12).map((template) => (
             <article className="info-card" key={template.id}>
               <div className="card-row">
                 <div>
