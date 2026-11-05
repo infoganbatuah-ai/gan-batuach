@@ -518,6 +518,13 @@
         "--test",
         "scripts/qa/check-activation-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "billing-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-billing-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

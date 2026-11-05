@@ -22,6 +22,7 @@ import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 
 type BillingData = {
+  errors: boolean[];
   subscriptions: any[];
   plans: any[];
   payments: any[];
@@ -47,6 +48,7 @@ type BillingData = {
 };
 
 const emptyData: BillingData = {
+  errors: Array(22).fill(true),
   subscriptions: [],
   plans: [],
   payments: [],
@@ -173,7 +175,7 @@ export default async function AdminBillingPage() {
       supabase.from("revenue_separation_ledger" as any).select("id,revenue_type,source_table,amount,currency,destination_account_type,status,created_at,gardens(name,city)").order("created_at", { ascending: false }).limit(120)
     ]);
 
-    [
+    const queries = [
       subscriptionsRes,
       plansRes,
       paymentsRes,
@@ -196,35 +198,42 @@ export default async function AdminBillingPage() {
       parentTransactionsRes,
       discountsRes,
       separationRes
-    ].forEach((query, index) => logSupabaseError(`billing query ${index}`, (query as any).error));
+    ];
+    const errors = queries.map((query, index) => {
+      logSupabaseError(`billing query ${index}`, query.error);
+      return Boolean(query.error);
+    });
+    const rows = (index: number) => errors[index] ? [] : (queries[index].data ?? []) as any[];
 
     return {
-      subscriptions: (subscriptionsRes.data ?? []) as any[],
-      plans: (plansRes.data ?? []) as any[],
-      payments: (paymentsRes.data ?? []) as any[],
-      invoices: (invoicesRes.data ?? []) as any[],
-      receipts: (receiptsRes.data ?? []) as any[],
-      reminders: (remindersRes.data ?? []) as any[],
-      gateways: (gatewaysRes.data ?? []) as any[],
-      settings: (settingsRes.data ?? []) as any[],
-      retryAttempts: (retryRes.data ?? []) as any[],
-      invoiceJobs: (invoiceJobsRes.data ?? []) as any[],
-      notifications: (notificationsRes.data ?? []) as any[],
-      auditEvents: (auditRes.data ?? []) as any[],
-      refunds: (refundsRes.data ?? []) as any[],
-      networks: (networksRes.data ?? []) as any[],
-      revenueSnapshots: (revenueRes.data ?? []) as any[],
-      exports: (exportsRes.data ?? []) as any[],
-      insights: (insightsRes.data ?? []) as any[],
-      payoutConfigurations: (payoutRes.data ?? []) as any[],
-      parentAuthorizations: (parentAuthRes.data ?? []) as any[],
-      parentTransactions: (parentTransactionsRes.data ?? []) as any[],
-      discountCodes: (discountsRes.data ?? []) as any[],
-      separationLedger: (separationRes.data ?? []) as any[]
+      errors,
+      subscriptions: rows(0),
+      plans: rows(1),
+      payments: rows(2),
+      invoices: rows(3),
+      receipts: rows(4),
+      reminders: rows(5),
+      gateways: rows(6),
+      settings: rows(7),
+      retryAttempts: rows(8),
+      invoiceJobs: rows(9),
+      notifications: rows(10),
+      auditEvents: rows(11),
+      refunds: rows(12),
+      networks: rows(13),
+      revenueSnapshots: rows(14),
+      exports: rows(15),
+      insights: rows(16),
+      payoutConfigurations: rows(17),
+      parentAuthorizations: rows(18),
+      parentTransactions: rows(19),
+      discountCodes: rows(20),
+      separationLedger: rows(21)
     };
   }, emptyData);
 
   const data = result.data;
+  const errors = data.errors;
   const activeSubscriptions = data.subscriptions.filter((item) => item.status === "active");
   const trialSubscriptions = data.subscriptions.filter((item) => item.status === "trial");
   const cancelledSubscriptions = data.subscriptions.filter((item) => ["cancelled", "expired"].includes(String(item.status)));
@@ -250,8 +259,8 @@ export default async function AdminBillingPage() {
           eyebrow="Financial Operations"
           title="מנוע הכנסות, מנויים שנתיים וחשבוניות"
           subtitle="מרכז אחד למנויי גנים שנתיים, ספקי תשלום, כשלי גבייה, חידושים, חשבוניות, החזרים ותשלומי הורים שמנותבים ישירות לגן."
-          badge={money(mrr)}
-          badgeTone={mrr > 0 ? "good" : "warn"}
+          badge={errors[0] ? "לא זמין" : money(mrr)}
+          badgeTone={errors[0] ? "warn" : mrr > 0 ? "good" : "warn"}
           actions={<Link className="button secondary" href="/dashboard/admin/subscriptions">ניהול מנויים</Link>}
         >
           <div className="setup-checklist">
@@ -261,14 +270,14 @@ export default async function AdminBillingPage() {
           </div>
         </PremiumDashboardHero>
 
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני החיוב אינם זמינים כרגע." : null)} />
 
         <section className="grid cols-5 dashboard-kpis">
-          <RoleMetricCard label="MRR" value={money(mrr)} hint={`Snapshot: ${money(latestRevenue?.mrr ?? mrr)}`} tone={mrr ? "good" : "warn"} />
-          <RoleMetricCard label="ARR" value={money(arr)} hint="הכנסה שנתית צפויה" tone={arr ? "good" : "warn"} />
-          <RoleMetricCard label="לקוחות פעילים" value={activeSubscriptions.length} hint={`${trialSubscriptions.length} בתקופת ניסיון`} tone="good" />
-          <RoleMetricCard label="תשלום נכשל" value={failedPayments.length} hint={`${data.retryAttempts.length} ניסיונות חוזרים`} tone={failedPayments.length ? "bad" : "good"} />
-          <RoleMetricCard label="חידושים קרובים" value={renewals.length} hint="30 הימים הקרובים" tone={renewals.length ? "warn" : "default"} />
+          <RoleMetricCard label="MRR" value={errors[0] ? "לא זמין" : money(mrr)} hint={`Snapshot: ${errors[14] || (latestRevenue?.mrr == null && errors[0]) ? "לא זמין" : money(latestRevenue?.mrr ?? mrr)}`} tone={errors[0] ? "warn" : mrr ? "good" : "warn"} />
+          <RoleMetricCard label="ARR" value={errors[0] ? "לא זמין" : money(arr)} hint="הכנסה שנתית צפויה" tone={errors[0] ? "warn" : arr ? "good" : "warn"} />
+          <RoleMetricCard label="לקוחות פעילים" value={errors[0] ? "לא זמין" : activeSubscriptions.length} hint={errors[0] ? "תקופת ניסיון: לא זמין" : `${trialSubscriptions.length} בתקופת ניסיון`} tone={errors[0] ? "warn" : "good"} />
+          <RoleMetricCard label="תשלום נכשל" value={errors[2] ? "לא זמין" : failedPayments.length} hint={errors[8] ? "ניסיונות חוזרים: לא זמין" : `${data.retryAttempts.length} ניסיונות חוזרים`} tone={errors[2] ? "warn" : failedPayments.length ? "bad" : "good"} />
+          <RoleMetricCard label="חידושים קרובים" value={errors[0] ? "לא זמין" : renewals.length} hint="30 הימים הקרובים" tone={errors[0] ? "warn" : renewals.length ? "warn" : "default"} />
         </section>
 
         <section className="warning-banner finance-routing-banner">
@@ -276,39 +285,39 @@ export default async function AdminBillingPage() {
         </section>
 
         <section className="grid cols-4 action-grid">
-          <ActionCard title="תוכניות מנוי" text="שנתי, פיילוט ורשתות" href="/dashboard/admin/billing#plans" icon={CreditCard} tone="good" />
+          <ActionCard title="תוכניות מנוי" text="שנתי, פיילוט ורשתות" href="/dashboard/admin/billing#plans" icon={CreditCard} tone={errors[1] ? "warn" : "good"} />
           <ActionCard title="ספקי תשלום" text="Tranzila, Meshulam, Cardcom ועוד" href="/dashboard/admin/billing#gateways" icon={Landmark} />
           <ActionCard title="חשבוניות" text="PDF, מייל וייצוא הנהלת חשבונות" href="/dashboard/admin/billing#invoices" icon={ReceiptText} />
-          <ActionCard title="כשלי גבייה" text="Retry, הודעות והחלמה" href="/dashboard/admin/billing#recovery" icon={RefreshCcw} tone={failedPayments.length ? "bad" : "default"} />
+          <ActionCard title="כשלי גבייה" text="Retry, הודעות והחלמה" href="/dashboard/admin/billing#recovery" icon={RefreshCcw} tone={errors[2] ? "warn" : failedPayments.length ? "bad" : "default"} />
         </section>
 
         <section className="grid cols-3 dashboard-panels">
           <CleanSection title="הפרדת הכנסות" subtitle="שני מסלולי כסף שאסור לערבב.">
             <div className="risk-list">
-              <div>מנויי גן בטוח <b>{money(arr)}</b></div>
-              <div>שכר לימוד להפקדה בגן <b>{money(parentTuitionPaid)}</b></div>
-              <div>רשומות הפרדה <b>{data.separationLedger.length}</b></div>
+              <div>מנויי גן בטוח <b>{errors[0] ? "לא זמין" : money(arr)}</b></div>
+              <div>שכר לימוד להפקדה בגן <b>{errors[19] ? "לא זמין" : money(parentTuitionPaid)}</b></div>
+              <div>רשומות הפרדה <b>{errors[21] ? "לא זמין" : data.separationLedger.length}</b></div>
             </div>
           </CleanSection>
           <CleanSection title="יעדי תשלום גנים" subtitle="חשבון בנק או ספק תשלום של כל גן.">
             <div className="risk-list">
-              <div>יעדים מוגדרים <b>{data.payoutConfigurations.length}</b></div>
-              <div>מאומתים <b>{verifiedPayouts}</b></div>
-              <div>דורשים השלמה <b>{Math.max(0, data.payoutConfigurations.length - verifiedPayouts)}</b></div>
+              <div>יעדים מוגדרים <b>{errors[17] ? "לא זמין" : data.payoutConfigurations.length}</b></div>
+              <div>מאומתים <b>{errors[17] ? "לא זמין" : verifiedPayouts}</b></div>
+              <div>דורשים השלמה <b>{errors[17] ? "לא זמין" : Math.max(0, data.payoutConfigurations.length - verifiedPayouts)}</b></div>
             </div>
           </CleanSection>
           <CleanSection title="תשלומי הורים" subtitle="מנוהלים על ידי הגן ונשלחים לגן.">
             <div className="risk-list">
-              <div>אישורי הורים <b>{data.parentAuthorizations.length}</b></div>
-              <div>עסקאות <b>{data.parentTransactions.length}</b></div>
-              <div>סכום ששולם <b>{money(parentTuitionPaid)}</b></div>
+              <div>אישורי הורים <b>{errors[18] ? "לא זמין" : data.parentAuthorizations.length}</b></div>
+              <div>עסקאות <b>{errors[19] ? "לא זמין" : data.parentTransactions.length}</b></div>
+              <div>סכום ששולם <b>{errors[19] ? "לא זמין" : money(parentTuitionPaid)}</b></div>
             </div>
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="מנויי גנים" subtitle="סטטוס מסחרי לפי גן, חידוש ואמצעי תשלום.">
-            {data.subscriptions.length ? (
+            {errors[0] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.subscriptions.length ? (
               <div className="stack-list">
                 {data.subscriptions.slice(0, 12).map((subscription) => (
                   <article className="list-item" key={subscription.id}>
@@ -327,7 +336,7 @@ export default async function AdminBillingPage() {
           </CleanSection>
 
           <CleanSection title="תובנות פיננסיות" subtitle="המלצות בלבד. אין פעולה אוטומטית ללא אישור.">
-            {data.insights.length ? (
+            {errors[16] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.insights.length ? (
               <div className="stack-list">
                 {data.insights.map((insight) => (
                   <article className="list-item" key={insight.id}>
@@ -348,6 +357,7 @@ export default async function AdminBillingPage() {
 
         <section className="grid cols-3 dashboard-panels" id="plans">
           <CleanSection title="תוכניות" subtitle="מנוי גן בטוח שנתי, פיילוט, קידום ורשתות.">
+            {errors[1] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="stack-list">
               {data.plans.map((plan) => (
                 <article className="list-item" key={plan.id}>
@@ -360,10 +370,11 @@ export default async function AdminBillingPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="קודי הנחה" subtitle="פיילוט, קידום, מחיר רשת והנחה שנתית.">
-            {data.discountCodes.length ? (
+            {errors[20] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.discountCodes.length ? (
               <div className="stack-list">
                 {data.discountCodes.map((code) => (
                   <article className="list-item" key={code.id}>
@@ -383,16 +394,16 @@ export default async function AdminBillingPage() {
 
           <CleanSection title="הכנסות" subtitle="MRR, ARR, churn וגבייה.">
             <div className="risk-list">
-              <div>MRR <b>{money(mrr)}</b></div>
-              <div>ARR <b>{money(arr)}</b></div>
-              <div>ביטולים / פג תוקף <b>{cancelledSubscriptions.length}</b></div>
-              <div>חשבוניות פתוחות <b>{openInvoices.length}</b></div>
-              <div>חשבוניות ששולמו <b>{paidInvoices.length}</b></div>
+              <div>MRR <b>{errors[0] ? "לא זמין" : money(mrr)}</b></div>
+              <div>ARR <b>{errors[0] ? "לא זמין" : money(arr)}</b></div>
+              <div>ביטולים / פג תוקף <b>{errors[0] ? "לא זמין" : cancelledSubscriptions.length}</b></div>
+              <div>חשבוניות פתוחות <b>{errors[3] ? "לא זמין" : openInvoices.length}</b></div>
+              <div>חשבוניות ששולמו <b>{errors[3] ? "לא זמין" : paidInvoices.length}</b></div>
             </div>
           </CleanSection>
 
           <CleanSection title="רשתות גנים" subtitle="חשבונית מרכזית ומספר גנים תחת חשבון אחד.">
-            {data.networks.length ? (
+            {errors[13] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.networks.length ? (
               <div className="stack-list">
                 {data.networks.map((network) => (
                   <article className="list-item" key={network.id}>
@@ -413,6 +424,7 @@ export default async function AdminBillingPage() {
 
         <section className="grid cols-2 dashboard-panels" id="gateways">
           <CleanSection title="ספקי תשלום" subtitle="מוכן להפעלה בלי נעילת ספק ובלי שמירת פרטי אשראי גולמיים.">
+            {errors[6] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="stack-list">
               {data.gateways.map((gateway) => (
                 <article className="list-item" key={gateway.id}>
@@ -427,10 +439,11 @@ export default async function AdminBillingPage() {
                 </article>
               ))}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="הגדרות חברה" subtitle="פרטים לחשבוניות ללא שינוי קוד.">
-            {data.settings.length ? (
+            {errors[7] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.settings.length ? (
               <div className="stack-list">
                 {data.settings.map((settings) => (
                   <article className="list-item" key={settings.id}>
@@ -451,7 +464,7 @@ export default async function AdminBillingPage() {
 
         <section className="grid cols-2 dashboard-panels" id="invoices">
           <CleanSection title="חשבוניות וקבלות" subtitle="יצירה, PDF, שליחה וייצוא חשבונאי.">
-            {data.invoices.length ? (
+            {errors[3] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.invoices.length ? (
               <div className="stack-list">
                 {data.invoices.slice(0, 12).map((invoice) => (
                   <article className="list-item" key={invoice.id}>
@@ -471,17 +484,17 @@ export default async function AdminBillingPage() {
 
           <CleanSection title="Jobs וייצוא" subtitle="PDF, מייל, הנהלת חשבונות ודוחות מס.">
             <div className="risk-list">
-              <div>משימות חשבונית <b>{data.invoiceJobs.length}</b></div>
-              <div>ייצוא חשבונאי <b>{data.exports.length}</b></div>
-              <div>קבלות <b>{data.receipts.length}</b></div>
-              <div>החזרים וזיכויים <b>{data.refunds.length}</b></div>
+              <div>משימות חשבונית <b>{errors[9] ? "לא זמין" : data.invoiceJobs.length}</b></div>
+              <div>ייצוא חשבונאי <b>{errors[15] ? "לא זמין" : data.exports.length}</b></div>
+              <div>קבלות <b>{errors[4] ? "לא זמין" : data.receipts.length}</b></div>
+              <div>החזרים וזיכויים <b>{errors[12] ? "לא זמין" : data.refunds.length}</b></div>
             </div>
           </CleanSection>
         </section>
 
         <section className="grid cols-3 dashboard-panels" id="recovery">
           <CleanSection title="תשלומים שנכשלו" subtitle="Retry, סיבה והפעולה הבאה.">
-            {failedPayments.length ? (
+            {errors[2] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : failedPayments.length ? (
               <div className="stack-list">
                 {failedPayments.slice(0, 8).map((payment) => (
                   <article className="list-item" key={payment.id}>
@@ -500,6 +513,7 @@ export default async function AdminBillingPage() {
           </CleanSection>
 
           <CleanSection title="תזכורות וחידושים" subtitle="לפני חידוש, ניסיון שמסתיים ותשלום נכשל.">
+            {errors[5] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="stack-list">
               {data.reminders.slice(0, 8).map((reminder) => (
                 <article className="list-item" key={reminder.id}>
@@ -513,9 +527,11 @@ export default async function AdminBillingPage() {
               ))}
               {!data.reminders.length ? <EmptyState title="אין תזכורות מתוזמנות" text="תזכורות נוצרות לפי תאריך חידוש או trial." /> : null}
             </div>
+            )}
           </CleanSection>
 
           <CleanSection title="הודעות חיוב" subtitle="מייל, SMS, WhatsApp, Push ו־in-app.">
+            {errors[10] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : (
             <div className="stack-list">
               {data.notifications.slice(0, 8).map((notification) => (
                 <article className="list-item" key={notification.id}>
@@ -529,12 +545,13 @@ export default async function AdminBillingPage() {
               ))}
               {!data.notifications.length ? <EmptyState title="אין הודעות חיוב עדיין" text="הודעות יופיעו לאחר יצירת חיוב, חשבונית או כשל תשלום." /> : null}
             </div>
+            )}
           </CleanSection>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Audit פיננסי" subtitle="כל פעולה מסחרית חייבת להיות מתועדת.">
-            {data.auditEvents.length ? (
+            {errors[11] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.auditEvents.length ? (
               <div className="stack-list">
                 {data.auditEvents.slice(0, 10).map((event) => (
                   <article className="list-item" key={event.id}>
@@ -553,7 +570,7 @@ export default async function AdminBillingPage() {
           </CleanSection>
 
           <CleanSection title="החזרות וזיכויים" subtitle="החזר מלא, חלקי, זיכוי והתאמה חשבונאית.">
-            {data.refunds.length ? (
+            {errors[12] ? <div className="empty-state">הנתונים אינם זמינים כרגע</div> : data.refunds.length ? (
               <div className="stack-list">
                 {data.refunds.map((refund) => (
                   <article className="list-item" key={refund.id}>
