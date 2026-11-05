@@ -77,108 +77,627 @@
     "scripts/run-persistent-home-gateway.mjs"
   ],
   "domain": [
-    { "name": "uxv6-capture-admission-contract", "args": ["scripts/qa/check-uxv6-capture-admission-contract.mjs"] },
-    { "name": "settings-required-photo-controls", "args": ["scripts/qa/check-settings-required-photo-controls.mjs"] },
-    { "name": "management-role-dashboards", "args": ["--experimental-strip-types", "scripts/qa/check-management-role-dashboards.mjs"] },
-    { "name": "uxv6-primary-screen-source-composition", "args": ["scripts/qa/check-uxv6-current-product-contract.mjs"] },
-    { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
-    { "name": "event-ingest", "args": ["scripts/qa/check-event-ingest.mjs"] },
-    { "name": "event-outbox", "args": ["scripts/qa/check-event-outbox.mjs"] },
-    { "name": "object-inference", "args": ["scripts/qa/check-object-inference.mjs"] },
-    { "name": "event-media", "args": ["scripts/qa/check-digital-observer-event-media.mjs"] },
-    { "name": "evidence-compatibility", "args": ["scripts/qa/check-event-evidence-compatibility.mjs"] },
-    { "name": "tracking-configuration", "args": ["scripts/qa/check-event-tracker-configuration.mjs"] },
-    { "name": "spatial-geometry", "args": ["scripts/qa/check-spatial-entry-geometry.mjs"] },
-    { "name": "journal-owner-lock", "args": ["scripts/qa/check-journal-owner-lock.mjs"] },
-    { "name": "real-style-event-bridge", "args": ["scripts/qa/check-real-detection-event-bridge.mjs"] },
-    { "name": "real-source-isolation", "args": ["scripts/qa/check-product-observer-real-source.mjs"] },
-    { "name": "incidents", "args": ["scripts/qa/check-digital-observer-incidents.mjs"] },
-    { "name": "context-baseline", "args": ["scripts/qa/check-real-event-context-baseline.mjs"] },
-    { "name": "risk-decision", "args": ["scripts/qa/check-digital-observer-risk-decision.mjs"] },
-    { "name": "verification", "args": ["scripts/qa/check-digital-observer-incident-verification.mjs"] },
-    { "name": "feedback-calibration", "args": ["scripts/qa/check-digital-observer-feedback-calibration.mjs"] },
-    { "name": "quality-benchmark", "args": ["scripts/qa/check-digital-observer-quality-benchmark.mjs"] },
-    { "name": "native-preprocessing", "args": ["scripts/qa/check-digital-observer-native-preprocessing.mjs"] },
-    { "name": "adaptive-sampling", "args": ["scripts/qa/check-digital-observer-adaptive-sampling.mjs"] },
-    { "name": "durable-ai-job-queue", "args": ["scripts/qa/check-digital-observer-ai-job-queue.mjs"] },
-    { "name": "queue-terminal-race", "args": ["scripts/qa/check-digital-observer-queue-terminal-race.mjs"] },
-    { "name": "hybrid-ai-routing", "args": ["scripts/qa/check-digital-observer-ai-routing.mjs"] },
-    { "name": "cost-intelligence", "args": ["scripts/qa/check-digital-observer-cost-engine.mjs"] },
-    { "name": "storage-portability", "args": ["scripts/qa/check-digital-observer-storage-portability.mjs"] },
-    { "name": "portable-deployment", "args": ["scripts/qa/check-digital-observer-portable-deployment.mjs"] },
-    { "name": "horizontal-ai-scale", "args": ["scripts/qa/check-digital-observer-horizontal-scale.mjs"] },
-    { "name": "high-availability", "args": ["scripts/qa/check-digital-observer-high-availability.mjs"] },
-    { "name": "reliability-qualification", "args": ["scripts/qa/check-digital-observer-reliability-qualification.mjs"] },
-    { "name": "push38-gateway-event-loop-retry", "args": ["scripts/qa/check-push38-gateway-event-loop-retry.mjs"] },
-    { "name": "push38-gateway-hardware-rescue-deadline-release", "args": ["scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs"] },
-    { "name": "push38-dvr-endpoint-recovery", "args": ["scripts/qa/check-push38-dvr-endpoint-recovery.mjs"] },
-    { "name": "push38-gateway-dvr-endpoint-recovery-release", "args": ["scripts/qa/check-push38-gateway-dvr-endpoint-recovery-release.mjs"] },
-    { "name": "push38-gateway-finite-response-recovery-release", "args": ["scripts/qa/check-push38-gateway-finite-response-recovery-release.mjs"] },
-    { "name": "push38-gateway-health-continuity-release", "args": ["scripts/qa/check-push38-gateway-health-continuity-release.mjs"] },
-    { "name": "push38-gateway-silent-response-rescue-release", "args": ["scripts/qa/check-push38-gateway-silent-response-rescue-release.mjs"] },
-    { "name": "push38-gateway-correlated-silence-release", "args": ["scripts/qa/check-push38-gateway-correlated-silence-release.mjs"] },
-    { "name": "push38-gateway-failed-canary-rollback", "args": ["scripts/qa/check-push38-gateway-failed-canary-rollback.mjs"] },
-    { "name": "north-star-ledger", "args": ["scripts/qa/check-north-star-completion-ledger.mjs"] },
-    { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
-    { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] },
-    { "name": "push39-notification-actions", "args": ["scripts/qa/check-digital-observer-push39.mjs"] },
-    { "name": "push40-commercial-entitlements", "args": ["scripts/qa/check-digital-observer-push40.mjs"] },
-    { "name": "push42-external-api-contract", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
-    { "name": "push43-oem-sdk-contract", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
-    { "name": "push44-mobile-runtime-contract", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
-    { "name": "push45-privacy-compliance", "args": ["scripts/qa/check-digital-observer-push45.mjs"] },
-    { "name": "pilot-query-failure-boundary", "args": ["--test", "scripts/qa/check-pilot-query-failure-boundary.mjs"] }
+    {
+      "name": "uxv6-capture-admission-contract",
+      "args": [
+        "scripts/qa/check-uxv6-capture-admission-contract.mjs"
+      ]
+    },
+    {
+      "name": "settings-required-photo-controls",
+      "args": [
+        "scripts/qa/check-settings-required-photo-controls.mjs"
+      ]
+    },
+    {
+      "name": "management-role-dashboards",
+      "args": [
+        "--experimental-strip-types",
+        "scripts/qa/check-management-role-dashboards.mjs"
+      ]
+    },
+    {
+      "name": "uxv6-primary-screen-source-composition",
+      "args": [
+        "scripts/qa/check-uxv6-current-product-contract.mjs"
+      ]
+    },
+    {
+      "name": "event-journal",
+      "args": [
+        "scripts/qa/check-event-journal.mjs"
+      ]
+    },
+    {
+      "name": "event-ingest",
+      "args": [
+        "scripts/qa/check-event-ingest.mjs"
+      ]
+    },
+    {
+      "name": "event-outbox",
+      "args": [
+        "scripts/qa/check-event-outbox.mjs"
+      ]
+    },
+    {
+      "name": "object-inference",
+      "args": [
+        "scripts/qa/check-object-inference.mjs"
+      ]
+    },
+    {
+      "name": "event-media",
+      "args": [
+        "scripts/qa/check-digital-observer-event-media.mjs"
+      ]
+    },
+    {
+      "name": "evidence-compatibility",
+      "args": [
+        "scripts/qa/check-event-evidence-compatibility.mjs"
+      ]
+    },
+    {
+      "name": "tracking-configuration",
+      "args": [
+        "scripts/qa/check-event-tracker-configuration.mjs"
+      ]
+    },
+    {
+      "name": "spatial-geometry",
+      "args": [
+        "scripts/qa/check-spatial-entry-geometry.mjs"
+      ]
+    },
+    {
+      "name": "journal-owner-lock",
+      "args": [
+        "scripts/qa/check-journal-owner-lock.mjs"
+      ]
+    },
+    {
+      "name": "real-style-event-bridge",
+      "args": [
+        "scripts/qa/check-real-detection-event-bridge.mjs"
+      ]
+    },
+    {
+      "name": "real-source-isolation",
+      "args": [
+        "scripts/qa/check-product-observer-real-source.mjs"
+      ]
+    },
+    {
+      "name": "incidents",
+      "args": [
+        "scripts/qa/check-digital-observer-incidents.mjs"
+      ]
+    },
+    {
+      "name": "context-baseline",
+      "args": [
+        "scripts/qa/check-real-event-context-baseline.mjs"
+      ]
+    },
+    {
+      "name": "risk-decision",
+      "args": [
+        "scripts/qa/check-digital-observer-risk-decision.mjs"
+      ]
+    },
+    {
+      "name": "verification",
+      "args": [
+        "scripts/qa/check-digital-observer-incident-verification.mjs"
+      ]
+    },
+    {
+      "name": "feedback-calibration",
+      "args": [
+        "scripts/qa/check-digital-observer-feedback-calibration.mjs"
+      ]
+    },
+    {
+      "name": "quality-benchmark",
+      "args": [
+        "scripts/qa/check-digital-observer-quality-benchmark.mjs"
+      ]
+    },
+    {
+      "name": "native-preprocessing",
+      "args": [
+        "scripts/qa/check-digital-observer-native-preprocessing.mjs"
+      ]
+    },
+    {
+      "name": "adaptive-sampling",
+      "args": [
+        "scripts/qa/check-digital-observer-adaptive-sampling.mjs"
+      ]
+    },
+    {
+      "name": "durable-ai-job-queue",
+      "args": [
+        "scripts/qa/check-digital-observer-ai-job-queue.mjs"
+      ]
+    },
+    {
+      "name": "queue-terminal-race",
+      "args": [
+        "scripts/qa/check-digital-observer-queue-terminal-race.mjs"
+      ]
+    },
+    {
+      "name": "hybrid-ai-routing",
+      "args": [
+        "scripts/qa/check-digital-observer-ai-routing.mjs"
+      ]
+    },
+    {
+      "name": "cost-intelligence",
+      "args": [
+        "scripts/qa/check-digital-observer-cost-engine.mjs"
+      ]
+    },
+    {
+      "name": "storage-portability",
+      "args": [
+        "scripts/qa/check-digital-observer-storage-portability.mjs"
+      ]
+    },
+    {
+      "name": "portable-deployment",
+      "args": [
+        "scripts/qa/check-digital-observer-portable-deployment.mjs"
+      ]
+    },
+    {
+      "name": "horizontal-ai-scale",
+      "args": [
+        "scripts/qa/check-digital-observer-horizontal-scale.mjs"
+      ]
+    },
+    {
+      "name": "high-availability",
+      "args": [
+        "scripts/qa/check-digital-observer-high-availability.mjs"
+      ]
+    },
+    {
+      "name": "reliability-qualification",
+      "args": [
+        "scripts/qa/check-digital-observer-reliability-qualification.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-event-loop-retry",
+      "args": [
+        "scripts/qa/check-push38-gateway-event-loop-retry.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-hardware-rescue-deadline-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-hardware-rescue-deadline-release.mjs"
+      ]
+    },
+    {
+      "name": "push38-dvr-endpoint-recovery",
+      "args": [
+        "scripts/qa/check-push38-dvr-endpoint-recovery.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-dvr-endpoint-recovery-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-dvr-endpoint-recovery-release.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-finite-response-recovery-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-finite-response-recovery-release.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-health-continuity-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-health-continuity-release.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-silent-response-rescue-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-silent-response-rescue-release.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-correlated-silence-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-correlated-silence-release.mjs"
+      ]
+    },
+    {
+      "name": "push38-gateway-failed-canary-rollback",
+      "args": [
+        "scripts/qa/check-push38-gateway-failed-canary-rollback.mjs"
+      ]
+    },
+    {
+      "name": "north-star-ledger",
+      "args": [
+        "scripts/qa/check-north-star-completion-ledger.mjs"
+      ]
+    },
+    {
+      "name": "watch-rules",
+      "args": [
+        "scripts/qa/check-digital-observer-watch-rule-compiler.mjs"
+      ]
+    },
+    {
+      "name": "investigation",
+      "args": [
+        "--test",
+        "scripts/qa/check-digital-observer-investigation.mjs"
+      ]
+    },
+    {
+      "name": "push39-notification-actions",
+      "args": [
+        "scripts/qa/check-digital-observer-push39.mjs"
+      ]
+    },
+    {
+      "name": "push40-commercial-entitlements",
+      "args": [
+        "scripts/qa/check-digital-observer-push40.mjs"
+      ]
+    },
+    {
+      "name": "push42-external-api-contract",
+      "args": [
+        "scripts/qa/check-digital-observer-push42.mjs"
+      ]
+    },
+    {
+      "name": "push43-oem-sdk-contract",
+      "args": [
+        "scripts/qa/check-digital-observer-push43.mjs"
+      ]
+    },
+    {
+      "name": "push44-mobile-runtime-contract",
+      "args": [
+        "scripts/qa/check-digital-observer-push44.mjs"
+      ]
+    },
+    {
+      "name": "push45-privacy-compliance",
+      "args": [
+        "scripts/qa/check-digital-observer-push45.mjs"
+      ]
+    },
+    {
+      "name": "pilot-query-failure-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-pilot-query-failure-boundary.mjs"
+      ]
+    },
+    {
+      "name": "camera-compliance-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-camera-compliance-query-boundary.mjs"
+      ]
+    }
   ],
   "security": [
-    { "name": "push44-ch1-private-media", "args": ["--test", "scripts/qa/check-push44-ch1-private-media.mjs"] },
-    { "name": "push44-synthetic-edge", "args": ["--test", "scripts/qa/check-push44-synthetic-edge.mjs"] },
-    { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
-    { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
-    { "name": "gateway-relay-handoff-remediation", "args": ["--test", "scripts/qa/check-push38-relay-handoff-remediation.mjs"] },
-    { "name": "gateway-relay-handoff-release", "args": ["scripts/qa/check-push38-gateway-relay-handoff-release.mjs"] },
-    { "name": "gateway-handoff-continuity-release", "args": ["scripts/qa/check-push38-gateway-handoff-continuity-release.mjs"] },
-    { "name": "gateway-handoff-owner-continuity-release", "args": ["scripts/qa/check-push38-gateway-handoff-owner-continuity-release.mjs"] },
-    { "name": "gateway-sweep-deadline-release", "args": ["scripts/qa/check-push38-gateway-sweep-deadline-release.mjs"] },
-    { "name": "gateway-deadline-budget-release", "args": ["scripts/qa/check-push38-gateway-deadline-budget-release.mjs"] },
-    { "name": "gateway-recovery-continuity-release", "args": ["scripts/qa/check-push38-gateway-recovery-continuity-release.mjs"] },
-    { "name": "gateway-routine-confirmation-release", "args": ["scripts/qa/check-push38-gateway-routine-confirmation-release.mjs"] },
-    { "name": "gateway-playback-sweep-release", "args": ["scripts/qa/check-push38-gateway-playback-sweep-serialization-release.mjs"] },
-    { "name": "gateway-finite-response-continuity-release", "args": ["scripts/qa/check-push38-gateway-finite-response-continuity-release.mjs"] },
-    { "name": "connector-handoff-continuity-release", "args": ["scripts/qa/check-push38-connector-handoff-continuity-release.mjs"] },
-    { "name": "gateway-supervisor-recovery", "args": ["scripts/qa/check-push38-gateway-supervisor-recovery.mjs"] },
-    { "name": "gateway-stable-handoff", "args": ["scripts/qa/check-push38-gateway-stable-handoff.mjs"] },
-    { "name": "gateway-media-cadence", "args": ["scripts/qa/check-push38-gateway-media-cadence.mjs"] },
-    { "name": "gateway-session-stability", "args": ["scripts/qa/check-push38-gateway-session-stability.mjs"] },
-    { "name": "gateway-routine-provisional", "args": ["scripts/qa/check-push38-gateway-routine-provisional.mjs"] },
-    { "name": "relay-backoff-ordering", "args": ["scripts/qa/check-push38b-relay-recovery.mjs"] },
-    { "name": "connector-relay-backoff-release", "args": ["scripts/qa/check-push38-connector-relay-backoff.mjs"] },
-    { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
-    { "name": "connector-parent-exit-recovery", "args": ["scripts/qa/check-push38-connector-parent-exit-recovery.mjs"] },
-    { "name": "connector-liveness-workspace-isolation", "args": ["scripts/qa/check-push38-connector-liveness-isolation.mjs"] },
-    { "name": "connector-liveness-isolation-retry", "args": ["scripts/qa/check-push38-connector-liveness-isolation-retry.mjs"] },
-    { "name": "edge-parent-shutdown", "args": ["scripts/qa/check-edge-parent-shutdown.mjs"] },
-    { "name": "home-qa-identity-phases", "args": ["scripts/qa/check-push38-home-qa-phases.mjs"] },
-    { "name": "home-qa-legacy-transition-proof", "args": ["scripts/qa/check-push38-home-qa-legacy-proof.mjs"] },
-    { "name": "home-qa-r2-authorization", "args": ["scripts/qa/check-push38q-r2-download.mjs"] },
-    { "name": "remote-playback-boundary", "args": ["scripts/qa/check-remote-playback-boundary.mjs"] },
-    { "name": "remote-playback-https-ingress", "args": ["scripts/qa/check-push38-https-playback-ingress.mjs"] },
-    { "name": "environment-safety", "args": ["scripts/validate-environment-safety.mjs"] },
-    { "name": "vendored-braces-depth-guard", "args": ["scripts/qa/check-vendored-braces-security.mjs"] },
-    { "name": "management-production-hardening", "args": ["scripts/qa/check-management-production-hardening.mjs"] },
-    { "name": "management-crypto-configuration", "args": ["scripts/qa/check-management-crypto-configuration.mjs"] },
-    { "name": "management-credential-remediation", "args": ["scripts/qa/check-production-credential-remediation.mjs"] },
-    { "name": "encryption-separation", "args": ["scripts/qa/check-encryption-key-separation.mjs"] },
-    { "name": "storage-policy", "args": ["scripts/qa/check-storage-policy-safety.mjs"] },
-    { "name": "observer-engine-separation", "args": ["scripts/qa/check-observer-engine-separation.mjs"] },
-    { "name": "canonical-api-error-boundary", "args": ["scripts/qa/check-canonical-api-error-boundary.mjs"] },
-    { "name": "tenant-privacy-boundary", "args": ["--test", "scripts/qa/digital-guard-tenant-boundary.test.mjs"] },
-    { "name": "mock-shadow-isolation", "args": ["scripts/qa/check-product-observer-real-source.mjs"] },
-    { "name": "push39-notification-security", "args": ["scripts/qa/check-digital-observer-push39.mjs"] },
-    { "name": "push41-enterprise-identity-security", "args": ["scripts/qa/check-digital-observer-push41.mjs"] },
-    { "name": "push42-external-api-security", "args": ["scripts/qa/check-digital-observer-push42.mjs"] },
-    { "name": "push43-partner-isolation", "args": ["scripts/qa/check-digital-observer-push43.mjs"] },
-    { "name": "push44-mobile-authorization", "args": ["scripts/qa/check-digital-observer-push44.mjs"] },
-    { "name": "push44-bounded-owner-qa-ingress", "args": ["scripts/qa/check-push44-owner-qa-ingress.mjs"] },
-    { "name": "push45-privacy-compliance-security", "args": ["scripts/qa/check-digital-observer-push45.mjs"] }
+    {
+      "name": "push44-ch1-private-media",
+      "args": [
+        "--test",
+        "scripts/qa/check-push44-ch1-private-media.mjs"
+      ]
+    },
+    {
+      "name": "push44-synthetic-edge",
+      "args": [
+        "--test",
+        "scripts/qa/check-push44-synthetic-edge.mjs"
+      ]
+    },
+    {
+      "name": "private-dvr-heartbeat-recovery-evidence",
+      "args": [
+        "scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"
+      ]
+    },
+    {
+      "name": "gateway-common-cause-recovery",
+      "args": [
+        "scripts/qa/check-push38-gateway-common-cause-recovery.mjs"
+      ]
+    },
+    {
+      "name": "gateway-relay-handoff-remediation",
+      "args": [
+        "--test",
+        "scripts/qa/check-push38-relay-handoff-remediation.mjs"
+      ]
+    },
+    {
+      "name": "gateway-relay-handoff-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-relay-handoff-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-handoff-continuity-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-handoff-continuity-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-handoff-owner-continuity-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-handoff-owner-continuity-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-sweep-deadline-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-sweep-deadline-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-deadline-budget-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-deadline-budget-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-recovery-continuity-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-recovery-continuity-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-routine-confirmation-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-routine-confirmation-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-playback-sweep-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-playback-sweep-serialization-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-finite-response-continuity-release",
+      "args": [
+        "scripts/qa/check-push38-gateway-finite-response-continuity-release.mjs"
+      ]
+    },
+    {
+      "name": "connector-handoff-continuity-release",
+      "args": [
+        "scripts/qa/check-push38-connector-handoff-continuity-release.mjs"
+      ]
+    },
+    {
+      "name": "gateway-supervisor-recovery",
+      "args": [
+        "scripts/qa/check-push38-gateway-supervisor-recovery.mjs"
+      ]
+    },
+    {
+      "name": "gateway-stable-handoff",
+      "args": [
+        "scripts/qa/check-push38-gateway-stable-handoff.mjs"
+      ]
+    },
+    {
+      "name": "gateway-media-cadence",
+      "args": [
+        "scripts/qa/check-push38-gateway-media-cadence.mjs"
+      ]
+    },
+    {
+      "name": "gateway-session-stability",
+      "args": [
+        "scripts/qa/check-push38-gateway-session-stability.mjs"
+      ]
+    },
+    {
+      "name": "gateway-routine-provisional",
+      "args": [
+        "scripts/qa/check-push38-gateway-routine-provisional.mjs"
+      ]
+    },
+    {
+      "name": "relay-backoff-ordering",
+      "args": [
+        "scripts/qa/check-push38b-relay-recovery.mjs"
+      ]
+    },
+    {
+      "name": "connector-relay-backoff-release",
+      "args": [
+        "scripts/qa/check-push38-connector-relay-backoff.mjs"
+      ]
+    },
+    {
+      "name": "connector-rtsp-session-recovery",
+      "args": [
+        "scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"
+      ]
+    },
+    {
+      "name": "connector-parent-exit-recovery",
+      "args": [
+        "scripts/qa/check-push38-connector-parent-exit-recovery.mjs"
+      ]
+    },
+    {
+      "name": "connector-liveness-workspace-isolation",
+      "args": [
+        "scripts/qa/check-push38-connector-liveness-isolation.mjs"
+      ]
+    },
+    {
+      "name": "connector-liveness-isolation-retry",
+      "args": [
+        "scripts/qa/check-push38-connector-liveness-isolation-retry.mjs"
+      ]
+    },
+    {
+      "name": "edge-parent-shutdown",
+      "args": [
+        "scripts/qa/check-edge-parent-shutdown.mjs"
+      ]
+    },
+    {
+      "name": "home-qa-identity-phases",
+      "args": [
+        "scripts/qa/check-push38-home-qa-phases.mjs"
+      ]
+    },
+    {
+      "name": "home-qa-legacy-transition-proof",
+      "args": [
+        "scripts/qa/check-push38-home-qa-legacy-proof.mjs"
+      ]
+    },
+    {
+      "name": "home-qa-r2-authorization",
+      "args": [
+        "scripts/qa/check-push38q-r2-download.mjs"
+      ]
+    },
+    {
+      "name": "remote-playback-boundary",
+      "args": [
+        "scripts/qa/check-remote-playback-boundary.mjs"
+      ]
+    },
+    {
+      "name": "remote-playback-https-ingress",
+      "args": [
+        "scripts/qa/check-push38-https-playback-ingress.mjs"
+      ]
+    },
+    {
+      "name": "environment-safety",
+      "args": [
+        "scripts/validate-environment-safety.mjs"
+      ]
+    },
+    {
+      "name": "vendored-braces-depth-guard",
+      "args": [
+        "scripts/qa/check-vendored-braces-security.mjs"
+      ]
+    },
+    {
+      "name": "management-production-hardening",
+      "args": [
+        "scripts/qa/check-management-production-hardening.mjs"
+      ]
+    },
+    {
+      "name": "management-crypto-configuration",
+      "args": [
+        "scripts/qa/check-management-crypto-configuration.mjs"
+      ]
+    },
+    {
+      "name": "management-credential-remediation",
+      "args": [
+        "scripts/qa/check-production-credential-remediation.mjs"
+      ]
+    },
+    {
+      "name": "encryption-separation",
+      "args": [
+        "scripts/qa/check-encryption-key-separation.mjs"
+      ]
+    },
+    {
+      "name": "storage-policy",
+      "args": [
+        "scripts/qa/check-storage-policy-safety.mjs"
+      ]
+    },
+    {
+      "name": "observer-engine-separation",
+      "args": [
+        "scripts/qa/check-observer-engine-separation.mjs"
+      ]
+    },
+    {
+      "name": "canonical-api-error-boundary",
+      "args": [
+        "scripts/qa/check-canonical-api-error-boundary.mjs"
+      ]
+    },
+    {
+      "name": "tenant-privacy-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/digital-guard-tenant-boundary.test.mjs"
+      ]
+    },
+    {
+      "name": "mock-shadow-isolation",
+      "args": [
+        "scripts/qa/check-product-observer-real-source.mjs"
+      ]
+    },
+    {
+      "name": "push39-notification-security",
+      "args": [
+        "scripts/qa/check-digital-observer-push39.mjs"
+      ]
+    },
+    {
+      "name": "push41-enterprise-identity-security",
+      "args": [
+        "scripts/qa/check-digital-observer-push41.mjs"
+      ]
+    },
+    {
+      "name": "push42-external-api-security",
+      "args": [
+        "scripts/qa/check-digital-observer-push42.mjs"
+      ]
+    },
+    {
+      "name": "push43-partner-isolation",
+      "args": [
+        "scripts/qa/check-digital-observer-push43.mjs"
+      ]
+    },
+    {
+      "name": "push44-mobile-authorization",
+      "args": [
+        "scripts/qa/check-digital-observer-push44.mjs"
+      ]
+    },
+    {
+      "name": "push44-bounded-owner-qa-ingress",
+      "args": [
+        "scripts/qa/check-push44-owner-qa-ingress.mjs"
+      ]
+    },
+    {
+      "name": "push45-privacy-compliance-security",
+      "args": [
+        "scripts/qa/check-digital-observer-push45.mjs"
+      ]
+    }
   ]
 }
