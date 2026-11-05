@@ -24,13 +24,13 @@ export default async function AdminLeadsPage() {
         .limit(200)
     ]);
     logSupabaseError("admin leads", error ?? gardensRes.error);
-    return { rows: (data ?? []) as any[], gardens: (gardensRes.data ?? []) as any[], queryError: error || gardensRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], gardens: [] as any[], queryError: null as string | null });
+    return { rows: (error ? [] : data ?? []) as any[], gardens: (gardensRes.error ? [] : gardensRes.data ?? []) as any[], leadsAvailable: !error, gardensAvailable: !gardensRes.error, queryError: error || gardensRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { rows: [] as any[], gardens: [] as any[], leadsAvailable: false, gardensAvailable: false, queryError: null as string | null });
 
   return (
     <DashboardShell role="admin" title="לידים והמרות">
       <PremiumDashboardHero eyebrow="קליטת גנים" title="בקשה, כניסה, פרופיל, אישור." subtitle="האדמין מאשר את הבקשה. המנהלת משלימה את פרופיל הגן." badge="זרימה חדשה" badgeTone="good" />
-      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} gardens={result.data.gardens} />
+      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} gardens={result.data.gardens} leadsAvailable={result.data.leadsAvailable} gardensAvailable={result.data.gardensAvailable} />
     </DashboardShell>
   );
 }

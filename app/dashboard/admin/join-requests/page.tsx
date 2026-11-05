@@ -15,8 +15,8 @@ export default async function AdminJoinRequestsPage() {
       .order("created_at", { ascending: false })
       .limit(100);
     logSupabaseError("admin leads", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
+    return { rows: (error ? [] : data ?? []) as any[], leadsAvailable: !error, queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { rows: [] as any[], leadsAvailable: false, queryError: null as string | null });
 
   return (
     <DashboardShell role="admin" title="בקשות הצטרפות">
@@ -28,7 +28,7 @@ export default async function AdminJoinRequestsPage() {
         </div>
         <span className="pill good">new / contacted / approved / rejected</span>
       </div>
-      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} />
+      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} leadsAvailable={result.data.leadsAvailable} />
     </DashboardShell>
   );
 }

@@ -966,6 +966,13 @@
         "--test",
         "scripts/qa/check-admin-duplicates-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "leads-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-leads-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
