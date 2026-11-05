@@ -595,6 +595,13 @@
         "--test",
         "scripts/qa/check-observer-network-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-calibration-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-calibration-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

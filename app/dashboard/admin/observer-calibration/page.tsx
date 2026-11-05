@@ -15,21 +15,30 @@ function confidenceLabel(value: number) {
   return "אין מספיק מידע";
 }
 
+async function safeRows<T>(run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+  try {
+    const result = await run();
+    return { data: result.error ? [] : result.data ?? [], error: result.error, failed: Boolean(result.error) };
+  } catch (error) {
+    return { data: [], error, failed: true };
+  }
+}
+
 export default async function AdminObserverCalibrationPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("observer calibration", async () => {
     const supabase = await createClient();
     const [profilesRes, reviewsRes, performanceRes, trainingRes, modelsRes, sessionsRes, aiEventsRes, audioEventsRes, correlatedRes, replayRes] = await Promise.all([
-      supabase.from("observer_calibration_profiles" as any).select("*").order("updated_at", { ascending: false }).limit(200),
-      supabase.from("observer_ground_truth_reviews" as any).select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("observer_performance_snapshots" as any).select("*").order("calculated_at", { ascending: false }).limit(120),
-      supabase.from("observer_training_readiness" as any).select("*").order("dataset_readiness_score", { ascending: false }).limit(120),
-      supabase.from("observer_model_readiness_catalog" as any).select("*").order("model_name"),
-      supabase.from("observer_test_sessions" as any).select("*").order("created_at", { ascending: false }).limit(100),
-      supabase.from("ai_camera_events" as any).select("id,event_type,description,severity,status,confidence_score,combined_confidence,observer_recommendation,recommended_action,ground_truth_outcome,observer_shadow_mode,created_at").eq("observer_shadow_mode", true).order("created_at", { ascending: false }).limit(160),
-      supabase.from("audio_observer_events" as any).select("id,event_type,severity,confidence,review_status,created_at,metadata").order("created_at", { ascending: false }).limit(120),
-      supabase.from("observer_correlated_events" as any).select("id,correlation_type,severity,status,confidence,created_at,confidence_factors").order("created_at", { ascending: false }).limit(120),
-      supabase.from("observer_event_replay_logs" as any).select("*").order("created_at", { ascending: false }).limit(80)
+      safeRows(() => supabase.from("observer_calibration_profiles" as any).select("*").order("updated_at", { ascending: false }).limit(200)),
+      safeRows(() => supabase.from("observer_ground_truth_reviews" as any).select("*").order("created_at", { ascending: false }).limit(500)),
+      safeRows(() => supabase.from("observer_performance_snapshots" as any).select("*").order("calculated_at", { ascending: false }).limit(120)),
+      safeRows(() => supabase.from("observer_training_readiness" as any).select("*").order("dataset_readiness_score", { ascending: false }).limit(120)),
+      safeRows(() => supabase.from("observer_model_readiness_catalog" as any).select("*").order("model_name")),
+      safeRows(() => supabase.from("observer_test_sessions" as any).select("*").order("created_at", { ascending: false }).limit(100)),
+      safeRows(() => supabase.from("ai_camera_events" as any).select("id,event_type,description,severity,status,confidence_score,combined_confidence,observer_recommendation,recommended_action,ground_truth_outcome,observer_shadow_mode,created_at").eq("observer_shadow_mode", true).order("created_at", { ascending: false }).limit(160)),
+      safeRows(() => supabase.from("audio_observer_events" as any).select("id,event_type,severity,confidence,review_status,created_at,metadata").order("created_at", { ascending: false }).limit(120)),
+      safeRows(() => supabase.from("observer_correlated_events" as any).select("id,correlation_type,severity,status,confidence,created_at,confidence_factors").order("created_at", { ascending: false }).limit(120)),
+      safeRows(() => supabase.from("observer_event_replay_logs" as any).select("*").order("created_at", { ascending: false }).limit(80))
     ]);
     [profilesRes, reviewsRes, performanceRes, trainingRes, modelsRes, sessionsRes, aiEventsRes, audioEventsRes, correlatedRes, replayRes].forEach((query, index) => logSupabaseError(`observer calibration query ${index}`, (query as any).error));
     const profiles = (profilesRes.data ?? []) as any[];
@@ -45,7 +54,7 @@ export default async function AdminObserverCalibrationPage() {
       events,
       replayLogs: (replayRes.data ?? []) as any[],
       accuracy: calculateObserverAccuracy(reviews, events, profiles),
-      queryError: [profilesRes.error, reviewsRes.error, performanceRes.error, trainingRes.error, modelsRes.error, sessionsRes.error, aiEventsRes.error, audioEventsRes.error, correlatedRes.error, replayRes.error].some(Boolean) ? "חלק מנתוני כיול התצפיתן לא נטענו. ייתכן שהמיגרציה עדיין לא הורצה." : null
+      errors: [profilesRes, reviewsRes, performanceRes, trainingRes, modelsRes, sessionsRes, aiEventsRes, audioEventsRes, correlatedRes, replayRes].map((query) => query.failed)
     };
   }, {
     profiles: [] as any[],
@@ -57,9 +66,13 @@ export default async function AdminObserverCalibrationPage() {
     events: [] as any[],
     replayLogs: [] as any[],
     accuracy: calculateObserverAccuracy([], [], []),
-    queryError: null as string | null
+    errors: Array(10).fill(true) as boolean[]
   });
   const { accuracy } = result.data;
+  const errors = result.data.errors;
+  const reviewAvailable = !errors[1];
+  const confidenceAvailable = [1, 6, 7, 8].every((index) => !errors[index]);
+  const readinessAvailable = confidenceAvailable && !errors[0];
   const calibrationReady = result.data.profiles.filter((profile: any) => ["review_ready", "production_candidate"].includes(profile.calibration_status)).length;
   const trainingReady = result.data.training.filter((item: any) => ["review_ready", "candidate"].includes(item.training_status)).length;
   const latestSnapshot = result.data.performance[0];
@@ -71,25 +84,25 @@ export default async function AdminObserverCalibrationPage() {
           eyebrow="Observer Calibration"
           title="כיול, מדידה ואימון תצפיתן"
           subtitle="מרכז שליטה למדידת דיוק, יציבות, בשלות ומוכנות. התצפיתן נשאר ב-Shadow mode עם בדיקת אדם חובה."
-          badge={`${accuracy.readinessScore}/100`}
-          badgeTone={scoreTone(accuracy.readinessScore)}
+          badge={readinessAvailable ? `${accuracy.readinessScore}/100` : "לא זמין"}
+          badgeTone={readinessAvailable ? scoreTone(accuracy.readinessScore) : "warn"}
           actions={<><Link className="button primary" href="/dashboard/admin/observer-replay">Replay</Link><Link className="button secondary" href="/dashboard/admin/observer-test-center">בדיקות תצפיתן</Link></>}
         >
           <div className="setup-checklist">
             {observerSafetyRules.slice(0, 3).map((rule) => <span key={rule}>{rule}</span>)}
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error ?? result.data.queryError} />
+        <AdminDataError message={result.error ?? (errors.some(Boolean) ? "חלק מנתוני הכיול אינם זמינים כרגע" : null)} />
 
         <div className="premium-metric-grid">
-          <RoleMetricCard label="Readiness" value={`${accuracy.readinessScore}/100`} hint="מדד מוכנות כולל" tone={scoreTone(accuracy.readinessScore)} />
-          <RoleMetricCard label="Maturity" value={`${accuracy.maturityScore}/100`} hint="בשלות למידה" tone={scoreTone(accuracy.maturityScore)} />
-          <RoleMetricCard label="Confidence" value={pct(accuracy.confidenceAverage)} hint={confidenceLabel(accuracy.confidenceAverage)} tone={accuracy.confidenceAverage >= 0.7 ? "good" : "warn"} />
-          <RoleMetricCard label="Stability" value={pct(accuracy.confidenceStability)} hint="יציבות ביטחון" tone={accuracy.confidenceStability >= 0.7 ? "good" : "warn"} />
-          <RoleMetricCard label="Reviewed" value={accuracy.reviewed} hint="Ground truth" tone={accuracy.reviewed ? "good" : "warn"} />
-          <RoleMetricCard label="Precision" value={pct(accuracy.precision)} hint="זיהויים נכונים מתוך חיוביים" tone={accuracy.precision >= 0.75 ? "good" : "warn"} />
-          <RoleMetricCard label="Recall" value={pct(accuracy.recall)} hint="כמה זיהויים לא פוספסו" tone={accuracy.recall >= 0.7 ? "good" : "warn"} />
-          <RoleMetricCard label="False positive" value={pct(accuracy.falsePositiveRate)} hint={`${accuracy.falsePositive} מקרים`} tone={accuracy.falsePositiveRate > 0.2 ? "bad" : "good"} />
+          <RoleMetricCard label="Readiness" value={readinessAvailable ? `${accuracy.readinessScore}/100` : "לא זמין"} hint="מדד מוכנות כולל" tone={readinessAvailable ? scoreTone(accuracy.readinessScore) : "warn"} />
+          <RoleMetricCard label="Maturity" value={readinessAvailable ? `${accuracy.maturityScore}/100` : "לא זמין"} hint="בשלות למידה" tone={readinessAvailable ? scoreTone(accuracy.maturityScore) : "warn"} />
+          <RoleMetricCard label="Confidence" value={confidenceAvailable ? pct(accuracy.confidenceAverage) : "לא זמין"} hint={confidenceAvailable ? confidenceLabel(accuracy.confidenceAverage) : "לא זמין"} tone={confidenceAvailable && accuracy.confidenceAverage >= 0.7 ? "good" : "warn"} />
+          <RoleMetricCard label="Stability" value={confidenceAvailable ? pct(accuracy.confidenceStability) : "לא זמין"} hint="יציבות ביטחון" tone={confidenceAvailable && accuracy.confidenceStability >= 0.7 ? "good" : "warn"} />
+          <RoleMetricCard label="Reviewed" value={reviewAvailable ? accuracy.reviewed : "לא זמין"} hint="Ground truth" tone={reviewAvailable && accuracy.reviewed ? "good" : "warn"} />
+          <RoleMetricCard label="Precision" value={reviewAvailable ? pct(accuracy.precision) : "לא זמין"} hint="זיהויים נכונים מתוך חיוביים" tone={reviewAvailable && accuracy.precision >= 0.75 ? "good" : "warn"} />
+          <RoleMetricCard label="Recall" value={reviewAvailable ? pct(accuracy.recall) : "לא זמין"} hint="כמה זיהויים לא פוספסו" tone={reviewAvailable && accuracy.recall >= 0.7 ? "good" : "warn"} />
+          <RoleMetricCard label="False positive" value={reviewAvailable ? pct(accuracy.falsePositiveRate) : "לא זמין"} hint={reviewAvailable ? `${accuracy.falsePositive} מקרים` : "לא זמין"} tone={reviewAvailable ? accuracy.falsePositiveRate > 0.2 ? "bad" : "good" : "warn"} />
         </div>
 
         <CleanSection title="מה נמדד" subtitle="דיוק, פספוסים, טעויות, יציבות ביטחון ומוכנות אימון.">
@@ -97,11 +110,11 @@ export default async function AdminObserverCalibrationPage() {
             <article className="card action-panel">
               <h2><TrendingUp size={20} /> Accuracy engine</h2>
               <div className="risk-list">
-                <div><CheckCircle2 /> Correct detection <b>{accuracy.correct}</b></div>
-                <div><Activity /> Missed detection <b>{accuracy.missed}</b></div>
-                <div><ShieldCheck /> False positive <b>{accuracy.falsePositive}</b></div>
-                <div><ShieldCheck /> False negative <b>{accuracy.falseNegative}</b></div>
-                <div><Gauge /> Uncertain <b>{accuracy.uncertain}</b></div>
+                <div><CheckCircle2 /> Correct detection <b>{reviewAvailable ? accuracy.correct : "לא זמין"}</b></div>
+                <div><Activity /> Missed detection <b>{reviewAvailable ? accuracy.missed : "לא זמין"}</b></div>
+                <div><ShieldCheck /> False positive <b>{reviewAvailable ? accuracy.falsePositive : "לא זמין"}</b></div>
+                <div><ShieldCheck /> False negative <b>{reviewAvailable ? accuracy.falseNegative : "לא זמין"}</b></div>
+                <div><Gauge /> Uncertain <b>{reviewAvailable ? accuracy.uncertain : "לא זמין"}</b></div>
               </div>
             </article>
             <article className="card action-panel">
@@ -114,7 +127,7 @@ export default async function AdminObserverCalibrationPage() {
         </CleanSection>
 
         <CleanSection title="פרופילי כיול" subtitle="רגישות תנועה, שמע, קהל, אזורים וספי ביטחון לפי אתר.">
-          {result.data.profiles.length === 0 ? <EmptyState title="אין פרופילי כיול" text="לאחר הרצת המיגרציה יופיעו פרופילי home, business, kindergarten ו-demo." /> : (
+          {errors[0] ? <div className="empty-state">נתוני הפרופילים אינם זמינים כרגע</div> : result.data.profiles.length === 0 ? <EmptyState title="אין פרופילי כיול" text="לאחר הרצת המיגרציה יופיעו פרופילי home, business, kindergarten ו-demo." /> : (
             <div className="procedure-list">
               {result.data.profiles.map((profile: any) => (
                 <article className="card procedure-card" key={profile.id}>
@@ -137,7 +150,7 @@ export default async function AdminObserverCalibrationPage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><Bot size={20} /> Training readiness</h2>
-            {result.data.training.length === 0 ? <div className="empty-mini">אין מעקב אימון.</div> : result.data.training.map((item: any) => (
+            {errors[3] ? <div className="empty-mini">נתוני מוכנות האימון אינם זמינים כרגע</div> : result.data.training.length === 0 ? <div className="empty-mini">אין מעקב אימון.</div> : result.data.training.map((item: any) => (
               <div className="list-item" key={item.id ?? item.readiness_key}>
                 <div><strong>{item.readiness_key}</strong><span>{item.notes ?? "מוכנות אימון בלבד, לא dataset אמיתי."}</span></div>
                 <StatusBadge tone={statusTone(item.training_status)}>{item.dataset_readiness_score}/100</StatusBadge>
@@ -147,17 +160,17 @@ export default async function AdminObserverCalibrationPage() {
           <article className="card action-panel">
             <h2><SlidersHorizontal size={20} /> Status</h2>
             <div className="risk-list">
-              <div>Calibration ready <b>{calibrationReady}/{result.data.profiles.length}</b></div>
-              <div>Training ready <b>{trainingReady}/{result.data.training.length}</b></div>
-              <div>Replay logs <b>{result.data.replayLogs.length}</b></div>
-              <div>Latest snapshot <b>{latestSnapshot ? `${latestSnapshot.readiness_score}/100` : "אין"}</b></div>
-              <div>Current training status <b>{accuracy.trainingStatus}</b></div>
+              <div>Calibration ready <b>{errors[0] ? "לא זמין" : `${calibrationReady}/${result.data.profiles.length}`}</b></div>
+              <div>Training ready <b>{errors[3] ? "לא זמין" : `${trainingReady}/${result.data.training.length}`}</b></div>
+              <div>Replay logs <b>{errors[9] ? "לא זמין" : result.data.replayLogs.length}</b></div>
+              <div>Latest snapshot <b>{errors[2] ? "לא זמין" : latestSnapshot ? `${latestSnapshot.readiness_score}/100` : "אין"}</b></div>
+              <div>Current training status <b>{reviewAvailable ? accuracy.trainingStatus : "לא זמין"}</b></div>
             </div>
           </article>
         </section>
 
         <CleanSection title="מודלים עתידיים" subtitle="ארכיטקטורה בלבד. אף מודל לא מופעל אוטומטית.">
-          {result.data.models.length === 0 ? <EmptyState title="אין קטלוג מודלים" text="YOLO, OpenCV, TensorFlow, Gemini Vision, GPT Vision ו-custom יופיעו אחרי המיגרציה." /> : (
+          {errors[4] ? <div className="empty-state">נתוני המודלים אינם זמינים כרגע</div> : result.data.models.length === 0 ? <EmptyState title="אין קטלוג מודלים" text="YOLO, OpenCV, TensorFlow, Gemini Vision, GPT Vision ו-custom יופיעו אחרי המיגרציה." /> : (
             <div className="premium-action-grid">
               {result.data.models.map((model: any) => (
                 <article className="premium-action-card" key={model.model_key}>
