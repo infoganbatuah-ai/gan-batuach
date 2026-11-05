@@ -413,6 +413,13 @@
         "--test",
         "scripts/qa/check-camera-gateway-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "camera-infrastructure-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-camera-infrastructure-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

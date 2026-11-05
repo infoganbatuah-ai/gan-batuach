@@ -14,23 +14,34 @@ function statusPill(status: string) {
   return "pill warn";
 }
 
+async function safeQuery<T>(query: () => PromiseLike<{ data: T[] | null; error: unknown }>, label: string) {
+  const result = await safeAdminData(label, async () => {
+    const response = await query();
+    if (response.error) {
+      logSupabaseError(label, response.error);
+      throw new Error("Camera infrastructure query unavailable");
+    }
+    return { data: response.data ?? [], available: true };
+  }, { data: [] as T[], available: false });
+  return { ...result.data, error: result.error };
+}
+
 export default async function AdminCameraInfrastructurePage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin camera infrastructure", async () => {
     const supabase = await createClient();
     const safeCameraColumns = "id,garden_id,kindergarten_id,observer_site_id,name,area,camera_type,source_type,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,stream_status,health_status,last_seen,connection_method,protocol,status,active,parent_view_allowed,parent_viewing_allowed,last_health_check_at,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,video_gateway_stream_id,gateway_stream_id,gateway_provider,gateway_source_id,gateway_playback_id,gateway_registered_at,gateway_latency_ms,gateway_stream_count,gateway_failed_stream_count,viewing_hours,recording_enabled,retention_days,archive_policy,recording_status,recording_retention_days,recording_storage_location,storage_provider,storage_mode,estimated_daily_storage_mb,recording_storage_used_mb,playback_hls_ready,playback_webrtc_ready,created_at,updated_at";
     const [camerasRes, validationsRes, healthRes, recordingRes, storageRes, sessionsRes, providersRes, gatewaysRes, testSitesRes] = await Promise.all([
-      supabase.from("camera_streams" as any).select(safeCameraColumns).order("created_at", { ascending: false }).limit(300),
-      supabase.from("camera_stream_validations" as any).select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("camera_health_history" as any).select("*").order("checked_at", { ascending: false }).limit(200),
-      supabase.from("camera_recording_readiness" as any).select("*").order("updated_at", { ascending: false }).limit(200),
-      supabase.from("camera_storage_readiness" as any).select("*").order("updated_at", { ascending: false }).limit(200),
-      supabase.from("camera_playback_sessions" as any).select("*").order("started_at", { ascending: false }).limit(200),
-      supabase.from("camera_provider_registry" as any).select("*").order("provider_name"),
-      supabase.from("camera_gateway_deployments" as any).select("*").order("provider"),
-      supabase.from("camera_deployment_test_sites" as any).select("*").order("site_key")
+      safeQuery(() => supabase.from("camera_streams" as any).select(safeCameraColumns).order("created_at", { ascending: false }).limit(300), "camera infrastructure cameras"),
+      safeQuery(() => supabase.from("camera_stream_validations" as any).select("*").order("created_at", { ascending: false }).limit(200), "camera infrastructure validations"),
+      safeQuery(() => supabase.from("camera_health_history" as any).select("*").order("checked_at", { ascending: false }).limit(200), "camera infrastructure health"),
+      safeQuery(() => supabase.from("camera_recording_readiness" as any).select("*").order("updated_at", { ascending: false }).limit(200), "camera infrastructure recording"),
+      safeQuery(() => supabase.from("camera_storage_readiness" as any).select("*").order("updated_at", { ascending: false }).limit(200), "camera infrastructure storage"),
+      safeQuery(() => supabase.from("camera_playback_sessions" as any).select("*").order("started_at", { ascending: false }).limit(200), "camera infrastructure sessions"),
+      safeQuery(() => supabase.from("camera_provider_registry" as any).select("*").order("provider_name"), "camera infrastructure providers"),
+      safeQuery(() => supabase.from("camera_gateway_deployments" as any).select("*").order("provider"), "camera infrastructure gateways"),
+      safeQuery(() => supabase.from("camera_deployment_test_sites" as any).select("*").order("site_key"), "camera infrastructure test sites")
     ]);
-    [camerasRes, validationsRes, healthRes, recordingRes, storageRes, sessionsRes, providersRes, gatewaysRes, testSitesRes].forEach((query, index) => logSupabaseError(`camera infrastructure query ${index}`, (query as any).error));
     const cameras = (camerasRes.data ?? []) as any[];
     return {
       cameras,
@@ -43,9 +54,10 @@ export default async function AdminCameraInfrastructurePage() {
       gateways: gatewaysRes.data ?? [],
       testSites: testSitesRes.data ?? [],
       summary: buildCameraInfrastructureSummary(cameras, (validationsRes.data ?? []) as any[], (sessionsRes.data ?? []) as any[]),
+      available: { cameras: camerasRes.available, validations: validationsRes.available, health: healthRes.available, recording: recordingRes.available, storage: storageRes.available, sessions: sessionsRes.available, providers: providersRes.available, gateways: gatewaysRes.available, testSites: testSitesRes.available },
       queryError: [camerasRes.error, validationsRes.error, healthRes.error, recordingRes.error, storageRes.error, sessionsRes.error, providersRes.error, gatewaysRes.error, testSitesRes.error].some(Boolean) ? "חלק מנתוני תשתית המצלמות לא נטענו" : null
     };
-  }, { cameras: [] as any[], validations: [] as any[], healthHistory: [] as any[], recording: [] as any[], storage: [] as any[], sessions: [] as any[], providers: [] as any[], gateways: [] as any[], testSites: [] as any[], summary: buildCameraInfrastructureSummary([]), queryError: null as string | null });
+  }, { cameras: [] as any[], validations: [] as any[], healthHistory: [] as any[], recording: [] as any[], storage: [] as any[], sessions: [] as any[], providers: [] as any[], gateways: [] as any[], testSites: [] as any[], summary: buildCameraInfrastructureSummary([]), available: { cameras: false, validations: false, health: false, recording: false, storage: false, sessions: false, providers: false, gateways: false, testSites: false }, queryError: null as string | null });
 
   const { summary } = result.data;
   const providers = result.data.providers.length ? result.data.providers : Object.entries(cameraProviderRegistry).map(([provider_key, provider]) => ({ provider_key, provider_name: provider.name, capabilities: provider.capabilities }));
@@ -67,24 +79,24 @@ export default async function AdminCameraInfrastructurePage() {
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="מצלמות" value={summary.total} tone="good" />
-        <StatCard label="Online" value={summary.online} tone={summary.online ? "good" : "warn"} />
-        <StatCard label="Offline" value={summary.offline} tone={summary.offline ? "bad" : "good"} />
-        <StatCard label="Degraded" value={summary.degraded} tone={summary.degraded ? "warn" : "good"} />
-        <StatCard label="HLS מוכן" value={summary.hlsReady} tone={summary.hlsReady ? "good" : "warn"} />
-        <StatCard label="WebRTC מוכן" value={summary.webrtcReady} tone={summary.webrtcReady ? "good" : "warn"} />
-        <StatCard label="הקלטה מוכנה" value={summary.recordingReady} tone={summary.recordingReady ? "good" : "warn"} />
-        <StatCard label="אחסון מוכן" value={summary.storageReady} tone={summary.storageReady ? "good" : "warn"} />
+        <StatCard label="מצלמות" value={result.data.available.cameras ? summary.total : "לא זמין"} tone={result.data.available.cameras ? "good" : "warn"} />
+        <StatCard label="Online" value={result.data.available.cameras ? summary.online : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.online ? "good" : "warn"} />
+        <StatCard label="Offline" value={result.data.available.cameras ? summary.offline : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.offline ? "bad" : "good"} />
+        <StatCard label="Degraded" value={result.data.available.cameras ? summary.degraded : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.degraded ? "warn" : "good"} />
+        <StatCard label="HLS מוכן" value={result.data.available.cameras ? summary.hlsReady : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.hlsReady ? "good" : "warn"} />
+        <StatCard label="WebRTC מוכן" value={result.data.available.cameras ? summary.webrtcReady : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.webrtcReady ? "good" : "warn"} />
+        <StatCard label="הקלטה מוכנה" value={result.data.available.cameras ? summary.recordingReady : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.recordingReady ? "good" : "warn"} />
+        <StatCard label="אחסון מוכן" value={result.data.available.cameras ? summary.storageReady : "לא זמין"} tone={!result.data.available.cameras ? "warn" : summary.storageReady ? "good" : "warn"} />
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><RadioTower size={20} /> ספקי מצלמות</h2><p>יכולות לפי יצרן וסוג מערכת.</p></div>
           <div className="procedure-list compact-list">
-            {providers.map((provider: any) => (
+            {!result.data.available.providers ? <div className="empty-mini">נתוני ספקי המצלמות אינם זמינים.</div> : providers.map((provider: any) => (
               <div className="mini-row" key={provider.provider_key}>
                 <span>{provider.provider_name}</span>
-                <strong>{summary.providerCounts[provider.provider_key] ?? 0} מצלמות</strong>
+                <strong>{result.data.available.cameras ? summary.providerCounts[provider.provider_key] ?? 0 : "לא זמין"} מצלמות</strong>
                 <small>{Object.entries(provider.capabilities ?? {}).filter(([, enabled]) => enabled).map(([key]) => key).slice(0, 4).join(" · ")}</small>
               </div>
             ))}
@@ -93,10 +105,10 @@ export default async function AdminCameraInfrastructurePage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><HardDrive size={20} /> הקלטה ואחסון</h2><p>מוכנות בלבד. אין הקלטה אמיתית בשלב הזה.</p></div>
           <div className="risk-list">
-            <div><Video /> HLS playback <b>{summary.hlsReady}/{summary.total}</b></div>
-            <div><Camera /> WebRTC playback <b>{summary.webrtcReady}/{summary.total}</b></div>
-            <div><HardDrive /> Recording readiness <b>{summary.recordingReady}/{summary.total}</b></div>
-            <div><Database /> Storage readiness <b>{summary.storageReady}/{summary.total}</b></div>
+            <div><Video /> HLS playback <b>{result.data.available.cameras ? <>{summary.hlsReady}/{summary.total}</> : "לא זמין"}</b></div>
+            <div><Camera /> WebRTC playback <b>{result.data.available.cameras ? <>{summary.webrtcReady}/{summary.total}</> : "לא זמין"}</b></div>
+            <div><HardDrive /> Recording readiness <b>{result.data.available.cameras ? <>{summary.recordingReady}/{summary.total}</> : "לא זמין"}</b></div>
+            <div><Database /> Storage readiness <b>{result.data.available.cameras ? <>{summary.storageReady}/{summary.total}</> : "לא זמין"}</b></div>
             <div><ShieldCheck /> Secrets <b>לא מוצגים בדפדפן</b></div>
           </div>
         </article>
@@ -106,7 +118,7 @@ export default async function AdminCameraInfrastructurePage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><RadioTower size={20} /> Gateway</h2><p>MediaMTX, go2rtc או ספק מותאם.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.gateways.length === 0 ? <div className="empty-mini">אין רשומות Gateway עדיין.</div> : result.data.gateways.map((gateway: any) => (
+            {!result.data.available.gateways ? <div className="empty-mini">נתוני ה-Gateway אינם זמינים.</div> : result.data.gateways.length === 0 ? <div className="empty-mini">אין רשומות Gateway עדיין.</div> : result.data.gateways.map((gateway: any) => (
               <div className="mini-row" key={`${gateway.provider}-${gateway.environment}`}>
                 <span>{gateway.provider}</span>
                 <strong>{gateway.status} · {gateway.health_status}</strong>
@@ -118,7 +130,7 @@ export default async function AdminCameraInfrastructurePage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><ShieldCheck size={20} /> מצבי בדיקה</h2><p>בדיקות מבודדות לפני חיבור גן אמיתי.</p></div>
           <div className="procedure-list compact-list">
-            {result.data.testSites.length === 0 ? <div className="empty-mini">אין אתרי בדיקה עדיין.</div> : result.data.testSites.map((site: any) => (
+            {!result.data.available.testSites ? <div className="empty-mini">נתוני אתרי הבדיקה אינם זמינים.</div> : result.data.testSites.length === 0 ? <div className="empty-mini">אין אתרי בדיקה עדיין.</div> : result.data.testSites.map((site: any) => (
               <div className="mini-row" key={site.site_key}>
                 <span>{site.display_name}</span>
                 <strong>{site.site_type}</strong>
@@ -131,7 +143,7 @@ export default async function AdminCameraInfrastructurePage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>Camera Diagnostics</h2><p>קישוריות, latency, בריאות, Gateway, Playback, הקלטה ואחסון.</p></div>
-        {diagnostics.length === 0 ? <div className="empty-state"><strong>אין מצלמות להצגה</strong><span>לאחר הוספת מצלמות, האבחון יופיע כאן.</span></div> : <div className="procedure-list">{diagnostics.map(({ camera, diagnostics: item }: any) => (
+        {!result.data.available.cameras ? <div className="empty-state" role="status"><strong>נתוני אבחון המצלמות אינם זמינים</strong></div> : diagnostics.length === 0 ? <div className="empty-state"><strong>אין מצלמות להצגה</strong><span>לאחר הוספת מצלמות, האבחון יופיע כאן.</span></div> : <div className="procedure-list">{diagnostics.map(({ camera, diagnostics: item }: any) => (
           <article className="card procedure-card" key={camera.id}>
             <div>
               <span className={statusPill(item.healthStatus)}>{item.healthStatus}</span>
