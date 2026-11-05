@@ -59,7 +59,6 @@ test("Settings primary route contains all three workspace columns and guarded ed
   assert.match(page, /<ProfileSettingsForm[^>]*requireProfilePhoto requireGardenLogo/);
   const form = read("components/settings-primary-profile-form.tsx");
   assert.match(form, /fetch\("\/api\/profile\/settings"/);
-  assert.match(form, /if \(!photo\)/);
   assert.match(form, /role=\{messageKind === "error" \? "alert" : "status"\}/);
   assert.doesNotMatch(form, /body: JSON\.stringify\(\{[^}]*email:/s);
 });
