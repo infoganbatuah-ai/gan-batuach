@@ -476,6 +476,13 @@
         "--test",
         "scripts/qa/check-pilot-readiness-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "pilot-health-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-pilot-health-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
