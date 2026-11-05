@@ -658,6 +658,13 @@
         "--test",
         "scripts/qa/check-predictive-safety-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "risk-intelligence-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-risk-intelligence-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
