@@ -917,6 +917,13 @@
         "--test",
         "scripts/qa/check-admin-inspection-deadlines-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-notices-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-notices-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
