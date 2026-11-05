@@ -728,6 +728,13 @@
         "--test",
         "scripts/qa/check-legal-review-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "security-review-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-security-review-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
