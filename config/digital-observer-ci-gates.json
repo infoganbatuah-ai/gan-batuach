@@ -805,6 +805,13 @@
         "--test",
         "scripts/qa/check-regulatory-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "audit-logs-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-audit-logs-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
