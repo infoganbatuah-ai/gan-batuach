@@ -49,7 +49,7 @@ const notificationRoutes: Record<SettingsRole, string> = {
 
 function areasFor(role: SettingsRole): SettingsArea[] {
   const areas: SettingsArea[] = [
-    { label: "פרופיל אישי", description: "שם, תמונה ופרטי קשר", href: profileRoutes[role], icon: CircleUserRound },
+    { label: "פרופיל אישי", description: "שם, תמונה ופרטי קשר", href: role === "owner" || role === "manager" ? `${profileRoutes[role]}#profile` : profileRoutes[role], icon: CircleUserRound },
     { label: "אבטחה", description: "MFA, Passkey, מכשירים וסשנים", href: "/dashboard/security-settings", icon: LockKeyhole },
     { label: "התראות", description: "ערוצים, קטגוריות ושעות שקט", href: notificationRoutes[role], icon: Bell },
     { label: "הגן שלי", description: "פרופיל, שעות ומבנה הגן", href: "/dashboard/garden/settings#garden-profile", icon: Building2, roles: ["manager", "owner"] },
@@ -77,7 +77,7 @@ export function SettingsPlatformNavigation({ role, activeHref }: { role: Setting
     <div className="ux18-settings-navigation-list">
       {areas.map((area) => {
         const Icon = area.icon;
-        const active = area.href === activeHref;
+        const active = area.href === activeHref || area.href === `${activeHref}#profile`;
         return <Link key={`${area.label}-${area.href}`} href={area.href} aria-current={active ? "page" : undefined} className={active ? "is-active" : undefined}>
           <Icon aria-hidden="true" /><span><b>{area.label}</b><small>{area.description}</small></span><ChevronLeft aria-hidden="true" />
         </Link>;
