@@ -931,6 +931,13 @@
         "--test",
         "scripts/qa/check-admin-policies-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-procedures-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-procedures-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

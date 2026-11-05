@@ -14,12 +14,13 @@ async function postJson(method: "POST" | "PATCH", payload: unknown) {
   return body.data;
 }
 
-export function ProceduresManager({ procedures, gardens, acknowledgements, auditLogs }: { procedures: Procedure[]; gardens: Garden[]; acknowledgements: Acknowledgement[]; auditLogs: AuditLog[] }) {
+export function ProceduresManager({ procedures, gardens, acknowledgements, auditLogs, proceduresAvailable = true, gardensAvailable = true, acknowledgementsAvailable = true, auditLogsAvailable = true }: { procedures: Procedure[]; gardens: Garden[]; acknowledgements: Acknowledgement[]; auditLogs: AuditLog[]; proceduresAvailable?: boolean; gardensAvailable?: boolean; acknowledgementsAvailable?: boolean; auditLogsAvailable?: boolean }) {
   const [items, setItems] = useState(procedures);
   const [editing, setEditing] = useState<Procedure | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const acknowledgementsByProcedure = useMemo(() => new Map(acknowledgements.map((ack) => [ack.procedure_id, ack])), [acknowledgements]);
+  const formAvailable = proceduresAvailable && gardensAvailable;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,7 +51,7 @@ export function ProceduresManager({ procedures, gardens, acknowledgements, audit
       {message ? <div className="success-screen"><strong>{message}</strong><small>הפעולה נשמרה דרך API מאובטח ולא דרך דף JSON.</small></div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
       <section className="grid cols-2 dashboard-panels">
-        <form className="card form wizard-form" onSubmit={submit}>
+        {formAvailable ? <form className="card form wizard-form" onSubmit={submit}>
           <h2>{editing ? "עריכת נוהל" : "יצירת נוהל חדש"}</h2>
           <p>בחרו קטגוריה, קהל יעד, סטטוס וחובת אישור. מנהלי גנים ואנשי צוות יראו נהלים פעילים לפי הרשאה.</p>
           <div className="form-grid">
@@ -64,15 +65,15 @@ export function ProceduresManager({ procedures, gardens, acknowledgements, audit
           </div>
           <button className="button primary large">{editing ? "שמירת עריכה" : "יצירת נוהל"}</button>
           {editing ? <button className="button secondary large" type="button" onClick={() => setEditing(null)}>ביטול עריכה</button> : null}
-        </form>
+        </form> : <div className="card action-panel"><h2>יצירה ועריכה אינן זמינות כרגע</h2><p>נתוני הנהלים או הגנים אינם זמינים; לא ניתן לפתוח טופס שיוך ועריכה.</p></div>}
         <article className="card action-panel">
           <div className="section-heading"><h2>מעקב צפייה וביצוע</h2><p>מי ראה, מי אישר, ומה נרשם בלוג.</p></div>
-          {acknowledgements.length === 0 ? <div className="empty-mini">אין אישורי קריאה עדיין.</div> : acknowledgements.map((ack, index) => <div className="list-item" key={index}><div><strong>{ack.gardens?.name ?? "גן"}</strong><span>{ack.profiles?.full_name ?? "משתמש"} · {ack.acknowledged_at ? new Date(ack.acknowledged_at).toLocaleDateString("he-IL") : "ללא תאריך"}</span></div><span className="pill good">הושלם</span></div>)}
+          {!acknowledgementsAvailable ? <div className="empty-mini">נתוני אישורי הקריאה אינם זמינים כרגע.</div> : acknowledgements.length === 0 ? <div className="empty-mini">אין אישורי קריאה עדיין.</div> : acknowledgements.map((ack, index) => <div className="list-item" key={index}><div><strong>{ack.gardens?.name ?? "גן"}</strong><span>{ack.profiles?.full_name ?? "משתמש"} · {ack.acknowledged_at ? new Date(ack.acknowledged_at).toLocaleDateString("he-IL") : "ללא תאריך"}</span></div><span className="pill good">הושלם</span></div>)}
           <div className="mini-divider" /><h3>Audit log</h3>
-          {auditLogs.length === 0 ? <div className="empty-mini">אין פעולות נוהל בלוג.</div> : auditLogs.map((log, index) => <div className="document-chip" key={index}><strong>{log.action}</strong><span>{log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : ""}</span></div>)}
+          {!auditLogsAvailable ? <div className="empty-mini">נתוני לוג הביקורת אינם זמינים כרגע.</div> : auditLogs.length === 0 ? <div className="empty-mini">אין פעולות נוהל בלוג.</div> : auditLogs.map((log, index) => <div className="document-chip" key={index}><strong>{log.action}</strong><span>{log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : ""}</span></div>)}
         </article>
       </section>
-      <section className="dashboard-section"><div className="section-heading"><h2>רשימת נהלים</h2><p>נהלים פעילים, טיוטות ונהלים שהועברו לארכיון.</p></div>{items.length === 0 ? <div className="empty-state"><strong>אין נהלים עדיין</strong><span>צרו נוהל ראשון כדי להפעיל בקרה ותיעוד מול הגנים.</span></div> : <div className="procedure-list">{items.map((procedure) => { const ack = acknowledgementsByProcedure.get(procedure.id); return <article className="card procedure-card" key={procedure.id}><div><span className="pill">{procedure.procedure_type ?? "כללי"}</span><h3>{procedure.title}</h3><p>{procedure.body}</p></div><div className="procedure-meta"><span className={procedure.active ? "pill good" : "pill warn"}>{procedure.active ? "פעיל" : "טיוטה / ארכיון"}</span><span>{procedure.requires_acknowledgement ? "נדרש אישור" : "ללא אישור חובה"}</span><span>שיוך: {procedure.required_for_framework ?? "all"}</span><span>נצפה/הושלם: {ack ? "כן" : "טרם"}</span><button className="button secondary" type="button" onClick={() => setEditing(procedure)}>עריכה</button></div></article>; })}</div>}</section>
+      <section className="dashboard-section"><div className="section-heading"><h2>רשימת נהלים</h2><p>נהלים פעילים, טיוטות ונהלים שהועברו לארכיון.</p></div>{!proceduresAvailable ? <div className="empty-state"><strong>נתוני הנהלים אינם זמינים כרגע</strong><span>לא ניתן לקבוע את רשימת הנהלים עד לטעינת הנתונים.</span></div> : items.length === 0 ? <div className="empty-state"><strong>אין נהלים עדיין</strong><span>צרו נוהל ראשון כדי להפעיל בקרה ותיעוד מול הגנים.</span></div> : <div className="procedure-list">{items.map((procedure) => { const ack = acknowledgementsByProcedure.get(procedure.id); return <article className="card procedure-card" key={procedure.id}><div><span className="pill">{procedure.procedure_type ?? "כללי"}</span><h3>{procedure.title}</h3><p>{procedure.body}</p></div><div className="procedure-meta"><span className={procedure.active ? "pill good" : "pill warn"}>{procedure.active ? "פעיל" : "טיוטה / ארכיון"}</span><span>{procedure.requires_acknowledgement ? "נדרש אישור" : "ללא אישור חובה"}</span><span>שיוך: {procedure.required_for_framework ?? "all"}</span><span>נצפה/הושלם: {acknowledgementsAvailable ? (ack ? "כן" : "טרם") : "לא זמין"}</span><button className="button secondary" type="button" disabled={!formAvailable} onClick={() => setEditing(procedure)}>עריכה</button></div></article>; })}</div>}</section>
     </div>
   );
 }
