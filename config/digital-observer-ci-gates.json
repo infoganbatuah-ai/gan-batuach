@@ -910,6 +910,13 @@
         "--test",
         "scripts/qa/check-admin-attendance-compliance-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-inspection-deadlines-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-inspection-deadlines-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
