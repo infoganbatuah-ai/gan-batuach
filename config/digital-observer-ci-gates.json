@@ -686,6 +686,13 @@
         "--test",
         "scripts/qa/check-inspection-workforce-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "regional-scale-up-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-regional-scale-up-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
