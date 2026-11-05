@@ -148,6 +148,7 @@
 .ux18-settings-fact-list span { color: #5e79a0; font-size: .68rem; }
 .ux18-settings-fact-list > a > svg:last-child { width: 16px; height: 16px; }
 .ux18-settings-fact-list > a:focus-visible { outline: 3px solid #78b8ff; outline-offset: 2px; }
+.ux18-reference-profile-column #profile .ux18-settings-section-action { display: none; }
 
 @media (max-width: 650px) {
   .ux18-primary-profile-fields {
@@ -155,6 +156,39 @@
     justify-items: center;
   }
   .ux18-primary-profile-inputs { width: 100%; }
+}
+
+@media (max-width: 650px) {
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    min-height: 54px;
+    padding: 8px 54px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header .ux18-settings-section-icon,
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header p { display: none; }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header > div:nth-child(2) { text-align: center; }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-settings-section-action {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-mobile-settings-back {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: #0759bd;
+    border-radius: 12px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-mobile-settings-back:focus-visible {
+    outline: 3px solid #78b8ff;
+    outline-offset: 2px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-mobile-settings-back svg { width: 20px; height: 20px; }
 }
 
 @media (min-width: 1025px) {

@@ -72,7 +72,7 @@ export function SettingsPlatformHeader({ title = "הגדרות", description, ro
 
 export function SettingsPlatformNavigation({ role, activeHref }: { role: SettingsRole; activeHref: string }) {
   const areas = areasFor(role);
-  return <nav className="ux18-settings-navigation" aria-label="קטגוריות הגדרות">
+  return <nav id={role === "owner" || role === "manager" ? "settings-index" : undefined} className="ux18-settings-navigation" aria-label="קטגוריות הגדרות">
     <div className="ux18-settings-navigation-title"><Settings aria-hidden="true" /><span><b>הגדרות</b><small>חשבון, גישה והעדפות</small></span></div>
     <div className="ux18-settings-navigation-list">
       {areas.map((area) => {
