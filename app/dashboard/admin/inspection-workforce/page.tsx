@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { data: result.error ? [] : result.data ?? [], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { data: [] as T[], available: false };
   }
 }
 
@@ -72,7 +72,8 @@ export default async function InspectionWorkforcePage() {
       safeQuery<Row>("inspection workforce audit", () => supabase.from("inspection_workforce_audit_events" as any).select("*").order("created_at", { ascending: false }).limit(80)),
       safeQuery<Row>("inspection workforce risks", () => supabase.from("inspection_workforce_risks" as any).select("*").order("severity").order("created_at", { ascending: false }).limit(120))
     ]);
-    return { scores, profiles, assignments, capacity, plans, schedules, routes, compensation, forecasts, performance, quality, training, certs, candidates, slas, alerts, audit, risks };
+    const availability = { scores: scores.available, profiles: profiles.available, assignments: assignments.available, capacity: capacity.available, plans: plans.available, schedules: schedules.available, routes: routes.available, compensation: compensation.available, forecasts: forecasts.available, performance: performance.available, quality: quality.available, training: training.available, certs: certs.available, candidates: candidates.available, slas: slas.available, alerts: alerts.available, audit: audit.available, risks: risks.available };
+    return { scores: scores.data, profiles: profiles.data, assignments: assignments.data, capacity: capacity.data, plans: plans.data, schedules: schedules.data, routes: routes.data, compensation: compensation.data, forecasts: forecasts.data, performance: performance.data, quality: quality.data, training: training.data, certs: certs.data, candidates: candidates.data, slas: slas.data, alerts: alerts.data, audit: audit.data, risks: risks.data, availability, queryError: Object.values(availability).some((available) => !available) ? "חלק מנתוני כוח האדם לפיקוח לא נטענו" : null };
   }, {
     scores: [] as Row[],
     profiles: [] as Row[],
@@ -91,23 +92,34 @@ export default async function InspectionWorkforcePage() {
     slas: [] as Row[],
     alerts: [] as Row[],
     audit: [] as Row[],
-    risks: [] as Row[]
+    risks: [] as Row[],
+    availability: { scores: false, profiles: false, assignments: false, capacity: false, plans: false, schedules: false, routes: false, compensation: false, forecasts: false, performance: false, quality: false, training: false, certs: false, candidates: false, slas: false, alerts: false, audit: false, risks: false },
+    queryError: null as string | null
   });
 
   const data = result.data;
+  const available = data.availability;
+  const unavailable = "לא זמין";
   const score = data.scores[0] ?? {};
-  const readiness = Number(score.workforce_readiness_score ?? 0);
-  const activeInspectors = Number(score.active_inspectors ?? data.profiles.filter((profile) => profile.active_status === "active").length);
-  const assignedKindergartens = Number(score.assigned_kindergartens ?? data.assignments.filter((assignment) => assignment.status === "active").length);
-  const dueThisMonth = Number(score.inspections_due_this_month ?? data.plans.reduce((sum, plan) => sum + Number(plan.inspections_due ?? 0), 0));
-  const overdueInspections = Number(score.overdue_inspections ?? data.plans.reduce((sum, plan) => sum + Number(plan.overdue_inspections ?? 0), 0));
-  const followUps = Number(score.follow_up_inspections ?? data.plans.reduce((sum, plan) => sum + Number(plan.follow_up_inspections ?? 0), 0));
-  const complaintDriven = Number(score.complaint_driven_inspections ?? data.plans.reduce((sum, plan) => sum + Number(plan.complaint_driven_inspections ?? 0), 0));
-  const openRisks = data.risks.filter((risk) => !["mitigated", "accepted_risk", "closed"].includes(String(risk.status)));
-  const highAlerts = data.alerts.filter((alert) => ["high", "critical"].includes(String(alert.severity)) && !["resolved", "skipped"].includes(String(alert.status)));
-  const forecast100 = data.forecasts.find((item) => Number(item.scenario_kindergartens) === 100) ?? data.forecasts[0] ?? {};
+  const readiness = available.scores ? Number(score.workforce_readiness_score ?? 0) : null;
+  function snapshotNumber(field: string, fallbackAvailable: boolean, fallback: () => number) {
+    if (!available.scores) return null;
+    if (score[field] != null) return Number(score[field]);
+    return fallbackAvailable ? Number(fallback()) : null;
+  }
+  const activeInspectors = snapshotNumber("active_inspectors", available.profiles, () => data.profiles.filter((profile) => profile.active_status === "active").length);
+  const assignedKindergartens = snapshotNumber("assigned_kindergartens", available.assignments, () => data.assignments.filter((assignment) => assignment.status === "active").length);
+  const dueThisMonth = snapshotNumber("inspections_due_this_month", available.plans, () => data.plans.reduce((sum, plan) => sum + Number(plan.inspections_due ?? 0), 0));
+  const overdueInspections = snapshotNumber("overdue_inspections", available.plans, () => data.plans.reduce((sum, plan) => sum + Number(plan.overdue_inspections ?? 0), 0));
+  const followUps = snapshotNumber("follow_up_inspections", available.plans, () => data.plans.reduce((sum, plan) => sum + Number(plan.follow_up_inspections ?? 0), 0));
+  const complaintDriven = snapshotNumber("complaint_driven_inspections", available.plans, () => data.plans.reduce((sum, plan) => sum + Number(plan.complaint_driven_inspections ?? 0), 0));
+  const openRisks = available.risks ? data.risks.filter((risk) => !["mitigated", "accepted_risk", "closed"].includes(String(risk.status))) : null;
+  const highAlerts = available.alerts ? data.alerts.filter((alert) => ["high", "critical"].includes(String(alert.severity)) && !["resolved", "skipped"].includes(String(alert.status))) : null;
+  const forecast100 = data.forecasts.find((item) => Number(item.scenario_kindergartens) === 100);
   const capacity100ModelKey = ["capacity", "100", "kindergartens"].join("-");
-  const capacity100 = data.capacity.find((item) => item.model_key === capacity100ModelKey) ?? data.capacity[0] ?? {};
+  const capacity100 = data.capacity.find((item) => item.model_key === capacity100ModelKey);
+  const forecast100Cost = !available.forecasts ? unavailable : forecast100?.inspector_cost_nis == null ? "TBD" : money(forecast100.inspector_cost_nis);
+  const forecast100Inspectors = !available.forecasts ? unavailable : forecast100?.inspectors_needed ?? "TBD";
 
   return (
     <DashboardShell role="admin" title="Inspection Workforce">
@@ -116,8 +128,8 @@ export default async function InspectionWorkforcePage() {
           eyebrow="National Inspection Workforce"
           title="תפעול כוח אדם ארצי למפקחים"
           subtitle="מרכז שליטה לתכנון כוח מפקחים: שיוכים אזוריים, קיבולת חודשית, לו״ז, מסלולים, תגמול, ביצועים, הכשרה, SLA וסיכונים. AI ותצפיתן מסייעים בתיעדוף בלבד."
-          badge={`${readiness}/100`}
-          badgeTone={toneForScore(readiness)}
+          badge={readiness === null ? unavailable : `${readiness}/100`}
+          badgeTone={readiness === null ? "default" : toneForScore(readiness)}
           actions={<><Link className="button primary" href="/dashboard/admin/national-inspections">National Inspections</Link><Link className="button secondary" href="/dashboard/admin/inspectors">Inspectors</Link></>}
         >
           <div className="setup-checklist">
@@ -127,21 +139,21 @@ export default async function InspectionWorkforcePage() {
             <span>Compensation readiness</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? data.queryError} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Readiness" value={`${readiness}/100`} hint={`${openRisks.length} open risks`} tone={toneForScore(readiness)} />
-          <RoleMetricCard label="Active inspectors" value={activeInspectors} hint={`${data.profiles.length} workforce profiles`} tone={activeInspectors ? "good" : "warn"} />
-          <RoleMetricCard label="Assigned gardens" value={assignedKindergartens} hint="primary / backup / supervisor" tone={assignedKindergartens ? "good" : "warn"} />
-          <RoleMetricCard label="Due this month" value={dueThisMonth} hint={`${overdueInspections} overdue`} tone={overdueInspections ? "bad" : "warn"} />
-          <RoleMetricCard label="Follow-ups" value={followUps} hint={`${complaintDriven} complaint-driven`} tone={followUps || complaintDriven ? "warn" : "good"} />
-          <RoleMetricCard label="Capacity @100" value={capacity100.max_kindergartens_per_inspector ?? "TBD"} hint={label(capacity100.overload_risk)} tone={toneForStatus(capacity100.overload_risk)} />
-          <RoleMetricCard label="Cost @100" value={money(forecast100.inspector_cost_nis)} hint={`${forecast100.inspectors_needed ?? "TBD"} inspectors`} tone={toneForStatus(forecast100.operational_risk)} />
-          <RoleMetricCard label="High alerts" value={highAlerts.length} hint="workforce alerts" tone={highAlerts.length ? "bad" : "good"} />
+          <RoleMetricCard label="Readiness" value={readiness === null ? unavailable : `${readiness}/100`} hint={openRisks === null ? unavailable : `${openRisks.length} open risks`} tone={readiness === null ? "default" : toneForScore(readiness)} />
+          <RoleMetricCard label="Active inspectors" value={activeInspectors ?? unavailable} hint={available.profiles ? `${data.profiles.length} workforce profiles` : unavailable} tone={activeInspectors === null ? "default" : activeInspectors ? "good" : "warn"} />
+          <RoleMetricCard label="Assigned gardens" value={assignedKindergartens ?? unavailable} hint="primary / backup / supervisor" tone={assignedKindergartens === null ? "default" : assignedKindergartens ? "good" : "warn"} />
+          <RoleMetricCard label="Due this month" value={dueThisMonth ?? unavailable} hint={overdueInspections === null ? unavailable : `${overdueInspections} overdue`} tone={dueThisMonth === null || overdueInspections === null ? "default" : overdueInspections ? "bad" : "warn"} />
+          <RoleMetricCard label="Follow-ups" value={followUps ?? unavailable} hint={complaintDriven === null ? unavailable : `${complaintDriven} complaint-driven`} tone={followUps === null || complaintDriven === null ? "default" : followUps || complaintDriven ? "warn" : "good"} />
+          <RoleMetricCard label="Capacity @100" value={available.capacity ? capacity100?.max_kindergartens_per_inspector ?? "TBD" : unavailable} hint={!available.capacity ? unavailable : capacity100 ? label(capacity100.overload_risk) : "TBD"} tone={available.capacity && capacity100 ? toneForStatus(capacity100.overload_risk) : "default"} />
+          <RoleMetricCard label="Cost @100" value={forecast100Cost} hint={`${forecast100Inspectors} inspectors`} tone={available.forecasts && forecast100?.inspector_cost_nis != null ? toneForStatus(forecast100.operational_risk) : "default"} />
+          <RoleMetricCard label="High alerts" value={highAlerts === null ? unavailable : highAlerts.length} hint="workforce alerts" tone={highAlerts === null ? "default" : highAlerts.length ? "bad" : "good"} />
         </section>
 
         <CleanSection title="Inspector Workforce Profiles" subtitle="סטטוס מפקח, אזור, ערים, קיבולת חודשית, גנים משויכים, תעודות והכשרה.">
-          {data.profiles.length === 0 ? <EmptyState title="אין פרופילי workforce" text="לאחר הרצת המיגרציה יופיעו נתוני readiness, ומפקחים אמיתיים יתווספו מכרטיסי הפרופיל." /> : (
+          {!available.profiles ? <div className="empty-mini">Workforce profiles: {unavailable}</div> : data.profiles.length === 0 ? <EmptyState title="אין פרופילי workforce" text="לאחר הרצת המיגרציה יופיעו נתוני readiness, ומפקחים אמיתיים יתווספו מכרטיסי הפרופיל." /> : (
             <div className="procedure-list">
               {data.profiles.map((profile) => {
                 const person = Array.isArray(profile.profiles) ? profile.profiles[0] : profile.profiles;
@@ -168,6 +180,7 @@ export default async function InspectionWorkforcePage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Regional Assignment & Coverage" subtitle="שיוך לפי אזור, עיר, רשת גנים, אדמין ידני או איזון עומסים.">
             <div className="camera-infra-list">
+              {!available.assignments && <div className="empty-mini">Regional assignments: {unavailable}</div>}
               {data.assignments.map((assignment) => (
                 <article className="camera-infra-row" key={assignment.id ?? assignment.assignment_key}>
                   <div>
@@ -183,6 +196,7 @@ export default async function InspectionWorkforcePage() {
 
           <CleanSection title="Capacity Calculator" subtitle="כמה גנים מפקח יכול לכסות כשמחשבים ביקור, נסיעה, כתיבת דוח, ביקורי המשך, תלונות ודחופים.">
             <div className="camera-infra-list">
+              {!available.capacity && <div className="empty-mini">Capacity models: {unavailable}</div>}
               {data.capacity.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.model_key}>
                   <div>
@@ -200,6 +214,7 @@ export default async function InspectionWorkforcePage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Monthly Workload & Scheduling" subtitle="ביקורות חודשיות, המשך, פתע, דחופות ותלונה. אין החלטה רגולטורית אוטומטית.">
             <div className="procedure-list compact-list">
+              {!available.plans && <div className="empty-mini">Monthly plans: {unavailable}</div>}
               {data.plans.map((plan) => (
                 <div className="mini-row" key={plan.id ?? plan.plan_key}>
                   <span>{plan.region ?? "Region"} · week {plan.week_number ?? "-"}</span>
@@ -207,6 +222,7 @@ export default async function InspectionWorkforcePage() {
                   <small>{plan.inspections_scheduled} scheduled · {plan.overdue_inspections} overdue · {plan.urgent_visits} urgent</small>
                 </div>
               ))}
+              {!available.schedules && <div className="empty-mini">Schedules: {unavailable}</div>}
               {data.schedules.map((schedule) => (
                 <div className="mini-row" key={schedule.id ?? schedule.schedule_key}>
                   <span>{schedule.gardens?.name ?? "Inspection"} · {label(schedule.inspection_type)}</span>
@@ -219,6 +235,7 @@ export default async function InspectionWorkforcePage() {
 
           <CleanSection title="Route Planning Readiness" subtitle="כתובות, עיר, אזור, מסלול יומי וחלון זמן. Google Maps/Waze/Mapbox עתידי בלבד.">
             <div className="camera-infra-list">
+              {!available.routes && <div className="empty-mini">Routes: {unavailable}</div>}
               {data.routes.map((route) => (
                 <article className="camera-infra-row" key={route.id ?? route.route_key}>
                   <div>
@@ -236,6 +253,7 @@ export default async function InspectionWorkforcePage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Compensation & Financial Planning" subtitle="50 ₪/גן לחודש, תשלום לפי ביקורת, שכר קבוע או מודל היברידי. חישוב בלבד, לא תשלום בפועל.">
             <div className="camera-infra-list">
+              {!available.compensation && <div className="empty-mini">Compensation: {unavailable}</div>}
               {data.compensation.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.compensation_key}>
                   <div>
@@ -245,11 +263,12 @@ export default async function InspectionWorkforcePage() {
                   <StatusBadge tone={toneForStatus(item.payout_status)}>{label(item.payout_status)}</StatusBadge>
                 </article>
               ))}
+              {!available.forecasts && <div className="empty-mini">Financial forecasts: {unavailable}</div>}
               {data.forecasts.map((forecast) => (
                 <article className="camera-infra-row" key={forecast.id ?? forecast.forecast_key}>
                   <div>
                     <strong>{forecast.scenario_kindergartens} gardens · {forecast.inspectors_needed} inspectors</strong>
-                    <span>cost {money(forecast.inspector_cost_nis)} · revenue {money(forecast.expected_revenue_nis)} · margin {money(forecast.contribution_margin_nis)}</span>
+                    <span>cost {forecast.inspector_cost_nis == null ? "TBD" : money(forecast.inspector_cost_nis)} · revenue {money(forecast.expected_revenue_nis)} · margin {money(forecast.contribution_margin_nis)}</span>
                   </div>
                   <StatusBadge tone={toneForStatus(forecast.operational_risk)}>{label(forecast.operational_risk)}</StatusBadge>
                 </article>
@@ -259,6 +278,7 @@ export default async function InspectionWorkforcePage() {
 
           <CleanSection title="Performance & Quality Review" subtitle="ביצועי מפקח, GPS, איכות דוח, מעקב תיקונים, תלונות ומשוב מנהלים.">
             <div className="procedure-list compact-list">
+              {!available.performance && <div className="empty-mini">Performance: {unavailable}</div>}
               {data.performance.map((item) => (
                 <div className="mini-row" key={item.id ?? item.performance_key}>
                   <span>{item.profiles?.full_name ?? "Inspector"}</span>
@@ -266,6 +286,7 @@ export default async function InspectionWorkforcePage() {
                   <small>{item.inspections_completed}/{item.inspections_assigned} completed · GPS {item.gps_validation_rate}% · report {item.report_quality_score}</small>
                 </div>
               ))}
+              {!available.quality && <div className="empty-mini">Quality reviews: {unavailable}</div>}
               {data.quality.map((item) => (
                 <div className="mini-row" key={item.id ?? item.review_key}>
                   <span>{label(item.issue_type)}</span>
@@ -280,6 +301,7 @@ export default async function InspectionWorkforcePage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Training, Certification & Candidate Pipeline" subtitle="הכשרה, מסמכי חובה וגיוס מפקחים לפי אזור לפני סקייל אמיתי.">
             <div className="procedure-list compact-list">
+              {!available.training && <div className="empty-mini">Training: {unavailable}</div>}
               {data.training.map((item) => (
                 <div className="mini-row" key={item.id ?? item.training_key}>
                   <span>{item.module_name}</span>
@@ -287,6 +309,7 @@ export default async function InspectionWorkforcePage() {
                   <small>{label(item.module_type)} · {item.trainer ?? "trainer TBD"}</small>
                 </div>
               ))}
+              {!available.certs && <div className="empty-mini">Certifications: {unavailable}</div>}
               {data.certs.map((item) => (
                 <div className="mini-row" key={item.id ?? item.certification_key}>
                   <span>{label(item.document_type)}</span>
@@ -294,6 +317,7 @@ export default async function InspectionWorkforcePage() {
                   <small>{item.notes}</small>
                 </div>
               ))}
+              {!available.candidates && <div className="empty-mini">Candidates: {unavailable}</div>}
               {data.candidates.map((item) => (
                 <div className="mini-row" key={item.id ?? item.candidate_key}>
                   <span>{item.full_name}</span>
@@ -306,6 +330,7 @@ export default async function InspectionWorkforcePage() {
 
           <CleanSection title="SLA, Alerts & Audit Trail" subtitle="SLA לפיקוח חודשי, תלונה, דחוף, דוח ותיקון; התראות למפקחים ולאדמין; audit trail.">
             <div className="procedure-list compact-list">
+              {!available.slas && <div className="empty-mini">SLAs: {unavailable}</div>}
               {data.slas.map((sla) => (
                 <div className="mini-row" key={sla.id ?? sla.sla_key}>
                   <span>{label(sla.sla_type)}</span>
@@ -313,6 +338,7 @@ export default async function InspectionWorkforcePage() {
                   <small>{sla.current_breaches} breaches · {sla.notes}</small>
                 </div>
               ))}
+              {!available.alerts && <div className="empty-mini">Workforce alerts: {unavailable}</div>}
               {data.alerts.map((alert) => (
                 <div className="mini-row" key={alert.id ?? alert.alert_key}>
                   <span>{label(alert.alert_type)}</span>
@@ -320,6 +346,7 @@ export default async function InspectionWorkforcePage() {
                   <small>{label(alert.recipient_type)} · {alert.message}</small>
                 </div>
               ))}
+              {!available.audit && <div className="empty-mini">Audit trail: {unavailable}</div>}
               {data.audit.slice(0, 8).map((event) => (
                 <div className="mini-row" key={event.id}>
                   <span>{event.event_title}</span>
@@ -334,6 +361,7 @@ export default async function InspectionWorkforcePage() {
         <CleanSection title="Workforce Risk Register & Assistant Questions" subtitle="סיכוני כוח אדם, כיסוי, איכות, עלות, SLA, פרטיות, תפעול ומוניטין.">
           <section className="grid cols-2 dashboard-panels">
             <div className="procedure-list compact-list">
+              {!available.risks && <div className="empty-mini">Workforce risks: {unavailable}</div>}
               {data.risks.map((risk) => (
                 <div className="mini-row" key={risk.id ?? risk.risk_key}>
                   <span>{risk.risk}</span>
@@ -344,10 +372,10 @@ export default async function InspectionWorkforcePage() {
             </div>
             <div className="camera-infra-list">
               {[
-                ["How many inspectors do we need for 100 kindergartens?", `${forecast100.inspectors_needed ?? "TBD"} inspectors in baseline forecast`],
+                ["How many inspectors do we need for 100 kindergartens?", `${forecast100Inspectors} inspectors in baseline forecast`],
                 ["Which region lacks coverage?", "Use regional assignments and coverage alerts"],
                 ["What is inspector cost per kindergarten?", "Compare compensation and financial forecasts"],
-                ["Which inspections are overdue?", `${overdueInspections} overdue in workforce plan`],
+                ["Which inspections are overdue?", `${overdueInspections ?? unavailable} overdue in workforce plan`],
                 ["Which inspectors need training?", "Review training and certification tables"]
               ].map(([question, answer]) => (
                 <article className="camera-infra-row" key={question}>
@@ -367,13 +395,13 @@ export default async function InspectionWorkforcePage() {
             <ActionCard icon={ClipboardCheck} title="National inspections" text="Monthly, overdue and follow-up inspections" href="/dashboard/admin/national-inspections" />
             <ActionCard icon={UsersRound} title="Inspectors" text="Directory and active assignments" href="/dashboard/admin/inspectors" />
             <ActionCard icon={CalendarClock} title="Due inspections" text="Monthly planning and SLA" href="/dashboard/admin/inspections/due" />
-            <ActionCard icon={AlertTriangle} title="Late inspections" text={`${overdueInspections} overdue`} href="/dashboard/admin/inspections/late" tone={overdueInspections ? "bad" : "good"} />
+            <ActionCard icon={AlertTriangle} title="Late inspections" text={`${overdueInspections ?? unavailable} overdue`} href="/dashboard/admin/inspections/late" tone={overdueInspections === null ? "default" : overdueInspections ? "bad" : "good"} />
             <ActionCard icon={MapPinned} title="Regional coverage" text="City and regional assignment gaps" href="/dashboard/admin/regional-scale-up" />
             <ActionCard icon={Route} title="Route readiness" text="Google Maps, Waze and Mapbox future-ready" href="/dashboard/admin/inspection-workforce" />
-            <ActionCard icon={Banknote} title="Financial planning" text={`${money(forecast100.inspector_cost_nis)} cost at 100`} href="/dashboard/admin/scale-100" />
-            <ActionCard icon={GraduationCap} title="Training" text={`${data.training.length} modules tracked`} href="/dashboard/admin/inspection-workforce" />
-            <ActionCard icon={FileCheck2} title="Certification" text={`${data.certs.length} document checks`} href="/dashboard/admin/inspection-workforce" />
-            <ActionCard icon={UserCheck} title="Recruitment" text={`${data.candidates.length} candidates`} href="/dashboard/admin/inspection-workforce" />
+            <ActionCard icon={Banknote} title="Financial planning" text={`${forecast100Cost} cost at 100`} href="/dashboard/admin/scale-100" />
+            <ActionCard icon={GraduationCap} title="Training" text={`${available.training ? data.training.length : unavailable} modules tracked`} href="/dashboard/admin/inspection-workforce" />
+            <ActionCard icon={FileCheck2} title="Certification" text={`${available.certs ? data.certs.length : unavailable} document checks`} href="/dashboard/admin/inspection-workforce" />
+            <ActionCard icon={UserCheck} title="Recruitment" text={`${available.candidates ? data.candidates.length : unavailable} candidates`} href="/dashboard/admin/inspection-workforce" />
             <ActionCard icon={ShieldCheck} title="Privacy boundaries" text="Inspector access stays scoped" href="/dashboard/admin/security-review" />
             <ActionCard icon={BriefcaseBusiness} title="100-garden scale" text="Workforce feeds scale readiness" href="/dashboard/admin/scale-100" />
             <ActionCard icon={TrendingUp} title="Reports" text="National workforce report" href="/dashboard/admin/reports" />
