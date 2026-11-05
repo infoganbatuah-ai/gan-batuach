@@ -6,6 +6,7 @@ import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricC
 import { requireRole } from "@/lib/auth";
 import { checkGatewayHealth, getGatewayDiagnostics, getGatewayProvider } from "@/lib/domain/camera-gateway";
 import { createClient } from "@/lib/supabase/server";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 
 type GatewayConfig = {
   id: string;
@@ -86,13 +87,16 @@ type ValidationRow = {
   camera_streams?: { name?: string | null } | null;
 };
 
-async function safeQuery<T>(promise: PromiseLike<{ data: T[] | null; error: { message?: string } | null }>, label: string): Promise<{ rows: T[]; error: string | null }> {
-  const result = await promise;
-  if (result.error) {
-    console.error(`[camera-gateway] ${label}`, result.error.message);
-    return { rows: [], error: result.error.message ?? label };
-  }
-  return { rows: result.data ?? [], error: null };
+async function safeQuery<T>(query: () => PromiseLike<{ data: T[] | null; error: { message?: string } | null }>, label: string): Promise<{ rows: T[]; error: string | null; available: boolean }> {
+  const result = await safeAdminData(label, async () => {
+    const response = await query();
+    if (response.error) {
+      logSupabaseError(label, response.error);
+      throw new Error("Gateway query unavailable");
+    }
+    return { rows: response.data ?? [], available: true };
+  }, { rows: [] as T[], available: false });
+  return { ...result.data, error: result.error };
 }
 
 function tone(status?: string | null): "good" | "warn" | "bad" | "default" {
@@ -113,19 +117,26 @@ function cameraKind(camera: CameraRow) {
 
 export default async function AdminCameraGatewayPage() {
   await requireRole(["admin"]);
-  const supabase = await createClient();
-  const [gatewayHealth, gatewayConfigs, cameras, homeSites, checks, validations, sessions] = await Promise.all([
-    checkGatewayHealth().catch((error) => ({ configured: false, status: "error" as const, message: error instanceof Error ? error.message : "Gateway health failed" })),
-    safeQuery<GatewayConfig>(supabase.from("camera_gateway_configs" as any).select("*").order("provider"), "gateway configs"),
-    safeQuery<CameraRow>(supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, source_type, source_category, system_type, brand, status, stream_status, health_status, gateway_provider, gateway_registration_status, gateway_latency_ms, gateway_failed_stream_count, last_test_at, last_test_status, last_health_check_at, parent_viewing_allowed, recording_enabled, observer_enabled, observer_shadow_mode, audio_disabled, face_recognition_disabled, deployment_scope, test_site_type, gardens(name)").order("created_at", { ascending: false }).limit(300), "cameras"),
-    safeQuery<HomeSite>(supabase.from("home_camera_test_sites" as any).select("*").order("created_at", { ascending: false }).limit(20), "home camera test sites"),
-    safeQuery<ReadinessCheck>(supabase.from("camera_deployment_readiness_checks" as any).select("*").order("category").order("score", { ascending: false }), "camera readiness checks"),
-    safeQuery<ValidationRow>(supabase.from("camera_stream_validations" as any).select("id, provider_key, status, message, latency_ms, candidates_tried_count, created_at, camera_streams(name)").order("created_at", { ascending: false }).limit(12), "camera validations"),
-    safeQuery<any>(supabase.from("camera_playback_sessions" as any).select("id, camera_id, gateway_provider, compliance_status, started_at, ended_at, camera_streams(name), profiles(full_name)").order("started_at", { ascending: false }).limit(12), "camera playback sessions")
+  const unavailable = { rows: [], error: "לא ניתן לטעון את הנתונים כרגע", available: false };
+  const [gatewayHealth, result] = await Promise.all([
+    checkGatewayHealth().catch(() => ({ configured: false, status: "error" as const, message: "לא ניתן לבדוק את מצב ה-Gateway כרגע" })),
+    safeAdminData("camera-gateway", async () => {
+      const supabase = await createClient();
+      const [gatewayConfigs, cameras, homeSites, checks, validations, sessions] = await Promise.all([
+        safeQuery<GatewayConfig>(() => supabase.from("camera_gateway_configs" as any).select("*").order("provider"), "gateway configs"),
+        safeQuery<CameraRow>(() => supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, source_type, source_category, system_type, brand, status, stream_status, health_status, gateway_provider, gateway_registration_status, gateway_latency_ms, gateway_failed_stream_count, last_test_at, last_test_status, last_health_check_at, parent_viewing_allowed, recording_enabled, observer_enabled, observer_shadow_mode, audio_disabled, face_recognition_disabled, deployment_scope, test_site_type, gardens(name)").order("created_at", { ascending: false }).limit(300), "cameras"),
+        safeQuery<HomeSite>(() => supabase.from("home_camera_test_sites" as any).select("*").order("created_at", { ascending: false }).limit(20), "home camera test sites"),
+        safeQuery<ReadinessCheck>(() => supabase.from("camera_deployment_readiness_checks" as any).select("*").order("category").order("score", { ascending: false }), "camera readiness checks"),
+        safeQuery<ValidationRow>(() => supabase.from("camera_stream_validations" as any).select("id, provider_key, status, message, latency_ms, candidates_tried_count, created_at, camera_streams(name)").order("created_at", { ascending: false }).limit(12), "camera validations"),
+        safeQuery<any>(() => supabase.from("camera_playback_sessions" as any).select("id, camera_id, gateway_provider, compliance_status, started_at, ended_at, camera_streams(name), profiles(full_name)").order("started_at", { ascending: false }).limit(12), "camera playback sessions")
+      ]);
+      return { gatewayConfigs, cameras, homeSites, checks, validations, sessions };
+    }, { gatewayConfigs: unavailable, cameras: unavailable, homeSites: unavailable, checks: unavailable, validations: unavailable, sessions: unavailable })
   ]);
+  const { gatewayConfigs, cameras, homeSites, checks, validations, sessions } = result.data;
 
   const diagnostics = getGatewayDiagnostics();
-  const queryError = [gatewayConfigs.error, cameras.error, homeSites.error, checks.error, validations.error, sessions.error].filter(Boolean).join(" · ") || null;
+  const queryError = result.error || [gatewayConfigs.error, cameras.error, homeSites.error, checks.error, validations.error, sessions.error].some(Boolean) ? "חלק מהנתונים אינם זמינים כרגע" : null;
   const requiredGatewayEnv = "requiredEnv" in diagnostics && Array.isArray(diagnostics.requiredEnv) ? diagnostics.requiredEnv : ["VIDEO_GATEWAY_URL", "VIDEO_GATEWAY_API_KEY or VIDEO_GATEWAY_SIGNING_SECRET"];
   const cameraRows = cameras.rows;
   const registered = cameraRows.filter((camera) => camera.gateway_registration_status === "registered" || camera.status === "connected").length;
@@ -152,14 +163,14 @@ export default async function AdminCameraGatewayPage() {
 
         <div className="premium-metric-grid">
           <RoleMetricCard label="Gateway" value={gatewayHealth.status} hint={gatewayHealth.message} tone={tone(gatewayHealth.status)} />
-          <RoleMetricCard label="שידורים פעילים" value={(gatewayHealth as any).streamCount ?? registered} hint={`${failed} כשלו`} tone={failed ? "warn" : "good"} />
-          <RoleMetricCard label="מצלמות גן" value={kindergartenCameraCount} hint={`${pending} ממתינות`} tone={pending ? "warn" : "good"} />
-          <RoleMetricCard label="פיילוט בית" value={homeCameraCount} hint={`${homeSites.rows.length} אתרי בדיקה`} tone={homeSites.rows.length ? "good" : "warn"} />
+          <RoleMetricCard label="שידורים פעילים" value={(gatewayHealth as any).streamCount ?? (cameras.available ? registered : "לא זמין")} hint={cameras.available ? `${failed} כשלו` : "נתוני הכשלונות אינם זמינים"} tone={!cameras.available ? "warn" : failed ? "warn" : "good"} />
+          <RoleMetricCard label="מצלמות גן" value={cameras.available && homeSites.available ? kindergartenCameraCount : "לא זמין"} hint={cameras.available ? `${pending} ממתינות` : "נתוני ההמתנה אינם זמינים"} tone={!cameras.available || !homeSites.available ? "warn" : pending ? "warn" : "good"} />
+          <RoleMetricCard label="פיילוט בית" value={cameras.available && homeSites.available ? homeCameraCount : "לא זמין"} hint={homeSites.available ? `${homeSites.rows.length} אתרי בדיקה` : "נתוני אתרי הבדיקה אינם זמינים"} tone={!cameras.available || !homeSites.available ? "warn" : homeSites.rows.length ? "good" : "warn"} />
         </div>
 
         <CleanSection title="תצורת Gateway" subtitle="סודות נשארים ב-env בלבד. הטבלה מחזיקה סטטוס ותיאור, לא מפתחות.">
           <div className="communication-template-grid">
-            {gatewayConfigs.rows.length ? gatewayConfigs.rows.map((config) => (
+            {!gatewayConfigs.available ? <EmptyState title="נתוני תצורת ה-Gateway אינם זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : gatewayConfigs.rows.length ? gatewayConfigs.rows.map((config) => (
               <article className="communication-template-card" key={config.id}>
                 <div><strong>{config.provider}</strong><span>{config.notes ?? "Gateway readiness"} · heartbeat {formatDate(config.last_heartbeat_at)}</span></div>
                 <StatusBadge tone={tone(config.health_status ?? config.status)}>{config.health_status ?? config.status}</StatusBadge>
@@ -175,12 +186,12 @@ export default async function AdminCameraGatewayPage() {
 
         <CleanSection title="מצלמות ושידורים" subtitle="רישום מקור, בריאות, הקלטה ותצפיתן ללא חשיפת מקור.">
           <div className="premium-metric-grid">
-            <RoleMetricCard label="מחוברות" value={registered} hint="registered / connected" tone={registered ? "good" : "warn"} />
-            <RoleMetricCard label="ממתינות Gateway" value={pending} hint="pending/testing/registering" tone={pending ? "warn" : "good"} />
-            <RoleMetricCard label="הקלטה מוכנה" value={recordingReady} hint="metadata בלבד עד בחירת אחסון" tone={recordingReady ? "warn" : "default"} />
-            <RoleMetricCard label="Observer shadow" value={observerReady} hint="סקלטון/תנועה ללא פעולה אוטומטית" tone={observerReady ? "good" : "warn"} />
+            <RoleMetricCard label="מחוברות" value={cameras.available ? registered : "לא זמין"} hint="registered / connected" tone={!cameras.available ? "warn" : registered ? "good" : "warn"} />
+            <RoleMetricCard label="ממתינות Gateway" value={cameras.available ? pending : "לא זמין"} hint="pending/testing/registering" tone={!cameras.available ? "warn" : pending ? "warn" : "good"} />
+            <RoleMetricCard label="הקלטה מוכנה" value={cameras.available ? recordingReady : "לא זמין"} hint="metadata בלבד עד בחירת אחסון" tone={!cameras.available ? "warn" : recordingReady ? "warn" : "default"} />
+            <RoleMetricCard label="Observer shadow" value={cameras.available ? observerReady : "לא זמין"} hint="סקלטון/תנועה ללא פעולה אוטומטית" tone={!cameras.available ? "warn" : observerReady ? "good" : "warn"} />
           </div>
-          {cameraRows.length ? (
+          {!cameras.available ? <EmptyState title="נתוני המצלמות אינם זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : cameraRows.length ? (
             <div className="communication-log-list">
               {cameraRows.slice(0, 12).map((camera) => (
                 <article className="communication-log-row" key={camera.id}>
@@ -196,7 +207,7 @@ export default async function AdminCameraGatewayPage() {
         </CleanSection>
 
         <CleanSection title="פיילוט מצלמת בית" subtitle="בדיקת מצלמה פרטית לפני גן אמיתי. מבודד מנתוני הורים, ילדים וציות גן.">
-          {homeSites.rows.length ? (
+          {!homeSites.available ? <EmptyState title="נתוני אתרי הבית אינם זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : homeSites.rows.length ? (
             <div className="communication-log-list">
               {homeSites.rows.map((site) => (
                 <article className="communication-log-row" key={site.id}>
@@ -212,7 +223,7 @@ export default async function AdminCameraGatewayPage() {
         </CleanSection>
 
         <CleanSection title="בדיקות חיבור אחרונות" subtitle="בדיקות source/gateway בלי החזרת RTSP או פרטי התחברות ללקוח.">
-          {validations.rows.length ? (
+          {!validations.available ? <EmptyState title="נתוני בדיקות החיבור אינם זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : validations.rows.length ? (
             <div className="communication-log-list">
               {validations.rows.map((validation) => (
                 <article className="communication-log-row" key={validation.id}>
@@ -230,7 +241,7 @@ export default async function AdminCameraGatewayPage() {
         <CleanSection title="פרטיות ואבטחה" subtitle="ב-Gan Batuach Israel mode אין שמע, אין זיהוי פנים ואין צפייה ללא הרשאה וטוקן.">
           <div className="communication-template-grid">
             <article className="communication-template-card"><div><strong>RTSP חסום לדפדפן</strong><span>Gateway בלבד, playback token קצר חיים</span></div><StatusBadge tone="good">חסום</StatusBadge></article>
-            <article className="communication-template-card"><div><strong>Audio / Face</strong><span>{privacySafe}/{cameraRows.length} מצלמות מסומנות ללא שמע וללא פנים</span></div><StatusBadge tone={privacySafe === cameraRows.length ? "good" : "warn"}>Israel mode</StatusBadge></article>
+            <article className="communication-template-card"><div><strong>Audio / Face</strong><span>{cameras.available ? <>{privacySafe}/{cameraRows.length} מצלמות מסומנות ללא שמע וללא פנים</> : "נתוני סימון הפרטיות אינם זמינים"}</span></div><StatusBadge tone={!cameras.available ? "warn" : privacySafe === cameraRows.length ? "good" : "warn"}>Israel mode</StatusBadge></article>
             <article className="communication-template-card"><div><strong>Parent viewing</strong><span>נוכחות ילד, MFA, שעות צפייה ומדיניות הורים</span></div><StatusBadge tone="good">policy gate</StatusBadge></article>
             <article className="communication-template-card"><div><strong>Inspector viewing</strong><span>גישה רק עם שיוך וסיבת פיקוח</span></div><StatusBadge tone="good">scoped</StatusBadge></article>
           </div>
@@ -238,7 +249,7 @@ export default async function AdminCameraGatewayPage() {
 
         <CleanSection title="מוכנות פריסה" subtitle="מה כבר מוכן ומה דורש בדיקת Gateway אמיתית.">
           <div className="communication-template-grid">
-            {checks.rows.filter((check) => check.category === "gateway" || check.category === "home_test" || check.category === "playback" || check.category === "health").slice(0, 8).map((check) => (
+            {!checks.available ? <EmptyState title="נתוני מוכנות הפריסה אינם זמינים" text="לא ניתן לטעון את הנתונים כרגע." /> : checks.rows.filter((check) => check.category === "gateway" || check.category === "home_test" || check.category === "playback" || check.category === "health").slice(0, 8).map((check) => (
               <article className="communication-template-card" key={check.id}>
                 <div><strong>{check.title}</strong><span>{check.evidence_summary}</span></div>
                 <StatusBadge tone={tone(check.status)}>{check.score ?? 0}/100</StatusBadge>
