@@ -763,6 +763,13 @@
         "--test",
         "scripts/qa/check-security-pipeline-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "security-center-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-security-center-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
