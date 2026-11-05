@@ -840,6 +840,13 @@
         "--test",
         "scripts/qa/check-admin-notifications-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-requests-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-requests-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
