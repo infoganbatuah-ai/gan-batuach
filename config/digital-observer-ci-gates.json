@@ -952,6 +952,13 @@
         "--test",
         "scripts/qa/check-admin-garden-profile-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-inspection-forms-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-inspection-forms-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
