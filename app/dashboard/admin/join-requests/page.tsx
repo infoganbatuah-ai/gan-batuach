@@ -15,8 +15,8 @@ export default async function AdminJoinRequestsPage() {
       .order("created_at", { ascending: false })
       .limit(100);
     logSupabaseError("admin leads", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
+    return { rows: (error ? [] : data ?? []) as any[], available: !error, queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { rows: [] as any[], available: false, queryError: null as string | null });
 
   return (
     <DashboardShell role="admin" title="בקשות הצטרפות">
@@ -28,7 +28,7 @@ export default async function AdminJoinRequestsPage() {
         </div>
         <span className="pill good">new / contacted / approved / rejected</span>
       </div>
-      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} />
+      <AdminDataError message={result.error ?? result.data.queryError} />{result.data.available ? <AdminLeadsManager leads={result.data.rows} /> : <section className="dashboard-section"><div className="empty-state"><strong>נתוני בקשות ההצטרפות אינם זמינים כרגע</strong><span>לא ניתן להציג את לוח הבקשות עד לטעינת הנתונים.</span></div></section>}
     </DashboardShell>
   );
 }
