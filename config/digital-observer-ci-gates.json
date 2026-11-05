@@ -847,6 +847,13 @@
         "--test",
         "scripts/qa/check-admin-requests-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-complaints-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-complaints-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
