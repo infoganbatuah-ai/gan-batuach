@@ -819,6 +819,13 @@
         "--test",
         "scripts/qa/check-system-health-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-documents-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-documents-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
