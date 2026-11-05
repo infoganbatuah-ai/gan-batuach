@@ -18,7 +18,7 @@ const compiled = ts.transpileModule(source, {
 assert.deepEqual(compiled.diagnostics ?? [], [], "Settings TSX transpilation must succeed");
 
 function mount(profile, requests) {
-  const module = { exports: {} };
+  const sandboxModule = { exports: {} };
   const jsx = (type, props) => ({ type, props: props ?? {} });
   const mocks = {
     react: { useState: (value) => [value, () => {}] },
@@ -26,8 +26,8 @@ function mount(profile, requests) {
     "@/components/upload-image-field": { UploadImageField: () => null }
   };
   const context = {
-    module,
-    exports: module.exports,
+    module: sandboxModule,
+    exports: sandboxModule.exports,
     require: (name) => {
       assert.ok(name in mocks, `unexpected import: ${name}`);
       return mocks[name];
@@ -42,7 +42,7 @@ function mount(profile, requests) {
     }
   };
   runInNewContext(compiled.outputText, context, { filename: "settings-primary-profile-form.js", timeout: 1000 });
-  const form = module.exports.SettingsPrimaryProfileForm({ profile, email: "owner@example.test", roleLabel: "מנהלת גן" });
+  const form = sandboxModule.exports.SettingsPrimaryProfileForm({ profile, email: "owner@example.test", roleLabel: "מנהלת גן" });
   assert.equal(form.type, "form");
   return form;
 }
