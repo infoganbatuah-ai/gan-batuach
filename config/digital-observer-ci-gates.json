@@ -861,6 +861,13 @@
         "--test",
         "scripts/qa/check-admin-tasks-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-inspector-applications-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-inspector-applications-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
