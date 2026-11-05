@@ -637,6 +637,13 @@
         "--test",
         "scripts/qa/check-observer-learning-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "advanced-learning-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-advanced-learning-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
