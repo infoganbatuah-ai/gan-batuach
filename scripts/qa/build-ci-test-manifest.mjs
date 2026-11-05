@@ -13,7 +13,9 @@ const integrationOverrides = new Set([
   "digital-guard-persisted-learning.mjs",
   "push44-owner-qa-proxy.mjs",
   "probe-admin-dashboard-schema.mjs",
-  "run-completion-role-boundary-probes.mjs"
+  "run-completion-role-boundary-probes.mjs",
+  "start-push38t-ingress.mjs",
+  "start-push38t-qualification.mjs"
 ]);
 const deterministicOverrides = new Set([
   "build-ci-test-manifest.mjs",
@@ -65,6 +67,15 @@ function packageCommands(file) {
 }
 
 const inventoryScopeNotes = new Map([
+  ["check-settings-required-photo-controls.mjs", "six pure component cases; no browser, database or upload provider"],
+  [
+    "start-push38t-ingress.mjs",
+    "runtime integration setup only; isolated QA HTTPS/TLS and session material plus separate runtime authority required; normal PR CI must not execute; no hardware/provider proof"
+  ],
+  [
+    "start-push38t-qualification.mjs",
+    "runtime integration setup only; isolated QA Docker/Supabase, loopback adapter and Next services require separate runtime authority; optional private delivery/keychain separately gated; normal PR CI must not execute; no hardware/provider proof"
+  ],
   [
     "check-management-role-dashboards.mjs",
     "read-model behavior assertions and source guards; no live Auth/RLS proof"
@@ -79,6 +90,7 @@ const inventoryScopeNotes = new Map([
   ]
 ]);
 const suiteScopeNotes = new Map([
+  ["settings-required-photo-controls", "six pure component cases; no browser, database or upload provider"],
   [
     "uxv6-capture-admission-contract",
     "five pure cases; no browser, database or capture runner"
@@ -139,7 +151,8 @@ const capabilityRows = [
   ["Native mobile runtime", "lib/domain/digital-observer/mobile-runtime.ts", "/api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings", "existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores", "qa:digital-observer-push44", "Signed owner-iPhone QA shell PASS; authenticated Product, provider receipt, remote playback and store proof pending", "GATE 3 + GATE 4"],
   ["Management role dashboard read model", "lib/management/dashboard-read-model.ts; canonical role dashboard pages", "Role-scoped dashboard reads", "Existing authorized management projections", "`management-role-dashboards`: derived attendance/tuition, authorized Child selection, private-message preview, camera readiness and source guards", "Source-level behavior assertions and guards only; authenticated Product/Auth/RLS/browser proof remains separate", "GATE 3"],
   ["UX-V6 primary screen composition", "Owner, Parent, Admin and Settings primary routes and scoped CSS", "Existing guarded routes", "Existing authorized role data", "`uxv6-primary-screen-source-composition`: five static source-structure assertions", "Static source composition only; not rendered visual fidelity, browser interaction, Auth/RLS or owner approval", "GATE 3 + external owner visual review"],
-  ["UX-V6 capture admission and verdict safety", "Pure capture admission/result contract; capture runner is excluded from CI", "None", "None", "`uxv6-capture-admission-contract`: five in-memory node:test cases for exact Development admission, fixture refusal, scenario inventory and pending-visual-review verdict", "Source-level contract only; no actual Product, Auth/RLS, 32 screenshots, visual match or owner approval", "GATE 3; separate Development capture and external visual review remain open"]
+  ["UX-V6 capture admission and verdict safety", "Pure capture admission/result contract; capture runner is excluded from CI", "None", "None", "`uxv6-capture-admission-contract`: five in-memory node:test cases for exact Development admission, fixture refusal, scenario inventory and pending-visual-review verdict", "Source-level contract only; no actual Product, Auth/RLS, 32 screenshots, visual match or owner approval", "GATE 3; separate Development capture and external visual review remain open"],
+  ["UX-V6 required profile photo controls", "Primary Owner/Manager Settings and shared profile form", "Existing authorized Settings routes", "Existing authorized profile data", "`settings-required-photo-controls`: six in-memory component cases for required-photo removal refusal and optional-photo behavior", "Pure component behavior only; no authenticated Product, upload/provider, Auth/RLS or rendered visual proof", "GATE 3; separate Product and visual qualification remain open"]
 ];
 
 const lines = [
