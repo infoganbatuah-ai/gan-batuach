@@ -721,6 +721,13 @@
         "--test",
         "scripts/qa/check-external-validation-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "legal-review-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-legal-review-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
