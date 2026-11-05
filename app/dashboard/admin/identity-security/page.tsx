@@ -26,18 +26,28 @@ export default async function AdminIdentitySecurityPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("identity security", async () => {
     const supabase = await createClient();
+    async function safeQuery<T>(index: number, run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+      try {
+        const query = await run();
+        logSupabaseError(`identity security query ${index}`, query.error);
+        return { data: query.error ? [] as T[] : query.data ?? [], available: !query.error };
+      } catch (error) {
+        logSupabaseError(`identity security query ${index}`, error);
+        return { data: [] as T[], available: false };
+      }
+    }
     const [profilesRes, mfaRes, policiesRes, devicesRes, sessionsRes, locksRes, recoveryRes, securityEventsRes, actionRulesRes] = await Promise.all([
-      supabase.from("profiles" as any).select("id,full_name,email,phone,role,garden_id,created_at").in("role", ["admin", "owner", "manager", "parent", "staff", "inspector", "network_manager"]).limit(5000),
-      supabase.from("mfa_enrollment_status" as any).select("*").order("role").limit(5000),
-      supabase.from("mfa_enforcement_policies" as any).select("*").order("role_key").limit(100),
-      supabase.from("trusted_devices" as any).select("*").order("last_seen_at", { ascending: false }).limit(500),
-      supabase.from("security_sessions" as any).select("*").order("last_seen_at", { ascending: false }).limit(500),
-      supabase.from("account_security_locks" as any).select("*").order("locked_at", { ascending: false }).limit(200),
-      supabase.from("identity_recovery_requests" as any).select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("security_events" as any).select("*").order("created_at", { ascending: false }).limit(300),
-      supabase.from("sensitive_action_mfa_rules" as any).select("*").order("action_category").limit(120)
+      safeQuery(0, () => supabase.from("profiles" as any).select("id,full_name,email,phone,role,garden_id,created_at").in("role", ["admin", "owner", "manager", "parent", "staff", "inspector", "network_manager"]).limit(5000)),
+      safeQuery(1, () => supabase.from("mfa_enrollment_status" as any).select("*").order("role").limit(5000)),
+      safeQuery(2, () => supabase.from("mfa_enforcement_policies" as any).select("*").order("role_key").limit(100)),
+      safeQuery(3, () => supabase.from("trusted_devices" as any).select("*").order("last_seen_at", { ascending: false }).limit(500)),
+      safeQuery(4, () => supabase.from("security_sessions" as any).select("*").order("last_seen_at", { ascending: false }).limit(500)),
+      safeQuery(5, () => supabase.from("account_security_locks" as any).select("*").order("locked_at", { ascending: false }).limit(200)),
+      safeQuery(6, () => supabase.from("identity_recovery_requests" as any).select("*").order("created_at", { ascending: false }).limit(200)),
+      safeQuery(7, () => supabase.from("security_events" as any).select("*").order("created_at", { ascending: false }).limit(300)),
+      safeQuery(8, () => supabase.from("sensitive_action_mfa_rules" as any).select("*").order("action_category").limit(120))
     ]);
-    [profilesRes, mfaRes, policiesRes, devicesRes, sessionsRes, locksRes, recoveryRes, securityEventsRes, actionRulesRes].forEach((query, index) => logSupabaseError(`identity security query ${index}`, (query as any).error));
+    const available = [profilesRes, mfaRes, policiesRes, devicesRes, sessionsRes, locksRes, recoveryRes, securityEventsRes, actionRulesRes].map((query) => query.available);
     return {
       profiles: profilesRes.data ?? [],
       mfa: mfaRes.data ?? [],
@@ -48,11 +58,15 @@ export default async function AdminIdentitySecurityPage() {
       recovery: recoveryRes.data ?? [],
       securityEvents: securityEventsRes.data ?? [],
       actionRules: actionRulesRes.data ?? [],
-      queryError: [profilesRes.error, mfaRes.error, policiesRes.error, devicesRes.error, sessionsRes.error, locksRes.error, recoveryRes.error, securityEventsRes.error, actionRulesRes.error].some(Boolean)
-        ? "חלק מנתוני אבטחת הזהות לא נטענו. ייתכן שמיגרציית Phase 155 עדיין לא הורצה."
+      available,
+      queryError: available.some((value) => !value)
+        ? "חלק מנתוני אבטחת הזהות אינם זמינים. אין להסיק מכך שמצב האבטחה תקין."
         : null
     };
-  }, { profiles: [] as any[], mfa: [] as any[], policies: [] as any[], devices: [] as any[], sessions: [] as any[], locks: [] as any[], recovery: [] as any[], securityEvents: [] as any[], actionRules: [] as any[], queryError: null as string | null });
+  }, { profiles: [] as any[], mfa: [] as any[], policies: [] as any[], devices: [] as any[], sessions: [] as any[], locks: [] as any[], recovery: [] as any[], securityEvents: [] as any[], actionRules: [] as any[], available: Array<boolean>(9).fill(false), queryError: null as string | null });
+
+  const known = (...indices: number[]) => indices.every((index) => result.data.available[index]);
+  const unavailable = "לא זמין";
 
   const profileCount = result.data.profiles.length;
   const enrolled = result.data.mfa.filter((item: any) => item.enrollment_status === "enrolled").length;
@@ -80,27 +94,29 @@ export default async function AdminIdentitySecurityPage() {
           <p>ניהול הדרגתי של אימות נוסף, מכשירים מוכרים, סשנים, נעילות חשבון ופעולות רגישות בלי לנעול משתמשים קיימים.</p>
         </div>
         <div className="profile-actions">
-          <span className={`pill ${scoreTone(securityScore)}`}>{securityScore}/100</span>
-          <span className="pill warn">Rollout gradual</span>
+          <span className={`pill ${known(0, 1, 2, 3, 5, 7) ? scoreTone(securityScore) : "default"}`}>{known(0, 1, 2, 3, 5, 7) ? `${securityScore}/100` : unavailable}</span>
+          <span className="pill warn">Rollout gradual · כוונת מדיניות</span>
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
+      <p className="muted">תצוגת מטא־נתונים ודרישות בלבד; אינה הוכחה לאכיפת MFA, לתקינות אבטחה או להפעלת שחזור והתראות.</p>
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="MFA enrollment" value={`${enrollmentRate}%`} tone={scoreTone(enrollmentRate)} />
-        <StatCard label="Users missing MFA" value={missing} tone={missing ? "warn" : "good"} />
-        <StatCard label="Trusted devices" value={result.data.devices.length} tone="good" />
-        <StatCard label="Suspicious devices" value={suspiciousDevices} tone={suspiciousDevices ? "bad" : "good"} />
-        <StatCard label="Active sessions" value={result.data.sessions.filter((session: any) => !session.revoked_at).length} tone="good" />
-        <StatCard label="Suspicious sessions" value={suspiciousSessions} tone={suspiciousSessions ? "bad" : "good"} />
-        <StatCard label="Failed login trends" value={failedLoginEvents} tone={failedLoginEvents ? "warn" : "good"} />
-        <StatCard label="Account lockouts" value={activeLocks} tone={activeLocks ? "bad" : "good"} />
+        <StatCard label="MFA enrollment" value={known(0, 1) ? `${enrollmentRate}%` : unavailable} tone={known(0, 1) ? scoreTone(enrollmentRate) : "default"} />
+        <StatCard label="Users missing MFA" value={known(1) ? missing : unavailable} tone={known(1) ? missing ? "warn" : "good" : "default"} />
+        <StatCard label="Trusted devices" value={known(3) ? result.data.devices.length : unavailable} tone={known(3) ? "good" : "default"} />
+        <StatCard label="Suspicious devices" value={known(3) ? suspiciousDevices : unavailable} tone={known(3) ? suspiciousDevices ? "bad" : "good" : "default"} />
+        <StatCard label="Active sessions" value={known(4) ? result.data.sessions.filter((session: any) => !session.revoked_at).length : unavailable} tone={known(4) ? "good" : "default"} />
+        <StatCard label="Suspicious sessions" value={known(4) ? suspiciousSessions : unavailable} tone={known(4) ? suspiciousSessions ? "bad" : "good" : "default"} />
+        <StatCard label="Failed login trends" value={known(7) ? failedLoginEvents : unavailable} tone={known(7) ? failedLoginEvents ? "warn" : "good" : "default"} />
+        <StatCard label="Account lockouts" value={known(5) ? activeLocks : unavailable} tone={known(5) ? activeLocks ? "bad" : "good" : "default"} />
       </section>
 
       <section className="grid cols-3 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><KeyRound size={20} /> MFA Rollout</h2><p>מדיניות לפי תפקיד.</p></div>
           <div className="procedure-list compact-list">
+            {!known(2) && <p>{unavailable}</p>}
             {result.data.policies.map((policy: any) => (
               <div className="mini-row" key={policy.id ?? policy.role_key}>
                 <span>{policy.role_key}</span>
@@ -116,8 +132,8 @@ export default async function AdminIdentitySecurityPage() {
             {mfaByRole.map((item) => (
               <div className="mini-row" key={item.role}>
                 <span>{item.role}</span>
-                <strong className={`pill ${scoreTone(item.rate)}`}>{item.rate}%</strong>
-                <small>{item.enrolled}/{item.profiles} enrolled</small>
+                <strong className={`pill ${known(0, 1) ? scoreTone(item.rate) : "default"}`}>{known(0, 1) ? `${item.rate}%` : unavailable}</strong>
+                <small>{known(1) ? item.enrolled : unavailable}/{known(0) ? item.profiles : unavailable} enrolled</small>
               </div>
             ))}
           </div>
@@ -125,9 +141,9 @@ export default async function AdminIdentitySecurityPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Smartphone size={20} /> Trusted Devices</h2><p>מכשירים מוכרים וחשודים.</p></div>
           <div className="risk-list">
-            <div>חדשים <b>{result.data.devices.filter((device: any) => ["new"].includes(String(device.risk_status ?? device.trust_status))).length}</b></div>
-            <div>מוכרים <b>{result.data.devices.filter((device: any) => ["trusted"].includes(String(device.risk_status ?? device.trust_status))).length}</b></div>
-            <div>נשללו <b>{result.data.devices.filter((device: any) => ["revoked"].includes(String(device.risk_status ?? device.trust_status))).length}</b></div>
+            <div>חדשים <b>{known(3) ? result.data.devices.filter((device: any) => ["new"].includes(String(device.risk_status ?? device.trust_status))).length : unavailable}</b></div>
+            <div>מוכרים <b>{known(3) ? result.data.devices.filter((device: any) => ["trusted"].includes(String(device.risk_status ?? device.trust_status))).length : unavailable}</b></div>
+            <div>נשללו <b>{known(3) ? result.data.devices.filter((device: any) => ["revoked"].includes(String(device.risk_status ?? device.trust_status))).length : unavailable}</b></div>
           </div>
         </article>
       </section>
@@ -136,6 +152,7 @@ export default async function AdminIdentitySecurityPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><LockKeyhole size={20} /> Sensitive Action Gates</h2><p>פעולות שדורשות אימות נוסף טרי.</p></div>
           <div className="procedure-list compact-list">
+            {!known(8) && <p>{unavailable}</p>}
             {result.data.actionRules.map((rule: any) => (
               <div className="mini-row" key={rule.id ?? rule.action_key}>
                 <span>{rule.title_he}</span>
@@ -148,6 +165,7 @@ export default async function AdminIdentitySecurityPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><AlertTriangle size={20} /> Security Events</h2><p>אירועי זהות אחרונים.</p></div>
           <div className="procedure-list compact-list">
+            {!known(7) && <p>{unavailable}</p>}
             {result.data.securityEvents.slice(0, 10).map((event: any) => (
               <div className="mini-row" key={event.id}>
                 <span>{event.event_type}</span>
@@ -162,9 +180,9 @@ export default async function AdminIdentitySecurityPage() {
       <section className="dashboard-section">
         <div className="section-heading"><h2><ShieldCheck size={20} /> Recovery & Lockouts</h2><p>נעילות זמניות ושחזור גישה בפיקוח אדמין.</p></div>
         <div className="grid cols-3">
-          <article className="card compact-card"><span className={activeLocks ? "pill bad" : "pill good"}>Locks</span><h3>{activeLocks} חשבונות נעולים</h3><p>נעילה זמנית בלבד, עם אפשרות שחזור אדמין.</p></article>
-          <article className="card compact-card"><span className="pill warn">Recovery</span><h3>{result.data.recovery.length} בקשות שחזור</h3><p>פעולות שחזור רגישות דורשות אימות אדמין.</p></article>
-          <article className="card compact-card"><span className="pill good">Templates</span><h3>הודעות מוכנות</h3><p>MFA נדרש, מכשיר חדש, נעילת חשבון ושחזור גישה.</p></article>
+          <article className="card compact-card"><span className={known(5) ? activeLocks ? "pill bad" : "pill good" : "pill default"}>Locks</span><h3>{known(5) ? activeLocks : unavailable} חשבונות נעולים</h3><p>דרישה: נעילה זמנית בלבד, עם אפשרות שחזור אדמין.</p></article>
+          <article className="card compact-card"><span className={known(6) ? "pill warn" : "pill default"}>Recovery</span><h3>{known(6) ? result.data.recovery.length : unavailable} בקשות שחזור</h3><p>דרישה: פעולות שחזור רגישות דורשות אימות אדמין.</p></article>
+          <article className="card compact-card"><span className="pill default">Templates</span><h3>כוונת תבניות הודעה</h3><p>MFA נדרש, מכשיר חדש, נעילת חשבון ושחזור גישה.</p></article>
         </div>
       </section>
     </DashboardShell>
