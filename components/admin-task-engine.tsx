@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
 type Row = Record<string, any>;
+type TaskAvailability = { tasks: boolean; users: boolean; gardens: boolean };
 
 async function postTask(payload: Row) {
   const response = await fetch("/api/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -12,15 +13,17 @@ async function postTask(payload: Row) {
   return body.data;
 }
 
-export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users: Row[]; gardens: Row[] }) {
+export function AdminTaskEngine({ tasks, users, gardens, availability = { tasks: true, users: true, gardens: true } }: { tasks: Row[]; users: Row[]; gardens: Row[]; availability?: TaskAvailability }) {
   const [rows, setRows] = useState(tasks);
   const [role, setRole] = useState("manager");
   const [gardenId, setGardenId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const filteredUsers = useMemo(() => users.filter((user) => !role || user.role === role), [users, role]);
+  const creationAvailable = availability.tasks && availability.users && availability.gardens;
 
   async function submit(event: FormEvent<HTMLFormElement>, close?: () => void) {
+    if (!creationAvailable) return;
     event.preventDefault(); setMessage(null); setError(null);
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
@@ -45,7 +48,7 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
   return <>
     {message ? <div className="success-banner">{message}</div> : null}
     {error ? <div className="error-banner">{error}</div> : null}
-    <CollapsibleActionPanel title="יצירת משימה" description="המשימות הקיימות מוצגות למטה. פתחו את הטופס רק כשצריך להקצות משימה חדשה." buttonLabel="יצירת משימה חדשה" defaultOpen={rows.length === 0}>
+    {creationAvailable ? <CollapsibleActionPanel title="יצירת משימה" description="המשימות הקיימות מוצגות למטה. פתחו את הטופס רק כשצריך להקצות משימה חדשה." buttonLabel="יצירת משימה חדשה" defaultOpen={rows.length === 0}>
       {({ close }) => <section className="grid cols-2 dashboard-panels">
       <form className="card form wizard-form" onSubmit={(event) => submit(event, close)}>
         <h2>יצירת משימה</h2>
@@ -70,9 +73,9 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
         </div>
       </article>
     </section>}
-    </CollapsibleActionPanel>
+    </CollapsibleActionPanel> : <div className="card" role="status">יצירת משימה אינה זמינה כי חלק מנתוני המשימות, המשתמשים או הגנים אינם זמינים.</div>}
     <section className="dashboard-section">
-      {rows.length === 0 ? <div className="empty-state"><strong>אין משימות עדיין</strong><span>צרו משימה חד פעמית או חוזרת כדי להתחיל מעקב.</span></div> : <div className="procedure-list">{rows.map((task) => <article className="card procedure-card" key={task.id}><div><span className="pill">{task.priority ?? "medium"}</span><h3>{task.title}</h3><p>{task.description ?? ""}</p><small>יעד: {task.assigned_role ?? task.assigned_to ?? "כללי"} · דדליין: {task.due_at ? new Date(task.due_at).toLocaleString("he-IL") : "ללא"}</small></div><div className="procedure-meta"><span className="pill">{task.status ?? "open"}</span></div></article>)}</div>}
+      {!availability.tasks ? <div className="card" role="status" aria-label="נתוני משימות לא זמינים">נתוני המשימות אינם זמינים</div> : rows.length === 0 ? <div className="empty-state"><strong>אין משימות עדיין</strong><span>צרו משימה חד פעמית או חוזרת כדי להתחיל מעקב.</span></div> : <div className="procedure-list">{rows.map((task) => <article className="card procedure-card" key={task.id}><div><span className="pill">{task.priority ?? "medium"}</span><h3>{task.title}</h3><p>{task.description ?? ""}</p><small>יעד: {task.assigned_role ?? task.assigned_to ?? "כללי"} · דדליין: {task.due_at ? new Date(task.due_at).toLocaleString("he-IL") : "ללא"}</small></div><div className="procedure-meta"><span className="pill">{task.status ?? "open"}</span></div></article>)}</div>}
     </section>
   </>;
 }

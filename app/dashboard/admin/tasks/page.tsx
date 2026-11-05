@@ -5,17 +5,26 @@ import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 
+async function settleTaskQuery(query: () => PromiseLike<{ data: unknown; error: unknown }>, index: number) {
+  const label = `משימות ${index}`;
+  const result = await safeAdminData(label, async () => {
+    const { data, error } = await query();
+    logSupabaseError(label, error);
+    return { data: error ? null : data, available: !error };
+  }, { data: null, available: false });
+  return result.data;
+}
+
 export default async function AdminListPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("משימות", async () => {
     const supabase = await createClient();
     const [tasksRes, usersRes, gardensRes] = await Promise.all([
-      supabase.from("tasks" as any).select("*").order("created_at", { ascending: false }).limit(100),
-      supabase.from("profiles" as any).select("id, full_name, role, garden_id, active").eq("active", true).limit(300),
-      supabase.from("gardens" as any).select("id, name, city").order("name")
-    ]);
-    logSupabaseError("משימות", tasksRes.error ?? usersRes.error ?? gardensRes.error);
-    return { tasks: (tasksRes.data ?? []) as any[], users: (usersRes.data ?? []) as any[], gardens: (gardensRes.data ?? []) as any[], queryError: tasksRes.error || usersRes.error || gardensRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { tasks: [] as any[], users: [] as any[], gardens: [] as any[], queryError: null as string | null });
-  return <DashboardShell role="admin" title="משימות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Task Engine</p><h1>יצירת משימות ומעקב ביצוע.</h1><p>משימות אישיות בגן או בהנהלה, עם עדיפות ודדליין. שיוך למשתמש נבדק מול קשר פעיל לגן.</p></div><span className="pill good">Production UI</span></div><AdminDataError message={result.error ?? result.data.queryError} /><AdminTaskEngine tasks={result.data.tasks} users={result.data.users} gardens={result.data.gardens} /></DashboardShell>;
+      () => supabase.from("tasks" as any).select("*").order("created_at", { ascending: false }).limit(100),
+      () => supabase.from("profiles" as any).select("id, full_name, role, garden_id, active").eq("active", true).limit(300),
+      () => supabase.from("gardens" as any).select("id, name, city").order("name")
+    ].map(settleTaskQuery));
+    return { tasks: (tasksRes.data ?? []) as any[], users: (usersRes.data ?? []) as any[], gardens: (gardensRes.data ?? []) as any[], availability: { tasks: tasksRes.available, users: usersRes.available, gardens: gardensRes.available }, queryError: !tasksRes.available || !usersRes.available || !gardensRes.available ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { tasks: [] as any[], users: [] as any[], gardens: [] as any[], availability: { tasks: false, users: false, gardens: false }, queryError: null as string | null });
+  return <DashboardShell role="admin" title="משימות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Task Engine</p><h1>יצירת משימות ומעקב ביצוע.</h1><p>משימות אישיות בגן או בהנהלה, עם עדיפות ודדליין. שיוך למשתמש נבדק מול קשר פעיל לגן.</p></div><span className="pill">משימות</span></div><AdminDataError message={result.error ?? result.data.queryError} /><AdminTaskEngine tasks={result.data.tasks} users={result.data.users} gardens={result.data.gardens} availability={result.data.availability} /></DashboardShell>;
 }

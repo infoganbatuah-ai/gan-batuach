@@ -854,6 +854,13 @@
         "--test",
         "scripts/qa/check-admin-complaints-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-tasks-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-tasks-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
