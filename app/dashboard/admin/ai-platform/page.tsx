@@ -43,8 +43,20 @@ export default async function AdminAiPlatformPage() {
       supabase.from("ai_governance_reviews" as any).select("*").order("created_at", { ascending: false }).limit(120),
       supabase.from("ai_audit_events" as any).select("*").order("created_at", { ascending: false }).limit(80),
       supabase.from("observer_ground_truth_reviews" as any).select("*").order("created_at", { ascending: false }).limit(500)
-    ]);
-    [modelsRes, datasetsRes, calibrationsRes, evaluationsRes, deploymentsRes, matrixRes, governanceRes, auditRes, reviewsRes].forEach((query, index) => logSupabaseError(`ai platform query ${index}`, (query as any).error));
+    ].map(async (query, index) => {
+      try {
+        const response = await query;
+        if (response.error) {
+          logSupabaseError(`ai platform query ${index}`, response.error);
+          return { data: [], available: false };
+        }
+        return { data: response.data ?? [], available: true };
+      } catch (error) {
+        logSupabaseError(`ai platform query ${index}`, error);
+        return { data: [], available: false };
+      }
+    }));
+    const sourceAvailable = [modelsRes, datasetsRes, calibrationsRes, evaluationsRes, deploymentsRes, matrixRes, governanceRes, auditRes, reviewsRes].map((query) => query.available);
     const reviews = (reviewsRes.data ?? []) as any[];
     const accuracy = calculateObserverAccuracy(reviews, [], []);
     const data = {
@@ -57,9 +69,10 @@ export default async function AdminAiPlatformPage() {
       governance: (governanceRes.data ?? []) as any[],
       audit: (auditRes.data ?? []) as any[],
       accuracy,
-      queryError: [modelsRes.error, datasetsRes.error, calibrationsRes.error, evaluationsRes.error, deploymentsRes.error, matrixRes.error, governanceRes.error, auditRes.error, reviewsRes.error].some(Boolean) ? "חלק מנתוני פלטפורמת ה-AI לא נטענו. ייתכן שמיגרציית PHASE 138 עדיין לא הורצה." : null
+      sourceAvailable,
+      queryError: sourceAvailable.some((available) => !available) ? "חלק מנתוני פלטפורמת ה-AI אינם זמינים כרגע. מדדים התלויים בהם אינם מוצגים כמדידה." : null
     };
-    return { ...data, readinessScore: aiReadinessScore(data) };
+    return { ...data, readinessScore: [0, 1, 2, 3, 6, 8].every((index) => sourceAvailable[index]) ? aiReadinessScore(data) : null };
   }, {
     models: [] as any[],
     datasets: [] as any[],
@@ -70,11 +83,15 @@ export default async function AdminAiPlatformPage() {
     governance: [] as any[],
     audit: [] as any[],
     accuracy: calculateObserverAccuracy([], [], []),
-    readinessScore: 0,
+    sourceAvailable: Array<boolean>(9).fill(false),
+    readinessScore: null as number | null,
     queryError: null as string | null
   });
 
   const data = result.data;
+  const unavailable = "לא זמין";
+  const modelsAvailable = data.sourceAvailable[0];
+  const reviewsAvailable = data.sourceAvailable[8];
   const activeModels = data.models.filter((model: any) => !["retired"].includes(String(model.lifecycle_status))).length;
   const driftWatch = data.models.filter((model: any) => ["watch", "degraded", "critical"].includes(String(model.drift_status))).length;
   const testingModels = data.models.filter((model: any) => ["testing", "pilot"].includes(String(model.lifecycle_status))).length;
@@ -88,8 +105,8 @@ export default async function AdminAiPlatformPage() {
           eyebrow="AI Platform"
           title="ניהול מודלים, כיול, אימון ובקרה"
           subtitle="שכבת ניהול מבוקרת ל-Digital Observer ולעוזרי ה-AI. אין קידום אוטומטי, אין החלטות אוטומטיות, וכל שינוי דורש ביקורת אנושית."
-          badge={`${data.readinessScore}/100`}
-          badgeTone={scoreTone(data.readinessScore)}
+          badge={data.readinessScore === null ? unavailable : `${data.readinessScore}/100`}
+          badgeTone={data.readinessScore === null ? "default" : scoreTone(data.readinessScore)}
           actions={<><Link className="button primary" href="/dashboard/admin/observer-calibration">כיול תצפיתן</Link><Link className="button secondary" href="/dashboard/admin/observer-test-center">Ground Truth</Link></>}
         >
           <div className="setup-checklist">
@@ -101,18 +118,18 @@ export default async function AdminAiPlatformPage() {
         <AdminDataError message={result.error ?? data.queryError} />
 
         <div className="premium-metric-grid">
-          <RoleMetricCard label="Models" value={activeModels} hint="מודלים רשומים" tone={activeModels ? "good" : "warn"} />
-          <RoleMetricCard label="Versions" value={data.models.length} hint="גרסאות מנוהלות" tone="default" />
-          <RoleMetricCard label="Testing" value={testingModels} hint="בדיקה / פיילוט" tone={testingModels ? "warn" : "default"} />
-          <RoleMetricCard label="Production" value={productionModels} hint="לא מקודם אוטומטית" tone={productionModels ? "good" : "default"} />
-          <RoleMetricCard label="Accuracy" value={avgAccuracy ? `${Math.round(avgAccuracy)}%` : "אין"} hint="ממוצע מודלים" tone={avgAccuracy >= 75 ? "good" : "warn"} />
-          <RoleMetricCard label="Drift" value={driftWatch} hint="דורש מעקב" tone={driftWatch ? "bad" : "good"} />
-          <RoleMetricCard label="Reviews" value={data.accuracy.reviewed} hint="משוב אנושי" tone={data.accuracy.reviewed ? "good" : "warn"} />
-          <RoleMetricCard label="Observer" value={`${data.accuracy.readinessScore}/100`} hint="מוכנות תצפיתן" tone={scoreTone(data.accuracy.readinessScore)} />
+          <RoleMetricCard label="Models" value={modelsAvailable ? activeModels : unavailable} hint="מודלים רשומים" tone={!modelsAvailable ? "default" : activeModels ? "good" : "warn"} />
+          <RoleMetricCard label="Versions" value={modelsAvailable ? data.models.length : unavailable} hint="גרסאות מנוהלות" tone="default" />
+          <RoleMetricCard label="Testing" value={modelsAvailable ? testingModels : unavailable} hint="בדיקה / פיילוט" tone={modelsAvailable && testingModels ? "warn" : "default"} />
+          <RoleMetricCard label="Production" value={modelsAvailable ? productionModels : unavailable} hint="לא מקודם אוטומטית" tone={modelsAvailable && productionModels ? "good" : "default"} />
+          <RoleMetricCard label="Accuracy" value={!modelsAvailable ? unavailable : avgAccuracy ? `${Math.round(avgAccuracy)}%` : "אין"} hint="ממוצע מודלים" tone={!modelsAvailable ? "default" : avgAccuracy >= 75 ? "good" : "warn"} />
+          <RoleMetricCard label="Drift" value={modelsAvailable ? driftWatch : unavailable} hint="דורש מעקב" tone={!modelsAvailable ? "default" : driftWatch ? "bad" : "good"} />
+          <RoleMetricCard label="Reviews" value={reviewsAvailable ? data.accuracy.reviewed : unavailable} hint="משוב אנושי" tone={!reviewsAvailable ? "default" : data.accuracy.reviewed ? "good" : "warn"} />
+          <RoleMetricCard label="Observer" value={reviewsAvailable ? `${data.accuracy.readinessScore}/100` : unavailable} hint="מוכנות תצפיתן" tone={reviewsAvailable ? scoreTone(data.accuracy.readinessScore) : "default"} />
         </div>
 
         <CleanSection title="מודלים פעילים" subtitle="Registry מרכזי לכל מודל, גרסה, קטגוריה, סטטוס ודיוק.">
-          {data.models.length === 0 ? <EmptyState title="אין מודלים רשומים" text="לאחר הרצת המיגרציה יופיעו מודלי Shadow, Risk ו-Compliance." /> : (
+          {!modelsAvailable ? <EmptyState title="מודלים אינם זמינים" text="לא ניתן למדוד או להציג את נתוני המודלים כרגע." /> : data.models.length === 0 ? <EmptyState title="אין מודלים רשומים" text="לאחר הרצת המיגרציה יופיעו מודלי Shadow, Risk ו-Compliance." /> : (
             <div className="procedure-list">
               {data.models.map((model: any) => (
                 <article className="card procedure-card" key={model.id}>
@@ -136,7 +153,7 @@ export default async function AdminAiPlatformPage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><Database size={20} /> Training datasets</h2>
-            {data.datasets.length === 0 ? <div className="empty-mini">אין registry של דאטהסטים.</div> : data.datasets.map((dataset: any) => (
+            {!data.sourceAvailable[1] ? <div className="empty-mini">נתוני הדאטהסטים אינם זמינים.</div> : data.datasets.length === 0 ? <div className="empty-mini">אין registry של דאטהסטים.</div> : data.datasets.map((dataset: any) => (
               <div className="list-item" key={dataset.id}>
                 <div><strong>{dataset.dataset_name}</strong><span>{dataset.dataset_source} · {dataset.dataset_purpose}</span></div>
                 <StatusBadge tone={statusTone(dataset.approval_status)}>{dataset.quality_score}/100</StatusBadge>
@@ -145,7 +162,7 @@ export default async function AdminAiPlatformPage() {
           </article>
           <article className="card action-panel">
             <h2><SlidersHorizontal size={20} /> Calibration</h2>
-            {data.calibrations.length === 0 ? <div className="empty-mini">אין כיולים.</div> : data.calibrations.map((calibration: any) => (
+            {!data.sourceAvailable[2] ? <div className="empty-mini">נתוני הכיול אינם זמינים.</div> : data.calibrations.length === 0 ? <div className="empty-mini">אין כיולים.</div> : data.calibrations.map((calibration: any) => (
               <div className="list-item" key={calibration.id}>
                 <div><strong>{calibration.model_key}</strong><span>סף ביטחון {pct(Number(calibration.confidence_threshold ?? 0))} · התראה {pct(Number(calibration.alert_threshold ?? 0))}</span></div>
                 <StatusBadge tone={statusTone(calibration.calibration_status)}>{calibration.calibration_status}</StatusBadge>
@@ -158,10 +175,10 @@ export default async function AdminAiPlatformPage() {
           <article className="card action-panel">
             <h2><TrendingDown size={20} /> Evaluation & drift</h2>
             <div className="risk-list">
-              <div>Evaluations <b>{data.evaluations.length}</b></div>
-              <div>Deployments <b>{data.deployments.length}</b></div>
-              <div>Governance reviews <b>{data.governance.length}</b></div>
-              <div>Audit events <b>{data.audit.length}</b></div>
+              <div>Evaluations <b>{data.sourceAvailable[3] ? data.evaluations.length : unavailable}</b></div>
+              <div>Deployments <b>{data.sourceAvailable[4] ? data.deployments.length : unavailable}</b></div>
+              <div>Governance reviews <b>{data.sourceAvailable[6] ? data.governance.length : unavailable}</b></div>
+              <div>Audit events <b>{data.sourceAvailable[7] ? data.audit.length : unavailable}</b></div>
             </div>
           </article>
           <article className="card action-panel">
@@ -177,7 +194,7 @@ export default async function AdminAiPlatformPage() {
         </section>
 
         <CleanSection title="Capability Matrix" subtitle="הפעלת יכולות לפי Gan Batuach, School Safe, Business Observer ו-Home Observer.">
-          {data.matrix.length === 0 ? <EmptyState title="אין מטריצת יכולות" text="המיגרציה מוסיפה יכולות התחלתיות עם הגבלות רגולטוריות." /> : (
+          {!data.sourceAvailable[5] ? <EmptyState title="מטריצת היכולות אינה זמינה" text="לא ניתן לקבוע אילו יכולות מאופשרות כרגע." /> : data.matrix.length === 0 ? <EmptyState title="אין מטריצת יכולות" text="המיגרציה מוסיפה יכולות התחלתיות עם הגבלות רגולטוריות." /> : (
             <div className="premium-action-grid">
               {data.matrix.map((item: any) => (
                 <article className="premium-action-card" key={item.id}>

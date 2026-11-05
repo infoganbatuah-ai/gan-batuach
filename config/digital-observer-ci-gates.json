@@ -993,6 +993,13 @@
       "args": [
         "scripts/qa/check-push38b-monitor-accuracy.mjs"
       ]
+    },
+    {
+      "name": "ai-platform-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-ai-platform-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
