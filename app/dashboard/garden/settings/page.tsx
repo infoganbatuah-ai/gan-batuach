@@ -88,13 +88,13 @@ export default async function SettingsPage() {
             { title: "סיסמה", detail: "עדכון סיסמה באופן מאובטח", href: "/dashboard/security-settings", icon: KeyRound },
             { title: "אימות דו־שלבי", detail: "בדיקת מצב והגדרה במרכז האבטחה", href: "/dashboard/security-settings", icon: ShieldCheck },
             { title: "מכשירים מחוברים", detail: "ניהול מפגשי כניסה", href: "/dashboard/security-settings", icon: Smartphone },
-            { title: "התראות התחברות", detail: "ערוצים ושעות שקט לפי ההעדפות שלך", href: "/dashboard/garden/notifications#preferences", icon: Bell }
+            { title: "התראות", detail: "ערוצים ושעות שקט לפי ההעדפות שלך", href: "/dashboard/garden/notifications#preferences", icon: Bell }
           ]} />
         </SettingsSection>
         <SettingsSection id="privacy" title="העדפות" description="תצוגה, שפה והקשר הגן" icon={Monitor}>
           <div className="ux18-settings-fact-list">
             <div><Languages aria-hidden="true" /><b>שפת הממשק</b><span>עברית</span></div>
-            <div><Monitor aria-hidden="true" /><b>תצוגה נוכחית</b><span>בהירה</span></div>
+            <div><Monitor aria-hidden="true" /><b>תצוגת הממשק</b><span>בהירה · קבועה</span></div>
             <div><Building2 aria-hidden="true" /><b>אזור זמן של הגן</b><span dir="ltr">{garden?.operational_timezone ?? "לא הוגדר"}</span></div>
             <Link href="/dashboard/garden/notifications#preferences"><Bell aria-hidden="true" /><b>התראות ושעות שקט</b><ChevronLeft aria-hidden="true" /></Link>
             <Link href="/dashboard/security-settings"><Eye aria-hidden="true" /><b>פרטיות והרשאות</b><ChevronLeft aria-hidden="true" /></Link>
