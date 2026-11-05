@@ -11,8 +11,8 @@ type Row = Record<string, any>;
 type Tone = "default" | "good" | "warn" | "bad";
 
 function average(rows: Row[], field = "score") {
-  const values = rows.map((row) => Number(row[field] ?? 0)).filter((value) => Number.isFinite(value));
-  if (!values.length) return 0;
+  const values = rows.filter((row) => row[field] != null).map((row) => Number(row[field])).filter((value) => Number.isFinite(value));
+  if (!values.length) return null;
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
@@ -56,11 +56,21 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = await run() as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { rows: result.error ? [] : result.data ?? [], failed: Boolean(result.error) };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { rows: [] as T[], failed: true };
   }
+}
+
+function measuredScore(value: unknown): number | null {
+  if (value == null) return null;
+  const score = Number(value);
+  return Number.isFinite(score) ? score : null;
+}
+
+function scoreText(score: number | null) {
+  return score == null ? "טרם נמדד" : `${score}/100`;
 }
 
 export default async function AdminAiGovernancePage() {
@@ -81,7 +91,7 @@ export default async function AdminAiGovernancePage() {
       safeQuery<Row>("vertical capability matrix", () => supabase.from("vertical_capability_matrix" as any).select("*").order("vertical_key").order("capability_name").limit(220)),
       safeQuery<Row>("parent visibility policy", () => supabase.from("parent_visibility_policy_rules" as any).select("*").order("source_type").limit(80))
     ]);
-    return { scores, dpias, capabilities, explainability, decisionAudit, privacyImpact, ethics, models, deployments, reviews, verticalMatrix, parentVisibility };
+    return { scores: scores.rows, dpias: dpias.rows, capabilities: capabilities.rows, explainability: explainability.rows, decisionAudit: decisionAudit.rows, privacyImpact: privacyImpact.rows, ethics: ethics.rows, models: models.rows, deployments: deployments.rows, reviews: reviews.rows, verticalMatrix: verticalMatrix.rows, parentVisibility: parentVisibility.rows, failures: [scores, dpias, capabilities, explainability, decisionAudit, privacyImpact, ethics, models, deployments, reviews, verticalMatrix, parentVisibility].map(source => source.failed) };
   }, {
     scores: [] as Row[],
     dpias: [] as Row[],
@@ -94,19 +104,26 @@ export default async function AdminAiGovernancePage() {
     deployments: [] as Row[],
     reviews: [] as Row[],
     verticalMatrix: [] as Row[],
-    parentVisibility: [] as Row[]
+    parentVisibility: [] as Row[],
+    failures: Array(12).fill(true) as boolean[]
   });
 
   const data = result.data;
   const latestScore = data.scores[0];
-  const responsibleScore = Number(latestScore?.responsible_ai_score ?? 0);
+  const unavailable = "לא זמין";
+  const responsibleScore = data.failures[0] ? null : measuredScore(latestScore?.responsible_ai_score);
+  const responsibleValue = data.failures[0] ? unavailable : scoreText(responsibleScore);
+  const responsibleTone: Tone = responsibleScore == null ? "default" : scoreTone(responsibleScore);
   const dpiaReady = data.dpias.filter((dpia) => ["approved", "approved_with_restrictions", "in_review"].includes(String(dpia.approval_status))).length;
   const restrictedCapabilities = data.capabilities.filter((capability) => ["disabled", "restricted", "legal_review_required"].includes(String(capability.legal_status)));
   const automaticActions = data.capabilities.filter((capability) => capability.automatic_action_allowed === true);
   const productionModels = data.models.filter((model) => ["production", "approved"].includes(String(model.lifecycle_status)));
   const unapprovedDeployments = data.deployments.filter((deployment) => !["approved"].includes(String(deployment.approval_status)));
-  const explainabilityScore = Number(latestScore?.explainability_score ?? Math.min(100, data.explainability.length * 30));
-  const ethicsScore = average(data.ethics, "score");
+  const explainabilityUnavailable = data.failures[0] || (latestScore?.explainability_score == null && data.failures[3]);
+  const explainabilityScore = explainabilityUnavailable ? null : latestScore?.explainability_score != null
+    ? measuredScore(latestScore.explainability_score)
+    : data.explainability.length ? Math.min(100, data.explainability.length * 30) : null;
+  const ethicsScore = data.ethics.length ? average(data.ethics, "score") : null;
   const parentBlockedRules = data.parentVisibility.filter((rule) => rule.visibility_status === "blocked").length;
 
   return (
@@ -116,26 +133,26 @@ export default async function AdminAiGovernancePage() {
           eyebrow="Responsible AI"
           title="מרכז AI Governance, DPIA ו-Privacy-by-Design"
           subtitle="AI הוא עוזר בלבד: הוא יכול להסביר, להמליץ ולתעדף, אבל לא להאשים, להעניש, לקבל החלטות משפטיות או לפעול בלי בדיקה אנושית."
-          badge={`${responsibleScore}/100`}
-          badgeTone={scoreTone(responsibleScore)}
+          badge={responsibleValue}
+          badgeTone={responsibleTone}
           actions={<><Link className="button primary" href="/dashboard/admin/ai-platform">פלטפורמת AI</Link><Link className="button secondary" href="/dashboard/admin/regulatory">רגולציה</Link></>}
         >
           <div className="setup-checklist"><span>Human review mandatory</span><span>No automatic decisions</span><span>DPIA before production</span></div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={result.error ?? (data.failures.some(Boolean) ? "חלק מנתוני ממשל ה־AI אינם זמינים כרגע" : null)} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Responsible AI" value={`${responsibleScore}/100`} tone={scoreTone(responsibleScore)} hint="ציון ממשל AI" />
-          <RoleMetricCard label="DPIA" value={`${dpiaReady}/${data.dpias.length}`} tone={dpiaReady === data.dpias.length && data.dpias.length ? "good" : "warn"} hint="בבדיקה או מאושר" />
-          <RoleMetricCard label="יכולות מוגבלות" value={restrictedCapabilities.length} tone={restrictedCapabilities.length ? "warn" : "good"} hint="כולל פנים ושמע" />
-          <RoleMetricCard label="הסברתיות" value={`${explainabilityScore}/100`} tone={scoreTone(explainabilityScore)} hint={`${data.explainability.length} רשומות`} />
-          <RoleMetricCard label="ביקורת החלטות" value={data.decisionAudit.length} tone={data.decisionAudit.length ? "good" : "warn"} hint="אין פעולה אוטומטית" />
-          <RoleMetricCard label="פעולות אוטומטיות" value={automaticActions.length} tone={automaticActions.length ? "bad" : "good"} hint="חייב להיות 0" />
+          <RoleMetricCard label="Responsible AI" value={responsibleValue} tone={responsibleTone} hint="ציון ממשל AI" />
+          <RoleMetricCard label="DPIA" value={data.failures[1] ? unavailable : `${dpiaReady}/${data.dpias.length}`} tone={data.failures[1] ? "default" : dpiaReady === data.dpias.length && data.dpias.length ? "good" : "warn"} hint="בבדיקה או מאושר" />
+          <RoleMetricCard label="יכולות מוגבלות" value={data.failures[2] ? unavailable : restrictedCapabilities.length} tone={data.failures[2] ? "default" : restrictedCapabilities.length ? "warn" : "good"} hint="כולל פנים ושמע" />
+          <RoleMetricCard label="הסברתיות" value={explainabilityUnavailable ? unavailable : scoreText(explainabilityScore)} tone={explainabilityScore == null ? "default" : scoreTone(explainabilityScore)} hint={data.failures[3] ? "רשומות לא זמינות" : `${data.explainability.length} רשומות`} />
+          <RoleMetricCard label="ביקורת החלטות" value={data.failures[4] ? unavailable : data.decisionAudit.length} tone={data.failures[4] ? "default" : data.decisionAudit.length ? "good" : "warn"} hint="אין פעולה אוטומטית" />
+          <RoleMetricCard label="פעולות אוטומטיות" value={data.failures[2] ? unavailable : automaticActions.length} tone={data.failures[2] ? "default" : automaticActions.length ? "bad" : "good"} hint="חייב להיות 0" />
         </section>
 
         <section className="camera-infra-grid">
           <CleanSection title="DPIA Management" subtitle="כל מערכת AI רגישה חייבת מטרה, סיכון, בקרות צמצום ואישור.">
-            {data.dpias.length === 0 ? <EmptyState title="אין DPIA" text="הרצת המיגרציה מוסיפה DPIA בסיסי לתצפיתן, עוזר AI ומנוע סיכון." /> : (
+            {data.failures[1] ? <EmptyState title="נתוני DPIA לא זמינים" text="לא ניתן לבדוק את הנתונים כרגע." /> : data.dpias.length === 0 ? <EmptyState title="אין DPIA" text="הרצת המיגרציה מוסיפה DPIA בסיסי לתצפיתן, עוזר AI ומנוע סיכון." /> : (
               <div className="camera-infra-list">{data.dpias.map((dpia) => (
                 <article className="camera-infra-row" key={dpia.id}>
                   <div><strong>{dpia.ai_system_name}</strong><span>{dpia.purpose} · סקירה הבאה {dateText(dpia.next_review_due_at)}</span></div>
@@ -147,19 +164,19 @@ export default async function AdminAiGovernancePage() {
           </CleanSection>
 
           <CleanSection title="AI Capability Registry" subtitle="מה מותר, מה מוגבל ומה כבוי בכל ורטיקל.">
-            <div className="camera-infra-list">{data.capabilities.slice(0, 12).map((capability) => (
+            {data.failures[2] ? <EmptyState title="מרשם היכולות לא זמין" text="לא ניתן לבדוק הגבלות ופעולות אוטומטיות כרגע." /> : <div className="camera-infra-list">{data.capabilities.slice(0, 12).map((capability) => (
               <article className="camera-infra-row" key={capability.id}>
                 <div><strong>{capability.capability_name}</strong><span>{capability.category} · {capability.notes}</span></div>
                 <StatusBadge tone={statusTone(capability.legal_status)}>{label(capability.legal_status)}</StatusBadge>
                 <StatusBadge tone={statusTone(capability.risk_classification)}>{label(capability.risk_classification)}</StatusBadge>
               </article>
-            ))}</div>
+            ))}</div>}
           </CleanSection>
         </section>
 
         <section className="camera-infra-grid">
           <CleanSection title="Human Review Enforcement" subtitle="AI output -> human review -> decision -> action. אף פעם לא פעולה אוטומטית.">
-            {data.decisionAudit.length === 0 ? <EmptyState title="אין ביקורת החלטות" text="המערכת שומרת audit לכל תוצאה רגישה שנבדקת." /> : (
+            {data.failures[4] ? <EmptyState title="ביקורת ההחלטות לא זמינה" text="לא ניתן לבדוק את הנתונים כרגע." /> : data.decisionAudit.length === 0 ? <EmptyState title="אין ביקורת החלטות" text="המערכת שומרת audit לכל תוצאה רגישה שנבדקת." /> : (
               <div className="camera-infra-list">{data.decisionAudit.slice(0, 10).map((audit) => (
                 <article className="camera-infra-row" key={audit.id}>
                   <div><strong>{audit.ai_output_type}</strong><span>{audit.decision_summary ?? "AI output awaiting review"} · {audit.final_action ?? "no action"}</span></div>
@@ -171,7 +188,7 @@ export default async function AdminAiGovernancePage() {
           </CleanSection>
 
           <CleanSection title="Explainability Framework" subtitle="כל פלט AI צריך להסביר למה, מה הביטחון, ומה האותות התומכים.">
-            {data.explainability.length === 0 ? <EmptyState title="אין רשומות הסבר" text="הרצת המיגרציה מוסיפה תבניות הסבר לפלטי סיכון וסיכומי הורים." /> : (
+            {data.failures[3] ? <EmptyState title="רשומות ההסבר לא זמינות" text="לא ניתן לבדוק את הנתונים כרגע." /> : data.explainability.length === 0 ? <EmptyState title="אין רשומות הסבר" text="הרצת המיגרציה מוסיפה תבניות הסבר לפלטי סיכון וסיכומי הורים." /> : (
               <div className="camera-infra-list">{data.explainability.slice(0, 10).map((record) => (
                 <article className="camera-infra-row" key={record.id}>
                   <div><strong>{record.output_summary}</strong><span>{record.human_readable_explanation ?? record.limitations}</span></div>
@@ -185,7 +202,7 @@ export default async function AdminAiGovernancePage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><ShieldCheck size={20} /> Privacy Impact Registry</h2>
-            {data.privacyImpact.length === 0 ? <div className="empty-mini">אין רישום סיכוני פרטיות.</div> : data.privacyImpact.map((impact) => (
+            {data.failures[5] ? <div className="empty-mini">מרשם סיכוני הפרטיות לא זמין.</div> : data.privacyImpact.length === 0 ? <div className="empty-mini">אין רישום סיכוני פרטיות.</div> : data.privacyImpact.map((impact) => (
               <div className="list-item" key={impact.id}>
                 <div><strong>{impact.privacy_risk}</strong><span>{(impact.affected_users ?? []).join(", ")} · {impact.ai_system_key}</span></div>
                 <StatusBadge tone={statusTone(impact.review_status)}>{label(impact.review_status)}</StatusBadge>
@@ -195,17 +212,17 @@ export default async function AdminAiGovernancePage() {
           <article className="card action-panel">
             <h2><Gavel size={20} /> AI Ethics Controls</h2>
             <div className="risk-list">
-              <div>Ethics score <b>{ethicsScore}/100</b></div>
-              <div>Fairness/Bias/Privacy reviews <b>{data.ethics.length}</b></div>
-              <div>Production models <b>{productionModels.length}</b></div>
-              <div>Unapproved deployments <b>{unapprovedDeployments.length}</b></div>
-              <div>Parent blocked rules <b>{parentBlockedRules}</b></div>
+              <div>Ethics score <b>{data.failures[6] ? unavailable : scoreText(ethicsScore)}</b></div>
+              <div>Fairness/Bias/Privacy reviews <b>{data.failures[6] ? unavailable : data.ethics.length}</b></div>
+              <div>Production models <b>{data.failures[7] ? unavailable : productionModels.length}</b></div>
+              <div>Unapproved deployments <b>{data.failures[8] ? unavailable : unapprovedDeployments.length}</b></div>
+              <div>Parent blocked rules <b>{data.failures[11] ? unavailable : parentBlockedRules}</b></div>
             </div>
           </article>
         </section>
 
         <CleanSection title="Digital Observer Capability Matrix" subtitle="Digital Observer Core נשאר מלא; כל ורטיקל מקבל הגבלות משלו.">
-          {data.verticalMatrix.length === 0 ? <EmptyState title="אין מטריצת ורטיקלים" text="מטריצת Phase 145 תופיע כאן אחרי הרצת המיגרציה." /> : (
+          {data.failures[10] ? <EmptyState title="מטריצת היכולות לא זמינה" text="לא ניתן לבדוק את הנתונים כרגע." /> : data.verticalMatrix.length === 0 ? <EmptyState title="אין מטריצת ורטיקלים" text="מטריצת Phase 145 תופיע כאן אחרי הרצת המיגרציה." /> : (
             <div className="premium-action-grid">{data.verticalMatrix.slice(0, 16).map((capability) => (
               <article className="premium-action-card" key={capability.id}>
                 <GitBranch size={22} />
