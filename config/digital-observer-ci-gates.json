@@ -511,6 +511,13 @@
         "--test",
         "scripts/qa/check-customer-success-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "activation-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-activation-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
