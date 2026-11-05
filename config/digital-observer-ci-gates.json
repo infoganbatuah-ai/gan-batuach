@@ -588,6 +588,13 @@
         "--test",
         "scripts/qa/check-observer-billing-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-network-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-network-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
