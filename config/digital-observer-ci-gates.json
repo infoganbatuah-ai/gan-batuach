@@ -924,6 +924,13 @@
         "--test",
         "scripts/qa/check-admin-notices-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-policies-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-policies-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
