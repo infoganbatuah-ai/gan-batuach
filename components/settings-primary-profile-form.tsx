@@ -19,12 +19,6 @@ export function SettingsPrimaryProfileForm({ profile, email, roleLabel }: { prof
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saving) return;
-    if (!photo) {
-      setMessageKind("error");
-      setMessage("יש להעלות תמונת פרופיל לפני שמירה");
-      return;
-    }
-
     const fields = new FormData(event.currentTarget);
     setSaving(true);
     setMessage("");
@@ -35,7 +29,7 @@ export function SettingsPrimaryProfileForm({ profile, email, roleLabel }: { prof
         body: JSON.stringify({
           full_name: String(fields.get("full_name") ?? "").trim(),
           phone: String(fields.get("phone") ?? "").trim(),
-          profile_image_url: photo
+          ...(photo ? { profile_image_url: photo } : {})
         })
       });
       const body = await response.json();
