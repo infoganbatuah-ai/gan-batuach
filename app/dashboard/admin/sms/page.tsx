@@ -1,6 +1,8 @@
 import { AlertTriangle, CheckCircle2, MessageSquare, RefreshCw, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
+import { AdminDataError } from "@/components/admin-data-state";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { requireRole } from "@/lib/auth";
 import { getSmsProductionReadiness } from "@/lib/domain/sms-provider";
 import { createClient } from "@/lib/supabase/server";
@@ -35,14 +37,27 @@ function pillForStatus(status: string) {
 
 export default async function AdminSmsPage() {
   await requireRole(["admin"]);
-  const supabase = await createClient();
   const readiness = getSmsProductionReadiness();
-  const [templatesRes, logsRes, optInsRes, communicationLogsRes] = await Promise.all([
-    supabase.from("sms_templates" as any).select("*").order("event_type").order("template_name").limit(100),
-    supabase.from("sms_message_logs" as any).select("*").order("created_at", { ascending: false }).limit(120),
-    supabase.from("sms_opt_ins" as any).select("id", { count: "exact", head: true }).eq("opted_in", true),
-    supabase.from("communication_logs" as any).select("id, status", { count: "exact" }).eq("channel", "sms").order("created_at", { ascending: false }).limit(200)
-  ]);
+  const unavailable = { data: null, count: null, available: false };
+  const result = await safeAdminData("admin-sms", async () => {
+    const supabase = await createClient();
+    async function readSource<T extends { data: unknown; error: unknown; count?: number | null }>(label: string, query: () => PromiseLike<T>) {
+      const source = await safeAdminData(label, async () => {
+        const response = await query();
+        logSupabaseError(label, response.error);
+        return { data: response.error ? null : response.data, count: response.error ? null : response.count, available: !response.error };
+      }, unavailable);
+      return source.data;
+    }
+    const [templatesRes, logsRes, optInsRes, communicationLogsRes] = await Promise.all([
+      readSource("admin-sms templates", () => supabase.from("sms_templates" as any).select("*").order("event_type").order("template_name").limit(100)),
+      readSource("admin-sms logs", () => supabase.from("sms_message_logs" as any).select("*").order("created_at", { ascending: false }).limit(120)),
+      readSource("admin-sms opt-ins", () => supabase.from("sms_opt_ins" as any).select("id", { count: "exact", head: true }).eq("opted_in", true)),
+      readSource("admin-sms communication logs", () => supabase.from("communication_logs" as any).select("id, status", { count: "exact" }).eq("channel", "sms").order("created_at", { ascending: false }).limit(200))
+    ]);
+    return { templatesRes, logsRes, optInsRes, communicationLogsRes };
+  }, { templatesRes: unavailable, logsRes: unavailable, optInsRes: unavailable, communicationLogsRes: unavailable });
+  const { templatesRes, logsRes, optInsRes, communicationLogsRes } = result.data;
 
   const templates = (templatesRes.data ?? []) as any[];
   const logs = (logsRes.data ?? []) as any[];
@@ -53,9 +68,6 @@ export default async function AdminSmsPage() {
   const retryScheduled = logs.filter((log) => log.next_retry_at && log.status === "failed").length;
   const activeTemplates = templates.filter((template) => template.status === "active").length;
   const draftTemplates = templates.filter((template) => template.status === "draft").length;
-
-  if (templatesRes.error) console.error("[admin-sms] templates failed", { error: templatesRes.error.message });
-  if (logsRes.error) console.error("[admin-sms] logs failed", { error: logsRes.error.message });
 
   return (
     <DashboardShell role="admin" title="SMS">
@@ -77,15 +89,16 @@ export default async function AdminSmsPage() {
       </section>
 
       <div className="grid cols-4 dashboard-kpis">
-        <StatCard label="תבניות" value={templates.length} tone="good" />
-        <StatCard label="פעילות" value={activeTemplates} tone={activeTemplates ? "good" : "warn"} />
-        <StatCard label="טיוטות" value={draftTemplates} tone={draftTemplates ? "warn" : "good"} />
-        <StatCard label="הסכמות" value={optInsRes.count ?? 0} tone={(optInsRes.count ?? 0) ? "good" : "warn"} />
-        <StatCard label="ממתין" value={queued} tone={queued ? "warn" : "good"} />
-        <StatCard label="נמסר" value={delivered} tone="good" />
-        <StatCard label="כשלונות" value={failures} tone={failures ? "bad" : "good"} />
-        <StatCard label="Retry מתוזמן" value={retryScheduled} tone={retryScheduled ? "warn" : "good"} />
+        <StatCard label="תבניות" value={templatesRes.available ? templates.length : "לא זמין"} tone={templatesRes.available ? "good" : "default"} />
+        <StatCard label="פעילות" value={templatesRes.available ? activeTemplates : "לא זמין"} tone={templatesRes.available ? activeTemplates ? "good" : "warn" : "default"} />
+        <StatCard label="טיוטות" value={templatesRes.available ? draftTemplates : "לא זמין"} tone={templatesRes.available ? draftTemplates ? "warn" : "good" : "default"} />
+        <StatCard label="הסכמות" value={optInsRes.available ? optInsRes.count ?? 0 : "לא זמין"} tone={optInsRes.available ? (optInsRes.count ?? 0) ? "good" : "warn" : "default"} />
+        <StatCard label="ממתין" value={logsRes.available ? queued : "לא זמין"} tone={logsRes.available ? queued ? "warn" : "good" : "default"} />
+        <StatCard label="נמסר" value={logsRes.available ? delivered : "לא זמין"} tone={logsRes.available ? "good" : "default"} />
+        <StatCard label="כשלונות" value={logsRes.available && communicationLogsRes.available ? failures : "לא זמין"} tone={logsRes.available && communicationLogsRes.available ? failures ? "bad" : "good" : "default"} />
+        <StatCard label="Retry מתוזמן" value={logsRes.available ? retryScheduled : "לא זמין"} tone={logsRes.available ? retryScheduled ? "warn" : "good" : "default"} />
       </div>
+      <AdminDataError message={result.error ?? (Object.values(result.data).some((source) => !source.available) ? "לא ניתן לטעון חלק מנתוני ה-SMS כרגע" : null)} />
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
@@ -106,7 +119,7 @@ export default async function AdminSmsPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>תבניות SMS</h2><p>תבניות קצרות לאימות, אישורים, תזכורות והתראות.</p></div>
-        {templates.length === 0 ? <div className="empty-state"><strong>אין תבניות להצגה</strong><span>לאחר הרצת המיגרציה תבניות הבסיס יופיעו כאן.</span></div> : <div className="procedure-list">{templates.map((template) => (
+        {!templatesRes.available ? <div className="empty-state"><strong>נתוני התבניות אינם זמינים</strong><span>לא ניתן לקבוע את מלאי התבניות כרגע.</span></div> : templates.length === 0 ? <div className="empty-state"><strong>אין תבניות להצגה</strong><span>לאחר הרצת המיגרציה תבניות הבסיס יופיעו כאן.</span></div> : <div className="procedure-list">{templates.map((template) => (
           <article className="card procedure-card" key={template.id}>
             <div>
               <span className={pillForStatus(template.status)}>{statusLabels[template.status] ?? template.status}</span>
@@ -124,7 +137,7 @@ export default async function AdminSmsPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>לוג SMS</h2><p>סטטוסי queued / sent / delivered / failed / dead letter נשמרים כאן. כרגע רק mock / dry-run.</p></div>
-        {logs.length === 0 ? <div className="empty-state"><strong>אין הודעות SMS עדיין</strong><span>כאשר תיווצר הודעת SMS במצב בדיקה, היא תופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
+        {!logsRes.available ? <div className="empty-state"><strong>נתוני לוג ה-SMS אינם זמינים</strong><span>לא ניתן לקבוע סטטוסי מסירה כרגע.</span></div> : logs.length === 0 ? <div className="empty-state"><strong>אין הודעות SMS עדיין</strong><span>כאשר תיווצר הודעת SMS במצב בדיקה, היא תופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
           <article className="card procedure-card" key={log.id}>
             <div>
               <span className={pillForStatus(log.status)}>{statusLabels[log.status] ?? log.status}</span>
