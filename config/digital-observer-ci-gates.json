@@ -553,6 +553,13 @@
         "--test",
         "scripts/qa/check-growth-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "observer-leads-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-observer-leads-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
