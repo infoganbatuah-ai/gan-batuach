@@ -77,6 +77,7 @@
     "scripts/run-persistent-home-gateway.mjs"
   ],
   "domain": [
+    { "name": "admin-notices-query-boundary", "args": ["--test", "scripts/qa/check-admin-notices-query-boundary.mjs"] },
     { "name": "uxv6-capture-admission-contract", "args": ["scripts/qa/check-uxv6-capture-admission-contract.mjs"] },
     { "name": "settings-required-photo-controls", "args": ["scripts/qa/check-settings-required-photo-controls.mjs"] },
     { "name": "management-role-dashboards", "args": ["--experimental-strip-types", "scripts/qa/check-management-role-dashboards.mjs"] },
