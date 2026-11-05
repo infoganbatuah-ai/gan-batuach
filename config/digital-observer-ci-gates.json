@@ -889,6 +889,13 @@
         "--test",
         "scripts/qa/check-admin-kindergarten-analytics-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-rating-system-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-rating-system-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
