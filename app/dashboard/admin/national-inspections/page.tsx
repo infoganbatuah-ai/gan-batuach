@@ -11,15 +11,25 @@ import { buildInspectionRiskScore, buildNationalInspectionReadiness, inspectionT
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 async function countRows(supabase: SupabaseServerClient, table: string) {
-  const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
-  logSupabaseError(`national inspection count ${table}`, error);
-  return error ? 0 : count ?? 0;
+  try {
+    const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
+    logSupabaseError(`national inspection count ${table}`, error);
+    return { count: error ? null : count ?? 0, available: !error };
+  } catch {
+    logSupabaseError(`national inspection count ${table}`, true);
+    return { count: null, available: false };
+  }
 }
 
 async function countFiltered(supabase: SupabaseServerClient, table: string, apply: (query: any) => any) {
-  const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
-  logSupabaseError(`national inspection count ${table}`, error);
-  return error ? 0 : count ?? 0;
+  try {
+    const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
+    logSupabaseError(`national inspection count ${table}`, error);
+    return { count: error ? null : count ?? 0, available: !error };
+  } catch {
+    logSupabaseError(`national inspection count ${table}`, true);
+    return { count: null, available: false };
+  }
 }
 
 function daysUntil(value?: string | null) {
@@ -49,16 +59,16 @@ export default async function NationalInspectionsPage() {
     const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
     const [
-      totalInspections,
-      completedInspections,
-      overdueInspections,
-      upcomingInspections,
-      activeInspectors,
-      unresolvedViolations,
-      unresolvedFindings,
-      activeComplaints,
-      observerRecommendations,
-      urgentRecommendations,
+      totalInspectionsRes,
+      completedInspectionsRes,
+      overdueInspectionsRes,
+      upcomingInspectionsRes,
+      activeInspectorsRes,
+      unresolvedViolationsRes,
+      unresolvedFindingsRes,
+      activeComplaintsRes,
+      observerRecommendationsRes,
+      urgentRecommendationsRes,
       inspectionsRes,
       requiredRes,
       inspectorsRes,
@@ -81,32 +91,54 @@ export default async function NationalInspectionsPage() {
       countFiltered(supabase, "complaints", (query) => query.not("status", "eq", "closed")),
       countFiltered(supabase, "observer_inspection_recommendations", (query) => query.in("status", ["new", "reviewing", "planned"])),
       countFiltered(supabase, "observer_inspection_recommendations", (query) => query.gte("risk_score", 75).in("status", ["new", "reviewing", "planned"])),
-      supabase.from("inspections" as any).select("id,garden_id,inspector_id,status,completed_at,created_at,weighted_score,violation_count,critical_failures,gps_verified,gardens(name,city),inspectors:inspector_id(full_name)").order("created_at", { ascending: false }).limit(250),
-      supabase.from("required_inspections" as any).select("id,garden_id,inspector_id,due_at,status,gardens(name,city,last_inspection_score,safe_status)").neq("status", "done").order("due_at", { ascending: true }).limit(250),
-      supabase.from("inspectors" as any).select("id,service_cities,created_at,profiles!inspectors_id_fkey(full_name,phone,email,active)").limit(250),
-      supabase.from("gardens" as any).select("id,name,city,status,safe_status,inspector_id,last_inspection_score,next_inspection_at").limit(500),
-      supabase.from("violations" as any).select("id,garden_id,title,severity,status,correction_due_at,gardens(name,city)").neq("status", "done").order("created_at", { ascending: false }).limit(250),
-      supabase.from("national_compliance_findings" as any).select("id,garden_id,title,severity,resolution_status,due_at,responsible_party,gardens(name,city)").order("created_at", { ascending: false }).limit(250),
-      supabase.from("complaints" as any).select("id,garden_id,subject,severity,status,urgent,assigned_inspector_id,created_at,gardens(name,city)").not("status", "eq", "closed").order("created_at", { ascending: false }).limit(250),
-      supabase.from("observer_inspection_recommendations" as any).select("id,garden_id,recommendation_type,risk_reason,risk_score,status,created_at,gardens(name,city)").order("risk_score", { ascending: false }).limit(100),
-      supabase.from("national_inspection_plans" as any).select("id,garden_id,inspector_id,plan_type,priority,status,scheduled_for,due_at,recommended_reason,gardens(name,city)").order("due_at", { ascending: true }).limit(120),
-      supabase.from("inspector_assignment_history" as any).select("id,inspector_id,garden_id,assignment_scope,assignment_type,city,municipality,starts_at,ends_at,active,profiles:inspector_id(full_name),gardens(name,city)").order("created_at", { ascending: false }).limit(120),
-      supabase.from("inspection_follow_up_actions" as any).select("id,garden_id,action_type,status,due_at,completed_at,gardens(name,city)").order("due_at", { ascending: true }).limit(120)
+      ...[
+        async () => supabase.from("inspections" as any).select("id,garden_id,inspector_id,status,completed_at,created_at,weighted_score,violation_count,critical_failures,gps_verified,gardens(name,city),inspectors:inspector_id(full_name)").order("created_at", { ascending: false }).limit(250),
+        async () => supabase.from("required_inspections" as any).select("id,garden_id,inspector_id,due_at,status,gardens(name,city,last_inspection_score,safe_status)").neq("status", "done").order("due_at", { ascending: true }).limit(250),
+        async () => supabase.from("inspectors" as any).select("id,service_cities,created_at,profiles!inspectors_id_fkey(full_name,phone,email,active)").limit(250),
+        async () => supabase.from("gardens" as any).select("id,name,city,status,safe_status,inspector_id,last_inspection_score,next_inspection_at").limit(500),
+        async () => supabase.from("violations" as any).select("id,garden_id,title,severity,status,correction_due_at,gardens(name,city)").neq("status", "done").order("created_at", { ascending: false }).limit(250),
+        async () => supabase.from("national_compliance_findings" as any).select("id,garden_id,title,severity,resolution_status,due_at,responsible_party,gardens(name,city)").order("created_at", { ascending: false }).limit(250),
+        async () => supabase.from("complaints" as any).select("id,garden_id,subject,severity,status,urgent,assigned_inspector_id,created_at,gardens(name,city)").not("status", "eq", "closed").order("created_at", { ascending: false }).limit(250),
+        async () => supabase.from("observer_inspection_recommendations" as any).select("id,garden_id,recommendation_type,risk_reason,risk_score,status,created_at,gardens(name,city)").order("risk_score", { ascending: false }).limit(100),
+        async () => supabase.from("national_inspection_plans" as any).select("id,garden_id,inspector_id,plan_type,priority,status,scheduled_for,due_at,recommended_reason,gardens(name,city)").order("due_at", { ascending: true }).limit(120),
+        async () => supabase.from("inspector_assignment_history" as any).select("id,inspector_id,garden_id,assignment_scope,assignment_type,city,municipality,starts_at,ends_at,active,profiles:inspector_id(full_name),gardens(name,city)").order("created_at", { ascending: false }).limit(120),
+        async () => supabase.from("inspection_follow_up_actions" as any).select("id,garden_id,action_type,status,due_at,completed_at,gardens(name,city)").order("due_at", { ascending: true }).limit(120)
+      ].map(async (query, index) => {
+        try {
+          const result = await query();
+          logSupabaseError(`national inspections query ${index}`, result.error);
+          return { data: result.error ? [] : result.data ?? [], available: !result.error };
+        } catch {
+          logSupabaseError(`national inspections query ${index}`, true);
+          return { data: [], available: false };
+        }
+      })
     ]);
 
-    [
-      inspectionsRes,
-      requiredRes,
-      inspectorsRes,
-      gardensRes,
-      violationsRes,
-      findingsRes,
-      complaintsRes,
-      recommendationsRes,
-      plansRes,
-      assignmentsRes,
-      followUpsRes
-    ].forEach((query, index) => logSupabaseError(`national inspections query ${index}`, (query as any).error));
+    // Placeholders are confined to unchanged pure arithmetic. Rendering and
+    // conditional fallback eligibility use the independent availability flags.
+    const totalInspections = totalInspectionsRes.count ?? 0;
+    const completedInspections = completedInspectionsRes.count ?? 0;
+    const overdueInspections = overdueInspectionsRes.count ?? 0;
+    const upcomingInspections = upcomingInspectionsRes.count ?? 0;
+    const activeInspectors = activeInspectorsRes.count ?? 0;
+    const unresolvedViolations = unresolvedViolationsRes.count ?? 0;
+    const unresolvedFindings = unresolvedFindingsRes.count ?? 0;
+    const activeComplaints = activeComplaintsRes.count ?? 0;
+    const observerRecommendations = observerRecommendationsRes.count ?? 0;
+    const urgentRecommendations = urgentRecommendationsRes.count ?? 0;
+    const resolvedFindingsAvailable = unresolvedFindingsRes.available && (unresolvedFindings !== 0 || unresolvedViolationsRes.available);
+    const availability = {
+      totalInspections: totalInspectionsRes.available, completedInspections: completedInspectionsRes.available,
+      overdueInspections: overdueInspectionsRes.available, upcomingInspections: upcomingInspectionsRes.available,
+      activeInspectors: activeInspectorsRes.available, unresolvedViolations: unresolvedViolationsRes.available,
+      unresolvedFindings: unresolvedFindingsRes.available, activeComplaints: activeComplaintsRes.available,
+      observerRecommendations: observerRecommendationsRes.available, urgentRecommendations: urgentRecommendationsRes.available,
+      inspections: inspectionsRes.available, required: requiredRes.available, inspectors: inspectorsRes.available,
+      gardens: gardensRes.available, violations: violationsRes.available, findings: findingsRes.available,
+      complaints: complaintsRes.available, recommendations: recommendationsRes.available, plans: plansRes.available,
+      assignments: assignmentsRes.available, followUps: followUpsRes.available, resolvedFindings: resolvedFindingsAvailable
+    };
 
     const inspections = (inspectionsRes.data ?? []) as any[];
     const required = (requiredRes.data ?? []) as any[];
@@ -125,16 +157,17 @@ export default async function NationalInspectionsPage() {
     const gardensByInspector = groupBy(gardens.filter((garden) => garden.inspector_id), "inspector_id");
     const inspectorWorkload = inspectors.map((inspector) => {
       const profile = Array.isArray(inspector.profiles) ? inspector.profiles[0] : inspector.profiles;
-      const assigned = gardensByInspector[inspector.id]?.length ?? 0;
-      const open = requiredByInspector[inspector.id]?.length ?? 0;
-      const overdue = (requiredByInspector[inspector.id] ?? []).filter((item) => daysUntil(item.due_at) !== null && Number(daysUntil(item.due_at)) < 0).length;
-      const completed = completedByInspector[inspector.id]?.length ?? 0;
-      const averageScore = avg((completedByInspector[inspector.id] ?? []).map((item) => Number(item.weighted_score ?? 0)).filter(Boolean));
+      const assigned = availability.gardens ? gardensByInspector[inspector.id]?.length ?? 0 : null;
+      const open = availability.required ? requiredByInspector[inspector.id]?.length ?? 0 : null;
+      const overdue = availability.required ? (requiredByInspector[inspector.id] ?? []).filter((item) => daysUntil(item.due_at) !== null && Number(daysUntil(item.due_at)) < 0).length : null;
+      const completed = availability.inspections ? completedByInspector[inspector.id]?.length ?? 0 : null;
+      const averageScore = availability.inspections ? avg((completedByInspector[inspector.id] ?? []).map((item) => Number(item.weighted_score ?? 0)).filter(Boolean)) : null;
       return { id: inspector.id, name: profile?.full_name ?? "מפקח", active: profile?.active !== false, assigned, open, overdue, completed, averageScore, cities: inspector.service_cities };
     });
-    const overloadedInspectors = inspectorWorkload.filter((item) => item.open >= 12 || item.overdue >= 3).length;
+    const overloadedInspectors = availability.required && availability.inspectors ? inspectorWorkload.filter((item) => Number(item.open) >= 12 || Number(item.overdue) >= 3).length : null;
+    const riskAvailable = availability.gardens && availability.required && availability.violations && availability.findings && availability.complaints && availability.recommendations;
 
-    const gardenRisk = gardens.map((garden) => {
+    const gardenRisk = riskAvailable ? gardens.map((garden) => {
       const gardenViolations = violations.filter((item) => item.garden_id === garden.id);
       const gardenFindings = findings.filter((item) => item.garden_id === garden.id);
       const gardenComplaints = complaints.filter((item) => item.garden_id === garden.id);
@@ -150,9 +183,9 @@ export default async function NationalInspectionsPage() {
         complianceScore: garden.last_inspection_score
       });
       return { ...garden, riskScore, complaints: gardenComplaints.length, findings: gardenViolations.length + gardenFindings.length, observer: gardenObserver.length, overdue };
-    }).sort((a, b) => b.riskScore - a.riskScore);
+    }).sort((a, b) => b.riskScore - a.riskScore) : [];
 
-    const regionRows = Object.entries(groupBy(gardens, "city")).map(([city, cityGardens]) => {
+    const regionRows = riskAvailable ? Object.entries(groupBy(gardens, "city")).map(([city, cityGardens]) => {
       const ids = new Set(cityGardens.map((garden) => garden.id));
       const cityRequired = required.filter((item) => ids.has(item.garden_id));
       const cityFindings = [...violations, ...findings].filter((item) => ids.has(item.garden_id));
@@ -176,7 +209,7 @@ export default async function NationalInspectionsPage() {
           complianceScore: avg(cityGardens.map((garden) => Number(garden.last_inspection_score ?? 0)).filter(Boolean))
         })
       };
-    }).sort((a, b) => b.riskScore - a.riskScore);
+    }).sort((a, b) => b.riskScore - a.riskScore) : [];
 
     const readiness = buildNationalInspectionReadiness({
       totalInspections,
@@ -184,7 +217,7 @@ export default async function NationalInspectionsPage() {
       overdueInspections,
       unresolvedFindings: unresolvedFindings || unresolvedViolations,
       activeInspectors,
-      overloadedInspectors,
+      overloadedInspectors: overloadedInspectors ?? 0,
       urgentRecommendations
     });
 
@@ -214,7 +247,8 @@ export default async function NationalInspectionsPage() {
       gardenRisk,
       regionRows,
       readiness,
-      queryError: [inspectionsRes.error, requiredRes.error, inspectorsRes.error, gardensRes.error].some(Boolean) ? "חלק מנתוני רשת הפיקוח לא נטענו" : null
+      availability,
+      queryError: Object.values(availability).some((available) => !available) ? "חלק מנתוני רשת הפיקוח לא נטענו" : null
     };
   }, {
     totalInspections: 0,
@@ -242,11 +276,19 @@ export default async function NationalInspectionsPage() {
     gardenRisk: [] as any[],
     regionRows: [] as any[],
     readiness: buildNationalInspectionReadiness({ totalInspections: 0, completedInspections: 0, overdueInspections: 0, unresolvedFindings: 0, activeInspectors: 0, overloadedInspectors: 0, urgentRecommendations: 0 }),
+    availability: { totalInspections: false, completedInspections: false, overdueInspections: false, upcomingInspections: false, activeInspectors: false, unresolvedViolations: false, unresolvedFindings: false, activeComplaints: false, observerRecommendations: false, urgentRecommendations: false, inspections: false, required: false, inspectors: false, gardens: false, violations: false, findings: false, complaints: false, recommendations: false, plans: false, assignments: false, followUps: false, resolvedFindings: false },
     queryError: null as string | null
   });
 
   const data = result.data;
   const readiness = data.readiness;
+  const available = data.availability;
+  const unavailable = "לא זמין";
+  const completionAvailable = available.totalInspections && available.completedInspections;
+  const overloadedAvailable = available.required && available.inspectors;
+  const workloadAvailable = available.activeInspectors && overloadedAvailable;
+  const readinessAvailable = completionAvailable && available.overdueInspections && available.resolvedFindings && workloadAvailable && available.urgentRecommendations;
+  const riskAvailable = available.gardens && available.required && available.violations && available.findings && available.complaints && available.recommendations;
 
   return (
     <DashboardShell role="admin" title="National Inspections">
@@ -255,8 +297,8 @@ export default async function NationalInspectionsPage() {
           eyebrow="National Inspection Network"
           title="רשת פיקוח ארצית"
           subtitle="מבט ארצי על פיקוחים, מפקחים, ליקויים, תלונות, תצפיתן וסיכוני ציות לפי גן ואזור."
-          badge={`${readiness.readinessScore}/100`}
-          badgeTone={readiness.tone}
+          badge={readinessAvailable ? `${readiness.readinessScore}/100` : unavailable}
+          badgeTone={readinessAvailable ? readiness.tone : "default"}
           actions={<><Link className="button primary" href="/dashboard/admin/inspectors">מפקחים</Link><Link className="button secondary" href="/dashboard/admin/inspection-forms">טפסים</Link></>}
         >
           <div className="setup-checklist">
@@ -268,37 +310,37 @@ export default async function NationalInspectionsPage() {
         <AdminDataError message={result.error ?? data.queryError} />
 
         <section className="grid cols-4 dashboard-kpis">
-          <RoleMetricCard label="ביקורות" value={data.totalInspections} hint={`${data.completedInspections} הושלמו החודש`} tone="good" />
-          <RoleMetricCard label="באיחור" value={data.overdueInspections} hint="דורש טיפול" tone={data.overdueInspections ? "bad" : "good"} href="/dashboard/admin/inspections/late" />
-          <RoleMetricCard label="קרובות" value={data.upcomingInspections} hint="30 ימים" tone={data.upcomingInspections ? "warn" : "good"} href="/dashboard/admin/inspections/due" />
-          <RoleMetricCard label="מפקחים פעילים" value={data.activeInspectors} hint={`${data.overloadedInspectors} בעומס`} tone={data.overloadedInspectors ? "warn" : "good"} href="/dashboard/admin/inspectors" />
-          <RoleMetricCard label="השלמה" value={`${readiness.completionRate}%`} hint="חודש נוכחי" tone={inspectionTone(readiness.completionRate)} />
-          <RoleMetricCard label="ליקויים פתוחים" value={data.unresolvedFindings} hint="ציות ותיקונים" tone={data.unresolvedFindings ? "warn" : "good"} />
-          <RoleMetricCard label="תלונות פעילות" value={data.activeComplaints} hint="כולל הסלמה לפיקוח" tone={data.activeComplaints ? "warn" : "good"} href="/dashboard/admin/complaints" />
-          <RoleMetricCard label="המלצות תצפיתן" value={data.observerRecommendations} hint={`${data.urgentRecommendations} דחופות`} tone={data.urgentRecommendations ? "bad" : data.observerRecommendations ? "warn" : "good"} href="/dashboard/admin/ai-events" />
+          <RoleMetricCard label="ביקורות" value={available.totalInspections ? data.totalInspections : unavailable} hint={available.completedInspections ? `${data.completedInspections} הושלמו החודש` : unavailable} tone={completionAvailable ? "good" : "default"} />
+          <RoleMetricCard label="באיחור" value={available.overdueInspections ? data.overdueInspections : unavailable} hint="דורש טיפול" tone={available.overdueInspections ? data.overdueInspections ? "bad" : "good" : "default"} href="/dashboard/admin/inspections/late" />
+          <RoleMetricCard label="קרובות" value={available.upcomingInspections ? data.upcomingInspections : unavailable} hint="30 ימים" tone={available.upcomingInspections ? data.upcomingInspections ? "warn" : "good" : "default"} href="/dashboard/admin/inspections/due" />
+          <RoleMetricCard label="מפקחים פעילים" value={available.activeInspectors ? data.activeInspectors : unavailable} hint={overloadedAvailable ? `${data.overloadedInspectors} בעומס` : unavailable} tone={workloadAvailable ? data.overloadedInspectors ? "warn" : "good" : "default"} href="/dashboard/admin/inspectors" />
+          <RoleMetricCard label="השלמה" value={completionAvailable ? `${readiness.completionRate}%` : unavailable} hint="חודש נוכחי" tone={completionAvailable ? inspectionTone(readiness.completionRate) : "default"} />
+          <RoleMetricCard label="ליקויים פתוחים" value={available.resolvedFindings ? data.unresolvedFindings : unavailable} hint="ציות ותיקונים" tone={available.resolvedFindings ? data.unresolvedFindings ? "warn" : "good" : "default"} />
+          <RoleMetricCard label="תלונות פעילות" value={available.activeComplaints ? data.activeComplaints : unavailable} hint="כולל הסלמה לפיקוח" tone={available.activeComplaints ? data.activeComplaints ? "warn" : "good" : "default"} href="/dashboard/admin/complaints" />
+          <RoleMetricCard label="המלצות תצפיתן" value={available.observerRecommendations ? data.observerRecommendations : unavailable} hint={available.urgentRecommendations ? `${data.urgentRecommendations} דחופות` : unavailable} tone={available.observerRecommendations && available.urgentRecommendations ? data.urgentRecommendations ? "bad" : data.observerRecommendations ? "warn" : "good" : "default"} href="/dashboard/admin/ai-events" />
         </section>
 
         <section className="national-inspection-score-grid">
-          <article><ClipboardCheck /><span>השלמת פיקוחים</span><strong>{readiness.completionRate}%</strong></article>
-          <article><CalendarDays /><span>עמידה בזמנים</span><strong>{readiness.overdueScore}%</strong></article>
-          <article><FileWarning /><span>סגירת ליקויים</span><strong>{readiness.findingsScore}%</strong></article>
-          <article><UsersRound /><span>עומס מפקחים</span><strong>{readiness.workloadScore}%</strong></article>
-          <article><Radar /><span>תצפיתן לפיקוח</span><strong>{readiness.observerScore}%</strong></article>
+          <article><ClipboardCheck /><span>השלמת פיקוחים</span><strong>{completionAvailable ? `${readiness.completionRate}%` : unavailable}</strong></article>
+          <article><CalendarDays /><span>עמידה בזמנים</span><strong>{available.overdueInspections ? `${readiness.overdueScore}%` : unavailable}</strong></article>
+          <article><FileWarning /><span>סגירת ליקויים</span><strong>{available.resolvedFindings ? `${readiness.findingsScore}%` : unavailable}</strong></article>
+          <article><UsersRound /><span>עומס מפקחים</span><strong>{workloadAvailable ? `${readiness.workloadScore}%` : unavailable}</strong></article>
+          <article><Radar /><span>תצפיתן לפיקוח</span><strong>{available.urgentRecommendations ? `${readiness.observerScore}%` : unavailable}</strong></article>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><UsersRound size={20} /> עומס מפקחים</h2>
-            {data.inspectorWorkload.length === 0 ? <div className="empty-mini">אין מפקחים להצגה.</div> : data.inspectorWorkload.slice(0, 8).map((inspector: any) => (
+            {!available.inspectors ? <div className="empty-mini">{unavailable}</div> : data.inspectorWorkload.length === 0 ? <div className="empty-mini">אין מפקחים להצגה.</div> : data.inspectorWorkload.slice(0, 8).map((inspector: any) => (
               <div className="list-item" key={inspector.id}>
-                <div><strong>{inspector.name}</strong><span>{inspector.assigned} גנים · {inspector.open} פתוחות · {inspector.completed} הושלמו</span></div>
-                <StatusBadge tone={inspector.overdue ? "bad" : inspector.open >= 12 ? "warn" : "good"}>{inspector.overdue} באיחור</StatusBadge>
+                <div><strong>{inspector.name}</strong><span>{available.gardens ? inspector.assigned : unavailable} גנים · {available.required ? inspector.open : unavailable} פתוחות · {available.inspections ? inspector.completed : unavailable} הושלמו</span></div>
+                <StatusBadge tone={available.required ? inspector.overdue ? "bad" : inspector.open >= 12 ? "warn" : "good" : "default"}>{available.required ? inspector.overdue : unavailable} באיחור</StatusBadge>
               </div>
             ))}
           </article>
           <article className="card action-panel">
             <h2><MapPinned size={20} /> סיכון לפי עיר</h2>
-            {data.regionRows.length === 0 ? <div className="empty-mini">אין אזורים להצגה.</div> : data.regionRows.slice(0, 8).map((region: any) => (
+            {!riskAvailable ? <div className="empty-mini">{unavailable}</div> : data.regionRows.length === 0 ? <div className="empty-mini">אין אזורים להצגה.</div> : data.regionRows.slice(0, 8).map((region: any) => (
               <div className="list-item" key={region.city}>
                 <div><strong>{region.city}</strong><span>{region.gardens} גנים · {region.findings} ליקויים · {region.complaints} תלונות</span></div>
                 <StatusBadge tone={inspectionTone(100 - region.riskScore)}>סיכון {region.riskScore}</StatusBadge>
@@ -308,7 +350,7 @@ export default async function NationalInspectionsPage() {
         </section>
 
         <CleanSection title="גנים בסיכון גבוה" subtitle="מיון לפי תלונות, ליקויים, איחורי פיקוח, התראות תצפיתן וציון ציות.">
-          {data.gardenRisk.length === 0 ? <EmptyState title="אין גנים להצגה" text="כאשר יהיו נתוני פיקוח, יופיע דירוג סיכון ארצי." /> : (
+          {!riskAvailable ? <div className="empty-mini">{unavailable}</div> : data.gardenRisk.length === 0 ? <EmptyState title="אין גנים להצגה" text="כאשר יהיו נתוני פיקוח, יופיע דירוג סיכון ארצי." /> : (
             <div className="national-inspection-table">
               <div className="national-inspection-head"><span>גן</span><span>עיר</span><span>ליקויים</span><span>תלונות</span><span>תצפיתן</span><span>סיכון</span></div>
               {data.gardenRisk.slice(0, 12).map((garden: any) => (
@@ -328,7 +370,7 @@ export default async function NationalInspectionsPage() {
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <h2><CalendarDays size={20} /> תכנון פיקוחים</h2>
-            {data.plans.length === 0 ? <div className="empty-mini">אין תוכניות פיקוח לאומיות עדיין.</div> : data.plans.slice(0, 8).map((plan: any) => (
+            {!available.plans ? <div className="empty-mini">{unavailable}</div> : data.plans.length === 0 ? <div className="empty-mini">אין תוכניות פיקוח לאומיות עדיין.</div> : data.plans.slice(0, 8).map((plan: any) => (
               <div className="list-item" key={plan.id}>
                 <div><strong>{plan.gardens?.name ?? "גן"}</strong><span>{plan.plan_type} · {plan.priority} · {plan.due_at ? new Date(plan.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}</span></div>
                 <StatusBadge tone={inspectionTone(plan.priority)}>{plan.status}</StatusBadge>
@@ -337,7 +379,7 @@ export default async function NationalInspectionsPage() {
           </article>
           <article className="card action-panel">
             <h2><Radar size={20} /> המלצות תצפיתן לפיקוח</h2>
-            {data.recommendations.length === 0 ? <div className="empty-mini">אין המלצות תצפיתן פתוחות.</div> : data.recommendations.slice(0, 8).map((item: any) => (
+            {!available.recommendations ? <div className="empty-mini">{unavailable}</div> : data.recommendations.length === 0 ? <div className="empty-mini">אין המלצות תצפיתן פתוחות.</div> : data.recommendations.slice(0, 8).map((item: any) => (
               <div className="list-item" key={item.id}>
                 <div><strong>{item.gardens?.name ?? "גן"}</strong><span>{item.risk_reason}</span></div>
                 <StatusBadge tone={inspectionTone(100 - Number(item.risk_score ?? 0))}>{item.risk_score}/100</StatusBadge>
@@ -349,21 +391,21 @@ export default async function NationalInspectionsPage() {
         <section className="grid cols-3 dashboard-panels">
           <article className="card action-panel">
             <h2><Route size={20} /> Assignment engine</h2>
-            <p>{data.assignments.length} רשומות שיוך: גן, עיר, רשות, אזור, זמני וגיבוי. השיוך הקיים בגן נשמר כמקור אמת תפעולי.</p>
+            <p>{available.assignments ? data.assignments.length : unavailable} רשומות שיוך: גן, עיר, רשות, אזור, זמני וגיבוי. השיוך הקיים בגן נשמר כמקור אמת תפעולי.</p>
           </article>
           <article className="card action-panel">
             <h2><ShieldCheck size={20} /> Follow-up workflow</h2>
-            <p>{data.followUps.length} פעולות המשך: בקשת תיקון, ביקורת אימות וסגירת ממצא.</p>
+            <p>{available.followUps ? data.followUps.length : unavailable} פעולות המשך: בקשת תיקון, ביקורת אימות וסגירת ממצא.</p>
           </article>
           <article className="card action-panel">
             <h2><AlertTriangle size={20} /> Complaint escalation</h2>
-            <p>{data.activeComplaints} תלונות פעילות יכולות להפוך לביקורת תלונה, בקשת מידע או הסלמה דחופה.</p>
+            <p>{available.activeComplaints ? data.activeComplaints : unavailable} תלונות פעילות יכולות להפוך לביקורת תלונה, בקשת מידע או הסלמה דחופה.</p>
           </article>
         </section>
 
         <section className="quick-actions-grid">
           <ActionCard title="ביקורות" text="כל הביקורות והדוחות" href="/dashboard/admin/inspections" icon={ClipboardCheck} />
-          <ActionCard title="ביקורות באיחור" text="מעקב SLA" href="/dashboard/admin/inspections/late" icon={CalendarDays} tone={data.overdueInspections ? "bad" : "good"} />
+          <ActionCard title="ביקורות באיחור" text="מעקב SLA" href="/dashboard/admin/inspections/late" icon={CalendarDays} tone={available.overdueInspections ? data.overdueInspections ? "bad" : "good" : "default"} />
           <ActionCard title="מפקחים" text="שיוך, עומס וביצועים" href="/dashboard/admin/inspectors" icon={UsersRound} />
           <ActionCard title="תלונות" text="הסלמה לפיקוח" href="/dashboard/admin/complaints" icon={AlertTriangle} />
           <ActionCard title="תצפיתן" text="המלצות לביקורת" href="/dashboard/admin/observer-calibration" icon={Radar} />

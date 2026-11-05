@@ -672,6 +672,13 @@
         "--test",
         "scripts/qa/check-compliance-center-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "national-inspections-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-national-inspections-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
