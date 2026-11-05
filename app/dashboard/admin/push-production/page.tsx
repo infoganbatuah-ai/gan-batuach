@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { getPushProductionReadiness } from "@/lib/domain/push-provider";
 import { maskDeviceToken } from "@/lib/domain/push-service";
 import { createClient } from "@/lib/supabase/server";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 
 const categoryLabels: Record<string, string> = {
   registration: "רישום",
@@ -42,21 +43,35 @@ function pillForStatus(status: string) {
   return "pill warn";
 }
 
+async function safeQuery<T>(label: string, query: () => PromiseLike<{ data: T | null; error: unknown; count?: number | null }>) {
+  const fallback = { data: null as T | null, count: null as number | null, available: false };
+  const result = await safeAdminData(label, async () => {
+    const response = await query();
+    if (response.error) {
+      logSupabaseError(label, response.error);
+      throw new Error("Push query unavailable");
+    }
+    return { data: response.data, count: response.count ?? null, available: true };
+  }, fallback);
+  return result.data;
+}
+
 export default async function AdminPushProductionPage() {
   await requireRole(["admin"]);
-  const supabase = await createClient();
   const readiness = getPushProductionReadiness();
-  const [templatesRes, logsRes, devicesRes, preferencesRes, providersRes] = await Promise.all([
-    supabase.from("push_templates" as any).select("*").order("category").order("template_name").limit(120),
-    supabase.from("push_notification_logs" as any).select("*").order("created_at", { ascending: false }).limit(160),
-    supabase.from("push_device_tokens" as any).select("*").order("last_seen_at", { ascending: false }).limit(200),
-    supabase.from("push_category_preferences" as any).select("id", { count: "exact", head: true }),
-    supabase.from("push_provider_configs" as any).select("*").order("provider")
-  ]);
-
-  if (templatesRes.error) console.error("[admin-push-production] templates failed", { error: templatesRes.error.message });
-  if (logsRes.error) console.error("[admin-push-production] logs failed", { error: logsRes.error.message });
-  if (devicesRes.error) console.error("[admin-push-production] devices failed", { error: devicesRes.error.message });
+  const unavailable = { data: null, count: null, available: false };
+  const result = await safeAdminData("admin-push-production", async () => {
+    const supabase = await createClient();
+    const [templatesRes, logsRes, devicesRes, preferencesRes, providersRes] = await Promise.all([
+      safeQuery("admin-push-production-templates", () => supabase.from("push_templates" as any).select("*").order("category").order("template_name").limit(120)),
+      safeQuery("admin-push-production-logs", () => supabase.from("push_notification_logs" as any).select("*").order("created_at", { ascending: false }).limit(160)),
+      safeQuery("admin-push-production-devices", () => supabase.from("push_device_tokens" as any).select("*").order("last_seen_at", { ascending: false }).limit(200)),
+      safeQuery("admin-push-production-preferences", () => supabase.from("push_category_preferences" as any).select("id", { count: "exact", head: true })),
+      safeQuery("admin-push-production-providers", () => supabase.from("push_provider_configs" as any).select("*").order("provider"))
+    ]);
+    return { templatesRes, logsRes, devicesRes, preferencesRes, providersRes };
+  }, { templatesRes: unavailable, logsRes: unavailable, devicesRes: unavailable, preferencesRes: unavailable, providersRes: unavailable });
+  const { templatesRes, logsRes, devicesRes, preferencesRes, providersRes } = result.data;
 
   const templates = (templatesRes.data ?? []) as any[];
   const logs = (logsRes.data ?? []) as any[];
@@ -82,6 +97,10 @@ export default async function AdminPushProductionPage() {
         <span className={readiness.realSendEnabled ? "pill good" : "pill warn"}><Bell size={16} /> {readiness.realSendEnabled ? "Real send enabled" : "Mock / dry-run בלבד"}</span>
       </div>
 
+      {(result.error || !templatesRes.available || !logsRes.available || !devicesRes.available || !preferencesRes.available || !providersRes.available) && (
+        <div className="status-banner" role="alert">חלק מהנתונים אינם זמינים כרגע. הנתונים שהתקבלו מוצגים בנפרד.</div>
+      )}
+
       <section className="status-banner sms-readiness-banner">
         <div>
           <strong>{readiness.summary}</strong>
@@ -91,14 +110,14 @@ export default async function AdminPushProductionPage() {
       </section>
 
       <div className="grid cols-4 dashboard-kpis">
-        <StatCard label="תבניות" value={templates.length} tone={templates.length ? "good" : "warn"} />
-        <StatCard label="תבניות פעילות" value={activeTemplates} tone={activeTemplates ? "good" : "warn"} />
-        <StatCard label="מכשירים פעילים" value={activeDevices} tone={activeDevices ? "good" : "warn"} />
-        <StatCard label="מכשירים כבויים" value={disabledDevices} tone={disabledDevices ? "warn" : "good"} />
-        <StatCard label="ממתין" value={queued} tone={queued ? "warn" : "good"} />
-        <StatCard label="נמסר / בדיקה" value={delivered} tone="good" />
-        <StatCard label="נפתח" value={opened} tone="good" />
-        <StatCard label="כשלונות" value={failed} tone={failed ? "bad" : "good"} />
+        <StatCard label="תבניות" value={templatesRes.available ? templates.length : "לא זמין"} tone={!templatesRes.available ? "warn" : templates.length ? "good" : "warn"} />
+        <StatCard label="תבניות פעילות" value={templatesRes.available ? activeTemplates : "לא זמין"} tone={!templatesRes.available ? "warn" : activeTemplates ? "good" : "warn"} />
+        <StatCard label="מכשירים פעילים" value={devicesRes.available ? activeDevices : "לא זמין"} tone={!devicesRes.available ? "warn" : activeDevices ? "good" : "warn"} />
+        <StatCard label="מכשירים כבויים" value={devicesRes.available ? disabledDevices : "לא זמין"} tone={!devicesRes.available ? "warn" : disabledDevices ? "warn" : "good"} />
+        <StatCard label="ממתין" value={logsRes.available ? queued : "לא זמין"} tone={!logsRes.available ? "warn" : queued ? "warn" : "good"} />
+        <StatCard label="נמסר / בדיקה" value={logsRes.available ? delivered : "לא זמין"} tone={logsRes.available ? "good" : "warn"} />
+        <StatCard label="נפתח" value={logsRes.available ? opened : "לא זמין"} tone={logsRes.available ? "good" : "warn"} />
+        <StatCard label="כשלונות" value={logsRes.available ? failed : "לא זמין"} tone={!logsRes.available ? "warn" : failed ? "bad" : "good"} />
       </div>
 
       <section className="grid cols-2 dashboard-panels">
@@ -123,7 +142,7 @@ export default async function AdminPushProductionPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>תבניות Push</h2><p>קטגוריות ותוכן קצר להתראות Web, Android ו-iOS.</p></div>
-        {templates.length === 0 ? <div className="empty-state"><strong>אין תבניות Push להצגה</strong><span>לאחר הרצת המיגרציה תבניות הבסיס יופיעו כאן.</span></div> : <div className="procedure-list">{templates.map((template) => (
+        {!templatesRes.available ? <div className="empty-state" role="status"><strong>נתוני התבניות אינם זמינים</strong></div> : templates.length === 0 ? <div className="empty-state"><strong>אין תבניות Push להצגה</strong><span>לאחר הרצת המיגרציה תבניות הבסיס יופיעו כאן.</span></div> : <div className="procedure-list">{templates.map((template) => (
           <article className="card procedure-card" key={template.id}>
             <div>
               <span className={pillForStatus(template.status)}>{statusLabels[template.status] ?? template.status}</span>
@@ -143,7 +162,7 @@ export default async function AdminPushProductionPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><Smartphone size={20} /> מכשירים</h2><p>טוקנים מוצגים חלקית בלבד.</p></div>
           <div className="procedure-list compact-list">
-            {devices.length ? devices.slice(0, 8).map((device) => (
+            {!devicesRes.available ? <div className="empty-state" role="status"><strong>נתוני המכשירים אינם זמינים</strong></div> : devices.length ? devices.slice(0, 8).map((device) => (
               <div className="mini-row" key={device.id}>
                 <span>{device.platform} · {device.role}</span>
                 <strong>{maskDeviceToken(device.device_token)}</strong>
@@ -155,9 +174,9 @@ export default async function AdminPushProductionPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2><RefreshCw size={20} /> Retry והעדפות</h2><p>מוכנות לכשלונות, העדפות קטגוריה ו-dead letter.</p></div>
           <div className="risk-list">
-            <div><CheckCircle2 /> העדפות קטגוריה <b>{preferencesRes.count ?? 0}</b></div>
-            <div><RefreshCw /> Retry מתוזמן <b>{retryScheduled}</b></div>
-            <div><CheckCircle2 /> ספקים במסד <b>{providers.length}</b></div>
+            <div>{preferencesRes.available ? <CheckCircle2 /> : <TriangleAlert />} העדפות קטגוריה <b>{preferencesRes.available ? preferencesRes.count ?? 0 : "לא זמין"}</b></div>
+            <div><RefreshCw /> Retry מתוזמן <b>{logsRes.available ? retryScheduled : "לא זמין"}</b></div>
+            <div>{providersRes.available ? <CheckCircle2 /> : <TriangleAlert />} ספקים במסד <b>{providersRes.available ? providers.length : "לא זמין"}</b></div>
             <div>{readiness.realSendEnabled ? <CheckCircle2 /> : <TriangleAlert />} שליחה אמיתית <b>{readiness.realSendEnabled ? "פעילה" : "כבויה"}</b></div>
           </div>
         </article>
@@ -165,7 +184,7 @@ export default async function AdminPushProductionPage() {
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>לוג Push</h2><p>queued / sent / delivered / opened / failed נשמרים כאן, בהתאם למצב הספק הפעיל.</p></div>
-        {logs.length === 0 ? <div className="empty-state"><strong>אין לוגים עדיין</strong><span>כאשר התראה תכין Push, הלוג יופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
+        {!logsRes.available ? <div className="empty-state" role="status"><strong>נתוני הלוג אינם זמינים</strong></div> : logs.length === 0 ? <div className="empty-state"><strong>אין לוגים עדיין</strong><span>כאשר התראה תכין Push, הלוג יופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
           <article className="card procedure-card" key={log.id}>
             <div>
               <span className={pillForStatus(log.status)}>{statusLabels[log.status] ?? log.status}</span>

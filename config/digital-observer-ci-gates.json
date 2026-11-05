@@ -462,6 +462,13 @@
         "--test",
         "scripts/qa/check-admin-communications-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "admin-push-production-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-push-production-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
