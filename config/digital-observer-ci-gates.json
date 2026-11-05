@@ -735,6 +735,13 @@
         "--test",
         "scripts/qa/check-security-review-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "iso-certification-handoff-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-iso-certification-handoff-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

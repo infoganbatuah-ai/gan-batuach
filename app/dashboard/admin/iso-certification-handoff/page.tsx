@@ -14,10 +14,10 @@ async function safeQuery<T>(label: string, run: () => any) {
   try {
     const result = (await run()) as { data: T[] | null; error: any };
     logSupabaseError(label, result.error);
-    return result.error ? [] : result.data ?? [];
+    return { data: result.error ? [] as T[] : result.data ?? [], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
-    return [];
+    return { data: [] as T[], available: false };
   }
 }
 
@@ -79,8 +79,29 @@ export default async function IsoCertificationHandoffPage() {
       safeQuery<Row>("iso certification claim guardrails", () => supabase.from("iso_certification_claim_guardrails" as any).select("*").order("guardrail_key").limit(30)),
       safeQuery<Row>("iso public copy audit items", () => supabase.from("iso_public_copy_audit_items" as any).select("*").order("risk_type").limit(40))
     ]);
-    return { scores, scopes, stages, packages, binder, soa, risks, treatments, audits, reviews, policies, procedures, reviewerModes, checklists, gaps, timeline, actions, bodies, estimates, guardrails, copyAudit };
+    return {
+      scores: scores.data, scopes: scopes.data, stages: stages.data, packages: packages.data,
+      binder: binder.data, soa: soa.data, risks: risks.data, treatments: treatments.data,
+      audits: audits.data, reviews: reviews.data, policies: policies.data, procedures: procedures.data,
+      reviewerModes: reviewerModes.data, checklists: checklists.data, gaps: gaps.data,
+      timeline: timeline.data, actions: actions.data, bodies: bodies.data, estimates: estimates.data,
+      guardrails: guardrails.data, copyAudit: copyAudit.data,
+      available: {
+        scores: scores.available, scopes: scopes.available, stages: stages.available, packages: packages.available,
+        binder: binder.available, soa: soa.available, risks: risks.available, treatments: treatments.available,
+        audits: audits.available, reviews: reviews.available, policies: policies.available, procedures: procedures.available,
+        reviewerModes: reviewerModes.available, checklists: checklists.available, gaps: gaps.available,
+        timeline: timeline.available, actions: actions.available, bodies: bodies.available, estimates: estimates.available,
+        guardrails: guardrails.available, copyAudit: copyAudit.available
+      }
+    };
   }, {
+    available: {
+      scores: false, scopes: false, stages: false, packages: false, binder: false, soa: false,
+      risks: false, treatments: false, audits: false, reviews: false, policies: false, procedures: false,
+      reviewerModes: false, checklists: false, gaps: false, timeline: false, actions: false,
+      bodies: false, estimates: false, guardrails: false, copyAudit: false
+    },
     scores: [] as Row[],
     scopes: [] as Row[],
     stages: [] as Row[],
@@ -105,6 +126,9 @@ export default async function IsoCertificationHandoffPage() {
   });
 
   const data = result.data;
+  const available = data.available;
+  const unavailable = "לא זמין";
+  const queryError = result.error ?? (Object.values(available).some((value) => !value) ? "חלק מהנתונים אינם זמינים כרגע." : null);
   const score = data.scores[0] ?? {};
   const overall = Number(score.overall_handoff_score ?? 0);
   const blockers = jsonList(score.remaining_blockers);
@@ -123,8 +147,8 @@ export default async function IsoCertificationHandoffPage() {
           eyebrow="ISO External Process Readiness"
           title="מסירת ISO ליועץ, מבקר וגוף הסמכה"
           subtitle="מרכז מסירה חיצוני ל-ISO 27001, ISO 27017 ו-ISO 27701. אין כאן הצהרת הסמכה, ואין חשיפה של ילדים, מידע רפואי, מצלמות, תשלומים או סודות."
-          badge={`${overall}/100`}
-          badgeTone={toneForScore(overall)}
+          badge={available.scores ? `${overall}/100` : unavailable}
+          badgeTone={available.scores ? toneForScore(overall) : "default"}
           actions={<><Link className="button primary" href="/dashboard/admin/iso-evidence">ראיות ISO</Link><Link className="button secondary" href="/dashboard/admin/security-review">בדיקת חדירה</Link></>}
         >
           <div className="setup-checklist">
@@ -134,21 +158,21 @@ export default async function IsoCertificationHandoffPage() {
             <span>External approval required</span>
           </div>
         </PremiumDashboardHero>
-        <AdminDataError message={result.error} />
+        <AdminDataError message={queryError} />
 
         <section className="camera-infra-kpis">
-          <RoleMetricCard label="Overall handoff" value={`${overall}/100`} hint={label(score.certification_stage)} tone={toneForScore(overall)} />
-          <RoleMetricCard label="ISO 27001" value={`${score.iso_27001_readiness ?? 0}%`} hint="security management" tone={toneForScore(Number(score.iso_27001_readiness ?? 0))} />
-          <RoleMetricCard label="ISO 27017" value={`${score.iso_27017_readiness ?? 0}%`} hint="cloud/SaaS controls" tone={toneForScore(Number(score.iso_27017_readiness ?? 0))} />
-          <RoleMetricCard label="ISO 27701" value={`${score.iso_27701_readiness ?? 0}%`} hint="privacy controls" tone={toneForScore(Number(score.iso_27701_readiness ?? 0))} />
-          <RoleMetricCard label="Evidence" value={`${score.evidence_completeness ?? 0}%`} hint={`${readyBinder}/${data.binder.length} binder categories`} tone={toneForScore(Number(score.evidence_completeness ?? 0))} />
-          <RoleMetricCard label="Reviewer access" value={`${score.external_reviewer_status_score ?? 0}%`} hint={`${data.reviewerModes.length} safe modes`} tone={toneForScore(Number(score.external_reviewer_status_score ?? 0))} />
-          <RoleMetricCard label="Open gaps" value={openCount(data.gaps)} hint={`${criticalGaps.length} high/critical`} tone={criticalGaps.length ? "bad" : "warn"} />
-          <RoleMetricCard label="External actions" value={pendingActions.length} hint="cannot complete internally" tone={pendingActions.length ? "warn" : "good"} />
+          <RoleMetricCard label="Overall handoff" value={available.scores ? `${overall}/100` : unavailable} hint={available.scores ? label(score.certification_stage) : unavailable} tone={available.scores ? toneForScore(overall) : "default"} />
+          <RoleMetricCard label="ISO 27001" value={available.scores ? `${score.iso_27001_readiness ?? 0}%` : unavailable} hint="security management" tone={available.scores ? toneForScore(Number(score.iso_27001_readiness ?? 0)) : "default"} />
+          <RoleMetricCard label="ISO 27017" value={available.scores ? `${score.iso_27017_readiness ?? 0}%` : unavailable} hint="cloud/SaaS controls" tone={available.scores ? toneForScore(Number(score.iso_27017_readiness ?? 0)) : "default"} />
+          <RoleMetricCard label="ISO 27701" value={available.scores ? `${score.iso_27701_readiness ?? 0}%` : unavailable} hint="privacy controls" tone={available.scores ? toneForScore(Number(score.iso_27701_readiness ?? 0)) : "default"} />
+          <RoleMetricCard label="Evidence" value={available.scores ? `${score.evidence_completeness ?? 0}%` : unavailable} hint={available.binder ? `${readyBinder}/${data.binder.length} binder categories` : unavailable} tone={available.scores ? toneForScore(Number(score.evidence_completeness ?? 0)) : "default"} />
+          <RoleMetricCard label="Reviewer access" value={available.scores ? `${score.external_reviewer_status_score ?? 0}%` : unavailable} hint={available.reviewerModes ? `${data.reviewerModes.length} safe modes` : unavailable} tone={available.scores ? toneForScore(Number(score.external_reviewer_status_score ?? 0)) : "default"} />
+          <RoleMetricCard label="Open gaps" value={available.gaps ? openCount(data.gaps) : unavailable} hint={available.gaps ? `${criticalGaps.length} high/critical` : unavailable} tone={available.gaps ? criticalGaps.length ? "bad" : "warn" : "default"} />
+          <RoleMetricCard label="External actions" value={available.actions ? pendingActions.length : unavailable} hint="cannot complete internally" tone={available.actions ? pendingActions.length ? "warn" : "good" : "default"} />
         </section>
 
         <CleanSection title="Certification Scope" subtitle="מה נכנס לתהליך ומה נשאר מחוץ לתחום בשלב הזה.">
-          {!scope ? <EmptyState title="לא הוגדר scope" /> : (
+          {!available.scopes ? <EmptyState title="נתוני התחום אינם זמינים" /> : !scope ? <EmptyState title="לא הוגדר scope" /> : (
             <section className="grid cols-2">
               <article className="card compact-card">
                 <BadgeCheck />
@@ -164,9 +188,9 @@ export default async function IsoCertificationHandoffPage() {
           )}
         </CleanSection>
 
-        {blockers.length > 0 && (
+        {(!available.scores || blockers.length > 0) && (
           <CleanSection title="Remaining Blockers" subtitle="צעדים שחייבים להיסגר מול גורמים חיצוניים לפני הסמכה אמיתית.">
-            <div className="procedure-list compact-list">
+            {!available.scores ? <EmptyState title="נתוני החסמים אינם זמינים" /> : <div className="procedure-list compact-list">
               {blockers.map((blocker) => (
                 <div className="mini-row" key={blocker}>
                   <span>{blocker}</span>
@@ -174,14 +198,14 @@ export default async function IsoCertificationHandoffPage() {
                   <small>לא ניתן להצהיר על הסמכה לפני סגירה חיצונית.</small>
                 </div>
               ))}
-            </div>
+            </div>}
           </CleanSection>
         )}
 
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Certification Process Stages" subtitle="שלבי תהליך ISO. Certified נשאר חסום עד תעודה חיצונית.">
             <div className="camera-infra-list">
-              {data.stages.map((stage) => (
+              {!available.stages ? <EmptyState title="נתוני שלבי התהליך אינם זמינים" /> : data.stages.map((stage) => (
                 <article className="camera-infra-row" key={stage.id ?? stage.stage_key}>
                   <div>
                     <strong>{label(stage.stage)}</strong>
@@ -195,7 +219,7 @@ export default async function IsoCertificationHandoffPage() {
 
           <CleanSection title="Handoff Packages" subtitle="מסמכים למסירה ליועץ, גוף הסמכה, הנהלה ומבקר.">
             <div className="procedure-list">
-              {data.packages.map((pkg) => (
+              {!available.packages ? <EmptyState title="נתוני חבילות המסירה אינם זמינים" /> : data.packages.map((pkg) => (
                 <article className="card procedure-card" key={pkg.id ?? pkg.package_key}>
                   <div>
                     <StatusBadge tone={toneForStatus(pkg.status)}>{label(pkg.status)}</StatusBadge>
@@ -212,7 +236,7 @@ export default async function IsoCertificationHandoffPage() {
 
         <CleanSection title="Evidence Binder Finalization" subtitle="קטגוריות ראיות לביקורת: access, MFA, audit, encryption, backup, privacy, AI, camera, CI/CD ו-PT.">
           <div className="procedure-list">
-            {data.binder.map((item) => (
+            {!available.binder ? <EmptyState title="נתוני קטגוריות הראיות אינם זמינים" /> : data.binder.map((item) => (
               <article className="card procedure-card" key={item.id ?? item.binder_key}>
                 <div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
@@ -228,12 +252,12 @@ export default async function IsoCertificationHandoffPage() {
         <section className="grid cols-3 dashboard-panels">
           <CleanSection title="SoA / Controls" subtitle="Statement of Applicability מוכן לסקירת יועץ, לא לאישור סופי.">
             <div className="setup-checklist">
-              <span>{applicableSoa} applicable controls</span>
-              <span>{data.soa.length} SoA records</span>
-              <span>{data.checklists.length} final checklist items</span>
+              <span>{available.soa ? `${applicableSoa} applicable controls` : "בקרות ישימות: לא זמין"}</span>
+              <span>{available.soa ? `${data.soa.length} SoA records` : "רשומות SoA: לא זמין"}</span>
+              <span>{available.checklists ? `${data.checklists.length} final checklist items` : "פריטי רשימת בדיקה: לא זמין"}</span>
             </div>
             <div className="camera-infra-list">
-              {data.checklists.slice(0, 8).map((item) => (
+              {!available.checklists ? <EmptyState title="נתוני רשימות הבדיקה אינם זמינים" /> : data.checklists.slice(0, 8).map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.checklist_key}>
                   <div><strong>{item.title}</strong><span>{label(item.standard)} · {item.evidence_summary}</span></div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
@@ -244,12 +268,12 @@ export default async function IsoCertificationHandoffPage() {
 
           <CleanSection title="Risk Treatment" subtitle="סיכונים, טיפול, residual risk ואישור קבלה.">
             <div className="setup-checklist">
-              <span>{data.risks.length} risks</span>
-              <span>{data.treatments.length} treatment plans</span>
-              <span>{data.audits.length} internal audits</span>
+              <span>{available.risks ? `${data.risks.length} risks` : "סיכונים: לא זמין"}</span>
+              <span>{available.treatments ? `${data.treatments.length} treatment plans` : "תוכניות טיפול: לא זמין"}</span>
+              <span>{available.audits ? `${data.audits.length} internal audits` : "ביקורות פנימיות: לא זמין"}</span>
             </div>
             <div className="camera-infra-list">
-              {data.treatments.slice(0, 8).map((item) => (
+              {!available.treatments ? <EmptyState title="נתוני תוכניות הטיפול אינם זמינים" /> : data.treatments.slice(0, 8).map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.treatment_key}>
                   <div><strong>{label(item.treatment_type)}</strong><span>{item.evidence ?? item.residual_risk}</span></div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
@@ -260,12 +284,12 @@ export default async function IsoCertificationHandoffPage() {
 
           <CleanSection title="Policies / Procedures" subtitle="אישור, owner, גרסה, תוקף וסקירה הבאה.">
             <div className="setup-checklist">
-              <span>{policyReady}/{data.policies.length} policies ready</span>
-              <span>{procedureReady}/{data.procedures.length} procedures ready</span>
-              <span>{data.reviews.length} management reviews</span>
+              <span>{available.policies ? `${policyReady}/${data.policies.length} policies ready` : "policies: לא זמין"}</span>
+              <span>{available.procedures ? `${procedureReady}/${data.procedures.length} procedures ready` : "procedures: לא זמין"}</span>
+              <span>{available.reviews ? `${data.reviews.length} management reviews` : "סקירות הנהלה: לא זמין"}</span>
             </div>
             <div className="camera-infra-list">
-              {data.reviews.map((review) => (
+              {!available.reviews ? <EmptyState title="נתוני סקירות ההנהלה אינם זמינים" /> : data.reviews.map((review) => (
                 <article className="camera-infra-row" key={review.id ?? review.review_key}>
                   <div><strong>{label(review.review_scope)}</strong><span>{formatDate(review.review_date)} · {review.reviewer_name}</span></div>
                   <StatusBadge tone={toneForStatus(review.review_status)}>{label(review.review_status)}</StatusBadge>
@@ -278,7 +302,7 @@ export default async function IsoCertificationHandoffPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Safe External Reviewer Modes" subtitle="גישה למטא-דאטה בלבד. אין ילדים, רפואי, raw camera, raw AI, תשלומים, מפתחות או signed URLs.">
             <div className="procedure-list compact-list">
-              {data.reviewerModes.map((mode) => (
+              {!available.reviewerModes ? <EmptyState title="נתוני מצבי הסקירה אינם זמינים" /> : data.reviewerModes.map((mode) => (
                 <div className="mini-row" key={mode.id ?? mode.mode_key}>
                   <span>{label(mode.reviewer_type)}</span>
                   <strong><StatusBadge tone={toneForStatus(mode.access_status)}>{label(mode.access_status)}</StatusBadge></strong>
@@ -290,7 +314,7 @@ export default async function IsoCertificationHandoffPage() {
 
           <CleanSection title="Gap Remediation Tracker" subtitle="פערי הסמכה, owner, תוכנית תיקון וראיה לאחר תיקון.">
             <div className="procedure-list compact-list">
-              {data.gaps.map((gap) => (
+              {!available.gaps ? <EmptyState title="נתוני הפערים אינם זמינים" /> : data.gaps.map((gap) => (
                 <div className="mini-row" key={gap.id ?? gap.gap_key}>
                   <span>{gap.gap}</span>
                   <strong><StatusBadge tone={toneForStatus(gap.severity)}>{label(gap.severity)}</StatusBadge></strong>
@@ -304,13 +328,13 @@ export default async function IsoCertificationHandoffPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Timeline and External Actions" subtitle="מה תלוי ביועץ, גוף הסמכה, עורך דין פרטיות, PT, ספקי ענן ותשלומים.">
             <div className="camera-infra-list">
-              {data.timeline.map((item) => (
+              {!available.timeline ? <EmptyState title="נתוני לוח הזמנים אינם זמינים" /> : data.timeline.map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.timeline_key}>
                   <div><strong>{label(item.stage)}</strong><span>{formatDate(item.target_date)} · {item.notes}</span></div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
                 </article>
               ))}
-              {pendingActions.slice(0, 8).map((item) => (
+              {!available.actions ? <EmptyState title="נתוני הפעולות החיצוניות אינם זמינים" /> : pendingActions.slice(0, 8).map((item) => (
                 <article className="camera-infra-row" key={item.id ?? item.action_key}>
                   <div><strong>{item.title}</strong><span>{label(item.action_type)} · {formatDate(item.due_date)}</span></div>
                   <StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge>
@@ -321,14 +345,14 @@ export default async function IsoCertificationHandoffPage() {
 
           <CleanSection title="Certification Body Comparison" subtitle="אפשרויות לבדיקה בלבד. אין בחירה אוטומטית ואין תהליך הסמכה פעיל.">
             <div className="procedure-list compact-list">
-              {data.bodies.map((body) => (
+              {!available.bodies ? <EmptyState title="נתוני אפשרויות גופי ההסמכה אינם זמינים" /> : data.bodies.map((body) => (
                 <div className="mini-row" key={body.id ?? body.provider_key}>
                   <span>{body.provider_name}</span>
                   <strong><StatusBadge tone={toneForStatus(body.status)}>{label(body.status)}</StatusBadge></strong>
                   <small>{jsonList(body.standards_supported).join(", ")} · {body.estimated_timeline_weeks ? `${body.estimated_timeline_weeks} weeks` : "timeline TBD"}</small>
                 </div>
               ))}
-              {data.estimates.map((estimate) => (
+              {!available.estimates ? <EmptyState title="נתוני האומדנים אינם זמינים" /> : data.estimates.map((estimate) => (
                 <div className="mini-row" key={estimate.id ?? estimate.estimate_key}>
                   <span>Cost and timeline estimate</span>
                   <strong><StatusBadge tone="warn">{label(estimate.confidence_level)}</StatusBadge></strong>
@@ -342,7 +366,7 @@ export default async function IsoCertificationHandoffPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Certification Claims Guardrails" subtitle="מונע ניסוחים כמו ISO certified, legally approved או regulator approved לפני אישור חיצוני.">
             <div className="procedure-list compact-list">
-              {data.guardrails.map((item) => (
+              {!available.guardrails ? <EmptyState title="נתוני מגבלות ההצהרות אינם זמינים" /> : data.guardrails.map((item) => (
                 <div className="mini-row" key={item.id ?? item.guardrail_key}>
                   <span>Forbidden: {item.prohibited_claim}</span>
                   <strong><StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge></strong>
@@ -354,7 +378,7 @@ export default async function IsoCertificationHandoffPage() {
 
           <CleanSection title="Public Website Copy Audit" subtitle="בדיקת claims ציבוריים: הסמכה, חוקיות, AI ובטיחות.">
             <div className="procedure-list compact-list">
-              {data.copyAudit.map((item) => (
+              {!available.copyAudit ? <EmptyState title="נתוני סקירת הנוסחים אינם זמינים" /> : data.copyAudit.map((item) => (
                 <div className="mini-row" key={item.id ?? item.item_key}>
                   <span>{item.risky_claim}</span>
                   <strong><StatusBadge tone={toneForStatus(item.status)}>{label(item.status)}</StatusBadge></strong>
@@ -365,7 +389,7 @@ export default async function IsoCertificationHandoffPage() {
           </CleanSection>
         </section>
 
-        <CleanSection title="External Reviewer Handoff" subtitle="החבילה מוכנה למסירה מבוקרת לגורמים חיצוניים, אבל אישור אמיתי חייב להגיע מהם.">
+        <CleanSection title="External Reviewer Handoff" subtitle="הכנת מטא-דאטה למסירה מבוקרת לגורמים חיצוניים; מוכנות ואישור אמיתי דורשים סקירה חיצונית.">
           <section className="grid cols-4">
             <ActionCard icon={Scale} title="ISO consultant" text="Gap analysis, SoA, risk treatment and evidence review." href="/dashboard/admin/iso-certification-handoff" />
             <ActionCard icon={BadgeCheck} title="Certification body" text="Scope, controls, management system and audit binder readiness." href="/dashboard/admin/iso-evidence" />
