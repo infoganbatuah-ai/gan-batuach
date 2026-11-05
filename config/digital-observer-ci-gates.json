@@ -623,6 +623,13 @@
         "--test",
         "scripts/qa/check-ai-worker-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "ai-events-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-ai-events-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
