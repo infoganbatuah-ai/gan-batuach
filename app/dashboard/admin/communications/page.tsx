@@ -15,6 +15,8 @@ import {
   UsersRound
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminDataError } from "@/components/admin-data-state";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { AdminCommunicationsTestPanel } from "@/components/admin-communications-test-panel";
 import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
@@ -108,30 +110,66 @@ function countByStatus(rows: Array<{ status?: string | null }>) {
   return { total, failures, successes, successRate: total ? Math.round((successes / total) * 100) : 100 };
 }
 
-async function safeQuery<T>(promise: PromiseLike<{ data: T[] | null; error: { message?: string } | null }>, label: string): Promise<T[]> {
-  const result = await promise;
-  if (result.error) console.error(`[admin-communications] ${label}`, { error: result.error.message });
-  return result.data ?? [];
+async function safeQuery<T>(query: () => PromiseLike<{ data: T[] | null; error: { message?: string } | null }>, label: string) {
+  const source = await safeAdminData(label, async () => {
+    const result = await query();
+    logSupabaseError(label, result.error);
+    return { data: result.error ? [] : result.data ?? [], available: !result.error };
+  }, { data: [] as T[], available: false });
+  return source.data;
 }
 
 export default async function AdminCommunicationsPage() {
   await requireRole(["admin"]);
-  const supabase = await createClient();
+  const unavailable = { data: [], available: false };
+  const result = await safeAdminData("admin-communications", async () => {
+    const supabase = await createClient();
 
   const [providers, templates, testLogs, deliveryEvents, threads, messages, notifications, parentRequests, whatsAppLogs, smsLogs, emailLogs, pushLogs] = await Promise.all([
-    safeQuery<ProviderConfig>(supabase.from("communication_provider_configs" as any).select("*").order("channel").order("provider"), "providers"),
-    safeQuery<TemplateRow>(supabase.from("real_communication_templates" as any).select("*").order("channel").order("template_kind"), "templates"),
-    safeQuery<TestLog>(supabase.from("communication_test_logs" as any).select("*").order("created_at", { ascending: false }).limit(40), "tests"),
-    safeQuery<any>(supabase.from("communication_delivery_events" as any).select("*").order("created_at", { ascending: false }).limit(180), "delivery events"),
-    safeQuery<ThreadRow>(supabase.from("communication_threads" as any).select("id,subject,thread_type,priority,status,last_message_at,created_at,child_id,gardens(name,city)").order("last_message_at", { ascending: false, nullsFirst: false }).limit(80), "threads"),
-    safeQuery<any>(supabase.from("messages" as any).select("id,garden_id,thread_id,subject,status,priority,read_at,treatment_status,response_required,created_at,sender:sender_id(full_name,role),recipient:recipient_id(full_name,role),gardens(name,city)").order("created_at", { ascending: false }).limit(120), "messages"),
-    safeQuery<any>(supabase.from("notifications" as any).select("id,status,channel,recipient_role,read_at,title,created_at,severity").order("created_at", { ascending: false }).limit(120), "notifications"),
-    safeQuery<any>(supabase.from("parent_child_requests" as any).select("id,request_type,status,created_at,recipient_role,recipient_label").order("created_at", { ascending: false }).limit(80), "parent requests"),
-    safeQuery<any>(supabase.from("whatsapp_message_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "whatsapp logs"),
-    safeQuery<any>(supabase.from("sms_message_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "sms logs"),
-    safeQuery<any>(supabase.from("email_delivery_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "email logs"),
-    safeQuery<any>(supabase.from("push_notification_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "push logs")
+    safeQuery<ProviderConfig>(() => supabase.from("communication_provider_configs" as any).select("*").order("channel").order("provider"), "providers"),
+    safeQuery<TemplateRow>(() => supabase.from("real_communication_templates" as any).select("*").order("channel").order("template_kind"), "templates"),
+    safeQuery<TestLog>(() => supabase.from("communication_test_logs" as any).select("*").order("created_at", { ascending: false }).limit(40), "tests"),
+    safeQuery<any>(() => supabase.from("communication_delivery_events" as any).select("*").order("created_at", { ascending: false }).limit(180), "delivery events"),
+    safeQuery<ThreadRow>(() => supabase.from("communication_threads" as any).select("id,subject,thread_type,priority,status,last_message_at,created_at,child_id,gardens(name,city)").order("last_message_at", { ascending: false, nullsFirst: false }).limit(80), "threads"),
+    safeQuery<any>(() => supabase.from("messages" as any).select("id,garden_id,thread_id,subject,status,priority,read_at,treatment_status,response_required,created_at,sender:sender_id(full_name,role),recipient:recipient_id(full_name,role),gardens(name,city)").order("created_at", { ascending: false }).limit(120), "messages"),
+    safeQuery<any>(() => supabase.from("notifications" as any).select("id,status,channel,recipient_role,read_at,title,created_at,severity").order("created_at", { ascending: false }).limit(120), "notifications"),
+    safeQuery<any>(() => supabase.from("parent_child_requests" as any).select("id,request_type,status,created_at,recipient_role,recipient_label").order("created_at", { ascending: false }).limit(80), "parent requests"),
+    safeQuery<any>(() => supabase.from("whatsapp_message_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "whatsapp logs"),
+    safeQuery<any>(() => supabase.from("sms_message_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "sms logs"),
+    safeQuery<any>(() => supabase.from("email_delivery_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "email logs"),
+    safeQuery<any>(() => supabase.from("push_notification_logs" as any).select("id,status,provider,created_at").order("created_at", { ascending: false }).limit(250), "push logs")
   ]);
+    return { providers, templates, testLogs, deliveryEvents, threads, messages, notifications, parentRequests, whatsAppLogs, smsLogs, emailLogs, pushLogs };
+  }, { providers: unavailable, templates: unavailable, testLogs: unavailable, deliveryEvents: unavailable, threads: unavailable, messages: unavailable, notifications: unavailable, parentRequests: unavailable, whatsAppLogs: unavailable, smsLogs: unavailable, emailLogs: unavailable, pushLogs: unavailable });
+  const providers = result.data.providers.data;
+  const templates = result.data.templates.data;
+  const testLogs = result.data.testLogs.data;
+  const deliveryEvents = result.data.deliveryEvents.data;
+  const threads = result.data.threads.data;
+  const messages = result.data.messages.data;
+  const notifications = result.data.notifications.data;
+  const parentRequests = result.data.parentRequests.data;
+  const whatsAppLogs = result.data.whatsAppLogs.data;
+  const smsLogs = result.data.smsLogs.data;
+  const emailLogs = result.data.emailLogs.data;
+  const pushLogs = result.data.pushLogs.data;
+  const availability = {
+    providers: result.data.providers.available, templates: result.data.templates.available,
+    testLogs: result.data.testLogs.available, deliveryEvents: result.data.deliveryEvents.available,
+    threads: result.data.threads.available, messages: result.data.messages.available,
+    notifications: result.data.notifications.available, parentRequests: result.data.parentRequests.available,
+    whatsAppLogs: result.data.whatsAppLogs.available, smsLogs: result.data.smsLogs.available,
+    emailLogs: result.data.emailLogs.available, pushLogs: result.data.pushLogs.available
+  };
+  const conversationsAvailable = availability.threads && availability.messages;
+  const inboxAvailable = conversationsAvailable && availability.parentRequests;
+  const channelStatsAvailable: Record<Channel, boolean> = {
+    whatsapp: availability.whatsAppLogs && availability.testLogs && availability.deliveryEvents,
+    sms: availability.smsLogs && availability.testLogs && availability.deliveryEvents,
+    email: availability.emailLogs && availability.testLogs && availability.deliveryEvents,
+    push: availability.pushLogs && availability.testLogs && availability.deliveryEvents
+  };
+  const deliveriesAvailable = Object.values(channelStatsAvailable).every(Boolean);
 
   const logsByChannel: Record<Channel, Array<{ status?: string | null }>> = {
     whatsapp: [...whatsAppLogs, ...testLogs.filter((log) => log.channel === "whatsapp"), ...deliveryEvents.filter((event) => event.channel === "whatsapp")],
@@ -169,25 +207,27 @@ export default async function AdminCommunicationsPage() {
           eyebrow="רשת תקשורת"
           title="כל השיחות והערוצים במקום אחד"
           subtitle="הודעות בתוך המערכת, מייל, מסרונים, WhatsApp והתראות לנייד מחוברים לשכבת תקשורת אחת עם היסטוריה, תבניות, עדיפויות ואישור אנושי."
-          badge={`${activeThreads.length + fallbackConversations.length} שיחות`}
-          badgeTone={deliveryFailures ? "warn" : "good"}
+          badge={conversationsAvailable ? `${activeThreads.length + fallbackConversations.length} שיחות` : "לא זמין"}
+          badgeTone={deliveriesAvailable ? deliveryFailures ? "warn" : "good" : "warn"}
           actions={<><Link className="button primary" href="#communication-test-center">בדיקת שליחה</Link><Link className="button secondary" href="/dashboard/admin/communication">לוג שיחות</Link></>}
         >
           <RadioTower size={46} />
         </PremiumDashboardHero>
 
+        <AdminDataError message={result.error ?? (Object.values(availability).some((known) => !known) ? "לא ניתן לטעון חלק מנתוני רשת התקשורת כרגע" : null)} />
         <section className="communications-kpi-grid">
-          <RoleMetricCard label="שיחות פעילות" value={activeThreads.length + fallbackConversations.length} hint="כולל הודעות קיימות" tone="good" />
-          <RoleMetricCard label="ממתין לטיפול" value={pendingMessages.length} hint="הודעות ופניות" tone={pendingMessages.length ? "warn" : "good"} />
-          <RoleMetricCard label="לא נקרא" value={unreadMessages} hint="הודעות והתראות" tone={unreadMessages ? "warn" : "good"} />
-          <RoleMetricCard label="כשלי מסירה" value={deliveryFailures} hint="כל הערוצים" tone={deliveryFailures ? "bad" : "good"} />
-          <RoleMetricCard label="ערוצים מוכנים" value={`${activeChannels}/4`} hint="מוגדרים או בבדיקה" tone={activeChannels >= 4 ? "good" : "warn"} />
-          <RoleMetricCard label="שיעור תגובה" value={`${responseRate}%`} hint="שיחות שטופלו" tone={responseRate >= 80 ? "good" : "warn"} />
+          <RoleMetricCard label="שיחות פעילות" value={conversationsAvailable ? activeThreads.length + fallbackConversations.length : "לא זמין"} hint="כולל הודעות קיימות" tone={conversationsAvailable ? "good" : "default"} />
+          <RoleMetricCard label="ממתין לטיפול" value={availability.messages ? pendingMessages.length : "לא זמין"} hint="הודעות ופניות" tone={availability.messages ? pendingMessages.length ? "warn" : "good" : "default"} />
+          <RoleMetricCard label="לא נקרא" value={availability.messages && availability.notifications ? unreadMessages : "לא זמין"} hint="הודעות והתראות" tone={availability.messages && availability.notifications ? unreadMessages ? "warn" : "good" : "default"} />
+          <RoleMetricCard label="כשלי מסירה" value={deliveriesAvailable ? deliveryFailures : "לא זמין"} hint="כל הערוצים" tone={deliveriesAvailable ? deliveryFailures ? "bad" : "good" : "default"} />
+          <RoleMetricCard label="ערוצים מוכנים" value={availability.providers ? `${activeChannels}/4` : "לא זמין"} hint="מוגדרים או בבדיקה" tone={availability.providers ? activeChannels >= 4 ? "good" : "warn" : "default"} />
+          <RoleMetricCard label="שיעור תגובה" value={availability.messages ? `${responseRate}%` : "לא זמין"} hint="שיחות שטופלו" tone={availability.messages ? responseRate >= 80 ? "good" : "warn" : "default"} />
         </section>
 
         <section className="communications-layout">
           <CleanSection title="תיבת תקשורת אחודה" subtitle="הורה, צוות, מנהלת, פקח ואדמין באותה רשימת עבודה.">
-            {unifiedInbox.length ? <div className="unified-inbox-list">{unifiedInbox.map((item) => <Link href={item.href} key={`${item.href}-${item.id}`}><StatusBadge tone={priorityTone(item.priority)}>{item.priority === "critical" ? "קריטי" : item.priority === "urgent" ? "דחוף" : item.priority === "important" ? "חשוב" : "מידע"}</StatusBadge><div><strong>{item.title}</strong><span>{item.body}</span><small>{formatDate(item.time)}</small></div><StatusBadge tone={toneForStatus(item.status)}>{statusLabels[item.status ?? ""] ?? statusLabels.open}</StatusBadge></Link>)}</div> : <EmptyState title="אין שיחות פעילות" text="שיחות ופניות מכל הערוצים יופיעו כאן." />}
+            {!inboxAvailable ? <div className="error-banner">תיבת התקשורת חלקית: חלק מהמקורות אינם זמינים.</div> : null}
+            {unifiedInbox.length ? <div className="unified-inbox-list">{unifiedInbox.map((item) => <Link href={item.href} key={`${item.href}-${item.id}`}><StatusBadge tone={priorityTone(item.priority)}>{item.priority === "critical" ? "קריטי" : item.priority === "urgent" ? "דחוף" : item.priority === "important" ? "חשוב" : "מידע"}</StatusBadge><div><strong>{item.title}</strong><span>{item.body}</span><small>{formatDate(item.time)}</small></div><StatusBadge tone={toneForStatus(item.status)}>{statusLabels[item.status ?? ""] ?? statusLabels.open}</StatusBadge></Link>)}</div> : inboxAvailable ? <EmptyState title="אין שיחות פעילות" text="שיחות ופניות מכל הערוצים יופיעו כאן." /> : <EmptyState title="נתוני תיבת התקשורת אינם זמינים" text="לא ניתן לקבוע אם יש שיחות פעילות כרגע." />}
           </CleanSection>
 
           <CleanSection title="ניתוב והתראות" subtitle="מי מקבל, באיזה ערוץ ובאיזו עדיפות.">
@@ -209,12 +249,12 @@ export default async function AdminCommunicationsPage() {
                 <article className="communication-channel-card" key={item.channel}>
                   <div className="communication-channel-head">
                     <span className="communication-channel-icon"><Icon size={22} /></span>
-                    <div><h3>{meta.title}</h3><p>{item.providers.length} ספקים · {item.templates.length} תבניות</p></div>
-                    <StatusBadge tone={toneForStatus(item.status)}>{statusLabels[item.status] ?? item.status}</StatusBadge>
+                    <div><h3>{meta.title}</h3><p>{availability.providers ? item.providers.length : "לא זמין"} ספקים · {availability.templates ? item.templates.length : "לא זמין"} תבניות</p></div>
+                    <StatusBadge tone={availability.providers ? toneForStatus(item.status) : "default"}>{availability.providers ? statusLabels[item.status] ?? item.status : "לא זמין"}</StatusBadge>
                   </div>
                   <div className="communication-stats-row">
-                    <span><CheckCircle2 size={16} /> {item.stats.successRate}% הצלחה</span>
-                    <span><TriangleAlert size={16} /> {item.stats.failures} כשלים</span>
+                    <span><CheckCircle2 size={16} /> {channelStatsAvailable[item.channel] ? <>{item.stats.successRate}% הצלחה</> : "לא זמין"}</span>
+                    <span><TriangleAlert size={16} /> {channelStatsAvailable[item.channel] ? <>{item.stats.failures} כשלים</> : "לא זמין"}</span>
                   </div>
                   <Link className="button secondary" href={meta.href}>ניהול {meta.label}</Link>
                 </article>
@@ -225,26 +265,26 @@ export default async function AdminCommunicationsPage() {
 
         <section className="communications-layout">
           <CleanSection title="תבניות תקשורת" subtitle="מסעות מוכנים לשליחה מבוקרת.">
-            {templates.length ? <div className="communication-template-grid">{templates.slice(0, 14).map((template) => <article className="communication-template-card" key={template.id}><div><strong>{template.display_name ?? template.template_name ?? template.template_kind}</strong><span>{channelMeta[template.channel].label} · {template.provider ?? "כל ספק"}</span></div><StatusBadge tone={toneForStatus(template.status)}>{statusLabels[template.status ?? ""] ?? template.status ?? "טיוטה"}</StatusBadge></article>)}</div> : <EmptyState title="אין תבניות עדיין" text="תבניות onboarding, פיקוח, מסמכים, תשלומים ובטיחות יופיעו כאן." />}
+            {!availability.templates ? <EmptyState title="נתוני התבניות אינם זמינים" text="לא ניתן לקבוע אילו תבניות קיימות כרגע." /> : templates.length ? <div className="communication-template-grid">{templates.slice(0, 14).map((template) => <article className="communication-template-card" key={template.id}><div><strong>{template.display_name ?? template.template_name ?? template.template_kind}</strong><span>{channelMeta[template.channel].label} · {template.provider ?? "כל ספק"}</span></div><StatusBadge tone={toneForStatus(template.status)}>{statusLabels[template.status ?? ""] ?? template.status ?? "טיוטה"}</StatusBadge></article>)}</div> : <EmptyState title="אין תבניות עדיין" text="תבניות onboarding, פיקוח, מסמכים, תשלומים ובטיחות יופיעו כאן." />}
           </CleanSection>
 
           <CleanSection title="אנליטיקה" subtitle="ביצועי תקשורת בלי לחשוף סודות או סיסמאות.">
             <div className="communication-analytics-grid">
-              <span>מסירות <b>{totalDeliveries}</b></span>
-              <span>כשלים <b>{deliveryFailures}</b></span>
-              <span>תבניות מוכנות <b>{templatesReady}</b></span>
-              <span>שיעור תגובה <b>{responseRate}%</b></span>
-              <span>בדיקות אחרונות <b>{testLogs.length}</b></span>
-              <span>ערוצי שליחה <b>{activeChannels}/4</b></span>
+              <span>מסירות <b>{deliveriesAvailable ? totalDeliveries : "לא זמין"}</b></span>
+              <span>כשלים <b>{deliveriesAvailable ? deliveryFailures : "לא זמין"}</b></span>
+              <span>תבניות מוכנות <b>{availability.templates ? templatesReady : "לא זמין"}</b></span>
+              <span>שיעור תגובה <b>{availability.messages ? <>{responseRate}%</> : "לא זמין"}</b></span>
+              <span>בדיקות אחרונות <b>{availability.testLogs ? testLogs.length : "לא זמין"}</b></span>
+              <span>ערוצי שליחה <b>{availability.providers ? <>{activeChannels}/4</> : "לא זמין"}</b></span>
             </div>
           </CleanSection>
         </section>
 
         <div id="communication-test-center">
-          <AdminCommunicationsTestPanel
+          {availability.providers && availability.templates ? <AdminCommunicationsTestPanel
             providers={providers.map((provider) => ({ channel: provider.channel, provider: provider.provider, display_name: provider.display_name, status: provider.status }))}
             templates={templateKinds.length ? templateKinds : ["onboarding", "inspection_notice", "compliance_alert", "document_reminder", "payment_reminder", "safety_notification"]}
-          />
+          /> : <EmptyState title="פאנל הבדיקה אינו זמין" text="נדרשים נתוני ספקים ותבניות זמינים להצגת הבדיקה." />}
         </div>
 
         <CleanSection title="מצבי תקשורת" subtitle="חוויות קיימות שמתחברות לרשת אחת.">
