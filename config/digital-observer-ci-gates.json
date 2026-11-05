@@ -1014,6 +1014,13 @@
         "--test",
         "scripts/qa/check-scale-100-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "final-production-launch-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-final-production-launch-query-boundary.mjs"
+      ]
     }
   ],
   "security": [
