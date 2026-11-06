@@ -55,7 +55,8 @@ test("role pages use canonical scoped sources and navigation", () => {
   assert.doesNotMatch(garden, /observer_intelligence_signals|ai_events/);
   assert.match(parent, /name="child"/);
   assert.match(parent, /selectAuthorizedChild/);
-  assert.match(parent, /\.eq\("child_id", selectedChildId\)/);
+  assert.match(parent, /\.in\("child_id", attendanceChildIds\)\.eq\("attendance_date", attendanceDate\)/);
+  assert.match(parent, /\.eq\("child_id", selectedAttendanceChildId\)/);
   assert.match(staff, /staff_classroom_assignments/);
   assert.doesNotMatch(staff, /select\("[^"]*(allergies|medical_notes|regular_medications)/);
   assert.doesNotMatch(staff, /select\("[^"]*(body|content)[^"]*"\)/);

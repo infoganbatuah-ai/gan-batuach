@@ -33,6 +33,7 @@ export function ParentAppFrame({
       title="דשבורד הורים"
       subtitle="מעקב חכם אחר הילד והגן"
       profile={{ full_name: displayName, profile_image_url: avatarUrl }}
+      actions={contentClassName.includes("parent-dashboard-home") ? <Link className="parent-primary-mobile-menu" href="/dashboard/parent/settings" aria-label="הגדרות הורה"><Menu size={22} aria-hidden="true" /></Link> : undefined}
       className="parent-runtime-shell"
     >
       <div className={`parent-app-main dashboard-runtime-content ${contentClassName}`.trim()}>{children}</div>

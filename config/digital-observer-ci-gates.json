@@ -80,6 +80,7 @@
     { "name": "uxv6-capture-admission-contract", "args": ["scripts/qa/check-uxv6-capture-admission-contract.mjs"] },
     { "name": "settings-required-photo-controls", "args": ["scripts/qa/check-settings-required-photo-controls.mjs"] },
     { "name": "management-role-dashboards", "args": ["--experimental-strip-types", "scripts/qa/check-management-role-dashboards.mjs"] },
+    { "name": "uxv9-parent-authorized-child-context", "args": ["--experimental-strip-types", "scripts/qa/check-uxv9-parent-context.mjs"] },
     { "name": "uxv6-primary-screen-source-composition", "args": ["scripts/qa/check-uxv6-current-product-contract.mjs"] },
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
     { "name": "event-ingest", "args": ["scripts/qa/check-event-ingest.mjs"] },
