@@ -73,7 +73,7 @@ export default async function SettingsPage() {
     <SettingsPlatformHeader role={role} title="הגדרות וחשבון" description="פרופיל אישי, הגדרות הגן, הרשאות, אבטחה, התראות ומנוי — לפי הגן הפעיל והרשאת השרת." />
     <SettingsPlatformLayout navigation={<SettingsPlatformNavigation role={role} activeHref="/dashboard/garden/settings" />}>
       <div className="ux18-reference-column ux18-reference-profile-column">
-        <SettingsSection id="profile" title="פרופיל אישי" description="פרטי החשבון שלך" icon={ShieldCheck}>
+        <SettingsSection id="profile" title="פרופיל אישי" description="פרטי החשבון שלך" icon={ShieldCheck} action={<Link className="ux18-mobile-settings-back" href="#settings-index" aria-label="חזרה לרשימת ההגדרות"><ChevronLeft aria-hidden="true" /></Link>}>
           <SettingsPrimaryProfileForm profile={profile} email={profile.email ?? user.email ?? ""} roleLabel={role === "owner" ? "בעלת גן" : "מנהלת גן"} />
           <details className="ux18-primary-verification-details">
             <summary>מצב אימות החשבון</summary>
