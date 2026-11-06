@@ -14506,6 +14506,61 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Review private UXV9 actual/reference boards and address the remaining primary Parent visual displacement and density without fabricating camera Live or attendance. Re-capture from the next exact merged Development head; obtain external owner acceptance. Full role/security/cost release gates remain open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v10-parent-primary-reference-closure-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV10-PARENT-PRIMARY-REFERENCE-CLOSURE-20261106",
+      "title": "Parent primary route visual geometry and direct reference evidence",
+      "owner": "UXV10 Parent executor; scoped PRs #304, #305 and #307 integration owner",
+      "sourceBranch": "codex/ux-v10-parent-primary-reference-closure-20261106",
+      "sourceCommits": [
+        "223fd7f479d5c40146e5aa6fcddbe608c8c97eb7",
+        "a8b8e2b9a6e85e7c8a144ad8fa13f41ea23ecd6e",
+        "c9adc2b4efa8cd1eae96acac07a109b393c6b465"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v10-parent-primary-reference-closure-20261106@c9adc2b4efa8cd1eae96acac07a109b393c6b465",
+          "origin/integration/development@09967c565cbee49ed967a58fd88e901f3f9a2081"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_304_305_307_SIX_CI_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "PR #304 CI 42249657687 and Management 42249657693; PR #305 CI 42252893099 and Management 42252892550; PR #307 CI 42255038570 and Management 42255038485. Each exact-head PR passed all six Digital Observer gates, canonical quality, Management tenant context and Snyk.",
+          "Exact merged Development Product 09967c565cbee49ed967a58fd88e901f3f9a2081: guarded LOCAL_SUPABASE, 259/259 baseline drift PASS, six authenticated Parent screenshots at 1440x1024 and 390x844; private manifest SHA256 8e67b30bdbb9444a757ad47170a3b48440762d08b80611dfe6cbbbcafc45e0e9.",
+          "Primary reference/actual side-by-sides, overlays and annotated boards: /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv10-parent-candidate-09967c56/boards/boards-manifest.json SHA256 3f9ebff8a605ca1edca44c9117b9f88c57f2f7b835e555b00f64cb2d12428be4. Owner index OWNER-REVIEW.md in same private package. Direct visual verdict NEEDS_VISUAL_CORRECTION.",
+          "Scoped Product QA passed immediate authorized single/multi Child and Garden context switching, foreign Child denial, file-ID navigation, RTL, no overflow, no browser errors/HTTP 500, keyboard search, touch controls and Mobile quick actions fully above bottom navigation."
+        ],
+        "classification": "PARENT_PRIMARY_UI_PRESENTATION_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Direct visual review still shows no authorized individual child photos in synthetic QA data, no verified current-day check-in, extra canonical header utilities, illustrative non-Live camera treatment and flatter action status imagery. No fake state added. Formal external owner acceptance, all 21 domains, full live role/RLS/provider QA and invoice-backed all-in ₪15 qualification are open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "a4f3661bfe0aa3beb39edce557bcc77e587eaeda",
+        "commit": "09967c565cbee49ed967a58fd88e901f3f9a2081",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/304",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/305",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/307"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV9_PARENT_BASELINE",
+        "units": ["codex/ux-v9-parent-authorized-daily-hub-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_PARENT_DESKTOP_MOBILE_BEHAVIOR_PASS_DIRECT_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review exact Product/reference boards with owner; resolve only truthful remaining visual deviations in a new scoped correction. Preserve no-Live camera and no fabricated child photos/check-ins. External owner decision and full release gates remain separate. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
