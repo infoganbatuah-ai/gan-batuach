@@ -14447,6 +14447,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve this ledger checkpoint on remote Development, verify exact head and hand off to canonical coordinator. Obtain external owner review of the fresh primary Owner comparison. Do not merge main, deploy Production or begin RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v9-parent-authorized-daily-hub-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV9-PARENT-AUTHORIZED-DAILY-HUB-20261106",
+      "title": "Parent assigned and multi-child primary daily hub with authorized context",
+      "owner": "UXV9 Parent executor; scoped PR #295 integration owner",
+      "sourceBranch": "codex/ux-v9-parent-authorized-daily-hub-20261106",
+      "sourceCommits": [
+        "f439ec4e8f7894e07623c37e4a87082dc770927f"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v9-parent-authorized-daily-hub-20261106@f439ec4e8f7894e07623c37e4a87082dc770927f"
+        ],
+        "status": "REMOTE_PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_SIX_GREEN_SCOPED_SOURCE_QA",
+        "evidence": [
+          "PR #295 source f439ec4e8f7894e07623c37e4a87082dc770927f: Digital Observer CI run 42192329366 all six gates and canonical quality SUCCESS; Management tenant context run 42192329462 SUCCESS; Snyk commit status SUCCESS.",
+          "Local 20 authorized-child identity assertions, 7 UX05 Parent focused tests, 3 tuition ledger tests, typecheck, lint baseline with zero regressions, migration-order and release-contract checks passed.",
+          "Source baseline authenticated Parent single/multi at Desktop 1440x1024 and Mobile 390x844: private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-baseline-462e2f58/manifest.json SHA256 9b936b8f8ce5ac05f82ff3d8b0a7394bb696013d58ed5d680b54b17e601a6c53. Baseline is not candidate evidence."
+        ],
+        "classification": "PARENT_PRIMARY_UI_AUTHORIZED_CHILD_SELECTION_AND_READ_CONTEXT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Post-merge candidate visual comparison, authenticated switching, browser role-boundary proof and external owner review pending. Local full domain/security/build were limited by sparse checkout, host sandbox and temporary node_modules symlink; exact source PR CI passed. No all-in invoice-backed ₪15 cost or Production claim."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "462e2f58e31623e5586b85382c7dcd5afe6f7a0d",
+        "commit": null,
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/295",
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV8_PARENT_BASELINE",
+        "units": [
+          "codex/ux-v8-owner-daily-workspace-20261106"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SOURCE_TESTS_AND_EXACT_PR_CI_GREEN_POST_MERGE_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run exact-head CI for ledger checkpoint, merge PR #295 into Development only, capture authenticated Parent primary Desktop/Mobile from exact merged head, compare with approved reference and hand off honestly; no main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

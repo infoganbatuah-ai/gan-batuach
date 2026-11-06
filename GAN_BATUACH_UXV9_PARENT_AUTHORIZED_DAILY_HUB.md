@@ -23,3 +23,5 @@
 ## Preservation and next gate
 
 Commit only this scoped branch, push it without a Preview/Production deployment, open a PR to `integration/development`, require all six exact-candidate CI gates, then merge through the integration owner. After merge, run the canonical Product from the integration worktree and capture fresh single/multi Desktop and Mobile screenshots from the exact merged SHA. Compare the actual primary Parent route with the approved reference panel; record material deviations honestly. Keep Production untouched.
+
+Source commit `f439ec4e8f7894e07623c37e4a87082dc770927f` was pushed and PR #295 opened. Its exact-source Digital Observer CI run `42192329366` passed all six gates and canonical quality; Management tenant context run `42192329462` and Snyk also passed. The canonical Development ledger registration is in the subsequent PR checkpoint commit; its exact-head CI and Development merge still require independent verification.
