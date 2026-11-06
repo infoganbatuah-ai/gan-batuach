@@ -62,9 +62,10 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
     .select("id,child_profile_id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)")
     .eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20);
   const family = await getParentFamilyContext(supabase as any, profile);
-  const childProfiles = (family.childFiles ?? []) as any[];
-  const requests = (requestsRes.data ?? []) as any[];
-  const enrollmentRows = (family.enrollments ?? []) as unknown as DashboardRow[];
+  const requestsUnavailable = Boolean(requestsRes.error || (family.sourceUnavailable && requestedChildId));
+  const childProfiles = (family.sourceUnavailable ? [] : family.childFiles ?? []) as any[];
+  const requests = (requestsRes.error ? [] : requestsRes.data ?? []) as any[];
+  const enrollmentRows = (family.sourceUnavailable ? [] : family.enrollments ?? []) as unknown as DashboardRow[];
   const childContextKey = (child: DashboardRow) => String(child.permanent_child_file_id ?? child.child?.permanent_child_file_id ?? child.child_id ?? child.id ?? "");
   const childContexts = [
     ...[...enrollmentRows].sort((left, right) => Number(["active", "approved"].includes(String(right.status))) - Number(["active", "approved"].includes(String(left.status)))),
@@ -84,7 +85,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
   const selectedAttendanceChildId = childIdentity.gardenChildId;
   const selectedRequests = requests.filter(request => !selectedChild ? !requestedChildId : requestMatchesParentChild(request, selectedChildFileId));
   const pending = selectedRequests.filter((request) => !["approved", "rejected", "cancelled", "expired"].includes(String(request.status)));
-  const selectedGarden = ((family.gardens ?? []) as unknown as DashboardRow[]).find((garden) => garden.id === (activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id)) ?? selectedRequests[0]?.gardens;
+  const selectedGarden = ((family.sourceUnavailable ? [] : family.gardens ?? []) as unknown as DashboardRow[]).find((garden) => garden.id === (activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id)) ?? selectedRequests[0]?.gardens;
   const selectedGardenId = String(activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id ?? "");
   const hasActiveKindergarten = Boolean(selectedGardenId && ["active", "approved"].includes(String(activeEnrollment?.status)));
   const attendanceDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -106,13 +107,17 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
     selectedAttendanceChildId ? supabase.from("documents" as any).select("id,status,expires_at", { count: "exact", head: true }).eq("child_id", selectedAttendanceChildId).is("deleted_at", null).in("status", ["pending_review", "expired", "rejected"]) : Promise.resolve({ data: [], count: 0, error: null }),
     supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_id", profile.id).is("read_at", null).is("archived_at", null)
   ]);
-  const scheduleItems = (scheduleRes.data ?? []) as any[];
-  const attendanceRows = (attendanceRes.data ?? []) as DashboardRow[];
+  const scheduleItems = (scheduleRes.error ? [] : scheduleRes.data ?? []) as any[];
+  const attendanceRows = (attendanceRes.error ? [] : attendanceRes.data ?? []) as DashboardRow[];
+  const scheduleUnavailable = Boolean(family.sourceUnavailable || scheduleRes.error);
+  const attendanceUnavailable = Boolean(family.sourceUnavailable || attendanceRes.error);
+  const tuitionUnavailable = Boolean(family.sourceUnavailable || tuitionRes.error);
+  const updatesUnavailable = Boolean(requestsUnavailable || notificationRes.error);
   const latestAttendance = attendanceRows.find(row => String(row.child_id) === selectedAttendanceChildId) ?? null;
   const todayAttendance = deriveAttendanceSummary(latestAttendance ? [latestAttendance] : [], hasActiveKindergarten ? 1 : 0);
-  const tuition = deriveTuitionSummary((tuitionRes.data ?? []) as unknown as DashboardRow[], new Date().toISOString().slice(0, 10));
-  const safetyScore = selectedGarden?.last_inspection_score ?? null;
-  const unreadOrPendingCount = (notificationRes.count ?? 0) + pending.length;
+  const tuition = deriveTuitionSummary((tuitionRes.error ? [] : tuitionRes.data ?? []) as unknown as DashboardRow[], new Date().toISOString().slice(0, 10));
+  const safetyScore = family.sourceUnavailable ? null : selectedGarden?.last_inspection_score ?? null;
+  const unreadOrPendingCount = updatesUnavailable ? null : (notificationRes.count ?? 0) + pending.length;
   const syntheticSession = [profile.full_name, String(selectedChild?.full_name ?? ""), String(selectedGarden?.name ?? "")].some(isSyntheticLabel);
   const requestedUnavailableChild = Boolean(requestedChildId && childContexts.length && !selectedChild);
   const dataUnavailable = Boolean(family.sourceUnavailable || requestsRes.error || attendanceRes.error || tuitionRes.error || documentRes.error || notificationRes.error || scheduleRes.error);
@@ -133,7 +138,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
           <div className="parent-child-selector-track">{childContexts.map(child => {
             const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id);
             const enrollment = resolveParentDashboardChild(child, enrollmentRows).enrollment;
-            const garden = ((family.gardens ?? []) as unknown as DashboardRow[]).find(item => item.id === (enrollment?.garden_id ?? enrollment?.kindergarten_id));
+            const garden = ((family.sourceUnavailable ? [] : family.gardens ?? []) as unknown as DashboardRow[]).find(item => item.id === (enrollment?.garden_id ?? enrollment?.kindergarten_id));
             const childState = enrollment?.status ? formatStatus(String(enrollment.status)) : "טרם שויך";
             return <ParentChildContextCard
               key={id}
@@ -184,7 +189,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
                   <time>{attendance?.check_in_at ? new Date(String(attendance.check_in_at)).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "—"}</time>
                 </div>;
               })}
-              <small>{dataUnavailable ? "עדכון הנוכחות אינו זמין כעת" : hasActiveKindergarten ? "לפי רשומות הנוכחות של הגן להיום" : "המידע יוצג לאחר שיוך פעיל"}</small>
+              <small>{attendanceUnavailable ? "עדכון הנוכחות אינו זמין כעת" : hasActiveKindergarten ? "לפי רשומות הנוכחות של הגן להיום" : "המידע יוצג לאחר שיוך פעיל"}</small>
               <Link href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`}>לפרטי הנוכחות</Link>
             </div>
           </ParentSection>
@@ -201,7 +206,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
             </div>
           </ParentSection>
 
-          <ParentSection title="הודעות אחרונות" subtitle={`${unreadOrPendingCount} עדכונים פתוחים`}>
+          <ParentSection title="הודעות אחרונות" subtitle={updatesUnavailable ? "העדכונים אינם זמינים" : `${unreadOrPendingCount} עדכונים פתוחים`}>
             <div className="parent-primary-updates">
               {selectedRequests.length ? selectedRequests.slice(0, 3).map((request) => <ParentListRow
                 key={`primary-${request.id}`}
@@ -213,7 +218,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
               />) : <>
                 <ParentListRow title={hasActiveKindergarten ? "השיוך לגן פעיל" : "השיוך לגן עדיין בתהליך"} subtitle={cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "הקשר הגן")} icon={Building2} tone={hasActiveKindergarten ? "green" : "purple"} />
                 <ParentListRow title={documentRes.error ? "מצב המסמכים אינו זמין" : (documentRes.count ?? 0) ? `${documentRes.count} מסמכים דורשים פעולה` : "המסמכים מעודכנים"} subtitle="מרכז המסמכים של הילד" icon={FileText} tone={documentRes.error ? "neutral" : (documentRes.count ?? 0) ? "orange" : "green"} />
-                <ParentListRow title={tuitionRes.error ? "מצב התשלומים אינו זמין" : tuition.outstanding > 0 ? "קיימת יתרה פתוחה" : "אין יתרה פתוחה"} subtitle="שכר לימוד ותשלומים" icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} />
+                <ParentListRow title={tuitionUnavailable ? "מצב התשלומים אינו זמין" : tuition.outstanding > 0 ? "קיימת יתרה פתוחה" : "אין יתרה פתוחה"} subtitle="שכר לימוד ותשלומים" icon={WalletCards} tone={tuitionUnavailable ? "neutral" : tuition.outstanding > 0 ? "orange" : "green"} />
               </>}
             </div>
           </ParentSection>
@@ -221,16 +226,16 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
 
         {selectedChild ? <section className="parent-primary-reference-actions" aria-label="פעולות מרכזיות">
           <ParentActionTile title="יצירת קשר" href="/dashboard/parent/messages" icon={Phone} tone="blue" detail={cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "צוות הגן")} />
-          <ParentActionTile title="אירועים קרובים" href="/dashboard/parent/schedule" icon={CalendarDays} tone="purple" detail={scheduleRes.error ? "לוח הגן לא זמין" : scheduleItems.length ? new Date(String(scheduleItems[0].starts_at)).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" }) : "אין אירוע קרוב"} />
+          <ParentActionTile title="אירועים קרובים" href="/dashboard/parent/schedule" icon={CalendarDays} tone={scheduleUnavailable ? "neutral" : "purple"} detail={scheduleUnavailable ? "לוח הגן לא זמין" : scheduleItems.length ? new Date(String(scheduleItems[0].starts_at)).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" }) : "אין אירוע קרוב"} />
           <ParentActionTile title="מסמכים" href="/dashboard/parent/documents" icon={FileText} tone={documentRes.error ? "neutral" : (documentRes.count ?? 0) ? "orange" : "green"} detail={documentRes.error ? "הסטטוס לא זמין" : (documentRes.count ?? 0) ? `${documentRes.count} מסמכים לטיפול` : "המסמכים מעודכנים"} />
-          <ParentActionTile title="תשלומים" href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} detail={tuitionRes.error ? "הסטטוס לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : "אין יתרה פתוחה"} />
+          <ParentActionTile title="תשלומים" href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} icon={WalletCards} tone={tuitionUnavailable ? "neutral" : tuition.outstanding > 0 ? "orange" : "green"} detail={tuitionUnavailable ? "הסטטוס לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : "אין יתרה פתוחה"} />
         </section> : null}
 
         <section className="parent-metrics-grid">
-          <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount} hint="בקשות/התראות לטיפול" icon={MessageCircle} tone={unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />
-          <ParentMetricCard title="שכר לימוד" value={tuitionRes.error ? "לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : hasActiveKindergarten ? "אין יתרה" : "טרם הוגדר"} hint={tuition.reconciliation ? "נדרשת התאמה" : tuition.overdue ? `${tuition.overdue} תקופות באיחור` : "לפי ספר שכר הלימוד"} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : hasActiveKindergarten ? "green" : "neutral"} href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} />
-          <ParentMetricCard title="ציון בטיחות" value={safetyScore ?? "לא פורסם"} hint={safetyScore !== null ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore !== null ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
-          <ParentMetricCard title="נוכחות היום" value={!hasActiveKindergarten ? "לא רלוונטי" : todayAttendance.present ? "בגן" : todayAttendance.departed ? "יצא/ה" : todayAttendance.absent ? "נעדר/ת" : "טרם עודכן"} hint={documentRes.error ? "מצב המסמכים אינו זמין" : `${documentRes.count ?? 0} מסמכים דורשים פעולה`} icon={FileText} tone={todayAttendance.present ? "green" : "neutral"} href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`} />
+          <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount ?? "לא זמין"} hint={updatesUnavailable ? "לא ניתן לאמת את מספר העדכונים" : "בקשות/התראות לטיפול"} icon={MessageCircle} tone={updatesUnavailable ? "neutral" : unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />
+          <ParentMetricCard title="שכר לימוד" value={tuitionUnavailable ? "לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : hasActiveKindergarten ? "אין יתרה" : "טרם הוגדר"} hint={tuitionUnavailable ? "מצב התשלומים אינו זמין" : tuition.reconciliation ? "נדרשת התאמה" : tuition.overdue ? `${tuition.overdue} תקופות באיחור` : "לפי ספר שכר הלימוד"} icon={WalletCards} tone={tuitionUnavailable ? "neutral" : tuition.outstanding > 0 ? "orange" : hasActiveKindergarten ? "green" : "neutral"} href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} />
+          <ParentMetricCard title="ציון בטיחות" value={family.sourceUnavailable ? "לא זמין" : safetyScore ?? "לא פורסם"} hint={family.sourceUnavailable ? "נתוני הגן אינם זמינים" : safetyScore !== null ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore !== null ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
+          <ParentMetricCard title="נוכחות היום" value={attendanceUnavailable ? "לא זמין" : !hasActiveKindergarten ? "לא רלוונטי" : todayAttendance.present ? "בגן" : todayAttendance.departed ? "יצא/ה" : todayAttendance.absent ? "נעדר/ת" : "טרם עודכן"} hint={documentRes.error ? "מצב המסמכים אינו זמין" : attendanceUnavailable ? "עדכון הנוכחות אינו זמין" : `${documentRes.count ?? 0} מסמכים דורשים פעולה`} icon={FileText} tone={attendanceUnavailable ? "neutral" : todayAttendance.present ? "green" : "neutral"} href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`} />
         </section>
 
         <ParentSection title="מצב מצלמות" subtitle={hasActiveKindergarten ? cleanSyntheticLabel(selectedGarden?.name, "גן הילד") : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">בדיקת זמינות</Link>}>
@@ -257,7 +262,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
 
         <section className="parent-two-columns">
           <ParentSection title="היום בגן">
-            {scheduleItems.length ? scheduleItems.map((item) => (
+            {scheduleUnavailable ? <ParentEmptyState title="לוח הגן אינו זמין" text="לא ניתן לטעון כעת את סדר היום. נסו שוב בהמשך." /> : scheduleItems.length ? scheduleItems.map((item) => (
               <ParentListRow
                 key={item.id}
                 title={item.title ?? "פעילות"}
@@ -270,7 +275,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
           </ParentSection>
 
           <ParentSection title="התראות אחרונות">
-            {selectedRequests.length ? selectedRequests.slice(0, 3).map((request) => (
+            {requestsUnavailable ? <ParentEmptyState title="בקשות ההרשמה אינן זמינות" text="לא ניתן לטעון כעת את העדכונים מהגנים. נסו שוב בהמשך." /> : selectedRequests.length ? selectedRequests.slice(0, 3).map((request) => (
               <ParentListRow
                 key={request.id}
                 title={`${cleanSyntheticLabel(request.gardens?.name, "גן")} · ${formatStatus(request.status)}`}
@@ -291,7 +296,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
             </div>
             <Link href="/dashboard/parent/discover-kindergartens">הגשת בקשה חדשה</Link>
           </div>
-          {selectedRequests.length === 0 ? (
+          {requestsUnavailable ? <ParentEmptyState title="בקשות ההרשמה אינן זמינות" text="לא ניתן לטעון כעת את הבקשות. נסו שוב בהמשך." /> : selectedRequests.length === 0 ? (
             <ParentEmptyState title="עוד לא הוגשה בקשה" text="צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית." action={<Link className="parent-outline-button" href="/dashboard/parent/discover-kindergartens">מצא גן בטוח</Link>} />
           ) : (
             <div className="parent-request-list">
