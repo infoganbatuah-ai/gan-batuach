@@ -102,6 +102,22 @@
     min-height: 89px !important;
     max-height: 89px !important;
   }
+  .manager-reference-dashboard .manager-command-hero-art::after {
+    background: linear-gradient(90deg, #d8ebff 0%, rgb(222 240 255 / 83%) 36%, transparent 70%) !important;
+  }
+  .manager-reference-dashboard .manager-command-hero-art > span {
+    display: block !important;
+    position: absolute;
+    top: 17px;
+    left: 10px;
+    z-index: 2;
+    width: 42%;
+    color: #165ed1;
+    font-size: .76rem;
+    font-weight: 900;
+    line-height: 1.25;
+    text-align: center;
+  }
   .manager-reference-dashboard .manager-reference-first-viewport { display: contents !important; }
   .manager-reference-dashboard .manager-reference-first-viewport > :nth-child(3) {
     order: 4 !important;
