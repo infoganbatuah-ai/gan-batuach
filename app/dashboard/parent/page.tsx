@@ -75,6 +75,8 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
       return id && all.findIndex(item => childContextKey(item) === id) === index;
     });
   const selectedChild = selectAuthorizedChild(childContexts, requestedChildId);
+  const attendanceChildren = childContexts.slice(0, 4);
+  if (selectedChild && !attendanceChildren.includes(selectedChild)) attendanceChildren.splice(3, 1, selectedChild);
   const childIdentity = resolveParentDashboardChild(selectedChild, enrollmentRows);
   const selectedChildId = childIdentity.contextId;
   const selectedChildFileId = childIdentity.fileId;
@@ -169,7 +171,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
         {selectedChild ? <section className="parent-primary-reference-grid" aria-label="תמונת מצב יומית">
           <ParentSection title="נוכחות היום" subtitle={cleanSyntheticLabel(String(selectedChild.full_name ?? ""), "הילד שלי")}>
             <div className="parent-primary-attendance">
-              {childContexts.slice(0, 4).map(child => {
+              {attendanceChildren.map(child => {
                 const childId = String(child.child_id ?? "");
                 const attendance = attendanceRows.find(row => String(row.child_id) === childId);
                 const summary = deriveAttendanceSummary(attendance ? [attendance] : [], childId ? 1 : 0);
@@ -210,7 +212,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
                 tone={request.status === "approved" ? "green" : request.status === "rejected" ? "red" : "purple"}
               />) : <>
                 <ParentListRow title={hasActiveKindergarten ? "השיוך לגן פעיל" : "השיוך לגן עדיין בתהליך"} subtitle={cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "הקשר הגן")} icon={Building2} tone={hasActiveKindergarten ? "green" : "purple"} />
-                <ParentListRow title={(documentRes.count ?? 0) ? `${documentRes.count} מסמכים דורשים פעולה` : "המסמכים מעודכנים"} subtitle="מרכז המסמכים של הילד" icon={FileText} tone={(documentRes.count ?? 0) ? "orange" : "green"} />
+                <ParentListRow title={documentRes.error ? "מצב המסמכים אינו זמין" : (documentRes.count ?? 0) ? `${documentRes.count} מסמכים דורשים פעולה` : "המסמכים מעודכנים"} subtitle="מרכז המסמכים של הילד" icon={FileText} tone={documentRes.error ? "neutral" : (documentRes.count ?? 0) ? "orange" : "green"} />
                 <ParentListRow title={tuitionRes.error ? "מצב התשלומים אינו זמין" : tuition.outstanding > 0 ? "קיימת יתרה פתוחה" : "אין יתרה פתוחה"} subtitle="שכר לימוד ותשלומים" icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} />
               </>}
             </div>
@@ -220,7 +222,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
         {selectedChild ? <section className="parent-primary-reference-actions" aria-label="פעולות מרכזיות">
           <ParentActionTile title="יצירת קשר" href="/dashboard/parent/messages" icon={Phone} tone="blue" detail={cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "צוות הגן")} />
           <ParentActionTile title="אירועים קרובים" href="/dashboard/parent/schedule" icon={CalendarDays} tone="purple" detail={scheduleRes.error ? "לוח הגן לא זמין" : scheduleItems.length ? new Date(String(scheduleItems[0].starts_at)).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" }) : "אין אירוע קרוב"} />
-          <ParentActionTile title="מסמכים" href="/dashboard/parent/documents" icon={FileText} tone={(documentRes.count ?? 0) ? "orange" : "green"} detail={documentRes.error ? "הסטטוס לא זמין" : (documentRes.count ?? 0) ? `${documentRes.count} מסמכים לטיפול` : "המסמכים מעודכנים"} />
+          <ParentActionTile title="מסמכים" href="/dashboard/parent/documents" icon={FileText} tone={documentRes.error ? "neutral" : (documentRes.count ?? 0) ? "orange" : "green"} detail={documentRes.error ? "הסטטוס לא זמין" : (documentRes.count ?? 0) ? `${documentRes.count} מסמכים לטיפול` : "המסמכים מעודכנים"} />
           <ParentActionTile title="תשלומים" href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} detail={tuitionRes.error ? "הסטטוס לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : "אין יתרה פתוחה"} />
         </section> : null}
 
@@ -228,7 +230,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
           <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount} hint="בקשות/התראות לטיפול" icon={MessageCircle} tone={unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />
           <ParentMetricCard title="שכר לימוד" value={tuitionRes.error ? "לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : hasActiveKindergarten ? "אין יתרה" : "טרם הוגדר"} hint={tuition.reconciliation ? "נדרשת התאמה" : tuition.overdue ? `${tuition.overdue} תקופות באיחור` : "לפי ספר שכר הלימוד"} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : hasActiveKindergarten ? "green" : "neutral"} href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} />
           <ParentMetricCard title="ציון בטיחות" value={safetyScore ?? "לא פורסם"} hint={safetyScore !== null ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore !== null ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
-          <ParentMetricCard title="נוכחות היום" value={!hasActiveKindergarten ? "לא רלוונטי" : todayAttendance.present ? "בגן" : todayAttendance.departed ? "יצא/ה" : todayAttendance.absent ? "נעדר/ת" : "טרם עודכן"} hint={`${documentRes.count ?? 0} מסמכים דורשים פעולה`} icon={FileText} tone={todayAttendance.present ? "green" : "neutral"} href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`} />
+          <ParentMetricCard title="נוכחות היום" value={!hasActiveKindergarten ? "לא רלוונטי" : todayAttendance.present ? "בגן" : todayAttendance.departed ? "יצא/ה" : todayAttendance.absent ? "נעדר/ת" : "טרם עודכן"} hint={documentRes.error ? "מצב המסמכים אינו זמין" : `${documentRes.count ?? 0} מסמכים דורשים פעולה`} icon={FileText} tone={todayAttendance.present ? "green" : "neutral"} href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`} />
         </section>
 
         <ParentSection title="מצב מצלמות" subtitle={hasActiveKindergarten ? cleanSyntheticLabel(selectedGarden?.name, "גן הילד") : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">בדיקת זמינות</Link>}>
