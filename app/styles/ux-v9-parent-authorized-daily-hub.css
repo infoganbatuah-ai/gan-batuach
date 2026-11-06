@@ -16,8 +16,15 @@
   background: #eff7ff;
 }
 
+/* The primary child card is suppressed for the reference's compact assigned
+   view, but the explicit unassigned/unauthorized state must remain visible. */
+.parent-dashboard-home > .parent-child-card.no-child {
+  display: flex !important;
+  grid-column: 1 / -1;
+}
+
 @media (min-width: 1025px) {
-  .role-app-shell.parent-runtime-shell.gb-app-shell:has(.parent-dashboard-home) {
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) {
     grid-template-columns: 220px minmax(0, 1fr) !important;
   }
   .parent-dashboard-home .parent-child-card-selector {
