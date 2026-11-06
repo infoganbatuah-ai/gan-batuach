@@ -15,10 +15,11 @@ export default async function ParentDocumentsPage() {
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase, profile);
   const documentsRes = await supabase.from("documents" as never).select(documentFields as never).is("deleted_at", null).order("created_at", { ascending: false }).limit(100);
-  const children = family.children as FamilyChild[];
+  const familyUnavailable = Boolean(family.sourceUnavailable);
+  const children = (familyUnavailable ? [] : family.children) as FamilyChild[];
   const childNames = new Map(children.map((item) => [item.id, item.full_name]));
-  const gardenNames = new Map((family.gardens as FamilyGarden[]).map((item) => [item.id, item.name]));
-  const rows: DocumentsPlatformRow[] = ((documentsRes.data ?? []) as unknown as DocumentsPlatformRow[]).map((row) => ({
+  const gardenNames = new Map(((familyUnavailable ? [] : family.gardens) as FamilyGarden[]).map((item) => [item.id, item.name]));
+  const rows: DocumentsPlatformRow[] = ((documentsRes.error ? [] : documentsRes.data ?? []) as unknown as DocumentsPlatformRow[]).map((row) => ({
     ...row,
     effective_status: effectiveDocumentStatus(row),
     file_url: row.file_url === `/api/documents/${row.id}/file` ? row.file_url : null,
@@ -27,12 +28,13 @@ export default async function ParentDocumentsPage() {
     can_review: false
   }));
   const childTargets: DocumentsUploadTarget[] = children.flatMap((child) => child.garden_id ? [{ id: `child-${child.id}`, label: `מסמכי ${child.full_name}`, gardenId: child.garden_id, ownerId: child.id, documentTypes: ["child_document", "medical_approval"] }] : []);
-  const guardianTargets: DocumentsUploadTarget[] = Array.from(new Set(family.gardenIds as string[])).map((gardenId) => ({ id: `guardian-${gardenId}`, label: `מסמכי הורה · ${gardenNames.get(gardenId) ?? "גן משויך"}`, gardenId, ownerId: profile.id, documentTypes: ["guardian_document"] }));
+  const guardianTargets: DocumentsUploadTarget[] = Array.from(new Set((familyUnavailable ? [] : family.gardenIds) as string[])).map((gardenId) => ({ id: `guardian-${gardenId}`, label: `מסמכי הורה · ${gardenNames.get(gardenId) ?? "גן משויך"}`, gardenId, ownerId: profile.id, documentTypes: ["guardian_document"] }));
 
   return (
     <DashboardShell role="parent" title="מסמכים" appHome>
       <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={profile.profile_image_url ?? null}>
-        <DocumentsPlatform title="המסמכים של המשפחה" subtitle="מסמכי הילדים וההורה לפי הגן המשויך, עם סטטוס ברור ופעולה בטוחה." rows={rows} uploadTargets={[...childTargets, ...guardianTargets]} roleLabel="משפחה" />
+        {familyUnavailable ? <p role="status">פרטי המשפחה אינם זמינים כרגע. לא ניתן לבחור יעד להעלאה עד לטעינתם מחדש.</p> : null}
+        <DocumentsPlatform sourceAvailable={!documentsRes.error} title="המסמכים של המשפחה" subtitle="מסמכי הילדים וההורה לפי הגן המשויך, עם סטטוס ברור ופעולה בטוחה." rows={rows} uploadTargets={[...childTargets, ...guardianTargets]} roleLabel="משפחה" />
       </ParentAppFrame>
     </DashboardShell>
   );

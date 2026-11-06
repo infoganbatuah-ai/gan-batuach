@@ -159,16 +159,7 @@ function isActionRequired(status: string) {
   return ["missing", "required", "rejected", "expired", "replacement_required", "expiring_soon"].includes(status);
 }
 
-export function DocumentsPlatform({
-  title,
-  subtitle,
-  rows: initialRows,
-  uploadTargets = [],
-  canReview = false,
-  limitedMessage,
-  roleLabel,
-  initialSelectedId
-}: {
+type DocumentsPlatformProps = {
   title: string;
   subtitle: string;
   rows: DocumentsPlatformRow[];
@@ -177,7 +168,29 @@ export function DocumentsPlatform({
   limitedMessage?: string;
   roleLabel: string;
   initialSelectedId?: string | null;
-}) {
+  sourceAvailable?: boolean;
+};
+
+export function DocumentsPlatform(props: DocumentsPlatformProps) {
+  const { rows, uploadTargets = [], sourceAvailable = true, initialSelectedId } = props;
+  const currentRows = sourceAvailable ? rows : [];
+  // Reset source-bound local UI state before the next committed frame, not in an effect.
+  // Values are serializable document/target props; identity comparison remains exact.
+  const snapshotKey = JSON.stringify([sourceAvailable, currentRows, uploadTargets, initialSelectedId ?? null]);
+  return <DocumentsPlatformContent key={snapshotKey} {...props} rows={currentRows} uploadTargets={uploadTargets} sourceAvailable={sourceAvailable} />;
+}
+
+function DocumentsPlatformContent({
+  title,
+  subtitle,
+  rows: initialRows,
+  uploadTargets = [],
+  canReview = false,
+  limitedMessage,
+  roleLabel,
+  initialSelectedId,
+  sourceAvailable = true
+}: DocumentsPlatformProps) {
   const [rows, setRows] = useState(initialRows);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -288,6 +301,7 @@ export function DocumentsPlatform({
 
       {limitedMessage ? <aside className="documents-boundary-notice"><ShieldCheck /><div><strong>גישה מוגבלת לפי תפקיד</strong><span>{limitedMessage}</span></div></aside> : null}
 
+      {sourceAvailable ? <>
       <div className="documents-metrics" aria-label="סיכום מסמכים">
         <button type="button" className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}><Folder /><span>כל המסמכים</span><strong>{counts.all}</strong></button>
         <button type="button" className={filter === "action" ? "active danger" : "danger"} onClick={() => setFilter("action")}><AlertTriangle /><span>דורשים פעולה</span><strong>{counts.action}</strong></button>
@@ -373,7 +387,9 @@ export function DocumentsPlatform({
         </aside>
       </div>
 
-      {uploadOpen ? <div className="document-upload-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setUploadOpen(false); }}>
+      </> : <div className="documents-empty" role="status"><AlertTriangle /><h3>המסמכים אינם זמינים כרגע</h3><p>הרשימה וסיכום המסמכים אינם זמינים. אפשר לנסות שוב מאוחר יותר.</p></div>}
+
+      {uploadOpen && uploadTargets.length > 0 ? <div className="document-upload-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setUploadOpen(false); }}>
         <section className="document-upload-sheet" role="dialog" aria-modal="true" aria-labelledby="document-upload-title">
           <header><div><span><UploadCloud /></span><div><h3 id="document-upload-title" ref={uploadHeading} tabIndex={-1}>{replacementId ? "החלפת מסמך" : "העלאת מסמך חדש"}</h3><p>PDF או תמונה עד 12MB. הקובץ נשמר באחסון פרטי.</p></div></div><button type="button" onClick={() => setUploadOpen(false)} aria-label="סגירת חלון העלאה"><X /></button></header>
           <form onSubmit={submitUpload}>
