@@ -8,6 +8,14 @@ export default async function ParentReportsPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase, profile);
+  if (family.sourceUnavailable) return (
+    <DashboardShell role="parent" title="הדוחות שלי" appHome>
+      <div className="page-header">
+        <div><h1>הדוחות שלי</h1><p>סיכומים רק עבור הילדים שהקשר ההורי אליהם פעיל ומורשה.</p></div>
+      </div>
+      <p role="status">נתוני המשפחה אינם זמינים כרגע. לא ניתן להציג דוחות עד לטעינתם מחדש.</p>
+    </DashboardShell>
+  );
   const children = Array.from(new Map([
     ...family.children.map((child: { id: string; full_name?: string | null }) => [child.id, { id: child.id, label: child.full_name ?? "ילד/ה" }] as const),
     ...family.enrollments.filter((enrollment: { child_id?: string | null }) => enrollment.child_id).map((enrollment: { child_id: string; full_name?: string | null }) => [enrollment.child_id, { id: enrollment.child_id, label: enrollment.full_name ?? "ילד/ה" }] as const)
