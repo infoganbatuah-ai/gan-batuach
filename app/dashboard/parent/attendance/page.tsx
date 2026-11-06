@@ -35,8 +35,8 @@ export default async function ParentAttendancePage({ searchParams }: { searchPar
   const params = await searchParams;
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase, profile);
-  const children = parentAttendanceChildren(family.children, family.enrollments);
-  const selected = children.find((child) => child.id === params.child) ?? children[0] ?? null;
+  const children = family.sourceUnavailable ? [] : parentAttendanceChildren(family.children, family.enrollments);
+  const selected = family.sourceUnavailable ? null : children.find((child) => child.id === params.child) ?? children[0] ?? null;
   const attendanceRes = selected
     ? await supabase.from("attendance" as never)
       .select("id,attendance_date,status,check_in_at,check_out_at,pickup_name,note,updated_at" as never)
@@ -48,13 +48,6 @@ export default async function ParentAttendancePage({ searchParams }: { searchPar
     ? await supabase.from("gardens" as never).select("operational_timezone" as never).eq("id", selected.garden_id).maybeSingle()
     : { data: null, error: selected ? new Error("Garden context unavailable") : null };
   const sourceUnavailable = Boolean(family.sourceUnavailable || attendanceRes.error || gardenRes.error || (selected && !gardenRes.data));
-  const rows = (attendanceRes.data ?? []) as unknown as AttendanceRow[];
-  const zone = String((gardenRes.data as { operational_timezone?: string } | null)?.operational_timezone ?? "Asia/Jerusalem");
-  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const today = rows.find((row) => row.attendance_date === todayKey) ?? null;
-  const todayMeta = attendanceMeta(today?.status, today?.check_out_at);
-  const presentDays = rows.filter((row) => ["present", "checked_in", "checked_out", "departed", "late", "left_early"].includes(String(row.status))).length;
-  const absentDays = rows.filter((row) => row.status === "absent").length;
 
   if (sourceUnavailable) return (
     <DashboardShell role="parent" title="נוכחות" appHome>
@@ -66,6 +59,16 @@ export default async function ParentAttendancePage({ searchParams }: { searchPar
       </ParentAppFrame>
     </DashboardShell>
   );
+
+
+  const rows = (attendanceRes.data ?? []) as unknown as AttendanceRow[];
+  const zone = String((gardenRes.data as { operational_timezone?: string } | null)?.operational_timezone ?? "Asia/Jerusalem");
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const today = rows.find((row) => row.attendance_date === todayKey) ?? null;
+  const todayMeta = attendanceMeta(today?.status, today?.check_out_at);
+  const presentDays = rows.filter((row) => ["present", "checked_in", "checked_out", "departed", "late", "left_early"].includes(String(row.status))).length;
+  const absentDays = rows.filter((row) => row.status === "absent").length;
+
 
   return (
     <DashboardShell role="parent" title="נוכחות" appHome>
