@@ -116,10 +116,12 @@ export default async function AdminDashboard() {
       pilotPrograms,
       subscriptionRowsRes,
       gardenRowsRes,
+      pendingGardenRowsRes,
       inspectorRowsRes,
       recentComplaintsRes,
       recentAiEventsRes,
-      launchScoresRes
+      launchScoresRes,
+      gardenCreatedRes
     ] = await Promise.all([
       countRows(supabase, "gardens"),
       countFiltered(supabase, "gardens", (query) => query.eq("status", "active")),
@@ -152,19 +154,23 @@ export default async function AdminDashboard() {
       countFiltered(supabase, "pilot_programs", (query) => query.in("pilot_status", ["active", "in_progress", "onboarding"])),
       supabase.from("kindergarten_subscriptions" as any).select("id,status,created_at,current_period_end,subscription_plans(price_amount)").limit(500),
       supabase.from("gardens" as any).select("id,name,city,safe_status,status,last_inspection_score,next_inspection_at,inspection_required_status,created_at").order("created_at", { ascending: false }).limit(10),
+      supabase.from("gardens").select("id,name,city,status,created_at").in("approval_flow_status", ["lead_submitted", "credentials_sent", "onboarding_in_progress", "pending_final_approval", "correction_required"]).order("created_at", { ascending: false }).limit(3),
       supabase.from("inspectors" as any).select("id,service_cities,certification_notes,created_at,profiles!inspectors_id_fkey(full_name,active)").limit(10),
-      supabase.from("complaints" as any).select("id,subject,severity,status,created_at,gardens(name,city)").order("created_at", { ascending: false }).limit(6),
+      supabase.from("complaints" as any).select("id,subject,severity,status,created_at,gardens(name,city)").in("status", ["new", "assigned", "in_progress", "waiting_garden"]).order("created_at", { ascending: false }).limit(6),
       Promise.resolve({ data: [], error: null }),
-      supabase.from("launch_readiness_scores" as any).select("category,score,status").limit(20)
+      supabase.from("launch_readiness_scores" as any).select("category,score,status").limit(20),
+      supabase.from("gardens").select("created_at").order("created_at", { ascending: false }).limit(501)
     ]);
 
     [
       subscriptionRowsRes,
       gardenRowsRes,
+      pendingGardenRowsRes,
       inspectorRowsRes,
       recentComplaintsRes,
       recentAiEventsRes,
-      launchScoresRes
+      launchScoresRes,
+      gardenCreatedRes
     ].forEach((query, index) => logSupabaseError(`national dashboard query ${index}`, (query as any).error));
 
     const countEntries = Object.entries({
@@ -199,6 +205,21 @@ export default async function AdminDashboard() {
       pilotPrograms
     });
     const unavailableCountSources = countEntries.filter(([, value]) => !Number.isFinite(value)).map(([name]) => name);
+    const unavailableLists = [
+      ...(gardenRowsRes.error ? ["gardenRows"] : []),
+      ...(pendingGardenRowsRes.error ? ["pendingGardenRows"] : []),
+      ...(recentComplaintsRes.error ? ["recentComplaints"] : []),
+      ...(subscriptionRowsRes.error ? ["subscriptionRows"] : []),
+      ...(gardenCreatedRes.error ? ["gardenCreated"] : [])
+    ];
+    const months = Array.from({ length: 7 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - 6 + index, 1));
+    const createdDates = ((gardenCreatedRes.data ?? []) as { created_at: string | null }[]).map((row) => new Date(row.created_at ?? ""));
+    const gardenTimeline = !gardenCreatedRes.error && Number.isFinite(gardens) && gardens <= 500 && createdDates.length === gardens && createdDates.every((date) => Number.isFinite(date.getTime()))
+      ? months.map((month) => ({
+          label: month.toLocaleDateString("he-IL", { month: "short" }),
+          value: createdDates.filter((date) => date < new Date(month.getFullYear(), month.getMonth() + 1, 1)).length
+        }))
+      : null;
 
     const subscriptionRows = (subscriptionRowsRes.data ?? []) as any[];
     const mrr = subscriptionRows
@@ -243,6 +264,7 @@ export default async function AdminDashboard() {
       newThisWeek,
       launchReadiness,
       gardenRows: (gardenRowsRes.data ?? []) as any[],
+      pendingGardenRows: (pendingGardenRowsRes.data ?? []) as { id: string; name: string | null; city: string | null; status: string | null; created_at: string | null }[],
       inspectorRows: ((inspectorRowsRes.data ?? []) as any[]).map((row) => ({
         id: row.id,
         full_name: row.profiles?.full_name ?? null,
@@ -251,7 +273,10 @@ export default async function AdminDashboard() {
       })),
       recentComplaints: (recentComplaintsRes.data ?? []) as any[],
       recentAiEvents: (recentAiEventsRes.data ?? []) as any[],
-      queryError: [subscriptionRowsRes, gardenRowsRes, inspectorRowsRes, recentComplaintsRes, recentAiEventsRes, launchScoresRes].some((query) => query.error) || unavailableCountSources.length
+      gardenTimeline,
+      unavailableCountSources,
+      unavailableLists,
+      queryError: [subscriptionRowsRes, gardenRowsRes, pendingGardenRowsRes, inspectorRowsRes, recentComplaintsRes, recentAiEventsRes, launchScoresRes, gardenCreatedRes].some((query) => query.error) || unavailableCountSources.length
         ? `חלק מנתוני מרכז השליטה לא נטענו${unavailableCountSources.length ? `: ${unavailableCountSources.join(", ")}` : ""}`
         : null
     };
@@ -290,14 +315,20 @@ export default async function AdminDashboard() {
     newThisWeek: 0,
     launchReadiness: 0,
     gardenRows: [] as any[],
+    pendingGardenRows: [] as { id: string; name: string | null; city: string | null; status: string | null; created_at: string | null }[],
     inspectorRows: [] as any[],
     recentComplaints: [] as any[],
     recentAiEvents: [] as any[],
+    gardenTimeline: null as { label: string; value: number }[] | null,
+    unavailableCountSources: [] as string[],
+    unavailableLists: [] as string[],
     queryError: null as string | null
   });
 
   const data = result.data;
-  const dataAvailable = !result.error;
+  const dataAvailable = !result.error && !data.queryError;
+  const countsReady = (...sources: string[]) => !result.error && sources.every((source) => !data.unavailableCountSources.includes(source));
+  const listReady = (source: string) => !result.error && !data.unavailableLists.includes(source);
   const staffReadiness = dataAvailable && data.staff ? Math.round((data.activeStaff / data.staff) * 100) : null;
   const inspectionCompletion = dataAvailable && data.requiredInspections + data.completedInspections ? Math.round((data.completedInspections / (data.requiredInspections + data.completedInspections)) * 100) : null;
   const communicationHealth = dataAvailable && data.deliveryLogs ? clamp(100 - (data.communicationFailures / Math.max(data.deliveryLogs, 1)) * 100) : null;
@@ -324,6 +355,8 @@ export default async function AdminDashboard() {
     { label: "ילדים", value: data.children }
   ];
   const maxPopulation = Math.max(1, ...populationRows.map((item) => item.value));
+  const populationReady = countsReady("parents", "staff", "inspectors", "children");
+  const timelinePoints = data.gardenTimeline?.map((item, index, series) => `${14 + index * 65},${112 - (item.value / Math.max(1, ...series.map((point) => point.value))) * 84}`) ?? [];
 
   const executiveQuestions = [
     { label: "אילו גנים דורשים טיפול?", href: "/dashboard/admin/kindergartens" },
@@ -380,54 +413,54 @@ export default async function AdminDashboard() {
         </header>
 
         <div className="admin-literal-kpis" aria-label="מדדי מערכת מרכזיים">
-          <Link href="/dashboard/admin/kindergartens"><span className="blue"><ShieldCheck /></span><small>גנים פעילים</small><b>{dataAvailable ? data.activeGardens : "—"}</b><em>{dataAvailable ? `${data.gardens} בסך הכל` : "מקור לא זמין"}</em></Link>
-          <Link href="/dashboard/admin/users"><span className="cyan"><UsersRound /></span><small>משתמשים פעילים</small><b>{dataAvailable ? data.activeStaff + data.parents + data.inspectors : "—"}</b><em>הורים, צוות ומפקחים</em></Link>
-          <Link href="/dashboard/admin/kindergarten-applications"><span className="green"><FileText /></span><small>בקשות לאישור</small><b>{dataAvailable ? data.onboardingGardens : "—"}</b><em>ממתינות לטיפול</em></Link>
-          <Link href="/dashboard/admin/complaints"><span className="red"><MessageSquareWarning /></span><small>תלונות פתוחות</small><b>{dataAvailable ? data.complaints : "—"}</b><em>{dataAvailable ? `${data.criticalComplaints} בעדיפות גבוהה` : "מקור לא זמין"}</em></Link>
-          <Link href="/dashboard/admin/system-health"><span className="purple"><HeartPulse /></span><small>תקלות מערכת</small><b>{dataAvailable ? data.launchBlockers + data.securityFindings : "—"}</b><em>דורשות בדיקה</em></Link>
-          <Link href="/dashboard/admin/subscriptions"><span className="blue"><CreditCard /></span><small>מנויים פעילים</small><b>{dataAvailable ? data.activeSubscriptions : "—"}</b><em>{dataAvailable ? `${data.overdueAccounts} בסיכון` : "מקור לא זמין"}</em></Link>
+          <Link href="/dashboard/admin/kindergartens"><span className="blue"><ShieldCheck /></span><small>גנים פעילים</small><b>{countsReady("activeGardens") ? data.activeGardens : "—"}</b><em>{countsReady("gardens") ? `${data.gardens} בסך הכל` : "מקור לא זמין"}</em></Link>
+          <Link href="/dashboard/admin/users"><span className="cyan"><UsersRound /></span><small>משתמשים רשומים</small><b>{countsReady("activeStaff", "parents", "inspectors") ? data.activeStaff + data.parents + data.inspectors : "—"}</b><em>הורים, צוות מאושר ומפקחים</em></Link>
+          <Link href="/dashboard/admin/kindergarten-applications"><span className="green"><FileText /></span><small>בקשות לאישור</small><b>{countsReady("onboardingGardens") ? data.onboardingGardens : "—"}</b><em>בתהליכי קליטה ואישור</em></Link>
+          <Link href="/dashboard/admin/complaints"><span className="red"><MessageSquareWarning /></span><small>תלונות פתוחות</small><b>{countsReady("complaints") ? data.complaints : "—"}</b><em>{countsReady("criticalComplaints") ? `${data.criticalComplaints} בעדיפות גבוהה` : "מקור לא זמין"}</em></Link>
+          <Link href="/dashboard/admin/system-health"><span className="purple"><HeartPulse /></span><small>חסמי מוכנות ואבטחה</small><b>{countsReady("launchBlockers", "securityFindings") ? data.launchBlockers + data.securityFindings : "—"}</b><em>דורשים בדיקה</em></Link>
+          <Link href="/dashboard/admin/subscriptions"><span className="blue"><CreditCard /></span><small>מנויים פעילים</small><b>{countsReady("activeSubscriptions") ? data.activeSubscriptions : "—"}</b><em>{countsReady("overdueAccounts") ? `${data.overdueAccounts} בסיכון` : "מקור לא זמין"}</em></Link>
         </div>
 
         <div className="admin-literal-upper-grid admin-two-column">
           <article className="admin-literal-chart">
             <header><h2>צמיחת גנים</h2><Link href="/dashboard/admin/kindergartens">הצג הכל</Link></header>
-            <div className="admin-literal-line-chart" role="img" aria-label={`סה״כ ${data.gardens} גנים, ${data.activeGardens} פעילים`}>
-              <svg viewBox="0 0 420 128" aria-hidden="true"><defs><linearGradient id="admin-line-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2687f2" stopOpacity=".26"/><stop offset="1" stopColor="#2687f2" stopOpacity="0"/></linearGradient></defs><path d="M14 108 L78 93 L142 78 L206 68 L270 56 L334 43 L405 28 L405 120 L14 120 Z" fill="url(#admin-line-fill)"/><path d="M14 108 L78 93 L142 78 L206 68 L270 56 L334 43 L405 28" fill="none" stroke="#1979e8" strokeWidth="4" strokeLinecap="round"/><g fill="#1979e8"><circle cx="14" cy="108" r="4"/><circle cx="78" cy="93" r="4"/><circle cx="142" cy="78" r="4"/><circle cx="206" cy="68" r="4"/><circle cx="270" cy="56" r="4"/><circle cx="334" cy="43" r="4"/><circle cx="405" cy="28" r="4"/></g></svg>
-              <div><span>ינו׳</span><span>פבר׳</span><span>מרץ</span><span>אפר׳</span><span>מאי</span><span>יוני</span><span>יולי</span></div>
-              <b>{data.gardens} גנים</b>
+            <div className="admin-literal-line-chart" role="img" aria-label={data.gardenTimeline ? `גנים מצטברים בשבעת החודשים האחרונים: ${data.gardenTimeline.map((point) => `${point.label} ${point.value}`).join(", ")}` : "סדרת צמיחה מאומתת אינה זמינה"}>
+              {data.gardenTimeline ? <><svg viewBox="0 0 420 128" aria-hidden="true"><defs><linearGradient id="admin-line-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2687f2" stopOpacity=".26"/><stop offset="1" stopColor="#2687f2" stopOpacity="0"/></linearGradient></defs><path d={`M${timelinePoints.join(" L")} L404,120 L14,120 Z`} fill="url(#admin-line-fill)"/><polyline points={timelinePoints.join(" ")} fill="none" stroke="#1979e8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>{timelinePoints.map((point, index) => { const [cx, cy] = point.split(","); return <circle key={index} cx={cx} cy={cy} r="4" fill="#1979e8"/>; })}</svg>
+              <div>{data.gardenTimeline.map((point, index) => <span key={index}>{point.label}</span>)}</div>
+              <b>{data.gardens} גנים</b></> : <p className="admin-chart-unavailable">אין סדרת זמן מלאה ומאומתת להצגה.</p>}
             </div>
           </article>
 
           <article className="admin-literal-chart">
-            <header><h2>פעילות משתמשים</h2><Link href="/dashboard/admin/users">הצג הכל</Link></header>
-            <div className="admin-literal-grouped-bars" role="img" aria-label={populationRows.map((item) => `${item.label} ${item.value}`).join(", ")}>
-              {populationRows.map((item, index) => <span key={item.label}><i style={{ height: `${Math.max(14, (item.value / maxPopulation) * 100)}%` }} /><i style={{ height: `${Math.max(9, (item.value / maxPopulation) * (65 + index * 7))}%` }} /><b>{item.label}</b></span>)}
+            <header><h2>משתמשים לפי תפקיד</h2><Link href="/dashboard/admin/users">הצג הכל</Link></header>
+            <div className="admin-literal-grouped-bars" role="img" aria-label={populationReady ? populationRows.map((item) => `${item.label} ${item.value}`).join(", ") : "ספירות משתמשים אינן זמינות במלואן"}>
+              {populationReady ? populationRows.map((item) => <span key={item.label}><i style={{ height: `${Math.max(8, (item.value / maxPopulation) * 100)}%` }} /><b>{item.label} {item.value}</b></span>) : <p className="admin-chart-unavailable">נתוני התפקידים אינם זמינים במלואם.</p>}
             </div>
           </article>
 
           <article className="admin-literal-health">
             <header><h2>סטטוס מערכת</h2></header>
-            <div><span><i className="good" /> אפליקציה</span><b>{dataAvailable ? "פעיל" : "בדיקה"}</b></div>
-            <div><span><i className={communicationHealth !== null && communicationHealth >= 80 ? "good" : "warn"} /> מסד נתונים</span><b>{communicationHealth === null ? "בדיקה" : "פעיל"}</b></div>
-            <div><span><i className="good" /> הרשאות</span><b>פעיל</b></div>
-            <div><span><i className={cameraHealth !== null && cameraHealth >= 80 ? "good" : "warn"} /> מצלמות / Digital Observer</span><b>{cameraHealth === null ? "מוכנות" : `${cameraHealth}%`}</b></div>
-            <div><span><i className={data.communicationFailures ? "warn" : "good"} /> תקשורת</span><b>{data.communicationFailures ? "נדרש טיפול" : "פעיל"}</b></div>
+            <div><span><i className="good" /> ממשק ניהול</span><b>נטען</b></div>
+            <div><span><i className={dataAvailable ? "good" : "warn"} /> נתוני מערכת</span><b>{dataAvailable ? "נטענו" : "חלקיים"}</b></div>
+            <div><span><i className="good" /> הרשאות</span><b>גישה מוגנת</b></div>
+            <div><span><i className={cameraHealth !== null && cameraHealth >= 80 ? "good" : "warn"} /> מצלמות / Digital Observer</span><b>{!countsReady("cameras", "offlineCameras", "unhealthyCameras") ? "לבדיקה" : cameraHealth === null ? "לא הוגדרו" : `${cameraHealth}%`}</b></div>
+            <div><span><i className={countsReady("communicationFailures", "deliveryLogs") && !data.communicationFailures ? "good" : "warn"} /> יומני מסירה</span><b>{!countsReady("communicationFailures", "deliveryLogs") ? "לבדיקה" : data.communicationFailures ? `${data.communicationFailures} כשלונות` : "ללא כשלים מדווחים"}</b></div>
           </article>
-
-          <aside className="admin-literal-activity">
-            <header><h2>פעילות אחרונה</h2><Link href="/dashboard/admin/audit-logs">הצג הכל</Link></header>
-            <div className="admin-literal-activity-list admin-list-stack">
-              {data.gardenRows.slice(0, 2).map((garden) => <Link href={`/dashboard/admin/gardens/${garden.id}`} key={`activity-garden-${garden.id}`}><span className="blue"><ShieldCheck /></span><div><b>{cleanSyntheticLabel(garden.name, "גן")}</b><small>{garden.city ?? "עיר לא צוינה"} · {adminStatusLabel(garden.status)}</small></div><time>{garden.created_at ? new Date(garden.created_at).toLocaleDateString("he-IL") : ""}</time></Link>)}
-              {data.recentComplaints.slice(0, 2).map((item) => <Link href="/dashboard/admin/complaints" key={`activity-complaint-${item.id}`}><span className="red"><MessageSquareWarning /></span><div><b>{item.subject ?? "תלונה חדשה"}</b><small>{item.gardens?.name ?? "גן"} · {adminStatusLabel(item.status)}</small></div><time>{item.created_at ? new Date(item.created_at).toLocaleDateString("he-IL") : ""}</time></Link>)}
-              {!data.gardenRows.length && !data.recentComplaints.length ? <p>אין פעילות חדשה להצגה. לא מוצגים אירועים מדומים.</p> : null}
-            </div>
-          </aside>
         </div>
 
+        <aside className="admin-literal-activity">
+          <header><h2>פעילות אחרונה</h2><Link href="/dashboard/admin/audit-logs">הצג הכל</Link></header>
+          <div className="admin-literal-activity-list admin-list-stack">
+            {data.gardenRows.slice(0, 3).map((garden) => <Link href={`/dashboard/admin/gardens/${garden.id}`} key={`activity-garden-${garden.id}`}><span className="blue"><ShieldCheck /></span><div><b>{cleanSyntheticLabel(garden.name, "גן")}</b><small>{garden.city ?? "עיר לא צוינה"} · {adminStatusLabel(garden.status)}</small></div><time>{garden.created_at ? new Date(garden.created_at).toLocaleDateString("he-IL") : ""}</time></Link>)}
+            {data.recentComplaints.slice(0, 2).map((item) => <Link href="/dashboard/admin/complaints" key={`activity-complaint-${item.id}`}><span className="red"><MessageSquareWarning /></span><div><b>{item.subject ?? "תלונה חדשה"}</b><small>{item.gardens?.name ?? "גן"} · {adminStatusLabel(item.status)}</small></div><time>{item.created_at ? new Date(item.created_at).toLocaleDateString("he-IL") : ""}</time></Link>)}
+            {!data.gardenRows.length && !data.recentComplaints.length ? <p>{listReady("gardenRows") && listReady("recentComplaints") ? "אין פעילות חדשה להצגה." : "נתוני הפעילות אינם זמינים במלואם."}</p> : null}
+          </div>
+        </aside>
+
         <div className="admin-literal-lower-grid">
-          <article><header><h2>גנים חדשים להמשך טיפול</h2><Link href="/dashboard/admin/kindergarten-applications">הצג הכל</Link></header>{data.gardenRows.slice(0,3).map((garden)=><Link href={`/dashboard/admin/gardens/${garden.id}`} key={`garden-row-${garden.id}`}><b>{cleanSyntheticLabel(garden.name,"גן")}</b><span>{garden.city ?? "עיר לא צוינה"}</span><em>{adminStatusLabel(garden.status)}</em></Link>)}</article>
-          <article><header><h2>תלונות פתוחות</h2><Link href="/dashboard/admin/complaints">הצג הכל</Link></header>{data.recentComplaints.slice(0,3).map((item)=><Link href="/dashboard/admin/complaints" key={`complaint-row-${item.id}`}><b>{item.subject ?? "תלונה"}</b><span>{item.gardens?.name ?? "גן"}</span><em>{adminStatusLabel(item.status)}</em></Link>)}</article>
-          <article><header><h2>מנויים ותשלומים</h2><Link href="/dashboard/admin/subscriptions">הצג הכל</Link></header><div className="admin-literal-subscription-row"><b>מנויים פעילים</b><span>{data.activeSubscriptions}</span><em className="good">פעיל</em></div><div className="admin-literal-subscription-row"><b>חשבונות בסיכון</b><span>{data.overdueAccounts}</span><em className={data.overdueAccounts ? "warn" : "good"}>{data.overdueAccounts ? "טיפול" : "תקין"}</em></div><div className="admin-literal-subscription-row"><b>לקראת סיום</b><span>{data.expiringSubscriptions}</span><em>מעקב</em></div></article>
+          <article><header><h2>גנים חדשים להמשך טיפול</h2><Link href="/dashboard/admin/kindergarten-applications">הצג הכל</Link></header>{data.pendingGardenRows.map((garden)=><Link href={`/dashboard/admin/gardens/${garden.id}`} key={`garden-row-${garden.id}`}><b>{cleanSyntheticLabel(garden.name,"גן")}</b><span>{garden.city ?? "עיר לא צוינה"}</span><em>{adminStatusLabel(garden.status)}</em></Link>)}{!data.pendingGardenRows.length ? <p className="admin-table-state">{listReady("pendingGardenRows") ? "אין גנים חדשים להצגה" : "נתוני הגנים לא נטענו"}</p> : null}</article>
+          <article><header><h2>תלונות פתוחות</h2><Link href="/dashboard/admin/complaints">הצג הכל</Link></header>{data.recentComplaints.slice(0,3).map((item)=><Link href="/dashboard/admin/complaints" key={`complaint-row-${item.id}`}><b>{item.subject ?? "תלונה"}</b><span>{item.gardens?.name ?? "גן"}</span><em>{adminStatusLabel(item.status)}</em></Link>)}{!data.recentComplaints.length ? <p className="admin-table-state">{listReady("recentComplaints") ? "אין תלונות פתוחות להצגה" : "נתוני התלונות לא נטענו"}</p> : null}</article>
+          <article><header><h2>מנויים ותשלומים</h2><Link href="/dashboard/admin/subscriptions">הצג הכל</Link></header><div className="admin-literal-subscription-row"><b>מנויים פעילים</b><span>{countsReady("activeSubscriptions") ? data.activeSubscriptions : "—"}</span><em className={countsReady("activeSubscriptions") ? "good" : "warn"}>{countsReady("activeSubscriptions") ? "נמדד" : "לא זמין"}</em></div><div className="admin-literal-subscription-row"><b>חשבונות בסיכון</b><span>{countsReady("overdueAccounts") ? data.overdueAccounts : "—"}</span><em className={countsReady("overdueAccounts") && data.overdueAccounts ? "warn" : "good"}>{countsReady("overdueAccounts") ? data.overdueAccounts ? "טיפול" : "ללא מדווחים" : "לא זמין"}</em></div><div className="admin-literal-subscription-row"><b>לקראת סיום</b><span>{countsReady("expiringSubscriptions") ? data.expiringSubscriptions : "—"}</span><em>{countsReady("expiringSubscriptions") ? "מעקב" : "לא זמין"}</em></div></article>
         </div>
       </section>
 
