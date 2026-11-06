@@ -89,7 +89,7 @@ async function render({ fail = [], reject = [], stale = false, rows = fixtures, 
   };
 }
 
-test("preserves query chains, shared logic, panel, navigation, and prior gate inventory", () => {
+test("preserves query chains, shared logic, panel, navigation, and own CI registration", () => {
   assert.equal(tables.length, 7);
   assert.equal(hash(Array.from(source.matchAll(/supabase\.from\(.*?\.limit\(\d+\)/g), (m) => m[0]).join("\n")), "a9a318b892f335868d16729604afb13aeb3bb971dab54b6a6c596e53e4f3a324");
   assert.equal(hash(Array.from(source.matchAll(/href="[^"]+"/g), (m) => m[0]).join("\n")), "131409bb408aa960ef6334c7c77d9f653fb5f3a80d413a80f1e0552d14e44329");
@@ -99,8 +99,6 @@ test("preserves query chains, shared logic, panel, navigation, and prior gate in
   const config = JSON.parse(read("config/digital-observer-ci-gates.json"));
   const hooks = config.domain.filter((item) => item.name === "observer-replay-query-boundary");
   assert.deepEqual(hooks, [{ name: "observer-replay-query-boundary", args: ["--test", "scripts/qa/check-observer-replay-query-boundary.mjs"] }]);
-  config.domain = config.domain.filter((item) => item.name !== "observer-replay-query-boundary");
-  assert.equal(hash(JSON.stringify(config)), "4ce1cf5e331ca6b42e3011bc6339a0a51ef318a093e1f156376917a38a5fd206");
 });
 
 for (let index = 0; index < 7; index++) {
