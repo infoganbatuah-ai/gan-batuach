@@ -35,13 +35,39 @@
 
 @media (max-width: 650px) {
   .role-app-shell:has(.manager-reference-dashboard) .role-app-header {
+    position: relative;
+    display: block !important;
     min-height: 94px !important;
-    padding: 5px 12px 4px !important;
-    row-gap: 1px !important;
+    padding: 0 !important;
   }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-brand {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+  }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-logo img:first-child { width: 38px !important; }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-logo img:nth-child(2) { width: 112px !important; }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-actions {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    left: 12px;
+    display: flex;
+    justify-content: space-between;
+    width: auto;
+  }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-actions .role-app-avatar { order: 2; }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-actions .role-app-icon-button { order: 1; }
   .role-app-shell:has(.manager-reference-dashboard) .role-app-header-meta {
-    min-height: 35px !important;
+    position: absolute;
+    bottom: 3px;
+    left: 12px;
+    width: min(48%, 180px);
+    min-height: 34px !important;
   }
+  .role-app-shell:has(.manager-reference-dashboard) .role-app-title { display: none; }
   .role-app-shell:has(.manager-reference-dashboard) .garden-context-switcher.compact {
     min-height: 34px !important;
   }
