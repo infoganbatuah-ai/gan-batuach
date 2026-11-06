@@ -21,33 +21,52 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
+type HealthCamera = Parameters<typeof cameraDiagnosticsFor>[0] & { id: string; name?: string | null; area?: string | null };
+type HealthValidation = NonNullable<Parameters<typeof buildCameraInfrastructureSummary>[1]>;
+
+async function cameraHealthQuery(label: string, query: () => PromiseLike<{ data: unknown; error: unknown }>) {
+  try {
+    const result = await query();
+    logSupabaseError(label, result.error);
+    return result.error ? { data: null, error: true } : { data: result.data, error: false };
+  } catch {
+    logSupabaseError(label, true);
+    return { data: null, error: true };
+  }
+}
+
 export default async function GardenCameraHealthPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const gardenId = profile.garden_id ?? "";
+  if (!gardenId) {
+    return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בריאות מצלמות" appHome><AdminDataError message="לא ניתן לטעון בריאות מצלמות ללא שיוך לגן" /></DashboardShell>;
+  }
   const result = await safeAdminData("garden camera health", async () => {
     const supabase = await createClient();
     const [camerasRes, validationsRes, healthRes, recordingRes, storageRes] = await Promise.all([
-      supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(200),
-      supabase.from("camera_stream_validations" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(100),
-      supabase.from("camera_health_history" as any).select("*").eq("garden_id", gardenId).order("checked_at", { ascending: false }).limit(100),
-      supabase.from("camera_recording_readiness" as any).select("*").eq("garden_id", gardenId).order("updated_at", { ascending: false }).limit(100),
-      supabase.from("camera_storage_readiness" as any).select("*").eq("garden_id", gardenId).order("updated_at", { ascending: false }).limit(20)
+      cameraHealthQuery("garden camera health cameras", () => supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(200)),
+      cameraHealthQuery("garden camera health validations", () => supabase.from("camera_stream_validations" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(100)),
+      cameraHealthQuery("garden camera health history", () => supabase.from("camera_health_history" as any).select("*").eq("garden_id", gardenId).order("checked_at", { ascending: false }).limit(100)),
+      cameraHealthQuery("garden camera health recording", () => supabase.from("camera_recording_readiness" as any).select("*").eq("garden_id", gardenId).order("updated_at", { ascending: false }).limit(100)),
+      cameraHealthQuery("garden camera health storage", () => supabase.from("camera_storage_readiness" as any).select("*").eq("garden_id", gardenId).order("updated_at", { ascending: false }).limit(20))
     ]);
-    [camerasRes, validationsRes, healthRes, recordingRes, storageRes].forEach((query, index) => logSupabaseError(`garden camera health query ${index}`, (query as any).error));
-    const cameras = (camerasRes.data ?? []) as any[];
+    const available = [camerasRes, validationsRes, healthRes, recordingRes, storageRes].map((query) => !query.error);
+    const cameras = (camerasRes.data ?? []) as HealthCamera[];
     return {
       cameras,
-      validations: validationsRes.data ?? [],
-      healthHistory: healthRes.data ?? [],
-      recording: recordingRes.data ?? [],
-      storage: storageRes.data ?? [],
-      summary: buildCameraInfrastructureSummary(cameras, (validationsRes.data ?? []) as any[]),
-      queryError: [camerasRes.error, validationsRes.error, healthRes.error, recordingRes.error, storageRes.error].some(Boolean) ? "חלק מנתוני בריאות המצלמות לא נטענו" : null
+      validations: (validationsRes.data ?? []) as HealthValidation,
+      healthHistory: (healthRes.data ?? []) as unknown[],
+      recording: (recordingRes.data ?? []) as unknown[],
+      storage: (storageRes.data ?? []) as unknown[],
+      summary: buildCameraInfrastructureSummary(cameras, (validationsRes.data ?? []) as HealthValidation),
+      available,
+      queryError: available.some((value) => !value) ? "חלק מנתוני בריאות המצלמות לא נטענו" : null
     };
-  }, { cameras: [] as any[], validations: [] as any[], healthHistory: [] as any[], recording: [] as any[], storage: [] as any[], summary: buildCameraInfrastructureSummary([]), queryError: null as string | null });
+  }, { cameras: [] as HealthCamera[], validations: [] as HealthValidation, healthHistory: [] as unknown[], recording: [] as unknown[], storage: [] as unknown[], summary: null as ReturnType<typeof buildCameraInfrastructureSummary> | null, available: [false, false, false, false, false], queryError: null as string | null });
 
-  const diagnostics = result.data.cameras.map((camera: any) => ({ camera, diagnostics: cameraDiagnosticsFor(camera) }));
+  const diagnostics = result.data.available[0] ? result.data.cameras.map((camera) => ({ camera, diagnostics: cameraDiagnosticsFor(camera) })) : [];
   const { summary } = result.data;
+  const cameraSummary = result.data.available[0] ? summary : null;
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בריאות מצלמות" appHome>
@@ -56,18 +75,18 @@ export default async function GardenCameraHealthPage() {
         <AdminDataError message={result.error ?? result.data.queryError} />
 
         <TeacherStatsGrid>
-          <TeacherStatCard title="מצלמות" value={summary.total} hint="מוגדרות" icon={Camera} tone="purple" />
-          <TeacherStatCard title="Online" value={summary.online} hint="מחוברות" icon={Video} tone={summary.online ? "green" : "orange"} />
-          <TeacherStatCard title="Offline" value={summary.offline} hint="דורש בדיקה" icon={CameraOff} tone={summary.offline ? "red" : "green"} />
-          <TeacherStatCard title="Gateway" value={summary.gatewayConfigured ? "מחובר" : "ממתין"} hint="מצב ספק" icon={RadioTower} tone={summary.gatewayConfigured ? "green" : "orange"} />
+          <TeacherStatCard title="מצלמות" value={cameraSummary ? cameraSummary.total : "לא זמין"} hint="מוגדרות" icon={Camera} tone={cameraSummary ? "purple" : "neutral"} />
+          <TeacherStatCard title="Online" value={cameraSummary ? cameraSummary.online : "לא זמין"} hint="מחוברות" icon={Video} tone={!cameraSummary ? "neutral" : cameraSummary.online ? "green" : "orange"} />
+          <TeacherStatCard title="Offline" value={cameraSummary ? cameraSummary.offline : "לא זמין"} hint="דורש בדיקה" icon={CameraOff} tone={!cameraSummary ? "neutral" : cameraSummary.offline ? "red" : "green"} />
+          <TeacherStatCard title="Gateway" value={summary ? summary.gatewayConfigured ? "מוגדר" : "לא מוגדר" : "לא זמין"} hint="הגדרה בלבד — החיבור לא אומת" icon={RadioTower} tone="neutral" />
         </TeacherStatsGrid>
 
         <TeacherSection title="אבחון מצלמות" action={<Link href="/dashboard/garden/cameras?add=1#camera-management">הוספת מצלמה ›</Link>}>
-          {diagnostics.length === 0 ? (
+          {!cameraSummary ? <TeacherEmptyState title="נתוני המצלמות לא זמינים" text="לא ניתן לטעון את אבחון המצלמות כרגע." /> : diagnostics.length === 0 ? (
             <TeacherEmptyState title="אין מצלמות עדיין" text="הוסיפו מצלמה ראשונה במסך ניהול מצלמות." action={<Link className="button primary" href="/dashboard/garden/cameras?add=1#camera-management">הוספת מצלמה</Link>} />
           ) : (
             <TeacherCompactList>
-              {diagnostics.slice(0, 8).map(({ camera, diagnostics: item }: any) => (
+              {diagnostics.slice(0, 8).map(({ camera, diagnostics: item }) => (
                 <TeacherCompactItem
                   key={camera.id}
                   title={camera.name ?? "מצלמה"}
@@ -83,13 +102,13 @@ export default async function GardenCameraHealthPage() {
 
         <TeacherSection title="מוכנות צפייה ואחסון">
           <TeacherCompactList>
-            <TeacherCompactItem title="מקורות צפייה" subtitle="HLS/WebRTC דרך Gateway או Sample HLS בלבד" tone="blue" meta={`${summary.playbackReady}/${summary.total}`} />
-            <TeacherCompactItem title="הקלטה עתידית" subtitle="מוכנות בלבד. אין הקלטה אמיתית בשלב הזה." tone="purple" meta={`${summary.recordingReady}/${summary.total}`} />
-            <TeacherCompactItem title="אחסון" subtitle="מוכנות תשתית ללא חשיפת secrets" tone="green" meta={`${summary.storageReady}/${summary.total}`} />
+            <TeacherCompactItem title="מקורות צפייה" subtitle="HLS/WebRTC דרך Gateway או Sample HLS בלבד" tone={cameraSummary ? "blue" : "neutral"} meta={cameraSummary ? `${cameraSummary.playbackReady}/${cameraSummary.total}` : "לא זמין"} />
+            <TeacherCompactItem title="הקלטה עתידית" subtitle="מוכנות בלבד. אין הקלטה אמיתית בשלב הזה." tone={cameraSummary ? "purple" : "neutral"} meta={cameraSummary ? `${cameraSummary.recordingReady}/${cameraSummary.total}` : "לא זמין"} />
+            <TeacherCompactItem title="אחסון" subtitle="מוכנות תשתית ללא חשיפת secrets" tone={cameraSummary ? "green" : "neutral"} meta={cameraSummary ? `${cameraSummary.storageReady}/${cameraSummary.total}` : "לא זמין"} />
           </TeacherCompactList>
         </TeacherSection>
 
-        <TeacherAiInsight metric={summary.gatewayConfigured ? "בטוח" : "ממתין"}>
+        <TeacherAiInsight metric={summary ? summary.gatewayConfigured ? "Gateway מוגדר" : "Gateway לא מוגדר" : "לא זמין"}>
           אין חשיפת RTSP, סיסמאות או מפתחות בדפדפן. צפייה מתבצעת רק דרך gateway או מקור בדיקה מאושר.
         </TeacherAiInsight>
 
