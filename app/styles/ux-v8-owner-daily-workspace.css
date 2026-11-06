@@ -110,9 +110,17 @@
     position: absolute;
     top: 17px;
     left: 10px;
+    right: auto;
+    bottom: auto;
     z-index: 2;
     width: 42%;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
     color: #165ed1;
+    background: transparent;
+    box-shadow: none;
     font-size: .76rem;
     font-weight: 900;
     line-height: 1.25;
