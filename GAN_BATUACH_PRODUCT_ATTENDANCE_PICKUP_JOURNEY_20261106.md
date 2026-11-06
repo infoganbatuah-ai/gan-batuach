@@ -4,6 +4,7 @@
 
 - Source `origin/integration/development`: `b7c1b78d0d438390ad6371b1202a717428c9ddae`.
 - Feature branch: `codex/product-attendance-pickup-journey-20261106`.
+- Source correction commit: `231fcc2f053f5d166114dd42fc83542316946450`; draft Development PR #315. The canonical ledgers are registered in the same PR and will be updated with the exact integration SHA after merge.
 - Owner/Manager, classroom-scoped Staff, and assigned Parent attendance/pickup presentation and API reliability only. No schema, migration, RLS, grant, Digital Observer core, provider, package, or Production change.
 - All mutations in the journey use existing authenticated APIs and the existing `management_child_arrival` / `management_child_release` database functions. Camera/face data are not release authority.
 
