@@ -363,7 +363,7 @@
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search kbd { display: none; }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-actions > .role-app-icon-button {
-    inset: 14px 10px auto auto;
+    inset: 0 10px auto auto;
     width: 44px !important;
     height: 44px !important;
     color: #fff;
@@ -372,24 +372,22 @@
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-avatar {
     position: absolute;
-    inset: 14px 58px auto auto;
+    inset: 0 58px auto auto;
     display: inline-flex !important;
     width: 44px !important;
     height: 44px !important;
     flex-basis: 44px !important;
     pointer-events: auto;
   }
-  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .logout-form {
-    position: absolute;
-    inset: 14px 106px auto auto;
-    pointer-events: auto;
-  }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .logout-button.compact {
+    position: absolute;
+    inset: 0 106px auto auto;
+    pointer-events: auto;
     display: inline-flex !important;
     width: 44px;
     height: 44px;
   }
-  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .parent-primary-mobile-menu { inset-block-start: 14px; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .parent-primary-mobile-menu { inset-block-start: 0; }
   .parent-dashboard-home > .parent-hero {
     min-height: 70px !important;
     padding: 10px 12px !important;
