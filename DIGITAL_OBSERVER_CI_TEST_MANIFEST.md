@@ -505,6 +505,7 @@ Inventory table: **555 listed** files after the focused UX-V6 addition. This is 
 | `scripts/qa/check-ux15-reports-analytics.mjs` | npm run qa:ux15-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux16-safety-cameras.mjs` | npm run qa:ux16-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-ux17-platform-admin.mjs` | npm run qa:ux17-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
+| `scripts/qa/check-admin-read-reliability.mjs` | node --test scripts/qa/check-admin-read-reliability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | DATABASE / MIGRATIONS | CANONICAL CI | mock-based Admin read failure and provider-truth regression; authenticated Development query contract verified separately |
 | `scripts/qa/check-ux18-settings-account-permissions.mjs` | npm run qa:ux18-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux18-settings-functional.mjs` | npm run qa:ux18-functional | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-ux19-global-states.mjs` | npm run qa:ux19-focused | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |

@@ -22,14 +22,14 @@ async function countRows(supabase: Awaited<ReturnType<typeof createClient>>, tab
   const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
   logSupabaseError(`count ${table}`, error);
   if (error) return Number.NaN;
-  return count ?? 0;
+  return Number.isInteger(count) && Number(count) >= 0 ? Number(count) : Number.NaN;
 }
 
 async function countFiltered(supabase: Awaited<ReturnType<typeof createClient>>, table: string, apply: (query: any) => any) {
   const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
   logSupabaseError(`count ${table}`, error);
   if (error) return Number.NaN;
-  return count ?? 0;
+  return Number.isInteger(count) && Number(count) >= 0 ? Number(count) : Number.NaN;
 }
 
 function normalizeCount(value: number) {
@@ -147,8 +147,8 @@ export default async function AdminDashboard() {
       countRows(supabase, "camera_streams"),
       countFiltered(supabase, "camera_streams", (query) => query.in("status", ["offline", "failed", "error", "disabled", "pending_gateway"])),
       countFiltered(supabase, "camera_streams", (query) => query.in("health_status", ["warning", "unhealthy", "offline", "failed"])),
-      countFiltered(supabase, "communication_delivery_logs", (query) => query.in("status", ["failed", "failed_mock", "bounced", "delivery_failed"])),
-      countRows(supabase, "communication_delivery_logs"),
+      countFiltered(supabase, "provider_delivery_logs", (query) => query.eq("status", "failed")),
+      countRows(supabase, "provider_delivery_logs"),
       countFiltered(supabase, "launch_blockers", (query) => query.not("status", "in", "(verified,accepted_risk)")),
       countFiltered(supabase, "security_findings", (query) => query.not("status", "in", "(resolved,false_positive,accepted_risk)")),
       countFiltered(supabase, "pilot_programs", (query) => query.in("pilot_status", ["active", "in_progress", "onboarding"])),
@@ -441,7 +441,7 @@ export default async function AdminDashboard() {
           <article className="admin-literal-health">
             <header><h2>סטטוס מערכת</h2></header>
             <div><span><i className="good" /> ממשק ניהול</span><b>נטען</b></div>
-            <div><span><i className={dataAvailable ? "good" : "warn"} /> נתוני מערכת</span><b>{dataAvailable ? "נטענו" : "חלקיים"}</b></div>
+            <div><span><i className={dataAvailable ? "good" : "warn"} /> קריאות המסך</span><b>{dataAvailable ? "נטענו" : "חלקיות"}</b></div>
             <div><span><i className="good" /> הרשאות</span><b>גישה מוגנת</b></div>
             <div><span><i className={cameraHealth !== null && cameraHealth >= 80 ? "good" : "warn"} /> מצלמות / Digital Observer</span><b>{!countsReady("cameras", "offlineCameras", "unhealthyCameras") ? "לבדיקה" : cameraHealth === null ? "לא הוגדרו" : `${cameraHealth}%`}</b></div>
             <div><span><i className={countsReady("communicationFailures", "deliveryLogs") && !data.communicationFailures ? "good" : "warn"} /> יומני מסירה</span><b>{!countsReady("communicationFailures", "deliveryLogs") ? "לבדיקה" : data.communicationFailures ? `${data.communicationFailures} כשלונות` : "ללא כשלים מדווחים"}</b></div>
