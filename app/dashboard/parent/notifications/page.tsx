@@ -19,24 +19,26 @@ function categoryLabel(item: any) {
 export default async function ParentNotificationsPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
-  const [{ data }, preferencesRes, pushPreferencesRes] = await Promise.all([
+  const [notificationsRes, preferencesRes, pushPreferencesRes] = await Promise.all([
     supabase.from("notifications" as any).select("*").or(`recipient_id.eq.${profile.id},recipient_profile_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80),
     supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle(),
     supabase.from("push_category_preferences" as any).select("category, enabled").eq("profile_id", profile.id).in("category", ["important", "safety", "attendance", "message", "document", "payment", "pickup"])
   ]);
-  const rows = (data ?? []) as any[];
-  const categories = ["עדכוני ילד", "הודעות", "מסמכים", "תשלומים", "בטיחות", "כללי"].map((label) => ({ label, count: rows.filter((item) => categoryLabel(item) === label).length }));
-  const pushCategoryPreferences = Object.fromEntries((pushPreferencesRes.data ?? []).map((row: any) => [row.category, row.enabled]));
+  const notificationsUnavailable = Boolean(notificationsRes.error);
+  const preferencesUnavailable = Boolean(preferencesRes.error || pushPreferencesRes.error);
+  const rows = (notificationsRes.error ? [] : notificationsRes.data ?? []) as any[];
+  const categories = notificationsUnavailable ? [] : ["עדכוני ילד", "הודעות", "מסמכים", "תשלומים", "בטיחות", "כללי"].map((label) => ({ label, count: rows.filter((item) => categoryLabel(item) === label).length }));
+  const pushCategoryPreferences = Object.fromEntries((pushPreferencesRes.error ? [] : pushPreferencesRes.data ?? []).map((row: any) => [row.category, row.enabled]));
   return (
     <DashboardShell role="parent" title="התראות" appHome>
       <ParentAppFrame active="alerts" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="מרכז עדכונים" subtitle="מה צריך את תשומת הלב שלך היום?" />
-        <section className="parent-notification-categories">{categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
+        <section className="parent-notification-categories">{notificationsUnavailable ? <p role="status">קטגוריות ההתראות אינן זמינות כרגע.</p> : categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
         <ParentSection title="העדפות התראות" subtitle="בחירה אילו עדכונים לקבל ובאיזה ערוץ.">
-          <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />
+          {preferencesUnavailable ? <p role="status">העדפות ההתראות אינן זמינות כרגע. לא ניתן לשנות העדפות עד לטעינת הנתונים.</p> : <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />}
         </ParentSection>
         <ParentSection title="התראות אחרונות" subtitle="אירועים רגישים מוצגים רק אחרי בדיקה ואישור.">
-          <NotificationCenter notifications={rows} />
+          {notificationsUnavailable ? <p role="status">ההתראות האחרונות אינן זמינות כרגע. אפשר לנסות שוב מאוחר יותר.</p> : <NotificationCenter notifications={rows} />}
         </ParentSection>
       </ParentAppFrame>
     </DashboardShell>
