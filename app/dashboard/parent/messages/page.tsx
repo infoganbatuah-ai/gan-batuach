@@ -22,9 +22,12 @@ export default async function ParentMessagesPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
+  const familyChildren = (family.sourceUnavailable ? [] : family.children ?? []) as any[];
+  const familyEnrollments = (family.sourceUnavailable ? [] : family.enrollments ?? []) as any[];
+  const familyGardens = (family.sourceUnavailable ? [] : family.gardens ?? []) as any[];
   const childrenById = new Map<string, any>();
-  for (const child of family.children as any[]) childrenById.set(child.id, child);
-  for (const enrollment of family.enrollments as any[]) {
+  for (const child of familyChildren) childrenById.set(child.id, child);
+  for (const enrollment of familyEnrollments) {
     const childId = enrollment.child_id ?? enrollment.permanent_child_file_id;
     if (!childId || childrenById.has(childId)) continue;
     childrenById.set(childId, {
@@ -38,7 +41,7 @@ export default async function ParentMessagesPage() {
   }
   const childOptions = Array.from(childrenById.values()).map((child) => ({
     ...child,
-    garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
+    garden_name: familyGardens.find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));
   const childIds = childOptions.map((child) => child.id).filter(Boolean);
   const gardenIds = Array.from(new Set(childOptions.map((child) => child.garden_id ?? child.kindergarten_id).filter(Boolean)));
@@ -59,7 +62,11 @@ export default async function ParentMessagesPage() {
     supabase.from("messages" as never).select("id,subject,body,content,created_at,treatment_status,sender:sender_id(full_name,profile_image_url),recipient:recipient_id(full_name,profile_image_url)").or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80)
   ]);
   if (requestsRes.error) console.error("[parent-messages] requests query failed", { profile_id: profile.id, error: requestsRes.error.message });
-  const recipients = ((gardensRes.data ?? []) as GardenMessageRecipients[])
+  const requests = requestsRes.error ? [] : requestsRes.data ?? [];
+  const messages = messagesRes.error ? [] : messagesRes.data ?? [];
+  const messagingUnavailable = Boolean(family.sourceUnavailable || gardensRes.error || messagesRes.error);
+  const communicationUnavailable = Boolean(messagingUnavailable || requestsRes.error);
+  const recipients = ((gardensRes.error ? [] : gardensRes.data ?? []) as GardenMessageRecipients[])
     .flatMap((garden) => [garden.manager, garden.owner])
     .filter((value): value is MessageRecipient => Boolean(value))
     .filter((value, index, values) => values.findIndex((item) => item.id === value.id) === index);
@@ -70,18 +77,18 @@ export default async function ParentMessagesPage() {
         <ParentHero title="הודעות ותקשורת" subtitle="שיחה עם הגן, בקשות ועדכונים במקום אחד" />
 
       <section className="parent-message-layout">
-        <ParentSection title="פנייה חדשה" subtitle="כותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה." action={<span className="pill good"><MessageCircleHeart size={15} /> ערוץ מאובטח</span>}>
-          <ParentChildRequestForm children={childOptions} />
+        <ParentSection title="פנייה חדשה" subtitle="כותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה." action={<span className={communicationUnavailable ? "pill" : "pill good"}><MessageCircleHeart size={15} /> {communicationUnavailable ? "חלק מהתקשורת אינו זמין" : "ערוץ מאובטח"}</span>}>
+          {family.sourceUnavailable ? <ParentEmptyState title="פרטי הילדים אינם זמינים" text="לא ניתן לאמת כעת את הילדים והגנים לפנייה חדשה. נסו שוב בהמשך." /> : <ParentChildRequestForm children={childOptions} />}
         </ParentSection>
         <ParentSection title="שיחה עם הגן" subtitle="שיחות רגילות נפרדות מפניות רשמיות ותלונות, ותמיד קשורות לילד מורשה.">
-          <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={childOptions} messages={messagesRes.data ?? []} />
+          {messagingUnavailable ? <ParentEmptyState title="השיחה עם הגן אינה זמינה" text="לא ניתן לטעון כעת את הילדים, הנמענים או ההודעות. נסו שוב בהמשך." /> : <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={childOptions} messages={messages} />}
         </ParentSection>
         <ParentSection title="השיחות שלי" subtitle="תשובות מהגן וסטטוס טיפול במקום אחד." className="parent-chat-card">
-          {(requestsRes.data ?? []).length === 0 ? (
+          {requestsRes.error ? <ParentEmptyState title="הפניות אינן זמינות" text="לא ניתן לטעון כעת את רשימת הפניות. נסו שוב בהמשך." /> : requests.length === 0 ? (
             <ParentEmptyState title="אין פניות פתוחות כרגע" text="כשתשלחו פנייה לגן, היא תופיע כאן עם סטטוס קריאה וטיפול." />
           ) : (
             <div className="message-thread-list">
-              {(requestsRes.data ?? []).map((request: any) => (
+              {requests.map((request: any) => (
                 <div className="message-thread parent-message-bubble" key={request.id}>
                   <div>
                     <strong>{request.request_type}</strong>

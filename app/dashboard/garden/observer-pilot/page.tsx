@@ -14,14 +14,21 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
+import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { calculateObserverPilotReadiness, scoreTone, statusTone } from "@/lib/domain/observer-pilot";
 
 type Row = Record<string, any>;
 
-async function safeQuery<T>(promise: PromiseLike<{ data: T[] | null; error: { message?: string } | null }>) {
-  const result = await promise;
-  return result.data ?? [];
+async function safeQuery<T>(label: string, run: () => PromiseLike<{ data: T[] | null; error: unknown }>) {
+  try {
+    const result = await run();
+    logSupabaseError(label, result.error);
+    return { rows: result.error ? [] : result.data ?? [], available: !result.error };
+  } catch (error) {
+    logSupabaseError(label, error);
+    return { rows: [] as T[], available: false };
+  }
 }
 
 function label(value?: string | null) {
@@ -39,21 +46,27 @@ function label(value?: string | null) {
 
 export default async function GardenObserverPilotPage() {
   const { profile } = await requireRole(["manager", "owner"]);
-  const supabase = await createClient();
   const gardenId = profile.garden_id;
-
-  const [cameras, skeletonEvents, reviews, calibration] = await Promise.all([
-    gardenId ? safeQuery<Row>(supabase.from("camera_streams" as any).select("id,name,area,status,health_status,gateway_registration_status,observer_shadow_mode,skeleton_analytics_ready,motion_anomaly_ready").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(80)) : Promise.resolve([]),
-    gardenId ? safeQuery<Row>(supabase.from("skeleton_observer_events" as any).select("id,event_type,severity,confidence,review_status,event_timestamp,camera_streams(name),camera_zones(name)").eq("garden_id", gardenId).order("event_timestamp", { ascending: false }).limit(80)) : Promise.resolve([]),
-    gardenId ? safeQuery<Row>(supabase.from("observer_ground_truth_reviews" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(80)) : Promise.resolve([]),
-    gardenId ? safeQuery<Row>(supabase.from("observer_calibration_profiles" as any).select("id,scope_type,event_type,calibration_status,readiness_score,confidence_threshold").eq("kindergarten_id", gardenId).order("updated_at", { ascending: false }).limit(30)) : Promise.resolve([])
-  ]);
+  const unavailable = { rows: [[], [], [], []] as Row[][], available: [false, false, false, false] };
+  const { data } = await safeAdminData("garden observer pilot", async () => {
+    if (!gardenId) return unavailable;
+    const supabase = await createClient();
+    const results = await Promise.all([
+      safeQuery<Row>("garden pilot cameras", () => supabase.from("camera_streams" as any).select("id,name,area,status,health_status,gateway_registration_status,observer_shadow_mode,skeleton_analytics_ready,motion_anomaly_ready").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(80)),
+      safeQuery<Row>("garden pilot events", () => supabase.from("skeleton_observer_events" as any).select("id,event_type,severity,confidence,review_status,event_timestamp,camera_streams(name),camera_zones(name)").eq("garden_id", gardenId).order("event_timestamp", { ascending: false }).limit(80)),
+      safeQuery<Row>("garden pilot reviews", () => supabase.from("observer_ground_truth_reviews" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(80)),
+      safeQuery<Row>("garden pilot calibration profiles", () => supabase.from("observer_calibration_profiles" as any).select("id,scope_type,event_type,calibration_status,readiness_score,confidence_threshold").eq("kindergarten_id", gardenId).order("updated_at", { ascending: false }).limit(30))
+    ]);
+    return { rows: results.map((result) => result.rows), available: results.map((result) => result.available) };
+  }, unavailable);
+  const [cameras, skeletonEvents, reviews] = data.rows;
+  const [camerasAvailable, eventsAvailable, reviewsAvailable, calibrationProfilesAvailable] = data.available;
 
   const pendingReview = skeletonEvents.filter((event) => ["detected", "pending_review", "reviewing", "needs_followup"].includes(String(event.review_status)));
   const falsePositive = reviews.filter((review) => review.outcome === "false_positive").length;
   const falseNegative = reviews.filter((review) => review.outcome === "false_negative" || review.outcome === "missed_detection").length;
   const stableCameras = cameras.filter((camera) => ["registered", "connected", "healthy"].includes(String(camera.gateway_registration_status ?? camera.status ?? camera.health_status))).length;
-  const readiness = calculateObserverPilotReadiness({
+  const readiness = camerasAvailable && eventsAvailable && reviewsAvailable ? calculateObserverPilotReadiness({
     detections: skeletonEvents.length,
     pendingReview: pendingReview.length,
     reviewed: reviews.length,
@@ -62,7 +75,7 @@ export default async function GardenObserverPilotPage() {
     uncertain: reviews.filter((review) => ["uncertain", "needs_more_context"].includes(String(review.outcome))).length,
     cameras: cameras.length,
     stableCameras
-  });
+  }) : null;
 
   return (
     <DashboardShell role="manager" title="פיילוט תצפיתן" appHome>
@@ -80,14 +93,15 @@ export default async function GardenObserverPilotPage() {
         />
 
         <TeacherStatsGrid>
-          <TeacherStatCard title="אירועים לבדיקה" value={pendingReview.length} hint="בדיקה אנושית" icon={Activity} tone={pendingReview.length ? "orange" : "green"} />
-          <TeacherStatCard title="מצלמות מכוסות" value={`${stableCameras}/${cameras.length}`} hint="בריאות Gateway" icon={Camera} tone={stableCameras === cameras.length && cameras.length ? "green" : "orange"} />
-          <TeacherStatCard title="כיול" value={`${readiness.calibration}/100`} hint="מבוסס review" icon={ClipboardCheck} tone={readiness.calibration >= 80 ? "green" : "orange"} />
-          <TeacherStatCard title="בדיקות שבוצעו" value={reviews.length} hint="Ground truth" icon={ShieldCheck} tone={reviews.length ? "green" : "orange"} />
+          <TeacherStatCard title="אירועים לבדיקה" value={eventsAvailable ? pendingReview.length : "לא זמין"} hint="בדיקה אנושית" icon={Activity} tone={eventsAvailable ? pendingReview.length ? "orange" : "green" : "neutral"} />
+          <TeacherStatCard title="מצלמות מכוסות" value={camerasAvailable ? `${stableCameras}/${cameras.length}` : "לא זמין"} hint="בריאות Gateway" icon={Camera} tone={camerasAvailable ? stableCameras === cameras.length && cameras.length ? "green" : "orange" : "neutral"} />
+          <TeacherStatCard title="כיול" value={readiness ? `${readiness.calibration}/100` : "לא זמין"} hint="מבוסס review" icon={ClipboardCheck} tone={readiness ? readiness.calibration >= 80 ? "green" : "orange" : "neutral"} />
+          <TeacherStatCard title="בדיקות שבוצעו" value={reviewsAvailable ? reviews.length : "לא זמין"} hint="Ground truth" icon={ShieldCheck} tone={reviewsAvailable ? reviews.length ? "green" : "orange" : "neutral"} />
         </TeacherStatsGrid>
+        {!gardenId ? <TeacherEmptyState title="נתוני הפיילוט אינם זמינים" text="נדרש הקשר גן תקף כדי לטעון את נתוני הפיילוט." /> : !calibrationProfilesAvailable ? <TeacherEmptyState title="פרופילי הכיול אינם זמינים" text="המדדים המוצגים מבוססים רק על מקורות הנתונים שנטענו בהצלחה." /> : null}
 
         <TeacherSection title="מה דורש בדיקה" subtitle="שפה זהירה: סימן תנועה, לא מסקנה.">
-          {pendingReview.length ? (
+          {!eventsAvailable ? <TeacherEmptyState title="נתוני האירועים אינם זמינים" text="לא ניתן לקבוע אם יש אירועים שממתינים לבדיקה." /> : pendingReview.length ? (
             <TeacherCompactList>
               {pendingReview.slice(0, 12).map((event) => (
                 <TeacherCompactItem
@@ -103,7 +117,7 @@ export default async function GardenObserverPilotPage() {
         </TeacherSection>
 
         <TeacherSection title="כיסוי מצלמות" subtitle="מצלמות יציבות משפרות את איכות הפיילוט.">
-          <TeacherCompactList>
+          {camerasAvailable ? <TeacherCompactList>
             {cameras.map((camera) => (
               <TeacherCompactItem
                 key={camera.id}
@@ -113,7 +127,7 @@ export default async function GardenObserverPilotPage() {
                 tone={statusTone(camera.gateway_registration_status ?? camera.health_status ?? camera.status) === "good" ? "green" : "orange"}
               />
             ))}
-          </TeacherCompactList>
+          </TeacherCompactList> : <TeacherEmptyState title="נתוני כיסוי המצלמות אינם זמינים" text="לא ניתן לקבוע את כיסוי המצלמות עד לטעינת הנתונים." />}
         </TeacherSection>
 
         <TeacherSection title="כללי בטיחות" subtitle="הפיילוט לא מפעיל שום פעולה לבד.">
