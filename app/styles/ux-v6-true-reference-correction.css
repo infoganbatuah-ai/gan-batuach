@@ -6,6 +6,7 @@
   display: grid;
   gap: 14px;
 }
+
 .ux18-primary-profile-fields {
   display: grid;
   grid-template-columns: minmax(86px, .72fr) minmax(0, 1.5fr);
@@ -529,3 +530,80 @@
     min-height: 64px !important;
   }
 }
+
+/* UXV11 Admin primary: the reference has one right activity rail spanning the
+   heading, KPI and chart rows. Keep the operational tables beneath both. */
+@media (min-width: 1025px) {
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .admin-app-page {
+    width: calc(100% + 56px) !important;
+    max-width: none !important;
+    margin-inline: -28px !important;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard {
+    display: grid !important;
+    grid-template-columns: minmax(0, 3.3fr) minmax(260px, 1fr);
+    grid-template-rows: 40px 80px 218px auto;
+    gap: 7px;
+    direction: ltr;
+  }
+  .admin-literal-dashboard > * { min-width: 0; direction: rtl; }
+  .admin-literal-dashboard > .admin-literal-heading { grid-column: 1; grid-row: 1; }
+  .admin-literal-dashboard > .admin-literal-kpis { grid-column: 1; grid-row: 2; }
+  .admin-literal-dashboard > .admin-literal-upper-grid {
+    grid-column: 1;
+    grid-row: 3;
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, 1.04fr) minmax(0, .92fr) !important;
+  }
+  .admin-literal-dashboard > .admin-literal-activity {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    min-height: 0;
+  }
+  .admin-literal-dashboard > .admin-literal-lower-grid { grid-column: 1 / -1; grid-row: 4; }
+  .admin-literal-dashboard .admin-literal-activity-list > a { min-height: 57px; }
+  .admin-literal-dashboard .admin-literal-grouped-bars > span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 48px;
+  }
+  .admin-literal-dashboard .admin-literal-grouped-bars i { width: 22px; }
+  .admin-literal-dashboard .admin-literal-grouped-bars b { font-size: .52rem; }
+}
+
+@media (max-width: 650px) {
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .role-app-header {
+    min-height: 76px !important;
+    height: 76px !important;
+  }
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .role-app-live-date { display: none !important; }
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .role-app-page { padding: 8px 12px 92px !important; }
+  .role-app-shell.admin-runtime-shell .admin-app-page { display: flex !important; flex-direction: column; gap: 9px !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard { display: grid !important; order: -2; width: 100%; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis { display: grid !important; grid-template-columns: 1fr !important; overflow: visible !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis > a {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    width: 100%;
+    min-height: 80px !important;
+    flex-basis: auto;
+    scroll-snap-align: none;
+    padding: 10px 12px;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis span { grid-column: 1; grid-row: 1 / 3; width: 40px; height: 40px; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis small { grid-column: 2; grid-row: 1; font-size: .76rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis b { grid-column: 3; grid-row: 1 / 3; font-size: 1.35rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis em { grid-column: 2; grid-row: 2; font-size: .6rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity { display: block !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-upper-grid,
+  .role-app-shell.admin-runtime-shell .admin-literal-lower-grid { display: none !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard ~ .admin-primary-mobile-menu { display: grid !important; order: 1; }
+  .role-app-shell.admin-runtime-shell .admin-primary-mobile-menu header { padding-top: 10px; }
+}
+
+.admin-chart-unavailable,
+.admin-table-state { margin: 0; padding: 16px 10px; color: #687f9d; font-size: .66rem; text-align: center; }
+.admin-literal-line-chart .admin-chart-unavailable,
+.admin-literal-grouped-bars .admin-chart-unavailable { align-self: center; width: 100%; }
