@@ -24,25 +24,50 @@
 }
 
 @media (min-width: 1025px) {
-  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) {
+  .role-app-shell.parent-runtime-shell.gb-app-shell:has(.parent-dashboard-home) {
     grid-template-columns: 220px minmax(0, 1fr) !important;
   }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .gb-app-shell-sidebar {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .parent-dashboard-home > .parent-hero {
+    background: #fff !important;
+    text-align: left !important;
+  }
+  .parent-dashboard-home > .parent-hero .parent-hero-bg { display: none !important; }
   .parent-dashboard-home .parent-child-card-selector {
+    display: flex !important;
+    direction: ltr;
     background: #fff;
   }
+  .parent-dashboard-home .parent-child-selector-heading { display: none !important; }
   .parent-dashboard-home .parent-child-selector-track {
-    justify-content: flex-start;
+    direction: ltr;
+    justify-content: flex-start !important;
   }
+  .parent-dashboard-home .parent-child-context-card,
+  .parent-dashboard-home .parent-child-context-add { direction: rtl; }
   .parent-dashboard-home .parent-primary-attendance {
     gap: 5px;
     min-height: 0;
   }
   .parent-dashboard-home .parent-primary-attendance-row {
-    min-height: 58px;
+    min-height: 64px !important;
   }
   .parent-dashboard-home .parent-primary-reference-grid > * {
-    min-height: 0 !important;
-    max-height: none !important;
+    min-height: 320px !important;
+    max-height: 320px !important;
+  }
+  .parent-dashboard-home .parent-primary-camera,
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview { min-height: 205px !important; }
+  .parent-dashboard-home .parent-primary-updates .parent-list-row { min-height: 57px !important; }
+  .parent-dashboard-home .parent-primary-reference-actions .parent-action-tile { min-height: 140px !important; }
+  .parent-dashboard-home .parent-primary-reference-actions .parent-action-detail {
+    color: #40628c;
+    font-size: .72rem;
+    font-weight: 700;
+    text-align: center;
   }
 }
 
@@ -95,6 +120,8 @@
     border-color: rgb(255 255 255 / 30%);
     background: rgb(255 255 255 / 10%);
     pointer-events: auto;
+    inset-inline-start: auto;
+    right: 12px;
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .parent-primary-mobile-menu {
     position: absolute;
@@ -107,6 +134,8 @@
     color: #fff;
     border-radius: 12px;
     pointer-events: auto;
+    inset-inline-end: auto;
+    left: 12px;
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-page { padding-inline: 12px !important; }
   .parent-dashboard-home > .parent-hero {
@@ -129,7 +158,7 @@
   .parent-dashboard-home .parent-child-selector-heading { min-height: 24px; }
   .parent-dashboard-home .parent-child-selector-heading > svg { display: none; }
   .parent-dashboard-home .parent-child-selector-heading small { display: none; }
-  .parent-dashboard-home .parent-child-selector-track { gap: 6px; overflow-x: auto; }
+  .parent-dashboard-home .parent-child-selector-track { gap: 6px; overflow-x: auto; direction: ltr; }
   .parent-dashboard-home .parent-child-context-card,
   .parent-dashboard-home.parent-dashboard-multi-child .parent-child-context-card {
     flex: 0 0 calc((100% - 12px) / 3) !important;
@@ -143,6 +172,8 @@
   }
   .parent-dashboard-home.parent-dashboard-assigned .parent-child-context-card,
   .parent-dashboard-home.parent-dashboard-assigned .parent-child-context-add { flex-basis: calc((100% - 6px) / 2) !important; }
+  .parent-dashboard-home .parent-child-context-card,
+  .parent-dashboard-home .parent-child-context-add { direction: rtl; }
   .parent-dashboard-home .parent-child-context-avatar,
   .parent-dashboard-home.parent-dashboard-multi-child .parent-child-context-avatar {
     grid-row: auto;
@@ -154,6 +185,10 @@
   .parent-dashboard-home .parent-child-context-copy small { font-size: .56rem; }
   .parent-dashboard-home .parent-child-context-state { grid-column: 1; justify-self: center; font-size: .55rem; }
   .parent-dashboard-home .parent-child-context-add {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: center;
     flex: 0 0 calc((100% - 12px) / 3) !important;
     min-height: 118px;
     padding: 6px;
