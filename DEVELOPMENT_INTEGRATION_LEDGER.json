@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-03T22:51:42.577306+00:00",
+  "updatedAt": "2026-11-06T03:07:18Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14011,6 +14011,501 @@
       "releaseEligibility": "NOT_READY_PRODUCT_VISUAL_AUTH_RLS_COST_AND_OWNER_REVIEW_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Preserve this canonical ledger-only checkpoint with a normal Development push, read back exact remote head and observe its CI/no-deployment state. Separately qualify authenticated Product/Settings upload and role isolation, fresh Desktop/Mobile reference composition, provider truth and all-in ₪15 before any owner release decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-primary-settings-product-20261105",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Owner primary Settings density, truthful account rows, and optional-photo profile save",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #284",
+      "sourceBranch": "codex/ux-v7-primary-settings-product-20261105",
+      "sourceCommits": [
+        "aaa98190044f69705b479d3d6f47beb98671a498",
+        "ac294dad74e6b7bcb6492fb039acc19a56720d03",
+        "567508902ef78ca80e71ec5d9cb2692c074204fc",
+        "12952a8678c34907cc93b78b5e79bb25b2743ddd",
+        "1dcad66102ad0dfac1030bd8fe70e6028d22cbf1",
+        "1fb7051b5a5c809221824397e8f1756c993ceba4",
+        "b72c3f2afba48eef77f4f616d4072f86d8bc2099"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-primary-settings-product-20261105@b72c3f2afba48eef77f4f616d4072f86d8bc2099",
+          "origin/integration/development@37753822928f25f84b861428f5f67661b855625a"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_PRODUCT_VISUAL_OPEN",
+        "evidence": [
+          "PR #284 exact source b72c3f2a into base 3b6e345b: Digital Observer CI run 42128571714 all six gates plus canonical quality PASS; management-context run 42128571994 PASS; Snyk PASS.",
+          "Focused local profile-photo and primary-screen contract tests 13/13 PASS; git diff --check clean.",
+          "Vercel live project UI: sole Git-connected project gan-batuach, Preview Branch Tracking OFF, production-only ignored-build behavior, feature branch absent from deployment branch choices after push."
+        ],
+        "classification": "OWNER_SETTINGS_PRIMARY_UI_AND_TEST_CONTRACT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Candidate Product screenshots, actual role-boundary probes, visual reference comparison, all-in cost compliance, and external owner approval remain unverified. Baseline screenshots at 3b6 are not candidate evidence."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "3b6e345b9eacfbaed8e48555ca5e41840a37aac9",
+        "commit": "37753822928f25f84b861428f5f67661b855625a",
+        "tree": "232985917264f9711a7b57350adfed78b9e39773",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/284",
+        "sourceAncestryVerified": true,
+        "mergeTreeEqualsSourceTree": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV6_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v6-settings-required-photo-removal-fix-20261104"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PR_CI_GREEN; AUTHENTICATED_CANDIDATE_PRODUCT_AND_VISUAL_NOT_YET_RUN",
+      "releaseEligibility": "NOT_READY_FRESH_CANDIDATE_VISUAL_ROLE_QA_COST_AND_OWNER_REVIEW_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact merged Development Product with authorized synthetic Owner at 1440x1024 and 390x844, compare direct primary Settings crop and check role/keyboard/RTL/overflow. Then run post-merge focused QA and report any visual mismatch for correction. Preserve Production/main."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-anchor-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings profile anchor",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #285",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-anchor-20261106",
+      "sourceCommits": [
+        "2a636f570c3b13450ccb9f0fdea637fd971cb801"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-anchor-20261106@2a636f570c3b13450ccb9f0fdea637fd971cb801",
+          "origin/integration/development@320ed6f00097d7723ecb5e262beb309025ede7a0"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #285 exact source 2a636f570c3b13450ccb9f0fdea637fd971cb801 passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42131443991.",
+          "Owner/Manager Settings profile row navigates to in-page profile section.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "a94abfe3adb12aa7cc6c6950414f872d0698991c",
+        "commit": "320ed6f00097d7723ecb5e262beb309025ede7a0",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/285",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-header-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings profile header and return",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #286",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-header-20261106",
+      "sourceCommits": [
+        "e07e62f22861a976b1b7fb20baac1e700f5c64a6"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-header-20261106@e07e62f22861a976b1b7fb20baac1e700f5c64a6",
+          "origin/integration/development@bc287408d975fc7e1cd05f9ae3f9c26e35a9f057"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #286 exact source e07e62f22861a976b1b7fb20baac1e700f5c64a6 passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42133333750.",
+          "Mobile profile section gains centered title and accessible return control to Settings index.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "320ed6f00097d7723ecb5e262beb309025ede7a0",
+        "commit": "bc287408d975fc7e1cd05f9ae3f9c26e35a9f057",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/286",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-back-position-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings back control alignment",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #287",
+      "sourceBranch": "codex/ux-v7-settings-mobile-back-position-20261106",
+      "sourceCommits": [
+        "426bedc0a57792974b93cee02e2e2e5cf69d533d"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-back-position-20261106@426bedc0a57792974b93cee02e2e2e5cf69d533d",
+          "origin/integration/development@96ad64e1051f850772eb2e637c381f982991b47b"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #287 exact source 426bedc0a57792974b93cee02e2e2e5cf69d533d passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42134880386.",
+          "Scoped CSS positions the profile back control at the reference left edge.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "bc287408d975fc7e1cd05f9ae3f9c26e35a9f057",
+        "commit": "96ad64e1051f850772eb2e637c381f982991b47b",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/287",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-reference-closure-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-SETTINGS-REFERENCE-CLOSURE-20261106",
+      "title": "UXV7 Settings primary reference closure",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #288",
+      "sourceBranch": "codex/ux-v7-settings-reference-closure-20261106",
+      "sourceCommits": [
+        "0babb123dd871030bad24d29d4ec2039369811b7"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-reference-closure-20261106@0babb123dd871030bad24d29d4ec2039369811b7",
+          "origin/integration/development@953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #288 exact source 0babb123dd871030bad24d29d4ec2039369811b7 passed six Digital Observer CI gates plus canonical quality, Management context and Snyk.",
+          "Compacted primary four-column Settings: profile upload as accessible avatar affordance; compact read-only role; Garden facts consolidated; Desktop sidebar Settings active, Mobile More preserved; mobile index icon/text/arrow alignment.",
+          "Authenticated synthetic Owner Product QA on merged Development 1e8b7a93ccbefee599e336fd7643b0511f970c3b: Desktop 1440x1024 and Mobile 390x844, RTL and no horizontal overflow, Settings sidebar active, mobile index/profile first viewport, keyboard upload focus, allowed Manager, denied Parent, save/reload/restore synthetic Owner."
+        ],
+        "classification": "OWNER_SETTINGS_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Reference portrait differs from truthful synthetic fallback avatar; reference-only toggles are not fabricated. External owner approval, 21-domain visual audit, full Auth/RLS/tenant probe and all-in ₪15 invoice-backed cost qualification are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "e9d9cb6ded3c5ad35964b6b803a512713cc49a92",
+        "commit": "953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/288",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_ROLE_KEYBOARD_SAVE_RESTORE_VERIFIED",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger checkpoint on remote Development and verify exact-head CI. Obtain external owner review of fresh Settings comparison; no main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-index-fit-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-SETTINGS-REFERENCE-CLOSURE-20261106",
+      "title": "Mobile Settings index viewport fit",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #289",
+      "sourceBranch": "codex/ux-v7-settings-mobile-index-fit-20261106",
+      "sourceCommits": [
+        "b2a1b8a0f031dffc18c1d84f2076b363c13c35f2"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-index-fit-20261106@b2a1b8a0f031dffc18c1d84f2076b363c13c35f2",
+          "origin/integration/development@c08b40a95dab3b5ae5dc44bbbc783af9feece883"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #289 exact source b2a1b8a0f031dffc18c1d84f2076b363c13c35f2 passed six Digital Observer CI gates plus canonical quality, Management context and Snyk.",
+          "Reference-style mobile index back control and row height; first Profile section starts below bottom navigation.",
+          "Authenticated synthetic Owner Product QA on merged Development 1e8b7a93ccbefee599e336fd7643b0511f970c3b: Desktop 1440x1024 and Mobile 390x844, RTL and no horizontal overflow, Settings sidebar active, mobile index/profile first viewport, keyboard upload focus, allowed Manager, denied Parent, save/reload/restore synthetic Owner."
+        ],
+        "classification": "OWNER_SETTINGS_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Reference portrait differs from truthful synthetic fallback avatar; reference-only toggles are not fabricated. External owner approval, 21-domain visual audit, full Auth/RLS/tenant probe and all-in ₪15 invoice-backed cost qualification are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21",
+        "commit": "c08b40a95dab3b5ae5dc44bbbc783af9feece883",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/289",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_ROLE_KEYBOARD_SAVE_RESTORE_VERIFIED",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger checkpoint on remote Development and verify exact-head CI. Obtain external owner review of fresh Settings comparison; no main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-fit-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-SETTINGS-REFERENCE-CLOSURE-20261106",
+      "title": "Mobile Settings profile viewport fit",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #290",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-fit-20261106",
+      "sourceCommits": [
+        "4a91793c4c96751bfb24114477a6e261487f846e"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-fit-20261106@4a91793c4c96751bfb24114477a6e261487f846e",
+          "origin/integration/development@1e8b7a93ccbefee599e336fd7643b0511f970c3b"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #290 exact source 4a91793c4c96751bfb24114477a6e261487f846e passed six Digital Observer CI gates plus canonical quality, Management context and Snyk.",
+          "Mobile portrait, fields and save CTA match the reference screen proportions more closely; Security section begins below the first Profile viewport.",
+          "Authenticated synthetic Owner Product QA on merged Development 1e8b7a93ccbefee599e336fd7643b0511f970c3b: Desktop 1440x1024 and Mobile 390x844, RTL and no horizontal overflow, Settings sidebar active, mobile index/profile first viewport, keyboard upload focus, allowed Manager, denied Parent, save/reload/restore synthetic Owner."
+        ],
+        "classification": "OWNER_SETTINGS_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Reference portrait differs from truthful synthetic fallback avatar; reference-only toggles are not fabricated. External owner approval, 21-domain visual audit, full Auth/RLS/tenant probe and all-in ₪15 invoice-backed cost qualification are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "c08b40a95dab3b5ae5dc44bbbc783af9feece883",
+        "commit": "1e8b7a93ccbefee599e336fd7643b0511f970c3b",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/290",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_ROLE_KEYBOARD_SAVE_RESTORE_VERIFIED",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger checkpoint on remote Development and verify exact-head CI. Obtain external owner review of fresh Settings comparison; no main or Production."
+    },
+    {
+      "id": "codex/ux-v8-owner-daily-workspace-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV8-OWNER-DAILY-WORKSPACE-20261106",
+      "title": "Owner and Manager primary daily workspace, authorized context and mobile reference fit",
+      "owner": "UXV8 Owner executor; scoped integration owner for PR #291 through #294",
+      "sourceBranch": "codex/ux-v8-owner-daily-workspace-20261106",
+      "sourceCommits": [
+        "175edc2b85fb62a99674a5e269bf1aecab584cea",
+        "748f39fdb9b1da5e238802d1db089f1d327d65ad",
+        "d6658c2da3a0f9e453bcc36c86a9bae10035f6f2",
+        "aa83ae937b48ceb00509ab1921875914bc0ebab5",
+        "e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v8-owner-daily-workspace-20261106@e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a",
+          "origin/integration/development@d35ebafcc05389ccc7220d2b25e0620ed678336e"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #291 through #294 exact heads passed all six Digital Observer CI gates, canonical quality, Management context and Snyk; final source e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a, Digital Observer CI run 42153661526.",
+          "Local source: TypeScript typecheck and focused ESLint passed; 68 Owner and management-context tests passed.",
+          "Final authenticated synthetic Owner Product from merged Development d35ebafcc05389ccc7220d2b25e0620ed678336e at Desktop 1440x1024 and Mobile 390x844: actual primary operations route, reference KPI order, RTL, no horizontal overflow or browser errors, no camera/payment/AI requests.",
+          "Authenticated synthetic Owner, Manager and multi-Garden Owner Product checks: authorized Garden switch changed displayed context; foreign Garden POST denied 403; invalid context required selection; 5 canonical destinations reachable per Owner and Manager.",
+          "Private final 14-image reference/actual/before-after comparison package at /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv8-owner-daily-workspace-d35ebafc/manifest.json; manifest SHA256 4877f85dc18bc9c343c8cde767211409b924fe20885ddef6f698bc9df4fdb29f. Raw actual images from exact merged Development, not generated mockups. Previous d72248ae package is preserved as intermediate before KPI-order correction."
+        ],
+        "classification": "OWNER_DAILY_WORKSPACE_UI_AND_AUTHORIZED_READ_CONTEXT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "External owner visual acceptance is pending. Synthetic activity and schedule differ from reference data; camera art is explicitly illustrative with no verified Live. Full Auth/RLS/tenant, all 21 domains, invoice-backed all-in ₪15 cost compliance and Production are not claimed."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "a80294bb95166949d1cf51f0f741f51f3975aea9",
+        "commit": "d35ebafcc05389ccc7220d2b25e0620ed678336e",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/294",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/291",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/292",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/293",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/294"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_OWNER_UXV6_UXV7_BASELINE",
+        "units": [
+          "codex/ux-v7-settings-mobile-profile-fit-20261106"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN_FINAL_MERGED_SYNTHETIC_OWNER_MANAGER_MULTI_GARDEN_DESKTOP_MOBILE_ROLE_NAVIGATION_VERIFIED",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development, verify exact head and hand off to canonical coordinator. Obtain external owner review of the fresh primary Owner comparison. Do not merge main, deploy Production or begin RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v9-parent-authorized-daily-hub-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV9-PARENT-AUTHORIZED-DAILY-HUB-20261106",
+      "title": "Parent assigned and multi-child primary daily hub with authorized context",
+      "owner": "UXV9 Parent executor; scoped PRs #295-#300 integration owner",
+      "sourceBranch": "codex/ux-v9-parent-authorized-daily-hub-20261106",
+      "sourceCommits": [
+        "f439ec4e8f7894e07623c37e4a87082dc770927f",
+        "bce4b733384454d1fa3a7656e2ec1a90a5f2d6cf",
+        "bcf9e23af11823571bbf5d1c90f5a6bd6732d283",
+        "283ed9541d2b64f20b5c03e59dc0455853b50882",
+        "b279b1645b0ae22d75ac62f660b429af1a23fba3",
+        "9bedbc24aed9b52c949eba5075b6a4cc951805a5"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v9-parent-authorized-daily-hub-20261106@9bedbc24aed9b52c949eba5075b6a4cc951805a5",
+          "origin/integration/development@d45c70095ce379f0e59ee9dab57a24248c53d074"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_295_TO_300_CI_ALL_SIX_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "PR #295 source f439ec4e8f7894e07623c37e4a87082dc770927f: Digital Observer CI run 42192329366 all six gates and canonical quality SUCCESS; Management tenant context run 42192329462 SUCCESS; Snyk commit status SUCCESS.",
+          "Local 20 authorized-child identity assertions, 7 UX05 Parent focused tests, 3 tuition ledger tests, typecheck, lint baseline with zero regressions, migration-order and release-contract checks passed.",
+          "Source baseline authenticated Parent single/multi at Desktop 1440x1024 and Mobile 390x844: private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-baseline-462e2f58/manifest.json SHA256 9b936b8f8ce5ac05f82ff3d8b0a7394bb696013d58ed5d680b54b17e601a6c53. Baseline is not candidate evidence.",
+          "PRs #295-#300 merged to Development through d45c70095ce379f0e59ee9dab57a24248c53d074; each exact-head six-gate CI, Management tenant context and Snyk passed. Final PR #300 Digital Observer CI run 42203639924 and Management tenant run 42203639845 succeeded.",
+          "Authenticated single/multi Parent exact Development head d45c70095ce379f0e59ee9dab57a24248c53d074: private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-candidate-d45c7009/manifest.json SHA256 e17d9a96ed78e0246ee5df2edc8875af02258c059cb15b741a6a61b0fc638553. Direct reference/actual boards manifest SHA256 283159fda56d37dc7c35e68815e560089fd101e32e33d9db7a449e677ddcf1cf. Visual status NEEDS_VISUAL_CORRECTION; see private owner package."
+        ],
+        "classification": "PARENT_PRIMARY_UI_AUTHORIZED_CHILD_SELECTION_AND_READ_CONTEXT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Scoped post-merge Product proof passed child switching, foreign-child denial, file-ID tuition navigation, RTL, viewport overflow and browser errors at both viewports. Direct approved-reference review still shows a 57px global top utility bar displacement, illustrative rather than verified Live camera imagery, and shared generic QA child imagery; truthful empty attendance differs from reference content. Do not claim reference match or owner approval. Full 21-domain, live role/RLS/provider, invoice-backed all-in ₪15 and Production qualification remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "462e2f58e31623e5586b85382c7dcd5afe6f7a0d",
+        "commit": "d45c70095ce379f0e59ee9dab57a24248c53d074",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/295",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV8_PARENT_BASELINE",
+        "units": [
+          "codex/ux-v8-owner-daily-workspace-20261106"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_PARENT_DESKTOP_MOBILE_BEHAVIOR_PASS_DIRECT_REFERENCE_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Review private UXV9 actual/reference boards and address the remaining primary Parent visual displacement and density without fabricating camera Live or attendance. Re-capture from the next exact merged Development head; obtain external owner acceptance. Full role/security/cost release gates remain open. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

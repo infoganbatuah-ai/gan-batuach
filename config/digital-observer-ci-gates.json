@@ -97,6 +97,13 @@
       ]
     },
     {
+      "name": "uxv9-parent-authorized-child-context",
+      "args": [
+        "--experimental-strip-types",
+        "scripts/qa/check-uxv9-parent-context.mjs"
+      ]
+    },
+    {
       "name": "uxv6-primary-screen-source-composition",
       "args": [
         "scripts/qa/check-uxv6-current-product-contract.mjs"
