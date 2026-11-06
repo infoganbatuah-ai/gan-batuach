@@ -10,8 +10,6 @@ import {
   SettingsPlatformLayout,
   SettingsPlatformNavigation,
   SettingsSection,
-  SettingsStatusCard,
-  SettingsStatusGrid
 } from "@/components/settings-platform-ui";
 import { TeacherAppFrame } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
@@ -69,7 +67,7 @@ export default async function SettingsPage() {
   const activeAssignments = assignments.filter((item) => item.status === "active");
   const livePolicyCount = cameras.filter((camera) => camera.parent_view_allowed || camera.staff_view_allowed || camera.inspector_view_allowed).length;
 
-  return <TeacherAppFrame role={role} title={`שלום, ${profile.full_name ?? "מנהלת הגן"}`} subtitle={`${garden?.name ?? "הגן הפעיל"} · הגדרות`} avatarUrl={profile.profile_image_url ?? null} active="more">
+  return <TeacherAppFrame role={role} title={`שלום, ${profile.full_name ?? "מנהלת הגן"}`} subtitle={`${garden?.name ?? "הגן הפעיל"} · הגדרות`} avatarUrl={profile.profile_image_url ?? null} active="more" sidebarActiveHref="/dashboard/garden/settings">
     <SettingsPlatformHeader role={role} title="הגדרות וחשבון" description="פרופיל אישי, הגדרות הגן, הרשאות, אבטחה, התראות ומנוי — לפי הגן הפעיל והרשאת השרת." />
     <SettingsPlatformLayout navigation={<SettingsPlatformNavigation role={role} activeHref="/dashboard/garden/settings" />}>
       <div className="ux18-reference-column ux18-reference-profile-column">
@@ -103,11 +101,6 @@ export default async function SettingsPage() {
       </div>
 
       <div className="ux18-reference-column ux18-reference-garden-column">
-        <SettingsStatusGrid>
-          <SettingsStatusCard label="הגן שלי" value={garden?.name ?? "לא נבחר"} detail={context.gardens.length > 1 ? `${context.gardens.length} גנים זמינים` : "הקשר ניהול מאומת"} icon={Building2} tone="blue" />
-          <SettingsStatusCard label="הרשאות הוראה" value={`${activeAssignments.length} פעילות`} detail="בעלים־כגננת והאצלה נשמרים בנפרד" icon={UsersRound} tone="purple" href="/dashboard/garden/staff" />
-          <SettingsStatusCard label="מצלמות" value={`${livePolicyCount} מורשות`} detail="לפי תפקיד ויכולת" icon={Camera} tone={livePolicyCount ? "green" : "orange"} href="/dashboard/garden/cameras" />
-        </SettingsStatusGrid>
         <SettingsSection id="garden-profile" title="הגן שלי" description="פרופיל והגדרות הגן הפעיל" icon={Building2} action={context.gardens.length > 1 ? <Link className="button secondary" href="/dashboard/garden/operations">החלפת גן</Link> : undefined}>
           <div className="ux18-reference-garden-summary">
             <img src={garden?.image_url ?? garden?.logo_url ?? "/assets/hero-control-center.png"} alt={`תמונת ${garden?.name ?? "הגן"}`} />
@@ -119,6 +112,11 @@ export default async function SettingsPage() {
             { title: "מסמכים נדרשים", detail: "מסמכי גן וציות", href: "/dashboard/garden/documents", status: "בדיקה", icon: ShieldCheck },
             { title: "הרשאות מצלמות", detail: `${cameras.length} מקורות · גישה לפי תפקיד ואזור`, href: "/dashboard/garden/cameras", status: "מדיניות", icon: Camera }
           ]} />
+          <div className="ux18-reference-garden-facts" aria-label="מצב הגן וההרשאות">
+            <span>{context.gardens.length} {context.gardens.length === 1 ? "גן זמין" : "גנים זמינים"}</span>
+            <span>{activeAssignments.length} הרשאות הוראה פעילות</span>
+            <span>{livePolicyCount} הרשאות מצלמה לפי מדיניות</span>
+          </div>
           <details className="ux18-reference-editor" id="garden-editor">
             <summary>עריכת פרטי חשבון וגן</summary>
             <ProfileSettingsForm profile={profile} garden={garden} roleLabel={role === "owner" ? "בעלים" : "מנהלת גן"} includeGarden requireProfilePhoto requireGardenLogo />
