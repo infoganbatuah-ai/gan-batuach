@@ -11,7 +11,7 @@ export default async function ParentPickupPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
-  const children = parentAttendanceChildren(family.children, family.enrollments);
+  const children = family.sourceUnavailable ? [] : parentAttendanceChildren(family.children, family.enrollments);
   const childIds = children.map((child) => child.id);
   const [contactsRes, eventsRes] = childIds.length
     ? await Promise.all([
