@@ -248,3 +248,166 @@
   outline: 3px solid #ffbf47;
   outline-offset: 2px;
 }
+
+/* UXV10: keep the Parent utility controls inside the reference's greeting
+   region, rather than spending a separate desktop row on a second header. */
+@media (min-width: 1025px) {
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .gb-app-shell-main {
+    position: relative;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-header {
+    position: absolute !important;
+    inset: 11px 13px auto auto;
+    z-index: 5;
+    display: flex !important;
+    align-items: center;
+    gap: 7px !important;
+    width: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-header-meta {
+    display: flex;
+    flex: 0 0 auto;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-title {
+    display: none;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-live-date {
+    min-height: 42px;
+    padding: 3px 8px;
+    border-radius: 9px;
+    box-shadow: none;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-live-date svg { width: 19px; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search {
+    width: 190px;
+    min-height: 42px;
+    background: #fff;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search kbd { display: none; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-actions { gap: 5px; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-page { padding-top: 10px !important; }
+  .parent-dashboard-home > .parent-hero {
+    min-height: 94px !important;
+    padding: 14px 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+.role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .parent-primary-camera .parent-camera-preview {
+  background: linear-gradient(180deg, rgb(5 34 76 / 28%), rgb(4 30 70 / 82%)), url('/assets/editorial/cameras-in-kindergartens.webp') 50% 53% / cover !important;
+}
+.parent-dashboard-home .parent-child-context-initial {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #0a4c9a;
+  background: linear-gradient(145deg, #e2f1ff, #f8fbff);
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+.parent-dashboard-home .parent-primary-attendance-avatar:not(.has-photo) {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+@media (max-width: 720px) {
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-header {
+    height: 72px;
+    min-height: 72px;
+    padding: max(7px, env(safe-area-inset-top, 0px)) 10px 4px;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-brand { inset-block-start: 5px; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-logo img:first-child { width: 30px; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-logo img:nth-child(2) { width: 74px; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search {
+    position: absolute;
+    inset: 14px auto auto 60px;
+    z-index: 8;
+    display: flex !important;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    overflow: hidden;
+    padding: 0 12px;
+    border-color: rgb(255 255 255 / 30%);
+    color: #fff;
+    background: rgb(255 255 255 / 10%);
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: text;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search:focus-within {
+    width: calc(100% - 72px);
+    border-color: #0f75df;
+    color: #0a4c9a;
+    background: #fff;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search:focus-within input {
+    position: static;
+    width: auto;
+    opacity: 1;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-global-search kbd { display: none; }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-actions > .role-app-icon-button {
+    inset: 14px 10px auto auto;
+    width: 44px !important;
+    height: 44px !important;
+    color: #fff;
+    border-color: rgb(255 255 255 / 30%);
+    background: rgb(255 255 255 / 10%);
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-avatar {
+    position: absolute;
+    inset: 14px 58px auto auto;
+    display: inline-flex !important;
+    width: 44px !important;
+    height: 44px !important;
+    flex-basis: 44px !important;
+    pointer-events: auto;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .logout-form {
+    position: absolute;
+    inset: 14px 106px auto auto;
+    pointer-events: auto;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .logout-button.compact {
+    display: inline-flex !important;
+    width: 44px;
+    height: 44px;
+  }
+  .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .parent-primary-mobile-menu { inset-block-start: 14px; }
+  .parent-dashboard-home > .parent-hero {
+    min-height: 70px !important;
+    padding: 10px 12px !important;
+  }
+  .parent-dashboard-home .parent-child-card-selector { padding: 5px !important; }
+  .parent-dashboard-home .parent-child-selector-heading { min-height: 19px; }
+  .parent-dashboard-home .parent-child-context-card,
+  .parent-dashboard-home.parent-dashboard-multi-child .parent-child-context-card,
+  .parent-dashboard-home .parent-child-context-add {
+    min-height: 98px !important;
+  }
+  .parent-dashboard-home .parent-child-context-avatar,
+  .parent-dashboard-home.parent-dashboard-multi-child .parent-child-context-avatar {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .parent-dashboard-home .parent-primary-reference-grid > :first-child { min-height: 0 !important; }
+  .parent-dashboard-home .parent-primary-attendance { align-content: start; gap: 2px; }
+  .parent-dashboard-home .parent-primary-attendance-row { min-height: 42px; }
+  .parent-dashboard-home .parent-mobile-quick-actions a { min-height: 54px; }
+}
