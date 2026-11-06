@@ -39,6 +39,7 @@ async function render(mode = 'healthy', rows = [lead()]) {
   const manager = load(managerCode, id => {
     if (id === 'react/jsx-runtime') return {jsx, jsxs: jsx, Fragment: 'Fragment'};
     if (id === 'react') return {useState: initial => [initial, denied]};
+    if (id === 'next/link') return {__esModule: true, default: 'Link'};
     return denied();
   }, denied, denied);
   function fold(value) {
@@ -85,10 +86,10 @@ async function render(mode = 'healthy', rows = [lead()]) {
     assert.ok(body.includes('נתוני בקשות ההצטרפות אינם זמינים')); assert.ok(!body.includes('אין פריטים כרגע')); assert.ok(!body.includes('SYNTHETIC_')); assert.ok(!body.includes('synthetic@example.invalid'));
     assert.equal(logs.length, 1); assert.equal(logs[0][1], 'admin leads');
   } else {
-    assert.deepEqual(Object.keys(invocation.props), ['leads']);
+    assert.deepEqual(Object.keys(invocation.props), ['leads', 'leadsAvailable']); assert.equal(invocation.props.leadsAvailable, true);
     assert.deepEqual(plain(invocation.props.leads), ['empty', 'null'].includes(mode) ? [] : plain(rows));
-    assert.equal(counts.AdminLeadsManager, 1); assert.equal(counts.FlowSection, 11); assert.equal(counts.GardenCard, 0); assert.equal(boards.length, 11); assert.deepEqual(logs, []);
-    if (['empty', 'null'].includes(mode)) { assert.equal(counts.LeadCard, 0); assert.equal((body.match(/אין פריטים כרגע/g) ?? []).length, 11); }
+    assert.equal(counts.AdminLeadsManager, 1); assert.equal(counts.FlowSection, 12); assert.equal(counts.GardenCard, 0); assert.equal(boards.length, 12); assert.deepEqual(logs, []);
+    if (['empty', 'null'].includes(mode)) { assert.equal(counts.LeadCard, 0); assert.equal((body.match(/אין פריטים כרגע/g) ?? []).length, 12); }
   }
   assert.equal(effects, 0); return {tree, body, counts, cards, boards, props: invocation?.props, effects};
 }
@@ -114,9 +115,9 @@ for (const count of [0, 4, 5, 10]) test(`existing parent-source demand metadata 
   const r = await render('healthy', [lead({source: 'parent_request', parent_name: 'SYNTHETIC_PARENT', qualification: {parent_request_count: count, child_age_groups: ['SYNTHETIC_AGE']}})]);
   assert.ok(r.body.includes(`${count} בקשות`)); assert.ok(r.body.includes(count >= 10 ? 'ביקוש גבוה' : count >= 5 ? 'ביקוש בינוני' : 'ביקוש רגיל'));
 });
-test('existing omitted gardens prop retains legitimate empty downstream boards', async () => { const r = await render(); assert.equal(r.counts.GardenCard, 0); assert.equal(r.boards.slice(5).length, 6); for (const board of r.boards.slice(5)) assert.ok(text(board).includes('אין פריטים כרגע')); });
+test('existing omitted gardens prop retains legitimate empty downstream boards', async () => { const r = await render(); assert.equal(r.counts.GardenCard, 0); assert.equal(r.boards.slice(5).length, 7); for (const board of r.boards.slice(5)) assert.ok(text(board).includes('אין פריטים כרגע')); });
 test('single portable DOMAIN hook; original Manager invocation and fail-closed fallback', () => {
-  assert.ok(source.indexOf('await requireRole(["admin"])') < source.indexOf('await safeAdminData(')); assert.ok(source.includes('<AdminLeadsManager leads={result.data.rows} />')); assert.ok(source.includes('available: false'));
+  assert.ok(source.indexOf('await requireRole(["admin"])') < source.indexOf('await safeAdminData(')); assert.ok(source.includes('<AdminLeadsManager leads={result.data.rows} leadsAvailable={result.data.available} />')); assert.ok(source.includes('available: false'));
   const config = JSON.parse(read(new URL('../../config/digital-observer-ci-gates.json', import.meta.url)));
   assert.deepEqual(config.domain.filter(item => item.name === 'admin-join-requests-query-boundary'), [{name: 'admin-join-requests-query-boundary', args: ['--test', 'scripts/qa/check-admin-join-requests-query-boundary.mjs']}]);
 });
