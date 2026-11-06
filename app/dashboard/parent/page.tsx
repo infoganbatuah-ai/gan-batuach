@@ -184,13 +184,14 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
               })}
               <small>{dataUnavailable ? "עדכון הנוכחות אינו זמין כעת" : hasActiveKindergarten ? "לפי רשומות הנוכחות של הגן להיום" : "המידע יוצג לאחר שיוך פעיל"}</small>
               <Link href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`}>לפרטי הנוכחות</Link>
-              <nav className="parent-mobile-quick-actions" aria-label="פעולות מהירות להורה">
-                <Link href="/dashboard/parent/messages"><MessageCircle size={20} aria-hidden="true" />הודעות</Link>
-                <Link href="/dashboard/parent/documents"><FileText size={20} aria-hidden="true" />מסמכים</Link>
-                <Link href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`}><WalletCards size={20} aria-hidden="true" />תשלומים</Link>
-              </nav>
             </div>
           </ParentSection>
+
+          <nav className="parent-mobile-quick-actions" aria-label="פעולות מהירות להורה">
+            <Link href="/dashboard/parent/messages"><MessageCircle size={20} aria-hidden="true" />הודעות</Link>
+            <Link href="/dashboard/parent/documents"><FileText size={20} aria-hidden="true" />מסמכים</Link>
+            <Link href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`}><WalletCards size={20} aria-hidden="true" />תשלומים</Link>
+          </nav>
 
           <ParentSection title="מצלמות הגן" subtitle={hasActiveKindergarten ? cleanSyntheticLabel(selectedGarden?.name, "גן הילד") : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">למצלמות</Link>}>
             <div className="parent-primary-camera">
