@@ -33,9 +33,14 @@ export async function POST(request: Request) {
   if (result.error) return NextResponse.json({ ok: false, error: "שחרור הילד נדחה: נוכחות, סמכות צוות והרשאת איסוף נבדקות מחדש." }, {
     status: result.error.code === "42501" ? 403 : 409
   });
-  const eventId = (result.data as { pickup_event_id?: string } | null)?.pickup_event_id;
+  const release = result.data as { pickup_event_id?: string; idempotent?: boolean } | null;
+  const eventId = release?.pickup_event_id;
   const event = eventId ? await supabase.from("child_pickup_events" as any)
-    .select("id,child_id,kindergarten_id,pickup_person,authorization_type,pickup_time,status,release_confirmed")
+    .select("id,child_id,kindergarten_id,pickup_person,authorization_type,pickup_time,status,release_confirmed,children(full_name)")
     .eq("id", eventId).maybeSingle() : null;
-  return NextResponse.json({ ok: true, data: event?.data ?? result.data });
+  return NextResponse.json({ ok: true, data: {
+    ...(event?.data ?? result.data ?? {}),
+    idempotent: release?.idempotent === true,
+    event_read_available: Boolean(event?.data && !event.error)
+  } });
 }

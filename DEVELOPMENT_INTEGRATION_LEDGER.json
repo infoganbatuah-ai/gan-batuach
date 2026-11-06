@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T19:45:06Z",
+  "updatedAt": "2026-11-06T20:42:13Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14663,6 +14663,45 @@
       "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Coordinator/owner reviews the UXV11 visual boards and assigns any truthful scoped composition correction. Preserve canonical Admin query contracts; complete broader role, supplier-cost and release gates only on explicit release work. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-attendance-pickup-journey-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-ATTENDANCE-PICKUP-JOURNEY-20261106",
+      "title": "Authenticated attendance and pickup Product journey source correction",
+      "owner": "Product attendance/pickup executor; scoped PR #315 integration owner",
+      "sourceBranch": "codex/product-attendance-pickup-journey-20261106",
+      "sourceCommits": ["231fcc2f053f5d166114dd42fc83542316946450"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/product-attendance-pickup-journey-20261106@231fcc2f053f5d166114dd42fc83542316946450"],
+        "status": "SOURCE_REMOTE_PRESERVED_LEDGER_IN_FEATURE_PR_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "SCOPED_BRANCH_QA_PASS_EXACT_HEAD_CI_AND_MERGED_PRODUCT_BROWSER_QA_PENDING",
+        "evidence": [
+          "Source branch 231fcc2f053f5d166114dd42fc83542316946450: four child-context tests, eight UX06 focused checks, typecheck, lint baseline with zero regressions, 259-migration audit, release contract and Production build PASS. No schema or dependency change.",
+          "Guarded synthetic API-to-isolated Development DB journey 14/14 on source baseline b7c1b78d0d438390ad6371b1202a717428c9ddae; private receipt /private/tmp/gb-m35-attendance-pickup.json SHA256 9e12d0d30bc0ddd9c2eaedc3ec8132d917255b18b17d1c97db64b8a233ddca4b. This is pre-correction, not a corrected browser or post-merge PASS."
+        ],
+        "classification": "MANAGEMENT_ATTENDANCE_PICKUP_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_NO_DIGITAL_OBSERVER_CORE",
+        "limits": "PR #315 exact-head six CI gates, Management/security checks and fresh browser-to-API-to-isolated-DB-to-reload Product QA are pending. Full 21-domain visual owner acceptance, all-role full-stack QA and invoice-backed all-in 15 NIS cost qualification are separate."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "b7c1b78d0d438390ad6371b1202a717428c9ddae",
+        "commit": null,
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/315"],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {"status": "CANONICAL_ATTENDANCE_PICKUP_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_BRANCH_TESTS_PASS_MERGED_PRODUCT_BROWSER_AND_ROLE_QA_PENDING",
+      "releaseEligibility": "NOT_READY_EXACT_HEAD_CI_MERGED_PRODUCT_QA_EXTERNAL_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Wait for PR #315 exact-head six CI gates, Management context and Snyk; merge to Development only if green. Run fresh authenticated browser-to-API-to-isolated-DB-to-reload on the merged Product, check role/child/classroom/Garden boundaries, update this ledger to integrated with exact merge SHA, and hand off to the canonical coordinator. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
