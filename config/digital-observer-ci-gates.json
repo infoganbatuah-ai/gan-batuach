@@ -81,6 +81,7 @@
     { "name": "settings-required-photo-controls", "args": ["scripts/qa/check-settings-required-photo-controls.mjs"] },
     { "name": "management-role-dashboards", "args": ["--experimental-strip-types", "scripts/qa/check-management-role-dashboards.mjs"] },
     { "name": "management-admin-read-reliability", "args": ["--test", "scripts/qa/check-admin-read-reliability.mjs"] },
+    { "name": "management-attendance-pickup-child-context", "args": ["--experimental-strip-types", "--test", "scripts/qa/check-management-attendance-pickup-journey.mjs"] },
     { "name": "uxv9-parent-authorized-child-context", "args": ["--experimental-strip-types", "scripts/qa/check-uxv9-parent-context.mjs"] },
     { "name": "uxv6-primary-screen-source-composition", "args": ["scripts/qa/check-uxv6-current-product-contract.mjs"] },
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },

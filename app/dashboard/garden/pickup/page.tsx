@@ -26,11 +26,22 @@ export default async function GardenPickupPage({ searchParams }: { searchParams:
   const gardenRes = await supabase.from("gardens" as any).select("operational_timezone").eq("id", gardenId).maybeSingle();
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: gardenRes.data?.operational_timezone || "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const [enrollmentsRes, contactsRes, eventsRes, attendanceRes] = await Promise.all([
-    supabase.from("child_kindergarten_enrollments" as any).select("child_id,start_date,end_date,children(id,full_name,photo_url,pickup_authorized)").eq("garden_id", gardenId).eq("status", "active").limit(500),
-    supabase.from("authorized_pickup_contacts" as any).select("*, children(full_name, photo_url)").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(300),
-    supabase.from("child_pickup_events" as any).select("*, children(full_name, photo_url)").eq("kindergarten_id", gardenId).order("pickup_time", { ascending: false }).limit(100),
-    supabase.from("attendance" as any).select("child_id,check_in_at,check_out_at").eq("garden_id", gardenId).eq("attendance_date", today).limit(500)
+    supabase.from("child_kindergarten_enrollments" as any).select("child_id,start_date,end_date,children(id,full_name,photo_url,pickup_authorized)").eq("garden_id", gardenId).eq("status", "active").limit(501),
+    supabase.from("authorized_pickup_contacts" as any).select("*, children(full_name, photo_url)").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(301),
+    supabase.from("child_pickup_events" as any).select("*, children(full_name, photo_url)").eq("kindergarten_id", gardenId).order("pickup_time", { ascending: false }).limit(101),
+    supabase.from("attendance" as any).select("child_id,check_in_at,check_out_at").eq("garden_id", gardenId).eq("attendance_date", today).limit(501)
   ]);
+  const sourceUnavailable = Boolean(gardenRes.error || !gardenRes.data || enrollmentsRes.error || contactsRes.error || eventsRes.error || attendanceRes.error
+    || (enrollmentsRes.data?.length ?? 0) > 500 || (contactsRes.data?.length ?? 0) > 300
+    || (eventsRes.data?.length ?? 0) > 100 || (attendanceRes.data?.length ?? 0) > 500);
+  if (sourceUnavailable) return (
+    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title="איסוף והחזרה" subtitle="תפעול יומי מאובטח" avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="children">
+      <div className="ux06-operations">
+        <TeacherPageTitle icon={MapPinned} title="איסוף והחזרה" subtitle="מורשי איסוף נבדקים בשרת" />
+        <div className="ux06-local-error" role="alert"><b>נתוני האיסוף אינם זמינים במלואם כרגע.</b><span>לא ניתן לאמת את הנוכחות וההרשאות, ולכן פעולת שחרור אינה זמינה.</span></div>
+      </div>
+    </TeacherAppFrame>
+  );
   const allChildren = ((enrollmentsRes.data ?? []) as any[])
     .filter((row) => (!row.start_date || row.start_date <= today) && (!row.end_date || row.end_date >= today))
     .map((row) => Array.isArray(row.children) ? row.children[0] : row.children).filter(Boolean);
