@@ -25,7 +25,7 @@
 
 @media (min-width: 1025px) {
   .role-app-shell.parent-runtime-shell.gb-app-shell:has(.parent-dashboard-home) {
-    grid-template-columns: 220px minmax(0, 1fr) !important;
+    grid-template-columns: 240px minmax(0, 1fr) !important;
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .gb-app-shell-sidebar {
     width: 100% !important;
@@ -78,7 +78,10 @@
     grid-template-columns: 44px 48px minmax(0, 1fr);
   }
   .parent-dashboard-home .parent-primary-updates .parent-list-row > div { min-width: 0; }
-  .parent-dashboard-home .parent-primary-reference-actions .parent-action-tile { min-height: 140px !important; }
+  .parent-dashboard-home .parent-primary-reference-actions {
+    margin-top: 15px;
+  }
+  .parent-dashboard-home .parent-primary-reference-actions .parent-action-tile { min-height: 180px !important; }
   .parent-dashboard-home .parent-primary-reference-actions .parent-action-detail {
     color: #40628c;
     font-size: .72rem;
@@ -224,7 +227,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
     align-items: stretch;
-    min-height: 74px !important;
+    min-height: 128px !important;
     margin-top: 0;
     padding: 8px !important;
     border: 1px solid #dceafa;
@@ -235,7 +238,7 @@
   .parent-dashboard-home .parent-mobile-quick-actions a {
     display: grid;
     place-items: center;
-    min-height: 58px;
+    min-height: 112px;
     padding: 5px 2px;
     border: 1px solid #dceafa;
     border-radius: 10px;
@@ -329,8 +332,8 @@
 
 @media (max-width: 720px) {
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-header {
-    height: 72px;
-    min-height: 72px;
+    height: 108px;
+    min-height: 108px;
     padding: max(7px, env(safe-area-inset-top, 0px)) 10px 4px;
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .role-app-brand { inset-block-start: 5px; }
@@ -396,7 +399,7 @@
   }
   .role-app-shell.parent-runtime-shell:has(.parent-dashboard-home) .parent-primary-mobile-menu { inset-block-start: 0; }
   .parent-dashboard-home > .parent-hero {
-    min-height: 70px !important;
+    min-height: 90px !important;
     padding: 10px 12px !important;
   }
   .parent-dashboard-home .parent-child-card-selector { padding: 5px !important; }
@@ -404,15 +407,18 @@
   .parent-dashboard-home .parent-child-context-card,
   .parent-dashboard-home.parent-dashboard-multi-child .parent-child-context-card,
   .parent-dashboard-home .parent-child-context-add {
-    min-height: 98px !important;
+    min-height: 125px !important;
   }
   .parent-dashboard-home .parent-child-context-avatar,
   .parent-dashboard-home.parent-dashboard-multi-child .parent-child-context-avatar {
     width: 44px !important;
     height: 44px !important;
   }
-  .parent-dashboard-home .parent-primary-reference-grid > :first-child { min-height: 0 !important; }
+  .parent-dashboard-home .parent-primary-reference-grid > :first-child {
+    min-height: 205px !important;
+    max-height: 205px !important;
+  }
   .parent-dashboard-home .parent-primary-attendance { align-content: start; gap: 2px; }
   .parent-dashboard-home .parent-primary-attendance-row { min-height: 42px; }
-  .parent-dashboard-home .parent-mobile-quick-actions a { min-height: 54px; }
+  .parent-dashboard-home .parent-mobile-quick-actions a { min-height: 112px; }
 }
