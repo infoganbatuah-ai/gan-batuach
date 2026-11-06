@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { GardenContextSwitcher } from "@/components/garden-context-switcher";
 import { ManagerOverviewDashboard } from "@/components/manager-overview-dashboard";
 import { TeacherAppFrame } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel, isSyntheticLabel } from "@/lib/domain/display-label";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 import { deriveAttendanceSummary, deriveTuitionSummary, safetyCapabilityState } from "@/lib/management/dashboard-read-model";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,10 +20,35 @@ function money(value: number, currency: string) {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency }).format(value);
 }
 
+function OwnerDashboardState({ role, avatarUrl, title, description, retry, gardens }: {
+  role: "owner" | "manager";
+  avatarUrl: string | null;
+  title: string;
+  description: string;
+  retry?: boolean;
+  gardens?: Array<{ id: string; name: string; relationshipRole: string; isDefault: boolean }>;
+}) {
+  return <DashboardShell role={role} title="מרכז תפעול" appHome>
+    <TeacherAppFrame role={role} title={title} subtitle="מרכז התפעול של הגן" avatarUrl={avatarUrl} active="home">
+      <section className="manager-dashboard-context-state" role={retry ? "alert" : "status"}>
+        <h2>{title}</h2>
+        <p>{description}</p>
+        {gardens?.length ? <GardenContextSwitcher gardens={gardens} initialActiveId={null} /> : null}
+        {retry ? <Link href="/dashboard/garden/operations">בדיקה מחדש</Link> : gardens?.length ? null : role === "owner" ? <Link href="/onboarding/kindergarten">להקמת גן</Link> : null}
+      </section>
+    </TeacherAppFrame>
+  </DashboardShell>;
+}
+
 export default async function GardenOperationsPage() {
   const { profile } = await requireRole(["manager", "owner"]);
-  const gardenId = profile.garden_id ?? "";
-  if (!gardenId) redirect("/dashboard/garden");
+  const role = profile.role === "owner" ? "owner" : "manager";
+  const managerDisplayName = cleanSyntheticLabel(profile.full_name, "מנהלת הגן").split(" ")[0];
+  const avatarUrl = (profile as { profile_image_url?: string | null }).profile_image_url ?? null;
+  const context = await resolveManagementGardenContext(profile);
+  if (!context.available) return <OwnerDashboardState role={role} avatarUrl={avatarUrl} title="נתוני הגן אינם זמינים כרגע" description="לא ניתן לאמת כעת את הגן המורשה. נסו שוב בעוד רגע." retry />;
+  const gardenId = context.activeGarden?.id;
+  if (!gardenId) return <OwnerDashboardState role={role} avatarUrl={avatarUrl} title={context.gardens.length ? "בחרו גן פעיל" : "עדיין אין גן משויך"} description={context.gardens.length ? "בחרו אחד מהגנים המורשים כדי לראות את נתוני היום." : role === "owner" ? "השלימו את הקמת הגן כדי לפתוח את מרכז התפעול." : "יש לפנות לבעלת הגן כדי לקבל שיוך מורשה."} gardens={context.gardens} />;
   const supabase = await createClient();
   const today = israelTodayDateKey();
   const start = `${today}T00:00:00.000Z`;
@@ -47,7 +74,9 @@ export default async function GardenOperationsPage() {
     supabase.from("messages" as never).select("id" as never, { count: "exact", head: true }).eq("garden_id", gardenId).is("read_at", null)
   ]);
   const [gardenRes, enrollmentRes, attendanceRes, employmentRes, shiftsRes, scheduleRes, tasksRes, notificationsRes, tuitionRes, subscriptionRes, documentsRes, complaintsRes, inspectionsRes, correctiveRes, camerasRes, classroomsRes, enrollmentRequestsRes, messagesRes] = results;
-  const garden = gardenRes.data as Record<string, unknown> | null;
+  const sourceErrors = results.filter(result => result.error).length;
+  if (sourceErrors || !gardenRes.data) return <OwnerDashboardState role={role} avatarUrl={avatarUrl} title="נתוני היום אינם זמינים כרגע" description="מקורות נתונים אינם זמינים או לא אומתו. לא יוצגו אפסים כאילו היו נתונים מאושרים; נסו שוב בהמשך." retry />;
+  const garden = gardenRes.data as unknown as Record<string, unknown>;
   const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
   if (["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "onboarding_submitted", "pending_final_approval", "pending_final_admin_approval", "correction_required"].includes(onboardingStatus)) redirect("/onboarding/kindergarten");
 
@@ -55,9 +84,8 @@ export default async function GardenOperationsPage() {
   const shifts = (shiftsRes.data ?? []) as Array<{ actual_start?: unknown; actual_end?: unknown; status?: unknown }>;
   const tuition = deriveTuitionSummary((tuitionRes.data ?? []) as never[], today);
   const cameras = (camerasRes.data ?? []) as Array<{ active?: unknown; status?: unknown }>;
-  const verifiedCameras = cameras.filter(camera => camera.active === true && ["online", "active", "verified"].includes(String(camera.status))).length;
-  const safety = safetyCapabilityState({ configuredCameraCount: cameras.length, verifiedOperationalCount: verifiedCameras, providerReady: verifiedCameras > 0 });
-  const sourceErrors = results.filter(result => result.error).length;
+  // A stored camera status is not proof of a working provider or a live stream.
+  const safety = safetyCapabilityState({ configuredCameraCount: cameras.length, verifiedOperationalCount: 0, providerReady: false });
   const schedule = (scheduleRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const tasks = (tasksRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const notifications = (notificationsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
@@ -65,19 +93,17 @@ export default async function GardenOperationsPage() {
   const classroomRows = (classroomsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const enrollmentRequests = (enrollmentRequestsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const syntheticSession = [profile.full_name, String(garden?.name ?? "")].some(isSyntheticLabel);
-  const managerDisplayName = cleanSyntheticLabel(profile.full_name, "מנהלת הגן").split(" ")[0];
   const dateLabel = new Intl.DateTimeFormat("he-IL", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jerusalem" }).format(new Date());
 
-  return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מרכז תפעול" appHome>
-    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title={`בוקר טוב, ${managerDisplayName}`} subtitle={`מרכז התפעול של ${cleanSyntheticLabel(String(garden?.name ?? ""), "הגן")}`} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="home">
+  return <DashboardShell role={role} title="מרכז תפעול" appHome>
+    <TeacherAppFrame role={role} title={`בוקר טוב, ${managerDisplayName}`} subtitle={`מרכז התפעול של ${cleanSyntheticLabel(String(garden?.name ?? ""), "הגן")}`} avatarUrl={avatarUrl} active="home">
       {syntheticSession ? <div className="dashboard-environment-notice manager-demo-notice" role="status">סביבת בדיקה · נתונים סינתטיים בלבד</div> : null}
-      {sourceErrors ? <div className="error-banner" role="alert">{sourceErrors} מקורות נתונים אינם זמינים כרגע. הכרטיסים האחרים ממשיכים להציג מידע מאומת.</div> : null}
       <ManagerOverviewDashboard
         managerName={managerDisplayName}
         garden={{ name: cleanSyntheticLabel(String(garden?.name ?? ""), "הגן"), city: cleanSyntheticLabel(String(garden?.city ?? ""), ""), dateLabel }}
         attendance={{ present: attendance.present, absent: attendance.absent, departed: attendance.departed, total: attendance.expected, notRecorded: Math.max(0, attendance.expected - attendance.recorded), completion: attendance.completion }}
         staff={{ active: employmentRes.count ?? 0, scheduled: shifts.length, present: shifts.filter(row => row.actual_start && !row.actual_end).length, missingClockOut: shifts.filter(row => ["missing_clock_out", "correction_required"].includes(String(row.status))).length }}
-        safety={{ state: safety.state, label: safety.label, detail: safety.state === "verified" ? "יכולת תפעולית מאומתת" : "אין הצגה של ניטור או אירועי AI לא מאומתים", cameras: cameras.length, operationalCameras: verifiedCameras }}
+        safety={{ state: safety.state, label: safety.label, detail: "אין אימות לשידור חי או לאירועי AI", cameras: cameras.length, operationalCameras: 0 }}
         classrooms={classroomRows.map((room) => ({ id: String(room.id), name: cleanSyntheticLabel(String(room.name ?? ""), "כיתה"), capacity: room.capacity_limit == null ? null : Number(room.capacity_limit), assigned: Array.isArray(room.child_classroom_assignments) ? room.child_classroom_assignments.filter((assignment: Record<string, unknown>) => assignment.is_current === true).length : 0 }))}
         enrollment={{ open: enrollmentRequests.length, informationRequired: enrollmentRequests.filter(row => row.status === "information_required").length, waitlisted: enrollmentRequests.filter(row => row.status === "waitlisted").length, awaitingPayment: enrollmentRequests.filter(row => row.status === "awaiting_payment").length }}
         finance={{ outstanding: money(tuition.outstanding, tuition.currency), overdue: tuition.overdue, reconciliation: tuition.reconciliation, subscription: String(subscription?.billing_status ?? subscription?.status ?? "לא הוגדר") }}
