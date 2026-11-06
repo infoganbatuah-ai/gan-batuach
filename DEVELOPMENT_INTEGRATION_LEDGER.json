@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-05T23:29:45.969048+00:00",
+  "updatedAt": "2026-11-06T00:29:35.319365+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14071,6 +14071,162 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Verify exact merged Development Product with authorized synthetic Owner at 1440x1024 and 390x844, compare direct primary Settings crop and check role/keyboard/RTL/overflow. Then run post-merge focused QA and report any visual mismatch for correction. Preserve Production/main."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-anchor-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings profile anchor",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #285",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-anchor-20261106",
+      "sourceCommits": [
+        "2a636f570c3b13450ccb9f0fdea637fd971cb801"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-anchor-20261106@2a636f570c3b13450ccb9f0fdea637fd971cb801",
+          "origin/integration/development@320ed6f00097d7723ecb5e262beb309025ede7a0"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #285 exact source 2a636f570c3b13450ccb9f0fdea637fd971cb801 passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42131443991.",
+          "Owner/Manager Settings profile row navigates to in-page profile section.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "a94abfe3adb12aa7cc6c6950414f872d0698991c",
+        "commit": "320ed6f00097d7723ecb5e262beb309025ede7a0",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/285",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-header-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings profile header and return",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #286",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-header-20261106",
+      "sourceCommits": [
+        "e07e62f22861a976b1b7fb20baac1e700f5c64a6"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-header-20261106@e07e62f22861a976b1b7fb20baac1e700f5c64a6",
+          "origin/integration/development@bc287408d975fc7e1cd05f9ae3f9c26e35a9f057"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #286 exact source e07e62f22861a976b1b7fb20baac1e700f5c64a6 passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42133333750.",
+          "Mobile profile section gains centered title and accessible return control to Settings index.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "320ed6f00097d7723ecb5e262beb309025ede7a0",
+        "commit": "bc287408d975fc7e1cd05f9ae3f9c26e35a9f057",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/286",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-back-position-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings back control alignment",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #287",
+      "sourceBranch": "codex/ux-v7-settings-mobile-back-position-20261106",
+      "sourceCommits": [
+        "426bedc0a57792974b93cee02e2e2e5cf69d533d"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-back-position-20261106@426bedc0a57792974b93cee02e2e2e5cf69d533d",
+          "origin/integration/development@96ad64e1051f850772eb2e637c381f982991b47b"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #287 exact source 426bedc0a57792974b93cee02e2e2e5cf69d533d passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42134880386.",
+          "Scoped CSS positions the profile back control at the reference left edge.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "bc287408d975fc7e1cd05f9ae3f9c26e35a9f057",
+        "commit": "96ad64e1051f850772eb2e637c381f982991b47b",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/287",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
