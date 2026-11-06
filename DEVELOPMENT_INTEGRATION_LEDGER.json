@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T20:42:13Z",
+  "updatedAt": "2026-11-06T21:16:55Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11155,7 +11155,7 @@
         "514515e27d35f47f926e32146e2415dc3bee38a8",
         "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -14675,33 +14675,39 @@
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/product-attendance-pickup-journey-20261106@231fcc2f053f5d166114dd42fc83542316946450"],
-        "status": "SOURCE_REMOTE_PRESERVED_LEDGER_IN_FEATURE_PR_PENDING_INTEGRATION"
+        "remoteRefs": [
+          "origin/codex/product-attendance-pickup-journey-20261106@4fce98bdf73f2215746a9bbf0a4ac95321c03270",
+          "origin/integration/development@c6e703a0eeec7bc7c4baed9189004c18eb601686"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "SCOPED_BRANCH_QA_PASS_EXACT_HEAD_CI_AND_MERGED_PRODUCT_BROWSER_QA_PENDING",
+        "status": "EXACT_PR_315_SIX_CI_GREEN_MANAGEMENT_CONTEXT_SNYK_AND_SCOPED_MERGED_PRODUCT_BROWSER_QA_PASS",
         "evidence": [
           "Source branch 231fcc2f053f5d166114dd42fc83542316946450: four child-context tests, eight UX06 focused checks, typecheck, lint baseline with zero regressions, 259-migration audit, release contract and Production build PASS. No schema or dependency change.",
-          "Guarded synthetic API-to-isolated Development DB journey 14/14 on source baseline b7c1b78d0d438390ad6371b1202a717428c9ddae; private receipt /private/tmp/gb-m35-attendance-pickup.json SHA256 9e12d0d30bc0ddd9c2eaedc3ec8132d917255b18b17d1c97db64b8a233ddca4b. This is pre-correction, not a corrected browser or post-merge PASS."
+          "Guarded synthetic API-to-isolated Development DB journey 14/14 on source baseline b7c1b78d0d438390ad6371b1202a717428c9ddae; private receipt /private/tmp/gb-m35-attendance-pickup.json SHA256 9e12d0d30bc0ddd9c2eaedc3ec8132d917255b18b17d1c97db64b8a233ddca4b. This is pre-correction evidence only.",
+          "PR #315 exact head 4fce98bdf73f2215746a9bbf0a4ac95321c03270: Digital Observer CI run 42291274768 six required gates plus canonical quality SUCCESS; Management tenant-context run 42291274786 SUCCESS; Snyk SUCCESS. Ancestry-preserving Development merge c6e703a0eeec7bc7c4baed9189004c18eb601686.",
+          "Exact merged Development c6e703a0eeec7bc7c4baed9189004c18eb601686 ran pinned Next 16.4.3 and guarded LOCAL_SUPABASE. Synthetic browser-to-authenticated-API-to-isolated-DB-to-reload journey completed 29 checks on Garden B Manager, Staff permission denial and Parent contexts, including one authorized arrival, one human-approved pickup, idempotency, wrong-Garden/wrong-classroom denial and Parent isolation. Private external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-attendance-pickup-c6e703a0/receipt.json SHA256 ff20e990009c47d8ae7b10b666832a35b255063813702eb796a17ad8d1153193. Two bounded earlier attempts performed the synthetic writes, then a final read-only continuation verified their state after QA-only assertion corrections; no global reset. Five final-state screenshots and checksums are in the same private directory.",
+          "Post-merge guarded isolated Development drift PASS 259/259 at c6e703a0eeec7bc7c4baed9189004c18eb601686; focused child-context 4/4 and UX06 domain checks 8/8 PASS."
         ],
         "classification": "MANAGEMENT_ATTENDANCE_PICKUP_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_NO_DIGITAL_OBSERVER_CORE",
-        "limits": "PR #315 exact-head six CI gates, Management/security checks and fresh browser-to-API-to-isolated-DB-to-reload Product QA are pending. Full 21-domain visual owner acceptance, all-role full-stack QA and invoice-backed all-in 15 NIS cost qualification are separate."
+        "limits": "The scoped browser check used a permitted Garden B Manager for the positive arrival/release path. Staff B had a classroom assignment but no attendance scope and correctly showed no actions; Staff A earlier positive API proof belongs to the pre-correction baseline, not post-merge browser proof. This is scoped Product QA, not all-role/full-product QA, visual owner acceptance, live provider readiness or invoice-backed all-in 15 NIS cost qualification."
       },
       "integration": {
-        "status": "PENDING",
+        "status": "MERGED",
         "base": "integration/development",
         "baseCommit": "b7c1b78d0d438390ad6371b1202a717428c9ddae",
-        "commit": null,
+        "commit": "c6e703a0eeec7bc7c4baed9189004c18eb601686",
         "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/315"],
-        "sourceAncestryVerified": false
+        "sourceAncestryVerified": true
       },
       "dependencies": {"status": "CANONICAL_ATTENDANCE_PICKUP_BASELINE", "units": []},
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "SCOPED_BRANCH_TESTS_PASS_MERGED_PRODUCT_BROWSER_AND_ROLE_QA_PENDING",
-      "releaseEligibility": "NOT_READY_EXACT_HEAD_CI_MERGED_PRODUCT_QA_EXTERNAL_OWNER_VISUAL_COST_PENDING",
+      "localVerification": "SCOPED_AUTHENTICATED_BROWSER_API_DB_RELOAD_29_CHECKS_AND_259_MIGRATION_DRIFT_PASS_FULL_PRODUCT_QA_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Wait for PR #315 exact-head six CI gates, Management context and Snyk; merge to Development only if green. Run fresh authenticated browser-to-API-to-isolated-DB-to-reload on the merged Product, check role/child/classroom/Garden boundaries, update this ledger to integrated with exact merge SHA, and hand off to the canonical coordinator. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Canonical coordinator chooses the next scoped Product or truthful visual correction unit, including any required positive Staff browser fixture with canonical attendance scope. Preserve UXV11 NEEDS_VISUAL_CORRECTION and owner review, all-role/full-product and supplier-cost gates as open. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
