@@ -107,7 +107,7 @@ export function ParentChildContextCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="" />
         </>
-      ) : <Image src="/assets/gan-batuach-child-avatar.webp" alt="" width={96} height={96} />}
+      ) : <span className="parent-child-context-initial" aria-hidden="true">{name.trim().charAt(0) || "?"}</span>}
     </span>
     <span className="parent-child-context-copy"><b>{name}</b><small>{garden}</small></span>
     <span className="parent-child-context-state"><i aria-hidden="true" />{status}</span>

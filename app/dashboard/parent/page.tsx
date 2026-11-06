@@ -176,7 +176,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
                 const selected = String(child.child_id ?? child.permanent_child_file_id ?? child.id ?? "") === selectedChildId;
                 const label = attendanceRes.error ? "לא זמין" : !childId ? "ממתין לשיוך" : summary.departed ? "יצא/ה" : summary.present ? "נוכח/ת" : summary.absent ? "נעדר/ת" : "טרם עודכן";
                 return <div className={`parent-primary-attendance-row${selected ? " is-selected" : ""}`} key={childContextKey(child)}>
-                  <span className={`parent-primary-attendance-avatar${child.photo_url ? " has-photo" : ""}`} style={child.photo_url ? { backgroundImage: `url(${String(child.photo_url)})` } : undefined}>{child.photo_url ? null : <Baby size={24} />}</span>
+                  <span className={`parent-primary-attendance-avatar${child.photo_url ? " has-photo" : ""}`} style={child.photo_url ? { backgroundImage: `url(${String(child.photo_url)})` } : undefined}>{child.photo_url ? null : cleanSyntheticLabel(String(child.full_name ?? ""), "ילד").charAt(0)}</span>
                   <span className="parent-primary-attendance-identity"><strong>{cleanSyntheticLabel(String(child.full_name ?? ""), "הילד/ה שלי")}</strong><small>{selected ? "הילד שנבחר" : "ילד נוסף בחשבון"}</small></span>
                   <span className={`parent-primary-attendance-status ${summary.present ? "is-present" : summary.absent ? "is-absent" : "is-pending"}`}><ShieldCheck size={16} />{label}</span>
                   <time>{attendance?.check_in_at ? new Date(String(attendance.check_in_at)).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "—"}</time>
