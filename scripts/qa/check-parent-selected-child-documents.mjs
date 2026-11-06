@@ -2,7 +2,7 @@
 // are closed fixtures. No DB/RLS, provider, full-stack or physical-device proof.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { test } from "node:test";
@@ -13,9 +13,14 @@ const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const ts = createRequire(import.meta.url)("typescript");
 const read = (path) => {
   const absolutePath = resolve(root, path);
-  const flags = Number(execFileSync("/usr/bin/stat", ["-f", "%f", absolutePath], { encoding: "utf8" }).trim());
-  assert.ok(Number.isSafeInteger(flags) && flags >= 0, `invalid file flags: ${absolutePath}`);
-  assert.equal(flags & 0x40000000, 0, `refusing dataless source: ${absolutePath}`);
+  assert.ok(statSync(absolutePath).isFile(), `refusing non-file source: ${absolutePath}`);
+  if (process.platform === "darwin") {
+    const rawFlags = execFileSync("/usr/bin/stat", ["-f", "%f", absolutePath], { encoding: "utf8" }).trim();
+    assert.match(rawFlags, /^\d+$/, "stat must return numeric file flags");
+    const flags = Number(rawFlags);
+    assert.ok(Number.isSafeInteger(flags) && flags >= 0, `invalid file flags: ${absolutePath}`);
+    assert.equal(flags & 0x40000000, 0, `refusing dataless source: ${absolutePath}`);
+  }
   return readFileSync(absolutePath, "utf8");
 };
 const source = read("app/dashboard/parent/page.tsx");
