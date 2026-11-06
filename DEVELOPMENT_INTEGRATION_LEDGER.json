@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T03:07:18Z",
+  "updatedAt": "2026-11-06T21:16:55Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11155,7 +11155,7 @@
         "514515e27d35f47f926e32146e2415dc3bee38a8",
         "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -14506,6 +14506,208 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Review private UXV9 actual/reference boards and address the remaining primary Parent visual displacement and density without fabricating camera Live or attendance. Re-capture from the next exact merged Development head; obtain external owner acceptance. Full role/security/cost release gates remain open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v10-parent-primary-reference-closure-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV10-PARENT-PRIMARY-REFERENCE-CLOSURE-20261106",
+      "title": "Parent primary route visual geometry and direct reference evidence",
+      "owner": "UXV10 Parent executor; scoped PRs #304, #305 and #307 integration owner",
+      "sourceBranch": "codex/ux-v10-parent-primary-reference-closure-20261106",
+      "sourceCommits": [
+        "223fd7f479d5c40146e5aa6fcddbe608c8c97eb7",
+        "a8b8e2b9a6e85e7c8a144ad8fa13f41ea23ecd6e",
+        "c9adc2b4efa8cd1eae96acac07a109b393c6b465"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v10-parent-primary-reference-closure-20261106@c9adc2b4efa8cd1eae96acac07a109b393c6b465",
+          "origin/integration/development@09967c565cbee49ed967a58fd88e901f3f9a2081"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_304_305_307_SIX_CI_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "PR #304 CI 42249657687 and Management 42249657693; PR #305 CI 42252893099 and Management 42252892550; PR #307 CI 42255038570 and Management 42255038485. Each exact-head PR passed all six Digital Observer gates, canonical quality, Management tenant context and Snyk.",
+          "Exact merged Development Product 09967c565cbee49ed967a58fd88e901f3f9a2081: guarded LOCAL_SUPABASE, 259/259 baseline drift PASS, six authenticated Parent screenshots at 1440x1024 and 390x844; private manifest SHA256 8e67b30bdbb9444a757ad47170a3b48440762d08b80611dfe6cbbbcafc45e0e9.",
+          "Primary reference/actual side-by-sides, overlays and annotated boards: /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv10-parent-candidate-09967c56/boards/boards-manifest.json SHA256 3f9ebff8a605ca1edca44c9117b9f88c57f2f7b835e555b00f64cb2d12428be4. Owner index OWNER-REVIEW.md in same private package. Direct visual verdict NEEDS_VISUAL_CORRECTION.",
+          "Scoped Product QA passed immediate authorized single/multi Child and Garden context switching, foreign Child denial, file-ID navigation, RTL, no overflow, no browser errors/HTTP 500, keyboard search, touch controls and Mobile quick actions fully above bottom navigation."
+        ],
+        "classification": "PARENT_PRIMARY_UI_PRESENTATION_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Direct visual review still shows no authorized individual child photos in synthetic QA data, no verified current-day check-in, extra canonical header utilities, illustrative non-Live camera treatment and flatter action status imagery. No fake state added. Formal external owner acceptance, all 21 domains, full live role/RLS/provider QA and invoice-backed all-in ₪15 qualification are open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "a4f3661bfe0aa3beb39edce557bcc77e587eaeda",
+        "commit": "09967c565cbee49ed967a58fd88e901f3f9a2081",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/304",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/305",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/307"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV9_PARENT_BASELINE",
+        "units": ["codex/ux-v9-parent-authorized-daily-hub-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_PARENT_DESKTOP_MOBILE_BEHAVIOR_PASS_DIRECT_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review exact Product/reference boards with owner; resolve only truthful remaining visual deviations in a new scoped correction. Preserve no-Live camera and no fabricated child photos/check-ins. External owner decision and full release gates remain separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v11-platform-admin-primary-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV11-PLATFORM-ADMIN-PRIMARY-20261106",
+      "title": "Platform Admin primary control center composition and direct reference evidence",
+      "owner": "UXV11 Admin executor; scoped PRs #309, #310 and #311 integration owner",
+      "sourceBranch": "codex/ux-v11-platform-admin-primary-20261106",
+      "sourceCommits": [
+        "8244d8bfb54a871ca07677820c756bbd76684839",
+        "59accd0da678b7522a0bca8de9a77f7c38621a35",
+        "a725eb039b58891f7d0fca46f5331f9d60aabc65"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v11-platform-admin-primary-20261106@a725eb039b58891f7d0fca46f5331f9d60aabc65",
+          "origin/integration/development@a3bb46a0809ad78201e0e24542b7e076c0f5ada3"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_309_310_311_SIX_CI_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "Exact-head PRs #309, #310 and #311 each passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk before Development merge.",
+          "Exact merged Product a3bb46a0809ad78201e0e24542b7e076c0f5ada3: guarded LOCAL_SUPABASE and 259/259 baseline drift PASS; seven authenticated synthetic Admin captures at Desktop 1440x1024 and Mobile 390x844. Private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/manifest.json SHA256 5dbb98904c51353019f2ee0fc923c5fb15660ab16c798f4728166c81ecf59c5b.",
+          "Primary reference/actual side-by-sides, 50 percent overlays and annotated differences: /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/boards/boards-manifest.json SHA256 66cbd4c67b6ef56d2233c1ae281d66dec35d8a22b7042d70af8a887c6a1cdac4. Direct visual verdict NEEDS_VISUAL_CORRECTION.",
+          "All seven captured routes returned 200 without browser page errors, HTTP 500 or horizontal overflow. A separate browser role probe was interrupted and is NOT PASS. Bounded HTTP content-isolation probe at exact Product SHA passed Admin versus Manager, Parent, Staff and Inspector; only Admin markup rendered. Private receipt /private/tmp/gb-uxv11-admin-http-boundary.json SHA256 a9bc88e0c05d90434417e3001e4685328e81e0a107acae371d43d7d303a005e1. Non-Admin responses used framework redirect markers with HTTP 200, so status alone is not proof."
+        ],
+        "classification": "ADMIN_PRIMARY_UI_PRESENTATION_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Utility header/sidebar identity, data-limited chart and table density, and Mobile framing still differ visibly from approved collage. No fake analytics or provider state added. External owner approval, full role/RLS QA and invoice-backed all-in 15 NIS per paying user qualification remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "2b44a0610834c78a6f8efa656b49ae0a9bfa71fd",
+        "commit": "a3bb46a0809ad78201e0e24542b7e076c0f5ada3",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/309",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/310",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/311"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV10_PARENT_BASELINE",
+        "units": ["codex/ux-v10-parent-primary-reference-closure-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_ADMIN_DESKTOP_MOBILE_ROUTE_PASS_DIRECT_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review the UXV11 private direct Admin boards with owner/coordinator; resolve only truthful remaining header/sidebar and density gaps in a scoped task. Preserve real data and provider truth. Full release gates remain separate; no main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-admin-read-reliability-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-ADMIN-READ-RELIABILITY-20261106",
+      "title": "Canonical Admin read sources and honest partial-data states",
+      "owner": "Product Admin read-reliability executor; scoped PR #313 integration owner",
+      "sourceBranch": "codex/product-admin-read-reliability-20261106",
+      "sourceCommits": ["aa9d36199d28963c266cbadbef383572e223f4ea"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-admin-read-reliability-20261106@aa9d36199d28963c266cbadbef383572e223f4ea",
+          "origin/integration/development@8a3dc2267c82e01e103e23f0514c5125d0c2756d"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PR_313_SIX_CI_GREEN_MANAGEMENT_CONTEXT_SNYK_AND_SCOPED_AUTHENTICATED_DEVELOPMENT_QA_PASS",
+        "evidence": [
+          "PR #313 exact head aa9d36199d28963c266cbadbef383572e223f4ea: Digital Observer CI run 42280543277 six gates plus canonical quality SUCCESS; Management tenant context run 42280543236 SUCCESS; Snyk SUCCESS. Ancestry-preserving merge 8a3dc2267c82e01e103e23f0514c5125d0c2756d.",
+          "Focused simulated Admin read-failure and provider-truth tests 7/7 PASS, UX-17 Admin regression 9/9 PASS with source ref, typecheck, lint baseline, locked-dependency build, migration audit and release contract PASS. Local broad domain/security runs did not pass because of an unrelated missing benchmark file and restricted DiskManagement/loopback sandbox; exact-head hosted CI passed.",
+          "Authenticated read-only Development Admin query contracts 10/10 PASS before and after merge. Post-merge receipt /private/tmp/gb-admin-read-postmerge-8a3dc226.json SHA256 d9f52007aa7a5d149da21f34ee1cf56386f1384d7b645a5c7f80bd8f1add48b4; receipt contains no row data or credentials.",
+          "Exact merged Development 8a3dc2267c82e01e103e23f0514c5125d0c2756d: guarded LOCAL_SUPABASE and 259/259 migration drift PASS. Authenticated local HTTP read for three Admin routes across Admin, Manager, Parent, Staff and Inspector: 3/3 Admin routes rendered, 0/12 non-Admin markup leaks, 0 Admin data-error alerts or HTTP 500. Private receipt /private/tmp/gb-admin-read-postmerge-http-8a3dc226.json SHA256 9265d2bcab98dafd8734f702048c59c7c276f2678dc3e139b53fac0b2c5872b8. Non-Admin HTTP status alone is not authorization proof; content was checked."
+        ],
+        "classification": "ADMIN_READ_ONLY_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_ACTIVATION_NO_DIGITAL_OBSERVER_CORE",
+        "limits": "The read probes establish query contracts, not live provider health or visual 1:1 owner acceptance. Full all-role Product QA, invoice-backed all-in 15 NIS per paying-user qualification and Production release gates remain separate. No new paid dependency or fixed monthly commitment."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "edcc6af9b788b584421b02b8b34a29c1dbc9b466",
+        "commit": "8a3dc2267c82e01e103e23f0514c5125d0c2756d",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/313"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV11_ADMIN_BASELINE",
+        "units": ["codex/ux-v11-platform-admin-primary-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_ADMIN_READS_AND_ROLE_CONTENT_ISOLATION_PASS_VISUAL_OWNER_REVIEW_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Coordinator/owner reviews the UXV11 visual boards and assigns any truthful scoped composition correction. Preserve canonical Admin query contracts; complete broader role, supplier-cost and release gates only on explicit release work. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-attendance-pickup-journey-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-ATTENDANCE-PICKUP-JOURNEY-20261106",
+      "title": "Authenticated attendance and pickup Product journey source correction",
+      "owner": "Product attendance/pickup executor; scoped PR #315 integration owner",
+      "sourceBranch": "codex/product-attendance-pickup-journey-20261106",
+      "sourceCommits": ["231fcc2f053f5d166114dd42fc83542316946450"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-attendance-pickup-journey-20261106@4fce98bdf73f2215746a9bbf0a4ac95321c03270",
+          "origin/integration/development@c6e703a0eeec7bc7c4baed9189004c18eb601686"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PR_315_SIX_CI_GREEN_MANAGEMENT_CONTEXT_SNYK_AND_SCOPED_MERGED_PRODUCT_BROWSER_QA_PASS",
+        "evidence": [
+          "Source branch 231fcc2f053f5d166114dd42fc83542316946450: four child-context tests, eight UX06 focused checks, typecheck, lint baseline with zero regressions, 259-migration audit, release contract and Production build PASS. No schema or dependency change.",
+          "Guarded synthetic API-to-isolated Development DB journey 14/14 on source baseline b7c1b78d0d438390ad6371b1202a717428c9ddae; private receipt /private/tmp/gb-m35-attendance-pickup.json SHA256 9e12d0d30bc0ddd9c2eaedc3ec8132d917255b18b17d1c97db64b8a233ddca4b. This is pre-correction evidence only.",
+          "PR #315 exact head 4fce98bdf73f2215746a9bbf0a4ac95321c03270: Digital Observer CI run 42291274768 six required gates plus canonical quality SUCCESS; Management tenant-context run 42291274786 SUCCESS; Snyk SUCCESS. Ancestry-preserving Development merge c6e703a0eeec7bc7c4baed9189004c18eb601686.",
+          "Exact merged Development c6e703a0eeec7bc7c4baed9189004c18eb601686 ran pinned Next 16.4.3 and guarded LOCAL_SUPABASE. Synthetic browser-to-authenticated-API-to-isolated-DB-to-reload journey completed 29 checks on Garden B Manager, Staff permission denial and Parent contexts, including one authorized arrival, one human-approved pickup, idempotency, wrong-Garden/wrong-classroom denial and Parent isolation. Private external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-attendance-pickup-c6e703a0/receipt.json SHA256 ff20e990009c47d8ae7b10b666832a35b255063813702eb796a17ad8d1153193. Two bounded earlier attempts performed the synthetic writes, then a final read-only continuation verified their state after QA-only assertion corrections; no global reset. Five final-state screenshots and checksums are in the same private directory.",
+          "Post-merge guarded isolated Development drift PASS 259/259 at c6e703a0eeec7bc7c4baed9189004c18eb601686; focused child-context 4/4 and UX06 domain checks 8/8 PASS."
+        ],
+        "classification": "MANAGEMENT_ATTENDANCE_PICKUP_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_NO_DIGITAL_OBSERVER_CORE",
+        "limits": "The scoped browser check used a permitted Garden B Manager for the positive arrival/release path. Staff B had a classroom assignment but no attendance scope and correctly showed no actions; Staff A earlier positive API proof belongs to the pre-correction baseline, not post-merge browser proof. This is scoped Product QA, not all-role/full-product QA, visual owner acceptance, live provider readiness or invoice-backed all-in 15 NIS cost qualification."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "b7c1b78d0d438390ad6371b1202a717428c9ddae",
+        "commit": "c6e703a0eeec7bc7c4baed9189004c18eb601686",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/315"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {"status": "CANONICAL_ATTENDANCE_PICKUP_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_BROWSER_API_DB_RELOAD_29_CHECKS_AND_259_MIGRATION_DRIFT_PASS_FULL_PRODUCT_QA_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Canonical coordinator chooses the next scoped Product or truthful visual correction unit, including any required positive Staff browser fixture with canonical attendance scope. Preserve UXV11 NEEDS_VISUAL_CORRECTION and owner review, all-role/full-product and supplier-cost gates as open. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

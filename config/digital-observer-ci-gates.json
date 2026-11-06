@@ -97,6 +97,21 @@
       ]
     },
     {
+      "name": "management-admin-read-reliability",
+      "args": [
+        "--test",
+        "scripts/qa/check-admin-read-reliability.mjs"
+      ]
+    },
+    {
+      "name": "management-attendance-pickup-child-context",
+      "args": [
+        "--experimental-strip-types",
+        "--test",
+        "scripts/qa/check-management-attendance-pickup-journey.mjs"
+      ]
+    },
+    {
       "name": "uxv9-parent-authorized-child-context",
       "args": [
         "--experimental-strip-types",

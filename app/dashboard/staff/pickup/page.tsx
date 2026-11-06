@@ -12,16 +12,26 @@ export default async function StaffPickupPage() {
   const gardenId = employment!.garden_id;
   const staffId = employment!.staff_id;
   const teaching = await supabase.rpc("can_teach_in_garden" as never, { target_garden_id: gardenId, required_scope: "attendance" } as never);
-  const assignmentsRes = await supabase.from("staff_classroom_assignments" as never).select("classroom_id" as never).eq("staff_id", staffId).eq("garden_id", gardenId).eq("status", "active").limit(100);
+  const assignmentsRes = await supabase.from("staff_classroom_assignments" as never).select("classroom_id" as never).eq("staff_id", staffId).eq("garden_id", gardenId).eq("status", "active").limit(101);
   const classroomIds = ((assignmentsRes.data ?? []) as unknown as Array<{ classroom_id: string }>).map((item) => item.classroom_id);
-  const childAssignmentsRes = classroomIds.length ? await supabase.from("child_classroom_assignments" as never).select("child_id" as never).eq("garden_id", gardenId).eq("is_current", true).in("classroom_id", classroomIds).limit(500) : { data: [], error: null };
+  const childAssignmentsRes = classroomIds.length ? await supabase.from("child_classroom_assignments" as never).select("child_id" as never).eq("garden_id", gardenId).eq("is_current", true).in("classroom_id", classroomIds).limit(501) : { data: [], error: null };
   const childIds = ((childAssignmentsRes.data ?? []) as unknown as Array<{ child_id: string }>).map((item) => item.child_id);
   const [childrenRes, contactsRes, eventsRes] = childIds.length ? await Promise.all([
-    supabase.from("children" as never).select("id,full_name,photo_url" as never).eq("garden_id", gardenId).in("id", childIds).order("full_name"),
-    supabase.from("authorized_pickup_contacts" as never).select("*,children(full_name,photo_url)" as never).eq("kindergarten_id", gardenId).in("child_id", childIds).order("created_at", { ascending: false }),
-    supabase.from("child_pickup_events" as never).select("*,children(full_name,photo_url)" as never).eq("kindergarten_id", gardenId).in("child_id", childIds).order("pickup_time", { ascending: false }).limit(80)
+    supabase.from("children" as never).select("id,full_name,photo_url" as never).eq("garden_id", gardenId).in("id", childIds).order("full_name").limit(501),
+    supabase.from("authorized_pickup_contacts" as never).select("*,children(full_name,photo_url)" as never).eq("kindergarten_id", gardenId).in("child_id", childIds).order("created_at", { ascending: false }).limit(301),
+    supabase.from("child_pickup_events" as never).select("*,children(full_name,photo_url)" as never).eq("kindergarten_id", gardenId).in("child_id", childIds).order("pickup_time", { ascending: false }).limit(81)
   ]) : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
   const allowed = teaching.data === true && !teaching.error;
+  const sourceUnavailable = Boolean(teaching.error || assignmentsRes.error || childAssignmentsRes.error || childrenRes.error || contactsRes.error || eventsRes.error
+    || (assignmentsRes.data?.length ?? 0) > 100 || (childAssignmentsRes.data?.length ?? 0) > 500
+    || (childrenRes.data?.length ?? 0) > 500 || (contactsRes.data?.length ?? 0) > 300 || (eventsRes.data?.length ?? 0) > 80);
+
+  if (sourceUnavailable) return <StaffAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null}>
+    <div className="ux06-staff-operations">
+      <StaffPageHero eyebrow="איסוף ילדים" title="אישור שחרור" text="הרשאה תקפה ואישור צוות נבדקים יחד ברגע השחרור." icon={ShieldCheck} badge={<StatusChip tone="warning">נתונים לא זמינים</StatusChip>} />
+      <StaffSection title="בדיקת מורשה ואישור צוות"><div role="alert"><StaffEmpty title="נתוני האיסוף אינם זמינים" text="לא ניתן לאמת כרגע את היקף הכיתה, מורשי האיסוף או האירועים. פעולת השחרור מושהית." icon={ShieldCheck} /></div></StaffSection>
+    </div>
+  </StaffAppFrame>;
 
   return <StaffAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null}>
     <div className="ux06-staff-operations">
