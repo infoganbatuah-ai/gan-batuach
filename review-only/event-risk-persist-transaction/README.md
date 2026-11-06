@@ -1,0 +1,11 @@
+# First fenced downstream writer — review only, NOT APPLIED
+
+This package proposes only `public.persist_event_risk_v1(uuid,text,uuid,bigint,jsonb) RETURNS uuid`, the first downstream writer in `SEVEN-RPC-IMPLEMENTATION.md` at source branch `codex/event-ingest-replay-identity-20261025@341ff2bfb6ae0a297cbecce47a8cacac57c51a37`. It builds on the claim-only review package integrated at `b305491c7e63eea4dcd3c9620bb32fd1f2e13c56`. The SQL has an unconditional execution guard and no COMMIT or live grants. It is **not a migration** and must never be sourced into LOCAL_SUPABASE or Production.
+
+The function locks the claim and canonical Signal, Site, organization, source, link and Incident; checks service caller, exact ownership, current epoch/nonce/live lease, Incident generation and previous Risk reference; inserts or fully compares the Risk row; appends mandatory audit; writes one durable receipt; and advances the claim to `RISK_PERSISTED` in the same transaction. It does not write Incident projections, watch decisions, verification, notifications or Guard dispatch. Identical replay returns the same ID without another audit. A conflicting result raises; it is never treated as equivalent solely because of `23505`.
+
+The source Risk table has separate Site/Event/Incident foreign keys but no composite Tenant/Site constraint. The proposed receipt is a new, review-only object. The fixture's organization/Site chain is synthetic and does **not** establish historical Home ownership. The actual event-time ownership authority and migration compatibility remain a deployment blocker. No active adapter invokes this function.
+
+The local QA runner loads the claim fixture and guarded claim SQL into a disposable, network-disabled PostgreSQL container, then loads the guarded writer *in memory* after confirming container isolation. It uses no existing database, host port or volume. This is isolated PostgreSQL behavior, not Development or Production qualification.
+
+No physical exactly-once computation, crash-durability/restore, RLS role-boundary or lossless rollback claim is made. The result may be reviewed but must not be applied until the remaining three writers, Model A authority, ACL/Data API, migration order and rollback are separately qualified.
