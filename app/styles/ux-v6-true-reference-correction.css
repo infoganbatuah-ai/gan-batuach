@@ -285,6 +285,28 @@
 }
 
 @media (max-width: 650px) {
+  .role-app-shell:has(.ux18-reference-profile-column) #profile {
+    min-height: calc(100dvh - 112px);
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-settings-section-body {
+    padding-top: 60px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-photo {
+    width: 150px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-inputs {
+    gap: 10px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-inputs input {
+    min-height: 58px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-save {
+    min-height: 54px;
+    margin-top: 35px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-verification-details {
+    margin-top: 60px;
+  }
   .role-app-shell:has(.ux18-reference-profile-column) #profile > header {
     position: relative;
     display: flex;
