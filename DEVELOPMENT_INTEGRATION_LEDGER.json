@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T21:16:55Z",
+  "updatedAt": "2026-11-06T23:46:22Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14708,6 +14708,49 @@
       "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Canonical coordinator chooses the next scoped Product or truthful visual correction unit, including any required positive Staff browser fixture with canonical attendance scope. Preserve UXV11 NEEDS_VISUAL_CORRECTION and owner review, all-role/full-product and supplier-cost gates as open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-staff-attendance-positive-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-STAFF-ATTENDANCE-POSITIVE-JOURNEY-20261107",
+      "title": "Positive Staff arrival Product journey on canonical isolated Development",
+      "owner": "Product Staff attendance executor; one Development integration owner",
+      "sourceBranch": "codex/product-staff-attendance-positive-20261107",
+      "sourceCommits": ["fbedfef09a891663c222e2834419f3f944042207", "8f93833b3ba987bd0aea91e066297d271ca9791c"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/product-staff-attendance-positive-20261107@8f93833b3ba987bd0aea91e066297d271ca9791c"],
+        "status": "EVIDENCE_ONLY_REPORT_REMOTE_PRESERVED_INTEGRATION_PENDING"
+      },
+      "validation": {
+        "status": "SCOPED_AUTHENTICATED_STAFF_UI_API_LOCAL_DB_RELOAD_MANAGER_READ_AND_DENIALS_PASS",
+        "evidence": [
+          "Exact canonical Development Product e9b5f20a79775f9d0c201e11db03ac9511720733, pinned Next 16.4.3, DEVELOPMENT / INTEGRATION, LOCAL_SUPABASE. One synthetic Staff A UI arrival returned HTTP 200 and created one Staff-authored present attendance row plus one canonical audit event.",
+          "Staff reload and Manager A read showed the same present child. Foreign Garden, foreign Classroom and no-attendance-scope actions denied; repeat request idempotent with no extra attendance or audit. Continuation passed 20 scoped checks and zero browser errors.",
+          "Private external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-staff-attendance-positive-20261107/receipt.json SHA256 5ece6b6d5901fe7991caceef66162c3a96fb4c496d431d6406f967fd1a36d31b. The source report lists screenshots and checksums. Four dedicated synthetic fixture rows were created in isolated Development; existing QA rows were preserved."
+        ],
+        "classification": "MANAGEMENT_SYNTHETIC_PRODUCT_QA_EVIDENCE_ONLY_NO_SOURCE_SCHEMA_PROVIDER_OR_DIGITAL_OBSERVER_CORE_CHANGE",
+        "limits": "This proves one positive Staff journey and named denials, not full Product security/role QA, owner visual acceptance, provider readiness or invoice-backed all-in 15 NIS compliance. First QA attempt stopped after a successful click due to an incorrect response-envelope assertion; the continuation verified saved response and DB before further requests."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "e9b5f20a79775f9d0c201e11db03ac9511720733",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "CANONICAL_ATTENDANCE_PICKUP_PRODUCT_BASELINE",
+        "units": ["codex/product-attendance-pickup-journey-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ONE_AUTHENTICATED_STAFF_POSITIVE_JOURNEY_20_SCOPED_CHECKS_NO_PRODUCT_SOURCE_CHANGE",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_ALL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Run six exact-head CI gates and required Management/scanner checks on a scoped PR, merge ancestry-preserving to integration/development, then update this entry with exact merge SHA and post-merge verification. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
