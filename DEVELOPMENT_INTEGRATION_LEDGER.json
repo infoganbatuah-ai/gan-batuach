@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T02:51:46.600Z",
+  "updatedAt": "2026-11-06T03:07:18Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14389,31 +14389,32 @@
       "project": "Gan Batuach Management",
       "taskId": "GB-UXV8-OWNER-DAILY-WORKSPACE-20261106",
       "title": "Owner and Manager primary daily workspace, authorized context and mobile reference fit",
-      "owner": "UXV8 Owner executor; scoped integration owner for PR #291, #292 and #293",
+      "owner": "UXV8 Owner executor; scoped integration owner for PR #291 through #294",
       "sourceBranch": "codex/ux-v8-owner-daily-workspace-20261106",
       "sourceCommits": [
         "175edc2b85fb62a99674a5e269bf1aecab584cea",
         "748f39fdb9b1da5e238802d1db089f1d327d65ad",
         "d6658c2da3a0f9e453bcc36c86a9bae10035f6f2",
-        "aa83ae937b48ceb00509ab1921875914bc0ebab5"
+        "aa83ae937b48ceb00509ab1921875914bc0ebab5",
+        "e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a"
       ],
       "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-v8-owner-daily-workspace-20261106@aa83ae937b48ceb00509ab1921875914bc0ebab5",
-          "origin/integration/development@d72248aeb0db81da9534d5e72322710fb230b4c6"
+          "origin/codex/ux-v8-owner-daily-workspace-20261106@e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a",
+          "origin/integration/development@d35ebafcc05389ccc7220d2b25e0620ed678336e"
         ],
         "status": "REMOTE_PRESERVED_AND_INTEGRATED"
       },
       "validation": {
         "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
         "evidence": [
-          "PR #291, #292 and #293 exact heads passed all six Digital Observer CI gates, canonical quality, Management context and Snyk; final source aa83ae937b48ceb00509ab1921875914bc0ebab5, Digital Observer CI run 42152090068.",
+          "PR #291 through #294 exact heads passed all six Digital Observer CI gates, canonical quality, Management context and Snyk; final source e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a, Digital Observer CI run 42153661526.",
           "Local source: TypeScript typecheck and focused ESLint passed; 68 Owner and management-context tests passed.",
-          "Final authenticated synthetic Owner Product from merged Development d72248aeb0db81da9534d5e72322710fb230b4c6 at Desktop 1440x1024 and Mobile 390x844: actual primary operations route, RTL, no horizontal overflow or browser errors, no camera/payment/AI requests.",
+          "Final authenticated synthetic Owner Product from merged Development d35ebafcc05389ccc7220d2b25e0620ed678336e at Desktop 1440x1024 and Mobile 390x844: actual primary operations route, reference KPI order, RTL, no horizontal overflow or browser errors, no camera/payment/AI requests.",
           "Authenticated synthetic Owner, Manager and multi-Garden Owner Product checks: authorized Garden switch changed displayed context; foreign Garden POST denied 403; invalid context required selection; 5 canonical destinations reachable per Owner and Manager.",
-          "Private 14-image reference/actual/before-after comparison package at /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv8-owner-daily-workspace-d72248ae/manifest.json; manifest SHA256 1104e9efd5dac84b8f02234b8e5e372d86652e085679d2d75c1a26393831b6c9. Raw actual images from exact merged Development, not generated mockups."
+          "Private final 14-image reference/actual/before-after comparison package at /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv8-owner-daily-workspace-d35ebafc/manifest.json; manifest SHA256 4877f85dc18bc9c343c8cde767211409b924fe20885ddef6f698bc9df4fdb29f. Raw actual images from exact merged Development, not generated mockups. Previous d72248ae package is preserved as intermediate before KPI-order correction."
         ],
         "classification": "OWNER_DAILY_WORKSPACE_UI_AND_AUTHORIZED_READ_CONTEXT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
         "limits": "External owner visual acceptance is pending. Synthetic activity and schedule differ from reference data; camera art is explicitly illustrative with no verified Live. Full Auth/RLS/tenant, all 21 domains, invoice-backed all-in ₪15 cost compliance and Production are not claimed."
@@ -14422,12 +14423,13 @@
         "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "baseCommit": "a80294bb95166949d1cf51f0f741f51f3975aea9",
-        "commit": "d72248aeb0db81da9534d5e72322710fb230b4c6",
-        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/293",
+        "commit": "d35ebafcc05389ccc7220d2b25e0620ed678336e",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/294",
         "pullRequests": [
           "https://github.com/infoganbatuah-ai/gan-batuach/pull/291",
           "https://github.com/infoganbatuah-ai/gan-batuach/pull/292",
-          "https://github.com/infoganbatuah-ai/gan-batuach/pull/293"
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/293",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/294"
         ],
         "sourceAncestryVerified": true
       },
