@@ -1028,6 +1028,13 @@
         "--test",
         "scripts/qa/check-final-production-launch-query-boundary.mjs"
       ]
+    },
+    {
+      "name": "parent-selected-child-documents",
+      "args": [
+        "--test",
+        "scripts/qa/check-parent-selected-child-documents.mjs"
+      ]
     }
   ],
   "security": [
