@@ -23,28 +23,45 @@ function percent(value: number | null | undefined) {
   return `${Math.round(Number(value ?? 0) * 100)}%`;
 }
 
+type VisionRow = Record<string, unknown>;
+
+async function visionQuery(label: string, run: () => PromiseLike<{ data: unknown; error: unknown }>) {
+  try {
+    const response = await run();
+    logSupabaseError(label, response.error);
+    return { rows: (response.error ? [] : response.data ?? []) as VisionRow[], available: !response.error };
+  } catch (error) {
+    logSupabaseError(label, error);
+    return { rows: [] as VisionRow[], available: false };
+  }
+}
+
 export default async function GardenVisionAiPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const gardenId = profile.garden_id ?? "";
+  const unavailable = { detections: [] as VisionRow[], diagnostics: [] as VisionRow[], feedback: [] as VisionRow[], reviewedEvents: [] as VisionRow[], summary: buildVisionDiagnosticsSummary(), available: [false, false, false, false], queryError: "נתוני הזיהוי החזותי אינם זמינים" as string | null };
   const result = await safeAdminData("garden vision ai", async () => {
+    if (!gardenId) return { ...unavailable, queryError: "נדרש הקשר גן תקף כדי לטעון את נתוני הזיהוי החזותי" };
     const supabase = await createClient();
     const [detectionsRes, diagnosticsRes, feedbackRes, eventsRes] = await Promise.all([
-      supabase.from("vision_detection_results" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(100),
-      supabase.from("vision_diagnostics" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(50),
-      supabase.from("vision_calibration_feedback" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(100),
-      supabase.from("ai_camera_events" as any).select("*").eq("kindergarten_id", gardenId).not("vision_provider", "is", null).in("status", ["confirmed", "dismissed", "escalated"]).order("created_at", { ascending: false }).limit(50)
+      visionQuery("garden vision detections", () => supabase.from("vision_detection_results" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(100)),
+      visionQuery("garden vision diagnostics", () => supabase.from("vision_diagnostics" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(50)),
+      visionQuery("garden vision feedback", () => supabase.from("vision_calibration_feedback" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(100)),
+      visionQuery("garden vision reviewed events", () => supabase.from("ai_camera_events" as any).select("*").eq("kindergarten_id", gardenId).not("vision_provider", "is", null).in("status", ["confirmed", "dismissed", "escalated"]).order("created_at", { ascending: false }).limit(50))
     ]);
-    [detectionsRes, diagnosticsRes, feedbackRes, eventsRes].forEach((query, index) => logSupabaseError(`garden vision query ${index}`, (query as any).error));
+    const available = [detectionsRes, diagnosticsRes, feedbackRes, eventsRes].map((query) => query.available);
     return {
-      detections: detectionsRes.data ?? [],
-      diagnostics: diagnosticsRes.data ?? [],
-      feedback: feedbackRes.data ?? [],
-      reviewedEvents: eventsRes.data ?? [],
-      summary: buildVisionDiagnosticsSummary((diagnosticsRes.data ?? []) as any[], (detectionsRes.data ?? []) as any[], (feedbackRes.data ?? []) as any[]),
-      queryError: [detectionsRes.error, diagnosticsRes.error, feedbackRes.error, eventsRes.error].some(Boolean) ? "חלק מנתוני הזיהוי החזותי לא נטענו" : null
+      detections: detectionsRes.rows,
+      diagnostics: diagnosticsRes.rows,
+      feedback: feedbackRes.rows,
+      reviewedEvents: eventsRes.rows,
+      summary: buildVisionDiagnosticsSummary(diagnosticsRes.rows, detectionsRes.rows, feedbackRes.rows),
+      available,
+      queryError: available.every(Boolean) ? null : "חלק מנתוני הזיהוי החזותי לא נטענו"
     };
-  }, { detections: [] as any[], diagnostics: [] as any[], feedback: [] as any[], reviewedEvents: [] as any[], summary: buildVisionDiagnosticsSummary(), queryError: null as string | null });
+  }, unavailable);
 
+  const [detectionsAvailable, , feedbackAvailable, eventsAvailable] = result.data.available;
   const reviewed = result.data.reviewedEvents.map((event: any) => buildReviewedManagerDetection(event));
 
   return (
@@ -59,16 +76,16 @@ export default async function GardenVisionAiPage() {
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <TeacherStatsGrid>
-        <TeacherStatCard title="זיהויים" value={result.data.summary.detectionVolume} hint="מסוכמים" icon={Brain} tone="blue" />
-        <TeacherStatCard title="דיוק ממוצע" value={percent(result.data.summary.averageConfidence)} hint="לא החלטה אוטומטית" icon={ShieldCheck} tone="green" />
-        <TeacherStatCard title="False positive" value={percent(result.data.summary.falsePositiveRate)} hint="למעקב אנושי" icon={ShieldCheck} tone={result.data.summary.falsePositiveRate > 0.2 ? "orange" : "green"} />
-        <TeacherStatCard title="נבדקו" value={reviewed.length} hint="אירועים" icon={ShieldCheck} tone="purple" />
+        <TeacherStatCard title="זיהויים" value={detectionsAvailable ? result.data.summary.detectionVolume : "לא זמין"} hint="מסוכמים" icon={Brain} tone={detectionsAvailable ? "blue" : "neutral"} />
+        <TeacherStatCard title="דיוק ממוצע" value={detectionsAvailable ? percent(result.data.summary.averageConfidence) : "לא זמין"} hint="לא החלטה אוטומטית" icon={ShieldCheck} tone={detectionsAvailable ? "green" : "neutral"} />
+        <TeacherStatCard title="False positive" value={feedbackAvailable ? percent(result.data.summary.falsePositiveRate) : "לא זמין"} hint="למעקב אנושי" icon={ShieldCheck} tone={feedbackAvailable ? result.data.summary.falsePositiveRate > 0.2 ? "orange" : "green" : "neutral"} />
+        <TeacherStatCard title="נבדקו" value={eventsAvailable ? reviewed.length : "לא זמין"} hint="אירועים" icon={ShieldCheck} tone={eventsAvailable ? "purple" : "neutral"} />
       </TeacherStatsGrid>
 
       <section className="teacher-dashboard-grid">
         <TeacherSection title="מה מוצג למנהלת" subtitle="מידע מסוכם בלבד, ללא פריימים גולמיים או פרטי מודל פנימיים">
           <TeacherCompactList>
-            <TeacherCompactItem title="זיהויים שנבדקו" subtitle="עברו סינון אנושי לפני הצגה" tone="green" meta={reviewed.length} />
+            <TeacherCompactItem title="זיהויים שנבדקו" subtitle="עברו סינון אנושי לפני הצגה" tone={eventsAvailable ? "green" : "neutral"} meta={eventsAvailable ? reviewed.length : "לא זמין"} />
             <TeacherCompactItem title="מצב Shadow" subtitle="תצפית זהירה ללא פעולה אוטומטית" tone="purple" meta="פעיל" />
             <TeacherCompactItem title="הורים" subtitle="לא רואים זיהויים גולמיים" tone="blue" meta="מוגן" />
           </TeacherCompactList>
@@ -83,7 +100,7 @@ export default async function GardenVisionAiPage() {
       </section>
 
       <TeacherSection title="זיהויים שנבדקו" subtitle="רק אירועים שעברו בדיקה אנושית מוצגים כאן">
-        {reviewed.length === 0 ? (
+        {!eventsAvailable ? <TeacherEmptyState title="נתוני הזיהויים שנבדקו אינם זמינים" text="לא ניתן לקבוע אם יש זיהויים שעברו בדיקה אנושית." /> : reviewed.length === 0 ? (
           <TeacherEmptyState title="אין זיהויים שנבדקו עדיין" text="אירועי Shadow יופיעו קודם במסך אירועי תצפיתן." />
         ) : (
           <TeacherCompactList>
