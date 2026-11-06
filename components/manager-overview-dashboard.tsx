@@ -65,12 +65,12 @@ export function ManagerOverviewDashboard({
       </section>
 
       <section className="manager-today-strip" aria-label="היום בגן">
-        <TodayMetric label="ילדים נוכחים" value={`${attendance.present}/${attendance.total}`} hint={`${attendance.departed} כבר יצאו`} icon={Baby} tone="green" href="/dashboard/garden/attendance" />
-        <TodayMetric label="משימות פתוחות" value={operations.tasks} hint={`${operations.correctiveActions} דחופות`} icon={CircleAlert} tone="red" href="/dashboard/garden/tasks" />
-        <TodayMetric label="בקשות הרשמה" value={enrollment.open} hint={`${enrollment.informationRequired} ממתינות לאישור`} icon={FileClock} tone="purple" href="/dashboard/garden/enrollment-requests" />
-        <TodayMetric label="הודעות חדשות" value={unreadMessages} hint="מרכז התקשורת" icon={MessageCircle} tone="blue" href="/dashboard/garden/messages" />
-        <TodayMetric label="אירועי בטיחות" value={operations.correctiveActions} hint="דורש טיפול" icon={ShieldCheck} tone="orange" href="/dashboard/garden/corrective-actions" />
         <TodayMetric label="מצלמות פעילות" value={`${safety.operationalCameras}/${safety.cameras}`} hint={safety.label} icon={Camera} tone="blue" href="/dashboard/garden/cameras" />
+        <TodayMetric label="אירועי בטיחות" value={operations.correctiveActions} hint="דורש טיפול" icon={ShieldCheck} tone="orange" href="/dashboard/garden/corrective-actions" />
+        <TodayMetric label="הודעות חדשות" value={unreadMessages} hint="מרכז התקשורת" icon={MessageCircle} tone="blue" href="/dashboard/garden/messages" />
+        <TodayMetric label="בקשות הרשמה" value={enrollment.open} hint={`${enrollment.informationRequired} ממתינות לאישור`} icon={FileClock} tone="purple" href="/dashboard/garden/enrollment-requests" />
+        <TodayMetric label="משימות פתוחות" value={operations.tasks} hint={`${operations.correctiveActions} דחופות`} icon={CircleAlert} tone="red" href="/dashboard/garden/tasks" />
+        <TodayMetric label="ילדים נוכחים" value={`${attendance.present}/${attendance.total}`} hint={`${attendance.departed} כבר יצאו`} icon={Baby} tone="green" href="/dashboard/garden/attendance" />
       </section>
 
       <section className="manager-reference-first-viewport" aria-label="היום, מצלמות ועדכונים">

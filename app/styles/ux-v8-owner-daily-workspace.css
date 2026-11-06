@@ -90,6 +90,10 @@
     line-height: 1.2;
   }
   .manager-reference-dashboard .manager-today-strip { gap: 5px !important; }
+  .manager-reference-dashboard .manager-today-metric:nth-child(2),
+  .manager-reference-dashboard .manager-today-metric:nth-child(4) { display: none !important; }
+  .manager-reference-dashboard .manager-today-metric:nth-child(5),
+  .manager-reference-dashboard .manager-today-metric:nth-child(6) { display: grid !important; }
   .manager-reference-dashboard .manager-today-metric {
     height: 72px !important;
     min-height: 72px !important;
