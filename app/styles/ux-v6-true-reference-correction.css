@@ -180,6 +180,7 @@
   font-weight: 800;
   cursor: pointer;
 }
+.ux18-mobile-settings-index-back { display: none; }
 .ux18-reference-garden-facts {
   display: flex;
   flex-wrap: wrap;
@@ -225,6 +226,28 @@
 .ux18-reference-profile-column #profile .ux18-settings-section-action { display: none; }
 
 @media (max-width: 650px) {
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation {
+    min-height: calc(100dvh - 112px);
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-title {
+    position: relative;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-mobile-settings-index-back {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    transform: translateY(-50%);
+    color: #075bb9;
+    border-radius: 10px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-mobile-settings-index-back:focus-visible {
+    outline: 3px solid #0784f7;
+    outline-offset: 2px;
+  }
   .ux18-primary-profile-fields {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -241,7 +264,7 @@
   .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a {
     direction: ltr;
     grid-template-columns: 32px minmax(0, 1fr) 18px;
-    min-height: 48px !important;
+    min-height: 63px !important;
     gap: 8px;
     border-bottom: 1px solid #e7eef8;
     border-radius: 5px;
