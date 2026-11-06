@@ -11,7 +11,14 @@ const ts = createRequire(path.join(root, 'package.json'))('typescript');
 const pageFile = 'app/dashboard/garden/camera-health/page.tsx';
 function read(file) {
   const full = path.join(root, file);
-  assert.equal(Number(execFileSync('/usr/bin/stat', ['-f', '%f', full], { encoding: 'utf8' }).trim()) & 0x40000000, 0);
+  assert.ok(fs.statSync(full).isFile(), 'source must be a regular file');
+  if (process.platform === 'darwin') {
+    const rawFlags = execFileSync('/usr/bin/stat', ['-f', '%f', full], { encoding: 'utf8' }).trim();
+    assert.match(rawFlags, /^\d+$/, 'stat must return numeric file flags');
+    const flags = Number(rawFlags);
+    assert.ok(Number.isSafeInteger(flags) && flags >= 0);
+    assert.equal(flags & 0x40000000, 0, 'dataless source forbidden');
+  }
   return fs.readFileSync(full, 'utf8');
 }
 function parse(text, file = 'module.ts') { return ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith('tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS); }

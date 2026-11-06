@@ -1050,6 +1050,146 @@
         "--test",
         "scripts/qa/check-parent-selected-child-documents.mjs"
       ]
+    },
+    {
+      "name": "garden-observer-intelligence-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-observer-intelligence-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-observer-network-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-observer-network-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-observer-learning-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-observer-learning-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-observer-watch-timeline-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-observer-watch-timeline-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-observer-pilot-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-observer-pilot-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-vision-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-vision-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-event-review-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-event-review-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-risk-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-risk-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-compliance-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-compliance-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-camera-health-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-camera-health-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-trust-center-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-trust-center-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-rating-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-rating-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-health-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-health-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-daily-journal-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-daily-journal-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-child-journal-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-child-journal-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-notifications-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-notifications-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "garden-messages-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-garden-messages-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "parent-query-failure-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-parent-query-failure-boundary.mjs"
+      ]
+    },
+    {
+      "name": "parent-messages-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-parent-messages-query-boundary.mjs"
+      ]
+    },
+    {
+      "name": "parent-payments-query-boundary",
+      "args": [
+        "--test",
+        "scripts/qa/check-parent-payments-query-boundary.mjs"
+      ]
     }
   ],
   "security": [

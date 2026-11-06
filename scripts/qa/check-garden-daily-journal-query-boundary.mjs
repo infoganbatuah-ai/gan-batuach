@@ -8,7 +8,18 @@ import { execFileSync } from 'node:child_process';
 // Actual page/date/safe helpers, fixed QA clock, OPAQUE journal/UI and CLOSED SDK/Auth.
 const root = process.cwd(), ts = createRequire(path.join(root, 'package.json'))('typescript');
 const pageFile = 'app/dashboard/garden/daily-journal/page.tsx';
-function read(file) { const full = path.join(root, file); assert.equal(Number(execFileSync('/usr/bin/stat', ['-f', '%f', full], { encoding: 'utf8' }).trim()) & 0x40000000, 0); return fs.readFileSync(full, 'utf8'); }
+function read(file) {
+  const full = path.join(root, file);
+  assert.ok(fs.statSync(full).isFile(), 'source must be a regular file');
+  if (process.platform === 'darwin') {
+    const rawFlags = execFileSync('/usr/bin/stat', ['-f', '%f', full], { encoding: 'utf8' }).trim();
+    assert.match(rawFlags, /^\d+$/, 'stat must return numeric file flags');
+    const flags = Number(rawFlags);
+    assert.ok(Number.isSafeInteger(flags) && flags >= 0);
+    assert.equal(flags & 0x40000000, 0, 'dataless source forbidden');
+  }
+  return fs.readFileSync(full, 'utf8');
+}
 function parse(text, file = 'module.ts') { return ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith('tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS); }
 function walk(n, fn) { fn(n); ts.forEachChild(n, (child) => walk(child, fn)); }
 function shape(n) { const children = []; ts.forEachChild(n, (c) => { children.push(shape(c)); }); return [n.kind, ts.isIdentifier(n) || ts.isStringLiteral(n) || ts.isNumericLiteral(n) || ts.isTemplateHead(n) || ts.isTemplateTail(n) ? n.text : null, children]; }
