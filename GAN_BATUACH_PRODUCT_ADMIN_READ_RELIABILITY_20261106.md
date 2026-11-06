@@ -26,6 +26,14 @@ The pages now use existing schema fields and bounded reads with exact counts. A 
 - Local broad domain gate: **NOT PASS** in this worktree because `DIGITAL_OBSERVER_BENCHMARK_DATASET_CONTRACT.md` is absent here. The source Development candidate's corresponding hosted CI was green; exact feature-candidate CI is still required.
 - Local broad security gate: **NOT PASS** under the restricted sandbox because unrelated Digital Observer hardware tests require DiskManagement and a loopback listener. Exact feature-candidate hosted CI and scoped role checks are still required.
 
-## Remaining gates
+## Merged Development result
 
-Review the exact commit diff and security findings; push the scoped feature branch; register the remote commit in the canonical Development ledger; run the six exact-candidate CI gates plus Management tenant context; merge only after all required gates are green; verify the remote Development head and post-merge Admin reads and role boundary. No Production release is authorized.
+- Source commit `aa9d36199d28963c266cbadbef383572e223f4ea` is preserved on the remote feature branch. [PR #313](https://github.com/infoganbatuah-ai/gan-batuach/pull/313) passed all six exact-head Digital Observer CI gates and canonical quality (run `42280543277`), Management tenant context (run `42280543236`) and Snyk, then merged by ancestry-preserving commit `8a3dc2267c82e01e103e23f0514c5125d0c2756d` to `integration/development` only.
+- Exact merged Development drift: **259/259 PASS** against `LOCAL_SUPABASE`, no Production access or new migration.
+- Exact merged Development Admin query contracts: **10/10 PASS**. Private post-merge receipt SHA-256 `d9f52007aa7a5d149da21f34ee1cf56386f1384d7b645a5c7f80bd8f1add48b4`.
+- Exact merged Development local HTTP check: three Admin routes rendered for the QA Admin; four other role personas rendered zero Admin markup across twelve requests. No Admin data-error alert or HTTP 500 was observed. Private receipt SHA-256 `9265d2bcab98dafd8734f702048c59c7c276f2678dc3e139b53fac0b2c5872b8`.
+- The new source adds no paid supplier or fixed monthly commitment. It does not prove invoice-backed all-in cost compliance or external owner visual acceptance. Digital Observer core diff: 0. Production remains untouched.
+
+## Remaining owner-level work
+
+The UXV11 direct visual boards still report `NEEDS_VISUAL_CORRECTION`; this read-reliability unit does not self-approve them. Broader full-role Product, live-provider and supplier-cost release gates remain separate. No `main`, Production or RELEASE-GAP-01 work is authorized here.

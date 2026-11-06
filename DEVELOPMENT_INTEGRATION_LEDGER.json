@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T03:07:18Z",
+  "updatedAt": "2026-11-06T19:45:06Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14616,6 +14616,53 @@
       "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Review the UXV11 private direct Admin boards with owner/coordinator; resolve only truthful remaining header/sidebar and density gaps in a scoped task. Preserve real data and provider truth. Full release gates remain separate; no main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-admin-read-reliability-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-ADMIN-READ-RELIABILITY-20261106",
+      "title": "Canonical Admin read sources and honest partial-data states",
+      "owner": "Product Admin read-reliability executor; scoped PR #313 integration owner",
+      "sourceBranch": "codex/product-admin-read-reliability-20261106",
+      "sourceCommits": ["aa9d36199d28963c266cbadbef383572e223f4ea"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-admin-read-reliability-20261106@aa9d36199d28963c266cbadbef383572e223f4ea",
+          "origin/integration/development@8a3dc2267c82e01e103e23f0514c5125d0c2756d"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PR_313_SIX_CI_GREEN_MANAGEMENT_CONTEXT_SNYK_AND_SCOPED_AUTHENTICATED_DEVELOPMENT_QA_PASS",
+        "evidence": [
+          "PR #313 exact head aa9d36199d28963c266cbadbef383572e223f4ea: Digital Observer CI run 42280543277 six gates plus canonical quality SUCCESS; Management tenant context run 42280543236 SUCCESS; Snyk SUCCESS. Ancestry-preserving merge 8a3dc2267c82e01e103e23f0514c5125d0c2756d.",
+          "Focused simulated Admin read-failure and provider-truth tests 7/7 PASS, UX-17 Admin regression 9/9 PASS with source ref, typecheck, lint baseline, locked-dependency build, migration audit and release contract PASS. Local broad domain/security runs did not pass because of an unrelated missing benchmark file and restricted DiskManagement/loopback sandbox; exact-head hosted CI passed.",
+          "Authenticated read-only Development Admin query contracts 10/10 PASS before and after merge. Post-merge receipt /private/tmp/gb-admin-read-postmerge-8a3dc226.json SHA256 d9f52007aa7a5d149da21f34ee1cf56386f1384d7b645a5c7f80bd8f1add48b4; receipt contains no row data or credentials.",
+          "Exact merged Development 8a3dc2267c82e01e103e23f0514c5125d0c2756d: guarded LOCAL_SUPABASE and 259/259 migration drift PASS. Authenticated local HTTP read for three Admin routes across Admin, Manager, Parent, Staff and Inspector: 3/3 Admin routes rendered, 0/12 non-Admin markup leaks, 0 Admin data-error alerts or HTTP 500. Private receipt /private/tmp/gb-admin-read-postmerge-http-8a3dc226.json SHA256 9265d2bcab98dafd8734f702048c59c7c276f2678dc3e139b53fac0b2c5872b8. Non-Admin HTTP status alone is not authorization proof; content was checked."
+        ],
+        "classification": "ADMIN_READ_ONLY_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_ACTIVATION_NO_DIGITAL_OBSERVER_CORE",
+        "limits": "The read probes establish query contracts, not live provider health or visual 1:1 owner acceptance. Full all-role Product QA, invoice-backed all-in 15 NIS per paying-user qualification and Production release gates remain separate. No new paid dependency or fixed monthly commitment."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "edcc6af9b788b584421b02b8b34a29c1dbc9b466",
+        "commit": "8a3dc2267c82e01e103e23f0514c5125d0c2756d",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/313"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV11_ADMIN_BASELINE",
+        "units": ["codex/ux-v11-platform-admin-primary-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_ADMIN_READS_AND_ROLE_CONTENT_ISOLATION_PASS_VISUAL_OWNER_REVIEW_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Coordinator/owner reviews the UXV11 visual boards and assigns any truthful scoped composition correction. Preserve canonical Admin query contracts; complete broader role, supplier-cost and release gates only on explicit release work. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
