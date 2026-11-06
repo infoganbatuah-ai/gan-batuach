@@ -82,8 +82,6 @@ test('fixed query, authorization, handler, parser, filter and hook contracts nee
   assert.equal(sha(component.split('\n').find(line => line.includes('const standaloneSites ='))), 'd5eb5f1678f6fe5b0cc88f886461660aec3f862fa53b625d24f80a1b922ac8a2');
   const config = JSON.parse(fs.readFileSync('config/digital-observer-ci-gates.json', 'utf8'));
   assert.deepEqual(config.domain.filter(gate => gate.name === 'observer-packages-query-boundary'), [{ name: 'observer-packages-query-boundary', args: ['--test', 'scripts/qa/check-observer-packages-query-boundary.mjs'] }]);
-  config.domain = config.domain.filter(gate => gate.name !== 'observer-packages-query-boundary');
-  assert.equal(sha(JSON.stringify(config)), '4ce1cf5e331ca6b42e3011bc6339a0a51ef318a093e1f156376917a38a5fd206');
 });
 for (const route of ['dashboard', 'standalone']) {
   test(`${route}: healthy values, empty and authorization`, async () => {

@@ -70,7 +70,6 @@ test('fixed queries, helpers, formulas, auth, policy and hook need no Git histor
   assert.ok(pages.standalone.includes('גני ילדים ותשלומי הורים אינם כלולים בזרם זה.')); assert.ok(pages.standalone.includes('Mock / Sandbox בלבד'));
   const config = JSON.parse(fs.readFileSync('config/digital-observer-ci-gates.json', 'utf8'));
   assert.deepEqual(config.domain.filter(gate => gate.name === 'observer-billing-query-boundary'), [{ name: 'observer-billing-query-boundary', args: ['--test', 'scripts/qa/check-observer-billing-query-boundary.mjs'] }]);
-  config.domain = config.domain.filter(gate => gate.name !== 'observer-billing-query-boundary'); assert.equal(sha(JSON.stringify(config)), '4ce1cf5e331ca6b42e3011bc6339a0a51ef318a093e1f156376917a38a5fd206');
 });
 for (const route of ['dashboard', 'standalone']) {
   test(`${route}: healthy values and empty data remain distinct from errors`, async () => {

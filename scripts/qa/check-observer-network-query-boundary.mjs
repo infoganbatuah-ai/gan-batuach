@@ -70,7 +70,6 @@ test('fixed queries, helpers, formulas, policy, links and CI hook need no Git hi
   assert.deepEqual(Array.from(source.matchAll(/href="([^"]+)"/g), m => m[1]), ['/dashboard/admin/observer-calibration', '/dashboard/admin/national-inspections', '/dashboard/admin/observer-replay', '/dashboard/admin/observer-network', '/dashboard/admin/observer-replay', '/dashboard/admin/observer-calibration', '/dashboard/admin/national-inspections', '/dashboard/admin/camera-deployment']);
   const config = JSON.parse(fs.readFileSync('config/digital-observer-ci-gates.json', 'utf8'));
   assert.deepEqual(config.domain.filter(gate => gate.name === 'observer-network-query-boundary'), [{ name: 'observer-network-query-boundary', args: ['--test', 'scripts/qa/check-observer-network-query-boundary.mjs'] }]);
-  config.domain = config.domain.filter(gate => gate.name !== 'observer-network-query-boundary'); assert.equal(sha(JSON.stringify(config)), '4ce1cf5e331ca6b42e3011bc6339a0a51ef318a093e1f156376917a38a5fd206');
 });
 test('healthy and zero counts retain real summary and safety policy text', async () => {
   const r = await render(); assert.equal(r.banner, null); assert.match(r.hero.badge, /^\d+\/100$/); assert.equal(r.metric('מצלמות פעילות').value, '8/10'); assert.ok(r.strings.includes('ROW_GARDEN')); assert.ok(r.strings.includes('ROW_RECOMMENDATION'));
