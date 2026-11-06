@@ -227,7 +227,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
     align-items: stretch;
-    min-height: 128px !important;
+    min-height: 112px !important;
     margin-top: 0;
     padding: 8px !important;
     border: 1px solid #dceafa;
@@ -238,7 +238,7 @@
   .parent-dashboard-home .parent-mobile-quick-actions a {
     display: grid;
     place-items: center;
-    min-height: 112px;
+    min-height: 96px;
     padding: 5px 2px;
     border: 1px solid #dceafa;
     border-radius: 10px;
@@ -420,5 +420,5 @@
   }
   .parent-dashboard-home .parent-primary-attendance { align-content: start; gap: 2px; }
   .parent-dashboard-home .parent-primary-attendance-row { min-height: 42px; }
-  .parent-dashboard-home .parent-mobile-quick-actions a { min-height: 112px; }
+  .parent-dashboard-home .parent-mobile-quick-actions a { min-height: 96px; }
 }
