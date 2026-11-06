@@ -54,7 +54,7 @@ export default async function AdminSystemHealthPage() {
     if (!ready("providerHealth") || !ready("integrations")) return "unknown";
     const integrations = result.data.integrations.filter((item) => item.integration_type === type);
     if (!integrations.length) return "setup_required";
-    const matched = integrations.map((integration) => ({ integration, health: result.data.providerHealth.find((item) => item.integration_type === type && item.provider === integration.provider) }));
+    const matched = integrations.filter((integration) => typeof integration.provider === "string" && integration.provider.trim().length > 0).map((integration) => ({ integration, health: result.data.providerHealth.find((item) => item.integration_type === type && item.provider === integration.provider) }));
     if (matched.some(({ integration, health }) => ["active", "production_active"].includes(String(integration.status)) && integration.environment === "production" && ["production", "live"].includes(String(integration.send_mode)) && health?.provider_status === "production_active" && health.production_mode_enabled === true && health.credentials_missing === false && Boolean(health.last_successful_request_at))) return "operational";
     if (matched.some(({ integration, health }) => ["failed", "disabled"].includes(String(health?.provider_status ?? integration.status)))) return "unavailable";
     if (matched.some(({ health }) => health?.provider_status === "degraded")) return "degraded";

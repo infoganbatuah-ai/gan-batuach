@@ -369,3 +369,29 @@ test("recorded state vocabulary and one existing domain hook are preserved", asy
 // does not validate nonempty provider identifiers before its operational predicate.
 // The success reference uses Boolean(), not timestamp parsing. Root must decide/fix
 // those Product contracts separately; this harness is not permission to change them.
+
+// Unit320 focused identity regression: missing/blank/nonstring IDs are not provider matches.
+for (const [name, value] of [["null", null], ["undefined", undefined], ["empty", ""], ["blank", " \t "], ["zero", 0], ["false", false]]) test(`provider identity boundary rejects matching ${name} identifiers`, async () => {
+  const data = quietData();
+  for (const row of [...data[4], ...data[5]]) row.provider = value;
+  expectProviders(await page({ data }), "setup_required");
+});
+
+// Unit320 proposed guard addresses the historical missing-provider limitation above.
+// Timestamp presence remains metadata, NOT freshness or live provider proof.
+test("provider identity boundary accepts valid nonblank raw matching identifiers", async () => {
+  const data = quietData();
+  for (const row of [...data[4], ...data[5]]) row.provider = "synthetic-qa-provider";
+  expectProviders(await page({ data }), "operational");
+});
+test("provider identity boundary accepts identical padded nonblank raw identifiers", async () => {
+  const data = quietData();
+  for (const row of [...data[4], ...data[5]]) row.provider = "  synthetic-qa-provider\t ";
+  expectProviders(await page({ data }), "operational");
+});
+test("provider identity boundary rejects trim-equivalent but raw-different identifiers", async () => {
+  const data = quietData();
+  for (const row of data[4]) row.provider = " synthetic-qa-provider ";
+  for (const row of data[5]) row.provider = "synthetic-qa-provider";
+  expectProviders(await page({ data }), "setup_required");
+});
