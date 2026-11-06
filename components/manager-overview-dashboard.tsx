@@ -35,14 +35,15 @@ export function ManagerOverviewDashboard({
 }) {
   const ringStyle = { "--manager-progress": `${attendance.completion * 3.6}deg` } as CSSProperties;
   const actionTotal = operations.tasks + operations.complaints + operations.documents + operations.correctiveActions + enrollment.open;
-  const quickActions = [
+  const quickActions: Array<{ title: string; href: string; icon: IconType; tone: string; mobileOnly?: boolean }> = [
     { title: "הוספת ילד/ה", href: "/dashboard/garden/children?new=1#new-child", icon: UserRoundPlus, tone: "blue" },
     { title: "ניהול נוכחות", href: "/dashboard/garden/attendance", icon: ClipboardCheck, tone: "green" },
     { title: "הזמנת הורה", href: "/dashboard/garden/parents", icon: UsersRound, tone: "purple" },
     { title: "הזמנת צוות", href: "/dashboard/garden/staff-applications", icon: GraduationCap, tone: "cyan" },
     { title: "שליחת הודעה", href: "/dashboard/garden/messages?compose=1#message-workbench", icon: MessageCircle, tone: "blue" },
     { title: "יצירת משימה", href: "/dashboard/garden/tasks", icon: CheckCircle2, tone: "orange" },
-    { title: "צפייה במצלמות", href: "/dashboard/garden/cameras", icon: Camera, tone: "cyan" }
+    { title: "צפייה במצלמות", href: "/dashboard/garden/cameras", icon: Camera, tone: "cyan" },
+    { title: "דוחות", href: "/dashboard/garden/reports", icon: BarChart3, tone: "blue", mobileOnly: true }
   ];
 
   return (
@@ -79,9 +80,9 @@ export function ManagerOverviewDashboard({
         <article className="manager-reference-panel manager-reference-card manager-live-camera-card">
           <header><span><Camera size={22} /> מצלמות הגן</span><Link href="/dashboard/garden/cameras">הצג הכל <ChevronLeft size={16} /></Link></header>
           <div className="manager-live-camera-scene">
-            <Image src="/assets/hero-control-center.png" alt="אזור מצלמות הגן" fill sizes="(max-width: 720px) 100vw, 36vw" />
+            <Image src="/assets/hero-control-center.png" alt="" fill sizes="(max-width: 720px) 100vw, 36vw" />
             <span className={`manager-camera-truth state-${safety.state}`}><i /> {safety.label}</span>
-            <div><ShieldCheck size={24} /><b>{safety.operationalCameras}/{safety.cameras}</b><small>מקורות במצב מאומת · Live מוצג רק לאחר אימות ספק</small></div>
+            <div><ShieldCheck size={24} /><b>{safety.operationalCameras}/{safety.cameras}</b><small>תמונה להמחשה · אין שידור חי מאומת</small></div>
           </div>
           <div className="manager-camera-thumbnails" aria-hidden="true"><span /><span /><span /><span /></div>
         </article>
@@ -92,7 +93,7 @@ export function ManagerOverviewDashboard({
 
       <section className="manager-reference-quick manager-reference-card">
         <header><span><Activity size={23} /> פעולות מהירות</span><Link href="/dashboard/garden/command-center">כל הפעולות</Link></header>
-        <div>{quickActions.map(({ title, href, icon: Icon, tone }) => <Link className={tone} href={href} key={title}><span><Icon size={27} /></span><b>{title}</b></Link>)}</div>
+        <div>{quickActions.map(({ title, href, icon: Icon, tone, mobileOnly }) => <Link className={`${tone}${mobileOnly ? " manager-mobile-only-action" : ""}`} href={href} key={title}><span><Icon size={27} /></span><b>{title}</b></Link>)}</div>
       </section>
 
       <section className="manager-command-grid manager-command-grid-primary" aria-label="מצב תפעולי מרכזי">
