@@ -33,8 +33,10 @@
   }
   .parent-dashboard-home > .parent-hero {
     background: #fff !important;
+    direction: ltr;
     text-align: left !important;
   }
+  .parent-dashboard-home > .parent-hero :is(h1, p) { direction: rtl; }
   .parent-dashboard-home > .parent-hero .parent-hero-bg { display: none !important; }
   .parent-dashboard-home .parent-child-card-selector {
     display: flex !important;
@@ -61,7 +63,16 @@
   }
   .parent-dashboard-home .parent-primary-camera,
   .parent-dashboard-home .parent-primary-camera .parent-camera-preview { min-height: 205px !important; }
-  .parent-dashboard-home .parent-primary-updates .parent-list-row { min-height: 57px !important; }
+  .parent-dashboard-home .parent-primary-updates .parent-list-row {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 9px;
+    min-height: 57px !important;
+    padding: 5px 2px;
+  }
+  .parent-dashboard-home .parent-primary-updates .parent-list-row:has(time) {
+    grid-template-columns: 44px 48px minmax(0, 1fr);
+  }
+  .parent-dashboard-home .parent-primary-updates .parent-list-row > div { min-width: 0; }
   .parent-dashboard-home .parent-primary-reference-actions .parent-action-tile { min-height: 140px !important; }
   .parent-dashboard-home .parent-primary-reference-actions .parent-action-detail {
     color: #40628c;
