@@ -77,7 +77,8 @@ test("Parent primary route shows an authorized visual selector and selected-Chil
     'className="parent-primary-reference-actions"',
   ]);
   assert.match(page, /parent-dashboard-multi-child/);
-  assert.match(page, /\.eq\("child_id", selectedChildId\)/);
+  assert.match(page, /\.in\("child_id", attendanceChildIds\)\.eq\("attendance_date", attendanceDate\)/);
+  assert.match(page, /\.eq\("child_id", selectedAttendanceChildId\)/);
   assert.match(page, /לא מוצג שידור חי לא מאומת/);
 });
 
