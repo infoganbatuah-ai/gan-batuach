@@ -217,10 +217,10 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
         </section> : null}
 
         {selectedChild ? <section className="parent-primary-reference-actions" aria-label="פעולות מרכזיות">
-          <ParentActionTile title="יצירת קשר" href="/dashboard/parent/messages" icon={Phone} tone="blue" />
-          <ParentActionTile title="אירועים קרובים" href="/dashboard/parent/schedule" icon={CalendarDays} tone="purple" />
-          <ParentActionTile title="מסמכים" href="/dashboard/parent/documents" icon={FileText} tone={(documentRes.count ?? 0) ? "orange" : "green"} />
-          <ParentActionTile title="תשלומים" href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} />
+          <ParentActionTile title="יצירת קשר" href="/dashboard/parent/messages" icon={Phone} tone="blue" detail={cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "צוות הגן")} />
+          <ParentActionTile title="אירועים קרובים" href="/dashboard/parent/schedule" icon={CalendarDays} tone="purple" detail={scheduleRes.error ? "לוח הגן לא זמין" : scheduleItems.length ? new Date(String(scheduleItems[0].starts_at)).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" }) : "אין אירוע קרוב"} />
+          <ParentActionTile title="מסמכים" href="/dashboard/parent/documents" icon={FileText} tone={(documentRes.count ?? 0) ? "orange" : "green"} detail={documentRes.error ? "הסטטוס לא זמין" : (documentRes.count ?? 0) ? `${documentRes.count} מסמכים לטיפול` : "המסמכים מעודכנים"} />
+          <ParentActionTile title="תשלומים" href={`/dashboard/parent/payments${selectedChildFileId ? `?child=${selectedChildFileId}` : ""}`} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : "green"} detail={tuitionRes.error ? "הסטטוס לא זמין" : tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : "אין יתרה פתוחה"} />
         </section> : null}
 
         <section className="parent-metrics-grid">

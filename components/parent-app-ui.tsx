@@ -142,11 +142,12 @@ export function ParentSection({ title, subtitle, action, children, className = "
   );
 }
 
-export function ParentActionTile({ title, href, icon: Icon, tone = "purple" }: { title: string; href: string; icon: IconType; tone?: Tone }) {
+export function ParentActionTile({ title, href, icon: Icon, tone = "purple", detail }: { title: string; href: string; icon: IconType; tone?: Tone; detail?: ReactNode }) {
   return (
     <Link className={`parent-action-tile ${tone}`} href={href}>
       <Icon size={30} />
       <span>{title}</span>
+      {detail ? <small className="parent-action-detail">{detail}</small> : null}
     </Link>
   );
 }
