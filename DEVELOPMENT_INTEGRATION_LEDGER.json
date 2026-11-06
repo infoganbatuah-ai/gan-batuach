@@ -14561,6 +14561,61 @@
       "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Review exact Product/reference boards with owner; resolve only truthful remaining visual deviations in a new scoped correction. Preserve no-Live camera and no fabricated child photos/check-ins. External owner decision and full release gates remain separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v11-platform-admin-primary-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV11-PLATFORM-ADMIN-PRIMARY-20261106",
+      "title": "Platform Admin primary control center composition and direct reference evidence",
+      "owner": "UXV11 Admin executor; scoped PRs #309, #310 and #311 integration owner",
+      "sourceBranch": "codex/ux-v11-platform-admin-primary-20261106",
+      "sourceCommits": [
+        "8244d8bfb54a871ca07677820c756bbd76684839",
+        "59accd0da678b7522a0bca8de9a77f7c38621a35",
+        "a725eb039b58891f7d0fca46f5331f9d60aabc65"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v11-platform-admin-primary-20261106@a725eb039b58891f7d0fca46f5331f9d60aabc65",
+          "origin/integration/development@a3bb46a0809ad78201e0e24542b7e076c0f5ada3"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_309_310_311_SIX_CI_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "Exact-head PRs #309, #310 and #311 each passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk before Development merge.",
+          "Exact merged Product a3bb46a0809ad78201e0e24542b7e076c0f5ada3: guarded LOCAL_SUPABASE and 259/259 baseline drift PASS; seven authenticated synthetic Admin captures at Desktop 1440x1024 and Mobile 390x844. Private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/manifest.json SHA256 5dbb98904c51353019f2ee0fc923c5fb15660ab16c798f4728166c81ecf59c5b.",
+          "Primary reference/actual side-by-sides, 50 percent overlays and annotated differences: /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/boards/boards-manifest.json SHA256 66cbd4c67b6ef56d2233c1ae281d66dec35d8a22b7042d70af8a887c6a1cdac4. Direct visual verdict NEEDS_VISUAL_CORRECTION.",
+          "All seven captured routes returned 200 without browser page errors, HTTP 500 or horizontal overflow. Separate synthetic Admin-versus-Manager browser probe was interrupted and is NOT PASS."
+        ],
+        "classification": "ADMIN_PRIMARY_UI_PRESENTATION_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Utility header/sidebar identity, data-limited chart and table density, and Mobile framing still differ visibly from approved collage. No fake analytics or provider state added. External owner approval, full role/RLS QA and invoice-backed all-in 15 NIS per paying user qualification remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "2b44a0610834c78a6f8efa656b49ae0a9bfa71fd",
+        "commit": "a3bb46a0809ad78201e0e24542b7e076c0f5ada3",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/309",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/310",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/311"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV10_PARENT_BASELINE",
+        "units": ["codex/ux-v10-parent-primary-reference-closure-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_ADMIN_DESKTOP_MOBILE_ROUTE_PASS_DIRECT_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review the UXV11 private direct Admin boards with owner/coordinator; resolve only truthful remaining header/sidebar and density gaps in a scoped task. Preserve real data and provider truth. Full release gates remain separate; no main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
