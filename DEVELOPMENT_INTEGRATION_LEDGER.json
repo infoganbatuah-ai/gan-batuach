@@ -14813,35 +14813,38 @@
       "owner": "Product Parent Documents source executor; one Development integration owner",
       "sourceBranch": "codex/product-parent-documents-read-state-20261107",
       "sourceCommits": [
-        "56abad3a8f34acc8178c1a4febd76544fce0a7aa"
+        "56abad3a8f34acc8178c1a4febd76544fce0a7aa",
+        "9673330e4a08cc029dbc6fb2d3520311a036d6ed"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/product-parent-documents-read-state-20261107@56abad3a8f34acc8178c1a4febd76544fce0a7aa"
+          "origin/codex/product-parent-documents-read-state-20261107@9673330e4a08cc029dbc6fb2d3520311a036d6ed"
         ],
-        "status": "REMOTE_SOURCE_PRESERVED_PENDING_EXACT_HEAD_CI_AND_DEVELOPMENT_INTEGRATION",
+        "status": "REMOTE_SOURCE_PRESERVED_PENDING_FINAL_EXACT_HEAD_CI_BROWSER_AND_DEVELOPMENT_INTEGRATION",
         "noPreviewDeploymentObserved": true,
-        "deploymentEvidenceLimit": "Project Vercel SHA lookup returned zero deployments after the feature push; full live Git trigger fields were not exposed."
+        "deploymentEvidenceLimit": "Project Vercel SHA lookup returned zero deployments for the earlier source push; new feature-QA head requires a fresh lookup. Full live Git trigger fields were not exposed."
       },
       "validation": {
-        "status": "SCOPED_SYNTHETIC_PAGE_FIXTURE_5_OF_5_PASS_ONLY",
+        "status": "SCOPED_PAGE_FIXTURE_5_OF_5_AND_FEATURE_QA_GUARDS_8_OF_8_PASS_FINAL_CI_PENDING",
         "evidence": [
           "node --check and node --test scripts/qa/check-parent-documents-read-state.mjs passed; 5/5 behavioral cases on the actual page component with in-memory synthetic query responses.",
           "Valid empty, populated and protected file link, document read failure, family context unavailable/upload refusal, and denied role before reads were observed.",
           "Focused staged diff --check passed; no new query/request, schema, RLS, grant, provider, dependency or Digital Observer core change.",
-          "Feature-branch Development ledger schema check passed with 212 units and zero errors; release inclusion and full Product gates were not run."
+          "Feature-branch Development ledger schema check passed with 212 units and zero errors; release inclusion and full Product gates were not run.",
+          "Draft PR #321 ran six Digital Observer CI gates, Canonical quality and Management tenant context successfully on predecessor exact head e16ed8bd4b178859921936711beeb234e32cbd07 only; the feature-QA launcher changes require fresh exact-head checks.",
+          "Feature QA launcher guard tests passed 8/8; existing integration launcher guard tests passed 6/6; installed dependency inventory matched the identical pinned feature/canonical package lock without server startup."
         ],
-        "classification": "MANAGEMENT_SCOPED_SOURCE_AND_SYNTHETIC_FIXTURE_ONLY",
-        "limits": "No typecheck/lint/build, exact-head six CI gates, authenticated browser/API/RLS, accessibility visual review or full-stack proof yet. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED at Development c3507c3f and is not superseded."
+        "classification": "MANAGEMENT_SCOPED_SOURCE_SYNTHETIC_FIXTURE_AND_FEATURE_QA_GUARDS_ONLY",
+        "limits": "No final-head typecheck/lint/build or six CI gates, authenticated feature browser/API/RLS, accessibility visual review or full-stack proof yet. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED at Development c3507c3f and is not superseded."
       },
       "integration": {
-        "status": "PENDING_REQUIRED_CI_AND_SINGLE_OWNER_MERGE",
+        "status": "DRAFT_PR_PENDING_FINAL_CI_BROWSER_AND_SINGLE_OWNER_MERGE",
         "base": "integration/development",
         "baseCommit": "c3507c3f07ca5a78ebf037b7cb596518708efa96",
         "commit": null,
-        "pullRequests": [],
+        "pullRequests": [321],
         "sourceAncestryVerified": false
       },
       "dependencies": {
@@ -14852,12 +14855,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "SOURCE_FIXTURE_ONLY_NO_PRODUCT_RUNTIME",
+      "localVerification": "SOURCE_FIXTURE_AND_FEATURE_QA_GUARDS_ONLY_NO_PRODUCT_RUNTIME",
       "releaseEligibility": "NOT_READY_EXACT_HEAD_CI_PARENT_BROWSER_RLS_CUMULATIVE_QA_EXTERNAL_OWNER_VISUAL_AND_COST_GATES_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Run six exact-head CI gates and focused Parent Documents role/data browser checks under safe host admission, then integrate via one Development owner. Keep predecessor Parent primary runtime checkpoint separate. No main/Production/RELEASE-GAP-01."
+      "nextAction": "Push the feature-QA prerequisite and run six final exact-head CI gates; materialize only this owned feature tree for a guarded LOCAL_SUPABASE FEATURE QA browser check after safe host admission. Merge via one Development owner only after runtime disposition and required gates. Keep predecessor Parent primary runtime checkpoint separate. No main/Production/RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
