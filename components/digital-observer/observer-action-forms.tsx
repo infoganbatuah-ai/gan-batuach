@@ -89,19 +89,54 @@ function ResultMessage({ state }: { state: ActionState }) {
 }
 
 export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { packages: any[]; defaultType?: "home" | "business" }) {
+  return <ScopedObserverOnboardingWizard key={defaultType} packages={packages} defaultType={defaultType} />;
+}
+
+function ScopedObserverOnboardingWizard({ packages, defaultType = "home" }: Parameters<typeof ObserverOnboardingWizard>[0]) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
   const emptyAddress: ObserverAddressFormValue = { address_query: "", city: "", street: "", building_number: "", apartment_number: "", floor_kind: "floor", floor_number: "", postal_code: "", address_place_id: "", address_session_token: "", formatted_address: "", address_verification_status: "unverified" };
   const initialTemplate = getObserverSiteTemplate(defaultType === "home" ? "home" : "custom");
   const [form, setForm] = useState({ name: "", site_type: defaultType, site_template: initialTemplate.key, business_handles_children: false, vision_privacy_mode: "standard_consent", ...emptyAddress, camera_count: 1, branch_count: 1, active_days: ["sun", "mon", "tue", "wed", "thu"], opening_time: "08:00", closing_time: "18:00", schedule_mode: defaultType === "home" ? "event_only" : "business_hours", package_id: "", monitoring_targets: defaultType === "home" ? [] : initialTemplate.defaultTargets });
-  const update = (key: string, value: any) => setForm((current) => ({ ...current, [key]: value }));
+  const [renderedContext, setRenderedContext] = useState(0);
+  const owner = useRef({ active: true, context: 0, operation: 0, busy: false });
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
+  const ownsRenderedContext = () => owner.current.active && owner.current.context === renderedContext;
+  function changeContext() {
+    if (!ownsRenderedContext()) return false;
+    const lifetime = owner.current;
+    lifetime.context += 1;
+    lifetime.operation += 1;
+    lifetime.busy = false;
+    setRenderedContext(lifetime.context);
+    setState({ busy: false, error: "", message: "" });
+    return true;
+  }
+  function editDraft(change: (current: typeof form) => typeof form) {
+    if (changeContext()) setForm(change);
+  }
+  const update = (key: string, value: any) => editDraft((current) => ({ ...current, [key]: value }));
+  function updateAddress(address: ObserverAddressFormValue) {
+    editDraft(current => ({ ...current, ...address }));
+  }
+  function updateChildPrivacy(checked: boolean) {
+    editDraft(current => ({ ...current, business_handles_children: checked, site_template: checked ? "child_education" : current.site_template === "child_education" ? "custom" : current.site_template, vision_privacy_mode: checked ? "skeleton_only" : "standard_consent" }));
+  }
+  function goToStep(next: number) {
+    if (changeContext()) setStep(next);
+  }
   const toggleTarget = (value: string) => update("monitoring_targets", form.monitoring_targets.includes(value) ? form.monitoring_targets.filter((item) => item !== value) : [...form.monitoring_targets, value]);
   const weekdays = [["sun", "א׳"], ["mon", "ב׳"], ["tue", "ג׳"], ["wed", "ד׳"], ["thu", "ה׳"], ["fri", "ו׳"], ["sat", "ש׳"]] as const;
   const toggleDay = (value: string) => update("active_days", form.active_days.includes(value) ? form.active_days.filter((item) => item !== value) : [...form.active_days, value]);
   function chooseSiteTemplate(key: ObserverSiteTemplateKey) {
+    if (!ownsRenderedContext()) return;
     const template = getObserverSiteTemplate(key);
-    setForm((current) => ({
+    editDraft((current) => ({
       ...current,
       site_template: template.key,
       business_handles_children: template.childPrivacyRequired,
@@ -110,17 +145,31 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
     }));
   }
   async function submit() {
+    if (!ownsRenderedContext() || step !== 4 || owner.current.busy) return;
+    const lifetime = owner.current;
+    lifetime.busy = true;
+    const operation = ++lifetime.operation;
+    const submitted = form;
+    const isCurrent = () => lifetime.active && lifetime.context === renderedContext && lifetime.operation === operation;
     setState({ busy: true, error: "", message: "" });
     try {
       const data = await postJson(
         "/api/digital-observer/onboarding",
-        { ...form, package_id: form.package_id || null }
+        { ...submitted, package_id: submitted.package_id || null },
+        undefined,
+        isCurrent
       );
+      if (!isCurrent()) return;
       setState({ busy: false, error: "", message: "האתר הוקם ותקופת ניסיון של 14 יום נפתחה ללא חיוב." });
+      if (!isCurrent()) return;
       router.push(data.next);
+      if (!isCurrent()) return;
       router.refresh();
     } catch (error) {
+      if (!isCurrent()) return;
       setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן להשלים את ההקמה", message: "" });
+    } finally {
+      if (isCurrent()) lifetime.busy = false;
     }
   }
   const addressValid = form.city.trim().length >= 2 && form.street.trim().length >= 2 && form.building_number.trim().length >= 1;
@@ -145,12 +194,12 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
   return (
     <div className="do-wizard">
       <div className="do-stepper" aria-label="שלבי הקמה">{stepLabels.map((label, index) => <div className={step >= index + 1 ? "active" : ""} key={label}><b>{step > index + 1 ? <Check /> : index + 1}</b><span>{label}</span></div>)}</div>
-      {step === detailsStep ? <section className="do-panel do-form-section"><h2>{defaultType === "home" ? "פרטי הבית" : "פרטי העסק"}</h2><p>המסלול נבחר בהרשמה ונשמר בחשבון. האתר נשמר כמוצר עצמאי ואינו מקושר לגן בטוח.</p>{form.site_type === "business" ? <div className="do-business-registration-grid"><label className="do-field wide"><span>שם העסק</span><input value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="הקלידו שם עסק" /></label><label className="do-field"><span>סוג העסק</span><select value={form.site_template} onChange={(event) => chooseSiteTemplate(event.target.value as ObserverSiteTemplateKey)}>{observerSiteTemplates.filter((template) => template.key !== "home").map((template) => <option value={template.key} key={template.key}>{template.label}</option>)}</select></label><label className="do-field"><span>מספר סניפים</span><input type="number" min={1} max={100} value={form.branch_count} onChange={(event) => update("branch_count", Math.max(1, Number(event.target.value) || 1))} /></label><label className="do-field wide"><span>ימי פעילות</span><span className="do-weekday-row">{weekdays.map(([value, label]) => <button type="button" className={form.active_days.includes(value) ? "selected" : ""} onClick={() => toggleDay(value)} key={value}>{label}</button>)}</span></label><label className="do-field"><span>משעה</span><input type="time" value={form.opening_time} onChange={(event) => update("opening_time", event.target.value)} /></label><label className="do-field"><span>עד שעה</span><input type="time" value={form.closing_time} onChange={(event) => update("closing_time", event.target.value)} /></label></div> : <div className="do-form-grid"><label className="do-field full"><span>שם הבית</span><input value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="הבית שלי" /></label></div>}<ObserverAddressFields value={form} collapsibleDetails={form.site_type === "business"} onChange={(address) => setForm((current) => ({ ...current, ...address }))} />{form.site_type === "business" ? <div className="do-privacy-choice"><label className="do-check"><input type="checkbox" checked={form.business_handles_children} onChange={(event) => setForm((current) => ({ ...current, business_handles_children: event.target.checked, site_template: event.target.checked ? "child_education" : current.site_template === "child_education" ? "custom" : current.site_template, vision_privacy_mode: event.target.checked ? "skeleton_only" : "standard_consent" }))} /><span><strong>העסק מטפל בילדים</strong><small>גן, בית ספר, צהרון או מסגרת ילדים. במצב זה ניתוח הווידאו מוגבל לזיהוי שלד ותנועה ללא זיהוי פנים של ילדים.</small></span></label></div> : null}<div className="do-notice info"><ShieldCheck /><span>הווידאו, התמונות והאירועים נשמרים רק בחשבון שלכם ובהרשאות שבחרתם. הם אינם משותפים ללקוחות אחרים ואינם משמשים לזיהוי של אדם אצל משתמש אחר.</span></div></section> : null}
+      {step === detailsStep ? <section className="do-panel do-form-section"><h2>{defaultType === "home" ? "פרטי הבית" : "פרטי העסק"}</h2><p>המסלול נבחר בהרשמה ונשמר בחשבון. האתר נשמר כמוצר עצמאי ואינו מקושר לגן בטוח.</p>{form.site_type === "business" ? <div className="do-business-registration-grid"><label className="do-field wide"><span>שם העסק</span><input value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="הקלידו שם עסק" /></label><label className="do-field"><span>סוג העסק</span><select value={form.site_template} onChange={(event) => chooseSiteTemplate(event.target.value as ObserverSiteTemplateKey)}>{observerSiteTemplates.filter((template) => template.key !== "home").map((template) => <option value={template.key} key={template.key}>{template.label}</option>)}</select></label><label className="do-field"><span>מספר סניפים</span><input type="number" min={1} max={100} value={form.branch_count} onChange={(event) => update("branch_count", Math.max(1, Number(event.target.value) || 1))} /></label><label className="do-field wide"><span>ימי פעילות</span><span className="do-weekday-row">{weekdays.map(([value, label]) => <button type="button" className={form.active_days.includes(value) ? "selected" : ""} onClick={() => toggleDay(value)} key={value}>{label}</button>)}</span></label><label className="do-field"><span>משעה</span><input type="time" value={form.opening_time} onChange={(event) => update("opening_time", event.target.value)} /></label><label className="do-field"><span>עד שעה</span><input type="time" value={form.closing_time} onChange={(event) => update("closing_time", event.target.value)} /></label></div> : <div className="do-form-grid"><label className="do-field full"><span>שם הבית</span><input value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="הבית שלי" /></label></div>}<ObserverAddressFields value={form} collapsibleDetails={form.site_type === "business"} onChange={updateAddress} />{form.site_type === "business" ? <div className="do-privacy-choice"><label className="do-check"><input type="checkbox" checked={form.business_handles_children} onChange={(event) => { if (ownsRenderedContext()) updateChildPrivacy(event.target.checked); }} /><span><strong>העסק מטפל בילדים</strong><small>גן, בית ספר, צהרון או מסגרת ילדים. במצב זה ניתוח הווידאו מוגבל לזיהוי שלד ותנועה ללא זיהוי פנים של ילדים.</small></span></label></div> : null}<div className="do-notice info"><ShieldCheck /><span>הווידאו, התמונות והאירועים נשמרים רק בחשבון שלכם ובהרשאות שבחרתם. הם אינם משותפים ללקוחות אחרים ואינם משמשים לזיהוי של אדם אצל משתמש אחר.</span></div></section> : null}
       {step === cameraStep ? <section className="do-panel do-form-section"><h2>{defaultType === "home" ? "התקנת מצלמות" : "הגדרות המערכת"}</h2><p>{defaultType === "home" ? "המספר משמש להתאמת חבילה בלבד. אין כאן חיבור חי." : "הגדירו את היקף המערכת ואת שעות הניטור. חיבור המצלמות עצמו יבוצע במסך הבא."}</p><div className="do-camera-scope-row"><div><span>מספר מצלמות משוער</span><div className="do-counter"><button type="button" aria-label="הפחתה" onClick={() => update("camera_count", Math.max(1, form.camera_count - 1))}>−</button><strong>{form.camera_count}</strong><button type="button" aria-label="הוספה" onClick={() => update("camera_count", Math.min(500, form.camera_count + 1))}>+</button></div></div><label className="do-field"><span>מתי לנטר?</span><select value={form.schedule_mode} onChange={(event) => update("schedule_mode", event.target.value)}><option value="event_only">רק סביב אירועים</option><option value="night_only">לילה</option><option value="business_hours">שעות פעילות</option><option value="24_7">24/7 לאחר הפעלה מאושרת</option><option value="custom_schedule">לוח מותאם</option></select></label></div><div className="do-notice info"><Camera /><span>מצלמות אינן מתחברות בשלב הזה. אחרי פתיחת תקופת הניסיון תעברו לאשף חיבור מאובטח עם QR, יצרן, NVR/DVR או Gateway.</span></div></section> : null}
       {step === targetsStep ? <section className="do-panel do-form-section"><h2>{defaultType === "home" ? "מה הכי חשוב לכם?" : "מה תרצו לנטר?"}</h2><p>{defaultType === "home" ? "בחרו את הדברים החשובים בבית, כדי שנוכל להתאים עבורכם התראות חכמות ומדויקות." : "התצפיתן מתחיל מיעדי התבנית שבחרתם. אפשר לשנות דגשים בלי לבנות כללים טכניים."}</p><div className={`do-toggle-grid ${defaultType === "home" ? "do-home-priority-grid" : ""}`}>{monitoringOptions.map(([value,label]) => { const TargetIcon = defaultType === "home" ? homeMonitoringIcons[value] ?? Radar : Radar; const selected = form.monitoring_targets.includes(value); return <button type="button" className={selected ? "selected" : ""} onClick={() => toggleTarget(value)} key={value}><TargetIcon />{defaultType === "home" ? <span className="do-priority-copy"><strong>{label}</strong><small>{homeMonitoringDescriptions[value]}</small></span> : <span>{label}</span>}{defaultType === "home" ? <span className="do-option-check" aria-hidden="true">{selected ? <Check /> : null}</span> : selected ? <Check /> : null}</button>; })}</div>{defaultType === "home" ? <p className="do-onboarding-change-note">ניתן לשנות את ההעדפות בכל עת</p> : null}{defaultType === "business" ? <div className="do-notice warn"><ShieldCheck /><span>גניבה, שוד, עימות או אלימות יוצגו תמיד כחשד עם ראיות ורמת ביטחון. נדרשת החלטה אנושית; אין חיוג או פעולה אוטומטית.</span></div> : null}{defaultType === "business" && form.vision_privacy_mode === "skeleton_only" ? <div className="do-notice good"><ShieldCheck /><span>מצב פרטיות לילדים פעיל: זיהוי שלד, תנועה ודפוסים בלבד. זיהוי פנים ואודיו אינם חלק מהמסלול הזה.</span></div> : defaultType === "business" ? <div className="do-notice info"><ShieldCheck /><span>אנשים מוכרים יוצעו רק לאחר תצפיות חוזרות, וכל שמירה תחייב הסכמה מפורשת. לא מופעל זיהוי ביומטרי חי בשלב זה.</span></div> : null}</section> : null}
       {step === 4 ? <section className="do-panel do-form-section"><h2>בחירת חבילה והתחלת ניסיון</h2><p>החבילה קובעת את מגבלות המצלמות והשמירה. תקופת הניסיון נמשכת 14 יום.</p><div className="do-plan-grid">{packages.filter((item) => item.package_type === form.site_type || (form.site_type === "business" && item.package_type === "enterprise")).map((item) => <label className={form.package_id === item.id ? "do-plan selected" : "do-plan"} key={item.id}><input type="radio" name="package_id" value={item.id} checked={form.package_id === item.id} onChange={() => update("package_id", item.id)} /><strong>{item.name}</strong><b>{Number(item.monthly_price || 0).toLocaleString("he-IL")} ₪</b><span>14 ימי ניסיון</span><span>עד {item.camera_limit ?? "לפי הסכם"} מצלמות</span><span>שמירת מקטעים עד {item.recording_retention_hours ?? 0} שעות</span></label>)}</div><div className="do-notice info"><ShieldCheck /><span>ספק התשלום עדיין אינו מחובר, לכן לא ייאסף כרטיס ולא יתבצע חיוב. בתקופת הפיילוט ניתן להגדיר ולבדוק מצלמות; ניטור חי ו-AI יופעלו רק לאחר חיבור ואישור הספקים.</span></div></section> : null}
       <ResultMessage state={state} />
-      <div className="do-wizard-actions">{step > 1 ? <button className="do-button secondary" type="button" onClick={() => setStep((value) => value - 1)}>חזרה</button> : <span />}{step < 4 ? <button className="do-button primary" type="button" disabled={!validStep} onClick={() => setStep((value) => value + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.package_id} onClick={submit}>{state.busy ? <LoaderCircle className="do-spin" /> : null}התחלת 14 ימי ניסיון והמשך <ChevronLeft /></button>}</div>
+      <div className="do-wizard-actions">{step > 1 ? <button className="do-button secondary" type="button" onClick={() => goToStep(step - 1)}>חזרה</button> : <span />}{step < 4 ? <button className="do-button primary" type="button" disabled={!validStep} onClick={() => goToStep(step + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.package_id} onClick={submit}>{state.busy ? <LoaderCircle className="do-spin" /> : null}התחלת 14 ימי ניסיון והמשך <ChevronLeft /></button>}</div>
     </div>
   );
 }
