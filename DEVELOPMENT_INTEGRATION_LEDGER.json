@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T09:08:33Z",
+  "updatedAt": "2026-11-07T13:38:58Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15202,6 +15202,58 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Retain the one planned QA shift and protected receipts. Continue owner-coordinated cumulative Product/security, external visual, physical GPS and invoice-backed cost gates; no main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/manager-staff-task-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-MANAGER-STAFF-TASK-JOURNEY-20261107",
+      "title": "Assign, work, submit and approve an ordinary Manager-to-Staff task",
+      "owner": "Product Manager-Staff task journey executor; one Development integration owner",
+      "sourceBranch": "codex/manager-staff-task-journey-20261107",
+      "sourceCommits": [
+        "4e649debc2a174e49dd08edc987875355b705cbf",
+        "f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/manager-staff-task-journey-20261107@f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_LEDGER_PR_AND_DEVELOPMENT_PENDING"
+      },
+      "validation": {
+        "status": "SCOPED_UI_FOUR_TRANSITIONS_AND_EXACT_HEAD_READBACK_22_PASS",
+        "evidence": [
+          "Source Development fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a. Active-employment assignee fixtures 2/2, existing task workflow checks 6/6, full isolated typecheck, changed-path ESLint, QA script syntax and diff check passed.",
+          "One local synthetic Manager B UI task e7df7bb9-5648-4cd2-8855-2129ac3f7bf5 was assigned to active Staff B, started, submitted and approved in four successful browser POSTs; final status done. Overall write-run receipt FAILED only at later completed-filter capture assertion, SHA256 a4ddfec163ac1758bb9627672e174e8952960f0f6510d3ffa6f0faab44538742. Earlier cold-start preflight receipt FAILED with zero writes, SHA256 c5db2b68a5abbb18c10cbde585655a1c927e7a0d8621c6c30ec446df8aaa33e5. No second task was created.",
+          "Exact feature head f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1 guarded readback SCOPED_PASS 22/22, zero browser writes; Manager/Staff see same completed task, foreign Staff/Manager/Parent known-ID reads and transitions denied without data, guest denied, repeat approval idempotent. Four audit events and two in_app notifications; protected receipt SHA256 1909db729c0041f8286cd00b7305a5fae9cb8f650fe4f6c6694f3177f10e9fd3. See GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md."
+        ],
+        "classification": "MANAGER_STAFF_TASK_JOURNEY_SCOPED_PRODUCT_SOURCE",
+        "limitations": "Single local synthetic task and bounded role probes, not full Product/security, forced database read failure, external owner visual or invoice-backed cost proof. No schema/RLS/Auth/RPC/provider/dependency/DO core change."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "CANONICAL_DEVELOPMENT_BASELINE",
+        "units": [
+          "codex/staff-shift-scheduling-journey-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FEATURE_ONE_UI_TASK_FOUR_TRANSITIONS_READBACK_22_NO_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run exact-head six CI gates, ancestry-merge to Development, then fresh canonical post-merge task readback. Preserve one local QA task and protected receipts. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
