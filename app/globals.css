@@ -30781,14 +30781,16 @@ body.gb-mobile-preview-mode {
 @media (max-width: 760px) {
   .communication-workspace {
     display: block;
-    min-height: calc(100dvh - 150px);
+    height: max(420px, calc(100dvh - 280px));
+    min-height: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
   .communication-thread-pane,
   .communication-conversation-pane {
-    min-height: calc(100dvh - 150px);
+    height: 100%;
+    min-height: 0;
   }
   .communication-workspace.has-active-thread .communication-thread-pane { display: none; }
   .communication-workspace:not(.has-active-thread) .communication-conversation-pane { display: none; }
@@ -30799,9 +30801,33 @@ body.gb-mobile-preview-mode {
   .communication-filter-tabs { padding-inline: 14px; }
   .communication-thread-row { padding: 13px 14px; }
   .communication-mobile-back { display: grid; width: 40px; height: 40px; place-items: center; border: 0; border-radius: 12px; background: #edf4fc; color: #164e90; }
-  .communication-secure-chip { padding: 0 8px; font-size: 0; }
+  .communication-conversation-header .communication-secure-chip {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    white-space: nowrap;
+    font-size: 0;
+  }
   .communication-secure-chip svg { width: 18px; }
-  .communication-conversation-header { min-height: 70px; padding: 10px 12px; }
+  .communication-conversation-header {
+    display: grid;
+    grid-template-columns: 40px 48px minmax(0, 1fr) 36px;
+    justify-content: stretch;
+    gap: 8px;
+    min-height: 70px;
+    padding: 10px 12px;
+  }
+  .communication-conversation-header > div { min-width: 0; overflow: hidden; }
+  .communication-conversation-header > div strong,
+  .communication-conversation-header > div span {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   .communication-message-scroll { padding: 18px 12px; }
   .communication-message-bubble { max-width: 87%; }
   .communication-composer { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
