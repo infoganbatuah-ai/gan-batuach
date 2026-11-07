@@ -500,14 +500,97 @@ function ScopedObserverCameraWizard({ sites, initialSiteId }: Parameters<typeof 
   </div>;
 }
 
+function observerQuickActionScope(endpoint: string, body: unknown, confirmText?: string) {
+  let nodes = 0;
+  let characters = 0;
+  const ancestors = new Set<object>();
+  function bounded(text: string) {
+    characters += text.length;
+    if (characters > 16384) throw new Error("Unsupported quick-action identity size");
+    return text;
+  }
+  function encode(value: unknown, depth: number): string {
+    if (++nodes > 1024 || depth > 16) throw new Error("Unsupported quick-action identity depth");
+    if (value === undefined) return "undefined";
+    if (value === null) return "null";
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return bounded(JSON.stringify(value));
+    if (typeof value !== "object") throw new Error("Unsupported quick-action identity value");
+    const array = Array.isArray(value);
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== null && prototype !== (array ? Array.prototype : Object.prototype)) throw new Error("Unsupported quick-action identity prototype");
+    const customJson = Object.getOwnPropertyDescriptor(value, "toJSON") ?? (prototype && Object.getOwnPropertyDescriptor(prototype, "toJSON"));
+    if (customJson && (!("value" in customJson) || typeof customJson.value === "function")) throw new Error("Unsupported quick-action identity serialization");
+    if (ancestors.has(value)) throw new Error("Unsupported quick-action identity cycle");
+    ancestors.add(value);
+    try {
+      if (array) {
+        const length = Object.getOwnPropertyDescriptor(value, "length");
+        if (!length || !("value" in length) || !Number.isSafeInteger(length.value) || length.value > 1024) throw new Error("Unsupported quick-action identity array");
+        const parts: string[] = [];
+        for (let index = 0; index < length.value; index += 1) {
+          const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+          if (!descriptor || !("value" in descriptor)) throw new Error("Unsupported quick-action identity element");
+          parts.push(descriptor.value === undefined ? "null" : encode(descriptor.value, depth + 1));
+        }
+        return bounded(`[${parts.join(",")}]`);
+      }
+      const keys = Object.keys(value).sort();
+      if (keys.length > 1024) throw new Error("Unsupported quick-action identity keys");
+      const parts: string[] = [];
+      for (const key of keys) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (!descriptor || !("value" in descriptor)) throw new Error("Unsupported quick-action identity property");
+        if (descriptor.value !== undefined) parts.push(`${bounded(JSON.stringify(key))}:${encode(descriptor.value, depth + 1)}`);
+      }
+      return bounded(`{${parts.join(",")}}`);
+    } finally { ancestors.delete(value); }
+  }
+  try { return JSON.stringify([endpoint, confirmText || null, "json", encode(body, 0)]); }
+  catch {
+    // Preserve existing click-time serialization for custom/unsupported bodies.
+    // Body-target equivalence is NOT proven within this fallback scope.
+    return JSON.stringify([endpoint, confirmText || null, "unsupported"]);
+  }
+}
+
 export function ObserverQuickAction({ endpoint, body, children, confirmText, onDone }: { endpoint: string; body: unknown; children: ReactNode; confirmText?: string; onDone?: () => void }) {
+  return <ScopedObserverQuickAction key={observerQuickActionScope(endpoint, body, confirmText)} endpoint={endpoint} body={body} confirmText={confirmText} onDone={onDone}>{children}</ScopedObserverQuickAction>;
+}
+
+function ScopedObserverQuickAction({ endpoint, body, children, confirmText, onDone }: Parameters<typeof ObserverQuickAction>[0]) {
   const router = useRouter();
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
+  const owner = useRef({ active: true, operation: 0, busy: false });
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
   async function run() {
-    if (confirmText && !window.confirm(confirmText)) return;
-    setState({ busy: true, error: "", message: "" });
-    try { const data = await postJson(endpoint, body); setState({ busy: false, error: "", message: data.message || "הפעולה הושלמה" }); onDone?.(); router.refresh(); }
-    catch (error) { setState({ busy: false, error: error instanceof Error ? error.message : "הפעולה נכשלה", message: "" }); }
+    const lifetime = owner.current;
+    if (!lifetime.active || lifetime.busy) return;
+    lifetime.busy = true;
+    const operation = ++lifetime.operation;
+    const isCurrent = () => lifetime.active && lifetime.operation === operation;
+    const submittedEndpoint = endpoint;
+    const submittedBody = body;
+    const submittedOnDone = onDone;
+    try {
+      if (confirmText && !window.confirm(confirmText)) return;
+      if (!isCurrent()) return;
+      setState({ busy: true, error: "", message: "" });
+      try {
+        const data = await postJson(submittedEndpoint, submittedBody, undefined, isCurrent);
+        if (!isCurrent()) return;
+        setState({ busy: false, error: "", message: data.message || "הפעולה הושלמה" });
+        if (!isCurrent()) return;
+        submittedOnDone?.();
+        if (!isCurrent()) return;
+        router.refresh();
+      } catch (error) {
+        if (isCurrent()) setState({ busy: false, error: error instanceof Error ? error.message : "הפעולה נכשלה", message: "" });
+      }
+    } finally { if (isCurrent()) lifetime.busy = false; }
   }
   return <div className="do-inline-action"><button className="do-button secondary" type="button" onClick={run} disabled={state.busy}>{state.busy ? <LoaderCircle className="do-spin" /> : null}{children}</button><ResultMessage state={state} /></div>;
 }
