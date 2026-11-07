@@ -41,7 +41,16 @@ export default async function ParentMessagesPage() {
     garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));
   const childIds = childOptions.map((child) => child.id).filter(Boolean);
-  const gardenIds = Array.from(new Set(childOptions.map((child) => child.garden_id ?? child.kindergarten_id).filter(Boolean)));
+  const guardianFileIds = new Set((family.guardianLinks as any[]).map((link) => link.permanent_child_file_id));
+  const messagingChildren = (family.enrollments as any[])
+    .filter((enrollment) => enrollment.status === "active" && !String(enrollment.id).startsWith("legacy-") && enrollment.child_id && enrollment.garden_id && guardianFileIds.has(enrollment.permanent_child_file_id))
+    .map((enrollment) => ({
+      id: enrollment.child_id,
+      full_name: enrollment.full_name,
+      garden_id: enrollment.garden_id,
+      garden_name: (family.gardens as any[]).find((garden) => garden.id === enrollment.garden_id)?.name
+    }));
+  const gardenIds = Array.from(new Set(messagingChildren.map((child) => child.garden_id)));
   const requestFilters = [
     `parent_profile_id.eq.${profile.id}`,
     childIds.length ? `child_id.in.(${childIds.join(",")})` : ""
@@ -74,7 +83,7 @@ export default async function ParentMessagesPage() {
           <ParentChildRequestForm children={childOptions} />
         </ParentSection>
         <ParentSection title="שיחה עם הגן" subtitle="שיחות רגילות נפרדות מפניות רשמיות ותלונות, ותמיד קשורות לילד מורשה.">
-          <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={childOptions} messages={messagesRes.data ?? []} />
+          <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={messagingChildren} messages={messagesRes.data ?? []} />
         </ParentSection>
         <ParentSection title="השיחות שלי" subtitle="תשובות מהגן וסטטוס טיפול במקום אחד." className="parent-chat-card">
           {(requestsRes.data ?? []).length === 0 ? (

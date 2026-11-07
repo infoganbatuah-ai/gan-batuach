@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCheck, FileText, MessageCircleReply, Paperclip, Search, Send, UsersRound, X } from "lucide-react";
 import { Avatar } from "@/components/avatar";
@@ -41,26 +41,8 @@ function dateLabel(value?: string | null) {
     : date.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" });
 }
 
-function seedFromMessages(messages: SeedMessage[]): Thread[] {
-  const seen = new Set<string>();
-  return messages.flatMap((item) => {
-    const id = item.thread_id || item.id;
-    if (!id || seen.has(id)) return [];
-    seen.add(id);
-    const person = item.sender ?? item.recipient;
-    return [{
-      id, garden_id: item.garden_id, child_id: item.child_id,
-      subject: item.subject || "שיחה עם הגן",
-      status: item.status || item.treatment_status || "open",
-      last_message_at: item.created_at, created_at: item.created_at,
-      preview: item.content || item.body, seedAvatar: person?.profile_image_url,
-      communication_thread_participants: person ? [{ profile_id: item.sender_id || item.recipient_id || "", role: person.role, participant_label: person.full_name }] : []
-    }];
-  });
-}
-
 export function InternalMessagingCenter({
-  gardenId, currentProfileId, recipients, messages, linkedChildren = [],
+  gardenId, currentProfileId, recipients, linkedChildren = [],
   preselectedChildId, preselectedRecipientId, defaultOpen = false
 }: {
   gardenId?: string | null; currentProfileId?: string; recipients: Recipient[]; messages: SeedMessage[];
@@ -68,23 +50,36 @@ export function InternalMessagingCenter({
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [threads, setThreads] = useState<Thread[]>(() => seedFromMessages(messages));
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ThreadDetail | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [composeOpen, setComposeOpen] = useState(defaultOpen || Boolean(preselectedChildId || preselectedRecipientId) || messages.length === 0);
+  const [composeOpen, setComposeOpen] = useState(defaultOpen || Boolean(preselectedChildId || preselectedRecipientId));
   const [feedback, setFeedback] = useState("");
   const [reply, setReply] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isPending, startTransition] = useTransition();
+  const createAttempt = useRef<{ payload: string; key: string } | null>(null);
+  const replyAttempt = useRef<{ threadId: string; body: string; key: string } | null>(null);
+
+  const refreshThreads = useCallback(async () => {
+    const response = await fetch("/api/communication/threads", { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error("לא ניתן לטעון את השיחות כרגע.");
+    const rows = (await response.json()).data as Thread[];
+    setThreads(rows);
+    return rows;
+  }, []);
 
   useEffect(() => {
     let active = true;
     fetch("/api/communication/threads", { headers: { Accept: "application/json" } })
-      .then(async (response) => response.ok ? (await response.json()).data as Thread[] : [])
-      .then((data) => { if (active && data.length) setThreads(data); })
-      .catch(() => undefined);
+      .then(async (response) => {
+        if (!response.ok) throw new Error("לא ניתן לטעון את השיחות כרגע.");
+        return (await response.json()).data as Thread[];
+      })
+      .then((data) => { if (active) setThreads(data); })
+      .catch(() => { if (active) setFeedback("לא ניתן לטעון את השיחות כרגע."); });
     return () => { active = false; };
   }, []);
 
@@ -96,10 +91,14 @@ export function InternalMessagingCenter({
       .then((data) => {
         if (!active || !data) return;
         setDetail(data);
-        void fetch(`/api/communication/threads/${selectedId}/read`, { method: "POST" });
-        setThreads((current) => current.map((thread) => thread.id === selectedId
-          ? { ...thread, communication_thread_participants: thread.communication_thread_participants?.map((participant) => participant.profile_id === currentProfileId ? { ...participant, last_read_at: new Date().toISOString() } : participant) }
-          : thread));
+        void fetch(`/api/communication/threads/${selectedId}/read`, { method: "POST" })
+          .then((response) => {
+            if (!response.ok) throw new Error("לא ניתן לעדכן את סימון הקריאה.");
+            setThreads((current) => current.map((thread) => thread.id === selectedId
+              ? { ...thread, communication_thread_participants: thread.communication_thread_participants?.map((participant) => participant.profile_id === currentProfileId ? { ...participant, last_read_at: new Date().toISOString() } : participant) }
+              : thread));
+          })
+          .catch(() => { if (active) setFeedback("לא ניתן לעדכן את סימון הקריאה."); });
       })
       .catch(() => { if (active) setFeedback("לא ניתן לטעון את השיחה כרגע."); });
     return () => { active = false; };
@@ -130,22 +129,27 @@ export function InternalMessagingCenter({
       body: String(formData.get("body") ?? ""),
       child_id: String(formData.get("linked_child_id") ?? "") || undefined
     };
+    const serialized = JSON.stringify(payload);
+    if (createAttempt.current?.payload !== serialized) createAttempt.current = { payload: serialized, key: crypto.randomUUID() };
+    const key = createAttempt.current.key;
     startTransition(async () => {
-      const response = await fetch("/api/communication/threads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-        body: JSON.stringify(payload)
-      });
-      const body = await response.json();
-      if (!response.ok) { setFeedback(body.error || "לא ניתן לשלוח הודעה כרגע."); return; }
       try {
-        if (file instanceof File && file.size) await uploadAttachment(body.data.thread_id, body.data.message_id, file);
-        setFeedback(file instanceof File && file.size ? "ההודעה והקובץ נשלחו בערוץ הפרטי." : "ההודעה נשלחה ונשמרה במערכת.");
+        const response = await fetch("/api/communication/threads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+          body: serialized
+        });
+        const body = await response.json();
+        if (!response.ok) { setFeedback(body.error || "לא ניתן לשלוח הודעה כרגע."); return; }
+        createAttempt.current = null;
         setComposeOpen(false);
         setDetail(null);
         setSelectedId(body.data.thread_id);
         router.refresh();
-      } catch (error) { setFeedback(error instanceof Error ? error.message : "הקובץ לא נשלח."); }
+        if (file instanceof File && file.size) await uploadAttachment(body.data.thread_id, body.data.message_id, file);
+        await refreshThreads();
+        setFeedback(file instanceof File && file.size ? "ההודעה והקובץ נשלחו בערוץ הפרטי." : "ההודעה נשלחה ונשמרה במערכת.");
+      } catch (error) { setFeedback(error instanceof Error ? error.message : "לא ניתן לאשר את השליחה כרגע. בדקו את רשימת השיחות לפני ניסיון נוסף."); }
     });
   }
 
@@ -153,21 +157,30 @@ export function InternalMessagingCenter({
     if (!selectedId || !reply.trim()) return;
     const pendingFile = attachment;
     const body = reply.trim();
+    if (replyAttempt.current?.threadId !== selectedId || replyAttempt.current?.body !== body) replyAttempt.current = { threadId: selectedId, body, key: crypto.randomUUID() };
+    const key = replyAttempt.current.key;
     setReply(""); setAttachment(null); setFeedback("");
     startTransition(async () => {
-      const response = await fetch(`/api/communication/threads/${selectedId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-        body: JSON.stringify({ body })
-      });
-      const result = await response.json();
-      if (!response.ok) { setReply(body); setAttachment(pendingFile); setFeedback(result.error || "שליחת ההודעה נכשלה."); return; }
+      let posted = false;
       try {
+        const response = await fetch(`/api/communication/threads/${selectedId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+          body: JSON.stringify({ body })
+        });
+        const result = await response.json();
+        if (!response.ok) { setReply(body); setAttachment(pendingFile); setFeedback(result.error || "שליחת ההודעה נכשלה."); return; }
+        posted = true;
+        replyAttempt.current = null;
         if (pendingFile) await uploadAttachment(selectedId, result.data.message_id, pendingFile);
         const refreshed = await fetch(`/api/communication/threads/${selectedId}`).then((res) => res.json());
         if (refreshed.data) setDetail(refreshed.data);
+        await refreshThreads();
         setFeedback(pendingFile ? "ההודעה והקובץ נשלחו." : "ההודעה נשלחה.");
-      } catch (error) { setFeedback(error instanceof Error ? error.message : "הקובץ לא נשלח."); }
+      } catch (error) {
+        if (!posted) { setReply(body); setAttachment(pendingFile); }
+        setFeedback(error instanceof Error ? error.message : "לא ניתן לאשר את השליחה כרגע. בדקו את השיחה לפני ניסיון נוסף.");
+      }
     });
   }
 
