@@ -14881,12 +14881,12 @@
       "title": "Bounded Parent-to-Parent document RLS and private file issuance isolation on canonical Development",
       "owner": "Product Parent document isolation executor; one Development integration owner",
       "sourceBranch": "codex/parent-documents-isolation-20261107",
-      "sourceCommits": ["e8299e53e49d5ef524cbc7b3dd2945bdbf2f595a"],
-      "state": "VALIDATED_ON_BRANCH",
+      "sourceCommits": ["e8299e53e49d5ef524cbc7b3dd2945bdbf2f595a", "11b568c2623bbd67da5d4ab0debbbdf451ef6a73"],
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_EVIDENCE_PENDING_REMOTE_PR_AND_DEVELOPMENT_INTEGRATION"
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/parent-documents-isolation-20261107@11b568c2623bbd67da5d4ab0debbbdf451ef6a73", "origin/integration/development@7f472157740a268bca6dd37b95696d4fa0d48503"],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"
       },
       "validation": {
         "status": "SCOPED_CANONICAL_PARENT_A_B_DOCUMENT_LIST_RLS_PRIVATE_FILE_ISSUANCE_PASS",
@@ -14895,19 +14895,20 @@
           "Two 48-byte non-personal PDFs uploaded through the actual authenticated Product API. Each Parent's own Product list and same-session RLS row contained the authorized document; own file route returned 302 and no-cookie signed-object fetch returned exact bytes. One private-read audit row per authorized read.",
           "Symmetric cross-family direct RLS known-ID queries returned no row, foreign-Garden Product lists omitted ID and storage path, and known-ID file routes returned 404 without Location or identifying body. Guests received 401 without signed link or identifying body. Twelve bounded app API requests, two signed-object fetches; no Product source/schema/RLS/provider/DO core change.",
           "Private redacted receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-documents-isolation-e9d4/evidence/receipt.json SHA256 ebc282db5ad3a05ab1b0c2c2e3865cb06e11392379f88b322797cc69ebaaf07b; QA script SHA256 fb2e018ea197c599914c177d6ca33c9dcd3eab60662e416e718b7b2b712e0a01. Two small synthetic objects/rows retained in isolated Development; no purge/reset/persona change.",
-          "Earlier Parent-primary private report checksum transcription corrected without recapture; current report SHA256 a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e, earlier pre-correction report SHA256 0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e."
+          "Earlier Parent-primary private report checksum transcription corrected without recapture; current report SHA256 a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e, earlier pre-correction report SHA256 0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e.",
+          "PR #325 exact head 11b568c2623bbd67da5d4ab0debbbdf451ef6a73 passed six Digital Observer CI gates, Canonical quality, Management tenant context and Snyk. Ancestry-preserving Development merge 7f472157740a268bca6dd37b95696d4fa0d48503 has parents e9d4e2748700bb0fb5312d9ee68b94cb47dfed70 and 11b568c2623bbd67da5d4ab0debbbdf451ef6a73; remote and clean canonical worktree matched. Post-merge ledger guard PASS 213 units, read-only Development migration drift PASS 259/259; diff has only report and ledgers."
         ],
         "classification": "MANAGEMENT_SYNTHETIC_AUTHENTICATED_PRODUCT_RLS_EVIDENCE_ONLY",
         "limits": "Signed URLs are bearer links after authorized issuance; no post-expiry live denial measured. This is a two-family Development check, not a complete role/security certification. Forced Documents read-error, historical intermittent Turbopack root cause, cumulative Product, owner literal visual and invoice-backed cost qualification remain open."
       },
-      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "e9d4e2748700bb0fb5312d9ee68b94cb47dfed70", "commit": null, "pullRequests": [], "sourceAncestryVerified": false},
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "e9d4e2748700bb0fb5312d9ee68b94cb47dfed70", "commit": "7f472157740a268bca6dd37b95696d4fa0d48503", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/325"], "sourceAncestryVerified": true},
       "dependencies": {"status": "CANONICAL_PARENT_DOCUMENTS_BASELINE", "units": ["codex/product-parent-documents-read-state-20261107"]},
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "CANONICAL_SYNTHETIC_PARENT_A_B_DOCUMENT_LIST_RLS_PRIVATE_FILE_ISSUANCE_PASS_NOT_FULL_PRODUCT",
+      "localVerification": "CANONICAL_SYNTHETIC_PARENT_A_B_DOCUMENT_RLS_PRIVATE_FILE_ISSUANCE_PASS_POSTMERGE_LEDGER_213_AND_DRIFT_259_PASS_NOT_FULL_PRODUCT",
       "releaseEligibility": "NOT_READY_FORCED_READ_ERROR_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Commit and preserve this evidence-only branch, pass exact-head CI, merge to integration/development, then qualify forced authenticated document-read failure. Do not infer Product-wide RLS or owner approval. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Qualify forced authenticated document-read failure with truthful UI and no leak; separately investigate historical intermittent default-Turbopack Parent Documents failure, full role/security Product, owner visual and invoice-backed cost gates. Do not infer Product-wide RLS or owner approval. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
