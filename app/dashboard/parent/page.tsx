@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Baby, Bell, Building2, CalendarDays, Camera, FileText, MessageCircle, Phone, Plus, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ParentChildProfileForm } from "@/components/self-service-forms";
+import { ParentChildProfileForm, ParentEnrollmentInformationForm } from "@/components/self-service-forms";
 import { ParentKindergartenInvitationsPanel } from "@/components/parent-kindergarten-invitations-panel";
 import {
   ParentActionTile,
@@ -42,6 +42,9 @@ function formatStatus(status?: string | null) {
     draft: "טיוטה",
     submitted: "נשלח",
     under_review: "בבדיקה",
+    information_required: "נדרש מידע נוסף",
+    resubmitted: "תשובה נשלחה לבדיקה",
+    not_requested: "טרם נדרש",
     more_information_requested: "נדרש מידע נוסף",
     approved_pending_payment: "אושר, ממתין לתשלום",
     approved: "מאושר",
@@ -59,7 +62,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
   const requestedChildId = (await searchParams).child ?? null;
   const supabase = await createClient();
   const requestsRes = await supabase.from("kindergarten_enrollment_requests" as any)
-    .select("id,child_profile_id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)")
+    .select("id,child_profile_id,status,payment_status,requested_at,decided_at,published_price_snapshot,information_request,information_response,gardens(name,city)")
     .eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20);
   const family = await getParentFamilyContext(supabase as any, profile);
   const childProfiles = (family.childFiles ?? []) as any[];
@@ -296,10 +299,15 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
           ) : (
             <div className="parent-request-list">
               {selectedRequests.map((request) => (
-                <Link href={request.status === "approved_pending_payment" ? "/dashboard/parent/payments" : "#requests"} key={request.id}>
+                <article className="parent-enrollment-request" key={request.id}>
                   <strong>{cleanSyntheticLabel(request.gardens?.name, "גן")} · {formatStatus(request.status)}</strong>
                   <span>{cleanSyntheticLabel(request.gardens?.city)} · תשלום: {formatStatus(request.payment_status)}</span>
-                </Link>
+                  {request.information_request ? <div className="parent-enrollment-information"><b>המידע שביקש הגן</b><p>{request.information_request}</p>
+                    {request.information_response ? <p><b>התשובה שנשלחה:</b> {request.information_response}</p> : null}
+                  </div> : null}
+                  {request.status === "information_required" ? <ParentEnrollmentInformationForm requestId={request.id} /> : null}
+                  {request.status === "approved_pending_payment" || request.status === "awaiting_payment" ? <Link href="/dashboard/parent/payments">לפרטי הסדר התשלום</Link> : null}
+                </article>
               ))}
             </div>
           )}
