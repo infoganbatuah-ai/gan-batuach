@@ -15641,7 +15641,7 @@
       "sourceCommits": [
         "ed92c1a3471651815cc5c192b03080b14b2335a9"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -15650,14 +15650,15 @@
         "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "EXACT_HEAD_CI_AND_ROLLBACK_ONLY_ISOLATED_DB_PASS",
+        "status": "EXACT_HEAD_CI_AND_CANONICAL_ISOLATED_DEVELOPMENT_APPLIED_PASS",
         "evidence": [
           "Rollback-only pre-fix synthetic request reproduced the defect: a stale rejected request became payment_reconciliation_required with one confirmed evidence row and two audit rows. No fixture persisted.",
           "Rollback-only proposed migration test passed rejected, cancelled and reconciliation-state denial, cross-Garden Manager and Parent denial, activated retry, unchanged request/evidence tuples, zero denied evidence/audit writes and postgres definer/authenticated-only ACL/search_path checks. No existing QA request was invoked.",
-          "PR #357 at exact source head ed92c1a3471651815cc5c192b03080b14b2335a9 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving Development merge 3acf23c75e596d9ed4bc06750a02d32a40a48461 and remote source/integration refs were verified."
+          "PR #357 at exact source head ed92c1a3471651815cc5c192b03080b14b2335a9 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving Development merge 3acf23c75e596d9ed4bc06750a02d32a40a48461 and remote source/integration refs were verified.",
+          "PR #358 registered the single migration and passed nine exact-head checks. From clean remote Development 536d693c8c1ab2592c3f0d7ee2f8bd9ee2122709 the canonical applicator installed it only in isolated Development; apply receipt SHA256 acc1a50785c29cf9c7a7cd62d2146f3198c7304af841637ce845903be953f6f6. Installed rollback-only role/state/idempotency test SHA256 26b20277b8ebb2f4eeecaf830399e6e3f81b97d1c8f57f977a0494c7bfa3b1d1; metadata/history/untouched QA request receipt SHA256 3c5d4ab19b5a5d1de6f40b85dcd20e296547a9123b8f23e227842fa2e8c2455f. Pre-apply function backup SHA256 b7c5f6ac2296b94a086758cfb93c601c0b82aaeb884261231f87df4896533383."
         ],
         "classification": "FUNCTION_ONLY_MANUAL_ENROLLMENT_STATE_GUARD",
-        "limitations": "Canonical isolated Development application is pending. Valid awaiting_payment activation, real payment truth, last_amount_paid, broad Product/security, owner visual, invoice-backed cost and Production remain unverified. The prior synthetic Parent request remains awaiting_payment with one reservation; it was not invoked."
+        "limitations": "Valid awaiting_payment activation, real payment truth, last_amount_paid, broad Product/security, owner visual, invoice-backed cost and Production remain unverified. The prior synthetic Parent request remains awaiting_payment with one reservation; it was not invoked."
       },
       "integration": {
         "status": "MERGED",
@@ -15677,12 +15678,12 @@
         "supabase/migrations/20261107230104_management_manual_arrangement_state_guard.sql"
       ],
       "migrationOrder": ["20261107230104"],
-      "localVerification": "ROLLBACK_ONLY_PROPOSED_MIGRATION_PASS_CANONICAL_APPLICATION_PENDING",
-      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "localVerification": "CANONICAL_ISOLATED_DEVELOPMENT_MIGRATION_APPLIED_INSTALLED_ROLLBACK_TEST_AND_METADATA_PASS",
+      "releaseEligibility": "NOT_READY_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Apply the single registered and validated migration through the canonical isolated Development applicator after preserving the live function backup; verify post-apply behavior and close both ledgers. No main or Production."
+      "nextAction": "Coordinator should assign a separate focused audit of last_amount_paid/payment truth before any positive manual activation journey. Preserve current awaiting-payment request and provider boundary; no main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
