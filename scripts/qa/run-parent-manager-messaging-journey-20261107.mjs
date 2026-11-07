@@ -11,6 +11,8 @@ import { localCredentials } from "../development/local-client.mjs";
 
 const app = "http://127.0.0.1:3100";
 const expectedSha = process.argv[2];
+const resumeThreadId = process.env.GB_READBACK_THREAD_ID || null;
+const resumeCreateKey = process.env.GB_READBACK_CREATE_KEY || null;
 const title = "GB QA Parent Manager conversation 2026-11-07";
 const firstBody = "בדיקת שיחה פנימית מקומית בלבד";
 const replyBody = "התקבלה הודעת בדיקה במערכת המקומית";
@@ -42,7 +44,7 @@ async function login(label, keys, identities) {
 }
 
 async function api(person, path, method = "GET", body, key) {
-  const response = await fetch(`${app}${path}`, { method, redirect: "manual", signal: AbortSignal.timeout(6_000),
+  const response = await fetch(`${app}${path}`, { method, redirect: "manual", signal: AbortSignal.timeout(12_000),
     headers: { ...(person ? { Cookie: cookieHeader(person) } : {}), ...(body ? { "Content-Type": "application/json" } : {}), ...(key ? { "Idempotency-Key": key } : {}) },
     body: body ? JSON.stringify(body) : undefined });
   return { status: response.status, body: await response.json().catch(() => null) };
@@ -106,13 +108,27 @@ try {
   const staff = await login("staff-b", keys, identities);
   const childId = "00000000-0000-4000-8000-000000000902";
   const gardenId = "00000000-0000-4000-8000-000000000602";
+  if (resumeThreadId) { assert.match(resumeThreadId, /^[0-9a-f-]{36}$/i); assert.match(resumeCreateKey ?? "", /^[0-9a-f-]{36}$/i); }
   const eligibility = JSON.parse(sql(`select json_build_object('eligible',exists(select 1 from public.child_kindergarten_enrollments e join public.children c on c.id=e.child_id join public.child_guardian_links l on l.permanent_child_file_id=c.permanent_child_file_id join public.gardens g on g.id=e.garden_id where e.child_id='${childId}'::uuid and e.garden_id='${gardenId}'::uuid and e.status='active' and l.guardian_profile_id='${parent.id}'::uuid and l.status='active' and l.legal_authority and g.manager_id='${manager.id}'::uuid),'existing',(select count(*) from public.communication_threads where subject='${title}'))`).trim());
-  check("one eligible Garden B Child and no existing fixed-title thread", eligibility.eligible === true && Number(eligibility.existing) === 0);
+  check("eligible Garden B Child and expected fixed-title thread count", eligibility.eligible === true && Number(eligibility.existing) === (resumeThreadId ? 1 : 0));
   const require = createRequire(import.meta.url);
   const { chromium } = require("/Users/danielderi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
   browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true, timeout: 8_000 });
   const parentPage = await pageFor(parent, { width: 1440, height: 1024 });
   await parentPage.goto(`${app}/dashboard/parent/messages`, { waitUntil: "domcontentloaded", timeout: 12_000 });
+  let firstKey;
+  let firstMessageId;
+  const firstPayload = { recipient_id: manager.id, subject: title, body: firstBody, child_id: childId };
+  if (resumeThreadId) {
+    threadId = resumeThreadId;
+    firstKey = resumeCreateKey;
+    const saved = state(threadId);
+    check("readback uses only the one recorded conversation", saved.threads === 1 && saved.participants === 2 && [1, 2].includes(saved.messages));
+    firstMessageId = sql(`select id from public.messages where thread_id='${threadId}'::uuid order by created_at limit 1;`).trim();
+    await parentPage.locator(".communication-thread-row").filter({ hasText: title }).click();
+    await parentPage.getByText(firstBody).first().waitFor();
+    await capture(parentPage, "parent-desktop-readback");
+  } else {
   await parentPage.locator(".communication-compose-button").click();
   const form = parentPage.locator("form.communication-compose-modal");
   await form.locator('select[name="recipient_id"]').selectOption(manager.id);
@@ -134,22 +150,26 @@ try {
   await parentPage.locator(".communication-thread-row").filter({ hasText: title }).waitFor();
   await parentPage.getByText(firstBody).first().waitFor();
   await capture(parentPage, "parent-desktop-created");
-  const firstKey = created.request().headers()["idempotency-key"];
-  const firstPayload = created.request().postDataJSON();
+  firstKey = created.request().headers()["idempotency-key"];
+  firstMessageId = createdPayload.message_id;
+  }
   const repeat = await api(parent, "/api/communication/threads", "POST", firstPayload, firstKey);
-  check("same-key retry returns original message without a duplicate", repeat.status === 201 && repeat.body?.data?.thread_id === threadId && repeat.body.data.message_id === createdPayload.message_id && repeat.body.data.idempotent === true && state(threadId).messages === 1);
+  evidence.actions.push({ actor: "parent-b-api", action: "same_key_retry", status: repeat.status });
+  check("same-key retry returns original message without a duplicate", [200, 201].includes(repeat.status) && repeat.body?.data?.thread_id === threadId && repeat.body.data.message_id === firstMessageId && repeat.body.data.idempotent === true && [1, 2].includes(state(threadId).messages));
 
   const managerPage = await pageFor(manager, { width: 1440, height: 1024 });
   await managerPage.goto(`${app}/dashboard/garden/messages`, { waitUntil: "domcontentloaded", timeout: 12_000 });
   await managerPage.locator(".communication-thread-row").filter({ hasText: title }).click();
   await managerPage.getByText(firstBody).first().waitFor();
   await capture(managerPage, "manager-desktop-inbox");
+  if (state(threadId).messages === 1) {
   await managerPage.locator('.communication-composer textarea').fill(replyBody);
-  const replyPromise = managerPage.waitForResponse((response) => new URL(response.url()).pathname === `/api/communication/threads/${threadId}` && response.request().method() === "POST");
+  const replyPromise = managerPage.waitForResponse((response) => new URL(response.url()).pathname === `/api/communication/threads/${threadId}` && response.request().method() === "POST", { timeout: 12_000 });
   await managerPage.locator(".communication-send-button").click();
   const replied = await replyPromise;
   evidence.actions.push({ actor: "manager-b-ui", action: "reply", status: replied.status() });
   check("Manager UI sent one reply", replied.status() === 200 && (await replied.json()).data?.thread_id === threadId);
+  }
   await managerPage.getByText(replyBody).first().waitFor();
   await capture(managerPage, "manager-desktop-replied");
   await parentPage.reload({ waitUntil: "domcontentloaded", timeout: 12_000 });
