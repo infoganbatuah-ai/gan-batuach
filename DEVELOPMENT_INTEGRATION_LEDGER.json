@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T23:56:53Z",
+  "updatedAt": "2026-11-07T02:01:46Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14804,6 +14804,69 @@
       "releaseEligibility": "NOT_READY_POST_MERGE_PARENT_BROWSER_RLS_EXTERNAL_OWNER_VISUAL_ALL_ROLE_SECURITY_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Under fresh host resource admission, run a bounded server-render Parent diagnostic and investigate the observed Next development Suspense retry before any full browser PASS; authenticate an exact-merge selected-Child/documents journey and relevant role denial when safe. Keep existing synthetic 20-case fixture and prior Staff/Manager receipts separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-parent-documents-read-state-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENTS-READ-STATE-20261107",
+      "title": "Distinguish Parent family document read failure from valid empty and withhold uploads when family context is unavailable",
+      "owner": "Product Parent Documents source executor; one Development integration owner",
+      "sourceBranch": "codex/product-parent-documents-read-state-20261107",
+      "sourceCommits": [
+        "56abad3a8f34acc8178c1a4febd76544fce0a7aa",
+        "9673330e4a08cc029dbc6fb2d3520311a036d6ed",
+        "22f25b2cd749dc858cc9417c728d0c28ff633dc6",
+        "c47d693bd14ad9d67caf00147d3743bc5bb09b81",
+        "32def20bd5c9ff6059a3cd67617707f32ad4a1de"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-parent-documents-read-state-20261107@32def20bd5c9ff6059a3cd67617707f32ad4a1de"
+        ],
+        "status": "REMOTE_SOURCE_PRESERVED_PENDING_FINAL_DOCUMENTATION_HEAD_CI_AND_DEVELOPMENT_INTEGRATION",
+        "noPreviewDeploymentObserved": true,
+        "deploymentEvidenceLimit": "Project Vercel SHA lookup returned zero deployments for source/QA head d59d13205d3c4e47692f5c1d93208c27cd4dded6; a later documentation head requires a fresh lookup. Full live Git trigger fields were not exposed."
+      },
+      "validation": {
+        "status": "SOURCE_CI_8_OF_8_AND_FEATURE_BROWSER_4_OF_4_PASS_FINAL_DOCUMENTATION_HEAD_CI_PENDING",
+        "evidence": [
+          "node --check and node --test scripts/qa/check-parent-documents-read-state.mjs passed; 5/5 behavioral cases on the actual page component with in-memory synthetic query responses.",
+          "Valid empty, populated and protected file link, document read failure, family context unavailable/upload refusal, and denied role before reads were observed.",
+          "Focused staged diff --check passed; no new query/request, schema, RLS, grant, provider, dependency or Digital Observer core change.",
+          "Feature-branch Development ledger schema check passed with 212 units and zero errors; release inclusion and full Product gates were not run.",
+          "Draft PR #321 ran six Digital Observer CI gates, Canonical quality and Management tenant context successfully on predecessor exact head e16ed8bd4b178859921936711beeb234e32cbd07 only; the feature-QA launcher changes require fresh exact-head checks.",
+          "Feature QA launcher guard tests passed 9/9 including main's shared runtime-path builder and refusal of node_modules symlink; existing integration launcher guard tests passed 6/6. The prior canonical installed dependency inventory matched the identical pinned feature/canonical package lock, but feature-local offline dependencies remain uninstalled. No server startup.",
+          "Gate 3 domain regression failed on predecessor head f29bae64499a1e41d19e5340bf3a8fc57fc8c4aa because the launcher embedded a machine-specific path; c47d693bd14ad9d67caf00147d3743bc5bb09b81 fixed it. Gate 1 then failed on predecessor cba57bbced5c43d76c5f384d9d180803eb2a49d5 due to a Mac-only fixture; 32def20bd5c9ff6059a3cd67617707f32ad4a1de fixed it. Local focused tests passed 15/15. All six Digital Observer CI gates, Canonical quality and management-context completed success on exact source/QA head d59d13205d3c4e47692f5c1d93208c27cd4dded6.",
+          "Offline npm ci failed closed with ENOTCACHED for zod-validation-error@4.0.2; no network fallback. A private copy of canonical exact-locked installed dependencies passed ordinary-directory and inventory guards; 43 links remained within the feature project, source/destination inodes differ, and canonical source metadata was unchanged.",
+          "Guarded feature-only server at d59d13205d3c4e47692f5c1d93208c27cd4dded6 used healthy isolated LOCAL_SUPABASE and loopback port 3100. Authenticated synthetic browser check passed 4/4: Parent A/B at 1440x1024, multi-Child Parent at 390x844, and Staff redirected without family documents. Zero page errors; server stopped and port verified free. Private receipt SHA256 8b7410e30dde31fca9b93ae43ce098778477017de9eaa7d2e04da61106a7de3a under Development/gan-batuach/feature-qa/d59d13205d3c4e47692f5c1d93208c27cd4dded6/evidence. Feature QA is not canonical merged Product."
+        ],
+        "classification": "MANAGEMENT_SCOPED_SOURCE_FIXTURE_EXACT_HEAD_CI_AND_AUTHENTICATED_FEATURE_BROWSER",
+        "limits": "Documentation head requires fresh exact-head CI. Normal Parent reads and Staff redirect passed in feature QA, but injected read failure, all Parent-to-Parent RLS boundaries, document download policy, accessibility visual review and cumulative merged Development full-stack proof remain unverified. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED at Development c3507c3f and is not superseded."
+      },
+      "integration": {
+        "status": "DRAFT_PR_PENDING_FINAL_DOCUMENTATION_HEAD_CI_AND_SINGLE_OWNER_MERGE",
+        "base": "integration/development",
+        "baseCommit": "c3507c3f07ca5a78ebf037b7cb596518708efa96",
+        "commit": null,
+        "pullRequests": [321],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "PARENT_SELECTED_CHILD_DOCUMENT_STATE_BASELINE",
+        "units": [
+          "codex/product-parent-selected-child-documents-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_FEATURE_QA_BROWSER_4_OF_4_PASS_NOT_CANONICAL_MERGED_PRODUCT",
+      "releaseEligibility": "NOT_READY_EXACT_HEAD_CI_PARENT_BROWSER_RLS_CUMULATIVE_QA_EXTERNAL_OWNER_VISUAL_AND_COST_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Commit and push the redacted browser receipt pointer and updated handoff, rerun all six exact-head CI gates plus quality/Management, review private synthetic screenshots/receipt, then merge via one Development integration owner if all required checks remain green. Verify remote integration and post-merge scoped QA; preserve the predecessor Parent dashboard runtime gap separately. No main/Production/RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
