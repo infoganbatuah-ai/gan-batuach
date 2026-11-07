@@ -42,14 +42,15 @@ function snapshot() {
       coalesce((select d.answers @> '[{"question_id":"${questionId}","score":8,"note":"${marker}"}]'::jsonb from public.inspection_drafts d where d.inspection_id=i.id),false),
       f.active, (select count(*) from public.inspection_form_questions q where q.form_id=f.id),
       (select count(*) from public.required_inspections r where r.inspection_id=i.id),
-      i.report_snapshot is null,
+      md5(coalesce(i.report_snapshot::text,'')),
+      md5(coalesce(i.submitted_payload::text,'')),
       (select count(*) from public.regulatory_audit_events a where a.inspection_id=i.id)
     from public.inspections i join public.inspection_forms f on f.id=i.form_id
     where i.id='${inspectionId}' and i.inspector_id='${assigned.id}'`;
   const fields = sql(query).trim().split("|");
-  assert.equal(fields.length, 11, "Expected one isolated synthetic inspection");
-  const [status, uncompleted, scoreUnset, drafts, answers, markerSaved, activeForm, questions, dueLinks, reportUnset, auditRows] = fields;
-  return { status, uncompleted: uncompleted === "t", scoreUnset: scoreUnset === "t", drafts: Number(drafts), answers: Number(answers), markerSaved: markerSaved === "t", activeForm: activeForm === "t", questions: Number(questions), dueLinks: Number(dueLinks), reportUnset: reportUnset === "t", auditRows: Number(auditRows) };
+  assert.equal(fields.length, 12, "Expected one isolated synthetic inspection");
+  const [status, uncompleted, scoreUnset, drafts, answers, markerSaved, activeForm, questions, dueLinks, reportFingerprint, submittedFingerprint, auditRows] = fields;
+  return { status, uncompleted: uncompleted === "t", scoreUnset: scoreUnset === "t", drafts: Number(drafts), answers: Number(answers), markerSaved: markerSaved === "t", activeForm: activeForm === "t", questions: Number(questions), dueLinks: Number(dueLinks), reportFingerprint, submittedFingerprint, auditRows: Number(auditRows) };
 }
 
 async function signedInContext(browser, user) {
@@ -114,7 +115,7 @@ try {
 
   const before = snapshot();
   assert.ok(["open", "in_progress"].includes(before.status));
-  assert.ok(before.uncompleted && before.scoreUnset && before.reportUnset && before.activeForm && before.questions > 0 && before.dueLinks > 0);
+  assert.ok(before.uncompleted && before.scoreUnset && before.activeForm && before.questions > 0 && before.dueLinks > 0);
   assert.ok(before.drafts === 0 || (before.drafts === 1 && before.markerSaved), "Unexpected pre-existing draft: do not overwrite");
   checks.push("approved open inspection and active form");
 
@@ -143,7 +144,9 @@ try {
   assert.equal(saved.answers, 1);
   assert.equal(saved.markerSaved, true);
   assert.equal(saved.status, "in_progress");
-  assert.ok(saved.uncompleted && saved.scoreUnset && saved.reportUnset);
+  assert.ok(saved.uncompleted && saved.scoreUnset);
+  assert.equal(saved.reportFingerprint, before.reportFingerprint);
+  assert.equal(saved.submittedFingerprint, before.submittedFingerprint);
   assert.equal(saved.auditRows, before.auditRows);
   checks.push("authorized API and isolated Development DB agree; no completion or score");
 
@@ -178,7 +181,9 @@ try {
   assert.equal(afterDenied.drafts, 1);
   assert.equal(afterDenied.answers, 1);
   assert.equal(afterDenied.markerSaved, true);
-  assert.ok(afterDenied.uncompleted && afterDenied.scoreUnset && afterDenied.reportUnset);
+  assert.ok(afterDenied.uncompleted && afterDenied.scoreUnset);
+  assert.equal(afterDenied.reportFingerprint, before.reportFingerprint);
+  assert.equal(afterDenied.submittedFingerprint, before.submittedFingerprint);
   assert.equal(afterDenied.auditRows, before.auditRows);
   assert.deepEqual(pageErrors, []);
   checks.push("denials left draft unchanged and browser had no page errors");
@@ -187,7 +192,7 @@ try {
     task: "GB-PRODUCT-INSPECTOR-DRAFT-JOURNEY-20261107",
     observedAt: new Date().toISOString(), environment: config.environment,
     sourceSha: expectedSha, backend: version.backend, status: "PASS",
-    checks, before: { draftRows: before.drafts, regulatoryAuditRows: before.auditRows }, after: { draftRows: afterDenied.drafts, answerRows: afterDenied.answers, regulatoryAuditRows: afterDenied.auditRows, inspectionStatus: afterDenied.status, completed: !afterDenied.uncompleted, finalScorePresent: !afterDenied.scoreUnset, reportPublished: !afterDenied.reportUnset },
+    checks, before: { draftRows: before.drafts, regulatoryAuditRows: before.auditRows }, after: { draftRows: afterDenied.drafts, answerRows: afterDenied.answers, regulatoryAuditRows: afterDenied.auditRows, inspectionStatus: afterDenied.status, completed: !afterDenied.uncompleted, finalScorePresent: !afterDenied.scoreUnset, reportSnapshotChanged: afterDenied.reportFingerprint !== before.reportFingerprint, submittedPayloadChanged: afterDenied.submittedFingerprint !== before.submittedFingerprint },
     denials,
     limitations: ["Synthetic isolated Development only", "No submission, report publication, upload, real provider, camera, AI or Production"],
     elapsedMs: Date.now() - started,
