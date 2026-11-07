@@ -15375,13 +15375,14 @@
       "owner": "DB dependency executor; one Development integration owner",
       "sourceBranch": "codex/db-candidate-review-actor-role-20261107",
       "sourceCommits": [
-        "87ace192c7c8ab133d207d0fa296fc3aad6711f3"
+        "87ace192c7c8ab133d207d0fa296fc3aad6711f3",
+        "6deddc6f1ae55c5ec7d54e404af6590226726a8a"
       ],
       "state": "VALIDATED_ON_BRANCH",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_COMMIT_PENDING_REMOTE_PUSH"
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/db-candidate-review-actor-role-20261107@6deddc6f1ae55c5ec7d54e404af6590226726a8a"],
+        "status": "PUSHED_REMOTE_PENDING_CI_AND_INTEGRATION"
       },
       "validation": {
         "status": "SOURCE_AND_ROLLBACK_ONLY_PASS",

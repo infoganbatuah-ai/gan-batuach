@@ -23,4 +23,6 @@ Data model and retention are unchanged. The existing audit event belongs to the 
 
 ## Remaining gates
 
+The source, migration and pending ledgers were remotely verified at `origin/codex/db-candidate-review-actor-role-20261107@6deddc6f1ae55c5ec7d54e404af6590226726a8a`.
+
 This report records **source/rollback-only** proof. Required next: exact-head CI and scoped security checks; ancestry-preserving merge into `integration/development`; apply **only** this ordered migration to the pinned isolated Development database through the canonical applicator; verify history 260/260, function metadata and role boundaries; then resume the existing Candidate application without duplicate submission. The separate Candidate branch holds the UI and browser journey. No approve/accept/employment activation. Full Product, external owner visual, invoice-backed ₪15 cost and Production readiness remain open. Digital Observer core, `main`, Production and RELEASE-GAP-01 are untouched.
