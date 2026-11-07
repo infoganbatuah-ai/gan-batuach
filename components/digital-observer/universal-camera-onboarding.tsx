@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, LoaderCircle } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import { connectivityRegistry, type ConnectivityFamilyId } from "@/lib/domain/digital-observer/connectivity-registry";
@@ -19,6 +19,7 @@ export function UniversalCameraOnboarding({ sites, initialSiteId, initialIntent 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const requestGeneration = useRef(0);
+  useEffect(() => () => { requestGeneration.current++; }, []);
   const effort = useRef({ productActions: 0, technicalActions: 0, installerActions: 0, externalAppActions: 0, startedAt: 0 });
   const [installedOnline, setInstalledOnline] = useState(false);
   const [activeIntent, setActiveIntent] = useState(initialIntent ?? "");
@@ -41,12 +42,12 @@ export function UniversalCameraOnboarding({ sites, initialSiteId, initialIntent 
           strategy: result?.plan.preferredStrategy ?? null, failure, effort: currentEffort }) });
     } catch { /* Observability must never block camera onboarding or recovery. */ }
   }
-  function reset() { requestGeneration.current++; setResult(null); setError(""); setBusy(false); setInstalledOnline(false); setActiveIntent(""); }
+  function reset() { requestGeneration.current++; setResult(null); setError(""); setBusy(false); setInstalledOnline(false); setActiveIntent(""); setMobileMessage(""); }
   async function assess(nextComputer = computer) {
     effort.current.productActions++;
     effort.current.startedAt ||= Date.now();
     const generation = ++requestGeneration.current;
-    setBusy(true); setError(""); setResult(null);
+    setBusy(true); setError(""); setResult(null); setMobileMessage("");
     try {
       const token = readObserverAccessToken();
       const response = await fetch("/api/digital-observer/connection-assessment", {
@@ -64,22 +65,34 @@ export function UniversalCameraOnboarding({ sites, initialSiteId, initialIntent 
     } finally { if (generation === requestGeneration.current) setBusy(false); }
   }
   async function mobileDiscovery() {
+    const generation = ++requestGeneration.current;
+    const isCurrent = () => generation === requestGeneration.current;
     productAction(); setBusy(true); setError(""); setMobileMessage("");
     try {
       const token = readObserverAccessToken();
       const headers = { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}) };
       const started = await fetch("/api/digital-observer/mobile-camera-setup", { method: "POST", credentials: "same-origin", cache: "no-store", headers,
         body: JSON.stringify({ action: "start", observer_site_id: siteId }) });
-      const startBody = await started.json(); if (!started.ok) throw new Error("MOBILE_SETUP_UNAVAILABLE");
+      if (!isCurrent()) return;
+      const startBody = await started.json();
+      if (!isCurrent()) return;
+      if (!started.ok) throw new Error("MOBILE_SETUP_UNAVAILABLE");
       const bridge = (window as typeof window & { DigitalObserverCameraDiscovery?: NativeDiscoveryBridge }).DigitalObserverCameraDiscovery;
       if (!bridge) { setMobileMessage("איתור מקומי בטלפון עדיין אינו זמין בגרסה הזו. אפשר להמשיך לפי שם האפליקציה או היצרן."); return; }
       const receipt = await bridge.discoverLocalCameras({ sessionId: startBody.data.session_id, siteId });
+      if (!isCurrent()) return;
       const submitted = await fetch("/api/digital-observer/mobile-camera-setup", { method: "POST", credentials: "same-origin", cache: "no-store", headers,
         body: JSON.stringify({ action: "submit", observer_site_id: siteId, session_id: startBody.data.session_id, receipt }) });
-      const submitBody = await submitted.json(); if (!submitted.ok) throw new Error("MOBILE_DISCOVERY_REJECTED");
+      if (!isCurrent()) return;
+      const submitBody = await submitted.json();
+      if (!isCurrent()) return;
+      if (!submitted.ok) throw new Error("MOBILE_DISCOVERY_REJECTED");
       setResult({ plan: submitBody.data.plan, diagnostic_id: startBody.data.session_id, connector_online: false, installer_delivery: "PLATFORM_CHECK_REQUIRED" });
-    } catch { void reportFailure("LOCAL_PERMISSION_DENIED"); setError("לא ניתן להשלים חיפוש מקומי בטלפון. אפשר להמשיך לפי שם האפליקציה או היצרן."); }
-    finally { setBusy(false); }
+    } catch {
+      if (!isCurrent()) return;
+      void reportFailure("LOCAL_PERMISSION_DENIED"); setError("לא ניתן להשלים חיפוש מקומי בטלפון. אפשר להמשיך לפי שם האפליקציה או היצרן.");
+    }
+    finally { if (isCurrent()) setBusy(false); }
   }
   const showDiscovery = installedOnline || (result?.plan.nextAction === "DISCOVER" && result.connector_online);
   return <div className="do-page-stack">
