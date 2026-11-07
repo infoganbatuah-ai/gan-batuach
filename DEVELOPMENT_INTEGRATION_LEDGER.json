@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T16:57:29.106Z",
+  "updatedAt": "2026-11-07T19:43:25.264Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15470,6 +15470,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Resume the same QA Candidate application on the preserved Candidate branch; verify Manager review/request_information, Candidate response and role/data isolation without approval/employment or duplicate application. No main/Production."
+    },
+    {
+      "id": "codex/parent-enrollment-information-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-ENROLLMENT-INFORMATION-JOURNEY-20261107",
+      "title": "Parent to Manager enrollment information-request journey",
+      "owner": "Parent enrollment journey executor; one Development integration owner",
+      "sourceBranch": "codex/parent-enrollment-information-20261107",
+      "sourceCommits": [
+        "9b2f077582794322a53a7398f137599cba7e38a5"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-enrollment-information-20261107@9b2f077582794322a53a7398f137599cba7e38a5"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "Existing synthetic Parent A Child 4901 had one submitted Garden A request. The owner-authorized fallback resumed that request, so this run does not prove a fresh Parent UI submission. Actual Manager UI reviewed and requested information, then Parent UI responded: one request reached resubmitted; same-key API retry returned the same ID. Guarded feature run 19/19; private receipt SHA256 9d2f93091e2607a37ab23343e395b0fa90faa98f4dbc26df69c3b52acab79827.",
+          "Exact final feature SHA 9b2f077582794322a53a7398f137599cba7e38a5 passed no-write readback and four settled Desktop/Mobile captures; private receipt SHA256 c753ea1bf9274bc2f9e20527cf97d7579386ad43d52ab4ed6c94eb3b7d511747. Foreign Parent, Manager, Staff and guest known-ID attempts were denied; zero reservation, active enrollment or external accepted delivery.",
+          "PR #351 exact head passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge 4176554589cf5b06118bc1a852d9d2d6d39a5063 verified remotely. Clean canonical Product at that exact SHA with LOCAL_SUPABASE passed 7/7 no-write role/data checks and four fresh 1440x1024/390x844 Parent/Manager captures; DB request state unchanged. Private merged-head receipt SHA256 d19a6908658b60e6231a55e602a28c3cb53e762ddcdbb3de632e46e712318f15. Isolated migration drift 260/260."
+        ],
+        "classification": "SCOPED_PARENT_ENROLLMENT_INFORMATION_UI_AND_GUARDED_QA",
+        "limitations": "Scoped synthetic local journey only. Existing-request fallback did not create a new Parent UI request; optional Manager service enrichment was unavailable in safe Feature QA. Full Product/security, owner visual, live providers, invoice-backed cost and Production are not claimed."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "cefccf88c19053066effaba348674a1296496eeb",
+        "commit": "4176554589cf5b06118bc1a852d9d2d6d39a5063",
+        "pullRequests": [
+          351
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_260_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_MERGED_PRODUCT_7_OF_7_NO_WRITE_PARENT_MANAGER_DESKTOP_MOBILE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this exact merged-head evidence correction remotely in Development; coordinator continues cumulative Product/security, owner visual and invoice-backed cost qualification. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
