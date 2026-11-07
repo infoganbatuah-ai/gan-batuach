@@ -4,7 +4,7 @@ import {
   AlertTriangle, Camera, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp,
   Lightbulb, LightbulbOff, Siren, Volume2, VolumeX, X, ZoomIn, ZoomOut
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./observer-camera-controls.module.css";
 
 type PhysicalAction = "lighting" | "siren" | "ptz";
@@ -24,29 +24,38 @@ function liveVideo(cameraSourceId: string) {
   return document.querySelector<HTMLVideoElement>(`video[data-camera-source-id="${CSS.escape(cameraSourceId)}"]`);
 }
 
-async function cameraAction(body: Record<string, unknown>) {
+async function cameraAction(body: Record<string, unknown>, isCurrent: () => boolean) {
+  if (!isCurrent()) return null;
   const response = await fetch("/api/digital-observer/camera-actions", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body)
   });
+  if (!isCurrent()) return null;
   const payload = await response.json().catch(() => ({})) as { data?: Record<string, unknown>; error?: string };
+  if (!isCurrent()) return null;
   if (!response.ok || !payload.data) throw new Error(payload.error || "הפעולה לא הושלמה.");
   return payload.data;
 }
 
-export function ObserverCameraControls({
-  observerSiteId,
-  cameraSourceId,
-  name,
-  capabilities = {}
-}: {
+type CameraControlsProps = {
   observerSiteId: string;
   cameraSourceId: string;
   name: string;
   talkSupported?: boolean;
   capabilities?: Record<string, unknown>;
-}) {
+};
+
+export function ObserverCameraControls(props: CameraControlsProps) {
+  return <ScopedCameraControls key={`${props.observerSiteId}:${props.cameraSourceId}`} {...props} />;
+}
+
+function ScopedCameraControls({
+  observerSiteId,
+  cameraSourceId,
+  name,
+  capabilities = {}
+}: CameraControlsProps) {
   const [muted, setMuted] = useState(true);
   const [controls, setControls] = useState<PhysicalAction[]>([]);
   const [prepared, setPrepared] = useState<PreparedAction | null>(null);
@@ -57,19 +66,39 @@ export function ObserverCameraControls({
   const [diagnostics, setDiagnostics] = useState<DiagnosticsState>("loading");
   const [automation, setAutomation] = useState<AutomationState>({ enabled: false, allowedActions: [], sirenDurationMs: null });
   const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const lifetime = useRef({ active: true, controls: 0, action: 0, confirming: false, locked: false,
+    prepared: null as PreparedAction | null, cancelWait: null as (() => void) | null });
+
+  useEffect(() => {
+    const owner = lifetime.current;
+    owner.active = true;
+    return () => {
+      owner.active = false;
+      owner.controls++;
+      owner.action++;
+      owner.prepared = null;
+      owner.cancelWait?.();
+    };
+  }, []);
   const audioSupported = capabilities.audio === true;
   const validSite = UUID.test(observerSiteId);
 
-  const loadControls = useCallback(async () => {
+  const loadControls = useCallback(async (parentIsCurrent?: () => boolean) => {
+    const owner = lifetime.current;
+    if (!owner.active || (parentIsCurrent && !parentIsCurrent())) return;
+    const generation = ++owner.controls;
+    const isCurrent = () => owner.active && generation === owner.controls && (!parentIsCurrent || parentIsCurrent());
     if (!validSite) {
       setControls([]);
+      owner.locked = true;
       setPhysicalLocked(true);
       setDiagnostics("unavailable");
       setStatus("שיוך האתר של המצלמה אינו תקין.");
       return;
     }
     try {
-      const data = await cameraAction({ action: "controls", camera_source_id: cameraSourceId });
+      const data = await cameraAction({ action: "controls", camera_source_id: cameraSourceId }, isCurrent);
+      if (!isCurrent() || data === null) return;
       if (data.observer_site_id !== observerSiteId || data.camera_source_id !== cameraSourceId) {
         throw new Error("Camera control scope mismatch");
       }
@@ -92,10 +121,12 @@ export function ObserverCameraControls({
         sirenDurationMs: typeof automationValue?.siren_duration_ms === "number" ? automationValue.siren_duration_ms : null
       });
       const warning = data.operator_warning === true && data.non_retryable === true;
+      owner.locked = warning;
       setPhysicalLocked(warning);
       setOperatorWarning(warning);
       if (warning) setStatus(typeof data.message === "string" ? data.message : "הבקרים הפיזיים נעולים עד בדיקה ידנית.");
     } catch {
+      if (!isCurrent()) return;
       setControls([]);
       setDiagnostics("unavailable");
       setAutomation({ enabled: false, allowedActions: [], sirenDurationMs: null });
@@ -109,6 +140,7 @@ export function ObserverCameraControls({
 
   useEffect(() => {
     const refresh = (event: Event) => {
+      if (!lifetime.current.active) return;
       const detail = (event as CustomEvent<{ cameraSourceId?: string }>).detail;
       if (detail?.cameraSourceId === cameraSourceId) void loadControls();
     };
@@ -118,10 +150,14 @@ export function ObserverCameraControls({
 
   useEffect(() => {
     if (!prepared) return;
+    const owner = lifetime.current;
+    const generation = owner.action;
     const update = () => {
+      if (!owner.active || generation !== owner.action || owner.prepared !== prepared) return;
       const seconds = Math.max(0, Math.ceil((Date.parse(prepared.expiresAt) - Date.now()) / 1_000));
       setRemainingSeconds(seconds);
       if (seconds === 0) {
+        owner.prepared = null;
         setPrepared(null);
         setStatus("תוקף האישור פג. לא בוצעה פעולה.");
       }
@@ -160,7 +196,12 @@ export function ObserverCameraControls({
   }
 
   async function prepare(action: PhysicalAction, payload: Record<string, unknown>, label: string) {
-    if (physicalLocked || !validSite) return;
+    const owner = lifetime.current;
+    if (!owner.active || owner.locked || owner.confirming || physicalLocked || !validSite) return;
+    const generation = ++owner.action;
+    const isCurrent = () => owner.active && generation === owner.action;
+    owner.prepared = null;
+    setPrepared(null);
     setBusy(true);
     setOperatorWarning(false);
     setStatus("מכין אישור מאובטח...");
@@ -172,47 +213,87 @@ export function ObserverCameraControls({
         camera_source_id: cameraSourceId,
         camera_action: action,
         payload
-      });
+      }, isCurrent);
+      if (!isCurrent() || data === null || owner.locked) return;
       if (data.request_id !== requestId || data.observer_site_id !== observerSiteId
         || data.camera_source_id !== cameraSourceId || typeof data.confirmation_id !== "string"
         || data.confirmation_id === requestId || typeof data.confirmation_nonce !== "string" || typeof data.expires_at !== "string") {
         throw new Error("השרת החזיר אישור לא תקין.");
       }
-      setPrepared({ requestId, confirmationId: data.confirmation_id, confirmationNonce: data.confirmation_nonce,
-        expiresAt: data.expires_at, action, label });
+      const approval = { requestId, confirmationId: data.confirmation_id, confirmationNonce: data.confirmation_nonce,
+        expiresAt: data.expires_at, action, label };
+      owner.prepared = approval;
+      setPrepared(approval);
       setStatus("");
     } catch (error) {
+      if (!isCurrent()) return;
       setStatus(error instanceof Error ? error.message : "הפעולה לא הוכנה.");
     } finally {
-      setBusy(false);
+      if (isCurrent()) setBusy(false);
     }
   }
 
-  async function monitorResult(requestId: string) {
+  function lockUncertainResult() {
+    const owner = lifetime.current;
+    owner.controls++;
+    owner.locked = true;
+    setOperatorWarning(true);
+    setPhysicalLocked(true);
+  }
+
+  function waitForStatus(isCurrent: () => boolean) {
+    const owner = lifetime.current;
+    return new Promise<boolean>((resolve) => {
+      if (!isCurrent()) { resolve(false); return; }
+      let settled = false;
+      const finish = (value: boolean) => {
+        if (settled) return;
+        settled = true;
+        if (timer !== undefined) window.clearTimeout(timer);
+        if (owner.cancelWait === cancel) owner.cancelWait = null;
+        resolve(value);
+      };
+      const cancel = () => finish(false);
+      owner.cancelWait = cancel;
+      const timer = window.setTimeout(() => finish(isCurrent()), 1_000);
+    });
+  }
+
+  async function monitorResult(requestId: string, isCurrent: () => boolean) {
     for (let attempt = 0; attempt < 40; attempt += 1) {
-      const data = await cameraAction({ action: "status", request_id: requestId });
+      if (!isCurrent()) return;
+      const data = await cameraAction({ action: "status", request_id: requestId }, isCurrent);
+      if (!isCurrent() || data === null) return;
       if (data.request_id !== requestId || data.observer_site_id !== observerSiteId) {
         throw new Error("סטטוס השרת אינו תואם לבקשה.");
       }
       if (data.terminal === true) {
         const warning = data.operator_warning === true && data.non_retryable === true;
+        lifetime.current.controls++;
+        lifetime.current.locked = warning;
         setOperatorWarning(warning);
         setPhysicalLocked(warning);
         setStatus(typeof data.message === "string" ? data.message : warning
           ? "מצב הפעולה אינו ודאי. אין לשלוח אותה שוב עד בדיקה ידנית."
           : "הפעולה הסתיימה.");
-        if (!warning) await loadControls();
+        if (!warning) await loadControls(isCurrent);
         return;
       }
-      await new Promise((resolve) => window.setTimeout(resolve, 1_000));
+      if (!await waitForStatus(isCurrent) || !isCurrent()) return;
     }
-    setOperatorWarning(true);
-    setPhysicalLocked(true);
+    if (!isCurrent()) return;
+    lockUncertainResult();
     setStatus("לא התקבל מצב סופי בזמן. אין לשלוח את הפעולה שוב עד בדיקה ידנית.");
   }
 
   async function confirm() {
-    if (!prepared || remainingSeconds <= 0) return;
+    const owner = lifetime.current;
+    if (!owner.active || owner.locked || owner.confirming || !prepared || owner.prepared !== prepared
+      || remainingSeconds <= 0 || !(Date.parse(prepared.expiresAt) > Date.now())) return;
+    const generation = ++owner.action;
+    const isCurrent = () => owner.active && generation === owner.action;
+    owner.confirming = true;
+    owner.prepared = null;
     setBusy(true);
     try {
       const data = await cameraAction({
@@ -220,22 +301,32 @@ export function ObserverCameraControls({
         request_id: prepared.requestId,
         confirmation_id: prepared.confirmationId,
         confirmation_nonce: prepared.confirmationNonce
-      });
+      }, isCurrent);
+      if (!isCurrent() || data === null) return;
       if (data.request_id !== prepared.requestId || data.observer_site_id !== observerSiteId || data.executed !== false) {
         throw new Error("אישור השרת אינו תואם לבקשה.");
       }
       const requestId = prepared.requestId;
       setPrepared(null);
       setStatus("הפעולה אושרה ונמסרה פעם אחת. ממתין לאימות מצב, ללא שליחה חוזרת.");
-      await monitorResult(requestId);
+      await monitorResult(requestId, isCurrent);
     } catch (error) {
+      if (!isCurrent()) return;
       setPrepared(null);
-      setOperatorWarning(true);
-      setPhysicalLocked(true);
+      lockUncertainResult();
       setStatus(error instanceof Error ? `${error.message} אין לשלוח את הפעולה שוב עד בדיקה ידנית.` : "לא ניתן לאמת את המצב. אין לשלוח שוב.");
     } finally {
-      setBusy(false);
+      if (isCurrent()) { owner.confirming = false; setBusy(false); }
     }
+  }
+
+  function cancelPreparation() {
+    const owner = lifetime.current;
+    if (!owner.active || owner.confirming || !prepared || owner.prepared !== prepared) return;
+    owner.action++;
+    owner.prepared = null;
+    setPrepared(null);
+    setStatus("הפעולה בוטלה ולא נמסרה לביצוע.");
   }
 
   const physicalDisabled = busy || physicalLocked;
@@ -291,7 +382,7 @@ export function ObserverCameraControls({
         <p>האישור תקף לפעולה הזו בלבד ולא יישמר לפעולות עתידיות.</p>
         <p className={styles.confirmationExpiry}>האישור יפוג בעוד {remainingSeconds} שניות.</p>
         <div className={styles.confirmationActions}>
-          <button type="button" onClick={() => { setPrepared(null); setStatus("הפעולה בוטלה ולא נמסרה לביצוע."); }} disabled={busy}><X />ביטול</button>
+          <button type="button" onClick={cancelPreparation} disabled={busy}><X />ביטול</button>
           <button type="button" onClick={() => void confirm()} disabled={busy || remainingSeconds <= 0}><Check />אישור עכשיו</button>
         </div>
       </section>
