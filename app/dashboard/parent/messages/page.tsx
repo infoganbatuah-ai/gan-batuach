@@ -8,7 +8,7 @@ import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
 
 type MessageRecipient = { id: string; full_name?: string | null; email?: string | null; role?: string | null; profile_image_url?: string | null };
-type GardenMessageRecipients = { manager: MessageRecipient | null; owner: MessageRecipient | null };
+type GardenMessageRecipients = { id: string; name?: string | null; manager_id?: string | null; owner_profile_id?: string | null };
 
 function statusText(status?: string | null) {
   if (status === "handled") return "טופל";
@@ -64,13 +64,16 @@ export default async function ParentMessagesPage() {
       .order("created_at", { ascending: false })
       .limit(80)
     : { data: [], error: null },
-    gardenIds.length ? supabase.from("gardens" as never).select("id,manager:manager_id(id,full_name,email,role,profile_image_url),owner:owner_profile_id(id,full_name,email,role,profile_image_url)").in("id", gardenIds) : Promise.resolve({ data: [], error: null }),
+    gardenIds.length ? supabase.from("gardens" as never).select("id,name,manager_id,owner_profile_id").in("id", gardenIds) : Promise.resolve({ data: [], error: null }),
     supabase.from("messages" as never).select("id,subject,body,content,created_at,treatment_status,sender:sender_id(full_name,profile_image_url),recipient:recipient_id(full_name,profile_image_url)").or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80)
   ]);
   if (requestsRes.error) console.error("[parent-messages] requests query failed", { profile_id: profile.id, error: requestsRes.error.message });
+  if (gardensRes.error) console.error("[parent-messages] gardens query failed", { code: gardensRes.error.code });
   const recipients = ((gardensRes.data ?? []) as GardenMessageRecipients[])
-    .flatMap((garden) => [garden.manager, garden.owner])
-    .filter((value): value is MessageRecipient => Boolean(value))
+    .flatMap((garden): MessageRecipient[] => [
+      ...(garden.manager_id ? [{ id: garden.manager_id, full_name: `מנהלת ${garden.name ?? "הגן"}`, role: "manager" }] : []),
+      ...(garden.owner_profile_id ? [{ id: garden.owner_profile_id, full_name: `בעלת ${garden.name ?? "הגן"}`, role: "owner" }] : [])
+    ])
     .filter((value, index, values) => values.findIndex((item) => item.id === value.id) === index);
 
   return (
