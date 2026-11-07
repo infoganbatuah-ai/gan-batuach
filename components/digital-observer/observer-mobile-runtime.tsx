@@ -49,14 +49,17 @@ async function enqueue(kind: MobileOfflineOperation["kind"]) {
   await writeQueue(items);
 }
 
-async function authorizeAndOpen(rawUrl: string) {
+async function authorizeAndOpen(rawUrl: string, isCurrent: () => boolean) {
+  if (!isCurrent()) return;
   const response = await fetch("/api/digital-observer/mobile/runtime", {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ url: rawUrl })
   });
+  if (!isCurrent()) return;
   const payload = await response.json().catch(() => ({}));
+  if (!isCurrent()) return;
   const destination = payload?.data?.destination;
   if (!response.ok || typeof destination !== "string" || !destination.startsWith("/digital-observer/")) {
     throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "MOBILE_LINK_DENIED");
@@ -86,6 +89,13 @@ export function ObserverMobileRuntime() {
     let interruptionVersion = 0;
     let listenerFailure = false;
     const removers: Array<() => Promise<void>> = [];
+
+    const ownsMobileLinks = () => !disposed && playbackPublisher.isCurrent();
+    const openOwnedMobileLink = (rawUrl: string) => {
+      void authorizeAndOpen(rawUrl, ownsMobileLinks).catch(() => {
+        if (ownsMobileLinks()) emit("digital-observer:mobile-link-denied");
+      });
+    };
 
     const registerDevice = async (siteId: string, pushToken?: string) => {
       const [info, appInfo] = await Promise.all([Device.getInfo(), App.getInfo()]);
@@ -271,12 +281,16 @@ export function ObserverMobileRuntime() {
       await Promise.all([networkRegistration, appRegistration]);
       if (disposed || !playbackPublisher.isCurrent()) return;
 
-      const appUrl = await App.addListener("appUrlOpen", ({ url }) => { void authorizeAndOpen(url).catch(() => emit("digital-observer:mobile-link-denied")); });
+      const appUrl = await App.addListener("appUrlOpen", (event) => {
+        if (!ownsMobileLinks()) return;
+        const { url } = event;
+        openOwnedMobileLink(url);
+      });
       if (disposed || !playbackPublisher.isCurrent()) { await appUrl.remove(); return; }
       removers.push(() => appUrl.remove());
       const launch = await App.getLaunchUrl();
       if (disposed || !playbackPublisher.isCurrent()) return;
-      if (launch?.url) void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
+      if (launch?.url) openOwnedMobileLink(launch.url);
 
       if (pushAvailable) {
         const registration = await PushNotifications.addListener("registration", (token) => {
@@ -301,7 +315,7 @@ export function ObserverMobileRuntime() {
           if (disposed || !playbackPublisher.isCurrent()) return;
           const { notification } = event;
           const link = notification.data?.deep_link;
-          if (typeof link === "string") void authorizeAndOpen(link).catch(() => emit("digital-observer:mobile-link-denied"));
+          if (typeof link === "string") openOwnedMobileLink(link);
         });
         const removeAction = ownPushListener(action);
         if (disposed || !playbackPublisher.isCurrent()) { await removeAction(); return; }
