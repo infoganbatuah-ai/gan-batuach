@@ -3,7 +3,7 @@
 Task: `GB-PRODUCT-CANDIDATE-APPLICATION-REVIEW-JOURNEY-20261107`
 Source Development: `f6269cba934aaa37a70c32d53692f3b8c7de1854`
 Branch: `codex/candidate-application-review-journey-20261107`
-State: **BLOCKED_ON_VERIFIED_DB_FUNCTION_DEPENDENCY**. This is not a completed Product journey or Production release.
+State: **VALIDATED_ON_BRANCH_PENDING_EXACT_CI**. The earlier DB dependency was merged and applied to isolated Development; this is not full Product or Production release.
 
 ## Scoped source and observed journey
 
@@ -24,3 +24,15 @@ Source TypeScript typecheck passed. QA runner syntax and diff checks passed. Cha
 The blocked source and handoff were remotely verified at `origin/codex/candidate-application-review-journey-20261107@24368ea43ade716a21b96ca127a8b33f69a90a19`; the corresponding ledger entry remains `BLOCKED`, not integration-ready.
 
 Next: complete and verify the isolated DB-function dependency, merge its Development head into this branch, resume **the same** application ID, then request information and receive the Candidate response. Run exact-head CI, merge into `integration/development`, and repeat bounded merged-Product readback. No approve, accept or employment activation. Full Product/security, external owner visual and invoice-backed ₪15 economics remain open. No `main`, Production or RELEASE-GAP-01 work.
+
+## Verified continuation on the existing application
+
+The function-only dependency was merged through [PR #347](https://github.com/infoganbatuah-ai/gan-batuach/pull/347) at `c7ba49e7403aa0467545020b2358837de51a6fad`, applied only to the isolated Development database, and its evidence merged through [PR #348](https://github.com/infoganbatuah-ai/gan-batuach/pull/348) at `38b720145cde459c4113b7720fc466d389980b41`. This Candidate branch ancestry-merged that head and preserved both ledger entries. Drift passed 260/260; Candidate discovery tests passed 7/7 and hiring lifecycle tests 8/8.
+
+At clean Feature QA source `9f843e302359e3318464ecd66f06a429ec8499bb` on loopback `127.0.0.1:3100`, with pinned `LOCAL_SUPABASE`, the runner resumed application `704025c7-724e-4156-8f99-7a9ebd991bc8` without creating another. The same-key retry returned the existing row. Manager A reviewed it and requested one short availability clarification through the UI; the Candidate responded through the UI. The exact receipt is `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/candidate-application-review-journey-20261107/receipt-1794073912114.json`, SHA256 `0196cd5029d723d362866ee26eaea4345ebfc2149b72ca61787e22dce0666ac6`; 24/24 checks passed in 26 seconds. The final local row is `resubmitted`, with one application, four audit events (submitted/staff, review/manager, request_information/manager, respond/staff), three in-app notifications, zero active/pending employment and zero externally accepted deliveries. Manager B and Staff B known-ID RLS reads and Manager actions were denied without changing the row; guest action and Candidate operational-shift access were denied. No approve, reject, accept or activation occurred.
+
+The first resumed attempt only timed out on a cold version GET, the second on a cold Candidate page, the third found a QA assertion racing page hydration, and the fourth timed out waiting only four seconds for a cold POST route. Each was recorded as `BLOCKED`, followed by a readback showing no review transition before retry. Their receipts remain private and are not called PASS. The final passing receipt contains eight actual Product captures, but its two immediate Mobile captures showed the transient branded splash. A separate **read-only** settled capture was therefore made after waiting for the splash to detach, without any application transition: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/candidate-application-review-journey-20261107/settled-readback-1794074083874.json`, SHA256 `a3b954875a8d4526f94a8099e08fe478cf80a7161a368ec84a5d3784d38907e2`, with two Desktop and two complete 390×844 Mobile screenshots. These visibly show the Candidate response and Manager review state. Both browser sessions and the owned Feature QA server were closed.
+
+Post-continuation source checks passed: TypeScript typecheck, lint baseline with zero canonical regressions, ledger schema (227 units), 260/260 isolated Development migration drift, migration health, release contract, Candidate discovery 7/7, hiring lifecycle 8/8, runner syntax and diff check. Required PR checks will run again on the exact pushed head.
+
+Remaining: exact-head CI, ancestry-preserving Development merge, and fresh no-write readback from the **merged canonical Product**. This scoped result does not certify full Product/security, owner visual acceptance, live providers, invoice-backed cost, main or Production.
