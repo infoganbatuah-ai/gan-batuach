@@ -202,6 +202,7 @@ export function ObserverMobileRuntime() {
     };
 
     const enablePush = async (event: Event) => {
+      if (disposed || !playbackPublisher.isCurrent()) return;
       if (!pushAvailable) {
         emit("digital-observer:native-push-result", { ok: false, reason: "push_unavailable_in_qa" });
         return;
@@ -210,8 +211,10 @@ export function ObserverMobileRuntime() {
       pendingPushSiteId = requestedSite && sites.some((site) => site.id === requestedSite) ? requestedSite : sites[0]?.id || "";
       try {
         let permission = await PushNotifications.checkPermissions();
+        if (disposed || !playbackPublisher.isCurrent()) return;
         if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
           permission = await PushNotifications.requestPermissions();
+          if (disposed || !playbackPublisher.isCurrent()) return;
         }
         if (permission.receive !== "granted") {
           emit("digital-observer:native-push-result", { ok: false, reason: "permission_denied" });
@@ -219,6 +222,7 @@ export function ObserverMobileRuntime() {
         }
         await PushNotifications.register();
       } catch {
+        if (disposed || !playbackPublisher.isCurrent()) return;
         emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
       }
     };
