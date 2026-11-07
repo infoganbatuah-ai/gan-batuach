@@ -15155,6 +15155,30 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "The scoped Webpack-default mitigation and Staff time evidence are preserved; retain the prior Turbo cause as unresolved. Next owner-coordinated Product/UX and cumulative security/cost gates remain. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/staff-time-summary-correctness-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-STAFF-TIME-SUMMARY-CORRECTNESS-20261107",
+      "title": "Correct Staff attendance minutes, Israel periods and unavailable read states",
+      "owner": "Product Staff-time summary executor; one Development integration owner",
+      "sourceBranch": "codex/staff-time-summary-correctness-20261107",
+      "sourceCommits": ["dc723c5371b8deb03f9b4e4d75184db6ebc80cc7"],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {"remoteVerified": false, "remoteRefs": [], "status": "LOCAL_SOURCE_COMMIT_LEDGER_CANDIDATE_PUSH_PENDING"},
+      "validation": {
+        "status": "FOCUSED_FIXTURE_5_OF_5_UX07_7_OF_7_LINT_PASS_CI_AND_RUNTIME_PENDING",
+        "evidence": ["On source Development 3495944d77e04712e8dc225aefda1473a292ed66, focused fixture tests passed 5/5, UX-07 focused regression passed 7/7, changed-path ESLint and diff check passed. The feature-worktree TypeScript attempt used another worktree's binary and failed only on unresolved optional Capacitor modules outside the changed paths; it is not full typecheck evidence. See GAN_BATUACH_PRODUCT_STAFF_TIME_SUMMARY_CORRECTNESS_20261107.md."],
+        "classification": "STAFF_ATTENDANCE_PRESENTATION_CORRECTION_SOURCE_ONLY",
+        "limits": "Feature exact-head CI, actual browser GET-only capture, merged Development QA, full Product/security, physical GPS, external owner visual and cost release gates pending. No change to GPS server actions, schema/RLS, provider, dependencies or DO core."
+      },
+      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "3495944d77e04712e8dc225aefda1473a292ed66", "commit": null, "pullRequests": [], "sourceAncestryVerified": false},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": ["codex/development-runtime-stability-20261107"]},
+      "migrations": [], "migrationOrder": [],
+      "localVerification": "FOCUSED_SOURCE_ONLY_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Push exact scoped feature head, pass required six CI plus quality/security, run guarded isolated feature QA and postmerge canonical GET-only Staff browser check, ancestry-merge Development, update source/ledger evidence. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
