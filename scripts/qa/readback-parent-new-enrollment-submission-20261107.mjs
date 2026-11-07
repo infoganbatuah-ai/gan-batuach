@@ -15,7 +15,7 @@ const garden='00000000-0000-4000-8000-000000000601';
 const requestId='7811740b-d8e7-4f0e-b056-122cf2f8a15b';
 const root=resolve(config.runtimeRoot,'parent-new-enrollment-submission-20261107');
 const receipt={task:'GB-PRODUCT-PARENT-NEW-ENROLLMENT-SUBMISSION-20261107',mode:'NO_WRITE_UI_READBACK',
-  expected,startedAt:new Date().toISOString(),checks:[],captures:[],browserWrites:0,status:'BLOCKED',productionAccess:false};
+  expected,startedAt:new Date().toISOString(),checks:[],captures:[],browserWrites:0,blockedWriteAttempts:[],status:'BLOCKED',productionAccess:false};
 const check=(label,value)=>{receipt.checks.push({label,pass:!!value});assert.ok(value,label)};
 function state(){
   return JSON.parse(sql(`select json_build_object(
@@ -46,7 +46,10 @@ async function capture(browser,jar,label,width,height,path,selector){
     await context.addCookies([...jar].map(([name,value])=>({name,value,url:base})));
     await context.route('**/*',route=>{
       const request=route.request();
-      if(!['GET','HEAD'].includes(request.method())){receipt.browserWrites++;return route.abort('blockedbyclient')}
+      if(!['GET','HEAD'].includes(request.method())){
+        receipt.blockedWriteAttempts.push({method:request.method(),path:new URL(request.url()).pathname});
+        return route.abort('blockedbyclient');
+      }
       if(new URL(request.url()).origin!==base)return route.abort('blockedbyclient');
       return route.continue();
     });
