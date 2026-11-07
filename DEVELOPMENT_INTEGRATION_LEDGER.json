@@ -15331,27 +15331,30 @@
         "6444f6dc7e093d14574e75078007840ac494eb06",
         "9d933af0b6b48440be12f87d36ccce5a2586e8b9"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/parent-manager-messaging-journey-20261107@9d933af0b6b48440be12f87d36ccce5a2586e8b9"],
-        "status": "SOURCE_REMOTE_PRESERVED_PR_AND_DEVELOPMENT_PENDING"
+        "remoteRefs": [
+          "origin/codex/parent-manager-messaging-journey-20261107@f715e10fc2ef0747a8c5eaaccafa04b76f25e411",
+          "origin/integration/development@d9f8e61c539017af40ff04c00d071cf92e01edca"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
         "status": "SCOPED_FEATURE_UI_READBACK_19_PASS",
         "evidence": [
-          "From clean Development 360012f0bd191cb46f894484a354ebad32d44bae, one synthetic Parent B/Manager B canonical conversation and two ordered messages were observed on Desktop/Mobile. Exact Product source head 6444f6dc7e093d14574e75078007840ac494eb06 readback passed 19/19 with same-key retry, foreign-role and guest denials, two in-app notifications, two read markers and zero externally accepted deliveries. Private receipt SHA256 5e8668c4347b7fec1c772108f5e3022e2f19744ff824a85e3290b737db2f2b80. See GAN_BATUACH_PRODUCT_PARENT_MANAGER_MESSAGING_JOURNEY_20261107.md."
+          "From clean Development 360012f0bd191cb46f894484a354ebad32d44bae, one synthetic Parent B/Manager B canonical conversation and two ordered messages were observed on Desktop/Mobile. Exact Product source head 6444f6dc7e093d14574e75078007840ac494eb06 readback passed 19/19 with same-key retry, foreign-role and guest denials, two in-app notifications, two read markers and zero externally accepted deliveries. Private receipt SHA256 5e8668c4347b7fec1c772108f5e3022e2f19744ff824a85e3290b737db2f2b80. All six Digital Observer CI gates, Canonical quality, Management context and Snyk passed at PR #345 exact head f715e10fc2ef0747a8c5eaaccafa04b76f25e411. Ancestry merge d9f8e61c539017af40ff04c00d071cf92e01edca passed canonical Product readback 19/19 with four fresh screenshots, private receipt SHA256 f19ecf0799e01928cce64e75f2dc3a6dee0db528fc1aa66ec9e6a01b959a6d8c, focused 25/25, ledger 225 and isolated Development drift 259/259. See GAN_BATUACH_PRODUCT_PARENT_MANAGER_MESSAGING_JOURNEY_20261107.md."
         ],
         "classification": "SCOPED_PARENT_MANAGER_MESSAGING_AND_UI_CORRECTION",
         "limitations": "Synthetic local Development journey only; not full Product/security, owner visual, live provider, Production or invoice-backed cost proof. No schema/RLS/Auth/provider/dependency/DO core change."
       },
       "integration": {
-        "status": "PENDING",
+        "status": "MERGED",
         "base": "integration/development",
         "baseCommit": "360012f0bd191cb46f894484a354ebad32d44bae",
-        "commit": null,
+        "commit": "d9f8e61c539017af40ff04c00d071cf92e01edca",
         "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/345"],
-        "sourceAncestryVerified": false
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "REQUIRES_MERGED_CANONICAL_MESSAGING_AND_PARENT_SCOPE",
@@ -15359,10 +15362,10 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "EXACT_PRODUCT_SOURCE_READBACK_19_CI_AND_MERGED_CAPTURE_PENDING",
+      "localVerification": "MERGED_CANONICAL_PRODUCT_READBACK_19_FOCUSED_25_LEDGER_225_DEVELOPMENT_DRIFT_259",
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
-      "nextAction": "Run exact-head CI, merge to Development, and perform fresh canonical no-new-thread readback before coordinator handoff. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Continue cumulative Product/security/owner visual and invoice-backed cost qualification; external delivery is unverified. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
