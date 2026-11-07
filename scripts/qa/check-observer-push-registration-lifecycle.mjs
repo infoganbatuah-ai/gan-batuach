@@ -49,6 +49,7 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
   const gates = new Map(), listeners = new Set(), retained = [], removes = new Map(), timers = new Map(), clears = new Map();
   const storage = new Map(existingReference ? [["digital_observer_device_reference", existingReference]] : []);
   const pending = [], fibers = [];
+  let nativeRequest;
   let siteId = "site-a", initial = initialRegistered, fiber, cursor = 0, tree, dead = false, timerId = 0, uuid = 0, notificationPermission = "granted";
   if (pauseAt) gates.set(pauseAt, deferred());
   const count = (name) => { calls.push(name); counts[name] = (counts[name] ?? 0) + 1; };
@@ -127,9 +128,9 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
     },
     setTimeout: (fn, delay) => { assert.equal(delay, 30000); const id = ++timerId; timers.set(id, fn); count("timer.add"); return id; },
     clearTimeout: (id) => { clears.set(id, (clears.get(id) ?? 0) + 1); timers.delete(id); count("timer.clear"); },
-    addEventListener: (name, callback, options) => { assert.equal(name, "digital-observer:native-push-result"); assert.equal(options.once, true); listeners.add(callback); retained.push(callback); count("listener.add"); },
+    addEventListener: (name, callback, options) => { assert.equal(name, "digital-observer:native-push-result"); assert.notEqual(options?.once, true); listeners.add(callback); retained.push(callback); count("listener.add"); },
     removeEventListener: (name, callback) => { assert.equal(name, "digital-observer:native-push-result"); listeners.delete(callback); removes.set(callback, (removes.get(callback) ?? 0) + 1); count("listener.remove"); },
-    dispatchEvent: (event) => { assert.equal(event.type, "digital-observer:enable-native-push"); assert.deepEqual(plain(event.detail), { siteId }); count("native.dispatch"); return true; }
+    dispatchEvent: (event) => { assert.equal(event.type, "digital-observer:enable-native-push"); assert.equal(event.detail.siteId, siteId); assert.equal(typeof event.detail.requestId, "string"); assert.ok(event.detail.requestId.length > 0 && event.detail.requestId.length <= 128); nativeRequest = { siteId, requestId: event.detail.requestId }; count("native.dispatch"); return true; }
   };
   const exports = {};
   script.runInNewContext({
@@ -180,7 +181,7 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
     }; },
     pause: (label) => { assert.equal(gates.has(label), false); const gate = deferred(); gates.set(label, gate); return gate; },
     release: (label, reject = false) => { const gate = gates.get(label); assert.ok(gate); if (reject) gate.reject(Error("SYNTHETIC_REJECTION")); else gate.resolve(); },
-    result: (detail) => { for (const callback of [...listeners]) callback({ detail }); },
+    result: (detail) => { for (const callback of [...listeners]) callback({ detail: { ...nativeRequest, ...detail } }); },
     timeout: () => { assert.equal(timers.size, 1); [...timers.values()][0](); },
     setNotificationPermission: (value) => { notificationPermission = value; },
     unmount,

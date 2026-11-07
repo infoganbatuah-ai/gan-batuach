@@ -181,10 +181,12 @@ for (const stage of ["check", "request"]) {
   });
 }
 
-test("current Push-unavailable branch preserves result without event payload or plugin work", async (context) => {
+test("current Push-unavailable branch correlates its request without plugin work", async (context) => {
   const h = await mount({ pushAvailable: false }); cleanupAfter(context, h);
-  const poison = new Proxy({}, { get() { throw Error("UNAVAILABLE_EVENT_SHOULD_NOT_BE_READ"); } });
-  await h.invoke(poison); await drain(); result(h, "push_unavailable_in_qa"); assert.deepEqual(h.calls, []);
+  const detail = { siteId: "site-a", requestId: "SYNTHETIC_UNAVAILABLE_REQUEST" };
+  await h.invoke({ detail }); await drain();
+  assert.deepEqual(plain(h.events), [{ type: "digital-observer:native-push-result", detail: { ok: false, reason: "push_unavailable_in_qa", ...detail } }]);
+  assert.deepEqual(h.calls, []);
 });
 
 for (const stage of ["check", "request", "register"]) {

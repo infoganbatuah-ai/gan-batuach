@@ -86,6 +86,7 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
     setState({ busy: true, registered: false, message: "", error: "" });
     try {
       if (Capacitor.isNativePlatform()) {
+        const requestId = crypto.randomUUID();
         const result = await new Promise<{ ok: boolean; reason?: string } | null>((resolve, reject) => {
           let settled = false;
           let timeout: number | undefined;
@@ -103,13 +104,20 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
           const cancel = () => finish(null);
           const listener = (event: Event) => {
             if (!isCurrent() || settled) return;
-            finish((event as CustomEvent<{ ok: boolean; reason?: string }>).detail);
+            const detail = (event as CustomEvent<unknown>).detail;
+            if (!detail || typeof detail !== "object") return;
+            const result = detail as { requestId?: unknown; siteId?: unknown; ok?: unknown; reason?: unknown };
+            if (typeof result.requestId !== "string" || result.requestId.length === 0 || result.requestId.length > 128
+              || result.requestId !== requestId || result.siteId !== siteId) return;
+            if (typeof result.ok !== "boolean" || (result.reason !== undefined && typeof result.reason !== "string")) return;
+            finish({ ok: result.ok, reason: result.reason });
           };
           owner.cancelNative = cancel;
           try {
             timeout = window.setTimeout(() => finish(isCurrent() ? { ok: false, reason: "timeout" } : null), 30_000);
-            window.addEventListener("digital-observer:native-push-result", listener, { once: true });
-            window.dispatchEvent(new CustomEvent("digital-observer:enable-native-push", { detail: { siteId } }));
+            // A foreign event must not consume DOM once before a matching result.
+            window.addEventListener("digital-observer:native-push-result", listener);
+            window.dispatchEvent(new CustomEvent("digital-observer:enable-native-push", { detail: { siteId, requestId } }));
           } catch (error) {
             if (!settled) { settled = true; release(); reject(error); }
           }

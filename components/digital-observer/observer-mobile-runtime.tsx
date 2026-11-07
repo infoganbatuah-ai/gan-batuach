@@ -20,6 +20,7 @@ let queueMutationTail: Promise<void> = Promise.resolve();
 
 type RuntimeSite = { id: string; name: string; timezone: string | null };
 type RuntimeResponse = { data?: { sites?: RuntimeSite[] } };
+type PushAttempt = { siteId: string; selectedSiteId: string; requestId?: string };
 
 function emit(name: string, detail: Record<string, unknown> = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -130,7 +131,7 @@ export function ObserverMobileRuntime() {
     let disposed = false;
     const playbackPublisher = openMobilePlaybackPublisher();
     let sites: RuntimeSite[] = [];
-    let pendingPushSiteId = "";
+    let pendingPushAttempt: PushAttempt | null = null;
     let checking = false;
     let checkingVersion = 0;
     let recheckRequested = false;
@@ -143,19 +144,25 @@ export function ObserverMobileRuntime() {
     const removers: Array<() => Promise<void>> = [];
 
     const ownsRuntime = () => !disposed && playbackPublisher.isCurrent();
+    const emitPushResult = (attempt: PushAttempt | null, detail: Record<string, unknown>, resultSiteId = attempt?.siteId ?? "") => {
+      if (!ownsRuntime() || pendingPushAttempt !== attempt) return;
+      emit("digital-observer:native-push-result", attempt?.requestId
+        ? { ...detail, requestId: attempt.requestId, siteId: resultSiteId }
+        : detail);
+    };
     const openOwnedMobileLink = (rawUrl: string) => {
       void authorizeAndOpen(rawUrl, ownsRuntime).catch(() => {
         if (ownsRuntime()) emit("digital-observer:mobile-link-denied");
       });
     };
 
-    const registerDevice = async (siteId: string, pushToken?: string) => {
-      if (!ownsRuntime()) return false;
+    const registerDevice = async (siteId: string, pushToken?: string, isCurrent = ownsRuntime) => {
+      if (!isCurrent()) return false;
       try {
         const [info, appInfo] = await Promise.all([Device.getInfo(), App.getInfo()]);
-        if (!ownsRuntime()) return false;
-        const reference = await deviceReference(ownsRuntime);
-        if (!ownsRuntime() || reference === null) return false;
+        if (!isCurrent()) return false;
+        const reference = await deviceReference(isCurrent);
+        if (!isCurrent() || reference === null) return false;
         if (pushToken) {
           const pushResponse = await fetch("/api/push/register", {
             method: "POST",
@@ -169,7 +176,7 @@ export function ObserverMobileRuntime() {
               metadata: { source: "digital_observer_native", observer_site_id: siteId }
             })
           });
-          if (!ownsRuntime()) return false;
+          if (!isCurrent()) return false;
           if (!pushResponse.ok) throw new Error("PUSH_TOKEN_REGISTRATION_FAILED");
         }
         const response = await fetch("/api/digital-observer/access-settings", {
@@ -184,11 +191,11 @@ export function ObserverMobileRuntime() {
             device_reference: reference
           })
         });
-        if (!ownsRuntime()) return false;
+        if (!isCurrent()) return false;
         if (!response.ok) throw new Error("DEVICE_REGISTRATION_FAILED");
         return true;
       } catch (error) {
-        if (!ownsRuntime()) return false;
+        if (!isCurrent()) return false;
         throw error;
       }
     };
@@ -252,54 +259,64 @@ export function ObserverMobileRuntime() {
       }
     };
 
-    const handlePushRegistration = async (token: { value: string }) => {
-      if (!ownsRuntime()) return;
+    const handlePushRegistration = async (token: { value: string }, attempt: PushAttempt | null) => {
+      const isCurrent = () => ownsRuntime() && pendingPushAttempt === attempt;
+      if (!isCurrent()) return;
       try {
         const savedSite = await Preferences.get({ key: pushSiteKey });
-        if (!ownsRuntime()) return;
-        const siteId = pendingPushSiteId || savedSite.value || sites[0]?.id || "";
+        if (!isCurrent()) return;
+        const siteId = attempt?.selectedSiteId || savedSite.value || sites[0]?.id || "";
         if (!siteId) {
-          emit("digital-observer:native-push-result", { ok: false, reason: "site_required" });
+          emitPushResult(attempt, { ok: false, reason: "site_required" });
           return;
         }
-        const registered = await registerDevice(siteId, token.value);
-        if (!ownsRuntime() || !registered) return;
+        const registered = await registerDevice(siteId, token.value, isCurrent);
+        if (!isCurrent() || !registered) return;
         await Preferences.set({ key: pushSiteKey, value: siteId });
-        if (!ownsRuntime()) return;
-        const pending = await mutateQueue(ownsRuntime, (items) => items.filter((item) => item.kind !== "push_registration"));
-        if (!ownsRuntime() || pending === null) return;
-        emit("digital-observer:native-push-result", { ok: true });
+        if (!isCurrent()) return;
+        const pending = await mutateQueue(isCurrent, (items) => items.filter((item) => item.kind !== "push_registration"));
+        if (!isCurrent() || pending === null) return;
+        emitPushResult(attempt, { ok: true }, siteId);
       } catch {
-        if (!ownsRuntime()) return;
-        await enqueue("push_registration", ownsRuntime).catch(() => false);
-        if (!ownsRuntime()) return;
-        emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+        if (!isCurrent()) return;
+        await enqueue("push_registration", isCurrent).catch(() => false);
+        if (!isCurrent()) return;
+        emitPushResult(attempt, { ok: false, reason: "registration_failed" });
       }
     };
 
     const enablePush = async (event: Event) => {
       if (disposed || !playbackPublisher.isCurrent()) return;
+      const detail = (event as CustomEvent<{ siteId?: string; requestId?: unknown }>).detail;
+      const requestedSite = detail?.siteId;
+      const selectedSiteId = requestedSite && sites.some((site) => site.id === requestedSite) ? requestedSite : sites[0]?.id || "";
+      const requestId = detail?.requestId;
+      const attempt: PushAttempt = {
+        siteId: typeof requestedSite === "string" ? requestedSite : selectedSiteId,
+        selectedSiteId,
+        ...(typeof requestId === "string" && requestId.length > 0 && requestId.length <= 128 ? { requestId } : {})
+      };
+      pendingPushAttempt = attempt;
+      const isCurrent = () => ownsRuntime() && pendingPushAttempt === attempt;
       if (!pushAvailable) {
-        emit("digital-observer:native-push-result", { ok: false, reason: "push_unavailable_in_qa" });
+        emitPushResult(attempt, { ok: false, reason: "push_unavailable_in_qa" });
         return;
       }
-      const requestedSite = (event as CustomEvent<{ siteId?: string }>).detail?.siteId;
-      pendingPushSiteId = requestedSite && sites.some((site) => site.id === requestedSite) ? requestedSite : sites[0]?.id || "";
       try {
         let permission = await PushNotifications.checkPermissions();
-        if (disposed || !playbackPublisher.isCurrent()) return;
+        if (!isCurrent()) return;
         if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
           permission = await PushNotifications.requestPermissions();
-          if (disposed || !playbackPublisher.isCurrent()) return;
+          if (!isCurrent()) return;
         }
         if (permission.receive !== "granted") {
-          emit("digital-observer:native-push-result", { ok: false, reason: "permission_denied" });
+          emitPushResult(attempt, { ok: false, reason: "permission_denied" });
           return;
         }
         await PushNotifications.register();
       } catch {
-        if (disposed || !playbackPublisher.isCurrent()) return;
-        emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+        if (!isCurrent()) return;
+        emitPushResult(attempt, { ok: false, reason: "registration_failed" });
       }
     };
 
@@ -375,13 +392,16 @@ export function ObserverMobileRuntime() {
       if (pushAvailable) {
         const registration = await PushNotifications.addListener("registration", (token) => {
           if (disposed || !playbackPublisher.isCurrent()) return;
-          void handlePushRegistration(token);
+          // The SDK has no request ID: bind only the JS context at callback entry.
+          const attempt = pendingPushAttempt;
+          void handlePushRegistration(token, attempt);
         });
         const removeRegistration = ownPushListener(registration);
         if (disposed || !playbackPublisher.isCurrent()) { await removeRegistration(); return; }
         const registrationError = await PushNotifications.addListener("registrationError", () => {
           if (disposed || !playbackPublisher.isCurrent()) return;
-          emit("digital-observer:native-push-result", { ok: false, reason: "provider_error" });
+          const attempt = pendingPushAttempt;
+          emitPushResult(attempt, { ok: false, reason: "provider_error" });
         });
         const removeRegistrationError = ownPushListener(registrationError);
         if (disposed || !playbackPublisher.isCurrent()) { await removeRegistrationError(); return; }
