@@ -118,7 +118,8 @@ try {
 
   const candidatePage = await pageFor(candidate, { width: 1440, height: 1024 });
   await candidatePage.goto(`${app}/dashboard/staff/job-market/${openingId}`, { waitUntil: "domcontentloaded", timeout: 8_000 });
-  if (!resumeApplicationId) await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).waitFor();
+  if (resumeApplicationId) await candidatePage.getByRole("heading", { name: "גננת", exact: true }).waitFor();
+  else await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).waitFor();
   check("Candidate sees local opening", resumeApplicationId
     ? await candidatePage.getByRole("heading", { name: "גננת", exact: true }).count() === 1
     : await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).count() === 1);
@@ -141,6 +142,7 @@ try {
 
   const managerPage = await pageFor(manager, { width: 1440, height: 1024 });
   await managerPage.goto(`${app}/dashboard/garden/staff-applications/${applicationId}`, { waitUntil: "domcontentloaded", timeout: 8_000 });
+  await managerPage.getByText("נועה כהן").first().waitFor();
   check("Manager sees Candidate application", await managerPage.getByText("נועה כהן").count() > 0);
   await capture(managerPage, "manager-desktop-submitted");
   const form = managerPage.locator("#decision form");
