@@ -14761,7 +14761,7 @@
       "owner": "Product Parent selected-child correction executor; one Development integration owner",
       "sourceBranch": "codex/product-parent-selected-child-documents-20261107",
       "sourceCommits": ["97b73cbd84d589b0c3e2be2588ab7371aff22b4f", "dce279095bbbc2b733e9346cbaae682459d83c0a"],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": ["origin/codex/push46-parent-selected-child-documents-20261106@97b73cbd84d589b0c3e2be2588ab7371aff22b4f", "origin/codex/product-parent-selected-child-documents-20261107@b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7", "origin/integration/development@6e9895ffa4b758eee41445c05613c998c4dfbaa7"],
@@ -14775,16 +14775,17 @@
         "ownerException": "Owner explicitly approved transfer of only the correction while preserving the original branch; 198 mixed-history commits and 206 files are excluded."
       },
       "validation": {
-        "status": "SCOPED_SYNTHETIC_PAGE_FIXTURE_20_OF_20_PASS_NO_FULL_STACK_PROOF",
+        "status": "SCOPED_SYNTHETIC_PAGE_FIXTURE_20_OF_20_PASS_PARENT_PRIMARY_CANONICAL_BROWSER_DESKTOP_MOBILE_PASS_NO_FULL_STACK_PROOF",
         "evidence": [
           "Candidate script node --check PASS and one focused synthetic page run 20/20 PASS on the clean Development-based branch.",
           "Selected authorized Children 1, 4, 5 and 13 remain visible in bounded four-row attendance; unauthorized selection adds no query scope; document read failures with null, zero and stale counts stay unavailable/neutral; healthy documents retain true counts; denied role precedes data reads.",
           "Only Product file blobs app/dashboard/parent/page.tsx 3b64ce80542140e336fe3db4be54f5a98139cb68 and scripts/qa/check-parent-selected-child-documents.mjs 12a5328ba3908a920c0b79a6a3e557929019bfa1 match the owner-approved original commit exactly. Two-file patch SHA256 c32d60a4e6633f1595552a3db715f6054ebab395b0c8cf1c570098c5ed95a9a1; stable patch ID 124339a71c1c0837c9b3383f0ae6e3098a192411.",
           "Vercel accessible project history since 1790000000000 had four main Production deployments and no non-main deployment; repository vercel.json disables all Git deployments except main. After both non-force branch pushes, exact-SHA and branch deployment queries each returned zero. Full team-scoped Git trigger fields were not exposed by the accessible project summary.",
-          "PR #319 exact head b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7 passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk; ancestry-preserving Development merge 6e9895ffa4b758eee41445c05613c998c4dfbaa7. Canonical worktree fast-forwarded cleanly. Post-merge check-ledger PASS 211 units; UXV9 authorized Parent identity check PASS 20 assertions. Main stayed 4e28d73f8a578637cc25522b193b550ad6d87482; feature SHA Vercel deployment count zero."
+          "PR #319 exact head b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7 passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk; ancestry-preserving Development merge 6e9895ffa4b758eee41445c05613c998c4dfbaa7. Canonical worktree fast-forwarded cleanly. Post-merge check-ledger PASS 211 units; UXV9 authorized Parent identity check PASS 20 assertions. Main stayed 4e28d73f8a578637cc25522b193b550ad6d87482; feature SHA Vercel deployment count zero.",
+          "A later bounded canonical default-Turbopack Parent primary runtime check on clean Development 15b842f94e91157c6af31e2f7133e005c95dc58a passed Desktop 1440x1024 and Mobile 390x844. Existing synthetic multi-Child Parent selected the second authorized Child through the visible card selector; selected attendance and scoped attendance/payment links updated, Desktop reload preserved the selection, and a foreign Child query showed the unavailable state without the foreign name. Four settled screenshots were visually inspected with no splash or route-transition overlay. Private redacted report SHA256 0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e under Development/gan-batuach/parent-primary-canonical-15b842f9/; final receipt SHA256 12e38cf7f946b60e24bceca83f83671229e7fb59b4f4028b0f1fcbdffaddca7e. The first selector/loader measurement errors remain preserved separately and are not Product failures."
         ],
-        "classification": "MANAGEMENT_SCOPED_SOURCE_AND_SYNTHETIC_FIXTURE_ONLY",
-        "limits": "POST_MERGE_RUNTIME_UNVERIFIED: guarded exact-merge Product launched with LOCAL_SUPABASE and healthy pinned isolated DB/Auth, but an initial synthetic multi-Parent browser navigation repeated HTTP 200 /dashboard/parent requests with a Next development Suspense-boundary fallback; domcontentloaded did not settle. Browser and app stopped promptly without Product writes. Private failure receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-selected-child-documents-postmerge-6e9895ff/attempt-1.json SHA256 32313da1cb222ea8495c307366ad2c972415bdbd85ded4639febd2d77dca3764. No successful post-merge browser/API/RLS/visual proof, >4 real Child case or forced document error. Original Unit312 artifact unavailable, not PASS. Vercel full team-scoped Git trigger fields not exposed; observed no deployment only."
+        "classification": "MANAGEMENT_SCOPED_SOURCE_FIXTURE_AND_CANONICAL_PARENT_PRIMARY_BROWSER",
+        "limits": "The historical 6e9895ff Parent primary browser retry remains preserved as failure evidence, but the later bounded synthetic Parent primary Desktop/Mobile runtime on clean Development 15b842f9 passed. This is not direct Parent-to-Parent RLS, all-role security, forced document-read error, >4 real Child, literal reference visual acceptance or cumulative Product proof. Original Unit312 artifact unavailable, not PASS. A separate historical 8b9dd0fe default-Turbopack Parent Documents timeout remains unexplained despite a fresh one-time default-mode success; no root-cause repair is claimed. Vercel full team-scoped Git trigger fields were not exposed; observed no deployment only."
       },
       "integration": {
         "status": "MERGED",
@@ -14800,10 +14801,10 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "POST_MERGE_SOURCE_AND_AUTHORIZED_CHILD_IDENTITY_PASS_BROWSER_RUNTIME_UNVERIFIED_SUSPENSE_RETRY",
-      "releaseEligibility": "NOT_READY_POST_MERGE_PARENT_BROWSER_RLS_EXTERNAL_OWNER_VISUAL_ALL_ROLE_SECURITY_AND_INVOICE_BACKED_COST_PENDING",
+      "localVerification": "SCOPED_CANONICAL_PARENT_PRIMARY_DEFAULT_TURBOPACK_DESKTOP_AND_MOBILE_BROWSER_PASS_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_PARENT_RLS_DOCUMENT_READ_ERROR_CUMULATIVE_PRODUCT_EXTERNAL_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Under fresh host resource admission, run a bounded server-render Parent diagnostic and investigate the observed Next development Suspense retry before any full browser PASS; authenticate an exact-merge selected-Child/documents journey and relevant role denial when safe. Keep existing synthetic 20-case fixture and prior Staff/Manager receipts separate. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Preserve the bounded canonical Parent primary synthetic Desktop/Mobile runtime evidence. Correlate any new naturally occurring default-Turbopack Parent Documents failure with first-error/request timing rather than repeating the 90-second loop; separately qualify Parent-to-Parent RLS, forced document-read error, full Product journeys and owner visual acceptance. Keep prior Staff/Manager receipts separate. No main, Production or RELEASE-GAP-01."
     },
     {
       "id": "codex/product-parent-documents-read-state-20261107",
