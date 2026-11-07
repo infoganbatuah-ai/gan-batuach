@@ -86,7 +86,7 @@ export default async function Page() {
               <ListRowCard
                 key={row.id}
                 title={new Date(row.shift_date).toLocaleDateString("he-IL")}
-                subtitle={`מתוכנן ${row.planned_start ?? "-"}-${row.planned_end ?? "-"}`}
+                subtitle={`מתוכנן ${shortTime(row.planned_start)}–${shortTime(row.planned_end)}`}
                 meta={`בפועל ${row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}-${row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}`}
                 status={<StatusChip tone={row.actual_start && !row.actual_end ? "warning" : !row.actual_start ? "info" : "success"}>{row.actual_start && !row.actual_end ? "חסרה החתמת יציאה" : !row.actual_start ? "מתוכנן" : `${(Number(row.total_minutes ?? 0) / 60).toFixed(1)} שעות`}</StatusChip>}
               />
