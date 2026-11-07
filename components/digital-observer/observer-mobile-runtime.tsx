@@ -14,6 +14,10 @@ const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
 const pushSiteKey = "digital_observer_native_push_site_v1";
 
+// One lane for this module's queue key, including writes issued by a prior owner.
+// Only sequencing is shared; each caller retains its own runtime ownership gate.
+let queueMutationTail: Promise<void> = Promise.resolve();
+
 type RuntimeSite = { id: string; name: string; timezone: string | null };
 type RuntimeResponse = { data?: { sites?: RuntimeSite[] } };
 
@@ -54,26 +58,47 @@ async function readQueue(isCurrent: () => boolean): Promise<MobileOfflineOperati
   }
 }
 
-async function writeQueue(items: MobileOfflineOperation[], isCurrent: () => boolean): Promise<boolean> {
-  if (!isCurrent()) return false;
+async function writeQueue(items: MobileOfflineOperation[], isCurrent: () => boolean): Promise<MobileOfflineOperation[] | null> {
+  if (!isCurrent()) return null;
   try {
-    const value = JSON.stringify(sanitizeOfflineQueue(items));
-    if (!isCurrent()) return false;
+    const sanitized = sanitizeOfflineQueue(items);
+    const value = JSON.stringify(sanitized);
+    if (!isCurrent()) return null;
     await Preferences.set({ key: offlineQueueKey, value });
-    return isCurrent();
+    return isCurrent() ? sanitized : null;
   } catch (error) {
-    if (!isCurrent()) return false;
+    if (!isCurrent()) return null;
     throw error;
   }
 }
 
+function mutateQueue(
+  isCurrent: () => boolean,
+  mutate: (items: MobileOfflineOperation[]) => MobileOfflineOperation[] | null
+): Promise<MobileOfflineOperation[] | null> {
+  const result = queueMutationTail.then(async () => {
+    if (!isCurrent()) return null;
+    const items = await readQueue(isCurrent);
+    if (!isCurrent() || items === null) return null;
+    const next = mutate(items);
+    if (!isCurrent()) return null;
+    // A duplicate enqueue is a successful no-op on the fresh snapshot.
+    if (next === null) return items;
+    return writeQueue(next, isCurrent);
+  });
+  // Recover only the sequencing tail: the originating caller still sees its error.
+  queueMutationTail = result.then(() => undefined, () => undefined);
+  return result;
+}
+
 async function enqueue(kind: MobileOfflineOperation["kind"], isCurrent: () => boolean): Promise<boolean> {
   if (!isCurrent()) return false;
-  const items = await readQueue(isCurrent);
-  if (!isCurrent() || items === null) return false;
-  if (items.some((item) => item.kind === kind)) return true;
-  items.push({ id: crypto.randomUUID(), kind, createdAt: new Date().toISOString(), attempts: 0 });
-  return writeQueue(items, isCurrent);
+  const result = await mutateQueue(isCurrent, (items) => {
+    if (items.some((item) => item.kind === kind)) return null;
+    items.push({ id: crypto.randomUUID(), kind, createdAt: new Date().toISOString(), attempts: 0 });
+    return items;
+  });
+  return isCurrent() && result !== null;
 }
 
 async function authorizeAndOpen(rawUrl: string, isCurrent: () => boolean) {
@@ -195,10 +220,8 @@ export function ObserverMobileRuntime() {
           const registered = await registerDevice(savedSite.value).catch(() => undefined);
           if (!ownsRuntime() || registered === false) return;
         }
-        const pending = await readQueue(ownsRuntime);
+        const pending = await mutateQueue(ownsRuntime, (items) => items.filter((item) => item.kind !== "runtime_revalidate"));
         if (!ownsRuntime() || pending === null) return;
-        const written = await writeQueue(pending.filter((item) => item.kind !== "runtime_revalidate"), ownsRuntime);
-        if (!ownsRuntime() || !written) return;
         if (pushAvailable && pending.some((item) => item.kind === "push_registration")) {
           const permission = await PushNotifications.checkPermissions();
           if (!ownsRuntime()) return;
@@ -243,10 +266,8 @@ export function ObserverMobileRuntime() {
         if (!ownsRuntime() || !registered) return;
         await Preferences.set({ key: pushSiteKey, value: siteId });
         if (!ownsRuntime()) return;
-        const pending = await readQueue(ownsRuntime);
+        const pending = await mutateQueue(ownsRuntime, (items) => items.filter((item) => item.kind !== "push_registration"));
         if (!ownsRuntime() || pending === null) return;
-        const written = await writeQueue(pending.filter((item) => item.kind !== "push_registration"), ownsRuntime);
-        if (!ownsRuntime() || !written) return;
         emit("digital-observer:native-push-result", { ok: true });
       } catch {
         if (!ownsRuntime()) return;
