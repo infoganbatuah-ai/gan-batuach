@@ -4,16 +4,20 @@ import {readFileSync} from 'node:fs';
 import {integrationEnvironment,isGeneratedNextEnv} from '../development/integration-environment.mjs';
 import {parseIntegrationArgs} from '../development/integration-bundler.mjs';
 
-test('canonical integration defaults to installed Turbopack mode',()=>{
-  assert.deepEqual(parseIntegrationArgs([]),{uiOnly:false,bundler:'TURBOPACK_DEFAULT',nextFlags:[]});
-  assert.deepEqual(parseIntegrationArgs(['--ui-only']),{uiOnly:true,bundler:'TURBOPACK_DEFAULT',nextFlags:[]});
+test('canonical integration explicitly defaults to Webpack for full-stack and UI-only',()=>{
+  assert.deepEqual(parseIntegrationArgs([]),{uiOnly:false,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only']),{uiOnly:true,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
 });
-test('only the explicit Webpack diagnostic option changes the Next flag',()=>{
-  assert.deepEqual(parseIntegrationArgs(['--webpack']),{uiOnly:false,bundler:'WEBPACK_DIAGNOSTIC',nextFlags:['--webpack']});
-  assert.deepEqual(parseIntegrationArgs(['--ui-only','--webpack']),{uiOnly:true,bundler:'WEBPACK_DIAGNOSTIC',nextFlags:['--webpack']});
+test('explicit Webpack retains the stable Development mode',()=>{
+  assert.deepEqual(parseIntegrationArgs(['--webpack']),{uiOnly:false,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only','--webpack']),{uiOnly:true,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
 });
-test('unknown, duplicated and arbitrary runtime flags fail closed',()=>{
-  for(const args of [['--turbo'],['--webpack','--inspect'],['--webpack','--webpack'],['--ui-only','--ui-only'],['--'],['--webpack','--ui-only','--inspect'],['--hostname','0.0.0.0']]) {
+test('explicit Turbopack is labeled as a known intermittent diagnostic',()=>{
+  assert.deepEqual(parseIntegrationArgs(['--turbopack']),{uiOnly:false,bundler:'TURBOPACK_DIAGNOSTIC_KNOWN_INTERMITTENT_FAILURE',nextFlags:['--turbopack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only','--turbopack']),{uiOnly:true,bundler:'TURBOPACK_DIAGNOSTIC_KNOWN_INTERMITTENT_FAILURE',nextFlags:['--turbopack']});
+});
+test('conflicting, unknown, duplicated and arbitrary runtime flags fail closed',()=>{
+  for(const args of [['--turbo'],['--webpack','--turbopack'],['--turbopack','--webpack'],['--webpack','--inspect'],['--webpack','--webpack'],['--turbopack','--turbopack'],['--ui-only','--ui-only'],['--'],['--webpack','--ui-only','--inspect'],['--hostname','0.0.0.0']]) {
     assert.throws(()=>parseIntegrationArgs(args),/accepts only/);
   }
 });

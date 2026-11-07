@@ -1,16 +1,16 @@
-// The canonical Development launcher accepts only these two explicit modes.
-// Keep the default on Next's installed Turbopack behavior; Webpack is a
-// diagnostic opt-in, never an arbitrary Next/Node flag passthrough.
+// Keep the canonical Development default explicit and narrow. The installed
+// Next CLI accepts both flags; Turbopack remains available only for diagnosis.
 export function parseIntegrationArgs(args) {
   if (!Array.isArray(args) || args.length > 2 || new Set(args).size !== args.length
-    || args.some(arg => arg !== '--ui-only' && arg !== '--webpack')) {
-    throw new Error('Integration accepts only --ui-only and the explicit --webpack diagnostic flag.');
+    || args.some(arg => arg !== '--ui-only' && arg !== '--webpack' && arg !== '--turbopack')
+    || (args.includes('--webpack') && args.includes('--turbopack'))) {
+    throw new Error('Integration accepts only --ui-only and one optional --webpack or --turbopack bundler flag.');
   }
   const uiOnly = args.includes('--ui-only');
-  const webpackDiagnostic = args.includes('--webpack');
+  const turbopackDiagnostic = args.includes('--turbopack');
   return {
     uiOnly,
-    bundler: webpackDiagnostic ? 'WEBPACK_DIAGNOSTIC' : 'TURBOPACK_DEFAULT',
-    nextFlags: webpackDiagnostic ? ['--webpack'] : [],
+    bundler: turbopackDiagnostic ? 'TURBOPACK_DIAGNOSTIC_KNOWN_INTERMITTENT_FAILURE' : 'WEBPACK_STABLE_DEVELOPMENT',
+    nextFlags: turbopackDiagnostic ? ['--turbopack'] : ['--webpack'],
   };
 }
