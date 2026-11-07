@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T20:58:26.195Z",
+  "updatedAt": "2026-11-07T22:34:28.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15576,6 +15576,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Coordinator continues cumulative Product/security, owner visual and invoice-backed cost qualification. Preserve the synthetic request/evidence; no main or Production."
+    },
+    {
+      "id": "codex/parent-enrollment-seat-status-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-ENROLLMENT-SEAT-RESERVATION-20261107",
+      "title": "One Manager enrollment approval and seat reservation with truthful Parent status",
+      "owner": "Parent enrollment journey executor; one Development integration owner",
+      "sourceBranch": "codex/parent-enrollment-seat-status-20261108",
+      "sourceCommits": [
+        "3d9af2f579d39dba05de790326a107951f6446a7"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-enrollment-seat-status-20261108@3d9af2f579d39dba05de790326a107951f6446a7"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_NO_WRITE_READBACK_PASS",
+        "evidence": [
+          "At source Development 5c8a9762dc90d839f91885ba79722770f710a429, one guarded Manager review and approval of existing synthetic request 7811740b-d8e7-4f0e-b056-122cf2f8a15b persisted awaiting_payment, payment_status pending and exactly one active request-owned seat reservation; retry was idempotent. The original Product run remains BLOCKED overall after 20 completed checks because Parent screenshot assertion timed out; unchanged private receipt SHA256 eb15ac14ba81e7e5ce49e90290ecfda45c10777f8e22038d34e43a653354716a. No repeated approval or new request.",
+          "The only source behavior change adds Hebrew labels for canonical Parent enrollment/payment states while retaining unknown-state fallback. Local TypeScript and enrollment lifecycle 7/7 passed; focused ESLint found the same 12 pre-existing no-explicit-any findings at base and candidate, zero added. No API, SQL, RLS, Auth, provider, payment, reservation or Digital Observer core change.",
+          "PR #355 exact source head 3d9af2f579d39dba05de790326a107951f6446a7 passed all six Digital Observer CI gates, Canonical quality, Management tenant context and Snyk. Ancestry-preserving Development merge f097738a5e5f2dccd30d1e1fcb094df87707b834 and remote source/integration refs were freshly verified. Check URLs and limitations are in the Markdown companion.",
+          "Initial postmerge no-write capture was BLOCKED by transient branded splash, with one intercepted browser write; protected receipt SHA256 c7be3c381f8b5af310e52f3c65489db34e75027ab1a733e47f739adecd1b712d, not accepted as final evidence. A separate settled exact-merge-head canonical Product readback passed 19/19 with LOCAL_SUPABASE, four actual 1440x1024/390x844 Manager/Parent captures, zero browser writes or blocked requests and unchanged scoped database counts; private receipt SHA256 e99dd36769f37b3f456eb97b91c717df8fea76879a5b2ef8136ab95addf7a263. One awaiting-payment request, one active reservation, zero active enrollment, payment evidence or accepted external delivery remained."
+        ],
+        "classification": "SCOPED_SYNTHETIC_PARENT_ENROLLMENT_APPROVAL_AND_SEAT_RESERVATION_QA",
+        "limitations": "The original mutation run and first postmerge capture remain BLOCKED; only the separately settled no-write readback passed overall. Screenshots show the relevant request/status after scrolling, not owner reference approval. This is one local synthetic journey, not full Product/security, live payment/provider, invoice-backed cost compliance or Production readiness."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "5c8a9762dc90d839f91885ba79722770f710a429",
+        "commit": "f097738a5e5f2dccd30d1e1fcb094df87707b834",
+        "pullRequests": [
+          355
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_ISOLATED_DEVELOPMENT_BACKEND_VERIFIED",
+        "units": [
+          "codex/parent-new-enrollment-submission-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_MERGED_PRODUCT_19_OF_19_NO_WRITE_PARENT_MANAGER_DESKTOP_MOBILE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger closure remotely; coordinator selects the next source-only Parent gap. Payment, manual activation, cumulative Product/security, owner visual and invoice-backed cost gates remain pending; no main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
