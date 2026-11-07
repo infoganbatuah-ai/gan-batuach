@@ -38,7 +38,8 @@ function playbackFailureReason(error: unknown) {
 }
 
 const playbackSessions = new Map<string, PlaybackSession>();
-const pendingPlaybackSessions = new Map<string, Promise<string>>();
+type PendingPlaybackSession = { promise: Promise<string>; consumers: Set<symbol> };
+const pendingPlaybackSessions = new Map<string, PendingPlaybackSession>();
 const playbackSessionTtlMs = 4 * 60 * 1000;
 
 function playbackKey(observerSiteId: string, cameraSourceId: string) {
@@ -51,30 +52,56 @@ function invalidatePlaybackSession(observerSiteId: string, cameraSourceId: strin
   pendingPlaybackSessions.delete(key);
 }
 
-async function requestPlaybackSession(observerSiteId: string, cameraSourceId: string) {
+function playbackConsumer(key: string, ticket: PendingPlaybackSession, consumer: symbol) {
+  let released = false;
+  return {
+    promise: ticket.promise,
+    release: () => {
+      if (released) return;
+      released = true;
+      ticket.consumers.delete(consumer);
+      if (ticket.consumers.size === 0 && pendingPlaybackSessions.get(key) === ticket) pendingPlaybackSessions.delete(key);
+    }
+  };
+}
+
+function requestPlaybackSession(observerSiteId: string, cameraSourceId: string) {
   const key = playbackKey(observerSiteId, cameraSourceId);
   const cached = playbackSessions.get(key);
-  if (cached && cached.expiresAt > Date.now()) return cached.url;
+  if (cached && cached.expiresAt > Date.now()) return { promise: Promise.resolve(cached.url), release: () => {} };
 
+  const consumer = Symbol("playback-consumer");
   const pending = pendingPlaybackSessions.get(key);
-  if (pending) return pending;
+  if (pending) {
+    pending.consumers.add(consumer);
+    return playbackConsumer(key, pending, consumer);
+  }
 
-  const ticket: { promise?: Promise<string> } = {};
+  let resolveRequest!: (url: string) => void;
+  let rejectRequest!: (error: unknown) => void;
+  const promise = new Promise<string>((resolve, reject) => { resolveRequest = resolve; rejectRequest = reject; });
+  const ticket: PendingPlaybackSession = { promise, consumers: new Set([consumer]) };
+  pendingPlaybackSessions.set(key, ticket);
+  const requireCurrent = () => {
+    if (pendingPlaybackSessions.get(key) !== ticket || ticket.consumers.size === 0) throw new PlaybackFlowError("playback_cancelled");
+  };
   const request = (async () => {
     let playbackUrl = "";
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      if (attempt > 0 && pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
+      requireCurrent();
       const response = await fetch("/api/digital-observer/dvr-gateway", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
       });
+      requireCurrent();
       const payload = await response.json().catch(() => ({}));
-      if (pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
+      requireCurrent();
       if (!response.ok) {
         const retryableGatewayFailure = response.status === 503 || (response.status !== 503 && [502, 504].includes(response.status));
         if (retryableGatewayFailure && attempt < 2) {
           await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+          requireCurrent();
           continue;
         }
         throw new PlaybackFlowError(`cloud_${response.status}`);
@@ -98,8 +125,9 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
         } catch {
           throw new PlaybackFlowError("local_unreachable");
         }
+        requireCurrent();
         const claimPayload = await claimResponse.json().catch(() => ({}));
-        if (pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
+        requireCurrent();
         if (!claimResponse.ok) throw new PlaybackFlowError(`local_claim_${claimResponse.status}`);
         candidate = claimPayload?.playback?.hls_url;
         if (typeof candidate !== "string" || new URL(candidate).origin !== allowedOrigin
@@ -112,19 +140,15 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
       throw new PlaybackFlowError("playback_missing");
     }
     if (!playbackUrl) throw new Error("playback_unavailable");
-    if (pendingPlaybackSessions.get(key) === ticket.promise) {
-      playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
-    }
+    requireCurrent();
+    playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
     return playbackUrl;
-  })();
-
-  ticket.promise = request;
-  pendingPlaybackSessions.set(key, request);
-  try {
-    return await request;
-  } finally {
-    if (pendingPlaybackSessions.get(key) === request) pendingPlaybackSessions.delete(key);
-  }
+  })().finally(() => {
+    if (pendingPlaybackSessions.get(key) === ticket) pendingPlaybackSessions.delete(key);
+  });
+  // Publish a real shared promise before issuing fetch, including reentrant callers.
+  void request.then(resolveRequest, rejectRequest);
+  return playbackConsumer(key, ticket, consumer);
 }
 
 export function ObserverLivePlayer({
@@ -171,6 +195,7 @@ export function ObserverLivePlayer({
   useEffect(() => {
     let cancelled = false;
     let hls: Hls | null = null;
+    let releasePlaybackRequest: (() => void) | null = null;
     let mediaHeartbeat: ReturnType<typeof setInterval> | null = null;
     const currentVideoElement = videoRef.current;
     if (!currentVideoElement) return;
@@ -192,6 +217,7 @@ export function ObserverLivePlayer({
       retryGenerationRef.current += 1;
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
+      releasePlaybackRequest?.();
       invalidatePlaybackSession(observerSiteId, cameraSourceId);
       hls?.destroy();
       hls = null;
@@ -247,7 +273,9 @@ export function ObserverLivePlayer({
       if (!active()) return;
       setState("loading");
       setUnavailableReason("");
-      const playbackUrl = await requestPlaybackSession(observerSiteId, cameraSourceId);
+      const session = requestPlaybackSession(observerSiteId, cameraSourceId);
+      releasePlaybackRequest = session.release;
+      const playbackUrl = await session.promise;
       if (!active()) return;
 
       if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
@@ -295,6 +323,7 @@ export function ObserverLivePlayer({
     });
     return () => {
       cancelled = true;
+      releasePlaybackRequest?.();
       mountedRef.current = false;
       mediaActiveRef.current = false;
       retryGenerationRef.current += 1;
