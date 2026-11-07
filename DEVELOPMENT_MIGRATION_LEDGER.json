@@ -7953,18 +7953,19 @@
         "20261107165001"
       ],
       "developmentApprovalEvidence": "PR #357 exact source head ed92c1a3471651815cc5c192b03080b14b2335a9 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk. Rollback-only pre-fix synthetic test reproduced stale rejected-request reconciliation with confirmed evidence and two audit rows; proposed migration test passed invalid states, foreign Manager/Parent denials, activated retry, zero denied writes and function owner/ACL/search_path checks. Migration health 261, focused enrollment activation 8/8, audit-role 2/2 and release contract passed. No existing QA request was invoked.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-07T23:39:28.272629+00:00",
+      "developmentEvidence": "Canonical isolated Development applicator applied only this ordered function migration at exact remote integration head 536d693c8c1ab2592c3f0d7ee2f8bd9ee2122709. Private application receipt SHA256 acc1a50785c29cf9c7a7cd62d2146f3198c7304af841637ce845903be953f6f6; installed function/history/ACL readback SHA256 3c5d4ab19b5a5d1de6f40b85dcd20e296547a9123b8f23e227842fa2e8c2455f; rollback-only installed behavior/role test SHA256 26b20277b8ebb2f4eeecaf830399e6e3f81b97d1c8f57f977a0494c7bfa3b1d1. Function owner postgres, SECURITY DEFINER, search_path public, authenticated execute and anon denial preserved; existing synthetic Parent request remained awaiting_payment with zero payment evidence. No Production access.",
+      "developmentHistoryDigest": "2748148b47afb040c945a7a0212fa68dd81efa59a57f2190ea7d00e127937812",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
-      "recovery": "Before canonical application preserve the existing isolated Development function definition, owner and ACL in restricted evidence. If application or verification fails, use a reviewed forward-only function replacement or restore the isolated backup; never edit applied migration history or existing request/evidence rows.",
-      "developmentStatusReason": "Validated and merged source is registered; canonical isolated Development application and post-apply verification remain pending."
+      "recovery": "Pre-apply isolated Development function definition, owner and ACL preserved mode 600 in restricted evidence; SHA256 b7c5f6ac2296b94a086758cfb93c601c0b82aaeb884261231f87df4896533383. If verification fails, use a reviewed forward-only function replacement or restore the isolated backup; never edit applied migration history or existing request/evidence rows.",
+      "developmentStatusReason": "Original ordered function migration applied and installed behavior/role/history verified in canonical isolated Development; positive payment activation and broader Product qualification remain separate.",
+      "developmentSchemaFingerprint": "af6694c16029e779fee09d536148b71bf3da81bd85417ae8cbc0998eef32e826"
     }
   ],
   "developmentExpected": 261,
-  "developmentAppliedVerified": 260,
+  "developmentAppliedVerified": 261,
   "blockers": [],
   "localObservations": [
     {
