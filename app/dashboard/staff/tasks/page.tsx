@@ -16,6 +16,7 @@ export default async function StaffTasksPage() {
     {error ? <p role="alert" className="work-feedback bad">המשימות אינן זמינות כרגע. נסו לרענן את העמוד.</p> : <TaskWorkbench
       key={gardenId}
       tasks={(data ?? []) as unknown as TaskRows}
+      assignees={[{ id: profile.id, name: profile.full_name?.trim() || "אני" }]}
       roleLabel="הצוות"
       limitedMessage="מוצגות רק משימות שהוקצו לך בגן הפעיל. משימות של עובדים אחרים אינן זמינות."
     />}

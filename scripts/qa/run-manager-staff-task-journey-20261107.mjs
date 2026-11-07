@@ -182,6 +182,7 @@ try {
     await ready(staffPage);
     await staffPage.getByRole("button", { name: /הושלמו/ }).click();
     await staffPage.getByText(title).first().waitFor();
+    check("Staff completed task names its assigned worker", await staffPage.getByRole("listitem").filter({ hasText: title }).getByText("QA Staff B").isVisible());
     await capture(staffPage, "staff-completed-readback");
   }
   await managerPage.reload({ waitUntil: "domcontentloaded", timeout: 12_000 });
