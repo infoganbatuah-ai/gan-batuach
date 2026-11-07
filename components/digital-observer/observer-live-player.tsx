@@ -3,6 +3,7 @@
 import Hls from "hls.js";
 import { CameraOff, LoaderCircle, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { subscribeMobilePlayback } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
 
 type PlayerState = "loading" | "playing" | "error";
 
@@ -29,7 +30,7 @@ function playbackFailureReason(error: unknown) {
   if (code === "cloud_403") return "אין הרשאת צפייה במקור הזה";
   if (code === "cloud_409") return "מיפוי המצלמה ל־Gateway אינו תואם";
   if (code === "cloud_503") return "זהות ה־Gateway עדיין לא סונכרנה למקור";
-  if (code === "local_unreachable") return "הדפדפן לא הצליח להגיע ל־Gateway המקומי";
+  if (code === "local_unreachable") return "הדפדפן לא הצליח להגיע לרכיב ה־Edge";
   if (code === "local_claim_401") return "אימות המכשיר המקומי פג";
   if (code === "local_claim_409") return "הרשאת הצפייה החד־פעמית כבר נוצלה";
   if (code === "local_claim_503") return "ה־Gateway המקומי לא הצליח לאשר את הצפייה";
@@ -44,6 +45,12 @@ function playbackKey(observerSiteId: string, cameraSourceId: string) {
   return `${observerSiteId}:${cameraSourceId}`;
 }
 
+function invalidatePlaybackSession(observerSiteId: string, cameraSourceId: string) {
+  const key = playbackKey(observerSiteId, cameraSourceId);
+  playbackSessions.delete(key);
+  pendingPlaybackSessions.delete(key);
+}
+
 async function requestPlaybackSession(observerSiteId: string, cameraSourceId: string) {
   const key = playbackKey(observerSiteId, cameraSourceId);
   const cached = playbackSessions.get(key);
@@ -52,15 +59,18 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
   const pending = pendingPlaybackSessions.get(key);
   if (pending) return pending;
 
+  const ticket: { promise?: Promise<string> } = {};
   const request = (async () => {
     let playbackUrl = "";
     for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (attempt > 0 && pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
       const response = await fetch("/api/digital-observer/dvr-gateway", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
       });
       const payload = await response.json().catch(() => ({}));
+      if (pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
       if (!response.ok) {
         const retryableGatewayFailure = response.status === 503 || (response.status !== 503 && [502, 504].includes(response.status));
         if (retryableGatewayFailure && attempt < 2) {
@@ -71,21 +81,29 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
       }
       let candidate = payload?.data?.playback?.hls_url;
       const claimUrl = payload?.data?.playback?.claim_url;
+      const allowedOrigin = payload?.data?.playback?.allowed_origin;
       const grant = payload?.data?.playback?.grant;
       if (typeof claimUrl === "string" && typeof grant === "string") {
+        if (typeof allowedOrigin !== "string" || new URL(claimUrl).origin !== allowedOrigin
+          || new URL(claimUrl).pathname !== "/playback/claim") throw new PlaybackFlowError("playback_origin_invalid");
         let claimResponse: Response;
         try {
           claimResponse = await fetch(claimUrl, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ grant })
+            body: JSON.stringify({ grant }),
+            redirect: "error",
+            referrerPolicy: "no-referrer"
           });
         } catch {
           throw new PlaybackFlowError("local_unreachable");
         }
         const claimPayload = await claimResponse.json().catch(() => ({}));
+        if (pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
         if (!claimResponse.ok) throw new PlaybackFlowError(`local_claim_${claimResponse.status}`);
         candidate = claimPayload?.playback?.hls_url;
+        if (typeof candidate !== "string" || new URL(candidate).origin !== allowedOrigin
+          || !new URL(candidate).pathname.startsWith("/hls/")) throw new PlaybackFlowError("playback_origin_invalid");
       }
       if (typeof candidate === "string" && candidate) {
         playbackUrl = candidate;
@@ -94,15 +112,18 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
       throw new PlaybackFlowError("playback_missing");
     }
     if (!playbackUrl) throw new Error("playback_unavailable");
-    playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
+    if (pendingPlaybackSessions.get(key) === ticket.promise) {
+      playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
+    }
     return playbackUrl;
   })();
 
+  ticket.promise = request;
   pendingPlaybackSessions.set(key, request);
   try {
     return await request;
   } finally {
-    pendingPlaybackSessions.delete(key);
+    if (pendingPlaybackSessions.get(key) === request) pendingPlaybackSessions.delete(key);
   }
 }
 
@@ -125,16 +146,23 @@ export function ObserverLivePlayer({
   const lastProgressAtRef = useRef(0);
   const recoveryScheduledRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileSuspendedRef = useRef(false);
+  const mobileSuspensionReasonsRef = useRef({ appInactive: false, networkOffline: false });
+  const mountedRef = useRef(false);
+  const mediaActiveRef = useRef(false);
+  const retryGenerationRef = useRef(0);
   const [state, setState] = useState<PlayerState>("loading");
   const [unavailableReason, setUnavailableReason] = useState("");
   const [muted, setMuted] = useState(true);
   const [retryNonce, setRetryNonce] = useState(0);
 
   function requestRetry() {
-    const key = playbackKey(observerSiteId, cameraSourceId);
-    playbackSessions.delete(key);
+    if (!mountedRef.current || mobileSuspendedRef.current) return;
+    playbackSessions.delete(playbackKey(observerSiteId, cameraSourceId));
     if (retryTimerRef.current) return;
+    const generation = retryGenerationRef.current;
     retryTimerRef.current = setTimeout(() => {
+      if (!mountedRef.current || mobileSuspendedRef.current || generation !== retryGenerationRef.current) return;
       retryTimerRef.current = null;
       setRetryNonce((value) => value + 1);
     }, 5000);
@@ -147,13 +175,59 @@ export function ObserverLivePlayer({
     const currentVideoElement = videoRef.current;
     if (!currentVideoElement) return;
     const videoElement: HTMLVideoElement = currentVideoElement;
+    mountedRef.current = true;
+    let connectionGeneration = 0;
     hasStartedRef.current = false;
     lastCurrentTimeRef.current = 0;
     lastProgressAtRef.current = Date.now();
     recoveryScheduledRef.current = false;
-    const retry = () => { if (!cancelled) requestRetry(); };
+    const retry = () => { if (!cancelled && !mobileSuspendedRef.current) requestRetry(); };
+    const suspendForMobile = (reason: "appInactive" | "networkOffline") => {
+      if (cancelled) return;
+      mobileSuspensionReasonsRef.current[reason] = true;
+      if (mobileSuspendedRef.current) return;
+      mobileSuspendedRef.current = true;
+      mediaActiveRef.current = false;
+      connectionGeneration += 1;
+      retryGenerationRef.current += 1;
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+      invalidatePlaybackSession(observerSiteId, cameraSourceId);
+      hls?.destroy();
+      hls = null;
+      videoElement.pause();
+      videoElement.removeAttribute("src");
+      videoElement.load();
+      setUnavailableReason("הניגון הושהה עד לחזרת האפליקציה או הרשת");
+      setState("loading");
+    };
+    const resumeForMobile = (reason: "appInactive" | "networkOffline") => {
+      if (cancelled || !mobileSuspensionReasonsRef.current[reason]) return;
+      mobileSuspensionReasonsRef.current[reason] = false;
+      if (mobileSuspensionReasonsRef.current.appInactive || mobileSuspensionReasonsRef.current.networkOffline) return;
+      if (!mobileSuspendedRef.current) return;
+      mobileSuspendedRef.current = false;
+      invalidatePlaybackSession(observerSiteId, cameraSourceId);
+      setRetryNonce((value) => value + 1);
+    };
+    const appSuspend = () => suspendForMobile("appInactive");
+    const networkOffline = () => suspendForMobile("networkOffline");
+    const appResume = () => resumeForMobile("appInactive");
+    const networkOnline = () => resumeForMobile("networkOffline");
+    window.addEventListener("digital-observer:mobile-suspend", appSuspend);
+    window.addEventListener("digital-observer:mobile-offline", networkOffline);
+    window.addEventListener("digital-observer:mobile-resume", appResume);
+    window.addEventListener("digital-observer:mobile-online", networkOnline);
+    let observedPublisher = false;
+    const unsubscribePlayback = subscribeMobilePlayback((snapshot) => {
+      if (cancelled) return;
+      if (!snapshot && !observedPublisher) return;
+      observedPublisher = !!snapshot;
+      if (snapshot?.appInactive) appSuspend(); else appResume();
+      if (snapshot?.networkOffline) networkOffline(); else networkOnline();
+    });
     const markUnavailable = (reason: string) => {
-      if (cancelled || recoveryScheduledRef.current) return;
+      if (cancelled || mobileSuspendedRef.current || recoveryScheduledRef.current) return;
       recoveryScheduledRef.current = true;
       setUnavailableReason(reason);
       setState("error");
@@ -161,24 +235,33 @@ export function ObserverLivePlayer({
     };
 
     mediaHeartbeat = setInterval(() => {
-      if (cancelled) return;
+      if (cancelled || mobileSuspendedRef.current) return;
       const elapsedWithoutProgress = Date.now() - lastProgressAtRef.current;
       const timeout = hasStartedRef.current ? mediaProgressTimeoutMs : mediaStartTimeoutMs;
       if (elapsedWithoutProgress >= timeout) markUnavailable(hasStartedRef.current ? "המדיה הפסיקה להתקדם" : "לא התקבלה מדיה מה־Gateway");
     }, 2_000);
 
+    const generation = connectionGeneration;
+    const active = () => !cancelled && !mobileSuspendedRef.current && generation === connectionGeneration;
     async function connect() {
+      if (!active()) return;
       setState("loading");
       setUnavailableReason("");
       const playbackUrl = await requestPlaybackSession(observerSiteId, cameraSourceId);
-      if (cancelled) return;
+      if (!active()) return;
 
       if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
+        mediaActiveRef.current = true;
         videoElement.src = playbackUrl;
         await videoElement.play().catch(() => undefined);
       } else if (Hls.isSupported()) {
-        hls = new Hls({
-          liveSyncDurationCount: 2,
+        const player = new Hls({
+          // Match the Gateway's signed HLS holdback contract. The Home DVR
+          // allows one productive response per channel, so a managed session
+          // renewal briefly drains retained segments while the replacement
+          // starts. Six one-second segments preserve moving playback without
+          // weakening the Gateway's source-freshness deadline.
+          liveSyncDurationCount: 6,
           liveMaxLatencyDurationCount: 12,
           // A worker per thumbnail is expensive and requires a blob worker CSP.
           // Parsing these short local playlists on the main thread keeps the
@@ -186,32 +269,43 @@ export function ObserverLivePlayer({
           enableWorker: false,
           lowLatencyMode: false
         });
-        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          if (!cancelled) hls?.loadSource(playbackUrl);
+        hls = player;
+        mediaActiveRef.current = true;
+        player.on(Hls.Events.MEDIA_ATTACHED, () => {
+          if (active() && hls === player) player.loadSource(playbackUrl);
         });
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          if (!cancelled) void videoElement.play().catch(() => undefined);
+        player.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (active() && hls === player) void videoElement.play().catch(() => undefined);
         });
-        hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal && !cancelled) {
+        player.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal && active() && hls === player) {
             markUnavailable("נגן הווידאו לא הצליח לקרוא את השידור");
           }
         });
-        hls.attachMedia(videoElement);
+        player.attachMedia(videoElement);
       } else {
         throw new Error("hls_not_supported");
       }
     }
 
     void connect().catch((error) => {
-      if (!cancelled) {
+      if (active()) {
         markUnavailable(playbackFailureReason(error));
       }
     });
     return () => {
       cancelled = true;
+      mountedRef.current = false;
+      mediaActiveRef.current = false;
+      retryGenerationRef.current += 1;
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+      unsubscribePlayback();
+      window.removeEventListener("digital-observer:mobile-suspend", appSuspend);
+      window.removeEventListener("digital-observer:mobile-offline", networkOffline);
+      window.removeEventListener("digital-observer:mobile-resume", appResume);
+      window.removeEventListener("digital-observer:mobile-online", networkOnline);
       hls?.destroy();
       videoElement.removeAttribute("src");
       videoElement.load();
@@ -229,6 +323,7 @@ export function ObserverLivePlayer({
         muted={muted}
         aria-label={`שידור חי — ${name}`}
         onTimeUpdate={(event) => {
+          if (!mountedRef.current || mobileSuspendedRef.current || !mediaActiveRef.current) return;
           const currentTime = event.currentTarget.currentTime;
           if (currentTime <= lastCurrentTimeRef.current + 0.05) return;
           lastCurrentTimeRef.current = currentTime;
@@ -237,11 +332,13 @@ export function ObserverLivePlayer({
           setState("playing");
         }}
         onWaiting={() => {
+          if (!mountedRef.current || mobileSuspendedRef.current || !mediaActiveRef.current) return;
           // A live playlist waits for its next segment regularly. Once playback began,
           // presenting that normal wait as a disconnect makes the thumbnail flicker.
           if (!hasStartedRef.current) setState("loading");
         }}
         onError={() => {
+          if (!mountedRef.current || mobileSuspendedRef.current || !mediaActiveRef.current) return;
           setUnavailableReason("נגן הווידאו דיווח על שגיאה");
           setState("error");
           requestRetry();

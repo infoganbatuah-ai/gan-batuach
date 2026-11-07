@@ -25,23 +25,28 @@ const revokeSchema = z.object({
 async function getParentChildIds(supabase: Awaited<ReturnType<typeof createClient>>, profileId: string) {
   const links = await supabase.from("child_guardian_links" as any)
     .select("permanent_child_file_id").eq("guardian_profile_id", profileId)
-    .eq("status", "active").eq("legal_authority", true);
+    .eq("status", "active").eq("legal_authority", true).limit(101);
+  if (links.error || (links.data?.length ?? 0) > 100) return { ids: [] as string[], unavailable: true };
   const fileIds = ((links.data ?? []) as any[]).map((link) => link.permanent_child_file_id).filter(Boolean);
-  if (!fileIds.length) return [];
-  const children = await supabase.from("children" as any).select("id").in("permanent_child_file_id", fileIds);
-  return ((children.data ?? []) as any[]).map((child) => child.id).filter(Boolean);
+  if (!fileIds.length) return { ids: [] as string[], unavailable: false };
+  const children = await supabase.from("children" as any).select("id").in("permanent_child_file_id", fileIds).limit(101);
+  if (children.error || (children.data?.length ?? 0) > 100) return { ids: [] as string[], unavailable: true };
+  return { ids: ((children.data ?? []) as any[]).map((child) => child.id).filter(Boolean) as string[], unavailable: false };
 }
 
 export async function GET() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
-  const childIds = await getParentChildIds(supabase, profile.id);
-  if (!childIds.length) return NextResponse.json({ ok: true, data: { contacts: [], events: [] } });
+  const childScope = await getParentChildIds(supabase, profile.id);
+  if (childScope.unavailable) return NextResponse.json({ ok: false, error: "לא ניתן לאמת את היקף הילדים כרגע" }, { status: 503 });
+  if (!childScope.ids.length) return NextResponse.json({ ok: true, data: { contacts: [], events: [] } });
   const [contacts, events] = await Promise.all([
-    supabase.from("authorized_pickup_contacts" as any).select("*, children(full_name, photo_url)").in("child_id", childIds).order("created_at", { ascending: false }),
-    supabase.from("child_pickup_events" as any).select("*, children(full_name, photo_url)").in("child_id", childIds).order("pickup_time", { ascending: false }).limit(80)
+    supabase.from("authorized_pickup_contacts" as any).select("id,child_id,full_name,relation,phone,authorization_type,authorization_status,active,valid_from,valid_until,created_at,children(full_name,photo_url)").in("child_id", childScope.ids).order("created_at", { ascending: false }).limit(301),
+    supabase.from("child_pickup_events" as any).select("id,child_id,pickup_person,authorization_type,pickup_time,status,notes,children(full_name,photo_url)").in("child_id", childScope.ids).order("pickup_time", { ascending: false }).limit(80)
   ]);
-  if (contacts.error) return NextResponse.json({ ok: false, error: "לא ניתן לטעון מורשי איסוף כרגע" }, { status: 500 });
+  if (contacts.error || events.error || (contacts.data?.length ?? 0) > 300) {
+    return NextResponse.json({ ok: false, error: "לא ניתן לטעון את נתוני האיסוף במלואם כרגע" }, { status: 503 });
+  }
   return NextResponse.json({ ok: true, data: { contacts: contacts.data ?? [], events: events.data ?? [] } });
 }
 
@@ -74,10 +79,11 @@ export async function PATCH(request: Request) {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const payload = revokeSchema.parse(await request.json());
-  const childIds = await getParentChildIds(supabase, profile.id);
-  if (!childIds.length) return NextResponse.json({ ok: false, error: "לא נמצאו ילדים משויכים" }, { status: 403 });
+  const childScope = await getParentChildIds(supabase, profile.id);
+  if (childScope.unavailable) return NextResponse.json({ ok: false, error: "לא ניתן לאמת את היקף הילדים כרגע" }, { status: 503 });
+  if (!childScope.ids.length) return NextResponse.json({ ok: false, error: "לא נמצאו ילדים משויכים" }, { status: 403 });
   const existing = await supabase.from("authorized_pickup_contacts" as any).select("id, child_id, kindergarten_id, full_name").eq("id", payload.id).single();
-  if (existing.error || !existing.data || !childIds.includes(existing.data.child_id)) {
+  if (existing.error || !existing.data || !childScope.ids.includes(existing.data.child_id)) {
     return NextResponse.json({ ok: false, error: "אין הרשאה לבטל מורשה איסוף זה" }, { status: 403 });
   }
   if (payload.active) return NextResponse.json({ ok: false, error: "הפעלה מחדש דורשת הרשאה חדשה" }, { status: 422 });

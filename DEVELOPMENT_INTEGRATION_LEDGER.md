@@ -1,10 +1,168 @@
 # Canonical Development Integration Ledger
 
+2026-10-26 scoped event replay/Incident prefix — PR #253:
+The first two commits from the 63-commit offline source branch, plus the
+decimal-tie replay fix, were merged without squash into `integration/development`
+at `c9eec49a05d48fea2da149ae9ac55cd8127ecab1` from PR head
+`39b2b9673c7aa0caaba4393f90e0898ca403e26d`. The merge changed exactly
+five route/domain/QA files and no migrations. Exact PR-head six-gate CI,
+quality gate, Management and Snyk passed; focused event-ingest, Incident and
+Risk/Decision checks passed on the merged local tree. Exact merge-head six-gate
+CI and canonical quality gate passed in run `40264670600`. The mocked race still performs two Risk
+evaluations despite one persisted signal: durable exactly-once is **not**
+proven. Full-stack Product and live PostgreSQL concurrency proof are not
+claimed. The remaining 61 source commits and pending PUSH 43 migration remain
+outside PR #253. No event-risk/Guard activation, `main` or Production change.
+
+2026-10-26 remote-preservation handoff — `codex/event-ingest-replay-identity-20261025`:
+GitHub exact ref verified at `341ff2bfb6ae0a297cbecce47a8cacac57c51a37`.
+The 63 original branch-only commits from `ee5ee96cbc1769159605b760f1d535afaaec470c`
+through that head are listed in the JSON ledger; merge-base with current
+`integration/development@b7e0517d334ff279ac64df0a1201690be7cfbd1d` is
+`f3401b181954b800e8e0f26702642ea18dba7e2a` (15 integration-only commits).
+This is **PUSHED_REMOTE / PRESERVED_PENDING_INTEGRATION**, not validated for
+integration or Production. The branch includes offline event-risk, replay,
+Model A, retention and affected PUSH 39–45 contracts plus one additive proposed
+migration, `20261025224109_digital_observer_push43_delegated_usage_scope.sql`.
+That migration was not applied by this preservation task; actual isolated
+Development and Production application states are **UNVERIFIED**, not NO.
+Review-only SQL remains NOT APPLIED; no database, runtime, Guard, provider,
+`main` or Production change occurred. Prior local test claims remain source
+receipts, not fresh CI or live proof. Branch push produced no exact-branch
+GitHub Actions run or GitHub deployment; Vercel live Preview Branch Tracking
+was OFF and its newest listed deployment predated the push. The JSON/Markdown
+ledger update is local on `integration/development` until separately reviewed
+for safe remote preservation; it does not merge the source commits or authorize
+activation. Next: reconcile dependencies and schema, then use an exact-head
+Development PR/CI path only after cost and security preflight.
+
+2026-10-23 PUSH44 CH1 final pre-activation, branch `codex/push44-ch1-final-preactivation`, implementation `3c1ff723d38a977cdfdd63d6f651fa9cdf2a9f8b`: reused PR243 foundation (integrated `4c0d70555cf96c4f5e5d815df7720e5f29c9ea13`, exact-head9/9). Added one composed synthetic session/delegation/cookie/TLS/media E2E,23/23 cases, and actual encoded-byte gzip playlist accounting. Real CH1 local TS inspected/decoded25 distinct frames; no media retained/transmitted. Home QA owner mapping absent and media DNS NXDOMAIN remain specific blockers; owner attestation/delegation and permitted/bounded HTTPS path required before live request. No migrations, Production/Home/PR235 changes. Evidence: final follow-up in `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`.
+
+2026-10-23 PUSH 44 CH1 private-media continuation: branch `codex/push44-ch1-private-gateway-20261023`, implementation `cf0952609b2b2c1c1a1195bb99e6352b9c7df403`; isolated existing-grant-core TLS gate, exact view-only delegation, canonical Development session adapter, passive generation reader and protected operator journal. 22 synthetic security/media/TLS cases; no real camera bytes or live authorization. Actual isolated Development schema/history: 257 expected, 227 baseline-covered + 30 applied, zero drift. No migration. See `DIGITAL_OBSERVER_PUSH_44_CH1_PRIVATE_GATEWAY_QUALIFICATION.md`. Real delegation/native transport/external TLS are activation blockers, not waived by CI. PR235 Draft, main/Production/Home services unchanged.
+
+2026-10-23 PUSH 44 session-security continuation: source
+`3ffa3b4a79265644293487929581722ddd44aff5`, branch
+`codex/push44-session-security-20261023`. Reproduced local Auth not_after expiry
+rejecting refresh but not an existing access JWT. Added a caller-only boolean
+lookup of the existing Auth session to both Observer page/API authorization;
+no token/row disclosure or parallel identity system. Native revalidation is
+bounded to 10 seconds and covers stale protected UI until validated. Eight
+rollback-only database checks, TypeScript, canonical lint and focused mobile/
+QA ingress pass. Additive migration 20261023161928 is NOT APPLIED pending
+remote integration; exact-head CI and actual iPhone expiry/revocation remain
+open. No Production, main, camera service, media or PUSH46 activation.
+
+PR #234 closure, 2026-10-22: source head
+`60ad671783a88bd790f7323db2c946134f957f14` passed all nine reported checks,
+including six canonical gates (run 39761020386), Management and Snyk. Complete
+diff/review-thread review found no pending review or unrelated schema change.
+Ancestry-preserving merge: `69eab585c806dfb1342efb56920ddc7809c043d1`.
+The exact merged canonical Product ran at `http://127.0.0.1:3000`,
+DEVELOPMENT / INTEGRATION, LOCAL_SUPABASE, production=false. Post-merge
+authenticated PUSH 39–45 regression: 24+6+7+10+15+5+4 = 71/71 PASS,
+including cross-Site/organization denial and sensitive activation fail-closed.
+Actual database schema/history: 256 expected, 227 baseline-covered plus 29
+post-baseline applied, no drift or new migration. Native/mobile/ingress
+contracts pass; former temporary QA hostname returns HTTP 530 and QA ports
+remain closed. Source commits and previous integration ancestry preserved.
+PR #235 remains unchanged Draft at `1c82559d97d407c90c6a404a961fd21323ba15ae`.
+Main remains `2da8f75abce610a9a979eecd752d7a6a1011641e`; no Production or
+camera-service/telemetry change. PUSH 44 PARTIAL, PUSH 46 NOT STARTED.
+
+2026-10-22 PR #234 authenticated physical-iPhone continuation: exact journey source
+`0efb200bf9e934111e0cad485c1a4d0c8fccf08a`; owner confirmed Development-only
+dashboard, cellular Product navigation and logout requiring fresh login on
+iPhone 13 Pro / iOS 27.0.1. Prior source/evidence head `1aa4b4e7` passed six
+canonical CI gates. Final documentation head requires its own CI before merge.
+Temporary ingress shut down at 03:01:03 UTC, dedicated tunnel deleted, offline
+QA reinstalled; canonical Push builds preserved. No migration or Production
+change. Strict physical-device expiry/revocation, media, APNs, Android and
+release/store qualification remain open; PUSH 44 remains PARTIAL / NOT DONE.
+
+2026-10-20 PUSH 44 Personal Team QA continuation: PR #232 exact head
+`afc3c71b3021015711b426c5d8db0ae988986148` passed all nine checks and
+merged with source ancestry into `integration/development` at
+`b6c4a9c923b5bea8dc3edb103e0427235edc45b3`. No migration was added.
+The scoped source work was:
+source code commit `ef5f6930` adds a separate signed no-APNs QA configuration
+without changing canonical Debug/Release Push. The owner's iPhone 13 Pro on
+iOS 27.0.1 installed and launched `Digital Observer QA`; the owner confirmed
+the bundled offline-safe Hebrew QA screen. This is real-device installation/UI
+proof only; the owner also confirmed that the access and notifications QA tabs
+switch content. Authenticated Product, cellular playback and real Push remain
+blocked by the absent approved HTTPS app/media path and Personal Team APNs
+capability. PUSH 44 stays PARTIAL / NOT DONE; no migration, main or Production
+change. Earlier signing failure below is preserved as historical evidence.
+
+2026-10-20 PUSH 44 signing follow-up: branch
+`codex/push44-ios-personal-team-install` preserves root-selected team
+27G7ZP4U3Q for Debug/Release. Apple Development identity verified, but the
+Personal Team cannot provision Push Notifications. Signed build failed;
+installation remains blocked. APNs source contracts remain intact. See the
+existing iOS continuation report and JSON ledger signingFollowUp receipt.
+
 Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.json`. Migration variants and independent development/Production states: `DEVELOPMENT_MIGRATION_LEDGER.json`. Latest branch/file/stash inventory: `DEVELOPMENT_FINAL_STATE_AUDIT_2026-09-19.json`, `DEVELOPMENT_LOCAL_RECONCILIATION_2026-09-19.json`, `DEVELOPMENT_BRANCH_RECONCILIATION_2026-09-19.json`. Initial audit is retained as historical evidence.
 
 **Main is release-only. No owner release authorization has been issued for this workflow migration. No Production deployment or database write is authorized.** Earlier dated release ledgers and PR descriptions mentioning midnight are historical records, superseded by AGENTS.md.
 
 ## Current transition
+
+PUSH 38 final development closure (2026-10-18): source commit `f4fc7ff2` is
+remotely preserved and ancestry-integrated as `dd4df868` on
+`origin/integration/development`. The owner explicitly accepted a shortened
+evidence path; this is not a continuous 24-hour PASS claim. The `0.2.100` and
+`0.2.101` V8 results remain NOT_DONE, and the three-hour `0.2.102` aggregate
+also remains strictly NOT_DONE because Tapo passed 176/180 samples and AI
+passed 65/66. The repaired Gateway path passed a fully green 15-minute Canary,
+then all 10 DVR channels at all 180 recovery checkpoints (1,800/1,800), all 60
+DVR playback samples, zero recorder auth failures and zero Gateway restarts.
+Exact-candidate CI passed six of six required gates plus the canonical quality
+gate. Integration conflict QA passed the combined braces-depth guards, the HA
+suite and migration health for 247 files. A recoverable isolated DEVELOPMENT
+pre-apply backup is protected outside Git with SHA-256
+`84f251cec73c059b12cf20cdee29f7c3577cd2b5ca8704adc8e5b2fa5721cfb4`.
+The three reviewed PUSH 38 migrations were applied in order only to canonical
+isolated DEVELOPMENT from remote commit `d4b91ff1`; migration receipts, the
+`ACTION_REQUIRED` and `HOME_QA` constraints, the private authorization-audit
+table RLS/grants/FKs/checks/index and focused application compatibility all
+passed. The final DEVELOPMENT schema fingerprint is
+`7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080`.
+The protected application-closure evidence SHA-256 is
+`23778d9c04cff7fcbf631446ba346364f60d548cb55653b558581954bc677371`.
+PUSH 38 is `LOCAL_VERIFIED` and complete for Development under the explicit
+owner exception. Main and Production remain unchanged; a future release still
+requires a separate explicit owner instruction.
+
+PUSH 38 private-R2 phone-proof checkpoint (2026-10-08): commits `d4b5264e`,
+`514515e2` and `e51b74f7` are remotely preserved on
+`origin/codex/push-38t-qualification`. The bounded
+qualification path verifies the local Product playback grant, acquires exact
+authorized Edge HLS through the protected local interface, stores only a
+short-lived 11.97 MB snapshot under an exact private R2 prefix, and returns
+presigned playlist/segment capabilities without proxying media through the
+control plane. Focused TypeScript, lint, R2, ingress/default-deny and playback
+boundary checks pass. A desktop-browser run was deliberately not accepted as
+phone evidence; server-side client classification now rejects a desktop PASS.
+The follow-up releases each native phone video decoder before opening the next
+source after the real iPhone proved two DVR streams and then exhausted its
+concurrent decoder capacity on the third.
+The latest correction captures one complete, internally consistent rolling-HLS
+snapshot before any upload and retries a bounded three times when playlist
+segments rotate during acquisition. The first 52-object proof window was
+deleted in full after expiry, and the partial 29-object second attempt rolled
+back in full before publication.
+The third window passed on the real owner iPhone: 10/10 DVR authorization,
+moving CH1/CH3/CH11 and Tapo video, HTTPS-only media, no localhost, and no Edge
+software on the client. All 52 temporary objects were then deleted immediately,
+the bounded ingress closed, and the original Cloudflare service was restored.
+Exact-head CI run `37837717396` passed all six gates plus the canonical quality
+gate for `e51b74f7`. The protected owner-phone result checksum is
+`79b41860447f532de9d7f7236944bd1b2430e12be0d5210ec8b02bbe31f33b9f`.
+V8
+continues from `2026-10-08T10:49:29.554Z` toward its earliest valid completion
+at `2026-10-09T10:49:29.554Z`. This unit is
+`PRESERVED_PENDING_INTEGRATION`; PUSH 38 is not done, main/Production are
+unchanged, and PUSH 39 has not started.
 
 PUSH 38 relay-probation checkpoint (2026-10-02): the failed live 0.2.56
 HLS-window canary completed 15 minutes and recorded a strict source-availability
@@ -911,3 +1069,1271 @@ cannot record the transient loading state. This status is not owner approval.
 Production, `main`, customer data, migrations, provider state, physical camera
 actions and Digital Observer core remain untouched. The only remaining action is
 external owner review; RELEASE-GAP-01 has not started.
+
+PUSH 38 Gateway 0.2.95 V8 start receipt (2026-10-08): the scoped
+pre-release-probe settlement remediation is remotely preserved at
+`5907b6ff0708b3c1084ad91b20f8feac8d253ae7`; its exact qualification candidate
+is `be93e5f6578e5852a3de18d0c746aaec8fcfc92b` on
+`origin/codex/push-38t-qualification`. Exact-head GitHub Actions run
+`37840811624` passed all six CI gates plus the canonical quality gate, and AWS
+protected-signing run `37840867628` passed from signing-workflow commit
+`6aa0949179038785340ed58c3d1b6518955e08e9`. The exact-device private-R2
+artifact was round-trip verified and activated as Gateway
+`0.2.95-p38-health`; Connector remains `0.2.40-p38-health`. Broad eligibility
+is disabled, both managed services are healthy/current/known-good, and no new
+fixed provider was introduced.
+
+The valid canary `push38-gateway-0.2.95-canary-20261008T212408Z` passed 15
+minutes and 15/15 checkpoints; the valid pre-soak
+`push38-gateway-0.2.95-pre-soak-20261008T214031Z` passed 60 minutes and 60/60
+checkpoints. Both recorded DVR 10/10, Tapo 1/1, zero Gateway/Connector
+unavailability, zero stale-input failures, playback and AI PASS, zero data
+loss, duplicate effects, cross-tenant leakage or manual intervention. The real
+owner-iPhone remote proof remains PASS at the protected
+`push38-r2-phone-proof-20261008T201358Z` evidence location.
+
+The frozen 35-row V8 matrix source has SHA-256
+`4c710bc4c3ef8b369b205a6080b7bbc0ade7353953283061d137e1f6502e1ebb`; the
+candidate-binding freeze receipt has SHA-256
+`9db1f47da323fda0d68df8677b1758edc85327c62dba60e2dfabf85a57e15c70`.
+Fresh V8 run `push38-gateway-0.2.95-v8-20261008T224318Z` started at
+`2026-10-08T22:43:44.325Z` and cannot complete validly before
+`2026-10-09T22:43:44.325Z`. The prior 0.2.94 V8 failure remains immutable and
+its duration is not reused. This unit is `PRESERVED_PENDING_INTEGRATION` and
+`BLOCKED_UNTIL_V8_PASS`; PUSH 38 is not done. Main and Production remain
+unchanged, and PUSH 39 has not started.
+
+Owner-authorized consolidated Production release receipt (2026-10-11): the
+owner explicitly authorized the frozen non-PUSH-38 candidate, its required
+Production configuration, one main merge/deployment sequence and the 17
+reviewed Supabase migrations. PR #182 merged the consolidated candidate as
+`3848f7fcc8a0c9be6364bedb9add1e9d5cd35b89`; its first Vercel build exposed
+the missing dedicated hash-pepper prerequisite and did not become the final
+current deployment. The narrowly scoped compatibility fix in PR #183 passed
+all required checks at
+`5846c9d726eb456c8c25dd75581df00612542491` and merged to main as
+`2da8f75abce610a9a979eecd752d7a6a1011641e`. Vercel deployment
+`GneHPHF1NyWZYrrepnL7rw4JEFrr` is `Ready`, `Production` and `Current` for
+`ganbatuach.com`; `/`, `/login`, `/forgot-password`,
+`/digital-observer/login` and `/api/health` returned HTTP 200, and health
+reported both application and Supabase `ok`.
+
+Supabase Production applied the 17 reviewed migrations in two dependency-
+ordered phases and linked remote history was verified through
+`20260928010000`. Post-apply checks preserved one real Auth/profile identity,
+two active device slots, one membership and 17 cameras. No user was deleted,
+no Auth password was changed and no email was sent. Migration
+`20260920170000` removed only the legacy plaintext `temporary_password`
+column; 23 non-secret credential-history rows remained. The latest observed
+Vercel cycle showed `$0.30 / $20.00` included credit used, with the Pro base
+subscription unchanged. No paid add-on or plan upgrade was activated. PUSH 38
+and its draft/qualification branches were expressly excluded and untouched.
+The one-time Production authorization is consumed; future main merges,
+Production deployments or Production migrations again require a new explicit
+owner instruction.
+
+Digital Observer post-PUSH-38 roadmap reconciliation receipt (2026-10-18):
+the documentation-only audit is remotely preserved at
+`1887467f0fdb0d9b3c90395f59a31df88e1b7703` on
+`origin/codex/digital-observer-post-push38-roadmap-audit`. It preserves all
+190 original North-Star capability identities and adds seven non-duplicate
+canonical requirements for a reconciled total of 197, with exactly one
+implementation owner and one proof owner per capability. All 52 canonical
+PUSHes are accounted for; no additional PUSH is currently required, and PUSH
+39 was not started. The audit preserves PUSH 38 as Development-complete under
+the owner-approved acceptance exception while retaining both failed V8
+histories, the shortened recovery exceptions and every outstanding proof
+obligation. Validation passed the North-Star ledger guard, the 197-row
+ownership/52-PUSH reconciliation guard, typecheck, zero-regression lint,
+migration health for 247 files and release-contract checks. The PR's first
+security run exposed a pre-existing false positive where the scanner treated
+`sk-` inside canonical `disk-pressure` evidence as a key prefix; its token
+boundary was corrected without excluding the evidence or weakening standalone
+key-shape detection. Exact-head commit
+`9fa2422478ecfacb4674cc98bb71d81209d09066` then passed all nine PR checks:
+the six deterministic Digital Observer gates, canonical quality gate,
+Management tenant-context workflow and Snyk. No application source, migration,
+provider, paid capacity, `main` or Production state changed. This unit is
+`PRESERVED_PENDING_INTEGRATION_CHECKS_PASS`; scoped PR #184 targets
+`integration/development` and remains open for review. It must not be merged to
+`main` or treated as Production authorization.
+
+Post-PUSH-38 canonical closure receipt (2026-10-18): PR #184 was revalidated
+at final source head `c00034507fdaa3ea7760f3bca6b968fb818f5d95`. All nine exact-head
+checks passed: six Digital Observer CI gates, canonical quality,
+Management tenant-context and Snyk. It merged by preserved ancestry into
+`integration/development` as `1bcd11b0a5f632f13805d63bc6e027080081db83`;
+both the expected audit commit `72f3434968fa135a0fb90a29335b41cf8955f089`
+and final source head are ancestors. Post-merge reconciliation verified 197
+unique capabilities with one implementation and proof owner each, all 52
+canonical PUSHes and 17 retained PUSH 38 proof obligations. PUSH 38 remains
+`DEVELOPMENT COMPLETE — ACCEPTED WITH EXCEPTIONS`; PUSH 39 remains `NOT
+STARTED`.
+
+The canonical isolated Development database passed 247/247 drift at the merge
+SHA (227 baseline-included plus 20 post-baseline, zero missing). PR #184
+contains no migration and no Production migration was applied. The local
+Product ran at `http://127.0.0.1:3000` with runtime SHA `1bcd11b0...`, local
+Supabase, 18/18 scoped full-stack probes, Digital Observer and Management UIs,
+Site isolation and unauthenticated boundaries. A non-mutating browser login for
+the synthetic Development owner passed. The legacy dashboard role harness has
+test drift: it expects removed selector `#dashboard-child`; current-contract
+browser verification found four authorized child cards. This is not hidden as
+a Product failure or silently rewritten in this closure.
+
+`DIGITAL_OBSERVER_PUSH_39_READINESS_HANDOFF.md` records dependencies,
+foundations, 27 implementation-owned and 24 proof-owned North-Star rows,
+security, migration and QA gates. It is a handoff only and does not start PUSH
+39. Existing branches, open PRs, worktrees and the preserved stash remain
+untouched. Remote `main` remains `2da8f75abce610a9a979eecd752d7a6a1011641e`;
+no Production deployment, provider activation or Production database change
+was authorized or performed.
+
+PUSH 39 branch-validation receipt (2026-10-18): implementation commit
+`48a7c4d8c62397b2f0e5cbcb3a05ad8f6366aab0` on
+`codex/push-39-external-actions` implements the default-disabled provider
+abstraction, durable delivery/idempotency/acknowledgement engine, bounded
+escalation, human-confirmed action intents, webhook/callback security and
+existing-Product UI. Branch-local TypeScript, canonical zero-regression lint,
+Production build without deployment, domain 41/41, security/isolation 42/42,
+migration health 248, release-contract and focused PUSH 39 QA all pass. The
+additive migration
+`20261018010000_digital_observer_push39_orchestration.sql` is validated only
+for the canonical isolated Development database after remote integration; it
+has not been applied yet. Real provider sandbox receipts for Push, email, SMS,
+WhatsApp, webhook and phone remain unavailable, all provider modes remain
+disabled, and no external recipient or physical action was contacted. The
+unit is remotely preserved through ledger commit
+`b4e33cb6f3119def8e78816ac9a65f4b0273aa31` and is `PUSHED_REMOTE`, pending
+the scoped PR, exact-head CI, Development integration/migration and cumulative
+local full-stack proof.
+PUSH 38 exceptions remain unchanged; main and Production remain unchanged.
+
+PUSH 39 Development-migration receipt (2026-10-18): PR #186 exact head
+`5fe182eacf1bc73450ab8837c86b689376070ef0` passed 9/9 and merged with
+preserved ancestry as `6236718c1cd05b084d3827526f6fc43980a2cb7b`. The
+first isolated Development apply attempt failed closed before mutation because
+the migration row was misplaced under historical observations. PR #187 moved
+only that exact row into the canonical migration array, passed 9/9 at
+`33a76dc0fc8dd42536ac6d2148308a10792389c8` and merged as
+`369968977a3c5fa4c874e7db997501ec7c3af7bb`. A verified pre-apply custom dump
+has SHA-256
+`7087464dd8eb376f1640b121c8d5daf413567d7aff86af885e04a2f46cb0d362`.
+The reviewed migration then applied only to canonical isolated Development:
+248/248 drift PASS, 21 post-baseline migrations, schema fingerprint
+`e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd`,
+Production access false. Cumulative local full-stack proof remains pending;
+real provider/action proof remains unavailable and is not claimed.
+
+PUSH 39 local full-stack blocker receipt (2026-10-18): the cumulative Product
+started correctly from integration `e79d5a4c7d5499b927655dbb5301b908711b9371`,
+but the first authenticated delivery-history probe returned HTTP 503. A direct
+authenticated local Supabase read isolated SQLSTATE 42501: historical
+column-level SELECT privileges did not include the new bounded PUSH 39 status
+columns. Corrective migration `20261018204500_digital_observer_push39_delivery_read_grant.sql`
+grants only those read fields, preserves Site-scoped RLS, exposes no credential,
+destination or policy snapshots, and grants no writes. Migration health passes
+249 ordered files and a transaction-scoped privilege test passed before
+rollback. The correction remains pending exact-head CI, Development integration
+and isolated Development application; no provider, main or Production access
+occurred. PR #189 then passed all 9 required checks at exact head
+`78ca3eabac28af18c57b65e058145cdb7814a932` and merged with preserved ancestry
+as `f1ed86d15707e1ec551f1cfb04621bdb5250876f`. The migration is approved only
+for the canonical isolated Development database; application and full-stack
+retry remain pending.
+
+PUSH 39 Development-completion receipt (2026-10-18): PR #190 passed all 9
+required checks at exact head
+`1afd8912295f76a510627c66f0a36fc8918ef8b7` and merged as
+`5e62fe4bf56047eaddc00cd8f7f6099b6e8a45e6`, preserving the reviewed
+Development-only approval. A verified pre-apply custom dump has SHA-256
+`d5e866bc409bfdcebe23a94480576efa126f411950a66d9de53cec24462dadf4`.
+Corrective migration `20261018204500` then applied only to canonical isolated
+Development at `2026-10-18T20:32:36.153866+00:00`, producing schema fingerprint
+`9c8b5f3613c7ed13abde011c3ec768d1b433a6d3e639f8097d124919bcd392dd`.
+PR #191 recorded that application after 9/9 exact-head checks at
+`fd2f21834ceafc4e333881ca33f84a0a6c89e4a5` and merged as
+`d31c2651f89e6135d36be91fc2138a712e2b3061`. Development drift is 249/249
+PASS. The exact integration runtime then passed 18/18 canonical Product probes
+and 24/24 PUSH 39 notification/action/escalation probes. Eight orchestration
+tables have RLS; Production provider count, external QA delivery attempts and
+paid-provider activation are all zero; autonomous service-role action execution
+remains denied. PUSH 39 is `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING` and
+canonically `NOT DONE`: Push, email, SMS, WhatsApp, signed-webhook and phone
+sandbox receipts, real-device actions and approved emergency/sensitive workflow
+proof remain open. PUSH 38 exceptions are unchanged. PUSH 40 is readiness-only
+and has not started. Main and Production remain unchanged.
+
+PUSH 40 Development-integration and migration-approval receipt (2026-10-19):
+PR #193 exact head `0230e526c9965ae7ea484378ba0624ee4783b7c2`
+passed all 9 required checks and merged with preserved ancestry as
+`8dee58999c322041691e19d61a7b22a90dd8fb68`. The provider-neutral commercial
+billing domain, subscriptions, server-side entitlements, checkout, invoice and
+refund lifecycle, partner allocation, webhook ordering/idempotency, financial
+reconciliation, existing-Product UI and activation register are integrated.
+All payment-provider modes remain disabled; no provider, real payment, paid
+resource, main or Production system was contacted. The additive migration
+`20261019010000_digital_observer_push40_commercial_billing.sql` passed migration
+health across 250 ordered files and is approved only for the canonical isolated
+Development database. A verified pre-apply custom-format backup is protected at
+`/private/tmp/push40-development-pre-migration.dump`, SHA-256
+`4a80f2f79a319e745f65f0e9afc990e243e6612572b07d46533248213e1978b7`, with a
+valid `pg_restore` archive listing. Development application and exact-SHA
+cumulative local full-stack proof remain pending. PUSH 38 exceptions and PUSH
+39 external proof obligations remain unchanged.
+
+PUSH 40 isolated Development migration receipt (2026-10-19): PR #194 exact
+head `e6510447c272d208b0b4d4c18cd27b59fdd5410e` passed all 9 required checks
+and merged as `3108ab242ddd0660dd85674f778eb6c6258bfe13`. Migration
+`20261019010000_digital_observer_push40_commercial_billing.sql` applied only to
+the canonical isolated Development database at
+`2026-10-18T21:50:20.392211+00:00`, producing schema fingerprint
+`497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed`.
+Development drift is 250/250 PASS: 227 baseline, 23 post-baseline and zero
+missing. The bounded schema verifier confirms RLS on all 10 commercial tables,
+excludes the billing-only role from operational access, denies anonymous
+payment reads and authenticated payment mutations, and observes zero Production
+checkout/payment rows. Its initial run exposed only verifier assumptions (a
+printed `set_config` result and a non-empty-subscription assertion while the
+isolated database truthfully has zero subscriptions); the corrected verifier
+does not fabricate data and now passes. Exact-SHA cumulative Product startup
+remains gated until this application receipt and verifier correction are merged.
+No provider, real payment, main or Production access occurred.
+
+PUSH 40 cumulative Development completion receipt (2026-10-19): PR #195 exact
+head `52541707d22a8a7fb890692d2147be37b764944f` passed all 9 required checks
+and merged as `869e1d5c91944d1ee5f76069f57a8f3310e98054`. The canonical cumulative
+Product started from that exact integration SHA at `http://127.0.0.1:3000`
+with `DEVELOPMENT / INTEGRATION`, `LOCAL_SUPABASE` and Production false. The
+existing Product suite passed 18/18. PUSH 40 passed 6/6 bounded probes: billing
+UI and authorized Site 200, cross-Site 403, anonymous 401, unapproved-price
+checkout 409 and provider callback 503 while disabled. The isolated fixture
+truthfully has no subscription or entitlement; the verifier proves that state
+without creating a trial, charge, subscription or payment. Schema/RLS proof and
+250/250 migration drift remain PASS. PUSH 40 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`: approved provider sandbox,
+real payment/refund/tax-invoice, commercial customer, cost, legal, OEM,
+Zero-Install and Production activation proof remain open in the canonical
+activation register. PUSH 38 exceptions and PUSH 39 external proof remain
+unchanged. PUSH 41 is readiness-only and has not started. Main and Production
+remain unchanged.
+
+PUSH 40 exact-integration verification addendum (2026-10-19): PR #196 exact
+head `4414d4d47bd9e1e2713b392407dff652c716baf2` passed all 9 required checks
+and merged as `d7a1960796e2b02c7695b758a884a99111bcc8c7`. The cumulative Product was
+restarted from that exact integration SHA and passed the existing 18/18 Product
+suite, PUSH 40 6/6 bounded full-stack probes and 250/250 Development migration
+drift with `LOCAL_SUPABASE` and Production false. The verifier accepts the
+truthful zero-subscription fixture only when entitlements are also empty; it
+does not create a trial, subscription, payment or entitlement. The Master
+Roadmap status is reconciled to `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING
+— NOT DONE`; the open provider, legal, commercial, cost and real-world proof
+gates are unchanged.
+
+PUSH 40 supplier-reconciliation receipt (2026-10-19): exact source head
+`4c8de7725a4bca129e392d30278ec1cf0f606114` is remotely preserved on
+`codex/push40-supplier-reconciliation`; scoped PR #198 passed all 9 required
+checks and merged with preserved ancestry to `integration/development` as
+`3e9a6301ac443cef36120b25c527c138851282d8`. The read-only review confirms paid/operational
+Vercel, Supabase, Cloudflare DNS/R2 and AWS signing dependencies and real
+Sentry monitoring. Resend is connected but lacks a controlled provider
+receipt; Firebase and Twilio accounts exist but are not operational channel
+proof; Morning / Green Invoice exists but is not connected to the Digital
+Observer payment/invoice lifecycle. The existing Morning account must be
+evaluated before adding payment or invoice suppliers, and the existing Twilio
+account before adding a WhatsApp supplier. No provider was purchased,
+upgraded, activated or contacted; no message, payment, invoice, migration,
+main or Production mutation occurred. The sole restricted supplier ledger was
+updated in place and remains outside Git at SHA-256
+`75b65c245ee1e6d80bb078c7baa319fa522618ba92171247edd7629459e439f4`.
+Known bounded base is $54.8717–$55.9167/month before tax/FX (approximately
+₪169.50–₪172.73 at the reconciliation rate), while exact all-in
+exposure and both canonical user ratios remain unmeasurable. PUSH 39 and PUSH
+40 remain canonically NOT DONE and all prior proof obligations remain open.
+
+PUSH 41 branch-preservation receipt (2026-10-19): source implementation commit
+`be485dab83546c1acd550d9bd9c89b555d1d1e6b` is remotely preserved on
+`codex/push-41-enterprise-identity`, built
+from integration baseline `de292b65d52c885b378eb7cd4daec9afac6be305` after
+verifying the required PUSH 39 and PUSH 40 ancestry. Canonical organization and
+Site membership, RBAC, delegated administration, expiring invitations,
+DISABLED/SANDBOX OIDC/SAML/SCIM, scoped expiring service accounts, sessions,
+append-only Enterprise audit, Product UI and bounded scale profiles are
+implemented. SMS user authentication, automatic SMS fallback and Twilio SMS
+authentication now fail closed; email remains enabled and generic PUSH 39 SMS
+delivery history/contracts are preserved. WhatsApp remains unactivated and
+cannot be the sole recovery factor.
+
+Branch-local TypeScript, canonical zero-regression lint, Production build
+without deployment, domain 41/41, security/isolation 42/42, migration health
+251, release contract, focused PUSH 41 QA and PUSH 39/40 regressions pass. The
+additive migration `20261019020000_digital_observer_push41_enterprise_identity.sql`
+is validated but not applied: exact-head protected CI, Development integration,
+verified isolated backup, Development application/schema proof and exact-SHA
+cumulative local Product verification remain pending. No IdP/provider was
+activated, no supplier cost was added, and main and Production remain
+unchanged. PUSH 42 is readiness-only and has not started.
+
+PUSH 41 Development-integration and migration-approval receipt (2026-10-19):
+PR #201 exact head `2a9b7084219144e9cf4dadbca8ba5a28d6e728ef`
+passed all 9 required checks and merged with preserved ancestry as
+`2d581c9acd60f811cdb210ac019eaf537e390c3a`. The additive migration is now
+approved only for the canonical isolated Development database. A verified
+pre-apply custom-format backup is protected at
+`/private/tmp/push41-development-pre-migration.dump`, SHA-256
+`80c0b69586bc2f2e56ccdec38a2372ec8f57263ade31283e44207d074b0afc99`, with a
+valid `pg_restore` archive listing. Development application, schema/RLS proof
+and exact-SHA cumulative local full-stack proof remain pending. No external
+provider, main or Production system was contacted.
+
+PUSH 41 isolated Development migration receipt (2026-10-19): PR #202 exact
+head `f9fdb3ff51a08fe54e97ecc1a5522d29517924ba` passed all 9 required checks
+and merged as `fd4adf6a13bedf75917e124a4025042c37749463`. Migration
+`20261019020000_digital_observer_push41_enterprise_identity.sql` applied only to
+the canonical isolated Development database at
+`2026-10-18T23:49:11.410164+00:00`, producing schema fingerprint
+`4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73`.
+Development drift is 251/251 PASS: 227 baseline, 24 post-baseline and zero
+missing. The bounded verifier confirms RLS on all 15 Enterprise tables,
+billing-only denial of camera/operational access, anonymous and authenticated
+credential denials, immutable audit, zero Production SSO/SCIM rows and zero
+enabled SMS-auth policies. Its first run exposed only verifier output framing:
+`set_config` printed the synthetic subject before the JSON result. Replacing it
+with a non-output `SET LOCAL` made the same role-boundary proof pass without
+changing schema or data. Exact-SHA cumulative Product startup remains pending.
+No provider, main or Production access occurred.
+
+PUSH 41 cumulative local Product closure receipt (2026-10-19): PR #203 exact
+head `5a9de109caa5f13bd882cbbeb4fd25a146d77f64` passed all 9 required
+checks and merged as `a9ed021fed9f55a64c6b833ccdc9b26114104894` with the Development
+application/schema receipt. The first exact-SHA cumulative run surfaced stale
+local synthetic fixtures that predated PUSH 40/41, not a Product-code failure.
+The bounded idempotent seeder rejects replacement of non-synthetic commercial
+state and creates only two synthetic organizations, one provider-disabled
+trial and one notification entitlement. PR #204 exact head
+`41b202c6cf1ed3adced43f84fb1c8563f457fd56` passed all 9 checks and merged
+as `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`.
+
+The exact merged runtime `a7e484bd9413ee1e2c06be9b75bec129cc9367b3`
+is labeled `DEVELOPMENT / INTEGRATION` and uses isolated `LOCAL_SUPABASE`.
+Canonical Product probes pass 18/18, PUSH 39 passes 24/24, PUSH 40 passes
+6/6, PUSH 41 passes 7/7, Enterprise schema/RLS verification passes and
+Development migration drift passes 251/251. No external IdP, SCIM directory,
+WhatsApp provider, payment provider, real charge, message, physical action,
+main or Production system was contacted. PUSH 41 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`. PUSH 42 is readiness-only
+and has not started.
+
+PUSH 42 branch-validation receipt (2026-10-19): implementation commit
+`ae79986940522136745967924739eeb3aa17b57a` on
+`codex/push-42-external-api` adds the versioned external API, PUSH 41 signed
+Service Account authorization, tenant/organization/Site/resource isolation,
+PUSH 40 `api_access` enforcement, bounded Camera/Event/Incident/Evidence/
+Investigation/Watch contracts, PUSH 39 signed webhook lifecycle, measured
+usage, truthful VMS/DVR/NVR/vendor/federation state, a separate-domain Gan
+Batuach contract, public documentation and an independent consumer. The
+additive migration is validated and not yet applied.
+
+Branch-local TypeScript, canonical zero-regression lint, Production build
+without deployment, domain 43/43, security/isolation 44/44, migration health
+252, release contract, dependency audit, focused PUSH 42 QA and PUSH 39/40/41
+regressions pass. All 197 capability identities remain and no capability was
+promoted to `DONE + REAL PROOF`. Exact-head hosted CI, remote integration,
+verified isolated Development backup/application/schema proof and exact-SHA
+local independent-consumer proof remain pending. No external partner, webhook
+receiver, VMS/DVR/NVR provider, Gan Batuach runtime, supplier, customer data,
+main or Production system was contacted.
+
+PUSH 42 Development-integration and schema receipt (2026-10-19): PR #206
+exact head `30919ada3f604dcfa5c18f5a28d016db01238e38` passed all 9 required
+checks and merged with preserved ancestry as
+`1782df60ca25866866aef78fede49b48fcd26781`. The verified isolated
+Development pre-apply custom-format backup is protected at
+`/private/tmp/push42-development-pre-migration.dump`, SHA-256
+`6d028cb8e7970d0bb5d6fe34ef7fd16d1d3bdf5f849195d8b6110a8ca8892b78`,
+with a valid `pg_restore` archive listing. Migration
+`20261019030000_digital_observer_push42_external_api.sql` applied only to the
+canonical isolated Development database at `2026-10-19T00:50:52.875136+00:00`
+and produced schema fingerprint
+`bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797`.
+The bounded schema verifier confirms RLS on all three new tables, denies
+anonymous/authenticated receipt access and authenticated source mutation,
+denies authenticated usage-RPC execution, observes zero Production integration
+sources and stores no raw credential or video columns. Exact merged local
+full-stack and independent-consumer conformance remain pending. No external
+provider, main or Production system was contacted.
+
+PUSH 42 exact-runtime closure receipt (2026-10-19): PR #207 exact head
+`37ce01bb8b112e650864eb5dab1fb1b55d40b38d` passed all 9 required checks and
+merged with preserved ancestry as
+`8de36d76a0f8d4891edee14418496474ccb3ea17`. The first merged runtime probe
+then found that the external Event adapter selected `camera_source_id` while
+the canonical signal table uses `camera_id`; it also confirmed the existing
+synthetic-auth verifiers must run sequentially because parallel runs share
+test sessions. PR #208 corrected only that source mapping, made conformance
+nonces/idempotency keys rerunnable and added deterministic regression
+assertions. Exact head `0f2575f41f5dafc5dc88690f7ecb768facdf8ab1`
+passed 9/9 and merged with preserved ancestry as
+`8c284a72e0174ef9dd4308220882d6f284ee9dc5`.
+
+At exact runtime `8c284a72e0174ef9dd4308220882d6f284ee9dc5`, the
+canonical isolated Development Product passed core full-stack 18/18, PUSH 39
+24/24, PUSH 40 6/6, PUSH 41 7/7, PUSH 42 independent local conformance 10/10,
+External API schema/RLS verification and migration drift 252/252. This closes
+the mandatory internal Development gates. PUSH 42 is `DEVELOPMENT COMPLETE —
+EXTERNAL PROOF PENDING` and canonically `NOT DONE`: external partner,
+signed-webhook receiver, VMS/DVR/NVR/vendor, Gan Batuach operational adapter,
+penetration, real scale/SLA, real-traffic cost and Production evidence remain
+open. All PUSH 38–41 proof obligations remain unchanged. No provider,
+customer, main or Production system was contacted. PUSH 43 remains
+readiness-only and has not started.
+
+PUSH 43 Development-completion receipt (2026-10-19): implementation PR #210
+passed 9/9 exact-head checks and merged with preserved ancestry as
+`7e0df3a2ad105145af42057837b4e3a21a7146d1`. Scoped follow-up PRs #211–#218
+each passed 9/9 exact-head checks and preserved the migration receipts,
+runtime-secret isolation, delegated partner usage, embedded-origin constraint
+and canonical embedded Camera/Event/Incident/Evidence reads. The final bounded
+runtime fix merged as `42a680218005403c6501ce4264e7e5a5cc4e201d`.
+
+The additive migrations `20261019040000_digital_observer_push43_oem_sdk.sql`,
+`20261019041000_digital_observer_push43_delegated_usage.sql` and
+`20261019042000_digital_observer_push43_embed_origin_constraint.sql` are
+applied only to the canonical isolated Development database. Development
+drift is 255/255 with schema fingerprint
+`1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1`.
+The final migration pre-apply custom-format backup is readable by `pg_restore`
+and has SHA-256
+`3beeb65c099e342c59ea0e1a57b9b0ef9752d0dec758fc71649ff1297583a45d`.
+Production access was false.
+
+At exact runtime `42a680218005403c6501ce4264e7e5a5cc4e201d`, labeled
+`DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, the cumulative Product
+passes 18/18, PUSH 39 passes 24/24, PUSH 40 passes 6/6, PUSH 41 passes 7/7
+and PUSH 42 passes 10/10. The independent public-SDK partner application
+passes 15/15 using isolated synthetic data: partner auth, idempotent customer
+provisioning, customer/Site isolation, Camera/Event/Incident access, branded
+embedding, wrong-origin denial, session revocation and measured usage
+attribution. It imports no private Digital Observer server module.
+
+PUSH 43 is `DEVELOPMENT COMPLETE — EXTERNAL PROOF PENDING` and canonically
+`NOT DONE`. A real OEM/white-label partner, custom-domain verification,
+partner SSO, real webhook receipt, vendor/VMS integration where applicable,
+commercial settlement, support ownership, legal/privacy and Production proof
+remain open. Five existing North-Star rows are `IMPLEMENTED — NEEDS REAL
+PROOF`; all 197 IDs remain and no row was promoted to `DONE + REAL PROOF`.
+Incremental supplier cost is ₪0. PUSH 38–42 obligations are preserved. No
+provider, real customer, main or Production system was contacted. PUSH 44 is
+readiness-only and has not started.
+
+PUSH 44 branch-validation receipt (2026-10-19): implementation commit
+`f4079c7f29308b59c49d441e742a01089f5bf98f` on
+remotely preserved branch `codex/push-44-mobile-readiness` and PR #220 add the
+canonical Capacitor mobile runtime,
+server-authorized deep links, native lifecycle and network revalidation,
+privacy-minimized native Push registration, bounded non-sensitive offline
+recovery, remote-playback grant renewal, iOS privacy declarations and Android
+permission hardening. TypeScript, canonical lint, Production build without
+deployment, release-contract, migration health, PUSH 39–43 regressions and
+Capacitor sync pass. The canonical domain gate passes 45/45 and the
+security/isolation gate passes 46/46 with PUSH 44 included in both.
+
+No PUSH 44 migration or paid provider activation exists; the 255 canonical
+migrations are unchanged and Production access is false. Android native build
+is blocked because the validation host has no Android SDK; iOS native build is
+blocked because full Xcode is absent. Signed real-device, mobile Push receipt,
+real remote playback, store privacy review, App Store/Google Play and
+Production proof remain open. PUSH 44 is `PARTIAL` and canonically `NOT DONE`;
+one existing North-Star row, DO-NS-003, moves from `FOUNDATION` to `PARTIAL`,
+all 197 identities remain, and no capability becomes `DONE + REAL PROOF`.
+
+PUSH 44 integration closure (2026-10-19): PR #220 exact head
+`c3ff106c517fa85f59a4686eac84fb00098e7a8b` passed all 9 required checks and
+merged with preserved ancestry as
+`8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`. The dedicated `gbi` Development
+stack reports 255/255 migration drift with `productionAccess: false`. At exact
+runtime `8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`, labeled
+`DEVELOPMENT / INTEGRATION` with `LOCAL_SUPABASE`, the cumulative Product passes
+18/18, PUSH 39 passes 24/24, PUSH 40 passes 6/6, PUSH 41 passes 7/7, PUSH 42
+passes 10/10, PUSH 43 passes 15/15 and PUSH 44 mobile runtime passes 5/5,
+including authenticated Site scope, cross-Site denial and forged-link denial.
+The first local startup detected a stale pre-PUSH-44 `node_modules` snapshot;
+the locked dependency install was synchronized and the unchanged merged SHA was
+then re-run successfully. No Production or alternate backend fallback occurred.
+
+PUSH 44 remains `PARTIAL` and canonically `NOT DONE`: Android SDK and full
+Xcode are absent on the qualification host, and signed real-device, mobile
+Push receipt, real remote playback, store privacy/review and Production proof
+remain open. No migration, provider, customer, main, store or Production system
+was changed. PUSH 45 is readiness-only and has not started.
+
+PUSH 45 branch-validation receipt (2026-10-19): implementation commit
+`067f475b636dffe7d1250523f8112f3018218e4d` is remotely preserved on
+`codex/push-45-privacy-compliance`. It adds versioned context/jurisdiction/
+purpose profiles, evidence-bound written-decision records, fail-closed
+sensitive-capability gates, notice acknowledgement, Site-scoped privacy-rights
+requests with truthful external-system disposition, governed legal-hold
+creation/release, privacy incidents, append-only audit, Product UI, an Israeli
+source map, data inventory and an external-counsel review package.
+
+Branch-local TypeScript, canonical lint-baseline, Production build without
+deployment, domain 46/46, security/isolation 47/47, migration health 256,
+release contract, dependency audit and focused PUSH 39–45 regressions pass.
+All 197 North-Star IDs remain; DO-NS-066, DO-NS-185 and DO-NS-186 move only to
+`IMPLEMENTED — NEEDS REAL PROOF`, with no new `DONE + REAL PROOF` claim. The
+additive migration is remotely preserved but not yet integrated or applied.
+Exact-head CI, PR integration, verified isolated Development backup/application,
+schema/RLS/drift and exact-SHA local Product proof remain pending. External
+counsel decisions and all PUSH 38–44 external obligations remain open; no legal
+approval, provider, customer, biometric/child-monitoring feature, main or
+Production system was activated.
+
+PUSH 45 integration receipt (2026-10-19): PR #222 exact head
+`355faec550dc43617ad1af506856406f024d519e` passed all 9 required checks and
+merged with preserved ancestry only to `integration/development` as
+`19f67935dd63ea51d8a30da5a3d6c2ccebbb964b`. Source implementation commit
+`067f475b636dffe7d1250523f8112f3018218e4d` is an ancestor. The additive
+PUSH 45 migration is now eligible for the verified isolated Development
+application sequence; it is not applied to Production. Exact-SHA cumulative
+local Product verification and external legal decisions remain pending.
+
+PUSH 45 isolated Development schema receipt (2026-10-19): documentation-only
+PR #223 exact head `62eccb53562e7fbf3af27d0467c51df482d87c5f` passed 9/9 and merged as
+`64e1b36b7e846258a11e948a54e5222f208247fc`. Before applying the migration,
+the dedicated Development database was saved as a readable custom-format
+archive at `/private/tmp/push45-development-pre-migration-20261019T1916Z.dump`,
+SHA-256 `97b02a852dcb8bdf3a89b1ddd3c4ffa8f4598b8205dd53c3d2f92a9e35bbf49f`.
+Migration `20261019050000_digital_observer_push45_privacy_compliance.sql`
+applied only to isolated Development at `2026-10-19T19:15:48.96083+00:00`.
+Schema fingerprint is
+`84bb65985b33b6ad73b3a76f6649477a8e482b474ccf75f16842d19c240afdae`;
+RLS/default-denial checks pass, no approvals are seeded, and drift is 256/256.
+Production access is false. Exact-SHA cumulative local Product proof remains
+pending.
+
+PUSH 45 local Product closure (2026-10-19): PR #224 exact head
+`25156a3e47e096f757651387dbc3e13a27570be3` passed 9/9 and merged as
+`1d110fa00452b2bbd2a29f5baace083bd1b728b2`; PR #225 exact head
+`a0ecbc4feb28c8630dbf4a8c561a730bd38587c6` passed 9/9 and merged the
+fail-closed verifier correction as
+`62a7331c90619bf183e0bfbd48516f8b1f83edae`. At that exact integration SHA,
+the canonical Product ran as `DEVELOPMENT / INTEGRATION` at
+`http://127.0.0.1:3000` with `LOCAL_SUPABASE` and Production false. Cumulative
+Product probes passed 18/18; PUSH 39 passed 24/24, PUSH 40 6/6, PUSH 41 7/7,
+PUSH 42 10/10, PUSH 43 15/15, PUSH 44 5/5 and PUSH 45 4/4. The privacy center
+denied anonymous and cross-Site access and denied sensitive activation because
+the policy is inactive and no external approval exists. PUSH 45 is Development
+complete but canonically NOT DONE; qualified external legal decisions and real
+governed proof remain pending. Main and Production were not changed.
+
+PUSH 44 targeted iOS continuation branch receipt (2026-10-19): implementation
+commit `d0e6be0ac0961cb36693b7f52c409d1b55cd17ac` is remotely preserved on
+`codex/push-44-ios-real-device`; PR #227 targets only
+`integration/development`. The existing Capacitor project now declares a
+configuration-aware APNs signing entitlement, and deterministic PUSH 44 QA,
+Capacitor iOS sync, PUSH 39–45 preservation regressions, TypeScript, canonical
+lint with zero regressions, Production build without deployment, migration
+health 256/256 and release-contract checks pass. No migration was created.
+
+Physical qualification remains blocked and is not promoted: the Apple-silicon
+host has Command Line Tools only, no full Xcode, no signing identity or
+provisioning profile, no visible iPhone, and no approved authenticated HTTPS
+Development app/media endpoint. Native build, simulator, installation,
+real-device login/UI, cellular playback, real Push receipt, network transitions,
+performance and TestFlight are not run. PUSH 44 remains `PARTIAL` and
+canonically `NOT DONE`; all 197 North-Star identities and PUSH 38–45 obligations
+remain unchanged. PUSH 45 legal gates are closed, PUSH 46 is not started, and
+main and Production are unchanged.
+
+PUSH 44 targeted iOS continuation integration receipt (2026-10-19): PR #227
+exact head `a4708653c1515458607f2c26c72cc27b975036f1` passed all nine required
+checks and merged with preserved ancestry only to `integration/development` as
+`dd5e4fc8c7cbcef40c7676d0e146e3518b574406`. Implementation commit
+`d0e6be0ac0961cb36693b7f52c409d1b55cd17ac` is an ancestor. The merge does not
+change the truthful qualification result: physical iPhone execution and every
+dependent native/external gate remain blocked or not run. No migration,
+provider, main, Production, store, customer or PUSH 46 state changed.
+
+PUSH 44 iOS/Xcode qualification continuation receipt (2026-10-20): scoped
+implementation commits through `9c8863159da4d300435a6452e38ed5c2287fc370`
+are remotely preserved on `codex/push-44-ios-kingston-qualification`, based on
+`origin/integration/development@78edef28fd1ec7bb106eba7bd432cd52011c2daa`.
+Xcode 26.3 (17C529) is selected. Capacitor iOS sync, the Debug simulator target
+and an unsigned generic iOS arm64 target pass at the exact feature commit.
+DerivedData, Archives, Swift package clones/cache and result bundles are
+configured on the encrypted Kingston volume, and the scripted build fails
+closed if that volume is unavailable.
+
+The iOS 26.3 simulator installed and launched the app process, but Product
+rendering failed with `NSURLErrorDomain -1004` because no approved Development
+endpoint is configured. An iPhone 13 Pro / iOS 18.7.8 is connected and paired,
+but Developer Mode is disabled, DDI is unavailable and no Apple Development
+identity/profile is installed. The canonical local Product launcher also
+failed closed because the isolated Development schema/history readiness query
+could not complete. Therefore signed installation, real-device auth/UI,
+cellular playback, real Push receipt, transitions, physical performance and
+TestFlight remain blocked or not run. No migration, provider, main, Production,
+store, customer, legal-gate or PUSH 46 state changed.
+
+PUSH 44 iOS/Xcode qualification integration closure (2026-10-20): PR #229
+exact head `534411e90b77961f2d3832f7736ca531bfeca87f` passed all nine required
+checks and merged with preserved ancestry only to `integration/development` as
+`cea28a4fc8534266fc1a5b471c4b7f84d22a598c`. Portable build-helper commit
+`9c8863159da4d300435a6452e38ed5c2287fc370` and the earlier qualification
+commits remain ancestors. This records Development integration only; the local
+full stack, signed iPhone installation, cellular playback, real Push receipt,
+TestFlight and Android campaign remain blocked or not run. Main, Production,
+providers, stores, customer data and PUSH 46 remain unchanged.
+
+2026-10-20 runtime recovery on `31db906863984a35ad48d492457afaef07cac421`:
+256/256 Development migration/schema verification PASS after granting access
+to the dedicated local Docker socket. No database changes were required.
+Canonical runtime and basic simulator landing rendering recovered; mobile
+authorization probes PASS 5/5. iPhone 13 Pro reports iOS 27.0.1, Developer Mode
+enabled, paired and DDI available. Signing remains blocked by zero valid
+identities and no project team. HTTPS QA is a proposal awaiting authorization;
+physical installation, cellular media and APNs receipt are untested. Scoped
+evidence branch: `codex/push44-ios-runtime-recovery`. Existing historical
+failures and external proof obligations remain intact.
+
+2026-10-20 owner-approved bounded HTTPS iPhone QA continuation: draft PR #234
+to `integration/development` preserves branch
+`codex/push44-secure-iphone-qa` preserves implementation commit
+`8eb272071676bed0e97f0e12341c1153865b516d` remotely from
+`origin/integration/development@0a90979504d20c8db0d45574421e6eaf89231fc7`.
+The isolated Development schema passed 256/256 with no migration change.
+Signed Personal Team QA installed/launched on the owner's iPhone 13 Pro;
+Cloudflare owner OTP and Product-origin transport were reached. Both the app
+and Safari remained on a loading screen, so Product UI, Product login, cellular
+access and real video are **not proven**. No media path or APNs was activated.
+A later loopback-only Chrome diagnostic rendered the login form through the
+same route filter with CSS/JavaScript 200; this is not iPhone Product proof.
+The temporary tunnel/proxy were stopped and the offline-safe QA bundle was
+reinstalled. TypeScript, lint, build, domain 46/46, security 48/48, migration
+and release-contract gates passed; the feature remains pending integration
+and external Product proof, with PUSH 44 `PARTIAL / NOT DONE`. Main, Production and PUSH 46
+were untouched. The detailed negative evidence and next safe prerequisite are
+in `DIGITAL_OBSERVER_PUSH_44_IOS_REAL_DEVICE_CONTINUATION_REPORT.md`.
+
+2026-10-20 HTTPS loading-failure diagnostic continuation of draft PR #234:
+`codex/push44-secure-iphone-qa` commit
+`b1f74d7593e0e272a48b95f55a3f75c41c65524e` is pushed remotely and
+pending integration. Owner iPhone Safari reported Cloudflare 502 at 01:00:45
+UTC; `cloudflared` 2026.10.1 crashed with a nil-map panic at that time. A
+separate real Next.js Development asset probe returned 403 with the external
+Origin and logged the missing `allowedDevOrigins` hostname. A narrow,
+Development-only exact-host setting, early-denial response headers and
+redacted opt-in route diagnostics were added. Local ingress contract PASS;
+TypeScript, canonical lint baseline, domain 46/46, security 48/48, migration
+256/256, release contract and PUSH 39–45 deterministic suites PASS. The source
+commit's exact-head CI passed 9/9; the local no-deploy build passed after
+granting Turbopack the required loopback compiler-port permission.
+Physical iPhone Product proof remains pending. The temporary
+tunnel was down (public 530) and loopback QA port closed. No migration, media,
+APNs, Production, main or PUSH 46 change. PUSH 44 remains PARTIAL / NOT DONE;
+PR #234 remains draft until stable owner-only ingress, iPhone proof and
+required CI gates pass.
+
+2026-10-20 protected HTTPS retrial for draft PR #234: Cloudflare dashboard
+read-only preflight showed observed and projected current-cycle billable usage
+$0.00, one of 1,000 included Tunnels, and Zero Trust not yet onboarded. A
+bounded, owner-email-protected Quick Tunnel using `cloudflared` 2026.10.1
+crashed after iPhone Safari OTP (502/Ray `a4db2097bb1c9428`, nil-map panic).
+A checksum-verified temporary 2026.10.2 binary avoided that observed crash
+but the owner reported `Bad Request` after OTP; neither trial reached a proven
+Product login. Exact branch head `99a4e68a` served local login and real JS
+assets with HTTP 200; isolated Development backend remained healthy and
+restricted Supabase route returned 404. The connector, filter and feature
+runtime were stopped; public hostname returned 530 and ports closed. A new
+signed QA build was not installed because Xcode rejected the CoreDevice UUID
+as its destination. No source/migration/Production change. PR #234 remains
+draft and pushed, 9/9 exact-head CI PASS; PUSH 44 remains PARTIAL / NOT DONE.
+Named Access would require separately authorized Zero Trust Free onboarding
+and owner-only policy; no such activation was performed.
+
+2026-10-21 bounded owner-only HTTPS iPhone requalification, draft PR #234:
+source fix `c93c7c51` is pushed to
+`codex/push44-secure-iphone-qa` and remains pending integration. The QA route
+filter had forwarded to the separate integration runtime on port 3000 instead
+of the isolated feature Product on port 3001, producing mismatched loading
+assets. Public mobile login also looped on an expected unauthenticated 401.
+The narrow upstream/public-route fix passed TypeScript, no-deploy build,
+canonical lint baseline and targeted mobile/ingress tests; exact-head native
+build and PR CI remain pending. The owner confirmed the actual Product login
+screen in the installed iPhone QA app, **not** authenticated dashboard access.
+The working computer login is in the Vercel Product environment; read-only
+Development Auth inspection found that Product identity absent among 24 local
+users, explaining the phone's invalid-credentials result without copying or
+resetting any Production credential. The scoped ingress, connector and feature
+runtime were stopped, and the temporary QA Tunnel deleted before its fixed
+deadline; the home Gateway Tunnel and canonical integration runtime were
+untouched. No media, APNs or migration was activated. Product authentication,
+cellular navigation, real playback and Android proof remain open. PUSH 44 is
+`PARTIAL / NOT DONE`; PR #234 stays draft, main/Production/PUSH 46 unchanged.
+# PUSH 44 session guard integration receipt — 2026-10-23
+
+Synthetic-edge code integration verified: PR #246 final head `bce3468250183859b916dd0b12bec5772bf1d5dc` passed all9 checks (run40009022716) and merged ancestry-preserving as `c005a27397d76d075d520ccb04e6491984058460`. Merge tree equals the exact CI-tested head. Final qualification is17 isolated cases +23 affected gateway regressions and the actual LOCAL workerd synthetic-only transport receipt; no external/phone proof. This post-merge receipt changes documentation only, not any code/config/provider. External readiness stays blocked by incomplete limited OAuth and actual deployment/security/cost/physical qualification. No cloud resource, DNS, media, Home service, main, Production or PR235 change.
+
+Synthetic-only edge continuation: source `6089d60d0cd317bf8efd8d5c0f912e38a6e18320`, branch `codex/push44-synthetic-edge-qualification`, Draft PR #246. Existing media/grant/session/cookie cores reused with an immutable separate synthetic scope; private R2/SQLite-DO transport and outbound host-control adapters default OFF (`workers.dev=false`, previews=false, OPEN_UNTIL=0). 13 new cases +23 affected gateway regressions and disabled official-CLI dry-run PASS; exact-head CI required. No source enrollment, resource, DNS, media or Production operation. Limited OAuth owner-approved but consent/callback timed out without a token; external TLS, actual-edge limits and physical-iPhone synthetic playback NOT RUN. Canonical Product remains actual051/LOCAL_SUPABASE, not this feature branch. PR235 preserved Draft; real CH1/APNs/Zero-Install proof unpromoted, PUSH46 not started. PR245 documentation integration verified1303070304f1b227e1e020d36f56842c5adcc3bc, exact head9/9CI PASS. See qualification report and canonical JSON ledger; complete scoped OAuth before the dependent external qualification, not another foundation audit.
+
+CH1 external-readiness continuation: original evidence commit `f0df13d968549e171f3d27ffaca6c17329e16c52`, branch `codex/push44-ch1-external-readiness`. Both Cloudflare authoritative servers return NXDOMAIN for the candidate media hostname; authenticated zone inspection confirms no such record among 14 existing records. Documentation-only package pins exact source, viewer and connected phone inventory, but does not assert source ownership or remote hardware attestation. Direct DNS-only TLS is a review candidate, not approved/deployed ingress; origin exposure, external edge accounting and complete cost remain blocking. No completed foundation/codec/session tests repeated. No DNS, listener, certificate, live grant, media, migration, provider or Home service change. Separate NON-LIVE preparation approval required; no real-test request. PR244 integration receipt corrected to verified merge `051e4213a2fc718e303a75e592707aa7e58ccc0d`, exact head 9/9 CI PASS. PR235 remains separate Draft; PUSH44 PARTIAL, PUSH46 not started.
+
+CH1 media preflight continuation: branch `codex/push44-ch1-media-preflight-20261023`, original evidence commit `3ff7b6849499d6655fc56df568e0beaa5eb5f6b6`, baseline `2a70695a`. Current Home QA source `6fddc732-13df-4268-9f32-3357262ea997` and pinned Site/Gateway/enrollment mapping verified read-only; counters progress with no duplicate owner. Canonical Development phone viewer correctly receives 403 for Home. Existing multi-source VOD/R2 publisher and generic ingress lack the requested per-viewer aggregate byte/deadline/revocation enforcement. Result BLOCKED BEFORE ACTIVATION, not another real-video PASS. No grant, camera access, upload, tunnel, provider change, Home restart, migration or Production operation. PUSH39–45/R2/isolated TLS contracts and four actual Development authorization probes PASS; 197 owned capabilities and 257 actual schema/history reconciliation preserved. Exact-head CI required before documentation-only integration. See the scoped JSON preflight for evidence, provider estimates, precise remaining adapter/delegation gates and later rollback.
+
+Final code integration verified: PR #240 merged as `74e55a8031e782ebff9bfb2ab352df0fb70b70ae` after final head `7998b9bbb251d82bb455294cc40ca70b58c0b302` passed 9/9 CI (run 39992473515). Its original code/evidence commits remain in ancestry. Canonical loopback Product restarted at that exact SHA with LOCAL_SUPABASE/production=false; login-resume positive/negative 5/5 and mobile/deep-link isolation 5/5 passed. The two protected sanitized metadata receipts are referenced with SHA-256 in the JSON ledger, not credentials or private media. Final post-merge receipt is documentation-only; no new migration, Product code, provider or live action.
+
+Real-device follow-up branch `codex/push44-real-device-session-evidence-20261023`, PR #240: owner confirmed strict expiry, reauthentication, canonical server-side revocation, background/resume denial, Wi-Fi/cellular continuity and offline indication. Full restart first returned login despite a valid session; the minimal canonical-authorized login-resume correction passed five actual local negative/positive cases and owner retrial returned dashboard without password. Campaign stopped 17:05:52 UTC; exact tunnel deleted, public 530, final QA session revoked, signed offline QA reinstalled/launched, Home services untouched. Exact-head CI and review required before integration. Separate media/APNs/Android/release/legal obligations remain open; 197 capabilities/52 PUSHes unchanged, no Production activation or PR235 changes.
+
+PR #238 merged into Development as `9e4277bfb63dc641d16879d25359eaa42c2c0d6a`; exact head `45961d8375d7fbca8ef13483c0272da698b98999` passed all nine checks (canonical six gates plus aggregate, management and Snyk). Additive migration `20261023161928` applied only to the canonical isolated LOCAL_SUPABASE at 16:47:11 UTC. Actual history/schema reconciles 257 migrations (227 baseline-covered + 30 post-baseline). Eight rollback-only function/ACL checks passed. Actual loopback Product login/runtime passed and unauthorized Site returned 403. These are not yet physical-iPhone expiry/revocation proof. Separate bounded device campaign pending; PR #235 remains Draft; main and Production unchanged.
+
+UX-V4 PRIMARY-SCREEN CORRECTION preservation receipt (2026-10-09): scoped
+implementation and V5 tooling are remotely preserved at
+`origin/codex/ux-v4-primary-screen-correction@b9dac699`. Static qualification
+passes typecheck, zero-regression lint, Domain 30/30, Security 11/11, migration
+health 244/244, release-contract validation, Owner 6/6, Parent 7/7, Platform
+Admin 9/9, Settings 9/9 and Manager/Parent 23/23. Fresh V5 capture, visual
+comparison, build and local full-stack verification remain intentionally
+blocked because PUSH 38 began a new 24-hour host-isolation window on 2026-10-09
+at 01:43:44 Asia/Jerusalem; starting Next or `gbi` before explicit release can
+invalidate that qualification. Read-only heartbeat `ux-v5` monitors release of
+the host and performs no code, Git, PR or merge action. No visual PASS, owner
+approval or Development integration is claimed. Production, `main` and
+RELEASE-GAP-01 remain untouched.
+
+UX-V4 PRIMARY-SCREEN CORRECTION validation update (2026-10-25): source
+Development `af30b84f21a35e817738bf0329cf1a632a10a5ae` was merged into the
+isolated feature branch. Implementation commit
+`e85eda2a62c5d988ac5790d843a14fce9bcb766b` and evidence commit `72281329`
+produce the five primary compositions, 10 fresh primary screenshots, 32 fresh
+domain-regression screenshots and a V5 package with 21
+`REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION`, 0 `BROKEN`.
+Typecheck, zero-regression lint, build, Domain 46/46, Security/Isolation 50/50,
+257-migration health, release contract, Manager/Parent 23/23, management
+dashboards 9/9, Owner command center 6/6 and legacy consolidation 8/8 pass.
+External owner acceptance remains pending; no owner approval is claimed. The
+branch is remotely preserved and still requires exact-head PR checks and merge
+to `integration/development`. Production, `main` and RELEASE-GAP-01 remain
+untouched.
+
+Remote preservation verified: `origin/codex/ux-v4-primary-screen-correction`
+contains validated head `0855814aea547b4b7098e3c8bfba76ac4f8a53c4`, including the
+implementation, fresh evidence and validation ledger update.
+
+UX-V4 PRIMARY-SCREEN CORRECTION Development integration receipt (2026-10-26):
+validated remote head `e0617705114940fba282209fb163a71a2d841eca` passed all
+nine required checks in PR #251 and merged ancestry-preserving to
+`integration/development` as
+`1d6bb1f50e8efc87b241d81d0ae0f7b7f64c5a94`. The merge tree is identical to
+the exact CI-tested head. Post-merge Manager/Parent 23/23, management dashboards
+9/9, Owner command center 6/6 and legacy consolidation 8/8 passed. Ten primary
+screenshots, 32 domain-regression screenshots, geometry review and the V5 owner
+package were regenerated from the exact merged Development SHA; the package
+reports 21 `REFERENCE_MATCH_CANDIDATE`, 0 `NEEDS_VISUAL_CORRECTION` and 0
+`BROKEN`. External owner visual acceptance remains pending. Production,
+`main` and RELEASE-GAP-01 remain untouched.
+
+Event-risk atomic-claim qualification integration receipt (2026-10-26):
+PR #254 exact head `dd731132e553a5d4c5d8b83908ed5cc7fef34146` passed
+the six Digital Observer CI gates, canonical quality, Management context and
+Snyk, then merged ancestry-preserving into `integration/development` as
+`ef3791af51eb91dbf79225ab6446d7f5851c25b7`. The review-only SQL copy
+is byte-identical to its preserved proposal and remains execution-guarded;
+the isolated fixture is also guarded against direct execution. Eighteen
+focused checks passed in an ephemeral, network-disabled PostgreSQL 17
+container. No migration, active ingestion route, Development database, Vercel
+deployment, `main` or Production change was made. This is not approval to
+apply the SQL or activate event-risk/Guard: four fenced writer RPCs, verified
+event-time Model A ownership, immutable recipient snapshot and live
+schema/RLS/crash qualification remain open. No exactly-once claim is made.
+
+Event-risk Risk-persistence review preservation receipt (2026-10-26): Draft
+PR #258 exact head `364672482f0f314fb672fbc0cd9549be9737fb74` is remotely
+preserved on `codex/event-risk-persist-review-20261026` and is **pending
+integration**, not merged or approved to apply. Its four files are confined to
+`review-only/event-risk-persist-transaction/`: guarded and ungranted Risk
+persistence SQL, a disposable PostgreSQL runner, and qualification/limits
+documentation. The source task reported 21 isolated PostgreSQL 17.6 synthetic
+assertions PASS for one transactional Risk/audit/receipt and claim-state write,
+semantic replay, competing owners, epoch fencing, Tenant/Site/Incident denial,
+and audit-failure rollback; this ledger-only task did not rerun them. Exact-head
+Digital Observer CI six gates plus quality passed in run `40273723207`,
+Management passed in run `40273723217`, and Snyk passed. Historical Home
+ownership, the deployed schema/ACL/RLS, three later writers, crash recovery,
+retention and live cost remain blocking. No migration was applied, no active
+route or Guard was enabled, and `main` and Production remain unchanged.
+
+Event-risk effect-plan review preservation receipt (2026-10-26): Draft PR #259
+exact head `784731da46aad974acfaa813e9efe948aab65204` is remotely
+preserved on `codex/event-risk-effect-plan-review-20261026`, pending
+integration rather than merged or approved to apply. Its three files under
+`review-only/event-risk-effect-plan-transaction/` propose the exact second
+writer signature, a source-bound authority/plan transaction, a disposable
+PostgreSQL runner and qualification limits. Twenty-three isolated network-
+disabled PostgreSQL assertions passed, including atomic plan/audit/checkpoint,
+semantic replay and audit rollback. This does **not** establish a live
+decision-time recipient/settings producer, TypeScript/PostgreSQL snapshot
+digest equivalence, or a secure function-only privilege boundary: the fixture
+shows the `SECURITY INVOKER` caller would need direct plan `INSERT`. Exact-head
+Digital Observer CI six gates plus canonical quality passed in run
+`40275897903`; Management passed in run `40275897884`; Snyk passed. No migration, existing database,
+active event-risk route, Guard, provider resource, `main` or Production was
+changed. Preserve PR #258 as the first-writer dependency; do not merge or
+apply PR #259 until separately reviewed gates pass.
+
+Event-risk effect-receipt review preservation receipt (2026-10-26): Draft
+PR #260 exact head `e14464047b9aab5bb359d7012b50e14de7a0ad36` is remotely
+preserved on `codex/event-risk-effect-receipt-review-20261026`, pending
+integration rather than merged or approved to apply. Its three files under
+`review-only/event-risk-effect-receipt-transaction/` propose the exact third
+writer signature for the existing canonical Event–Incident link only, with
+guarded/ungranted SQL, disposable PostgreSQL runner and qualification limits.
+Twenty-seven isolated network-disabled PostgreSQL checks passed, including
+atomic audit/receipt, concurrency, fencing, replay and audit rollback. The
+fixture also **proved a blocking direct-table privilege bypass**: a role with
+receipt and audit `INSERT` forged matching rows that the RPC accepted as
+replay. This proposal is not live-safe until an independently reviewed
+function-only ACL/Data API boundary and authoritative plan/fingerprint
+contracts are qualified. Exact-head six Digital Observer CI gates plus
+canonical quality passed in run `40303206094`; Management passed in
+`40303206155`; Snyk passed. No migration, existing database, active route,
+Guard, provider resource, `main` or Production was changed. Preserve Draft
+PRs #258/#259 as dependencies; do not merge or apply #260 to unblock them.
+
+Complaint SLA Production incident hotfix receipt (2026-10-29): PR #261 exact
+head `0e86d7fb36c4df9d57300afba5a9206549c3e4a7` passed the six Digital Observer
+CI gates, canonical quality, Management context and Snyk, then merged to
+`main` as `1e231b245baa60ee40d1968fb1a4f7b0598ab9eb`. The same ancestry was advanced
+into `integration/development` as `2576f23b9656de5b40e60e4f786446049fdfa054`.
+The focused migration removes only the invalid legacy role-claim GUC check;
+PUBLIC, anon and authenticated EXECUTE remain revoked and service_role remains
+the sole RPC grantee. PUSH 38 and all other blocked work remain excluded from
+Production. Isolated Development and Production application evidence are
+recorded separately after provider verification.
+
+Complaint SLA row-alias correction receipt (2026-10-29): isolated Development
+runtime qualification of the first hotfix exposed a second, previously masked
+PL/pgSQL defect: the row variable and table alias both used `c`, so PostgreSQL
+rejected `c.garden_id` as ambiguous. PR #262 exact head
+`39b3312863b9701c2a0890f96b0dd19cfac10eaa` replaces only that function through
+the ordered forward-only migration `20261029225418`, using distinct row and
+table identifiers while preserving the service_role-only EXECUTE boundary.
+The exact head passed the six Digital Observer CI gates, canonical quality,
+Management context and Snyk, then merged to `main` as
+`4e28d73f8a578637cc25522b193b550ad6d87482` and was integrated ancestry-
+preserving as `62473e7ec1a6de44767cf118820f64961400e917`. Runtime qualification
+returned 0 then 0 for the empty case, and a rollback-only overdue fixture
+returned 1 then 0 with exactly one event and one audit row; authenticated was
+denied. No real notification was sent. Canonical Development and Production
+application receipts are recorded separately after provider verification.
+
+Complaint SLA Production closure receipt (2026-10-29): Supabase project
+`kuaywzvucllxjsxarogb` applied the two reviewed migrations in order as provider
+history versions `20261029232605` and `20261029232610`. The final function has
+no legacy role-claim guard and no ambiguous row/table identifier; EXECUTE is
+granted only to `service_role` (plus owner `postgres`), while authenticated
+execution is denied. Direct service-role qualification returned 0 then 0. The
+READY Vercel Production deployment `AUaBi4ui1z6JT3NuXbset1sbrSiT` is exact
+commit `4e28d73f8a578637cc25522b193b550ad6d87482`. A Vercel-authorized cron run at
+`2026-10-29T23:28:52.890Z` returned HTTP 200; Supabase logged the corresponding
+RPC POST at `2026-10-29T23:28:54.379Z` as HTTP 200 with scalar result 0. An
+unauthorized domain request returned 401. After the live run, eligible rows,
+SLA events and SLA audits were all zero, so no duplicate effect or real
+notification was created. The post-change Supabase advisor scan returned no
+finding for this function. PUSH 38 and all unrelated development remained
+excluded.
+
+SEO/AEO editorial Development integration receipt (2026-10-30): remote source
+`origin/codex/seo-aeo-geo-reconciliation-20261030@a30face24b1e00b773dd210b9433bfbf28a6ee59`
+was merged ancestry-preserving to `integration/development` as
+`fc4e332441db879af8efce81e45f960da4b37340`. The cumulative tree passed
+typecheck, zero-regression lint, the 557-page Production build, Domain 46/46,
+Security 50/50, 259-migration health, release-contract, SEO, editorial and
+integration-ledger checks. A rendered crawl passed all 46 sitemap pages and 51
+structured-data blocks with unique metadata, one H1, canonical URLs, private
+noindex probes and the permanent canonical redirect. The isolated Development
+database reconciled 259/259 migrations and the exact merge started through the
+canonical DEVELOPMENT / INTEGRATION launcher. Search Console independently
+shows the former alternate-canonical reason at zero with validation passed; the
+current Production sitemap is accepted with 40 discovered URLs. No main merge
+or Production content deployment occurred.
+
+Provider-domain and crawl verification (2026-10-30): Cloudflare now has a
+DNS-only `www` CNAME to the project-specific Vercel target. Vercel reports
+`www.ganbatuach.com` as Valid Configuration with a permanent 308 redirect to
+`https://ganbatuach.com/`; direct TLS and both Vercel target addresses returned
+the expected secure redirect. Public resolvers 1.1.1.1 and 8.8.8.8 resolved the
+new record. The Vercel deployment inventory showed no new Preview or Production
+deployment after the feature and integration pushes; Production remains exact
+main commit `4e28d73f8a578637cc25522b193b550ad6d87482`.
+
+Google Safe Browsing follow-up (2026-10-30): the public transparency report
+still labels an unspecified subset of the apex domain as deceptive, while
+Search Console supplies no example URL. Exact report checks for current login,
+registration and password-reset paths returned no path-specific unsafe result.
+A fresh isolated-browser inspection loaded the Production apex without an
+interstitial and observed only same-origin document, script, RSC, monitoring
+and API requests; the bounded live/source scan found no injected third-party
+script, iframe or malicious redirect. Following the owner's explicit approval,
+one bounded review request was submitted through Search Console at
+2026-10-30T21:03+02:00 with those facts and no personal data. Search Console
+displayed `הבקשה נשלחה בהצלחה`. Google's review decision remains pending; do
+not send a duplicate request while that review is active.
+
+Digital Observer LCP follow-up receipt (2026-10-30): exact source
+`origin/codex/seo-performance-lcp-20261030@ccbc4296d71802d83c98a083669aa0a6514534c3`
+was remotely preserved and merged ancestry-preserving as
+`e08b3735b184b71425127db75fe412021874f4ae`. Its tree passed TypeScript,
+targeted ESLint, SEO contract and the 557-page Production build. Chrome
+DevTools on a cold mobile Slow-4G, CPU×4 trace verified a high-priority hero
+image preload, 1,592 ms LCP, 35 ms TTFB and 0 CLS; the measured resource load
+delay fell from 1,445 ms to 75 ms. The unit adds no migration and remains
+Development-only, ready for the next explicit owner-authorized consolidated
+release.
+
+Digital Observer public-claim accuracy receipt (2026-10-30): product-history
+reconciliation confirmed that a fixed 48-hour video-retention period is an
+engineering baseline, not a universally approved public promise. Exact source
+`origin/codex/seo-retention-accuracy-20261030@3cef7cca1704c0df9648632e9b9fda8bff860ca6`
+was remotely preserved and merged ancestry-preserving as
+`6d27d835b9f8ae48c41878919bfb7ddcc0d55c5b`. The public Digital Observer home
+and trust pages now state that retention follows the selected package and
+approved policy, and that a fixed duration is authoritative only when shown in
+the account or signed agreement. The cumulative integration tree passed
+TypeScript, targeted ESLint, SEO/editorial, Domain 46/46, Security 50/50,
+259-migration health, release-contract and the 557-page Production build. The
+unit changes no runtime retention behavior and remains Development-only for the
+next explicit owner-authorized consolidated release.
+
+SEO Gate 6 formatting closure (2026-10-30): exact source
+`origin/codex/seo-ci-whitespace-20261030@19171d6eafff5d24f3cbff77c73c7cf0ca5b299a`
+removed only the extra blank line at the end of
+`docs/seo-aeo-geo-audit-2026-10-30.md`. Local `git diff --check HEAD^ HEAD` and
+the release-contract check passed. PR #263 then passed Digital Observer CI
+Gates 1-6 and the Canonical quality gate in run `41111342908`, Management in
+run `41111342798`, and Snyk on the exact source head. The branch was merged
+ancestry-preserving to `integration/development` as
+`3b160a4272bd52edf67906abe120a8ce63329fe4`. No migration, main merge,
+Production deployment or provider setting changed.
+
+## Scoped immutable observation integration — 2026-11-03
+
+Source `codex/event-observation-integration-20261103@72b0ccb3b574480bf17588777b0cfe613f54d488` ports only the functional comparator from preserved source `1bdd760141399becd41278bb22d668f17c96b75f`. It retains the canonical decimal-tie fix and capture-time behavior. The four code/test files exclude all other source-branch units, Home registration/ownership proposals, mobile, billing and migrations. This is a scoped functional port; original source history remains preserved separately and is not claimed integrated by ancestry.
+
+All six local quality gates passed on the source commit: static quality, canonical Turbopack build, Domain46/46, security, migration-file health and release contract. Repository secret-pattern checks passed. Fresh npm high-threshold audit exited0 with26 moderate findings; there was no high/critical finding reported. The existing mocked race still evaluates Risk twice; no exactly-once, actual PostgreSQL or full-stack proof is claimed.
+
+Automatic approval review initially rejected public publication under the standing no-push/PR restriction. The owner subsequently explicitly authorized the four-file source commit, summary ledger, Development PR, required CI and conditional Development integration in direct reply `call_9b661b0466ba482ba138032e6707c068`: “מאשר פרסום ושילוב בהיקף הזה”. Publication, exact-head CI and integration remain pending at this receipt. The broad mobile candidate, main and Production are outside that approval; no provider, camera or database operation was performed.
+
+
+Publication receipt: the remote feature branch was verified at `969f4cbf4ff2a1e0c0991f75581b06fba084f98e`, containing source72b0ccb3 and the summary ledger. [PR264](https://github.com/infoganbatuah-ai/gan-batuach/pull/264) targets `integration/development@4601370b7828a22155ae25e73f7bae3a66f1ef03`. All exact-head remote checks and cumulative Development verification are pending at this receipt.
+
+
+Final scoped integration receipt (2026-11-03 local date): PR264 merged with ancestry at `14aac1bd280cfbac64e89963f0e7a79b6371034a`; original scoped source72b0ccb3 is an ancestor. All six CI gates plus canonical quality gate, Management and Snyk passed on exact feature head25e2c9f7d. All six gates and canonical quality gate also passed on the merge commit (run41537215702). Cumulative isolated local TypeScript, lint, canonical build, Domain46/46, security, migration-file health, release contract and ledger checks passed on14aac1bd2. Canonical shared installed dependencies were stale and were left untouched; the isolated locked dependency tree was used. Private evidence `event-observation-integration-evidence-20261103/cumulative/QUALIFICATION.json`, SHA256 `9c8b69cf4fa77fd42e5d5878eb349ca8d142f3a5239f5dac7ecf95dd26e05804`. No migration was added or applied. The unit is INTEGRATED_DEVELOPMENT, with full-stack/live-role/hardware qualification and any main/Production release explicitly pending.
+
+
+## PUSH44 Android resource cleanup — 2026-11-03
+
+Source `codex/push44-android-resource-fix-20261103@6df5e6648d1a3ffed33efd19fa26bb94bde6c96f` removes only five byte-identical `config 2.xml` through `config 6.xml` copies whose spaces break Android resource merging. Normal capacitor sync generates the canonical ignored config.xml. No other pending mobile source is imported.
+
+Fresh locked install and capacitor sync PASS. Exact-source clean unsigned Android release build and lintRelease PASS with Java21.0.13, SDK36 and Gradle8.14.3. App lint reports0 errors and17 warnings; the existing vendor Capacitor lint baseline filters6 errors and was not changed. The21814586-byte localhost-only APK SHA256 `013652b876934381f5f25aa9fe8bfd91cb1f54e29509be14d67330c5be3d7604` is identical to the independently built combined local fix. Private proof `push44-android-resource-evidence-20261103/QUALIFICATION.json`, SHA256 `a22cdf74de53a1ba7a46160c6273cd88c1c82c9e68f3bb85b425a15e7f8c20fa`.
+
+Source and ledger are local at this receipt; remote preservation, required exact-head CI and Development integration are pending. No migration, provider connection, device installation, full-stack PASS or main/Production release is claimed.
+
+
+Direct owner publication/integration authorization received in `call_50d93884234e476e8c8dd0528f0d1261`: “מאשר פרסום ושילוב של תיקון Android”. It covers this five-deletion source unit and summary/result ledger through required-CI-gated Development integration. It excludes the broad mobile candidate, main and Production. Publication is pending at this receipt.
+
+Final Android integration receipt (2026-11-03 local date): [PR266](https://github.com/infoganbatuah-ai/gan-batuach/pull/266) merged with ancestry as `7ce9595574fba473164885d902aa8fb0faeb437f`. All six CI gates plus canonical quality, Management and Snyk passed on exact source head `a05e7559c0fbe505eae2b23cb46f143bbc12fea2`. Merge CI run `41544380716` also passed all seven gates. Exact-merge clean Android release build and lintRelease passed, with the same unsigned21814586-byte localhost APK SHA256 `013652b876934381f5f25aa9fe8bfd91cb1f54e29509be14d67330c5be3d7604`. App lint:0 errors,17 warnings; existing vendor baseline filters6 errors, unchanged. Private cumulative receipt `push44-android-resource-evidence-20261103/cumulative/QUALIFICATION.json`, SHA256 `fffccb38580b4922c21c08068bc8fe7410a50903ac050319d31656e393dbc473`. Canonical Development fast-forward, source ancestry, validated-tree equality and clean worktree were verified. No migrations, device installation, provider activation, broad mobile publication, main or Production release. Full-stack/device/service qualification remains pending.
+
+## PUSH44 Android backup exclusion — 2026-11-03
+
+Local source `6ff9f65a43595696783a194485187a7967010f16` on canonical base `e53e4aa1dd0ba9ea9284b41466836e3b451271ac` preserves allowBackup=false and adds explicit cloud/D2D exclusions for all nine documented storage domains, legacy fullBackupContent=false and focused regression guards. Four source/QA paths only. Clean unsigned release build and lint passed on exact source; root independently inspected the packaged manifest/rule resource and ran the four parsed XML tests plus PUSH44 suite. App lint0 errors/16 warnings; the targeted warning disappeared and vendor baseline was unchanged. Private review `push44-android-backup-evidence.PSN75uUg/root-review.json`, SHA256 `47f133b8b2fc6d236b0d9adab8e9f9c4543c96651f6fc30aa17becd58933069e`. No device/OEM, API36.1 cross-platform-transfer, provider or full-stack proof. No migration or main/Production change. Local source and summary ledger await explicit owner approval for their public publication; previous scoped approvals cover different completed units. Remote CI and Development integration remain pending.
+
+Final Android backup-exclusion integration receipt (2026-11-03): [PR268](https://github.com/infoganbatuah-ai/gan-batuach/pull/268) merged ancestry-preserving as `16fd9bd76f9fe7e69084686ea8c104dece398b3a`. Direct owner call3ab5cddb approved the exact source plus summary/result ledger. Exact feature head002a passed all7 CI41551647763, Management41551647764 and Snyk; mergeCI41552213901 passed all7. Exactmerge clean Android release build, lintRelease and PUSH44 QA passed; APK21815234bytes SHA256 `dfb2d04e2b0ce31d40446d4e173a5b0221adf9b71aa3bef3f3197b257f984ff2` matches source. App lint0errors16warnings; targeted DataExtractionRules removed, existing vendor baseline unchanged. Private cumulative proof `push44-android-backup-evidence.PSN75uUg/cumulative/QUALIFICATION.json`, SHA256 `fc0a7be27b13a50d718133d5c53351ed4fd2091d9eceb46acb862a4561b928dc`. Canonical FF/tree equality/source ancestry verified. No device/OEM/API36.1 cross-platform-transfer/provider/full-stack/Production proof; no migration or broad mobile import.
+
+
+### 189. PUSH44 exact local HTTP URL boundary — local validated, publication pending
+
+Source `eae96872b55fb92f86e0767f8217762366e69e74` on `codex/push44-capacitor-local-url-boundary-20261103` from `5ff49a35036a6d961a3e9e63ab98c9a36ebe8463`: actual URL parsing replaces prefix-based cleartext classification. Root30 behavioral scenarios, focused2/2 and PUSH44 QA PASS; executor typecheck/lint and clean unsigned Android build/lint PASS. App0errors16warnings/vendorbaseline unchanged. Private evidence `push44-local-url-evidence.7KdMQN8T/root-review.json` SHA256 `736012aece8f3d1041b8d5749e50d5156a1539a7da3bbb6758c978852ebb549c`. No device/provider/full-stack/remote CI or Production proof. Exact public source and summary/result-ledger approval pending; no push/PR/merge.
+
+Unit189 result: direct owner approval call_272c56f299e2415c8cbd0b8699a93252 received; exact approved9449504 published and PR270 integrated as `ae6c0f8500d825f5a3af199381148f8626bec68a` after all7 CI41617651503, Management41617651504 and Snyk PASS. Root exact-merge clean unsigned Android assembleRelease/lintRelease and PUSH44 QA PASS; source-identical APK, app0errors16warnings/vendorbaseline unchanged. Cumulative private proof SHA256 `09f8b6d38a68c5ae0e5834528220fb47adb2023098fc6500a918a999fb358d1b`. No device/provider/full-stack/main/Production claim. Additional approval-record commit215a0d7 remains local and is excluded from public history.
+
+
+### 190. PUSH44 playback suspension boundary — local validated, publication pending
+
+Source `19b6260b2a1f5099e0335eb5a33675c316ad8131` on `codex/push44-playback-suspend-boundary-20261103` from `3bb01c231416b6f32d7132a0bfd85c85eddba0e6` fences suspended/offline heartbeat/retry/media callbacks and late connection work; source-specific invalidation prevents stale request completion from owning a replacement pending session. Root pinned-base actual-component reproduction fails as expected; fixed10/10 and PUSH44 QA PASS, including native/Hls.js overlapping old/new pending requests. Executor locked dependencies/typecheck/lint:ci and bounded demo/noactivation canonical Web build557/557 PASS. Existing lint baseline and one targeted hooks warning remain unchanged.
+
+Private root review `push44-playback-suspend-evidence.Y8neSZH1/root-review.json` SHA256 `355f16fe55425f02d4b637493496f28ed1cd416e2246f45c605afbad95920c3c`. Historical9fbb was reviewed, not merged/cherry-picked; visibility/progress/presence assertions excluded. No migrations or native build replay. No actual browser/device/media/provider/DB/fullstack/remote CI or Production proof. Exact source plus summary/result ledger needs separate direct public authorization; no push/PR/integration/main/Production changes.
+
+
+Unit190 result (2026-11-03): direct owner approval `call_9b1bffe164dd45b4b0d928dbb1fd054c` authorized exact source19b6260 plus prepared summaryhead dd7eda971, gated Development integration and result ledger. [PR272](https://github.com/infoganbatuah-ai/gan-batuach/pull/272) merged with source ancestry as `db5bac3962f8a7c07e1037165083e15fabcf199f` after all7 CI41648158857, Management41648158861 and Snyk PASS. Automatic source-merge CI41648945909 all7 PASS. Root exact-merge bounded demo/noactivation canonical Web build, typecheck, lint:ci and PUSH44 QA PASS; private cumulative proof SHA256 `f42a72ccc048a369e5ebf291849192aadf969f1acfb5b05bdeed431cd7047aed`. Source tree equals approved head, no migration/native rebuild/device/media/provider/DB/fullstack/main/Production claim; existing lint baseline and one source hooks warning unchanged. Historical9fbb not merged/cherry-picked.
+
+
+### 191. PUSH44 independent playback suspension reasons — local validated, publication pending
+
+Source `bed16f8202fcfb94e1078fcde0fd4dac8aed3647` on `codex/push44-playback-suspension-reasons-20261103` from `6666b498b7712bf1e41002a5bccfbe4c9dcab3c1` retains independent app-inactive and network-offline reasons. Each recovery clears only its own reason; playback reconnects once after all known causes clear. Root actual pinned-base partial-recovery cases reproduce premature gateway request/native play; fixed component blocks both. Root17/17 actual-component tests and PUSH44 QA PASS, including preserved prior10 cases, both event/clear orders, duplicates, stale callbacks, current-source changes and unmount. Executor locked dependencies/typecheck/lint:ci and bounded sequential demo/noactivation Web build557/557 PASS. Existing lint baseline and targeted hooks warning unchanged.
+
+Private root review `push44-suspension-reasons-evidence.AtIg8SWt/root-review.json` SHA256 `c0177ac871159aa5f261cdf3a0046093831103de270682747e52fd4d1170f858`. Two source/QA paths only; existing190 lifecycle/auth/origin/TTL/freshness/retry contracts preserved. No producer API/initial-status/visibility/presence redesign, migrations or native build. No real browser/device/media/provider/SQL/fullstack/remote CI/Production proof. Exact source plus summary/result ledger needs separate direct public authorization; no push/PR/integration/main/Production action.
+
+
+Unit191 result (2026-11-03): direct owner approval `call_fd9cd3354c8b4536b99b53e80e11ea3f` authorized exact source bed16f820 plus prepared summary head fe7c52fffcb70f269dc9257ecebdba62f3d2ee1e, gated Development integration and result ledger. [PR274](https://github.com/infoganbatuah-ai/gan-batuach/pull/274) merged with original source ancestry as `5eb63101975c40dbb259ad32de03fcba5ca4c8e8` after all7 CI41653704089, Management41653704090 and Snyk PASS. Automatic source-merge CI41654643693 all7 PASS. Root exact-merge bounded demo/noactivation Web build, typecheck, lint:ci and PUSH44 QA PASS; private cumulative proof SHA256 `0df479d6058a0baebfccbd5d652dd72a778352804b9632368f47021544db3bde`. Source tree equals approved head. Prior190 ledger records preserved. No migration/native rebuild/device/media/provider/SQL/DB/fullstack/main/Production claim; existing lint baseline and targeted hooks warning unchanged.
+
+
+### 192. PUSH44 known native playback state replay — local validated, publication pending
+
+Source `1601fd572e4e675104c7be02d990d036f68b6444` on `codex/push44-playback-known-state-replay-20261103` from `e0bacaecaa9ce0a2af7a01717adc0e5468f32b33` shares already-observed app/network suspension state with later mounted players before they connect. Runtime-owned client-memory nullable booleans and Symbol ownership, synchronous subscription/snapshot, replacement and cleanup guards preserve prior191 lifecycle/auth/origin/TTL/freshness/retry contracts. Root actual-runtime/player pinned-base failures and fixed independent late-consumer, partial/final recovery and reentrant replacement cases verified. Root27/27 actual-component tests (prior17 +10 integrated) and PUSH44 QA PASS. Executor locked dependencies/typecheck/lint:ci and bounded sequential demo/noactivation Web build557/557 PASS. Legacy lint baseline and targeted hooks warning unchanged.
+
+Private root review `push44-known-state-evidence.SNhzVWqs/root-review.json` SHA256 `acbe1a8bc84fe5dcb39b4e76dc5d117e73b1845642d9405c8e8b3feaf72fd685`. Six source/QA paths only; no persistence/identifiers/URLs/new native API or inference of unobserved initial App state. Unknown state is not safe-device proof. No migrations, native build, real browser/device/media/provider/SQL/DB/fullstack/remote CI/main/Production proof. Exact source plus summary/result ledger requires separate direct public authorization; no push/PR/integration action.
+
+
+Unit192 result (2026-11-03): direct owner approval `call_fb76c2843544496c8c3f604d6111422e` authorized exact source 1601fd572 plus prepared summary head 42783ddd2ad79d5683631c8cb215c3e4625976b8, gated Development integration and result ledger. [PR276](https://github.com/infoganbatuah-ai/gan-batuach/pull/276) merged with original source ancestry as `873b0563827f1e7479402306c841152dcbb8ef30` after all7 CI41659933435, Management41659933401 and Snyk PASS. Automatic source-merge CI41660688105 all7 PASS. Root exact-merge bounded demo/noactivation Web build, typecheck, lint:ci and PUSH44 QA PASS; private cumulative proof SHA256 `094e6367ed4230a81e39c513a406e087e8cb9dbe7c275a2259f49f2fcc63001b`. Source tree equals approved head. Prior191 ledger records preserved. No migration/native rebuild/device/media/provider/SQL/DB/fullstack/main/Production claim; existing lint baseline and targeted hooks warning unchanged.
+
+
+### 193. PUSH44 native lifecycle admission during bootstrap — local validated, publication pending
+
+Source `4250b0f5af068873b4a1ae088a7022e0e0b2b601` on `codex/push44-native-bootstrap-lifecycle-boundary-20261103` from `553a32e07d35f95ea71f52ab00dda472d37db618` starts App/Network listener registration before status or session waits. A newer network observation supersedes a late status; current ownership, observed network, lifecycle causes, interruption generation and listener failure guard late authentication settlement. Recovery during an interrupted pending request queues one fresh validation; duplicate unblocked events during that pending request do not queue extra work. No Player/helper/native API or initial App-state inference changes. Existing lifecycle causes, generation ownership, session/auth/origin/TTL/freshness/retry contracts preserved.
+
+Root pinned-base three failures, fixed independent early offline/inactive and late revalidation protection checks, plus bounded interrupted-request recovery PASS. Root38/38 actual-component regressions (21 integrated plus17 existing) and PUSH44 PASS. Executor locked dependencies/typecheck/lint:ci and one bounded sequential demo/noactivation Web build557/557 PASS; existing lint baseline unchanged. Root verified exact receipt/build-log bytes and hashes without another Web/native build. Private root review `push44-bootstrap-evidence.Z6xuYQ1K/root-review.json` SHA256 `0bf957b949e23767bb5b4ad3b5aa9100799921486e06842fc7db7deb11e2fa21`.
+
+Two source/QA paths and this summary only; no migrations, real browser/device/native-plugin/live-media/provider/SQL/DB/fullstack/remoteCI/main/Production proof. Public sign-in routes skip authenticated bootstrap; this is not complete navigation qualification. Source/summary/result publication requires separate direct owner authority. No push/PR/integration performed.
+
+
+Unit193 result (2026-11-03): direct owner approval `call_7ca12466620f40399305b14a404020ca` authorized exact source 4250b0f5a plus prepared summary head b4fee7954e97e7588a2f242d58236ca5f6f5151c, gated Development integration and result ledger. [PR278](https://github.com/infoganbatuah-ai/gan-batuach/pull/278) merged with original source ancestry as `874813f9fc67f96727d554ee075c8da957f3a6b2` after all7 CI41667154538, Management41667154683 and Snyk PASS. Automatic source-merge CI41668010429 all7 PASS. Root exact-merge bounded demo/noactivation Web build, typecheck, lint:ci and PUSH44 QA PASS; private cumulative proof SHA256 `74af04585a9fc8c3be9811607d9f6e2c71f3532731e4eb79d19120fb54476345`. Source tree equals approved head. Prior192 ledger records preserved. No migration/native rebuild/device/media/provider/SQL/DB/fullstack/main/Production claim; existing lint baseline unchanged.
+
+
+### 194. PUSH46 existing pilot dashboard query failures — local validated, publication pending
+
+Source `ed09e16a07447af2603e9b8e81ff0200ef0aaba2` on `codex/push46-pilot-query-failure-boundary-20261103` from `20b225476881f340af3b7d8467deb662056e7233` repairs an existing admin page: all ten query errors produce one safe incomplete-data message and per-source unavailable state; successful data and legitimate empty success remain visible. Readiness errors cannot silently fall back to a site score. Existing admin admission, query predicates, shared safeAdminData, tenant/security boundaries unchanged. This is local preparation/maintenance only; real external Home pilot remains NOT_STARTED and all legal/consent/site/direct-connect/device/duration/SLO/cost gates remain unmet. P44 remains PARTIAL with its existing external gates.
+
+Root original nine hidden-error failures, fixed17/17 actual-page regressions and independent adverse error+stale-data, valid independent readiness and denied-admission checks PASS. One domain CI registration only. Worker lockeddeps/typecheck/lintCI and clean demo/noactivation Web557/557 PASS. Direct page+test lint exits1 on20 preexisting errors+1 warning; canonical lintCI0/0, legacy4710errors159warnings unchanged. Root checked exact receipt/build bytes+hashes without repeating the Web build. Private review `push46-pilot-query-evidence.awqv087x/root-review.json` SHA256 `270842a89a84d11c6910bd28aa70d7af01006adae4a0b21c5d98cd52ccd3c09c`.
+
+Disclosed process exception, not compliance: worker inadvertently searched tracked .env.example despite no-env-file-read instruction; worker reports example/placeholder/empty values only and no active config/credentials. Template unchanged; root did not reread environment files. Payload contains no env file change. No live provider/SQL/DB/browser/customer/pilot/fullstack/main/Production proof. Three source/QA/gate paths plus summary only. Separate direct exact-payload public authorization and required CI are pending; no push/PR/integration.
+
+
+Unit194 result (2026-11-03): direct owner approval `call_27c8a5bad932449f8071a8f818c6503e` authorized exact source ed09e16a0 plus prepared summary head 99ec8b05dcae8b06f372642f32b89d6d8c4143a0, gated Development integration and result ledger. [PR280](https://github.com/infoganbatuah-ai/gan-batuach/pull/280) merged with original source ancestry as `df83708b5fd0d2d40007e1864463068ef80db7e4` after all7 CI41707053471, Management41707053684 and Snyk PASS. Automatic source-merge CI41717618969 all7 PASS. Root exact-merge bounded demo/noactivation Web build, typecheck, lint:ci and pilot-query QA PASS; private cumulative proof SHA256 `5f75bd8badfcb6ccb3eb2c29a19d0bcfb268d79acab8afe31820b7e31c5bc575`. Source tree equals approved head. Prior193 ledger records preserved. No migration/native rebuild/device/media/provider/SQL/DB/fullstack/main/Production claim; existing lint baseline unchanged.
+
+
+### 195. UX-V6 source included in canonical Development — Product qualification pending
+
+Original `codex/ux-v6-true-reference-correction@c28a76a0942a5afcfd6b8d3d8e0950914146ff13` is preserved remotely. Six original commits were merged without conflict into isolated `codex/ux-v6-development-qualification-20261104` with parents `df83708b5fd0d2d40007e1864463068ef80db7e4` and `c28a76a0942a5afcfd6b8d3d8e0950914146ff13` at `822edaaa613410bc9bd998858d9a3b98e2e9098c`. Candidate ledger draft was committed as `dc2ca122c9784ce287d7a96ca5a0ad162d2a31af` and pushed to its own branch. This Markdown companion arrived in later Development `36a2b3c0009156ae4c81606a4bb787ca44b5b48c`, now merged into the isolated candidate without discarding the PUSH46 entry.
+
+This record is **draft on the candidate branch only**. Source Child-context contract 9/9 passed at c28; the candidate passed focused diff whitespace and two MJS syntax checks only. Current-candidate Product, Auth/RLS/role isolation, typecheck/lint/build, six CI gates, fresh Desktop/Mobile reference captures and external owner visual acceptance remain unverified. No migration, canonical Development integration, main, Production or provider activation occurred. The prior no-preview Vercel observation is not an all-in ₪15 cost calculation. Next: qualify the exact current candidate under a safe resource and locked-dependency gate, then one draft PR to Development and required exact-candidate CI. Sole integration owner must reconcile the latest Development head before any canonical merge.
+
+2026-11-04 bounded follow-up: candidate and remote were independently read at `be074f8f979c8879dfea8cb11be8b68beb524741`; current Development and remote were `36a2b3c0009156ae4c81606a4bb787ca44b5b48c`. A new dependency-free primary-route composition contract was prepared for Owner, Parent, Admin and Settings; **it was not run**. The existing dashboard suite was also **not run** because host load1 was 39.96 and then 84.34 on eight CPUs (gate `<=8`). The Vercel project deployment UI returned “No matches found” for this candidate branch, a limited branch-search observation only. Private gate/source receipt: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-current-base-bounded-regression-20261104-be074f8/gate-and-source-preparation.json` SHA-256 `b1456b4136c74b94c9a974a7b6943dec503cb1ce57c2b92a27fcac26ef51b532`. No Product, visual, Auth/RLS, all-in cost, CI or deployment claim follows from these checks; draft PR admission remains pending.
+
+
+2026-11-04 coordinator checkpoint correction (draft only): validated source commit `7469c17e88ed13f3a6c8a5bb089fa7a573090203` adds the existing dashboard and UX-V6 static composition suites to the canonical domain gate, retaining all previous47 entries. The coordinator actually ran the pinned-Node suites on that source: dashboard9/9 PASS and static composition5/5 PASS, exits0, nice15/CPU4/wall20/heap128, source pins unchanged. These are separate from historical child-context9 atc28 and do not establish authenticated Product/Auth/RLS or rendered visual acceptance.
+
+Private raw receipt SHA256 `b0ce36679d90f7f8982f063de9a6b9611c18e035b9c5ce174373a03cd8203414` and independent raw-TAP count verification SHA256 `719190c16d70d8380c491d4c13dabc277407233c7950c971a915d81c0296bc29` are under `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-ci-wiring-local-checkpoint-recovery-20261104-e1`. Raw receipt remains frozen; its empty count fields were corrected only in derived verification. Source7469 is local only; the last independently verified qualification remote is `e1f32a15b7e436f1489e345e79129a78aae13dd3`. This subsequent ledger-only metadata commit is not the validated source SHA. Full six-gate CI, PR, canonical ledger/integration, Product/visual and all-in monthly cost remain OPEN. Repeated executor delivery failures were observed; no active executor is claimed. No main/Production change or release.
+
+2026-11-04 PR #282 correction: qualification commit `1ea6de8e29e5d7ec267b0c53147b691add3cab26` was pushed and verified on `origin/codex/ux-v6-development-qualification-20261104`; the connected Vercel project's Preview branch tracking is disabled and no candidate deployment appeared in its deployment list. PR #282 is draft against `integration/development`. Its first exact-candidate CI run passed build, domain, security, migration, release-contract and management-context checks, but Gate 1 failed because this draft ledger placed five source commit SHAs in `dependencies.units`, which requires ledger unit IDs. The original six SHAs remain in `sourceCommits`; `dependencies.units` is empty because they are commits of this same unit, not separate units. This is a focused ledger-schema correction; CI must rerun on its new exact commit. Product/Auth/RLS and rendered visual evidence, canonical integration, external owner acceptance and all-in ₪15 compliance remain OPEN. No main or Production action occurred.
+
+2026-11-04 capture-contract continuation (draft candidate only): source `8822d27341c03eae2fe8ac3d562014c748ba330c` removes the V5 capture runner's Admin user mutation/deletion and automatic visual PASS, and requires an exact clean Development source, local backend, existing explicit synthetic unassigned-parent fixture and private exclusive output. The pinned private Node run executed **five pure in-memory admission/result cases**, all five passed, with zero failure, skip or cancellation; raw TAP and bounded receipt are under `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-capture-admission-contract-validation-20261104-8822/result.json` (SHA-256 `a7b463bd804f487e0f34c6f27995ef196e2df5f906a79a5188c030b972f6e123`). The canonical Domain gate is being extended from 49 to 50 entries with this pure suite; the actual capture runner is **not** a CI job. This candidate record is not canonical integration. The current private identities lack the required unassigned-parent marker, so 32 fresh Desktop/Mobile captures and human visual comparison have **not run**. Earlier dashboard 9/9 and static composition 5/5 at `7469c17e88ed13f3a6c8a5bb089fa7a573090203`, and historical Child-context 9/9 at `c28a76a0942a5afcfd6b8d3d8e0950914146ff13`, remain separate evidence. Source `8822d273` is local only until a later exact feature push; PR #282 checks for a new head are pending. Canonical integration owner remains unknown; Product/Auth/RLS, owner visual acceptance and all-in ₪15 compliance remain OPEN/UNKNOWN_NOT_PASS. No main or Production action occurred.
+
+
+2026-11-04 canonical inclusion checkpoint: exact remote feature source `399922d194818f58cd637d5bf0b7ad14e37fd172` passed [Digital Observer CI 41762068934](https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/41762068934), all six required gates plus canonical quality; Domain job `126351801411` explicitly logged `uxv6-capture-admission-contract` PASS, exit0, Node 22.22.0. [Management context 41762068945](https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/41762068945) succeeded. Private source-CI receipt: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-capture-contract-ci-preservation-20261104-8822/result.json` SHA256 `6d057afa53d194e2e521d50e84ddb03dab1ce944d5a371f90cc6c9ce5689aede`. These exact-source checks supersede the earlier historical CI-pending statements above; previous scoped test receipts remain preserved.
+
+The reviewed 15-commit, 18-path source contains all original six UX-V6 commits by ancestry and no migration. Canonical local no-ff merge `cc51846cc2bea9fd06fc59d36e36ea841ddb84eb` has parents base `36a2b3c0009156ae4c81606a4bb787ca44b5b48c` and source `399922d194818f58cd637d5bf0b7ad14e37fd172`, with no conflict. This ledger-only reconciliation is recorded as a later scoped commit. At this record's creation the exact final canonical remote SHA and its own CI were pending. No Product startup, authenticated Auth/RLS, ten fresh primary captures, 32 regression captures, direct visual comparison/correction, owner acceptance, or all-in ₪15 cost verification was performed. The Settings primary form's no-photo save path needs targeted Product QA; this is a risk, not a claimed defect resolution. Development migrations/history and runtime were not changed. PR #282 remained draft, and main/Production/provider activation were untouched. Rollback path is a reviewed revert of merge and metadata while preserving base and feature branch, never reset or force-push.
+
+
+### 196. UX-V6 Settings required-photo controls — local CI candidate, publication pending
+
+Source `2441f075f29d7760056bbf2d8c49f95c90c6f8f0` on `codex/ux-v6-settings-required-photo-removal-fix-20261104` from canonical Development `d0032dd4fd0d1c8ca4bacb14dc731fcc98b82ac1` hides the remove-photo control when a profile photo is required while retaining optional-photo removal. The six pure in-memory component cases passed (zero failures, skips or cancellations; exit 0) in a bounded local run. Private result: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-settings-required-photo-controls-validation-20261104-2441/result.json` SHA256 `7905ced170b7d6c3b0c13cd3254ee284e794897f8241f2544ac6f9408aa2f86d`.
+
+The follow-up candidate registers `settings-required-photo-controls` exactly once in the Domain gate and documents its limits in the CI manifest. This ledger entry is feature-branch metadata only; it does not change the canonical Development ledger. Source and metadata are LOCAL_ONLY until a normal feature push is verified. A Draft PR and exact-head hosted CI remain pending, subject first to a current all-connected-project Vercel no-preview/no-deployment admission and cost gate. No authenticated Product, image-upload provider, Auth/RLS, role isolation, rendered visual comparison, external owner approval or all-in ₪15 compliance has been established. No migration, Digital Observer core, main or Production change. The separate integration owner must reconcile this unit after CI, and Product/visual qualification remains open.
+
+2026-11-04 canonical Development inclusion: feature `fe78474a921884620f0927a48909ea7727c408e2` was remotely preserved and [PR #283](https://github.com/infoganbatuah-ai/gan-batuach/pull/283) passed all six required gates plus canonical quality ([CI 41826693506](https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/41826693506)), [Management context 41826693519](https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/41826693519) and Snyk. Domain job `126563118198` explicitly logged `settings-required-photo-controls` PASS, exit 0, 464 ms. The PR was merged by an ancestry-preserving merge commit `2d88274f23d847a137b30c564ad86ee5258250ef` with parents `d0032dd4fd0d1c8ca4bacb14dc731fcc98b82ac1` and `fe78474a921884620f0927a48909ea7727c408e2`; its tree `3b99bd5378373e3ec2404c1badb980b6c82219b9` equals the reviewed feature tree. The seven incoming paths contain no migration or Digital Observer core change. This later paragraph records the actual result; the preceding LOCAL_ONLY paragraph remains the historical candidate state.
+
+The canonical ledger now records this unit as integrated. This ledger-only checkpoint is pending its own remote readback and CI at the time of writing; the exact PR checks apply to the reviewed source and PR merge-check, not automatically to a later documentation commit. No authenticated Product, upload provider, Auth/RLS, rendered Desktop/Mobile visual comparison, external owner acceptance or all-in ₪15 cost qualification was performed. No main or Production action.
+
+## UXV7 primary Owner Settings — PR #284 Development inclusion
+
+Source branch `codex/ux-v7-primary-settings-product-20261105` at `b72c3f2afba48eef77f4f616d4072f86d8bc2099`; base `3b6e345b9eacfbaed8e48555ca5e41840a37aac9`. PR #284 merged by ancestry-preserving commit `37753822928f25f84b861428f5f67661b855625a` (tree `232985917264f9711a7b57350adfed78b9e39773`, equal to source tree). All six exact-candidate CI gates, canonical quality, management context, and Snyk passed; local focused tests 13/13 passed. No migration, provider activation, Digital Observer core, main, or Production change.
+
+Status: **INTEGRATED_DEVELOPMENT; Product and visual verification open**. The 3b6 authenticated Settings screenshots are baseline only. Fresh merged-head Desktop/Mobile captures, direct comparison to the approved primary Settings panel, role/keyboard/RTL/overflow checks, all-in cost verification, and external owner visual acceptance remain pending. Do not call this release-ready.
+
+## UXV7 Owner Settings — mobile navigation follow-ups #285–#287
+
+Three scoped source commits were remotely preserved and merged with ancestry into Development: `2a636f570c3b13450ccb9f0fdea637fd971cb801` via [PR #285](https://github.com/infoganbatuah-ai/gan-batuach/pull/285) at `320ed6f00097d7723ecb5e262beb309025ede7a0`, `e07e62f22861a976b1b7fb20baac1e700f5c64a6` via [PR #286](https://github.com/infoganbatuah-ai/gan-batuach/pull/286) at `bc287408d975fc7e1cd05f9ae3f9c26e35a9f057`, and `426bedc0a57792974b93cee02e2e2e5cf69d533d` via [PR #287](https://github.com/infoganbatuah-ai/gan-batuach/pull/287) at `96ad64e1051f850772eb2e637c381f982991b47b`. The exact PR heads passed the six required gates plus canonical quality, management context, and Snyk; Digital Observer CI runs were `42131443991`, `42133333750`, and `42134880386` respectively. These changes add a real mobile profile anchor, an in-page return control, and correct its left-edge position. No migration, Digital Observer core, paid dependency, main, or Production change.
+
+Authenticated synthetic Owner capture from the exact merged `96ad64e1` Product at Desktop `1440×1024` and Mobile `390×844` is private evidence: `/private/tmp/gb-uxv7-settings-final-desktop-96ad64e1051f.png`, `/private/tmp/gb-uxv7-settings-final-mobile-96ad64e1051f.png`, and `/private/tmp/gb-uxv7-settings-final-profile-mobile-96ad64e1051f.png`. Measured navigation: profile `#profile` at 20 px from viewport top, back control 21 px from left, one active Settings item, return to `#settings-index` at 0 px, and no horizontal overflow. The approved Settings collage remains the comparison reference. The actual Desktop four-column structure and mobile index/profile compositions improved, but the reference portrait differs from the truthful synthetic avatar and some reference toggles are represented by truthful links/status rows. Literal 1:1 match and external owner approval are **not claimed**. Role-boundary/Auth/RLS, complete 21-domain visual review, all-in ₪15 compliance, and Production remain unverified. The merged Development Product was stopped after capture.
+
+
+## UXV7 Settings reference closure — PR #288–#290 Development inclusion
+
+Three scoped source commits were remotely preserved and merged with ancestry: `0babb123dd871030bad24d29d4ec2039369811b7` via PR #288 at `953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21`, `b2a1b8a0f031dffc18c1d84f2076b363c13c35f2` via PR #289 at `c08b40a95dab3b5ae5dc44bbbc783af9feece883`, and `4a91793c4c96751bfb24114477a6e261487f846e` via PR #290 at `1e8b7a93ccbefee599e336fd7643b0511f970c3b`. All exact PR heads passed six required CI gates, canonical quality, Management context and Snyk. Focused Settings tests 13/13 passed; scoped typecheck/lint passed on TypeScript changes. No migration, provider activation, Digital Observer core, paid dependency, main, or Production change.
+
+The final merged Development Product at `1e8b7a93ccbefee599e336fd7643b0511f970c3b` was captured with authenticated synthetic Owner at Desktop 1440×1024 and Mobile 390×844. Browser checks verified RTL, no horizontal overflow, one active Desktop Settings nav, mobile index and Profile first-viewport separation, accessible upload keyboard focus, Manager allowed/Parent denied, and Owner profile save → reload → restore. The reference portrait cannot be represented with a false personal photo; actual QA fallback avatar remains truthful. This is a **reference-match candidate for external owner review**, not owner approval or 21-domain certification. Full Auth/RLS/tenant, all-in ₪15 invoice-backed cost and Production gates remain open. The Product was stopped after capture.
+
+
+## UXV8 Owner daily workspace — PR #291–#294 Development inclusion
+
+The Owner/Manager primary daily workspace source was remotely preserved on `codex/ux-v8-owner-daily-workspace-20261106` (final source `aa83ae937b48ceb00509ab1921875914bc0ebab5`) and merged through ancestry-preserving PRs [#291](https://github.com/infoganbatuah-ai/gan-batuach/pull/291), [#292](https://github.com/infoganbatuah-ai/gan-batuach/pull/292) and [#293](https://github.com/infoganbatuah-ai/gan-batuach/pull/293) to Development `d72248aeb0db81da9534d5e72322710fb230b4c6`. All three exact-source PRs passed six Digital Observer CI gates, canonical quality, Management context and Snyk. Local typecheck, focused lint and 68 management tests passed. No migration, provider activation, Digital Observer core, paid dependency, main or Production change.
+
+Authenticated synthetic Owner Product was freshly captured on that exact merged Development SHA at Desktop 1440×1024 and Mobile 390×844. The primary `/dashboard/garden/operations` uses the authorized active Garden, renders selection/unavailable states without false confirmed-zero metrics, and uses truthful no-Live camera imagery. Browser QA confirmed RTL, no horizontal overflow, no browser errors, no camera/payment/AI requests, Owner and Manager route access, five canonical destinations each, multi-Garden context change, foreign-Garden denial and invalid-context selection. Private reference/actual screenshots and boards: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv8-owner-daily-workspace-d72248ae/manifest.json`, SHA256 `1104e9efd5dac84b8f02234b8e5e372d86652e085679d2d75c1a26393831b6c9`. The 14 preserved image hashes and permissions were verified.
+
+The visual result is a **reference-match candidate for external owner review**, not owner approval or full product UX completion. Current QA has no scheduled daily activity, synthetic person imagery differs from the reference, and camera art is illustrative because Live is unverified. Full Auth/RLS/tenant, all 21 domains, invoice-backed all-in ₪15 cost qualification and Production gates remain open.
+
+The direct side-by-side then exposed reversed KPI order. Follow-up [PR #294](https://github.com/infoganbatuah-ai/gan-batuach/pull/294) corrected the six Desktop KPI order and the four Mobile priority metrics without changing the underlying data or permissions. Final source `e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a` passed all six exact-head CI gates, canonical quality, Management context and Snyk; merged Development Product `d35ebafcc05389ccc7220d2b25e0620ed678336e` passed fresh authenticated Owner/Manager/multi-Garden QA and Desktop/Mobile capture. The final 14-image private package is `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv8-owner-daily-workspace-d35ebafc/manifest.json`, SHA256 `4877f85dc18bc9c343c8cde767211409b924fe20885ddef6f698bc9df4fdb29f`. The earlier `d72248ae` package remains preserved as intermediate before/after evidence. External owner acceptance and the broader release gates remain open.
+
+## UXV9 Parent authorized daily hub — scoped Development integration, visual correction open
+
+The source commit `f439ec4e8f7894e07623c37e4a87082dc770927f` is remotely preserved on `codex/ux-v9-parent-authorized-daily-hub-20261106`. Exact-source [PR #295](https://github.com/infoganbatuah-ai/gan-batuach/pull/295) passed all six Digital Observer CI gates and canonical quality (run `42192329366`), Management tenant context (run `42192329462`) and Snyk. Parent child identity, active enrollment selection, today-only attendance, file-ID payment/request routing, and Mobile operational density were corrected without widening Parent permissions or fabricating camera Live. Local 20 child-context assertions, UX05 Parent tests, tuition ledger tests, typecheck and lint baseline passed.
+
+Authenticated single/multi Parent baseline screenshots at 1440×1024 and 390×844 remain privately preserved at `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-baseline-462e2f58/manifest.json` (SHA256 `9b936b8f8ce5ac05f82ff3d8b0a7394bb696013d58ed5d680b54b17e601a6c53`). These are source-baseline, not final implementation evidence. The scoped source and follow-ups [#295](https://github.com/infoganbatuah-ai/gan-batuach/pull/295)–[#300](https://github.com/infoganbatuah-ai/gan-batuach/pull/300) passed exact-head six-gate CI, Management tenant context and Snyk, then merged to Development through `d45c70095ce379f0e59ee9dab57a24248c53d074`. Source commits are recorded in the JSON ledger. The final #300 CI run `42203639924` and tenant-context run `42203639845` succeeded.
+
+Fresh authenticated exact-Development Product screenshots are in `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-candidate-d45c7009/manifest.json` (SHA256 `e17d9a96ed78e0246ee5df2edc8875af02258c059cb15b741a6a61b0fc638553`). Direct approved-reference side-by-sides, overlays and annotated difference boards are in `boards/boards-manifest.json` (SHA256 `283159fda56d37dc7c35e68815e560089fd101e32e33d9db7a449e677ddcf1cf`). The scoped browser QA passed authorized child selection, immediate multi-child context switch, distinct file-ID tuition routing, visible foreign-child denial, RTL, zero horizontal overflow and zero browser errors at both viewport sizes. **Visual status remains `NEEDS_VISUAL_CORRECTION`**: a 57px global utility bar shifts the primary composition; verified camera Live is unavailable so the camera area is illustrative; both QA children lack distinct supplied photos; today's attendance has no event and is truthfully empty. External owner acceptance, full 21-domain QA, invoice-backed all-in ₪15 cost verification, main and Production remain open. The next scoped owner/coordinator action is visual correction against the primary Parent reference, followed by fresh merged-head capture; no release work is authorized.
+
+## UXV10 Parent primary route — Product geometry corrected; visual review still open
+
+The UXV10 source branch `codex/ux-v10-parent-primary-reference-closure-20261106` preserved commits `223fd7f479d5c40146e5aa6fcddbe608c8c97eb7`, `a8b8e2b9a6e85e7c8a144ad8fa13f41ea23ecd6e` and `c9adc2b4efa8cd1eae96acac07a109b393c6b465`. Exact-head [PR #304](https://github.com/infoganbatuah-ai/gan-batuach/pull/304), [PR #305](https://github.com/infoganbatuah-ai/gan-batuach/pull/305) and [PR #307](https://github.com/infoganbatuah-ai/gan-batuach/pull/307) each passed all six CI gates, canonical quality, Management tenant context and Snyk, then merged into Development through `09967c565cbee49ed967a58fd88e901f3f9a2081`. Only the Parent primary page and its scoped stylesheet changed; no Digital Observer core, schema, provider, main or Production change.
+
+Six fresh authenticated Product screenshots at 1440×1024 and 390×844, direct primary-reference side-by-sides, overlays and annotated boards are privately indexed at `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv10-parent-candidate-09967c56/OWNER-REVIEW.md`. Actual screenshot manifest SHA256 `8e67b30bdbb9444a757ad47170a3b48440762d08b80611dfe6cbbbcafc45e0e9`; boards manifest SHA256 `3f9ebff8a605ca1edca44c9117b9f88c57f2f7b835e555b00f64cb2d12428be4`. The exact-head Development schema drift check passed 259/259. Scoped browser QA passed single/multi Child context, foreign-child denial, RTL, zero overflow/browser errors and fully visible Mobile actions above fixed navigation.
+
+**Direct visual status remains `NEEDS_VISUAL_CORRECTION`**, pending external owner review. Macro geometry is closer, but reference child photos and current-day attendance cannot be represented without authorized data; camera Live cannot be claimed; extra canonical header utilities and flatter action imagery remain visible. No fake content was introduced. This is not a 21-domain, full role/security, all-in ₪15, main or Production PASS. See `GAN_BATUACH_UXV10_PARENT_PRIMARY_REFERENCE_CLOSURE.md` for exact source and limitations. Next: the owner/coordinator reviews the evidence and authorizes a scoped truthful correction if needed; no RELEASE-GAP-01.
+
+## UXV11 Platform Admin primary route — control-center geometry corrected; visual review still open
+
+The UXV11 branch `codex/ux-v11-platform-admin-primary-20261106` preserved source commits `8244d8bfb54a871ca07677820c756bbd76684839`, `59accd0da678b7522a0bca8de9a77f7c38621a35` and `a725eb039b58891f7d0fca46f5331f9d60aabc65`. Exact-head [PR #309](https://github.com/infoganbatuah-ai/gan-batuach/pull/309), [PR #310](https://github.com/infoganbatuah-ai/gan-batuach/pull/310) and [PR #311](https://github.com/infoganbatuah-ai/gan-batuach/pull/311) passed six CI gates, canonical quality, Management context and Snyk, then merged into Development through `a3bb46a0809ad78201e0e24542b7e076c0f5ada3`. Only the Admin primary page and its scoped stylesheet changed; no Digital Observer core, schema, provider, main or Production change.
+
+Seven fresh authenticated Product screenshots at 1440×1024 and 390×844 are privately indexed at `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/manifest.json`, SHA256 `5dbb98904c51353019f2ee0fc923c5fb15660ab16c798f4728166c81ecf59c5b`. Direct reference/actual crops, side-by-sides, overlays and annotated differences are at `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/boards/boards-manifest.json`, SHA256 `66cbd4c67b6ef56d2233c1ae281d66dec35d8a22b7042d70af8a887c6a1cdac4`. Guarded local Product drift passed 259/259. The seven captured routes had no page errors, HTTP 500 or horizontal overflow. An interrupted browser role probe is **not** a pass; a separate bounded HTTP content-isolation probe passed Admin versus four synthetic non-Admin roles, with private receipt SHA256 `a9bc88e0c05d90434417e3001e4685328e81e0a107acae371d43d7d303a005e1`.
+
+**Direct visual status remains `NEEDS_VISUAL_CORRECTION`**, pending external owner review. The Desktop now places KPIs, charts, status, right activity and lower tables on the primary route, with a compact Mobile KPI rhythm. Utility header/sidebar identity, real-data chart/table density and Mobile framing still differ from the approved collage. No fake analytics or provider state was added. This is not an all-domain, full live role/security, invoice-backed ₪15, main or Production PASS. See `GAN_BATUACH_UXV11_PLATFORM_ADMIN_PRIMARY.md` and the private boards for exact evidence and next action. No RELEASE-GAP-01.
+
+## Product Admin read reliability — source contracts corrected; visual review remains open
+
+Source `edcc6af9b788b584421b02b8b34a29c1dbc9b466` produced remote feature commit `aa9d36199d28963c266cbadbef383572e223f4ea` on `codex/product-admin-read-reliability-20261106`. [PR #313](https://github.com/infoganbatuah-ai/gan-batuach/pull/313) passed all six exact-head CI gates plus canonical quality (run `42280543277`), Management tenant context (run `42280543236`) and Snyk, then merged into Development at `8a3dc2267c82e01e103e23f0514c5125d0c2756d`. The Admin dashboard, Gardens and System Health now read actual canonical schema sources and distinguish unavailable or capped results from verified zero. No schema, Digital Observer core, paid dependency, main or Production change.
+
+Focused simulated read-failure/provider-truth tests passed 7/7. Authenticated read-only Development source contracts passed 10/10 before and after the merge; post-merge private receipt SHA256 `d9f52007aa7a5d149da21f34ee1cf56386f1384d7b645a5c7f80bd8f1add48b4`. Exact merged Product drift passed 259/259. Three Admin routes rendered for the QA Admin; twelve requests across Manager, Parent, Staff and Inspector showed zero Admin markup leaks, zero Admin data-error alerts and no HTTP 500; private receipt SHA256 `9265d2bcab98dafd8734f702048c59c7c276f2678dc3e139b53fac0b2c5872b8`. Local broad domain/security gates failed for unrelated missing benchmark and macOS sandbox capabilities; the exact-head hosted gates passed. See `GAN_BATUACH_PRODUCT_ADMIN_READ_RELIABILITY_20261106.md` and JSON unit for scope and limits. UXV11's direct visual status remains `NEEDS_VISUAL_CORRECTION` pending external review; no release work begins.
+
+## Product attendance and pickup journey — scoped Development Product verified
+
+Source `b7c1b78d0d438390ad6371b1202a717428c9ddae` produced remotely preserved feature commits `231fcc2f053f5d166114dd42fc83542316946450` and `4fce98bdf73f2215746a9bbf0a4ac95321c03270` on `codex/product-attendance-pickup-journey-20261106`. [PR #315](https://github.com/infoganbatuah-ai/gan-batuach/pull/315) passed all six exact-head CI gates plus canonical quality (run `42291274768`), Management tenant context (run `42291274786`) and Snyk, then merged into Development as `c6e703a0eeec7bc7c4baed9189004c18eb601686`. Parent pages now use Garden Child IDs and include authorized non-primary guardian enrollment context; Garden, Staff and Parent read failures show unavailable states instead of verified empty/zero operational state. Arrival/release UI handles duplicate requests, idempotent release and dialog keyboard focus. No schema, RLS, provider, package, Digital Observer core, main or Production change.
+
+On the exact merged Product, a guarded synthetic browser→API→isolated Development DB→reload journey completed 29 checks. The positive arrival/release used the authorized Garden B Manager; Staff B without attendance scope correctly had no arrival action. Parent isolation, wrong-Garden and wrong-classroom denials, one persisted departure/event and idempotent repeated release were observed. Two bounded earlier attempts performed the writes; the final run safely resumed and read back the state after correcting QA-only assertions. Private external-volume receipt: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-attendance-pickup-c6e703a0/receipt.json`, SHA256 `ff20e990009c47d8ae7b10b666832a35b255063813702eb796a17ad8d1153193`. Five final-state screenshots and checksums are stored beside it. Development drift passed 259/259; post-merge child-context tests passed 4/4 and UX06 checks passed 8/8. The pre-correction API baseline 14/14 receipt SHA256 `9e12d0d30bc0ddd9c2eaedc3ec8132d917255b18b17d1c97db64b8a233ddca4b` remains separate. Positive post-merge Staff browser mutation, full all-role Product QA, visual owner acceptance and invoice-backed cost qualification remain open. See `GAN_BATUACH_PRODUCT_ATTENDANCE_PICKUP_JOURNEY_20261106.md`; no release work begins.
+
+## Product Staff attendance positive journey — companion reconciliation
+
+The Staff evidence-only source was remotely preserved on `codex/product-staff-attendance-positive-20261107` at `c8ebc9fd46e4496f11f315df099981146d611c78`, passed six exact-head CI gates plus canonical quality, Management tenant context and Snyk, and merged through PR #317 to Development `c0ff24931ed595ba8d0d2ae47a49aa45eaf98dc1`. Its ledger closure PR #318 passed the same gates and merged to `9ccb9235a831c318e02a12986b27e81b08e9481b`. The exact `e9b5f20a79775f9d0c201e11db03ac9511720733` Development Product had one synthetic Staff A browser arrival, one attendance row and audit event, Staff reload, Manager read, three scope denials and idempotent repeat; 20 scoped checks passed. Private receipt: `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-staff-attendance-positive-20261107/receipt.json`, SHA256 `5ece6b6d5901fe7991caceef66162c3a96fb4c496d431d6406f967fd1a36d31b`. This is one positive Staff journey, not full Product or owner visual approval. The JSON unit already records the closure; this section reconciles the Markdown companion that was omitted by the sparse worktree.
+
+## Parent selected-child attendance and document-state correction — local candidate
+
+The owner approved a narrow two-file transfer from original local `97b73cbd84d589b0c3e2be2588ab7371aff22b4f`; the original mixed-history branch is preserved and must not be merged wholesale. Clean candidate `codex/product-parent-selected-child-documents-20261107` starts at Development `9ccb9235a831c318e02a12986b27e81b08e9481b`; local source commit `dce279095bbbc2b733e9346cbaae682459d83c0a` includes only the Parent page, focused QA script and report. Original-to-candidate two-path patch ID is `124339a71c1c0837c9b3383f0ae6e3098a192411`; both Product file blobs match the original commit exactly. The selected authorized Child remains visible in four daily rows even beyond index four; document-read failure is represented as unavailable rather than verified green/zero. The candidate's synthetic page fixture passed 20/20 checks. It is not browser, API or RLS proof, and Unit312 evidence is unavailable.
+
+**Preservation/integration status: remotely preserved and merged; runtime verification open.** Original branch `origin/codex/push46-parent-selected-child-documents-20261106@97b73cbd84d589b0c3e2be2588ab7371aff22b4f` is preserved separately. Clean candidate `origin/codex/product-parent-selected-child-documents-20261107@b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7` passed all six exact-head Digital Observer CI gates, canonical quality, Management tenant context and Snyk in [PR #319](https://github.com/infoganbatuah-ai/gan-batuach/pull/319), then merged with ancestry into Development `6e9895ffa4b758eee41445c05613c998c4dfbaa7`. Repository `vercel.json` disables non-main Git deployments; Vercel history since `1790000000000` shows only four main Production deployments, and feature-branch/commit lookups after pushes and merge returned zero. The team-scoped API remains 403 and the accessible summary does not expose every live Git trigger field; no field-by-field settings claim is made. Remote main remained `4e28d73f8a578637cc25522b193b550ad6d87482`. Canonical Development worktree fast-forwarded cleanly, ledger schema passed 211 units, and the separate UXV9 Parent identity check passed 20 assertions. The 20-case synthetic page fixture was not redundantly rerun after its unchanged source merged.
+
+**POST_MERGE_RUNTIME_UNVERIFIED.** The exact merged Development launcher reached `LOCAL_SUPABASE` and its version API matched the merge SHA. The pinned isolated Docker context showed all seven canonical containers running, with DB/Auth/Storage/Realtime healthy and Auth health returning GoTrue v2.196.0; an earlier sandbox socket/loopback denial and `colima list Broken` view were misleading, so no VM/data repair was performed. The initial synthetic multi-Parent browser navigation repeatedly fetched `/dashboard/parent` HTTP 200 while Next development logged a Suspense-boundary fallback; `domcontentloaded` did not settle. Browser and app were stopped promptly without Product writes. Private failure receipt `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-selected-child-documents-postmerge-6e9895ff/attempt-1.json` SHA256 `32313da1cb222ea8495c307366ad2c972415bdbd85ded4639febd2d77dca3764`. A bounded JavaScript-disabled diagnostic is prepared but not run while host load remains above eight; it cannot prove hydration. Next gate: investigate this retry and complete exact-merge authenticated selected-Child/document/role QA under safe host load. No schema, RLS, grant, Digital Observer core, provider activation, main or Production change is part of this unit. External owner visual acceptance, broad Product security and invoice-backed ₪15 qualification remain open.
+
+## Parent family Documents read-state correction - merged Development source and runtime diagnosis
+
+Task `GB-PRODUCT-PARENT-DOCUMENTS-READ-STATE-20261107` starts from verified Development `c3507c3f07ca5a78ebf037b7cb596518708efa96` in isolated branch `codex/product-parent-documents-read-state-20261107`. The scoped Product/source-fixture commit `56abad3a8f34acc8178c1a4febd76544fce0a7aa`, guarded feature-QA launcher commit `9673330e4a08cc029dbc6fb2d3520311a036d6ed`, path/dependency guard correction `22f25b2cd749dc858cc9417c728d0c28ff633dc6`, portable-path correction `c47d693bd14ad9d67caf00147d3743bc5bb09b81`, and cross-platform fixture correction `32def20bd5c9ff6059a3cd67617707f32ad4a1de` are preserved through merged PR #321 in `integration/development`. Repository `vercel.json` disables non-main Git deployments; Vercel SHA lookups observed zero deployments for source/QA head `d59d13205d3c4e47692f5c1d93208c27cd4dded6` and final PR head `595c4801e628ddb6bcd52fa2b79acbcc788c6d79`. Full live Git trigger settings remain outside this observation.
+
+The Parent family Documents route now distinguishes a failed document read from a valid empty list, displays a clear accessible unavailable state, and suppresses upload targets when family context is unavailable while preserving already returned RLS-scoped document rows. Parent authorization and existing family scope remain; query order/100-row cap, schema, RLS, storage, providers and Digital Observer core are unchanged. The focused actual-page synthetic fixture passed 5/5 behavioral cases. Gate 3 on `f29bae64` found a machine-specific launcher path, corrected by `c47d693b`; Gate 1 on `cba57bbc` found a Mac-only fixture assumption, corrected by `32def20b`. The final PR head `595c4801e628ddb6bcd52fa2b79acbcc788c6d79` passed all six Digital Observer CI gates plus Canonical quality and Management (8/8), following the earlier exact source/QA head `d59d1320` 8/8 success. The feature launcher guards passed 9/9 and existing integration guards 6/6. Offline npm ci failed closed on missing cached `zod-validation-error@4.0.2`; a private copy of canonical exact-locked dependencies passed the ordinary-directory/inventory guards, with all 43 links contained and no shared writable target. The guarded feature server started against the already healthy isolated local backend; the stack was not restarted. Authenticated synthetic browser checks passed 4/4: Parent A/B Desktop, multi-Child Parent Mobile, and Staff redirect away from Parent Documents. The private browser receipt SHA256 is `8b7410e30dde31fca9b93ae43ce098778477017de9eaa7d2e04da61106a7de3a` under `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/feature-qa/d59d13205d3c4e47692f5c1d93208c27cd4dded6/evidence/`. The feature server was stopped. PR #321 merged with source ancestry preserved at remote and clean local canonical Development head `8b9dd0fe930398ee900e80a05e065b524dc1a750`. Post-merge focused source tests passed 20/20 and ledger schema 212 units passed. Canonical merged browser smoke remains pending: host load rose to 30.27 on eight cores, so no canonical app server was started. Normal feature reads and Staff denial do not prove injected read-failure runtime, every Parent RLS boundary, accessibility or cumulative Development QA. No main or Production change. The predecessor Parent selected-child primary-dashboard runtime gap remains separately `POST_MERGE_RUNTIME_UNVERIFIED`; this unit does not supersede it. Next: canonical merged route/role smoke under safe host admission, then exact-head CI for this ledger-only follow-up before its Development merge.
+
+A later safe-admitted attempt **supersedes the pending runtime state above**: the clean canonical Development launcher at `8b9dd0fe930398ee900e80a05e065b524dc1a750` started Next 16.4.3 default Turbopack against the already healthy isolated backend, but synthetic Parent-A `/dashboard/parent/documents` never reached `domcontentloaded` within 90 seconds. The server logged repeated HTTP 200 for the same route and a Next Suspense-boundary client-render fallback. Browser and server were stopped, port 3000 was free, and the canonical Git worktree remained clean. Status is `POST_MERGE_RUNTIME_FAILED`, not merely pending or a full-stack PASS. Private redacted diagnostic SHA256 `849447e4b071a332a8122b6c63e27de78e21bda1f27d64be19c86ca664d9e8bb` at `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-documents-postmerge-8b9dd0fe/evidence/POST_MERGE_RUNTIME_FAILURE.md`. The feature-only Webpack 4/4 PASS is separate; the bundler difference is a hypothesis, not a proved cause. Scoped PR #322 adds a documented, explicit `--webpack` diagnostic option to the canonical launcher while retaining default Turbopack and all branch/clean/environment/drift/health guards. Source commit `f355eab7906a60895e22f307eb8c9a0426d43eb9` passed syntax and 18/18 focused guards; unknown flags and feature-branch launcher invocation fail closed. No Product route, dependency, config, Auth, schema, provider or Digital Observer core change. Exact-head CI and Development merge are required before one bounded canonical Webpack comparison under safe host admission; even a successful comparison would not close the default Turbopack or predecessor Parent-dashboard runtime defects.
+
+The pending PR #322 statement above is superseded: its exact head `40cad5d5b20838a9e8c5ecd03d74c86f80317dd7` passed six Digital Observer CI gates, Canonical quality and Management (8/8) and merged by ancestry-preserving merge `0137c6c69fc562efb19178b30935a4ffd7b5f74a` into `integration/development`. The clean canonical launcher reported this exact SHA, `LOCAL_SUPABASE` and explicit `WEBPACK_DIAGNOSTIC`. After preserving a cold-compile identity timeout and an immediate loading-screen capture as intermediate evidence, the bounded authenticated browser check on a settled viewport passed 2/2: Parent-A's Documents list rendered with actual synthetic rows at 1440×1024 and Staff-A never showed family Documents and redirected away. Final private receipt SHA256 `bda1549ced1e27b52d8eff274defa67c1e0ae92a92dd5da46b3a7762b8f8defb`, settled screenshot SHA256 `6a8c6743765e4f9946135fc54bded96a8606c5b6a2990cedffaa087988d4eb94`, private redacted evidence report SHA256 `6208235130464897929894155f1425ff3c284c3b0538350f60d96302de75d8f9` under `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-documents-webpack-diagnostic-0137c6c6/evidence/`. Browser/server were stopped, port 3000 was free and Development Git clean. This is a **limited alternate-mode diagnostic**, not a repair of the default Turbopack failure, a proven root cause, an accessibility/Parent-to-Parent RLS certification, closure of the predecessor Parent dashboard runtime, or cumulative Product readiness. No main/Production change.
+
+## Parent primary default-mode synthetic runtime — narrow later qualification
+
+On clean canonical Development `15b842f94e91157c6af31e2f7133e005c95dc58a`, the existing synthetic multi-Child Parent primary dashboard passed a bounded actual-browser check in default Turbopack at Desktop `1440×1024` and Mobile `390×844`. The user-visible selector showed both authorized Children and switching to the second updated selected Child identity, daily attendance and Child-scoped attendance/payment links. Desktop reload retained the selection; a foreign Child query displayed the unavailable state without that Child's name. Four settled Product screenshots were inspected without splash or route loader; browser/server stopped, port 3000 free, canonical Git clean. Private redacted report SHA256 `a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e` at `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-primary-canonical-15b842f9/PARENT_PRIMARY_CANONICAL_RUNTIME.md`; final receipt SHA256 `12e38cf7f946b60e24bceca83f83671229e7fb59b4f4028b0f1fcbdffaddca7e`. Earlier selector/loader mistakes in the measurement harness were retained as failed intermediate receipts, not Product defects. The misleading initial missing-backend observation was an unqualified Docker config; the pinned external Development daemon had seven already-running containers, six persisted volumes and Auth health HTTP 200, so no restore/start/reset occurred.
+
+The separate Parent Documents default Turbopack first-error diagnostic on this same SHA succeeded once and did not identify why the historical `8b9dd0fe` 90-second timeout occurred; private report SHA256 `0aaf19a90ac88f4a70d3827602534b43ce26e51dcebd70a9239142c88ad2450d`. This closes the **predecessor Parent primary synthetic browser runtime gap only**. Parent Documents intermittent failure investigation, direct Parent-to-Parent RLS, forced document read failure, full Product/security QA, literal visual owner acceptance and cost qualification remain open. No Product source, schema, Digital Observer core, main or Production change.
+
+
+## Parent-to-Parent private document isolation — bounded canonical Development proof
+
+On clean canonical Development `e9d4e2748700bb0fb5312d9ee68b94cb47dfed70`, the pinned existing isolated LOCAL_SUPABASE backend and default Turbopack Product passed a symmetric synthetic Parent A/B check. The two Parents' authorized Children were in separate Gardens. Each uploaded one 48-byte non-personal PDF through the authenticated Product API into the already-private `documents` bucket. Each saw its own document in the Product list and direct user-session RLS query, and obtained its own 302 signed-file link; no-cookie bearer fetch returned exact bytes. One expected private-read audit row was observed for each successful issuance.
+
+For both cross-family directions, known-ID user-session RLS query returned no row, foreign-Garden Product list did not include the foreign ID or storage path, and the private-file route returned 404 without Location or identifying body. Guest requests returned 401 without links or identifying body. Private redacted receipt SHA256 `ebc282db5ad3a05ab1b0c2c2e3865cb06e11392379f88b322797cc69ebaaf07b` under `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-documents-isolation-e9d4/evidence/`; exact bounded script SHA256 `fb2e018ea197c599914c177d6ca33c9dcd3eab60662e416e718b7b2b712e0a01`. The two synthetic documents and audit rows remain in isolated Development as protected evidence; no reset/purge occurred. See `GAN_BATUACH_PRODUCT_PARENT_DOCUMENTS_ISOLATION_20261107.md`.
+
+The previously cited Parent-primary report digest above now identifies the corrected private text. Its earlier digest `0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e` refers to the report before a truncated Mobile screenshot checksum was repaired; no screenshot was recaptured. Signed URL issuance was authorized, but a valid URL is a bearer link and its post-60-second expiry was not live-tested. Forced Documents read-error, the historical intermittent default-Turbopack root cause, full Product/security and external visual acceptance remain open. No source/schema/DO core/main/Production change or paid commitment was made.
+
+The Parent document isolation unit above was remotely preserved on `codex/parent-documents-isolation-20261107` at exact PR #325 head `11b568c2623bbd67da5d4ab0debbbdf451ef6a73`. All six Digital Observer CI gates, Canonical quality and Management tenant context passed on that head; Snyk also passed. An ancestry-preserving merge placed it into Development as `7f472157740a268bca6dd37b95696d4fa0d48503`, with parents `e9d4e2748700bb0fb5312d9ee68b94cb47dfed70` and `11b568c2623bbd67da5d4ab0debbbdf451ef6a73`. The clean canonical worktree matched the remote head. Post-merge ledger validation passed 213 units and the read-only isolated Development migration drift check passed 259/259. The remaining forced read-error, intermittent Documents runtime root cause, full Product/security, external visual and cost gates are still open.
+
+## Parent private-document signed-link expiry — bounded canonical Development proof
+
+At clean Development `7c6fd2c206007300a3328344bd9e580ab6abdfeb`, the existing Parent A synthetic 48-byte private document was used without any new upload or fixture. One authenticated Product file route issuance returned 302 with private/no-store and no-referrer; its signed claim lifetime was 60 seconds. A no-cookie fetch during validity returned the exact 48-byte hash. The same URL, held only in process memory, returned HTTP 400 `InvalidJWT` and a nonmatching 110-byte error body 5.040 seconds after claim expiry. One expected private-read audit row was added. The protected redacted receipt SHA256 is `68cbe284cb245de0e11e7c036d773a24870b0bee4454d6d5d7384b91a13d5721` under `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-document-signed-expiry-7c6fd2/evidence/`; the exact secret-free QA script SHA256 is `09834ea44058b8a6ca8c9ca0f1068e1e9ab436596222d7cb42dc1db57f293454`. See `GAN_BATUACH_PRODUCT_PARENT_DOCUMENT_SIGNED_EXPIRY_20261107.md`.
+
+This is one isolated Development signed-link expiry observation, not full RLS/download certification, individual revocation, Production CDN behavior, forced Documents read-error UI, root-cause closure of intermittent default-Turbopack Documents loading, external owner visual acceptance or invoice-backed cost proof. No Product source/schema/DO core/main/Production change or paid commitment occurred.
+
+The signed-expiry evidence unit above was remotely preserved on `codex/parent-document-signed-expiry-20261107` at PR #327 exact head `a835678f1cc1a80060a4fc8b39cda06fcd0c4793`. All six Digital Observer CI gates, Canonical quality and Management tenant context passed on that head; Snyk also passed. An ancestry-preserving merge placed it into Development as `71f691ec28bcbfbeae4b2552929fba84648689b5`, with parents `7c6fd2c206007300a3328344bd9e580ab6abdfeb` and `a835678f1cc1a80060a4fc8b39cda06fcd0c4793`. The clean canonical worktree matched the remote head. Post-merge ledger validation passed 214 units and the read-only isolated Development migration drift check passed 259/259. Forced Documents read-error, intermittent runtime cause, full Product/security, external visual and cost gates remain open.
+
+## Inspector workspace read reliability — validated feature unit pending Development integration
+
+Source `4264cf865518cd93062d0b0bed206967c05c8cab`; isolated branch `codex/inspector-workspace-read-reliability-20261107`; focused source commit `691c0d148a1cd7b1776f3ddd5bbfd7daf50641ac`. The Inspector dashboard now distinguishes a failed or missing Garden-assignment read from a verified empty assignment, and separately labels failed required-inspection, inspection-history, violation, complaint and task reads without inventing empty/zero operational state. Verified successful sections remain visible; no authorization, query scope, schema, provider, DO core or Production behavior was widened. Actual component fixtures passed 10/10, existing operational-role tests 23/23, typecheck, lint baseline with zero regressions and isolated feature build passed. Guarded feature-only LOCAL_SUPABASE browser checks passed for assigned and unassigned Inspectors and denied Staff. Feature server stopped and port 3100 freed. See `GAN_BATUACH_PRODUCT_INSPECTOR_WORKSPACE_READ_RELIABILITY_20261107.md`.
+
+The unit is **VALIDATED_ON_BRANCH, not remotely preserved or integrated yet**. Exact-head six CI gates, Canonical quality, Management context, scanner, Development merge and post-merge smoke remain mandatory. Fixture failures are simulated, not a forced live database outage. Full Product/security, owner visual, invoice-backed cost, forced Parent Documents read-error and historical intermittent default-Turbopack Documents cause remain separate open gates. No main/Production/RELEASE-GAP-01 work.
+
+The Inspector read-reliability source/evidence unit was remotely preserved on `codex/inspector-workspace-read-reliability-20261107` at PR #329 exact head `c0d789f09f78b9626a815c9fae026f06eda12d9d`. Six Digital Observer CI gates, Canonical quality, Management context and Snyk passed. Its ancestry-preserving Development merge is `faabf4c44a37da3b84c2e4a6295e2ed2555b408d` (parents `4264cf865518cd93062d0b0bed206967c05c8cab` and the PR head). Clean canonical Development matched that remote SHA; post-merge focused tests passed 33/33, ledger schema 215 units and isolated migration drift 259/259. Assigned/unassigned Inspector and denied Staff route behavior was observed on canonical default-Turbopack Product with zero page errors; the browser runner required interruption during cleanup after results printed, so no clean-exit claim is made. Port 3000 was freed. Full Product/security, forced live read error, owner visual and invoice-backed cost gates remain open.
+
+## Inspector draft save/resume and denied access — validated feature unit pending Development integration
+
+From clean Development `0ef48d30c83797124881f7ea8b3b25dd621a2112`, branch `codex/inspector-draft-journey-20261107` added only a focused executable QA harness and this evidence. No Product defect was demonstrated, so no Product code, schema, RLS, API, provider, Digital Observer core or dependency changed. The assigned synthetic Inspector opened an existing active-form inspection from the Product due list, saved one marked answer, reloaded and resumed it, then saved again. Actual UI/API/read-only database agreed on one draft row with one answer; no duplicate, submission, final score, changed report/submitted snapshot or regulatory audit event. An approved-unassigned Inspector and Staff were each denied GET and PUT with HTTP 403 and no protected content in the response; the draft was unchanged. The final guarded feature-only LOCAL_SUPABASE browser run at `0d8404895fb8bb94578ae9f0c64a704cefa9585d` passed 8/8 with exit zero and clean browser/context teardown. Protected redacted receipt SHA256 `7620529c2b64b0931510ebc7c8c1f95884ad0f13d0637b6918d04e1787a19e18` is recorded in `GAN_BATUACH_PRODUCT_INSPECTOR_DRAFT_JOURNEY_20261107.md`. Focused source regressions passed 31/31. No QA persona reset, paid commitment, `main`, Production or RELEASE-GAP-01 work.
+
+This unit is **VALIDATED_ON_BRANCH** only. Remote preservation, exact-head six CI gates plus quality/context/scanner, ancestry-preserving Development merge and canonical post-merge smoke are pending. Full Product/security, external owner visual, provider and invoice-backed ₪15 gates remain open. The previous Inspector workspace browser run has no persisted receipt; none is inferred from this new draft receipt.
+
+The Inspector draft source/evidence unit was remotely preserved at PR #331 exact head `e266af9848cab329f536ba5676c40d4e9f81e7e1`. Six Digital Observer CI gates, Canonical quality, Management context and Snyk passed. An ancestry-preserving merge placed it in Development as `5017f2cc147d8aea56e3c6eba3c6c337685e3d95` with parents `0ef48d30c83797124881f7ea8b3b25dd621a2112` and the source head. Clean canonical Development matched the remote head. Post-merge focused source suites passed 31/31, ledger schema 216 units and isolated migration drift 259/259. On default-Turbopack canonical Product, the first browser attempt encountered a transient due-page Suspense/reload loop (87 requests in five seconds, no rendered links); the unchanged retry passed the full UI/API/database draft journey 8/8 with exit zero and clean browser cleanup. The protected post-merge receipt SHA256 is `32ade7cfa8d210893ef32b62e1f9418a8ce38e0b09ffd8b98d488434dc0788f6`; its exact path and the unrooted cold-start limitation are in `GAN_BATUACH_PRODUCT_INSPECTOR_DRAFT_JOURNEY_20261107.md`. Port 3000 was freed. Vercel SHA reads found zero source/merge deployments. No Product source, Digital Observer core, QA persona, paid commitment, main or Production change. Full Product/security, external owner visual and invoice-backed cost gates remain open.
+
+## Development retry-loop bounded diagnosis — Product cause unresolved
+
+From clean Development `2b920cafb578f1720ed660baf26227d998e20e69`, branch `codex/development-retry-loop-diagnosis-20261107` committed a scoped read-only Inspector due-page guard as `cba59829aa47d15986fe278456e6a5cd90de81eb`. Four deterministic guard tests and syntax checks passed. After safe host admission, one canonical default-Turbopack browser attempt observed four exact-target full document requests and a first client `PAGE_ERROR` within 4,940 ms. It exited 1, closed browser/context, preserved a 0600 redacted receipt (SHA256 `627017e492bfe740cdb629da63b3cb13ec19417ba36977fba5a1900f79efcb6c`) and stopped the Development server. The sixth-request guard was not reached because the first error stopped the run earlier. The first stack is a fingerprint only; no root cause is proven, and no Product/Auth/config change was made. This is **QA guard validated, runtime reproduced, cause unresolved**, not a Product PASS. Report: `GAN_BATUACH_PRODUCT_DEVELOPMENT_RETRY_LOOP_DIAGNOSIS_20261107.md`. Remote preservation, exact-head CI and Development integration are pending at this ledger revision. Full Product/security, external owner visual and invoice-backed cost gates remain open; main and Production untouched.
+
+The scoped guard was remotely preserved at [PR #333](https://github.com/infoganbatuah-ai/gan-batuach/pull/333), exact head `3148f079e48282db7bd56b015bba8f27ab13a8c1`. All six Digital Observer CI gates, Canonical quality, Management context and Snyk completed successfully. An ancestry-preserving merge placed the two source commits in Development `4e31511b9e9d9a14063a20a9353764016c63ce8a` with parents `2b920cafb578f1720ed660baf26227d998e20e69` and `3148f079e48282db7bd56b015bba8f27ab13a8c1`. Canonical local and remote Development agreed and the worktree was clean. Post-merge guard tests passed 4/4 and ledger schema passed 217 units; no Product files or migrations changed. The Product runtime failure remains **REPRODUCED_CAUSE_UNRESOLVED**. This ledger closure is documentation-only and does not authorize release.
+
+## Inspector due-page first-stack follow-up — intermittent cause still unresolved
+
+From clean Development `1782c432d5633fe5d1a0446df04eea84abff958e`, branch `codex/retry-first-stack-20261107` committed bounded first-error and passive CDP initiator capture as `89e3ae67f1b4b8586f1c09d18c3301e5a1156553`. Six focused guard tests, syntax and diff checks passed. One safely admitted, read-only canonical default-Turbopack run used the existing synthetic assigned Inspector and rendered the due page on one HTTP 200 document request, with no error or retry; process exit 0, browser cleanup complete and server stopped. The protected receipt SHA256 is `4a959bdc0d4809b120c39072b800b1d7b4febc584a71e878a78ffc7e9dc2e3a5`; see `GAN_BATUACH_PRODUCT_RETRY_FIRST_STACK_20261107.md` for its exact path and limitation. **The symptom did not recur, so no first stack or causal module was captured.** Per the one-attempt limit this run was not repeated. Earlier failure remains unresolved; no Product, Auth, schema/RLS, provider, Digital Observer core, dependency, main or Production change was made. Remote preservation, exact-head CI and Development integration are pending at this ledger revision; broader Product/security, owner visual and invoice-backed cost gates remain open.
+
+PR [#335](https://github.com/infoganbatuah-ai/gan-batuach/pull/335) preserved exact feature head `fbb765c4eab991426440d67db4a2fca63620b715` after all six Digital Observer CI gates, Canonical quality, Management context and Snyk passed. An ancestry-preserving merge placed it in Development `4ca595e6b48472152ddef79623db5718a0c2e365` with parents `1782c432d5633fe5d1a0446df04eea84abff958e` and `fbb765c4eab991426440d67db4a2fca63620b715`. Canonical local and remote Development agreed and were clean. Post-merge focused guard 6/6, ledger schema 218 units and isolated migration drift 259/259 passed. This records preservation of the QA guard, **not** a Product fix; intermittent runtime cause and broader gates remain open.
+
+## Staff time synthetic journey — blocked by canonical Suspense/reload loop before any write
+
+At clean Development `4ca595e6b48472152ddef79623db5718a0c2e365`, isolated branch `codex/staff-time-journey-20261107` committed a bounded QA runner as `ea14cd54a33a3d1d9ce26f4995dbd12c56bb5b62`. Read-only preflight excluded Staff A because it had a prior open shift; Staff B had an active Garden B employment, no open/used current-day shift, and a configured Garden center/radius/timezone. The runner uses an explicitly scoped synthetic browser location and never starts continuous tracking. One canonical default-Turbopack attempt then entered a full-document Suspense/reload loop on `/dashboard/staff/attendance`. The seventh navigation was aborted before network after six allowed requests. Sanitized first browser category: `SUSPENSE_SERVER_FALLBACK`, with no safe frames. Exit 1 and browser cleanup complete; server stopped. Protected receipt mode 0600 SHA256 `03a0b8d0964eeeec3c9396b6e365c5bb86d0220840c0d85abdd2e12a91db912c`; exact path and limitations are in `GAN_BATUACH_PRODUCT_STAFF_TIME_JOURNEY_20261107.md`. There were zero GPS actions, screenshots, new/closed shifts or location samples. A separate authenticated read-only check confirmed Staff B still had zero shifts/open shifts and zero new samples. This is **BLOCKED**, not Staff-time Product PASS. No identical browser retry or speculative Product change was made. QA source remote preservation, exact-head CI and Development integration remain pending at this ledger revision. Full Product/security, real GPS/geofence, owner visual and invoice-backed cost gates stay open; main and Production untouched.
+
+PR [#336](https://github.com/infoganbatuah-ai/gan-batuach/pull/336) passed all six exact-head Digital Observer CI gates, Canonical quality, Management context and Snyk on feature head `4b1654c84e4b533c73fe8a4d8e216207807a9267`. It ancestry-merged the Staff QA source into Development `5fa453954a52c3fe6a93a3940c75f234d1a1824c`. Canonical local and remote Development agreed and were clean; post-merge focused guard 6/6, ledger schema 219 units and isolated migration drift 259/259 passed. This preserves the harness and blocked receipt, **not** a positive Staff-time journey or Product runtime fix. No duplicate closure PR is needed.
+
+## Canonical Development bundler mitigation — Webpack default source candidate
+
+From exact Development `5fa453954a52c3fe6a93a3940c75f234d1a1824c`, `codex/development-runtime-stability-20261107` changes only the Development launcher argument policy: no-flag and UI-only launches explicitly use supported Webpack, while Turbopack requires `--turbopack` and is labeled a known intermittent diagnostic. Conflict, duplicate and unknown flags still fail closed; branch, clean-tree, isolated backend, drift, health and loopback guards remain. Focused parser/environment/policy tests passed 10/10. This is a mitigation for repeated Development-only navigation/Suspense symptoms, not a proven Turbopack root-cause fix or a Product pass. See `GAN_BATUACH_PRODUCT_DEVELOPMENT_RUNTIME_STABILITY_20261107.md`. Remote preservation, CI, merge and new bounded Staff-time runtime verification are pending at this ledger revision. No main, Production or release work begins.
+
+PR [#337](https://github.com/infoganbatuah-ai/gan-batuach/pull/337) passed all six exact-head CI gates, Canonical quality, Management context and Snyk on source `1ec92306720af04151229bdb7d4b84988d2e9857`, then ancestry-merged to Development `ac713106d1cec367749323c97eee024287fb8aa2`. The clean canonical worktree matched that remote head; post-merge workflow 19/19, ledger schema 220 and pinned isolated migration drift 259/259 passed. The launcher used supported Webpack and LOCAL_SUPABASE on loopback. One bounded synthetic Staff UI/API/database run passed 22/22, producing one closed QA shift with simulated Garden-center geolocation. The four mutation-run screenshots showed the transient splash and are `NOT_VISUAL_EVIDENCE`. A private follow-up captured the settled actual Staff and Manager screens only after splash opacity reached zero: 19/19 checks, 34 browser GETs, zero attempted browser writes, zero GPS/external requests, and unchanged counts of one shift, three samples and five audit events before/after capture. Protected receipts SHA256 `38bf1860fcd792d75f4bf79ed07e7a5a3922a614508ca110100d97a6dabc2a32` and `2680be44cc88b17557d9639d5d0b5dfbfb2754199c85fd8cc3bb87ea41979145`; exact paths and image hashes are in the runtime report. This is scoped local evidence, not full Product/security, physical GPS, owner reference approval, Turbopack root-cause closure or release readiness. No main, Production, paid commitment or Digital Observer core change.
+
+## Staff attendance summary correctness — scoped source candidate
+
+From verified Development `3495944d77e04712e8dc225aefda1473a292ed66`, branch `codex/staff-time-summary-correctness-20261107` committed source `dc723c5371b8deb03f9b4e4d75184db6ebc80cc7`. The Staff page now floors authoritative completed-shift minutes, uses Israel calendar-day boundaries, marks a 45-row potentially incomplete period partial, and distinguishes failed Staff/shift/secondary reads from valid empty data. Unknown shift state hides the GPS attendance action panel. Existing role guard, query limits, API, schema/RLS, provider and Digital Observer core are unchanged. Focused fixtures 5/5, UX-07 regression 7/7, changed-path ESLint and diff checks passed. Feature-worktree TypeScript with another worktree's compiler could not resolve optional Capacitor modules and is not a full typecheck pass. See `GAN_BATUACH_PRODUCT_STAFF_TIME_SUMMARY_CORRECTNESS_20261107.md`. Remote preservation, exact-head CI, guarded feature QA, merged Development GET-only browser evidence and broader Product/security/visual/cost gates remain pending at this ledger revision. No main, Production or RELEASE-GAP-01.
+
+PR [#339](https://github.com/infoganbatuah-ai/gan-batuach/pull/339) preserved exact feature head `9bc9b377521e6a953bca8f496eb1dabfbbfaa504` after all six CI gates, Canonical quality, Management context and Snyk passed. A pinned `npm ci` in its isolated worktree enabled full typecheck PASS. Guarded feature QA captured Staff Mobile/Desktop at that exact head with 19/19 GET-only checks and no business mutation (protected receipt SHA256 `4b1b9ca0d25710ad779ff89b258f8bc32f17d27344691fbd4b5177e63044804d`). An ancestry-preserving merge placed the correction in Development `e73897fc579fe037d18f1a71d2ca80dc40aa2b62` with parents `3495944d77e04712e8dc225aefda1473a292ed66` and `9bc9b377521e6a953bca8f496eb1dabfbbfaa504`. The clean canonical worktree and remote matched; postmerge focused fixtures 5/5, UX-07 7/7, workflow 19/19, ledger schema 221 and pinned isolated drift 259/259 passed. A fresh merged-head GET-only Staff capture passed 19/19 with 34 browser GETs, zero attempted writes/GPS/external calls, unchanged one shift/three samples/five audit events, and visibly settled actual Mobile/Desktop content (protected receipt SHA256 `edab267ba25204beb45f8e368e7f28aa16788734d6045cb3d5d9aa39c2c35539`). Existing QA shift had zero authoritative minutes; 90-minute behavior is fixture proof only. This is scoped Development preservation, not full Product/security, physical GPS, owner visual acceptance or cost release readiness. No main, Production, paid commitment or Digital Observer core change.
+
+## Staff shift scheduling journey — scoped source candidate
+
+From verified Development `7697063fc88f06d8be8297d1f1910305657ba3ee`, branch `codex/staff-shift-scheduling-journey-20261107` committed scoped source through `6f704a05aebfb1acafde4b89796b028592b50e18`. The Manager's Staff-time screen now plans shifts for authorized, active Staff in the current Garden via the existing scheduling API/RPC. The journal and Staff history distinguish planned time from attendance/payroll approval, including correct RTL time order. A duplicate maps to 409. The one synthetic Manager B UI save created one future planned Staff B shift, with no actual time or approval. The write run's overall receipt is FAILED because a later text assertion expected the old time formatting, not because the save failed; subsequent intermediate-head readback passed 20/20 and final-source-head GET-only screenshots passed 19/19, with duplicate/role denials and foreign-Garden GET exclusion. Protected receipts SHA256 `4a22c49b23f21bb064d6dea5be7bcb547fa6bfca6b7362bbb34b3fcce646a401`, `02bfac6be341c4b011d2a56c043d79dbc7abd22c0df4b149713ad7fe10cbd96d`, and `5ccf64d606d8c3379f7ed8ec05d644d638ab03edb77cccefdceee178d7c54f0e` retain the exact evidence. Pinned install, full typecheck, changed-path lint, planning fixtures 3/3 and UX-07 7/7 passed. See `GAN_BATUACH_PRODUCT_STAFF_SHIFT_SCHEDULING_JOURNEY_20261107.md`. Remote preservation, CI, Development merge and post-merge QA remain pending at this ledger revision. No schema/RLS/Auth/provider/DO core, main, Production, or RELEASE-GAP-01 change.
+
+
+### Merged Development closure
+
+PR [#341](https://github.com/infoganbatuah-ai/gan-batuach/pull/341) preserved candidate `81fc5e389078ef0953a690645918d3e5b7563877` and passed all six exact-head CI gates, Canonical quality, Management context and Snyk. The first domain run timed out in the unrelated `event-outbox` cadence fixture; one bounded failed-job rerun passed without changing code or the gate. An ancestry-preserving merge placed the unit in Development `00ed35a8d0bd9ab6b57e17facbc51b82aee7fe52`, with parents `7697063fc88f06d8be8297d1f1910305657ba3ee` and `81fc5e389078ef0953a690645918d3e5b7563877`. Post-merge canonical fixtures passed 3/3, UX-07 7/7, integration workflow 19/19, ledger schema 222 and local migration drift 259/259. Fresh actual merged Product Manager/Staff Desktop/Mobile capture and role readback passed 19/19 at the exact merged SHA, with 70 browser GETs, zero browser writes or blocked requests, and the same one planned QA row; protected receipt SHA256 `43ff2c005b9c25c4e35f94104825cc1ce5a24cf1abf2175a79f5b70ca2a1e4f3`. No main, Production or release work.
+
+PR [#342](https://github.com/infoganbatuah-ai/gan-batuach/pull/342) then merged the shift documentation closure to Development `fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a`. Fresh exact-head canonical Manager/Staff Desktop/Mobile GET-only readback passed 19/19 with 70 GETs, zero writes and the same planned row; protected receipt SHA256 `4d98f1c86d8bd453118a476785b89975638fd45beb9cc251e88b11d84a966ba8`. This reconciliation is bundled here, without a separate follow-up PR for the merge SHA.
+
+## Manager → Staff task journey — scoped Development candidate
+
+From exact Development `fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a`, branch `codex/manager-staff-task-journey-20261107` preserved scoped source commits `4e649debc2a174e49dd08edc987875355b705cbf` and `f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1` remotely. The Manager now offers only currently active, approved Staff employment in the selected authorized Garden; the Staff task list uses its verified employment Garden. Read errors appear unavailable rather than empty, and context changes remount the task workbench. Existing canonical task RPC and RLS remain the authority.
+
+One local synthetic Manager B UI task was created for Staff B, started, submitted and approved through four successful browser POSTs. The write-run receipt is **FAILED** at a subsequent completed-filter capture assertion; the task was already `done`, and no duplicate task was created. A corrected exact-head readback passed 22/22 with zero browser writes, Manager/Staff completed-task visibility, denied foreign Staff/Manager/Parent known-ID reads/transitions and guest denial. Audit count stayed four and notifications two, both `in_app`. Protected receipts SHA256 `a4ddfec163ac1758bb9627672e174e8952960f0f6510d3ffa6f0faab44538742` and `1909db729c0041f8286cd00b7305a5fae9cb8f650fe4f6c6694f3177f10e9fd3`; an earlier pre-mutation cold-start failure is retained separately. Focused fixtures passed 8/8, full typecheck, changed-path lint and diff check passed. See `GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md` for exact paths and limits. Exact-head CI, Development merge and post-merge QA are pending at this ledger revision. No schema/RLS/Auth/provider/DO core, main, Production, paid commitment or RELEASE-GAP-01 change.
+
+### Merged journey and scoped Staff label follow-up
+
+PR [#343](https://github.com/infoganbatuah-ai/gan-batuach/pull/343) passed six exact-head CI gates, Canonical quality, Management context and Snyk at `c26dd833a6856dbb3fa595a675fe8284fc4ec186` and ancestry-merged to Development `2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc`. Fresh canonical GET-only Manager/Staff Desktop/Mobile capture passed 17/17 with 113 GETs and zero writes, preserving one done task, four audit events and two in-app notifications; protected receipt SHA256 `06d56aabcd2dd9139dcd60c751514b006bb016b70f1410645803219d34952776`. Postmerge focused tests passed 16/16, workflow 19/19, ledger 223 and migration health 259. Screenshot inspection exposed one Staff display defect: the assigned task card said the responsible worker was unassigned.
+
+The separate scoped branch `codex/manager-staff-task-assignee-label-20261107` supplies the verified Staff profile to the existing workbench and asserts the displayed name against the authenticated QA profile. One initial readback assertion failed because it expected the wrong synthetic spelling; no browser writes or new task occurred (receipt SHA256 `f40b8c38c2b1ecae8466b71e7612dfabe856c9b1b73ffdf2cc17f03636df4405`). Exact feature head `72e9ad8662e57c5ae411480e4a3c965b8dff64bb` passed 23/23 with the name visible and unchanged task/audit/notification counts (protected receipt SHA256 `6d6d88c202a7d39d33fb5e4e24a9cc0db6d785ceed3db7f9d4394638a003bf5c`). Full isolated typecheck, focused 16/16, changed-path lint, syntax and diff checks passed. Remote source is preserved; exact-head CI, Development merge and merged-head capture remain pending at this ledger revision. Full Product/security/owner visual/cost gates remain open. No main, Production, paid commitment, DO core change or RELEASE-GAP-01.
+
+The prior Staff assignee-label source is now ancestry-verified in Development `360012f0bd191cb46f894484a354ebad32d44bae` through [PR #344](https://github.com/infoganbatuah-ai/gan-batuach/pull/344). Its historical pending wording above records the state at that earlier revision; the JSON entry is reconciled to MERGED. This does not imply cumulative Product, owner visual or cost qualification.
+
+## Parent → Manager canonical messaging journey — scoped Development candidate
+
+From clean Development `360012f0bd191cb46f894484a354ebad32d44bae`, isolated branch `codex/parent-manager-messaging-journey-20261107` corrects the Parent child/recipient picker, Manager active-Garden context, canonical conversation refresh/idempotent retry/read feedback, counterpart labels and the mobile conversation viewport. One synthetic Parent B/Manager B thread and two messages were created through the actual local Product UI. Exact Product source head `6444f6dc7e093d14574e75078007840ac494eb06` readback passed 19/19; the same thread was visible to both roles, a same-key retry did not duplicate, foreign Parent/Manager/Staff and guest were denied, and the isolated database retained one thread, two messages, two participants, two in-app notifications, two read markers and zero externally accepted deliveries. Private receipt SHA256 `5e8668c4347b7fec1c772108f5e3022e2f19744ff824a85e3290b737db2f2b80`; four actual Product screenshots are listed in that receipt. Focused checks passed 25/25 and migration health 259/259. See `GAN_BATUACH_PRODUCT_PARENT_MANAGER_MESSAGING_JOURNEY_20261107.md`.
+
+The scoped source is remotely preserved at `9d933af0b6b48440be12f87d36ccce5a2586e8b9` in [PR #345](https://github.com/infoganbatuah-ai/gan-batuach/pull/345); this entry is **PUSHED_REMOTE**, pending exact-head CI, Development merge and merged-head no-new-thread readback. It does not claim full Product/security, live external delivery, owner visual or invoice-backed cost proof. No schema/RLS/Auth/provider/dependency/DO core, main, Production, paid commitment or RELEASE-GAP-01 change.
+
+### Merged Product readback
+
+PR #345 passed all six exact-head Digital Observer CI gates, Canonical quality, Management context and Snyk at `f715e10fc2ef0747a8c5eaaccafa04b76f25e411`, then ancestry-merged to Development `d9f8e61c539017af40ff04c00d071cf92e01edca`. The clean canonical Product at that exact SHA passed 19/19 Parent/Manager no-new-thread readback with four fresh Desktop/Mobile screenshots, focused 25/25, ledger schema 225 and isolated migration drift 259/259. Protected merged-head receipt SHA256 `f19ecf0799e01928cce64e75f2dc3a6dee0db528fc1aa66ec9e6a01b959a6d8c`. The temporary 3000-port QA copy and Product server were removed/stopped; canonical Development remained clean. This scoped unit is **LOCAL_VERIFIED**. Full Product/security, external owner visual and invoice-backed cost gates remain open; no main, Production, DO core or RELEASE-GAP-01 change.

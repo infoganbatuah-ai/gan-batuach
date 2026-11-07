@@ -3,6 +3,8 @@ export const localKeys = new Set([
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
   'MANAGEMENT_INVITATION_SECRET',
+  'DIGITAL_OBSERVER_ENTERPRISE_CREDENTIAL_PEPPER',
+  'DIGITAL_OBSERVER_PUSH42_QA_CREDENTIAL',
 ]);
 
 // Next dev changes only its generated type imports; never exempt arbitrary edits.

@@ -4,6 +4,8 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { resolveObserverAddress } from "@/lib/domain/digital-observer/address-provider";
 import { getObserverSiteTemplate, observerSiteTemplateKeys } from "@/lib/domain/digital-observer/site-templates";
+import { activateControlledTrial, assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
 const scheduleModes = ["24_7", "night_only", "business_hours", "custom_schedule", "event_only"] as const;
@@ -157,6 +159,14 @@ export async function POST(request: Request) {
       if (result.error) return respondFail("לא ניתן לשמור את פרטי האתר כרגע.", 400);
       site = result.data;
     } else {
+      const entitlementAdmin = createAdminClient();
+      const ownedSites = await entitlementAdmin.from("observer_sites").select("id", { count: "exact" }).eq("owner_profile_id", profile.id)
+        .is("garden_id", null).neq("site_type", "kindergarten").order("created_at", { ascending: true }).limit(1);
+      if (ownedSites.error) return respondFail("לא ניתן לאמת את מגבלת האתרים כרגע.", 503);
+      if ((ownedSites.count ?? 0) > 0 && ownedSites.data?.[0]?.id) {
+        try { await assertCommercialEntitlement(entitlementAdmin, { siteId: ownedSites.data[0].id, key: "sites", currentUsage: ownedSites.count ?? 0 }); }
+        catch (error) { return respondFail(error instanceof Error ? error.message : "SITE_ENTITLEMENT_DENIED", 403); }
+      }
       const result = await supabase
         .from("observer_sites" as any)
         .insert({ ...sitePatch, owner_profile_id: profile.id, garden_id: null })
@@ -215,16 +225,19 @@ export async function POST(request: Request) {
     }, { onConflict: "observer_site_id" });
 
     if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
-    const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
-      requested_site_id: site.id,
-      requested_package_id: payload.package_id,
-      requested_billing_cycle: "monthly"
-    });
-    if (trialResult.error) return respondFail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. נסו שוב או פנו לתמיכה.", 400);
+    let trial: unknown;
+    try {
+      trial = await activateControlledTrial(createAdminClient(), { siteId: site.id, actorId: profile.id, packageId: payload.package_id, durationDays: 14 });
+    } catch (error) {
+      if (!(payload.observer_site_id && error instanceof Error && error.message === "TRIAL_NOT_ELIGIBLE")) {
+        return respondFail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. נסו שוב או פנו לתמיכה.", 400);
+      }
+      trial = (await supabase.from("observer_site_subscriptions" as any).select("id,subscription_status,trial_start,trial_end").eq("observer_site_id", site.id).maybeSingle()).data;
+    }
 
     const next = `/digital-observer/cameras/add?site=${site.id}`;
     if (navigationSubmission) return NextResponse.redirect(new URL(next, request.url), 303);
-    return ok({ site, trial: trialResult.data, charged: false, next }, payload.observer_site_id ? 200 : 201);
+    return ok({ site, trial, charged: false, next }, payload.observer_site_id ? 200 : 201);
   } catch (error) {
     if (navigationSubmission) {
       console.error("Digital Observer onboarding form failed", error);

@@ -26,17 +26,19 @@ export default async function StaffChildrenAttendancePage() {
   const supabase = await createClient();
   const gardenId = employment!.garden_id;
   const staffId = employment!.staff_id;
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const gardenRes = await supabase.from("gardens" as never).select("operational_timezone" as never).eq("id", gardenId).maybeSingle();
+  const zone = String((gardenRes.data as { operational_timezone?: string } | null)?.operational_timezone ?? "Asia/Jerusalem");
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const teaching = await supabase.rpc("can_teach_in_garden" as never, { target_garden_id: gardenId, required_scope: "attendance" } as never);
-  const assignmentsRes = await supabase.from("staff_classroom_assignments" as never).select("classroom_id,classrooms(id,name)" as never).eq("staff_id", staffId).eq("garden_id", gardenId).eq("status", "active").limit(100);
+  const assignmentsRes = await supabase.from("staff_classroom_assignments" as never).select("classroom_id,classrooms(id,name)" as never).eq("staff_id", staffId).eq("garden_id", gardenId).eq("status", "active").limit(101);
   const assignments = (assignmentsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const classroomIds = assignments.map((item) => String(item.classroom_id)).filter(Boolean);
-  const childAssignmentsRes = classroomIds.length ? await supabase.from("child_classroom_assignments" as never).select("child_id,classroom_id,classrooms(name)" as never).eq("garden_id", gardenId).eq("is_current", true).in("classroom_id", classroomIds).limit(500) : { data: [], error: null };
+  const childAssignmentsRes = classroomIds.length ? await supabase.from("child_classroom_assignments" as never).select("child_id,classroom_id,classrooms(name)" as never).eq("garden_id", gardenId).eq("is_current", true).in("classroom_id", classroomIds).limit(501) : { data: [], error: null };
   const childAssignments = (childAssignmentsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const childIds = childAssignments.map((item) => String(item.child_id)).filter(Boolean);
   const [childrenRes, attendanceRes] = childIds.length ? await Promise.all([
-    supabase.from("children" as never).select("id,full_name,photo_url,status" as never).eq("garden_id", gardenId).in("id", childIds).order("full_name"),
-    supabase.from("attendance" as never).select("child_id,status,check_in_at,check_out_at,pickup_name" as never).eq("garden_id", gardenId).eq("attendance_date", today).in("child_id", childIds)
+    supabase.from("children" as never).select("id,full_name,photo_url,status" as never).eq("garden_id", gardenId).in("id", childIds).order("full_name").limit(501),
+    supabase.from("attendance" as never).select("child_id,status,check_in_at,check_out_at,pickup_name" as never).eq("garden_id", gardenId).eq("attendance_date", today).in("child_id", childIds).limit(501)
   ]) : [{ data: [], error: null }, { data: [], error: null }];
   const attendanceByChild = new Map(((attendanceRes.data ?? []) as unknown as Array<Record<string, unknown>>).map((item) => [String(item.child_id), item]));
   const assignmentByChild = new Map(childAssignments.map((item) => [String(item.child_id), item]));
@@ -48,6 +50,15 @@ export default async function StaffChildrenAttendancePage() {
   });
   const count = (state: AttendanceState) => rows.filter((row) => row.state === state).length;
   const allowed = teaching.data === true && !teaching.error;
+  const sourceUnavailable = Boolean(gardenRes.error || !gardenRes.data || teaching.error || assignmentsRes.error || childAssignmentsRes.error || childrenRes.error || attendanceRes.error
+    || assignments.length > 100 || childAssignments.length > 500 || (childrenRes.data?.length ?? 0) > 500 || (attendanceRes.data?.length ?? 0) > 500);
+
+  if (sourceUnavailable) return <StaffAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null}>
+    <div className="ux06-staff-operations">
+      <StaffPageHero eyebrow="נוכחות ילדים" title="הכיתות שלי היום" text="אפשר לעדכן רק ילדים בכיתות שהוקצו לך ובגן הפעיל." icon={UsersRound} badge={<StatusChip tone="warning">נתונים לא זמינים</StatusChip>} />
+      <StaffSection title="נתוני נוכחות אינם זמינים"><div role="alert"><StaffEmpty title="לא ניתן לאמת את מצב הילדים כרגע" text="היקף הכיתה או רשומות הנוכחות לא נטענו במלואם. פעולות עדכון מושהות עד שהמידע יהיה זמין." icon={ShieldCheck} /></div></StaffSection>
+    </div>
+  </StaffAppFrame>;
 
   return <StaffAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null}>
     <div className="ux06-staff-operations">

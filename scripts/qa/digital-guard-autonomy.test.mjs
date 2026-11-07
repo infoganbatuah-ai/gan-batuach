@@ -25,11 +25,13 @@ const event = (changes = {}) => ({
   severity: "critical", confidence: .99, occurredAt: at, validated: true, ...changes
 });
 
-test("persistent policy authorizes only a fresh, critical, verified line crossing for siren", () => {
-  const accepted = guard.authorizeAutonomousGuardAction({
+test("persistent policy can recommend but never execute a sensitive physical action without immediate human confirmation", () => {
+  const proposed = guard.authorizeAutonomousGuardAction({
     policy, event: event(), action: "siren", capabilityDecision: decision("siren"), now
   });
-  assert.equal(accepted.dispatch_allowed, true);
+  assert.equal(proposed.dispatch_allowed, false);
+  assert.equal(proposed.requires_human_confirmation, true);
+  assert.equal(proposed.state, "pending_human_confirmation");
   for (const changes of [
     { severity: "medium" },
     { evidenceKind: "object_detection" },
@@ -44,7 +46,7 @@ test("persistent policy authorizes only a fresh, critical, verified line crossin
   }
 });
 
-test("Digital Guard client queues exact one-second siren through the RPC once", async () => {
+test("Digital Guard client cannot queue even an otherwise eligible one-second siren without explicit confirmation", async () => {
   const calls = [];
   const database = {
     rpc: async (name, parameters) => {
@@ -56,20 +58,19 @@ test("Digital Guard client queues exact one-second siren through the RPC once", 
     database, policy, event: event(), action: "siren", payload: { enabled: true, duration_ms: 1000 },
     capabilityDecision: decision("siren"), now
   });
-  assert.equal(result.queued, true);
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].name, "enqueue_digital_guard_camera_command_v1");
-  assert.equal(calls[0].parameters.signal_id, signalId);
-  assert.equal(calls[0].parameters.requested_payload.duration_ms, 1000);
+  assert.equal(result.dispatch_allowed, false);
+  assert.equal(result.requires_human_confirmation, true);
+  assert.equal(calls.length, 0);
 });
 
 test("wrong duration, stale capability and unapproved action never reach the RPC", async () => {
   let calls = 0;
   const database = { rpc: async () => { calls += 1; return { data: null, error: null }; } };
-  await assert.rejects(client.requestDigitalGuardCameraAction({
+  const malformedButBlocked = await client.requestDigitalGuardCameraAction({
     database, policy, event: event(), action: "siren", payload: { enabled: true, duration_ms: 999 },
     capabilityDecision: decision("siren"), now
-  }), /ONE_SECOND/);
+  });
+  assert.equal(malformedButBlocked.dispatch_allowed, false);
   const unavailable = await client.requestDigitalGuardCameraAction({
     database, policy, event: event(), action: "lighting", payload: { enabled: true },
     capabilityDecision: { ...decision("lighting"), allowed: false, state: "blocked", reason: "stale_evidence" }, now

@@ -1,0 +1,44 @@
+{
+  "contract": "observer-connector-legacy-transition-qa-ledger-v1",
+  "classification": "ISOLATED_QA_NOT_LIVE",
+  "legacy": {
+    "release_id": "qa-legacy-connector-ee82c20a77ac",
+    "artifact_sha256": "ee82c20a77acb7fd8caf692682569ad53581e9c057b11724845c6d947c5a982a",
+    "code_signature": "NON_CANONICAL_SIGNATURE",
+    "managed_release_eligible": false,
+    "purpose": "LEGACY_RECOVERY_ONLY"
+  },
+  "transition": {
+    "release_id": "qa-connector-legacy-transition-v2-6e7988808b05",
+    "version": "0.1.0-legacy",
+    "artifact_sha256": "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
+    "payload_equivalence_sha256": "81cc985adc0e8e8cc4af86ad13f47ec6998ed82fbc080b0e5fc63e53eecc4986",
+    "resource_inventory_sha256": "1ce102e6af09280858c548c78fcfc16443a19271a55e9cf83abb2057e098a9cf",
+    "derivation_record_protocol": "observer-connector-legacy-transition-v2",
+    "live_device_binding_record_sha256": "a04354ac990bd6b3542fe826de19924ff8aedbc97b384296cd1df2d8bfaed31f",
+    "single_build_commit_proven": false,
+    "signer_key_id": "qa-p38f-ed25519-20260913",
+    "strict_macos_signature": "PASS",
+    "source_lineage": "CAPTURED_LEGACY_PAYLOAD_PLUS_QA_RESIGN_NO_SINGLE_GIT_BUILD_COMMIT"
+  },
+  "isolated_qa": {
+    "migration_attempts": 2,
+    "successful_promotions": 1,
+    "first_migration_failure_recoveries": 1,
+    "failed_attempt_terminal_state": "ACTION_REQUIRED",
+    "successful_attempt_legacy_state": "RETIRED",
+    "automatic_remediation_updates": 1,
+    "crash_loop_rollback_target_before_remediation_promotion": "qa-connector-legacy-transition-v2-6e7988808b05",
+    "later_crash_loop_rollback_target": "qa-p38i-connector-069c91593f8b",
+    "duplicate_authoritative_processes_observed": 0,
+    "fixture_identity_config_queue_source_changes": 0
+  },
+  "live": {
+    "migration_attempts": 0,
+    "runtime_writes": 0,
+    "baseline_match": true,
+    "dry_run": "PASS",
+    "pre_soak_started": false,
+    "v8_started": false
+  }
+}

@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
 import { createStorageObjectId, createSupabaseStorageBackend } from "@/lib/domain/digital-observer/storage-contract.mjs";
+import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -176,6 +177,11 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (siteError) throw new Error("EVENT_SCOPE_UNAVAILABLE");
     if (!observerSite || !observerSite.owner_profile_id || observerSite.garden_id || observerSite.site_type === "kindergarten" || !observerSite.monitoring_enabled || observerSite.metadata?.observer_monitoring_consent !== true) return fail("Monitoring consent required.", 403);
+    let retentionEntitlement;
+    try {
+      await assertCommercialEntitlement(supabase, { siteId: metadata.observer_site_id, key: "evidence_storage" });
+      retentionEntitlement = await assertCommercialEntitlement(supabase, { siteId: metadata.observer_site_id, key: "video_retention" });
+    } catch (error) { return fail(error instanceof Error ? error.message : "EVIDENCE_STORAGE_ENTITLEMENT_DENIED", 403); }
     // Media can only enrich a previously validated event, never originate one.
     const { data: signal, error: signalError } = await supabase.from("observer_intelligence_signals")
       .select("id,created_at,severity,metadata").eq("observer_site_id", metadata.observer_site_id)
@@ -183,7 +189,9 @@ export async function POST(request: Request) {
     if (signalError) throw new Error("EVENT_READ_FAILED");
     if (!signal || signal.metadata?.validated_event !== true || signal.metadata?.recording_required !== true || signal.metadata?.camera_source_id !== camera.id || signal.metadata?.event_type !== spatialValidation.event.event_type) return fail("A matching validated event is required before recording.", 409);
     if (Math.abs(Date.parse(metadata.captured_at) - Date.parse(signal.created_at)) > 60_000 || Date.parse(metadata.captured_at) > Date.now() + 60_000) return fail("Recording is outside the event capture window.", 422);
-    const retentionHours = retentionHoursForSite(observerSite?.event_retention_days);
+    const requestedRetentionHours = retentionHoursForSite(observerSite?.event_retention_days);
+    const entitledRetentionHours = typeof retentionEntitlement.limit === "number" ? retentionEntitlement.limit * 24 : requestedRetentionHours;
+    const retentionHours = Math.min(requestedRetentionHours, entitledRetentionHours);
     const eventSummary = safeNarrative(signal.metadata.event_summary);
     const narrative = observerEventNarrative({
       signal_type: metadata.event_type,

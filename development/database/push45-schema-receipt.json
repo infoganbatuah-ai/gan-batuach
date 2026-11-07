@@ -1,0 +1,51 @@
+{
+  "observedAt": "2026-10-19T19:16:13.595Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "64e1b36b7e846258a11e948a54e5222f208247fc",
+  "migration": "20261019050000_digital_observer_push45_privacy_compliance.sql",
+  "migrationPresent": true,
+  "tables": [
+    {
+      "table": "digital_observer_legal_approvals",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_notice_acknowledgements",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_notice_versions",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_privacy_audit_events",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_privacy_incidents",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_privacy_policy_profiles",
+      "rls": true
+    }
+  ],
+  "seededApprovals": 0,
+  "activeUnapprovedProfiles": 0,
+  "automaticSensitiveRetention": 0,
+  "anonymousAccess": false,
+  "authenticatedApprovalMutation": false,
+  "auditTrigger": true,
+  "observerColumns": {
+    "privacy_request_site": true,
+    "privacy_request_external": true,
+    "legal_hold_site": true,
+    "legal_hold_scope": true
+  },
+  "productionAccess": false,
+  "limitations": [
+    "Isolated Development schema proof only",
+    "No counsel decision, provider, real customer, biometric, child-monitoring or Production system contacted"
+  ]
+}

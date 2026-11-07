@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { getApps, initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
 import { BellRing, LoaderCircle, Send, Smartphone } from "lucide-react";
@@ -46,6 +47,29 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
   async function register() {
     setState({ busy: true, registered: false, message: "", error: "" });
     try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await new Promise<{ ok: boolean; reason?: string }>((resolve) => {
+          const listener = (event: Event) => {
+            window.clearTimeout(timeout);
+            window.removeEventListener("digital-observer:native-push-result", listener);
+            resolve((event as CustomEvent<{ ok: boolean; reason?: string }>).detail);
+          };
+          const timeout = window.setTimeout(() => {
+            window.removeEventListener("digital-observer:native-push-result", listener);
+            resolve({ ok: false, reason: "timeout" });
+          }, 30_000);
+          window.addEventListener("digital-observer:native-push-result", listener, { once: true });
+          window.dispatchEvent(new CustomEvent("digital-observer:enable-native-push", { detail: { siteId } }));
+        });
+        if (!result.ok) {
+          const reason = result.reason === "permission_denied"
+            ? "הרשאת ההתראות לא אושרה במכשיר."
+            : "רישום ה־Push במכשיר לא הושלם.";
+          throw new Error(reason);
+        }
+        setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כפופה להפעלת ספק נפרדת.", error: "" });
+        return;
+      }
       if (!(await isSupported())) throw new Error("הדפדפן הזה אינו תומך ב־Push.");
       if (await Notification.requestPermission() !== "granted") throw new Error("יש לאשר התראות כדי לרשום את המכשיר.");
       const app = getApps()[0] ?? initializeApp(firebaseConfig());
@@ -81,7 +105,7 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
           icon: "/assets/digital-observer/app-icon.svg"
         });
       });
-      setState({ busy: false, registered: true, message: "המכשיר מחובר ל־Firebase Push.", error: "" });
+      setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כבויה עד אישור הפעלה נפרד.", error: "" });
     } catch (error) {
       setState({ busy: false, registered: false, message: "", error: error instanceof Error ? error.message : "לא ניתן לרשום את המכשיר." });
     }
@@ -105,7 +129,7 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
       {state.busy ? <LoaderCircle className="do-spin" /> : <Smartphone />} הפעלת Push במכשיר הזה
     </button>
     <button className="do-button primary" type="button" onClick={sendTest} disabled={testing || !state.registered}>
-      {testing ? <LoaderCircle className="do-spin" /> : <Send />} שליחת Push לבדיקה
+      {testing ? <LoaderCircle className="do-spin" /> : <Send />} בדיקת חוזה Push ללא שליחה
     </button>
     {state.message ? <p className="do-notice success"><BellRing /> {state.message}</p> : null}
     {state.error ? <p className="do-notice warn"><BellRing /> {state.error}</p> : null}

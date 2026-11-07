@@ -114,6 +114,10 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
   <key>Label</key><string>${label}</string>
   <key>ProgramArguments</key>
   <array>
+    <string>/usr/bin/caffeinate</string>
+    <string>-i</string>
+    <string>-m</string>
+    <string>-s</string>
     <string>${escaped(nodePath)}</string>
     <string>${escaped(join(runtimeRoot, "scripts", "run-persistent-home-gateway.mjs"))}</string>
   </array>

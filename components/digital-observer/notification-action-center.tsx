@@ -1,0 +1,20 @@
+import { AlertTriangle, BellRing, CheckCircle2, Clock3, ShieldCheck, XCircle } from "lucide-react";
+import { ObserverQuickAction } from "@/components/digital-observer/observer-action-forms";
+import { formatObserverDate, observerStatusLabel, type ObserverRow } from "@/lib/domain/digital-observer/runtime";
+
+const channelLabels: Record<string, string> = { push: "Push", email: "דוא״ל", sms: "SMS", whatsapp: "WhatsApp", webhook: "Webhook חתום", phone: "שיחת טלפון" };
+
+export function NotificationActionCenter({ siteId, channels, deliveries, escalations }: { siteId: string; channels: ObserverRow[]; deliveries: ObserverRow[]; escalations: ObserverRow[] }) {
+  const configured = new Map(channels.map((channel) => [channel.channel, channel]));
+  return <section className="do-page-stack" id="delivery-center">
+    <article className="do-panel"><div className="do-section-head"><div><h2>ערוצי מסירה חיצוניים</h2><p>כל ערוץ כבוי כברירת מחדל. Sandbox כאן הוא חוזה פנימי דטרמיניסטי בלבד ואינו הוכחת ספק חיצוני.</p></div><ShieldCheck /></div>
+      <div className="do-card-grid">{Object.entries(channelLabels).map(([key, label]) => { const channel = configured.get(key); const enabled = channel?.provider_mode === "sandbox" && channel?.active;
+        return <article className="do-mini-card" key={key}><strong>{label}</strong><span className={`do-badge ${enabled ? "warn" : "muted"}`}>{enabled ? "SANDBOX פנימי" : "DISABLED"}</span><small>{enabled ? "אין שליחה לספק חיצוני" : "לא תתבצע מסירה חיצונית"}</small><div className="do-button-row"><ObserverQuickAction endpoint="/api/digital-observer/provider-channels" body={{ observer_site_id: siteId, channel: key, mode: enabled ? "disabled" : "sandbox" }}>{enabled ? "כיבוי" : "הפעלת Sandbox פנימי"}</ObserverQuickAction></div></article>; })}</div>
+    </article>
+    <article className="do-panel"><div className="do-section-head"><div><h2>היסטוריית מסירה ואישור</h2><p>תוצאה לא־ודאית נשארת לא־ודאית ואינה נשלחת שוב אוטומטית.</p></div><BellRing /></div>
+      {deliveries.length ? <div className="do-recording-list">{deliveries.map((delivery) => { const terminal = ["acknowledged","cancelled","expired","terminal_failure","dead_letter","unknown_outcome"].includes(delivery.delivery_status); const Icon = delivery.delivery_status === "acknowledged" ? CheckCircle2 : ["terminal_failure","dead_letter","unknown_outcome"].includes(delivery.delivery_status) ? AlertTriangle : delivery.delivery_status === "cancelled" ? XCircle : Clock3;
+        return <article className="do-recording-row" key={delivery.id}><span className="do-recording-preview"><Icon /><small>{channelLabels[delivery.channel] ?? delivery.channel}</small></span><span className="do-recording-copy"><strong>{observerStatusLabel(delivery.delivery_status)}</strong><small>{formatObserverDate(delivery.created_at)} · ניסיון {delivery.attempt_count}/{delivery.max_attempts}</small>{delivery.failure_reason ? <span className="do-badge warn">{delivery.failure_reason}</span> : null}</span><span className="do-recording-retention"><small>תפוגה</small><strong>{formatObserverDate(delivery.expires_at)}</strong></span>{!terminal ? <span className="do-recording-action ready"><ObserverQuickAction endpoint={`/api/digital-observer/notifications/${delivery.id}`} body={{ action: "acknowledge" }}>אישור קבלה</ObserverQuickAction></span> : null}</article>; })}</div> : <div className="do-empty compact"><BellRing /><strong>אין עדיין מסירות</strong><span>מסירה תופיע רק לאחר Intent מורשה ובדיקת נמען בזמן אמת.</span></div>}
+    </article>
+    {escalations.length ? <article className="do-panel"><div className="do-section-head"><div><h2>שרשראות הסלמה</h2><p>הסלמות מוגבלות במספר שלבים ונעצרות באישור, ביטול או סגירה.</p></div></div><div className="do-card-grid">{escalations.map((item) => <article className="do-mini-card" key={item.id}><strong>{observerStatusLabel(item.escalation_status)}</strong><small>שלב {item.current_step}/{item.max_steps}</small><span>{item.acknowledgement_deadline ? `יעד אישור: ${formatObserverDate(item.acknowledgement_deadline)}` : "ללא טיימר פעיל"}</span></article>)}</div></article> : null}
+  </section>;
+}

@@ -2,6 +2,25 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {integrationEnvironment,isGeneratedNextEnv} from '../development/integration-environment.mjs';
+import {parseIntegrationArgs} from '../development/integration-bundler.mjs';
+
+test('canonical integration explicitly defaults to Webpack for full-stack and UI-only',()=>{
+  assert.deepEqual(parseIntegrationArgs([]),{uiOnly:false,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only']),{uiOnly:true,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
+});
+test('explicit Webpack retains the stable Development mode',()=>{
+  assert.deepEqual(parseIntegrationArgs(['--webpack']),{uiOnly:false,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only','--webpack']),{uiOnly:true,bundler:'WEBPACK_STABLE_DEVELOPMENT',nextFlags:['--webpack']});
+});
+test('explicit Turbopack is labeled as a known intermittent diagnostic',()=>{
+  assert.deepEqual(parseIntegrationArgs(['--turbopack']),{uiOnly:false,bundler:'TURBOPACK_DIAGNOSTIC_KNOWN_INTERMITTENT_FAILURE',nextFlags:['--turbopack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only','--turbopack']),{uiOnly:true,bundler:'TURBOPACK_DIAGNOSTIC_KNOWN_INTERMITTENT_FAILURE',nextFlags:['--turbopack']});
+});
+test('conflicting, unknown, duplicated and arbitrary runtime flags fail closed',()=>{
+  for(const args of [['--turbo'],['--webpack','--turbopack'],['--turbopack','--webpack'],['--webpack','--inspect'],['--webpack','--webpack'],['--turbopack','--turbopack'],['--ui-only','--ui-only'],['--'],['--webpack','--ui-only','--inspect'],['--hostname','0.0.0.0']]) {
+    assert.throws(()=>parseIntegrationArgs(args),/accepts only/);
+  }
+});
 
 test('only exact Next-generated development type imports are exempt from clean snapshot guard',()=>{
   const baseline='import "./.next/types/routes.d.ts";\nimport "./.next/types/root-params.d.ts";';

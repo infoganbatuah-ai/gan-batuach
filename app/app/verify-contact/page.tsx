@@ -20,7 +20,7 @@ export default async function VerifyContactPage({ searchParams }: { searchParams
       <section className="gb-email-verification-card">
         <div className="gb-mail-illustration" aria-hidden="true"><Mail /><span><Heart fill="currentColor" /></span></div>
         <ContactVerificationForm initialStatus={initialStatus} nextPath={safeNext} />
-        <p className="gb-verification-policy">אימות דוא״ל מספיק להפעלת חשבון רגיל. הטלפון יכול להישאר במצב לא מאומת עד לפעולה שדורשת אימות נוסף.</p>
+        <p className="gb-verification-policy">אימות דוא״ל מספיק להפעלת חשבון רגיל. אימות משתמשים באמצעות SMS מושבת; פעולות רגישות דורשות גורם MFA מאושר.</p>
       </section>
     </AppAuthShell>
   );

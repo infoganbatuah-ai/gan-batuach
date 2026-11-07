@@ -12,8 +12,8 @@ export function GardenContextSwitcher({ gardens, initialActiveId, compact = fals
   const [activeId, setActiveId] = useState(initialActiveId ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const activeGarden = gardens.find((garden) => garden.id === activeId) ?? gardens[0];
-  const activeGardenName = cleanSyntheticLabel(activeGarden?.name, "הגן הפעיל");
+  const activeGarden = gardens.find((garden) => garden.id === activeId) ?? (gardens.length === 1 ? gardens[0] : undefined);
+  const activeGardenName = activeGarden ? cleanSyntheticLabel(activeGarden.name, "הגן הפעיל") : "בחירת גן";
 
   if (!gardens.length) return null;
   if (gardens.length === 1) {

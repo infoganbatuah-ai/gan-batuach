@@ -8,7 +8,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { createPortableBackup, restorePortableBackup, verifyPortableBackupPermissions } from "../../lib/domain/digital-observer/portable-backup.mjs";
 import { createStorageObjectId } from "../../lib/domain/digital-observer/storage-contract.mjs";
 import { createLocalNasStorageBackend } from "../../lib/domain/digital-observer/storage-local-nas.mjs";
-import { resolveEdgeRuntimePaths } from "../../services/video-gateway/runtime-paths.mjs";
+import { preferPackagedObjectModel, resolveEdgeRuntimePaths } from "../../services/video-gateway/runtime-paths.mjs";
 import { createPortableInferenceWorker } from "../../services/video-gateway/portable-inference-worker.mjs";
 
 const root = process.cwd();
@@ -43,6 +43,15 @@ assert.deepEqual(machineSpecific, [], `runtime machine-specific paths: ${machine
 const linuxPaths = resolveEdgeRuntimePaths({ OBSERVER_EDGE_DEVICE_TYPE: "SOFTWARE_CONNECTOR", XDG_STATE_HOME: "/srv/state" }, { platform: "linux", home: "/home/observer" });
 assert.equal(linuxPaths.dataDir, "/srv/state/digital-observer/observer-connector");
 assert.throws(() => resolveEdgeRuntimePaths({ OBSERVER_EDGE_DATA_DIR: "relative-state" }, { platform: "linux", home: "/home/observer" }), /MUST_BE_ABSOLUTE/);
+const packagedModelDir = "/Applications/Digital Observer.app/Contents/Resources/models";
+const packagedEnv = { OBSERVER_CONNECTOR_DATA_DIR: "/legacy/tapo-state" };
+assert.equal(preferPackagedObjectModel(packagedModelDir, packagedEnv, (path) => path === `${packagedModelDir}/ssd_mobilenet_v1_10.onnx`), true);
+assert.equal(resolveEdgeRuntimePaths(packagedEnv, { platform: "darwin", home: "/Users/observer" }).objectModelPath,
+  `${packagedModelDir}/ssd_mobilenet_v1_10.onnx`);
+const explicitModelEnv = { VIDEO_GATEWAY_OBJECT_MODEL_PATH: "/managed/models/reviewed.onnx" };
+assert.equal(preferPackagedObjectModel(packagedModelDir, explicitModelEnv, () => true), false);
+assert.equal(resolveEdgeRuntimePaths(explicitModelEnv, { platform: "darwin", home: "/Users/observer" }).objectModelPath,
+  "/managed/models/reviewed.onnx");
 
 const workspace = mkdtempSync(join(tmpdir(), "observer-portable-restore-"));
 chmodSync(workspace, 0o700);

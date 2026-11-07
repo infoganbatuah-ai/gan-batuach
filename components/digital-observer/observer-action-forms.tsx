@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
+import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, RotateCcw, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import {
   classifyObserverPairingPayload,
@@ -480,7 +480,7 @@ export function ObserverSettingsForm({ siteId, schedule, channels, consent = {} 
   return <form className="do-panel do-form-section" onSubmit={submit}>
     <h2>ניטור והתראות</h2>
     <div className="do-form-grid"><label className="do-field"><span>מצב ניטור</span><select name="schedule_mode" defaultValue={schedule?.schedule_mode || "event_only"}><option value="event_only">סביב אירועים בלבד</option><option value="night_only">לילה</option><option value="business_hours">שעות פעילות</option><option value="custom_schedule">לוח מותאם</option><option value="24_7">24/7 לאחר אישור הפעלה</option></select></label><label className="do-field"><span>שעות שקטות</span><span className="do-time-fields"><input aria-label="התחלה" name="quiet_start" type="time" defaultValue={quiet.start || "23:00"} /><input aria-label="סיום" name="quiet_end" type="time" defaultValue={quiet.end || "06:00"} /></span></label></div>
-    <div className="do-channel-grid"><label><input name="in_app" type="checkbox" defaultChecked={enabled("in_app") || !channels.length} /><Bell /><span><strong>בתוך האפליקציה</strong><small>פעיל במצב הדגמה</small></span></label><label><input name="email" type="checkbox" defaultChecked={enabled("email")} /><Bell /><span><strong>דוא״ל</strong><small>מצב mock עד ספק</small></span></label><label><input name="push" type="checkbox" defaultChecked={enabled("push")} /><Bell /><span><strong>Push</strong><small>מחובר דרך Firebase לאחר רישום מכשיר</small></span></label><label><input name="sms" type="checkbox" defaultChecked={enabled("sms")} /><Bell /><span><strong>SMS</strong><small>כבוי ללא ספק</small></span></label><label><input name="whatsapp" type="checkbox" defaultChecked={enabled("whatsapp")} /><Bell /><span><strong>WhatsApp</strong><small>כבוי ללא ספק מאושר</small></span></label></div>
+    <div className="do-channel-grid"><label><input name="in_app" type="checkbox" defaultChecked={enabled("in_app") || !channels.length} /><Bell /><span><strong>בתוך האפליקציה</strong><small>Sandbox פנימי ללא ספק חיצוני</small></span></label><label><input name="email" type="checkbox" defaultChecked={enabled("email")} /><Bell /><span><strong>דוא״ל</strong><small>העדפה בלבד; הספק כבוי</small></span></label><label><input name="push" type="checkbox" defaultChecked={enabled("push")} /><Bell /><span><strong>Push</strong><small>העדפה ורישום מכשיר בלבד; מסירה חיצונית כבויה</small></span></label><label><input name="sms" type="checkbox" defaultChecked={enabled("sms")} /><Bell /><span><strong>SMS</strong><small>העדפה בלבד; הספק כבוי</small></span></label><label><input name="whatsapp" type="checkbox" defaultChecked={enabled("whatsapp")} /><Bell /><span><strong>WhatsApp</strong><small>העדפה בלבד; הספק כבוי</small></span></label></div>
     <div className="do-consent-grid"><label className="do-check"><input name="monitoring_consent" type="checkbox" defaultChecked={consent.observer_monitoring_consent === true} /><span><strong>ניטור ולמידת שגרת המקום</strong><small>ניתוח אירועים מהמצלמות הפעילות ובניית קו בסיס מקומי.</small></span></label><label className="do-check"><input name="safe_action_consent" type="checkbox" defaultChecked={consent.observer_safe_action_consent === true} /><span><strong>פעולות בטוחות שאושרו מראש</strong><small>צילום, הקלטה והתראות. פעולות פיזיות דורשות אישור בכל הפעלה.</small></span></label><label className="do-check"><input name="model_improvement_consent" type="checkbox" defaultChecked={consent.model_improvement_consent === true} /><span><strong>שיפור המודל הכללי</strong><small>תובנות מנותקות מזהות בלבד, ללא וידאו גולמי, כתובות או סיסמאות.</small></span></label></div>
     <button className="do-button primary" type="submit" disabled={state.busy}>שמירת הגדרות והסכמות</button><ResultMessage state={state} />
   </form>;
@@ -535,7 +535,28 @@ export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: {
 }
 
 export function ObserverPlanButton({ siteId, packageId, billingCycle = "monthly" }: { siteId: string; packageId: string; billingCycle?: "monthly" | "annual" }) {
-  return <ObserverQuickAction endpoint="/api/digital-observer/billing" body={{ observer_site_id: siteId, package_id: packageId, billing_cycle: billingCycle }}><ShieldCheck /> בחירת החבילה במצב הדגמה</ObserverQuickAction>;
+  const [idempotencyKey] = useState(() => globalThis.crypto?.randomUUID?.() ?? `${siteId}-${packageId}-${Date.now()}`);
+  return <ObserverQuickAction endpoint="/api/digital-observer/billing" body={{ action: "change_plan", observer_site_id: siteId, package_id: packageId, billing_cycle: billingCycle, idempotency_key: idempotencyKey }}><ShieldCheck /> בקשת שינוי מסלול</ObserverQuickAction>;
+}
+
+export function ObserverCancelSubscriptionButton({ siteId }: { siteId: string }) {
+  const [idempotencyKey] = useState(() => globalThis.crypto?.randomUUID?.() ?? `${siteId}-cancel-${Date.now()}`);
+  return <ObserverQuickAction endpoint="/api/digital-observer/billing" body={{ action: "cancel", observer_site_id: siteId, reason: "Customer self-service cancellation", idempotency_key: idempotencyKey }} confirmText="לתזמן את ביטול המנוי לסוף התקופה?"><Trash2 /> תזמון ביטול</ObserverQuickAction>;
+}
+
+export function ObserverRefundButton({ siteId, paymentEventId, amountMinor, currency }: {
+  siteId: string;
+  paymentEventId: string;
+  amountMinor: number;
+  currency: string;
+}) {
+  const [idempotencyKey] = useState(() => globalThis.crypto?.randomUUID?.() ?? `${siteId}-${paymentEventId}-refund-${Date.now()}`);
+  return <ObserverQuickAction
+    endpoint="/api/digital-observer/billing"
+    body={{ action: "refund", observer_site_id: siteId, payment_event_id: paymentEventId, amount_minor: amountMinor,
+      currency, reason: "Customer requested full refund review", idempotency_key: idempotencyKey }}
+    confirmText="לבקש בדיקה ואישור להחזר מלא? ההחזר לא ייחשב כמושלם עד אישור ספק התשלום."
+  ><RotateCcw /> בקשת החזר</ObserverQuickAction>;
 }
 
 export function ObserverDeletePersonButton({ id }: { id: string }) {

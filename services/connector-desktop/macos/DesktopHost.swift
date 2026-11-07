@@ -73,7 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try fm.copyItem(at: Bundle.main.bundleURL, to: installedApp)
         }
         try fm.createDirectory(at: agent.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let plist: [String: Any] = ["Label": label, "ProgramArguments": [installedApp.appendingPathComponent("Contents/MacOS/DigitalObserver").path, "--service"], "RunAtLoad": true, "KeepAlive": true, "ThrottleInterval": 30, "ProcessType": "Background"]
+        let plist: [String: Any] = ["Label": label, "ProgramArguments": [installedApp.appendingPathComponent("Contents/MacOS/DigitalObserver").path, "--service"], "RunAtLoad": true, "KeepAlive": true, "ThrottleInterval": 30]
         try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0).write(to: agent, options: .atomic)
         let boot = try process(URL(fileURLWithPath: "/bin/launchctl"), ["bootstrap", "gui/\(getuid())", agent.path])
         if boot != 0 {

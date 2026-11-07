@@ -576,5 +576,5 @@ export function EmptyState({
   icon?: IconType;
   action?: ReactNode;
 }) {
-  return <GlobalStatePanel kind="empty" title={title} description={text} icon={Icon} action={action} compact className="gb-empty-state" />;
+  return <GlobalStatePanel kind="empty" title={title} description={text} icon={Icon} action={action} compact className="gb-empty-state" headingLevel={2} />;
 }

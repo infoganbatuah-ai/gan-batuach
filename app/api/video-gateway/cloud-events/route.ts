@@ -5,6 +5,7 @@ import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth
 import { eventValidationPipeline } from "@/lib/domain/event-engine/event-validation-pipeline";
 import { validCrossingLine } from "@/lib/domain/event-engine/camera-zone-mapper";
 import { cloudCameraEventSchema, eventEvidenceCompatibility } from "@/lib/domain/event-engine/event-evidence-compatibility";
+import { buildCanonicalCloudObservation, matchesCanonicalCloudObservation } from "@/lib/domain/event-engine/cloud-event-observation";
 import { scheduleIsOffHours } from "@/lib/domain/event-engine/off-hours";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { dispatchDigitalGuardActionsForValidatedEvent } from "@/lib/domain/digital-observer/guard-autonomy-service";
@@ -14,6 +15,7 @@ import { openMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle"
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
 import { refreshRealEventContextBaseline } from "@/lib/domain/digital-observer/home-learning-sampler";
 import { evaluateAndPersistIncidentRisk } from "@/lib/domain/digital-observer/risk-decision-service";
+import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -21,7 +23,6 @@ const namespacedId = (site: string, id: string) => {
   const hex = createHash("sha256").update(`${site}:${id}`).digest("hex");
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;
 };
-
 export async function POST(request: Request) {
   try {
     const db = createAdminClient();
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
     ]);
     if (site.error || source.error) throw new Error("EVENT_SCOPE_UNAVAILABLE");
     if (site.data.garden_id || site.data.site_type === "kindergarten" || !site.data.monitoring_enabled || site.data.metadata?.observer_monitoring_consent !== true) return fail("Monitoring consent required.", 403);
+    try { await assertCommercialEntitlement(db, { siteId: device.observer_site_id, key: "ai_processing" }); }
+    catch (error) { return fail(error instanceof Error ? error.message : "AI_PROCESSING_ENTITLEMENT_DENIED", 403); }
     const camera = source.data;
     if (!camera || ["demo", "mock", "local_shadow"].includes(String(camera.source_mode)) || camera.status === "disabled" || camera.metadata?.monitoring_enabled === false || camera.metadata?.gateway_id !== device.gateway_id || camera.metadata?.gateway_stream_id !== event.stream_id) return fail("Camera is not assigned to this Gateway.", 403);
     const result = eventValidationPipeline.validate(event, camera);
@@ -61,28 +64,35 @@ export async function POST(request: Request) {
     const severity: "info" | "medium" | "critical" = result.event.severity === "CRITICAL"
       ? "critical"
       : result.event.severity === "WARNING" ? "medium" : "info";
-    let signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
+    const observation = buildCanonicalCloudObservation({ event, siteId: device.observer_site_id,
+      sourceId, eventType: result.event.event_type, severity, recordingRequired: result.shouldRecord });
+    let signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
     if (signal.error) throw new Error("EVENT_READ_FAILED");
     if (!signal.data) {
       signal = await db.from("observer_intelligence_signals").insert({
-        source_type: "system", source_id: sourceId, signal_type: "ai_camera", observer_site_id: device.observer_site_id,
-        severity, confidence: event.confidence, created_at: event.timestamp, review_status: "needs_review",
+        source_type: "system", source_id: observation.sourceId, signal_type: "ai_camera", observer_site_id: observation.siteId,
+        severity: observation.severity, confidence: observation.confidence, created_at: observation.occurredAt, review_status: "needs_review",
         human_review_required: true, parent_visible: false, recommended_action: result.shouldRecord ? narrative.action : "לידיעה בלבד; לא נדרשה הקלטה.",
-        metadata: { event_type: result.event.event_type, camera_source_id: camera.id, stream_id: event.stream_id, camera_name: result.camera.camera_name,
-          zone_type: result.camera.source === "default" ? null : result.camera.zone_type, track_id: event.track_id,
+        metadata: { event_type: observation.eventType, camera_source_id: observation.cameraId, stream_id: observation.streamId, camera_name: result.camera.camera_name,
+          zone_type: result.camera.source === "default" ? null : result.camera.zone_type, track_id: observation.trackId ?? undefined,
           event_summary: `${narrative.summary} · ${result.camera.camera_name}`, validated_event: true,
-          recording_required: result.shouldRecord, media_status: result.shouldRecord ? "pending" : "not_required",
-          evidence_kind: event.evidence_kind, observation_provenance: "REAL_CAMERA_AI", ...(event.model_provenance ? { model_provenance: event.model_provenance } : {}), first_seen: event.timestamp, last_seen: event.timestamp,
-          ...(event.verification_evidence ? { verification_evidence: event.verification_evidence } : {}),
+          recording_required: observation.recordingRequired, media_status: observation.recordingRequired ? "pending" : "not_required",
+          evidence_kind: observation.evidenceKind, observation_provenance: "REAL_CAMERA_AI", ...(observation.modelProvenance ? { model_provenance: observation.modelProvenance } : {}), first_seen: observation.occurredAt, last_seen: event.timestamp,
+          ...(observation.verificationEvidence ? { verification_evidence: observation.verificationEvidence } : {}),
           received_at: new Date().toISOString(), received_late: backfill, delivery_mode: backfill ? "BACKFILL_RESYNC" : "LIVE", delivery_delay_ms: deliveryDelayMs,
           queued_at: event.delivery?.queued_at ?? event.timestamp, cloud_ingested_at: new Date().toISOString() }
-      }).select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").single();
-      if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
+      }).select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").single();
+      if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,source_id,signal_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
       if (signal.error) throw new Error("EVENT_WRITE_FAILED");
     }
     const persistedSignal = signal.data;
     if (!persistedSignal) throw new Error("EVENT_WRITE_FAILED");
-    if (persistedSignal.metadata.camera_source_id !== camera.id || persistedSignal.metadata.event_type !== result.event.event_type || persistedSignal.metadata.first_seen !== event.timestamp) return fail("Event id was already used for a different observation.", 409);
+    // A retry may update delivery/media lifecycle metadata, but it may not
+    // change the immutable observation that owns this site-scoped source ID.
+    // Check this before risk, notification or Guard side effects run again.
+    if (!matchesCanonicalCloudObservation(persistedSignal, observation)) {
+      return fail("Event id was already used for a different observation.", 409);
+    }
     // Context learning is best-effort and cannot make a durable, authenticated
     // camera event fail. The projection itself accepts only REAL_CAMERA_AI rows.
     await refreshRealEventContextBaseline(db, device.observer_site_id).catch(() => undefined);

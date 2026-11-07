@@ -1,0 +1,98 @@
+{
+  "artifactType": "DRAFT_EXTERNAL_PREPARATION_ONLY_NOT_A_DELEGATION",
+  "baseline": "051e4213a2fc718e303a75e592707aa7e58ccc0d",
+  "sourceBranch": "codex/push44-ch1-external-readiness",
+  "approved": false,
+  "liveMediaAuthorized": false,
+  "source": {
+    "sourceId": "6fddc732-13df-4268-9f32-3357262ea997",
+    "siteId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+    "tenantId": "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
+    "enrollmentId": "1c450dca-38a8-4e49-853f-c613ca498c27",
+    "gatewayId": "62df97e2-3c0b-427f-9108-bde029bc10e7",
+    "streamId": "dvr_3a2d4e23f178cefa8f_1",
+    "environment": "HOME_PUSH38T_QA"
+  },
+  "viewer": {
+    "profileId": "00000000-0000-4000-8000-000000000f44",
+    "login": "owner-iphone@integration.qa.invalid",
+    "environment": "LOCAL_SUPABASE",
+    "bundleId": "com.ganbatuach.app.qa",
+    "model": "iPhone 13 Pro (iPhone14,2)",
+    "hostCoreDeviceId": "BF75FB30-D759-5C09-B58C-F068F809C129",
+    "deviceObservation": "connected, read-only devicectl inventory 2026-10-23; no app install/launch or login performed",
+    "approvedSessionId": null,
+    "liveBinding": "NOT_ESTABLISHED; fresh server-validated session and operator-verified phone binding required",
+    "warning": "Host CoreDevice inventory is not remote hardware attestation; client-supplied device IDs and reusable URLs do not establish the binding"
+  },
+  "maximumFutureScope": {
+    "durationSeconds": 300,
+    "mediaPayloadBytes": 104857600,
+    "sources": 1,
+    "viewers": 1,
+    "logicalStreams": 1,
+    "mediaRequests": 600,
+    "renewal": "Original deadline/aggregate counter/session/device unchanged; no replay or reset",
+    "revocation": "Immediate revoke plus in-flight abort and sanitized audit"
+  },
+  "ownerStatementForLaterSignature": "אני מאשר שיש לי סמכות חוקית להתיר צפייה במקור CH1 שמזההו 6fddc732-13df-4268-9f32-3357262ea997 באתר cc1673b8-3eb0-4785-a12c-1fb88f425a41. לאחר אימות הסמכות והזהות, אני מאשר הכנת האצלת צפייה חד-פעמית למשתמש הפיתוח owner-iphone@integration.qa.invalid באייפון 13 Pro שלי בלבד, עד 300 שניות ו-100 MiB מצטברים, צופה ומקור יחידים, ביטול מיידי ותיעוד מצומצם. אין באישור זה היתר לשנות בעלות, חברות באתר, זהות מכשיר, Production או שירותי Home, ואין בו היתר להפעלת וידאו או נתיב ציבורי.",
+  "ownershipVerification": {
+    "status": "PENDING",
+    "required": "Authenticated source-owner identity plus authoritative ownership/delegation evidence for the exact source/Site, or separately reviewed equivalent authority proof; an email match or a view-only HTTP200 alone is insufficient",
+    "existingQaGap": "No recorded Home QA Site owner, organization or active Site membership; no matching owner QA administrator in last exact read",
+    "permittedOperatorSteps": [
+      "Obtain explicit owner statement and verify the source-owner authority using an already authorized narrowly scoped read-only account interface; no new Production login/DDL/service-role export",
+      "Record only verifier decision, actor/profile, exact source scope, approval reference, timestamp and evidence checksum; no credentials",
+      "After separate preparation approval and successful authority verification, pin one fresh canonical Development session_id to the owner phone inspected over the trusted host channel",
+      "Only during a separately approved later window create the protected operator delegation consumed by the existing gate; do not create Site membership, duplicate source or device enrollment"
+    ],
+    "failure": "Missing authority/session/device proof denies issuance; this draft cannot be used as delegation.json"
+  },
+  "dnsEvidence": {
+    "candidate": "gateway-media-homeqa.ganbatuach.com",
+    "zone": "ganbatuach.com",
+    "zoneSetup": "Cloudflare Full, Free; 14 existing records read in dashboard",
+    "authorities": ["demi.ns.cloudflare.com", "logan.ns.cloudflare.com"],
+    "authoritativeA": "NXDOMAIN, AA, no answer",
+    "authoritativeAAAA": "NXDOMAIN, AA, no answer",
+    "soaSerial": "2418258877",
+    "negativeTtlSeconds": 1800,
+    "rootCause": "No candidate record exists in the current authoritative zone; hostname in qualification code is not a DNS deployment. Not an application/auth failure or local resolver-only cache issue. Historical record creation/deletion was not audited",
+    "historicalApplicationHost": "qa-iphone-p44-20261023.ganbatuach.com",
+    "historicalApplicationProbe": "Trusted TLS handshake succeeded, HTTP530 at 2026-10-23T18:24:06Z; old application tunnel is not a live or approved video path",
+    "productionDnsChanged": false
+  },
+  "smallestReuseCandidate": {
+    "architecture": "Existing host-local CH1 gate AS the delivery edge, behind a separately approved direct DNS-only TLS ingress; no Cloudflare HTTP proxy/Tunnel/CDN and no R2/presigned-URL bypass",
+    "origin": "https://gateway-media-homeqa.ganbatuach.com:18443",
+    "selectedForActivation": false,
+    "configuredGlobalIpv6": true,
+    "publicReachability": "UNVERIFIED",
+    "tlsCertificate": "NOT_PROVISIONED_OR_VERIFIED",
+    "listener": "NOT_STARTED",
+    "dnsPlanForReviewOnly": "One new QA-only AAAA (or independently approved A) to a privately verified origin, DNS-only; never alter apex, gateway, mail or existing application records",
+    "certificatePlanForReviewOnly": "Trusted publicly validated TLS certificate for exact QA hostname; any ACME terms, TXT challenge and key custody require approval. No exported existing Keychain secrets",
+    "securityCaution": "DNS-only exposes the origin address and does not inherit Cloudflare Access/WAF/DDoS protection. Do not publish until independent origin isolation, ownership verification, request/connection limits, non-sensitive startup state and timed shutdown have been reviewed. Global IPv6 alone is not permission or reachability proof",
+    "alternative": "Existing private R2 Standard supports media objects but release bucket/publisher/edge accounting are not approved for this task; introducing a separate edge service is not silently authorized"
+  },
+  "actualDeliveryEdge": {
+    "status": "NOT_DEPLOYED_NOT_VERIFIED",
+    "knownCoreProof": "Existing PR243/244 composed isolated proof preserved; not rerun as a substitute for actual edge evidence",
+    "requiredBeforeAnyRealMedia": "After separate non-live provisioning approval, use only synthetic data at the exact externally reachable TLS edge; verify owner-only ingress, byte/deadline/lease/revocation enforcement, unauthorized/internal-route denial, closed after interruption, and no alternate origin/object bypass",
+    "failure": "Missing edge evidence or accounting denies activation"
+  },
+  "cost": {
+    "newResourcesOrSubscriptions": 0,
+    "preparationFixedCostDeltaUsd": 0,
+    "existingProviderEvidence": "Cloudflare zone Free observed this task; Workers Free/R2 Paid and R2 included-cycle usage verified in preceding account audit, not changed",
+    "maximumCompleteTestCost": "UNKNOWN",
+    "missing": "Approved/reachable TLS edge, existing origin/carrier included-data terms and full traffic accounting including non-media/TLS overhead/denials; media payload cap alone is not a total network-billing cap",
+    "activationRule": "No activation or spend commitment while maximum incremental cost cannot be bounded within owner-approved zero-new-subscription scope"
+  },
+  "onePreparationApprovalRequest": "Approve NON-LIVE preparation only: verify exact CH1 owner authority read-only, record the owner statement, and separately provision/review one QA-only DNS/TLS delivery edge using the existing gate with real-CH1 reader disabled. No Production DNS record or Home service changes, no Tunnel video, no new paid plan or unbounded charge. First prove the externally deployed edge with synthetic data under the same 300-second/100-MiB/one-viewer ceiling; stop if isolation, authority, reachability, trusted TLS or zero-new-fixed-cost/usage bounds fail. A later real-camera test still requires separate authorization.",
+  "rollbackForAnyLaterApprovedPreparation": "Stop only the dedicated QA listener, revoke temporary authority/cookie/grants, remove only exact newly approved QA DNS/challenge records, verify no reachable endpoint, retain sanitized audit. Do not alter existing gateway/application/mail/apex DNS or installed Home services",
+  "liveReadiness": "NO",
+  "productionChanged": false,
+  "pr235": "PRESERVED_DRAFT",
+  "push46": "NOT_STARTED"
+}
