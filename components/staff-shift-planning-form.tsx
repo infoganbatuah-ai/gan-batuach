@@ -23,13 +23,18 @@ export function StaffShiftPlanningForm({ gardenId, today, zone, staff }: {
     event.preventDefault();
     if (submitting.current) return;
     setMessage(""); setSuccess("");
-    const error = validateShiftPlan({ staffId, date, start, end, today, staff });
+    const values = new FormData(event.currentTarget);
+    const submitted = {
+      staffId: String(values.get("staff_id") ?? ""), date: String(values.get("shift_date") ?? ""),
+      start: String(values.get("planned_start") ?? ""), end: String(values.get("planned_end") ?? "")
+    };
+    const error = validateShiftPlan({ ...submitted, today, staff });
     if (error) { setMessage(error); return; }
     submitting.current = true; setBusy(true);
     try {
       const response = await fetch("/api/staff/shifts", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ staff_id: staffId, garden_id: gardenId, shift_date: date, planned_start: `${start}:00`, planned_end: `${end}:00` })
+        body: JSON.stringify({ staff_id: submitted.staffId, garden_id: gardenId, shift_date: submitted.date, planned_start: `${submitted.start}:00`, planned_end: `${submitted.end}:00` })
       });
       const result = await response.json().catch(() => null) as { error?: string } | null;
       if (!response.ok) throw new Error(result?.error ?? "שמירת המשמרת נכשלה. נסו שוב.");
@@ -41,12 +46,12 @@ export function StaffShiftPlanningForm({ gardenId, today, zone, staff }: {
     } finally { submitting.current = false; setBusy(false); }
   }}>
     <label>איש צוות
-      <select value={staffId} onChange={(event) => setStaffId(event.target.value)} required disabled={busy || staff.length === 0}>
+      <select name="staff_id" value={staffId} onChange={(event) => setStaffId(event.target.value)} required disabled={busy || staff.length === 0}>
         {staff.map((person) => <option key={person.id} value={person.id} disabled={!staffAvailableOnDate(person, date)}>{person.name}</option>)}
       </select>
     </label>
     <label>תאריך משמרת
-      <input type="date" min={today} value={date} onChange={(event) => {
+      <input name="shift_date" type="date" min={today} value={date} onChange={(event) => {
         const nextDate = event.target.value;
         setDate(nextDate);
         if (!staff.some((person) => person.id === staffId && staffAvailableOnDate(person, nextDate))) {
@@ -55,10 +60,10 @@ export function StaffShiftPlanningForm({ gardenId, today, zone, staff }: {
       }} required disabled={busy} />
     </label>
     <label>התחלה
-      <input type="time" value={start} onChange={(event) => setStart(event.target.value)} required disabled={busy} />
+      <input name="planned_start" type="time" value={start} onChange={(event) => setStart(event.target.value)} required disabled={busy} />
     </label>
     <label>סיום
-      <input type="time" value={end} onChange={(event) => setEnd(event.target.value)} required disabled={busy} />
+      <input name="planned_end" type="time" value={end} onChange={(event) => setEnd(event.target.value)} required disabled={busy} />
     </label>
     <button className="gb-primary-button" type="submit" disabled={busy || available.length === 0}>{busy ? "שומר…" : "שמירת משמרת"}</button>
     <p className={styles.note}>שעות מקומיות בגן · {zone}. תכנון המשמרת אינו רישום נוכחות או אישור שכר.</p>
