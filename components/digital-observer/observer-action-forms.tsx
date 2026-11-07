@@ -156,6 +156,10 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
 }
 
 export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; initialSiteId?: string }) {
+  return <ScopedObserverCameraWizard key={initialSiteId ?? ""} sites={sites} initialSiteId={initialSiteId} />;
+}
+
+function ScopedObserverCameraWizard({ sites, initialSiteId }: Parameters<typeof ObserverCameraWizard>[0]) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
@@ -174,21 +178,68 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
   const [connectionAssessment, setConnectionAssessment] = useState<CameraConnectionAssessmentView | null>(null);
   const [assessmentBusy, setAssessmentBusy] = useState(false);
   const [assessmentError, setAssessmentError] = useState("");
-  const update = (key: string, value: any) => setForm((current) => ({ ...current, [key]: value }));
+  const [renderedContext, setRenderedContext] = useState(0);
+  const owner = useRef({ active: true, context: 0, save: 0, scan: 0, assessment: 0, busy: false });
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.save += 1; lifetime.scan += 1; lifetime.assessment += 1; lifetime.busy = false; };
+  }, []);
+  const ownsRenderedContext = () => owner.current.active && owner.current.context === renderedContext;
+  function changeContext(assessmentChanged: boolean, clearAssessment = assessmentChanged) {
+    if (!ownsRenderedContext()) return null;
+    const lifetime = owner.current;
+    const context = ++lifetime.context;
+    lifetime.save += 1;
+    lifetime.scan += 1;
+    lifetime.busy = false;
+    setRenderedContext(context);
+    setState({ busy: false, error: "", message: "" });
+    setScanState("");
+    if (assessmentChanged) { lifetime.assessment += 1; setAssessmentBusy(false); }
+    if (clearAssessment) { setConnectionAssessment(null); setAssessmentError(""); }
+    return context;
+  }
+  const update = (key: string, value: any) => {
+    const context = changeContext(["observer_site_id", "connector_type", "connector_provider", "pairing_method", "pairing_payload_kind"].includes(key));
+    if (context === null) return;
+    setForm(current => ({ ...current, [key]: value }));
+  };
+  function goToStep(next: number) {
+    if (changeContext(true, false) === null) return;
+    setStep(next);
+  }
+  function exitWizard() {
+    if (changeContext(true) === null) return;
+    owner.current.active = false;
+    router.push("/digital-observer/cameras");
+  }
   const toggleTarget = (value: string) => update("monitoring_targets", form.monitoring_targets.includes(value) ? form.monitoring_targets.filter((item) => item !== value) : [...form.monitoring_targets, value]);
   async function submit() {
+    if (!ownsRenderedContext() || step !== 4 || owner.current.busy) return;
+    const lifetime = owner.current;
+    lifetime.busy = true;
+    const operation = ++lifetime.save;
+    const submitted = form;
+    const isCurrent = () => lifetime.active && lifetime.context === renderedContext && lifetime.save === operation;
     setState({ busy: true, error: "", message: "" });
     try {
-      const data = await postJson("/api/digital-observer/cameras", { action: "create", ...form, preview_scene: form.preview_scene || null });
+      const data = await postJson("/api/digital-observer/cameras", { action: "create", ...submitted, preview_scene: submitted.preview_scene || null }, undefined, isCurrent);
+      if (!isCurrent()) return;
       await postJson("/api/digital-observer/camera-onboarding", {
         action: "attach_source",
-        observer_site_id: form.observer_site_id,
+        observer_site_id: submitted.observer_site_id,
         camera_source_id: data.camera.id
-      });
+      }, undefined, isCurrent);
+      if (!isCurrent()) return;
       setState({ busy: false, error: "", message: data.message });
-      router.push(`/digital-observer/cameras?site=${form.observer_site_id}&camera=${data.camera.id}`);
+      if (!isCurrent()) return;
+      router.push(`/digital-observer/cameras?site=${submitted.observer_site_id}&camera=${data.camera.id}`);
+      if (!isCurrent()) return;
       router.refresh();
-    } catch (error) { setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לשמור מצלמה", message: "" }); }
+    } catch (error) {
+      if (isCurrent()) setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לשמור מצלמה", message: "" });
+    } finally { if (isCurrent()) lifetime.busy = false; }
   }
   const selectedMethod = observerCameraConnectionMethods.find((item) => item.key === form.pairing_method) ?? observerCameraConnectionMethods[0];
   const primaryPairingLabels: Partial<Record<ObserverCameraPairingMethod, string>> = { network_discovery: "מצלמת IP", recorder: "NVR / DVR", manufacturer_app: "ספק ענן", manual_network: "חיבור ידני" };
@@ -210,8 +261,11 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
   useEffect(() => {
     if (step !== 2 || !form.observer_site_id) return;
     let cancelled = false;
+    const lifetime = owner.current;
+    const assessment = ++lifetime.assessment;
+    const isCurrent = () => lifetime.active && !cancelled && lifetime.assessment === assessment;
     void Promise.resolve().then(async () => {
-      if (cancelled) return;
+      if (!isCurrent()) return;
       setAssessmentBusy(true);
       setAssessmentError("");
       try {
@@ -222,8 +276,8 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
           connector_provider: form.connector_provider,
           pairing_method: form.pairing_method,
           pairing_payload_kind: form.pairing_payload_kind
-        });
-        if (!cancelled) {
+        }, undefined, isCurrent);
+        if (isCurrent()) {
           setConnectionAssessment(data.assessment);
           const systemKind = form.pairing_method === "recorder" ? "DVR_NVR" : form.pairing_method === "manufacturer_app" || form.pairing_method === "qr_scan" ? "VENDOR_CLOUD" : form.connector_type === "rtsp" ? "RTSP" : form.connector_type === "onvif" ? "ONVIF" : form.connector_type === "ip_camera" ? "IP_CAMERAS" : "UNKNOWN";
           await postJson("/api/digital-observer/camera-onboarding", {
@@ -235,28 +289,43 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
             pairing_method: form.pairing_method,
             pairing_payload_kind: form.pairing_payload_kind,
             mappings: []
-          });
+          }, undefined, isCurrent);
         }
       } catch (error) {
-        if (!cancelled) {
+        if (isCurrent()) {
           setConnectionAssessment(null);
           setAssessmentError(error instanceof Error ? error.message : "לא ניתן להעריך את מסלול החיבור");
         }
       } finally {
-        if (!cancelled) setAssessmentBusy(false);
+        if (isCurrent()) setAssessmentBusy(false);
       }
     });
     return () => { cancelled = true; };
   }, [step, form.observer_site_id, form.connector_type, form.connector_provider, form.pairing_method, form.pairing_payload_kind]);
-  function chooseMethod(method: ObserverCameraPairingMethod) {
+  function chooseMethod(method: ObserverCameraPairingMethod, resetProvider = false) {
+    const context = changeContext(true);
+    if (context === null) return null;
     const descriptor = observerCameraConnectionMethods.find((item) => item.key === method) ?? observerCameraConnectionMethods[0];
-    setForm((current) => ({ ...current, pairing_method: method, connector_type: descriptor.connectorType, pairing_payload_kind: "unknown" }));
+    setForm((current) => ({ ...current, pairing_method: method, connector_type: descriptor.connectorType, pairing_payload_kind: "unknown", ...(resetProvider ? { connector_provider: "unknown" } : {}) }));
     setScanState("");
     setConnectionAssessment(null);
     setAssessmentError("");
+    return { context, method, connectorType: descriptor.connectorType, payloadKind: "unknown" };
   }
-  async function scanQrImage(file?: File) {
-    if (!file) return;
+  function startQr(file?: File) {
+    const selection = chooseMethod("qr_scan");
+    if (selection === null) return;
+    setStep(2);
+    void scanQrImage(file, selection.context, selection);
+  }
+  async function scanQrImage(file?: File, context = renderedContext, pairing = { method: form.pairing_method, connectorType: form.connector_type, payloadKind: form.pairing_payload_kind }) {
+    const lifetime = owner.current;
+    if (!lifetime.active || lifetime.context !== context || !file) return;
+    const scan = ++lifetime.scan;
+    lifetime.save += 1;
+    lifetime.busy = false;
+    const isCurrent = () => lifetime.active && lifetime.context === context && lifetime.scan === scan;
+    let bitmap: ImageBitmap | undefined;
     setScanState("קורא את הקוד במכשיר...");
     try {
       const Detector = (window as any).BarcodeDetector;
@@ -265,19 +334,34 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
         return;
       }
       const detector = new Detector({ formats: ["qr_code"] });
-      const bitmap = await createImageBitmap(file);
+      bitmap = await createImageBitmap(file);
+      if (!isCurrent()) return;
       const codes = await detector.detect(bitmap);
-      bitmap.close();
+      if (!isCurrent()) return;
       const rawValue = String(codes[0]?.rawValue || "");
       if (!rawValue) {
         setScanState("לא נמצא קוד QR ברור בתמונה. נסו שוב בתאורה טובה.");
         return;
       }
       const payloadKind = classifyObserverPairingPayload(rawValue);
-      setForm((current) => ({ ...current, pairing_payload_kind: payloadKind, connector_type: connectorTypeForPairing(current.pairing_method, payloadKind) }));
+      if (!isCurrent()) return;
+      const connectorType = connectorTypeForPairing(pairing.method, payloadKind);
+      if (!isCurrent()) return;
+      const classifiedContext = ++lifetime.context;
+      lifetime.save += 1;
+      if (payloadKind !== pairing.payloadKind || connectorType !== pairing.connectorType) {
+        lifetime.assessment += 1;
+        setAssessmentBusy(false);
+        setConnectionAssessment(null);
+        setAssessmentError("");
+      }
+      setRenderedContext(classifiedContext);
+      setForm((current) => ({ ...current, pairing_payload_kind: payloadKind, connector_type: connectorType }));
       setScanState(`הקוד זוהה וסווג כ-${payloadKind === "web_link" ? "קישור יצרן" : payloadKind === "vendor_code" ? "קוד מכשיר" : payloadKind.toUpperCase()}. תוכן הקוד לא נשמר.`);
     } catch {
-      setScanState("לא ניתן לקרוא את הקוד. תוכן התמונה לא הועלה ולא נשמר.");
+      if (isCurrent()) setScanState("לא ניתן לקרוא את הקוד. תוכן התמונה לא הועלה ולא נשמר.");
+    } finally {
+      if (bitmap) { try { bitmap.close(); } catch { /* Best-effort once-only release, never retry or retain the bitmap. */ } }
     }
   }
   const mobileStep = step === 1 ? 1 : step === 4 ? 3 : 2;
@@ -289,11 +373,11 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
       <div className="do-camera-device-image" role="img" aria-label="מצלמת אבטחה ביתית" />
       <h2>נוסיף מצלמה חדשה</h2>
       <p>חברו את המצלמה לחשמל ולרשת, ונמשיך בדרך המתאימה לכם.</p>
-      <button className="do-button navy full" type="button" onClick={() => { chooseMethod("qr_scan"); setStep(2); }}>המשך</button>
-      <label className="do-button secondary full"><Camera /> סריקת קוד QR<input type="file" accept="image/*" capture="environment" onChange={(event) => { chooseMethod("qr_scan"); void scanQrImage(event.target.files?.[0]); setStep(2); }} /></label>
+      <button className="do-button navy full" type="button" onClick={() => startQr()}>המשך</button>
+      <label className="do-button secondary full"><Camera /> סריקת קוד QR<input type="file" accept="image/*" capture="environment" onChange={(event) => { if (ownsRenderedContext()) startQr(event.target.files?.[0]); }} /></label>
       <small>או גללו לבחירת חיבור דרך יצרן, רשת, NVR/DVR או Gateway.</small>
     </section> : null}
-    {step === 1 ? <section className="do-panel do-form-section do-camera-connector-selection"><h2>הוספת מצלמה</h2><p>בחרו את סוג החיבור המוכר לכם. התצפיתן יציג רק את הפרטים הנדרשים למסלול הזה.</p><button type="button" className="do-button secondary" onClick={() => { chooseMethod("network_discovery"); update("connector_provider", "unknown"); }}>אני לא יודע/ת איזו מערכת יש לי</button><small className="do-help-copy">נתחיל באיתור מאובטח ונציע רק חיבור שניתן לאמת. אם נדרש רכיב מקומי, נסביר למה ונשמור את ההתקדמות.</small><div className="do-connector-grid do-pairing-grid do-primary-pairing-grid">{primaryPairingMethods.map((method) => { const PairingIcon = primaryPairingIcons[method.key] ?? Camera; return <button type="button" className={form.pairing_method === method.key ? "selected" : ""} onClick={() => chooseMethod(method.key)} key={method.key}><PairingIcon /><strong>{primaryPairingLabels[method.key] ?? method.label}</strong><span>{method.shortDescription}</span>{form.pairing_method === method.key ? <Check /> : <ChevronLeft />}</button>; })}</div><details className="do-additional-pairing"><summary>אפשרויות נוספות: QR, ‏Gateway ומצלמת הדמיה</summary><div className="do-connector-grid do-pairing-grid">{additionalPairingMethods.map((method) => { const PairingIcon = primaryPairingIcons[method.key] ?? Camera; return <button type="button" className={form.pairing_method === method.key ? "selected" : ""} onClick={() => chooseMethod(method.key)} key={method.key}><PairingIcon /><strong>{method.label}</strong><span>{method.shortDescription}</span><b className="do-badge info">{method.badge}</b>{form.pairing_method === method.key ? <Check /> : null}</button>; })}</div></details><div className="do-notice info"><ShieldCheck /><span>פרטי חיבור רגישים נשמרים רק ב-Gateway או בכספת השרת, ולא בדפדפן.</span></div></section> : null}
+    {step === 1 ? <section className="do-panel do-form-section do-camera-connector-selection"><h2>הוספת מצלמה</h2><p>בחרו את סוג החיבור המוכר לכם. התצפיתן יציג רק את הפרטים הנדרשים למסלול הזה.</p><button type="button" className="do-button secondary" onClick={() => { chooseMethod("network_discovery", true); }}>אני לא יודע/ת איזו מערכת יש לי</button><small className="do-help-copy">נתחיל באיתור מאובטח ונציע רק חיבור שניתן לאמת. אם נדרש רכיב מקומי, נסביר למה ונשמור את ההתקדמות.</small><div className="do-connector-grid do-pairing-grid do-primary-pairing-grid">{primaryPairingMethods.map((method) => { const PairingIcon = primaryPairingIcons[method.key] ?? Camera; return <button type="button" className={form.pairing_method === method.key ? "selected" : ""} onClick={() => chooseMethod(method.key)} key={method.key}><PairingIcon /><strong>{primaryPairingLabels[method.key] ?? method.label}</strong><span>{method.shortDescription}</span>{form.pairing_method === method.key ? <Check /> : <ChevronLeft />}</button>; })}</div><details className="do-additional-pairing"><summary>אפשרויות נוספות: QR, ‏Gateway ומצלמת הדמיה</summary><div className="do-connector-grid do-pairing-grid">{additionalPairingMethods.map((method) => { const PairingIcon = primaryPairingIcons[method.key] ?? Camera; return <button type="button" className={form.pairing_method === method.key ? "selected" : ""} onClick={() => chooseMethod(method.key)} key={method.key}><PairingIcon /><strong>{method.label}</strong><span>{method.shortDescription}</span><b className="do-badge info">{method.badge}</b>{form.pairing_method === method.key ? <Check /> : null}</button>; })}</div></details><div className="do-notice info"><ShieldCheck /><span>פרטי חיבור רגישים נשמרים רק ב-Gateway או בכספת השרת, ולא בדפדפן.</span></div></section> : null}
     {step === 2 ? <section className="do-panel do-form-section do-camera-test-step">
       <div className="do-section-head">
         <div><h2>בדיקת דרך החיבור</h2><p>נעדיף חיבור דיגיטלי בטוח ונציע חומרה רק כשיש לכך סיבה.</p></div>
@@ -321,7 +405,7 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
       {connectionAssessment?.recommendation === "PHYSICAL_GATEWAY_REQUIRED" ? <div className="do-notice warn"><Router /><span>Gateway מוצע רק משום שלא נמצא מסלול ישיר מאובטח למערכת הזו. נבקש זיווג מאומת, ולא פרטי חיבור בדפדפן.</span></div> : null}
       {connectionAssessment?.recommendation === "DIRECT_CONNECTION_AVAILABLE" ? <div className="do-notice good"><LockKeyhole /><span>בשלב הבא תתבקשו לאשר את ההרשאה הנדרשת אצל הספק או בכספת השרת. לא נשמור סיסמה, כתובת RTSP או טוקן בדפדפן.</span></div> : null}
       <div className="do-notice info"><ShieldCheck /><span>סיסמאות וכתובות מקור נשמרות רק בצד השרת או במחבר המקומי. לא תתבצע ירידה אוטומטית למסלול חלש או חשוף.</span></div>
-      {form.pairing_method === "qr_scan" ? <div className="do-qr-capture"><label className="do-button secondary"><QrCode /> צילום או בחירת קוד QR<input type="file" accept="image/*" capture="environment" onChange={(event) => void scanQrImage(event.target.files?.[0])} /></label>{scanState ? <p>{scanState}</p> : <span>הסריקה מתבצעת במכשיר. התמונה ותוכן הקוד אינם נשמרים.</span>}</div> : null}
+      {form.pairing_method === "qr_scan" ? <div className="do-qr-capture"><label className="do-button secondary"><QrCode /> צילום או בחירת קוד QR<input type="file" accept="image/*" capture="environment" onChange={(event) => { if (ownsRenderedContext()) void scanQrImage(event.target.files?.[0]); }} /></label>{scanState ? <p>{scanState}</p> : <span>הסריקה מתבצעת במכשיר. התמונה ותוכן הקוד אינם נשמרים.</span>}</div> : null}
       <details className="do-camera-test-help"><summary>הוראות חיבור מפורטות</summary><div className="do-pairing-instructions"><div><strong>מה צריך להכין</strong><ul>{selectedMethod.requiredItems.map((item) => <li key={item}>{item}</li>)}</ul></div><ol>{selectedMethod.steps.map((item) => <li key={item}>{item}</li>)}</ol></div></details>
     </section> : null}
     {step === 3 ? <section className="do-panel do-form-section do-camera-target-step"><h2>מה חשוב לך שנזהה?</h2><p>בחרו במה התצפיתן יתמקד לאחר חיבור ואישור. אפשר לשנות בכל עת.</p><div className="do-toggle-grid do-camera-target-grid">{[["person","אדם"],["children","ילד / תינוק"],["animal","חיית מחמד"],["known_faces","פנים מוכרות"],["entry_exit","כניסה / יציאה"],["after_hours","תנועה אחרי שעות"],["camera_obstruction","מצלמה מכוסה"]].map(([value,label]) => { const TargetIcon = targetIcons[value] ?? Radar; return <button type="button" className={form.monitoring_targets.includes(value) ? "selected" : ""} onClick={() => toggleTarget(value)} key={value}><TargetIcon /><span>{label}</span>{form.monitoring_targets.includes(value) ? <Check /> : null}</button>; })}</div><div className="do-notice info"><BrainCircuit /><span>התצפיתן ילמד דפוסים רק לאחר חיבור מאושר ומשוב מאומת. מצב זה אינו מפעיל AI חי או זיהוי ביומטרי.</span></div></section> : null}
@@ -363,7 +447,7 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
       </div>
       <div className="do-notice info"><ShieldCheck /><span>השמירה יוצרת מקור מוכנות עם המלצת חיבור מתועדת. וידאו, AI והתראות יתחילו רק לאחר חיבור מאובטח והסכמה מתאימה.</span></div>
     </section> : null}
-    <ResultMessage state={state} /><div className="do-wizard-actions">{step < 4 ? <button className="do-button primary" type="button" disabled={step === 2 && (form.display_name.trim().length < 2 || assessmentBusy || !connectionAssessment)} onClick={() => setStep((value) => value + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.observer_site_id || form.display_name.trim().length < 2} onClick={submit}>שמירת מקור המצלמה</button>}{step > 1 ? <button className="do-button secondary" type="button" onClick={() => setStep((value) => value - 1)}>חזרה</button> : <button className="do-button secondary" type="button" onClick={() => router.push("/digital-observer/cameras")}>ביטול</button>}</div>
+    <ResultMessage state={state} /><div className="do-wizard-actions">{step < 4 ? <button className="do-button primary" type="button" disabled={step === 2 && (form.display_name.trim().length < 2 || assessmentBusy || !connectionAssessment)} onClick={() => goToStep(step + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.observer_site_id || form.display_name.trim().length < 2} onClick={submit}>שמירת מקור המצלמה</button>}{step > 1 ? <button className="do-button secondary" type="button" onClick={() => goToStep(step - 1)}>חזרה</button> : <button className="do-button secondary" type="button" onClick={exitWizard}>ביטול</button>}</div>
   </div>;
 }
 
