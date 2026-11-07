@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T14:13:53Z",
+  "updatedAt": "2026-11-07T16:38:56.669Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15366,6 +15366,52 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Continue cumulative Product/security/owner visual and invoice-backed cost qualification; external delivery is unverified. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/candidate-application-review-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-CANDIDATE-APPLICATION-REVIEW-JOURNEY-20261107",
+      "title": "Candidate application to Manager information-request journey",
+      "owner": "Candidate application journey executor; one Development integration owner",
+      "sourceBranch": "codex/candidate-application-review-journey-20261107",
+      "sourceCommits": [
+        "92920193767609be7ba836e27d6efadec4adfe62"
+      ],
+      "state": "BLOCKED",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_COMMIT_PENDING_REMOTE_PUSH"
+      },
+      "validation": {
+        "status": "ONE_SUBMISSION_REVIEW_BLOCKED",
+        "evidence": [
+          "Synthetic Candidate UI created exactly one application 704025c7-724e-4156-8f99-7a9ebd991bc8; same-key retry did not duplicate. Manager review returned 409; rollback-only Development call identified app_role versus text audit insert. Private failed-run receipt SHA256 87a35d2b4c3ebcbfb982327f603733bf53f2cdd6b837864b308462da7d64496a. Typecheck and 259/259 migration drift passed; full journey not run."
+        ],
+        "classification": "SCOPED_CANDIDATE_REVIEW_UI_AND_GUARDED_QA",
+        "limitations": "DB-function dependency pending; no request-information/response, Mobile, full Product/security, Production or owner visual claim."
+      },
+      "integration": {
+        "status": "NOT_MERGED",
+        "base": "integration/development",
+        "baseCommit": "f6269cba934aaa37a70c32d53692f3b8c7de1854",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "BLOCKED_ON_VERIFIED_DB_FUNCTION_DEPENDENCY",
+        "units": [],
+        "pendingUnit": "codex/db-candidate-review-actor-role-20261107"
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ONE_SUBMISSION_SAME_KEY_RETRY_PASS_MANAGER_REVIEW_BLOCKED_409",
+      "releaseEligibility": "NOT_READY_DB_DEPENDENCY_AND_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve remote+ledger, verify function-only dependency on isolated Development, resume same application without duplicate, then CI and Development integration. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

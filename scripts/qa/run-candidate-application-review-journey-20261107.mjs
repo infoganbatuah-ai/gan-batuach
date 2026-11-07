@@ -11,6 +11,7 @@ import { localCredentials } from "../development/local-client.mjs";
 
 const app = "http://127.0.0.1:3000";
 const expectedSha = process.argv[2];
+const resumeApplicationId = process.env.GB_CANDIDATE_APP_ID || null;
 const candidateId = "00000000-0000-4000-8000-000000000304";
 const gardenId = "00000000-0000-4000-8000-000000000601";
 const openingId = "81000000-0000-4000-8000-000000000005";
@@ -107,22 +108,31 @@ try {
   const foreignManager = await login("manager-b", keys, identities);
   const otherCandidate = await login("staff-b", keys, identities);
   check("candidate identity", candidate.id === candidateId);
-  const eligibility = JSON.parse(sql(`select json_build_object('opening',exists(select 1 from public.kindergarten_staff_openings where id='${openingId}'::uuid and garden_id='${gardenId}'::uuid and active_status='published'),'complete',(select profile_completeness->>'required_fields_complete' from public.staff_candidate_profiles where profile_id='${candidateId}'::uuid),'applications',(select count(*) from public.staff_job_applications where staff_candidate_id='${candidateId}'::uuid and opening_id='${openingId}'::uuid),'employment',(select count(*) from public.staff_kindergarten_employments where profile_id='${candidateId}'::uuid and garden_id='${gardenId}'::uuid and status in ('pending_approval','active'))`).trim());
-  check("one eligible opening, no prior application or employment", eligibility.opening && eligibility.complete === "true" && eligibility.applications === 0 && eligibility.employment === 0);
+  const eligibility = JSON.parse(sql(`select json_build_object('opening',exists(select 1 from public.kindergarten_staff_openings where id='${openingId}'::uuid and garden_id='${gardenId}'::uuid and active_status='published'),'complete',(select profile_completeness->>'required_fields_complete' from public.staff_candidate_profiles where profile_id='${candidateId}'::uuid),'applications',(select count(*) from public.staff_job_applications where staff_candidate_id='${candidateId}'::uuid and opening_id='${openingId}'::uuid),'employment',(select count(*) from public.staff_kindergarten_employments where profile_id='${candidateId}'::uuid and garden_id='${gardenId}'::uuid and status in ('pending_approval','active')))`).trim());
+  if (resumeApplicationId) assert.match(resumeApplicationId, /^[0-9a-f-]{36}$/i);
+  check("one eligible opening, bounded application and no employment", eligibility.opening && eligibility.complete === "true" && eligibility.applications === (resumeApplicationId ? 1 : 0) && eligibility.employment === 0);
   const require = createRequire(import.meta.url);
   const { chromium } = require("/Users/danielderi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
   browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true, timeout: 8_000 });
 
   const candidatePage = await pageFor(candidate, { width: 1440, height: 1024 });
   await candidatePage.goto(`${app}/dashboard/staff/job-market/${openingId}`, { waitUntil: "domcontentloaded", timeout: 8_000 });
-  check("Candidate sees local opening", await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).count() === 1);
-  const submittedResponse = candidatePage.waitForResponse((response) => new URL(response.url()).pathname === "/api/staff/job-applications" && response.request().method() === "POST");
-  await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).click();
-  const submitted = await submittedResponse;
-  const submittedBody = await submitted.json();
-  applicationId = submittedBody?.data?.application?.id;
-  receipt.actions.push({ actor: "candidate-ui", action: "submit", status: submitted.status(), applicationId });
-  check("one UI submission", submitted.status() === 201 && /^[0-9a-f-]{36}$/i.test(applicationId ?? "") && state(applicationId).status === "submitted");
+  if (!resumeApplicationId) await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).waitFor();
+  check("Candidate sees local opening", resumeApplicationId
+    ? await candidatePage.getByRole("heading", { name: "גננת", exact: true }).count() === 1
+    : await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).count() === 1);
+  if (resumeApplicationId) {
+    applicationId = resumeApplicationId;
+    check("resumed only recorded submitted application", state(applicationId).applications === 1 && state(applicationId).status === "submitted");
+  } else {
+    const submittedResponse = candidatePage.waitForResponse((response) => new URL(response.url()).pathname === "/api/staff/job-applications" && response.request().method() === "POST");
+    await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).click();
+    const submitted = await submittedResponse;
+    const submittedBody = await submitted.json();
+    applicationId = submittedBody?.data?.application?.id;
+    receipt.actions.push({ actor: "candidate-ui", action: "submit", status: submitted.status(), applicationId });
+    check("one UI submission", submitted.status() === 201 && /^[0-9a-f-]{36}$/i.test(applicationId ?? "") && state(applicationId).status === "submitted");
+  }
   await candidatePage.reload({ waitUntil: "domcontentloaded" });
   await capture(candidatePage, "candidate-desktop-submitted");
   const retry = await api(candidate, "/api/staff/job-applications", "POST", { opening_id: openingId, idempotency_key: `candidate-opening:${openingId}` });
