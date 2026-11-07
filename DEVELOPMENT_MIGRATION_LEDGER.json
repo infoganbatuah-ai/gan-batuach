@@ -7931,9 +7931,39 @@
       "recovery": "Preserve private pg_get_functiondef backup SHA256 2d6479986fa718adfabbead6568473b39c444ff0fac70167248a29607671068a; if needed use reviewed forward-only replacement after restoring from that definition. Never edit applied history or delete candidate/audit data.",
       "developmentStatusReason": "Merged PR #347 after exact-head CI; original migration applied and function/history verified in canonical isolated Development; Candidate journey and scoped role denials continue separately.",
       "developmentSchemaFingerprint": "ba871218c8aec436fc5caa1e544da4a0d54ccc960ba987484936c857d18931e2"
+    },
+    {
+      "file": "supabase/migrations/20261107230104_management_manual_arrangement_state_guard.sql",
+      "blob": "3c49c55d6133bf69da0209d13959d01972aa649d",
+      "sha256": "2748148b47afb040c945a7a0212fa68dd81efa59a57f2190ea7d00e127937812",
+      "version": "20261107230104",
+      "sourceTask": "GB-DB-MANUAL-ARRANGEMENT-STATE-GUARD-20261108",
+      "sourceCommit": "ed92c1a3471651815cc5c192b03080b14b2335a9",
+      "sourceHead": "ed92c1a3471651815cc5c192b03080b14b2335a9",
+      "remoteBranch": "origin/codex/db-manual-arrangement-state-guard-20261108@ed92c1a3471651815cc5c192b03080b14b2335a9",
+      "integrationCommit": "3acf23c75e596d9ed4bc06750a02d32a40a48461",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261107230104",
+      "requiredPredecessor": "20261107165001_management_candidate_review_actor_role.sql",
+      "dependencyStatus": "260_OF_260_PREDECESSORS_APPLIED_LOCAL_DEVELOPMENT",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261107165001"
+      ],
+      "developmentApprovalEvidence": "PR #357 exact source head ed92c1a3471651815cc5c192b03080b14b2335a9 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk. Rollback-only pre-fix synthetic test reproduced stale rejected-request reconciliation with confirmed evidence and two audit rows; proposed migration test passed invalid states, foreign Manager/Parent denials, activated retry, zero denied writes and function owner/ACL/search_path checks. Migration health 261, focused enrollment activation 8/8, audit-role 2/2 and release contract passed. No existing QA request was invoked.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Before canonical application preserve the existing isolated Development function definition, owner and ACL in restricted evidence. If application or verification fails, use a reviewed forward-only function replacement or restore the isolated backup; never edit applied migration history or existing request/evidence rows.",
+      "developmentStatusReason": "Validated and merged source is registered; canonical isolated Development application and post-apply verification remain pending."
     }
   ],
-  "developmentExpected": 260,
+  "developmentExpected": 261,
   "developmentAppliedVerified": 260,
   "blockers": [],
   "localObservations": [
