@@ -9,6 +9,10 @@ import { createClient } from "@/lib/supabase/server";
 
 type MessageRecipient = { id: string; full_name?: string | null; email?: string | null; role?: string | null; profile_image_url?: string | null };
 type GardenMessageRecipients = { id: string; name?: string | null; manager_id?: string | null; owner_profile_id?: string | null };
+type MessagingEnrollment = { id: string; child_id?: string | null; permanent_child_file_id?: string | null; garden_id?: string | null; status?: string | null; full_name?: string | null };
+type ActiveMessagingEnrollment = MessagingEnrollment & { child_id: string; permanent_child_file_id: string; garden_id: string };
+type MessagingGuardianLink = { permanent_child_file_id: string };
+type MessagingGarden = { id: string; name?: string | null };
 
 function statusText(status?: string | null) {
   if (status === "handled") return "טופל";
@@ -41,14 +45,14 @@ export default async function ParentMessagesPage() {
     garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));
   const childIds = childOptions.map((child) => child.id).filter(Boolean);
-  const guardianFileIds = new Set((family.guardianLinks as any[]).map((link) => link.permanent_child_file_id));
-  const messagingChildren = (family.enrollments as any[])
-    .filter((enrollment) => enrollment.status === "active" && !String(enrollment.id).startsWith("legacy-") && enrollment.child_id && enrollment.garden_id && guardianFileIds.has(enrollment.permanent_child_file_id))
+  const guardianFileIds = new Set((family.guardianLinks as MessagingGuardianLink[]).map((link) => link.permanent_child_file_id));
+  const messagingChildren = (family.enrollments as MessagingEnrollment[])
+    .filter((enrollment): enrollment is ActiveMessagingEnrollment => enrollment.status === "active" && !enrollment.id.startsWith("legacy-") && Boolean(enrollment.child_id && enrollment.garden_id && enrollment.permanent_child_file_id && guardianFileIds.has(enrollment.permanent_child_file_id)))
     .map((enrollment) => ({
       id: enrollment.child_id,
       full_name: enrollment.full_name,
       garden_id: enrollment.garden_id,
-      garden_name: (family.gardens as any[]).find((garden) => garden.id === enrollment.garden_id)?.name
+      garden_name: (family.gardens as MessagingGarden[]).find((garden) => garden.id === enrollment.garden_id)?.name
     }));
   const gardenIds = Array.from(new Set(messagingChildren.map((child) => child.garden_id)));
   const requestFilters = [

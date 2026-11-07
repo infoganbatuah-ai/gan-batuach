@@ -1,0 +1,20 @@
+# Parent → Manager messaging journey — Development qualification
+
+Task: `GB-PRODUCT-PARENT-MANAGER-MESSAGING-JOURNEY-20261107`
+Source Development: `360012f0bd191cb46f894484a354ebad32d44bae`
+Branch: `codex/parent-manager-messaging-journey-20261107`
+Product target: isolated Development only; `main` and Production are excluded.
+
+## Scope and behavior
+
+The Parent message workspace now offers only children with a current active canonical enrollment and a current guardian link, and obtains Garden manager/owner recipient identifiers from the authorized Garden record. The canonical send RPC and its RLS checks remain the authority; a recipient displayed by the UI is not authorization to send. The Manager message workspace follows the active authorized Garden context. The shared conversation component reads the canonical thread list, refreshes after creation and replies, retains the same idempotency key on an uncertain retry, and shows a read marker only after the read operation succeeds. Direct-thread list responses include authorized counterpart labels. The mobile conversation header and composer fit inside the viewport above bottom navigation.
+
+No schema, migration, RLS, Auth, provider, dependency, Digital Observer core, camera, billing, `main` or Production change was made. Existing Parent request, complaint and task workflows remain distinct. External messaging delivery was not enabled; two in-app notifications were observed and zero externally accepted delivery records were observed.
+
+## Local proof and limits
+
+One guarded synthetic Parent B → Manager B conversation was created in the isolated local Development database. Parent and Manager each sent one message through the actual Product UI; the same thread has two participants, two ordered messages, two in-app notifications and two read markers. An exact-feature-head readback at `6b45de2e330c041d1c6ade4dcf49485a6a58f6f6` passed 19/19 checks, including a same-key duplicate retry and denied known-thread detail/send/read for foreign Parent, foreign Manager, Staff and guest. It created no new thread or message. The private receipt is `/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-manager-messaging-journey-20261107/receipt-1794064355831.json`, SHA256 `47b1b856c584d4121a948e650e8bbad26ff1ce9e9824d5d30fd8b32f27774461`. The receipt lists four fresh actual Product Desktop/Mobile captures from that feature SHA. Earlier cold-compile/time-out receipts are retained; they are not called PASS.
+
+Focused canonical messaging, UX-11 and Parent UX-05 source checks passed 25/25; the wider local domain gate passed 54/54. Migration health passed for 259/259 ordered files with no new destructive migration. The release-contract preflight passed without Production mutation. Typecheck passed after the scoped typing correction; lint baseline passed with zero regressions and zero canonical errors. The isolated Development build passed on the external worktree after rerunning outside a process-port sandbox; the first sandboxed build was blocked from spawning a Next worker and was not a Product compile failure. Ledger schema passed with 225 units. The isolated Development database drift check passed 259/259 at the source baseline. The feature QA server was stopped after capture. A local full security-gate attempt was **not PASS**: the unrelated PUSH44 private-media fixture requires a macOS volume with `GlobalPermissionsEnabled=true`; this host's temporary volume failed that prerequisite, even when the test was rerun outside the sandbox. No Digital Observer source was altered to bypass it. The exact-head remote CI security gate on Linux remains mandatory.
+
+This proves the scoped local journey and specific role-denial probes. It does not prove the whole Product, formal security certification, live Email/push/WhatsApp/SMS delivery, external owner visual acceptance, or invoice-backed ₪15 economics. Exact-head CI, remote preservation, Development merge and merged-head readback remain required until independently recorded. No paid commitment was introduced.
