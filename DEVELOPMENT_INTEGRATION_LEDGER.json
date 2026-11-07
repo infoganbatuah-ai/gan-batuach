@@ -14909,6 +14909,39 @@
       "releaseEligibility": "NOT_READY_FORCED_READ_ERROR_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Qualify forced authenticated document-read failure with truthful UI and no leak; separately investigate historical intermittent default-Turbopack Parent Documents failure, full role/security Product, owner visual and invoice-backed cost gates. Do not infer Product-wide RLS or owner approval. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/parent-document-signed-expiry-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENT-SIGNED-EXPIRY-20261107",
+      "title": "Bounded expiry of one authorized private Parent document signed link on canonical Development",
+      "owner": "Product Parent document signed-expiry executor; one Development integration owner",
+      "sourceBranch": "codex/parent-document-signed-expiry-20261107",
+      "sourceCommits": ["939ddabfa50ed22bd56662087ae49bc667a73ad9"],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_EVIDENCE_PENDING_REMOTE_PR_AND_DEVELOPMENT_INTEGRATION"
+      },
+      "validation": {
+        "status": "ONE_EXISTING_SYNTHETIC_PARENT_SIGNED_LINK_VALID_THEN_EXPIRED_ON_CANONICAL_DEVELOPMENT",
+        "evidence": [
+          "Clean canonical Development 7c6fd2c206007300a3328344bd9e580ab6abdfeb, Next 16.4.3 default Turbopack, pinned existing LOCAL_SUPABASE Storage API v1.72.1 and storage-js 2.107.0; existing Parent A user-session row and private bucket confirmed. No new object or fixture.",
+          "One Product private-file issuance returned 302 with private,no-store and no-referrer; signed claim lifetime 60 seconds. One no-cookie pre-expiry fetch returned 200 and exact 48-byte synthetic SHA256 ecbccbeee30eb9bf181a9fb7e0731e284faaa5974fc904078835450ce9a86183. The same URL no-cookie/no-cache fetch 5.040 seconds after claim expiry returned 400 InvalidJWT, 110-byte error body, not the document hash. Two Storage fetches total, one expected audit row.",
+          "Private redacted external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-document-signed-expiry-7c6fd2/evidence/receipt.json SHA256 68cbe284cb245de0e11e7c036d773a24870b0bee4454d6d5d7384b91a13d5721; secret-free exact QA script SHA256 09834ea44058b8a6ca8c9ca0f1068e1e9ab436596222d7cb42dc1db57f293454. No signed URL, token, cookie, document body, path or identifying claim was stored."
+        ],
+        "classification": "MANAGEMENT_SYNTHETIC_AUTHENTICATED_PRODUCT_STORAGE_EXPIRY_EVIDENCE_ONLY",
+        "limits": "One local existing synthetic document and one link only. Signed URL is bearer while valid; this does not prove individual revocation, Production CDN behavior, full RLS/download certification, forced Documents read-error, intermittent Turbopack root cause, all-role Product/security, owner visual acceptance or invoice-backed cost ceiling."
+      },
+      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "7c6fd2c206007300a3328344bd9e580ab6abdfeb", "commit": null, "pullRequests": [], "sourceAncestryVerified": false},
+      "dependencies": {"status": "CANONICAL_PARENT_DOCUMENTS_ISSUANCE_BASELINE", "units": ["codex/parent-documents-isolation-20261107"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ONE_SIGNED_URL_VALID_AND_EXPIRED_ON_CANONICAL_LOCAL_STORAGE_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FORCED_READ_ERROR_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Preserve this evidence-only branch through exact-head required checks and Development merge; separately qualify forced Documents read-error and remaining full Product/security, historical runtime, visual and cost gates. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
