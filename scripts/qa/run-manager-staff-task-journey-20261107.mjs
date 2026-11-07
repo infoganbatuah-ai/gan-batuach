@@ -182,8 +182,9 @@ try {
     await ready(staffPage);
     await staffPage.getByRole("button", { name: /הושלמו/ }).click();
     await staffPage.getByText(title).first().waitFor();
-    check("Staff completed task names its assigned worker", await staffPage.getByRole("listitem").filter({ hasText: title }).getByText("QA Staff B").isVisible());
     await capture(staffPage, "staff-completed-readback");
+    const ownProfile = await staff.client.from("profiles").select("full_name").eq("id", staff.userId).single();
+    check("Staff completed task names its assigned worker", !ownProfile.error && !!ownProfile.data?.full_name && await staffPage.getByRole("listitem").filter({ hasText: title }).getByText(ownProfile.data.full_name).isVisible());
   }
   await managerPage.reload({ waitUntil: "domcontentloaded", timeout: 12_000 });
   await ready(managerPage);
