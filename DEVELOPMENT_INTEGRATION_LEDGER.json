@@ -14917,7 +14917,7 @@
       "title": "Bounded expiry of one authorized private Parent document signed link on canonical Development",
       "owner": "Product Parent document signed-expiry executor; one Development integration owner",
       "sourceBranch": "codex/parent-document-signed-expiry-20261107",
-      "sourceCommits": [],
+      "sourceCommits": ["939ddabfa50ed22bd56662087ae49bc667a73ad9"],
       "state": "VALIDATED_ON_BRANCH",
       "preservation": {
         "remoteVerified": false,
