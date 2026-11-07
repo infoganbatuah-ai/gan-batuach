@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T14:13:53Z",
+  "updatedAt": "2026-11-07T16:57:29.106Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15366,6 +15366,56 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Continue cumulative Product/security/owner visual and invoice-backed cost qualification; external delivery is unverified. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/db-candidate-review-actor-role-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DB-CANDIDATE-REVIEW-ACTOR-ROLE-20261107",
+      "title": "Function-only Candidate review audit role repair",
+      "owner": "DB dependency executor; one Development integration owner",
+      "sourceBranch": "codex/db-candidate-review-actor-role-20261107",
+      "sourceCommits": [
+        "87ace192c7c8ab133d207d0fa296fc3aad6711f3",
+        "6deddc6f1ae55c5ec7d54e404af6590226726a8a"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/db-candidate-review-actor-role-20261107@6deddc6f1ae55c5ec7d54e404af6590226726a8a"],
+        "status": "PUSHED_REMOTE_PENDING_CI_AND_INTEGRATION"
+      },
+      "validation": {
+        "status": "SOURCE_AND_ROLLBACK_ONLY_PASS",
+        "evidence": [
+          "Live function body exactly matched canonical source; actor_role and current_role() are app_role. One-cast body diff test 2/2, migration health 260, pre-change isolated Development drift 259/259. Authenticated Manager rollback-only review produced one manager audit row; persisted application remained submitted. Private receipts SHA256 da7bab2784b773afb058ef437b2f8a3f29911c5d2bbc54b813ee8c2385d06581 and 7292556db3da157bc24bb62a57300ddab16c8725c6696770cdeb7e3cf142db83."
+        ],
+        "classification": "FUNCTION_ONLY_CANDIDATE_REVIEW_AUDIT_ENUM",
+        "limitations": "Exact CI, Development application and role-boundary runtime remain pending; no Production or full Product claim."
+      },
+      "integration": {
+        "status": "NOT_MERGED",
+        "base": "integration/development",
+        "baseCommit": "f6269cba934aaa37a70c32d53692f3b8c7de1854",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "CANONICAL_M18_FUNCTION_AND_259_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": []
+      },
+      "migrations": [
+        "supabase/migrations/20261107165001_management_candidate_review_actor_role.sql"
+      ],
+      "migrationOrder": [
+        "20261107165001"
+      ],
+      "localVerification": "ROLLBACK_ONLY_REVIEW_ONE_MANAGER_AUDIT_NO_PERSISTED_CHANGE",
+      "releaseEligibility": "NOT_READY_EXACT_CI_DEVELOPMENT_APPLICATION_CUMULATIVE_PRODUCT_SECURITY_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Push feature, exact CI and merge to Development; apply only new migration to isolated Development and verify function/role boundaries. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
