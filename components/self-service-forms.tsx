@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, MapPin, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/components/gan-batuach-design-system";
 import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
@@ -437,6 +438,7 @@ export function InspectorApplicationForm({ application }: { application?: any })
 }
 
 export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: { endpoint: string; actions: Array<{ value: string; label: string }>; classrooms?: Array<{ id: string; name: string }> }) {
+  const router = useRouter();
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -454,6 +456,7 @@ export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: 
         garden_ids: formValue(form, "garden_ids").split(",").map((item) => item.trim()).filter(Boolean)
       });
       setState({ ok: true, message: "ההחלטה נשמרה." });
+      router.refresh();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "שמירת ההחלטה נכשלה" });
     } finally {
