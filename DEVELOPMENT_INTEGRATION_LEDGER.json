@@ -14782,7 +14782,7 @@
           "Only Product file blobs app/dashboard/parent/page.tsx 3b64ce80542140e336fe3db4be54f5a98139cb68 and scripts/qa/check-parent-selected-child-documents.mjs 12a5328ba3908a920c0b79a6a3e557929019bfa1 match the owner-approved original commit exactly. Two-file patch SHA256 c32d60a4e6633f1595552a3db715f6054ebab395b0c8cf1c570098c5ed95a9a1; stable patch ID 124339a71c1c0837c9b3383f0ae6e3098a192411.",
           "Vercel accessible project history since 1790000000000 had four main Production deployments and no non-main deployment; repository vercel.json disables all Git deployments except main. After both non-force branch pushes, exact-SHA and branch deployment queries each returned zero. Full team-scoped Git trigger fields were not exposed by the accessible project summary.",
           "PR #319 exact head b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7 passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk; ancestry-preserving Development merge 6e9895ffa4b758eee41445c05613c998c4dfbaa7. Canonical worktree fast-forwarded cleanly. Post-merge check-ledger PASS 211 units; UXV9 authorized Parent identity check PASS 20 assertions. Main stayed 4e28d73f8a578637cc25522b193b550ad6d87482; feature SHA Vercel deployment count zero.",
-          "A later bounded canonical default-Turbopack Parent primary runtime check on clean Development 15b842f94e91157c6af31e2f7133e005c95dc58a passed Desktop 1440x1024 and Mobile 390x844. Existing synthetic multi-Child Parent selected the second authorized Child through the visible card selector; selected attendance and scoped attendance/payment links updated, Desktop reload preserved the selection, and a foreign Child query showed the unavailable state without the foreign name. Four settled screenshots were visually inspected with no splash or route-transition overlay. Private redacted report SHA256 0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e under Development/gan-batuach/parent-primary-canonical-15b842f9/; final receipt SHA256 12e38cf7f946b60e24bceca83f83671229e7fb59b4f4028b0f1fcbdffaddca7e. The first selector/loader measurement errors remain preserved separately and are not Product failures."
+          "A later bounded canonical default-Turbopack Parent primary runtime check on clean Development 15b842f94e91157c6af31e2f7133e005c95dc58a passed Desktop 1440x1024 and Mobile 390x844. Existing synthetic multi-Child Parent selected the second authorized Child through the visible card selector; selected attendance and scoped attendance/payment links updated, Desktop reload preserved the selection, and a foreign Child query showed the unavailable state without the foreign name. Four settled screenshots were visually inspected with no splash or route-transition overlay. Corrected private redacted report SHA256 a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e under Development/gan-batuach/parent-primary-canonical-15b842f9/; final receipt SHA256 12e38cf7f946b60e24bceca83f83671229e7fb59b4f4028b0f1fcbdffaddca7e. The first selector/loader measurement errors remain preserved separately and are not Product failures."
         ],
         "classification": "MANAGEMENT_SCOPED_SOURCE_FIXTURE_AND_CANONICAL_PARENT_PRIMARY_BROWSER",
         "limits": "The historical 6e9895ff Parent primary browser retry remains preserved as failure evidence, but the later bounded synthetic Parent primary Desktop/Mobile runtime on clean Development 15b842f9 passed. This is not direct Parent-to-Parent RLS, all-role security, forced document-read error, >4 real Child, literal reference visual acceptance or cumulative Product proof. Original Unit312 artifact unavailable, not PASS. A separate historical 8b9dd0fe default-Turbopack Parent Documents timeout remains unexplained despite a fresh one-time default-mode success; no root-cause repair is claimed. Vercel full team-scoped Git trigger fields were not exposed; observed no deployment only."
@@ -14872,7 +14872,42 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Investigate the default Turbopack Suspense/retry failure with a bounded new-evidence diagnostic; do not repeat the 90-second loop. Preserve the merged Webpack diagnostic as a limited alternate-mode observation, not a root-cause repair. Separately qualify the predecessor Parent primary dashboard runtime, Parent-to-Parent/RLS, document download and cumulative Product gates. No main/Production/RELEASE-GAP-01."
+      "nextAction": "Investigate the default Turbopack Suspense/retry failure with a bounded new-evidence diagnostic; do not repeat the 90-second loop. Preserve the merged Webpack diagnostic as a limited alternate-mode observation, not a root-cause repair. The later bounded Parent-to-Parent private-document issuance/RLS check is recorded in the following unit. Forced document-read error, cumulative Product, visual owner and cost gates remain open. No main/Production/RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/parent-documents-isolation-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENTS-ISOLATION-20261107",
+      "title": "Bounded Parent-to-Parent document RLS and private file issuance isolation on canonical Development",
+      "owner": "Product Parent document isolation executor; one Development integration owner",
+      "sourceBranch": "codex/parent-documents-isolation-20261107",
+      "sourceCommits": ["e8299e53e49d5ef524cbc7b3dd2945bdbf2f595a"],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_EVIDENCE_PENDING_REMOTE_PR_AND_DEVELOPMENT_INTEGRATION"
+      },
+      "validation": {
+        "status": "SCOPED_CANONICAL_PARENT_A_B_DOCUMENT_LIST_RLS_PRIVATE_FILE_ISSUANCE_PASS",
+        "evidence": [
+          "Clean canonical Development e9d4e2748700bb0fb5312d9ee68b94cb47dfed70; pinned existing LOCAL_SUPABASE, default Turbopack; private documents bucket confirmed nonpublic. Existing synthetic Parent A/B Children were visible only through their own user sessions in separate Gardens.",
+          "Two 48-byte non-personal PDFs uploaded through the actual authenticated Product API. Each Parent's own Product list and same-session RLS row contained the authorized document; own file route returned 302 and no-cookie signed-object fetch returned exact bytes. One private-read audit row per authorized read.",
+          "Symmetric cross-family direct RLS known-ID queries returned no row, foreign-Garden Product lists omitted ID and storage path, and known-ID file routes returned 404 without Location or identifying body. Guests received 401 without signed link or identifying body. Twelve bounded app API requests, two signed-object fetches; no Product source/schema/RLS/provider/DO core change.",
+          "Private redacted receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-documents-isolation-e9d4/evidence/receipt.json SHA256 ebc282db5ad3a05ab1b0c2c2e3865cb06e11392379f88b322797cc69ebaaf07b; QA script SHA256 fb2e018ea197c599914c177d6ca33c9dcd3eab60662e416e718b7b2b712e0a01. Two small synthetic objects/rows retained in isolated Development; no purge/reset/persona change.",
+          "Earlier Parent-primary private report checksum transcription corrected without recapture; current report SHA256 a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e, earlier pre-correction report SHA256 0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e."
+        ],
+        "classification": "MANAGEMENT_SYNTHETIC_AUTHENTICATED_PRODUCT_RLS_EVIDENCE_ONLY",
+        "limits": "Signed URLs are bearer links after authorized issuance; no post-expiry live denial measured. This is a two-family Development check, not a complete role/security certification. Forced Documents read-error, historical intermittent Turbopack root cause, cumulative Product, owner literal visual and invoice-backed cost qualification remain open."
+      },
+      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "e9d4e2748700bb0fb5312d9ee68b94cb47dfed70", "commit": null, "pullRequests": [], "sourceAncestryVerified": false},
+      "dependencies": {"status": "CANONICAL_PARENT_DOCUMENTS_BASELINE", "units": ["codex/product-parent-documents-read-state-20261107"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_SYNTHETIC_PARENT_A_B_DOCUMENT_LIST_RLS_PRIVATE_FILE_ISSUANCE_PASS_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FORCED_READ_ERROR_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Commit and preserve this evidence-only branch, pass exact-head CI, merge to integration/development, then qualify forced authenticated document-read failure. Do not infer Product-wide RLS or owner approval. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
