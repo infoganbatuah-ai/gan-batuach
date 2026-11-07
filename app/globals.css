@@ -24809,6 +24809,32 @@ body:has(.dashboard-role-owner.app-home-layout) {
   gap: 12px;
 }
 
+.parent-enrollment-request {
+  background: #f8fbff;
+  border: 1px solid #e2ebf8;
+  border-radius: 18px;
+  color: #17346b;
+  display: grid;
+  gap: 8px;
+  padding: 15px 18px;
+}
+
+.parent-enrollment-information {
+  background: #fff8eb;
+  border: 1px solid #f3dbaa;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.parent-enrollment-information p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.parent-enrollment-request .compact-form {
+  margin: 0;
+}
+
 .parent-request-list a {
   background: #f8fbff;
   border: 1px solid #e2ebf8;
