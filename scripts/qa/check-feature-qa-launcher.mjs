@@ -1,22 +1,42 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import test from 'node:test';
 import { resolve } from 'node:path';
-import { selectFeatureBackendConfig, validateDatabaseConfig, validateFeatureQaPreflight, verifyLockedDependencies } from '../development/start-feature-qa.mjs';
+import { assertOwnedDependencyDirectory, featureRuntimePaths, selectFeatureBackendConfig, validateDatabaseConfig, validateFeatureQaPreflight, verifyLockedDependencies } from '../development/start-feature-qa.mjs';
 
 const sha = 'a'.repeat(40);
 const project = '/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach';
 const canonical = resolve(project, 'worktrees/development-integration');
 const featureRoot = resolve(project, 'worktrees/feature-fixture');
-const home = resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/feature-qa', sha, 'home');
+const { home, temp } = featureRuntimePaths(sha);
 const valid = () => ({
   expectedSha: sha, head: sha, branch: 'codex/feature-fixture', dirty: false, sparse: false,
   featureRoot, project, canonical, output: resolve(featureRoot, '.next'),
-  home, temp: resolve(home, 'tmp'),
+  home, temp,
   local: { NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:55421/', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'synthetic-public-key' },
 });
 
 test('one clean complete feature commit with isolated output and loopback backend is eligible', () => {
   assert.doesNotThrow(() => validateFeatureQaPreflight(valid()));
+  assert.equal(temp, resolve(home, 'tmp'));
+  assert.throws(() => validateFeatureQaPreflight({ ...valid(), temp: resolve(home, '..', 'tmp') }), /home\/temp must be isolated/);
+});
+
+test('feature dependencies must be owned ordinary directory, never a shared symlink', () => {
+  const fixture = mkdtempSync(resolve(tmpdir(), 'gb-feature-qa-'));
+  try {
+    const owned = resolve(fixture, 'owned');
+    const linked = resolve(fixture, 'linked');
+    mkdirSync(owned);
+    mkdirSync(resolve(owned, 'node_modules'));
+    mkdirSync(linked);
+    symlinkSync(resolve(owned, 'node_modules'), resolve(linked, 'node_modules'));
+    assert.doesNotThrow(() => assertOwnedDependencyDirectory(owned, resolve(owned, 'node_modules')));
+    assert.throws(() => assertOwnedDependencyDirectory(linked, resolve(linked, 'node_modules')), /ordinary directory/);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
 });
 
 test('wrong or abbreviated SHA and non-feature branch fail closed', () => {

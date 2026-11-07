@@ -1,7 +1,7 @@
 // A bounded, local-only preview of one clean feature commit. It is never the
 // canonical Development Product and must not be used for release evidence.
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -13,6 +13,12 @@ const projectRoot = resolve(root, '../..');
 const canonicalRoot = resolve(projectRoot, 'worktrees/development-integration');
 const port = 3100;
 const fullSha = /^[0-9a-f]{40}$/;
+
+export function featureRuntimePaths(head) {
+  const runtimeRoot = resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach', 'feature-qa', head);
+  const home = resolve(runtimeRoot, 'home');
+  return { runtimeRoot, home, temp: resolve(home, 'tmp') };
+}
 
 function inside(parent, child) {
   const path = relative(parent, child);
@@ -74,6 +80,14 @@ export function verifyLockedDependencies(featureLock, canonicalLock, installedLo
   }
 }
 
+export function assertOwnedDependencyDirectory(featureRoot, dependencyRoot) {
+  if (dependencyRoot !== resolve(featureRoot, 'node_modules')
+    || !lstatSync(dependencyRoot).isDirectory()
+    || realpathSync(dependencyRoot) !== dependencyRoot) {
+    throw Error('Feature dependencies must be an ordinary directory owned by this worktree.');
+  }
+}
+
 export function validateDatabaseConfig(databaseConfig) {
   const isolatedRoot = resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach');
   if (databaseConfig.environment !== 'DEVELOPMENT / INTEGRATION'
@@ -124,9 +138,7 @@ async function main() {
   const dirty = Boolean(git('status', '--porcelain=v1', '-uall'));
   const sparse = git('ls-files', '-v').split('\n').some(line => line.startsWith('S '));
   const output = resolve(root, '.next');
-  const runtimeRoot = resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach', 'feature-qa', head);
-  const home = resolve(runtimeRoot, 'home');
-  const temp = resolve(runtimeRoot, 'tmp');
+  const { runtimeRoot, home, temp } = featureRuntimePaths(head);
   validateFeatureQaIdentity({ expectedSha, head, branch, dirty, sparse, featureRoot: root,
     project: projectRoot, canonical: canonicalRoot, output, home, temp });
   for (const path of [root, canonicalRoot, output, runtimeRoot, home, temp]) assertUnaliasedAncestors(path);
@@ -148,19 +160,11 @@ async function main() {
     if (existsSync(resolve(root, name))) throw Error(`Feature tree contains forbidden ${name}.`);
   }
   if (existsSync(output) && !lstatSync(output).isDirectory()) throw Error('Feature output cache is not a directory.');
-  const canonicalModules = resolve(canonicalRoot, 'node_modules');
   const featureModules = resolve(root, 'node_modules');
-  if (!lstatSync(canonicalModules).isDirectory()) throw Error('Canonical locked dependencies are unavailable.');
+  assertOwnedDependencyDirectory(root, featureModules);
   verifyLockedDependencies(readFileSync(resolve(root, 'package-lock.json'), 'utf8'),
     readFileSync(resolve(canonicalRoot, 'package-lock.json'), 'utf8'),
-    readFileSync(resolve(canonicalModules, '.package-lock.json'), 'utf8'));
-  if (existsSync(featureModules)) {
-    if (!lstatSync(featureModules).isSymbolicLink() || realpathSync(featureModules) !== canonicalModules) {
-      throw Error('Feature dependency link is not the verified locked dependency tree.');
-    }
-  } else {
-    symlinkSync(canonicalModules, featureModules, 'dir');
-  }
+    readFileSync(resolve(featureModules, '.package-lock.json'), 'utf8'));
   if (existsSync(runtimeRoot) && !lstatSync(runtimeRoot).isDirectory()) throw Error('Feature runtime path is not a directory.');
   mkdirSync(home, { recursive: true, mode: 0o700 });
   mkdirSync(temp, { recursive: true, mode: 0o700 });
@@ -183,8 +187,7 @@ async function main() {
   if (!health.ok) throw Error('Isolated local Supabase health failed.');
   await assertPortFree();
   console.log(`FEATURE QA / NOT CANONICAL PRODUCT ${head}\nhttp://127.0.0.1:${port}\nBackend: LOCAL_SUPABASE`);
-  // --webpack resolves the existing locked node_modules link without expanding
-  // Turbopack's source root outside this feature worktree.
+  // --webpack is the installed Next CLI's explicit non-Turbopack dev mode.
   const child = spawn(process.execPath, [resolve(featureModules, 'next/dist/bin/next'), 'dev', '--webpack', '--hostname', '127.0.0.1', '--port', String(port)], {
     cwd: root, env, stdio: 'inherit', detached: true,
   });
