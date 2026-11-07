@@ -380,6 +380,10 @@ export function ObserverQuickAction({ endpoint, body, children, confirmText, onD
 }
 
 export function ObserverCameraNameForm({ camera }: { camera: any }) {
+  return <ScopedObserverCameraNameForm key={camera.id} camera={camera} />;
+}
+
+function ScopedObserverCameraNameForm({ camera }: Parameters<typeof ObserverCameraNameForm>[0]) {
   const router = useRouter();
   const [name, setName] = useState(camera.display_name || "");
   const [location, setLocation] = useState(camera.location_label || "");
@@ -389,8 +393,30 @@ export function ObserverCameraNameForm({ camera }: { camera: any }) {
   const [linePosition, setLinePosition] = useState(Number(camera.metadata?.crossing_line?.position ?? 0.5) * 100);
   const [lineInside, setLineInside] = useState(camera.metadata?.crossing_line?.inside || "positive");
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
+  const owner = useRef({ active: true, operation: 0, busy: false, revision: 0 });
+  const [renderedRevision, setRenderedRevision] = useState(0);
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
+  function editDraft<Value>(previous: Value, readValue: () => Value, setValue: (value: Value) => void) {
+    if (!owner.current.active) return;
+    const next = readValue();
+    if (Object.is(previous, next)) return;
+    const revision = ++owner.current.revision;
+    setRenderedRevision(revision);
+    setValue(next);
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
+    const lifetime = owner.current;
+    if (!lifetime.active) return;
     event.preventDefault();
+    if (lifetime.busy || lifetime.revision !== renderedRevision) return;
+    lifetime.busy = true;
+    const operation = ++lifetime.operation;
+    const submittedRevision = lifetime.revision;
+    const isCurrent = () => lifetime.active && lifetime.operation === operation;
     setState({ busy: true, error: "", message: "" });
     try {
       const result = await postJson("/api/digital-observer/cameras", {
@@ -400,37 +426,63 @@ export function ObserverCameraNameForm({ camera }: { camera: any }) {
         location_label: location,
         zone_type: zone || undefined,
         crossing_line: lineEnabled ? { axis: lineAxis, position: linePosition / 100, inside: lineInside } : null
-      });
-      setState({ busy: false, error: "", message: result.message });
-      router.refresh();
+      }, undefined, isCurrent);
+      if (!isCurrent()) return;
+      const unchanged = lifetime.revision === submittedRevision;
+      setState({ busy: false, error: "", message: unchanged ? result.message : `${result.message} השינויים החדשים בטופס טרם נשלחו.` });
+      if (isCurrent() && unchanged && lifetime.revision === submittedRevision) router.refresh();
     } catch (error) {
+      if (!isCurrent()) return;
       setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לעדכן את שם המצלמה", message: "" });
+    } finally {
+      if (isCurrent()) lifetime.busy = false;
     }
   }
   const suggestedName = typeof camera.metadata?.ai_suggested_name === "string" ? camera.metadata.ai_suggested_name : null;
   return <form className="do-camera-name-form" onSubmit={submit}>
     <div className="do-form-grid">
-      <label className="do-field"><span>שם המצלמה</span><input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} required /></label>
-      <label className="do-field"><span>חלל או מיקום</span><input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={100} placeholder="למשל: כניסה, סלון או חניה" /></label>
-      <label className="do-field"><span>סוג אזור לזיהוי אירועים</span><select value={zone} onChange={event => setZone(event.target.value)}><option value="">לא מופה — פעילות כללית בלבד</option><option value="POOL">בריכה</option><option value="PARKING">חנייה</option><option value="ENTRANCE">כניסה</option><option value="PERIMETER">היקף וגדר</option><option value="INDOOR">חלל פנימי</option></select></label>
-      <label className="do-check"><input type="checkbox" checked={lineEnabled} onChange={event => setLineEnabled(event.target.checked)} /><span>הגדרת קו מעבר לכניסה ויציאה</span></label>
-      {lineEnabled ? <><label className="do-field"><span>כיוון הקו בתמונה</span><select value={lineAxis} onChange={event => setLineAxis(event.target.value)}><option value="x">אנכי</option><option value="y">אופקי</option></select></label><label className="do-field"><span>מיקום הקו באחוזים משמאל / מלמעלה</span><input type="number" min={5} max={95} required value={linePosition} onChange={event => setLinePosition(Number(event.target.value))} /></label><label className="do-field"><span>הצד הפנימי של האזור</span><select value={lineInside} onChange={event => setLineInside(event.target.value)}><option value="positive">ימינה / למטה מהקו</option><option value="negative">שמאלה / למעלה מהקו</option></select></label></> : <p>ללא קו מעבר לא ניתן להסיק כיוון כניסה או יציאה. זיהויי חירום מיוחדים דורשים מודל מתאים ומאומת.</p>}
+      <label className="do-field"><span>שם המצלמה</span><input value={name} onChange={(event) => editDraft(name, () => event.target.value, setName)} minLength={2} maxLength={100} required /></label>
+      <label className="do-field"><span>חלל או מיקום</span><input value={location} onChange={(event) => editDraft(location, () => event.target.value, setLocation)} maxLength={100} placeholder="למשל: כניסה, סלון או חניה" /></label>
+      <label className="do-field"><span>סוג אזור לזיהוי אירועים</span><select value={zone} onChange={event => editDraft(zone, () => event.target.value, setZone)}><option value="">לא מופה — פעילות כללית בלבד</option><option value="POOL">בריכה</option><option value="PARKING">חנייה</option><option value="ENTRANCE">כניסה</option><option value="PERIMETER">היקף וגדר</option><option value="INDOOR">חלל פנימי</option></select></label>
+      <label className="do-check"><input type="checkbox" checked={lineEnabled} onChange={event => editDraft(lineEnabled, () => event.target.checked, setLineEnabled)} /><span>הגדרת קו מעבר לכניסה ויציאה</span></label>
+      {lineEnabled ? <><label className="do-field"><span>כיוון הקו בתמונה</span><select value={lineAxis} onChange={event => editDraft(lineAxis, () => event.target.value, setLineAxis)}><option value="x">אנכי</option><option value="y">אופקי</option></select></label><label className="do-field"><span>מיקום הקו באחוזים משמאל / מלמעלה</span><input type="number" min={5} max={95} required value={linePosition} onChange={event => editDraft(linePosition, () => Number(event.target.value), setLinePosition)} /></label><label className="do-field"><span>הצד הפנימי של האזור</span><select value={lineInside} onChange={event => editDraft(lineInside, () => event.target.value, setLineInside)}><option value="positive">ימינה / למטה מהקו</option><option value="negative">שמאלה / למעלה מהקו</option></select></label></> : <p>ללא קו מעבר לא ניתן להסיק כיוון כניסה או יציאה. זיהויי חירום מיוחדים דורשים מודל מתאים ומאומת.</p>}
     </div>
-    {suggestedName && suggestedName !== camera.display_name ? <button className="do-camera-name-suggestion" type="button" onClick={() => setName(suggestedName)}>הצעת התצפיתן: {suggestedName}</button> : null}
+    {suggestedName && suggestedName !== camera.display_name ? <button className="do-camera-name-suggestion" type="button" onClick={() => editDraft(name, () => suggestedName, setName)}>הצעת התצפיתן: {suggestedName}</button> : null}
     <button className="do-button primary" type="submit" disabled={state.busy || name.trim().length < 2}>{state.busy ? <LoaderCircle className="do-spin" /> : <Check />} שמירת שם</button>
     <ResultMessage state={state} />
   </form>;
 }
 
 export function ObserverCameraInlineRename({ camera }: { camera: any }) {
+  return <ScopedObserverCameraInlineRename key={camera.id} camera={camera} />;
+}
+
+function ScopedObserverCameraInlineRename({ camera }: Parameters<typeof ObserverCameraInlineRename>[0]) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(camera.display_name || "");
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
 
+  const owner = useRef({ active: true, session: 0, editing: false, operation: 0, busy: false, revision: 0 });
+  const [session, setSession] = useState(0);
+  const [renderedRevision, setRenderedRevision] = useState(0);
+  const ownsEdit = () => owner.current.active && owner.current.editing && owner.current.session === session;
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
+    if (!ownsEdit()) return;
     event.preventDefault();
     event.stopPropagation();
+    const lifetime = owner.current;
+    if (lifetime.busy || lifetime.revision !== renderedRevision) return;
+    lifetime.busy = true;
+    const operation = ++lifetime.operation;
+    const submittedRevision = lifetime.revision;
+    const isCurrent = () => ownsEdit() && lifetime.operation === operation;
     setState({ busy: true, error: "", message: "" });
     try {
       await postJson("/api/digital-observer/cameras", {
@@ -438,23 +490,35 @@ export function ObserverCameraInlineRename({ camera }: { camera: any }) {
         id: camera.id,
         display_name: name,
         location_label: camera.location_label || ""
-      });
+      }, undefined, isCurrent);
+      if (!isCurrent()) return;
+      if (lifetime.revision !== submittedRevision) {
+        setState({ busy: false, error: "", message: "השינוי שנשלח נשמר. השם החדש בטופס טרם נשלח." });
+        return;
+      }
       setEditing(false);
+      if (!isCurrent()) return;
       setState({ busy: false, error: "", message: "" });
+      if (!isCurrent()) return;
       router.refresh();
+      if (isCurrent()) { lifetime.editing = false; lifetime.session += 1; setSession(lifetime.session); lifetime.operation += 1; lifetime.busy = false; }
     } catch (error) {
+      if (!isCurrent()) return;
       setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לעדכן את שם המצלמה", message: "" });
+    } finally {
+      if (isCurrent()) lifetime.busy = false;
     }
   }
 
   if (editing) return <form className="do-camera-inline-rename" onSubmit={submit} onClick={(event) => event.stopPropagation()}>
-    <input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} required autoFocus aria-label="שם המצלמה" />
+    <input value={name} onChange={(event) => { if (!ownsEdit() || name === event.target.value) return; setRenderedRevision(++owner.current.revision); setName(event.target.value); }} minLength={2} maxLength={100} required autoFocus aria-label="שם המצלמה" />
     <button type="submit" disabled={state.busy || name.trim().length < 2} aria-label="שמירת שם המצלמה" title="שמירת שם">{state.busy ? <LoaderCircle className="do-spin" /> : <Check />}</button>
-    <button type="button" onClick={() => { setName(camera.display_name || ""); setEditing(false); setState({ busy: false, error: "", message: "" }); }} aria-label="ביטול שינוי שם" title="ביטול"><X /></button>
+    <button type="button" onClick={() => { if (!ownsEdit()) return; const lifetime = owner.current; lifetime.session += 1; setSession(lifetime.session); lifetime.operation += 1; lifetime.editing = false; lifetime.busy = false; lifetime.revision = 0; setRenderedRevision(0); setName(camera.display_name || ""); setEditing(false); setState({ busy: false, error: "", message: "" }); }} aria-label="ביטול שינוי שם" title="ביטול"><X /></button>
     {state.error ? <span role="alert">{state.error}</span> : null}
+    {state.message ? <span role="status">{state.message}</span> : null}
   </form>;
 
-  return <button className="do-camera-rename-trigger" type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setEditing(true); }} aria-label={`עריכת השם ${camera.display_name || "מצלמה"}`} title="עריכת שם מצלמה"><Pencil /></button>;
+  return <button className="do-camera-rename-trigger" type="button" onClick={(event) => { const lifetime = owner.current; if (!lifetime.active || lifetime.editing || lifetime.session !== session) return; event.preventDefault(); event.stopPropagation(); lifetime.session += 1; setSession(lifetime.session); lifetime.editing = true; lifetime.operation += 1; lifetime.busy = false; lifetime.revision = 0; setRenderedRevision(0); setEditing(true); }} aria-label={`עריכת השם ${camera.display_name || "מצלמה"}`} title="עריכת שם מצלמה"><Pencil /></button>;
 }
 
 export function ObserverRuleForm({ siteId, cameras }: { siteId: string; cameras: any[] }) {
