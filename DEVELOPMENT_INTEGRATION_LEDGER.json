@@ -15110,25 +15110,27 @@
       "owner": "Product Staff time journey executor; one Development integration owner",
       "sourceBranch": "codex/staff-time-journey-20261107",
       "sourceCommits": ["ea14cd54a33a3d1d9ce26f4995dbd12c56bb5b62", "4b1654c84e4b533c73fe8a4d8e216207807a9267"],
-      "state": "BLOCKED",
-      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-time-journey-20261107@4b1654c84e4b533c73fe8a4d8e216207807a9267", "origin/integration/development@5fa453954a52c3fe6a93a3940c75f234d1a1824c"], "status": "QA_SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT_RUNTIME_BLOCKED"},
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-time-journey-20261107@4b1654c84e4b533c73fe8a4d8e216207807a9267", "origin/integration/development@ac713106d1cec367749323c97eee024287fb8aa2"], "status": "QA_SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_SCOPED_JOURNEY_VERIFIED"},
       "validation": {
-        "status": "GUARDED_CANONICAL_BROWSER_FAILED_BEFORE_MUTATION_CROSS_ROUTE_SUSPENSE_RETRY_LOOP_REPRODUCED",
+        "status": "INITIAL_TURBOPACK_FAILURE_PRESERVED_THEN_WEBPACK_SCOPED_JOURNEY_22_OF_22_AND_GET_ONLY_CAPTURE_19_OF_19_PASS",
         "evidence": [
           "Read-only preflight found Staff A had a prior open shift and left it untouched. Staff B was active/approved with active Garden B employment, no open or used current-day shift, and an existing Garden center/radius/timezone.",
           "At canonical Development 4ca595e6, one default-Turbopack browser attempt to Staff attendance made six full-document requests; QA aborted request seven before network. First page error was sanitized SUSPENSE_SERVER_FALLBACK with no frames. Five preflight checks passed, zero GPS actions, zero captures and zero shifts created/closed. Exit 1, browser cleanup COMPLETE, server stopped. Protected receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/staff-time-journey-20261107/evidence/receipt-1794045162633.json mode 0600 SHA256 03a0b8d0964eeeec3c9396b6e365c5bb86d0220840c0d85abdd2e12a91db912c.",
-          "Separate authenticated read-only post-failure query found Staff B still had zero shifts, zero open shifts and zero location samples since the attempt. No prior Staff A shift was touched. See GAN_BATUACH_PRODUCT_STAFF_TIME_JOURNEY_20261107.md."
+          "Separate authenticated read-only post-failure query found Staff B still had zero shifts, zero open shifts and zero location samples since the attempt. No prior Staff A shift was touched. See GAN_BATUACH_PRODUCT_STAFF_TIME_JOURNEY_20261107.md.",
+          "At exact merged Development ac713106 with LOCAL_SUPABASE and explicit Webpack default, one bounded Staff B UI/API/database journey passed 22/22 checks: manual check-in, duplicate reuse, same-shift checkout, reload, same-Garden Manager read and foreign-role/known-ID denials. Protected 0600 receipt SHA256 38bf1860fcd792d75f4bf79ed07e7a5a3922a614508ca110100d97a6dabc2a32. Simulated browser geolocation only; not physical GPS proof.",
+          "All four images from the mutation journey captured the transient splash and are NOT_VISUAL_EVIDENCE. A separate GET-only capture passed 19/19 checks with 34 browser GETs, zero browser mutation attempts, no GPS/external request, and unchanged 1 QA shift / 3 samples / 5 audit events before and after. Staff and Manager actual screen images were visually inspected after splash opacity 0; protected receipt SHA256 2680be44cc88b17557d9639d5d0b5dfbfb2754199c85fd8cc3bb87ea41979145."
         ],
-        "classification": "MANAGEMENT_STAFF_TIME_SYNTHETIC_DEVELOPMENT_QA_BLOCKED_BY_RUNTIME",
-        "limits": "No Staff check-in/out, Manager same-Garden read, foreign-role known-ID denial, UI captures or real GPS/geofence proof was obtained. The cross-route Suspense/reload cause is unproven. No Product fix is claimed."
+        "classification": "MANAGEMENT_STAFF_TIME_SYNTHETIC_DEVELOPMENT_SCOPED_VERIFIED_WITH_SEPARATE_GET_ONLY_VISUAL_CAPTURE",
+        "limits": "Prior Turbopack cross-route Suspense/reload root cause remains unproven. Webpack is a Development mitigation. Simulated geolocation is not physical GPS proof; the two capture-only images establish current Staff/Manager rendering, not owner visual-reference acceptance or full Product/security qualification."
       },
       "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "4ca595e6b48472152ddef79623db5718a0c2e365", "commit": "5fa453954a52c3fe6a93a3940c75f234d1a1824c", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/336"], "sourceAncestryVerified": true},
       "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
       "migrations": [], "migrationOrder": [],
-      "localVerification": "CANONICAL_STAFF_TIME_BROWSER_RETRY_LOOP_PREVENTED_UNBOUNDED_REQUESTS_NO_DATA_MUTATION_NOT_FULL_JOURNEY",
-      "releaseEligibility": "NOT_READY_STAFF_JOURNEY_AND_CROSS_ROUTE_RUNTIME_CAUSE_UNRESOLVED_FULL_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "localVerification": "SCOPED_STAFF_TIME_WEBPACK_JOURNEY_22_OF_22_GET_ONLY_CAPTURE_19_OF_19_NOT_CUMULATIVE_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "QA harness and failure receipt are remotely preserved and integrated; make the canonical Development launcher default to supported Webpack, then repeat one freshly admitted guarded Staff time journey on the exact merged head. The cross-route Turbopack failure cause remains unresolved. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Preserve the successful private Staff journey and GET-only capture receipts, complete independent full Product/security and external owner visual review, and investigate Turbopack's intermittent root cause separately if needed. Do not repeat the completed Staff mutation journey. No main, Production or RELEASE-GAP-01."
     },
     {
       "id": "codex/development-runtime-stability-20261107",
@@ -15137,22 +15139,22 @@
       "title": "Explicit Webpack default for canonical Development launcher; Turbopack diagnostic opt-in",
       "owner": "Product Development runtime stability executor; one Development integration owner",
       "sourceBranch": "codex/development-runtime-stability-20261107",
-      "sourceCommits": ["4c038830dbe34f7f9306103de6d8e92b00a87fdb"],
-      "state": "VALIDATED_ON_BRANCH",
-      "preservation": {"remoteVerified": false, "remoteRefs": [], "status": "LOCAL_SOURCE_COMMITTED_PENDING_PUSH_AND_CI"},
+      "sourceCommits": ["4c038830dbe34f7f9306103de6d8e92b00a87fdb", "1ec92306720af04151229bdb7d4b84988d2e9857"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/development-runtime-stability-20261107@1ec92306720af04151229bdb7d4b84988d2e9857", "origin/integration/development@ac713106d1cec367749323c97eee024287fb8aa2"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"},
       "validation": {
-        "status": "FOCUSED_PARSER_TESTS_10_OF_10_PASS_RUNTIME_NOT_YET_RUN",
-        "evidence": ["From verified remote Development 5fa453954a52c3fe6a93a3940c75f234d1a1824c, the installed Next 16.4.3 CLI and local guide support --webpack; default-Turbopack Staff and Inspector failures are recorded separately without a proven root cause.", "Focused integration workflow parser/environment/policy suite passed 10/10 after materializing the tracked AGENTS.md in this sparse feature worktree; the initial 9/10 run failed only because that tracked file was omitted by sparse checkout."],
+        "status": "EXACT_HEAD_SIX_CI_QUALITY_MANAGEMENT_SNYK_GREEN_POSTMERGE_19_WORKFLOW_259_DRIFT_STAFF_22_CAPTURE_19_PASS",
+        "evidence": ["From verified remote Development 5fa453954a52c3fe6a93a3940c75f234d1a1824c, the installed Next 16.4.3 CLI and local guide support --webpack; default-Turbopack Staff and Inspector failures are recorded separately without a proven root cause.", "Focused integration workflow parser/environment/policy suite passed 10/10 after materializing the tracked AGENTS.md in this sparse feature worktree; the initial 9/10 run failed only because that tracked file was omitted by sparse checkout.", "PR #337 exact head 1ec92306720af04151229bdb7d4b84988d2e9857 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry merge ac713106d1cec367749323c97eee024287fb8aa2 has parents 5fa453954a52c3fe6a93a3940c75f234d1a1824c and 1ec92306720af04151229bdb7d4b84988d2e9857. Postmerge workflow 19/19, ledger schema 220 and isolated drift 259/259 passed.", "Canonical launcher printed WEBPACK_STABLE_DEVELOPMENT, LOCAL_SUPABASE, loopback port 3000 and exact merge SHA. One bounded Staff journey passed 22/22, then a separate GET-only capture passed 19/19 without business-table count changes. Protected receipt SHA256 values: 38bf1860fcd792d75f4bf79ed07e7a5a3922a614508ca110100d97a6dabc2a32 and 2680be44cc88b17557d9639d5d0b5dfbfb2754199c85fd8cc3bb87ea41979145."],
         "classification": "CANONICAL_DEVELOPMENT_LAUNCHER_LOCAL_MITIGATION_ONLY",
-        "limits": "Parser tests do not prove a stable Product runtime, Staff time journey, or Turbopack root cause. No Product/Auth/schema/RLS/provider/DO core change."
+        "limits": "This is a local Development default and one scoped Staff journey, not a Turbopack root-cause fix, general runtime guarantee, physical GPS proof, full Product/security result, owner visual approval or cost release gate. No Product/Auth/schema/RLS/provider/DO core change."
       },
-      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "5fa453954a52c3fe6a93a3940c75f234d1a1824c", "commit": null, "pullRequests": [], "sourceAncestryVerified": false},
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "5fa453954a52c3fe6a93a3940c75f234d1a1824c", "commit": "ac713106d1cec367749323c97eee024287fb8aa2", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/337"], "sourceAncestryVerified": true},
       "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": ["codex/staff-time-journey-20261107"]},
       "migrations": [], "migrationOrder": [],
-      "localVerification": "PARSER_ONLY_NO_RUNTIME_YET",
-      "releaseEligibility": "NOT_READY_STAFF_JOURNEY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "localVerification": "CANONICAL_WEBPACK_LAUNCH_POSTMERGE_19_WORKFLOW_259_DRIFT_22_STAFF_JOURNEY_19_GET_ONLY_CAPTURE_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Commit/push focused launcher change, pass exact-head CI, ancestry-merge to Development, then run one guarded Staff time journey on clean merged Webpack-default canonical Product after fresh resource admission. Preserve any failure receipt; no bundler hopping, main, Production or RELEASE-GAP-01."
+      "nextAction": "The scoped Webpack-default mitigation and Staff time evidence are preserved; retain the prior Turbo cause as unresolved. Next owner-coordinated Product/UX and cumulative security/cost gates remain. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
