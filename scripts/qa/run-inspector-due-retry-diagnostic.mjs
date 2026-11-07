@@ -1,19 +1,21 @@
 // One read-only, capped default-Turbopack Development navigation. No inspection mutation.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createRequestGuard, fingerprint, persistReceipt, RUN_DEADLINE_MS, TARGET_PATH, withinDeadline, boundedCleanup } from "./inspector-retry-guard.mjs";
+import { createRequestGuard, errorCategory, fingerprint, persistReceipt, RUN_DEADLINE_MS, sanitizeError, sanitizeInitiator, TARGET_PATH, withinDeadline, boundedCleanup } from "./inspector-retry-guard.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const app = "http://127.0.0.1:3000";
 const expectedSha = process.argv[2];
 const started = Date.now();
-const observed = { task: "GB-PRODUCT-DEVELOPMENT-RETRY-LOOP-DIAGNOSIS-20261107", startedAt: new Date(started).toISOString(), expectedSha, environment: "DEVELOPMENT / INTEGRATION", route: TARGET_PATH, readOnly: true, status: "BROKEN", firstError: null, responses: [], requests: [], cleanup: "NOT_STARTED", elapsedMs: null };
+const observed = { task: "GB-PRODUCT-RETRY-FIRST-STACK-20261107", startedAt: new Date(started).toISOString(), expectedSha, environment: "DEVELOPMENT / INTEGRATION", route: TARGET_PATH, readOnly: true, status: "BROKEN", firstError: null, responses: [], requests: [], cdpRequests: [], consoleHints: [], cleanup: "NOT_STARTED", elapsedMs: null };
 let browser;
 let context;
 let auth;
+let cdp;
 let receiptPath;
 let exitCode = 1;
 let resolveActionable;
@@ -21,14 +23,19 @@ const actionable = new Promise((resolve) => { resolveActionable = resolve; });
 
 function firstError(kind, value) {
   if (observed.firstError) return;
-  observed.firstError = { kind, fingerprint: fingerprint(value) };
+  observed.firstError = {
+    at: new Date().toISOString(), kind,
+    ...(kind === "PAGE_ERROR" ? sanitizeError(value) : { category: kind, message: "OMITTED_UNTRUSTED", fingerprint: fingerprint(value), frames: [] }),
+  };
   resolveActionable();
 }
 
 try {
   assert.match(expectedSha ?? "", /^[a-f0-9]{40}$/);
+  observed.toolSha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8", env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" } }).trim();
+  assert.match(observed.toolSha, /^[a-f0-9]{40}$/);
   const privateConfig = JSON.parse(readFileSync(resolve(root, "development/database/environment.json"), "utf8"));
-  receiptPath = resolve(privateConfig.runtimeRoot, "inspector-retry-loop-diagnosis-20261107", "evidence", `receipt-${Date.now()}.json`);
+  receiptPath = resolve(privateConfig.runtimeRoot, "inspector-first-stack-20261107", "evidence", `receipt-${Date.now()}.json`);
   const rel = relative(privateConfig.runtimeRoot, receiptPath);
   assert.ok(rel && rel !== ".." && !rel.startsWith(`..${sep}`));
   const { config } = await import("../development/local-database.mjs");
@@ -66,6 +73,10 @@ try {
     assert.equal(login.error, null, "Synthetic Inspector login failed");
     auth.auth.stopAutoRefresh();
 
+    // Keep Playwright/Chrome's disposable profile on the approved external drive.
+    const browserTmp = resolve(config.runtimeRoot, "inspector-first-stack-20261107", "tmp");
+    mkdirSync(browserTmp, { recursive: true, mode: 0o700 });
+    process.env.TMPDIR = browserTmp;
     const require = createRequire(import.meta.url);
     const { chromium } = require("/Users/danielderi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
     browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true, timeout: 10_000 });
@@ -75,9 +86,23 @@ try {
     page.setDefaultTimeout(15_000);
     const guard = createRequestGuard({ origin: app, onLimit: () => firstError("REQUEST_CAP", "target document/RSC request 7 blocked") });
     observed.requests = guard.attempts;
+    cdp = await context.newCDPSession(page);
+    await cdp.send("Debugger.enable");
+    await cdp.send("Network.enable");
+    cdp.on("Network.requestWillBeSent", (event) => {
+      try {
+        const url = new URL(event.request.url);
+        if (url.origin !== app || url.pathname !== TARGET_PATH || observed.cdpRequests.length >= 12) return;
+        observed.cdpRequests.push({ at: new Date().toISOString(), resource: event.type === "Document" ? "document" : "other", initiator: sanitizeInitiator(event.initiator) });
+      } catch { /* The passive observer never changes network behavior. */ }
+    });
     await page.route("**/dashboard/inspector/inspections/due**", (route) => guard.route(route));
-    page.on("pageerror", (error) => firstError("PAGE_ERROR", error.stack || error.name));
-    page.on("console", (message) => { if (message.type() === "error") firstError("CONSOLE_ERROR", message.text()); });
+    page.on("pageerror", (error) => firstError("PAGE_ERROR", error));
+    page.on("console", (message) => {
+      if (!["error", "warning"].includes(message.type()) || observed.consoleHints.length >= 6) return;
+      const category = errorCategory(message.text());
+      if (category !== "UNCLASSIFIED") observed.consoleHints.push({ at: new Date().toISOString(), category });
+    });
     page.on("response", (response) => {
       const url = new URL(response.url());
       if (url.origin !== app || url.pathname !== TARGET_PATH) return;
@@ -105,6 +130,7 @@ try {
 } finally {
   auth?.auth.stopAutoRefresh();
   const cleanupErrors = [];
+  if (cdp) try { await boundedCleanup(() => cdp.detach()); } catch (error) { cleanupErrors.push(fingerprint(error)); }
   if (context) try { await boundedCleanup(() => context.close()); } catch (error) { cleanupErrors.push(fingerprint(error)); }
   if (browser) try { await boundedCleanup(() => browser.close()); } catch (error) {
     cleanupErrors.push(fingerprint(error));
