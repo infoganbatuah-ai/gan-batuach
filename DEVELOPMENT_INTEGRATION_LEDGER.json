@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T07:02:31Z",
+  "updatedAt": "2026-11-07T07:16:59Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14951,28 +14951,30 @@
       "title": "Distinguish Inspector workspace assignment and operational read failures from verified empty data",
       "owner": "Product Inspector workspace executor; one Development integration owner",
       "sourceBranch": "codex/inspector-workspace-read-reliability-20261107",
-      "sourceCommits": ["691c0d148a1cd7b1776f3ddd5bbfd7daf50641ac"],
-      "state": "VALIDATED_ON_BRANCH",
-      "preservation": {"remoteVerified": false, "remoteRefs": [], "status": "LOCAL_VALIDATED_PENDING_PUSH_AND_EXACT_HEAD_CI"},
+      "sourceCommits": ["691c0d148a1cd7b1776f3ddd5bbfd7daf50641ac", "c0d789f09f78b9626a815c9fae026f06eda12d9d"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/inspector-workspace-read-reliability-20261107@c0d789f09f78b9626a815c9fae026f06eda12d9d", "origin/integration/development@faabf4c44a37da3b84c2e4a6295e2ed2555b408d"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT_NO_PREVIEW_DEPLOYMENT_OBSERVED"},
       "validation": {
-        "status": "FOCUSED_SOURCE_AND_FEATURE_BROWSER_PASS_EXACT_HEAD_CI_PENDING",
+        "status": "EXACT_PR_HEAD_CI_8_OF_8_PLUS_SNYK_POSTMERGE_SOURCE_33_OF_33_AND_SCOPED_BROWSER_OBSERVED",
         "evidence": [
           "Actual Inspector Server Component fixture passed 10/10 valid-empty, populated, assignment-failure, partial-secondary-failure and denied-before-read cases; existing operational-role regression passed 23/23.",
           "Typecheck passed; lint baseline passed with zero regressions; feature Next 16.4.3 build passed after an initial sandbox internal-port denial.",
           "Guarded feature-only LOCAL_SUPABASE browser read check at 691c0d148a1cd7b1776f3ddd5bbfd7daf50641ac passed assigned Inspector, approved-unassigned Inspector and denied Staff; zero page errors; port 3100 stopped.",
-          "No schema, RLS, API, provider, Digital Observer core, package/lock, main or Production change. See GAN_BATUACH_PRODUCT_INSPECTOR_WORKSPACE_READ_RELIABILITY_20261107.md."
+          "No schema, RLS, API, provider, Digital Observer core, package/lock, main or Production change. See GAN_BATUACH_PRODUCT_INSPECTOR_WORKSPACE_READ_RELIABILITY_20261107.md.",
+          "PR #329 exact head c0d789f09f78b9626a815c9fae026f06eda12d9d passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge faabf4c44a37da3b84c2e4a6295e2ed2555b408d has parents 4264cf865518cd93062d0b0bed206967c05c8cab and c0d789f09f78b9626a815c9fae026f06eda12d9d. Vercel SHA lookup returned zero deployments for exact PR head; live trigger settings were not independently re-read.",
+          "Clean canonical Development worktree matched remote merge; post-merge focused source and operational-role tests passed 33/33, ledger schema 215 units, and isolated read-only migration drift 259/259. Canonical default-Turbopack Development server rendered assigned Inspector and approved-unassigned Inspector at HTTP 200 and redirected Staff; zero page errors were observed, server stopped and port 3000 free. The browser assertions printed before its cleanup process was interrupted after a hang; this is an observed route smoke, not a clean runner-exit claim."
         ],
         "classification": "MANAGEMENT_INSPECTOR_SCOPED_SOURCE_AND_SYNTHETIC_DEVELOPMENT_BROWSER",
-        "limits": "Forced live read failure, broader Inspector role/security, cumulative Product, owner visual, historical Documents Turbopack cause and invoice-backed cost qualification remain open."
+        "limits": "Forced live read failure, clean browser-runner teardown, broader Inspector role/security, cumulative Product, owner visual, historical Documents Turbopack cause and invoice-backed cost qualification remain open."
       },
-      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "4264cf865518cd93062d0b0bed206967c05c8cab", "commit": null, "pullRequests": []},
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "4264cf865518cd93062d0b0bed206967c05c8cab", "commit": "faabf4c44a37da3b84c2e4a6295e2ed2555b408d", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/329"], "sourceAncestryVerified": true},
       "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "FEATURE_INSPECTOR_ASSIGNED_UNASSIGNED_DENIED_BROWSER_PASS_NOT_CANONICAL_POSTMERGE_PRODUCT",
+      "localVerification": "CANONICAL_INSPECTOR_ASSIGNED_UNASSIGNED_DENIED_ROUTE_OBSERVED_SOURCE_33_AND_LEDGER_215_AND_DRIFT_259_PASS_NOT_FULL_PRODUCT",
       "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Push exact source/evidence branch, require six CI gates plus Canonical quality, Management context and scanner, merge only to integration/development, then verify post-merge Inspector smoke and close ledger."
+      "nextAction": "Hand off to the canonical Product coordinator. Forced live read-error, browser-runner teardown, broader Product/security, owner visual and invoice-backed cost gates stay separately open. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
