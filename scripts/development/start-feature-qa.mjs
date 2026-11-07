@@ -14,8 +14,8 @@ const canonicalRoot = resolve(projectRoot, 'worktrees/development-integration');
 const port = 3100;
 const fullSha = /^[0-9a-f]{40}$/;
 
-export function featureRuntimePaths(head) {
-  const runtimeRoot = resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach', 'feature-qa', head);
+export function featureRuntimePaths(head, project = projectRoot) {
+  const runtimeRoot = resolve(project, '../..', 'Development/gan-batuach', 'feature-qa', head);
   const home = resolve(runtimeRoot, 'home');
   return { runtimeRoot, home, temp: resolve(home, 'tmp') };
 }
@@ -47,7 +47,7 @@ export function validateFeatureQaIdentity({ expectedSha, head, branch, dirty, sp
   if (output !== resolve(featureRoot, '.next') || inside(canonical, output) || output === resolve(canonical, '.next')) {
     throw Error('Feature QA output must be the feature worktree cache only.');
   }
-  if (!inside(resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach'), home)
+  if (!inside(resolve(project, '../..', 'Development/gan-batuach'), home)
     || !inside(home, temp) || inside(canonical, home) || inside(featureRoot, home)) {
     throw Error('Feature QA home/temp must be isolated on the external Development volume.');
   }
@@ -88,8 +88,8 @@ export function assertOwnedDependencyDirectory(featureRoot, dependencyRoot) {
   }
 }
 
-export function validateDatabaseConfig(databaseConfig) {
-  const isolatedRoot = resolve('/Volumes/DIGITAL_OBSERVER/Development/gan-batuach');
+export function validateDatabaseConfig(databaseConfig, project = projectRoot) {
+  const isolatedRoot = resolve(project, '../..', 'Development/gan-batuach');
   if (databaseConfig.environment !== 'DEVELOPMENT / INTEGRATION'
     || databaseConfig.productionAllowed !== false
     || databaseConfig.projectId !== 'gan-batuach-integration'
