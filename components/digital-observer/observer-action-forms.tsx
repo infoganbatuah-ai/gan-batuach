@@ -521,30 +521,78 @@ function ScopedObserverCameraInlineRename({ camera }: Parameters<typeof Observer
   return <button className="do-camera-rename-trigger" type="button" onClick={(event) => { const lifetime = owner.current; if (!lifetime.active || lifetime.editing || lifetime.session !== session) return; event.preventDefault(); event.stopPropagation(); lifetime.session += 1; setSession(lifetime.session); lifetime.editing = true; lifetime.operation += 1; lifetime.busy = false; lifetime.revision = 0; setRenderedRevision(0); setEditing(true); }} aria-label={`עריכת השם ${camera.display_name || "מצלמה"}`} title="עריכת שם מצלמה"><Pencil /></button>;
 }
 
-export function ObserverRuleForm({ siteId, cameras }: { siteId: string; cameras: any[] }) {
+function useObserverSiteFormSubmission(failureMessage: string, resetOnSuccess: boolean) {
   const router = useRouter();
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const data = new FormData(event.currentTarget);
-    setState({ busy: true, error: "", message: "" });
-    try { const result = await postJson("/api/digital-observer/watch-requests", { action: "create", observer_site_id: siteId, camera_source_id: data.get("camera_source_id") || null, title: data.get("title"), description: data.get("description"), watch_type: data.get("watch_type"), priority: Number(data.get("priority") || 5), schedule_mode: data.get("schedule_mode") }); setState({ busy: false, error: "", message: result.message }); event.currentTarget.reset(); router.refresh(); }
-    catch (error) { setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לשמור כלל", message: "" }); }
+  const formRef = useRef<HTMLFormElement>(null);
+  const owner = useRef({ active: true, operation: 0, busy: false, revision: 0 });
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
+  function markEdited() {
+    if (owner.current.active) owner.current.revision += 1;
   }
-  return <form className="do-panel do-form-section do-observer-chat" onSubmit={submit}><h2>דברו עם התצפיתן</h2><p>כתבו מה חשוב לכם והוא יהפוך את הבקשה לכלל מסודר. הכלל נשמר מיד; ניתוח וידאו יופעל רק כשהספקים מחוברים.</p><div className="do-form-grid"><label className="do-field"><span>שם הכלל</span><input name="title" required minLength={2} placeholder="למשל: תנועה אחרי שעות" /></label><label className="do-field"><span>מצלמה</span><select name="camera_source_id"><option value="">כל המצלמות</option>{cameras.map((camera) => <option key={camera.id} value={camera.id}>{camera.display_name}</option>)}</select></label><label className="do-field"><span>סוג</span><select name="watch_type"><option value="after_hours_activity">פעילות מחוץ לשעות</option><option value="restricted_area_entry">כניסה לאזור מוגבל</option><option value="camera_obstruction">מצלמה מכוסה</option><option value="door_left_open">דלת נשארה פתוחה</option><option value="movement_in_area">תנועה באזור</option><option value="custom_text_instruction">הנחיה מותאמת</option></select></label><label className="do-field"><span>לוח זמנים</span><select name="schedule_mode"><option value="always_active">תמיד</option><option value="business_hours">שעות פעילות</option><option value="night_only">לילה</option></select></label><label className="do-field full"><span>מה חשוב לבדוק?</span><textarea name="description" rows={4} required placeholder="לדוגמה: שים לב אם דלת הכניסה נשארת פתוחה יותר מחמש דקות אחרי 22:00" /></label><label className="do-field"><span>רמת דחיפות 1–10</span><input name="priority" type="number" min={1} max={10} defaultValue={5} /></label></div><button className="do-button primary" disabled={state.busy} type="submit"><Radar /> שמירת בקשה לתצפיתן</button><ResultMessage state={state} /></form>;
+  async function submit(event: FormEvent<HTMLFormElement>, path: string, buildBody: (data: FormData) => unknown) {
+    const lifetime = owner.current;
+    if (!lifetime.active) return;
+    event.preventDefault();
+    if (lifetime.busy) return;
+    const form = event.currentTarget;
+    if (form !== formRef.current) return;
+    lifetime.busy = true;
+    const operation = ++lifetime.operation;
+    const submittedRevision = lifetime.revision;
+    const isCurrent = () => lifetime.active && lifetime.operation === operation && formRef.current === form;
+    try {
+      const data = new FormData(form);
+      setState({ busy: true, error: "", message: "" });
+      const result = await postJson(path, buildBody(data), undefined, isCurrent);
+      if (!isCurrent()) return;
+      const unchanged = lifetime.revision === submittedRevision;
+      setState({ busy: false, error: "", message: unchanged ? result.message : `${result.message} השינויים החדשים בטופס טרם נשלחו.` });
+      if (!isCurrent() || !unchanged) return;
+      if (resetOnSuccess) form.reset();
+      if (!isCurrent() || lifetime.revision !== submittedRevision) return;
+      router.refresh();
+    } catch (error) {
+      if (!isCurrent()) return;
+      setState({ busy: false, error: error instanceof Error ? error.message : failureMessage, message: "" });
+    } finally {
+      if (isCurrent()) lifetime.busy = false;
+    }
+  }
+  return { state, formRef, markEdited, submit };
+}
+
+export function ObserverRuleForm({ siteId, cameras }: { siteId: string; cameras: any[] }) {
+  return <ScopedObserverRuleForm key={siteId} siteId={siteId} cameras={cameras} />;
+}
+
+function ScopedObserverRuleForm({ siteId, cameras }: Parameters<typeof ObserverRuleForm>[0]) {
+  const { state, formRef, markEdited, submit } = useObserverSiteFormSubmission("לא ניתן לשמור כלל", true);
+  return <form ref={formRef} className="do-panel do-form-section do-observer-chat" onChange={markEdited} onSubmit={event => submit(event, "/api/digital-observer/watch-requests", data => ({ action: "create", observer_site_id: siteId, camera_source_id: data.get("camera_source_id") || null, title: data.get("title"), description: data.get("description"), watch_type: data.get("watch_type"), priority: Number(data.get("priority") || 5), schedule_mode: data.get("schedule_mode") }))}><h2>דברו עם התצפיתן</h2><p>כתבו מה חשוב לכם והוא יהפוך את הבקשה לכלל מסודר. הכלל נשמר מיד; ניתוח וידאו יופעל רק כשהספקים מחוברים.</p><div className="do-form-grid"><label className="do-field"><span>שם הכלל</span><input name="title" required minLength={2} placeholder="למשל: תנועה אחרי שעות" /></label><label className="do-field"><span>מצלמה</span><select name="camera_source_id"><option value="">כל המצלמות</option>{cameras.map((camera) => <option key={camera.id} value={camera.id}>{camera.display_name}</option>)}</select></label><label className="do-field"><span>סוג</span><select name="watch_type"><option value="after_hours_activity">פעילות מחוץ לשעות</option><option value="restricted_area_entry">כניסה לאזור מוגבל</option><option value="camera_obstruction">מצלמה מכוסה</option><option value="door_left_open">דלת נשארה פתוחה</option><option value="movement_in_area">תנועה באזור</option><option value="custom_text_instruction">הנחיה מותאמת</option></select></label><label className="do-field"><span>לוח זמנים</span><select name="schedule_mode"><option value="always_active">תמיד</option><option value="business_hours">שעות פעילות</option><option value="night_only">לילה</option></select></label><label className="do-field full"><span>מה חשוב לבדוק?</span><textarea name="description" rows={4} required placeholder="לדוגמה: שים לב אם דלת הכניסה נשארת פתוחה יותר מחמש דקות אחרי 22:00" /></label><label className="do-field"><span>רמת דחיפות 1–10</span><input name="priority" type="number" min={1} max={10} defaultValue={5} /></label></div><button className="do-button primary" disabled={state.busy} type="submit"><Radar /> שמירת בקשה לתצפיתן</button><ResultMessage state={state} /></form>;
 }
 
 export function ObserverKnownPersonForm({ siteId }: { siteId: string }) {
-  const router = useRouter(); const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
-  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); setState({ busy: true, error: "", message: "" }); try { const result = await postJson("/api/digital-observer/known-people", { action: "create", observer_site_id: siteId, display_name: data.get("display_name"), relationship_label: data.get("relationship_label"), consent_confirmed: data.get("consent") === "on", notify_on_detection: data.get("notify") === "on" }); setState({ busy: false, error: "", message: result.message }); event.currentTarget.reset(); router.refresh(); } catch (error) { setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לשמור", message: "" }); } }
-  return <form className="do-panel do-form-section" onSubmit={submit}><h2>הוספת אדם מוכר</h2><p>המערכת לא מפעילה זיהוי פנים נסתר. תמונה ועיבוד ביומטרי יתווספו רק לאחר הסכמה וחיבור מאושר.</p><div className="do-form-grid"><label className="do-field"><span>שם</span><input name="display_name" required minLength={2} /></label><label className="do-field"><span>קשר</span><input name="relationship_label" placeholder="בן משפחה / עובד / בעל גישה" /></label></div><label className="do-check"><input name="consent" type="checkbox" /><span>קיימת הסכמה מפורשת לתהליך ההגדרה</span></label><label className="do-check"><input name="notify" type="checkbox" /><span>להכין התראה כאשר הזיהוי יהיה פעיל</span></label><button className="do-button primary" type="submit" disabled={state.busy}>שמירה במצב מוכנות</button><ResultMessage state={state} /></form>;
+  return <ScopedObserverKnownPersonForm key={siteId} siteId={siteId} />;
+}
+
+function ScopedObserverKnownPersonForm({ siteId }: Parameters<typeof ObserverKnownPersonForm>[0]) {
+  const { state, formRef, markEdited, submit } = useObserverSiteFormSubmission("לא ניתן לשמור", true);
+  return <form ref={formRef} className="do-panel do-form-section" onChange={markEdited} onSubmit={event => submit(event, "/api/digital-observer/known-people", data => ({ action: "create", observer_site_id: siteId, display_name: data.get("display_name"), relationship_label: data.get("relationship_label"), consent_confirmed: data.get("consent") === "on", notify_on_detection: data.get("notify") === "on" }))}><h2>הוספת אדם מוכר</h2><p>המערכת לא מפעילה זיהוי פנים נסתר. תמונה ועיבוד ביומטרי יתווספו רק לאחר הסכמה וחיבור מאושר.</p><div className="do-form-grid"><label className="do-field"><span>שם</span><input name="display_name" required minLength={2} /></label><label className="do-field"><span>קשר</span><input name="relationship_label" placeholder="בן משפחה / עובד / בעל גישה" /></label></div><label className="do-check"><input name="consent" type="checkbox" /><span>קיימת הסכמה מפורשת לתהליך ההגדרה</span></label><label className="do-check"><input name="notify" type="checkbox" /><span>להכין התראה כאשר הזיהוי יהיה פעיל</span></label><button className="do-button primary" type="submit" disabled={state.busy}>שמירה במצב מוכנות</button><ResultMessage state={state} /></form>;
 }
 
 export function ObserverSettingsForm({ siteId, schedule, channels, consent = {} }: { siteId: string; schedule?: any; channels: any[]; consent?: Record<string, unknown> }) {
-  const router = useRouter(); const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
+  return <ScopedObserverSettingsForm key={siteId} siteId={siteId} schedule={schedule} channels={channels} consent={consent} />;
+}
+
+function ScopedObserverSettingsForm({ siteId, schedule, channels, consent = {} }: Parameters<typeof ObserverSettingsForm>[0]) {
+  const { state, formRef, markEdited, submit } = useObserverSiteFormSubmission("לא ניתן לשמור", false);
   const enabled = (channel: string) => Boolean(channels.find((item) => item.channel === channel)?.enabled);
-  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); setState({ busy: true, error: "", message: "" }); try { const result = await postJson("/api/digital-observer/settings", { observer_site_id: siteId, schedule_mode: data.get("schedule_mode"), quiet_start: data.get("quiet_start") || undefined, quiet_end: data.get("quiet_end") || undefined, in_app: data.get("in_app") === "on", email: data.get("email") === "on", push: data.get("push") === "on", sms: data.get("sms") === "on", whatsapp: data.get("whatsapp") === "on", monitoring_consent: data.get("monitoring_consent") === "on", safe_action_consent: data.get("safe_action_consent") === "on", model_improvement_consent: data.get("model_improvement_consent") === "on" }); setState({ busy: false, error: "", message: result.message }); router.refresh(); } catch (error) { setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לשמור", message: "" }); } }
   const quiet = schedule?.schedule?.quiet_hours ?? {};
-  return <form className="do-panel do-form-section" onSubmit={submit}>
+  return <form ref={formRef} className="do-panel do-form-section" onChange={markEdited} onSubmit={event => submit(event, "/api/digital-observer/settings", data => ({ observer_site_id: siteId, schedule_mode: data.get("schedule_mode"), quiet_start: data.get("quiet_start") || undefined, quiet_end: data.get("quiet_end") || undefined, in_app: data.get("in_app") === "on", email: data.get("email") === "on", push: data.get("push") === "on", sms: data.get("sms") === "on", whatsapp: data.get("whatsapp") === "on", monitoring_consent: data.get("monitoring_consent") === "on", safe_action_consent: data.get("safe_action_consent") === "on", model_improvement_consent: data.get("model_improvement_consent") === "on" }))}>
     <h2>ניטור והתראות</h2>
     <div className="do-form-grid"><label className="do-field"><span>מצב ניטור</span><select name="schedule_mode" defaultValue={schedule?.schedule_mode || "event_only"}><option value="event_only">סביב אירועים בלבד</option><option value="night_only">לילה</option><option value="business_hours">שעות פעילות</option><option value="custom_schedule">לוח מותאם</option><option value="24_7">24/7 לאחר אישור הפעלה</option></select></label><label className="do-field"><span>שעות שקטות</span><span className="do-time-fields"><input aria-label="התחלה" name="quiet_start" type="time" defaultValue={quiet.start || "23:00"} /><input aria-label="סיום" name="quiet_end" type="time" defaultValue={quiet.end || "06:00"} /></span></label></div>
     <div className="do-channel-grid"><label><input name="in_app" type="checkbox" defaultChecked={enabled("in_app") || !channels.length} /><Bell /><span><strong>בתוך האפליקציה</strong><small>Sandbox פנימי ללא ספק חיצוני</small></span></label><label><input name="email" type="checkbox" defaultChecked={enabled("email")} /><Bell /><span><strong>דוא״ל</strong><small>העדפה בלבד; הספק כבוי</small></span></label><label><input name="push" type="checkbox" defaultChecked={enabled("push")} /><Bell /><span><strong>Push</strong><small>העדפה ורישום מכשיר בלבד; מסירה חיצונית כבויה</small></span></label><label><input name="sms" type="checkbox" defaultChecked={enabled("sms")} /><Bell /><span><strong>SMS</strong><small>העדפה בלבד; הספק כבוי</small></span></label><label><input name="whatsapp" type="checkbox" defaultChecked={enabled("whatsapp")} /><Bell /><span><strong>WhatsApp</strong><small>העדפה בלבד; הספק כבוי</small></span></label></div>
