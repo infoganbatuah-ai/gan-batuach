@@ -6,10 +6,10 @@ import { resolve } from 'node:path';
 import { assertOwnedDependencyDirectory, featureRuntimePaths, selectFeatureBackendConfig, validateDatabaseConfig, validateFeatureQaPreflight, verifyLockedDependencies } from '../development/start-feature-qa.mjs';
 
 const sha = 'a'.repeat(40);
-const project = '/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach';
+const project = resolve(tmpdir(), 'fixture-volume', 'Projects', 'Gan-Batuach');
 const canonical = resolve(project, 'worktrees/development-integration');
 const featureRoot = resolve(project, 'worktrees/feature-fixture');
-const { home, temp } = featureRuntimePaths(sha);
+const { home, temp } = featureRuntimePaths(sha, project);
 const valid = () => ({
   expectedSha: sha, head: sha, branch: 'codex/feature-fixture', dirty: false, sparse: false,
   featureRoot, project, canonical, output: resolve(featureRoot, '.next'),
@@ -61,12 +61,13 @@ test('remote backend, unapproved environment and live activation fail closed', (
 });
 
 test('database configuration must be the named local isolated project', () => {
+  const isolatedRoot = resolve(project, '../..', 'Development/gan-batuach');
   const config = { environment: 'DEVELOPMENT / INTEGRATION', productionAllowed: false,
-    projectId: 'gan-batuach-integration', runtimeRoot: '/Volumes/DIGITAL_OBSERVER/Development/gan-batuach/runtime' };
-  assert.doesNotThrow(() => validateDatabaseConfig(config));
-  assert.doesNotThrow(() => validateDatabaseConfig({ ...config, runtimeRoot: '/Volumes/DIGITAL_OBSERVER/Development/gan-batuach' }));
-  assert.throws(() => validateDatabaseConfig({ ...config, productionAllowed: true }), /isolated local Development/);
-  assert.throws(() => validateDatabaseConfig({ ...config, runtimeRoot: '/tmp/production' }), /isolated local Development/);
+    projectId: 'gan-batuach-integration', runtimeRoot: resolve(isolatedRoot, 'runtime') };
+  assert.doesNotThrow(() => validateDatabaseConfig(config, project));
+  assert.doesNotThrow(() => validateDatabaseConfig({ ...config, runtimeRoot: isolatedRoot }, project));
+  assert.throws(() => validateDatabaseConfig({ ...config, productionAllowed: true }, project), /isolated local Development/);
+  assert.throws(() => validateDatabaseConfig({ ...config, runtimeRoot: '/tmp/production' }, project), /isolated local Development/);
 });
 
 test('feature child receives public loopback config, never service or invitation secrets', () => {
