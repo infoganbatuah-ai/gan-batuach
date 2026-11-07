@@ -119,7 +119,12 @@ try {
   await form.locator('select[name="linked_child_id"]').selectOption(childId);
   await form.locator('input[name="subject"]').fill(title);
   await form.locator('textarea[name="body"]').fill(firstBody);
-  const createdPromise = parentPage.waitForResponse((response) => new URL(response.url()).pathname === "/api/communication/threads" && response.request().method() === "POST");
+  parentPage.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/communication/threads" && request.method() === "POST") {
+      evidence.createRequestKey = request.headers()["idempotency-key"];
+    }
+  });
+  const createdPromise = parentPage.waitForResponse((response) => new URL(response.url()).pathname === "/api/communication/threads" && response.request().method() === "POST", { timeout: 12_000 });
   await form.locator('button[type="submit"]').click();
   const created = await createdPromise;
   const createdPayload = (await created.json()).data;
