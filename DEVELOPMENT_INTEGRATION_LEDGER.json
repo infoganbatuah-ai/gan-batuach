@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T13:38:58Z",
+  "updatedAt": "2026-11-07T14:13:53Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15212,33 +15212,40 @@
       "sourceBranch": "codex/manager-staff-task-journey-20261107",
       "sourceCommits": [
         "4e649debc2a174e49dd08edc987875355b705cbf",
-        "f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1"
+        "f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1",
+        "1a385d3d9a7f38b5e1ab5b2515e74d415de635b1",
+        "c26dd833a6856dbb3fa595a675fe8284fc4ec186"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/manager-staff-task-journey-20261107@f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1"
+          "origin/codex/manager-staff-task-journey-20261107@f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1",
+          "origin/codex/manager-staff-task-journey-20261107@c26dd833a6856dbb3fa595a675fe8284fc4ec186",
+          "origin/integration/development@2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc"
         ],
-        "status": "SOURCE_REMOTE_PRESERVED_LEDGER_PR_AND_DEVELOPMENT_PENDING"
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"
       },
       "validation": {
-        "status": "SCOPED_UI_FOUR_TRANSITIONS_AND_EXACT_HEAD_READBACK_22_PASS",
+        "status": "EXACT_HEAD_SIX_CI_QUALITY_MANAGEMENT_SNYK_GREEN_POSTMERGE_GET_ONLY_17_PASS_LABEL_FOLLOWUP",
         "evidence": [
           "Source Development fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a. Active-employment assignee fixtures 2/2, existing task workflow checks 6/6, full isolated typecheck, changed-path ESLint, QA script syntax and diff check passed.",
           "One local synthetic Manager B UI task e7df7bb9-5648-4cd2-8855-2129ac3f7bf5 was assigned to active Staff B, started, submitted and approved in four successful browser POSTs; final status done. Overall write-run receipt FAILED only at later completed-filter capture assertion, SHA256 a4ddfec163ac1758bb9627672e174e8952960f0f6510d3ffa6f0faab44538742. Earlier cold-start preflight receipt FAILED with zero writes, SHA256 c5db2b68a5abbb18c10cbde585655a1c927e7a0d8621c6c30ec446df8aaa33e5. No second task was created.",
-          "Exact feature head f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1 guarded readback SCOPED_PASS 22/22, zero browser writes; Manager/Staff see same completed task, foreign Staff/Manager/Parent known-ID reads and transitions denied without data, guest denied, repeat approval idempotent. Four audit events and two in_app notifications; protected receipt SHA256 1909db729c0041f8286cd00b7305a5fae9cb8f650fe4f6c6694f3177f10e9fd3. See GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md."
+          "Exact feature head f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1 guarded readback SCOPED_PASS 22/22, zero browser writes; Manager/Staff see same completed task, foreign Staff/Manager/Parent known-ID reads and transitions denied without data, guest denied, repeat approval idempotent. Four audit events and two in_app notifications; protected receipt SHA256 1909db729c0041f8286cd00b7305a5fae9cb8f650fe4f6c6694f3177f10e9fd3. See GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md.",
+          "PR #343 exact head c26dd833a6856dbb3fa595a675fe8284fc4ec186 passed six CI gates, Canonical quality, Management context and Snyk; merged to Development 2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc with parents fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a and c26dd833a6856dbb3fa595a675fe8284fc4ec186. Canonical postmerge 16/16 focused, workflow 19/19, ledger 223, migration 259; fresh GET-only Desktop/Mobile capture 17/17 with 113 GETs, zero browser writes/blocked requests, unchanged one task/four audit/two in_app notifications, receipt SHA256 06d56aabcd2dd9139dcd60c751514b006bb016b70f1410645803219d34952776. Screenshot review found the Staff assignee label defect, tracked separately."
         ],
         "classification": "MANAGER_STAFF_TASK_JOURNEY_SCOPED_PRODUCT_SOURCE",
         "limitations": "Single local synthetic task and bounded role probes, not full Product/security, forced database read failure, external owner visual or invoice-backed cost proof. No schema/RLS/Auth/RPC/provider/dependency/DO core change."
       },
       "integration": {
-        "status": "PENDING",
+        "status": "MERGED",
         "base": "integration/development",
         "baseCommit": "fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a",
-        "commit": null,
-        "pullRequests": [],
-        "sourceAncestryVerified": false
+        "commit": "2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/343"
+        ],
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "CANONICAL_DEVELOPMENT_BASELINE",
@@ -15248,12 +15255,63 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "FEATURE_ONE_UI_TASK_FOUR_TRANSITIONS_READBACK_22_NO_FULL_PRODUCT",
+      "localVerification": "FEATURE_ONE_UI_TASK_FOUR_TRANSITIONS_READBACK_22_MERGED_GET_ONLY_17_LABEL_FOLLOWUP",
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Run exact-head six CI gates, ancestry-merge to Development, then fresh canonical post-merge task readback. Preserve one local QA task and protected receipts. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Complete the separately tracked Staff assignee-label follow-up and cumulative Product/security/visual/cost gates. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/manager-staff-task-assignee-label-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-MANAGER-STAFF-TASK-ASSIGNEE-LABEL-20261107",
+      "title": "Show verified Staff assignee on own completed task card",
+      "owner": "Product Manager-Staff task journey executor; one Development integration owner",
+      "sourceBranch": "codex/manager-staff-task-assignee-label-20261107",
+      "sourceCommits": [
+        "397f540549ed9a49754becf345da47e5d931e7b2",
+        "72e9ad8662e57c5ae411480e4a3c965b8dff64bb"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/manager-staff-task-assignee-label-20261107@72e9ad8662e57c5ae411480e4a3c965b8dff64bb"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_PR_AND_DEVELOPMENT_PENDING"
+      },
+      "validation": {
+        "status": "SCOPED_EXACT_FEATURE_READBACK_23_PASS",
+        "evidence": [
+          "From merged Development 2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc, Staff page passes verified own profile as assignee; QA compares against actual authenticated name. Full isolated typecheck, focused 16/16, changed-path ESLint, syntax and diff checks passed.",
+          "First readback FAILED due hardcoded fixture name mismatch, zero browser writes/new task, receipt SHA256 f40b8c38c2b1ecae8466b71e7612dfabe856c9b1b73ffdf2cc17f03636df4405. Corrected exact feature readback 23/23 at 72e9ad8662e57c5ae411480e4a3c965b8dff64bb; Staff Mobile screenshot visibly names the assignee, same one done task/four audit/two in_app notifications and foreign role denials, receipt SHA256 6d6d88c202a7d39d33fb5e4e24a9cc0db6d785ceed3db7f9d4394638a003bf5c. See GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md."
+        ],
+        "classification": "SCOPED_STAFF_TASK_PRESENTATION_FOLLOWUP",
+        "limitations": "One synthetic local task and feature preview, not full Product/security, owner visual or invoice-backed cost proof. No schema/RLS/Auth/RPC/provider/dependency/DO core change."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "REQUIRES_MERGED_MANAGER_STAFF_TASK_JOURNEY",
+        "units": [
+          "codex/manager-staff-task-journey-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FEATURE_READBACK_23_NO_NEW_TASK_MERGED_CAPTURE_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run exact-head CI, merge to Development, fresh canonical GET-only capture, and coordinator handoff. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
