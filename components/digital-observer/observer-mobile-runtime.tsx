@@ -21,32 +21,59 @@ function emit(name: string, detail: Record<string, unknown> = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
-async function deviceReference() {
-  const existing = await Preferences.get({ key: deviceReferenceKey });
-  if (existing.value) return existing.value;
-  const value = crypto.randomUUID();
-  await Preferences.set({ key: deviceReferenceKey, value });
-  return value;
-}
-
-async function readQueue() {
-  const stored = await Preferences.get({ key: offlineQueueKey });
+async function deviceReference(isCurrent: () => boolean): Promise<string | null> {
+  if (!isCurrent()) return null;
   try {
-    return sanitizeOfflineQueue(stored.value ? JSON.parse(stored.value) : []);
-  } catch {
-    return [];
+    const existing = await Preferences.get({ key: deviceReferenceKey });
+    if (!isCurrent()) return null;
+    if (existing.value) return existing.value;
+    const value = crypto.randomUUID();
+    if (!isCurrent()) return null;
+    await Preferences.set({ key: deviceReferenceKey, value });
+    return isCurrent() ? value : null;
+  } catch (error) {
+    if (!isCurrent()) return null;
+    throw error;
   }
 }
 
-async function writeQueue(items: MobileOfflineOperation[]) {
-  await Preferences.set({ key: offlineQueueKey, value: JSON.stringify(sanitizeOfflineQueue(items)) });
+async function readQueue(isCurrent: () => boolean): Promise<MobileOfflineOperation[] | null> {
+  if (!isCurrent()) return null;
+  let stored: { value: string | null };
+  try {
+    stored = await Preferences.get({ key: offlineQueueKey });
+  } catch (error) {
+    if (!isCurrent()) return null;
+    throw error;
+  }
+  if (!isCurrent()) return null;
+  try {
+    return sanitizeOfflineQueue(stored.value ? JSON.parse(stored.value) : []);
+  } catch {
+    return isCurrent() ? [] : null;
+  }
 }
 
-async function enqueue(kind: MobileOfflineOperation["kind"]) {
-  const items = await readQueue();
-  if (items.some((item) => item.kind === kind)) return;
+async function writeQueue(items: MobileOfflineOperation[], isCurrent: () => boolean): Promise<boolean> {
+  if (!isCurrent()) return false;
+  try {
+    const value = JSON.stringify(sanitizeOfflineQueue(items));
+    if (!isCurrent()) return false;
+    await Preferences.set({ key: offlineQueueKey, value });
+    return isCurrent();
+  } catch (error) {
+    if (!isCurrent()) return false;
+    throw error;
+  }
+}
+
+async function enqueue(kind: MobileOfflineOperation["kind"], isCurrent: () => boolean): Promise<boolean> {
+  if (!isCurrent()) return false;
+  const items = await readQueue(isCurrent);
+  if (!isCurrent() || items === null) return false;
+  if (items.some((item) => item.kind === kind)) return true;
   items.push({ id: crypto.randomUUID(), kind, createdAt: new Date().toISOString(), attempts: 0 });
-  await writeQueue(items);
+  return writeQueue(items, isCurrent);
 }
 
 async function authorizeAndOpen(rawUrl: string, isCurrent: () => boolean) {
@@ -90,44 +117,55 @@ export function ObserverMobileRuntime() {
     let listenerFailure = false;
     const removers: Array<() => Promise<void>> = [];
 
-    const ownsMobileLinks = () => !disposed && playbackPublisher.isCurrent();
+    const ownsRuntime = () => !disposed && playbackPublisher.isCurrent();
     const openOwnedMobileLink = (rawUrl: string) => {
-      void authorizeAndOpen(rawUrl, ownsMobileLinks).catch(() => {
-        if (ownsMobileLinks()) emit("digital-observer:mobile-link-denied");
+      void authorizeAndOpen(rawUrl, ownsRuntime).catch(() => {
+        if (ownsRuntime()) emit("digital-observer:mobile-link-denied");
       });
     };
 
     const registerDevice = async (siteId: string, pushToken?: string) => {
-      const [info, appInfo] = await Promise.all([Device.getInfo(), App.getInfo()]);
-      const reference = await deviceReference();
-      if (pushToken) {
-        const pushResponse = await fetch("/api/push/register", {
+      if (!ownsRuntime()) return false;
+      try {
+        const [info, appInfo] = await Promise.all([Device.getInfo(), App.getInfo()]);
+        if (!ownsRuntime()) return false;
+        const reference = await deviceReference(ownsRuntime);
+        if (!ownsRuntime() || reference === null) return false;
+        if (pushToken) {
+          const pushResponse = await fetch("/api/push/register", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              platform: Capacitor.getPlatform(),
+              device_token: pushToken,
+              device_id: reference,
+              app_version: appInfo.version,
+              metadata: { source: "digital_observer_native", observer_site_id: siteId }
+            })
+          });
+          if (!ownsRuntime()) return false;
+          if (!pushResponse.ok) throw new Error("PUSH_TOKEN_REGISTRATION_FAILED");
+        }
+        const response = await fetch("/api/digital-observer/access-settings", {
           method: "POST",
           credentials: "same-origin",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
+            action: "register_device",
+            observer_site_id: siteId,
+            device_label: info.name || `${Capacitor.getPlatform()} device`,
             platform: Capacitor.getPlatform(),
-            device_token: pushToken,
-            device_id: reference,
-            app_version: appInfo.version,
-            metadata: { source: "digital_observer_native", observer_site_id: siteId }
+            device_reference: reference
           })
         });
-        if (!pushResponse.ok) throw new Error("PUSH_TOKEN_REGISTRATION_FAILED");
+        if (!ownsRuntime()) return false;
+        if (!response.ok) throw new Error("DEVICE_REGISTRATION_FAILED");
+        return true;
+      } catch (error) {
+        if (!ownsRuntime()) return false;
+        throw error;
       }
-      const response = await fetch("/api/digital-observer/access-settings", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          action: "register_device",
-          observer_site_id: siteId,
-          device_label: info.name || `${Capacitor.getPlatform()} device`,
-          platform: Capacitor.getPlatform(),
-          device_reference: reference
-        })
-      });
-      if (!response.ok) throw new Error("DEVICE_REGISTRATION_FAILED");
     };
 
     const bootstrap = async () => {
@@ -149,21 +187,29 @@ export function ObserverMobileRuntime() {
         if (disposed || !playbackPublisher.isCurrent()) return;
         if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
         const payload = await response.json() as RuntimeResponse;
+        if (!ownsRuntime()) return;
         sites = payload.data?.sites ?? [];
         const savedSite = await Preferences.get({ key: pushSiteKey });
+        if (!ownsRuntime()) return;
         if (savedSite.value && sites.some((site) => site.id === savedSite.value)) {
-          await registerDevice(savedSite.value).catch(() => undefined);
+          const registered = await registerDevice(savedSite.value).catch(() => undefined);
+          if (!ownsRuntime() || registered === false) return;
         }
-        const pending = await readQueue();
-        await writeQueue(pending.filter((item) => item.kind !== "runtime_revalidate"));
+        const pending = await readQueue(ownsRuntime);
+        if (!ownsRuntime() || pending === null) return;
+        const written = await writeQueue(pending.filter((item) => item.kind !== "runtime_revalidate"), ownsRuntime);
+        if (!ownsRuntime() || !written) return;
         if (pushAvailable && pending.some((item) => item.kind === "push_registration")) {
           const permission = await PushNotifications.checkPermissions();
+          if (!ownsRuntime()) return;
           if (permission.receive === "granted") await PushNotifications.register();
+          if (!ownsRuntime()) return;
         }
         if (!disposed && playbackPublisher.isCurrent() && !listenerFailure && networkKnown && !networkOffline && !appInactive && startedVersion === interruptionVersion) setStale(false);
       } catch (error) {
         if (disposed || !playbackPublisher.isCurrent()) return;
-        await enqueue("runtime_revalidate");
+        const queued = await enqueue("runtime_revalidate", ownsRuntime);
+        if (!ownsRuntime() || !queued) return;
         if (disposed || !playbackPublisher.isCurrent()) return;
         setStale(true);
         if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
@@ -184,19 +230,28 @@ export function ObserverMobileRuntime() {
     };
 
     const handlePushRegistration = async (token: { value: string }) => {
-      const savedSite = await Preferences.get({ key: pushSiteKey });
-      const siteId = pendingPushSiteId || savedSite.value || sites[0]?.id || "";
-      if (!siteId) {
-        emit("digital-observer:native-push-result", { ok: false, reason: "site_required" });
-        return;
-      }
+      if (!ownsRuntime()) return;
       try {
-        await registerDevice(siteId, token.value);
+        const savedSite = await Preferences.get({ key: pushSiteKey });
+        if (!ownsRuntime()) return;
+        const siteId = pendingPushSiteId || savedSite.value || sites[0]?.id || "";
+        if (!siteId) {
+          emit("digital-observer:native-push-result", { ok: false, reason: "site_required" });
+          return;
+        }
+        const registered = await registerDevice(siteId, token.value);
+        if (!ownsRuntime() || !registered) return;
         await Preferences.set({ key: pushSiteKey, value: siteId });
-        await writeQueue((await readQueue()).filter((item) => item.kind !== "push_registration"));
+        if (!ownsRuntime()) return;
+        const pending = await readQueue(ownsRuntime);
+        if (!ownsRuntime() || pending === null) return;
+        const written = await writeQueue(pending.filter((item) => item.kind !== "push_registration"), ownsRuntime);
+        if (!ownsRuntime() || !written) return;
         emit("digital-observer:native-push-result", { ok: true });
       } catch {
-        await enqueue("push_registration");
+        if (!ownsRuntime()) return;
+        await enqueue("push_registration", ownsRuntime).catch(() => false);
+        if (!ownsRuntime()) return;
         emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
       }
     };
@@ -280,13 +335,13 @@ export function ObserverMobileRuntime() {
         if (networkOffline) interruptionVersion++;
         setOnline(status.connected);
         if (!status.connected) setStale(true);
-        if (status.connected) await bootstrap(); else await enqueue("runtime_revalidate");
+        if (status.connected) await bootstrap(); else await enqueue("runtime_revalidate", ownsRuntime);
       }
       await Promise.all([networkRegistration, appRegistration]);
       if (disposed || !playbackPublisher.isCurrent()) return;
 
       const appUrl = await App.addListener("appUrlOpen", (event) => {
-        if (!ownsMobileLinks()) return;
+        if (!ownsRuntime()) return;
         const { url } = event;
         openOwnedMobileLink(url);
       });
