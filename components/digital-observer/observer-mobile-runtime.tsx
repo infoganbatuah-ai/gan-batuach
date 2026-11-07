@@ -320,7 +320,7 @@ export function ObserverMobileRuntime() {
       }
     };
 
-    const ownPushListener = (listener: { remove: () => Promise<void> }) => {
+    const ownNativeListener = (listener: { remove: () => Promise<void> }) => {
       let removed = false;
       const remove = async () => {
         if (removed) return;
@@ -349,8 +349,8 @@ export function ObserverMobileRuntime() {
         emit(next.connected ? "digital-observer:mobile-online" : "digital-observer:mobile-offline", { connectionType: next.connectionType });
         if (next.connected) await bootstrap();
       }).then(async (network) => {
-        if (disposed || !playbackPublisher.isCurrent()) await network.remove();
-        else removers.push(() => network.remove());
+        const removeNetwork = ownNativeListener(network);
+        if (disposed || !playbackPublisher.isCurrent()) await removeNetwork();
       }).catch(listenerFailed);
       const appRegistration = App.addListener("appStateChange", async ({ isActive }) => {
         if (disposed || !playbackPublisher.appInactive(!isActive)) return;
@@ -360,8 +360,8 @@ export function ObserverMobileRuntime() {
         emit(isActive ? "digital-observer:mobile-resume" : "digital-observer:mobile-suspend");
         if (isActive) await bootstrap();
       }).then(async (appState) => {
-        if (disposed || !playbackPublisher.isCurrent()) await appState.remove();
-        else removers.push(() => appState.remove());
+        const removeAppState = ownNativeListener(appState);
+        if (disposed || !playbackPublisher.isCurrent()) await removeAppState();
       }).catch(listenerFailed);
 
       const status = await Network.getStatus();
@@ -383,8 +383,8 @@ export function ObserverMobileRuntime() {
         const { url } = event;
         openOwnedMobileLink(url);
       });
-      if (disposed || !playbackPublisher.isCurrent()) { await appUrl.remove(); return; }
-      removers.push(() => appUrl.remove());
+      const removeAppUrl = ownNativeListener(appUrl);
+      if (disposed || !playbackPublisher.isCurrent()) { await removeAppUrl(); return; }
       const launch = await App.getLaunchUrl();
       if (disposed || !playbackPublisher.isCurrent()) return;
       if (launch?.url) openOwnedMobileLink(launch.url);
@@ -396,20 +396,20 @@ export function ObserverMobileRuntime() {
           const attempt = pendingPushAttempt;
           void handlePushRegistration(token, attempt);
         });
-        const removeRegistration = ownPushListener(registration);
+        const removeRegistration = ownNativeListener(registration);
         if (disposed || !playbackPublisher.isCurrent()) { await removeRegistration(); return; }
         const registrationError = await PushNotifications.addListener("registrationError", () => {
           if (disposed || !playbackPublisher.isCurrent()) return;
           const attempt = pendingPushAttempt;
           emitPushResult(attempt, { ok: false, reason: "provider_error" });
         });
-        const removeRegistrationError = ownPushListener(registrationError);
+        const removeRegistrationError = ownNativeListener(registrationError);
         if (disposed || !playbackPublisher.isCurrent()) { await removeRegistrationError(); return; }
         const received = await PushNotifications.addListener("pushNotificationReceived", (notification: PushNotificationSchema) => {
           if (disposed || !playbackPublisher.isCurrent()) return;
           emit("digital-observer:native-notification", mobileNotificationPreview(notification));
         });
-        const removeReceived = ownPushListener(received);
+        const removeReceived = ownNativeListener(received);
         if (disposed || !playbackPublisher.isCurrent()) { await removeReceived(); return; }
         const action = await PushNotifications.addListener("pushNotificationActionPerformed", (event) => {
           if (disposed || !playbackPublisher.isCurrent()) return;
@@ -417,7 +417,7 @@ export function ObserverMobileRuntime() {
           const link = notification.data?.deep_link;
           if (typeof link === "string") openOwnedMobileLink(link);
         });
-        const removeAction = ownPushListener(action);
+        const removeAction = ownNativeListener(action);
         if (disposed || !playbackPublisher.isCurrent()) { await removeAction(); return; }
       }
       if (disposed || !playbackPublisher.isCurrent()) return;
