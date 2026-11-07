@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, RotateCcw, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
@@ -62,7 +62,8 @@ const connectionReasonLabels: Record<string, string> = {
   EXPLICIT_TEST_DEMO_ONLY: "זהו מקור הדמיה בלבד"
 };
 
-async function postJson(path: string, body: unknown, accessToken?: string | null) {
+async function postJson(path: string, body: unknown, accessToken?: string | null, isCurrent: () => boolean = () => true) {
+  if (!isCurrent()) return null;
   const authenticatedToken = accessToken || readObserverAccessToken();
   const response = await fetch(path, {
     method: "POST",
@@ -73,7 +74,9 @@ async function postJson(path: string, body: unknown, accessToken?: string | null
     },
     body: JSON.stringify(body)
   });
+  if (!isCurrent()) return null;
   const payload = await response.json().catch(() => ({}));
+  if (!isCurrent()) return null;
   if (!response.ok) throw new Error(payload.error || "הפעולה נכשלה");
   return payload.data;
 }
@@ -487,17 +490,36 @@ export function ObserverSettingsForm({ siteId, schedule, channels, consent = {} 
 }
 
 export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: { siteId: string; recipients: any[]; devices: any[] }) {
+  return <ScopedObserverRecipientsDevicesForm key={siteId} siteId={siteId} recipients={recipients} devices={devices} />;
+}
+
+function ScopedObserverRecipientsDevicesForm({ siteId, recipients, devices }: Parameters<typeof ObserverRecipientsDevicesForm>[0]) {
   const router = useRouter();
   const [recipientState, setRecipientState] = useState<ActionState>({ busy: false, error: "", message: "" });
+  const formRef = useRef<HTMLFormElement>(null);
+  const owner = useRef({ active: true, operation: 0, busy: false, revision: 0 });
+  useEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
   const hasActivePushDevice = devices.some((device) => device.active && device.platform === "web");
 
   async function addRecipient(event: FormEvent<HTMLFormElement>) {
+    const lifetime = owner.current;
+    if (!lifetime.active) return;
     event.preventDefault();
+    if (lifetime.busy) return;
     const form = event.currentTarget;
-    const data = new FormData(form);
-    const channels = data.getAll("recipient_channels").map(String);
-    setRecipientState({ busy: true, error: "", message: "" });
+    if (form !== formRef.current) return;
+    lifetime.busy = true;
+    const operation = ++lifetime.operation;
+    const submittedRevision = lifetime.revision;
+    const isCurrent = () => lifetime.active && lifetime.operation === operation && formRef.current === form;
     try {
+      const data = new FormData(form);
+      const channels = data.getAll("recipient_channels").map(String);
+      setRecipientState({ busy: true, error: "", message: "" });
       const result = await postJson("/api/digital-observer/access-settings", {
         action: "create_recipient",
         observer_site_id: siteId,
@@ -506,17 +528,24 @@ export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: {
         destination: data.get("destination"),
         channels,
         receives_critical_alerts: data.get("critical") === "on"
-      });
-      setRecipientState({ busy: false, error: "", message: result.message });
+      }, undefined, isCurrent);
+      if (!isCurrent()) return;
+      const unchanged = lifetime.revision === submittedRevision;
+      setRecipientState({ busy: false, error: "", message: unchanged ? result.message : `${result.message} הפרטים החדשים בטופס טרם נשלחו.` });
+      if (!isCurrent() || !unchanged) return;
       form.reset();
+      if (!isCurrent() || lifetime.revision !== submittedRevision) return;
       router.refresh();
     } catch (error) {
+      if (!isCurrent()) return;
       setRecipientState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לשמור מורשה", message: "" });
+    } finally {
+      if (isCurrent()) lifetime.busy = false;
     }
   }
 
   return <section className="do-grid cols-2">
-    <form className="do-panel do-form-section" onSubmit={addRecipient}>
+    <form ref={formRef} className="do-panel do-form-section" onSubmit={addRecipient} onChange={() => { if (owner.current.active) owner.current.revision += 1; }}>
       <div className="do-section-head"><div><h2>מורשי עדכונים</h2><p>פרטי הקשר מוצפנים ואינם מוצגים מחדש.</p></div><UserPlus /></div>
       <div className="do-form-grid"><label className="do-field"><span>שם</span><input name="display_name" required minLength={2} /></label><label className="do-field"><span>קשר</span><input name="relationship_label" placeholder="בן משפחה / מנהל / אחראי" /></label><label className="do-field full"><span>דוא״ל או טלפון</span><input name="destination" required autoComplete="off" placeholder="נשמר מוצפן בצד השרת" /></label></div>
       <div className="do-channel-inline"><label><input type="checkbox" name="recipient_channels" value="email" defaultChecked /> דוא״ל</label><label><input type="checkbox" name="recipient_channels" value="sms" /> SMS</label><label><input type="checkbox" name="recipient_channels" value="whatsapp" /> WhatsApp</label><label><input type="checkbox" name="recipient_channels" value="voice" /> שיחה</label></div>
