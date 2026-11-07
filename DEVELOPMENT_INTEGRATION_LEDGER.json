@@ -15378,30 +15378,32 @@
         "92920193767609be7ba836e27d6efadec4adfe62",
         "24368ea43ade716a21b96ca127a8b33f69a90a19",
         "65f10303d645d7fee26c5b1c1d602d8236416010",
-        "9f843e302359e3318464ecd66f06a429ec8499bb"
+        "9f843e302359e3318464ecd66f06a429ec8499bb",
+        "b7d635b84524d39b9cac3b489fb219a8fe6b3f60"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/candidate-application-review-journey-20261107@65f10303d645d7fee26c5b1c1d602d8236416010"],
-        "status": "EARLIER_SOURCE_PRESERVED_LATEST_RESULT_PUSH_PENDING"
+        "remoteRefs": ["origin/codex/candidate-application-review-journey-20261107@b7d635b84524d39b9cac3b489fb219a8fe6b3f60"],
+        "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "FEATURE_QA_JOURNEY_24_OF_24_PASS",
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_READBACK_PASS",
         "evidence": [
           "Historical first synthetic Candidate UI submission created application 704025c7-724e-4156-8f99-7a9ebd991bc8; same-key retry did not duplicate. Manager review initially returned 409 because of the separate app_role cast dependency. Private failed-run receipt SHA256 87a35d2b4c3ebcbfb982327f603733bf53f2cdd6b837864b308462da7d64496a; failed receipts remain failed.",
-          "After DB PRs #347/#348 and isolated Development application, feature source 9f843e302359e3318464ecd66f06a429ec8499bb resumed only that application. Actual UI Manager review/request_information and Candidate response passed 24/24 in 26 seconds; one application, four actor-correct audit events, three in-app notifications, zero employment and zero externally accepted deliveries. Foreign Manager/Staff/guest and Candidate operational access denied. Receipt SHA256 0196cd5029d723d362866ee26eaea4345ebfc2149b72ca61787e22dce0666ac6; settled read-only Desktop/Mobile capture receipt SHA256 a3b954875a8d4526f94a8099e08fe478cf80a7161a368ec84a5d3784d38907e2. Migration drift 260/260; focused Candidate 7/7 and hiring 8/8."
+          "After DB PRs #347/#348 and isolated Development application, feature source 9f843e302359e3318464ecd66f06a429ec8499bb resumed only that application. Actual UI Manager review/request_information and Candidate response passed 24/24 in 26 seconds; one application, four actor-correct audit events, three in-app notifications, zero employment and zero externally accepted deliveries. Foreign Manager/Staff/guest and Candidate operational access denied. Receipt SHA256 0196cd5029d723d362866ee26eaea4345ebfc2149b72ca61787e22dce0666ac6; settled read-only Desktop/Mobile capture receipt SHA256 a3b954875a8d4526f94a8099e08fe478cf80a7161a368ec84a5d3784d38907e2. Migration drift 260/260; focused Candidate 7/7 and hiring 8/8.",
+          "PR #349 exact head b7d635b84524d39b9cac3b489fb219a8fe6b3f60 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge 64d95a8007601b4ec7c9b1f6b4b6dc2d9a586948 was verified remotely. The canonical local Product at that SHA and LOCAL_SUPABASE passed 21/21 no-write readback checks with two 1440x1024 Desktop and four 390x844 Mobile viewport captures (top and response detail). One application remained resubmitted with four audit events, three notifications, zero employment and zero external accepted delivery; foreign Manager known-ID RLS read was denied; Product state was byte-stable before/after. Protected receipt SHA256 f788e7f9235e572034a5957860235dd3c0f1aecf2bb1c1c7af21c58cbb47b984; drift 260/260."
         ],
         "classification": "SCOPED_CANDIDATE_REVIEW_UI_AND_GUARDED_QA",
-        "limitations": "Feature QA is not canonical merged Product. Exact-head CI, Development merge and fresh no-write merged-head readback remain pending. Full Product/security, Production and owner visual are not claimed."
+        "limitations": "Scoped local Candidate/Manager journey and merged Product readback only. Full Product/security, owner visual, live providers, invoice-backed cost and Production are not claimed."
       },
       "integration": {
-        "status": "NOT_MERGED",
+        "status": "MERGED",
         "base": "integration/development",
-        "baseCommit": "f6269cba934aaa37a70c32d53692f3b8c7de1854",
-        "commit": null,
-        "pullRequests": [],
-        "sourceAncestryVerified": false
+        "baseCommit": "38b720145cde459c4113b7720fc466d389980b41",
+        "commit": "64d95a8007601b4ec7c9b1f6b4b6dc2d9a586948",
+        "pullRequests": [349],
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "DEVELOPMENT_MIGRATION_APPLIED_AND_VERIFIED",
@@ -15409,12 +15411,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "FEATURE_QA_24_OF_24_SETTLED_DESKTOP_MOBILE_CAPTURE_MERGED_READBACK_PENDING",
+      "localVerification": "CANONICAL_MERGED_PRODUCT_21_OF_21_NO_WRITE_DESKTOP_MOBILE_READBACK_PASS",
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Push latest scoped source and evidence; exact-head CI, ancestry-preserving Development merge and fresh canonical no-write readback of the same application. No main/Production."
+      "nextAction": "Preserve this merged-head evidence correction remotely and in Development; continue cumulative Product/security, external owner visual and invoice-backed cost qualification under the coordinator. No main/Production."
     },
     {
       "id": "codex/db-candidate-review-actor-role-20261107",
