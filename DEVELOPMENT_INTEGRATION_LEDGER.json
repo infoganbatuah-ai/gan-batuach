@@ -15376,29 +15376,32 @@
       "sourceBranch": "codex/db-candidate-review-actor-role-20261107",
       "sourceCommits": [
         "87ace192c7c8ab133d207d0fa296fc3aad6711f3",
-        "6deddc6f1ae55c5ec7d54e404af6590226726a8a"
+        "6deddc6f1ae55c5ec7d54e404af6590226726a8a",
+        "d9a05a6f716245818121539568a574c11f99384f",
+        "fe4fc085bba90b4892c41cd828a3220c650beac3"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
-        "remoteRefs": ["origin/codex/db-candidate-review-actor-role-20261107@6deddc6f1ae55c5ec7d54e404af6590226726a8a"],
-        "status": "PUSHED_REMOTE_PENDING_CI_AND_INTEGRATION"
+        "remoteRefs": ["origin/codex/db-candidate-review-actor-role-20261107@fe4fc085bba90b4892c41cd828a3220c650beac3"],
+        "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "SOURCE_AND_ROLLBACK_ONLY_PASS",
+        "status": "EXACT_CI_AND_ISOLATED_DEVELOPMENT_APPLICATION_PASS",
         "evidence": [
-          "Live function body exactly matched canonical source; actor_role and current_role() are app_role. One-cast body diff test 2/2, migration health 260, pre-change isolated Development drift 259/259. Authenticated Manager rollback-only review produced one manager audit row; persisted application remained submitted. Private receipts SHA256 da7bab2784b773afb058ef437b2f8a3f29911c5d2bbc54b813ee8c2385d06581 and 7292556db3da157bc24bb62a57300ddab16c8725c6696770cdeb7e3cf142db83."
+          "Live function body exactly matched canonical source; actor_role and current_role() are app_role. One-cast body diff test 2/2, migration health 260, pre-change isolated Development drift 259/259. Authenticated Manager rollback-only review produced one manager audit row; persisted application remained submitted. Private receipts SHA256 da7bab2784b773afb058ef437b2f8a3f29911c5d2bbc54b813ee8c2385d06581 and 7292556db3da157bc24bb62a57300ddab16c8725c6696770cdeb7e3cf142db83.",
+          "PR #347 exact head fe4fc085bba90b4892c41cd828a3220c650beac3 passed all six Digital Observer CI gates, canonical quality, Management context and Snyk. Ancestry-preserving Development merge c7ba49e7403aa0467545020b2358837de51a6fad was verified remotely. The canonical isolated Development applicator applied only version 20261107165001; readback found 227 baseline and 33 post-baseline migrations, matching source digest/schema fingerprint, one-cast-only function body, unchanged owner/ACL/security/search_path/return type. Existing QA application remains submitted with zero review audit."
         ],
         "classification": "FUNCTION_ONLY_CANDIDATE_REVIEW_AUDIT_ENUM",
-        "limitations": "Exact CI, Development application and role-boundary runtime remain pending; no Production or full Product claim."
+        "limitations": "Candidate Product journey and post-application role-boundary runtime remain pending; no Production or full Product claim."
       },
       "integration": {
-        "status": "NOT_MERGED",
+        "status": "MERGED",
         "base": "integration/development",
         "baseCommit": "f6269cba934aaa37a70c32d53692f3b8c7de1854",
-        "commit": null,
-        "pullRequests": [],
-        "sourceAncestryVerified": false
+        "commit": "c7ba49e7403aa0467545020b2358837de51a6fad",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/347"],
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "CANONICAL_M18_FUNCTION_AND_259_DEVELOPMENT_MIGRATIONS_VERIFIED",
@@ -15410,12 +15413,12 @@
       "migrationOrder": [
         "20261107165001"
       ],
-      "localVerification": "ROLLBACK_ONLY_REVIEW_ONE_MANAGER_AUDIT_NO_PERSISTED_CHANGE",
-      "releaseEligibility": "NOT_READY_EXACT_CI_DEVELOPMENT_APPLICATION_CUMULATIVE_PRODUCT_SECURITY_VISUAL_COST_PENDING",
+      "localVerification": "DEVELOPMENT_MIGRATION_HISTORY_AND_FUNCTION_VERIFIED_CANDIDATE_JOURNEY_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_VISUAL_COST_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Push feature, exact CI and merge to Development; apply only new migration to isolated Development and verify function/role boundaries. No main/Production."
+      "nextAction": "Resume the same QA Candidate application on the preserved Candidate branch; verify Manager review/request_information, Candidate response and role/data isolation without approval/employment or duplicate application. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
