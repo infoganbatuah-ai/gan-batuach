@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-06T23:56:53Z",
+  "updatedAt": "2026-11-07T02:01:46Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14804,6 +14804,60 @@
       "releaseEligibility": "NOT_READY_POST_MERGE_PARENT_BROWSER_RLS_EXTERNAL_OWNER_VISUAL_ALL_ROLE_SECURITY_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Under fresh host resource admission, run a bounded server-render Parent diagnostic and investigate the observed Next development Suspense retry before any full browser PASS; authenticate an exact-merge selected-Child/documents journey and relevant role denial when safe. Keep existing synthetic 20-case fixture and prior Staff/Manager receipts separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-parent-documents-read-state-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENTS-READ-STATE-20261107",
+      "title": "Distinguish Parent family document read failure from valid empty and withhold uploads when family context is unavailable",
+      "owner": "Product Parent Documents source executor; one Development integration owner",
+      "sourceBranch": "codex/product-parent-documents-read-state-20261107",
+      "sourceCommits": [
+        "56abad3a8f34acc8178c1a4febd76544fce0a7aa"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-parent-documents-read-state-20261107@56abad3a8f34acc8178c1a4febd76544fce0a7aa"
+        ],
+        "status": "REMOTE_SOURCE_PRESERVED_PENDING_EXACT_HEAD_CI_AND_DEVELOPMENT_INTEGRATION",
+        "noPreviewDeploymentObserved": true,
+        "deploymentEvidenceLimit": "Project Vercel SHA lookup returned zero deployments after the feature push; full live Git trigger fields were not exposed."
+      },
+      "validation": {
+        "status": "SCOPED_SYNTHETIC_PAGE_FIXTURE_5_OF_5_PASS_ONLY",
+        "evidence": [
+          "node --check and node --test scripts/qa/check-parent-documents-read-state.mjs passed; 5/5 behavioral cases on the actual page component with in-memory synthetic query responses.",
+          "Valid empty, populated and protected file link, document read failure, family context unavailable/upload refusal, and denied role before reads were observed.",
+          "Focused staged diff --check passed; no new query/request, schema, RLS, grant, provider, dependency or Digital Observer core change.",
+          "Feature-branch Development ledger schema check passed with 212 units and zero errors; release inclusion and full Product gates were not run."
+        ],
+        "classification": "MANAGEMENT_SCOPED_SOURCE_AND_SYNTHETIC_FIXTURE_ONLY",
+        "limits": "No typecheck/lint/build, exact-head six CI gates, authenticated browser/API/RLS, accessibility visual review or full-stack proof yet. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED at Development c3507c3f and is not superseded."
+      },
+      "integration": {
+        "status": "PENDING_REQUIRED_CI_AND_SINGLE_OWNER_MERGE",
+        "base": "integration/development",
+        "baseCommit": "c3507c3f07ca5a78ebf037b7cb596518708efa96",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "PARENT_SELECTED_CHILD_DOCUMENT_STATE_BASELINE",
+        "units": [
+          "codex/product-parent-selected-child-documents-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SOURCE_FIXTURE_ONLY_NO_PRODUCT_RUNTIME",
+      "releaseEligibility": "NOT_READY_EXACT_HEAD_CI_PARENT_BROWSER_RLS_CUMULATIVE_QA_EXTERNAL_OWNER_VISUAL_AND_COST_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run six exact-head CI gates and focused Parent Documents role/data browser checks under safe host admission, then integrate via one Development owner. Keep predecessor Parent primary runtime checkpoint separate. No main/Production/RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
