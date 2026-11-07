@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { getApps, initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
@@ -24,7 +24,8 @@ function firebaseConfig() {
   return config;
 }
 
-async function postJson(url: string, body: Record<string, unknown>) {
+async function postJson(url: string, body: Record<string, unknown>, isCurrent: () => boolean) {
+  if (!isCurrent()) return null;
   const accessToken = readObserverAccessToken();
   const response = await fetch(url, {
     method: "POST",
@@ -35,32 +36,85 @@ async function postJson(url: string, body: Record<string, unknown>) {
     },
     body: JSON.stringify(body)
   });
+  if (!isCurrent()) return null;
   const result = await response.json().catch(() => ({}));
+  if (!isCurrent()) return null;
   if (!response.ok) throw new Error(result?.error || "הפעולה נכשלה.");
   return result?.data ?? result;
 }
 
 export function ObserverFcmPushRegistration({ siteId, initialRegistered = false }: { siteId: string; initialRegistered?: boolean }) {
+  return <SitePushRegistration key={siteId} siteId={siteId} initialRegistered={initialRegistered} />;
+}
+
+function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; initialRegistered: boolean }) {
   const [state, setState] = useState<ActionState>({ ...initialState, registered: initialRegistered });
   const [testing, setTesting] = useState(false);
+  const lifetime = useRef({ active: true, registration: 0, test: 0,
+    cancelNative: null as (() => void) | null,
+    unsubscribe: null as (() => void) | null });
+
+  const stopForeground = () => {
+    const unsubscribe = lifetime.current.unsubscribe;
+    lifetime.current.unsubscribe = null;
+    try { unsubscribe?.(); } catch { /* Best-effort cleanup, without retries. */ }
+  };
+
+  useEffect(() => {
+    const owner = lifetime.current;
+    owner.active = true;
+    return () => {
+      owner.active = false;
+      owner.registration++;
+      owner.test++;
+      owner.cancelNative?.();
+      const unsubscribe = owner.unsubscribe;
+      owner.unsubscribe = null;
+      try { unsubscribe?.(); } catch { /* Best-effort cleanup, without retries. */ }
+    };
+  }, []);
 
   async function register() {
+    const owner = lifetime.current;
+    if (!owner.active) return;
+    const generation = ++owner.registration;
+    owner.test++;
+    const isCurrent = () => owner.active && generation === owner.registration;
+    owner.cancelNative?.();
+    stopForeground();
+    setTesting(false);
     setState({ busy: true, registered: false, message: "", error: "" });
     try {
       if (Capacitor.isNativePlatform()) {
-        const result = await new Promise<{ ok: boolean; reason?: string }>((resolve) => {
-          const listener = (event: Event) => {
-            window.clearTimeout(timeout);
+        const result = await new Promise<{ ok: boolean; reason?: string } | null>((resolve, reject) => {
+          let settled = false;
+          let timeout: number | undefined;
+          const release = () => {
+            if (timeout !== undefined) window.clearTimeout(timeout);
             window.removeEventListener("digital-observer:native-push-result", listener);
-            resolve((event as CustomEvent<{ ok: boolean; reason?: string }>).detail);
+            if (owner.cancelNative === cancel) owner.cancelNative = null;
           };
-          const timeout = window.setTimeout(() => {
-            window.removeEventListener("digital-observer:native-push-result", listener);
-            resolve({ ok: false, reason: "timeout" });
-          }, 30_000);
-          window.addEventListener("digital-observer:native-push-result", listener, { once: true });
-          window.dispatchEvent(new CustomEvent("digital-observer:enable-native-push", { detail: { siteId } }));
+          const finish = (value: { ok: boolean; reason?: string } | null) => {
+            if (settled) return;
+            settled = true;
+            release();
+            resolve(value);
+          };
+          const cancel = () => finish(null);
+          const listener = (event: Event) => {
+            if (!isCurrent() || settled) return;
+            finish((event as CustomEvent<{ ok: boolean; reason?: string }>).detail);
+          };
+          owner.cancelNative = cancel;
+          try {
+            timeout = window.setTimeout(() => finish(isCurrent() ? { ok: false, reason: "timeout" } : null), 30_000);
+            window.addEventListener("digital-observer:native-push-result", listener, { once: true });
+            window.dispatchEvent(new CustomEvent("digital-observer:enable-native-push", { detail: { siteId } }));
+          } catch (error) {
+            if (!settled) { settled = true; release(); reject(error); }
+          }
         });
+        if (!isCurrent() || result === null) return;
         if (!result.ok) {
           const reason = result.reason === "permission_denied"
             ? "הרשאת ההתראות לא אושרה במכשיר."
@@ -70,22 +124,29 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
         setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כפופה להפעלת ספק נפרדת.", error: "" });
         return;
       }
-      if (!(await isSupported())) throw new Error("הדפדפן הזה אינו תומך ב־Push.");
-      if (await Notification.requestPermission() !== "granted") throw new Error("יש לאשר התראות כדי לרשום את המכשיר.");
+      const supported = await isSupported();
+      if (!isCurrent()) return;
+      if (!supported) throw new Error("הדפדפן הזה אינו תומך ב־Push.");
+      const permission = await Notification.requestPermission();
+      if (!isCurrent()) return;
+      if (permission !== "granted") throw new Error("יש לאשר התראות כדי לרשום את המכשיר.");
       const app = getApps()[0] ?? initializeApp(firebaseConfig());
       const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+      if (!isCurrent()) return;
       const messaging = getMessaging(app);
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FCM_VAPID_KEY,
         serviceWorkerRegistration: registration
       });
+      if (!isCurrent()) return;
       if (!token) throw new Error("Firebase לא החזיר טוקן למכשיר.");
 
       await postJson("/api/push/register", {
         platform: "web",
         device_token: token,
         metadata: { source: "digital_observer_fcm", observer_site_id: siteId }
-      });
+      }, isCurrent);
+      if (!isCurrent()) return;
       const storageKey = "digital_observer_device_reference";
       const existing = window.localStorage.getItem(storageKey);
       const reference = existing || crypto.randomUUID();
@@ -96,31 +157,47 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
         device_label: /Mobi|Android/i.test(navigator.userAgent) ? "המכשיר הנייד שלי" : "הדפדפן שלי",
         platform: "web",
         device_reference: reference
-      });
+      }, isCurrent);
+      if (!isCurrent()) return;
 
-      onMessage(messaging, (payload) => {
+      const unsubscribe = onMessage(messaging, (payload) => {
+        if (!isCurrent()) return;
         if (Notification.permission !== "granted") return;
         new Notification(payload.notification?.title || "תצפיתן דיגיטלי", {
           body: payload.notification?.body || "התקבלה התראה חדשה.",
           icon: "/assets/digital-observer/app-icon.svg"
         });
       });
+      let removed = false;
+      owner.unsubscribe = () => {
+        if (removed) return;
+        removed = true;
+        unsubscribe();
+      };
       setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כבויה עד אישור הפעלה נפרד.", error: "" });
     } catch (error) {
+      if (!isCurrent()) return;
       setState({ busy: false, registered: false, message: "", error: error instanceof Error ? error.message : "לא ניתן לרשום את המכשיר." });
     }
   }
 
   async function sendTest() {
+    const owner = lifetime.current;
+    if (!owner.active) return;
+    const generation = ++owner.test;
+    const registration = owner.registration;
+    const isCurrent = () => owner.active && generation === owner.test && registration === owner.registration;
     setTesting(true);
     setState((current) => ({ ...current, message: "", error: "" }));
     try {
-      const result = await postJson("/api/digital-observer/notifications/push-test", { observer_site_id: siteId });
+      const result = await postJson("/api/digital-observer/notifications/push-test", { observer_site_id: siteId }, isCurrent);
+      if (!isCurrent()) return;
       setState((current) => ({ ...current, registered: true, message: result.message || "התראת הבדיקה נשלחה.", error: "" }));
     } catch (error) {
+      if (!isCurrent()) return;
       setState((current) => ({ ...current, message: "", error: error instanceof Error ? error.message : "שליחת הבדיקה נכשלה." }));
     } finally {
-      setTesting(false);
+      if (isCurrent()) setTesting(false);
     }
   }
 
