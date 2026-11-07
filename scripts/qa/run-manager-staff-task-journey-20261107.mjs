@@ -12,6 +12,7 @@ import { boundedCleanup, fingerprint, persistReceipt, sanitizeError } from "./in
 
 const app = process.env.GB_QA_APP ?? "http://127.0.0.1:3100";
 const expectedSha = process.argv[2];
+const readbackId = process.env.GB_READBACK_TASK_ID || null;
 const title = "GB QA Manager Staff task 2026-11-07";
 const started = Date.now();
 const evidenceRoot = resolve(config.runtimeRoot, "manager-staff-task-journey-20261107", "evidence");
@@ -97,6 +98,7 @@ function countEvidence(id) {
 
 try {
   assert.match(expectedSha ?? "", /^[0-9a-f]{40}$/);
+  if (readbackId) assert.match(readbackId, /^[0-9a-f-]{36}$/i);
   assert.equal(execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), expectedSha);
   check("isolated Development configuration", config.environment === "DEVELOPMENT / INTEGRATION" && config.productionAllowed === false && config.projectId === "gan-batuach-integration");
   check("loopback feature preview", app === "http://127.0.0.1:3100");
@@ -117,7 +119,8 @@ try {
   const manages = await manager.client.rpc("can_manage_garden", { target_garden_id: gardenId });
   check("Manager B has Garden B authority", !manages.error && manages.data === true);
   const existing = await manager.client.from("tasks").select("id,status").eq("garden_id", gardenId).eq("title", title).limit(2);
-  check("no existing task with the fixed QA title; no blind retry", !existing.error && existing.data?.length === 0);
+  check(readbackId ? "only the previously recorded completed QA task exists" : "no existing task with the fixed QA title; no blind retry",
+    !existing.error && (readbackId ? existing.data?.length === 1 && existing.data[0].id === readbackId && existing.data[0].status === "done" : existing.data?.length === 0));
   const require = createRequire(import.meta.url);
   const { chromium } = require("/Users/danielderi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
   browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true, timeout: 10_000 });
@@ -126,6 +129,7 @@ try {
   await managerPage.goto(`${app}/dashboard/garden/tasks`, { waitUntil: "domcontentloaded", timeout: 15_000 });
   await managerPage.getByRole("button", { name: "משימה חדשה" }).waitFor();
   await ready(managerPage);
+  if (!readbackId) {
   await capture(managerPage, "manager-before");
   await managerPage.getByRole("button", { name: "משימה חדשה" }).click();
   const dialog = managerPage.getByRole("dialog", { name: "משימה חדשה" });
@@ -170,9 +174,20 @@ try {
   const completedBody = await completed.json();
   evidence.actions.push({ actor: "manager-b-ui", action: "complete", status: completed.status(), resultingStatus: completedBody?.data?.status });
   check("Manager UI approved Staff submission", completed.status() === 200 && completedBody?.data?.id === taskId && completedBody.data.status === "done");
+  } else {
+    taskId = readbackId;
+    const staffPage = await (await contextFor(staff, { width: 390, height: 844 })).newPage();
+    staffPage.setDefaultTimeout(8_000);
+    await staffPage.goto(`${app}/dashboard/staff/tasks`, { waitUntil: "domcontentloaded", timeout: 15_000 });
+    await ready(staffPage);
+    await staffPage.getByRole("button", { name: /הושלמו/ }).click();
+    await staffPage.getByText(title).first().waitFor();
+    await capture(staffPage, "staff-completed-readback");
+  }
   await managerPage.reload({ waitUntil: "domcontentloaded", timeout: 12_000 });
-  await managerPage.getByText(title).first().waitFor();
   await ready(managerPage);
+  await managerPage.getByRole("button", { name: /הושלמו/ }).click();
+  await managerPage.getByText(title).first().waitFor();
   await capture(managerPage, "manager-completed");
   const beforeRepeat = countEvidence(taskId);
   const repeat = await api(manager, `/api/tasks/${taskId}/status`, "POST", { action: "complete" });
@@ -196,7 +211,7 @@ try {
   const counts = countEvidence(taskId);
   evidence.counts = counts;
   check("bounded canonical audit and in-app-only notifications", Number(counts.audit) === 4 && Number(counts.notifications) === 2 && JSON.stringify(counts.channels) === '["in_app"]');
-  check("browser request and navigation caps respected", evidence.browserWrites.length === 4 && Object.values(evidence.navigationCounts).every((count) => count <= 6) && !evidence.deadline);
+  check("browser request and navigation caps respected", evidence.browserWrites.length === (readbackId ? 0 : 4) && Object.values(evidence.navigationCounts).every((count) => count <= 6) && !evidence.deadline);
   evidence.status = "SCOPED_PASS";
 } catch (error) {
   runError = error;
