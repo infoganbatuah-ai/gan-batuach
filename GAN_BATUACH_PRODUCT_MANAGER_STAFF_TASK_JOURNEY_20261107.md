@@ -22,6 +22,8 @@ An earlier cold-start attempt failed before mutation with zero writes and three 
 
 Focused assignee tests passed 2/2 and existing task workflow checks passed 6/6. Pinned dependencies were installed in the isolated external-volume worktree; full typecheck, changed-path ESLint, QA script syntax and diff check passed. The feature preview used LOCAL_SUPABASE on loopback and is stopped. One scoped run is not full Product, exhaustive security, forced database-failure behavior, external owner visual approval, live provider, or invoice-backed cost proof. A same-Garden unassigned Staff denial fixture was not independently exercised; the canonical RPC remains the authority. No new paid dependency or fixed monthly commitment was introduced. The project-wide ₪15 per paying user ceiling still requires invoice-backed release review.
 
+The first PR #343 `management-context` check failed because its source assertion only recognized the older `profile.garden_id`/optional-employment syntax, while the scoped Staff page now uses the required verified `employment!.garden_id`. The assertion was updated to check both the verified employment assignment and the actual task query's Garden predicate. Local Management context, existing task, and new assignee tests then passed 16/16; the corrected exact PR head must still pass remote CI.
+
 ## Delivery gate
 
 This report records source preservation and scoped QA only. Before Development closure, the exact PR head must pass all six CI gates and applicable quality/security checks, merge by ancestry into `integration/development`, and receive fresh post-merge canonical QA. Full Product/security/visual/cost release gates remain open. Do not merge `main`, deploy Production, or begin RELEASE-GAP-01.
