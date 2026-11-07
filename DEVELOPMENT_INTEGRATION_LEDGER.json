@@ -14881,7 +14881,7 @@
       "title": "Bounded Parent-to-Parent document RLS and private file issuance isolation on canonical Development",
       "owner": "Product Parent document isolation executor; one Development integration owner",
       "sourceBranch": "codex/parent-documents-isolation-20261107",
-      "sourceCommits": [],
+      "sourceCommits": ["e8299e53e49d5ef524cbc7b3dd2945bdbf2f595a"],
       "state": "VALIDATED_ON_BRANCH",
       "preservation": {
         "remoteVerified": false,
