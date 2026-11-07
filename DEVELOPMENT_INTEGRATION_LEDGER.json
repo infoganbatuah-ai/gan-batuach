@@ -15375,13 +15375,14 @@
       "owner": "Candidate application journey executor; one Development integration owner",
       "sourceBranch": "codex/candidate-application-review-journey-20261107",
       "sourceCommits": [
-        "92920193767609be7ba836e27d6efadec4adfe62"
+        "92920193767609be7ba836e27d6efadec4adfe62",
+        "24368ea43ade716a21b96ca127a8b33f69a90a19"
       ],
       "state": "BLOCKED",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_COMMIT_PENDING_REMOTE_PUSH"
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/candidate-application-review-journey-20261107@24368ea43ade716a21b96ca127a8b33f69a90a19"],
+        "status": "PRESERVED_PENDING_DEPENDENCY"
       },
       "validation": {
         "status": "ONE_SUBMISSION_REVIEW_BLOCKED",
