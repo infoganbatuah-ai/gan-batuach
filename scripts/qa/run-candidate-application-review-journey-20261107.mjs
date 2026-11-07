@@ -127,7 +127,7 @@ try {
     applicationId = resumeApplicationId;
     check("resumed only recorded submitted application", state(applicationId).applications === 1 && state(applicationId).status === "submitted");
   } else {
-    const submittedResponse = candidatePage.waitForResponse((response) => new URL(response.url()).pathname === "/api/staff/job-applications" && response.request().method() === "POST");
+    const submittedResponse = candidatePage.waitForResponse((response) => new URL(response.url()).pathname === "/api/staff/job-applications" && response.request().method() === "POST", { timeout: 15_000 });
     await candidatePage.getByRole("button", { name: /הגשת מועמדות/ }).click();
     const submitted = await submittedResponse;
     const submittedBody = await submitted.json();
@@ -147,7 +147,7 @@ try {
   await capture(managerPage, "manager-desktop-submitted");
   const form = managerPage.locator("#decision form");
   await form.locator('select[name="action"]').selectOption("review");
-  const reviewedResponse = managerPage.waitForResponse((response) => new URL(response.url()).pathname === `/api/garden/staff-applications/${applicationId}` && response.request().method() === "POST");
+  const reviewedResponse = managerPage.waitForResponse((response) => new URL(response.url()).pathname === `/api/garden/staff-applications/${applicationId}` && response.request().method() === "POST", { timeout: 15_000 });
   await form.getByRole("button", { name: /שמירה/ }).click();
   const reviewed = await reviewedResponse;
   receipt.actions.push({ actor: "manager-ui", action: "review", status: reviewed.status() });
@@ -155,7 +155,7 @@ try {
   await managerPage.getByText("בבדיקה").first().waitFor();
   await form.locator('select[name="action"]').selectOption("request_information");
   await form.locator('textarea[name="decision_reason"]').fill(note);
-  const requestResponse = managerPage.waitForResponse((response) => new URL(response.url()).pathname === `/api/garden/staff-applications/${applicationId}` && response.request().method() === "POST");
+  const requestResponse = managerPage.waitForResponse((response) => new URL(response.url()).pathname === `/api/garden/staff-applications/${applicationId}` && response.request().method() === "POST", { timeout: 15_000 });
   await form.getByRole("button", { name: /שמירה/ }).click();
   const requested = await requestResponse;
   receipt.actions.push({ actor: "manager-ui", action: "request_information", status: requested.status() });
@@ -168,7 +168,7 @@ try {
   await capture(candidatePage, "candidate-desktop-information-required");
   await candidatePage.getByRole("button", { name: /השלמת המידע/ }).click();
   await candidatePage.locator(".ux08-action-panel textarea").fill(answer);
-  const responsePromise = candidatePage.waitForResponse((response) => new URL(response.url()).pathname === `/api/staff/job-applications/${applicationId}` && response.request().method() === "POST");
+  const responsePromise = candidatePage.waitForResponse((response) => new URL(response.url()).pathname === `/api/staff/job-applications/${applicationId}` && response.request().method() === "POST", { timeout: 15_000 });
   await candidatePage.getByRole("button", { name: /שליחה לבדיקה/ }).click();
   const answered = await responsePromise;
   receipt.actions.push({ actor: "candidate-ui", action: "respond", status: answered.status() });
