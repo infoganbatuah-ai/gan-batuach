@@ -14751,7 +14751,58 @@
       "localVerification": "ONE_AUTHENTICATED_STAFF_POSITIVE_JOURNEY_20_SCOPED_CHECKS_MERGED_LEDGER_GUARD_PASS_NO_PRODUCT_SOURCE_CHANGE",
       "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_ALL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Coordinator reviews the separately preserved Parent selected-child documents candidate by exact delta provenance and dependency/ancestry before any integration; do not merge its unclassified Digital Observer history wholesale. Broader Product, owner visual, provider and invoice-backed cost qualification remain open. No main, Production or RELEASE-GAP-01."
+      "nextAction": "Coordinator approved a narrow two-file Parent correction transfer in a clean Development-based branch, preserving the original source; its validation and publication are tracked in the following unit. Broader Product, owner visual, provider and invoice-backed cost qualification remain open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-parent-selected-child-documents-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-SELECTED-CHILD-DOCUMENTS-20261107",
+      "title": "Keep selected authorized Child visible and document-read failures truthful on Parent primary page",
+      "owner": "Product Parent selected-child correction executor; one Development integration owner",
+      "sourceBranch": "codex/product-parent-selected-child-documents-20261107",
+      "sourceCommits": ["97b73cbd84d589b0c3e2be2588ab7371aff22b4f", "dce279095bbbc2b733e9346cbaae682459d83c0a"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/push46-parent-selected-child-documents-20261106@97b73cbd84d589b0c3e2be2588ab7371aff22b4f", "origin/codex/product-parent-selected-child-documents-20261107@3882b1846512b9f09ec64ac170e06724dd55cf48"],
+        "status": "REMOTE_SOURCE_AND_CANDIDATE_PRESERVED_NO_PREVIEW_DEPLOYMENT_OBSERVED",
+        "originalSourceBranch": "codex/push46-parent-selected-child-documents-20261106",
+        "originalCommit": "97b73cbd84d589b0c3e2be2588ab7371aff22b4f",
+        "originalTree": "5733ae0eb14cf8e98c5511ce44d77f54ad75e1f9",
+        "originalParent": "a611767f73ac97c0c1e4fe5e050f6c66e1b268ad",
+        "cleanDevelopmentBase": "9ccb9235a831c318e02a12986b27e81b08e9481b",
+        "transferredPatchId": "124339a71c1c0837c9b3383f0ae6e3098a192411",
+        "ownerException": "Owner explicitly approved transfer of only the correction while preserving the original branch; 198 mixed-history commits and 206 files are excluded."
+      },
+      "validation": {
+        "status": "SCOPED_SYNTHETIC_PAGE_FIXTURE_20_OF_20_PASS_NO_FULL_STACK_PROOF",
+        "evidence": [
+          "Candidate script node --check PASS and one focused synthetic page run 20/20 PASS on the clean Development-based branch.",
+          "Selected authorized Children 1, 4, 5 and 13 remain visible in bounded four-row attendance; unauthorized selection adds no query scope; document read failures with null, zero and stale counts stay unavailable/neutral; healthy documents retain true counts; denied role precedes data reads.",
+          "Only Product file blobs app/dashboard/parent/page.tsx 3b64ce80542140e336fe3db4be54f5a98139cb68 and scripts/qa/check-parent-selected-child-documents.mjs 12a5328ba3908a920c0b79a6a3e557929019bfa1 match the owner-approved original commit exactly. Two-file patch SHA256 c32d60a4e6633f1595552a3db715f6054ebab395b0c8cf1c570098c5ed95a9a1; stable patch ID 124339a71c1c0837c9b3383f0ae6e3098a192411.",
+          "Vercel accessible project history since 1790000000000 had four main Production deployments and no non-main deployment; repository vercel.json disables all Git deployments except main. After both non-force branch pushes, exact-SHA and branch deployment queries each returned zero. Full team-scoped Git trigger fields were not exposed by the accessible project summary."
+        ],
+        "classification": "MANAGEMENT_SCOPED_SOURCE_AND_SYNTHETIC_FIXTURE_ONLY",
+        "limits": "No browser/API/RLS/full-stack proof from this fixture. Original Unit312 artifact is unavailable, not PASS. No exact-head hosted CI, PR, merge or post-merge QA yet. Vercel team-scoped access returns 403; the connected account allows read-only project/deployment queries without team selector, but does not show full Git trigger fields."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "9ccb9235a831c318e02a12986b27e81b08e9481b",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "CANONICAL_PARENT_CHILD_CONTEXT_AND_STAFF_ATTENDANCE_BASELINE",
+        "units": ["codex/product-attendance-pickup-journey-20261106", "codex/product-staff-attendance-positive-20261107"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "NARROW_TWO_FILE_BLOB_AND_PATCH_ID_PROVENANCE_NODE_CHECK_AND_SYNTHETIC_20_OF_20_PASS",
+      "releaseEligibility": "NOT_READY_EXACT_HEAD_CI_POST_MERGE_PRODUCT_QA_EXTERNAL_OWNER_VISUAL_ALL_ROLE_SECURITY_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Run exact-head CI/quality/Management/Snyk on a scoped PR, ancestry-preserving Development merge, focused post-merge Product checks and final ledger closure. Both original and clean candidate are remotely preserved; no Preview deployment observed. Full Vercel Git trigger fields remain a documentation gap. Do not merge mixed original ancestry or begin main/Production/RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
