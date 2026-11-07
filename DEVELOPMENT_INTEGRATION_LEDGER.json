@@ -15368,6 +15368,55 @@
       "nextAction": "Continue cumulative Product/security/owner visual and invoice-backed cost qualification; external delivery is unverified. No main, Production or RELEASE-GAP-01."
     },
     {
+      "id": "codex/candidate-application-review-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-CANDIDATE-APPLICATION-REVIEW-JOURNEY-20261107",
+      "title": "Candidate application to Manager information-request journey",
+      "owner": "Candidate application journey executor; one Development integration owner",
+      "sourceBranch": "codex/candidate-application-review-journey-20261107",
+      "sourceCommits": [
+        "92920193767609be7ba836e27d6efadec4adfe62",
+        "24368ea43ade716a21b96ca127a8b33f69a90a19",
+        "65f10303d645d7fee26c5b1c1d602d8236416010",
+        "9f843e302359e3318464ecd66f06a429ec8499bb"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/candidate-application-review-journey-20261107@65f10303d645d7fee26c5b1c1d602d8236416010"],
+        "status": "EARLIER_SOURCE_PRESERVED_LATEST_RESULT_PUSH_PENDING"
+      },
+      "validation": {
+        "status": "FEATURE_QA_JOURNEY_24_OF_24_PASS",
+        "evidence": [
+          "Historical first synthetic Candidate UI submission created application 704025c7-724e-4156-8f99-7a9ebd991bc8; same-key retry did not duplicate. Manager review initially returned 409 because of the separate app_role cast dependency. Private failed-run receipt SHA256 87a35d2b4c3ebcbfb982327f603733bf53f2cdd6b837864b308462da7d64496a; failed receipts remain failed.",
+          "After DB PRs #347/#348 and isolated Development application, feature source 9f843e302359e3318464ecd66f06a429ec8499bb resumed only that application. Actual UI Manager review/request_information and Candidate response passed 24/24 in 26 seconds; one application, four actor-correct audit events, three in-app notifications, zero employment and zero externally accepted deliveries. Foreign Manager/Staff/guest and Candidate operational access denied. Receipt SHA256 0196cd5029d723d362866ee26eaea4345ebfc2149b72ca61787e22dce0666ac6; settled read-only Desktop/Mobile capture receipt SHA256 a3b954875a8d4526f94a8099e08fe478cf80a7161a368ec84a5d3784d38907e2. Migration drift 260/260; focused Candidate 7/7 and hiring 8/8."
+        ],
+        "classification": "SCOPED_CANDIDATE_REVIEW_UI_AND_GUARDED_QA",
+        "limitations": "Feature QA is not canonical merged Product. Exact-head CI, Development merge and fresh no-write merged-head readback remain pending. Full Product/security, Production and owner visual are not claimed."
+      },
+      "integration": {
+        "status": "NOT_MERGED",
+        "base": "integration/development",
+        "baseCommit": "f6269cba934aaa37a70c32d53692f3b8c7de1854",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "DEVELOPMENT_MIGRATION_APPLIED_AND_VERIFIED",
+        "units": ["codex/db-candidate-review-actor-role-20261107"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FEATURE_QA_24_OF_24_SETTLED_DESKTOP_MOBILE_CAPTURE_MERGED_READBACK_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Push latest scoped source and evidence; exact-head CI, ancestry-preserving Development merge and fresh canonical no-write readback of the same application. No main/Production."
+    },
+    {
       "id": "codex/db-candidate-review-actor-role-20261107",
       "project": "Gan Batuach Management",
       "taskId": "GB-DB-CANDIDATE-REVIEW-ACTOR-ROLE-20261107",
