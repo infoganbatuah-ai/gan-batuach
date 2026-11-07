@@ -7917,7 +7917,7 @@
       "releaseOrder": "20261107165001",
       "requiredPredecessor": "20261029225418_complaint_sla_row_alias_fix.sql",
       "dependencyStatus": "259_OF_259_PREDECESSORS_APPLIED_LOCAL_DEVELOPMENT",
-      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT_PENDING_EXACT_CI",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": [
         "20261029225418"
       ],
