@@ -15328,13 +15328,14 @@
         "28f6329df24d0da780db61f3ec492660be1a7f1b",
         "9ebd77415f99c0d05dcf0e5a09b0ced256d4810d",
         "6b45de2e330c041d1c6ade4dcf49485a6a58f6f6",
-        "6444f6dc7e093d14574e75078007840ac494eb06"
+        "6444f6dc7e093d14574e75078007840ac494eb06",
+        "9d933af0b6b48440be12f87d36ccce5a2586e8b9"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "PUSHED_REMOTE",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "status": "LOCAL_BRANCH_CI_AND_DEVELOPMENT_PENDING"
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/parent-manager-messaging-journey-20261107@9d933af0b6b48440be12f87d36ccce5a2586e8b9"],
+        "status": "SOURCE_REMOTE_PRESERVED_PR_AND_DEVELOPMENT_PENDING"
       },
       "validation": {
         "status": "SCOPED_FEATURE_UI_READBACK_19_PASS",
@@ -15349,7 +15350,7 @@
         "base": "integration/development",
         "baseCommit": "360012f0bd191cb46f894484a354ebad32d44bae",
         "commit": null,
-        "pullRequests": [],
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/345"],
         "sourceAncestryVerified": false
       },
       "dependencies": {
