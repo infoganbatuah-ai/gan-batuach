@@ -14815,13 +14815,14 @@
       "sourceCommits": [
         "56abad3a8f34acc8178c1a4febd76544fce0a7aa",
         "9673330e4a08cc029dbc6fb2d3520311a036d6ed",
-        "22f25b2cd749dc858cc9417c728d0c28ff633dc6"
+        "22f25b2cd749dc858cc9417c728d0c28ff633dc6",
+        "c47d693bd14ad9d67caf00147d3743bc5bb09b81"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/product-parent-documents-read-state-20261107@22f25b2cd749dc858cc9417c728d0c28ff633dc6"
+          "origin/codex/product-parent-documents-read-state-20261107@c47d693bd14ad9d67caf00147d3743bc5bb09b81"
         ],
         "status": "REMOTE_SOURCE_PRESERVED_PENDING_FINAL_EXACT_HEAD_CI_BROWSER_AND_DEVELOPMENT_INTEGRATION",
         "noPreviewDeploymentObserved": true,
@@ -14835,7 +14836,8 @@
           "Focused staged diff --check passed; no new query/request, schema, RLS, grant, provider, dependency or Digital Observer core change.",
           "Feature-branch Development ledger schema check passed with 212 units and zero errors; release inclusion and full Product gates were not run.",
           "Draft PR #321 ran six Digital Observer CI gates, Canonical quality and Management tenant context successfully on predecessor exact head e16ed8bd4b178859921936711beeb234e32cbd07 only; the feature-QA launcher changes require fresh exact-head checks.",
-          "Feature QA launcher guard tests passed 9/9 including main's shared runtime-path builder and refusal of node_modules symlink; existing integration launcher guard tests passed 6/6. The prior canonical installed dependency inventory matched the identical pinned feature/canonical package lock, but feature-local offline dependencies remain uninstalled. No server startup."
+          "Feature QA launcher guard tests passed 9/9 including main's shared runtime-path builder and refusal of node_modules symlink; existing integration launcher guard tests passed 6/6. The prior canonical installed dependency inventory matched the identical pinned feature/canonical package lock, but feature-local offline dependencies remain uninstalled. No server startup.",
+          "Gate 3 domain regression failed on predecessor head f29bae64499a1e41d19e5340bf3a8fc57fc8c4aa because the new runtime launcher embedded a machine-specific volume path. Commit c47d693bd14ad9d67caf00147d3743bc5bb09b81 derives that path from the project layout; source regex scan and focused tests passed. All final-head gates must rerun."
         ],
         "classification": "MANAGEMENT_SCOPED_SOURCE_SYNTHETIC_FIXTURE_AND_FEATURE_QA_GUARDS_ONLY",
         "limits": "No final-head typecheck/lint/build or six CI gates, authenticated feature browser/API/RLS, accessibility visual review or full-stack proof yet. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED at Development c3507c3f and is not superseded."
