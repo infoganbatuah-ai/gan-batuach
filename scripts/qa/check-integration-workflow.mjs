@@ -2,6 +2,21 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {integrationEnvironment,isGeneratedNextEnv} from '../development/integration-environment.mjs';
+import {parseIntegrationArgs} from '../development/integration-bundler.mjs';
+
+test('canonical integration defaults to installed Turbopack mode',()=>{
+  assert.deepEqual(parseIntegrationArgs([]),{uiOnly:false,bundler:'TURBOPACK_DEFAULT',nextFlags:[]});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only']),{uiOnly:true,bundler:'TURBOPACK_DEFAULT',nextFlags:[]});
+});
+test('only the explicit Webpack diagnostic option changes the Next flag',()=>{
+  assert.deepEqual(parseIntegrationArgs(['--webpack']),{uiOnly:false,bundler:'WEBPACK_DIAGNOSTIC',nextFlags:['--webpack']});
+  assert.deepEqual(parseIntegrationArgs(['--ui-only','--webpack']),{uiOnly:true,bundler:'WEBPACK_DIAGNOSTIC',nextFlags:['--webpack']});
+});
+test('unknown, duplicated and arbitrary runtime flags fail closed',()=>{
+  for(const args of [['--turbo'],['--webpack','--inspect'],['--webpack','--webpack'],['--ui-only','--ui-only'],['--'],['--webpack','--ui-only','--inspect'],['--hostname','0.0.0.0']]) {
+    assert.throws(()=>parseIntegrationArgs(args),/accepts only/);
+  }
+});
 
 test('only exact Next-generated development type imports are exempt from clean snapshot guard',()=>{
   const baseline='import "./.next/types/routes.d.ts";\nimport "./.next/types/root-params.d.ts";';
