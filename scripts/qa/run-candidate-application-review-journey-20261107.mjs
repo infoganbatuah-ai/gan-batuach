@@ -9,7 +9,7 @@ import { createServerClient } from "@supabase/ssr";
 import { config, sql } from "../development/local-database.mjs";
 import { localCredentials } from "../development/local-client.mjs";
 
-const app = "http://127.0.0.1:3000";
+const app = "http://127.0.0.1:3100";
 const expectedSha = process.argv[2];
 const resumeApplicationId = process.env.GB_CANDIDATE_APP_ID || null;
 const candidateId = "00000000-0000-4000-8000-000000000304";
@@ -60,6 +60,7 @@ async function pageFor(person, viewport) {
     const url = new URL(request.url());
     if (url.origin !== app) return route.abort("blockedbyclient");
     if (!["GET", "HEAD"].includes(request.method())) {
+      if (url.pathname.startsWith("/__nextjs_")) return route.abort("blockedbyclient");
       receipt.browserWrites.push({ method: request.method(), path: url.pathname });
       const allowed = request.method() === "POST" && (url.pathname === "/api/staff/job-applications" ||
         /^\/api\/(garden\/staff-applications|staff\/job-applications)\/[0-9a-f-]{36}$/i.test(url.pathname));
@@ -94,13 +95,13 @@ function state(id) {
 try {
   mkdirSync(evidenceRoot, { recursive: true, mode: 0o700 });
   assert.match(expectedSha ?? "", /^[0-9a-f]{40}$/);
-  check("exact merged Development source", execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === expectedSha);
+  check("exact isolated feature source", execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === expectedSha);
   check("isolated Development only", config.environment === "DEVELOPMENT / INTEGRATION" && config.productionAllowed === false && config.projectId === "gan-batuach-integration");
   check("external provider delivery disabled", process.env.GB_M31_EXTERNAL_DELIVERY_ENABLED !== "true" && !process.env.GB_M31_DELIVERY_WORKER_SECRET);
   const keys = localCredentials();
   check("loopback Supabase", keys.url === "http://127.0.0.1:55421");
   const version = await api(null, "/api/development/version");
-  check("exact running Product", version.status === 200 && version.body?.commit === expectedSha && version.body?.backend === "LOCAL_SUPABASE" && version.body?.production === false);
+  check("exact running feature QA", version.status === 200 && version.body?.commit === expectedSha && version.body?.backend === "LOCAL_SUPABASE" && version.body?.production === false && version.body?.canonicalProduct === false);
   const identities = JSON.parse(readFileSync(resolve(config.runtimeRoot, "qa-identities.private.json"), "utf8"));
   check("synthetic identities", identities.environment === config.environment);
   const candidate = await login("staff-candidate", keys, identities);
