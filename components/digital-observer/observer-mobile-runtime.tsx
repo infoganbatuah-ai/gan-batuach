@@ -213,6 +213,17 @@ export function ObserverMobileRuntime() {
       }
     };
 
+    const ownPushListener = (listener: { remove: () => Promise<void> }) => {
+      let removed = false;
+      const remove = async () => {
+        if (removed) return;
+        removed = true;
+        try { await listener.remove(); } catch { /* Cleanup is best-effort, without retries. */ }
+      };
+      removers.push(remove);
+      return remove;
+    };
+
     const start = async () => {
       const listenerFailed = () => {
         if (disposed || !playbackPublisher.isCurrent()) return;
@@ -268,17 +279,34 @@ export function ObserverMobileRuntime() {
       if (launch?.url) void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
 
       if (pushAvailable) {
-        const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
-        const registrationError = await PushNotifications.addListener("registrationError", () => emit("digital-observer:native-push-result", { ok: false, reason: "provider_error" }));
+        const registration = await PushNotifications.addListener("registration", (token) => {
+          if (disposed || !playbackPublisher.isCurrent()) return;
+          void handlePushRegistration(token);
+        });
+        const removeRegistration = ownPushListener(registration);
+        if (disposed || !playbackPublisher.isCurrent()) { await removeRegistration(); return; }
+        const registrationError = await PushNotifications.addListener("registrationError", () => {
+          if (disposed || !playbackPublisher.isCurrent()) return;
+          emit("digital-observer:native-push-result", { ok: false, reason: "provider_error" });
+        });
+        const removeRegistrationError = ownPushListener(registrationError);
+        if (disposed || !playbackPublisher.isCurrent()) { await removeRegistrationError(); return; }
         const received = await PushNotifications.addListener("pushNotificationReceived", (notification: PushNotificationSchema) => {
+          if (disposed || !playbackPublisher.isCurrent()) return;
           emit("digital-observer:native-notification", mobileNotificationPreview(notification));
         });
-        const action = await PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => {
+        const removeReceived = ownPushListener(received);
+        if (disposed || !playbackPublisher.isCurrent()) { await removeReceived(); return; }
+        const action = await PushNotifications.addListener("pushNotificationActionPerformed", (event) => {
+          if (disposed || !playbackPublisher.isCurrent()) return;
+          const { notification } = event;
           const link = notification.data?.deep_link;
           if (typeof link === "string") void authorizeAndOpen(link).catch(() => emit("digital-observer:mobile-link-denied"));
         });
-        removers.push(() => registration.remove(), () => registrationError.remove(), () => received.remove(), () => action.remove());
+        const removeAction = ownPushListener(action);
+        if (disposed || !playbackPublisher.isCurrent()) { await removeAction(); return; }
       }
+      if (disposed || !playbackPublisher.isCurrent()) return;
       window.addEventListener("digital-observer:enable-native-push", enablePush);
       window.addEventListener("pageshow", bootstrap);
     };
