@@ -25,6 +25,7 @@ import {
   InspectorRow,
   InspectorScoreRing,
   InspectorSection,
+  InspectorStatePanel,
   InspectorStatus
 } from "@/components/inspector-app-ui";
 
@@ -74,7 +75,24 @@ export default async function InspectorDashboard() {
   const inspector = inspectorRes.data as any;
   const profileForUi = { ...profile, profile_image_url: inspector?.profile_photo_url ?? profile.profile_image_url };
 
-  const assignedGardens = (gardensRes.data ?? []) as any[];
+  if (gardensRes.error || !Array.isArray(gardensRes.data)) {
+    return (
+      <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="מרכז פיקוח" subtitle="נתוני שיוך הגנים אינם זמינים כרגע" badge="מידע לא זמין">
+        <div role="alert">
+          <InspectorStatePanel
+            icon={<AlertTriangle size={26} />}
+            eyebrow="שיוך גנים"
+            title="לא ניתן לטעון את הגנים המשויכים"
+            text="לא ניתן לאמת כרגע את שיוך הגנים שלך. נסו שוב מאוחר יותר; פעולות פיקוח הדורשות שיוך לא יוצגו עד שהמידע יהיה זמין."
+            tone="warning"
+            actions={<Link className="inspector-action-button" href="/dashboard/inspector">נסה שוב</Link>}
+          />
+        </div>
+      </InspectorAppFrame>
+    );
+  }
+
+  const assignedGardens = gardensRes.data as any[];
 
   if (assignedGardens.length === 0) {
     return (
@@ -106,11 +124,16 @@ export default async function InspectorDashboard() {
     supabase.from("tasks" as any).select("id, garden_id, title, priority, status, due_at").or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).neq("status", "done").order("created_at", { ascending: false }).limit(12)
   ]);
 
-  const required = (requiredRes.data ?? []) as any[];
-  const inspections = (inspectionsRes.data ?? []) as any[];
-  const violations = (violationsRes.data ?? []) as any[];
-  const complaints = (complaintsRes.data ?? []) as any[];
-  const tasks = ((tasksRes.data ?? []) as any[]).filter((task) => !task.garden_id || gardenIds.includes(task.garden_id));
+  const requiredUnavailable = readUnavailable(requiredRes);
+  const inspectionsUnavailable = readUnavailable(inspectionsRes);
+  const violationsUnavailable = readUnavailable(violationsRes);
+  const complaintsUnavailable = readUnavailable(complaintsRes);
+  const tasksUnavailable = readUnavailable(tasksRes);
+  const required = (requiredUnavailable ? [] : requiredRes.data) as any[];
+  const inspections = (inspectionsUnavailable ? [] : inspectionsRes.data) as any[];
+  const violations = (violationsUnavailable ? [] : violationsRes.data) as any[];
+  const complaints = (complaintsUnavailable ? [] : complaintsRes.data) as any[];
+  const tasks = ((tasksUnavailable ? [] : tasksRes.data) as any[]).filter((task) => !task.garden_id || gardenIds.includes(task.garden_id));
   const next = required[0];
   const overdue = required.filter((item) => {
     const days = daysUntil(item.due_at);
@@ -122,7 +145,7 @@ export default async function InspectorDashboard() {
   });
   const inspectionScores = inspections.filter((item) => item.weighted_score !== null && item.weighted_score !== undefined).map((item) => Number(item.weighted_score)).filter((score) => Number.isFinite(score));
   const gardenScores = gardens.filter((garden) => garden.last_inspection_score !== null && garden.last_inspection_score !== undefined).map((garden) => Number(garden.last_inspection_score)).filter((score) => Number.isFinite(score));
-  const avgScore = inspectionScores.length
+  const avgScore = inspectionsUnavailable ? null : inspectionScores.length
     ? Math.round(inspectionScores.reduce((sum, score) => sum + score, 0) / inspectionScores.length)
     : gardenScores.length
       ? Math.round(gardenScores.reduce((sum, score) => sum + score, 0) / gardenScores.length)
@@ -132,24 +155,26 @@ export default async function InspectorDashboard() {
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector">
       <InspectorHero
         eyebrow="הביקורת הבאה"
-        title={next?.gardens?.name ?? "אין ביקורת מתוכננת"}
-        subtitle={next ? `${next.gardens?.address ?? next.gardens?.city ?? ""} · ${next.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}` : "כאשר אדמין ישייך ביקורת, היא תופיע כאן עם כל פרטי השטח."}
+        title={requiredUnavailable ? "יומן הביקורות אינו זמין" : next?.gardens?.name ?? "אין ביקורת מתוכננת"}
+        subtitle={requiredUnavailable ? "לא ניתן לטעון כרגע את הביקורות המתוכננות. שיוך הגנים אומת, אך מצב הביקורות אינו ידוע." : next ? `${next.gardens?.address ?? next.gardens?.city ?? ""} · ${next.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}` : "כאשר אדמין ישייך ביקורת, היא תופיע כאן עם כל פרטי השטח."}
         imageSrc="/assets/ux09-inspector-hero.webp"
         imageAlt="מפקחת בטיחות בגן ילדים"
         meta={next ? <><InspectorStatus tone="primary">{next.due_at ? new Date(next.due_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "ללא שעה"}</InspectorStatus><InspectorStatus tone={overdue.length ? "warning" : "success"}>{overdue.length ? "דורש טיפול" : "מתוכננת"}</InspectorStatus></> : null}
-        action={<><Link className="inspector-action-button" href={next ? `/dashboard/inspector/inspections?required=${next.id}` : "/dashboard/inspector/inspections"}>התחל ביקורת</Link><Link className="inspector-action-button" href="/dashboard/inspector/control-center">נווט <Navigation size={18} /></Link></>}
+        action={<>{!requiredUnavailable ? <Link className="inspector-action-button" href={next ? `/dashboard/inspector/inspections?required=${next.id}` : "/dashboard/inspector/inspections"}>התחל ביקורת</Link> : null}<Link className="inspector-action-button" href="/dashboard/inspector/control-center">נווט <Navigation size={18} /></Link></>}
       />
 
       <InspectorMetricGrid columns={4}>
         <InspectorMetricCard label="גנים מוקצים" value={gardens.length} hint="גנים בפיקוח" icon={Home} tone="success" href="/dashboard/inspector/control-center" />
-        <InspectorMetricCard label="ביקורות החודש" value={`${inspections.length}/${Math.max(required.length, gardens.length, 1)}`} hint="הושלמו" icon={ClipboardCheck} tone="primary" href="/dashboard/inspector/inspections/history" />
-        <InspectorMetricCard label="ליקויים פתוחים" value={violations.length} hint="דורש טיפול" icon={AlertTriangle} tone={violations.length ? "warning" : "success"} href="/dashboard/inspector/violations" />
-        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "מתוך 10"} icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
+        <InspectorMetricCard label="ביקורות החודש" value={inspectionsUnavailable || requiredUnavailable ? "—" : `${inspections.length}/${Math.max(required.length, gardens.length, 1)}`} hint={inspectionsUnavailable || requiredUnavailable ? "מידע לא זמין" : "הושלמו"} icon={ClipboardCheck} tone={inspectionsUnavailable || requiredUnavailable ? "muted" : "primary"} href="/dashboard/inspector/inspections/history" />
+        <InspectorMetricCard label="ליקויים פתוחים" value={violationsUnavailable ? "—" : violations.length} hint={violationsUnavailable ? "מידע לא זמין" : "דורש טיפול"} icon={AlertTriangle} tone={violationsUnavailable ? "muted" : violations.length ? "warning" : "success"} href="/dashboard/inspector/violations" />
+        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore ?? "—"} hint={inspectionsUnavailable ? "מידע לא זמין" : avgScore === null ? "טרם חושב" : "מתוך 10"} icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
       </InspectorMetricGrid>
+      {inspectionsUnavailable ? <ReadUnavailable title="נתוני הביקורות שהושלמו אינם זמינים" /> : null}
 
       <DashboardTwoColumns>
         <InspectorSection title="היום שלי" subtitle="ביקורות, מעקב ושיחות לפי סדר עדיפות" icon={CalendarCheck} action={<Link href="/dashboard/inspector/inspections/due">צפה ביומן המלא</Link>}>
           <InspectorList>
+            {requiredUnavailable ? <ReadUnavailable title="יומן הביקורות אינו זמין" /> : null}
             {required.slice(0, 4).map((item) => {
               const days = daysUntil(item.due_at);
               return (
@@ -163,12 +188,13 @@ export default async function InspectorDashboard() {
                 />
               );
             })}
-            {required.length === 0 ? <InspectorEmpty title="אין ביקורות פתוחות" text="יומן הביקורות יתעדכן אחרי שיוך גנים ומשימות." icon={CalendarCheck} /> : null}
+            {!requiredUnavailable && required.length === 0 ? <InspectorEmpty title="אין ביקורות פתוחות" text="יומן הביקורות יתעדכן אחרי שיוך גנים ומשימות." icon={CalendarCheck} /> : null}
           </InspectorList>
         </InspectorSection>
 
         <InspectorSection title="התראות אחרונות" subtitle="ליקויים, תלונות ואירועים בגנים המשויכים" icon={BellIcon} action={<Link href="/dashboard/inspector/notifications">צפה בכל ההתראות</Link>}>
           <InspectorList>
+            {violationsUnavailable || complaintsUnavailable ? <ReadUnavailable title={violationsUnavailable && complaintsUnavailable ? "ההתראות אינן זמינות" : violationsUnavailable ? "נתוני הליקויים אינם זמינים" : "נתוני התלונות אינם זמינים"} /> : null}
             {[...violations.slice(0, 3), ...complaints.slice(0, 3)].slice(0, 5).map((item: any) => (
               <InspectorRow
                 key={`${item.id}-${item.title ?? item.subject}`}
@@ -179,7 +205,7 @@ export default async function InspectorDashboard() {
                 status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{severityLabel(item.severity)}</InspectorStatus>}
               />
             ))}
-            {violations.length + complaints.length === 0 ? <InspectorEmpty title="אין התראות פתוחות" text="אירועים וליקויים שיוקצו לך יופיעו כאן." icon={ShieldCheck} /> : null}
+            {!violationsUnavailable && !complaintsUnavailable && violations.length + complaints.length === 0 ? <InspectorEmpty title="אין התראות פתוחות" text="אירועים וליקויים שיוקצו לך יופיעו כאן." icon={ShieldCheck} /> : null}
           </InspectorList>
         </InspectorSection>
       </DashboardTwoColumns>
@@ -193,6 +219,7 @@ export default async function InspectorDashboard() {
 
       <InspectorSection title="משימות פתוחות" subtitle="פעולות המשך לביצוע היום" icon={MapPin} action={<Link href="/dashboard/inspector/tasks">לכל המשימות</Link>}>
         <InspectorList>
+          {tasksUnavailable ? <ReadUnavailable title="נתוני המשימות אינם זמינים" /> : null}
           {tasks.slice(0, 5).map((task) => (
             <InspectorRow
               key={task.id}
@@ -202,11 +229,19 @@ export default async function InspectorDashboard() {
               status={<InspectorStatus tone={task.priority === "high" ? "warning" : "primary"}>{taskStatusLabel(task.status)}</InspectorStatus>}
             />
           ))}
-          {tasks.length === 0 ? <InspectorEmpty title="אין משימות פתוחות" text="משימות פיקוח, תיקונים ומעקב יופיעו כאן." icon={ClipboardCheck} /> : null}
+          {!tasksUnavailable && tasks.length === 0 ? <InspectorEmpty title="אין משימות פתוחות" text="משימות פיקוח, תיקונים ומעקב יופיעו כאן." icon={ClipboardCheck} /> : null}
         </InspectorList>
       </InspectorSection>
     </InspectorAppFrame>
   );
+}
+
+function ReadUnavailable({ title }: { title: string }) {
+  return <div role="alert"><InspectorEmpty title={title} text="לא ניתן לאמת את המידע כרגע. נסו שוב מאוחר יותר." icon={AlertTriangle} /></div>;
+}
+
+function readUnavailable(result: { data: unknown; error?: unknown }) {
+  return Boolean(result.error) || !Array.isArray(result.data);
 }
 
 function DashboardTwoColumns({ children }: { children: ReactNode }) {
