@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T07:16:59Z",
+  "updatedAt": "2026-11-07T07:57:54Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -14975,6 +14975,37 @@
       "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Hand off to the canonical Product coordinator. Forced live read-error, browser-runner teardown, broader Product/security, owner visual and invoice-backed cost gates stay separately open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/inspector-draft-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-INSPECTOR-DRAFT-JOURNEY-20261107",
+      "title": "Qualify assigned Inspector draft save, resume, idempotency and denied read/write through actual Development Product",
+      "owner": "Product Inspector draft journey executor; one Development integration owner",
+      "sourceBranch": "codex/inspector-draft-journey-20261107",
+      "sourceCommits": ["6973d193ab9db46a455341cea719ad6dc3b97051", "0d8404895fb8bb94578ae9f0c64a704cefa9585d"],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {"remoteVerified": false, "remoteRefs": [], "status": "LOCAL_VALIDATED_PUSH_PR_CI_AND_DEVELOPMENT_MERGE_PENDING"},
+      "validation": {
+        "status": "EXACT_FEATURE_BROWSER_8_OF_8_CLEAN_EXIT_FOCUSED_SOURCE_31_OF_31_PASS_CI_PENDING",
+        "evidence": [
+          "Guarded feature-only LOCAL_SUPABASE at 0d8404895fb8bb94578ae9f0c64a704cefa9585d: actual assigned Inspector due-list UI clicked an existing active-form inspection, saved one marked answer, reloaded and resumed it, then repeated save. Authorized draft API and pinned isolated database agreed on one draft row and one answer; no duplicate.",
+          "Approved-unassigned Inspector and Staff each received 403 for GET and PUT of the known draft ID. Responses contained no draft answer, marker, question ID, inspection ID, Garden ID or Garden name, and denied attempts left the row unchanged.",
+          "Inspection remained in_progress with no completion or final score. Existing report snapshot and submitted payload fingerprints did not change; regulatory audit count stayed zero. One synthetic draft was created through the Product UI and preserved; no persona reset or service-role write.",
+          "Protected redacted receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/inspector-draft-journey-20261107/evidence/receipt-1794038076844.json mode 0600 SHA256 7620529c2b64b0931510ebc7c8c1f95884ad0f13d0637b6918d04e1787a19e18; eight checks passed, process exit zero, browser/context cleanup complete. Initial no-draft read and first partial test had no PASS receipt.",
+          "Focused source regressions: UX-14 9/9, UX-09 8/8, Inspector approval 4/4, Inspector workspace read state 10/10. Harness syntax and diff checks passed. No Product source/schema/RLS/API/provider/DO core/dependency changes. See GAN_BATUACH_PRODUCT_INSPECTOR_DRAFT_JOURNEY_20261107.md."
+        ],
+        "classification": "MANAGEMENT_INSPECTOR_SYNTHETIC_DEVELOPMENT_UI_API_DATABASE_ISOLATION",
+        "limits": "One synthetic Inspection and three QA identities only. Full Product/security, live provider/hardware, external owner visual, invoice-backed cost and Production gates remain open. Exact-head hosted CI and post-merge canonical smoke pending."
+      },
+      "integration": {"status": "PENDING", "base": "integration/development", "baseCommit": "0ef48d30c83797124881f7ea8b3b25dd621a2112", "commit": null, "pullRequests": [], "sourceAncestryVerified": false},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_FEATURE_UI_API_DATABASE_8_OF_8_AND_SOURCE_31_OF_31_PASS_NOT_CANONICAL_POSTMERGE_OR_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Push scoped feature branch, open PR to integration/development, require exact-head six CI gates plus Canonical quality/Management context/scanner, ancestry-merge, verify remote head, run canonical post-merge draft/role QA and record closure. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

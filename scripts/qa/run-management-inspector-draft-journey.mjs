@@ -32,6 +32,7 @@ function identity(email) {
 const assigned = identity("inspector-a@integration.qa.invalid");
 const unassigned = identity("inspector-unassigned@integration.qa.invalid");
 const staff = identity("staff-a@integration.qa.invalid");
+assert.match(assigned.id, /^[a-f0-9-]{36}$/i, "Synthetic Inspector ID must be a UUID");
 const keys = localCredentials();
 assert.equal(keys.url, "http://127.0.0.1:55421");
 
