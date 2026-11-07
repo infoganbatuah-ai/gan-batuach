@@ -15061,6 +15061,45 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Investigate the first actionable client error under a separately approved bounded private diagnostic, retaining pre-request cap and no Product change until cause is proven; continue Product/security/owner visual/cost gates. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/retry-first-stack-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-RETRY-FIRST-STACK-20261107",
+      "title": "Capture sanitized first Inspector due-page client stack and passive request initiator under the existing bounded guard",
+      "owner": "Product first-stack diagnosis executor; one Development integration owner",
+      "sourceBranch": "codex/retry-first-stack-20261107",
+      "sourceCommits": ["89e3ae67f1b4b8586f1c09d18c3301e5a1156553"],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_COMMIT_PENDING_REMOTE_AND_INTEGRATION"
+      },
+      "validation": {
+        "status": "QA_GUARD_6_OF_6_PASS_ONE_CANONICAL_RUNTIME_NOT_REPRODUCED_CAUSE_UNRESOLVED",
+        "evidence": [
+          "Guard/runner syntax and six focused tests passed; scoped diff check passed. The first-error sanitizer retains bounded allowlisted categories and normalized frames but no raw message, query, header or token.",
+          "One default-Turbopack canonical read-only Inspector due-page run at 1782c432 used a synthetic assigned Inspector and returned one HTTP 200 target document with a visible inspection link. No page error, console hint, retry or stack appeared; process exit 0 and browser/context cleanup COMPLETE. Protected receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/inspector-first-stack-20261107/evidence/receipt-1794043785554.json SHA256 4a959bdc0d4809b120c39072b800b1d7b4febc584a71e878a78ffc7e9dc2e3a5. The server stopped and port 3000 was free."
+        ],
+        "classification": "MANAGEMENT_DEVELOPMENT_QA_GUARD_AND_NONREPRODUCED_INTERMITTENT_RUNTIME",
+        "limits": "The prior Inspector due-page failure remains intermittent and unrooted. One successful render is not full Product/security proof, and no Product cause or fix is claimed. No second browser attempt was made."
+      },
+      "integration": {
+        "status": "PENDING",
+        "base": "integration/development",
+        "baseCommit": "1782c432d5633fe5d1a0446df04eea84abff958e",
+        "commit": null,
+        "pullRequests": [],
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_SINGLE_READ_ONLY_INSPECTOR_DUE_RENDERED_NOT_REPRODUCED_QA_GUARD_6_OF_6_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_INTERMITTENT_RUNTIME_CAUSE_AND_FULL_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Preserve exact feature head remotely, run exact-head CI, ancestry-merge into Development and post-merge focused checks. Continue independent Inspector cold-start cause investigation and Product/security/visual/cost gates without repeating this one-shot diagnostic. No main, Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
