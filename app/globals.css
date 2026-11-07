@@ -30781,14 +30781,16 @@ body.gb-mobile-preview-mode {
 @media (max-width: 760px) {
   .communication-workspace {
     display: block;
-    min-height: calc(100dvh - 150px);
+    height: max(420px, calc(100dvh - 280px));
+    min-height: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
   .communication-thread-pane,
   .communication-conversation-pane {
-    min-height: calc(100dvh - 150px);
+    height: 100%;
+    min-height: 0;
   }
   .communication-workspace.has-active-thread .communication-thread-pane { display: none; }
   .communication-workspace:not(.has-active-thread) .communication-conversation-pane { display: none; }
