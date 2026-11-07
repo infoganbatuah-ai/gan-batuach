@@ -15630,6 +15630,59 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve ledger closure remotely; coordinator selects the next source-only Parent gap. Payment, manual activation, cumulative Product/security, owner visual and invoice-backed cost gates remain pending; no main/Production."
+    },
+    {
+      "id": "codex/db-manual-arrangement-state-guard-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DB-MANUAL-ARRANGEMENT-STATE-GUARD-20261108",
+      "title": "Guard stale manual enrollment arrangement states before evidence writes",
+      "owner": "Manager enrollment database contract; one Development integration owner",
+      "sourceBranch": "codex/db-manual-arrangement-state-guard-20261108",
+      "sourceCommits": [
+        "ed92c1a3471651815cc5c192b03080b14b2335a9"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/db-manual-arrangement-state-guard-20261108@ed92c1a3471651815cc5c192b03080b14b2335a9"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_ROLLBACK_ONLY_ISOLATED_DB_PASS",
+        "evidence": [
+          "Rollback-only pre-fix synthetic request reproduced the defect: a stale rejected request became payment_reconciliation_required with one confirmed evidence row and two audit rows. No fixture persisted.",
+          "Rollback-only proposed migration test passed rejected, cancelled and reconciliation-state denial, cross-Garden Manager and Parent denial, activated retry, unchanged request/evidence tuples, zero denied evidence/audit writes and postgres definer/authenticated-only ACL/search_path checks. No existing QA request was invoked.",
+          "PR #357 at exact source head ed92c1a3471651815cc5c192b03080b14b2335a9 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving Development merge 3acf23c75e596d9ed4bc06750a02d32a40a48461 and remote source/integration refs were verified."
+        ],
+        "classification": "FUNCTION_ONLY_MANUAL_ENROLLMENT_STATE_GUARD",
+        "limitations": "Canonical isolated Development application is pending. Valid awaiting_payment activation, real payment truth, last_amount_paid, broad Product/security, owner visual, invoice-backed cost and Production remain unverified. The prior synthetic Parent request remains awaiting_payment with one reservation; it was not invoked."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "5db0318c1eb88b3eaed91146b7db9bd8fe191975",
+        "commit": "3acf23c75e596d9ed4bc06750a02d32a40a48461",
+        "pullRequests": [357],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_260_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": [
+          "codex/parent-enrollment-seat-status-20261108"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20261107230104_management_manual_arrangement_state_guard.sql"
+      ],
+      "migrationOrder": ["20261107230104"],
+      "localVerification": "ROLLBACK_ONLY_PROPOSED_MIGRATION_PASS_CANONICAL_APPLICATION_PENDING",
+      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Apply the single registered and validated migration through the canonical isolated Development applicator after preserving the live function backup; verify post-apply behavior and close both ledgers. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
