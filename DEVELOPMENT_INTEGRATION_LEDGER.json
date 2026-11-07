@@ -14831,7 +14831,7 @@
         "deploymentEvidenceLimit": "Project Vercel SHA lookups returned zero deployments for source/QA head d59d13205d3c4e47692f5c1d93208c27cd4dded6 and merged PR head 595c4801e628ddb6bcd52fa2b79acbcc788c6d79. Full live Git trigger fields were not exposed; this is not a Production deployment claim."
       },
       "validation": {
-        "status": "EXACT_PR_HEAD_CI_8_OF_8_FEATURE_BROWSER_4_OF_4_POSTMERGE_SOURCE_20_OF_20_PASS_RUNTIME_PENDING_RESOURCE",
+        "status": "EXACT_PR_HEAD_CI_8_OF_8_FEATURE_BROWSER_4_OF_4_POSTMERGE_SOURCE_20_OF_20_PASS_CANONICAL_RUNTIME_FAILED",
         "evidence": [
           "node --check and node --test scripts/qa/check-parent-documents-read-state.mjs passed; 5/5 behavioral cases on the actual page component with in-memory synthetic query responses.",
           "Valid empty, populated and protected file link, document read failure, family context unavailable/upload refusal, and denied role before reads were observed.",
@@ -14842,10 +14842,11 @@
           "Gate 3 domain regression failed on predecessor head f29bae64499a1e41d19e5340bf3a8fc57fc8c4aa because the launcher embedded a machine-specific path; c47d693bd14ad9d67caf00147d3743bc5bb09b81 fixed it. Gate 1 then failed on predecessor cba57bbced5c43d76c5f384d9d180803eb2a49d5 due to a Mac-only fixture; 32def20bd5c9ff6059a3cd67617707f32ad4a1de fixed it. Local focused tests passed 15/15. All six Digital Observer CI gates, Canonical quality and management-context completed success on exact source/QA head d59d13205d3c4e47692f5c1d93208c27cd4dded6.",
           "Offline npm ci failed closed with ENOTCACHED for zod-validation-error@4.0.2; no network fallback. A private copy of canonical exact-locked installed dependencies passed ordinary-directory and inventory guards; 43 links remained within the feature project, source/destination inodes differ, and canonical source metadata was unchanged.",
           "Guarded feature-only server at d59d13205d3c4e47692f5c1d93208c27cd4dded6 used healthy isolated LOCAL_SUPABASE and loopback port 3100. Authenticated synthetic browser check passed 4/4: Parent A/B at 1440x1024, multi-Child Parent at 390x844, and Staff redirected without family documents. Zero page errors; server stopped and port verified free. Private receipt SHA256 8b7410e30dde31fca9b93ae43ce098778477017de9eaa7d2e04da61106a7de3a under Development/gan-batuach/feature-qa/d59d13205d3c4e47692f5c1d93208c27cd4dded6/evidence. Feature QA is not canonical merged Product.",
-          "PR #321 exact head 595c4801e628ddb6bcd52fa2b79acbcc788c6d79 passed all six Digital Observer CI gates, Canonical quality and management-context (8/8). Ancestry-preserving merge 8b9dd0fe930398ee900e80a05e065b524dc1a750 has parents c3507c3f07ca5a78ebf037b7cb596518708efa96 and 595c4801e628ddb6bcd52fa2b79acbcc788c6d79. Clean canonical Development worktree was fast-forwarded to that exact remote SHA. Post-merge focused source tests passed 20/20 and ledger schema 212 units passed. Canonical runtime/browser was not started because host load rose to 30.27 on 8 cores."
+          "PR #321 exact head 595c4801e628ddb6bcd52fa2b79acbcc788c6d79 passed all six Digital Observer CI gates, Canonical quality and management-context (8/8). Ancestry-preserving merge 8b9dd0fe930398ee900e80a05e065b524dc1a750 has parents c3507c3f07ca5a78ebf037b7cb596518708efa96 and 595c4801e628ddb6bcd52fa2b79acbcc788c6d79. Clean canonical Development worktree was fast-forwarded to that exact remote SHA. Post-merge focused source tests passed 20/20 and ledger schema 212 units passed.",
+          "A later safe-admitted canonical npm run dev:integration at exact 8b9dd0fe started Next 16.4.3 default Turbopack and healthy isolated backend. Synthetic Parent-A /dashboard/parent/documents navigation timed out waiting for domcontentloaded after 90s while repeated HTTP 200 responses and Next Suspense-boundary fallback logged. Browser/app were stopped, port 3000 free, canonical Git clean. POST_MERGE_RUNTIME_FAILED; private redacted diagnostic SHA256 849447e4b071a332a8122b6c63e27de78e21bda1f27d64be19c86ca664d9e8bb under Development/gan-batuach/parent-documents-postmerge-8b9dd0fe/evidence. Feature-only Webpack PASS is separate and does not prove root cause."
         ],
         "classification": "MANAGEMENT_SCOPED_SOURCE_FIXTURE_EXACT_HEAD_CI_AND_AUTHENTICATED_FEATURE_BROWSER",
-        "limits": "Normal Parent reads and Staff redirect passed in feature QA. Canonical merged Development runtime/browser remains unverified pending host admission; injected read failure, all Parent-to-Parent RLS boundaries, document download policy, accessibility visual review and cumulative full-stack proof remain unverified. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED and is not superseded."
+        "limits": "Canonical merged Development Parent Documents browser FAILED under default Turbopack; do not treat source/feature QA as Product runtime success. Bundler mode difference is a hypothesis, not established root cause. Injected read failure, all Parent-to-Parent RLS boundaries, document download policy, accessibility visual review and cumulative full-stack proof remain unverified. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED and is not superseded."
       },
       "integration": {
         "status": "MERGED",
@@ -14863,12 +14864,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "POST_MERGE_SOURCE_20_OF_20_PASS_FEATURE_BROWSER_4_OF_4_PASS_CANONICAL_RUNTIME_PENDING_RESOURCE",
-      "releaseEligibility": "NOT_READY_CANONICAL_POST_MERGE_BROWSER_RLS_CUMULATIVE_QA_EXTERNAL_OWNER_VISUAL_AND_COST_GATES_PENDING",
+      "localVerification": "POST_MERGE_SOURCE_20_OF_20_PASS_FEATURE_BROWSER_4_OF_4_PASS_CANONICAL_RUNTIME_FAILED_SUSPENSE_RETRY",
+      "releaseEligibility": "NOT_READY_CANONICAL_POST_MERGE_RUNTIME_FAIL_RLS_CUMULATIVE_QA_EXTERNAL_OWNER_VISUAL_AND_COST_GATES_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Under fresh host load below the 8-core threshold, start only the clean canonical merged Development Product at 8b9dd0fe930398ee900e80a05e065b524dc1a750 against the existing healthy isolated backend and perform scoped Parent Documents/role smoke; preserve the predecessor Parent primary dashboard runtime gap separately. Ledger-only follow-up must pass its exact-head CI before merge. No main/Production/RELEASE-GAP-01."
+      "nextAction": "Preserve the default Turbopack POST_MERGE_RUNTIME_FAILED receipt. Review scoped Webpack diagnostic opt-in source/guards on PR #322, require exact-head six CI plus quality/Management before merging, then run one bounded canonical Webpack comparison at the new clean merged Development SHA under safe host admission. Do not claim root cause or Product PASS from feature-only evidence. Keep predecessor Parent primary dashboard runtime gap separate. No main/Production/RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
