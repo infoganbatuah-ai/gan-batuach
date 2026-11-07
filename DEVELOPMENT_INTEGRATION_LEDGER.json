@@ -15327,7 +15327,8 @@
         "8bcccd7277113b8eaaba75b0934cfa84fee9518e",
         "28f6329df24d0da780db61f3ec492660be1a7f1b",
         "9ebd77415f99c0d05dcf0e5a09b0ced256d4810d",
-        "6b45de2e330c041d1c6ade4dcf49485a6a58f6f6"
+        "6b45de2e330c041d1c6ade4dcf49485a6a58f6f6",
+        "6444f6dc7e093d14574e75078007840ac494eb06"
       ],
       "state": "VALIDATED_ON_BRANCH",
       "preservation": {
@@ -15338,7 +15339,7 @@
       "validation": {
         "status": "SCOPED_FEATURE_UI_READBACK_19_PASS",
         "evidence": [
-          "From clean Development 360012f0bd191cb46f894484a354ebad32d44bae, one synthetic Parent B/Manager B canonical conversation and two ordered messages were observed on Desktop/Mobile. Exact-feature-head readback at 6b45de2e330c041d1c6ade4dcf49485a6a58f6f6 passed 19/19 with same-key retry, foreign-role and guest denials, two in-app notifications, two read markers and zero externally accepted deliveries. Private receipt SHA256 47b1b856c584d4121a948e650e8bbad26ff1ce9e9824d5d30fd8b32f27774461. See GAN_BATUACH_PRODUCT_PARENT_MANAGER_MESSAGING_JOURNEY_20261107.md."
+          "From clean Development 360012f0bd191cb46f894484a354ebad32d44bae, one synthetic Parent B/Manager B canonical conversation and two ordered messages were observed on Desktop/Mobile. Exact Product source head 6444f6dc7e093d14574e75078007840ac494eb06 readback passed 19/19 with same-key retry, foreign-role and guest denials, two in-app notifications, two read markers and zero externally accepted deliveries. Private receipt SHA256 5e8668c4347b7fec1c772108f5e3022e2f19744ff824a85e3290b737db2f2b80. See GAN_BATUACH_PRODUCT_PARENT_MANAGER_MESSAGING_JOURNEY_20261107.md."
         ],
         "classification": "SCOPED_PARENT_MANAGER_MESSAGING_AND_UI_CORRECTION",
         "limitations": "Synthetic local Development journey only; not full Product/security, owner visual, live provider, Production or invoice-backed cost proof. No schema/RLS/Auth/provider/dependency/DO core change."
@@ -15357,7 +15358,7 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "FEATURE_READBACK_19_CI_AND_MERGED_CAPTURE_PENDING",
+      "localVerification": "EXACT_PRODUCT_SOURCE_READBACK_19_CI_AND_MERGED_CAPTURE_PENDING",
       "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "Run exact-head CI, merge to Development, and perform fresh canonical no-new-thread readback before coordinator handoff. No main, Production or RELEASE-GAP-01."
