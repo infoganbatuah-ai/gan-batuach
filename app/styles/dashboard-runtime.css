@@ -3232,6 +3232,24 @@
   .ux04-enrollment-detail { padding: 16px; }
 }
 
+@media (max-width: 760px) {
+  .dashboard-role-owner.app-home-layout .ux04-child-profile .dashboard-panels,
+  .dashboard-role-manager.app-home-layout .ux04-child-profile .dashboard-panels {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .ux04-child-profile .payment-profile-box .profile-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ux04-child-profile .payment-profile-box .profile-actions .button {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .ux04-classroom-card,
   .ux04-child-row,
