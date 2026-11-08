@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { AlertTriangle, FileCheck2, LockKeyhole, Scale, ShieldCheck } from "lucide-react";
 
 type PrivacyState = {
@@ -24,42 +24,72 @@ const statusLabel: Record<string, string> = {
 };
 
 export function PrivacyComplianceCenter({ siteId }: { siteId: string }) {
+  return <ScopedPrivacyComplianceCenter key={siteId} siteId={siteId} />;
+}
+
+function ScopedPrivacyComplianceCenter({ siteId }: { siteId: string }) {
   const [state, setState] = useState<PrivacyState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [lifecycle, setLifecycle] = useState(0);
+  const ownership = useRef({ active: false, read: 0, submit: 0, busy: false, lifecycle: 0 });
 
-  async function load() {
-    const response = await fetch(`/api/digital-observer/privacy-compliance?site_id=${encodeURIComponent(siteId)}`, { cache: "no-store" });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "לא ניתן לטעון את מרכז הפרטיות");
-    setState(payload.data);
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/digital-observer/privacy-compliance?site_id=${encodeURIComponent(siteId)}`, { cache: "no-store" })
-      .then(async (response) => {
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || "לא ניתן לטעון את מרכז הפרטיות");
-        if (!cancelled) setState(payload.data);
-      })
-      .catch((cause) => { if (!cancelled) setError(cause instanceof Error ? cause.message : "שגיאה"); });
-    return () => { cancelled = true; };
+  const load = useCallback(async (submitCurrent: () => boolean = () => true) => {
+    const owner = ownership.current;
+    if (!owner.active || !submitCurrent()) return;
+    const read = ++owner.read;
+    const isCurrent = () => owner.active && owner.read === read && submitCurrent();
+    setState(null); setError(null); setLoading(true);
+    try {
+      const response = await fetch(`/api/digital-observer/privacy-compliance?site_id=${encodeURIComponent(siteId)}`, { cache: "no-store" });
+      if (!isCurrent()) return;
+      const payload = await response.json();
+      if (!isCurrent()) return;
+      if (!response.ok) throw new Error(payload.error || "לא ניתן לטעון את מרכז הפרטיות");
+      setState(payload.data);
+    } catch (cause) {
+      if (!isCurrent()) return;
+      setState(null); setError(cause instanceof Error ? cause.message : "שגיאה");
+    } finally {
+      if (isCurrent()) setLoading(false);
+    }
   }, [siteId]);
 
+  useLayoutEffect(() => {
+    const owner = ownership.current;
+    owner.active = true;
+    if (owner.lifecycle > 0) { setLifecycle(owner.lifecycle); setPending(false); }
+    void load();
+    return () => { owner.active = false; owner.read++; owner.submit++; owner.lifecycle++; owner.busy = false; };
+  }, [load]);
+
   async function submitRequest(formData: FormData) {
-    setPending(true); setError(null);
+    const owner = ownership.current;
+    if (!owner.active || owner.lifecycle !== lifecycle || owner.busy) return;
+    owner.busy = true;
+    const submit = ++owner.submit;
+    owner.read++;
+    const isCurrent = () => owner.active && owner.submit === submit;
+    setPending(true); setError(null); setState(null); setLoading(true);
     try {
+      const body = { action: "submit_rights_request", site_id: siteId,
+        request_type: formData.get("request_type"), purpose: formData.get("purpose") };
       const response = await fetch("/api/digital-observer/privacy-compliance", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "submit_rights_request", site_id: siteId,
-          request_type: formData.get("request_type"), purpose: formData.get("purpose") })
+        body: JSON.stringify(body)
       });
+      if (!isCurrent()) return;
       const payload = await response.json();
+      if (!isCurrent()) return;
       if (!response.ok) throw new Error(payload.error || "הבקשה לא נשמרה");
-      await load();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "שגיאה"); }
-    finally { setPending(false); }
+      await load(isCurrent);
+    } catch (cause) {
+      if (!isCurrent()) return;
+      setState(null); setLoading(false); setError(cause instanceof Error ? cause.message : "שגיאה");
+    } finally {
+      if (isCurrent()) { owner.busy = false; setPending(false); }
+    }
   }
 
   return <div className="do-page-stack">
@@ -73,7 +103,7 @@ export function PrivacyComplianceCenter({ siteId }: { siteId: string }) {
 
     <section className="do-panel">
       <div className="do-section-head"><div><h2>פרופילי מדיניות לאתר</h2><p>פרופיל פעיל דורש החלטה חיצונית כתובה ותואמת מטרה, הקשר ותחום.</p></div><FileCheck2 /></div>
-      {state?.profiles.length ? <div className="do-row-list">{state.profiles.map((item) => <div className="do-row" key={item.id}><ShieldCheck /><span className="do-row-main"><strong>{item.product_context} · {item.jurisdiction}</strong><small>{item.stated_purpose}</small></span><span className={`do-badge ${item.legal_decision_state === "EXTERNALLY_APPROVED" ? "good" : "warn"}`}>{statusLabel[item.legal_decision_state] || item.legal_decision_state}</span></div>)}</div>
+      {!state ? <div className="do-empty compact"><Scale /><strong>{loading ? "טוען פרופילי מדיניות…" : "פרופילי המדיניות אינם זמינים"}</strong></div> : state.profiles.length ? <div className="do-row-list">{state.profiles.map((item) => <div className="do-row" key={item.id}><ShieldCheck /><span className="do-row-main"><strong>{item.product_context} · {item.jurisdiction}</strong><small>{item.stated_purpose}</small></span><span className={`do-badge ${item.legal_decision_state === "EXTERNALLY_APPROVED" ? "good" : "warn"}`}>{statusLabel[item.legal_decision_state] || item.legal_decision_state}</span></div>)}</div>
         : <div className="do-empty compact"><Scale /><strong>אין מדיניות מאושרת</strong><span>זהו מצב חסום ובטוח. נדרש profile מתועד והחלטה חיצונית לפני הפעלה רגישה.</span></div>}
     </section>
 
@@ -88,14 +118,14 @@ export function PrivacyComplianceCenter({ siteId }: { siteId: string }) {
       </article>
       <article className="do-panel">
         <div className="do-section-head"><div><h2>בקשות אחרונות</h2><p>קבלה מלאה ניתנת רק לאחר אימות כל המערכות החיצוניות.</p></div></div>
-        {state?.requests.length ? <div className="do-summary-list">{state.requests.map((item) => <div key={item.id}><span>{item.request_type}</span><strong>{statusLabel[item.status] || item.status} · {item.execution_status}</strong></div>)}</div>
+        {!state ? <div className="do-empty compact"><FileCheck2 /><strong>{loading ? "טוען בקשות…" : "הבקשות אינן זמינות"}</strong></div> : state.requests.length ? <div className="do-summary-list">{state.requests.map((item) => <div key={item.id}><span>{item.request_type}</span><strong>{statusLabel[item.status] || item.status} · {item.execution_status}</strong></div>)}</div>
           : <div className="do-empty compact"><FileCheck2 /><strong>אין בקשות</strong><span>לא בוצעה מחיקה או יצוא אוטומטיים.</span></div>}
       </article>
     </section>
 
     <section className="do-grid cols-2">
-      <article className="do-panel"><div className="do-section-head"><div><h2>Legal holds</h2><p>Hold ממוקד גובר על מחיקה אך אינו מעניק גישה חופשית למידע.</p></div></div>{state?.holds.length ? <div className="do-summary-list">{state.holds.map((item) => <div key={item.id}><span>{item.hold_type}</span><strong>{statusLabel[item.status] || item.status}</strong></div>)}</div> : <div className="do-empty compact"><LockKeyhole /><strong>אין holds גלויים</strong><span>מחיקה עדיין דורשת מדיניות מאושרת ובדיקת scope.</span></div>}</article>
-      <article className="do-panel"><div className="do-section-head"><div><h2>אירועי פרטיות</h2><p>החלטת דיווח נשארת בבחינה משפטית; המערכת אינה ממציאה דיווח לרשות.</p></div></div>{state?.incidents.length ? <div className="do-summary-list">{state.incidents.map((item) => <div key={item.id}><span>{item.classification} · {item.severity}</span><strong>{item.status} · {item.notification_decision}</strong></div>)}</div> : <div className="do-empty compact"><ShieldCheck /><strong>אין אירועים מדווחים</strong><span>מצב זה אינו מהווה אישור שאין סיכונים פתוחים.</span></div>}</article>
+      <article className="do-panel"><div className="do-section-head"><div><h2>Legal holds</h2><p>Hold ממוקד גובר על מחיקה אך אינו מעניק גישה חופשית למידע.</p></div></div>{!state ? <div className="do-empty compact"><LockKeyhole /><strong>{loading ? "טוען holds…" : "נתוני ה־holds אינם זמינים"}</strong></div> : state.holds.length ? <div className="do-summary-list">{state.holds.map((item) => <div key={item.id}><span>{item.hold_type}</span><strong>{statusLabel[item.status] || item.status}</strong></div>)}</div> : <div className="do-empty compact"><LockKeyhole /><strong>אין holds גלויים</strong><span>מחיקה עדיין דורשת מדיניות מאושרת ובדיקת scope.</span></div>}</article>
+      <article className="do-panel"><div className="do-section-head"><div><h2>אירועי פרטיות</h2><p>החלטת דיווח נשארת בבחינה משפטית; המערכת אינה ממציאה דיווח לרשות.</p></div></div>{!state ? <div className="do-empty compact"><ShieldCheck /><strong>{loading ? "טוען אירועי פרטיות…" : "אירועי הפרטיות אינם זמינים"}</strong></div> : state.incidents.length ? <div className="do-summary-list">{state.incidents.map((item) => <div key={item.id}><span>{item.classification} · {item.severity}</span><strong>{item.status} · {item.notification_decision}</strong></div>)}</div> : <div className="do-empty compact"><ShieldCheck /><strong>אין אירועים מדווחים</strong><span>מצב זה אינו מהווה אישור שאין סיכונים פתוחים.</span></div>}</article>
     </section>
   </div>;
 }
