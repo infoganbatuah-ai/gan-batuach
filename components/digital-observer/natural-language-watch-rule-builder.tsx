@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Archive, Check, Clock3, LoaderCircle, Pencil, Power, PowerOff, Radar, ShieldCheck, Sparkles } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
@@ -27,7 +27,8 @@ type Compilation = {
 };
 type Simulation = { days: number; evaluatedRealEventCount: number; matchCount: number; liveExecution: false; syntheticEventsUsed: false };
 
-async function postJson(body: unknown) {
+async function postJson(body: unknown, isCurrent: () => boolean = () => true) {
+  if (!isCurrent()) return null;
   const accessToken = readObserverAccessToken();
   const response = await fetch("/api/digital-observer/watch-rules", {
     method: "POST",
@@ -38,7 +39,9 @@ async function postJson(body: unknown) {
     },
     body: JSON.stringify(body)
   });
+  if (!isCurrent()) return null;
   const payload = await response.json().catch(() => ({}));
+  if (!isCurrent()) return null;
   if (!response.ok) throw new Error(payload.error || "לא ניתן לעבד את הכלל");
   return payload.data;
 }
@@ -57,6 +60,10 @@ export function NaturalLanguageWatchRuleBuilder({
   cameras: CameraOption[];
   rules: RuleRow[];
 }) {
+  return <ScopedNaturalLanguageWatchRuleBuilder key={siteId} siteId={siteId} cameras={cameras} rules={rules} />;
+}
+
+function ScopedNaturalLanguageWatchRuleBuilder({ siteId, cameras, rules }: Parameters<typeof NaturalLanguageWatchRuleBuilder>[0]) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [cameraSourceId, setCameraSourceId] = useState("");
@@ -66,86 +73,150 @@ export function NaturalLanguageWatchRuleBuilder({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [renderedRevision, setRenderedRevision] = useState(0);
+  const owner = useRef({ active: true, revision: 0, operation: 0, busy: false, preview: null as { revision: number; compilation: Compilation } | null });
+  useLayoutEffect(() => {
+    const lifetime = owner.current;
+    lifetime.active = true;
+    return () => { lifetime.active = false; lifetime.operation += 1; lifetime.busy = false; };
+  }, []);
+  const ownsDraft = () => owner.current.active && owner.current.revision === renderedRevision;
+  function beginRequest() {
+    if (!ownsDraft() || owner.current.busy) return null;
+    const lifetime = owner.current;
+    const operation = ++lifetime.operation;
+    const revision = lifetime.revision;
+    lifetime.busy = true;
+    setBusy(true);
+    return { isCurrent: () => lifetime.active && lifetime.operation === operation && lifetime.revision === revision };
+  }
+  function changeDraft() {
+    if (!ownsDraft()) return null;
+    const lifetime = owner.current;
+    const revision = ++lifetime.revision;
+    const operation = ++lifetime.operation;
+    lifetime.busy = false;
+    lifetime.preview = null;
+    setRenderedRevision(revision);
+    setBusy(false);
+    setCompilation(null);
+    setSimulation(null);
+    return { isCurrent: () => lifetime.active && lifetime.revision === revision && lifetime.operation === operation };
+  }
+  function changeText(next: string) { if (changeDraft()) setText(next); }
+  function changeCamera(next: string) { if (changeDraft()) setCameraSourceId(next); }
 
   async function compile(event?: FormEvent<HTMLFormElement>) {
+    if (!ownsDraft()) return;
     event?.preventDefault();
-    if (text.trim().length < 3 || busy) return;
-    setBusy(true);
+    if (text.trim().length < 3) return;
+    const request = beginRequest();
+    if (!request) return;
+    const submitted = { siteId, text, cameraSourceId, editingRuleId };
     setError("");
     setMessage("");
     try {
       const data = await postJson({
         action: "compile",
-        observer_site_id: siteId,
-        text,
-        camera_source_id: cameraSourceId || null,
-        editing_rule_id: editingRuleId
-      });
-      setCompilation(data.compilation);
-      setSimulation(data.simulation);
+        observer_site_id: submitted.siteId,
+        text: submitted.text,
+        camera_source_id: submitted.cameraSourceId || null,
+        editing_rule_id: submitted.editingRuleId
+      }, request.isCurrent);
+      if (!request.isCurrent()) return;
+      const nextCompilation = data.compilation;
+      if (!request.isCurrent()) return;
+      const nextSimulation = data.simulation;
+      if (!request.isCurrent()) return;
+      owner.current.preview = nextCompilation?.status === "READY_FOR_CONFIRMATION" && nextCompilation.candidateFingerprint ? { revision: renderedRevision, compilation: nextCompilation } : null;
+      setCompilation(nextCompilation);
+      if (!request.isCurrent()) return;
+      setSimulation(nextSimulation);
     } catch (requestError) {
+      if (!request.isCurrent()) return;
       setError(requestError instanceof Error ? requestError.message : "לא ניתן להכין תצוגה מקדימה");
     } finally {
-      setBusy(false);
+      if (request.isCurrent()) { owner.current.busy = false; setBusy(false); }
     }
   }
 
   async function confirm() {
-    if (!compilation?.candidateFingerprint || compilation.status !== "READY_FOR_CONFIRMATION" || busy) return;
-    setBusy(true);
+    if (!ownsDraft() || owner.current.busy) return;
+    const preview = owner.current.preview;
+    if (!preview || preview.revision !== renderedRevision || preview.compilation !== compilation || !compilation?.candidateFingerprint || compilation.status !== "READY_FOR_CONFIRMATION") return;
+    const request = beginRequest();
+    if (!request) return;
+    const submitted = { siteId, text, cameraSourceId, editingRuleId, fingerprint: compilation.candidateFingerprint };
     setError("");
     try {
       const data = await postJson({
         action: "confirm",
-        observer_site_id: siteId,
-        text,
-        camera_source_id: cameraSourceId || null,
-        editing_rule_id: editingRuleId,
-        candidate_fingerprint: compilation.candidateFingerprint,
+        observer_site_id: submitted.siteId,
+        text: submitted.text,
+        camera_source_id: submitted.cameraSourceId || null,
+        editing_rule_id: submitted.editingRuleId,
+        candidate_fingerprint: submitted.fingerprint,
         idempotency_key: `watch-confirm-${crypto.randomUUID()}`
-      });
-      setMessage(data.message);
+      }, request.isCurrent);
+      if (!request.isCurrent()) return;
+      const nextMessage = data.message;
+      if (!request.isCurrent()) return;
+      const completed = changeDraft();
+      if (!completed || !completed.isCurrent()) return;
+      setMessage(nextMessage);
+      if (!completed.isCurrent()) return;
       setText("");
+      if (!completed.isCurrent()) return;
       setCameraSourceId("");
+      if (!completed.isCurrent()) return;
       setEditingRuleId(null);
-      setCompilation(null);
-      setSimulation(null);
+      if (!completed.isCurrent()) return;
       router.refresh();
     } catch (requestError) {
+      if (!request.isCurrent()) return;
       setError(requestError instanceof Error ? requestError.message : "לא ניתן להפעיל את הכלל");
     } finally {
-      setBusy(false);
+      if (request.isCurrent()) { owner.current.busy = false; setBusy(false); }
     }
   }
 
   async function changeState(ruleId: string, state: "ACTIVE" | "DISABLED" | "ARCHIVED") {
-    setBusy(true);
+    const request = beginRequest();
+    if (!request) return;
+    const submitted = { ruleId, state };
     setError("");
     try {
-      const data = await postJson({ action: "set_state", rule_id: ruleId, state, idempotency_key: `watch-state-${crypto.randomUUID()}` });
+      const data = await postJson({ action: "set_state", rule_id: submitted.ruleId, state: submitted.state, idempotency_key: `watch-state-${crypto.randomUUID()}` }, request.isCurrent);
+      if (!request.isCurrent()) return;
       setMessage(data.message);
+      if (!request.isCurrent()) return;
       router.refresh();
     } catch (requestError) {
+      if (!request.isCurrent()) return;
       setError(requestError instanceof Error ? requestError.message : "לא ניתן לעדכן את הכלל");
     } finally {
-      setBusy(false);
+      if (request.isCurrent()) { owner.current.busy = false; setBusy(false); }
     }
   }
 
   function edit(rule: RuleRow) {
+    const draft = changeDraft();
+    if (!draft || !draft.isCurrent()) return;
     setEditingRuleId(rule.id);
+    if (!draft.isCurrent()) return;
     setText(rule.original_natural_language || rule.title || "");
-    setCompilation(null);
-    setSimulation(null);
+    if (!draft.isCurrent()) return;
     setMessage("עריכת כלל יוצרת גרסה חדשה לאחר תצוגה מקדימה ואישור.");
-    document.getElementById("natural-language-rule-builder")?.scrollIntoView({ behavior: "smooth" });
+    if (!draft.isCurrent()) return;
+    const element = document.getElementById("natural-language-rule-builder");
+    if (draft.isCurrent()) element?.scrollIntoView({ behavior: "smooth" });
   }
 
   return <div className="do-page-stack" id="natural-language-rule-builder">
     <form className="do-panel do-form-section do-observer-chat" onSubmit={compile}>
       <div className="do-section-head"><div><h2>על מה תרצו שאשמור?</h2><p>כתבו בשפה רגילה. תחילה תוצג הבנה מסודרת; שום כלל לא יופעל לפני אישור מפורש.</p></div><Sparkles /></div>
-      <label className="do-field full"><span>בקשת ניטור</span><textarea rows={4} value={text} onChange={(event) => { setText(event.target.value); setCompilation(null); }} placeholder="למשל: תודיע לי אם אדם נכנס דרך מצלמת הכניסה לבית — ערוץ 11" required minLength={3} maxLength={1200} /></label>
-      <label className="do-field"><span>מצלמה, אם תרצו לבחור במפורש</span><select value={cameraSourceId} onChange={(event) => { setCameraSourceId(event.target.value); setCompilation(null); }}><option value="">שהתצפיתן יזהה מהטקסט</option>{cameras.map((camera) => <option value={camera.id} key={camera.id}>{camera.display_name || camera.location_label || "מצלמה"}</option>)}</select></label>
+      <label className="do-field full"><span>בקשת ניטור</span><textarea rows={4} value={text} onChange={(event) => { if (ownsDraft()) changeText(event.target.value); }} placeholder="למשל: תודיע לי אם אדם נכנס דרך מצלמת הכניסה לבית — ערוץ 11" required minLength={3} maxLength={1200} /></label>
+      <label className="do-field"><span>מצלמה, אם תרצו לבחור במפורש</span><select value={cameraSourceId} onChange={(event) => { if (ownsDraft()) changeCamera(event.target.value); }}><option value="">שהתצפיתן יזהה מהטקסט</option>{cameras.map((camera) => <option value={camera.id} key={camera.id}>{camera.display_name || camera.location_label || "מצלמה"}</option>)}</select></label>
       <button className="do-button primary" type="submit" disabled={busy || text.trim().length < 3}>{busy ? <LoaderCircle className="do-spin" /> : <Radar />} {editingRuleId ? "הכנת גרסה חדשה" : "הצגת הפירוש"}</button>
     </form>
 
@@ -166,7 +237,7 @@ export function NaturalLanguageWatchRuleBuilder({
 
     {compilation?.status === "NEEDS_CLARIFICATION" && compilation.clarification ? <section className="do-panel do-form-section">
       <div className="do-notice warn"><AlertTriangle /><span><strong>{compilation.clarification.question}</strong><small>לא בחרתי משאב באופן אוטומטי.</small></span></div>
-      <div className="do-button-row">{compilation.clarification.options.map((option) => <button type="button" className="do-button secondary" key={option.id} onClick={() => { setCameraSourceId(option.id); setCompilation(null); }}>{option.label}</button>)}</div>
+      <div className="do-button-row">{compilation.clarification.options.map((option) => <button type="button" className="do-button secondary" key={option.id} onClick={() => changeCamera(option.id)}>{option.label}</button>)}</div>
     </section> : null}
 
     {compilation && ["UNSUPPORTED_CAPABILITY", "UNSUPPORTED_ACTION", "INVALID"].includes(compilation.status) ? <div className="do-notice warn"><AlertTriangle /><span><strong>לא נוצר כלל</strong><small>{compilation.unsupported?.explanation || compilation.validation.errors.join(", ")}</small></span></div> : null}
