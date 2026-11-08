@@ -50,11 +50,14 @@ export default async function ParentPaymentsPage({ searchParams }: { searchParam
   const attention = periodRows.filter((item) => ["overdue", "reconciliation_required"].includes(item.status));
   const nextDue = periodRows.filter((item) => item.outstanding > 0 && item.due_at).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at)))[0];
   const financeUnavailable = Boolean(enrollmentsRes.error || periodsRes.error || requestsRes.error);
+  const visibleChildOrder = allowedSelection
+    ? [allowedSelection, ...authorizedChildIds.filter((fileId) => fileId !== allowedSelection)]
+    : authorizedChildIds;
 
   return <DashboardShell role="parent" title="שכר לימוד" appHome>
     <FinanceFrame role="parent" name={profile.full_name} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url} activeHref="/dashboard/parent/payments" title="שכר לימוד" subtitle="חיובים ותשלומים של הילדים שלי">
       <FinanceHero eyebrow={preActivationRequest?.gardens?.name ?? selectedEnrollment?.gardens?.name ?? "הגן המשויך"} title={`התשלומים של ${selectedName}`} text="יתרה, תקופות חיוב והיסטוריית תשלומים לכל ילד — עם הפרדה מלאה ממנוי הפלטפורמה של הגן." action={<Link className="button secondary" href="/dashboard/parent/messages"><MessageCircle size={17} /> שאלה לגן</Link>} />
-      {authorizedChildIds.length > 1 ? <nav className="finance-child-switcher" aria-label="בחירת ילד">{authorizedChildIds.map((fileId) => { const enrollment = enrollments.find((item) => item.permanent_child_file_id === fileId); const name = enrollment?.children?.full_name ?? childNames.get(fileId) ?? "ילד/ה"; return <Link className={fileId === allowedSelection ? "active" : ""} href={`/dashboard/parent/payments?child=${fileId}`} key={fileId}><span>{name.slice(0, 1)}</span>{name}</Link>; })}</nav> : null}
+      {authorizedChildIds.length > 1 ? <nav className="finance-child-switcher" aria-label="בחירת ילד">{visibleChildOrder.map((fileId) => { const enrollment = enrollments.find((item) => item.permanent_child_file_id === fileId); const name = enrollment?.children?.full_name ?? childNames.get(fileId) ?? "ילד/ה"; return <Link className={fileId === allowedSelection ? "active" : ""} href={`/dashboard/parent/payments?child=${fileId}`} key={fileId}><span>{name.slice(0, 1)}</span>{name}</Link>; })}</nav> : null}
       {financeUnavailable ? <FinanceTruthBanner kind="warning" title="נתוני שכר הלימוד אינם זמינים במלואם" text="המערכת אינה מציגה סכום אפס במקום נתונים שנכשלו. אפשר לנסות שוב מאוחר יותר." /> : null}
       {preActivationRequest && !financeUnavailable ? <FinanceTruthBanner kind="warning" title={preActivationRequest.payment_status === "arranged" ? "דווח הסדר תשלום; ההרשמה עדיין לא הופעלה" : "בקשת ההצטרפות ממתינה להסדר תשלום"} text={`${selectedName} · ${preActivationRequest.gardens?.name ?? "הגן שנבחר"}. יש לתאם את ההסדר ישירות עם הגן. עדיין אין הרשמה פעילה או תקופת שכר לימוד להצגה כאן; דיווח על הסדר אינו אישור לקבלת כספים. תשלום מקוון אינו זמין במערכת.`} action={<Link className="button secondary" href="/dashboard/parent/messages">פנייה לגן</Link>} /> : null}
       <FinanceMetrics>
