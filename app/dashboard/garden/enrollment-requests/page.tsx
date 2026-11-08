@@ -38,7 +38,7 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(value));
 }
 function formatPaymentStatus(value?: string | null) {
-  return ({ not_requested: "טרם נדרש", pending: "ממתין להסדר", paid: "שולם" } as Record<string, string>)[value ?? ""] ?? value ?? "לא ידוע";
+  return ({ not_requested: "טרם נדרש", pending: "ממתין להסדר", arranged: "הסדר תשלום", paid: "שולם" } as Record<string, string>)[value ?? ""] ?? value ?? "לא ידוע";
 }
 function rowChild(row: EnrollmentRow) { return row.permanent_child_files as Record<string, unknown> | null; }
 function rowParent(row: EnrollmentRow) { return row.profiles as Record<string, unknown> | null; }
@@ -119,7 +119,7 @@ function EnrollmentDetail({ request, reservation, classrooms }: { request: Enrol
     {request.information_request ? <section className="ux04-detail-note warning"><b>מידע שהתבקש</b><p>{String(request.information_request)}</p>{request.information_response ? <small>תשובה: {String(request.information_response)}</small> : null}</section> : null}
     {reservation ? <section className="ux04-reservation-state"><Clock3 size={19} /><span><b>שמירת מקום: {String(reservation.status)}</b><small>{reservation.expires_at ? `בתוקף עד ${formatDate(String(reservation.expires_at))}` : "ללא מועד תפוגה מוצג"}</small></span></section> : <section className="ux04-reservation-state muted"><FileQuestion size={19} /><span><b>אין שמירת מקום פעילה</b><small>האישור והקיבולת נקבעים בתהליך הקנוני.</small></span></section>}
     <section className="ux04-decision-panel"><h4>המשך טיפול</h4><ApplicationDecisionForm endpoint={`/api/garden/enrollment-requests/${request.id}`} actions={actions} classrooms={classrooms} /></section>
-    {request.status === "awaiting_payment" ? <section className="ux04-activation-panel"><h4><CheckCircle2 size={18} /> הסדר ידני והפעלת הרשמה</h4><p>ההפעלה אטומית ומאמתת מקום, תשלום וסטטוס בקשה בצד השרת.</p><ManualEnrollmentActivationForm requestId={request.id} suggestedAmount={request.published_price_snapshot} /></section> : null}
+    {request.status === "awaiting_payment" ? <section className="ux04-activation-panel"><h4><CheckCircle2 size={18} /> הסדר ידני והפעלת הרשמה</h4><p>ההפעלה אטומית ומאמתת מקום, הסדר תשלום וסטטוס בקשה בצד השרת.</p><ManualEnrollmentActivationForm requestId={request.id} suggestedAmount={request.published_price_snapshot} /></section> : null}
     {request.status === "payment_reconciliation_required" ? <p className="ux04-policy-note danger"><AlertTriangle size={18} /> נדרשת התאמת תשלום ידנית לפני הפעלה.</p> : null}
   </aside>;
 }

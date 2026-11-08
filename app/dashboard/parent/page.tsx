@@ -47,6 +47,7 @@ function formatStatus(status?: string | null) {
     not_requested: "טרם נדרש",
     pending: "ממתין להסדר",
     paid: "שולם",
+    arranged: "הסדר תשלום",
     more_information_requested: "נדרש מידע נוסף",
     approved_pending_payment: "אושר, ממתין לתשלום",
     approved: "מאושר",
