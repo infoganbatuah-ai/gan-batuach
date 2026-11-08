@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-08T03:01:37Z",
+  "updatedAt": "2026-11-08T03:54:52Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15845,6 +15845,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Coordinator selects the next unresolved payment/provider or cumulative Product gate. Preserve QA personas and the pending synthetic request; independently qualify full Product/security/owner/cost before any release. No main/Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-inspection-corrective-role-journey-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-INSPECTION-CORRECTIVE-ROLE-JOURNEY-20261108",
+      "title": "Fail closed on corrective-action read errors and verify the synthetic Inspector–Garden remediation journey",
+      "owner": "Inspection/corrective role journey; one Development integration owner",
+      "sourceBranch": "codex/product-inspection-corrective-role-journey-20261108",
+      "sourceCommits": [
+        "d5836f31d1296f1912533486696439c534022030"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-inspection-corrective-role-journey-20261108@d5836f31d1296f1912533486696439c534022030"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_CANONICAL_PRODUCT_ROLE_JOURNEY_PASS",
+        "evidence": [
+          "PR #369 source d5836f31d1296f1912533486696439c534022030 passed six exact-head Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving merge 2c6793559b2931acf83aea2db2edd9cf133c5c5c was verified on remote Development.",
+          "One isolated local synthetic Inspector submit → Garden acknowledge/progress/private evidence/submit → Inspector reject → Garden resubmit → Inspector accept sequence passed with no duplicate action/task and immutable report/score. Existing Inspector draft and QA personas preserved. Known-ID role denials, 60-second local signed evidence reads, Parent-safe projection and foreign Parent denial passed. Protected receipt SHA256 dab8805af79a38d34de4cda77f5e9f728629249f394a8f155ae1b.",
+          "Exact merged-head canonical Development Product captured settled Garden/Inspector/Parent Desktop 1440×1024 and Mobile 390×844; zero browser page errors or horizontal overflow. Protected inventory SHA256 c9050c2d01696279674211195e950cf195babdd35e43f9f79d0e8bc3771ccb6d. Corrective read-state tests 9/9, focused UX14 9/9, typecheck, migration audit, release contract and lint baseline zero regressions passed. Vercel feature/integration branch deployments 0 across three projects. See GAN_BATUACH_PRODUCT_INSPECTION_CORRECTIVE_ROLE_JOURNEY_20261108.md."
+        ],
+        "classification": "SCOPED_CORRECTIVE_READ_STATE_FIX_AND_SYNTHETIC_ROLE_JOURNEY",
+        "limitations": "Synthetic local API/browser proof only; signature and geolocation were simulated. No real provider/hardware, full cumulative Product/security, formal accessibility, external owner visual acceptance, invoice-backed ₪15 cost qualification or Production proof. Lint baseline retains historical errors/warnings."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "c3f57d35de37bf68e90528a2bfab1c902a58d997",
+        "commit": "2c6793559b2931acf83aea2db2edd9cf133c5c5c",
+        "pullRequests": [
+          369
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_GB_M22_M23_INSPECTION_AND_CORRECTIVE_CONTRACTS",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_INSPECTOR_GARDEN_PARENT_DESKTOP_MOBILE_API_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PROVIDER_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator selects one separate remaining cumulative Product or release-readiness unit; preserve private fixture/evidence until reviewed cleanup. No main/Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
