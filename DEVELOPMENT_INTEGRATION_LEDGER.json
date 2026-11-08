@@ -15684,6 +15684,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Coordinator should assign a separate focused audit of last_amount_paid/payment truth before any positive manual activation journey. Preserve current awaiting-payment request and provider boundary; no main or Production."
+    },
+    {
+      "id": "codex/gb-manual-arrangement-payment-truth-fix-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-MANUAL-ARRANGEMENT-PAYMENT-TRUTH-FIX-20261108",
+      "title": "Keep manual enrollment arrangements distinct from received payment",
+      "owner": "Manager enrollment payment truth; one Development integration owner",
+      "sourceBranch": "codex/gb-manual-arrangement-payment-truth-fix-20261108",
+      "sourceCommits": [
+        "3c1bda4411a4c8399647bbce24e2617885e80d26"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-manual-arrangement-payment-truth-fix-20261108@3c1bda4411a4c8399647bbce24e2617885e80d26"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_PASS_DEVELOPMENT_MIGRATION_PENDING",
+        "evidence": [
+          "Rollback-only isolated Development QA reproduced the prior existing-child payment-field defect and passed the proposed correction for an existing paid child and a new child, Parent and foreign-Manager denial, idempotency, reservation and audit, zero tuition settlement, ACL and rollback restoration. No existing QA request was invoked.",
+          "PR #360 at source head 3c1bda4411a4c8399647bbce24e2617885e80d26 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge 205075f798d8f7bad88109308ac33db0b892eab0 was verified on remote Development. Local domain 54/54, security 50/50 with an ownership-enforcing temporary volume, typecheck, lint, migration audit and release contract passed. Exact-head CI build passed; local symlinked dependency build was not qualified."
+        ],
+        "classification": "FORWARD_ONLY_MANUAL_ARRANGEMENT_PAYMENT_TRUTH",
+        "limitations": "The new function migration is not yet applied to the canonical isolated Development database. Historical rows are not backfilled. Existing QA request and real provider payment, cumulative Product/security, owner visual, invoice-backed cost and Production remain unverified."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "7570f580ff897eaa5ae63f4fafff29b0090188c4",
+        "commit": "205075f798d8f7bad88109308ac33db0b892eab0",
+        "pullRequests": [360],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_261_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": [
+          "codex/db-manual-arrangement-state-guard-20261108"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20261108000829_management_manual_arrangement_payment_truth.sql"
+      ],
+      "migrationOrder": ["20261108000829"],
+      "localVerification": "ROLLBACK_ONLY_PROPOSED_MIGRATION_PASS_DEVELOPMENT_APPLICATION_PENDING",
+      "releaseEligibility": "NOT_READY_DEVELOPMENT_APPLY_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "After this ledger is merged, back up the isolated Development function, apply only the reviewed migration from exact clean remote Development, verify installed behavior and migration history, and record a separate closure. Keep productionApplied UNVERIFIED; do not invoke the existing QA request or touch main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
