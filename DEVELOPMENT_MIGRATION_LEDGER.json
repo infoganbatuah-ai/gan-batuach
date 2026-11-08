@@ -7982,18 +7982,19 @@
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": ["20261107230104"],
       "developmentApprovalEvidence": "PR #360 exact-head six CI gates, Canonical quality, Management context and Snyk passed. Rollback-only isolated Development tests reproduced the pre-fix defect and passed proposed activation for existing and new child, Parent/foreign-Manager denial, idempotency, reservation/audit, zero tuition settlement, function ACL and full rollback. Function body differs from the prior audited definition in only the two conditional payment-field assignments.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-08T00:58:33.004498+00:00",
+      "developmentEvidence": "Canonical isolated Development applicator installed only this reviewed migration at exact remote integration head 7e268de62b290bf9e87ce745d86fda7ba572edf2. Private pre-apply function backup SHA256 b775a8896017804098cb967441774d88dddfed91637e5c5bdff156b301bd8b16; pre-state SHA256 ec389da31cd754cad743770567e13d5790ace787f2b240931b35a18102867758. Installed function SHA256 0ce4c4006b56e2a605ed749693a2a48b4d18c15b07eb711b9afc48889a73cd28; installed metadata receipt SHA256 db89689b2b9dcff1ec6acbbe298b646c57a9e1c3e52c87fe16b7f24b65be83db. Installed rollback-only positive test passed for existing/new child, Parent/foreign Manager denial, idempotency, reservation/audit, no tuition settlement, no residue. Readback: owner postgres, SECURITY DEFINER, search_path public, service_role-only execute, matching source digest, schema fingerprint 6dc9e5d7253e4d35d539edc163ee7e145ea863839ae688f935390130c4da91f3; existing QA request awaiting_payment and zero evidence.",
+      "developmentHistoryDigest": "e03500e9bdb2af196bf49202e25a1adfc6637bee2bbb520f68644de0ea1c0fef",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
-      "recovery": "Capture a private mode-600 pre-apply pg_get_functiondef backup and current schema fingerprint. If verification fails, use a reviewed forward-only function replacement; never edit applied migration history or existing request/evidence rows.",
-      "developmentStatusReason": "Reviewed function-only migration is merged and eligible for isolated Development application, pending canonical clean-head applicator and installed readback. No Production access."
+      "recovery": "Private mode-600 pre-apply pg_get_functiondef backup and state receipt are preserved under exports/restricted/manual-arrangement-payment-truth-fix-20261108/. If verification fails, use a reviewed forward-only function replacement; never edit applied migration history or existing request/evidence rows.",
+      "developmentStatusReason": "Ordered function migration applied and installed behavior, role, ACL and history verified in canonical isolated Development. No Production access.",
+      "developmentSchemaFingerprint": "6dc9e5d7253e4d35d539edc163ee7e145ea863839ae688f935390130c4da91f3"
     }
   ],
   "developmentExpected": 262,
-  "developmentAppliedVerified": 261,
+  "developmentAppliedVerified": 262,
   "blockers": [],
   "localObservations": [
     {
