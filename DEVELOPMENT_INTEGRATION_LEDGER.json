@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-08T01:52:20Z",
+  "updatedAt": "2026-11-08T03:01:37Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15793,6 +15793,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Coordinator selects the next unresolved Parent payment/provider or cumulative Product gate. Preserve the existing QA request and personas; run full Product/security/owner/cost qualification separately. No main/Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/gb-manager-child-canonical-tuition-ui-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-MANAGER-CHILD-CANONICAL-TUITION-UI-20261108",
+      "title": "Replace legacy Child payment status actions with canonical period-based tuition navigation",
+      "owner": "Manager Child tuition UI; one Development integration owner",
+      "sourceBranch": "codex/gb-manager-child-canonical-tuition-ui-20261108",
+      "sourceCommits": [
+        "0a74e48b1cfe86d44feb54ab9e39cc5a8a9babcd",
+        "dec9d6afbfebb84f1d7420678e4169030b8727e8"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-manager-child-canonical-tuition-ui-20261108@dec9d6afbfebb84f1d7420678e4169030b8727e8"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_CANONICAL_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "PR #366 source 0a74e48b1cfe86d44feb54ab9e39cc5a8a9babcd and PR #367 Mobile follow-up source dec9d6afbfebb84f1d7420678e4169030b8727e8 each passed all six exact-head Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving merges adda12ce81c85d2e7dfa0a2b409feb3e6cebc070 and 1a83d3cd1c4a6f52e3343eaf4c8dca091dff80c3 were verified on remote Development.",
+          "At exact clean merged Development head 1a83d3cd1c4a6f52e3343eaf4c8dca091dff80c3, canonical npm run dev:integration used the isolated local backend. Fresh read-only Owner and Manager 1440x1024 and 390x844 Child captures and Parent, Staff and guest denial passed seven scenarios. Mobile operation cards measured 316px wide and stacked vertically, with no horizontal overflow; daily journal and clothes controls remain. Child tuition tab and Garden ledger open with no period/child selection made. Zero finance POST, zero page errors, and no fixture mutation. Private readback SHA256 60cf7bb97a57a60632d374777f6b108bba92826bcf1559ea865a3bf1c47d8fe2.",
+          "Local typecheck, lint baseline with zero regressions, UX10 finance 8/8, Parent tuition 3/3, full domain 54/54, build, migration audit and release contract passed. Vercel read-only branch checks in all three connected projects found zero deployments. Protected report SHA256 c2fc79713a6658a2b42765787a2a0f0efdd8ecc926b97de21fa5c2de03f9b650; protected evidence under worktrees/development-integration/exports/restricted/manager-child-canonical-tuition-ui-20261108/."
+        ],
+        "classification": "SCOPED_MANAGER_CHILD_TUITION_PRESENTATION_AND_MOBILE_LAYOUT",
+        "limitations": "The local security gate could not qualify CH1 ownership on the external APFS volume; exact-head CI security passed. Scoped Product readback is not full cumulative Product/security, external owner visual, real payment-provider, invoice-backed cost or Production proof. The existing synthetic request and QA personas were preserved."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "76322a0e12c6504e8da6c426cdc7cba59526cda9",
+        "commit": "1a83d3cd1c4a6f52e3343eaf4c8dca091dff80c3",
+        "pullRequests": [366, 367],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_CHILD_PROFILE_AND_CANONICAL_TUITION_ROUTES_VERIFIED",
+        "units": [
+          "codex/gb-parent-preactivation-payment-guidance-20261108"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_OWNER_MANAGER_DESKTOP_MOBILE_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PROVIDER_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator selects the next unresolved payment/provider or cumulative Product gate. Preserve QA personas and the pending synthetic request; independently qualify full Product/security/owner/cost before any release. No main/Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
