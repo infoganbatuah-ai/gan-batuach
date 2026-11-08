@@ -53,8 +53,10 @@ export async function runGuardDiagnostic(input: GuardDiagnosticRequest, options:
   signal: AbortSignal; token?: string | null; onUpdate?: (view: GuardDiagnosticView) => void;
   fetcher?: typeof fetch; now?: () => number; wait?: typeof diagnosticWait;
 }): Promise<GuardDiagnosticView> {
+  options.signal.throwIfAborted();
   const now = options.now ?? Date.now, fetcher = options.fetcher ?? fetch, wait = options.wait ?? diagnosticWait;
   const started = now();
+  options.signal.throwIfAborted();
   const scope = new URLSearchParams({ observer_site_id: input.observer_site_id, camera_source_id: input.camera_source_id, request_id: input.request_id });
   const request = async (write: boolean, expiresAt?: string) => {
     options.signal.throwIfAborted();
@@ -64,24 +66,44 @@ export async function runGuardDiagnostic(input: GuardDiagnosticRequest, options:
       headers: { ...(write ? { "Content-Type": "application/json" } : {}), ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}) },
       ...(write ? { body: JSON.stringify(input) } : {})
     });
+    options.signal.throwIfAborted();
     if (!response.ok) throw Error(response.status === 401 ? "DIAGNOSTIC_LOGIN_REQUIRED" : response.status === 403 ? "DIAGNOSTIC_FORBIDDEN" : "DIAGNOSTIC_REQUEST_FAILED");
     const payload = await response.json();
     options.signal.throwIfAborted();
-    return parseView(payload?.data?.diagnostic, input, now(), expiresAt);
+    const timestamp = now();
+    options.signal.throwIfAborted();
+    const parsed = parseView(payload?.data?.diagnostic, input, timestamp, expiresAt);
+    options.signal.throwIfAborted();
+    return parsed;
   };
   let view = await request(true);
+  options.signal.throwIfAborted();
   const expiresAt = view.expires_at;
+  options.signal.throwIfAborted();
   options.onUpdate?.(view);
+  options.signal.throwIfAborted();
   for (let count = 0; pending(view) && count < 60; count++) {
+    options.signal.throwIfAborted();
     const remaining = Math.min(Date.parse(expiresAt), started + 120_000) - now();
+    options.signal.throwIfAborted();
     if (remaining <= 0) break;
     await wait(Math.min(2_000, remaining), options.signal);
-    if (now() >= Date.parse(expiresAt) || now() >= started + 120_000) break;
+    options.signal.throwIfAborted();
+    if (now() >= Date.parse(expiresAt) || now() >= started + 120_000) { options.signal.throwIfAborted(); break; }
+    options.signal.throwIfAborted();
     view = await request(false, expiresAt);
+    options.signal.throwIfAborted();
     options.onUpdate?.(view);
+    options.signal.throwIfAborted();
   }
-  view = expireGuardDiagnostic(view, now());
+  options.signal.throwIfAborted();
+  const completedAt = now();
+  options.signal.throwIfAborted();
+  view = expireGuardDiagnostic(view, completedAt);
+  options.signal.throwIfAborted();
   if (pending(view)) throw Error("DIAGNOSTIC_WAIT_EXHAUSTED");
+  options.signal.throwIfAborted();
   options.onUpdate?.(view);
+  options.signal.throwIfAborted();
   return view;
 }
