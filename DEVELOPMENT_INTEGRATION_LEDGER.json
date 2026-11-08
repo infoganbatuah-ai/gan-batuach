@@ -15695,7 +15695,7 @@
       "sourceCommits": [
         "3c1bda4411a4c8399647bbce24e2617885e80d26"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -15704,13 +15704,14 @@
         "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "EXACT_HEAD_CI_PASS_DEVELOPMENT_MIGRATION_PENDING",
+        "status": "EXACT_HEAD_CI_AND_ISOLATED_DEVELOPMENT_INSTALLED_TEST_PASS",
         "evidence": [
           "Rollback-only isolated Development QA reproduced the prior existing-child payment-field defect and passed the proposed correction for an existing paid child and a new child, Parent and foreign-Manager denial, idempotency, reservation and audit, zero tuition settlement, ACL and rollback restoration. No existing QA request was invoked.",
-          "PR #360 at source head 3c1bda4411a4c8399647bbce24e2617885e80d26 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge 205075f798d8f7bad88109308ac33db0b892eab0 was verified on remote Development. Local domain 54/54, security 50/50 with an ownership-enforcing temporary volume, typecheck, lint, migration audit and release contract passed. Exact-head CI build passed; local symlinked dependency build was not qualified."
+          "PR #360 at source head 3c1bda4411a4c8399647bbce24e2617885e80d26 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge 205075f798d8f7bad88109308ac33db0b892eab0 was verified on remote Development. Local domain 54/54, security 50/50 with an ownership-enforcing temporary volume, typecheck, lint, migration audit and release contract passed. Exact-head CI build passed; local symlinked dependency build was not qualified.",
+          "PR #361 registered the reviewed migration after nine exact-head checks and merged as 7e268de62b290bf9e87ce745d86fda7ba572edf2. Private pre-apply function backup SHA256 b775a8896017804098cb967441774d88dddfed91637e5c5bdff156b301bd8b16 and state receipt SHA256 ec389da31cd754cad743770567e13d5790ace787f2b240931b35a18102867758. Canonical isolated Development applicator installed only version 20261108000829 at that clean remote head. Installed rollback-only existing/new child, role, idempotency, reservation, audit and no-settlement test passed with no fixture residue. Installed function SHA256 0ce4c4006b56e2a605ed749693a2a48b4d18c15b07eb711b9afc48889a73cd28 and metadata receipt SHA256 db89689b2b9dcff1ec6acbbe298b646c57a9e1c3e52c87fe16b7f24b65be83db: postgres owner, SECURITY DEFINER, public search_path, service-role-only execute, matching migration digest and schema fingerprint 6dc9e5d7253e4d35d539edc163ee7e145ea863839ae688f935390130c4da91f3. Existing QA request remained awaiting_payment with zero evidence."
         ],
         "classification": "FORWARD_ONLY_MANUAL_ARRANGEMENT_PAYMENT_TRUTH",
-        "limitations": "The new function migration is not yet applied to the canonical isolated Development database. Historical rows are not backfilled. Existing QA request and real provider payment, cumulative Product/security, owner visual, invoice-backed cost and Production remain unverified."
+        "limitations": "Historical rows are not backfilled. The existing QA request was not activated. Real provider payment, cumulative Product/security, owner visual, invoice-backed cost and Production remain unverified; this is not release readiness."
       },
       "integration": {
         "status": "MERGED",
@@ -15730,12 +15731,12 @@
         "supabase/migrations/20261108000829_management_manual_arrangement_payment_truth.sql"
       ],
       "migrationOrder": ["20261108000829"],
-      "localVerification": "ROLLBACK_ONLY_PROPOSED_MIGRATION_PASS_DEVELOPMENT_APPLICATION_PENDING",
-      "releaseEligibility": "NOT_READY_DEVELOPMENT_APPLY_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "localVerification": "ISOLATED_DEVELOPMENT_APPLIED_INSTALLED_ROLLBACK_TEST_METADATA_AND_UNTOUCHED_REQUEST_PASS",
+      "releaseEligibility": "NOT_READY_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After this ledger is merged, back up the isolated Development function, apply only the reviewed migration from exact clean remote Development, verify installed behavior and migration history, and record a separate closure. Keep productionApplied UNVERIFIED; do not invoke the existing QA request or touch main/Production."
+      "nextAction": "After ledger closure, run exact-head Development drift and scoped Product checks. Coordinator selects the next unresolved payment/provider or cumulative Product gate. Keep productionApplied UNVERIFIED; do not invoke the existing QA request or touch main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
