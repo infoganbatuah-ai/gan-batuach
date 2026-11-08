@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-07T22:34:28.000Z",
+  "updatedAt": "2026-11-08T01:52:20Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15737,6 +15737,62 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "After ledger closure, run exact-head Development drift and scoped Product checks. Coordinator selects the next unresolved payment/provider or cumulative Product gate. Keep productionApplied UNVERIFIED; do not invoke the existing QA request or touch main/Production."
+    },
+    {
+      "id": "codex/gb-parent-preactivation-payment-guidance-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PARENT-PREACTIVATION-PAYMENT-GUIDANCE-20261108",
+      "title": "Show truthful awaiting-arrangement guidance before Parent enrollment activation",
+      "owner": "Parent enrollment payment guidance; one Development integration owner",
+      "sourceBranch": "codex/gb-parent-preactivation-payment-guidance-20261108",
+      "sourceCommits": [
+        "17e2f8e4a4c4ec6ca37cdac3cd38a286dc12f45e",
+        "f8708132263482e94ebf5f8693bc075e9d9fa548"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-parent-preactivation-payment-guidance-20261108@f8708132263482e94ebf5f8693bc075e9d9fa548"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_CANONICAL_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "PR #363 at source 17e2f8e4a4c4ec6ca37cdac3cd38a286dc12f45e passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk and merged ancestry-preserving as ce752f17a3b3f8847e50b22cba04f6f36da02fc0. The Parent payments page now reads only the signed-in parent and authorized child request, caps request rows at 20, identifies the child/garden, and distinguishes awaiting arrangement from tuition balance, received funds, active enrollment and online provider capability.",
+          "Real merged-Product desktop/mobile review found the active child chip initially outside the mobile viewport. Follow-up PR #364 at source f8708132263482e94ebf5f8693bc075e9d9fa548 passed the same nine exact-head checks and merged as ccba149ac76f39bed0ee5b7d66b466dc59432359. The selected child is first in the visual selector and remains authorized and context-scoped.",
+          "At exact clean Development head ccba149ac76f39bed0ee5b7d66b466dc59432359, canonical npm run dev:integration used the isolated local backend. Fresh settled 1440x1024 and 390x844 screenshots show the pending request, no generated charge, no false payment confirmation, and active child chip visible in both viewports; switching children changed the context. Own Parent read passed; foreign Parent showed no request, Staff redirected to its own dashboard, guest redirected to login. No page errors. Private readback SHA256 07a33be2185b14b611d94619089aaf6781bc83c32d6b14c0b375be7e59dc493d; desktop screenshot SHA256 3013a6c0db2197f59cdc624a8c20391393c335dd846f04244d6339b9afda2d3a; mobile screenshot SHA256 d48c9f7f850528c1ab5d9392d9c21c415f79bd9a5062d7b7269f99d1aa7cac22. Protected artifacts reside under worktrees/development-integration/exports/restricted/parent-preactivation-payment-guidance-20261108/ and are ignored by Git.",
+          "Read-only isolated Development query confirmed existing synthetic request 7811740b-d8e7-4f0e-b056-122cf2f8a15b remains awaiting_payment/pending with no active child enrollment, and the exact new Parent request and child-name reads succeed. Parent-a sees it; foreign Parent and guest do not. Staff request visibility under existing Garden RLS was not altered; the Parent page itself requires the parent role. Local typecheck, focused ESLint, lint baseline zero regressions, UX-10 finance 8/8 and Parent tuition 3/3 passed. Vercel team branch searches showed zero deployments for the source and integration branches."
+        ],
+        "classification": "SCOPED_PARENT_PREACTIVATION_PAYMENT_TRUTH_UI",
+        "limitations": "This is a scoped Development Product check, not full cumulative Product/security, real payment-provider, invoice-backed cost, external owner visual or Production proof. The existing request was not approved, arranged, activated or settled; no data mutation was performed."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "5f2aadab6a3d07a687e36baa38c233ccf8ebc15e",
+        "commit": "ccba149ac76f39bed0ee5b7d66b466dc59432359",
+        "pullRequests": [
+          363,
+          364
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_AND_MANUAL_ARRANGEMENT_CONTRACT_VERIFIED",
+        "units": [
+          "codex/gb-manual-arrangement-payment-truth-fix-20261108"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_PARENT_DESKTOP_MOBILE_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PROVIDER_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator selects the next unresolved Parent payment/provider or cumulative Product gate. Preserve the existing QA request and personas; run full Product/security/owner/cost qualification separately. No main/Production or RELEASE-GAP-01."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
