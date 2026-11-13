@@ -18,10 +18,10 @@ The Desktop Parent-primary CSS increases the prominence of child identity and se
 
 Local validation on the scoped source: `npm run typecheck` PASS; `npm run lint:ci` PASS with zero regressions against the tracked baseline; production-mode webpack build PASS (557 static pages). The default Turbopack build cannot resolve `next/package.json` through this feature worktree's external-drive `node_modules` symlink. The broad `npm run lint` still reports 4,693 existing errors and 159 warnings, exactly the counts accepted by the regression gate; no TypeScript/TSX source changed here. These results do not establish visual acceptance.
 
-- Verify the scoped CSS in the actual authenticated Product at 1440×1024 and 390×844, including both selected-child states.
-- Capture fresh primary-reference side-by-sides and inspect geometry, RTL, overflow and focus.
-- Recheck child/Garden scoping and foreign-child denial; preserve QA personas and provider truth.
-- Run scoped local quality checks, push the exact feature head, pass required PR checks, merge to `integration/development`, and re-capture from the exact merged head.
+The isolated feature preview at `a3196244` used only the local Development backend and a synthetic two-child Parent. At 1440×1024 the camera status and illustrative-image label no longer visually collide; the key child and action labels are more prominent. The second Child selection changed the attendance context to that Child; at 390px the document width remained 390px with two Child cards. `qa:ux05-focused` passed 7/7, `check-uxv9-parent-context` passed 20 assertions, and `check-uxv6-child-context-contract` passed 9/9. The in-app browser's Mobile screenshot surface was scaled/cropped, so the mobile result is limited to DOM/layout checks and is not a full visual PASS. No actual child photograph, arrival event, or Live camera was inserted.
+
+- Run exact-head PR gates, merge to `integration/development`, and re-capture from the exact merged head.
+- Capture a reliable Mobile screenshot and compare both new images side by side with the approved reference, including RTL and focus.
 - Record any remaining material reference deviation as `NEEDS_VISUAL_CORRECTION`; external owner approval remains separate.
 
 No `main`, Production, Digital Observer core or paid supplier change is authorized by this unit.
