@@ -10,6 +10,7 @@ import { compileAuthorizedWatchRule } from "@/lib/domain/digital-observer/watch-
 import type { WatchRuleCompileResult } from "@/lib/domain/digital-observer/watch-rule-compiler";
 import { compileInvestigationQuery, isInvestigationQuestion } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
+import { digitalObserverCameraOperationalState } from "@/lib/domain/digital-observer/camera-live-status";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -39,6 +40,8 @@ type CameraRow = {
   status?: string | null;
   health_status?: string | null;
   source_mode?: string | null;
+  last_seen_at?: string | null;
+  last_health_check_at?: string | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -79,7 +82,8 @@ function buildAnswer(message: string, signals: SignalRow[], cameras: CameraRow[]
   const relevant = filteredSignals(message, signals).slice(0, 5);
   const reviewed = signals.filter((signal) => ["confirmed", "resolved", "dismissed"].includes(String(signal.review_status))).length;
   const open = signals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status))).length;
-  const online = cameras.filter((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status))).length;
+  const online = cameras.filter((camera) => ["live", "gateway_test"].includes(String(camera.source_mode))
+    && digitalObserverCameraOperationalState(camera) === "ONLINE").length;
 
   if (matchesAny(message, ["מצב", "סטטוס", "הכול בסדר"]) && !matchesAny(message, ["שים לב", "תעקוב", "תתריע"])) {
     return {
@@ -198,7 +202,7 @@ export async function POST(request: Request) {
         .order("created_at", { ascending: false })
         .limit(100),
       supabase.from("digital_observer_camera_sources" as never)
-        .select("id,display_name,status,health_status,source_mode")
+        .select("id,display_name,status,health_status,source_mode,last_seen_at,last_health_check_at")
         .eq("observer_site_id", payload.observer_site_id),
       supabase.from("site_behavior_baselines" as never)
         .select("id,baseline_type,learning_maturity,confidence_level")
