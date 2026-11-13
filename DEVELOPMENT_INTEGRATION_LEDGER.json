@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-13T21:49:30+00:00",
+  "updatedAt": "2026-11-13T22:29:02+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16056,6 +16056,48 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Complete external owner visual reference review and reconcile cumulative release prerequisites separately. No main/Production release from this unit."
+    },
+    {
+      "id": "codex/parent-smoke-contract-sync-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DEVELOPMENT-CUMULATIVE-PARENT-SMOKE-20261114-CONTRACT-FIX",
+      "title": "Align Parent selected-child regression contract with existing enrollment information fields",
+      "owner": "Canonical Parent smoke executor; one Development integration owner",
+      "sourceBranch": "codex/parent-smoke-contract-sync-20261114",
+      "sourceCommits": ["201c619c1151e126ff09e585fafb1250961a982a"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/parent-smoke-contract-sync-20261114@201c619c1151e126ff09e585fafb1250961a982a"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_SOURCE_REGRESSION_PASS",
+        "evidence": [
+          "PR #382 passed all nine exact-head checks, then merged ancestry-preserving to Development at d02df9547e8af52077ba7ea4f19cc099822f8a8c.",
+          "Scoped Parent selected-child/document suite 20/20 and UX05 Parent suite 7/7 passed after the test contract was updated for existing information_request and information_response fields; git diff --check passed."
+        ],
+        "classification": "TEST_CONTRACT_ONLY_NO_PRODUCT_OR_SCHEMA_CHANGE",
+        "limitations": "The cumulative authenticated Parent runtime journey, live role-boundary probes, Development drift, Desktop/Mobile capture and owner visual acceptance remain pending a safe shared QA runtime. Source-level test pass is not full Product evidence."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "ad6764edbaffaa16048b18fe10f60d3b4718d3ec",
+        "commit": "d02df9547e8af52077ba7ea4f19cc099822f8a8c",
+        "pullRequests": [382],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "UXV12_PARENT_MOBILE_LOCAL_VERIFIED",
+        "units": ["codex/ux-v12-parent-mobile-readability-20261113"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SOURCE_SELECTED_CHILD_20_OF_20_AND_UX05_7_OF_7_PASS_RUNTIME_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PARENT_RUNTIME_OWNER_VISUAL_COST_AND_PRODUCTION_HISTORY_PENDING",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "When shared external QA runtime is free, complete guarded authenticated Parent multi-child and role-boundary smoke against exact canonical Development; no main/Production change."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
