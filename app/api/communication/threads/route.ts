@@ -29,7 +29,19 @@ export async function GET() {
       .order("last_message_at", { ascending: false, nullsFirst: false })
       .limit(100);
     if (error) return fail("טעינת השיחות נכשלה.", 400);
-    return ok(data ?? []);
+    const rows = (data ?? []) as Array<{ id: string; thread_type: string; communication_thread_participants: Array<{ profile_id: string; last_read_at: string | null; last_read_message_id: string | null }> }>;
+    const directIds = rows.filter((row) => !row.thread_type?.includes("broadcast")).map((row) => row.id);
+    const others = directIds.length
+      ? await supabase.from("communication_thread_participants" as never)
+        .select("thread_id,profile_id,role,participant_label")
+        .in("thread_id", directIds).neq("profile_id", session.profile.id).is("left_at", null).limit(100)
+      : { data: [], error: null };
+    if (others.error) return fail("טעינת משתתפי השיחות נכשלה.", 400);
+    return ok(rows.map((row) => ({
+      ...row,
+      communication_thread_participants: [...row.communication_thread_participants,
+        ...(others.data ?? []).filter((person: { thread_id: string }) => person.thread_id === row.id)]
+    })));
   } catch (error) { return handleSafeRouteError(error); }
 }
 

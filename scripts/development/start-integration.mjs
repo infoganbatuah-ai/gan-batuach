@@ -4,10 +4,12 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
 import { integrationEnvironment, isGeneratedNextEnv } from './integration-environment.mjs';
+import { parseIntegrationArgs } from './integration-bundler.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const git = (...args) => execFileSync('git', args, {cwd:root,encoding:'utf8',env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}).trim();
 try {
+  const {uiOnly,bundler,nextFlags} = parseIntegrationArgs(process.argv.slice(2));
   if (git('branch','--show-current') !== 'integration/development') throw new Error('Start the canonical integration/development worktree, not main or an isolated feature branch.');
   const generatedTypes = readFileSync(resolve(root,'next-env.d.ts'),'utf8').trim();
   if (!isGeneratedNextEnv(generatedTypes,git('show','HEAD:next-env.d.ts')) || git('diff','--cached','--','next-env.d.ts')) throw new Error('Unexpected next-env.d.ts edit; only unstaged Next-generated development type paths are allowed.');
@@ -15,7 +17,6 @@ try {
   for (const name of ['.env','.env.local','.env.development','.env.development.local','.env.production','.env.production.local']) {
     if (existsSync(resolve(root,name))) throw new Error(`Unexpected ${name}: never load the Production environment into integration. Use config/integration.local.env only.`);
   }
-  const uiOnly = process.argv.includes('--ui-only');
   const localFile = resolve(root,'config/integration.local.env');
   const databaseConfig = JSON.parse(readFileSync(resolve(root,'development/database/environment.json'),'utf8'));
   const privateFile = resolve(databaseConfig.runtimeRoot,'push42-api.private.env');
@@ -35,9 +36,9 @@ try {
     if (!response.ok) throw new Error('Local Supabase health failed; no fallback to Production.');
   }
   const port = 3000;
-  console.log(`DEVELOPMENT / INTEGRATION ${sha}\nhttp://127.0.0.1:${port}\nBackend: ${env.INTEGRATION_BACKEND}`);
+  console.log(`DEVELOPMENT / INTEGRATION ${sha}\nhttp://127.0.0.1:${port}\nBackend: ${env.INTEGRATION_BACKEND}\nBundler: ${bundler}`);
   if (uiOnly) console.log('UI-only: login, database journeys, migrations and camera/provider behavior are NOT VERIFIED.');
-  const child = spawn(process.execPath,[resolve(root,'node_modules/next/dist/bin/next'),'dev','--hostname','127.0.0.1','--port',String(port)],{cwd:root,env,stdio:'inherit'});
+  const child = spawn(process.execPath,[resolve(root,'node_modules/next/dist/bin/next'),'dev',...nextFlags,'--hostname','127.0.0.1','--port',String(port)],{cwd:root,env,stdio:'inherit'});
   for (const signal of ['SIGINT','SIGTERM']) process.on(signal,()=>child.kill(signal));
   child.on('error',()=>{console.error('Unable to start local Next.js; install locked dependencies.');process.exitCode=1;});
   child.on('exit',code=>{process.exitCode=code??1;});

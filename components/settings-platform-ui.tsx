@@ -49,7 +49,7 @@ const notificationRoutes: Record<SettingsRole, string> = {
 
 function areasFor(role: SettingsRole): SettingsArea[] {
   const areas: SettingsArea[] = [
-    { label: "פרופיל אישי", description: "שם, תמונה ופרטי קשר", href: profileRoutes[role], icon: CircleUserRound },
+    { label: "פרופיל אישי", description: "שם, תמונה ופרטי קשר", href: role === "owner" || role === "manager" ? `${profileRoutes[role]}#profile` : profileRoutes[role], icon: CircleUserRound },
     { label: "אבטחה", description: "MFA, Passkey, מכשירים וסשנים", href: "/dashboard/security-settings", icon: LockKeyhole },
     { label: "התראות", description: "ערוצים, קטגוריות ושעות שקט", href: notificationRoutes[role], icon: Bell },
     { label: "הגן שלי", description: "פרופיל, שעות ומבנה הגן", href: "/dashboard/garden/settings#garden-profile", icon: Building2, roles: ["manager", "owner"] },
@@ -72,12 +72,16 @@ export function SettingsPlatformHeader({ title = "הגדרות", description, ro
 
 export function SettingsPlatformNavigation({ role, activeHref }: { role: SettingsRole; activeHref: string }) {
   const areas = areasFor(role);
-  return <nav className="ux18-settings-navigation" aria-label="קטגוריות הגדרות">
-    <div className="ux18-settings-navigation-title"><Settings aria-hidden="true" /><span><b>הגדרות</b><small>חשבון, גישה והעדפות</small></span></div>
+  return <nav id={role === "owner" || role === "manager" ? "settings-index" : undefined} className="ux18-settings-navigation" aria-label="קטגוריות הגדרות">
+    <div className="ux18-settings-navigation-title">
+      <Settings aria-hidden="true" />
+      <span><b>הגדרות</b><small>חשבון, גישה והעדפות</small></span>
+      {role === "owner" || role === "manager" ? <Link className="ux18-mobile-settings-index-back" href="/dashboard/garden" aria-label="חזרה ללוח הגן"><ChevronLeft aria-hidden="true" /></Link> : null}
+    </div>
     <div className="ux18-settings-navigation-list">
       {areas.map((area) => {
         const Icon = area.icon;
-        const active = area.href.split("#")[0] === activeHref;
+        const active = area.href === activeHref || area.href === `${activeHref}#profile`;
         return <Link key={`${area.label}-${area.href}`} href={area.href} aria-current={active ? "page" : undefined} className={active ? "is-active" : undefined}>
           <Icon aria-hidden="true" /><span><b>{area.label}</b><small>{area.description}</small></span><ChevronLeft aria-hidden="true" />
         </Link>;

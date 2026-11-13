@@ -59,7 +59,6 @@ test("Settings primary route contains all three workspace columns and guarded ed
   assert.match(page, /<ProfileSettingsForm[^>]*requireProfilePhoto requireGardenLogo/);
   const form = read("components/settings-primary-profile-form.tsx");
   assert.match(form, /fetch\("\/api\/profile\/settings"/);
-  assert.match(form, /if \(!photo\)/);
   assert.match(form, /role=\{messageKind === "error" \? "alert" : "status"\}/);
   assert.doesNotMatch(form, /body: JSON\.stringify\(\{[^}]*email:/s);
 });
@@ -78,7 +77,8 @@ test("Parent primary route shows an authorized visual selector and selected-Chil
     'className="parent-primary-reference-actions"',
   ]);
   assert.match(page, /parent-dashboard-multi-child/);
-  assert.match(page, /\.eq\("child_id", selectedChildId\)/);
+  assert.match(page, /\.in\("child_id", attendanceChildIds\)\.eq\("attendance_date", attendanceDate\)/);
+  assert.match(page, /\.eq\("child_id", selectedAttendanceChildId\)/);
   assert.match(page, /לא מוצג שידור חי לא מאומת/);
 });
 

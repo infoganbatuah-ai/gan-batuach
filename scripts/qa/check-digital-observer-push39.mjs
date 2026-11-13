@@ -63,7 +63,7 @@ assert.equal(orchestration.transitionForProviderOutcome({ outcome: "permanent_fa
 const unknown = orchestration.transitionForProviderOutcome({ outcome: "unknown_outcome", attemptCount: 1, maxAttempts: 3, expiresAt: "2026-10-19T00:00:00Z", now: new Date("2026-10-18T00:00:00Z") });
 assert.deepEqual(unknown, { status: "unknown_outcome", retryAt: null, terminal: true });
 
-const safeContent = orchestration.minimizeNotificationContent({ title: "Camera password=abc", body: "rtsp://user:pass@10.0.0.2/x token=secret https://private/x", productPath: "/digital-observer/alerts", severity: "high" });
+const safeContent = orchestration.minimizeNotificationContent({ title: "Camera password=abc", body: "rtsp://user:pass@example.invalid/x token=secret https://private/x", productPath: "/digital-observer/alerts", severity: "high" });
 assert(!JSON.stringify(safeContent).includes("abc") && !JSON.stringify(safeContent).includes("user:pass") && !JSON.stringify(safeContent).includes("secret"));
 assert.equal(safeContent.productPath, "/digital-observer/alerts");
 assert.equal(orchestration.minimizeNotificationContent({ title: "x", body: "x", productPath: "https://evil.test", severity: "info" }).productPath, null);

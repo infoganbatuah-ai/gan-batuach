@@ -32,7 +32,7 @@ export async function GET() {
     if (!childIds.length) return ok({ requests: [] });
     const result = await supabase.from("kindergarten_enrollment_requests" as never)
       .select("id,child_profile_id,garden_id,requested_classroom_id,status,requested_at,reviewed_at,decision_reason,information_request,information_response,information_requested_at,information_responded_at,reservation_id,payment_status,cancelled_at,gardens(name,city),classrooms:requested_classroom_id(name,age_group_label)" as never)
-      .eq("parent_id", access.session.profile.id).in("child_profile_id", childIds).order("created_at", { ascending: false });
+      .eq("parent_id", access.session.profile.id).in("child_profile_id", childIds).order("created_at", { ascending: false }).limit(100);
     if (result.error) return fail("לא ניתן לטעון בקשות הצטרפות.", 503);
     return ok({ requests: result.data ?? [] });
   } catch (error) { return handleSafeRouteError(error); }

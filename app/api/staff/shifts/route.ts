@@ -44,7 +44,10 @@ export async function POST(request: Request) {
         target_staff_id: input.staff_id, target_garden_id: input.garden_id, target_shift_date: input.shift_date,
         target_start: input.planned_start, target_end: input.planned_end
       } as never);
-    if (error) return fail(error.message === "staff_scheduling_conflict" ? "לעובד/ת יש משמרת חופפת במועד זה." : "לא ניתן לשמור משמרת או שההעסקה אינה פעילה.", error.message === "staff_scheduling_conflict" ? 409 : 400);
+    if (error) return fail(error.message === "staff_scheduling_conflict" ? "לעובד/ת יש משמרת חופפת במועד זה."
+      : error.message === "staff_shift_already_planned" ? "כבר קיימת משמרת לאיש הצוות בגן בתאריך הזה."
+      : "לא ניתן לשמור משמרת או שההעסקה אינה פעילה.",
+    ["staff_scheduling_conflict", "staff_shift_already_planned"].includes(error.message) ? 409 : 400);
     return ok(data);
   } catch (error) { return handleRouteError(error); }
 }

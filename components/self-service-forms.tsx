@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, MapPin, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/components/gan-batuach-design-system";
 import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
@@ -253,6 +254,7 @@ export function ParentChildProfileForm() {
 export function EnrollmentRequestButton({ gardenId, childProfiles, feeGroups }: { gardenId: string; childProfiles: any[]; feeGroups: any[] }) {
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -267,6 +269,7 @@ export function EnrollmentRequestButton({ gardenId, childProfiles, feeGroups }: 
       });
       setState({ ok: true, message: "בקשת ההצטרפות נשלחה למנהלת הגן." });
       form.reset();
+      router.refresh();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "שליחת הבקשה נכשלה" });
     } finally {
@@ -293,6 +296,40 @@ export function EnrollmentRequestButton({ gardenId, childProfiles, feeGroups }: 
       {state ? <small className={state.ok ? "pill good" : "pill bad"}>{state.message}</small> : null}
     </form>
   );
+}
+
+export function ParentEnrollmentInformationForm({ requestId }: { requestId: string }) {
+  const [state, setState] = useState<ApiState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    const form = event.currentTarget;
+    try {
+      const response = await fetch("/api/parent/enrollment-requests", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "respond_information", request_id: requestId, response: formValue(form, "response") })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error ?? "שליחת התשובה נכשלה");
+      setState({ ok: true, message: "התשובה נשלחה והבקשה חזרה לבדיקת הגן." });
+      form.reset();
+      router.refresh();
+    } catch (error) {
+      setState({ ok: false, message: error instanceof Error ? error.message : "שליחת התשובה נכשלה" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <form className="form compact-form" onSubmit={submit}>
+    <label>תשובה למנהלת הגן<textarea name="response" maxLength={4000} minLength={1} required rows={3} /></label>
+    <button className="button primary" disabled={busy} type="submit">{busy ? "שולח..." : "שליחת תשובה"}</button>
+    {state ? <p role="status" className={state.ok ? "pill good" : "pill bad"}>{state.message}</p> : null}
+  </form>;
 }
 
 export function StaffApplicationForm({ opening }: { opening: any }) {
@@ -437,6 +474,7 @@ export function InspectorApplicationForm({ application }: { application?: any })
 }
 
 export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: { endpoint: string; actions: Array<{ value: string; label: string }>; classrooms?: Array<{ id: string; name: string }> }) {
+  const router = useRouter();
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -454,6 +492,7 @@ export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: 
         garden_ids: formValue(form, "garden_ids").split(",").map((item) => item.trim()).filter(Boolean)
       });
       setState({ ok: true, message: "ההחלטה נשמרה." });
+      router.refresh();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "שמירת ההחלטה נכשלה" });
     } finally {

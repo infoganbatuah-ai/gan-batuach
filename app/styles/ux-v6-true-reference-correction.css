@@ -6,6 +6,7 @@
   display: grid;
   gap: 14px;
 }
+
 .ux18-primary-profile-fields {
   display: grid;
   grid-template-columns: minmax(86px, .72fr) minmax(0, 1.5fr);
@@ -14,9 +15,9 @@
   direction: ltr;
 }
 .ux18-primary-profile-photo {
+  position: relative;
   width: min(100%, 112px);
   aspect-ratio: 1;
-  overflow: hidden;
   border: 4px solid #deedfc;
   border-radius: 50%;
   background: #eaf5ff;
@@ -25,6 +26,64 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+}
+.ux18-primary-profile-role {
+  position: absolute;
+  inset-inline: -20px;
+  top: calc(100% + 4px);
+  color: #466994;
+  font-size: .66rem;
+  font-weight: 750;
+  text-align: center;
+  white-space: nowrap;
+}
+.ux18-primary-profile-photo .upload-image-avatar {
+  position: absolute;
+  inset-inline-end: -5px;
+  bottom: -5px;
+}
+.ux18-primary-profile-photo .upload-image-avatar-trigger {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: #086fe4;
+  cursor: pointer;
+}
+.ux18-primary-profile-photo .upload-image-avatar-trigger svg { width: 21px; height: 21px; }
+.ux18-primary-profile-photo .upload-image-avatar-trigger input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.ux18-primary-profile-photo .upload-image-avatar-trigger:focus-within {
+  outline: 3px solid #78b8ff;
+  outline-offset: 2px;
+}
+.ux18-primary-profile-photo .upload-image-avatar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ux18-primary-profile-photo .upload-image-avatar > small {
+  position: absolute;
+  top: calc(100% + 22px);
+  inset-inline-end: 0;
+  width: 190px;
+  color: #23598e;
+  font-size: .68rem;
+  text-align: start;
 }
 .ux18-primary-profile-inputs {
   display: grid;
@@ -122,13 +181,164 @@
   font-weight: 800;
   cursor: pointer;
 }
+.ux18-mobile-settings-index-back { display: none; }
+.ux18-reference-garden-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+  border-top: 1px solid #e7f0fa;
+  padding-top: 7px;
+}
+.ux18-reference-garden-facts span {
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: #315e91;
+  background: #edf6ff;
+  font-size: .62rem;
+  font-weight: 750;
+}
+
+.ux18-settings-fact-list { display: grid; }
+.ux18-settings-fact-list > div,
+.ux18-settings-fact-list > a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  border-bottom: 1px solid #e6eef8;
+  color: #153f7b;
+  text-decoration: none;
+}
+.ux18-settings-fact-list > :last-child { border-bottom: 0; }
+.ux18-settings-fact-list > :is(div, a) > svg:first-child {
+  width: 29px;
+  height: 29px;
+  padding: 7px;
+  border-radius: 50%;
+  color: #0874ef;
+  background: #edf6ff;
+}
+.ux18-settings-fact-list b { min-width: 0; font-size: .76rem; }
+.ux18-settings-fact-list span { color: #5e79a0; font-size: .68rem; }
+.ux18-settings-fact-list > a > svg:last-child { width: 16px; height: 16px; }
+.ux18-settings-fact-list > a:focus-visible { outline: 3px solid #78b8ff; outline-offset: 2px; }
+.ux18-reference-profile-column #profile .ux18-settings-section-action { display: none; }
 
 @media (max-width: 650px) {
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation {
+    min-height: calc(100dvh - 112px);
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-title {
+    position: relative;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-mobile-settings-index-back {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    transform: translateY(-50%);
+    color: #075bb9;
+    border-radius: 10px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-mobile-settings-index-back:focus-visible {
+    outline: 3px solid #0784f7;
+    outline-offset: 2px;
+  }
   .ux18-primary-profile-fields {
     grid-template-columns: 1fr;
     justify-items: center;
+    gap: 27px;
   }
-  .ux18-primary-profile-inputs { width: 100%; }
+  .ux18-primary-profile-form { gap: 8px; }
+  .ux18-primary-profile-photo { width: 126px; }
+  .ux18-primary-profile-inputs { width: 100%; gap: 6px; }
+  .ux18-primary-profile-inputs label { gap: 2px; }
+  .ux18-primary-profile-inputs input { min-height: 44px; }
+  .ux18-primary-profile-save { min-height: 44px; }
+  .ux18-primary-verification-details { margin-top: 9px; padding-top: 9px; }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list { padding: 0 6px 6px; }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a {
+    direction: ltr;
+    grid-template-columns: 32px minmax(0, 1fr) 18px;
+    min-height: 63px !important;
+    gap: 8px;
+    border-bottom: 1px solid #e7eef8;
+    border-radius: 5px;
+    padding: 4px 8px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a:last-child { border-bottom: 0; }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a > svg:first-child {
+    width: 29px;
+    height: 29px;
+    padding: 5px;
+    background: transparent;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a > span {
+    direction: rtl;
+    text-align: left;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a > svg:last-child { transform: rotate(180deg); }
+}
+
+@media (max-width: 650px) {
+  .role-app-shell:has(.ux18-reference-profile-column) #profile {
+    min-height: calc(100dvh - 112px);
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-settings-section-body {
+    padding-top: 60px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-photo {
+    width: 150px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-inputs {
+    gap: 10px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-inputs input {
+    min-height: 58px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-profile-save {
+    min-height: 54px;
+    margin-top: 35px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-primary-verification-details {
+    margin-top: 60px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    min-height: 54px;
+    padding: 8px 54px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header .ux18-settings-section-icon,
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header p { display: none; }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile > header > div:nth-child(2) { text-align: center; }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-settings-section-action {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    width: 44px;
+    transform: translateY(-50%);
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-mobile-settings-back {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: #0759bd;
+    border-radius: 12px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-mobile-settings-back:focus-visible {
+    outline: 3px solid #78b8ff;
+    outline-offset: 2px;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) #profile .ux18-mobile-settings-back svg { width: 20px; height: 20px; }
 }
 
 @media (min-width: 1025px) {
@@ -307,7 +517,138 @@
   .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-navigation-list a {
     min-height: 42px !important;
   }
-  .role-app-shell:has(.ux18-reference-profile-column) .ux18-reference-garden-column > .ux18-settings-status-grid {
-    order: 4 !important;
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-section > header {
+    min-height: 52px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-section-body {
+    padding: 7px 10px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-settings-link-list > a {
+    min-height: 43px !important;
+  }
+  .role-app-shell:has(.ux18-reference-profile-column) .ux18-reference-garden-summary {
+    min-height: 64px !important;
   }
 }
+
+/* UXV11 Admin primary: the reference has one right activity rail spanning the
+   heading, KPI and chart rows. Keep the operational tables beneath both. */
+@media (min-width: 1025px) {
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .admin-app-page {
+    width: calc(100% + 56px) !important;
+    max-width: none !important;
+    margin-inline: -28px !important;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard {
+    display: grid !important;
+    grid-template-columns: minmax(0, 3.3fr) minmax(260px, 1fr);
+    grid-template-rows: 40px 80px 218px auto;
+    gap: 7px;
+    direction: ltr;
+  }
+  .admin-literal-dashboard > * { min-width: 0; direction: rtl; }
+  .admin-literal-dashboard > .admin-literal-heading { grid-column: 1; grid-row: 1; }
+  .admin-literal-dashboard > .admin-literal-kpis { grid-column: 1; grid-row: 2; }
+  .admin-literal-dashboard > .admin-literal-upper-grid {
+    grid-column: 1;
+    grid-row: 3;
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, 1.04fr) minmax(0, .92fr) !important;
+    direction: ltr !important;
+  }
+  .admin-literal-dashboard > .admin-literal-activity {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    min-height: 0;
+  }
+  .admin-literal-dashboard > .admin-literal-lower-grid { grid-column: 1 / -1; grid-row: 4; }
+  .admin-literal-dashboard .admin-literal-activity-list > a { min-height: 57px; }
+  .admin-literal-dashboard .admin-literal-grouped-bars > span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 48px;
+  }
+  .admin-literal-dashboard .admin-literal-grouped-bars i { width: 22px; }
+  .admin-literal-dashboard .admin-literal-grouped-bars b { font-size: .52rem; }
+}
+
+@media (max-width: 650px) {
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .role-app-header {
+    min-height: 76px !important;
+    height: 76px !important;
+  }
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .role-app-live-date { display: none !important; }
+  .role-app-shell.admin-runtime-shell:has(.admin-literal-dashboard) .role-app-page { padding: 8px 12px 92px !important; }
+  .role-app-shell.admin-runtime-shell .admin-app-page { display: flex !important; flex-direction: column; gap: 9px !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard { display: grid !important; order: -2; width: 100%; }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard > .admin-literal-heading.admin-reference-title {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    text-align: center;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-heading h1 { font-size: 1.22rem !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-heading p { font-size: .64rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis { display: grid !important; grid-template-columns: 1fr !important; overflow: visible !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis > a {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    width: 100%;
+    min-height: 70px !important;
+    flex-basis: auto;
+    scroll-snap-align: none;
+    padding: 7px 10px;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis span { grid-column: 1; grid-row: 1 / 3; width: 34px; height: 34px; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis small { grid-column: 2; grid-row: 1; font-size: .76rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis b { grid-column: 3; grid-row: 1 / 3; font-size: 1.35rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-kpis em { grid-column: 2; grid-row: 2; font-size: .6rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity {
+    display: block !important;
+    overflow: hidden;
+    border: 1px solid #dbe9f7;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgb(15 70 132 / 8%);
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 43px;
+    padding: 7px 11px;
+    border-bottom: 1px solid #e8f0f8;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity h2 { margin: 0; color: #0b3975; font-size: .87rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity header a { color: #1471dc; font-size: .65rem; text-decoration: none; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list > a {
+    display: grid;
+    grid-template-columns: 35px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 56px;
+    padding: 7px 10px;
+    border-bottom: 1px solid #eef3f9;
+    color: #173e76;
+    text-decoration: none;
+  }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list > a > span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: #1475e2; background: #e9f4ff; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list > a > span.red { color: #df4054; background: #ffebee; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list svg { width: 16px; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list div { display: grid; min-width: 0; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list b { overflow: hidden; font-size: .68rem; text-overflow: ellipsis; white-space: nowrap; }
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list small,
+  .role-app-shell.admin-runtime-shell .admin-literal-activity-list time { color: #7589a4; font-size: .56rem; }
+  .role-app-shell.admin-runtime-shell .admin-literal-upper-grid,
+  .role-app-shell.admin-runtime-shell .admin-literal-lower-grid { display: none !important; }
+  .role-app-shell.admin-runtime-shell .admin-literal-dashboard ~ .admin-primary-mobile-menu { display: grid !important; order: 1; }
+  .role-app-shell.admin-runtime-shell .admin-primary-mobile-menu header { padding-top: 10px; }
+}
+
+.admin-chart-unavailable,
+.admin-table-state { margin: 0; padding: 16px 10px; color: #687f9d; font-size: .66rem; text-align: center; }
+.admin-literal-line-chart .admin-chart-unavailable,
+.admin-literal-grouped-bars .admin-chart-unavailable { align-self: center; width: 100%; }

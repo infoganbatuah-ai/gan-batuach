@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-03T22:51:42.577306+00:00",
+  "updatedAt": "2026-11-13T22:29:02+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -11155,7 +11155,7 @@
         "514515e27d35f47f926e32146e2415dc3bee38a8",
         "e51b74f7ebc0885eec43f0456d6eaa60ca189db7"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -11220,7 +11220,7 @@
           "purpose": "Protected AWS signing workflow and exact-device release evidence"
         }
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -13967,6 +13967,2137 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve the local ancestry merge and scoped canonical ledger update by a normal nonforce integration/development push after no-preview admission, verify exact remote SHA and required final-head CI. Then run separately authorized isolated Product/Auth/RLS and fresh direct Desktop/Mobile reference qualification, sixteen-domain regression and all-in ₪15 review before any release readiness. No main or Production."
+    },
+    {
+      "id": "codex/ux-v6-settings-required-photo-removal-fix-20261104",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV6-SETTINGS-PHOTO-CONTROLS-PRESERVATION-CI-CANDIDATE-20261104-2441",
+      "title": "Settings required-photo removal control and deterministic Domain gate candidate",
+      "owner": "Gan Batuach UX-V6 Settings executor; sole scoped Development integration owner for PR #283",
+      "sourceBranch": "codex/ux-v6-settings-required-photo-removal-fix-20261104",
+      "sourceCommits": ["2441f075f29d7760056bbf2d8c49f95c90c6f8f0", "fe78474a921884620f0927a48909ea7727c408e2"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/ux-v6-settings-required-photo-removal-fix-20261104@fe78474a921884620f0927a48909ea7727c408e2", "origin/integration/development@2d88274f23d847a137b30c564ad86ee5258250ef"],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_GREEN_PURE_COMPONENT_ONLY_PRODUCT_OPEN",
+        "evidence": [
+          "Six actual in-memory component tests passed, zero failed/skipped/cancelled, exit 0 at source 2441; bounded receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/gan-uxv6-settings-required-photo-controls-validation-20261104-2441/result.json SHA256 7905ced170b7d6c3b0c13cd3254ee284e794897f8241f2544ac6f9408aa2f86d",
+          "PR #283 exact feature fe78474a into base d0032dd4: Digital Observer CI run 41826693506 all six gates and canonical quality PASS; Management run 41826693519 PASS; Snyk PASS. Domain job 126563118198 logs settings-required-photo-controls PASS exit0 464ms; pull/283/merge checkout 37bbc552 is a CI test merge, not the canonical merge.",
+          "Canonical GitHub merge 2d88274f23d847a137b30c564ad86ee5258250ef has parents d0032dd4 and fe78474a, tree 3b99bd5378373e3ec2404c1badb980b6c82219b9 matches reviewed feature tree; no migration."
+        ],
+        "classification": "PURE_COMPONENT_ONLY_NO_AUTH_RLS_PRODUCT_VISUAL_OR_PROVIDER",
+        "limits": "Exact PR source and merge-check CI passed. No authenticated Product, image upload/provider, Auth/RLS, rendered visual, tenant isolation, all-in cost, owner acceptance or Production proof. Canonical ledger-only checkpoint CI and Product QA are separate."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "d0032dd4fd0d1c8ca4bacb14dc731fcc98b82ac1",
+        "commit": "2d88274f23d847a137b30c564ad86ee5258250ef",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/283",
+        "sourceAncestryVerified": true,
+        "integrationTaskId": "GB-UXV6-SETTINGS-PR283-CANONICAL-DEVELOPMENT-INCLUSION-20261104-fe78474a"
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV6_BASELINE",
+        "units": ["codex/ux-v6-true-reference-correction"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SIX_PURE_COMPONENT_CASES_PASS_AT_SOURCE_2441; EXACT_PR_CI_ALL_REQUIRED_GREEN; CANONICAL_MERGE_TREE_EQUALS_REVIEWED_SOURCE; PRODUCT_NOT_RUN",
+      "releaseEligibility": "NOT_READY_PRODUCT_VISUAL_AUTH_RLS_COST_AND_OWNER_REVIEW_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Preserve this canonical ledger-only checkpoint with a normal Development push, read back exact remote head and observe its CI/no-deployment state. Separately qualify authenticated Product/Settings upload and role isolation, fresh Desktop/Mobile reference composition, provider truth and all-in ₪15 before any owner release decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-primary-settings-product-20261105",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Owner primary Settings density, truthful account rows, and optional-photo profile save",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #284",
+      "sourceBranch": "codex/ux-v7-primary-settings-product-20261105",
+      "sourceCommits": [
+        "aaa98190044f69705b479d3d6f47beb98671a498",
+        "ac294dad74e6b7bcb6492fb039acc19a56720d03",
+        "567508902ef78ca80e71ec5d9cb2692c074204fc",
+        "12952a8678c34907cc93b78b5e79bb25b2743ddd",
+        "1dcad66102ad0dfac1030bd8fe70e6028d22cbf1",
+        "1fb7051b5a5c809221824397e8f1756c993ceba4",
+        "b72c3f2afba48eef77f4f616d4072f86d8bc2099"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-primary-settings-product-20261105@b72c3f2afba48eef77f4f616d4072f86d8bc2099",
+          "origin/integration/development@37753822928f25f84b861428f5f67661b855625a"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_PRODUCT_VISUAL_OPEN",
+        "evidence": [
+          "PR #284 exact source b72c3f2a into base 3b6e345b: Digital Observer CI run 42128571714 all six gates plus canonical quality PASS; management-context run 42128571994 PASS; Snyk PASS.",
+          "Focused local profile-photo and primary-screen contract tests 13/13 PASS; git diff --check clean.",
+          "Vercel live project UI: sole Git-connected project gan-batuach, Preview Branch Tracking OFF, production-only ignored-build behavior, feature branch absent from deployment branch choices after push."
+        ],
+        "classification": "OWNER_SETTINGS_PRIMARY_UI_AND_TEST_CONTRACT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Candidate Product screenshots, actual role-boundary probes, visual reference comparison, all-in cost compliance, and external owner approval remain unverified. Baseline screenshots at 3b6 are not candidate evidence."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "3b6e345b9eacfbaed8e48555ca5e41840a37aac9",
+        "commit": "37753822928f25f84b861428f5f67661b855625a",
+        "tree": "232985917264f9711a7b57350adfed78b9e39773",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/284",
+        "sourceAncestryVerified": true,
+        "mergeTreeEqualsSourceTree": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV6_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v6-settings-required-photo-removal-fix-20261104"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PR_CI_GREEN; AUTHENTICATED_CANDIDATE_PRODUCT_AND_VISUAL_NOT_YET_RUN",
+      "releaseEligibility": "NOT_READY_FRESH_CANDIDATE_VISUAL_ROLE_QA_COST_AND_OWNER_REVIEW_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact merged Development Product with authorized synthetic Owner at 1440x1024 and 390x844, compare direct primary Settings crop and check role/keyboard/RTL/overflow. Then run post-merge focused QA and report any visual mismatch for correction. Preserve Production/main."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-anchor-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings profile anchor",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #285",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-anchor-20261106",
+      "sourceCommits": [
+        "2a636f570c3b13450ccb9f0fdea637fd971cb801"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-anchor-20261106@2a636f570c3b13450ccb9f0fdea637fd971cb801",
+          "origin/integration/development@320ed6f00097d7723ecb5e262beb309025ede7a0"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #285 exact source 2a636f570c3b13450ccb9f0fdea637fd971cb801 passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42131443991.",
+          "Owner/Manager Settings profile row navigates to in-page profile section.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "a94abfe3adb12aa7cc6c6950414f872d0698991c",
+        "commit": "320ed6f00097d7723ecb5e262beb309025ede7a0",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/285",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-header-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings profile header and return",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #286",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-header-20261106",
+      "sourceCommits": [
+        "e07e62f22861a976b1b7fb20baac1e700f5c64a6"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-header-20261106@e07e62f22861a976b1b7fb20baac1e700f5c64a6",
+          "origin/integration/development@bc287408d975fc7e1cd05f9ae3f9c26e35a9f057"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #286 exact source e07e62f22861a976b1b7fb20baac1e700f5c64a6 passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42133333750.",
+          "Mobile profile section gains centered title and accessible return control to Settings index.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "320ed6f00097d7723ecb5e262beb309025ede7a0",
+        "commit": "bc287408d975fc7e1cd05f9ae3f9c26e35a9f057",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/286",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-back-position-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-PRIMARY-SETTINGS-PRODUCT-DELTA-20261105",
+      "title": "Mobile Settings back control alignment",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #287",
+      "sourceBranch": "codex/ux-v7-settings-mobile-back-position-20261106",
+      "sourceCommits": [
+        "426bedc0a57792974b93cee02e2e2e5cf69d533d"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-back-position-20261106@426bedc0a57792974b93cee02e2e2e5cf69d533d",
+          "origin/integration/development@96ad64e1051f850772eb2e637c381f982991b47b"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_CAPTURE",
+        "evidence": [
+          "PR #287 exact source 426bedc0a57792974b93cee02e2e2e5cf69d533d passed all six Digital Observer CI gates plus canonical quality, Management context and Snyk; Digital Observer CI run 42134880386.",
+          "Scoped CSS positions the profile back control at the reference left edge.",
+          "Final merged Development 96ad64e1051f850772eb2e637c381f982991b47b authenticated synthetic Owner Desktop 1440x1024 and Mobile 390x844 captures; mobile profile anchor 20px, back control left 21px, return to index 0px, one active item and no horizontal overflow."
+        ],
+        "classification": "OWNER_SETTINGS_MOBILE_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Fresh Product capture verifies synthetic Owner rendering/navigation only. Literal 1:1 reference match, real profile photo, role-boundary/Auth/RLS, all-in cost compliance, complete 21-domain audit and external owner approval are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "bc287408d975fc7e1cd05f9ae3f9c26e35a9f057",
+        "commit": "96ad64e1051f850772eb2e637c381f982991b47b",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/287",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_NAV_AND_OVERFLOW_VERIFIED",
+      "releaseEligibility": "NOT_READY_LITERAL_VISUAL_OWNER_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development and verify exact-head CI. Continue direct reference comparison and role-boundary/keyboard QA before any owner visual decision. No main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-reference-closure-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-SETTINGS-REFERENCE-CLOSURE-20261106",
+      "title": "UXV7 Settings primary reference closure",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #288",
+      "sourceBranch": "codex/ux-v7-settings-reference-closure-20261106",
+      "sourceCommits": [
+        "0babb123dd871030bad24d29d4ec2039369811b7"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-reference-closure-20261106@0babb123dd871030bad24d29d4ec2039369811b7",
+          "origin/integration/development@953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #288 exact source 0babb123dd871030bad24d29d4ec2039369811b7 passed six Digital Observer CI gates plus canonical quality, Management context and Snyk.",
+          "Compacted primary four-column Settings: profile upload as accessible avatar affordance; compact read-only role; Garden facts consolidated; Desktop sidebar Settings active, Mobile More preserved; mobile index icon/text/arrow alignment.",
+          "Authenticated synthetic Owner Product QA on merged Development 1e8b7a93ccbefee599e336fd7643b0511f970c3b: Desktop 1440x1024 and Mobile 390x844, RTL and no horizontal overflow, Settings sidebar active, mobile index/profile first viewport, keyboard upload focus, allowed Manager, denied Parent, save/reload/restore synthetic Owner."
+        ],
+        "classification": "OWNER_SETTINGS_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Reference portrait differs from truthful synthetic fallback avatar; reference-only toggles are not fabricated. External owner approval, 21-domain visual audit, full Auth/RLS/tenant probe and all-in ₪15 invoice-backed cost qualification are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "e9d9cb6ded3c5ad35964b6b803a512713cc49a92",
+        "commit": "953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/288",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_ROLE_KEYBOARD_SAVE_RESTORE_VERIFIED",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger checkpoint on remote Development and verify exact-head CI. Obtain external owner review of fresh Settings comparison; no main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-index-fit-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-SETTINGS-REFERENCE-CLOSURE-20261106",
+      "title": "Mobile Settings index viewport fit",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #289",
+      "sourceBranch": "codex/ux-v7-settings-mobile-index-fit-20261106",
+      "sourceCommits": [
+        "b2a1b8a0f031dffc18c1d84f2076b363c13c35f2"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-index-fit-20261106@b2a1b8a0f031dffc18c1d84f2076b363c13c35f2",
+          "origin/integration/development@c08b40a95dab3b5ae5dc44bbbc783af9feece883"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #289 exact source b2a1b8a0f031dffc18c1d84f2076b363c13c35f2 passed six Digital Observer CI gates plus canonical quality, Management context and Snyk.",
+          "Reference-style mobile index back control and row height; first Profile section starts below bottom navigation.",
+          "Authenticated synthetic Owner Product QA on merged Development 1e8b7a93ccbefee599e336fd7643b0511f970c3b: Desktop 1440x1024 and Mobile 390x844, RTL and no horizontal overflow, Settings sidebar active, mobile index/profile first viewport, keyboard upload focus, allowed Manager, denied Parent, save/reload/restore synthetic Owner."
+        ],
+        "classification": "OWNER_SETTINGS_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Reference portrait differs from truthful synthetic fallback avatar; reference-only toggles are not fabricated. External owner approval, 21-domain visual audit, full Auth/RLS/tenant probe and all-in ₪15 invoice-backed cost qualification are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "953135dcc2aeafcc93147b96e3ec3a1e8ec1ba21",
+        "commit": "c08b40a95dab3b5ae5dc44bbbc783af9feece883",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/289",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_ROLE_KEYBOARD_SAVE_RESTORE_VERIFIED",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger checkpoint on remote Development and verify exact-head CI. Obtain external owner review of fresh Settings comparison; no main or Production."
+    },
+    {
+      "id": "codex/ux-v7-settings-mobile-profile-fit-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV7-SETTINGS-REFERENCE-CLOSURE-20261106",
+      "title": "Mobile Settings profile viewport fit",
+      "owner": "UXV7 Settings executor; sole scoped Development integration owner for PR #290",
+      "sourceBranch": "codex/ux-v7-settings-mobile-profile-fit-20261106",
+      "sourceCommits": [
+        "4a91793c4c96751bfb24114477a6e261487f846e"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v7-settings-mobile-profile-fit-20261106@4a91793c4c96751bfb24114477a6e261487f846e",
+          "origin/integration/development@1e8b7a93ccbefee599e336fd7643b0511f970c3b"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #290 exact source 4a91793c4c96751bfb24114477a6e261487f846e passed six Digital Observer CI gates plus canonical quality, Management context and Snyk.",
+          "Mobile portrait, fields and save CTA match the reference screen proportions more closely; Security section begins below the first Profile viewport.",
+          "Authenticated synthetic Owner Product QA on merged Development 1e8b7a93ccbefee599e336fd7643b0511f970c3b: Desktop 1440x1024 and Mobile 390x844, RTL and no horizontal overflow, Settings sidebar active, mobile index/profile first viewport, keyboard upload focus, allowed Manager, denied Parent, save/reload/restore synthetic Owner."
+        ],
+        "classification": "OWNER_SETTINGS_UI_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Reference portrait differs from truthful synthetic fallback avatar; reference-only toggles are not fabricated. External owner approval, 21-domain visual audit, full Auth/RLS/tenant probe and all-in ₪15 invoice-backed cost qualification are not established."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "c08b40a95dab3b5ae5dc44bbbc783af9feece883",
+        "commit": "1e8b7a93ccbefee599e336fd7643b0511f970c3b",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/290",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV7_SETTINGS_BASELINE",
+        "units": [
+          "codex/ux-v7-primary-settings-product-20261105"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN; FINAL_MERGED_SYNTHETIC_OWNER_DESKTOP_MOBILE_ROLE_KEYBOARD_SAVE_RESTORE_VERIFIED",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger checkpoint on remote Development and verify exact-head CI. Obtain external owner review of fresh Settings comparison; no main or Production."
+    },
+    {
+      "id": "codex/ux-v8-owner-daily-workspace-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV8-OWNER-DAILY-WORKSPACE-20261106",
+      "title": "Owner and Manager primary daily workspace, authorized context and mobile reference fit",
+      "owner": "UXV8 Owner executor; scoped integration owner for PR #291 through #294",
+      "sourceBranch": "codex/ux-v8-owner-daily-workspace-20261106",
+      "sourceCommits": [
+        "175edc2b85fb62a99674a5e269bf1aecab584cea",
+        "748f39fdb9b1da5e238802d1db089f1d327d65ad",
+        "d6658c2da3a0f9e453bcc36c86a9bae10035f6f2",
+        "aa83ae937b48ceb00509ab1921875914bc0ebab5",
+        "e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v8-owner-daily-workspace-20261106@e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a",
+          "origin/integration/development@d35ebafcc05389ccc7220d2b25e0620ed678336e"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED"
+      },
+      "validation": {
+        "status": "EXACT_PR_CI_ALL_REQUIRED_GREEN_SCOPED_PRODUCT_QA",
+        "evidence": [
+          "PR #291 through #294 exact heads passed all six Digital Observer CI gates, canonical quality, Management context and Snyk; final source e6ef9db8dfb9072c4ad0b03a5ef8619a66f1225a, Digital Observer CI run 42153661526.",
+          "Local source: TypeScript typecheck and focused ESLint passed; 68 Owner and management-context tests passed.",
+          "Final authenticated synthetic Owner Product from merged Development d35ebafcc05389ccc7220d2b25e0620ed678336e at Desktop 1440x1024 and Mobile 390x844: actual primary operations route, reference KPI order, RTL, no horizontal overflow or browser errors, no camera/payment/AI requests.",
+          "Authenticated synthetic Owner, Manager and multi-Garden Owner Product checks: authorized Garden switch changed displayed context; foreign Garden POST denied 403; invalid context required selection; 5 canonical destinations reachable per Owner and Manager.",
+          "Private final 14-image reference/actual/before-after comparison package at /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv8-owner-daily-workspace-d35ebafc/manifest.json; manifest SHA256 4877f85dc18bc9c343c8cde767211409b924fe20885ddef6f698bc9df4fdb29f. Raw actual images from exact merged Development, not generated mockups. Previous d72248ae package is preserved as intermediate before KPI-order correction."
+        ],
+        "classification": "OWNER_DAILY_WORKSPACE_UI_AND_AUTHORIZED_READ_CONTEXT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "External owner visual acceptance is pending. Synthetic activity and schedule differ from reference data; camera art is explicitly illustrative with no verified Live. Full Auth/RLS/tenant, all 21 domains, invoice-backed all-in ₪15 cost compliance and Production are not claimed."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "baseCommit": "a80294bb95166949d1cf51f0f741f51f3975aea9",
+        "commit": "d35ebafcc05389ccc7220d2b25e0620ed678336e",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/294",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/291",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/292",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/293",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/294"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_OWNER_UXV6_UXV7_BASELINE",
+        "units": [
+          "codex/ux-v7-settings-mobile-profile-fit-20261106"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "EXACT_PR_CI_GREEN_FINAL_MERGED_SYNTHETIC_OWNER_MANAGER_MULTI_GARDEN_DESKTOP_MOBILE_ROLE_NAVIGATION_VERIFIED",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this ledger checkpoint on remote Development, verify exact head and hand off to canonical coordinator. Obtain external owner review of the fresh primary Owner comparison. Do not merge main, deploy Production or begin RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v9-parent-authorized-daily-hub-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV9-PARENT-AUTHORIZED-DAILY-HUB-20261106",
+      "title": "Parent assigned and multi-child primary daily hub with authorized context",
+      "owner": "UXV9 Parent executor; scoped PRs #295-#300 integration owner",
+      "sourceBranch": "codex/ux-v9-parent-authorized-daily-hub-20261106",
+      "sourceCommits": [
+        "f439ec4e8f7894e07623c37e4a87082dc770927f",
+        "bce4b733384454d1fa3a7656e2ec1a90a5f2d6cf",
+        "bcf9e23af11823571bbf5d1c90f5a6bd6732d283",
+        "283ed9541d2b64f20b5c03e59dc0455853b50882",
+        "b279b1645b0ae22d75ac62f660b429af1a23fba3",
+        "9bedbc24aed9b52c949eba5075b6a4cc951805a5"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v9-parent-authorized-daily-hub-20261106@9bedbc24aed9b52c949eba5075b6a4cc951805a5",
+          "origin/integration/development@d45c70095ce379f0e59ee9dab57a24248c53d074"
+        ],
+        "status": "REMOTE_PRESERVED_AND_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_295_TO_300_CI_ALL_SIX_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "PR #295 source f439ec4e8f7894e07623c37e4a87082dc770927f: Digital Observer CI run 42192329366 all six gates and canonical quality SUCCESS; Management tenant context run 42192329462 SUCCESS; Snyk commit status SUCCESS.",
+          "Local 20 authorized-child identity assertions, 7 UX05 Parent focused tests, 3 tuition ledger tests, typecheck, lint baseline with zero regressions, migration-order and release-contract checks passed.",
+          "Source baseline authenticated Parent single/multi at Desktop 1440x1024 and Mobile 390x844: private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-baseline-462e2f58/manifest.json SHA256 9b936b8f8ce5ac05f82ff3d8b0a7394bb696013d58ed5d680b54b17e601a6c53. Baseline is not candidate evidence.",
+          "PRs #295-#300 merged to Development through d45c70095ce379f0e59ee9dab57a24248c53d074; each exact-head six-gate CI, Management tenant context and Snyk passed. Final PR #300 Digital Observer CI run 42203639924 and Management tenant run 42203639845 succeeded.",
+          "Authenticated single/multi Parent exact Development head d45c70095ce379f0e59ee9dab57a24248c53d074: private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv9-parent-candidate-d45c7009/manifest.json SHA256 e17d9a96ed78e0246ee5df2edc8875af02258c059cb15b741a6a61b0fc638553. Direct reference/actual boards manifest SHA256 283159fda56d37dc7c35e68815e560089fd101e32e33d9db7a449e677ddcf1cf. Visual status NEEDS_VISUAL_CORRECTION; see private owner package."
+        ],
+        "classification": "PARENT_PRIMARY_UI_AUTHORIZED_CHILD_SELECTION_AND_READ_CONTEXT_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Scoped post-merge Product proof passed child switching, foreign-child denial, file-ID tuition navigation, RTL, viewport overflow and browser errors at both viewports. Direct approved-reference review still shows a 57px global top utility bar displacement, illustrative rather than verified Live camera imagery, and shared generic QA child imagery; truthful empty attendance differs from reference content. Do not claim reference match or owner approval. Full 21-domain, live role/RLS/provider, invoice-backed all-in ₪15 and Production qualification remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "462e2f58e31623e5586b85382c7dcd5afe6f7a0d",
+        "commit": "d45c70095ce379f0e59ee9dab57a24248c53d074",
+        "pullRequest": "https://github.com/infoganbatuah-ai/gan-batuach/pull/295",
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV8_PARENT_BASELINE",
+        "units": [
+          "codex/ux-v8-owner-daily-workspace-20261106"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_PARENT_DESKTOP_MOBILE_BEHAVIOR_PASS_DIRECT_REFERENCE_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Review private UXV9 actual/reference boards and address the remaining primary Parent visual displacement and density without fabricating camera Live or attendance. Re-capture from the next exact merged Development head; obtain external owner acceptance. Full role/security/cost release gates remain open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v10-parent-primary-reference-closure-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV10-PARENT-PRIMARY-REFERENCE-CLOSURE-20261106",
+      "title": "Parent primary route visual geometry and direct reference evidence",
+      "owner": "UXV10 Parent executor; scoped PRs #304, #305 and #307 integration owner",
+      "sourceBranch": "codex/ux-v10-parent-primary-reference-closure-20261106",
+      "sourceCommits": [
+        "223fd7f479d5c40146e5aa6fcddbe608c8c97eb7",
+        "a8b8e2b9a6e85e7c8a144ad8fa13f41ea23ecd6e",
+        "c9adc2b4efa8cd1eae96acac07a109b393c6b465"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v10-parent-primary-reference-closure-20261106@c9adc2b4efa8cd1eae96acac07a109b393c6b465",
+          "origin/integration/development@09967c565cbee49ed967a58fd88e901f3f9a2081"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_304_305_307_SIX_CI_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "PR #304 CI 42249657687 and Management 42249657693; PR #305 CI 42252893099 and Management 42252892550; PR #307 CI 42255038570 and Management 42255038485. Each exact-head PR passed all six Digital Observer gates, canonical quality, Management tenant context and Snyk.",
+          "Exact merged Development Product 09967c565cbee49ed967a58fd88e901f3f9a2081: guarded LOCAL_SUPABASE, 259/259 baseline drift PASS, six authenticated Parent screenshots at 1440x1024 and 390x844; private manifest SHA256 8e67b30bdbb9444a757ad47170a3b48440762d08b80611dfe6cbbbcafc45e0e9.",
+          "Primary reference/actual side-by-sides, overlays and annotated boards: /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv10-parent-candidate-09967c56/boards/boards-manifest.json SHA256 3f9ebff8a605ca1edca44c9117b9f88c57f2f7b835e555b00f64cb2d12428be4. Owner index OWNER-REVIEW.md in same private package. Direct visual verdict NEEDS_VISUAL_CORRECTION.",
+          "Scoped Product QA passed immediate authorized single/multi Child and Garden context switching, foreign Child denial, file-ID navigation, RTL, no overflow, no browser errors/HTTP 500, keyboard search, touch controls and Mobile quick actions fully above bottom navigation."
+        ],
+        "classification": "PARENT_PRIMARY_UI_PRESENTATION_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Direct visual review still shows no authorized individual child photos in synthetic QA data, no verified current-day check-in, extra canonical header utilities, illustrative non-Live camera treatment and flatter action status imagery. No fake state added. Formal external owner acceptance, all 21 domains, full live role/RLS/provider QA and invoice-backed all-in ₪15 qualification are open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "a4f3661bfe0aa3beb39edce557bcc77e587eaeda",
+        "commit": "09967c565cbee49ed967a58fd88e901f3f9a2081",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/304",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/305",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/307"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV9_PARENT_BASELINE",
+        "units": ["codex/ux-v9-parent-authorized-daily-hub-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_PARENT_DESKTOP_MOBILE_BEHAVIOR_PASS_DIRECT_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review exact Product/reference boards with owner; resolve only truthful remaining visual deviations in a new scoped correction. Preserve no-Live camera and no fabricated child photos/check-ins. External owner decision and full release gates remain separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/ux-v11-platform-admin-primary-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV11-PLATFORM-ADMIN-PRIMARY-20261106",
+      "title": "Platform Admin primary control center composition and direct reference evidence",
+      "owner": "UXV11 Admin executor; scoped PRs #309, #310 and #311 integration owner",
+      "sourceBranch": "codex/ux-v11-platform-admin-primary-20261106",
+      "sourceCommits": [
+        "8244d8bfb54a871ca07677820c756bbd76684839",
+        "59accd0da678b7522a0bca8de9a77f7c38621a35",
+        "a725eb039b58891f7d0fca46f5331f9d60aabc65"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v11-platform-admin-primary-20261106@a725eb039b58891f7d0fca46f5331f9d60aabc65",
+          "origin/integration/development@a3bb46a0809ad78201e0e24542b7e076c0f5ada3"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PRS_309_310_311_SIX_CI_GREEN_SCOPED_AUTHENTICATED_PRODUCT_QA_VISUAL_CORRECTION_OPEN",
+        "evidence": [
+          "Exact-head PRs #309, #310 and #311 each passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk before Development merge.",
+          "Exact merged Product a3bb46a0809ad78201e0e24542b7e076c0f5ada3: guarded LOCAL_SUPABASE and 259/259 baseline drift PASS; seven authenticated synthetic Admin captures at Desktop 1440x1024 and Mobile 390x844. Private manifest /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/manifest.json SHA256 5dbb98904c51353019f2ee0fc923c5fb15660ab16c798f4728166c81ecf59c5b.",
+          "Primary reference/actual side-by-sides, 50 percent overlays and annotated differences: /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/uxv11-admin-final-a3bb46a0/boards/boards-manifest.json SHA256 66cbd4c67b6ef56d2233c1ae281d66dec35d8a22b7042d70af8a887c6a1cdac4. Direct visual verdict NEEDS_VISUAL_CORRECTION.",
+          "All seven captured routes returned 200 without browser page errors, HTTP 500 or horizontal overflow. A separate browser role probe was interrupted and is NOT PASS. Bounded HTTP content-isolation probe at exact Product SHA passed Admin versus Manager, Parent, Staff and Inspector; only Admin markup rendered. Private receipt /private/tmp/gb-uxv11-admin-http-boundary.json SHA256 a9bc88e0c05d90434417e3001e4685328e81e0a107acae371d43d7d303a005e1. Non-Admin responses used framework redirect markers with HTTP 200, so status alone is not proof."
+        ],
+        "classification": "ADMIN_PRIMARY_UI_PRESENTATION_ONLY_NO_MIGRATION_NO_PROVIDER_ACTIVATION",
+        "limits": "Utility header/sidebar identity, data-limited chart and table density, and Mobile framing still differ visibly from approved collage. No fake analytics or provider state added. External owner approval, full role/RLS QA and invoice-backed all-in 15 NIS per paying user qualification remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "2b44a0610834c78a6f8efa656b49ae0a9bfa71fd",
+        "commit": "a3bb46a0809ad78201e0e24542b7e076c0f5ada3",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/309",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/310",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/311"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV10_PARENT_BASELINE",
+        "units": ["codex/ux-v10-parent-primary-reference-closure-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_ADMIN_DESKTOP_MOBILE_ROUTE_PASS_DIRECT_VISUAL_CORRECTION_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review the UXV11 private direct Admin boards with owner/coordinator; resolve only truthful remaining header/sidebar and density gaps in a scoped task. Preserve real data and provider truth. Full release gates remain separate; no main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-admin-read-reliability-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-ADMIN-READ-RELIABILITY-20261106",
+      "title": "Canonical Admin read sources and honest partial-data states",
+      "owner": "Product Admin read-reliability executor; scoped PR #313 integration owner",
+      "sourceBranch": "codex/product-admin-read-reliability-20261106",
+      "sourceCommits": ["aa9d36199d28963c266cbadbef383572e223f4ea"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-admin-read-reliability-20261106@aa9d36199d28963c266cbadbef383572e223f4ea",
+          "origin/integration/development@8a3dc2267c82e01e103e23f0514c5125d0c2756d"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PR_313_SIX_CI_GREEN_MANAGEMENT_CONTEXT_SNYK_AND_SCOPED_AUTHENTICATED_DEVELOPMENT_QA_PASS",
+        "evidence": [
+          "PR #313 exact head aa9d36199d28963c266cbadbef383572e223f4ea: Digital Observer CI run 42280543277 six gates plus canonical quality SUCCESS; Management tenant context run 42280543236 SUCCESS; Snyk SUCCESS. Ancestry-preserving merge 8a3dc2267c82e01e103e23f0514c5125d0c2756d.",
+          "Focused simulated Admin read-failure and provider-truth tests 7/7 PASS, UX-17 Admin regression 9/9 PASS with source ref, typecheck, lint baseline, locked-dependency build, migration audit and release contract PASS. Local broad domain/security runs did not pass because of an unrelated missing benchmark file and restricted DiskManagement/loopback sandbox; exact-head hosted CI passed.",
+          "Authenticated read-only Development Admin query contracts 10/10 PASS before and after merge. Post-merge receipt /private/tmp/gb-admin-read-postmerge-8a3dc226.json SHA256 d9f52007aa7a5d149da21f34ee1cf56386f1384d7b645a5c7f80bd8f1add48b4; receipt contains no row data or credentials.",
+          "Exact merged Development 8a3dc2267c82e01e103e23f0514c5125d0c2756d: guarded LOCAL_SUPABASE and 259/259 migration drift PASS. Authenticated local HTTP read for three Admin routes across Admin, Manager, Parent, Staff and Inspector: 3/3 Admin routes rendered, 0/12 non-Admin markup leaks, 0 Admin data-error alerts or HTTP 500. Private receipt /private/tmp/gb-admin-read-postmerge-http-8a3dc226.json SHA256 9265d2bcab98dafd8734f702048c59c7c276f2678dc3e139b53fac0b2c5872b8. Non-Admin HTTP status alone is not authorization proof; content was checked."
+        ],
+        "classification": "ADMIN_READ_ONLY_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_ACTIVATION_NO_DIGITAL_OBSERVER_CORE",
+        "limits": "The read probes establish query contracts, not live provider health or visual 1:1 owner acceptance. Full all-role Product QA, invoice-backed all-in 15 NIS per paying-user qualification and Production release gates remain separate. No new paid dependency or fixed monthly commitment."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "edcc6af9b788b584421b02b8b34a29c1dbc9b466",
+        "commit": "8a3dc2267c82e01e103e23f0514c5125d0c2756d",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/313"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_UXV11_ADMIN_BASELINE",
+        "units": ["codex/ux-v11-platform-admin-primary-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_ADMIN_READS_AND_ROLE_CONTENT_ISOLATION_PASS_VISUAL_OWNER_REVIEW_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Coordinator/owner reviews the UXV11 visual boards and assigns any truthful scoped composition correction. Preserve canonical Admin query contracts; complete broader role, supplier-cost and release gates only on explicit release work. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-attendance-pickup-journey-20261106",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-ATTENDANCE-PICKUP-JOURNEY-20261106",
+      "title": "Authenticated attendance and pickup Product journey source correction",
+      "owner": "Product attendance/pickup executor; scoped PR #315 integration owner",
+      "sourceBranch": "codex/product-attendance-pickup-journey-20261106",
+      "sourceCommits": ["231fcc2f053f5d166114dd42fc83542316946450"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-attendance-pickup-journey-20261106@4fce98bdf73f2215746a9bbf0a4ac95321c03270",
+          "origin/integration/development@c6e703a0eeec7bc7c4baed9189004c18eb601686"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_PRODUCT_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_PR_315_SIX_CI_GREEN_MANAGEMENT_CONTEXT_SNYK_AND_SCOPED_MERGED_PRODUCT_BROWSER_QA_PASS",
+        "evidence": [
+          "Source branch 231fcc2f053f5d166114dd42fc83542316946450: four child-context tests, eight UX06 focused checks, typecheck, lint baseline with zero regressions, 259-migration audit, release contract and Production build PASS. No schema or dependency change.",
+          "Guarded synthetic API-to-isolated Development DB journey 14/14 on source baseline b7c1b78d0d438390ad6371b1202a717428c9ddae; private receipt /private/tmp/gb-m35-attendance-pickup.json SHA256 9e12d0d30bc0ddd9c2eaedc3ec8132d917255b18b17d1c97db64b8a233ddca4b. This is pre-correction evidence only.",
+          "PR #315 exact head 4fce98bdf73f2215746a9bbf0a4ac95321c03270: Digital Observer CI run 42291274768 six required gates plus canonical quality SUCCESS; Management tenant-context run 42291274786 SUCCESS; Snyk SUCCESS. Ancestry-preserving Development merge c6e703a0eeec7bc7c4baed9189004c18eb601686.",
+          "Exact merged Development c6e703a0eeec7bc7c4baed9189004c18eb601686 ran pinned Next 16.4.3 and guarded LOCAL_SUPABASE. Synthetic browser-to-authenticated-API-to-isolated-DB-to-reload journey completed 29 checks on Garden B Manager, Staff permission denial and Parent contexts, including one authorized arrival, one human-approved pickup, idempotency, wrong-Garden/wrong-classroom denial and Parent isolation. Private external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-attendance-pickup-c6e703a0/receipt.json SHA256 ff20e990009c47d8ae7b10b666832a35b255063813702eb796a17ad8d1153193. Two bounded earlier attempts performed the synthetic writes, then a final read-only continuation verified their state after QA-only assertion corrections; no global reset. Five final-state screenshots and checksums are in the same private directory.",
+          "Post-merge guarded isolated Development drift PASS 259/259 at c6e703a0eeec7bc7c4baed9189004c18eb601686; focused child-context 4/4 and UX06 domain checks 8/8 PASS."
+        ],
+        "classification": "MANAGEMENT_ATTENDANCE_PICKUP_SOURCE_CORRECTION_NO_SCHEMA_NO_PROVIDER_NO_DIGITAL_OBSERVER_CORE",
+        "limits": "The scoped browser check used a permitted Garden B Manager for the positive arrival/release path. Staff B had a classroom assignment but no attendance scope and correctly showed no actions; Staff A earlier positive API proof belongs to the pre-correction baseline, not post-merge browser proof. This is scoped Product QA, not all-role/full-product QA, visual owner acceptance, live provider readiness or invoice-backed all-in 15 NIS cost qualification."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "b7c1b78d0d438390ad6371b1202a717428c9ddae",
+        "commit": "c6e703a0eeec7bc7c4baed9189004c18eb601686",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/315"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {"status": "CANONICAL_ATTENDANCE_PICKUP_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_AUTHENTICATED_BROWSER_API_DB_RELOAD_29_CHECKS_AND_259_MIGRATION_DRIFT_PASS_FULL_PRODUCT_QA_OPEN",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_FULL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "The positive Staff browser fixture was verified in the immediately following Staff attendance unit. Preserve UXV11 NEEDS_VISUAL_CORRECTION and owner review, all-role/full-product and supplier-cost gates as open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-staff-attendance-positive-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-STAFF-ATTENDANCE-POSITIVE-JOURNEY-20261107",
+      "title": "Positive Staff arrival Product journey on canonical isolated Development",
+      "owner": "Product Staff attendance executor; one Development integration owner",
+      "sourceBranch": "codex/product-staff-attendance-positive-20261107",
+      "sourceCommits": ["fbedfef09a891663c222e2834419f3f944042207", "8f93833b3ba987bd0aea91e066297d271ca9791c"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/product-staff-attendance-positive-20261107@c8ebc9fd46e4496f11f315df099981146d611c78", "origin/integration/development@c0ff24931ed595ba8d0d2ae47a49aa45eaf98dc1"],
+        "status": "EVIDENCE_ONLY_REPORT_REMOTE_PRESERVED_AND_INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "SCOPED_AUTHENTICATED_STAFF_UI_API_LOCAL_DB_RELOAD_MANAGER_READ_AND_DENIALS_PASS",
+        "evidence": [
+          "Exact canonical Development Product e9b5f20a79775f9d0c201e11db03ac9511720733, pinned Next 16.4.3, DEVELOPMENT / INTEGRATION, LOCAL_SUPABASE. One synthetic Staff A UI arrival returned HTTP 200 and created one Staff-authored present attendance row plus one canonical audit event.",
+          "Staff reload and Manager A read showed the same present child. Foreign Garden, foreign Classroom and no-attendance-scope actions denied; repeat request idempotent with no extra attendance or audit. Continuation passed 20 scoped checks and zero browser errors.",
+          "Private external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/product-staff-attendance-positive-20261107/receipt.json SHA256 5ece6b6d5901fe7991caceef66162c3a96fb4c496d431d6406f967fd1a36d31b. The source report lists screenshots and checksums. Four dedicated synthetic fixture rows were created in isolated Development; existing QA rows were preserved.",
+          "PR #317 exact head c8ebc9fd46e4496f11f315df099981146d611c78: six Digital Observer CI gates, canonical quality, Management tenant-context and Snyk SUCCESS. Ancestry-preserving Development merge c0ff24931ed595ba8d0d2ae47a49aa45eaf98dc1. Post-merge ledger schema guard PASS 210 units; canonical Development worktree clean; diff from prior e9b5 Product head contains only this report and ledger."
+        ],
+        "classification": "MANAGEMENT_SYNTHETIC_PRODUCT_QA_EVIDENCE_ONLY_NO_SOURCE_SCHEMA_PROVIDER_OR_DIGITAL_OBSERVER_CORE_CHANGE",
+        "limits": "This proves one positive Staff journey and named denials, not full Product security/role QA, owner visual acceptance, provider readiness or invoice-backed all-in 15 NIS compliance. First QA attempt stopped after a successful click due to an incorrect response-envelope assertion; the continuation verified saved response and DB before further requests."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "e9b5f20a79775f9d0c201e11db03ac9511720733",
+        "commit": "c0ff24931ed595ba8d0d2ae47a49aa45eaf98dc1",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/317"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_ATTENDANCE_PICKUP_PRODUCT_BASELINE",
+        "units": ["codex/product-attendance-pickup-journey-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ONE_AUTHENTICATED_STAFF_POSITIVE_JOURNEY_20_SCOPED_CHECKS_MERGED_LEDGER_GUARD_PASS_NO_PRODUCT_SOURCE_CHANGE",
+      "releaseEligibility": "NOT_READY_EXTERNAL_OWNER_VISUAL_ALL_ROLE_QA_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Coordinator approved a narrow two-file Parent correction transfer in a clean Development-based branch, preserving the original source; its validation and publication are tracked in the following unit. Broader Product, owner visual, provider and invoice-backed cost qualification remain open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-parent-selected-child-documents-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-SELECTED-CHILD-DOCUMENTS-20261107",
+      "title": "Keep selected authorized Child visible and document-read failures truthful on Parent primary page",
+      "owner": "Product Parent selected-child correction executor; one Development integration owner",
+      "sourceBranch": "codex/product-parent-selected-child-documents-20261107",
+      "sourceCommits": ["97b73cbd84d589b0c3e2be2588ab7371aff22b4f", "dce279095bbbc2b733e9346cbaae682459d83c0a"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/push46-parent-selected-child-documents-20261106@97b73cbd84d589b0c3e2be2588ab7371aff22b4f", "origin/codex/product-parent-selected-child-documents-20261107@b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7", "origin/integration/development@6e9895ffa4b758eee41445c05613c998c4dfbaa7"],
+        "status": "REMOTE_SOURCE_AND_CANDIDATE_PRESERVED_INTEGRATED_DEVELOPMENT_NO_PREVIEW_DEPLOYMENT_OBSERVED",
+        "originalSourceBranch": "codex/push46-parent-selected-child-documents-20261106",
+        "originalCommit": "97b73cbd84d589b0c3e2be2588ab7371aff22b4f",
+        "originalTree": "5733ae0eb14cf8e98c5511ce44d77f54ad75e1f9",
+        "originalParent": "a611767f73ac97c0c1e4fe5e050f6c66e1b268ad",
+        "cleanDevelopmentBase": "9ccb9235a831c318e02a12986b27e81b08e9481b",
+        "transferredPatchId": "124339a71c1c0837c9b3383f0ae6e3098a192411",
+        "ownerException": "Owner explicitly approved transfer of only the correction while preserving the original branch; 198 mixed-history commits and 206 files are excluded."
+      },
+      "validation": {
+        "status": "SCOPED_SYNTHETIC_PAGE_FIXTURE_20_OF_20_PASS_PARENT_PRIMARY_CANONICAL_BROWSER_DESKTOP_MOBILE_PASS_NO_FULL_STACK_PROOF",
+        "evidence": [
+          "Candidate script node --check PASS and one focused synthetic page run 20/20 PASS on the clean Development-based branch.",
+          "Selected authorized Children 1, 4, 5 and 13 remain visible in bounded four-row attendance; unauthorized selection adds no query scope; document read failures with null, zero and stale counts stay unavailable/neutral; healthy documents retain true counts; denied role precedes data reads.",
+          "Only Product file blobs app/dashboard/parent/page.tsx 3b64ce80542140e336fe3db4be54f5a98139cb68 and scripts/qa/check-parent-selected-child-documents.mjs 12a5328ba3908a920c0b79a6a3e557929019bfa1 match the owner-approved original commit exactly. Two-file patch SHA256 c32d60a4e6633f1595552a3db715f6054ebab395b0c8cf1c570098c5ed95a9a1; stable patch ID 124339a71c1c0837c9b3383f0ae6e3098a192411.",
+          "Vercel accessible project history since 1790000000000 had four main Production deployments and no non-main deployment; repository vercel.json disables all Git deployments except main. After both non-force branch pushes, exact-SHA and branch deployment queries each returned zero. Full team-scoped Git trigger fields were not exposed by the accessible project summary.",
+          "PR #319 exact head b0ea82f1b983fbb47886cc2bf55d3f80b3e7dea7 passed all six Digital Observer CI gates, canonical quality, Management tenant context and Snyk; ancestry-preserving Development merge 6e9895ffa4b758eee41445c05613c998c4dfbaa7. Canonical worktree fast-forwarded cleanly. Post-merge check-ledger PASS 211 units; UXV9 authorized Parent identity check PASS 20 assertions. Main stayed 4e28d73f8a578637cc25522b193b550ad6d87482; feature SHA Vercel deployment count zero.",
+          "A later bounded canonical default-Turbopack Parent primary runtime check on clean Development 15b842f94e91157c6af31e2f7133e005c95dc58a passed Desktop 1440x1024 and Mobile 390x844. Existing synthetic multi-Child Parent selected the second authorized Child through the visible card selector; selected attendance and scoped attendance/payment links updated, Desktop reload preserved the selection, and a foreign Child query showed the unavailable state without the foreign name. Four settled screenshots were visually inspected with no splash or route-transition overlay. Corrected private redacted report SHA256 a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e under Development/gan-batuach/parent-primary-canonical-15b842f9/; final receipt SHA256 12e38cf7f946b60e24bceca83f83671229e7fb59b4f4028b0f1fcbdffaddca7e. The first selector/loader measurement errors remain preserved separately and are not Product failures."
+        ],
+        "classification": "MANAGEMENT_SCOPED_SOURCE_FIXTURE_AND_CANONICAL_PARENT_PRIMARY_BROWSER",
+        "limits": "The historical 6e9895ff Parent primary browser retry remains preserved as failure evidence, but the later bounded synthetic Parent primary Desktop/Mobile runtime on clean Development 15b842f9 passed. This is not direct Parent-to-Parent RLS, all-role security, forced document-read error, >4 real Child, literal reference visual acceptance or cumulative Product proof. Original Unit312 artifact unavailable, not PASS. A separate historical 8b9dd0fe default-Turbopack Parent Documents timeout remains unexplained despite a fresh one-time default-mode success; no root-cause repair is claimed. Vercel full team-scoped Git trigger fields were not exposed; observed no deployment only."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "9ccb9235a831c318e02a12986b27e81b08e9481b",
+        "commit": "6e9895ffa4b758eee41445c05613c998c4dfbaa7",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/319"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_PARENT_CHILD_CONTEXT_AND_STAFF_ATTENDANCE_BASELINE",
+        "units": ["codex/product-attendance-pickup-journey-20261106", "codex/product-staff-attendance-positive-20261107"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_PARENT_PRIMARY_DEFAULT_TURBOPACK_DESKTOP_AND_MOBILE_BROWSER_PASS_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_PARENT_RLS_DOCUMENT_READ_ERROR_CUMULATIVE_PRODUCT_EXTERNAL_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Preserve the bounded canonical Parent primary synthetic Desktop/Mobile runtime evidence. Correlate any new naturally occurring default-Turbopack Parent Documents failure with first-error/request timing rather than repeating the 90-second loop; separately qualify Parent-to-Parent RLS, forced document-read error, full Product journeys and owner visual acceptance. Keep prior Staff/Manager receipts separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-parent-documents-read-state-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENTS-READ-STATE-20261107",
+      "title": "Distinguish Parent family document read failure from valid empty and withhold uploads when family context is unavailable",
+      "owner": "Product Parent Documents source executor; one Development integration owner",
+      "sourceBranch": "codex/product-parent-documents-read-state-20261107",
+      "sourceCommits": [
+        "56abad3a8f34acc8178c1a4febd76544fce0a7aa",
+        "9673330e4a08cc029dbc6fb2d3520311a036d6ed",
+        "22f25b2cd749dc858cc9417c728d0c28ff633dc6",
+        "c47d693bd14ad9d67caf00147d3743bc5bb09b81",
+        "32def20bd5c9ff6059a3cd67617707f32ad4a1de"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-parent-documents-read-state-20261107@595c4801e628ddb6bcd52fa2b79acbcc788c6d79",
+          "origin/integration/development@8b9dd0fe930398ee900e80a05e065b524dc1a750",
+          "origin/integration/development@0137c6c69fc562efb19178b30935a4ffd7b5f74a"
+        ],
+        "status": "REMOTE_SOURCE_PRESERVED_AND_INTEGRATED_DEVELOPMENT_NO_PREVIEW_DEPLOYMENT_OBSERVED",
+        "noPreviewDeploymentObserved": true,
+        "deploymentEvidenceLimit": "Project Vercel SHA lookups returned zero deployments for source/QA head d59d13205d3c4e47692f5c1d93208c27cd4dded6 and merged PR head 595c4801e628ddb6bcd52fa2b79acbcc788c6d79. Full live Git trigger fields were not exposed; this is not a Production deployment claim."
+      },
+      "validation": {
+        "status": "EXACT_PR_HEAD_CI_8_OF_8_FEATURE_BROWSER_4_OF_4_POSTMERGE_SOURCE_20_OF_20_PASS_DEFAULT_RUNTIME_FAILED_WEBPACK_DIAGNOSTIC_2_OF_2_PASS",
+        "evidence": [
+          "node --check and node --test scripts/qa/check-parent-documents-read-state.mjs passed; 5/5 behavioral cases on the actual page component with in-memory synthetic query responses.",
+          "Valid empty, populated and protected file link, document read failure, family context unavailable/upload refusal, and denied role before reads were observed.",
+          "Focused staged diff --check passed; no new query/request, schema, RLS, grant, provider, dependency or Digital Observer core change.",
+          "Feature-branch Development ledger schema check passed with 212 units and zero errors; release inclusion and full Product gates were not run.",
+          "PR #321 initially passed eight checks on predecessor e16ed8bd4b178859921936711beeb234e32cbd07; those results were superseded by exact PR-head 595c4801e628ddb6bcd52fa2b79acbcc788c6d79 checks recorded below.",
+          "Feature QA launcher guard tests passed 9/9 including the shared runtime-path builder and refusal of node_modules symlink; existing integration launcher guard tests passed 6/6. The identical pinned feature/canonical package lock and private copied dependency inventory were verified before feature startup.",
+          "Gate 3 domain regression failed on predecessor head f29bae64499a1e41d19e5340bf3a8fc57fc8c4aa because the launcher embedded a machine-specific path; c47d693bd14ad9d67caf00147d3743bc5bb09b81 fixed it. Gate 1 then failed on predecessor cba57bbced5c43d76c5f384d9d180803eb2a49d5 due to a Mac-only fixture; 32def20bd5c9ff6059a3cd67617707f32ad4a1de fixed it. Local focused tests passed 15/15. All six Digital Observer CI gates, Canonical quality and management-context completed success on exact source/QA head d59d13205d3c4e47692f5c1d93208c27cd4dded6.",
+          "Offline npm ci failed closed with ENOTCACHED for zod-validation-error@4.0.2; no network fallback. A private copy of canonical exact-locked installed dependencies passed ordinary-directory and inventory guards; 43 links remained within the feature project, source/destination inodes differ, and canonical source metadata was unchanged.",
+          "Guarded feature-only server at d59d13205d3c4e47692f5c1d93208c27cd4dded6 used healthy isolated LOCAL_SUPABASE and loopback port 3100. Authenticated synthetic browser check passed 4/4: Parent A/B at 1440x1024, multi-Child Parent at 390x844, and Staff redirected without family documents. Zero page errors; server stopped and port verified free. Private receipt SHA256 8b7410e30dde31fca9b93ae43ce098778477017de9eaa7d2e04da61106a7de3a under Development/gan-batuach/feature-qa/d59d13205d3c4e47692f5c1d93208c27cd4dded6/evidence. Feature QA is not canonical merged Product.",
+          "PR #321 exact head 595c4801e628ddb6bcd52fa2b79acbcc788c6d79 passed all six Digital Observer CI gates, Canonical quality and management-context (8/8). Ancestry-preserving merge 8b9dd0fe930398ee900e80a05e065b524dc1a750 has parents c3507c3f07ca5a78ebf037b7cb596518708efa96 and 595c4801e628ddb6bcd52fa2b79acbcc788c6d79. Clean canonical Development worktree was fast-forwarded to that exact remote SHA. Post-merge focused source tests passed 20/20 and ledger schema 212 units passed.",
+          "A later safe-admitted canonical npm run dev:integration at exact 8b9dd0fe started Next 16.4.3 default Turbopack and healthy isolated backend. Synthetic Parent-A /dashboard/parent/documents navigation timed out waiting for domcontentloaded after 90s while repeated HTTP 200 responses and Next Suspense-boundary fallback logged. Browser/app were stopped, port 3000 free, canonical Git clean. POST_MERGE_RUNTIME_FAILED; private redacted diagnostic SHA256 849447e4b071a332a8122b6c63e27de78e21bda1f27d64be19c86ca664d9e8bb under Development/gan-batuach/parent-documents-postmerge-8b9dd0fe/evidence. Feature-only Webpack PASS is separate and does not prove root cause.",
+          "PR #322 exact head 40cad5d5b20838a9e8c5ecd03d74c86f80317dd7 passed six Digital Observer CI gates, Canonical quality and management-context (8/8); ancestry-preserving merge 0137c6c69fc562efb19178b30935a4ffd7b5f74a has parents 8b9dd0fe930398ee900e80a05e065b524dc1a750 and 40cad5d5b20838a9e8c5ecd03d74c86f80317dd7. Clean canonical Development ran the guarded explicit WEBPACK_DIAGNOSTIC mode with LOCAL_SUPABASE. After preserving a cold-compile timeout and an early loading-screen capture, bounded authenticated browser checks passed 2/2 on the settled viewport: Parent-A family Documents rendered with data and no page errors at 1440x1024; Staff-A saw no family content and redirected away. Private final receipt SHA256 bda1549ced1e27b52d8eff274defa67c1e0ae92a92dd5da46b3a7762b8f8defb; settled screenshot SHA256 6a8c6743765e4f9946135fc54bded96a8606c5b6a2990cedffaa087988d4eb94; redacted evidence report SHA256 6208235130464897929894155f1425ff3c284c3b0538350f60d96302de75d8f9 under Development/gan-batuach/parent-documents-webpack-diagnostic-0137c6c6/evidence. Browser/server stopped, port3000 free, canonical tree clean. This is a limited diagnostic, not default runtime repair or Product readiness."
+        ],
+        "classification": "MANAGEMENT_SCOPED_SOURCE_FIXTURE_EXACT_HEAD_CI_AND_AUTHENTICATED_FEATURE_BROWSER",
+        "limits": "Canonical merged Development Parent Documents browser FAILED under default Turbopack. Explicit Webpack diagnostic rendered one synthetic Parent Documents screen and redirected one Staff user, but does not prove the root cause or make the default path usable. Injected read failure, all Parent-to-Parent RLS boundaries, document download policy, accessibility visual review and cumulative full-stack proof remain unverified. The predecessor Parent primary dashboard runtime remains POST_MERGE_RUNTIME_UNVERIFIED and is not superseded."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "c3507c3f07ca5a78ebf037b7cb596518708efa96",
+        "commit": "8b9dd0fe930398ee900e80a05e065b524dc1a750",
+        "pullRequests": [321],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "PARENT_SELECTED_CHILD_DOCUMENT_STATE_BASELINE",
+        "units": [
+          "codex/product-parent-selected-child-documents-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_SOURCE_20_OF_20_PASS_FEATURE_BROWSER_4_OF_4_PASS_DEFAULT_TURBOPACK_FAILED_WEBPACK_DIAGNOSTIC_2_OF_2_PASS",
+      "releaseEligibility": "NOT_READY_DEFAULT_TURBOPACK_RUNTIME_FAIL_RLS_CUMULATIVE_QA_EXTERNAL_OWNER_VISUAL_AND_COST_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Investigate the default Turbopack Suspense/retry failure with a bounded new-evidence diagnostic; do not repeat the 90-second loop. Preserve the merged Webpack diagnostic as a limited alternate-mode observation, not a root-cause repair. The later bounded Parent-to-Parent private-document issuance/RLS check is recorded in the following unit. Forced document-read error, cumulative Product, visual owner and cost gates remain open. No main/Production/RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/parent-documents-isolation-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENTS-ISOLATION-20261107",
+      "title": "Bounded Parent-to-Parent document RLS and private file issuance isolation on canonical Development",
+      "owner": "Product Parent document isolation executor; one Development integration owner",
+      "sourceBranch": "codex/parent-documents-isolation-20261107",
+      "sourceCommits": ["e8299e53e49d5ef524cbc7b3dd2945bdbf2f595a", "11b568c2623bbd67da5d4ab0debbbdf451ef6a73"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/parent-documents-isolation-20261107@11b568c2623bbd67da5d4ab0debbbdf451ef6a73", "origin/integration/development@7f472157740a268bca6dd37b95696d4fa0d48503"],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "SCOPED_CANONICAL_PARENT_A_B_DOCUMENT_LIST_RLS_PRIVATE_FILE_ISSUANCE_PASS",
+        "evidence": [
+          "Clean canonical Development e9d4e2748700bb0fb5312d9ee68b94cb47dfed70; pinned existing LOCAL_SUPABASE, default Turbopack; private documents bucket confirmed nonpublic. Existing synthetic Parent A/B Children were visible only through their own user sessions in separate Gardens.",
+          "Two 48-byte non-personal PDFs uploaded through the actual authenticated Product API. Each Parent's own Product list and same-session RLS row contained the authorized document; own file route returned 302 and no-cookie signed-object fetch returned exact bytes. One private-read audit row per authorized read.",
+          "Symmetric cross-family direct RLS known-ID queries returned no row, foreign-Garden Product lists omitted ID and storage path, and known-ID file routes returned 404 without Location or identifying body. Guests received 401 without signed link or identifying body. Twelve bounded app API requests, two signed-object fetches; no Product source/schema/RLS/provider/DO core change.",
+          "Private redacted receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-documents-isolation-e9d4/evidence/receipt.json SHA256 ebc282db5ad3a05ab1b0c2c2e3865cb06e11392379f88b322797cc69ebaaf07b; QA script SHA256 fb2e018ea197c599914c177d6ca33c9dcd3eab60662e416e718b7b2b712e0a01. Two small synthetic objects/rows retained in isolated Development; no purge/reset/persona change.",
+          "Earlier Parent-primary private report checksum transcription corrected without recapture; current report SHA256 a0d8722514f26901bf1dafaa7288c37ff8994169acf034b6e585676f0211181e, earlier pre-correction report SHA256 0a4e4d5fbfc4359f864369f341e995560ad6d92e85bee1cf56ccc1cdd4fefa2e.",
+          "PR #325 exact head 11b568c2623bbd67da5d4ab0debbbdf451ef6a73 passed six Digital Observer CI gates, Canonical quality, Management tenant context and Snyk. Ancestry-preserving Development merge 7f472157740a268bca6dd37b95696d4fa0d48503 has parents e9d4e2748700bb0fb5312d9ee68b94cb47dfed70 and 11b568c2623bbd67da5d4ab0debbbdf451ef6a73; remote and clean canonical worktree matched. Post-merge ledger guard PASS 213 units, read-only Development migration drift PASS 259/259; diff has only report and ledgers."
+        ],
+        "classification": "MANAGEMENT_SYNTHETIC_AUTHENTICATED_PRODUCT_RLS_EVIDENCE_ONLY",
+        "limits": "Signed URLs are bearer links after authorized issuance; no post-expiry live denial measured. This is a two-family Development check, not a complete role/security certification. Forced Documents read-error, historical intermittent Turbopack root cause, cumulative Product, owner literal visual and invoice-backed cost qualification remain open."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "e9d4e2748700bb0fb5312d9ee68b94cb47dfed70", "commit": "7f472157740a268bca6dd37b95696d4fa0d48503", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/325"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_PARENT_DOCUMENTS_BASELINE", "units": ["codex/product-parent-documents-read-state-20261107"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_SYNTHETIC_PARENT_A_B_DOCUMENT_RLS_PRIVATE_FILE_ISSUANCE_PASS_POSTMERGE_LEDGER_213_AND_DRIFT_259_PASS_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FORCED_READ_ERROR_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Qualify forced authenticated document-read failure with truthful UI and no leak; separately investigate historical intermittent default-Turbopack Parent Documents failure, full role/security Product, owner visual and invoice-backed cost gates. Do not infer Product-wide RLS or owner approval. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/parent-document-signed-expiry-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-DOCUMENT-SIGNED-EXPIRY-20261107",
+      "title": "Bounded expiry of one authorized private Parent document signed link on canonical Development",
+      "owner": "Product Parent document signed-expiry executor; one Development integration owner",
+      "sourceBranch": "codex/parent-document-signed-expiry-20261107",
+      "sourceCommits": ["939ddabfa50ed22bd56662087ae49bc667a73ad9", "a835678f1cc1a80060a4fc8b39cda06fcd0c4793"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/parent-document-signed-expiry-20261107@a835678f1cc1a80060a4fc8b39cda06fcd0c4793", "origin/integration/development@71f691ec28bcbfbeae4b2552929fba84648689b5"],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "ONE_EXISTING_SYNTHETIC_PARENT_SIGNED_LINK_VALID_THEN_EXPIRED_ON_CANONICAL_DEVELOPMENT",
+        "evidence": [
+          "Clean canonical Development 7c6fd2c206007300a3328344bd9e580ab6abdfeb, Next 16.4.3 default Turbopack, pinned existing LOCAL_SUPABASE Storage API v1.72.1 and storage-js 2.107.0; existing Parent A user-session row and private bucket confirmed. No new object or fixture.",
+          "One Product private-file issuance returned 302 with private,no-store and no-referrer; signed claim lifetime 60 seconds. One no-cookie pre-expiry fetch returned 200 and exact 48-byte synthetic SHA256 ecbccbeee30eb9bf181a9fb7e0731e284faaa5974fc904078835450ce9a86183. The same URL no-cookie/no-cache fetch 5.040 seconds after claim expiry returned 400 InvalidJWT, 110-byte error body, not the document hash. Two Storage fetches total, one expected audit row.",
+          "Private redacted external-volume receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/parent-document-signed-expiry-7c6fd2/evidence/receipt.json SHA256 68cbe284cb245de0e11e7c036d773a24870b0bee4454d6d5d7384b91a13d5721; secret-free exact QA script SHA256 09834ea44058b8a6ca8c9ca0f1068e1e9ab436596222d7cb42dc1db57f293454. No signed URL, token, cookie, document body, path or identifying claim was stored.",
+          "PR #327 exact head a835678f1cc1a80060a4fc8b39cda06fcd0c4793 passed all six Digital Observer CI gates, Canonical quality, Management tenant context and Snyk. Ancestry-preserving Development merge 71f691ec28bcbfbeae4b2552929fba84648689b5 has parents 7c6fd2c206007300a3328344bd9e580ab6abdfeb and a835678f1cc1a80060a4fc8b39cda06fcd0c4793. Clean canonical worktree matched remote; post-merge ledger guard PASS 214 units and isolated read-only Development migration drift PASS 259/259; diff only report and ledgers."
+        ],
+        "classification": "MANAGEMENT_SYNTHETIC_AUTHENTICATED_PRODUCT_STORAGE_EXPIRY_EVIDENCE_ONLY",
+        "limits": "One local existing synthetic document and one link only. Signed URL is bearer while valid; this does not prove individual revocation, Production CDN behavior, full RLS/download certification, forced Documents read-error, intermittent Turbopack root cause, all-role Product/security, owner visual acceptance or invoice-backed cost ceiling."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "7c6fd2c206007300a3328344bd9e580ab6abdfeb", "commit": "71f691ec28bcbfbeae4b2552929fba84648689b5", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/327"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_PARENT_DOCUMENTS_ISSUANCE_BASELINE", "units": ["codex/parent-documents-isolation-20261107"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ONE_SIGNED_URL_VALID_AND_EXPIRED_POSTMERGE_LEDGER_214_AND_DRIFT_259_PASS_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FORCED_READ_ERROR_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Qualify forced authenticated Documents read-error UI, then the separate intermittent default-Turbopack root cause and broader full Product/security, external visual and invoice-backed cost gates. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/inspector-workspace-read-reliability-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-INSPECTOR-WORKSPACE-READ-RELIABILITY-20261107",
+      "title": "Distinguish Inspector workspace assignment and operational read failures from verified empty data",
+      "owner": "Product Inspector workspace executor; one Development integration owner",
+      "sourceBranch": "codex/inspector-workspace-read-reliability-20261107",
+      "sourceCommits": ["691c0d148a1cd7b1776f3ddd5bbfd7daf50641ac", "c0d789f09f78b9626a815c9fae026f06eda12d9d"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/inspector-workspace-read-reliability-20261107@c0d789f09f78b9626a815c9fae026f06eda12d9d", "origin/integration/development@faabf4c44a37da3b84c2e4a6295e2ed2555b408d"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT_NO_PREVIEW_DEPLOYMENT_OBSERVED"},
+      "validation": {
+        "status": "EXACT_PR_HEAD_CI_8_OF_8_PLUS_SNYK_POSTMERGE_SOURCE_33_OF_33_AND_SCOPED_BROWSER_OBSERVED",
+        "evidence": [
+          "Actual Inspector Server Component fixture passed 10/10 valid-empty, populated, assignment-failure, partial-secondary-failure and denied-before-read cases; existing operational-role regression passed 23/23.",
+          "Typecheck passed; lint baseline passed with zero regressions; feature Next 16.4.3 build passed after an initial sandbox internal-port denial.",
+          "Guarded feature-only LOCAL_SUPABASE browser read check at 691c0d148a1cd7b1776f3ddd5bbfd7daf50641ac passed assigned Inspector, approved-unassigned Inspector and denied Staff; zero page errors; port 3100 stopped.",
+          "No schema, RLS, API, provider, Digital Observer core, package/lock, main or Production change. See GAN_BATUACH_PRODUCT_INSPECTOR_WORKSPACE_READ_RELIABILITY_20261107.md.",
+          "PR #329 exact head c0d789f09f78b9626a815c9fae026f06eda12d9d passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge faabf4c44a37da3b84c2e4a6295e2ed2555b408d has parents 4264cf865518cd93062d0b0bed206967c05c8cab and c0d789f09f78b9626a815c9fae026f06eda12d9d. Vercel SHA lookup returned zero deployments for exact PR head; live trigger settings were not independently re-read.",
+          "Clean canonical Development worktree matched remote merge; post-merge focused source and operational-role tests passed 33/33, ledger schema 215 units, and isolated read-only migration drift 259/259. Canonical default-Turbopack Development server rendered assigned Inspector and approved-unassigned Inspector at HTTP 200 and redirected Staff; zero page errors were observed, server stopped and port 3000 free. The browser assertions printed before its cleanup process was interrupted after a hang; this is an observed route smoke, not a clean runner-exit claim."
+        ],
+        "classification": "MANAGEMENT_INSPECTOR_SCOPED_SOURCE_AND_SYNTHETIC_DEVELOPMENT_BROWSER",
+        "limits": "Forced live read failure, clean browser-runner teardown, broader Inspector role/security, cumulative Product, owner visual, historical Documents Turbopack cause and invoice-backed cost qualification remain open."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "4264cf865518cd93062d0b0bed206967c05c8cab", "commit": "faabf4c44a37da3b84c2e4a6295e2ed2555b408d", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/329"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_INSPECTOR_ASSIGNED_UNASSIGNED_DENIED_ROUTE_OBSERVED_SOURCE_33_AND_LEDGER_215_AND_DRIFT_259_PASS_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Hand off to the canonical Product coordinator. Forced live read-error, browser-runner teardown, broader Product/security, owner visual and invoice-backed cost gates stay separately open. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/inspector-draft-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-INSPECTOR-DRAFT-JOURNEY-20261107",
+      "title": "Qualify assigned Inspector draft save, resume, idempotency and denied read/write through actual Development Product",
+      "owner": "Product Inspector draft journey executor; one Development integration owner",
+      "sourceBranch": "codex/inspector-draft-journey-20261107",
+      "sourceCommits": ["6973d193ab9db46a455341cea719ad6dc3b97051", "0d8404895fb8bb94578ae9f0c64a704cefa9585d", "e266af9848cab329f536ba5676c40d4e9f81e7e1"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/inspector-draft-journey-20261107@e266af9848cab329f536ba5676c40d4e9f81e7e1", "origin/integration/development@5017f2cc147d8aea56e3c6eba3c6c337685e3d95"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT_NO_PREVIEW_DEPLOYMENT_OBSERVED"},
+      "validation": {
+        "status": "EXACT_PR_HEAD_CI_8_OF_8_PLUS_SNYK_POSTMERGE_SCOPED_BROWSER_8_OF_8_AFTER_COLD_START_RETRY",
+        "evidence": [
+          "Guarded feature-only LOCAL_SUPABASE at 0d8404895fb8bb94578ae9f0c64a704cefa9585d: actual assigned Inspector due-list UI clicked an existing active-form inspection, saved one marked answer, reloaded and resumed it, then repeated save. Authorized draft API and pinned isolated database agreed on one draft row and one answer; no duplicate.",
+          "Approved-unassigned Inspector and Staff each received 403 for GET and PUT of the known draft ID. Responses contained no draft answer, marker, question ID, inspection ID, Garden ID or Garden name, and denied attempts left the row unchanged.",
+          "Inspection remained in_progress with no completion or final score. Existing report snapshot and submitted payload fingerprints did not change; regulatory audit count stayed zero. One synthetic draft was created through the Product UI and preserved; no persona reset or service-role write.",
+          "Protected redacted receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/inspector-draft-journey-20261107/evidence/receipt-1794038076844.json mode 0600 SHA256 7620529c2b64b0931510ebc7c8c1f95884ad0f13d0637b6918d04e1787a19e18; eight checks passed, process exit zero, browser/context cleanup complete. Initial no-draft read and first partial test had no PASS receipt.",
+          "Focused source regressions: UX-14 9/9, UX-09 8/8, Inspector approval 4/4, Inspector workspace read state 10/10. Harness syntax and diff checks passed. No Product source/schema/RLS/API/provider/DO core/dependency changes. See GAN_BATUACH_PRODUCT_INSPECTOR_DRAFT_JOURNEY_20261107.md.",
+          "PR #331 exact head e266af9848cab329f536ba5676c40d4e9f81e7e1 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving Development merge 5017f2cc147d8aea56e3c6eba3c6c337685e3d95 has parents 0ef48d30c83797124881f7ea8b3b25dd621a2112 and e266af9848cab329f536ba5676c40d4e9f81e7e1. Vercel SHA-filtered reads found zero deployments for source and merge SHAs; live trigger settings were not re-read.",
+          "Clean canonical Development matched remote merge. Post-merge focused source regression passed 31/31, ledger schema 216 units and isolated migration drift 259/259. Canonical default-Turbopack LOCAL_SUPABASE browser/API/database draft journey passed 8/8 with exit zero and clean browser cleanup after one cold-start failure. Protected post-merge receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/inspector-draft-journey-20261107/evidence/receipt-1794039585944.json mode 0600 SHA256 32ade7cfa8d210893ef32b62e1f9418a8ce38e0b09ffd8b98d488434dc0788f6; Product server stopped and port 3000 free.",
+          "Initial canonical default-Turbopack browser attempt failed before clicking the due-list link: HTTP 200 HTML contained seven inspection links, but browser hydration reported repeated Suspense-boundary errors and 87 due-page requests in five seconds, with zero rendered links. A later bounded read-only check of dashboard/list/detail had no errors, and the full unchanged post-merge journey then passed. The cold-start runtime symptom has no persisted failure receipt and its root cause is not claimed resolved."
+        ],
+        "classification": "MANAGEMENT_INSPECTOR_SYNTHETIC_DEVELOPMENT_UI_API_DATABASE_ISOLATION",
+        "limits": "One synthetic Inspection and three QA identities only. Intermittent canonical Turbopack cold-start due-page failure remains unrooted. Full Product/security, live provider/hardware, external owner visual, invoice-backed cost and Production gates remain open."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "0ef48d30c83797124881f7ea8b3b25dd621a2112", "commit": "5017f2cc147d8aea56e3c6eba3c6c337685e3d95", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/331"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_SCOPED_UI_API_DATABASE_8_OF_8_AFTER_RETRY_SOURCE_31_LEDGER_216_DRIFT_259_PASS_NOT_FULL_PRODUCT_COLD_START_UNROOTED",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Hand off to canonical Product coordinator. Investigate intermittent default-Turbopack Inspector due-page cold-start hydration/reload loop as a separate bounded unit; continue broader Product/security, external owner visual and invoice-backed cost gates. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/development-retry-loop-diagnosis-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-DEVELOPMENT-RETRY-LOOP-DIAGNOSIS-20261107",
+      "title": "Bound one read-only Inspector due-page retry diagnostic and persist first-error evidence",
+      "owner": "Product Development retry-loop diagnosis executor; one Development integration owner",
+      "sourceBranch": "codex/development-retry-loop-diagnosis-20261107",
+      "sourceCommits": [
+        "cba59829aa47d15986fe278456e6a5cd90de81eb",
+        "3148f079e48282db7bd56b015bba8f27ab13a8c1"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/development-retry-loop-diagnosis-20261107@3148f079e48282db7bd56b015bba8f27ab13a8c1",
+          "origin/integration/development@4e31511b9e9d9a14063a20a9353764016c63ce8a"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT_NO_PRODUCT_FIX"
+      },
+      "validation": {
+        "status": "EXACT_PR_HEAD_SIX_CI_PLUS_CANONICAL_QUALITY_MANAGEMENT_CONTEXT_SNYK_GREEN_QA_GUARD_4_OF_4_PASS_RUNTIME_REPRODUCED_CAUSE_UNRESOLVED",
+        "evidence": [
+          "Guard syntax and four deterministic tests passed; exact target document/RSC request seven is aborted before network and failure receipt is bounded.",
+          "One default-Turbopack canonical read-only Inspector due-page run at 2b920caf observed four full document requests, three HTTP 200 responses and first PAGE_ERROR in 4940 ms; exit 1, cleanup complete, no Product or QA data mutation. Protected receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/inspector-retry-loop-diagnosis-20261107/evidence/receipt-1794041526517.json SHA256 627017e492bfe740cdb629da63b3cb13ec19417ba36977fba5a1900f79efcb6c, mode 0600, 1892 bytes."
+        ],
+        "classification": "MANAGEMENT_DEVELOPMENT_QA_GUARD_AND_UNRESOLVED_RUNTIME_DIAGNOSIS",
+        "limits": "First stack retained only as fingerprint; root cause not identified. Product route is not verified or fixed. Full Product/security, external owner visual, provider, invoice-backed cost and Production gates remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "2b920cafb578f1720ed660baf26227d998e20e69",
+        "commit": "4e31511b9e9d9a14063a20a9353764016c63ce8a",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/333"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_DEVELOPMENT_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POSTMERGE_QA_GUARD_4_OF_4_LEDGER_217_PASS_PRODUCT_RUNTIME_REPRODUCED_CAUSE_UNRESOLVED_EXIT_1_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_UNRESOLVED_DEVELOPMENT_RUNTIME_AND_FULL_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Investigate the first actionable client error under a separately approved bounded private diagnostic, retaining pre-request cap and no Product change until cause is proven; continue Product/security/owner visual/cost gates. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/retry-first-stack-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-RETRY-FIRST-STACK-20261107",
+      "title": "Capture sanitized first Inspector due-page client stack and passive request initiator under the existing bounded guard",
+      "owner": "Product first-stack diagnosis executor; one Development integration owner",
+      "sourceBranch": "codex/retry-first-stack-20261107",
+      "sourceCommits": ["89e3ae67f1b4b8586f1c09d18c3301e5a1156553", "fbb765c4eab991426440d67db4a2fca63620b715"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/retry-first-stack-20261107@fbb765c4eab991426440d67db4a2fca63620b715", "origin/integration/development@4ca595e6b48472152ddef79623db5718a0c2e365"],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT_NO_PRODUCT_FIX"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_SIX_CI_PLUS_CANONICAL_QUALITY_MANAGEMENT_CONTEXT_SNYK_GREEN_POSTMERGE_QA_GUARD_6_OF_6_RUNTIME_NOT_REPRODUCED_CAUSE_UNRESOLVED",
+        "evidence": [
+          "Guard/runner syntax and six focused tests passed; scoped diff check passed. The first-error sanitizer retains bounded allowlisted categories and normalized frames but no raw message, query, header or token.",
+          "One default-Turbopack canonical read-only Inspector due-page run at 1782c432 used a synthetic assigned Inspector and returned one HTTP 200 target document with a visible inspection link. No page error, console hint, retry or stack appeared; process exit 0 and browser/context cleanup COMPLETE. Protected receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/inspector-first-stack-20261107/evidence/receipt-1794043785554.json SHA256 4a959bdc0d4809b120c39072b800b1d7b4febc584a71e878a78ffc7e9dc2e3a5. The server stopped and port 3000 was free.",
+          "PR #335 exact head fbb765c4eab991426440d67db4a2fca63620b715 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving Development merge 4ca595e6b48472152ddef79623db5718a0c2e365 has parents 1782c432d5633fe5d1a0446df04eea84abff958e and fbb765c4eab991426440d67db4a2fca63620b715. Local and remote canonical Development agreed and were clean; post-merge guard 6/6, ledger schema 218 units and isolated migration drift 259/259 passed."
+        ],
+        "classification": "MANAGEMENT_DEVELOPMENT_QA_GUARD_AND_NONREPRODUCED_INTERMITTENT_RUNTIME",
+        "limits": "The prior Inspector due-page failure remains intermittent and unrooted. One successful render is not full Product/security proof, and no Product cause or fix is claimed. No second browser attempt was made."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "1782c432d5633fe5d1a0446df04eea84abff958e",
+        "commit": "4ca595e6b48472152ddef79623db5718a0c2e365",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/335"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_SINGLE_READ_ONLY_INSPECTOR_DUE_RENDERED_NOT_REPRODUCED_QA_GUARD_6_OF_6_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_INTERMITTENT_RUNTIME_CAUSE_AND_FULL_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue an independently scoped cross-route default-Turbopack Suspense/reload root-cause investigation if the symptom recurs naturally; full Product/security/visual/cost gates remain. No repeat of this one-shot Inspector attempt. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/staff-time-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-STAFF-TIME-JOURNEY-20261107",
+      "title": "Guarded synthetic Staff time UI/API/database journey and same-Garden Manager read",
+      "owner": "Product Staff time journey executor; one Development integration owner",
+      "sourceBranch": "codex/staff-time-journey-20261107",
+      "sourceCommits": ["ea14cd54a33a3d1d9ce26f4995dbd12c56bb5b62", "4b1654c84e4b533c73fe8a4d8e216207807a9267"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-time-journey-20261107@4b1654c84e4b533c73fe8a4d8e216207807a9267", "origin/integration/development@ac713106d1cec367749323c97eee024287fb8aa2"], "status": "QA_SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_SCOPED_JOURNEY_VERIFIED"},
+      "validation": {
+        "status": "INITIAL_TURBOPACK_FAILURE_PRESERVED_THEN_WEBPACK_SCOPED_JOURNEY_22_OF_22_AND_GET_ONLY_CAPTURE_19_OF_19_PASS",
+        "evidence": [
+          "Read-only preflight found Staff A had a prior open shift and left it untouched. Staff B was active/approved with active Garden B employment, no open or used current-day shift, and an existing Garden center/radius/timezone.",
+          "At canonical Development 4ca595e6, one default-Turbopack browser attempt to Staff attendance made six full-document requests; QA aborted request seven before network. First page error was sanitized SUSPENSE_SERVER_FALLBACK with no frames. Five preflight checks passed, zero GPS actions, zero captures and zero shifts created/closed. Exit 1, browser cleanup COMPLETE, server stopped. Protected receipt /Volumes/DIGITAL_OBSERVER/Development/gan-batuach/staff-time-journey-20261107/evidence/receipt-1794045162633.json mode 0600 SHA256 03a0b8d0964eeeec3c9396b6e365c5bb86d0220840c0d85abdd2e12a91db912c.",
+          "Separate authenticated read-only post-failure query found Staff B still had zero shifts, zero open shifts and zero location samples since the attempt. No prior Staff A shift was touched. See GAN_BATUACH_PRODUCT_STAFF_TIME_JOURNEY_20261107.md.",
+          "At exact merged Development ac713106 with LOCAL_SUPABASE and explicit Webpack default, one bounded Staff B UI/API/database journey passed 22/22 checks: manual check-in, duplicate reuse, same-shift checkout, reload, same-Garden Manager read and foreign-role/known-ID denials. Protected 0600 receipt SHA256 38bf1860fcd792d75f4bf79ed07e7a5a3922a614508ca110100d97a6dabc2a32. Simulated browser geolocation only; not physical GPS proof.",
+          "All four images from the mutation journey captured the transient splash and are NOT_VISUAL_EVIDENCE. A separate GET-only capture passed 19/19 checks with 34 browser GETs, zero browser mutation attempts, no GPS/external request, and unchanged 1 QA shift / 3 samples / 5 audit events before and after. Staff and Manager actual screen images were visually inspected after splash opacity 0; protected receipt SHA256 2680be44cc88b17557d9639d5d0b5dfbfb2754199c85fd8cc3bb87ea41979145."
+        ],
+        "classification": "MANAGEMENT_STAFF_TIME_SYNTHETIC_DEVELOPMENT_SCOPED_VERIFIED_WITH_SEPARATE_GET_ONLY_VISUAL_CAPTURE",
+        "limits": "Prior Turbopack cross-route Suspense/reload root cause remains unproven. Webpack is a Development mitigation. Simulated geolocation is not physical GPS proof; the two capture-only images establish current Staff/Manager rendering, not owner visual-reference acceptance or full Product/security qualification."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "4ca595e6b48472152ddef79623db5718a0c2e365", "commit": "5fa453954a52c3fe6a93a3940c75f234d1a1824c", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/336"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": []},
+      "migrations": [], "migrationOrder": [],
+      "localVerification": "SCOPED_STAFF_TIME_WEBPACK_JOURNEY_22_OF_22_GET_ONLY_CAPTURE_19_OF_19_NOT_CUMULATIVE_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Preserve the successful private Staff journey and GET-only capture receipts, complete independent full Product/security and external owner visual review, and investigate Turbopack's intermittent root cause separately if needed. Do not repeat the completed Staff mutation journey. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/development-runtime-stability-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-DEVELOPMENT-RUNTIME-STABILITY-20261107",
+      "title": "Explicit Webpack default for canonical Development launcher; Turbopack diagnostic opt-in",
+      "owner": "Product Development runtime stability executor; one Development integration owner",
+      "sourceBranch": "codex/development-runtime-stability-20261107",
+      "sourceCommits": ["4c038830dbe34f7f9306103de6d8e92b00a87fdb", "1ec92306720af04151229bdb7d4b84988d2e9857"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/development-runtime-stability-20261107@1ec92306720af04151229bdb7d4b84988d2e9857", "origin/integration/development@ac713106d1cec367749323c97eee024287fb8aa2"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_SIX_CI_QUALITY_MANAGEMENT_SNYK_GREEN_POSTMERGE_19_WORKFLOW_259_DRIFT_STAFF_22_CAPTURE_19_PASS",
+        "evidence": ["From verified remote Development 5fa453954a52c3fe6a93a3940c75f234d1a1824c, the installed Next 16.4.3 CLI and local guide support --webpack; default-Turbopack Staff and Inspector failures are recorded separately without a proven root cause.", "Focused integration workflow parser/environment/policy suite passed 10/10 after materializing the tracked AGENTS.md in this sparse feature worktree; the initial 9/10 run failed only because that tracked file was omitted by sparse checkout.", "PR #337 exact head 1ec92306720af04151229bdb7d4b84988d2e9857 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry merge ac713106d1cec367749323c97eee024287fb8aa2 has parents 5fa453954a52c3fe6a93a3940c75f234d1a1824c and 1ec92306720af04151229bdb7d4b84988d2e9857. Postmerge workflow 19/19, ledger schema 220 and isolated drift 259/259 passed.", "Canonical launcher printed WEBPACK_STABLE_DEVELOPMENT, LOCAL_SUPABASE, loopback port 3000 and exact merge SHA. One bounded Staff journey passed 22/22, then a separate GET-only capture passed 19/19 without business-table count changes. Protected receipt SHA256 values: 38bf1860fcd792d75f4bf79ed07e7a5a3922a614508ca110100d97a6dabc2a32 and 2680be44cc88b17557d9639d5d0b5dfbfb2754199c85fd8cc3bb87ea41979145."],
+        "classification": "CANONICAL_DEVELOPMENT_LAUNCHER_LOCAL_MITIGATION_ONLY",
+        "limits": "This is a local Development default and one scoped Staff journey, not a Turbopack root-cause fix, general runtime guarantee, physical GPS proof, full Product/security result, owner visual approval or cost release gate. No Product/Auth/schema/RLS/provider/DO core change."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "5fa453954a52c3fe6a93a3940c75f234d1a1824c", "commit": "ac713106d1cec367749323c97eee024287fb8aa2", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/337"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": ["codex/staff-time-journey-20261107"]},
+      "migrations": [], "migrationOrder": [],
+      "localVerification": "CANONICAL_WEBPACK_LAUNCH_POSTMERGE_19_WORKFLOW_259_DRIFT_22_STAFF_JOURNEY_19_GET_ONLY_CAPTURE_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "The scoped Webpack-default mitigation and Staff time evidence are preserved; retain the prior Turbo cause as unresolved. Next owner-coordinated Product/UX and cumulative security/cost gates remain. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/staff-time-summary-correctness-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-STAFF-TIME-SUMMARY-CORRECTNESS-20261107",
+      "title": "Correct Staff attendance minutes, Israel periods and unavailable read states",
+      "owner": "Product Staff-time summary executor; one Development integration owner",
+      "sourceBranch": "codex/staff-time-summary-correctness-20261107",
+      "sourceCommits": ["dc723c5371b8deb03f9b4e4d75184db6ebc80cc7", "9bc9b377521e6a953bca8f496eb1dabfbbfaa504"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-time-summary-correctness-20261107@9bc9b377521e6a953bca8f496eb1dabfbbfaa504", "origin/integration/development@e73897fc579fe037d18f1a71d2ca80dc40aa2b62"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_SIX_CI_QUALITY_MANAGEMENT_SNYK_GREEN_FEATURE_CAPTURE_19_MERGED_CAPTURE_19_POSTMERGE_259_DRIFT_PASS",
+        "evidence": ["On source Development 3495944d77e04712e8dc225aefda1473a292ed66, focused fixture tests passed 5/5 under UTC and America/Los_Angeles host time zones, UX-07 focused regression passed 7/7, changed-path ESLint and full isolated feature-worktree typecheck passed. The first offline pinned install lacked one cached package; normal pinned npm ci then succeeded without lock or dependency changes.", "PR #339 exact head 9bc9b377521e6a953bca8f496eb1dabfbbfaa504 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry merge e73897fc579fe037d18f1a71d2ca80dc40aa2b62 has parents 3495944d77e04712e8dc225aefda1473a292ed66 and 9bc9b377521e6a953bca8f496eb1dabfbbfaa504.", "Guarded feature QA GET-only Staff Mobile/Desktop capture passed 19/19 at exact feature SHA with receipt SHA256 4b1b9ca0d25710ad779ff89b258f8bc32f17d27344691fbd4b5177e63044804d. On clean exact merged canonical Development, postmerge fixture 5/5, UX-07 7/7, integration workflow 19/19, ledger schema 221 and pinned isolated drift 259/259 passed. Fresh actual Staff captures passed 19/19 with 34 browser GETs, zero attempted writes/GPS/external calls, unchanged one shift/three samples/five audit events, receipt SHA256 edab267ba25204beb45f8e368e7f28aa16788734d6045cb3d5d9aa39c2c35539. Images were visually inspected after splash opacity zero. See GAN_BATUACH_PRODUCT_STAFF_TIME_SUMMARY_CORRECTNESS_20261107.md."],
+        "classification": "STAFF_ATTENDANCE_PRESENTATION_CORRECTION_SOURCE_ONLY",
+        "limits": "The existing QA shift had zero authoritative completed minutes; 90-minute presentation is fixture-tested, not live-mutated. This is scoped Staff QA, not full Product/security, physical GPS, external owner visual or invoice-backed cost release proof. No change to GPS server actions, schema/RLS, provider, dependencies or DO core."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "3495944d77e04712e8dc225aefda1473a292ed66", "commit": "e73897fc579fe037d18f1a71d2ca80dc40aa2b62", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/339"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": ["codex/development-runtime-stability-20261107"]},
+      "migrations": [], "migrationOrder": [],
+      "localVerification": "FEATURE_GET_ONLY_CAPTURE_19_POSTMERGE_CANONICAL_GET_ONLY_CAPTURE_19_WORKFLOW_19_LEDGER_221_DRIFT_259_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Keep the scoped correction and protected evidence preserved. Continue owner-coordinated cumulative Product/security, physical GPS, external visual and invoice-backed cost gates; Turbopack root cause remains separate. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/staff-shift-scheduling-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-STAFF-SHIFT-SCHEDULING-JOURNEY-20261107",
+      "title": "Plan a Staff shift in Manager UI and show it in the scoped Staff schedule",
+      "owner": "Product Staff-shift scheduling executor; one Development integration owner",
+      "sourceBranch": "codex/staff-shift-scheduling-journey-20261107",
+      "sourceCommits": ["ade5f0891e6d746f00b8bd26dd6a51c150efb3ba", "d4bf532560ab024df134798e75df966324f515c5", "37b93f5653d6b24740374215ac03aa833be088a9", "6f704a05aebfb1acafde4b89796b028592b50e18", "81fc5e389078ef0953a690645918d3e5b7563877"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-shift-scheduling-journey-20261107@81fc5e389078ef0953a690645918d3e5b7563877", "origin/integration/development@00ed35a8d0bd9ab6b57e17facbc51b82aee7fe52"], "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_SIX_CI_QUALITY_MANAGEMENT_SNYK_GREEN_SCOPED_POSTMERGE_GET_ONLY_PASS",
+        "evidence": ["Source Development 7697063fc88f06d8be8297d1f1910305657ba3ee; pinned isolated npm ci, full typecheck, changed-path ESLint, planning fixtures 3/3, UX-07 regression 7/7 and diff check passed.", "One future QA shift was created through Manager B UI for Staff B on 2026-11-08; source write receipt SHA256 4a22c49b23f21bb064d6dea5be7bcb547fa6bfca6b7362bbb34b3fcce646a401 has overall FAILED due a subsequent text assertion, while save/reload/one-row checks passed. Three earlier diagnostics made zero POSTs. The later scoped follow-up at intermediate source commit 37b93f5653d6b24740374215ac03aa833be088a9 passed 20/20; receipt SHA256 02bfac6be341c4b011d2a56c043d79dbc7abd22c0df4b149713ad7fe10cbd96d. Duplicate returned 409; Staff, Parent and foreign Manager POST were denied; one row remained with no actual attendance or approval.", "Final GET-only source capture and role readback passed 19/19 with four Desktop/Mobile images and 70 browser GETs; no browser mutations or blocked requests; receipt SHA256 5ccf64d606d8c3379f7ed8ec05d644d638ab03edb77cccefdceee178d7c54f0e. Foreign Manager GET excluded the row and Parent GET did not expose it.", "PR #341 exact head 81fc5e389078ef0953a690645918d3e5b7563877 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk. The first domain run timed out in unrelated event-outbox cadence; its bounded failed-job rerun passed with no code/gate change. Ancestry merge 00ed35a8d0bd9ab6b57e17facbc51b82aee7fe52 has parents 7697063fc88f06d8be8297d1f1910305657ba3ee and 81fc5e389078ef0953a690645918d3e5b7563877.", "On exact merged canonical Development, planning fixtures 3/3, UX-07 7/7, integration workflow 19/19, ledger schema 222 and isolated migration drift 259/259 passed. Fresh GET-only Manager/Staff Desktop/Mobile capture and role readback passed 19/19, 70 browser GETs, no browser writes or blocked requests, with the same single planned QA row and protected receipt SHA256 43ff2c005b9c25c4e35f94104825cc1ce5a24cf1abf2175a79f5b70ca2a1e4f3. See GAN_BATUACH_PRODUCT_STAFF_SHIFT_SCHEDULING_JOURNEY_20261107.md for limits."],
+        "limitations": "One scoped synthetic Manager-to-Staff journey, not full Product/security, physical GPS, external owner visual or invoice-backed cost qualification. No schema/RLS/Auth/provider/DO core change."
+      },
+      "integration": {"status": "MERGED", "base": "integration/development", "baseCommit": "7697063fc88f06d8be8297d1f1910305657ba3ee", "commit": "00ed35a8d0bd9ab6b57e17facbc51b82aee7fe52", "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/341"], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_DEVELOPMENT_BASELINE", "units": ["codex/staff-time-summary-correctness-20261107"]},
+      "migrations": [], "migrationOrder": [],
+      "localVerification": "FEATURE_ONE_UI_WRITE_POSTFIX_20_MERGED_GET_ONLY_19_WORKFLOW_19_LEDGER_222_DRIFT_259_NOT_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PHYSICAL_GPS_AND_COST_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Retain the one planned QA shift and protected receipts. Continue owner-coordinated cumulative Product/security, external visual, physical GPS and invoice-backed cost gates; no main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/manager-staff-task-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-MANAGER-STAFF-TASK-JOURNEY-20261107",
+      "title": "Assign, work, submit and approve an ordinary Manager-to-Staff task",
+      "owner": "Product Manager-Staff task journey executor; one Development integration owner",
+      "sourceBranch": "codex/manager-staff-task-journey-20261107",
+      "sourceCommits": [
+        "4e649debc2a174e49dd08edc987875355b705cbf",
+        "f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1",
+        "1a385d3d9a7f38b5e1ab5b2515e74d415de635b1",
+        "c26dd833a6856dbb3fa595a675fe8284fc4ec186"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/manager-staff-task-journey-20261107@f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1",
+          "origin/codex/manager-staff-task-journey-20261107@c26dd833a6856dbb3fa595a675fe8284fc4ec186",
+          "origin/integration/development@2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc"
+        ],
+        "status": "SOURCE_REMOTE_PRESERVED_AND_ANCESTRY_MERGED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_SIX_CI_QUALITY_MANAGEMENT_SNYK_GREEN_POSTMERGE_GET_ONLY_17_PASS_LABEL_FOLLOWUP",
+        "evidence": [
+          "Source Development fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a. Active-employment assignee fixtures 2/2, existing task workflow checks 6/6, full isolated typecheck, changed-path ESLint, QA script syntax and diff check passed.",
+          "One local synthetic Manager B UI task e7df7bb9-5648-4cd2-8855-2129ac3f7bf5 was assigned to active Staff B, started, submitted and approved in four successful browser POSTs; final status done. Overall write-run receipt FAILED only at later completed-filter capture assertion, SHA256 a4ddfec163ac1758bb9627672e174e8952960f0f6510d3ffa6f0faab44538742. Earlier cold-start preflight receipt FAILED with zero writes, SHA256 c5db2b68a5abbb18c10cbde585655a1c927e7a0d8621c6c30ec446df8aaa33e5. No second task was created.",
+          "Exact feature head f6ab3fead7278b9e9869bedc463b6a1bfe88c0f1 guarded readback SCOPED_PASS 22/22, zero browser writes; Manager/Staff see same completed task, foreign Staff/Manager/Parent known-ID reads and transitions denied without data, guest denied, repeat approval idempotent. Four audit events and two in_app notifications; protected receipt SHA256 1909db729c0041f8286cd00b7305a5fae9cb8f650fe4f6c6694f3177f10e9fd3. See GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md.",
+          "PR #343 exact head c26dd833a6856dbb3fa595a675fe8284fc4ec186 passed six CI gates, Canonical quality, Management context and Snyk; merged to Development 2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc with parents fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a and c26dd833a6856dbb3fa595a675fe8284fc4ec186. Canonical postmerge 16/16 focused, workflow 19/19, ledger 223, migration 259; fresh GET-only Desktop/Mobile capture 17/17 with 113 GETs, zero browser writes/blocked requests, unchanged one task/four audit/two in_app notifications, receipt SHA256 06d56aabcd2dd9139dcd60c751514b006bb016b70f1410645803219d34952776. Screenshot review found the Staff assignee label defect, tracked separately."
+        ],
+        "classification": "MANAGER_STAFF_TASK_JOURNEY_SCOPED_PRODUCT_SOURCE",
+        "limitations": "Single local synthetic task and bounded role probes, not full Product/security, forced database read failure, external owner visual or invoice-backed cost proof. No schema/RLS/Auth/RPC/provider/dependency/DO core change."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "fc1ded55ac9dea04d6c6c50c2e211ff7a722f95a",
+        "commit": "2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc",
+        "pullRequests": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/343"
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_DEVELOPMENT_BASELINE",
+        "units": [
+          "codex/staff-shift-scheduling-journey-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FEATURE_ONE_UI_TASK_FOUR_TRANSITIONS_READBACK_22_MERGED_GET_ONLY_17_LABEL_FOLLOWUP",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Complete the separately tracked Staff assignee-label follow-up and cumulative Product/security/visual/cost gates. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/manager-staff-task-assignee-label-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-MANAGER-STAFF-TASK-ASSIGNEE-LABEL-20261107",
+      "title": "Show verified Staff assignee on own completed task card",
+      "owner": "Product Manager-Staff task journey executor; one Development integration owner",
+      "sourceBranch": "codex/manager-staff-task-assignee-label-20261107",
+      "sourceCommits": [
+        "397f540549ed9a49754becf345da47e5d931e7b2",
+        "72e9ad8662e57c5ae411480e4a3c965b8dff64bb"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/manager-staff-task-assignee-label-20261107@72e9ad8662e57c5ae411480e4a3c965b8dff64bb",
+          "origin/integration/development@360012f0bd191cb46f894484a354ebad32d44bae"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "SCOPED_EXACT_FEATURE_READBACK_23_PASS",
+        "evidence": [
+          "From merged Development 2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc, Staff page passes verified own profile as assignee; QA compares against actual authenticated name. Full isolated typecheck, focused 16/16, changed-path ESLint, syntax and diff checks passed.",
+          "First readback FAILED due hardcoded fixture name mismatch, zero browser writes/new task, receipt SHA256 f40b8c38c2b1ecae8466b71e7612dfabe856c9b1b73ffdf2cc17f03636df4405. Corrected exact feature readback 23/23 at 72e9ad8662e57c5ae411480e4a3c965b8dff64bb; Staff Mobile screenshot visibly names the assignee, same one done task/four audit/two in_app notifications and foreign role denials, receipt SHA256 6d6d88c202a7d39d33fb5e4e24a9cc0db6d785ceed3db7f9d4394638a003bf5c. See GAN_BATUACH_PRODUCT_MANAGER_STAFF_TASK_JOURNEY_20261107.md."
+        ],
+        "classification": "SCOPED_STAFF_TASK_PRESENTATION_FOLLOWUP",
+        "limitations": "One synthetic local task and feature preview, not full Product/security, owner visual or invoice-backed cost proof. No schema/RLS/Auth/RPC/provider/dependency/DO core change."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "2e204fdd8ccb2f183a2b52ebea4d1df2bee34fbc",
+        "commit": "360012f0bd191cb46f894484a354ebad32d44bae",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/344"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "REQUIRES_MERGED_MANAGER_STAFF_TASK_JOURNEY",
+        "units": [
+          "codex/manager-staff-task-journey-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FEATURE_READBACK_23_NO_NEW_TASK_MERGED_360012F0_SOURCE_ANCESTRY_VERIFIED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue cumulative Product/security/owner-visual and invoice-backed cost qualification. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/parent-manager-messaging-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-MANAGER-MESSAGING-JOURNEY-20261107",
+      "title": "Canonical Parent to Manager messaging journey and readback",
+      "owner": "Parent-Manager messaging journey executor; one Development integration owner",
+      "sourceBranch": "codex/parent-manager-messaging-journey-20261107",
+      "sourceCommits": [
+        "6e7ec90d1407dc29d723aa3318fe20c2e6a80006",
+        "8b6aa13a07c1b7673a34843956b1bf333c0cd3a2",
+        "8bcccd7277113b8eaaba75b0934cfa84fee9518e",
+        "28f6329df24d0da780db61f3ec492660be1a7f1b",
+        "9ebd77415f99c0d05dcf0e5a09b0ced256d4810d",
+        "6b45de2e330c041d1c6ade4dcf49485a6a58f6f6",
+        "6444f6dc7e093d14574e75078007840ac494eb06",
+        "9d933af0b6b48440be12f87d36ccce5a2586e8b9"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-manager-messaging-journey-20261107@f715e10fc2ef0747a8c5eaaccafa04b76f25e411",
+          "origin/integration/development@d9f8e61c539017af40ff04c00d071cf92e01edca"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "SCOPED_FEATURE_UI_READBACK_19_PASS",
+        "evidence": [
+          "From clean Development 360012f0bd191cb46f894484a354ebad32d44bae, one synthetic Parent B/Manager B canonical conversation and two ordered messages were observed on Desktop/Mobile. Exact Product source head 6444f6dc7e093d14574e75078007840ac494eb06 readback passed 19/19 with same-key retry, foreign-role and guest denials, two in-app notifications, two read markers and zero externally accepted deliveries. Private receipt SHA256 5e8668c4347b7fec1c772108f5e3022e2f19744ff824a85e3290b737db2f2b80. All six Digital Observer CI gates, Canonical quality, Management context and Snyk passed at PR #345 exact head f715e10fc2ef0747a8c5eaaccafa04b76f25e411. Ancestry merge d9f8e61c539017af40ff04c00d071cf92e01edca passed canonical Product readback 19/19 with four fresh screenshots, private receipt SHA256 f19ecf0799e01928cce64e75f2dc3a6dee0db528fc1aa66ec9e6a01b959a6d8c, focused 25/25, ledger 225 and isolated Development drift 259/259. See GAN_BATUACH_PRODUCT_PARENT_MANAGER_MESSAGING_JOURNEY_20261107.md."
+        ],
+        "classification": "SCOPED_PARENT_MANAGER_MESSAGING_AND_UI_CORRECTION",
+        "limitations": "Synthetic local Development journey only; not full Product/security, owner visual, live provider, Production or invoice-backed cost proof. No schema/RLS/Auth/provider/dependency/DO core change."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "360012f0bd191cb46f894484a354ebad32d44bae",
+        "commit": "d9f8e61c539017af40ff04c00d071cf92e01edca",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/345"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "REQUIRES_MERGED_CANONICAL_MESSAGING_AND_PARENT_SCOPE",
+        "units": ["codex/manager-staff-task-assignee-label-20261107"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "MERGED_CANONICAL_PRODUCT_READBACK_19_FOCUSED_25_LEDGER_225_DEVELOPMENT_DRIFT_259",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_AND_INVOICE_BACKED_COST_PENDING",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "Continue cumulative Product/security/owner visual and invoice-backed cost qualification; external delivery is unverified. No main, Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/candidate-application-review-journey-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-CANDIDATE-APPLICATION-REVIEW-JOURNEY-20261107",
+      "title": "Candidate application to Manager information-request journey",
+      "owner": "Candidate application journey executor; one Development integration owner",
+      "sourceBranch": "codex/candidate-application-review-journey-20261107",
+      "sourceCommits": [
+        "92920193767609be7ba836e27d6efadec4adfe62",
+        "24368ea43ade716a21b96ca127a8b33f69a90a19",
+        "65f10303d645d7fee26c5b1c1d602d8236416010",
+        "9f843e302359e3318464ecd66f06a429ec8499bb",
+        "b7d635b84524d39b9cac3b489fb219a8fe6b3f60"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/candidate-application-review-journey-20261107@b7d635b84524d39b9cac3b489fb219a8fe6b3f60"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "Historical first synthetic Candidate UI submission created application 704025c7-724e-4156-8f99-7a9ebd991bc8; same-key retry did not duplicate. Manager review initially returned 409 because of the separate app_role cast dependency. Private failed-run receipt SHA256 87a35d2b4c3ebcbfb982327f603733bf53f2cdd6b837864b308462da7d64496a; failed receipts remain failed.",
+          "After DB PRs #347/#348 and isolated Development application, feature source 9f843e302359e3318464ecd66f06a429ec8499bb resumed only that application. Actual UI Manager review/request_information and Candidate response passed 24/24 in 26 seconds; one application, four actor-correct audit events, three in-app notifications, zero employment and zero externally accepted deliveries. Foreign Manager/Staff/guest and Candidate operational access denied. Receipt SHA256 0196cd5029d723d362866ee26eaea4345ebfc2149b72ca61787e22dce0666ac6; settled read-only Desktop/Mobile capture receipt SHA256 a3b954875a8d4526f94a8099e08fe478cf80a7161a368ec84a5d3784d38907e2. Migration drift 260/260; focused Candidate 7/7 and hiring 8/8.",
+          "PR #349 exact head b7d635b84524d39b9cac3b489fb219a8fe6b3f60 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge 64d95a8007601b4ec7c9b1f6b4b6dc2d9a586948 was verified remotely. The canonical local Product at that SHA and LOCAL_SUPABASE passed 21/21 no-write readback checks with two 1440x1024 Desktop and four 390x844 Mobile viewport captures (top and response detail). One application remained resubmitted with four audit events, three notifications, zero employment and zero external accepted delivery; foreign Manager known-ID RLS read was denied; Product state was byte-stable before/after. Protected receipt SHA256 f788e7f9235e572034a5957860235dd3c0f1aecf2bb1c1c7af21c58cbb47b984; drift 260/260."
+        ],
+        "classification": "SCOPED_CANDIDATE_REVIEW_UI_AND_GUARDED_QA",
+        "limitations": "Scoped local Candidate/Manager journey and merged Product readback only. Full Product/security, owner visual, live providers, invoice-backed cost and Production are not claimed."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "38b720145cde459c4113b7720fc466d389980b41",
+        "commit": "64d95a8007601b4ec7c9b1f6b4b6dc2d9a586948",
+        "pullRequests": [349],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "DEVELOPMENT_MIGRATION_APPLIED_AND_VERIFIED",
+        "units": ["codex/db-candidate-review-actor-role-20261107"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_MERGED_PRODUCT_21_OF_21_NO_WRITE_DESKTOP_MOBILE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this merged-head evidence correction remotely and in Development; continue cumulative Product/security, external owner visual and invoice-backed cost qualification under the coordinator. No main/Production."
+    },
+    {
+      "id": "codex/db-candidate-review-actor-role-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DB-CANDIDATE-REVIEW-ACTOR-ROLE-20261107",
+      "title": "Function-only Candidate review audit role repair",
+      "owner": "DB dependency executor; one Development integration owner",
+      "sourceBranch": "codex/db-candidate-review-actor-role-20261107",
+      "sourceCommits": [
+        "87ace192c7c8ab133d207d0fa296fc3aad6711f3",
+        "6deddc6f1ae55c5ec7d54e404af6590226726a8a",
+        "d9a05a6f716245818121539568a574c11f99384f",
+        "fe4fc085bba90b4892c41cd828a3220c650beac3"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/db-candidate-review-actor-role-20261107@fe4fc085bba90b4892c41cd828a3220c650beac3"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_ISOLATED_DEVELOPMENT_APPLICATION_PASS",
+        "evidence": [
+          "Live function body exactly matched canonical source; actor_role and current_role() are app_role. One-cast body diff test 2/2, migration health 260, pre-change isolated Development drift 259/259. Authenticated Manager rollback-only review produced one manager audit row; persisted application remained submitted. Private receipts SHA256 da7bab2784b773afb058ef437b2f8a3f29911c5d2bbc54b813ee8c2385d06581 and 7292556db3da157bc24bb62a57300ddab16c8725c6696770cdeb7e3cf142db83.",
+          "PR #347 exact head fe4fc085bba90b4892c41cd828a3220c650beac3 passed all six Digital Observer CI gates, canonical quality, Management context and Snyk. Ancestry-preserving Development merge c7ba49e7403aa0467545020b2358837de51a6fad was verified remotely. The canonical isolated Development applicator applied only version 20261107165001; readback found 227 baseline and 33 post-baseline migrations, matching source digest/schema fingerprint, one-cast-only function body, unchanged owner/ACL/security/search_path/return type. Existing QA application remains submitted with zero review audit."
+        ],
+        "classification": "FUNCTION_ONLY_CANDIDATE_REVIEW_AUDIT_ENUM",
+        "limitations": "Candidate Product journey and post-application role-boundary runtime remain pending; no Production or full Product claim."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "f6269cba934aaa37a70c32d53692f3b8c7de1854",
+        "commit": "c7ba49e7403aa0467545020b2358837de51a6fad",
+        "pullRequests": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/347"],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_M18_FUNCTION_AND_259_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": []
+      },
+      "migrations": [
+        "supabase/migrations/20261107165001_management_candidate_review_actor_role.sql"
+      ],
+      "migrationOrder": [
+        "20261107165001"
+      ],
+      "localVerification": "DEVELOPMENT_MIGRATION_HISTORY_AND_FUNCTION_VERIFIED_CANDIDATE_JOURNEY_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Resume the same QA Candidate application on the preserved Candidate branch; verify Manager review/request_information, Candidate response and role/data isolation without approval/employment or duplicate application. No main/Production."
+    },
+    {
+      "id": "codex/parent-enrollment-information-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-ENROLLMENT-INFORMATION-JOURNEY-20261107",
+      "title": "Parent to Manager enrollment information-request journey",
+      "owner": "Parent enrollment journey executor; one Development integration owner",
+      "sourceBranch": "codex/parent-enrollment-information-20261107",
+      "sourceCommits": [
+        "9b2f077582794322a53a7398f137599cba7e38a5"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-enrollment-information-20261107@9b2f077582794322a53a7398f137599cba7e38a5"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "Existing synthetic Parent A Child 4901 had one submitted Garden A request. The owner-authorized fallback resumed that request, so this run does not prove a fresh Parent UI submission. Actual Manager UI reviewed and requested information, then Parent UI responded: one request reached resubmitted; same-key API retry returned the same ID. Guarded feature run 19/19; private receipt SHA256 9d2f93091e2607a37ab23343e395b0fa90faa98f4dbc26df69c3b52acab79827.",
+          "Exact final feature SHA 9b2f077582794322a53a7398f137599cba7e38a5 passed no-write readback and four settled Desktop/Mobile captures; private receipt SHA256 c753ea1bf9274bc2f9e20527cf97d7579386ad43d52ab4ed6c94eb3b7d511747. Foreign Parent, Manager, Staff and guest known-ID attempts were denied; zero reservation, active enrollment or external accepted delivery.",
+          "PR #351 exact head passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge 4176554589cf5b06118bc1a852d9d2d6d39a5063 verified remotely. Clean canonical Product at that exact SHA with LOCAL_SUPABASE passed 7/7 no-write role/data checks and four fresh 1440x1024/390x844 Parent/Manager captures; DB request state unchanged. Private merged-head receipt SHA256 d19a6908658b60e6231a55e602a28c3cb53e762ddcdbb3de632e46e712318f15. Isolated migration drift 260/260."
+        ],
+        "classification": "SCOPED_PARENT_ENROLLMENT_INFORMATION_UI_AND_GUARDED_QA",
+        "limitations": "Scoped synthetic local journey only. Existing-request fallback did not create a new Parent UI request; optional Manager service enrichment was unavailable in safe Feature QA. Full Product/security, owner visual, live providers, invoice-backed cost and Production are not claimed."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "cefccf88c19053066effaba348674a1296496eeb",
+        "commit": "4176554589cf5b06118bc1a852d9d2d6d39a5063",
+        "pullRequests": [
+          351
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_260_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_MERGED_PRODUCT_7_OF_7_NO_WRITE_PARENT_MANAGER_DESKTOP_MOBILE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve this exact merged-head evidence correction remotely in Development; coordinator continues cumulative Product/security, owner visual and invoice-backed cost qualification. No main/Production."
+    },
+    {
+      "id": "codex/parent-new-enrollment-submission-20261107",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-NEW-ENROLLMENT-SUBMISSION-20261107",
+      "title": "One fresh Parent enrollment request through isolated Development Product",
+      "owner": "Parent enrollment journey executor; one Development integration owner",
+      "sourceBranch": "codex/parent-new-enrollment-submission-20261107",
+      "sourceCommits": [
+        "9e10c92c6ff8f5a5f7f5e283c29bafc153ee7a47",
+        "0801b63cc8771d362d7d76fbcc0b356e02f5454e",
+        "de43d2a40c0e58542763da353d3a4c0b9f247cf7",
+        "97799589c9039886c4d53551eb6adfa6b208a267",
+        "22b2b9d9f9ae89ac300d974c3d554b3165038ab6"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-new-enrollment-submission-20261107@22b2b9d9f9ae89ac300d974c3d554b3165038ab6"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_NO_WRITE_READBACK_PASS",
+        "evidence": [
+          "One guarded synthetic Child file and one canonical-trigger guardian link were created only in isolated Development; protected apply receipt SHA256 12c242b2f41396a584116cdcfb838dfa7a08d5c6fd7f93679d8ad5a3d4ad1098. No Auth/profile/role reset, schema, provider or existing QA request changed.",
+          "One Parent UI POST created request 7811740b-d8e7-4f0e-b056-122cf2f8a15b; same-intent retry returned the same ID, correct Parent and Manager APIs agreed, foreign Parent/Manager/Staff/guest denied or scoped out. The 45-second run timed out on Mobile after 13 completed checks; original receipt remains BLOCKED, SHA256 c8e95f12aa3700cc7bad59d6d87b08d6f8796225d42e4383ad087fce6037b32b. Separate clean feature no-write Desktop/Mobile readback passed 11/11; SHA256 aa44e2a2be994664c418f1d93121d31afc8c0e9804a7cd959f15a95b5edd2aa8.",
+          "PR #353 at exact head 22b2b9d9f9ae89ac300d974c3d554b3165038ab6 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge c0330d0f61390f1aec47a767092753f21e071a0c verified remotely. Clean canonical Product on 127.0.0.1:3000 with LOCAL_SUPABASE passed 11/11 no-write Parent/Manager Desktop/Mobile checks; one request stayed submitted, one audit and local notification, zero reservation, active enrollment or payment evidence. Protected merged-head receipt SHA256 680d8b4e64331b6718ed1ff09e5d1796eefbebe37ee0cd2cced8be4172ee20a8. Isolated migration drift 260/260."
+        ],
+        "classification": "SCOPED_SYNTHETIC_FRESH_PARENT_ENROLLMENT_SUBMISSION_QA",
+        "limitations": "Original one-write run is BLOCKED overall by Mobile navigation timeout, although completed submission and security checks passed; separate no-write readbacks passed. The synthetic Child has no invented identity or supplemental profile data, so some unrelated profile fields are generic/blank. Full Product/security, owner visual, live providers, invoice-backed cost and Production remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "a113688df3902eec4ab1c6c83a4d943c21ad3a95",
+        "commit": "c0330d0f61390f1aec47a767092753f21e071a0c",
+        "pullRequests": [
+          353
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_260_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_MERGED_PRODUCT_11_OF_11_NO_WRITE_PARENT_MANAGER_DESKTOP_MOBILE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator continues cumulative Product/security, owner visual and invoice-backed cost qualification. Preserve the synthetic request/evidence; no main or Production."
+    },
+    {
+      "id": "codex/parent-enrollment-seat-status-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-PARENT-ENROLLMENT-SEAT-RESERVATION-20261107",
+      "title": "One Manager enrollment approval and seat reservation with truthful Parent status",
+      "owner": "Parent enrollment journey executor; one Development integration owner",
+      "sourceBranch": "codex/parent-enrollment-seat-status-20261108",
+      "sourceCommits": [
+        "3d9af2f579d39dba05de790326a107951f6446a7"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-enrollment-seat-status-20261108@3d9af2f579d39dba05de790326a107951f6446a7"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_CI_AND_CANONICAL_MERGED_PRODUCT_NO_WRITE_READBACK_PASS",
+        "evidence": [
+          "At source Development 5c8a9762dc90d839f91885ba79722770f710a429, one guarded Manager review and approval of existing synthetic request 7811740b-d8e7-4f0e-b056-122cf2f8a15b persisted awaiting_payment, payment_status pending and exactly one active request-owned seat reservation; retry was idempotent. The original Product run remains BLOCKED overall after 20 completed checks because Parent screenshot assertion timed out; unchanged private receipt SHA256 eb15ac14ba81e7e5ce49e90290ecfda45c10777f8e22038d34e43a653354716a. No repeated approval or new request.",
+          "The only source behavior change adds Hebrew labels for canonical Parent enrollment/payment states while retaining unknown-state fallback. Local TypeScript and enrollment lifecycle 7/7 passed; focused ESLint found the same 12 pre-existing no-explicit-any findings at base and candidate, zero added. No API, SQL, RLS, Auth, provider, payment, reservation or Digital Observer core change.",
+          "PR #355 exact source head 3d9af2f579d39dba05de790326a107951f6446a7 passed all six Digital Observer CI gates, Canonical quality, Management tenant context and Snyk. Ancestry-preserving Development merge f097738a5e5f2dccd30d1e1fcb094df87707b834 and remote source/integration refs were freshly verified. Check URLs and limitations are in the Markdown companion.",
+          "Initial postmerge no-write capture was BLOCKED by transient branded splash, with one intercepted browser write; protected receipt SHA256 c7be3c381f8b5af310e52f3c65489db34e75027ab1a733e47f739adecd1b712d, not accepted as final evidence. A separate settled exact-merge-head canonical Product readback passed 19/19 with LOCAL_SUPABASE, four actual 1440x1024/390x844 Manager/Parent captures, zero browser writes or blocked requests and unchanged scoped database counts; private receipt SHA256 e99dd36769f37b3f456eb97b91c717df8fea76879a5b2ef8136ab95addf7a263. One awaiting-payment request, one active reservation, zero active enrollment, payment evidence or accepted external delivery remained."
+        ],
+        "classification": "SCOPED_SYNTHETIC_PARENT_ENROLLMENT_APPROVAL_AND_SEAT_RESERVATION_QA",
+        "limitations": "The original mutation run and first postmerge capture remain BLOCKED; only the separately settled no-write readback passed overall. Screenshots show the relevant request/status after scrolling, not owner reference approval. This is one local synthetic journey, not full Product/security, live payment/provider, invoice-backed cost compliance or Production readiness."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "5c8a9762dc90d839f91885ba79722770f710a429",
+        "commit": "f097738a5e5f2dccd30d1e1fcb094df87707b834",
+        "pullRequests": [
+          355
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_ISOLATED_DEVELOPMENT_BACKEND_VERIFIED",
+        "units": [
+          "codex/parent-new-enrollment-submission-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "CANONICAL_MERGED_PRODUCT_19_OF_19_NO_WRITE_PARENT_MANAGER_DESKTOP_MOBILE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve ledger closure remotely; coordinator selects the next source-only Parent gap. Payment, manual activation, cumulative Product/security, owner visual and invoice-backed cost gates remain pending; no main/Production."
+    },
+    {
+      "id": "codex/db-manual-arrangement-state-guard-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DB-MANUAL-ARRANGEMENT-STATE-GUARD-20261108",
+      "title": "Guard stale manual enrollment arrangement states before evidence writes",
+      "owner": "Manager enrollment database contract; one Development integration owner",
+      "sourceBranch": "codex/db-manual-arrangement-state-guard-20261108",
+      "sourceCommits": [
+        "ed92c1a3471651815cc5c192b03080b14b2335a9"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/db-manual-arrangement-state-guard-20261108@ed92c1a3471651815cc5c192b03080b14b2335a9"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_CANONICAL_ISOLATED_DEVELOPMENT_APPLIED_PASS",
+        "evidence": [
+          "Rollback-only pre-fix synthetic request reproduced the defect: a stale rejected request became payment_reconciliation_required with one confirmed evidence row and two audit rows. No fixture persisted.",
+          "Rollback-only proposed migration test passed rejected, cancelled and reconciliation-state denial, cross-Garden Manager and Parent denial, activated retry, unchanged request/evidence tuples, zero denied evidence/audit writes and postgres definer/authenticated-only ACL/search_path checks. No existing QA request was invoked.",
+          "PR #357 at exact source head ed92c1a3471651815cc5c192b03080b14b2335a9 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving Development merge 3acf23c75e596d9ed4bc06750a02d32a40a48461 and remote source/integration refs were verified.",
+          "PR #358 registered the single migration and passed nine exact-head checks. From clean remote Development 536d693c8c1ab2592c3f0d7ee2f8bd9ee2122709 the canonical applicator installed it only in isolated Development; apply receipt SHA256 acc1a50785c29cf9c7a7cd62d2146f3198c7304af841637ce845903be953f6f6. Installed rollback-only role/state/idempotency test SHA256 26b20277b8ebb2f4eeecaf830399e6e3f81b97d1c8f57f977a0494c7bfa3b1d1; metadata/history/untouched QA request receipt SHA256 3c5d4ab19b5a5d1de6f40b85dcd20e296547a9123b8f23e227842fa2e8c2455f. Pre-apply function backup SHA256 b7c5f6ac2296b94a086758cfb93c601c0b82aaeb884261231f87df4896533383."
+        ],
+        "classification": "FUNCTION_ONLY_MANUAL_ENROLLMENT_STATE_GUARD",
+        "limitations": "Valid awaiting_payment activation, real payment truth, last_amount_paid, broad Product/security, owner visual, invoice-backed cost and Production remain unverified. The prior synthetic Parent request remains awaiting_payment with one reservation; it was not invoked."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "5db0318c1eb88b3eaed91146b7db9bd8fe191975",
+        "commit": "3acf23c75e596d9ed4bc06750a02d32a40a48461",
+        "pullRequests": [357],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_260_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": [
+          "codex/parent-enrollment-seat-status-20261108"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20261107230104_management_manual_arrangement_state_guard.sql"
+      ],
+      "migrationOrder": ["20261107230104"],
+      "localVerification": "CANONICAL_ISOLATED_DEVELOPMENT_MIGRATION_APPLIED_INSTALLED_ROLLBACK_TEST_AND_METADATA_PASS",
+      "releaseEligibility": "NOT_READY_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator should assign a separate focused audit of last_amount_paid/payment truth before any positive manual activation journey. Preserve current awaiting-payment request and provider boundary; no main or Production."
+    },
+    {
+      "id": "codex/gb-manual-arrangement-payment-truth-fix-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-MANUAL-ARRANGEMENT-PAYMENT-TRUTH-FIX-20261108",
+      "title": "Keep manual enrollment arrangements distinct from received payment",
+      "owner": "Manager enrollment payment truth; one Development integration owner",
+      "sourceBranch": "codex/gb-manual-arrangement-payment-truth-fix-20261108",
+      "sourceCommits": [
+        "3c1bda4411a4c8399647bbce24e2617885e80d26"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-manual-arrangement-payment-truth-fix-20261108@3c1bda4411a4c8399647bbce24e2617885e80d26"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_ISOLATED_DEVELOPMENT_INSTALLED_TEST_PASS",
+        "evidence": [
+          "Rollback-only isolated Development QA reproduced the prior existing-child payment-field defect and passed the proposed correction for an existing paid child and a new child, Parent and foreign-Manager denial, idempotency, reservation and audit, zero tuition settlement, ACL and rollback restoration. No existing QA request was invoked.",
+          "PR #360 at source head 3c1bda4411a4c8399647bbce24e2617885e80d26 passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge 205075f798d8f7bad88109308ac33db0b892eab0 was verified on remote Development. Local domain 54/54, security 50/50 with an ownership-enforcing temporary volume, typecheck, lint, migration audit and release contract passed. Exact-head CI build passed; local symlinked dependency build was not qualified.",
+          "PR #361 registered the reviewed migration after nine exact-head checks and merged as 7e268de62b290bf9e87ce745d86fda7ba572edf2. Private pre-apply function backup SHA256 b775a8896017804098cb967441774d88dddfed91637e5c5bdff156b301bd8b16 and state receipt SHA256 ec389da31cd754cad743770567e13d5790ace787f2b240931b35a18102867758. Canonical isolated Development applicator installed only version 20261108000829 at that clean remote head. Installed rollback-only existing/new child, role, idempotency, reservation, audit and no-settlement test passed with no fixture residue. Installed function SHA256 0ce4c4006b56e2a605ed749693a2a48b4d18c15b07eb711b9afc48889a73cd28 and metadata receipt SHA256 db89689b2b9dcff1ec6acbbe298b646c57a9e1c3e52c87fe16b7f24b65be83db: postgres owner, SECURITY DEFINER, public search_path, service-role-only execute, matching migration digest and schema fingerprint 6dc9e5d7253e4d35d539edc163ee7e145ea863839ae688f935390130c4da91f3. Existing QA request remained awaiting_payment with zero evidence."
+        ],
+        "classification": "FORWARD_ONLY_MANUAL_ARRANGEMENT_PAYMENT_TRUTH",
+        "limitations": "Historical rows are not backfilled. The existing QA request was not activated. Real provider payment, cumulative Product/security, owner visual, invoice-backed cost and Production remain unverified; this is not release readiness."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "7570f580ff897eaa5ae63f4fafff29b0090188c4",
+        "commit": "205075f798d8f7bad88109308ac33db0b892eab0",
+        "pullRequests": [360],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_SCHEMA_AND_261_DEVELOPMENT_MIGRATIONS_VERIFIED",
+        "units": [
+          "codex/db-manual-arrangement-state-guard-20261108"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20261108000829_management_manual_arrangement_payment_truth.sql"
+      ],
+      "migrationOrder": ["20261108000829"],
+      "localVerification": "ISOLATED_DEVELOPMENT_APPLIED_INSTALLED_ROLLBACK_TEST_METADATA_AND_UNTOUCHED_REQUEST_PASS",
+      "releaseEligibility": "NOT_READY_PRODUCT_SECURITY_OWNER_VISUAL_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "After ledger closure, run exact-head Development drift and scoped Product checks. Coordinator selects the next unresolved payment/provider or cumulative Product gate. Keep productionApplied UNVERIFIED; do not invoke the existing QA request or touch main/Production."
+    },
+    {
+      "id": "codex/gb-parent-preactivation-payment-guidance-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PARENT-PREACTIVATION-PAYMENT-GUIDANCE-20261108",
+      "title": "Show truthful awaiting-arrangement guidance before Parent enrollment activation",
+      "owner": "Parent enrollment payment guidance; one Development integration owner",
+      "sourceBranch": "codex/gb-parent-preactivation-payment-guidance-20261108",
+      "sourceCommits": [
+        "17e2f8e4a4c4ec6ca37cdac3cd38a286dc12f45e",
+        "f8708132263482e94ebf5f8693bc075e9d9fa548"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-parent-preactivation-payment-guidance-20261108@f8708132263482e94ebf5f8693bc075e9d9fa548"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_CANONICAL_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "PR #363 at source 17e2f8e4a4c4ec6ca37cdac3cd38a286dc12f45e passed all six Digital Observer CI gates, Canonical quality, Management context and Snyk and merged ancestry-preserving as ce752f17a3b3f8847e50b22cba04f6f36da02fc0. The Parent payments page now reads only the signed-in parent and authorized child request, caps request rows at 20, identifies the child/garden, and distinguishes awaiting arrangement from tuition balance, received funds, active enrollment and online provider capability.",
+          "Real merged-Product desktop/mobile review found the active child chip initially outside the mobile viewport. Follow-up PR #364 at source f8708132263482e94ebf5f8693bc075e9d9fa548 passed the same nine exact-head checks and merged as ccba149ac76f39bed0ee5b7d66b466dc59432359. The selected child is first in the visual selector and remains authorized and context-scoped.",
+          "At exact clean Development head ccba149ac76f39bed0ee5b7d66b466dc59432359, canonical npm run dev:integration used the isolated local backend. Fresh settled 1440x1024 and 390x844 screenshots show the pending request, no generated charge, no false payment confirmation, and active child chip visible in both viewports; switching children changed the context. Own Parent read passed; foreign Parent showed no request, Staff redirected to its own dashboard, guest redirected to login. No page errors. Private readback SHA256 07a33be2185b14b611d94619089aaf6781bc83c32d6b14c0b375be7e59dc493d; desktop screenshot SHA256 3013a6c0db2197f59cdc624a8c20391393c335dd846f04244d6339b9afda2d3a; mobile screenshot SHA256 d48c9f7f850528c1ab5d9392d9c21c415f79bd9a5062d7b7269f99d1aa7cac22. Protected artifacts reside under worktrees/development-integration/exports/restricted/parent-preactivation-payment-guidance-20261108/ and are ignored by Git.",
+          "Read-only isolated Development query confirmed existing synthetic request 7811740b-d8e7-4f0e-b056-122cf2f8a15b remains awaiting_payment/pending with no active child enrollment, and the exact new Parent request and child-name reads succeed. Parent-a sees it; foreign Parent and guest do not. Staff request visibility under existing Garden RLS was not altered; the Parent page itself requires the parent role. Local typecheck, focused ESLint, lint baseline zero regressions, UX-10 finance 8/8 and Parent tuition 3/3 passed. Vercel team branch searches showed zero deployments for the source and integration branches."
+        ],
+        "classification": "SCOPED_PARENT_PREACTIVATION_PAYMENT_TRUTH_UI",
+        "limitations": "This is a scoped Development Product check, not full cumulative Product/security, real payment-provider, invoice-backed cost, external owner visual or Production proof. The existing request was not approved, arranged, activated or settled; no data mutation was performed."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "5f2aadab6a3d07a687e36baa38c233ccf8ebc15e",
+        "commit": "ccba149ac76f39bed0ee5b7d66b466dc59432359",
+        "pullRequests": [
+          363,
+          364
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_ENROLLMENT_AND_MANUAL_ARRANGEMENT_CONTRACT_VERIFIED",
+        "units": [
+          "codex/gb-manual-arrangement-payment-truth-fix-20261108"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_PARENT_DESKTOP_MOBILE_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PROVIDER_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator selects the next unresolved Parent payment/provider or cumulative Product gate. Preserve the existing QA request and personas; run full Product/security/owner/cost qualification separately. No main/Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/gb-manager-child-canonical-tuition-ui-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-MANAGER-CHILD-CANONICAL-TUITION-UI-20261108",
+      "title": "Replace legacy Child payment status actions with canonical period-based tuition navigation",
+      "owner": "Manager Child tuition UI; one Development integration owner",
+      "sourceBranch": "codex/gb-manager-child-canonical-tuition-ui-20261108",
+      "sourceCommits": [
+        "0a74e48b1cfe86d44feb54ab9e39cc5a8a9babcd",
+        "dec9d6afbfebb84f1d7420678e4169030b8727e8"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-manager-child-canonical-tuition-ui-20261108@dec9d6afbfebb84f1d7420678e4169030b8727e8"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_CANONICAL_PRODUCT_READBACK_PASS",
+        "evidence": [
+          "PR #366 source 0a74e48b1cfe86d44feb54ab9e39cc5a8a9babcd and PR #367 Mobile follow-up source dec9d6afbfebb84f1d7420678e4169030b8727e8 each passed all six exact-head Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving merges adda12ce81c85d2e7dfa0a2b409feb3e6cebc070 and 1a83d3cd1c4a6f52e3343eaf4c8dca091dff80c3 were verified on remote Development.",
+          "At exact clean merged Development head 1a83d3cd1c4a6f52e3343eaf4c8dca091dff80c3, canonical npm run dev:integration used the isolated local backend. Fresh read-only Owner and Manager 1440x1024 and 390x844 Child captures and Parent, Staff and guest denial passed seven scenarios. Mobile operation cards measured 316px wide and stacked vertically, with no horizontal overflow; daily journal and clothes controls remain. Child tuition tab and Garden ledger open with no period/child selection made. Zero finance POST, zero page errors, and no fixture mutation. Private readback SHA256 60cf7bb97a57a60632d374777f6b108bba92826bcf1559ea865a3bf1c47d8fe2.",
+          "Local typecheck, lint baseline with zero regressions, UX10 finance 8/8, Parent tuition 3/3, full domain 54/54, build, migration audit and release contract passed. Vercel read-only branch checks in all three connected projects found zero deployments. Protected report SHA256 c2fc79713a6658a2b42765787a2a0f0efdd8ecc926b97de21fa5c2de03f9b650; protected evidence under worktrees/development-integration/exports/restricted/manager-child-canonical-tuition-ui-20261108/."
+        ],
+        "classification": "SCOPED_MANAGER_CHILD_TUITION_PRESENTATION_AND_MOBILE_LAYOUT",
+        "limitations": "The local security gate could not qualify CH1 ownership on the external APFS volume; exact-head CI security passed. Scoped Product readback is not full cumulative Product/security, external owner visual, real payment-provider, invoice-backed cost or Production proof. The existing synthetic request and QA personas were preserved."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "76322a0e12c6504e8da6c426cdc7cba59526cda9",
+        "commit": "1a83d3cd1c4a6f52e3343eaf4c8dca091dff80c3",
+        "pullRequests": [366, 367],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_CHILD_PROFILE_AND_CANONICAL_TUITION_ROUTES_VERIFIED",
+        "units": [
+          "codex/gb-parent-preactivation-payment-guidance-20261108"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_OWNER_MANAGER_DESKTOP_MOBILE_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PROVIDER_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator selects the next unresolved payment/provider or cumulative Product gate. Preserve QA personas and the pending synthetic request; independently qualify full Product/security/owner/cost before any release. No main/Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-inspection-corrective-role-journey-20261108",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-INSPECTION-CORRECTIVE-ROLE-JOURNEY-20261108",
+      "title": "Fail closed on corrective-action read errors and verify the synthetic Inspector–Garden remediation journey",
+      "owner": "Inspection/corrective role journey; one Development integration owner",
+      "sourceBranch": "codex/product-inspection-corrective-role-journey-20261108",
+      "sourceCommits": [
+        "d5836f31d1296f1912533486696439c534022030"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-inspection-corrective-role-journey-20261108@d5836f31d1296f1912533486696439c534022030"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_CANONICAL_PRODUCT_ROLE_JOURNEY_PASS",
+        "evidence": [
+          "PR #369 source d5836f31d1296f1912533486696439c534022030 passed six exact-head Digital Observer CI gates, Canonical quality, Management context and Snyk. Ancestry-preserving merge 2c6793559b2931acf83aea2db2edd9cf133c5c5c was verified on remote Development.",
+          "One isolated local synthetic Inspector submit → Garden acknowledge/progress/private evidence/submit → Inspector reject → Garden resubmit → Inspector accept sequence passed with no duplicate action/task and immutable report/score. Existing Inspector draft and QA personas preserved. Known-ID role denials, 60-second local signed evidence reads, Parent-safe projection and foreign Parent denial passed. Protected receipt SHA256 dab8805af79a38d34de4cda77f5e9f728629249f394a8b20b45e67a8f155ae1b.",
+          "Exact merged-head canonical Development Product captured settled Garden/Inspector/Parent Desktop 1440×1024 and Mobile 390×844; zero browser page errors or horizontal overflow. Protected inventory SHA256 c9050c2d01696279674211195e950cf195babdd35e43f9f79d0e8bc3771ccb6d. Corrective read-state tests 9/9, focused UX14 9/9, typecheck, migration audit, release contract and lint baseline zero regressions passed. Vercel feature/integration branch deployments 0 across three projects. See GAN_BATUACH_PRODUCT_INSPECTION_CORRECTIVE_ROLE_JOURNEY_20261108.md."
+        ],
+        "classification": "SCOPED_CORRECTIVE_READ_STATE_FIX_AND_SYNTHETIC_ROLE_JOURNEY",
+        "limitations": "Synthetic local API/browser proof only; signature and geolocation were simulated. No real provider/hardware, full cumulative Product/security, formal accessibility, external owner visual acceptance, invoice-backed ₪15 cost qualification or Production proof. Lint baseline retains historical errors/warnings."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "c3f57d35de37bf68e90528a2bfab1c902a58d997",
+        "commit": "2c6793559b2931acf83aea2db2edd9cf133c5c5c",
+        "pullRequests": [
+          369
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_GB_M22_M23_INSPECTION_AND_CORRECTIVE_CONTRACTS",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_INSPECTOR_GARDEN_PARENT_DESKTOP_MOBILE_API_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_OWNER_VISUAL_PROVIDER_COST_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Coordinator selects one separate remaining cumulative Product or release-readiness unit; preserve private fixture/evidence until reviewed cleanup. No main/Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-complaint-sla-closure-journey-20261113",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-COMPLAINT-SLA-CLOSURE-JOURNEY-20261113",
+      "title": "Verify Parent–Garden–SLA–Admin complaint closure and escalated routing stability",
+      "owner": "Complaint SLA closure journey; one Development integration owner",
+      "sourceBranch": "codex/product-complaint-sla-closure-journey-20261113",
+      "sourceCommits": [
+        "f35a080289be1a7488168b4aaf73f02689c3bcd8",
+        "9f2be0884ab4b7e46ec69dd1fd347c09148ed5e2"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-complaint-sla-closure-journey-20261113@f35a080289be1a7488168b4aaf73f02689c3bcd8",
+          "origin/codex/complaint-sla-full-journey-20261113@9f2be0884ab4b7e46ec69dd1fd347c09148ed5e2"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_SCOPED_ISOLATED_PRODUCT_ROLE_JOURNEY_PASS",
+        "evidence": [
+          "PR #372 nine exact-head checks passed; source f35a080; merge 58463cf.",
+          "Pre-fix rollback-only regression failed as expected; proposed one-predicate replacement passed repeat-scan routing and ACL checks. Private receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f.",
+          "PR #375 source 9f2be0884ab4b7e46ec69dd1fd347c09148ed5e2 passed all nine exact-head checks and merged ancestry-preserving to Development 3220aac76c673d9b56a00ae27ad237630e29ed35.",
+          "Existing synthetic complaint reused: recorded Parent submit, Garden request/reply and one SLA escalation; Admin resolved and closed separately. Four known-ID role denials, Parent API/server-rendered page isolation, public-only resolution and one completed Task passed. First pass 19 checks; resumable readback 20 checks. Protected receipts SHA256 cefe631f36a9bd53221f0e2ddcda120633d5cee53262a538a8b8142f635fa04e and cef531b7b646b03fd96633ab8a030bf8c1862c57480008c53c1eacb3ffad5c51. See GAN_BATUACH_PRODUCT_COMPLAINT_SLA_CLOSURE_JOURNEY_20261113.md."
+        ],
+        "classification": "SCOPED_SYNTHETIC_PARENT_GARDEN_SLA_ADMIN_CLOSURE_AND_ROUTING_STABILITY",
+        "limitations": "Synthetic isolated API/server-rendered journey only; no interactive visual browser approval, separate-connection race, real notification/provider, Production, invoice-backed all-in cost or cumulative Product PASS. Historical QA Inspector reroute before fix requires Production preflight assessment."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "c326c786b8151b6184169a3cb00dc9555fb42591",
+        "commit": "3220aac76c673d9b56a00ae27ad237630e29ed35",
+        "pullRequests": [
+          372,
+          373,
+          374,
+          375
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_COMPLAINT_SLA_AND_CANONICAL_DEVELOPMENT_SCHEMA",
+        "units": []
+      },
+      "migrations": [
+        "supabase/migrations/20261113082021_complaint_escalation_routing_stability.sql"
+      ],
+      "migrationOrder": [
+        "20261113082021"
+      ],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_PARENT_GARDEN_SLA_ADMIN_PARENT_API_AND_RENDERED_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_VISUAL_SECURITY_COST_AND_PRODUCTION_HISTORY_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Scoped complaint journey complete in isolated Development. Before owner-authorized release, assess historical escalated routing, Production migration history/backup, cumulative Product/security and invoice-backed cost. No main/Production now."
+    },
+    {
+      "id": "codex/ux-v12-parent-truthful-visual-20261113",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV12-PARENT-PRIMARY-TRUTHFUL-VISUAL-CLOSURE",
+      "title": "Improve Parent primary readability and separate truthful camera placeholder copy",
+      "owner": "UXV12 Parent executor; one Development integration owner",
+      "sourceBranch": "codex/ux-v12-parent-truthful-visual-20261113",
+      "sourceCommits": [
+        "a3196244ddbdc4df2345c27864ef78c35a5cb393",
+        "8f1dd0944c6ba6645830f7899ba77f07c9117c89"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/ux-v12-parent-truthful-visual-20261113@8f1dd0944c6ba6645830f7899ba77f07c9117c89"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_SCOPED_LOCAL_PARENT_VISUAL_CONTEXT_PASS",
+        "evidence": [
+          "PR #378 exact-head 8f1dd094 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge feb2e439a2abf01323dc9369ef6bc0158c802b00.",
+          "Local typecheck, zero-regression lint and production-mode webpack build passed; UX05 7/7, UXV9 20 assertions and UXV6 foreign-Child contract 9/9 passed.",
+          "Canonical DEVELOPMENT / INTEGRATION Product at feb2e439 rendered synthetic two-Child Parent at 1440x1024 without horizontal overflow; protected screenshot SHA256 2d11f0c26f67b4d69a1af8f63d83552ed391546b5a315a9dcaca722ca700a5c4. At 390px, document width remained 390px; selected Child was authorized and present. Drift 263/263 passed."
+        ],
+        "classification": "PARENT_PRIMARY_PRESENTATION_ONLY_NO_DATA_OR_PROVIDER_ACTIVATION",
+        "limitations": "Scoped Desktop visual improvement only; Mobile browser screenshot surface was cropped, so Mobile visual acceptance is not claimed. Approved-reference owner review and cumulative Product/security, real provider, Production history/backup and invoice-backed all-in cost remain open. No actual Child photograph, attendance or Live feed was fabricated."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "ae691cb5ed6343a4ac5f9a10eae06411e8ad2569",
+        "commit": "feb2e439a2abf01323dc9369ef6bc0158c802b00",
+        "pullRequests": [378],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_UXV10_PARENT_PRIMARY_AND_CANONICAL_DEVELOPMENT_SCHEMA",
+        "units": ["codex/ux-v10-parent-primary-reference-closure-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_PARENT_DESKTOP_AND_MOBILE_LAYOUT_ROLE_CONTEXT_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_CUMULATIVE_PRODUCT_SECURITY_COST_AND_PRODUCTION_HISTORY_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Complete reliable Mobile reference screenshot and external owner visual acceptance; reconcile cumulative Product/release prerequisites separately. No main/Production release from this unit."
+    },
+    {
+      "id": "codex/ux-v12-parent-mobile-readability-20261113",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV12-PARENT-MOBILE-READABILITY-FOLLOWUP-20261113",
+      "title": "Keep Parent mobile update text and truthful camera labels readable",
+      "owner": "UXV12 Parent executor; one Development integration owner",
+      "sourceBranch": "codex/ux-v12-parent-mobile-readability-20261113",
+      "sourceCommits": [
+        "152ea81da8fb1749292e2486cf6f1d7a5dd14a0b"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-v12-parent-mobile-readability-20261113@152ea81da8fb1749292e2486cf6f1d7a5dd14a0b"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_SCOPED_LOCAL_MOBILE_VISUAL_PASS",
+        "evidence": [
+          "PR #380 exact-head 152ea81da8fb1749292e2486cf6f1d7a5dd14a0b passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge 5c8694d08432c5d2c67ec9eea1a38d22178f0b30.",
+          "Local typecheck and zero-regression lint passed; UX05 7/7, UXV9 20 assertions and UXV6 foreign-Child contract 9/9 passed.",
+          "Isolated local Development synthetic two-Child Parent full-page 390px capture showed readable updates and separated camera copy; document width 390px, update text width 252px, camera preview height 182px. Protected screenshot SHA256 1078956adbd86edf4da93c06e2b28eb59b23ec4166543dd85a91c4fd86379f65. Exact merged-head canonical Product at 5c8694d08432 with LOCAL_SUPABASE repeated 390px document width, 252px update text and 182px camera preview; full-page protected screenshot SHA256 5e001de2d15b8fdcfa7415f251095f3647e183788c2be3486e13f3d2bb0233b9."
+        ],
+        "classification": "PARENT_MOBILE_PRESENTATION_ONLY_NO_DATA_OR_PROVIDER_ACTIVATION",
+        "limitations": "Owner visual reference acceptance and cumulative Product/security, Production history/backup and invoice-backed all-in cost remain open. No actual Child photograph, attendance or Live feed was fabricated."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "ac091181b671204637494369fdfd4b975d813b53",
+        "commit": "5c8694d08432c5d2c67ec9eea1a38d22178f0b30",
+        "pullRequests": [
+          380
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "UXV12_PARENT_DESKTOP_AND_CANONICAL_DEVELOPMENT_SCHEMA",
+        "units": [
+          "codex/ux-v12-parent-truthful-visual-20261113"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_PARENT_MOBILE_FULL_PAGE_VISUAL_AND_ROLE_CONTEXT_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_CUMULATIVE_PRODUCT_SECURITY_COST_AND_PRODUCTION_HISTORY_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Complete external owner visual reference review and reconcile cumulative release prerequisites separately. No main/Production release from this unit."
+    },
+    {
+      "id": "codex/parent-smoke-contract-sync-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DEVELOPMENT-CUMULATIVE-PARENT-SMOKE-20261114-CONTRACT-FIX",
+      "title": "Align Parent selected-child regression contract with existing enrollment information fields",
+      "owner": "Canonical Parent smoke executor; one Development integration owner",
+      "sourceBranch": "codex/parent-smoke-contract-sync-20261114",
+      "sourceCommits": ["201c619c1151e126ff09e585fafb1250961a982a"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/parent-smoke-contract-sync-20261114@201c619c1151e126ff09e585fafb1250961a982a"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_SOURCE_REGRESSION_PASS",
+        "evidence": [
+          "PR #382 passed all nine exact-head checks, then merged ancestry-preserving to Development at d02df9547e8af52077ba7ea4f19cc099822f8a8c.",
+          "Scoped Parent selected-child/document suite 20/20 and UX05 Parent suite 7/7 passed after the test contract was updated for existing information_request and information_response fields; git diff --check passed."
+        ],
+        "classification": "TEST_CONTRACT_ONLY_NO_PRODUCT_OR_SCHEMA_CHANGE",
+        "limitations": "The cumulative authenticated Parent runtime journey, live role-boundary probes, Development drift, Desktop/Mobile capture and owner visual acceptance remain pending a safe shared QA runtime. Source-level test pass is not full Product evidence."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "ad6764edbaffaa16048b18fe10f60d3b4718d3ec",
+        "commit": "d02df9547e8af52077ba7ea4f19cc099822f8a8c",
+        "pullRequests": [382],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "UXV12_PARENT_MOBILE_LOCAL_VERIFIED",
+        "units": ["codex/ux-v12-parent-mobile-readability-20261113"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SOURCE_SELECTED_CHILD_20_OF_20_AND_UX05_7_OF_7_PASS_RUNTIME_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PARENT_RUNTIME_OWNER_VISUAL_COST_AND_PRODUCTION_HISTORY_PENDING",
+      "productionDeployment": { "status": "NOT_DEPLOYED" },
+      "nextAction": "When shared external QA runtime is free, complete guarded authenticated Parent multi-child and role-boundary smoke against exact canonical Development; no main/Production change."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

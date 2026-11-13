@@ -19,12 +19,6 @@ export function SettingsPrimaryProfileForm({ profile, email, roleLabel }: { prof
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saving) return;
-    if (!photo) {
-      setMessageKind("error");
-      setMessage("יש להעלות תמונת פרופיל לפני שמירה");
-      return;
-    }
-
     const fields = new FormData(event.currentTarget);
     setSaving(true);
     setMessage("");
@@ -35,7 +29,7 @@ export function SettingsPrimaryProfileForm({ profile, email, roleLabel }: { prof
         body: JSON.stringify({
           full_name: String(fields.get("full_name") ?? "").trim(),
           phone: String(fields.get("phone") ?? "").trim(),
-          profile_image_url: photo
+          ...(photo ? { profile_image_url: photo } : {})
         })
       });
       const body = await response.json();
@@ -54,17 +48,14 @@ export function SettingsPrimaryProfileForm({ profile, email, roleLabel }: { prof
       <div className="ux18-primary-profile-photo">
         {/* eslint-disable-next-line @next/next/no-img-element -- uploaded private profile URL is not covered by fixed Next Image host metadata */}
         <img src={photo || "/assets/teacher-avatar.svg"} alt={photo ? "תמונת הפרופיל הנוכחית" : "איור חלופי; טרם הועלתה תמונת פרופיל"} />
+        <UploadImageField label={photo ? "החלפת תמונה" : "העלאת תמונה"} bucket="profile-photos" prefix="profile-images" onUploaded={setPhoto} variant="avatar" />
+        <span className="ux18-primary-profile-role">{roleLabel}</span>
       </div>
       <div className="ux18-primary-profile-inputs">
         <label>שם מלא<input name="full_name" defaultValue={profile.full_name ?? ""} minLength={2} required /></label>
-        <label>תפקיד<input value={roleLabel} readOnly /></label>
         <label>דוא״ל<input value={email} type="email" dir="ltr" readOnly title="שינוי דוא״ל מחייב אימות חשבון" /></label>
         <label>טלפון<input name="phone" defaultValue={profile.phone ?? ""} type="tel" dir="ltr" /></label>
       </div>
-    </div>
-    <div className="ux18-primary-profile-photo-actions">
-      <UploadImageField label={photo ? "החלפת תמונה" : "העלאת תמונה"} bucket="profile-photos" prefix="profile-images" onUploaded={setPhoto} />
-      {photo ? <button type="button" onClick={() => setPhoto("")}>הסרת תמונה</button> : null}
     </div>
     <button className="ux18-primary-profile-save" type="submit" disabled={saving}>{saving ? "שומר..." : "שמירת שינויים"}</button>
     {message ? <p className={`ux18-primary-profile-message ${messageKind}`} role={messageKind === "error" ? "alert" : "status"}>{message}</p> : null}

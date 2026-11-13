@@ -8,7 +8,11 @@ import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
 
 type MessageRecipient = { id: string; full_name?: string | null; email?: string | null; role?: string | null; profile_image_url?: string | null };
-type GardenMessageRecipients = { manager: MessageRecipient | null; owner: MessageRecipient | null };
+type GardenMessageRecipients = { id: string; name?: string | null; manager_id?: string | null; owner_profile_id?: string | null };
+type MessagingEnrollment = { id: string; child_id?: string | null; permanent_child_file_id?: string | null; garden_id?: string | null; status?: string | null; full_name?: string | null };
+type ActiveMessagingEnrollment = MessagingEnrollment & { child_id: string; permanent_child_file_id: string; garden_id: string };
+type MessagingGuardianLink = { permanent_child_file_id: string };
+type MessagingGarden = { id: string; name?: string | null };
 
 function statusText(status?: string | null) {
   if (status === "handled") return "טופל";
@@ -41,7 +45,16 @@ export default async function ParentMessagesPage() {
     garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));
   const childIds = childOptions.map((child) => child.id).filter(Boolean);
-  const gardenIds = Array.from(new Set(childOptions.map((child) => child.garden_id ?? child.kindergarten_id).filter(Boolean)));
+  const guardianFileIds = new Set((family.guardianLinks as MessagingGuardianLink[]).map((link) => link.permanent_child_file_id));
+  const messagingChildren = (family.enrollments as MessagingEnrollment[])
+    .filter((enrollment): enrollment is ActiveMessagingEnrollment => enrollment.status === "active" && !enrollment.id.startsWith("legacy-") && Boolean(enrollment.child_id && enrollment.garden_id && enrollment.permanent_child_file_id && guardianFileIds.has(enrollment.permanent_child_file_id)))
+    .map((enrollment) => ({
+      id: enrollment.child_id,
+      full_name: enrollment.full_name,
+      garden_id: enrollment.garden_id,
+      garden_name: (family.gardens as MessagingGarden[]).find((garden) => garden.id === enrollment.garden_id)?.name
+    }));
+  const gardenIds = Array.from(new Set(messagingChildren.map((child) => child.garden_id)));
   const requestFilters = [
     `parent_profile_id.eq.${profile.id}`,
     childIds.length ? `child_id.in.(${childIds.join(",")})` : ""
@@ -55,13 +68,16 @@ export default async function ParentMessagesPage() {
       .order("created_at", { ascending: false })
       .limit(80)
     : { data: [], error: null },
-    gardenIds.length ? supabase.from("gardens" as never).select("id,manager:manager_id(id,full_name,email,role,profile_image_url),owner:owner_profile_id(id,full_name,email,role,profile_image_url)").in("id", gardenIds) : Promise.resolve({ data: [], error: null }),
+    gardenIds.length ? supabase.from("gardens" as never).select("id,name,manager_id,owner_profile_id").in("id", gardenIds) : Promise.resolve({ data: [], error: null }),
     supabase.from("messages" as never).select("id,subject,body,content,created_at,treatment_status,sender:sender_id(full_name,profile_image_url),recipient:recipient_id(full_name,profile_image_url)").or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80)
   ]);
   if (requestsRes.error) console.error("[parent-messages] requests query failed", { profile_id: profile.id, error: requestsRes.error.message });
+  if (gardensRes.error) console.error("[parent-messages] gardens query failed", { code: gardensRes.error.code });
   const recipients = ((gardensRes.data ?? []) as GardenMessageRecipients[])
-    .flatMap((garden) => [garden.manager, garden.owner])
-    .filter((value): value is MessageRecipient => Boolean(value))
+    .flatMap((garden): MessageRecipient[] => [
+      ...(garden.manager_id ? [{ id: garden.manager_id, full_name: `מנהלת ${garden.name ?? "הגן"}`, role: "manager" }] : []),
+      ...(garden.owner_profile_id ? [{ id: garden.owner_profile_id, full_name: `בעלת ${garden.name ?? "הגן"}`, role: "owner" }] : [])
+    ])
     .filter((value, index, values) => values.findIndex((item) => item.id === value.id) === index);
 
   return (
@@ -74,7 +90,7 @@ export default async function ParentMessagesPage() {
           <ParentChildRequestForm children={childOptions} />
         </ParentSection>
         <ParentSection title="שיחה עם הגן" subtitle="שיחות רגילות נפרדות מפניות רשמיות ותלונות, ותמיד קשורות לילד מורשה.">
-          <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={childOptions} messages={messagesRes.data ?? []} />
+          <InternalMessagingCenter currentProfileId={profile.id} recipients={recipients} linkedChildren={messagingChildren} messages={messagesRes.data ?? []} />
         </ParentSection>
         <ParentSection title="השיחות שלי" subtitle="תשובות מהגן וסטטוס טיפול במקום אחד." className="parent-chat-card">
           {(requestsRes.data ?? []).length === 0 ? (
