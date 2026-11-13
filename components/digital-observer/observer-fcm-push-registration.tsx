@@ -50,7 +50,7 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
 function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; initialRegistered: boolean }) {
   const [state, setState] = useState<ActionState>({ ...initialState, registered: initialRegistered });
   const [testing, setTesting] = useState(false);
-  const lifetime = useRef({ active: true, registration: 0, test: 0,
+  const lifetime = useRef({ active: true, registration: 0, test: 0, registered: initialRegistered, registrationInFlight: false, testInFlight: false,
     cancelNative: null as (() => void) | null,
     unsubscribe: null as (() => void) | null });
 
@@ -67,6 +67,8 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
       owner.active = false;
       owner.registration++;
       owner.test++;
+      owner.registrationInFlight = false;
+      owner.testInFlight = false;
       owner.cancelNative?.();
       const unsubscribe = owner.unsubscribe;
       owner.unsubscribe = null;
@@ -76,9 +78,12 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
 
   async function register() {
     const owner = lifetime.current;
-    if (!owner.active) return;
+    if (!owner.active || owner.registrationInFlight) return;
+    owner.registrationInFlight = true;
+    owner.registered = false;
     const generation = ++owner.registration;
     owner.test++;
+    owner.testInFlight = false;
     const isCurrent = () => owner.active && generation === owner.registration;
     owner.cancelNative?.();
     stopForeground();
@@ -129,6 +134,7 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
             : "רישום ה־Push במכשיר לא הושלם.";
           throw new Error(reason);
         }
+        owner.registered = true;
         setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כפופה להפעלת ספק נפרדת.", error: "" });
         return;
       }
@@ -182,16 +188,21 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
         removed = true;
         unsubscribe();
       };
+      owner.registered = true;
       setState({ busy: false, registered: true, message: "המכשיר נרשם. מסירה חיצונית נשארת כבויה עד אישור הפעלה נפרד.", error: "" });
     } catch (error) {
       if (!isCurrent()) return;
+      owner.registered = false;
       setState({ busy: false, registered: false, message: "", error: error instanceof Error ? error.message : "לא ניתן לרשום את המכשיר." });
+    } finally {
+      if (isCurrent()) owner.registrationInFlight = false;
     }
   }
 
   async function sendTest() {
     const owner = lifetime.current;
-    if (!owner.active) return;
+    if (!owner.active || owner.testInFlight || owner.registrationInFlight || !owner.registered) return;
+    owner.testInFlight = true;
     const generation = ++owner.test;
     const registration = owner.registration;
     const isCurrent = () => owner.active && generation === owner.test && registration === owner.registration;
@@ -205,7 +216,10 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
       if (!isCurrent()) return;
       setState((current) => ({ ...current, message: "", error: error instanceof Error ? error.message : "שליחת הבדיקה נכשלה." }));
     } finally {
-      if (isCurrent()) setTesting(false);
+      if (isCurrent()) {
+        owner.testInFlight = false;
+        setTesting(false);
+      }
     }
   }
 

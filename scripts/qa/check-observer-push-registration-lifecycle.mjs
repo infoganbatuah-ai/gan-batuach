@@ -191,20 +191,80 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
   };
 }
 const poison = new Proxy({}, { get() { assert.fail("stale event/payload must not be read"); } });
+test("Web register synchronously admits only one in-flight action before state commit", async (t) => {
+  const h = fixture({ pauseAt: "support.1" }); t.after(() => h.cleanup());
+  const register = h.handlers().register;
+  const first = register(), duplicate = register();
+  await drain();
+  assert.equal(h.counts.support, 1);
+  assert.equal(h.counts.permission ?? 0, 0);
+  h.release("support.1"); await Promise.all([first, duplicate]);
+  assert.equal(h.counts.permission, 1);
+  assert.equal(h.counts["push.fetch"], 1);
+  assert.equal(h.counts["access.fetch"], 1);
+  await h.register();
+  assert.equal(h.counts["push.fetch"], 2, "explicit retry after success is permitted");
+});
+test("native register duplicate cannot dispatch a second permission request", async (t) => {
+  const h = fixture({ native: true }); t.after(() => h.cleanup());
+  const register = h.handlers().register;
+  const first = register(), duplicate = register();
+  assert.equal(h.counts["native.dispatch"], 1);
+  assert.equal(h.listeners.size, 1);
+  h.result({ ok: true }); await Promise.all([first, duplicate]);
+  assert.equal(h.counts["native.dispatch"], 1);
+  const retry = h.register(); assert.equal(h.counts["native.dispatch"], 2);
+  h.result({ ok: true }); await retry;
+});
+test("dry-run duplicate is fenced synchronously; explicit retry after failure is allowed", async (t) => {
+  const h = fixture({ initialRegistered: true, pauseAt: "test.fetch.1", serverError: true }); t.after(() => h.cleanup());
+  const send = h.handlers().send;
+  const first = send(), duplicate = send();
+  assert.equal(h.counts["test.fetch"], 1);
+  assert.equal(h.requests.length, 1);
+  h.release("test.fetch.1"); await Promise.all([first, duplicate]);
+  assert.match(h.ui().error, /SYNTHETIC_SERVER_DENIAL/);
+  await h.send(); assert.equal(h.counts["test.fetch"], 2);
+});
+test("Site replacement rejects retained actions and permits one new Site action", async (t) => {
+  const h = fixture({ initialRegistered: true }); t.after(() => h.cleanup());
+  const old = h.handlers(); h.scope("site-b", true);
+  const before = h.snapshot(); await old.register(); await old.send();
+  assert.deepEqual(h.snapshot(), before);
+  const current = h.handlers().send;
+  const first = current(), duplicate = current();
+  await Promise.all([first, duplicate]);
+  assert.equal(h.counts["test.fetch"], 1);
+  assert.deepEqual(h.requests[0].body, { observer_site_id: "site-b" });
+});
+test("retained test handler cannot use stale registered state after failed re-register", async (t) => {
+  const h = fixture({ initialRegistered: true, support: false }); t.after(() => h.cleanup());
+  const staleSend = h.handlers().send;
+  await h.register();
+  assert.equal(h.ui().testDisabled, true);
+  await staleSend();
+  assert.equal(h.counts["test.fetch"] ?? 0, 0);
+  assert.equal(h.requests.length, 0);
+});
+test("current test remains usable after successful re-register", async (t) => {
+  const h = fixture({ initialRegistered: true }); t.after(() => h.cleanup());
+  const retainedSend = h.handlers().send;
+  await h.register();
+  await retainedSend();
+  assert.equal(h.counts["test.fetch"], 1);
+  assert.deepEqual(h.requests.at(-1).body, { observer_site_id: "site-a" });
+});
 const webBoundaries = ["support.1", "permission.1", "sw.1", "token.1", "push.fetch.1", "push.body.1", "access.fetch.1", "access.body.1"];
-for (const boundary of webBoundaries) for (const loss of ["unmount", "Site", "replacement"]) for (const settlement of ["resolve", "reject"]) {
+for (const boundary of webBoundaries) for (const loss of ["unmount", "Site"]) for (const settlement of ["resolve", "reject"]) {
   test(`Web ${boundary} late ${settlement} after ${loss} is quiet`, async (t) => {
     const h = fixture({ pauseAt: boundary }); t.after(() => h.cleanup()); const old = h.register(); await drain();
     const prefix = boundary.slice(0, boundary.lastIndexOf(".")); assert.equal(h.counts[prefix], 1);
-    let next, gate;
     if (loss === "unmount") h.unmount();
-    else if (loss === "Site") h.scope("site-b");
-    else { gate = h.pause("support.2"); next = h.register(); await drain(); }
+    else h.scope("site-b");
     const before = h.snapshot(), beforeUI = loss === "unmount" ? null : h.ui();
     h.release(boundary, settlement === "reject"); await old; await drain();
     assert.deepEqual(h.snapshot(), before, "no stale payload consumption or next effect");
     if (beforeUI) assert.deepEqual(h.ui(), beforeUI);
-    if (gate) { gate.resolve(); await next; assert.equal(h.ui().busy, false); assert.equal(h.subscriptions.filter((sub) => sub.active).length, 1); }
   });
 }
 for (const outcome of ["success", "permission_denied", "provider_error", "timeout"]) {
@@ -219,16 +279,14 @@ for (const outcome of ["success", "permission_denied", "provider_error", "timeou
     h.retained[0](poison); h.unmount(); assert.equal(h.removes.get(h.retained[0]), 1);
   });
 }
-for (const loss of ["unmount", "Site", "replacement"]) {
+for (const loss of ["unmount", "Site"]) {
   test(`native cancellation on ${loss} settles quietly and fences retained listener`, async (t) => {
     const h = fixture({ native: true }); t.after(() => h.cleanup()); const old = h.register(); await drain(); const stale = h.retained[0];
-    let next;
-    if (loss === "unmount") h.unmount(); else if (loss === "Site") h.scope("site-b"); else next = h.register();
+    if (loss === "unmount") h.unmount(); else h.scope("site-b");
     await old; await drain();
     const before = h.snapshot(); stale(poison); await drain(); assert.deepEqual(h.snapshot(), before);
     assert.equal(h.removes.get(stale), 1); assert.equal(h.clears.get(1), 1);
-    if (next) { assert.equal(h.ui().busy, true); h.result({ ok: true }); await next; }
-    else if (loss === "Site") assert.deepEqual(h.ui(), { busy: false, testDisabled: true, testing: false, message: "", error: "" });
+    if (loss === "Site") assert.deepEqual(h.ui(), { busy: false, testDisabled: true, testing: false, message: "", error: "" });
   });
 }
 test("native settled resource cleanup is idempotent across scope loss and repeated unmount", async (t) => {
@@ -266,14 +324,13 @@ test("unsubscribe rejection is best-effort once and cannot poison replacement", 
   assert.equal(h.subscriptions[0].removed, 1); assert.equal(h.subscriptions[1].active, true);
   h.unmount(); h.unmount(); assert.equal(h.subscriptions[1].removed, 1);
 });
-for (const boundary of ["test.fetch.1", "test.body.1"]) for (const loss of ["unmount", "Site", "register", "new-test"]) for (const settlement of ["resolve", "reject"]) {
+for (const boundary of ["test.fetch.1", "test.body.1"]) for (const loss of ["unmount", "Site", "register"]) for (const settlement of ["resolve", "reject"]) {
   test(`dry-run ${boundary} late ${settlement} after ${loss} is quiet`, async (t) => {
     const h = fixture({ pauseAt: boundary, initialRegistered: true }); t.after(() => h.cleanup()); const old = h.send(); await drain();
     assert.equal(h.counts[boundary.slice(0, boundary.lastIndexOf("."))], 1);
     let next, gate;
     if (loss === "unmount") h.unmount(); else if (loss === "Site") h.scope("site-b");
-    else if (loss === "register") { gate = h.pause("support.1"); next = h.register(); }
-    else { gate = h.pause("test.fetch.2"); next = h.send(); }
+    else { gate = h.pause("support.1"); next = h.register(); }
     await drain(); const before = h.snapshot(), ui = loss === "unmount" ? null : h.ui();
     h.release(boundary, settlement === "reject"); await old; await drain(); assert.deepEqual(h.snapshot(), before);
     if (ui) assert.deepEqual(h.ui(), ui);
