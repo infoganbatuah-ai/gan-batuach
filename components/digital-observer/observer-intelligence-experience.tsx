@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 
-async function postJson(path: string, body: unknown) {
+async function postJson(path: string, body: unknown, isCurrent: () => boolean = () => true) {
+  if (!isCurrent()) return;
   const accessToken = readObserverAccessToken();
   const response = await fetch(path, {
     method: "POST",
@@ -29,7 +30,9 @@ async function postJson(path: string, body: unknown) {
     },
     body: JSON.stringify(body)
   });
+  if (!isCurrent()) return;
   const payload = await response.json().catch(() => ({}));
+  if (!isCurrent()) return;
   if (!response.ok) throw new Error(payload.error || "הפעולה נכשלה");
   return payload.data;
 }
@@ -58,6 +61,10 @@ export function ObserverConversationPanel({
     active: boolean;
   } | null;
 }) {
+  return <ScopedObserverConversationPanel key={JSON.stringify([siteId, cameraSourceId ?? null])} siteId={siteId} cameraSourceId={cameraSourceId} cameraName={cameraName} initialPrompt={initialPrompt} ruleSummary={ruleSummary} />;
+}
+
+function ScopedObserverConversationPanel({ siteId, cameraSourceId, cameraName, initialPrompt, ruleSummary }: Parameters<typeof ObserverConversationPanel>[0]) {
   const [messages, setMessages] = useState<ConversationMessage[]>([
     {
       id: "welcome",
@@ -69,36 +76,63 @@ export function ObserverConversationPanel({
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [draftRevision, setDraftRevision] = useState(0);
+  const [lifecycle, setLifecycle] = useState(0);
+  const ownership = useRef({ active: false, operation: 0, busy: false, draft: 0, lifecycle: 0, resetBusy: false });
+  useLayoutEffect(() => {
+    const owner = ownership.current;
+    owner.active = true;
+    if (owner.lifecycle > 0) setLifecycle(owner.lifecycle);
+    if (owner.resetBusy) { owner.resetBusy = false; setBusy(false); }
+    return () => {
+      owner.resetBusy = owner.busy;
+      owner.active = false; owner.operation++; owner.lifecycle++; owner.busy = false;
+    };
+  }, []);
 
   async function ask(value: string) {
+    const owner = ownership.current;
+    if (!owner.active || owner.lifecycle !== lifecycle || owner.busy) return;
     const message = value.trim();
-    if (message.length < 2 || busy) return;
-    const userMessage: ConversationMessage = { id: crypto.randomUUID(), role: "user", text: message };
-    setMessages((current) => [...current, userMessage]);
-    setText("");
-    setError("");
+    if (message.length < 2) return;
+    owner.busy = true;
+    const operation = ++owner.operation;
+    const isCurrent = () => owner.active && owner.operation === operation;
     setBusy(true);
+    setError("");
     try {
+      const userMessage: ConversationMessage = { id: crypto.randomUUID(), role: "user", text: message };
+      setMessages((current) => [...current, userMessage]);
+      owner.draft++;
+      setDraftRevision(owner.draft);
+      setText("");
       const data = await postJson("/api/digital-observer/conversation", {
         observer_site_id: siteId,
         camera_source_id: cameraSourceId,
         message
-      });
-      setMessages((current) => [...current, {
+      }, isCurrent);
+      if (!isCurrent()) return;
+      if (!data || typeof data !== "object" || typeof data.answer !== "string" || !data.answer.trim()) throw new Error("לא ניתן לקבל תשובה כרגע");
+      const reply: ConversationMessage = {
         id: crypto.randomUUID(),
         role: "observer",
         text: data.answer,
         source: data.live_ai_used ? "AI חי" : "המידע השמור באתר"
-      }]);
+      };
+      setMessages((current) => [...current, reply]);
     } catch (requestError) {
+      if (!isCurrent()) return;
       setError(requestError instanceof Error ? requestError.message : "לא ניתן לקבל תשובה כרגע");
     } finally {
-      setBusy(false);
+      if (isCurrent()) { owner.busy = false; setBusy(false); }
     }
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
+    const owner = ownership.current;
+    if (!owner.active || owner.lifecycle !== lifecycle) return;
     event.preventDefault();
+    if (owner.busy || owner.draft !== draftRevision) return;
     void ask(text);
   }
 
@@ -135,7 +169,12 @@ export function ObserverConversationPanel({
         {suggestions.map((suggestion) => <button type="button" onClick={() => void ask(suggestion)} disabled={busy} key={suggestion}>{suggestion}</button>)}
       </div>
       <form className="do-conversation-composer" onSubmit={submit}>
-        <label><MessageCircle /><input value={text} onChange={(event) => setText(event.target.value)} placeholder="למשל: מה קרה בחניה מאז הבוקר?" aria-label="שאלה לתצפיתן" /></label>
+        <label><MessageCircle /><input value={text} onChange={(event) => {
+          const owner = ownership.current;
+          if (!owner.active || owner.lifecycle !== lifecycle || owner.draft !== draftRevision) return;
+          const value = event.target.value;
+          owner.draft++; setDraftRevision(owner.draft); setText(value);
+        }} placeholder="למשל: מה קרה בחניה מאז הבוקר?" aria-label="שאלה לתצפיתן" /></label>
         <button type="submit" disabled={busy || text.trim().length < 2} aria-label="שליחת שאלה"><Send /></button>
       </form>
       {error ? <div className="do-action-result error" role="alert"><AlertTriangle /> {error}</div> : null}
