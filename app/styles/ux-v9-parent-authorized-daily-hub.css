@@ -442,3 +442,45 @@
   .parent-dashboard-home .parent-primary-attendance-row { min-height: 42px; }
   .parent-dashboard-home .parent-mobile-quick-actions a { min-height: 96px; }
 }
+
+/* Keep the mobile update copy in the flexible column; rows without a time
+   value render only an icon and text. Reserve camera disclaimer space below
+   the capability status so neither message can cover the other. */
+@media (max-width: 720px) {
+  .parent-dashboard-home .parent-primary-updates .parent-list-row {
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+    gap: 10px;
+    min-height: 72px;
+  }
+  .parent-dashboard-home .parent-primary-updates .parent-list-row:has(time) {
+    grid-template-columns: 44px 56px minmax(0, 1fr) !important;
+  }
+  .parent-dashboard-home .parent-primary-updates .parent-row-icon {
+    width: 52px;
+    height: 52px;
+  }
+  .parent-dashboard-home .parent-primary-updates .parent-list-row > div {
+    min-width: 0;
+  }
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 182px !important;
+    padding: 12px 12px 39px !important;
+    text-align: center;
+  }
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview strong,
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview span {
+    max-width: 100%;
+    line-height: 1.3;
+  }
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview::after {
+    inset-inline-start: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+}
