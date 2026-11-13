@@ -75,7 +75,7 @@ export default async function AdminAttendanceCompliancePage() {
   const result = await safeAdminData("attendance compliance center", async () => {
     const supabase = await createClient();
     const [checksRes, scoresRes, adultsRes, authorizationsRes, gpsRes, signaturesRes, auditRes, exceptionsRes, attendanceRes, pickupRes] = await Promise.all([
-      safeQuery<Row>("attendance compliance checks", () => supabase.from("attendance_compliance_checks" as never).select("*").order("check_area").order("severity")),
+      safeQuery<Row>("attendance compliance checks", () => supabase.from("attendance_compliance_checks" as never).select("*").order("check_area").order("severity").limit(120)),
       safeQuery<Row>("attendance compliance scores", () => supabase.from("attendance_compliance_scores" as never).select("*, gardens(id,name,city)").order("score_date", { ascending: false }).limit(120)),
       safeQuery<Row>("authorized adults", () => supabase.from("authorized_adults" as never).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
       safeQuery<Row>("pickup authorizations", () => supabase.from("pickup_authorizations" as never).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
