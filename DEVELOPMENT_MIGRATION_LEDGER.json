@@ -8028,6 +8028,36 @@
       "recovery": "Protected pre-apply function backup SHA256 7de7604dbf035201eea33760c54334d6eec49c1517c7f0fad81e6535f50e6dbc; use reviewed forward-only replacement if recovery needed. No Production mutation.",
       "developmentStatusReason": "Original ordered migration and installed behavior/history/ACL verified in isolated Development. Full Parent–Garden–Admin/Inspector journey and Production remain pending.",
       "developmentSchemaFingerprint": "7f7848ea7a40f39c9ca347383d2c4b0019bb0222b4fe5c93db896cacc1a83f2f"
+    },
+    {
+      "file": "supabase/migrations/20261114013000_admin_attendance_compliance_read_scope.sql",
+      "blob": "0e4325afea87c8285de649974a9de8ce49aa9743",
+      "sha256": "2a9e05bb76e77d2330bccce388d604b98eaf491e5c3bc2aa1e8ff12e5b0549f2",
+      "version": "20261114013000",
+      "sourceTask": "GB-PUSH46-ADMIN-ATTENDANCE-COMPLIANCE-AUTH-RUNTIME-20261114",
+      "sourceCommit": "738e62a5d0efef52334d21c4af321fd785943190",
+      "sourceHead": "738e62a5d0efef52334d21c4af321fd785943190",
+      "remoteBranch": "origin/codex/push46-admin-compliance-rls-read-20261114@738e62a5d0efef52334d21c4af321fd785943190",
+      "integrationCommit": "791e464cafbc7339adc16cce7ba023e11e7e39f8",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261114013000",
+      "requiredPredecessor": "20261113082021_complaint_escalation_routing_stability.sql",
+      "dependencyStatus": "PREDECESSORS_TO_BE_VERIFIED_BY_CANONICAL_APPLICATOR",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261113082021"
+      ],
+      "developmentApprovalEvidence": "PR #387 nine exact-head checks passed (six Digital Observer CI gates, canonical quality, Management context, Snyk). Rollback-only isolated Development probe Admin 0/5 before and 1/5 with proposal; Owner/Staff/Parent foreign-Garden 0/5 before/after. Protected receipt SHA256 0c2f35ea6d28379e63bdcfd942695b3ecf9d5b230ee4256150b7f1c19bb1ff11. Source focused query tests 92/92, typecheck and migration health passed.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Pre-apply five-table SELECT policy snapshot SHA256 a9a8da63a921052d370d7decb1d17e266cd738ce875fde6159e43d622c04423d in protected external evidence. Reviewed forward-only reversal: drop exactly the five new Admin SELECT policies after verifying snapshot; no full database restore proven. No Production mutation.",
+      "developmentStatusReason": "Source integrated, but original migration has not yet been applied to isolated Development; actual schema/RLS/history readback required. Full Product/security/cost/owner visual gates remain pending."
     }
   ],
   "developmentExpected": 263,
