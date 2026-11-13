@@ -1,6 +1,7 @@
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { digitalObserverCameraHealthProjection } from "@/lib/domain/digital-observer/camera-live-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -91,18 +92,24 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   }
   const sourceCameraStreamIds = new Set((cameraSourceResult.data ?? []).map((camera: any) => camera.camera_stream_id).filter(Boolean));
   const cameras = [
-    ...(cameraSourceResult.data ?? []).map((camera: any) => ({
+    ...(cameraSourceResult.data ?? []).map((camera: any) => {
+      const projected = camera.source_mode === "demo" ? { status: "demo", healthStatus: "unknown" }
+        : ["live", "gateway_test"].includes(String(camera.source_mode))
+          ? digitalObserverCameraHealthProjection(camera)
+          : { status: "readiness", healthStatus: "unknown" };
+      return {
       id: camera.id,
       camera_stream_id: camera.camera_stream_id,
       name: camera.display_name,
       area: camera.location_label,
-      status: camera.status,
-      health_status: camera.health_status,
+      status: projected.status,
+      health_status: projected.healthStatus,
       stream_status: camera.source_mode,
       gateway_registration_status: camera.source_mode === "gateway_test" ? "registered" : "pending_gateway",
       last_health_check_at: camera.last_health_check_at,
       last_seen: camera.last_seen_at
-    })),
+      };
+    }),
     ...(cameraResult.data ?? []).filter((camera: any) => !sourceCameraStreamIds.has(camera.id))
   ];
 

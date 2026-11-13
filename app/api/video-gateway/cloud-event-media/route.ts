@@ -155,7 +155,7 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (!camera) return fail("Camera source is not linked to this site.", 403);
     const cameraMetadata = camera.metadata && typeof camera.metadata === "object" ? camera.metadata : {};
-    if (camera.source_mode === "demo" || camera.status === "disabled" || cameraMetadata.monitoring_enabled === false) return fail("Camera monitoring is disabled.", 403);
+    if (!["live", "gateway_test"].includes(String(camera.source_mode)) || camera.status === "disabled" || cameraMetadata.monitoring_enabled === false) return fail("Camera monitoring is disabled.", 403);
     if (device && cameraMetadata.gateway_id !== device.gateway_id) return fail("Camera belongs to a different Gateway.", 403);
     if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id) return fail("Camera source does not match gateway stream.", 403);
     const spatialValidation = eventValidationPipeline.validate(
