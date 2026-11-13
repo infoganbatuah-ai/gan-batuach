@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-13T08:55:09.680664+00:00",
+  "updatedAt": "2026-11-13T20:40:05.918720+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15901,36 +15901,43 @@
       "id": "codex/product-complaint-sla-closure-journey-20261113",
       "project": "Gan Batuach Management",
       "taskId": "GB-PRODUCT-COMPLAINT-SLA-CLOSURE-JOURNEY-20261113",
-      "title": "Keep escalated complaints in Admin queue on repeated SLA scans",
+      "title": "Verify Parent–Garden–SLA–Admin complaint closure and escalated routing stability",
       "owner": "Complaint SLA closure journey; one Development integration owner",
       "sourceBranch": "codex/product-complaint-sla-closure-journey-20261113",
       "sourceCommits": [
-        "f35a080289be1a7488168b4aaf73f02689c3bcd8"
+        "f35a080289be1a7488168b4aaf73f02689c3bcd8",
+        "9f2be0884ab4b7e46ec69dd1fd347c09148ed5e2"
       ],
       "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/product-complaint-sla-closure-journey-20261113@f35a080289be1a7488168b4aaf73f02689c3bcd8"
+          "origin/codex/product-complaint-sla-closure-journey-20261113@f35a080289be1a7488168b4aaf73f02689c3bcd8",
+          "origin/codex/complaint-sla-full-journey-20261113@9f2be0884ab4b7e46ec69dd1fd347c09148ed5e2"
         ],
         "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "EXACT_HEAD_CI_AND_ROLLBACK_ONLY_ISOLATED_SQL_PASS",
+        "status": "EXACT_HEAD_CI_AND_SCOPED_ISOLATED_PRODUCT_ROLE_JOURNEY_PASS",
         "evidence": [
           "PR #372 nine exact-head checks passed; source f35a080; merge 58463cf.",
-          "Pre-fix rollback-only regression failed as expected; proposed one-predicate replacement passed repeat-scan routing and ACL checks. Private receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f."
+          "Pre-fix rollback-only regression failed as expected; proposed one-predicate replacement passed repeat-scan routing and ACL checks. Private receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f.",
+          "PR #375 source 9f2be0884ab4b7e46ec69dd1fd347c09148ed5e2 passed all nine exact-head checks and merged ancestry-preserving to Development 3220aac76c673d9b56a00ae27ad237630e29ed35.",
+          "Existing synthetic complaint reused: recorded Parent submit, Garden request/reply and one SLA escalation; Admin resolved and closed separately. Four known-ID role denials, Parent API/server-rendered page isolation, public-only resolution and one completed Task passed. First pass 19 checks; resumable readback 20 checks. Protected receipts SHA256 cefe631f36a9bd53221f0e2ddcda120633d5cee53262a538a8b8142f635fa04e and cef531b7b646b03fd96633ab8a030bf8c1862c57480008c53c1eacb3ffad5c51. See GAN_BATUACH_PRODUCT_COMPLAINT_SLA_CLOSURE_JOURNEY_20261113.md."
         ],
-        "classification": "SCOPED_COMPLAINT_ESCALATION_ROUTING_STABILITY",
-        "limitations": "Full Parent→Garden→Admin/Inspector journey, cumulative Product and Production not yet verified."
+        "classification": "SCOPED_SYNTHETIC_PARENT_GARDEN_SLA_ADMIN_CLOSURE_AND_ROUTING_STABILITY",
+        "limitations": "Synthetic isolated API/server-rendered journey only; no interactive visual browser approval, separate-connection race, real notification/provider, Production, invoice-backed all-in cost or cumulative Product PASS. Historical QA Inspector reroute before fix requires Production preflight assessment."
       },
       "integration": {
         "status": "MERGED",
         "base": "integration/development",
         "baseCommit": "c326c786b8151b6184169a3cb00dc9555fb42591",
-        "commit": "58463cf2e5309432f5c711038c3f7b8ea8332f88",
+        "commit": "3220aac76c673d9b56a00ae27ad237630e29ed35",
         "pullRequests": [
-          372
+          372,
+          373,
+          374,
+          375
         ],
         "sourceAncestryVerified": true
       },
@@ -15944,12 +15951,12 @@
       "migrationOrder": [
         "20261113082021"
       ],
-      "localVerification": "INSTALLED_ROLLBACK_ONLY_REGRESSION_AND_HISTORY_ACL_READBACK_PASS",
-      "releaseEligibility": "NOT_READY_FULL_COMPLAINT_JOURNEY_AND_CUMULATIVE_PRODUCT_PENDING",
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_PARENT_GARDEN_SLA_ADMIN_PARENT_API_AND_RENDERED_ROLE_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_VISUAL_SECURITY_COST_AND_PRODUCTION_HISTORY_GATES_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "One migration verified in isolated Development; complete scoped Parent→Garden→Admin/Inspector complaint journey and cumulative Product qualification separately. No main/Production."
+      "nextAction": "Scoped complaint journey complete in isolated Development. Before owner-authorized release, assess historical escalated routing, Production migration history/backup, cumulative Product/security and invoice-backed cost. No main/Production now."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
