@@ -390,9 +390,10 @@ async function configureCandidate(payload: z.infer<typeof configureSchema>, sess
 async function activateCamera(payload: z.infer<typeof activateSchema>, site: any, profileId: string) {
   const admin = createAdminClient();
   const source = await admin.from("digital_observer_camera_sources" as any)
-    .select("id,observer_site_id,status,health_status,last_seen_at,secret_reference,capabilities,metadata")
+    .select("id,observer_site_id,source_mode,status,health_status,last_seen_at,secret_reference,capabilities,metadata")
     .eq("id", payload.camera_source_id).eq("observer_site_id", site.id).maybeSingle();
   if (source.error || !source.data) return fail("מקור המצלמה לא נמצא באתר הזה.", 404);
+  if (source.data.source_mode === "demo") return fail("מקור המצלמה לא נמצא באתר הזה.", 404);
   if (source.data.status !== "connected" || source.data.health_status !== "healthy" || !source.data.secret_reference || source.data.metadata?.connector_device_type !== "SOFTWARE_CONNECTOR") {
     return fail("המצלמה עדיין לא השלימה בדיקת זרם ו-AI.", 409);
   }
