@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useLayoutEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -190,6 +190,10 @@ export function ObserverIdentityCandidateReview({
   candidate: any;
   cameraName?: string;
 }) {
+  return <ScopedObserverIdentityCandidateReview key={candidate.id} candidate={candidate} cameraName={cameraName} />;
+}
+
+function ScopedObserverIdentityCandidateReview({ candidate, cameraName }: Parameters<typeof ObserverIdentityCandidateReview>[0]) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [name, setName] = useState("");
@@ -199,11 +203,46 @@ export function ObserverIdentityCandidateReview({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const ready = candidate.candidate_status === "ready_for_review";
+  const [draftRevision, setDraftRevision] = useState(0);
+  const [eligibility, setEligibility] = useState(0);
+  const [draftNotice, setDraftNotice] = useState("");
+  const ownership = useRef({ active: false, ready: false, operation: 0, busy: false, draft: 0, eligibility: 0, resetBusy: false });
+  useLayoutEffect(() => {
+    const owner = ownership.current;
+    owner.active = true; owner.ready = ready;
+    setEligibility(owner.eligibility);
+    if (owner.resetBusy) { owner.resetBusy = false; setBusy(false); }
+    return () => {
+      owner.resetBusy = owner.busy;
+      owner.active = false; owner.ready = false; owner.operation++; owner.eligibility++; owner.busy = false;
+    };
+  }, [ready]);
+
+  function ownsDraft() {
+    const owner = ownership.current;
+    return owner.active && owner.ready && owner.eligibility === eligibility && owner.draft === draftRevision;
+  }
+
+  function change(field: "name" | "relationship" | "consent", event: ChangeEvent<HTMLInputElement>) {
+    if (!ownsDraft()) return;
+    const owner = ownership.current;
+    if (field === "consent") setConsent(event.target.checked);
+    else if (field === "name") setName(event.target.value);
+    else setRelationship(event.target.value);
+    owner.draft++; setDraftRevision(owner.draft);
+  }
 
   async function review(outcome: "known" | "unknown" | "dismissed") {
+    const owner = ownership.current;
+    if (!ownsDraft() || owner.busy || (outcome === "known" && (name.trim().length < 2 || !consent))) return;
+    owner.busy = true;
+    const operation = ++owner.operation;
+    const submittedRevision = owner.draft;
+    const isCurrent = () => owner.active && owner.ready && owner.operation === operation;
     setBusy(true);
     setError("");
     setMessage("");
+    setDraftNotice("");
     try {
       const data = await postJson("/api/digital-observer/identity-candidates", {
         candidate_id: candidate.id,
@@ -211,13 +250,17 @@ export function ObserverIdentityCandidateReview({
         display_name: name,
         relationship_label: relationship,
         explicit_consent: consent
-      });
+      }, isCurrent);
+      if (!isCurrent()) return;
+      if (!data || typeof data !== "object" || typeof data.message !== "string" || !data.message.trim()) throw new Error("לא ניתן לשמור את ההחלטה");
       setMessage(data.message);
-      router.refresh();
+      if (owner.draft === submittedRevision) router.refresh();
+      else setDraftNotice("העריכות החדשות נשמרו כטיוטה ולא נשלחו.");
     } catch (requestError) {
+      if (!isCurrent()) return;
       setError(requestError instanceof Error ? requestError.message : "לא ניתן לשמור את ההחלטה");
     } finally {
-      setBusy(false);
+      if (isCurrent()) { owner.busy = false; setBusy(false); }
     }
   }
 
@@ -233,9 +276,9 @@ export function ObserverIdentityCandidateReview({
         <div><strong>{candidate.suggested_label || "אדם שנצפה לעיתים קרובות"}</strong><small>{cameraName || "מצלמה לא ידועה"} · ביטחון ממוצע {candidate.average_confidence == null ? "לא זמין" : `${Math.round(Number(candidate.average_confidence) * 100)}%`}</small></div>
         {!ready ? <span className="do-badge warn">אוסף עוד תצפיות</span> : expanded ? (
           <div className="do-candidate-form">
-            <label><span>שם האדם</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="למשל: דניאל" /></label>
-            <label><span>קשר למקום</span><input value={relationship} onChange={(event) => setRelationship(event.target.value)} placeholder="בן משפחה / עובד / בעל גישה" /></label>
-            <label className="do-check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>קיימת הסכמה מפורשת להגדרת האדם כמוכר</span></label>
+            <label><span>שם האדם</span><input value={name} onChange={(event) => change("name", event)} placeholder="למשל: דניאל" /></label>
+            <label><span>קשר למקום</span><input value={relationship} onChange={(event) => change("relationship", event)} placeholder="בן משפחה / עובד / בעל גישה" /></label>
+            <label className="do-check"><input type="checkbox" checked={consent} onChange={(event) => change("consent", event)} /><span>קיימת הסכמה מפורשת להגדרת האדם כמוכר</span></label>
             <div className="do-button-row">
               <button className="do-button primary" type="button" onClick={() => void review("known")} disabled={busy || name.trim().length < 2 || !consent}>{busy ? <LoaderCircle className="do-spin" /> : <UserRoundCheck />} שמירה כאדם מוכר</button>
               <button className="do-button secondary" type="button" onClick={() => void review("unknown")} disabled={busy}><UserRoundX /> אדם לא מוכר</button>
@@ -243,12 +286,13 @@ export function ObserverIdentityCandidateReview({
           </div>
         ) : (
           <div className="do-button-row">
-            <button className="do-button primary" type="button" onClick={() => setExpanded(true)}><UserRoundCheck /> אני מכיר/ה</button>
+            <button className="do-button primary" type="button" onClick={() => { if (ownsDraft()) setExpanded(true); }}><UserRoundCheck /> אני מכיר/ה</button>
             <button className="do-button secondary" type="button" onClick={() => void review("unknown")} disabled={busy}><UserRoundX /> לא מוכר/ת</button>
             <button className="do-icon-button" type="button" onClick={() => void review("dismissed")} disabled={busy} aria-label="הסרת מועמד"><Check /></button>
           </div>
         )}
         {message ? <div className="do-action-result success"><Check /> {message}</div> : null}
+        {draftNotice ? <p className="do-help-copy">{draftNotice}</p> : null}
         {error ? <div className="do-action-result error"><AlertTriangle /> {error}</div> : null}
       </div>
     </article>
