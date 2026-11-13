@@ -7,11 +7,36 @@ import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 
-type Row = Record<string, any>;
+type Row = {
+  id?: string;
+  check_area?: string;
+  title?: string;
+  evidence_summary?: string;
+  status?: string;
+  readiness_score?: number | null;
+  attendance_compliance_score?: number | null;
+  authorization_status?: string;
+  validation_result?: string;
+  biometric_identification_used?: boolean;
+  camera_based_attendance_used?: boolean;
+  camera_based_release_used?: boolean;
+  full_name?: string;
+  relationship?: string;
+  gardens?: { name?: string; city?: string } | null;
+  children?: { full_name?: string } | null;
+  authorization_type?: string;
+  valid_until?: string;
+  severity?: string;
+  details?: string;
+  exception_type?: string;
+  gps_validation_rate?: number;
+  signature_completion_rate?: number;
+  exception_rate?: number;
+};
 type Tone = "default" | "good" | "warn" | "bad";
 
-function average(rows: Row[], field = "readiness_score") {
-  const values = rows.map((row) => Number(row[field] ?? 0)).filter((value) => Number.isFinite(value));
+function average(rows: Row[]) {
+  const values = rows.map((row) => Number(row.readiness_score ?? 0)).filter((value) => Number.isFinite(value));
   if (!values.length) return 0;
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
@@ -34,11 +59,11 @@ function dateText(value?: string | null) {
   return value ? new Date(value).toLocaleString("he-IL", { dateStyle: "short", timeStyle: "short" }) : "לא עודכן";
 }
 
-async function safeQuery<T>(label: string, run: () => any) {
+async function safeQuery<T>(label: string, run: () => PromiseLike<{ data: unknown; error: unknown }>) {
   try {
-    const result = await run() as { data: T[] | null; error: any };
+    const result = await run();
     logSupabaseError(label, result.error);
-    return { data: result.error ? [] : result.data ?? [], available: !result.error };
+    return { data: result.error ? [] as T[] : (result.data ?? []) as T[], available: !result.error };
   } catch (error) {
     logSupabaseError(label, error);
     return { data: [] as T[], available: false };
@@ -50,16 +75,16 @@ export default async function AdminAttendanceCompliancePage() {
   const result = await safeAdminData("attendance compliance center", async () => {
     const supabase = await createClient();
     const [checksRes, scoresRes, adultsRes, authorizationsRes, gpsRes, signaturesRes, auditRes, exceptionsRes, attendanceRes, pickupRes] = await Promise.all([
-      safeQuery<Row>("attendance compliance checks", () => supabase.from("attendance_compliance_checks" as any).select("*").order("check_area").order("severity")),
-      safeQuery<Row>("attendance compliance scores", () => supabase.from("attendance_compliance_scores" as any).select("*, gardens(id,name,city)").order("score_date", { ascending: false }).limit(120)),
-      safeQuery<Row>("authorized adults", () => supabase.from("authorized_adults" as any).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
-      safeQuery<Row>("pickup authorizations", () => supabase.from("pickup_authorizations" as any).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
-      safeQuery<Row>("gps attendance validations", () => supabase.from("gps_attendance_validations" as any).select("*").order("created_at", { ascending: false }).limit(120)),
-      safeQuery<Row>("attendance digital signatures", () => supabase.from("attendance_digital_signatures" as any).select("*").order("created_at", { ascending: false }).limit(120)),
-      safeQuery<Row>("attendance audit trail", () => supabase.from("attendance_compliance_audit_trail" as any).select("*").order("created_at", { ascending: false }).limit(120)),
-      safeQuery<Row>("attendance exceptions", () => supabase.from("attendance_exceptions" as any).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
-      safeQuery<Row>("attendance legal fields", () => supabase.from("attendance" as any).select("id,garden_id,child_id,status,attendance_date,gps_validation_status,gps_distance_meters,signature_id,legal_attendance_method,parent_identity_verified,biometric_identification_used,camera_based_attendance_used,created_at").gte("attendance_date", new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).limit(500)),
-      safeQuery<Row>("pickup legal fields", () => supabase.from("child_pickup_events" as any).select("id,kindergarten_id,child_id,status,authorization_type,gps_validation_status,gps_distance_meters,signature_id,identity_verification_status,legal_release_status,biometric_identification_used,camera_based_release_used,pickup_time,created_at").gte("pickup_time", new Date(Date.now() - 30 * 86400000).toISOString()).limit(500))
+      safeQuery<Row>("attendance compliance checks", () => supabase.from("attendance_compliance_checks" as never).select("*").order("check_area").order("severity")),
+      safeQuery<Row>("attendance compliance scores", () => supabase.from("attendance_compliance_scores" as never).select("*, gardens(id,name,city)").order("score_date", { ascending: false }).limit(120)),
+      safeQuery<Row>("authorized adults", () => supabase.from("authorized_adults" as never).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("pickup authorizations", () => supabase.from("pickup_authorizations" as never).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("gps attendance validations", () => supabase.from("gps_attendance_validations" as never).select("*").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("attendance digital signatures", () => supabase.from("attendance_digital_signatures" as never).select("*").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("attendance audit trail", () => supabase.from("attendance_compliance_audit_trail" as never).select("*").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("attendance exceptions", () => supabase.from("attendance_exceptions" as never).select("*, gardens(id,name,city), children(id,full_name)").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("attendance legal fields", () => supabase.from("attendance" as never).select("id,garden_id,child_id,status,attendance_date,gps_validation_status,gps_distance_meters,signature_id,legal_attendance_method,parent_identity_verified,biometric_identification_used,camera_based_attendance_used,created_at").gte("attendance_date", new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).limit(500)),
+      safeQuery<Row>("pickup legal fields", () => supabase.from("child_pickup_events" as never).select("id,kindergarten_id,child_id,status,authorization_type,gps_validation_status,gps_distance_meters,signature_id,identity_verification_status,legal_release_status,biometric_identification_used,camera_based_release_used,pickup_time,created_at").gte("pickup_time", new Date(Date.now() - 30 * 86400000).toISOString()).limit(500))
     ]);
     const checks = checksRes.data;
     const scores = scoresRes.data;
@@ -91,8 +116,6 @@ export default async function AdminAttendanceCompliancePage() {
   const data = result.data;
   const available = data.available;
   const byArea = (area: string) => data.checks.filter((check) => check.check_area === area);
-  const adultScore = average(byArea("authorized_adults"));
-  const pickupScore = average(byArea("pickup_authorization"));
   const gpsScore = average(byArea("gps_validation"));
   const signatureScore = average(byArea("digital_signature"));
   const auditScore = average([...byArea("audit_trail"), ...byArea("exceptions")]);
