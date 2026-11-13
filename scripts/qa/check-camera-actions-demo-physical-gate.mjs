@@ -38,7 +38,7 @@ function harness(mode) {
           if (table === "digital_observer_camera_sources") return { data: source, error: null };
           if (table === "digital_observer_camera_action_requests") return { data: selected.includes("requested_by")
             ? { id: requestId, camera_source_id: cameraId, observer_site_id: siteId, requested_by: "synthetic-user", task_kind: "physical_command", action_status: "awaiting_confirmation", expires_at: new Date(Date.now() + 30000).toISOString() }
-            : snapshot, error: null };
+            : selected.includes("result") ? snapshot : null, error: null };
           if (table === "digital_observer_camera_automation_policies") return { data: null, error: null };
           throw Error(`Unexpected table ${table}`);
         },

@@ -57,7 +57,7 @@ function load(authorized = true) {
     "@/lib/domain/digital-observer/camera-live-status": health
   };
   const exports = {};
-  vm.runInNewContext(code, { exports, require(name) { if (Object.hasOwn(imports, name)) return imports[name]; throw Error(`Unmapped import ${name}`); }, URL, Date },
+  vm.runInNewContext(code, { exports, require(name) { if (Object.hasOwn(imports, name)) return imports[name]; throw Error(`Unmapped import ${name}`); }, URL, Date, Error },
     { timeout: 1000, contextCodeGeneration: { strings: false, wasm: false } });
   return { get: exports.GET, calls };
 }
