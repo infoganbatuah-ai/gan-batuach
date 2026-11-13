@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-13T08:43:12.050469+00:00",
+  "updatedAt": "2026-11-13T08:55:09.680664+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15907,7 +15907,7 @@
       "sourceCommits": [
         "f35a080289be1a7488168b4aaf73f02689c3bcd8"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -15922,7 +15922,7 @@
           "Pre-fix rollback-only regression failed as expected; proposed one-predicate replacement passed repeat-scan routing and ACL checks. Private receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f."
         ],
         "classification": "SCOPED_COMPLAINT_ESCALATION_ROUTING_STABILITY",
-        "limitations": "Installed function, full Parent→Garden→Admin/Inspector journey, cumulative Product and Production not yet verified."
+        "limitations": "Full Parent→Garden→Admin/Inspector journey, cumulative Product and Production not yet verified."
       },
       "integration": {
         "status": "MERGED",
@@ -15944,12 +15944,12 @@
       "migrationOrder": [
         "20261113082021"
       ],
-      "localVerification": "PRE_APPLY_ROLLBACK_ONLY_REGRESSION_PASS",
-      "releaseEligibility": "NOT_READY_DEVELOPMENT_APPLICATION_AND_FULL_JOURNEY_PENDING",
+      "localVerification": "INSTALLED_ROLLBACK_ONLY_REGRESSION_AND_HISTORY_ACL_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_FULL_COMPLAINT_JOURNEY_AND_CUMULATIVE_PRODUCT_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Apply approved migration to canonical isolated Development using ordered applicator; verify installed behavior/history/ACL, then close ledgers. No main/Production."
+      "nextAction": "One migration verified in isolated Development; complete scoped Parent→Garden→Admin/Inspector complaint journey and cumulative Product qualification separately. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

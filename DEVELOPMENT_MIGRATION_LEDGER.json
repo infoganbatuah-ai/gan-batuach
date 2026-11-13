@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-13T08:43:12.050469+00:00",
+  "observedAt": "2026-11-13T08:55:09.680664+00:00",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -8013,25 +8013,25 @@
       "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20261113082021",
       "requiredPredecessor": "20261108000829_management_manual_arrangement_payment_truth.sql",
-      "dependencyStatus": "262_OF_262_PREDECESSORS_APPLIED_LOCAL_DEVELOPMENT_PENDING_READBACK",
+      "dependencyStatus": "262_OF_262_PREDECESSORS_APPLIED_LOCAL_DEVELOPMENT",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": [
         "20261108000829"
       ],
       "developmentApprovalEvidence": "PR #372 exact-head nine checks passed (six CI gates, canonical quality, Management context, Snyk); rollback-only isolated QA reproduced rerouting of an escalated complaint before fix and passed after proposed replacement, with stable Admin routing, no duplicate task/event/audit, active complaint routing and EXECUTE ACL checks. Source function differs in one status predicate; private rollback receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-13T08:54:10.443341+00:00",
+      "developmentEvidence": "Canonical ordered applicator applied only this migration at exact remote Development head 5b17307712a4bbad8b3012281ed4564be67e7bbc. Installed rollback-only repeat-scan regression PASS; escalated Admin routing stable and active Inspector routing preserved. Live metadata: owner postgres, SECURITY DEFINER, search_path public, service_role EXECUTE true, authenticated/anon false. Read-only history source digest 6c587313b6bef9d3f050b242e40cecc1162ddc1d9062a40e0cf03b5aef6cb72c and schema fingerprint 7f7848ea7a40f39c9ca347383d2c4b0019bb0222b4fe5c93db896cacc1a83f2f. No Production access.",
+      "developmentHistoryDigest": "6c587313b6bef9d3f050b242e40cecc1162ddc1d9062a40e0cf03b5aef6cb72c",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Protected pre-apply function backup SHA256 7de7604dbf035201eea33760c54334d6eec49c1517c7f0fad81e6535f50e6dbc; use reviewed forward-only replacement if recovery needed. No Production mutation.",
-      "developmentStatusReason": "Approved for canonical isolated Development application after ancestry-preserving PR #372 merge; application and installed readback pending.",
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original ordered migration and installed behavior/history/ACL verified in isolated Development. Full Parent–Garden–Admin/Inspector journey and Production remain pending.",
+      "developmentSchemaFingerprint": "7f7848ea7a40f39c9ca347383d2c4b0019bb0222b4fe5c93db896cacc1a83f2f"
     }
   ],
   "developmentExpected": 263,
-  "developmentAppliedVerified": 262,
+  "developmentAppliedVerified": 263,
   "blockers": [],
   "localObservations": [
     {
