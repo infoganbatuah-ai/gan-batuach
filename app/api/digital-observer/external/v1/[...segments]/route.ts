@@ -15,6 +15,7 @@ import { compileInvestigationQuery, validateInvestigationQuery, type Investigati
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
 import { compileAuthorizedWatchRule, simulateWatchRuleAgainstRealHistory } from "@/lib/domain/digital-observer/watch-rule-service";
 import { createSupabaseStorageBackend } from "@/lib/domain/digital-observer/storage-contract.mjs";
+import { digitalObserverCameraHealthProjection } from "@/lib/domain/digital-observer/camera-live-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,6 +49,13 @@ function page<T>(rows: T[], offset: number, limit: number) {
   return { data: rows.slice(0, limit), pagination: { limit, next_cursor: more ? encodeCursor(offset + limit) : null } };
 }
 
+function truthfulCameraStatus(camera: any) {
+  if (camera.source_mode === "demo") return { ...camera, status: "demo", health_status: "unknown" };
+  if (!["live", "gateway_test"].includes(String(camera.source_mode))) return { ...camera, status: "readiness", health_status: "unknown" };
+  const health = digitalObserverCameraHealthProjection(camera);
+  return { ...camera, status: health.status, health_status: health.healthStatus };
+}
+
 async function runAuthorized(request: Request, body: string, siteId: string, scope: Parameters<typeof authorizeExternalApiSite>[2]["scope"], operation: string, handler: (context: { admin: any; actor: ExternalApiActor; site: any }) => Promise<Response>) {
   const { admin, actor } = await authenticateExternalApiRequest(request, body);
   if (actor.idempotentReplay) throw new Error("EXTERNAL_API_IDEMPOTENT_REPLAY");
@@ -77,7 +85,7 @@ async function listCameras(request: Request, body: string) {
     if (input.camera_id) query = query.eq("id", input.camera_id);
     const result = await query;
     if (result.error) throw new Error("EXTERNAL_API_CAMERA_READ_FAILED");
-    return response({ ...page(result.data ?? [], offset, input.limit), ...externalApiMeta(actor) });
+    return response({ ...page((result.data ?? []).map(truthfulCameraStatus), offset, input.limit), ...externalApiMeta(actor) });
   });
 }
 
@@ -127,7 +135,7 @@ async function resourceDetail(request: Request, body: string, kind: "cameras" | 
       mutations_require_first_party_human_authorization: true } : kind === "cameras" ? {
       authorized_open_camera_reference: `/digital-observer/live?site=${siteId}&camera=${id}`, unrestricted_stream_url_exposed: false } : {
       observed_and_inferred_fields_distinct: true };
-    return response({ [kind.slice(0, -1)]: result.data, ...extra, ...externalApiMeta(actor) });
+    return response({ [kind.slice(0, -1)]: kind === "cameras" ? truthfulCameraStatus(result.data) : result.data, ...extra, ...externalApiMeta(actor) });
   });
 }
 
