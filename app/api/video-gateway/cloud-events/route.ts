@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     try { await assertCommercialEntitlement(db, { siteId: device.observer_site_id, key: "ai_processing" }); }
     catch (error) { return fail(error instanceof Error ? error.message : "AI_PROCESSING_ENTITLEMENT_DENIED", 403); }
     const camera = source.data;
-    if (!camera || ["demo", "mock", "local_shadow"].includes(String(camera.source_mode)) || camera.status === "disabled" || camera.metadata?.monitoring_enabled === false || camera.metadata?.gateway_id !== device.gateway_id || camera.metadata?.gateway_stream_id !== event.stream_id) return fail("Camera is not assigned to this Gateway.", 403);
+    if (!camera || !["live", "gateway_test"].includes(String(camera.source_mode)) || camera.status === "disabled" || camera.metadata?.monitoring_enabled === false || camera.metadata?.gateway_id !== device.gateway_id || camera.metadata?.gateway_stream_id !== event.stream_id) return fail("Camera is not assigned to this Gateway.", 403);
     const result = eventValidationPipeline.validate(event, camera);
     if (!result.accepted) return ok({ status: "suppressed", reason: result.reason }, 202);
     let offHoursActive = false;
