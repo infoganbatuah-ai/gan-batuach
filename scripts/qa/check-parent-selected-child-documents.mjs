@@ -248,7 +248,7 @@ test("real page retains exact scoped query chains and authorization/admission ex
     'selectedRequests.length ? selectedRequests.slice(0, 3).map((request)',
     '...childContexts.slice(0, 12).map(child => String(child.child_id ?? "")).filter(Boolean),',
     'selectedAttendanceChildId\n  ].filter(Boolean)))',
-    'const requestsRes = await supabase.from("kindergarten_enrollment_requests" as any)\n    .select("id,child_profile_id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)")\n    .eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20);'
+    'const requestsRes = await supabase.from("kindergarten_enrollment_requests" as any)\n    .select("id,child_profile_id,status,payment_status,requested_at,decided_at,published_price_snapshot,information_request,information_response,gardens(name,city)")\n    .eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20);'
   ];
   for (const contract of exact) assert.ok(source.includes(contract), `missing exact contract: ${contract}`);
   const start = source.indexOf('  const [scheduleRes, attendanceRes, tuitionRes, documentRes, notificationRes] = await Promise.all([');
