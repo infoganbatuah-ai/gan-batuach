@@ -52,9 +52,11 @@
   }
   .parent-dashboard-home .parent-child-context-card,
   .parent-dashboard-home .parent-child-context-add { direction: rtl; }
-  .parent-dashboard-home .parent-child-context-copy b { font-size: 1rem; }
-  .parent-dashboard-home .parent-primary-reference-grid .parent-section-head h3 { font-size: 1.22rem; }
-  .parent-dashboard-home .parent-primary-reference-grid .parent-section-head p { font-size: .72rem; }
+  .parent-dashboard-home .parent-child-context-copy b { font-size: 1.18rem; }
+  .parent-dashboard-home .parent-child-context-copy small { font-size: .78rem; }
+  .parent-dashboard-home .parent-child-context-avatar { width: 56px !important; height: 56px !important; }
+  .parent-dashboard-home .parent-primary-reference-grid .parent-section-head h3 { font-size: 1.4rem; }
+  .parent-dashboard-home .parent-primary-reference-grid .parent-section-head p { font-size: .82rem; }
   .parent-dashboard-home .parent-primary-attendance {
     gap: 5px;
     min-height: 0;
@@ -68,6 +70,24 @@
   }
   .parent-dashboard-home .parent-primary-camera,
   .parent-dashboard-home .parent-primary-camera .parent-camera-preview { min-height: 205px !important; }
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 15px 14px 43px !important;
+    text-align: right;
+  }
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview strong {
+    max-width: 100%;
+    font-size: .88rem;
+    line-height: 1.25;
+  }
+  .parent-dashboard-home .parent-primary-camera .parent-camera-preview span {
+    font-size: .7rem;
+    line-height: 1.25;
+  }
   .parent-dashboard-home .parent-primary-updates .parent-list-row {
     grid-template-columns: 48px minmax(0, 1fr);
     gap: 9px;
@@ -88,7 +108,7 @@
     font-weight: 700;
     text-align: center;
   }
-  .parent-dashboard-home .parent-primary-reference-actions .parent-action-tile > span { font-size: 1.08rem; }
+  .parent-dashboard-home .parent-primary-reference-actions .parent-action-tile > span { font-size: 1.26rem; }
 }
 
 @media (max-width: 720px) {
