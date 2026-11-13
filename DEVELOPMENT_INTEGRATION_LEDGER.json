@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-13T22:29:02+00:00",
+  "updatedAt": "2026-11-13T23:17:48.058Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16098,6 +16098,58 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_PARENT_RUNTIME_OWNER_VISUAL_COST_AND_PRODUCTION_HISTORY_PENDING",
       "productionDeployment": { "status": "NOT_DEPLOYED" },
       "nextAction": "When shared external QA runtime is free, complete guarded authenticated Parent multi-child and role-boundary smoke against exact canonical Development; no main/Production change."
+    },
+    {
+      "id": "codex/push46-admin-attendance-compliance-query-boundary-20261105",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PUSH46-ADMIN-ATTENDANCE-COMPLIANCE-QUERY-BOUNDARY-20261114",
+      "title": "Preserve independent Admin attendance-compliance query health and truthful partial state",
+      "owner": "PUSH46 scoped executor; single Development integration owner",
+      "sourceBranch": "codex/push46-admin-attendance-compliance-query-boundary-20261105",
+      "sourceCommits": [
+        "4b44dfdfcb8c2433c1ccceb673d7b0ddb462cc5b",
+        "7f37e0f8df4753d3538fb55176a228d7836f3069",
+        "8bc54d5317f8229afd3be966d6c0078f332e01c1"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push46-admin-attendance-compliance-query-boundary-20261105@8bc54d5317f8229afd3be966d6c0078f332e01c1"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_POST_MERGE_SOURCE_QA_PASS",
+        "evidence": [
+          "PR #384 passed nine exact-head checks: six Digital Observer CI gates, Canonical quality gate, Management tenant context and Snyk; merged ancestry-preserving at ed94730ed18f963f5d9101f655a30a0e4ba1c9d6.",
+          "Post-merge canonical Development 92/92 focused cases and typecheck passed; pre-merge lint:ci, 55/55 domain suites, migration audit and release-contract passed."
+        ],
+        "classification": "ADMIN_READ_TRUTHFULNESS_ONLY_NO_SCHEMA_OR_DO_CORE_CHANGE",
+        "limitations": "Local CH1 private-media security suite refused because external macOS volume reports GlobalPermissionsEnabled=false; exact-head GitHub security gate passed on Linux. Local Turbopack build could not use cross-worktree node_modules symlink; exact-head GitHub build passed. Authenticated cumulative Admin runtime and owner visual review are not established by source tests."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "834cfafa1fdba65f1898fe8ac9291603d1837a9e",
+        "commit": "ed94730ed18f963f5d9101f655a30a0e4ba1c9d6",
+        "pullRequests": [
+          384
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_FOCUSED_92_OF_92_AND_TYPECHECK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Keep main and Production untouched. Run guarded authenticated Admin attendance-compliance runtime, role/tenant isolation and cumulative Product checks on canonical Development; retain local CH1 volume limitation and require provider/cost/recovery/owner visual gates before release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
