@@ -16177,7 +16177,7 @@
           "Focused query tests 92/92, typecheck and migration health passed."
         ],
         "classification": "ADMIN_SELECT_RLS_ONLY_AND_QUERY_CAP_NO_DO_CORE_CHANGE",
-        "limitations": "Development migration not yet applied; local CH1 external-volume ownership guard and sparse-worktree Turbopack prevent local full security/build claims. CI Linux gates passed. Full Product, owner visual, all-supplier cost and Production remain open."
+        "limitations": "The original migration is applied and installed RLS/history readback passed in isolated Development; local CH1 external-volume ownership guard and sparse-worktree Turbopack prevent local full security/build claims. CI Linux gates passed. Cumulative Product, owner visual, all-supplier cost and Production remain open."
       },
       "integration": {
         "status": "MERGED",
@@ -16201,12 +16201,12 @@
       "migrationOrder": [
         "20261114013000"
       ],
-      "localVerification": "ROLLBACK_ONLY_RLS_PASS_DEVELOPMENT_SCHEMA_NOT_APPLIED",
-      "releaseEligibility": "NOT_READY_DEVELOPMENT_APPLY_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "localVerification": "DEVELOPMENT_MIGRATION_APPLIED_AND_ADMIN_OWNER_STAFF_PARENT_GUEST_RLS_HISTORY_READBACK_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Validate this ledger on exact-head CI; apply only the ordered original migration to isolated Development with canonical applicator; verify history/digest, Admin and nonAdmin RLS, Product runtime; update ledger with actual evidence. No main or Production."
+      "nextAction": "Complete post-apply canonical Product authenticated Desktop/Mobile runtime and bounded Admin report; preserve local CH1 limitation and complete cumulative security, cost, recovery and owner visual gates before release. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
