@@ -6,8 +6,8 @@ import vm from "node:vm";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 
-const root = process.argv[2];
-assert.ok(root && path.isAbsolute(root), "pass the repository root");
+const root = process.argv[2] ?? process.cwd();
+assert.ok(path.isAbsolute(root), "repository root must be absolute");
 const source = path.join(root, "components/digital-observer/gateway-enrollment-panel.tsx");
 assert.ok(fs.statSync(source).isFile());
 if (process.platform === "darwin") {
@@ -23,7 +23,7 @@ const deferred = () => {
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 };
-const tick = async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); };
+const tick = async () => { for (let step = 0; step < 8; step++) await Promise.resolve(); };
 
 function harness() {
   const calls = [];
