@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-13T20:40:05.918720+00:00",
+  "updatedAt": "2026-11-13T21:49:30+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15957,6 +15957,52 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Scoped complaint journey complete in isolated Development. Before owner-authorized release, assess historical escalated routing, Production migration history/backup, cumulative Product/security and invoice-backed cost. No main/Production now."
+    },
+    {
+      "id": "codex/ux-v12-parent-truthful-visual-20261113",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UXV12-PARENT-PRIMARY-TRUTHFUL-VISUAL-CLOSURE",
+      "title": "Improve Parent primary readability and separate truthful camera placeholder copy",
+      "owner": "UXV12 Parent executor; one Development integration owner",
+      "sourceBranch": "codex/ux-v12-parent-truthful-visual-20261113",
+      "sourceCommits": [
+        "a3196244ddbdc4df2345c27864ef78c35a5cb393",
+        "8f1dd0944c6ba6645830f7899ba77f07c9117c89"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/ux-v12-parent-truthful-visual-20261113@8f1dd0944c6ba6645830f7899ba77f07c9117c89"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_SCOPED_LOCAL_PARENT_VISUAL_CONTEXT_PASS",
+        "evidence": [
+          "PR #378 exact-head 8f1dd094 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving merge feb2e439a2abf01323dc9369ef6bc0158c802b00.",
+          "Local typecheck, zero-regression lint and production-mode webpack build passed; UX05 7/7, UXV9 20 assertions and UXV6 foreign-Child contract 9/9 passed.",
+          "Canonical DEVELOPMENT / INTEGRATION Product at feb2e439 rendered synthetic two-Child Parent at 1440x1024 without horizontal overflow; protected screenshot SHA256 2d11f0c26f67b4d69a1af8f63d83552ed391546b5a315a9dcaca722ca700a5c4. At 390px, document width remained 390px; selected Child was authorized and present. Drift 263/263 passed."
+        ],
+        "classification": "PARENT_PRIMARY_PRESENTATION_ONLY_NO_DATA_OR_PROVIDER_ACTIVATION",
+        "limitations": "Scoped Desktop visual improvement only; Mobile browser screenshot surface was cropped, so Mobile visual acceptance is not claimed. Approved-reference owner review and cumulative Product/security, real provider, Production history/backup and invoice-backed all-in cost remain open. No actual Child photograph, attendance or Live feed was fabricated."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "ae691cb5ed6343a4ac5f9a10eae06411e8ad2569",
+        "commit": "feb2e439a2abf01323dc9369ef6bc0158c802b00",
+        "pullRequests": [378],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_UXV10_PARENT_PRIMARY_AND_CANONICAL_DEVELOPMENT_SCHEMA",
+        "units": ["codex/ux-v10-parent-primary-reference-closure-20261106"]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_CANONICAL_DEVELOPMENT_PARENT_DESKTOP_AND_MOBILE_LAYOUT_ROLE_CONTEXT_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_VISUAL_CUMULATIVE_PRODUCT_SECURITY_COST_AND_PRODUCTION_HISTORY_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Complete reliable Mobile reference screenshot and external owner visual acceptance; reconcile cumulative Product/release prerequisites separately. No main/Production release from this unit."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
