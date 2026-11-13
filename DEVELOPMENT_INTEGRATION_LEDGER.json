@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-08T03:54:52Z",
+  "updatedAt": "2026-11-13T08:43:12.050469+00:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -15896,6 +15896,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Coordinator selects one separate remaining cumulative Product or release-readiness unit; preserve private fixture/evidence until reviewed cleanup. No main/Production or RELEASE-GAP-01."
+    },
+    {
+      "id": "codex/product-complaint-sla-closure-journey-20261113",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-COMPLAINT-SLA-CLOSURE-JOURNEY-20261113",
+      "title": "Keep escalated complaints in Admin queue on repeated SLA scans",
+      "owner": "Complaint SLA closure journey; one Development integration owner",
+      "sourceBranch": "codex/product-complaint-sla-closure-journey-20261113",
+      "sourceCommits": [
+        "f35a080289be1a7488168b4aaf73f02689c3bcd8"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/product-complaint-sla-closure-journey-20261113@f35a080289be1a7488168b4aaf73f02689c3bcd8"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_AND_ROLLBACK_ONLY_ISOLATED_SQL_PASS",
+        "evidence": [
+          "PR #372 nine exact-head checks passed; source f35a080; merge 58463cf.",
+          "Pre-fix rollback-only regression failed as expected; proposed one-predicate replacement passed repeat-scan routing and ACL checks. Private receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f."
+        ],
+        "classification": "SCOPED_COMPLAINT_ESCALATION_ROUTING_STABILITY",
+        "limitations": "Installed function, full Parent→Garden→Admin/Inspector journey, cumulative Product and Production not yet verified."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "c326c786b8151b6184169a3cb00dc9555fb42591",
+        "commit": "58463cf2e5309432f5c711038c3f7b8ea8332f88",
+        "pullRequests": [
+          372
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "EXISTING_COMPLAINT_SLA_AND_CANONICAL_DEVELOPMENT_SCHEMA",
+        "units": []
+      },
+      "migrations": [
+        "supabase/migrations/20261113082021_complaint_escalation_routing_stability.sql"
+      ],
+      "migrationOrder": [
+        "20261113082021"
+      ],
+      "localVerification": "PRE_APPLY_ROLLBACK_ONLY_REGRESSION_PASS",
+      "releaseEligibility": "NOT_READY_DEVELOPMENT_APPLICATION_AND_FULL_JOURNEY_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Apply approved migration to canonical isolated Development using ordered applicator; verify installed behavior/history/ACL, then close ledgers. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-07T16:57:29.117Z",
+  "observedAt": "2026-11-13T08:43:12.050469+00:00",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7856,7 +7856,9 @@
       "requiredPredecessor": "20261023161928_digital_observer_push44_session_validity.sql",
       "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20261023161928"],
+      "developmentDependsOn": [
+        "20261023161928"
+      ],
       "developmentApprovalEvidence": "PR #261 exact head 0e86d7fb36c4df9d57300afba5a9206549c3e4a7 passed all required GitHub checks. Focused complaint SLA contract 6/6, migration health 258/258, domain, security, release contract, Production build and dependency audit passed. Pre-apply isolated Development custom-format backup /private/tmp/complaint-sla-hotfix-preapply-20261029T2250Z.dump has SHA-256 387dc808717763796c417fb01ee243770e54947fe3f359cbeb1f8ecb70e1de8d and a verified pg_restore archive listing.",
       "developmentApplied": "YES",
       "developmentAppliedAt": "2026-10-29T22:53:43.287465+00:00",
@@ -7887,7 +7889,9 @@
       "requiredPredecessor": "20261029215625_complaint_sla_secret_key_auth_hotfix.sql",
       "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20261029215625"],
+      "developmentDependsOn": [
+        "20261029215625"
+      ],
       "developmentApprovalEvidence": "PR #262 exact head 39b3312863b9701c2a0890f96b0dd19cfac10eaa passed all required GitHub checks. The exact SQL was applied transactionally in isolated Development for runtime qualification: no-work 0 then 0; overdue rollback-only fixture 1 then 0 with exactly one event and one audit row; authenticated role denied; ACL service_role-only. Focused suite 6/6, migration health, domain 30/30, security 11/11, release contract, 541-route Production build and zero-vulnerability audit passed.",
       "developmentApplied": "YES",
       "developmentAppliedAt": "2026-10-29T23:22:37.640988+00:00",
@@ -7980,7 +7984,9 @@
       "requiredPredecessor": "20261107230104_management_manual_arrangement_state_guard.sql",
       "dependencyStatus": "261_OF_261_PREDECESSORS_APPLIED_LOCAL_DEVELOPMENT",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20261107230104"],
+      "developmentDependsOn": [
+        "20261107230104"
+      ],
       "developmentApprovalEvidence": "PR #360 exact-head six CI gates, Canonical quality, Management context and Snyk passed. Rollback-only isolated Development tests reproduced the pre-fix defect and passed proposed activation for existing and new child, Parent/foreign-Manager denial, idempotency, reservation/audit, zero tuition settlement, function ACL and full rollback. Function body differs from the prior audited definition in only the two conditional payment-field assignments.",
       "developmentApplied": "YES",
       "developmentAppliedAt": "2026-11-08T00:58:33.004498+00:00",
@@ -7991,9 +7997,40 @@
       "recovery": "Private mode-600 pre-apply pg_get_functiondef backup and state receipt are preserved under exports/restricted/manual-arrangement-payment-truth-fix-20261108/. If verification fails, use a reviewed forward-only function replacement; never edit applied migration history or existing request/evidence rows.",
       "developmentStatusReason": "Ordered function migration applied and installed behavior, role, ACL and history verified in canonical isolated Development. No Production access.",
       "developmentSchemaFingerprint": "6dc9e5d7253e4d35d539edc163ee7e145ea863839ae688f935390130c4da91f3"
+    },
+    {
+      "file": "supabase/migrations/20261113082021_complaint_escalation_routing_stability.sql",
+      "blob": "14ca36d8a084262e8ca23c09cf718c5de755994e",
+      "sha256": "6c587313b6bef9d3f050b242e40cecc1162ddc1d9062a40e0cf03b5aef6cb72c",
+      "version": "20261113082021",
+      "sourceTask": "GB-PRODUCT-COMPLAINT-SLA-CLOSURE-JOURNEY-20261113",
+      "sourceCommit": "f35a080289be1a7488168b4aaf73f02689c3bcd8",
+      "sourceHead": "f35a080289be1a7488168b4aaf73f02689c3bcd8",
+      "remoteBranch": "origin/codex/product-complaint-sla-closure-journey-20261113@f35a080289be1a7488168b4aaf73f02689c3bcd8",
+      "integrationCommit": "58463cf2e5309432f5c711038c3f7b8ea8332f88",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261113082021",
+      "requiredPredecessor": "20261108000829_management_manual_arrangement_payment_truth.sql",
+      "dependencyStatus": "262_OF_262_PREDECESSORS_APPLIED_LOCAL_DEVELOPMENT_PENDING_READBACK",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261108000829"
+      ],
+      "developmentApprovalEvidence": "PR #372 exact-head nine checks passed (six CI gates, canonical quality, Management context, Snyk); rollback-only isolated QA reproduced rerouting of an escalated complaint before fix and passed after proposed replacement, with stable Admin routing, no duplicate task/event/audit, active complaint routing and EXECUTE ACL checks. Source function differs in one status predicate; private rollback receipt SHA256 36c192b1125bf4066cf7bfc9a34e56c5c1cf5460d61be4668f8b79c4d692736f.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Protected pre-apply function backup SHA256 7de7604dbf035201eea33760c54334d6eec49c1517c7f0fad81e6535f50e6dbc; use reviewed forward-only replacement if recovery needed. No Production mutation.",
+      "developmentStatusReason": "Approved for canonical isolated Development application after ancestry-preserving PR #372 merge; application and installed readback pending.",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 262,
+  "developmentExpected": 263,
   "developmentAppliedVerified": 262,
   "blockers": [],
   "localObservations": [
