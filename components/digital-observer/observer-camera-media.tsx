@@ -21,8 +21,8 @@ export function ObserverCameraMedia({
   const position = scene || (mode === "home" ? "home-living" : "business-entry");
   return (
     <div className={`do-camera-media ${large ? "large" : ""} ${demo ? `is-demo scene-${position}` : "is-readiness"}`}>
-      <span className={connected ? "do-camera-status active" : "do-camera-status readiness"}>
-        {connected ? <CircleDot /> : offline ? <CameraOff /> : <ShieldCheck />}{connected ? "מקור מחובר" : demo ? "הדמיה" : offline ? "Offline" : "מצב בדיקה"}
+      <span className={!demo && connected ? "do-camera-status active" : "do-camera-status readiness"}>
+        {demo ? <ShieldCheck /> : connected ? <CircleDot /> : offline ? <CameraOff /> : <ShieldCheck />}{demo ? "הדמיה" : connected ? "מקור מחובר" : offline ? "Offline" : "מצב בדיקה"}
       </span>
       <span className="do-camera-name">{name}</span>
       {demo

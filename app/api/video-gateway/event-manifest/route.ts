@@ -139,7 +139,7 @@ export async function GET(request: Request) {
     return ok({ gateway_id: device.gateway_id, observer_site_id: device.observer_site_id, environment_fingerprint: environmentFingerprint, monitoring_enabled: enabled,
       sampling: { contract: "observer-adaptive-sampling-v1", purposes: ["REALTIME_DETECTION", "TRACKING_CONTINUITY", "SITE_LEARNING", "HEALTH_FRESHNESS", "INVESTIGATION"],
         cycle_budget: cycleBudget, resource_pressure: "NORMAL", policy_version: "observer-adaptive-sampling-v1", candidate_contract: "observer-ai-candidate-v2" }, cameras: cameraRows
-      .filter((camera) => !["demo", "mock", "local_shadow"].includes(String(camera.source_mode)) && camera.metadata?.gateway_id === device.gateway_id)
+      .filter((camera) => ["live", "gateway_test"].includes(String(camera.source_mode)) && camera.metadata?.gateway_id === device.gateway_id)
       .map((camera) => {
         const zone = cameraZoneMapper.map(camera);
         const allowed = [...new Set([...(zone.source === "default" ? ["person_detected"] : [...CONTEXT_RULES_MATRIX[zone.zone_type]]), "camera_offline", "camera_reconnected"])];
