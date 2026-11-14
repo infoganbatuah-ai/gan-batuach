@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T14:07:34.818535Z",
+  "observedAt": "2026-11-14T17:36:48.362174Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "ONE_REVIEWED_DEVELOPMENT_MIGRATION_PENDING",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8144,9 +8144,36 @@
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive stale-write guard triggers/functions only. Fresh checksum-protected isolated Development backup and actual disposable restore required before apply. Any reversal needs a reviewed forward migration; do not discard active Garden, membership or audit state. No Production access."
+    },
+    {
+      "file": "supabase/migrations/20261114171000_management_privacy_child_request_scope.sql",
+      "blob": "fbd5ca547e04cee0c15f1f429d00555f1e928e0b",
+      "sha256": "47aa23e7346e66b87fa57e362e316841aa5f5d7c0fcf5771ab1b61cffa25dc6f",
+      "version": "20261114171000",
+      "sourceTask": "GB-PRIVACY-CHILD-REQUEST-AUTHORITY-AND-SCOPE-CLOSURE",
+      "sourceCommit": "9d41e1f59a85f2d461f4e95e38cf3b1053b62b48",
+      "remoteBranch": "origin/codex/gb-privacy-child-request-20261114@9d41e1f59a85f2d461f4e95e38cf3b1053b62b48",
+      "integrationCommit": "1cec82e64017635507d8b6665676a165d1263058",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261114171000",
+      "requiredPredecessor": "20261114165000_management_onboarding_activation_stale_write_guard.sql",
+      "developmentDependsOn": [
+        "20261114165000"
+      ],
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentApprovalEvidence": "PR #454 eight visible exact-head checks SUCCESS. exports/restricted/gb-privacy-child-qa-20261114/REPORT.md SHA256 0474497b3cdfd709ab41406088bf5ec465a0b3e9321d43f1fb6bc44d7e17ab6c; fresh backup restored to disposable QA and rollback-only authority/tenant matrix PASS. Canonical DB not yet mutated.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Additive helper functions, authenticated SELECT/INSERT under RLS and stricter Management insert policy; existing request rows unchanged. Fresh protected pre-apply backup and actual disposable restore required. Reversal requires reviewed forward migration preserving privacy audit/retention. No Production access."
     }
   ],
-  "developmentExpected": 267,
+  "developmentExpected": 268,
   "developmentAppliedVerified": 267,
   "blockers": [],
   "localObservations": [
