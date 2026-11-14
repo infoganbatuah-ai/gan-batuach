@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T12:53:34.789Z",
+  "updatedAt": "2026-11-14T13:59:48.550193Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17326,6 +17326,59 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Merge separate ledger after exact-head CI; continue coordinator card. External isolated DB invitation journey remains blocked on Colima runtime. No DO core, paid provider, main/Production or RELEASE-GAP."
+    },
+    {
+      "id": "codex/document-nonprimary-guardian-rls-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-DOCUMENT-NONPRIMARY-GUARDIAN-RLS-20261114",
+      "title": "Document-only active legal non-primary guardian access for a bound Child/Garden",
+      "owner": "Scoped document RLS executor; single Development integration owner",
+      "sourceBranch": "codex/document-nonprimary-guardian-rls-20261114",
+      "sourceCommits": [
+        "0cef63003bfc7743485055d6487858a16b078400"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/document-nonprimary-guardian-rls-20261114@0cef63003bfc7743485055d6487858a16b078400"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_PR_AND_DISPOSABLE_RLS_MATRIX_PASS",
+        "evidence": [
+          "PR #442 passed six Digital Observer CI gates, canonical quality, management-context and Snyk on exact feature head.",
+          "Protected isolated QA backup SHA256 563e33136b5dba74fa1cfa09b3dc65642a35b835a409e41dd55fa206c07f401c was restored to a disposable database; new rollback-only Parent/Manager/Staff/Inspector/Admin and revocation/upload matrix passed.",
+          "Local typecheck, lint baseline, migration-health (266 files), release-contract and production build passed."
+        ],
+        "classification": "MANAGEMENT_CHILD_DOCUMENT_GUARDIAN_RLS",
+        "limits": "Current canonical Development DB apply and merged-head authenticated Product QA pending. Existing unrelated document expiry-notification legacy SQL assertion failed on accumulated QA fixtures. Local domain sparse-file and security volume-ownership gates were not PASS; exact-head remote CI passed. No Production/provider/hardware/owner-visual proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "2fd00fb20580720ea952e2d18f1822e686db70de",
+        "pullRequests": [
+          442
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CURRENT_DOCUMENTS_AND_GUARDIAN_BASELINE",
+        "units": []
+      },
+      "migrations": [
+        "supabase/migrations/20261114134005_management_nonprimary_guardian_child_documents.sql"
+      ],
+      "migrationOrder": [
+        "20261114134005"
+      ],
+      "localVerification": "DISPOSABLE_RESTORED_DB_RLS_PASS_CANONICAL_DEVELOPMENT_APPLY_PENDING",
+      "releaseEligibility": "NOT_READY_CANONICAL_DEVELOPMENT_APPLY_PRODUCT_SECURITY_COST_RECOVERY_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "After this ledger exact-head CI and merge, run canonical ordered applicator for only 20261114134005 on isolated Development, verify installed RLS and Parent Product routes, then record developmentApplied YES in separate ledger update. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
