@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T17:50:48Z",
+  "observedAt": "2026-11-14T18:43:37Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_268_OF_268_APPLIED_PENDING_CLEAN_HEAD_DRIFT",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_268_APPLIED_269TH_REVIEWED_PENDING_EXCLUSIVE_APPLY",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8172,6 +8172,32 @@
       "productionEvidence": null,
       "recovery": "Additive helper functions, authenticated SELECT/INSERT under RLS and stricter Management insert policy; existing request rows unchanged. Fresh protected pre-apply backup and actual disposable restore required. Reversal requires reviewed forward migration preserving privacy audit/retention. No Production access.",
       "developmentSchemaFingerprint": "dd4e8e39c9f5c2bf87e4635f8ce8456d6510ac990c2c48da0edb640d7e5e4c64"
+    },
+    {
+      "file": "supabase/migrations/20261114183500_management_privacy_decision_integrity.sql",
+      "blob": "60ef74ac4fdcd7ac961bf1b7c1f4dc2549cad930",
+      "sha256": "aa7fc97b14c3d94951333cd213ccf985c6f5199fcc758a9cc77ef26febbafafb",
+      "version": "20261114183500",
+      "sourceTask": "GB-PRIVACY-ADMIN-DECISION-INTEGRITY-20261114",
+      "sourceCommit": "921bcdf336def7431befc09b5f98e77638f5f0d4",
+      "remoteBranch": "origin/codex/gb-privacy-admin-decision-20261114@921bcdf336def7431befc09b5f98e77638f5f0d4",
+      "integrationCommit": "dbe6317c6b53b1141aa74d0fd653faacfde23bd3",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261114183500",
+      "requiredPredecessor": "20261114171000_management_privacy_child_request_scope.sql",
+      "developmentDependsOn": ["20261114171000"],
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentApprovalEvidence": "PR #457 exact-head six CI, canonical quality, management-context and Snyk SUCCESS. Revised SQL SHA256 aa7fc97b14c3d94951333cd213ccf985c6f5199fcc758a9cc77ef26febbafafb applied twice to fresh restored disposable QA; rollback-only decision, role, hold, retention, ACL and terminal-evidence matrix PASS. Protected report exports/restricted/gb-privacy-admin-decision-terminalqa-20261114/REPORT.md; canonical DB not mutated.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Additive Management-only decision guard and privilege revocation. Fresh protected canonical pre-apply backup with actual disposable restore required; rollback needs a reviewed forward migration preserving privacy decisions and immutable audit evidence. No Production access.",
+      "developmentSchemaFingerprint": null
     }
   ],
   "developmentExpected": 268,
