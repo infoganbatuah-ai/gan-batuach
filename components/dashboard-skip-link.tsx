@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, type MouseEvent } from "react";
-import { usePathname } from "next/navigation";
+import { type MouseEvent } from "react";
 
 const contentId = "dashboard-primary-content";
 
 function primaryMain() {
+  const declared = document.getElementById(contentId);
+  if (declared?.tagName === "MAIN") return declared;
   return document.querySelector<HTMLElement>("main");
 }
 
@@ -14,19 +15,12 @@ function prepareTarget() {
   if (!target) return null;
   const previous = document.getElementById(contentId);
   if (previous && previous !== target) previous.removeAttribute("id");
-  target.id = contentId;
-  target.tabIndex = -1;
+  if (target.id !== contentId) target.id = contentId;
+  if (target.tabIndex !== -1) target.tabIndex = -1;
   return target;
 }
 
 export function DashboardSkipLink() {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(prepareTarget);
-    return () => cancelAnimationFrame(frame);
-  }, [pathname]);
-
   function skipToMain(event: MouseEvent<HTMLAnchorElement>) {
     const target = prepareTarget();
     if (!target) return;

@@ -310,7 +310,7 @@ export function RoleAppShell({
       sidebar={sidebar}
       bottomNav={<BottomNav className="role-app-bottom-nav" activeHref={resolvedActive} items={config.nav} />}
     >
-      <ResponsivePage className="role-app-page" size="lg">
+      <ResponsivePage id="dashboard-primary-content" tabIndex={-1} className="role-app-page" size="lg">
         {children}
       </ResponsivePage>
     </AppShell>
