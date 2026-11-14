@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T20:17:00Z",
+  "observedAt": "2026-11-14T21:39:48Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_270_INSTALLED_PENDING_CLEAN_HEAD_DRIFT_AND_FULL_RESTORE_GAP",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_271_OF_272_INSTALLED_SELF_DELIVERY_PENDING_FULL_RESTORE_GAP",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8250,9 +8250,35 @@
       "productionEvidence": null,
       "recovery": "Management-only transactional approval/rejection audit guard. Reversal needs reviewed forward migration; preserve immutable audit events. No real fulfillment or Production access.",
       "developmentSchemaFingerprint": "6226bcb482b0582f9b4445672b5815ce10be65a6fe2fae6c1ac79ddf74c46266"
+    },
+    {
+      "file": "supabase/migrations/20261114224500_management_privacy_self_delivery.sql",
+      "blob": "c117e1934f4246400148f221c4a47977a7723d0b",
+      "sha256": "3b6721c583f729a9ddafb9abd742b5f93532a7e668d164479ff33505ad8b8b53",
+      "version": "20261114224500",
+      "sourceTask": "GB-PRIVACY-ACCESS-EXPORT-FULFILLMENT-20261114",
+      "sourceCommit": "b7aca7be2d5944d5654139cc9dc258bed7302d0e",
+      "remoteBranch": "origin/codex/gb-privacy-access-export-fulfillment-20261114@b7aca7be2d5944d5654139cc9dc258bed7302d0e",
+      "integrationCommit": "11335db8b3066ed97a1c1add41cedcc1aae18705",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261114224500",
+      "requiredPredecessor": "20261114223000_management_privacy_approval_atomic_audit.sql",
+      "developmentDependsOn": ["20261114223000"],
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentApprovalEvidence": "PR #466 nine exact-head checks green. Fresh protected application-data backup actually restored into disposable DB; synthetic requester/role, access/export, expiry, three-read, revoke, legal-hold and retention scope, immutable-audit and audit-failure rollback matrix PASS. Canonical DB not modified.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Metadata-only grant table and three Management-only transactional RPCs. Fresh protected canonical backup and actual disposable restore plus exclusive gbi lease required before application. Reversal requires reviewed forward migration preserving grant/audit evidence and no-reissue history. No Production access.",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 271,
+  "developmentExpected": 272,
   "developmentAppliedVerified": 271,
   "blockers": [],
   "localObservations": [
