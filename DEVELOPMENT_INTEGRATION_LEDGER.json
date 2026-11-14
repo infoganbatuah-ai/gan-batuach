@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T06:04:52.000Z",
+  "updatedAt": "2026-11-14T06:40:34.765Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16532,6 +16532,100 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue scoped Product QA; validate authenticated Settings mutations and remaining permissions states separately. No main or Production release authorization."
+    },
+    {
+      "id": "codex/gb-auth-invitation-claim-boundary-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-AUTH-INVITATION-ROLE-BOUNDARY-QA",
+      "title": "Anonymous invitation claim API authorization status correction",
+      "owner": "Scoped Product Auth QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-auth-invitation-claim-boundary-20261114",
+      "sourceCommits": [
+        "84bab06193b9a7cda6fd4f8fd9742a0178c7a6ce"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-auth-invitation-claim-boundary-20261114@84bab06193b9a7cda6fd4f8fd9742a0178c7a6ce"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_SCOPED_POST_MERGE_AUTH_QA",
+        "evidence": [
+          "Guest invalid-token claim returned 500 from caught page redirect; route-only fix returns 401 to guest and 403 to non-Parent before mutation. Local typecheck, scoped lint, optimized build, 11 focused invitation tests passed; nine exact-head PR checks green. Final-head guest 401, Owner 403, Parent invalid token 410. No authentic redemption or message delivery tested.",
+          "Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/auth-invitation-role-20261114-final/REPORT.private.md SHA256 8d3cda2c777d5fc11770433669a2e9ac1d3fe793a5c2ffa1b8b39d1ad5c62722; 34-case merged-head receipt SHA256 717d379dfafcc4d61c89b298e9fd976327bc7533bdaf19310c9616271c6341ad; claim receipt SHA256 408231a4a700cd05466c842223cc32e80c6f4d18d3af59ee7ee432e316046a3f. Guest auth/recovery states, five-role and restricted personas captured at Desktop/Mobile with zero rendering/overflow flags. Eight QA POST requests intentionally aborted; complete tenant/Child linkage, real invitation/recovery/MFA, formal accessibility and Production remain NOT_TESTED."
+        ]
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "2c91aae17457682b35f2ebe045a67b905db63009",
+        "pullRequests": [
+          409
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_DEVELOPMENT_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_THIRTY_FOUR_CASE_AUTH_ROLE_RENDERING_PASS_SCOPED_WITH_UNTESTED_MUTATIONS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue bounded authentic invitation/recovery and role/tenant security probes without real delivery; no main or Production release authorization."
+    },
+    {
+      "id": "codex/gb-integration-loopback-origin-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-AUTH-INVITATION-ROLE-BOUNDARY-QA-LOCAL-ORIGIN",
+      "title": "Canonical Development loopback CSRF origin alignment",
+      "owner": "Scoped Product Auth QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-integration-loopback-origin-20261114",
+      "sourceCommits": [
+        "8eb87e5da1481572aef41871513a69d35fd00d54"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-integration-loopback-origin-20261114@8eb87e5da1481572aef41871513a69d35fd00d54"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_SCOPED_POST_MERGE_AUTH_QA",
+        "evidence": [
+          "Development launcher pinned public URL to its actual 127.0.0.1 origin; inherited foreign URL cannot override. Workflow tests 10/10 and nine exact-head PR checks green. Final-head Parent invalid token canonical-origin 410, foreign-origin 403. Production configuration and shared CSRF guard unchanged.",
+          "Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/auth-invitation-role-20261114-final/REPORT.private.md SHA256 8d3cda2c777d5fc11770433669a2e9ac1d3fe793a5c2ffa1b8b39d1ad5c62722; 34-case merged-head receipt SHA256 717d379dfafcc4d61c89b298e9fd976327bc7533bdaf19310c9616271c6341ad; claim receipt SHA256 408231a4a700cd05466c842223cc32e80c6f4d18d3af59ee7ee432e316046a3f. Guest auth/recovery states, five-role and restricted personas captured at Desktop/Mobile with zero rendering/overflow flags. Eight QA POST requests intentionally aborted; complete tenant/Child linkage, real invitation/recovery/MFA, formal accessibility and Production remain NOT_TESTED."
+        ]
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "2c018733ae861f61040c95dddc502fd144e2aad9",
+        "pullRequests": [
+          410
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_AUTH_CLAIM_BASELINE",
+        "units": [
+          "codex/gb-auth-invitation-claim-boundary-20261114"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_THIRTY_FOUR_CASE_AUTH_ROLE_RENDERING_PASS_SCOPED_WITH_UNTESTED_MUTATIONS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue bounded authentic invitation/recovery and role/tenant security probes without real delivery; no main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
