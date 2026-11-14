@@ -16921,6 +16921,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Complete external owner visual acceptance and broader service-role/security, full Product, supplier cost/recovery gates under coordinator. No main/Production or RELEASE-GAP."
+    },
+    {
+      "id": "codex/gb-candidate-activation-role-qa-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-CANDIDATE-RECRUITMENT-ACTIVATION-ROLE-QA",
+      "title": "Candidate activation role QA and state-valid Manager decision UI",
+      "owner": "Scoped Candidate recruitment role QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-candidate-decision-state-ui-20261114",
+      "sourceCommits": [
+        "afbd945e55287f9a556b35e2010718e455c02f08",
+        "cc7f3fece19ced1fda30b5e46c1dcf3370cbd01d"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-candidate-decision-state-ui-20261114@afbd945e55287f9a556b35e2010718e455c02f08",
+          "origin/codex/gb-candidate-decision-classroom-ui-20261114@cc7f3fece19ced1fda30b5e46c1dcf3370cbd01d"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "TWO_EXACT_HEAD_NINE_GATE_PRS_AND_POSTMERGE_ROLE_READ_QA",
+        "evidence": [
+          "PR #425 nine exact-head checks SUCCESS, ancestry-preserving Development merge fb28c60059eff6fc0ccc508aa6d294e32c6316f7; PR #426 nine exact-head checks SUCCESS, ancestry-preserving merge d4e66f19d0c7891cb34c08079cac00b483c34c1a. Local typecheck, UX-08 8/8 and Candidate discovery 7/7 passed for each source. Direct scoped lint clean for the first TSX; shared form retained four pre-existing no-explicit-any findings on untouched lines.",
+          "Exact merged-head 28 settled Desktop/Mobile actual Product views: employed/rejected/information-required Manager applications show no invalid decision; awaiting offer permits rejection without classroom picker; submitted retains offer action. Foreign Manager/Staff unavailable; Parent and guest redirected. Zero browser page errors, overflow or blocked non-GET. Protected browser receipts SHA256 5554267827f829dc900a2b960dbe9d2940c3dccd4a832a6cc7fa98c242942569 and bf6b38d29ffac64f58c469c3b8b4ecc37f72ff81757e5c711b2a6148bef5756d.",
+          "Final read-only local RLS sample across nine synthetic roles: Candidate own five applications/zero foreign, foreign Manager zero Garden A applications, Parent zero applications/Staff; revoked Staff only self Staff row, zero active employment, Garden A/B operational authority false. Protected receipt SHA256 db56260eb0d6fbcb2a349ddda5e4d8db75cba0809cd23e84ef8ead7e3e8804c7 and supplemental b07ff0109b0187a2af3c9613b0f6833eb58d0df1833745db2080876d0305f216. Development migration drift 265/265 PASS."
+        ],
+        "classification": "MANAGEMENT_CANDIDATE_MANAGER_DECISION_UI_AND_SYNTHETIC_ROLE_READ_ONLY",
+        "limits": "No incomplete-candidate or pre-activation role persona available for fresh current-head browser proof; those remain NOT_TESTED. No offer, acceptance, employment mutation, external delivery, full RLS, owner visual approval, supplier cost/recovery or Production proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "d4e66f19d0c7891cb34c08079cac00b483c34c1a",
+        "pullRequests": [
+          425,
+          426
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_CANDIDATE_RECRUITMENT_BASELINE",
+        "units": [
+          "codex/gb-candidate-classroom-decision-field-20261114"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_LOCAL_PRODUCT_ROLE_QA_PASS_FULL_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Merge this ledger record after nine exact-head checks, verify clean remote Development, then hand off incomplete/pre-activation persona and broader role/security/owner visual/cost/recovery gaps to coordinator. No main/Production or RELEASE-GAP."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
