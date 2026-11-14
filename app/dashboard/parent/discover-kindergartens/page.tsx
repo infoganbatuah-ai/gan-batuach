@@ -110,7 +110,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
                 </article>
               );
             })}
-            {gardens.length === 0 ? <ParentEmptyState title={selectedChild ? "לא נמצאו התאמות" : "נדרש כרטיס ילד"} text={selectedChild ? "אפשר לשנות עיר או חיפוש. גן מלא, סגור או לא תואם מסומן באופן מפורש." : "יש ליצור או לקשר כרטיס ילד מורשה לפני הצגת התאמות."} /> : null}
+            {gardens.length === 0 ? <ParentEmptyState title={discovery.kind === "birth_date_required" ? "נדרש תאריך לידה" : selectedChild ? "לא נמצאו התאמות" : "נדרש כרטיס ילד"} text={discovery.kind === "birth_date_required" ? "כדי להתאים גנים לגיל הילד/ה, יש להשלים את תאריך הלידה בכרטיס הילד מול הגן." : selectedChild ? "אפשר לשנות עיר או חיפוש. גן מלא, סגור או לא תואם מסומן באופן מפורש." : "יש ליצור או לקשר כרטיס ילד מורשה לפני הצגת התאמות."} /> : null}
           </div>
         </ParentSection>
       </ParentAppFrame>
