@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T22:42:00Z",
+  "observedAt": "2026-11-14T22:50:00Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_272_OF_273_INSTALLED_CHILD_GARDEN_DELIVERY_PENDING_FULL_PROVIDER_RESTORE_GAP",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_273_OF_273_INSTALLED_CHILD_GARDEN_DELIVERY_PRODUCT_READBACK_AND_FULL_PROVIDER_RESTORE_PENDING",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8293,20 +8293,20 @@
       "requiredPredecessor": "20261114224500_management_privacy_self_delivery.sql",
       "developmentDependsOn": ["20261114224500"],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentApprovalEvidence": "PR #469 nine exact-head checks green. Fresh mode-0600 full DB and relevant app/Auth/Storage/migration backups; actual disposable restore of relevant schemas with object ACLs/RLS and representative 45/15/0/10 counts matched canonical. Exact candidate migration applied only to disposable; rollback-only guardian/Garden/role/expiry/hold/audit matrix passed. Restricted report exports/restricted/gb-privacy-child-garden-apply-20261115/REPORT.md SHA256 09a399e7f86cacad7b61b2199e34bc3d98b9e5ee7617c9db1dd4f2e68156e081. Full-provider restore failed on unrelated Realtime privilege; 12 provider-owned default ACL entries excluded from relevant restore. Canonical DB not modified.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApprovalEvidence": "PR #469 nine exact-head checks green. Fresh mode-0600 full DB and relevant app/Auth/Storage/migration backups; actual disposable restore of relevant schemas with object ACLs/RLS and representative 45/15/0/10 counts matched canonical. Exact candidate migration applied only to disposable; rollback-only guardian/Garden/role/expiry/hold/audit matrix passed. Restricted report exports/restricted/gb-privacy-child-garden-apply-20261115/REPORT.md; its preapplication SHA256 was 09a399e7f86cacad7b61b2199e34bc3d98b9e5ee7617c9db1dd4f2e68156e081. Full-provider restore failed on unrelated Realtime privilege; 12 provider-owned default ACL entries excluded from relevant restore. Canonical DB was not modified at approval time; installed receipt follows.",
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T22:49:14.296651Z",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development 60b635950d36e183981dee53e9f38bd9f24456b3 installed only reviewed 20261115001000. Installed digest 5001a7b8e51593f87be296be050b05aefd44a3c3c2e801e6ce9d7eefef416f61 and schema fingerprint 1864d8372fa98c4aea82545c816a6b27051d21a26bcfaa67dae0f8041e76fb83. Fresh protected full and relevant app/Auth/Storage/development_metadata backups were made; relevant schemas with object ACLs/RLS actually restored to disposable DB, representative 45 prior postbaseline migrations/15 Gardens/0 privacy requests/10 guardian links matched. Exact migration and rollback-only synthetic role/Garden/expiry/revoke/hold/audit matrix passed there. Full-provider restore failed at Realtime privilege; 12 provider-owned default ACL entries were excluded from focused restore. Installed canonical matrix exited 0 and rolled back; 46 postbaseline=273 total, 15 Gardens/0 privacy requests/0 grants/0 matching audit residues/0 foreign writers/0 advisory locks. Protected report exports/restricted/gb-privacy-child-garden-apply-20261115/REPORT.md SHA256 9013c564f363949b3e8c9d283dfc7f2451720c6d18fec7476eb78f4f00bdf25d. Product API readback and full-provider recovery remain open; no Production access.",
+      "developmentHistoryDigest": "5001a7b8e51593f87be296be050b05aefd44a3c3c2e801e6ce9d7eefef416f61",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
-      "recovery": "Metadata-only Child/Garden identity grant; no copied export blob. Relevant app/Auth/Storage/development_metadata backup restored with object ACLs and RLS, synthetic matrix passed. Full-provider restore/RPO/RTO remain unproven. Exclusive fresh canonical DB lease and ordered applicator required; reversal needs reviewed forward migration preserving immutable audit and no-reissue history. No Production access.",
-      "developmentSchemaFingerprint": null
+      "recovery": "Metadata-only Child/Garden identity grant; no copied export blob. Relevant app/Auth/Storage/development_metadata backup restored with object ACLs and RLS, synthetic matrix passed before canonical ordered application. Full-provider restore/RPO/RTO remain unproven. Reversal needs reviewed forward migration preserving immutable audit and no-reissue history. No Production access.",
+      "developmentSchemaFingerprint": "1864d8372fa98c4aea82545c816a6b27051d21a26bcfaa67dae0f8041e76fb83"
     }
   ],
   "developmentExpected": 273,
-  "developmentAppliedVerified": 272,
-  "blockers": ["20261115001000_management_privacy_child_garden_delivery.sql remains unapplied to canonical isolated Development; Product API readback and full-provider restore remain open."],
+  "developmentAppliedVerified": 273,
+  "blockers": ["Authenticated Child/Garden Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
