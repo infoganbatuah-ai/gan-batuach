@@ -25,3 +25,10 @@
 .role-app-shell.admin-runtime-shell .admin-literal-activity-list time {
   color: #536b89;
 }
+
+/* Keep the two photo/gradient-adjacent primary captions legible on the
+   lightest rendered pixels without changing their layout or imagery. */
+.role-app-shell.staff-runtime-shell .staff-reference-hero p,
+.role-app-shell.admin-runtime-shell .admin-literal-heading p {
+  color: #506783;
+}
