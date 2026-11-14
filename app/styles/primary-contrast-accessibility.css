@@ -1,0 +1,27 @@
+/* Measured plain-surface text contrast on the primary role workspaces.
+   Keep the approved reference layout and status colors unchanged. */
+.role-app-shell.staff-runtime-shell,
+.role-app-shell.inspector-runtime-shell {
+  --gb-muted: #506783;
+}
+
+.role-app-shell.parent-runtime-shell .role-app-avatar {
+  color: #0867cb;
+}
+
+.role-app-shell.parent-runtime-shell .parent-child-selector-heading small,
+.role-app-shell.parent-runtime-shell .parent-child-context-copy small,
+.role-app-shell.parent-runtime-shell .parent-child-context-add small,
+.role-app-shell.parent-runtime-shell .parent-primary-attendance-identity small,
+.role-app-shell.parent-runtime-shell .parent-primary-attendance > small {
+  color: #536b89;
+}
+
+.role-app-shell.teacher-runtime-shell .manager-today-metric small {
+  color: #536b89;
+}
+
+.role-app-shell.admin-runtime-shell .admin-literal-activity-list small,
+.role-app-shell.admin-runtime-shell .admin-literal-activity-list time {
+  color: #536b89;
+}

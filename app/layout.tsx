@@ -29,6 +29,7 @@ import "./styles/ux-v4-primary-screen-correction.css";
 import "./styles/ux-v6-true-reference-correction.css";
 import "./styles/ux-v8-owner-daily-workspace.css";
 import "./styles/ux-v9-parent-authorized-daily-hub.css";
+import "./styles/primary-contrast-accessibility.css";
 
 export const metadata: Metadata = {
   verification: {
