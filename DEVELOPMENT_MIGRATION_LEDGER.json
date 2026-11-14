@@ -8242,18 +8242,18 @@
       "developmentDependsOn": ["20261114210000"],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "PR #463 six exact-head CI gates plus canonical quality, management-context and Snyk green. Two actually restored disposable QA databases passed rollback-only scope/audit/role/hold/retry tests. No canonical DB mutation yet.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": "Pending separate exclusive gbi lease, fresh protected backup and actual disposable restore. Canonical Development remains 270 installed of 271 expected at source merge adeec40f398380395fe748ab5f9b8f06a428bb9a.",
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T20:52:19.379974Z",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development de0f0aeadfe13f4b8d31991b1a3195133919e4c7 installed only reviewed 20261114223000, exact digest 5902ab2b00f00bb9038a7c01c9874be41ed42ee4c2e166d41ec914f5cedee7fe and fingerprint 6226bcb482b0582f9b4445672b5815ce10be65a6fe2fae6c1ac79ddf74c46266. Fresh protected full backup SHA256 49de4aeb5771482a59e282a2885648deb87421b91f67148d78281a238998a091 and app backup SHA256 23e8ad2db0d409e0801ae4b5962226bf6ed4735aa226fedbd1a817fe26f153be; app backup actually restored to disposable DB and representative 43 prior migrations/15 Gardens/0 privacy requests matched. Installed rollback-only scope, reason, role, hold, audit failure and retry matrix PASS. Poststate 44 postbaseline=271 total, 15 Gardens/0 privacy, zero advisory locks, disposable removed. Protected report exports/restricted/gb-privacy-approval-apply-20261114/REPORT.md SHA256 07752667f2d4ce52eed40caea867550a58d1ea1c9d5a2c4fb88b3477665f21f8. Full provider restore parity remains open; no Production access.",
+      "developmentHistoryDigest": "5902ab2b00f00bb9038a7c01c9874be41ed42ee4c2e166d41ec914f5cedee7fe",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Management-only transactional approval/rejection audit guard. Reversal needs reviewed forward migration; preserve immutable audit events. No real fulfillment or Production access.",
-      "developmentSchemaFingerprint": null
+      "developmentSchemaFingerprint": "6226bcb482b0582f9b4445672b5815ce10be65a6fe2fae6c1ac79ddf74c46266"
     }
   ],
   "developmentExpected": 271,
-  "developmentAppliedVerified": 270,
+  "developmentAppliedVerified": 271,
   "blockers": [],
   "localObservations": [
     {
