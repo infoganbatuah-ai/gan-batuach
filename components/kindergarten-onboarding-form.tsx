@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Baby,
   Building2,
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { ManagerParentInvitationPanel } from "@/components/manager-parent-invitation-panel";
 import { UploadImageField } from "@/components/upload-image-field";
+import { onboardingReviewRequirements } from "@/lib/domain/kindergarten-onboarding-review";
 import {
   ganBatuachTrialDays,
   kindergartenAgeGroups,
@@ -60,23 +61,6 @@ type Onboarding = {
 };
 
 type Props = { garden: Garden; onboarding: Onboarding; managerName?: string | null };
-
-const fieldLabels: Record<string, string> = {
-  kindergarten_name: "שם הגן",
-  logo: "לוגו",
-  profile_image: "תמונת גן",
-  address: "כתובת",
-  phone: "טלפון",
-  contact_details: "פרטי קשר",
-  business_information: "פרטי עסק",
-  operating_hours: "שעות פעילות",
-  subscription_details: "מסלול תשלום",
-  age_group_pricing: "מחירי קבוצות גיל",
-  class_capacity_setup: "קיבולת כיתות",
-  manager_profile: "פרופיל מנהלת",
-  documents: "מסמכים",
-  camera_readiness: "מצב מצלמות"
-};
 
 const documentLabels: Record<string, string> = {
   ownership_legal_entity: "בעלות / ישות משפטית",
@@ -258,7 +242,10 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [imageUrl, setImageUrl] = useState(String(garden.image_url ?? profileData.image_url ?? ""));
   const [message, setMessage] = useState("");
   const [progressPercent, setProgressPercent] = useState(Number(onboarding.progress_percent ?? 0));
-  const [missing, setMissing] = useState<string[]>((onboarding.missing_fields ?? []).filter((field) => fieldLabels[field]).map((field) => fieldLabels[field]));
+  const [missingFields, setMissingFields] = useState<string[]>(onboarding.missing_fields ?? []);
+  const [activationBlockers, setActivationBlockers] = useState<string[] | null>(null);
+  const [readinessError, setReadinessError] = useState(false);
+  const [readinessRevision, setReadinessRevision] = useState(0);
   const [busy, setBusy] = useState<"draft" | "finish" | "">("");
   const [confirmed, setConfirmed] = useState(false);
   const [activated, setActivated] = useState(false);
@@ -279,6 +266,23 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const monthlyPrice = Number(onboarding?.subscription_monthly_amount ?? 0);
   const trialEnd = useMemo(() => new Date(Date.now() + ganBatuachTrialDays * 86400000).toLocaleDateString("he-IL"), []);
   const cityFromAddress = String(profileData.city ?? "").trim();
+  const reviewRequirements = activationBlockers === null ? null : onboardingReviewRequirements(activationBlockers, missingFields, confirmed);
+
+  useEffect(() => {
+    if (step !== 5 || activated || !garden.id) return;
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch(`/api/kindergarten-onboarding?gardenId=${encodeURIComponent(garden.id!)}`, { signal: controller.signal });
+        const body = await response.json();
+        if (!response.ok || !Array.isArray(body.data?.blockers)) throw new Error("Activation requirements unavailable");
+        if (!controller.signal.aborted) setActivationBlockers(body.data.blockers);
+      } catch {
+        if (!controller.signal.aborted) setReadinessError(true);
+      }
+    })();
+    return () => controller.abort();
+  }, [activated, garden.id, readinessRevision, step]);
 
   function buildPayload(formElement: HTMLFormElement, finish: boolean, registrationStep: number) {
     const form = new FormData(formElement);
@@ -337,6 +341,10 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
 
   async function save(finish: boolean, nextStep = step) {
     if (!formRef.current) return false;
+    if (!finish && (step === 5 || nextStep === 5)) {
+      setActivationBlockers(null);
+      setReadinessError(false);
+    }
     setBusy(finish ? "finish" : "draft");
     setMessage("");
     try {
@@ -354,8 +362,9 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         phone: payload.garden.phone,
         cameraReadiness: payload.garden.camera_readiness
       });
-      setMissing(body.data?.missing ?? []);
+      setMissingFields(body.data?.onboarding?.missing_fields ?? []);
       setProgressPercent(Number(body.data?.onboarding?.progress_percent ?? (finish ? 100 : progressPercent)));
+      if (!finish) setReadinessRevision((revision) => revision + 1);
       if (finish) {
         const selection = await fetch("/api/management/gardens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ garden_id: garden.id }) });
         if (!selection.ok) throw new Error("הגן הופעל, אך בחירת סביבת העבודה לא הושלמה. רעננו את העמוד ונסו שוב.");
@@ -417,7 +426,12 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         <div className="manager-progress-value"><strong>{progressPercent}%</strong><span><i style={{ width: `${progressPercent}%` }} /></span></div>
       </section>
 
-      {missing.length && step === 5 ? <div className="manager-missing-state"><strong>נדרש להשלים לפני ההפעלה:</strong>{missing.map((item) => <span key={item}>{item}</span>)}</div> : null}
+      {step === 5 ? <>
+        {readinessError ? <div className="manager-missing-state" role="status">לא ניתן לבדוק כרגע את דרישות ההפעלה. אפשר לשמור טיוטה ולנסות שוב.</div> : null}
+        {!readinessError && !reviewRequirements ? <div className="manager-missing-state" role="status">בודקים את דרישות ההפעלה…</div> : null}
+        {reviewRequirements?.required.length ? <div className="manager-missing-state" role="status"><strong>נדרש לפני ההפעלה:</strong>{reviewRequirements.required.map((item) => <span key={item}>{item}</span>)}</div> : null}
+        {reviewRequirements?.optional.length ? <div className="manager-missing-state optional"><strong>אפשר להשלים לאחר ההפעלה:</strong>{reviewRequirements.optional.map((item) => <span key={item}>{item}</span>)}</div> : null}
+      </> : null}
 
       <section className={`manager-wizard-stage ${step === 1 ? "is-active" : ""}`} aria-hidden={step !== 1}>
         <div className="manager-stage-heading"><Building2 /><div><h2>פרטי הגן</h2><p>המידע שיופיע בכרטיס הגן ולצוות הניהול.</p></div></div>
@@ -548,7 +562,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       <section className={`manager-wizard-stage ${step === 5 ? "is-active" : ""}`} aria-hidden={step !== 5}>
         <div className="manager-stage-heading"><CheckCircle2 /><div><h2>בדיקה אחרונה והפעלה</h2><p>סיכום קריא לפני הפעלה אטומית של סביבת הגן.</p></div></div>
         <section className="manager-review-summary" aria-label="סיכום הגן לפני הפעלה">
-          <header><div><p className="eyebrow">הגן שמופעל</p><h3>{reviewSnapshot.name || "שם הגן יישמר מהטופס"}</h3><span>{reviewSnapshot.address || "כתובת תופיע לאחר שמירה"}</span></div><span className="manager-review-progress"><b>{progressPercent}%</b><small>השלמה נוכחית</small></span></header>
+          <header><div><p className="eyebrow">הגן שמופעל</p><h3>{reviewSnapshot.name || "שם הגן יישמר מהטופס"}</h3><span>{reviewSnapshot.address || "כתובת תופיע לאחר שמירה"}</span></div><span className="manager-review-progress"><b>{progressPercent}%</b><small>השלמת פרופיל</small></span></header>
           <div className="manager-review-grid">
             <article><Building2 /><span><b>פרופיל הגן</b><small>{reviewSnapshot.phone || "פרטי קשר בשמירה"}</small></span><CheckCircle2 /></article>
             <article><UsersRound /><span><b>{selectedAgeGroups.length} קבוצות גיל</b><small>{selectedAgeGroups.reduce((sum, key) => sum + Number(classroomCounts[key] || 1), 0)} כיתות מתוכננות</small></span><CheckCircle2 /></article>
@@ -562,13 +576,13 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           <article className="manager-registration-card"><span className="manager-feature-icon green"><CheckCircle2 /></span><h3>מה יופעל עכשיו</h3>{["דשבורד ניהול הגן", "ילדים, הורים, צוות ומסמכים", "14 ימי ניסיון ללא חיוב היום", "בטיחות במצב המוכנות האמיתי"].map((item) => <p key={item}><CheckCircle2 /> {item}</p>)}</article>
           <article className="manager-registration-card"><span className="manager-feature-icon amber"><ShieldCheck /></span><h3>מה נשאר חסום בכוונה</h3>{["תשלום חי עד חיבור ספק ואישור", "צפיית הורים במצלמות עד Gateway, הרשאות ואישור", "AI חי והודעות חיצוניות עד אישור מפורש"].map((item) => <p key={item}><ShieldCheck /> {item}</p>)}</article>
         </div>
-        <label className="manager-registration-consent"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /> אני מאשרת שהפרטים נכונים ומבקשת להתחיל 14 ימי ניסיון ללא חיוב היום.</label>
+        <label className="manager-registration-consent"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /> אני מאשרת את פרטי הגן, את תנאי השימוש ואת מדיניות הפרטיות, ומבקשת להתחיל 14 ימי ניסיון ללא חיוב היום.</label>
       </section>
 
       <footer className="manager-wizard-actions">
         <button type="button" className="button secondary" disabled={step === 1 || Boolean(busy)} onClick={() => void move(step - 1)}><ChevronRight /> חזרה</button>
         <button type="submit" className="button secondary" disabled={Boolean(busy)}><Save /> {busy === "draft" ? "שומר..." : "שמירת טיוטה"}</button>
-        {step < 5 ? <button type="button" className="button primary" disabled={Boolean(busy)} onClick={() => void move(step + 1)}>{busy === "draft" ? <LoaderCircle className="spin" /> : null} שמירה והמשך <ChevronLeft /></button> : <button type="button" className="button primary" disabled={!confirmed || Boolean(busy)} onClick={() => void save(true, 5)}>{busy === "finish" ? <LoaderCircle className="spin" /> : <CheckCircle2 />} התחלת ניסיון וכניסה לדשבורד</button>}
+        {step < 5 ? <button type="button" className="button primary" disabled={Boolean(busy)} onClick={() => void move(step + 1)}>{busy === "draft" ? <LoaderCircle className="spin" /> : null} שמירה והמשך <ChevronLeft /></button> : <button type="button" className="button primary" disabled={!reviewRequirements?.canSubmit || Boolean(busy)} onClick={() => void save(true, 5)}>{busy === "finish" ? <LoaderCircle className="spin" /> : <CheckCircle2 />} התחלת ניסיון וכניסה לדשבורד</button>}
         {step === 4 ? <button type="button" className="button text-button" disabled={Boolean(busy)} onClick={() => void move(5)}>דלגי לעת עתה</button> : null}
         {message ? <span role="status" aria-live="polite" className={message.includes("לא ניתן") || message.includes("חסרים") || message.includes("נכשלה") ? "error-text" : "payment-action-message"}>{message}</span> : null}
       </footer>
