@@ -42,6 +42,7 @@ begin
   if old.status = 'completed' and (
        new.completed_at is distinct from old.completed_at
        or new.execution_status is distinct from old.execution_status
+       or new.reviewer_id is distinct from old.reviewer_id
        or new.decision_reason is distinct from old.decision_reason
        or new.response_summary is distinct from old.response_summary
        or new.scope_calculated_at is distinct from old.scope_calculated_at
@@ -50,6 +51,14 @@ begin
        or new.legal_hold_conflicts is distinct from old.legal_hold_conflicts
      ) then
     raise exception 'Completed privacy decision evidence is immutable' using errcode = '23514';
+  end if;
+
+  if old.status = 'rejected' and (
+       new.reviewer_id is distinct from old.reviewer_id
+       or new.decision_reason is distinct from old.decision_reason
+       or new.response_summary is distinct from old.response_summary
+     ) then
+    raise exception 'Rejected privacy decision evidence is immutable' using errcode = '23514';
   end if;
 
   if new.status is distinct from old.status then
