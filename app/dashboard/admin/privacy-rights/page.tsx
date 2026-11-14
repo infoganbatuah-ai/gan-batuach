@@ -8,7 +8,6 @@ import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { resolveDataSubjectScope } from "@/lib/privacy/data-subject-scope";
-import { writeAuditEvent } from "@/lib/security/audit-log-service";
 
 const requestLabels: Record<string, string> = {
   access: "Access",
@@ -40,7 +39,7 @@ async function updatePrivacyRequestStatus(formData: FormData) {
   const decisionReason = String(formData.get("decision_reason") ?? "").trim().slice(0, 1200);
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
     || !["approved", "rejected"].includes(status)
-    || (status === "rejected" && decisionReason.length < 12)) {
+    || decisionReason.length < 12) {
     redirect("/dashboard/admin/privacy-rights?decision_error=invalid");
   }
   const update = await supabase.from("privacy_rights_requests" as any).update({
@@ -51,18 +50,6 @@ async function updatePrivacyRequestStatus(formData: FormData) {
     response_summary: status === "rejected" ? "הבקשה נדחתה לאחר בדיקה." : "הבקשה אושרה להמשך טיפול."
   }).eq("id", id).select("id,request_type,garden_id,child_id").maybeSingle();
   if (update.error || !update.data) redirect("/dashboard/admin/privacy-rights?decision_error=transition");
-  await writeAuditEvent({
-    eventType: `privacy_request_${status}`,
-    eventCategory: "regulatory",
-    actorProfileId: profile.id,
-    actorRole: profile.role,
-    targetType: "privacy_request",
-    targetId: id,
-    gardenId: (update.data as any).garden_id ?? null,
-    childId: (update.data as any).child_id ?? null,
-    metadata: { request_type: (update.data as any).request_type ?? null, decision_reason: decisionReason || null },
-    riskLevel: status === "approved" ? "high" : "medium"
-  });
   revalidatePath("/dashboard/admin/privacy-rights");
   redirect("/dashboard/admin/privacy-rights?decision=updated");
 }
@@ -255,7 +242,7 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
                 <div className="procedure-meta">
                   {!['completed', 'rejected', 'cancelled'].includes(request.status) ? <>
                     <form action={calculateRequestScope}><input type="hidden" name="id" value={request.id} /><button className="button secondary"><FileSearch size={16} /> Scope</button></form>
-                    <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="approved" /><button className="button secondary"><CheckCircle2 size={16} /> Approve</button></form>
+                    {request.status !== "approved" ? <form action={updatePrivacyRequestStatus} className="form"><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="approved" /><label>נימוק לאישור<input name="decision_reason" minLength={12} maxLength={1200} required /></label><button className="button secondary"><CheckCircle2 size={16} /> Approve</button></form> : null}
                     <span className="pill warn">סיום דורש ביצוע מתועד ובדיקת שימור</span>
                     <form action={createLegalHoldForRequest}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="hold_reason" value="Privacy request requires evidence preservation review" /><button className="button danger"><Gavel size={16} /> Legal hold</button></form>
                     <form action={updatePrivacyRequestStatus} className="form"><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="rejected" /><label>סיבת דחייה<input name="decision_reason" minLength={12} maxLength={1200} required /></label><button className="button secondary"><Trash2 size={16} /> Reject</button></form>
