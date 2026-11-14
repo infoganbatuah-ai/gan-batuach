@@ -1,0 +1,11 @@
+# Management child privacy request scope
+
+Source Development SHA: `a3b3985d1e2a1a91fa8257b1d1a5fd4726563c81`.
+
+The privacy portal and API previously accepted a missing Child ID and copied the requester's profile Garden into a Child request. The table also lacked authenticated SELECT/INSERT grants. An existing restrictive policy recognized only legacy primary-parent access, so an active non-primary legal guardian could not submit a request.
+
+The two submission paths now resolve one canonical subject. A Child request requires an active authorized Parent guardian and binds the exact Child row to its Garden; unavailable and foreign IDs return the same denial without Child information. A Garden request uses the currently selected authorized Management Garden. A self request is bound to the authenticated profile and role. The database independently enforces these bindings and grants only authenticated SELECT/INSERT under existing RLS. Admin review, retention, deletion and export execution remain manual. No automatic deletion/export or external delivery is claimed.
+
+Disposable Development QA reproduced the original ACL and scope defects, then passed a rollback-only matrix for primary, non-primary and revoked guardians; foreign/missing Child; two Gardens; wrong Garden; spoofed self; Parent Garden denial; authorized Manager Garden; Manager Child denial; own/foreign request visibility. The protected evidence is at `exports/restricted/gb-privacy-child-qa-20261114/REPORT.md` (SHA256 `0474497b3cdfd709ab41406088bf5ec465a0b3e9321d43f1fb6bc44d7e17ab6c`), outside Git. The disposable database was dropped; canonical QA counts remained 27 Auth users and 15 Gardens.
+
+Local checks: typecheck PASS, focused ESLint PASS, lint baseline PASS with zero regressions, migration health PASS (268 ordered files), domain gate PASS (56/56), Next webpack build PASS. The local broad security gate was blocked by the existing CH1 external-volume ownership check, which reported `CH1_VOLUME_OWNERSHIP_REQUIRED` even with host privileges. No DO security mechanism was bypassed or changed. Exact-head remote CI and reviewed canonical Development migration application remain required before this unit can be called integrated and locally verified. Browser-to-API and Production/provider proof are not claimed.
