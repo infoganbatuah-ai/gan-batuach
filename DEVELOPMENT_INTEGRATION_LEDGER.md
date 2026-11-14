@@ -1,5 +1,23 @@
 # Canonical Development Integration Ledger
 
+2026-11-14 Auth/invitation and canonical loopback QA — PRs #409/#410:
+Source `84bab06193b9a7cda6fd4f8fd9742a0178c7a6ce` corrected guest invitation
+claim 500 to 401 and non-Parent to 403; merged
+`2c91aae17457682b35f2ebe045a67b905db63009`. Source
+`8eb87e5da1481572aef41871513a69d35fd00d54` aligned the canonical
+Development loopback CSRF origin; merged
+`2c018733ae861f61040c95dddc502fd144e2aad9`. Both PRs passed nine
+exact-head checks. Final-head 34 Desktop/Mobile auth and role-state cases
+had zero page errors or horizontal overflow. Guest invalid claim returned
+401, Owner 403, Parent invalid token 410 and foreign origin 403.
+Protected report SHA256
+`8d3cda2c777d5fc11770433669a2e9ac1d3fe793a5c2ffa1b8b39d1ad5c62722`;
+34-case receipt SHA256
+`717d379dfafcc4d61c89b298e9fd976327bc7533bdaf19310c9616271c6341ad`.
+Real invitation/recovery delivery and credential mutation, complete
+tenant/Child-link isolation and Production remain NOT_TESTED. No main,
+Production, migration, paid dependency or Digital Observer core change.
+
 2026-11-14 five-role Settings and account permissions QA — PR #407:
 Source `fbd6771d1ad57a2c0065489ce51b79269abe020d` fixed anonymous
 `/api/profile/settings` GET/PATCH returning 500 from a caught page redirect;
