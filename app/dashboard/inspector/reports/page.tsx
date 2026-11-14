@@ -61,14 +61,15 @@ export default async function InspectorReportsPage() {
   const gardens = (gardensRes.data ?? []) as unknown as GardenRow[];
   const ids = gardens.map((garden) => garden.id);
   const [complaints, incidents] = ids.length ? await Promise.all([
-    supabase.from("complaints" as never).select("id, subject, severity, status, created_at, acknowledgement_due_at, response_due_at, resolution_due_at, sla_policy_id, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false }),
-    supabase.from("incident_reports" as never).select("id, title, severity, status, created_at, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false })
+    supabase.from("complaints" as never).select("id, subject, severity, status, created_at, acknowledgement_due_at, response_due_at, resolution_due_at, sla_policy_id, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false }).limit(150),
+    supabase.from("incident_reports" as never).select("id, title, severity, status, created_at, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false }).limit(150)
   ]) : [{ data: [] }, { data: [] }];
   const rows: ReportRow[] = [
     ...((complaints.data ?? []) as unknown as Omit<ReportRow, "source">[]).map((row) => ({ ...row, source: "complaint" as const })),
     ...((incidents.data ?? []) as unknown as Omit<ReportRow, "source">[]).map((row) => ({ ...row, source: "incident" as const }))
   ];
-  const urgent = rows.filter((row) => ["critical", "high", "urgent"].includes(String(row.severity))).length;
+  const openRows = rows.filter((row) => !["resolved", "closed", "done", "cancelled"].includes(String(row.status ?? "").toLowerCase()));
+  const urgent = openRows.filter((row) => ["critical", "high", "urgent"].includes(String(row.severity))).length;
   const inspectorProfile = inspectorRes.data as unknown as InspectorProfileRow | null;
   const profileForUi = { ...profile, profile_image_url: inspectorProfile?.profile_photo_url ?? profile.profile_image_url };
 
@@ -76,7 +77,7 @@ export default async function InspectorReportsPage() {
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/reports" title="דיווחים ופניות" subtitle="תלונות, אירועים ודוחות בגנים המשויכים" badge="דוחות">
       <InspectorHero eyebrow="דיווחים לפקח" title="כל אירוע שדורש בדיקה אנושית" subtitle="הפקח רואה רק פניות, תלונות ואירועים של גנים שהוקצו לו." artwork={<MessageSquareWarning />} />
       <InspectorMetricGrid columns={3}>
-        <InspectorMetricCard label="דיווחים פתוחים" value={rows.length} hint="לטיפול" icon={FileText} />
+        <InspectorMetricCard label="דיווחים פתוחים" value={openRows.length} hint="לטיפול" icon={FileText} />
         <InspectorMetricCard label="דחופים" value={urgent} hint="חומרה גבוהה" icon={AlertTriangle} tone={urgent ? "warning" : "success"} />
         <InspectorMetricCard label="גנים משויכים" value={ids.length} hint="טווח הרשאה" icon={MessageSquareWarning} />
       </InspectorMetricGrid>
@@ -92,7 +93,7 @@ export default async function InspectorReportsPage() {
               actions={row.source === "complaint" ? <ComplaintCaseActions id={row.id} status={row.status ?? "open"} role="inspector" /> : undefined}
             />
           ))}
-          {rows.length === 0 ? <InspectorEmpty title="אין דיווחים פתוחים" text="כאשר הורה, גן או תצפיתן ייצרו אירוע בגנים שלך, הוא יופיע כאן." icon={FileText} /> : null}
+          {rows.length === 0 ? <InspectorEmpty title="אין דיווחים" text="כאשר הורה, גן או תצפיתן ייצרו אירוע בגנים שלך, הוא יופיע כאן." icon={FileText} /> : null}
         </InspectorList>
       </InspectorSection>
       <ReportsCenter role="inspector" gardens={gardens.map((garden) => ({ id: garden.id, label: garden.name ?? "גן" }))} />
