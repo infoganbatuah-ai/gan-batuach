@@ -502,12 +502,13 @@ export function ApplicationDecisionForm({ endpoint, actions, classrooms = [], cl
   return (
     <form className="form compact-form" onSubmit={submit}>
       <select name="action" required>{actions.map((action) => <option key={action.value} value={action.value}>{action.label}</option>)}</select>
-      {classrooms.length ? <select name={classroomFieldName} defaultValue=""><option value="">בחירת כיתה בעת אישור</option>{classrooms.map((classroom) => <option value={classroom.id} key={classroom.id}>{classroom.name}</option>)}</select> : <>
+      {classrooms.length > 0 && actions.some((action) => action.value === "approve") ? <select name={classroomFieldName} defaultValue=""><option value="">בחירת כיתה בעת אישור</option>{classrooms.map((classroom) => <option value={classroom.id} key={classroom.id}>{classroom.name}</option>)}</select> : null}
+      {classrooms.length === 0 ? <>
         <input name="assigned_age_group" placeholder="קבוצת גיל / כיתה" />
         <input name="assigned_role" placeholder="תפקיד צוות" />
         <input name="assigned_regions" placeholder="אזורי מפקח, מופרדים בפסיק" />
         <input name="garden_ids" placeholder="מזהי גנים לשיוך, מופרדים בפסיק" />
-      </>}
+      </> : null}
       <textarea name="decision_reason" placeholder="הערת החלטה" />
       <button className="button secondary tiny" disabled={busy} type="submit"><BriefcaseBusiness size={14} /> שמירה</button>
       {state ? <small className={state.ok ? "pill good" : "pill bad"}>{state.message}</small> : null}
