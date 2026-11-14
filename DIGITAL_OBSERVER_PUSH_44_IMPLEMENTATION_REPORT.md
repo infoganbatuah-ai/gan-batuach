@@ -63,7 +63,7 @@ PUSH 44 is **PARTIAL / CANONICAL NOT DONE**. The provider-neutral native runtime
 
 - Real remote playback requires the existing authorized HTTPS playback edge. Local-only DVR/Gateway playback is not remote mobile proof.
 - APNs/FCM credentials and a registered physical device were not activated; no receipt is claimed.
-- Android SDK and full Xcode are absent on the qualification host, so native compilation/simulator gates are blocked.
+- At this report's original qualification, Android SDK and full Xcode were absent on that host. A later isolated Android Debug build passed locally on 2026-11-14; this does not prove Android device, OEM, FCM delivery, DB, full-stack or broad mobile readiness. The original iOS simulator conclusion is unchanged.
 - No real device, App Store, Google Play, paid provider, customer, main or Production system was used.
 - Personal-safety capabilities (Guardian, Safe Journey, SOS/Silent SOS, Safety Circle and location/sensor fusion) remain unimplemented or foundation-only. PUSH 45 legal/privacy and later pilot gates remain mandatory.
 
@@ -82,7 +82,7 @@ No schema change is required. Existing `digital_observer_device_slots`, `push_de
 - Migration health: PASS 255 files; no PUSH 44 migration. Release contract: PASS with Production mutation false.
 - PUSH 39, 40, 41, 42 and 43 focused regressions: PASS.
 - Capacitor iOS/Android sync: PASS with five official plugins.
-- Android debug build: BLOCKED — Android SDK path unavailable.
+- Android debug build: LOCAL_BUILD_PASS in the later 2026-11-14 isolated qualification — `:app:assembleDebug` completed 168 actionable tasks and produced `app-debug.apk` with independently rechecked SHA-256 `6ae6a63c330be3f3497da4f2dbc0013be6160f54cdbdb2af62596aee7eb211d8`; receipt: `/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/.dev-cache/tmp/push44-android-sdk/local-build-evidence-20261114.json`. The earlier SDK-path failure is historical, not current build status.
 - iOS build/simulator: BLOCKED — full Xcode/simulator unavailable.
 - Real-device/remote-playback/Push receipt/store-policy proof: OPEN.
 - PR #220 exact head `c3ff106c517fa85f59a4686eac84fb00098e7a8b` passed all 9 required checks and merged with preserved ancestry as `8a75613bea5018dcecd323a959d0cd2aa6ec4ac5`.

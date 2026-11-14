@@ -153,15 +153,17 @@ Signing and installation remain BLOCKED. Earlier rows are historical evidence.
 | Platform | Version/device | Build | Auth/session | Deep link | Playback/network | Push | Background/resume | Evidence |
 |---|---|---|---|---|---|---|---|---|
 | iOS | Minimum deployment target 15.0; iPhone 13 Pro / iOS 18.7.8 paired; iPhone 17 Pro / iOS 26.3 simulator | NATIVE BUILD PASS — simulator and unsigned generic iOS arm64 Debug targets at `9c886315` | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS for APNs project entitlement; REAL PUSH RECEIPT PASS not claimed | DETERMINISTIC PASS; physical NOT RUN | PUSH 44 QA, iOS continuation and Xcode storage reports |
-| Android | minSdk 24; target/compile SDK 36 | BLOCKED — Android SDK is not installed on the qualification host | DETERMINISTIC PASS | DETERMINISTIC PASS | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS; `google-services.json`/device receipt OPEN | DETERMINISTIC PASS | `npm run mobile:sync`; PUSH 44 QA |
+| Android | minSdk 24; target/compile SDK 36 | LOCAL_BUILD_PASS — 2026-11-14 `:app:assembleDebug`, 168 actionable tasks; `app-debug.apk` SHA-256 `6ae6a63c330be3f3497da4f2dbc0013be6160f54cdbdb2af62596aee7eb211d8` | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; physical NOT RUN | DETERMINISTIC PASS; REMOTE PLAYBACK PASS not claimed | DETERMINISTIC PASS; `google-services.json`/FCM device receipt OPEN | DETERMINISTIC PASS; physical NOT RUN | `/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/.dev-cache/tmp/push44-android-sdk/local-build-evidence-20261114.json`; APK hash independently rechecked |
 
 Native compilation now passes, but no SIMULATOR PASS, REAL DEVICE PASS, REMOTE
-PLAYBACK PASS or REAL PUSH RECEIPT PASS is claimed. The simulator app process
+PLAYBACK PASS or REAL PUSH RECEIPT PASS is claimed. The Android Debug APK is a
+local build result only; Android physical-device/OEM, FCM delivery, APNs, DB,
+full-stack and broad mobile qualification remain open. The simulator app process
 installed and launched, but its WebView remained blank and recorded
 `NSURLErrorDomain -1004` because no approved Development endpoint was
-available. The failed local Android build is retained as evidence: Gradle reached
-dependency resolution and stopped because `ANDROID_HOME`/`android/local.properties`
-has no SDK location. The 2026-10-20 targeted iOS continuation used Xcode 26.3,
+available. The earlier failed Android build remains historical evidence: Gradle
+reached dependency resolution and stopped because `ANDROID_HOME`/`android/local.properties`
+had no SDK location at that time. The 2026-10-20 targeted iOS continuation used Xcode 26.3,
 but no usable Apple Development identity/profile exists and the paired iPhone
 has Developer Mode disabled with no Developer Disk Image mounted.
 
