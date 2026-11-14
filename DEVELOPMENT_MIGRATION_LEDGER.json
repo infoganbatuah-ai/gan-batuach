@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T13:59:48.550193Z",
+  "observedAt": "2026-11-14T14:07:34.818535Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "ONE_INTEGRATED_REVIEWED_MIGRATION_PENDING_ISOLATED_DEVELOPMENT_APPLY",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8112,16 +8112,16 @@
         "20261114090000"
       ],
       "developmentApprovalEvidence": "PR #442 nine exact-head checks SUCCESS. Backup SHA256 563e33136b5dba74fa1cfa09b3dc65642a35b835a409e41dd55fa206c07f401c restored to disposable QA DB; rollback-only direct RLS and registration matrix passed across active/revoked/expired/scope, primary/foreign Parent, Manager, Staff, Inspector, Admin and wrong Garden. No canonical DB mutation yet.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T14:06:19.911312+00:00",
+      "developmentEvidence": "Canonical ordered applicator at exact remote Development cdf712a33585f1481bb601a41f57dad92f13046f; only 20261114134005 applied. Fresh protected pre-apply dump SHA256 21800a931151c6fad5a9c9b4c6ef26b2403252a26b2816b213d477423c1326b6 restored successfully to a disposable database. Installed RLS/registration matrix PASS, receipt SHA256 8aaaba9e53ad7e539b8b737f9d40849a28bc4a1eb93e64530f22b155946e4a56; test source SHA256 d1c351dafdb119dbda966e79ebd1005b391001bc91ae45787626ef95edaa0ac9. History digest 55785a1204b89ff7614adde2bcd2c574763120aa65135030d1414c0907435316 and schema fingerprint 9465b31a4f117e234ee1b78e05cbb38e9e98f881e46bf70e4c09e793dceda17c read back. Product Desktop/Mobile pending. No Production access.",
+      "developmentHistoryDigest": "55785a1204b89ff7614adde2bcd2c574763120aa65135030d1414c0907435316",
       "productionApplied": "UNVERIFIED",
       "recovery": "Function-only forward migration; no table/backfill mutation. Protected pre-apply QA dump; rollback requires reviewed forward restoration of prior can_access_document and register_management_document definitions and authenticated role readback. Production history unknown; no Production apply."
     }
   ],
   "developmentExpected": 266,
-  "developmentAppliedVerified": 265,
+  "developmentAppliedVerified": 266,
   "blockers": [],
   "localObservations": [
     {

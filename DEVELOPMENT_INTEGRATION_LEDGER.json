@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T13:59:48.550193Z",
+  "updatedAt": "2026-11-14T14:07:34.818535Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17350,7 +17350,8 @@
         "evidence": [
           "PR #442 passed six Digital Observer CI gates, canonical quality, management-context and Snyk on exact feature head.",
           "Protected isolated QA backup SHA256 563e33136b5dba74fa1cfa09b3dc65642a35b835a409e41dd55fa206c07f401c was restored to a disposable database; new rollback-only Parent/Manager/Staff/Inspector/Admin and revocation/upload matrix passed.",
-          "Local typecheck, lint baseline, migration-health (266 files), release-contract and production build passed."
+          "Local typecheck, lint baseline, migration-health (266 files), release-contract and production build passed.",
+          "Canonical ordered applicator at remote Development cdf712a33585f1481bb601a41f57dad92f13046f applied only 20261114134005; installed rollback-only role matrix passed; source digest 55785a1204b89ff7614adde2bcd2c574763120aa65135030d1414c0907435316; schema fingerprint 9465b31a4f117e234ee1b78e05cbb38e9e98f881e46bf70e4c09e793dceda17c. Protected test receipt SHA256 8aaaba9e53ad7e539b8b737f9d40849a28bc4a1eb93e64530f22b155946e4a56."
         ],
         "classification": "MANAGEMENT_CHILD_DOCUMENT_GUARDIAN_RLS",
         "limits": "Current canonical Development DB apply and merged-head authenticated Product QA pending. Existing unrelated document expiry-notification legacy SQL assertion failed on accumulated QA fixtures. Local domain sparse-file and security volume-ownership gates were not PASS; exact-head remote CI passed. No Production/provider/hardware/owner-visual proof."
@@ -17373,12 +17374,12 @@
       "migrationOrder": [
         "20261114134005"
       ],
-      "localVerification": "DISPOSABLE_RESTORED_DB_RLS_PASS_CANONICAL_DEVELOPMENT_APPLY_PENDING",
+      "localVerification": "INSTALLED_DEVELOPMENT_RLS_ROLE_MATRIX_PASS_PRODUCT_DESKTOP_MOBILE_PENDING",
       "releaseEligibility": "NOT_READY_CANONICAL_DEVELOPMENT_APPLY_PRODUCT_SECURITY_COST_RECOVERY_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After this ledger exact-head CI and merge, run canonical ordered applicator for only 20261114134005 on isolated Development, verify installed RLS and Parent Product routes, then record developmentApplied YES in separate ledger update. No main/Production."
+      "nextAction": "Verify exact merged-head Parent/Manager Product routes and screenshot evidence on Desktop/Mobile, then coordinator handoff. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
