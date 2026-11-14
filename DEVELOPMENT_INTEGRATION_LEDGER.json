@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T08:42:40.333Z",
+  "updatedAt": "2026-11-14T09:11:28.203Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16823,6 +16823,56 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Merge this applied-state ledger PR, run canonical Development drift, GET-only post-merge Inspector/Manager/Owner/Parent/Staff/Admin/guest report QA and scoped screenshot readback. No main/Production."
+    },
+    {
+      "id": "codex/gb-attendance-pickup-guest-read-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-ATTENDANCE-PICKUP-ROLE-BOUNDARY-QA",
+      "title": "Attendance and pickup role boundary QA with guest read correction",
+      "owner": "Scoped attendance/pickup role QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-attendance-pickup-guest-read-20261114",
+      "sourceCommits": [
+        "6b73a27cff4c802e4f62580c19e72d3d8b61e861"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-attendance-pickup-guest-read-20261114@6b73a27cff4c802e4f62580c19e72d3d8b61e861"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_AND_POSTMERGE_ROLE_READ_QA",
+        "evidence": [
+          "PR #421 nine exact-head checks SUCCESS; ancestry-preserving Development merge 0c6c2909808ac485a74170b5b44ac15ffcf2ab62. Typecheck, scoped ESLint, UX06 8/8, migration safety and release contract passed locally. Local full-domain runner stopped only on absent unrelated Digital Observer benchmark file in isolated feature worktree; exact-head GitHub domain gate passed.",
+          "Exact merged Development 265/265 migration drift PASS. Fresh 32 Desktop/Mobile read-only role views across nine synthetic roles: no page errors, overflow or Product non-GET. Parent A/B child/Garden isolation, Staff B denied, Inspector denied, Admin read policy scope, revoked pickup contact displayed, human confirmation stated, no camera/AI release authority. Guest attendance GET fixed 500 to 401. Protected postmerge receipt SHA256 b7ecf0f21d9d36c8db9fb8fa2f241e7cbcd64fc79808b8c929aa26b4adecbc4a."
+        ],
+        "classification": "MANAGEMENT_ATTENDANCE_PICKUP_GUEST_AUTH_AND_SYNTHETIC_ROLE_READ_ONLY",
+        "limits": "Expired contact live attempt, release RPC, real pickup, notification, provider/hardware, full RLS, owner visual acceptance, all-supplier cost/recovery and Production NOT_TESTED. No actual pickup or Product write in this unit."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "0c6c2909808ac485a74170b5b44ac15ffcf2ab62",
+        "pullRequests": [
+          421
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_ATTENDANCE_PICKUP_BASELINE",
+        "units": [
+          "codex/product-attendance-pickup-journey-20261106"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_LOCAL_PRODUCT_ROLE_QA_PASS_FULL_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Merge this ledger record after nine exact-head checks, verify clean remote Development and preserve protected role receipt; continue coordinator-assigned Development QA. No main/Production or RELEASE-GAP."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
