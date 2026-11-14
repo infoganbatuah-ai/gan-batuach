@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T00:46:28.304Z",
+  "updatedAt": "2026-11-14T01:06:36.724Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16260,6 +16260,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve synthetic evidence and previous draft; continue cumulative Product and owner visual gates before any separately authorized release. No main/Production or release work."
+    },
+    {
+      "id": "codex/gb-candidate-classroom-decision-field-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-CANDIDATE-FINAL-DECISION-PREFLIGHT-20261114",
+      "title": "Route selected Manager recruitment classroom through the canonical Staff decision API field",
+      "owner": "Scoped Candidate preflight executor; single Development integration owner",
+      "sourceBranch": "codex/gb-candidate-classroom-decision-field-20261114",
+      "sourceCommits": [
+        "4338b07766cdb79ca90b2e15b989a4f9457e074a"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-candidate-classroom-decision-field-20261114@4338b07766cdb79ca90b2e15b989a4f9457e074a"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_SCOPED_PREFLIGHT_PASS",
+        "evidence": [
+          "PR #392 exact source head 4338b07766cdb79ca90b2e15b989a4f9457e074a passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge 04a750828d93679461131376179604ac130a4158.",
+          "Behavioral form/route contract tests 3/3; focused Candidate/Manager suite 20/20; TypeScript PASS. Focused ESLint page and test PASS; shared form has the same four pre-existing no-explicit-any findings on base and candidate, zero new findings.",
+          "Read-only isolated Development preflight: application 704025c7-724e-4156-8f99-7a9ebd991bc8 remains resubmitted, Garden active, opening published, candidate complete/verified, Manager membership active, zero Staff/employment. Wrong-Garden classroom rejected before update in rollback-only transaction; state/counts unchanged. No final decision/activation write.",
+          "Protected preflight report: /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/candidate-final-decision-preflight-20261114/REPORT.private.md SHA256 5285d21a9988ed6ed70a7e3a2f324eec97aee1fb8ff72a2d780bd928706ac944."
+        ],
+        "classification": "SCOPED_CANDIDATE_DECISION_CLASSROOM_FIELD_NO_SCHEMA_OR_DO_CORE_CHANGE",
+        "limitations": "No live approval, rejection, acceptance, employment or role change. Full authenticated Product decision journey requires separate QA DB write lease and fresh verified backup/restore. Full supplier cost and external owner visual release gates remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "be0afcb867409624169be0b203a7f6fd0972b1e9",
+        "commit": "04a750828d93679461131376179604ac130a4158",
+        "pullRequests": [
+          392
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_CANDIDATE_REVIEW_MIGRATION",
+        "units": [
+          "codex/candidate-application-review-journey-20261107"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_SOURCE_TESTS_20_OF_20_NO_PRODUCT_WRITE",
+      "releaseEligibility": "NOT_READY_LIVE_CANDIDATE_DECISION_CUMULATIVE_SECURITY_COST_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain a separately scoped coordinator QA DB write lease and fresh full verified local dump/restore before one synthetic Manager offer and later separately scoped Candidate acceptance. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
