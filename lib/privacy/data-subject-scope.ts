@@ -58,13 +58,16 @@ export async function resolveDataSubjectScope(supabase: any, input: DataSubjectS
       .from(table.tableName as any)
       .select("id", { count: "exact", head: true })
       .eq(table.field, value);
+    if (result.error || result.count === null || result.count === undefined) {
+      throw new Error(`Privacy scope unavailable for ${table.tableName}`);
+    }
     items.push({
       dataCategory: table.dataCategory,
       tableName: table.tableName,
-      estimatedRecordCount: result.error ? 0 : result.count ?? 0,
+      estimatedRecordCount: result.count,
       actionRecommendation: table.actionRecommendation,
       parentExportAllowed: table.parentExportAllowed,
-      notes: result.error ? `Scope query unavailable: ${result.error.message}` : "Scope calculated from direct relationship."
+      notes: "Scope calculated from direct relationship."
     });
   }
   return items;
