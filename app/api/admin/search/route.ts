@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +8,9 @@ function like(term: string) {
 
 export async function GET(request: Request) {
   try {
-    await requireRole(["admin"]);
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("Authentication required.", 401);
+    if (profile.role !== "admin") return fail("Admin access required.", 403);
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q")?.trim();
     if (!q || q.length < 2) return ok([]);
