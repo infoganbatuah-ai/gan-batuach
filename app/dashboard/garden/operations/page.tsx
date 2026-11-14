@@ -28,7 +28,7 @@ function OwnerDashboardState({ role, avatarUrl, title, description, retry, garde
   retry?: boolean;
   gardens?: Array<{ id: string; name: string; relationshipRole: string; isDefault: boolean }>;
 }) {
-  return <DashboardShell role={role} title="מרכז תפעול" appHome>
+  return <DashboardShell role={role} title="מרכז תפעול" appHome contentElement="div">
     <TeacherAppFrame role={role} title={title} subtitle="מרכז התפעול של הגן" avatarUrl={avatarUrl} active="home">
       <section className="manager-dashboard-context-state" role={retry ? "alert" : "status"}>
         <h2>{title}</h2>
@@ -95,7 +95,7 @@ export default async function GardenOperationsPage() {
   const syntheticSession = [profile.full_name, String(garden?.name ?? "")].some(isSyntheticLabel);
   const dateLabel = new Intl.DateTimeFormat("he-IL", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jerusalem" }).format(new Date());
 
-  return <DashboardShell role={role} title="מרכז תפעול" appHome>
+  return <DashboardShell role={role} title="מרכז תפעול" appHome contentElement="div">
     <TeacherAppFrame role={role} title={`בוקר טוב, ${managerDisplayName}`} subtitle={`מרכז התפעול של ${cleanSyntheticLabel(String(garden?.name ?? ""), "הגן")}`} avatarUrl={avatarUrl} active="home">
       {syntheticSession ? <div className="dashboard-environment-notice manager-demo-notice" role="status">סביבת בדיקה · נתונים סינתטיים בלבד</div> : null}
       <ManagerOverviewDashboard
