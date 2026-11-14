@@ -17601,7 +17601,7 @@
       "owner": "Scoped Management privacy executor; single Development integration owner",
       "sourceBranch": "codex/gb-privacy-fulfillment-approval-20261114",
       "sourceCommits": ["a5ad3935ed9b385376b51b8b35aafb294b0571b7", "1af65da12d474a4cc6444866e73e5c1816b76c17"],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-privacy-fulfillment-approval-20261114@1af65da12d474a4cc6444866e73e5c1816b76c17"], "status": "INTEGRATED_DEVELOPMENT"},
       "validation": {
         "status": "EXACT_HEAD_NINE_VISIBLE_CHECKS_AND_DISPOSABLE_DECISION_MATRIX_PASS",
@@ -17611,16 +17611,16 @@
           "Local typecheck, 271-file migration health and committed diff format passed. Protected backup digests and test bounds are in GAN_BATUACH_PRIVACY_FULFILLMENT_APPROVAL.md."
         ],
         "classification": "MANAGEMENT_PRIVACY_APPROVAL_ATOMIC_AUDIT",
-        "limits": "Canonical Development migration not yet applied; Product readback, actual fulfillment executors/delivery, provider, full restore parity, cost and owner visual gates remain open. No real personal-data export/deletion or Production access."
+        "limits": "Canonical Development migration applied after fresh backup and actual disposable restore; installed rollback-only matrix passed. Product readback, actual fulfillment executors/delivery, provider, full restore parity, cost and owner visual gates remain open. No real personal-data export/deletion or Production access."
       },
       "integration": {"branch": "integration/development", "commit": "adeec40f398380395fe748ab5f9b8f06a428bb9a", "pullRequests": [463], "sourceAncestryVerified": true},
       "dependencies": {"status": "CANONICAL_PRIVACY_SCOPE_HOLD_APPLIED", "units": ["codex/gb-privacy-admin-scope-hold-atomicity-20261114"]},
       "migrations": ["supabase/migrations/20261114223000_management_privacy_approval_atomic_audit.sql"],
       "migrationOrder": ["20261114223000"],
-      "localVerification": "CANONICAL_270_OF_271_MIGRATIONS_PENDING_EXCLUSIVE_APPLY_AND_PRODUCT_READBACK",
+      "localVerification": "CANONICAL_271ST_MIGRATION_APPLIED_INSTALLED_ROLLBACK_MATRIX_PASS_CLEAN_HEAD_DRIFT_PENDING",
       "releaseEligibility": "NOT_READY_MIGRATION_PRODUCT_FULFILLMENT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Merge pending-state ledger after exact-head CI; obtain separate exclusive gbi lease, fresh protected backup and actual disposable restore before canonical ordered application of only 20261114223000. Then verify 271/271 drift and authenticated Product readback. Fulfillment/delivery stays open; no main or Production."
+      "nextAction": "Merge applied-state ledger after exact-head CI, verify 271/271 actual drift at clean remote Development head, then authenticated Admin/Parent Product readback under a separate runtime lease. Fulfillment/delivery and full supplier restore parity stay open; no main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
