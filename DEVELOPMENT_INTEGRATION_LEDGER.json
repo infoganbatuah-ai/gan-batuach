@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T20:17:00Z",
+  "updatedAt": "2026-11-14T21:39:48Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17621,6 +17621,35 @@
       "releaseEligibility": "NOT_READY_MIGRATION_PRODUCT_FULFILLMENT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Merge applied-state ledger after exact-head CI, verify 271/271 actual drift at clean remote Development head, then authenticated Admin/Parent Product readback under a separate runtime lease. Fulfillment/delivery and full supplier restore parity stay open; no main or Production."
+    },
+    {
+      "id": "codex/gb-privacy-access-export-fulfillment-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIVACY-ACCESS-EXPORT-FULFILLMENT-20261114",
+      "title": "Bounded authenticated self-profile access and export delivery",
+      "owner": "Scoped Management privacy executor; single Development integration owner",
+      "sourceBranch": "codex/gb-privacy-access-export-fulfillment-20261114",
+      "sourceCommits": ["b7aca7be2d5944d5654139cc9dc258bed7302d0e"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-privacy-access-export-fulfillment-20261114@b7aca7be2d5944d5654139cc9dc258bed7302d0e"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_RESTORED_DISPOSABLE_SELF_DELIVERY_MATRIX_PASS",
+        "evidence": [
+          "PR #466 passed six exact-head CI gates, canonical quality, management-context and Snyk on b7aca7be2d5944d5654139cc9dc258bed7302d0e; ancestry-preserving Development merge 11335db8b3066ed97a1c1add41cedcc1aae18705.",
+          "Fresh protected application-data backup was actually restored into a unique disposable QA database. Transactional synthetic access/export, requester/role, no direct write, expiry, three-read, revoke, active hold, blocked scope and audit-failure rollback matrix PASS; disposable database dropped and canonical Development unchanged.",
+          "Local typecheck, 272-file migration health, lint baseline, 56/56 domain, release contract and Next build PASS. Restricted evidence exports/restricted/gb-privacy-self-delivery-qa-r3-20261114/REPORT.md; source report GAN_BATUACH_PRIVACY_SELF_DELIVERY.md."
+        ],
+        "classification": "MANAGEMENT_PRIVACY_BOUNDED_SELF_PROFILE_DELIVERY",
+        "limits": "Profile-only 24-hour/three-read grant is not complete privacy-right fulfillment. Child, Garden, documents, correction, deletion, full export, legal retention approval, authenticated Product readback, all-supplier cost/recovery and owner visual gates remain open. No real personal-data export or Production access."
+      },
+      "integration": {"branch": "integration/development", "commit": "11335db8b3066ed97a1c1add41cedcc1aae18705", "pullRequests": [466], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_PRIVACY_APPROVAL_AUDIT_APPLIED", "units": ["codex/gb-privacy-fulfillment-approval-20261114"]},
+      "migrations": ["supabase/migrations/20261114224500_management_privacy_self_delivery.sql"],
+      "migrationOrder": ["20261114224500"],
+      "localVerification": "DISPOSABLE_MATRIX_PASS_CANONICAL_271_OF_272_PENDING",
+      "releaseEligibility": "NOT_READY_MIGRATION_PRODUCT_FULL_RIGHTS_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "After exact-head ledger CI and a separate exclusive gbi lease, take fresh protected backup with actual disposable restore, apply only 20261114224500 to canonical isolated Development using the ordered applicator, verify installed role and audit behavior, then register applied state and conduct authenticated Product readback. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
