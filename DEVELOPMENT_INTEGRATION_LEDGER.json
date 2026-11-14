@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T21:39:48Z",
+  "updatedAt": "2026-11-14T21:53:17Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17630,14 +17630,15 @@
       "owner": "Scoped Management privacy executor; single Development integration owner",
       "sourceBranch": "codex/gb-privacy-access-export-fulfillment-20261114",
       "sourceCommits": ["b7aca7be2d5944d5654139cc9dc258bed7302d0e"],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-privacy-access-export-fulfillment-20261114@b7aca7be2d5944d5654139cc9dc258bed7302d0e"], "status": "INTEGRATED_DEVELOPMENT"},
       "validation": {
         "status": "EXACT_HEAD_NINE_CHECKS_AND_RESTORED_DISPOSABLE_SELF_DELIVERY_MATRIX_PASS",
         "evidence": [
           "PR #466 passed six exact-head CI gates, canonical quality, management-context and Snyk on b7aca7be2d5944d5654139cc9dc258bed7302d0e; ancestry-preserving Development merge 11335db8b3066ed97a1c1add41cedcc1aae18705.",
           "Fresh protected application-data backup was actually restored into a unique disposable QA database. Transactional synthetic access/export, requester/role, no direct write, expiry, three-read, revoke, active hold, blocked scope and audit-failure rollback matrix PASS; disposable database dropped and canonical Development unchanged.",
-          "Local typecheck, 272-file migration health, lint baseline, 56/56 domain, release contract and Next build PASS. Restricted evidence exports/restricted/gb-privacy-self-delivery-qa-r3-20261114/REPORT.md; source report GAN_BATUACH_PRIVACY_SELF_DELIVERY.md."
+          "Local typecheck, 272-file migration health, lint baseline, 56/56 domain, release contract and Next build PASS. Restricted evidence exports/restricted/gb-privacy-self-delivery-qa-r3-20261114/REPORT.md; source report GAN_BATUACH_PRIVACY_SELF_DELIVERY.md.",
+          "Exclusive canonical isolated Development application at remote 6e1b082b0b0b3d089831b0e18a8fed19c18b1e7d; fresh protected full/app backups, actual disposable restore and synthetic rollback matrix PASS; installed digest 3b6721c583f729a9ddafb9abd742b5f93532a7e668d164479ff33505ad8b8b53, fingerprint 3b685fc46e71c87273c75e269650a435e247c9efd1190f399e3fcc06387a25b2; 272/272 database count, 15 Gardens, zero privacy requests/grants/locks. Restricted report exports/restricted/gb-privacy-self-delivery-apply-20261114/REPORT.md SHA256 ff03ab716235f6ece78529f1019a25b3c9b28bf1580ce7fe7b251708e6e2f7eb."
         ],
         "classification": "MANAGEMENT_PRIVACY_BOUNDED_SELF_PROFILE_DELIVERY",
         "limits": "Profile-only 24-hour/three-read grant is not complete privacy-right fulfillment. Child, Garden, documents, correction, deletion, full export, legal retention approval, authenticated Product readback, all-supplier cost/recovery and owner visual gates remain open. No real personal-data export or Production access."
@@ -17646,10 +17647,10 @@
       "dependencies": {"status": "CANONICAL_PRIVACY_APPROVAL_AUDIT_APPLIED", "units": ["codex/gb-privacy-fulfillment-approval-20261114"]},
       "migrations": ["supabase/migrations/20261114224500_management_privacy_self_delivery.sql"],
       "migrationOrder": ["20261114224500"],
-      "localVerification": "DISPOSABLE_MATRIX_PASS_CANONICAL_271_OF_272_PENDING",
-      "releaseEligibility": "NOT_READY_MIGRATION_PRODUCT_FULL_RIGHTS_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "localVerification": "CANONICAL_MIGRATION_APPLIED_272_OF_272_DATABASE_MATRIX_PASS_PRODUCT_READBACK_PENDING",
+      "releaseEligibility": "NOT_READY_PRODUCT_FULL_RIGHTS_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "After exact-head ledger CI and a separate exclusive gbi lease, take fresh protected backup with actual disposable restore, apply only 20261114224500 to canonical isolated Development using the ordered applicator, verify installed role and audit behavior, then register applied state and conduct authenticated Product readback. No main or Production."
+      "nextAction": "Merge applied-state ledger after exact-head CI, verify clean-head 272/272 drift, then obtain separate Product runtime lease for authenticated synthetic Admin/requester readback and role isolation. Full Child/Garden/doc export, correction/deletion, retention, cost and Production remain open."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -17678,7 +17679,7 @@
     "push45SchemaReceipt": "development/database/push45-schema-receipt.json",
     "observedAt": "2026-10-19T19:31:33Z"
   },
-  "observedAt": "2026-10-19T19:31:33Z",
+  "observedAt": "2026-11-14T21:53:17Z",
   "reconciliationReport": "DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json",
   "openPullRequests": [
     {

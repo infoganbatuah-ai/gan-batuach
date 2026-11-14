@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T21:39:48Z",
+  "observedAt": "2026-11-14T21:53:04Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_271_OF_272_INSTALLED_SELF_DELIVERY_PENDING_FULL_RESTORE_GAP",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_272_OF_272_INSTALLED_SELF_DELIVERY_PRODUCT_READBACK_PENDING_FULL_RESTORE_GAP",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8268,18 +8268,18 @@
       "developmentDependsOn": ["20261114223000"],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "PR #466 nine exact-head checks green. Fresh protected application-data backup actually restored into disposable DB; synthetic requester/role, access/export, expiry, three-read, revoke, legal-hold and retention scope, immutable-audit and audit-failure rollback matrix PASS. Canonical DB not modified.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T21:50:00.479752Z",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development 6e1b082b0b0b3d089831b0e18a8fed19c18b1e7d installed only reviewed 20261114224500; exact digest 3b6721c583f729a9ddafb9abd742b5f93532a7e668d164479ff33505ad8b8b53, fingerprint 3b685fc46e71c87273c75e269650a435e247c9efd1190f399e3fcc06387a25b2. Fresh protected full/app backups SHA256 4299715126439904ca37e03483d315f2b851d08789800c9c588bc9a23f8d5d36 / bd7763de32a01a0b08eb250d5e22cc12c5baad89cdb5ddea938a578deb88aeba. App backup actually restored to disposable database, 44 prior migrations/15 Gardens/0 privacy requests matched. Transactional synthetic matrix PASS on restored copy and rolled back. Canonical poststate 45 postbaseline=272 total, 15 Gardens/0 privacy requests/0 grants/0 active foreign writers/0 advisory locks. Disposable removed. Protected report exports/restricted/gb-privacy-self-delivery-apply-20261114/REPORT.md SHA256 ff03ab716235f6ece78529f1019a25b3c9b28bf1580ce7fe7b251708e6e2f7eb. Full provider restore parity and authenticated Product readback remain unverified.",
+      "developmentHistoryDigest": "3b6721c583f729a9ddafb9abd742b5f93532a7e668d164479ff33505ad8b8b53",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Metadata-only grant table and three Management-only transactional RPCs. Fresh protected canonical backup and actual disposable restore plus exclusive gbi lease required before application. Reversal requires reviewed forward migration preserving grant/audit evidence and no-reissue history. No Production access.",
-      "developmentSchemaFingerprint": null
+      "developmentSchemaFingerprint": "3b685fc46e71c87273c75e269650a435e247c9efd1190f399e3fcc06387a25b2"
     }
   ],
   "developmentExpected": 272,
-  "developmentAppliedVerified": 271,
+  "developmentAppliedVerified": 272,
   "blockers": [],
   "localObservations": [
     {
