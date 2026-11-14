@@ -6,6 +6,7 @@ import { TeachingAssignmentsPanel } from "@/components/teaching-assignments-pane
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { staffClassroomLabels } from "@/lib/management/staff-classroom-labels";
 import { ClipboardCheck, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
 import { RoleAppShell } from "@/components/role-app-shell";
 import {
@@ -19,7 +20,9 @@ import {
 
 type TeachingAssignmentRow = { id: string; profile_id: string; staff_id: string | null; assignment_kind: string; title: string; status: string };
 type GardenTeachingRow = { owner_profile_id: string | null; ownership_type: string };
-type EmploymentRow = { staff_id: string; status: string; role_title: string | null; start_date: string | null; approved_at: string | null };
+type EmploymentRow = { id: string; staff_id: string; status: string; role_title: string | null; start_date: string | null; approved_at: string | null };
+type ClassroomAssignmentRow = { staff_id: string; classroom_id: string; employment_id: string | null; garden_id: string; status: string };
+type ClassroomRow = { id: string; garden_id: string; name: string; status: string };
 
 export default async function GardenStaffPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const filters = await searchParams;
@@ -29,7 +32,7 @@ export default async function GardenStaffPage({ searchParams }: { searchParams: 
   const supabase = await createClient();
   const gardenId = access.gardenId;
   const today = israelTodayDateKey();
-  const [staffRes, docsRes, tasksRes, shiftsRes, certsRes, anomaliesRes, scoresRes, gardenRes, assignmentsRes, employmentsRes] = await Promise.all([
+  const [staffRes, docsRes, tasksRes, shiftsRes, certsRes, anomaliesRes, scoresRes, gardenRes, assignmentsRes, employmentsRes, classroomAssignmentsRes, classroomsRes] = await Promise.all([
     supabase.from("staff" as any).select("id, profile_id, full_name, role_title, phone, email, approved_to_work, onboarding_status, background_check_status, police_clearance_status, class_group, profile_photo_url, manager_approved_at, inspector_verified_at, created_at").eq("garden_id", gardenId).order("full_name"),
     supabase.from("documents" as any).select("staff_id, id, status").eq("garden_id", gardenId),
     supabase.from("tasks" as any).select("assigned_to, id, status").eq("garden_id", gardenId).neq("status", "done"),
@@ -39,7 +42,9 @@ export default async function GardenStaffPage({ searchParams }: { searchParams: 
     supabase.from("staff_workforce_scores" as any).select("staff_id, readiness_score, attendance_score, document_score, compliance_score").eq("garden_id", gardenId).eq("score_date", today),
     supabase.from("gardens" as never).select("owner_profile_id, ownership_type").eq("id", gardenId).maybeSingle(),
     supabase.from("garden_teaching_assignments" as never).select("id, profile_id, staff_id, assignment_kind, title, status").eq("garden_id", gardenId),
-    supabase.from("staff_kindergarten_employments" as never).select("staff_id,status,role_title,start_date,approved_at" as never).eq("garden_id", gardenId).limit(500)
+    supabase.from("staff_kindergarten_employments" as never).select("id,staff_id,status,role_title,start_date,approved_at" as never).eq("garden_id", gardenId).limit(500),
+    supabase.from("staff_classroom_assignments" as never).select("staff_id,classroom_id,employment_id,garden_id,status" as never).eq("garden_id", gardenId).eq("status", "active").limit(500),
+    supabase.from("classrooms" as never).select("id,garden_id,name,status" as never).eq("garden_id", gardenId).eq("status", "active").limit(200)
   ]);
   const countBy = (rows: any[], key: string, predicate = (_row: any) => true) => rows.reduce((map, row) => predicate(row) ? map.set(row[key], (map.get(row[key]) ?? 0) + 1) : map, new Map<string, number>());
   const missingDocs = countBy((docsRes.data ?? []) as any[], "staff_id", (row) => ["missing", "expired", "rejected"].includes(row.status));
@@ -49,6 +54,16 @@ export default async function GardenStaffPage({ searchParams }: { searchParams: 
   const shifts = new Map(((shiftsRes.data ?? []) as any[]).map((row) => [row.staff_id, row]));
   const scores = new Map(((scoresRes.data ?? []) as any[]).map((row) => [row.staff_id, row]));
   const employments = new Map(((employmentsRes.data ?? []) as unknown as EmploymentRow[]).map((row) => [row.staff_id, row]));
+  const classroomLabels = staffClassroomLabels(
+    gardenId,
+    (employmentsRes.data ?? []) as unknown as EmploymentRow[],
+    (classroomAssignmentsRes.data ?? []) as unknown as ClassroomAssignmentRow[],
+    (classroomsRes.data ?? []) as unknown as ClassroomRow[]
+  );
+  const classroomContextIncomplete = Boolean(classroomAssignmentsRes.error || classroomsRes.error || employmentsRes.error)
+    || (classroomAssignmentsRes.data?.length ?? 0) >= 500
+    || (classroomsRes.data?.length ?? 0) >= 200
+    || (employmentsRes.data?.length ?? 0) >= 500;
   const rows = ((staffRes.data ?? []) as any[]).map((member) => {
     const missing = missingDocs.get(member.id) ?? 0;
     const compliance = Math.max(0, 100 - missing * 25 - (member.approved_to_work ? 0 : 35) - (member.background_check_status === "valid" ? 0 : 20) - (member.police_clearance_status === "valid" ? 0 : 20));
@@ -59,6 +74,7 @@ export default async function GardenStaffPage({ searchParams }: { searchParams: 
       ...member,
       full_name: cleanSyntheticLabel(member.full_name, "איש/ת צוות"),
       role_title: cleanSyntheticLabel(employment?.role_title ?? member.role_title, "צוות"),
+      class_group: classroomLabels.get(member.id) ?? (classroomContextIncomplete ? "כיתה לא זמינה" : "ללא כיתה פעילה"),
       approval_status: employment?.status ?? (member.approved_to_work ? "active" : "pending"),
       employment_status: employment?.status ?? "pending",
       employment_start_date: employment?.start_date ?? member.created_at,
