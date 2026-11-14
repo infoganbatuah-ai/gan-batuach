@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T12:15:05.692Z",
+  "updatedAt": "2026-11-14T12:53:34.789Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17274,6 +17274,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Merge separate ledger after exact-head CI; continue coordinator card. No DO core, paid provider, main/Production or RELEASE-GAP."
+    },
+    {
+      "id": "codex/gb-ux19-migration-assertion-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-UX19-MIGRATION-ASSERTION-TEST-DEBT-20261114",
+      "title": "Scope historical UX19 migration and Digital Observer guard to its original source commit",
+      "owner": "Scoped UX19 test-debt executor; single Development integration owner",
+      "sourceBranch": "codex/gb-ux19-migration-assertion-20261114",
+      "sourceCommits": [
+        "847b90bf16c9c0cbb4299e2f9585e516f6e94925"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-ux19-migration-assertion-20261114@847b90bf16c9c0cbb4299e2f9585e516f6e94925"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_PR_AND_POSTMERGE_UX19_TEST_PASS",
+        "evidence": [
+          "Baseline UX19 focused suite 9/10; historical guard compared UX19 base to current Development and falsely attributed 21 later migrations to UX19.",
+          "Scoped source 847b90bf16c9c0cbb4299e2f9585e516f6e94925 pins original UX19 parent/source ancestry and checks only original change for migration or Digital Observer core paths; focused suite 10/10.",
+          "PR #440 passed nine exact-head checks and ancestry-merged as a03e38aa5c0c17442371108243c37b78ac4a87a3; exact merged-head focused suite 10/10, migration safety 265/265 and ledger schema 265 units PASS.",
+          "Protected report SHA256 c41169a9f980e731f41c3b56fa6a1816368e79b7646b16af6fa061b03013b5cb."
+        ],
+        "classification": "MANAGEMENT_UX19_HISTORICAL_TEST_DEBT",
+        "limits": "Test-only historical source guard; standalone focused test requires original Git history. No Product runtime, local DB, browser, full-journey role/security, provider/hardware, owner visual or Production verification in this unit."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "a03e38aa5c0c17442371108243c37b78ac4a87a3",
+        "pullRequests": [
+          440
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CURRENT_GLOBAL_DIALOG_BASELINE",
+        "units": [
+          "codex/gb-global-dialog-focus-20261114"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_POSTMERGE_UX19_TEST_10_OF_10_FULL_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Merge separate ledger after exact-head CI; continue coordinator card. External isolated DB invitation journey remains blocked on Colima runtime. No DO core, paid provider, main/Production or RELEASE-GAP."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
