@@ -1,5 +1,23 @@
 # Canonical Development Integration Ledger
 
+2026-11-14 Children, Classrooms and Enrollment scoped isolation QA — PR #412:
+Source `e6423d2ecae58026edc552760e41a3645f804d9c` corrected anonymous
+`/api/children` 500 to 401 without altering authenticated permission/RLS
+logic; nine exact-head checks passed and ancestry merge produced
+`702321248732bfda81dd73bf6fc9bfa8186090a6`. Final merged-head Product
+yielded 80 GET-only API probes and 40 Desktop/Mobile captures without server
+errors, page errors, unstable captures or horizontal overflow. Manager A/B
+foreign Garden filters were empty, revoked Staff Children were empty, and
+foreign Child pages showed styled not-found states. Protected report SHA256
+`8576eb5b4330bb6b9455a30519a46024614d6c7ccea99dd4391b17143e121b64`;
+API receipt SHA256 `178fa71367e8111645a700ecbb78e0339aabd7575b8daa493afe4bc3dd88d365`;
+browser receipt SHA256 `63ea8319bfab9bc9b66da653cf9d8961341687f78704ca778a627483c857cb33`.
+The nominal Staff-candidate QA identity has active employment, and the
+Parent multi-child page versus legacy `/api/children` list differs; both are
+explicit follow-ups. Enrollment mutations, complete Classroom Staff scope
+and direct RLS claims remain NOT_TESTED. No Production, main, migration,
+paid dependency or Digital Observer core change.
+
 2026-11-14 Auth/invitation and canonical loopback QA — PRs #409/#410:
 Source `84bab06193b9a7cda6fd4f8fd9742a0178c7a6ce` corrected guest invitation
 claim 500 to 401 and non-Parent to 403; merged
