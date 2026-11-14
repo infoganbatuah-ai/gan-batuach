@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T14:34:50Z",
+  "updatedAt": "2026-11-14T16:42:08Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17431,6 +17431,45 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Finish separate ledger PR and merged-head check; continue coordinator's next scoped Development card. No main/Production."
+    },
+    {
+      "id": "codex/gb-m40-owner-review-requirements-truth-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-M40-OWNER-REVIEW-REQUIREMENTS-TRUTH-20261114",
+      "title": "Distinguish canonical activation blockers from optional Owner onboarding profile work",
+      "owner": "Scoped Owner onboarding UX executor; single Development integration owner",
+      "sourceBranch": "codex/gb-m40-owner-review-requirements-truth-20261114",
+      "sourceCommits": ["4e2e89226e759b0ee5566b0a0abec47983cfce78"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/gb-m40-owner-review-requirements-truth-20261114@4e2e89226e759b0ee5566b0a0abec47983cfce78"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_PR_AND_POSTMERGE_FOCUSED_QA_PASS",
+        "evidence": [
+          "Previous isolated GB-M40 Owner activation Product QA found optional imagery, children and invitations mislabeled as required; canonical RPC required only Garden/contact identity, age groups, documents summary and terms/privacy.",
+          "Source 4e2e89226e759b0ee5566b0a0abec47983cfce78 passed 14/14 focused onboarding tests, 23/23 manager-parent contract checks, typecheck, Next webpack build and local domain gate 56/56; repository-wide lint remains baseline failing with no new changed-file findings.",
+          "PR #452 passed all six Digital Observer CI gates, canonical quality and two management-context checks on exact source head; ancestry-preserving merge 23bb07d837072a537dee38165842b98bc757a85d.",
+          "Canonical merged Development head passed focused onboarding tests 14/14 and manager-parent live contract 23/23. Protected GB-M40 Product QA report SHA256 fa0d2a1afcf8087380f3e962bdee9ff42289beb471dc57269e8b595453a416cf."
+        ],
+        "classification": "MANAGEMENT_OWNER_ONBOARDING_REVIEW_TRUTH",
+        "limits": "Review-step Product UI was not recaptured after this source change. Earlier isolated QA proves activation behavior, not new visual appearance. No new live provider, all-product role/security, owner visual or Production proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "23bb07d837072a537dee38165842b98bc757a85d",
+        "pullRequests": [452],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {"status": "CURRENT_GB_M40_OWNER_ACTIVATION_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "MERGED_HEAD_FOCUSED_ONBOARDING_14_OF_14_AND_MANAGER_PARENT_CONTRACT_23_OF_23_PASS",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Owner review-step Desktop/Mobile Product recapture and external visual acceptance remain open; continue coordinator's next scoped Development card. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
