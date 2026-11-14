@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T18:53:33Z",
+  "updatedAt": "2026-11-14T20:05:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17563,6 +17563,35 @@
       "releaseEligibility": "NOT_READY_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Merge applied-state ledger after exact-head CI, verify 269/269 actual drift at clean remote head, then authenticated Admin/Parent Product readback and separate full supplier restore-path remediation. No real privacy fulfillment, main or Production."
+    },
+    {
+      "id": "codex/gb-privacy-admin-scope-hold-atomicity-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIVACY-ADMIN-SCOPE-HOLD-ATOMICITY-20261114",
+      "title": "Atomic Admin privacy scope replacement and legal-hold linking",
+      "owner": "Scoped Management privacy executor; single Development integration owner",
+      "sourceBranch": "codex/gb-privacy-admin-scope-hold-atomicity-20261114",
+      "sourceCommits": ["b1e53aa5d11390118e9680e7ea607edb58d6ebe2", "b8deb87573c3acc0b0340b86de5409b65ada016b"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-privacy-admin-scope-hold-atomicity-20261114@b8deb87573c3acc0b0340b86de5409b65ada016b"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_VISIBLE_CHECKS_AND_DISPOSABLE_ATOMICITY_MATRIX_PASS",
+        "evidence": [
+          "PR #460 passed six Digital Observer CI gates, canonical quality, management-context and Snyk on exact source b8deb87573c3acc0b0340b86de5409b65ada016b; ancestry-preserving merge 4dccca6e5dbf88277a20f34ab840f80e36db8302.",
+          "Restored disposable QA reproduced non-atomic scope and hold failures. Revised migration SHA256 9ac1743017c3b0a1aaa333491f3deb5c17b979a206c2d5faade45ceda9cfa1ba passed ten rollback-only scope, audit, role, hold and retry cases; authenticated grants/RLS matrix PASS. Protected evidence exports/restricted/gb-privacy-atomicity-20261114/; disposable database removed.",
+          "Local typecheck, 270 migration health, lint baseline, Webpack build, domain 56/56 and release contract PASS. Local broad security CH1 external-volume ownership blocked; exact-head remote security PASS."
+        ],
+        "classification": "MANAGEMENT_PRIVACY_ADMIN_SCOPE_HOLD_ATOMICITY",
+        "limits": "Canonical isolated Development migration not yet applied; authenticated Product readback and full Product/security/provider, supplier restore parity, cost and owner visual gates remain open. No real privacy fulfillment or Production access."
+      },
+      "integration": {"branch": "integration/development", "commit": "4dccca6e5dbf88277a20f34ab840f80e36db8302", "pullRequests": [460], "sourceAncestryVerified": true},
+      "dependencies": {"status": "CANONICAL_PRIVACY_CHILD_SCOPE_AND_ADMIN_DECISION_BASELINE", "units": ["codex/gb-privacy-child-request-20261114", "codex/gb-privacy-admin-decision-20261114"]},
+      "migrations": ["supabase/migrations/20261114210000_management_privacy_scope_hold_atomicity.sql"],
+      "migrationOrder": ["20261114210000"],
+      "localVerification": "DISPOSABLE_QA_PASS_CANONICAL_DEVELOPMENT_MIGRATION_PENDING",
+      "releaseEligibility": "NOT_READY_CANONICAL_APPLY_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Under separate exclusive gbi lease, take fresh protected backup and prove disposable restore, apply only reviewed 270th migration to canonical isolated Development, verify installed digest/grants/rollback matrix and 270/270 drift, then authenticated merged-head Product readback. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
