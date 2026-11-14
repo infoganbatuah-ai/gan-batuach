@@ -1,5 +1,23 @@
 # Canonical Development Integration Ledger
 
+2026-11-14 bounded image/gradient caption readability — PR #405:
+Source `343c5eda6c283c07055c2b71961558c894a163e8` on
+`codex/primary-image-overlay-readability-20261114` passed local typecheck,
+canonical lint with zero regressions and optimized build. Nine exact-head CI
+checks passed; ancestry merge to `integration/development` produced
+`95f0f3a13c35c73162c419e44994304931522c41`. Five actual-product regions
+were inspected across Parent, Owner, Staff, Inspector and Admin at Desktop
+1440×1024/Mobile 390×844. The seven-line CSS-only correction darkened Staff
+and Admin captions; bounded naive ancestor ratios rose from 4.27 and 3.49–3.78
+to 5.5. Fresh merged-head 10/10 HTTP 200 and 220 bounded text samples had zero
+Product non-GET/page/hydration errors. Image-pixel minimum, unloaded-image
+fallback, some Mobile below-fold cards and exhaustive focus states remain
+NOT_TESTED; no full WCAG or owner approval claim. Protected report SHA256
+`5af7571e02f3693d891a09287a3c57f6c345e06e8906e9f09f0d9b072f05401e`;
+merged receipt SHA256
+`b79d29588e5d1ccb9c558d16e43adf0cf499b53ece5df7de8652f102a8ceae55`.
+No main, Production, migration, provider or Digital Observer core change.
+
 2026-11-14 scoped primary contrast and reduced-motion unit — PR #403:
 Source `0990f934b40984a2201ca70e376572720991773f` on
 `codex/primary-contrast-motion-20261114` merged ancestry-preserving into

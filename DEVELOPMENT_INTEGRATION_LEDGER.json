@@ -16478,6 +16478,33 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_WCAG_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue bounded focus/contrast QA for complex backgrounds and remaining routes, then external owner visual review. No main or Production release authorization."
+    },
+    {
+      "id": "codex/primary-image-overlay-readability-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIMARY-IMAGE-OVERLAY-READABILITY-20261114",
+      "title": "Bounded primary image and gradient caption readability",
+      "owner": "Scoped accessibility executor; single Development integration owner",
+      "sourceBranch": "codex/primary-image-overlay-readability-20261114",
+      "sourceCommits": ["343c5eda6c283c07055c2b71961558c894a163e8"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/primary-image-overlay-readability-20261114@343c5eda6c283c07055c2b71961558c894a163e8"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_POST_MERGE_TEN_CASE_IMAGE_CAPTION_QA_SCOPED",
+        "evidence": [
+          "Five selected actual Product regions across Parent, Owner, Staff, Inspector and Admin at Desktop 1440x1024/Mobile 390x844. Baseline 10/10 route 200, 220 bounded text samples, zero Product non-GET/page/hydration errors. Staff welcome caption was 4.27:1 naive white-ancestor ratio; Admin subtitle 3.78:1 Desktop/3.49:1 Mobile. Parent camera permission overlay, Owner photo-adjacent hero and Inspector split hero were visually readable in bounded screenshots; pixel-level image minimum and unloaded-image fallback were NOT_TESTED. Protected baseline receipt SHA256 8ea3d4b18cb2423c20460f1125bac531569b51b910c2c81b3c8f74c732a7924e.",
+          "Scoped seven-line CSS source 343c5eda6c283c07055c2b71961558c894a163e8 changed two caption colors only, preserving layout and capability truth. Typecheck, canonical lint zero regressions, optimized build and focused diff passed. PR #405 passed nine exact-head checks and merged ancestry-preserving at 95f0f3a13c35c73162c419e44994304931522c41.",
+          "Fresh canonical merged-head Product 10/10 HTTP 200, same 220 samples, zero Product non-GET/page/hydration errors. Staff and Admin captions remeasured 5.5:1 naive white-ancestor ratio on Desktop and Mobile; actual screenshots inspected. Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/primary-image-overlay-20261114/REPORT.private.md SHA256 5af7571e02f3693d891a09287a3c57f6c345e06e8906e9f09f0d9b072f05401e; merged receipt SHA256 b79d29588e5d1ccb9c558d16e43adf0cf499b53ece5df7de8652f102a8ceae55. No full WCAG, image-pixel minimum, all fallback/focus states or owner visual approval claim."
+        ]
+      },
+      "integration": {"branch": "integration/development", "commit": "95f0f3a13c35c73162c419e44994304931522c41", "pullRequests": [405], "sourceAncestryVerified": true},
+      "dependencies": {"status": "INTEGRATED_PRIMARY_CONTRAST_BASELINE", "units": ["codex/primary-contrast-motion-20261114"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_FIVE_ROLE_DESKTOP_MOBILE_IMAGE_CAPTION_READABILITY_PASS_SCOPED_WITH_PIXEL_FALLBACK_GAPS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_WCAG_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue bounded accessibility QA for image pixel ranges, fallback and focus states, plus external owner visual review. No main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
