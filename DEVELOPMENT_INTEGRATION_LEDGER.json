@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T07:38:31.835Z",
+  "updatedAt": "2026-11-14T08:01:22.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16724,6 +16724,53 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue bounded Parent discovery enrollment mutation and Child DOB completion QA separately; no main or Production release authorization."
+    },
+    {
+      "id": "codex/gb-messaging-guest-auth-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-MESSAGING-NOTIFICATIONS-AUDIENCE-ROLE-QA",
+      "title": "Return 401 for unauthenticated message list reads",
+      "owner": "Scoped messaging/notifications QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-messaging-guest-auth-20261114",
+      "sourceCommits": [
+        "dd6b10e0f76f1d2f18714c07c7bb15d7b37b3bb4"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-messaging-guest-auth-20261114@dd6b10e0f76f1d2f18714c07c7bb15d7b37b3bb4"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_SCOPED_POST_MERGE_ROLE_QA",
+        "evidence": [
+          "Guest GET /api/messages and /api/parent/messages returned 500 before change; both returned 401 after merge, matching /api/notifications. Authenticated API reads remained 200. PR #416 all six CI gates, management contexts, Snyk and canonical quality SUCCESS on exact source.",
+          "Merged-head 39004a911b305a92919e8d026d215fe9441f4be4: 26 fresh Parent/Owner/Staff/Inspector/Admin Desktop/Mobile message/notification views, zero page errors/overflow/non-GET browser attempts. Direct RLS Parent A denied known Garden B message and notification IDs. Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/messaging-notifications-20261114/REPORT.private.md SHA256 8a6e26623ee6ad4e61455d82f5f9d9fa4f632353051dfb3933d9715e559dc60c; final browser/API receipt SHA256 398b62a5af03b80380348ac658359b3769db45c9722d137bd2232d8152b4ab07; foreign-ID receipt SHA256 ba0c5c001dc4b479b4b2183e4ccfe53ce9f483708e30c3e2547f1efe74d821ae.",
+          "NOT_TESTED: Product send/broadcast mutations, external provider delivery, full thread participant lifecycle, global permission matrix, Production or owner visual acceptance. No schema, Digital Observer core, main or Production change."
+        ]
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "39004a911b305a92919e8d026d215fe9441f4be4",
+        "pullRequests": [
+          416
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_MESSAGING_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_TWENTY_SIX_SCREEN_ROLE_MESSAGE_NOTIFICATION_QA_SCOPED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue bounded messaging thread participant and broadcast audience QA separately; no main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
