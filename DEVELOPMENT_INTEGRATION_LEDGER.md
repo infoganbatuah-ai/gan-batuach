@@ -1,5 +1,23 @@
 # Canonical Development Integration Ledger
 
+2026-11-14 five-role Settings and account permissions QA — PR #407:
+Source `fbd6771d1ad57a2c0065489ce51b79269abe020d` fixed anonymous
+`/api/profile/settings` GET/PATCH returning 500 from a caught page redirect;
+both now return 401 before data access. Nine exact-head checks passed and the
+ancestry merge to `integration/development` produced
+`f727b34101a49137a7f88d62e8a6c093b07f7aea`. Fresh merged-head Owner,
+Parent, Staff, Inspector and Admin Settings captures at Desktop 1440×1024 and
+Mobile 390×844: 10/10 page/profile reads 200, forged profile/Garden query
+values returned the same self profile, zero Product non-GET/page/hydration
+errors and no horizontal overflow. Five cross-role browser attempts navigated
+away from forbidden Settings routes. Anonymous GET/PATCH returned 401. The
+protected report SHA256 is
+`d88a279f7ac1f1b0c24db9ca62e0ff40f11f77f381d7bd5b0a8d962976203807`.
+Authenticated Settings mutations, complete role/tenant isolation, MFA/passkey
+and exhaustive accessibility remain NOT_TESTED; owner visual acceptance and
+release gates remain pending. No main, Production, migration, provider, paid
+dependency or Digital Observer core change.
+
 2026-11-14 bounded image/gradient caption readability — PR #405:
 Source `343c5eda6c283c07055c2b71961558c894a163e8` on
 `codex/primary-image-overlay-readability-20261114` passed local typecheck,

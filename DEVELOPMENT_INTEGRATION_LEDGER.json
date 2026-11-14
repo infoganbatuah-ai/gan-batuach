@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T04:12:21.000Z",
+  "updatedAt": "2026-11-14T06:04:52.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16505,6 +16505,33 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_WCAG_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue bounded accessibility QA for image pixel ranges, fallback and focus states, plus external owner visual review. No main or Production release authorization."
+    },
+    {
+      "id": "codex/gb-settings-account-auth-qa-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRODUCT-SETTINGS-ACCOUNT-PERMISSIONS-ROLE-QA",
+      "title": "Five-role Settings QA and anonymous profile API status correction",
+      "owner": "Scoped Settings QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-settings-account-auth-qa-20261114",
+      "sourceCommits": ["fbd6771d1ad57a2c0065489ce51b79269abe020d"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-settings-account-auth-qa-20261114@fbd6771d1ad57a2c0065489ce51b79269abe020d"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_POST_MERGE_FIVE_ROLE_DESKTOP_MOBILE_SETTINGS_QA_SCOPED",
+        "evidence": [
+          "Source 036af40152ace68d333ccfcfecb41978d6fcbb3d: five role Settings pages at Desktop 1440x1024/Mobile 390x844 returned 200 with self-scoped profile reads. Anonymous GET /api/profile/settings incorrectly returned 500 from a caught NEXT_REDIRECT. Cross-role HTML 200 was a Next shell; settled browser navigation redirected away from forbidden pages.",
+          "Scoped route-only source fbd6771d1ad57a2c0065489ce51b79269abe020d uses getSessionProfile and returns 401 for anonymous GET/PATCH before reading or mutating data. Local typecheck and isolated optimized build passed. Legacy qa:ux18-focused passed 7/9 with two stale source/history assertions; direct lint showed eight pre-existing any diagnostics. PR #407 passed nine exact-head checks and ancestry-merged at f727b34101a49137a7f88d62e8a6c093b07f7aea.",
+          "Fresh merged-head Product: 10/10 authorized Settings page and profile GET 200; forged profile/garden query values returned identical self profile; zero Product non-GET/page/hydration errors and no horizontal overflow. Anonymous GET and PATCH returned 401. Five cross-role browser attempts redirected away from forbidden Settings paths after settling. Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/settings-role-20261114-postmerge/REPORT.private.md SHA256 d88a279f7ac1f1b0c24db9ca62e0ff40f11f77f381d7bd5b0a8d962976203807; primary receipt SHA256 f98bf0d946bfe605175012a1279ed9e24ee11ab810ff32c51d5c2c0d9bab0ee5; cross-role receipt SHA256 b243148ff87b1dffd4dc6741ec5a4b50c9f094fae399fb56a6f636ddeee914d6. Authenticated PATCH, MFA/passkey, exhaustive accessibility and Production are NOT_TESTED."
+        ]
+      },
+      "integration": {"branch": "integration/development", "commit": "f727b34101a49137a7f88d62e8a6c093b07f7aea", "pullRequests": [407], "sourceAncestryVerified": true},
+      "dependencies": {"status": "INTEGRATED_SETTINGS_BASELINE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_FIVE_ROLE_DESKTOP_MOBILE_SETTINGS_QA_PASS_SCOPED_WITH_UNTESTED_MUTATIONS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue scoped Product QA; validate authenticated Settings mutations and remaining permissions states separately. No main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
