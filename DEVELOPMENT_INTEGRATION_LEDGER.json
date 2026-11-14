@@ -16314,6 +16314,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Obtain a separately scoped coordinator QA DB write lease and fresh full verified local dump/restore before one synthetic Manager offer and later separately scoped Candidate acceptance. No main/Production."
+    },
+    {
+      "id": "codex/manager-staff-class-display-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-MANAGER-STAFFING-AFTER-ACTIVATION-READONLY-20261114",
+      "title": "Display canonical active classroom assignments in Manager Staff roster",
+      "owner": "Scoped Manager Staff QA executor; single Development integration owner",
+      "sourceBranch": "codex/manager-staff-class-display-20261114",
+      "sourceCommits": [
+        "03395a98b871efe98140534f3057a5ede18b9951"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/manager-staff-class-display-20261114@03395a98b871efe98140534f3057a5ede18b9951"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_POST_MERGE_PRODUCT_QA_PASS",
+        "evidence": [
+          "PR #394 exact head 03395a98b871efe98140534f3057a5ede18b9951 passed six Digital Observer CI gates, Canonical quality, Management context and Snyk; ancestry-preserving Development merge f2518d51033c54266912ed0e045eb3e620f974cf.",
+          "Three behavioral classroom-label tests, typecheck, lint regression, UX-07, canonical classroom and Staff hiring suites passed.",
+          "Fresh merged-head Manager601 Product Desktop 1440x1024 and Mobile 390x844 each show newly activated Staff304 once with canonical class701; Manager602 omits worker; Staff304 own dashboard remains available. Manager-only staffing-readiness returned qualifying_staff=1 based on active employment and assignment, but policy_not_configured, required_staff=null, legal_compliance=null. Manager602 404, Staff304 403.",
+          "Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/manager-staffing-after-activation-20261114/REPORT.private.md SHA256 907e4fb37ba3fefeb6ebe8af23dfb4c224924a2d7c6bd8916c9d137c7871fec9."
+        ],
+        "classification": "SCOPED_MANAGER_STAFF_CLASS_DISPLAY_NO_SCHEMA_OR_DO_CORE_CHANGE",
+        "limitations": "Synthetic isolated QA only; no regulatory staffing compliance claim, no full Product/owner visual, supplier cost, recovery or Production release certification."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "d5a02bbce0728c869b3d37e5ed08e5c6faf29108",
+        "commit": "f2518d51033c54266912ed0e045eb3e620f974cf",
+        "pullRequests": [
+          394
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_CANDIDATE_ACTIVATION_BASELINE",
+        "units": [
+          "codex/gb-candidate-classroom-decision-field-20261114"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_AUTHENTICATED_MANAGER_STAFF_DESKTOP_MOBILE_AND_FOREIGN_SCOPE_QA_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve synthetic QA evidence; continue cumulative Development checks and separately authorized owner visual acceptance before any Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
