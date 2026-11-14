@@ -16873,6 +16873,54 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Merge this ledger record after nine exact-head checks, verify clean remote Development and preserve protected role receipt; continue coordinator-assigned Development QA. No main/Production or RELEASE-GAP."
+    },
+    {
+      "id": "codex/gb-admin-primary-role-qa-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PLATFORM-ADMIN-PRIMARY-ROLE-BOUNDARY-QA",
+      "title": "Admin primary read boundary QA and denied-response correction",
+      "owner": "Scoped Admin role QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-admin-primary-role-qa-20261114",
+      "sourceCommits": [
+        "71eae1f24d206991c1f6839603eea0418259862c"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-admin-primary-role-qa-20261114@71eae1f24d206991c1f6839603eea0418259862c"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_AND_POSTMERGE_ROLE_READ_QA",
+        "evidence": [
+          "PR #423 nine exact-head checks SUCCESS; ancestry-preserving Development merge d84f58c4639edaf3a673621b0053e6e72d684ca9. Local typecheck, Admin read reliability 7/7, migration health and release contract passed; lint baseline had zero regression. Direct scoped Admin search ESLint retained 16 pre-existing no-explicit-any findings.",
+          "Exact merged Development migration drift 265/265 PASS. Fresh 40 Admin GET role probes: Admin 200; six non-Admin roles 403; guest 401; no foreign Garden marker in denied responses. Fresh 20 Desktop/Mobile views reached settled role destinations without page errors or horizontal overflow. Browser blocked three background non-GET attempts; no Product mutation was allowed. Protected receipt SHA256 d72d55dfec895c33f7dfed80e8b7d3f52c90d27fd0e136c1422e07b231a03e7d."
+        ],
+        "classification": "MANAGEMENT_ADMIN_PRIMARY_SYNTHETIC_ROLE_READ_ONLY",
+        "limits": "Source-order service-role audit only; no service-role mutation routes, inactive Admin role, live provider, backup/restore, all-supplier cost, owner visual acceptance or Production proof. A guest login server-side hydration warning was observed in dev logs and remains outside this scoped Admin API correction."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "d84f58c4639edaf3a673621b0053e6e72d684ca9",
+        "pullRequests": [
+          423
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_ADMIN_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_LOCAL_PRODUCT_ROLE_QA_PASS_FULL_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Complete external owner visual acceptance and broader service-role/security, full Product, supplier cost/recovery gates under coordinator. No main/Production or RELEASE-GAP."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
