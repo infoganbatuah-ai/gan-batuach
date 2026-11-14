@@ -58,6 +58,8 @@ assert.equal(contract.authorizedMobileDestination(cameraLink), "/digital-observe
 assert.throws(() => contract.parseMobileLink("https://attacker.example/digital-observer/open/camera/00000000-0000-4000-8000-000000000044?site=00000000-0000-4000-8000-000000000045", ["https://app.example"]), /ORIGIN_DENIED/);
 assert.throws(() => contract.parseMobileLink("https://app.example/not-observer/camera/00000000-0000-4000-8000-000000000044?site=00000000-0000-4000-8000-000000000045", ["https://app.example"]), /PATH_DENIED/);
 assert.throws(() => contract.parseMobileLink("digitalobserver://camera/not-a-uuid?site=00000000-0000-4000-8000-000000000045"), /LINK_INVALID/);
+assert.throws(() => contract.parseMobileLink("digitalobserver://camera/00000000-0000-4000-8000-000000000044/unexpected?site=00000000-0000-4000-8000-000000000045"), /LINK_INVALID/);
+assert.throws(() => contract.parseMobileLink("https://app.example/digital-observer/open/camera/00000000-0000-4000-8000-000000000044/unexpected?site=00000000-0000-4000-8000-000000000045", ["https://app.example"]), /LINK_INVALID/);
 
 const queue = contract.sanitizeOfflineQueue([
   { id: "00000000-0000-4000-8000-000000000044", kind: "runtime_revalidate", createdAt: "2026-10-19T10:00:00.000Z", attempts: 0 },

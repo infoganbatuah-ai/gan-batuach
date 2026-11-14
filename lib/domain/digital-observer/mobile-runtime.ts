@@ -60,6 +60,9 @@ export function parseMobileLink(rawUrl: string, allowedHttpsOrigins: string[] = 
     : url.pathname.replace(/^\/digital-observer\/open\/?/, "").split("/").filter(Boolean);
   const kind = parts[0];
   const resourceId = parts[1] || undefined;
+  // A deep link identifies at most one resource. Reject trailing path parts
+  // instead of silently authorizing a different link than the one received.
+  if (parts.length > 2) throw new Error("MOBILE_LINK_INVALID");
   const observerSiteId = url.searchParams.get("site") ?? "";
   const parsed = parsedLinkSchema.safeParse({ kind, resourceId, observerSiteId });
   if (!parsed.success) throw new Error("MOBILE_LINK_INVALID");
