@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T08:35:42.263Z",
+  "observedAt": "2026-11-14T08:42:40.324Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "NEW_INTEGRATED_MIGRATION_APPROVED_APPLY_PENDING",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8081,18 +8081,19 @@
         "20261114013000"
       ],
       "developmentApprovalEvidence": "PR #418 nine exact-head checks SUCCESS; rollback-only isolated Development transaction rejected six completed-report/answer mutations and permitted legitimate first seal, then left score 5.50 and installed guard count 0. GET-only role API/RLS probe: authorized Inspector, same-Garden Manager, Owner, Admin; unassigned/suspended Inspector, foreign Manager, Parent, Staff and guest denied full report. 24 Desktop/Mobile screenshots, zero page errors, overflow or non-GET. Protected receipt SHA256 784ef3aaf206e0153601f24f144a617b8c5b5b2c4061533fb824911821034ca6; test script SHA256 4048ee9a2173a2a423f5ecd72759951828e9b0f0e06ce134f2d2e87959f9c4.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T08:40:56.095373+00:00",
+      "developmentEvidence": "Canonical ordered applicator at exact remote Development head 2695aa8fb874e5d7e8891538ff915f3bc660ab46 applied only this migration. Installed readback: report and answer guard triggers each count 1; completed synthetic score and snapshot 5.50 retained; rollback-only installed test rejected six post-submission writes and permitted one initial Inspector seal. Protected installed receipt SHA256 940302977553db996f3d12f3e77efa844450eaf56c3da827bcf1e508055c456f; script SHA256 13ade1f1e69251da80cbdb2128a603f546ba5d0e1a115f409255c5371c951236. No Production access.",
+      "developmentHistoryDigest": "6ed063ddc4675f7343cc1a05f41f09b74b37f469d8072e2f2625a308a3c436ed",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive triggers/functions; reviewed forward-only reversal may drop exactly these two triggers and functions after proving no later dependency. Preserve submitted rows, answers, snapshots and audit. No Production access.",
-      "developmentStatusReason": "Integrated original migration approved for canonical isolated Development applicator; installed history/behavior readback pending. Full Product and owner acceptance open."
+      "developmentStatusReason": "Original migration and installed history/guard behavior verified in isolated Development. Full Product, owner visual, all-supplier cost and Production remain pending.",
+      "developmentSchemaFingerprint": "86ff699679ff26617dff6951b0cfc84709225b5a3836fc8fadad82ee2d6c85ca"
     }
   ],
   "developmentExpected": 265,
-  "developmentAppliedVerified": 264,
+  "developmentAppliedVerified": 265,
   "blockers": [],
   "localObservations": [
     {
