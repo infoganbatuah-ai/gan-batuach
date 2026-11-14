@@ -48,6 +48,7 @@ export function ManagerOverviewDashboard({
 
   return (
     <div className="manager-reference-dashboard">
+      <h1 className="sr-only">מרכז תפעול הגן</h1>
       <section className="manager-command-hero" aria-labelledby="manager-command-title">
         <div className="manager-command-hero-copy">
           <span className="manager-command-eyebrow"><Building2 size={18} /> {garden.name}{garden.city ? ` · ${garden.city}` : ""}</span>

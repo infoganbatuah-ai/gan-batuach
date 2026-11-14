@@ -30,6 +30,7 @@ function OwnerDashboardState({ role, avatarUrl, title, description, retry, garde
 }) {
   return <DashboardShell role={role} title="מרכז תפעול" appHome contentElement="div">
     <TeacherAppFrame role={role} title={title} subtitle="מרכז התפעול של הגן" avatarUrl={avatarUrl} active="home">
+      <h1 className="sr-only">מרכז תפעול הגן</h1>
       <section className="manager-dashboard-context-state" role={retry ? "alert" : "status"}>
         <h2>{title}</h2>
         <p>{description}</p>
