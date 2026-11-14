@@ -71,7 +71,7 @@ export default async function ManagerCandidateDetailPage({ params }: { params: P
 
       <section className="ux08-manager-decision" id="decision">
         <div><span className="ux08-eyebrow">פעולה הבאה</span><h2>החלטת גיוס</h2><p>שליחת הצעה אינה מפעילה גישה. ההעסקה נוצרת רק לאחר קבלת ההצעה מצד המועמדת והשלמת העסקה הקנונית.</p><StaffApplicationActionButtons applicationId={application.id} /></div>
-        <ApplicationDecisionForm endpoint={`/api/garden/staff-applications/${application.id}`} actions={actions} classrooms={classrooms} />
+        <ApplicationDecisionForm endpoint={`/api/garden/staff-applications/${application.id}`} actions={actions} classrooms={classrooms} classroomFieldName="classroom_id" />
       </section>
     </TeacherAppFrame>
   </DashboardShell>;
