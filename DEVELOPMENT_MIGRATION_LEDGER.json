@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T21:53:04Z",
+  "observedAt": "2026-11-14T22:42:00Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_272_OF_272_INSTALLED_SELF_DELIVERY_PRODUCT_READBACK_PENDING_FULL_RESTORE_GAP",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_272_OF_273_INSTALLED_CHILD_GARDEN_DELIVERY_PENDING_FULL_PROVIDER_RESTORE_GAP",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8276,11 +8276,37 @@
       "productionEvidence": null,
       "recovery": "Metadata-only grant table and three Management-only transactional RPCs. Fresh protected canonical backup and actual disposable restore plus exclusive gbi lease required before application. Reversal requires reviewed forward migration preserving grant/audit evidence and no-reissue history. No Production access.",
       "developmentSchemaFingerprint": "3b685fc46e71c87273c75e269650a435e247c9efd1190f399e3fcc06387a25b2"
+    },
+    {
+      "file": "supabase/migrations/20261115001000_management_privacy_child_garden_delivery.sql",
+      "blob": "c4c8290d20cd06f910746d5dc7b72136a84a4606",
+      "sha256": "5001a7b8e51593f87be296be050b05aefd44a3c3c2e801e6ce9d7eefef416f61",
+      "version": "20261115001000",
+      "sourceTask": "GB-PRIVACY-CHILD-GARDEN-ACCESS-EXPORT-20261115",
+      "sourceCommit": "f7676b4455141b820543aaf82720caa469edb5cc",
+      "remoteBranch": "origin/codex/gb-privacy-child-garden-delivery-20261115@f7676b4455141b820543aaf82720caa469edb5cc",
+      "integrationCommit": "e2dd20d4c3bcdbf6c78bf92fff5bda195a649c06",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261115001000",
+      "requiredPredecessor": "20261114224500_management_privacy_self_delivery.sql",
+      "developmentDependsOn": ["20261114224500"],
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentApprovalEvidence": "PR #469 nine exact-head checks green. Fresh mode-0600 full DB and relevant app/Auth/Storage/migration backups; actual disposable restore of relevant schemas with object ACLs/RLS and representative 45/15/0/10 counts matched canonical. Exact candidate migration applied only to disposable; rollback-only guardian/Garden/role/expiry/hold/audit matrix passed. Restricted report exports/restricted/gb-privacy-child-garden-apply-20261115/REPORT.md SHA256 09a399e7f86cacad7b61b2199e34bc3d98b9e5ee7617c9db1dd4f2e68156e081. Full-provider restore failed on unrelated Realtime privilege; 12 provider-owned default ACL entries excluded from relevant restore. Canonical DB not modified.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Metadata-only Child/Garden identity grant; no copied export blob. Relevant app/Auth/Storage/development_metadata backup restored with object ACLs and RLS, synthetic matrix passed. Full-provider restore/RPO/RTO remain unproven. Exclusive fresh canonical DB lease and ordered applicator required; reversal needs reviewed forward migration preserving immutable audit and no-reissue history. No Production access.",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 272,
+  "developmentExpected": 273,
   "developmentAppliedVerified": 272,
-  "blockers": [],
+  "blockers": ["20261115001000_management_privacy_child_garden_delivery.sql remains unapplied to canonical isolated Development; Product API readback and full-provider restore remain open."],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",

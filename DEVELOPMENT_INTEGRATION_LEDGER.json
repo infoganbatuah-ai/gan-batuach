@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T21:53:17Z",
+  "updatedAt": "2026-11-14T22:42:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17650,7 +17650,37 @@
       "localVerification": "CANONICAL_MIGRATION_APPLIED_272_OF_272_DATABASE_MATRIX_PASS_PRODUCT_READBACK_PENDING",
       "releaseEligibility": "NOT_READY_PRODUCT_FULL_RIGHTS_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Merge applied-state ledger after exact-head CI, verify clean-head 272/272 drift, then obtain separate Product runtime lease for authenticated synthetic Admin/requester readback and role isolation. Full Child/Garden/doc export, correction/deletion, retention, cost and Production remain open."
+      "nextAction": "Self-profile migration is applied and authenticated synthetic Product readback passed at e1fc5015. Child/Garden identity delivery is a separate partial slice below; full rights, retention, cost and Production remain open."
+    },
+    {
+      "id": "codex/gb-privacy-child-garden-delivery-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIVACY-CHILD-GARDEN-ACCESS-EXPORT-20261115",
+      "title": "Bounded Parent Child and Garden identity access/export delivery",
+      "owner": "Scoped Management privacy executor; single Development integration owner",
+      "sourceBranch": "codex/gb-privacy-child-garden-delivery-20261115",
+      "sourceCommits": ["f7676b4455141b820543aaf82720caa469edb5cc"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-privacy-child-garden-delivery-20261115@f7676b4455141b820543aaf82720caa469edb5cc"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_RESTORED_DISPOSABLE_CHILD_GARDEN_MATRIX_PASS",
+        "evidence": [
+          "PR #469 passed six exact-head CI gates, canonical quality, management-context and Snyk on f7676b4455141b820543aaf82720caa469edb5cc; ancestry-preserving Development merge e2dd20d4c3bcdbf6c78bf92fff5bda195a649c06.",
+          "Fresh protected full and relevant app/Auth/Storage/migration backups were made. Relevant schemas and object ACLs/RLS actually restored to a unique disposable DB; 45 migration receipts, 15 Gardens, zero privacy requests, 10 guardian links and 18 selected RLS policies matched canonical; no-JWT authenticated role saw zero Child/guardian rows. Candidate migration and rollback-only synthetic authority, role, expiry, revoke, hold, Garden binding and audit matrix passed there; disposable removed.",
+          "Restricted recovery evidence exports/restricted/gb-privacy-child-garden-apply-20261115/REPORT.md SHA256 09a399e7f86cacad7b61b2199e34bc3d98b9e5ee7617c9db1dd4f2e68156e081. Full-provider restore failed on Realtime permission; 12 provider-owned default ACL entries excluded from focused restore. No full restore or RPO/RTO claim.",
+          "Local lint, typecheck, migration health, release contract and Development-only build passed. Local broad domain/security runs were not green due sparse worktree benchmark omission and Push44 DiskManagement/loopback sandbox restrictions; exact-head remote CI passed."
+        ],
+        "classification": "MANAGEMENT_PRIVACY_BOUNDED_CHILD_GARDEN_IDENTITY_DELIVERY",
+        "limits": "Only Child name/birth date and Garden name/city; not full privacy fulfillment. Canonical Development migration, authenticated Product/API E2E, legal retention, full-provider recovery, all-supplier cost and owner visual gates remain open. No real PII export or Production access."
+      },
+      "integration": {"branch": "integration/development", "commit": "e2dd20d4c3bcdbf6c78bf92fff5bda195a649c06", "pullRequests": [469], "sourceAncestryVerified": true},
+      "dependencies": {"status": "SELF_PROFILE_DELIVERY_APPLIED", "units": ["codex/gb-privacy-access-export-fulfillment-20261114"]},
+      "migrations": ["supabase/migrations/20261115001000_management_privacy_child_garden_delivery.sql"],
+      "migrationOrder": ["20261115001000"],
+      "localVerification": "DISPOSABLE_RESTORE_AND_SQL_MATRIX_PASS_CANONICAL_MIGRATION_PENDING_272_OF_273",
+      "releaseEligibility": "NOT_READY_CANONICAL_MIGRATION_PRODUCT_FULL_RIGHTS_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "After separate exact-head ledger PR merge, obtain exclusive canonical isolated Development DB lease and use ordered applicator for only 20261115001000; verify 273/273, RLS/tenant and source digest. Then obtain separate Product runtime lease for authenticated synthetic Parent/Admin/API readback. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
