@@ -78,6 +78,7 @@ export default async function InspectorDashboard() {
   if (gardensRes.error || !Array.isArray(gardensRes.data)) {
     return (
       <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="מרכז פיקוח" subtitle="נתוני שיוך הגנים אינם זמינים כרגע" badge="מידע לא זמין">
+        <h1 className="inspector-dashboard-desktop-heading">מרכז פיקוח</h1>
         <div role="alert">
           <InspectorStatePanel
             icon={<AlertTriangle size={26} />}
@@ -97,6 +98,7 @@ export default async function InspectorDashboard() {
   if (assignedGardens.length === 0) {
     return (
       <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="מרכז פיקוח" subtitle="החשבון מאושר וממתין לשיוך גנים" badge="מאושר ללא שיוך">
+        <h1 className="inspector-dashboard-desktop-heading">מרכז פיקוח</h1>
         <InspectorHero
           eyebrow="סטטוס שיוך"
           title="טרם הוקצו לך גנים"
@@ -153,6 +155,7 @@ export default async function InspectorDashboard() {
 
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector">
+      <h1 className="inspector-dashboard-desktop-heading">מרכז פיקוח</h1>
       <InspectorHero
         eyebrow="הביקורת הבאה"
         title={requiredUnavailable ? "יומן הביקורות אינו זמין" : next?.gardens?.name ?? "אין ביקורת מתוכננת"}
