@@ -41,7 +41,9 @@ begin
   if v_actor is null then
     raise exception 'Authenticated Parent required' using errcode='42501';
   end if;
-  select * into v_profile from public.profiles where id=v_actor for share;
+  -- Serialize proposals for this Parent so two concurrent submissions cannot
+  -- both pass the pending-request check before either inserts its request.
+  select * into v_profile from public.profiles where id=v_actor for update;
   if not found or v_profile.role<>'parent' or v_profile.active is not true then
     raise exception 'Active Parent required' using errcode='42501';
   end if;
