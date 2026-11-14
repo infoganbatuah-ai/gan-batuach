@@ -74,10 +74,10 @@ export async function StaffAppFrame({
       className="staff-runtime-shell"
       navigation={mode === "candidate" ? candidateNavigation : undefined}
     >
-      <main className="staff-app-main dashboard-runtime-content">
+      <div className="staff-app-main dashboard-runtime-content">
         {context?.available && <StaffGardenSelector employments={context.employments} activeGardenId={context.activeEmployment?.garden_id ?? null} />}
         {children}
-      </main>
+      </div>
     </RoleAppShell>
   );
 }

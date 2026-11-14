@@ -397,7 +397,7 @@ export default async function AdminDashboard() {
       {result.error || data.queryError ? <AdminDataError message={result.error ?? data.queryError ?? undefined} /> : null}
 
       <nav className="admin-primary-mobile-menu" aria-label="אזורי ניהול מערכת">
-        <header><h1>ניהול מערכת</h1><p>גישה מהירה לאזורי הפלטפורמה</p></header>
+        <header><h2>ניהול מערכת</h2><p>גישה מהירה לאזורי הפלטפורמה</p></header>
         {managementModules.slice(0, 11).map((module, index) => {
           const Icon = module.icon;
           return <Link href={module.href} key={`mobile-${module.href}`} className={index === 0 ? "is-active" : undefined} aria-current={index === 0 ? "page" : undefined}>
