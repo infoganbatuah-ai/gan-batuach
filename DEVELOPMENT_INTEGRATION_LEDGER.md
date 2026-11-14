@@ -1,5 +1,22 @@
 # Canonical Development Integration Ledger
 
+2026-11-14 scoped primary contrast and reduced-motion unit — PR #403:
+Source `0990f934b40984a2201ca70e376572720991773f` on
+`codex/primary-contrast-motion-20261114` merged ancestry-preserving into
+`integration/development` as `66174d0c645ba5edfd35bd04963983932f71e6e1`
+after nine exact-head checks passed. Five synthetic roles at Desktop 1440×1024
+and Mobile 390×844 yielded 10/10 HTTP 200 on the merged canonical Product,
+zero Product non-GET/page/hydration errors, and 220 bounded visible text samples.
+The scoped color-only correction raised 32 genuine plain-surface low-contrast
+readings above 4.5:1. One automated image-overlay outlier remains manual review;
+84 image/gradient-backed samples were not numerically tested. Reduced-motion
+emulation was checked in all ten cases. Typecheck, canonical lint with zero
+regressions and optimized build passed. Protected report SHA256
+`df58d8546b0a1263121277c594cb9b801084a10fac6f5e151402e07315e585f2`;
+merged-head receipt SHA256
+`0242d20d5e362644116eecf69da6214ba8936d23cacb53cfdab8250f7c4bd5c7`.
+No full WCAG or owner visual acceptance claim, and no main or Production change.
+
 2026-10-26 scoped event replay/Incident prefix — PR #253:
 The first two commits from the 63-commit offline source branch, plus the
 decimal-tie replay fix, were merged without squash into `integration/development`
