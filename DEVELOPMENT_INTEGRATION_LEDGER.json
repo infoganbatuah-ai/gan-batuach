@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T08:01:22.000Z",
+  "updatedAt": "2026-11-14T08:35:42.277Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16771,6 +16771,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue bounded messaging thread participant and broadcast audience QA separately; no main or Production release authorization."
+    },
+    {
+      "id": "codex/gb-inspection-report-lock-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-INSPECTIONS-IMMUTABLE-REPORT-ROLE-QA",
+      "title": "Enforce submitted inspection score and answer immutability",
+      "owner": "Scoped Inspection role QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-inspection-report-lock-20261114",
+      "sourceCommits": [
+        "792aced8740edc9c32f2276795ba04f034049afc"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-inspection-report-lock-20261114@792aced8740edc9c32f2276795ba04f034049afc"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_ROLLBACK_ONLY_IMMUTABILITY_QA",
+        "evidence": [
+          "PR #418 nine exact-head checks SUCCESS; migration health PASS; rollback-only local transaction denied score/report updates, report deletion and answer insert/update/delete, allowed legitimate first seal, with no persistent DB change.",
+          "Exact pre-correction merged head a9c23ffad07b22776e659c25dd6a48bbe235136b: GET-only Inspector/Manager/Owner/Admin scoped full report; unassigned/suspended Inspector, foreign Manager, Parent, Staff and guest denied. 24 Desktop/Mobile screenshots, no page errors/overflow/non-GET. Protected receipt SHA256 784ef3aaf206e0153601f24f144a617b8c5b5b2c4061533fb824911821034ca6.",
+          "NOT_TESTED until ordered Development apply and postmerge readback: installed guard behavior, actual inspector submission repeat, full RLS matrix, Production, owner visual acceptance and cumulative cost/recovery."
+        ]
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "932678a8f91a15b4ef0ebb5e6fb3715191a80829",
+        "pullRequests": [
+          418
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "PREDECESSOR_20261114013000_APPLIED_LOCAL_DEVELOPMENT",
+        "units": []
+      },
+      "migrations": [
+        "supabase/migrations/20261114090000_management_submitted_inspection_immutability.sql"
+      ],
+      "migrationOrder": [
+        "20261114090000"
+      ],
+      "localVerification": "PRE_APPLY_ROLLBACK_PROBE_AND_SOURCE_ROLE_QA_PASS_INSTALLED_PENDING",
+      "releaseEligibility": "NOT_READY_DEVELOPMENT_MIGRATION_APPLY_AND_CUMULATIVE_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Apply only this migration with canonical Development applicator after ledger merge; verify installed guard, history digest, fingerprint, role access; update ledger applied state in a separate scoped PR. No main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
