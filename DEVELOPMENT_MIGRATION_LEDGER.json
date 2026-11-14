@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T18:43:37Z",
+  "observedAt": "2026-11-14T18:53:33Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_268_APPLIED_269TH_REVIEWED_PENDING_EXCLUSIVE_APPLY",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_269_INSTALLED_PENDING_CLEAN_HEAD_DRIFT_AND_FULL_RESTORE_GAP",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8190,18 +8190,18 @@
       "developmentDependsOn": ["20261114171000"],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "PR #457 exact-head six CI, canonical quality, management-context and Snyk SUCCESS. Revised SQL SHA256 aa7fc97b14c3d94951333cd213ccf985c6f5199fcc758a9cc77ef26febbafafb applied twice to fresh restored disposable QA; rollback-only decision, role, hold, retention, ACL and terminal-evidence matrix PASS. Protected report exports/restricted/gb-privacy-admin-decision-terminalqa-20261114/REPORT.md; canonical DB not mutated.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T18:50:53.910927Z",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development 554a92afbf6787ef5731e17765c0b0b45dbb2430 installed only reviewed 20261114183500, exact digest aa7fc97b14c3d94951333cd213ccf985c6f5199fcc758a9cc77ef26febbafafb, guard trigger and anon/authenticated denial/service_role allowance verified. Fresh protected full backup SHA256 0b1fcfd73fe636ac0eaf269bf185f27101a7cc5f8d33d0b3f15cd9ca3ddd0d0f; full disposable restore failed Realtime log_min_messages privilege. Separate application-data backup SHA256 b43890181a0cfb4950fb4359d1283c46782d86a3c98f1c7ef183f97c659545e7 restored successfully; canonical rollback-only synthetic decision matrix PASS; 269 installed; privacy0/Gardens15 and disposable dropped. Protected report exports/restricted/gb-privacy-admin-decision-apply-20261114/REPORT.md SHA256 ef8d95a89ec5205e532f59db41c66c85470b85e73f1e971699366695e4cedc3a. Full supplier restore parity remains open; no Production access.",
       "developmentHistoryDigest": null,
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive Management-only decision guard and privilege revocation. Fresh protected canonical pre-apply backup with actual disposable restore required; rollback needs a reviewed forward migration preserving privacy decisions and immutable audit evidence. No Production access.",
-      "developmentSchemaFingerprint": null
+      "developmentSchemaFingerprint": "45aca668788d716f0a06c07222d8a571d919db46bec057d32c3f965ded655b4b"
     }
   ],
-  "developmentExpected": 268,
-  "developmentAppliedVerified": 268,
+  "developmentExpected": 269,
+  "developmentAppliedVerified": 269,
   "blockers": [],
   "localObservations": [
     {
