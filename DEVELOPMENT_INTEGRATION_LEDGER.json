@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T07:04:15.192Z",
+  "updatedAt": "2026-11-14T07:38:31.835Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16675,6 +16675,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Resolve nominal candidate QA employment inconsistency and legacy Parent multi-child list semantics in a separate bounded unit; validate actual enrollment mutations and direct RLS role claims separately. No main/Production release authorization."
+    },
+    {
+      "id": "codex/gb-parent-discovery-birth-date-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PARENT-UNASSIGNED-DISCOVERY-ENROLLMENT-ENTRY-QA",
+      "title": "Explain missing Child birth date in authorized Parent Garden discovery",
+      "owner": "Scoped Parent discovery QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-parent-discovery-birth-date-20261114",
+      "sourceCommits": [
+        "81e43c2d92db6b893a63d100648812aa84f20a42"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-parent-discovery-birth-date-20261114@81e43c2d92db6b893a63d100648812aa84f20a42"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_SCOPED_POST_MERGE_PARENT_QA",
+        "evidence": [
+          "Baseline authorized Parent Child without birth date returned RPC 22023 and misleading discovery API 503; exact match now returns 422 and explanatory UI. Foreign Child remains 403 and guest 401. PR #414 nine exact-head checks SUCCESS; local typecheck and baseline-aware lint PASS with zero regressions.",
+          "Merged-head 23966870147c3e33cf3675833a6d13be3763b9ca: six fresh unassigned Desktop/Mobile screenshots, two assigned missing-birth-date screenshots, read-only API/RLS controls. No page errors or overflow; Product non-GET attempts 0. Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/parent-unassigned-20261114-current/REPORT.private.md SHA256 259d99cbe5940309420b7f8bfc3a1dbf4915eac147214fe93b19eb60ccd9040f; merged controls receipt SHA256 128773e2b4b80fc06945f3a4cd311b053bfa3e3140377ba2783b2280659c9665; browser receipt SHA256 a7500dda97f09a4889a227e4646b15d8e0e0e2734674e2fd161df3baaa4f5fe2; assigned UI receipt SHA256 33a946f4fcca09c64782270eda5b0cc15be51ed576e75e8e68acef92119f7981.",
+          "NOT_TESTED: actual enrollment/Child creation/invitation mutations, full public profile PII scan, DOB edit path, full RLS matrix, real provider and owner visual acceptance. No schema, QA reset, main or Production change."
+        ]
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "23966870147c3e33cf3675833a6d13be3763b9ca",
+        "pullRequests": [
+          414
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_PARENT_CHILD_LINK_BASELINE",
+        "units": [
+          "codex/gb-children-api-guest-boundary-20261114"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_EIGHT_SCREEN_PARENT_UNASSIGNED_AND_BIRTH_DATE_QA_SCOPED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue bounded Parent discovery enrollment mutation and Child DOB completion QA separately; no main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
