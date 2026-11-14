@@ -37,11 +37,17 @@ type PrivacyRequestRow = {
   id: string;
   status: string;
   request_type: string;
+  child_id?: string | null;
+  garden_id?: string | null;
   response_summary?: string | null;
   request_reason?: string | null;
   created_at?: string | null;
   due_at?: string | null;
 };
+
+function deliveryWindowOpen(expiresAt: string) {
+  return Date.parse(expiresAt) > Date.now();
+}
 
 function tone(status: string): "good" | "warn" | "bad" {
   if (status === "completed" || status === "approved") return "good";
@@ -131,6 +137,15 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
   const grants = new Map(((grantsRes.data ?? []) as Array<{
     privacy_request_id: string; expires_at: string; revoked_at: string | null; access_count: number
   }>).map((grant) => [grant.privacy_request_id, grant]));
+  const childGrantsRes = role === "parent"
+    ? await supabase.from("privacy_child_garden_delivery_grants" as never)
+      .select("privacy_request_id,child_id,garden_id,expires_at,revoked_at,access_count")
+      .eq("requester_profile_id", profile.id).limit(50)
+    : { data: [] };
+  const childGrants = new Map(((childGrantsRes.data ?? []) as Array<{
+    privacy_request_id: string; child_id: string; garden_id: string;
+    expires_at: string; revoked_at: string | null; access_count: number
+  }>).map((grant) => [grant.privacy_request_id, grant]));
   const open = requests.filter((request) => !["completed", "rejected", "cancelled"].includes(String(request.status))).length;
   const completed = requests.filter((request) => request.status === "completed").length;
   const sensitive = requests.filter((request) => ["deletion", "anonymization", "export"].includes(String(request.request_type))).length;
@@ -204,8 +219,15 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
         {requests.length === 0 ? <div className="empty-state"><strong>אין בקשות פרטיות</strong><span>בקשות שתשלחו יופיעו כאן.</span></div> : <div className="procedure-list">
           {requests.map((request) => {
             const grant = grants.get(request.id);
+            const childGrant = childGrants.get(request.id);
             const available = request.status === "approved" && ["access", "export"].includes(request.request_type)
-              && grant && !grant.revoked_at && grant.access_count < 3;
+              && grant && !grant.revoked_at && grant.access_count < 3
+              && deliveryWindowOpen(grant.expires_at);
+            const childAvailable = role === "parent" && request.status === "approved"
+              && ["access", "export"].includes(request.request_type)
+              && childGrant && !childGrant.revoked_at && childGrant.access_count < 3
+              && childGrant.child_id === request.child_id && childGrant.garden_id === request.garden_id
+              && deliveryWindowOpen(childGrant.expires_at);
             return <article className="card procedure-card" key={request.id}>
               <div>
                 <span className={`pill ${tone(request.status)}`}>{statusLabels[request.status] ?? request.status}</span>
@@ -218,7 +240,14 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
                   </a>
                   <small>פרופיל אישי בלבד · זמין עד {new Date(grant.expires_at).toLocaleString("he-IL")} · {3 - grant.access_count} קריאות נותרו</small>
                 </div> : null}
+                {childAvailable ? <div className="procedure-meta">
+                  <a className="button secondary" href={`/api/privacy/requests/${request.id}/child-garden-delivery`}>
+                    {request.request_type === "export" ? "הורדת זהות הילד והגן" : "צפייה בזהות הילד והגן"}
+                  </a>
+                  <small>שם ותאריך לידה של הילד, שם ועיר של הגן בלבד · זמין עד {new Date(childGrant.expires_at).toLocaleString("he-IL")} · {3 - childGrant.access_count} קריאות נותרו</small>
+                </div> : null}
                 {grant && !available ? <small>חלון המסירה המצומצם אינו זמין עוד. הבקשה עצמה ממשיכה בטיפול.</small> : null}
+                {childGrant && !childAvailable ? <small>חלון מסירת זהות הילד והגן אינו זמין עוד. הבקשה עצמה ממשיכה בטיפול.</small> : null}
               </div>
             </article>;
           })}
