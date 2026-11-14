@@ -125,6 +125,12 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
     .order("created_at", { ascending: false })
     .limit(50);
   const requests = (requestsRes.data ?? []) as PrivacyRequestRow[];
+  const grantsRes = await supabase.from("privacy_self_delivery_grants" as never)
+    .select("privacy_request_id,expires_at,revoked_at,access_count")
+    .eq("requester_profile_id", profile.id).limit(50);
+  const grants = new Map(((grantsRes.data ?? []) as Array<{
+    privacy_request_id: string; expires_at: string; revoked_at: string | null; access_count: number
+  }>).map((grant) => [grant.privacy_request_id, grant]));
   const open = requests.filter((request) => !["completed", "rejected", "cancelled"].includes(String(request.status))).length;
   const completed = requests.filter((request) => request.status === "completed").length;
   const sensitive = requests.filter((request) => ["deletion", "anonymization", "export"].includes(String(request.request_type))).length;
@@ -196,16 +202,26 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
       <section className="dashboard-section">
         <div className="section-heading"><h2>הבקשות שלי</h2><p>סטטוס טיפול ובדיקות אדמין.</p></div>
         {requests.length === 0 ? <div className="empty-state"><strong>אין בקשות פרטיות</strong><span>בקשות שתשלחו יופיעו כאן.</span></div> : <div className="procedure-list">
-          {requests.map((request) => (
-            <article className="card procedure-card" key={request.id}>
+          {requests.map((request) => {
+            const grant = grants.get(request.id);
+            const available = request.status === "approved" && ["access", "export"].includes(request.request_type)
+              && grant && !grant.revoked_at && grant.access_count < 3;
+            return <article className="card procedure-card" key={request.id}>
               <div>
                 <span className={`pill ${tone(request.status)}`}>{statusLabels[request.status] ?? request.status}</span>
                 <h3>{requestLabels[request.request_type] ?? request.request_type}</h3>
                 <p>{request.response_summary ?? request.request_reason ?? "הבקשה התקבלה."}</p>
                 <small>{request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""} · יעד טיפול {request.due_at ? new Date(request.due_at).toLocaleDateString("he-IL") : "לא נקבע"}</small>
+                {available ? <div className="procedure-meta">
+                  <a className="button secondary" href={`/api/privacy/requests/${request.id}/delivery`}>
+                    {request.request_type === "export" ? "הורדת נתוני הפרופיל האישי" : "צפייה בנתוני הפרופיל האישי"}
+                  </a>
+                  <small>פרופיל אישי בלבד · זמין עד {new Date(grant.expires_at).toLocaleString("he-IL")} · {3 - grant.access_count} קריאות נותרו</small>
+                </div> : null}
+                {grant && !available ? <small>חלון המסירה המצומצם אינו זמין עוד. הבקשה עצמה ממשיכה בטיפול.</small> : null}
               </div>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>}
       </section>
     </DashboardShell>
