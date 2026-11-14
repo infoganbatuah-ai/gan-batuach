@@ -16423,6 +16423,34 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_WCAG_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue bounded accessibility and role-state QA; seek external owner visual acceptance separately. No main or Production release authorization."
+    },
+    {
+      "id": "codex/primary-dialog-focus-return-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIMARY-DIALOG-FOCUS-RETURN-20261114",
+      "title": "Shared profile dialog keyboard focus and return",
+      "owner": "Scoped accessibility executor; single Development integration owner",
+      "sourceBranch": "codex/primary-dialog-focus-return-20261114",
+      "sourceCommits": ["d714b33df8401e33cf58346d63a4e3cf9bed5386"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/primary-dialog-focus-return-20261114@d714b33df8401e33cf58346d63a4e3cf9bed5386"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_MERGE_AND_POST_MERGE_EIGHT_CASE_MODAL_KEYBOARD_PASS_SCOPED",
+        "evidence": [
+          "Before correction, actual Development Parent, Owner and Admin Desktop/Mobile 6/6 had a modal profile drawer that left focus on the background opener, allowed Tab to background and ignored Escape. No Product write was performed.",
+          "PR #401 source d714b33df8401e33cf58346d63a4e3cf9bed5386 passed nine exact-head gates and merged ancestry-preserving at 7b6503ac1523cea42ff7e67e0925664e6e64a290.",
+          "Fresh exact merged-head Chrome Parent-a, Owner-ab, Admin and Staff-a Desktop 1440x1024/Mobile 390x844: 8/8 Enter-open, focus inside, Tab/ShiftTab/wrap contained, background focus redirected, Escape close and exact opener focus return. Zero Product non-GET, page errors or hydration warnings. Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/primary-dialog-focus-20261114/REPORT.private.md SHA256 a93b106130f61cea64ea509c348ba52ab5a4c9c8da479073352331007357d848; merged receipt SHA256 02f40ee3cae2212c3799179d6e666533aaade24124c1926f8c7a70fe3725c601.",
+          "Typecheck, lint baseline with zero canonical regressions, optimized local build and focused diff check passed. No migration, API, Auth, provider or Digital Observer core change. No full WCAG or owner visual approval claim."
+        ]
+      },
+      "integration": {"branch": "integration/development", "commit": "7b6503ac1523cea42ff7e67e0925664e6e64a290", "pullRequests": [401], "sourceAncestryVerified": true},
+      "dependencies": {"status": "INTEGRATED_PRIMARY_SKIP_LINK_BASELINE", "units": ["codex/primary-skip-to-main-20261114"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_FOUR_ROLE_DESKTOP_MOBILE_MODAL_FOCUS_PASS_SCOPED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_WCAG_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue bounded accessibility dialog/menu QA and owner visual review. No main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
