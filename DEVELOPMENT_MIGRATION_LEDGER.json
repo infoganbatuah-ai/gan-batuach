@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T08:42:40.324Z",
+  "observedAt": "2026-11-14T13:59:48.550193Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "ONE_INTEGRATED_REVIEWED_MIGRATION_PENDING_ISOLATED_DEVELOPMENT_APPLY",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8090,9 +8090,37 @@
       "recovery": "Additive triggers/functions; reviewed forward-only reversal may drop exactly these two triggers and functions after proving no later dependency. Preserve submitted rows, answers, snapshots and audit. No Production access.",
       "developmentStatusReason": "Original migration and installed history/guard behavior verified in isolated Development. Full Product, owner visual, all-supplier cost and Production remain pending.",
       "developmentSchemaFingerprint": "86ff699679ff26617dff6951b0cfc84709225b5a3836fc8fadad82ee2d6c85ca"
+    },
+    {
+      "file": "supabase/migrations/20261114134005_management_nonprimary_guardian_child_documents.sql",
+      "blob": "9914ca2de69ce12f556b31f467e7e6f2875ef3da",
+      "sha256": "55785a1204b89ff7614adde2bcd2c574763120aa65135030d1414c0907435316",
+      "version": "20261114134005",
+      "sourceTask": "GB-DOCUMENT-NONPRIMARY-GUARDIAN-RLS-20261114",
+      "sourceCommit": "0cef63003bfc7743485055d6487858a16b078400",
+      "sourceHead": "0cef63003bfc7743485055d6487858a16b078400",
+      "remoteBranch": "origin/codex/document-nonprimary-guardian-rls-20261114@0cef63003bfc7743485055d6487858a16b078400",
+      "integrationCommit": "2fd00fb20580720ea952e2d18f1822e686db70de",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261114134005",
+      "requiredPredecessor": "20261114090000_management_submitted_inspection_immutability.sql",
+      "dependencyStatus": "PREDECESSOR_VERIFIED_LOCAL_DEVELOPMENT",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261114090000"
+      ],
+      "developmentApprovalEvidence": "PR #442 nine exact-head checks SUCCESS. Backup SHA256 563e33136b5dba74fa1cfa09b3dc65642a35b835a409e41dd55fa206c07f401c restored to disposable QA DB; rollback-only direct RLS and registration matrix passed across active/revoked/expired/scope, primary/foreign Parent, Manager, Staff, Inspector, Admin and wrong Garden. No canonical DB mutation yet.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "recovery": "Function-only forward migration; no table/backfill mutation. Protected pre-apply QA dump; rollback requires reviewed forward restoration of prior can_access_document and register_management_document definitions and authenticated role readback. Production history unknown; no Production apply."
     }
   ],
-  "developmentExpected": 265,
+  "developmentExpected": 266,
   "developmentAppliedVerified": 265,
   "blockers": [],
   "localObservations": [

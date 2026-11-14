@@ -2603,3 +2603,5 @@ This test-only correction did not touch Product runtime, migration, DB,
 Digital Observer core, providers, `main` or Production. Full Product/security,
 owner visual and release qualification remain pending; separate invitation
 acceptance QA is blocked by the external Development Colima runtime.
+
+2026-11-14 non-primary guardian child-document access: [PR #442](https://github.com/infoganbatuah-ai/gan-batuach/pull/442) preserved source `0cef63003bfc7743485055d6487858a16b078400` after nine exact-head checks and ancestry-merged to Development `2fd00fb20580720ea952e2d18f1822e686db70de`. The forward document-only migration `20261114134005_management_nonprimary_guardian_child_documents.sql` and API precheck permit an active legal guardian with `profile` scope to read/upload documents for the correctly bound Child/Garden. A protected local QA backup restored into a disposable DB and the rollback-only role matrix passed; backup SHA256 `563e33136b5dba74fa1cfa09b3dc65642a35b835a409e41dd55fa206c07f401c`. Canonical Development application and installed Product verification remain pending. No Production, main, DO core or paid dependency change.
