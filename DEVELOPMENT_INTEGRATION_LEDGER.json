@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T18:43:37Z",
+  "updatedAt": "2026-11-14T18:53:33Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17533,7 +17533,7 @@
       "owner": "Scoped Management privacy executor; single Development integration owner",
       "sourceBranch": "codex/gb-privacy-admin-decision-20261114",
       "sourceCommits": ["e2bb711fff322816391b9f13d0d4e4b81b160b10", "921bcdf336def7431befc09b5f98e77638f5f0d4"],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": ["origin/codex/gb-privacy-admin-decision-20261114@921bcdf336def7431befc09b5f98e77638f5f0d4"],
@@ -17544,10 +17544,11 @@
         "evidence": [
           "PR #457 passed six Digital Observer CI gates, canonical quality, management-context and Snyk on exact source 921bcdf336def7431befc09b5f98e77638f5f0d4; ancestry-preserving merge dbe6317c6b53b1141aa74d0fd653faacfde23bd3.",
           "Fresh restored disposable QA reproduced submitted deletion false completion; revised migration applied twice in disposable QA with rollback-only false-completion, role, hold, retention, valid synthetic audited-action, rejection and terminal-evidence immutability cases PASS. Disposable removed; canonical privacy0/migrations41/guard0 unchanged. Protected terminal report exports/restricted/gb-privacy-admin-decision-terminalqa-20261114/REPORT.md.",
-          "Local typecheck, 269 migration audit, lint baseline, webpack build, domain 56/56 and release-contract PASS. Local broad security CH1 host DiskManagement/loopback EPERM; exact-head remote security PASS."
+          "Local typecheck, 269 migration audit, lint baseline, webpack build, domain 56/56 and release-contract PASS. Local broad security CH1 host DiskManagement/loopback EPERM; exact-head remote security PASS.",
+          "Canonical isolated Development migration applied at clean remote 554a92afbf6787ef5731e17765c0b0b45dbb2430 after fresh protected full backup and actual disposable application-data restore. Installed guard/grants and rollback-only synthetic decision matrix PASS; baseline 227 + 42 postbaseline = 269. Full provider Realtime logical restore failed on log_min_messages privilege; this remains a supplier recovery gap. Protected report exports/restricted/gb-privacy-admin-decision-apply-20261114/REPORT.md SHA256 ef8d95a89ec5205e532f59db41c66c85470b85e73f1e971699366695e4cedc3a."
         ],
         "classification": "MANAGEMENT_PRIVACY_ADMIN_DECISION_INTEGRITY",
-        "limits": "Synthetic action validates the database contract only; no real deletion/export/notification or provider fulfillment. Canonical Development migration apply and authenticated Product readback are pending. No full Product, Production, owner visual or all-in supplier cost proof."
+        "limits": "Synthetic action validates the database contract only; no real deletion/export/notification or provider fulfillment. Authenticated Product readback remains pending. Full supplier restore parity failed and requires separate remediation. No full Product, Production, owner visual or all-in supplier cost proof."
       },
       "integration": {
         "branch": "integration/development",
@@ -17558,10 +17559,10 @@
       "dependencies": {"status": "CANONICAL_PRIVACY_CHILD_SCOPE_AND_ADMIN_BASELINE", "units": ["codex/gb-privacy-child-request-20261114"]},
       "migrations": ["supabase/migrations/20261114183500_management_privacy_decision_integrity.sql"],
       "migrationOrder": ["20261114183500"],
-      "localVerification": "DISPOSABLE_EXACT_SQL_MATRIX_PASS_CANONICAL_269TH_MIGRATION_PENDING_APPROVAL_APPLY",
-      "releaseEligibility": "NOT_READY_CANONICAL_MIGRATION_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "localVerification": "CANONICAL_269TH_MIGRATION_APPLIED_INSTALLED_GUARD_AND_ROLLBACK_MATRIX_PASS_CLEAN_HEAD_DRIFT_PENDING",
+      "releaseEligibility": "NOT_READY_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Merge reviewed migration approval ledger after exact-head CI, then obtain separate exclusive canonical Development lease with fresh backup and actual disposable restore; apply only the ordered 269th migration, verify RLS/decision matrix and record applied state. No main/Production."
+      "nextAction": "Merge applied-state ledger after exact-head CI, verify 269/269 actual drift at clean remote head, then authenticated Admin/Parent Product readback and separate full supplier restore-path remediation. No real privacy fulfillment, main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
