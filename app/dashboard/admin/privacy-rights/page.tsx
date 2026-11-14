@@ -7,7 +7,7 @@ import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
-import { resolveDataSubjectScope, summarizePrivacyScope } from "@/lib/privacy/data-subject-scope";
+import { resolveDataSubjectScope } from "@/lib/privacy/data-subject-scope";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
 
 const requestLabels: Record<string, string> = {
@@ -69,99 +69,62 @@ async function updatePrivacyRequestStatus(formData: FormData) {
 
 async function calculateRequestScope(formData: FormData) {
   "use server";
-  const { profile } = await requireRole(["admin"]);
+  await requireRole(["admin"]);
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    redirect("/dashboard/admin/privacy-rights?scope_error=invalid");
+  }
   const request = await supabase.from("privacy_rights_requests" as any).select("*").eq("id", id).maybeSingle();
-  if (request.error || !request.data) return;
+  if (request.error || !request.data) redirect("/dashboard/admin/privacy-rights?scope_error=missing");
   const row = request.data as any;
-  const items = await resolveDataSubjectScope(supabase as any, {
-    subjectUserId: row.subject_user_id ?? row.requested_by ?? row.requester_profile_id,
-    childId: row.child_id,
-    gardenId: row.garden_id,
-    subjectType: row.subject_type ?? row.data_subject_type
-  });
-  await supabase.from("privacy_request_scope_items" as any).delete().eq("privacy_request_id", id);
-  if (items.length) {
-    await supabase.from("privacy_request_scope_items" as any).insert(items.map((item) => ({
-      privacy_request_id: id,
+  let items: Awaited<ReturnType<typeof resolveDataSubjectScope>>;
+  try {
+    items = await resolveDataSubjectScope(supabase as any, {
+      subjectUserId: row.subject_user_id ?? row.requested_by ?? row.requester_profile_id,
+      childId: row.child_id,
+      gardenId: row.garden_id,
+      subjectType: row.subject_type ?? row.data_subject_type
+    });
+  } catch {
+    redirect("/dashboard/admin/privacy-rights?scope_error=source");
+  }
+  const result = await supabase.rpc("management_replace_privacy_scope" as any, {
+    p_request_id: id,
+    p_items: items.map((item) => ({
       data_category: item.dataCategory,
       table_name: item.tableName,
       estimated_record_count: item.estimatedRecordCount,
       action_recommendation: item.actionRecommendation,
       parent_export_allowed: item.parentExportAllowed,
-      blocked_by_retention: item.actionRecommendation === "retain",
-      notes: item.notes,
-      metadata: { source: "phase156_scope_resolver" }
-    })));
-  }
-  const summary = summarizePrivacyScope(items);
-  await supabase.from("privacy_rights_requests" as any).update({
-    status: row.status === "submitted" ? "under_review" : row.status,
-    execution_status: "scoped",
-    scope_calculated_at: new Date().toISOString(),
-    retention_conflicts: items.filter((item) => item.actionRecommendation === "retain"),
-    metadata: { ...(row.metadata ?? {}), scope_summary: summary },
-    updated_at: new Date().toISOString()
-  }).eq("id", id);
-  await writeAuditEvent({
-    eventType: "privacy_scope_calculated",
-    eventCategory: "regulatory",
-    actorProfileId: profile.id,
-    actorRole: profile.role,
-    targetType: "privacy_request",
-    targetId: id,
-    gardenId: row.garden_id ?? null,
-    childId: row.child_id ?? null,
-    metadata: summary,
-    riskLevel: "high"
+      notes: item.notes
+    }))
   });
+  if (result.error) redirect("/dashboard/admin/privacy-rights?scope_error=transaction");
   revalidatePath("/dashboard/admin/privacy-rights");
+  redirect("/dashboard/admin/privacy-rights?scope=updated");
 }
 
 async function createLegalHoldForRequest(formData: FormData) {
   "use server";
-  const { profile } = await requireRole(["admin"]);
+  await requireRole(["admin"]);
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
-  const reason = String(formData.get("hold_reason") ?? "Manual privacy deletion hold").slice(0, 400);
-  const request = await supabase.from("privacy_rights_requests" as any).select("*").eq("id", id).maybeSingle();
-  if (request.error || !request.data) return;
-  const row = request.data as any;
-  const hold = await supabase.from("legal_holds" as any).insert({
-    hold_key: `privacy:${id}:${Date.now()}`,
-    hold_reason: reason,
-    hold_type: "audit_preservation",
-    status: "active",
-    garden_id: row.garden_id ?? null,
-    child_id: row.child_id ?? null,
-    subject_user_id: row.subject_user_id ?? row.requested_by ?? null,
-    created_by: profile.id,
-    metadata: { privacy_request_id: id, source: "admin_privacy_rights" }
-  }).select("id").single();
-  await supabase.from("privacy_rights_requests" as any).update({
-    status: "blocked_by_legal_hold",
-    legal_hold_checked_at: new Date().toISOString(),
-    execution_status: "blocked",
-    legal_hold_conflicts: [{ hold_id: hold.data?.id ?? null, reason }],
-    updated_at: new Date().toISOString()
-  }).eq("id", id);
-  await writeAuditEvent({
-    eventType: "legal_hold_checked",
-    eventCategory: "regulatory",
-    actorProfileId: profile.id,
-    actorRole: profile.role,
-    targetType: "privacy_request",
-    targetId: id,
-    gardenId: row.garden_id ?? null,
-    childId: row.child_id ?? null,
-    metadata: { hold_id: hold.data?.id ?? null, reason },
-    riskLevel: "high"
+  const reason = String(formData.get("hold_reason") ?? "Manual privacy deletion hold").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || reason.length < 12 || reason.length > 400) {
+    redirect("/dashboard/admin/privacy-rights?hold_error=invalid");
+  }
+  const result = await supabase.rpc("management_create_privacy_hold" as any, {
+    p_request_id: id,
+    p_reason: reason
   });
+  if (result.error) redirect("/dashboard/admin/privacy-rights?hold_error=transaction");
   revalidatePath("/dashboard/admin/privacy-rights");
+  redirect("/dashboard/admin/privacy-rights?hold=updated");
 }
 
-export default async function AdminPrivacyRightsPage({ searchParams }: { searchParams: Promise<{ decision?: string; decision_error?: string }> }) {
+export default async function AdminPrivacyRightsPage({ searchParams }: { searchParams: Promise<{ decision?: string; decision_error?: string; scope?: string; scope_error?: string; hold?: string; hold_error?: string }> }) {
   await requireRole(["admin"]);
   const decisionFeedback = await searchParams;
   const result = await safeAdminData("privacy rights", async () => {
@@ -219,6 +182,8 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
       <AdminDataError message={result.error ?? result.data.queryError} />
       {decisionFeedback.decision_error ? <p role="alert" className="pill bad">לא ניתן לשנות את מצב הבקשה. בדקו את המעבר, הסיבה והרשאות הטיפול.</p> : null}
       {decisionFeedback.decision ? <p role="status" className="pill good">ההחלטה נרשמה לבדיקה ולהמשך טיפול.</p> : null}
+      {decisionFeedback.scope_error || decisionFeedback.hold_error ? <p role="alert" className="pill bad">הפעולה לא נשמרה. הנתונים הקודמים נותרו ללא שינוי; בדקו הרשאות ונסו שוב.</p> : null}
+      {decisionFeedback.scope || decisionFeedback.hold ? <p role="status" className="pill good">הפעולה נשמרה יחד עם תיעוד הביקורת.</p> : null}
 
       <section className="grid cols-4 dashboard-kpis">
         <StatCard label="Open requests" value={open} tone={open ? "warn" : "good"} />
