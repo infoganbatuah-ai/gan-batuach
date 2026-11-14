@@ -19,6 +19,7 @@ export type DataSubjectScopeItem = {
 const scopedTables = [
   { tableName: "profiles", dataCategory: "profile_data", field: "id", source: "subjectUserId", actionRecommendation: "review", parentExportAllowed: true },
   { tableName: "children", dataCategory: "child_records", field: "id", source: "childId", actionRecommendation: "review", parentExportAllowed: true },
+  { tableName: "gardens", dataCategory: "garden_identity", field: "id", source: "gardenId", actionRecommendation: "review", parentExportAllowed: true },
   { tableName: "parents", dataCategory: "parent_records", field: "profile_id", source: "subjectUserId", actionRecommendation: "review", parentExportAllowed: true },
   { tableName: "staff", dataCategory: "staff_records", field: "profile_id", source: "subjectUserId", actionRecommendation: "review", parentExportAllowed: false },
   { tableName: "attendance", dataCategory: "attendance_records", field: "child_id", source: "childId", actionRecommendation: "anonymize", parentExportAllowed: true },
@@ -52,6 +53,9 @@ function sourceValue(input: DataSubjectScopeInput, source: string) {
 export async function resolveDataSubjectScope(supabase: any, input: DataSubjectScopeInput): Promise<DataSubjectScopeItem[]> {
   const items: DataSubjectScopeItem[] = [];
   for (const table of scopedTables) {
+    // A child's Garden identity is a bounded context row, not a broad Garden
+    // export or a new entitlement for Garden-subject requests.
+    if (table.tableName === "gardens" && !input.childId) continue;
     const value = sourceValue(input, table.source);
     if (!value) continue;
     const result = await supabase
@@ -67,7 +71,9 @@ export async function resolveDataSubjectScope(supabase: any, input: DataSubjectS
       estimatedRecordCount: result.count,
       actionRecommendation: table.actionRecommendation,
       parentExportAllowed: table.parentExportAllowed,
-      notes: "Scope calculated from direct relationship."
+      notes: table.tableName === "gardens"
+        ? "Child-linked Garden identity only (name and city); no Garden records or other children."
+        : "Scope calculated from direct relationship."
     });
   }
   return items;
