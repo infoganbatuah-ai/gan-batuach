@@ -31,10 +31,11 @@ test('only exact Next-generated development type imports are exempt from clean s
 });
 
 test('integration drops inherited provider secrets and live flags',()=>{
-  const env=integrationEnvironment({}, {uiOnly:true,sha:'test',timestamp:'test',system:{PATH:'/usr/bin',SUPABASE_SERVICE_ROLE_KEY:'sensitive-test',PRODUCTION_ACTIVATION_APPROVED:'true',OPENAI_API_KEY:'sensitive-test'}});
+  const env=integrationEnvironment({}, {uiOnly:true,sha:'test',timestamp:'test',system:{PATH:'/usr/bin',SUPABASE_SERVICE_ROLE_KEY:'sensitive-test',PRODUCTION_ACTIVATION_APPROVED:'true',OPENAI_API_KEY:'sensitive-test',NEXT_PUBLIC_APP_URL:'https://untrusted.example'}});
   assert.equal(env.APP_ENV,'local');assert.equal(env.PRODUCTION_ACTIVATION_APPROVED,'false');
   assert.equal(env.SUPABASE_SERVICE_ROLE_KEY,undefined);assert.equal(env.OPENAI_API_KEY,undefined);
   assert.equal(env.INTEGRATION_BACKEND,'UNAVAILABLE_UI_ONLY');
+  assert.equal(env.NEXT_PUBLIC_APP_URL,'http://127.0.0.1:3000');
 });
 test('missing, remote, indirect and credential-bearing database targets fail closed',()=>{
   assert.throws(()=>integrationEnvironment({}));
@@ -47,6 +48,7 @@ test('missing, remote, indirect and credential-bearing database targets fail clo
     MANAGEMENT_INVITATION_SECRET:'local-development-invitation-secret',
   });
   assert.equal(backend.MANAGEMENT_INVITATION_SECRET,'local-development-invitation-secret');
+  assert.equal(backend.NEXT_PUBLIC_APP_URL,'http://127.0.0.1:3000');
 });
 test('UI-only cannot consume configured credentials; arbitrary env cannot reach child',()=>{
   assert.throws(()=>integrationEnvironment({SUPABASE_SERVICE_ROLE_KEY:'test'},{uiOnly:true}));
