@@ -128,7 +128,7 @@ export default async function ParentDashboard({ searchParams }: { searchParams: 
   const dataUnavailable = Boolean(family.sourceUnavailable || requestsRes.error || attendanceRes.error || tuitionRes.error || documentRes.error || notificationRes.error || scheduleRes.error);
 
   return (
-    <DashboardShell role="parent" title="אזור הורה" appHome>
+    <DashboardShell role="parent" title="אזור הורה" appHome contentElement="div">
       <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null} contentClassName={`parent-dashboard-home${childContexts.length > 1 ? " parent-dashboard-multi-child" : " parent-dashboard-assigned"}`}>
         <ParentHero title={`שלום, ${cleanSyntheticLabel(profile.full_name, "הורה")}`} subtitle="כיף לראות אתכם שוב · כל מה שחשוב על הילד והגן במקום אחד" />
 
