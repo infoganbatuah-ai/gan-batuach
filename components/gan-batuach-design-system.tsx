@@ -70,13 +70,17 @@ export function AppShell({
 export function ResponsivePage({
   children,
   className,
-  size = "lg"
+  size = "lg",
+  id,
+  tabIndex
 }: {
   children: ReactNode;
   className?: string;
   size?: CardSize;
+  id?: string;
+  tabIndex?: number;
 }) {
-  return <main className={cx("gb-responsive-page responsive-app-page", `gb-responsive-page-${size}`, className)}>{children}</main>;
+  return <main id={id} tabIndex={tabIndex} className={cx("gb-responsive-page responsive-app-page", `gb-responsive-page-${size}`, className)}>{children}</main>;
 }
 
 export function MobileAppShell({ children, className }: { children: ReactNode; className?: string }) {
