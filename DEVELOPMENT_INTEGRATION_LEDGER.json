@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T09:11:28.203Z",
+  "updatedAt": "2026-11-14T11:19:29.256Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17073,6 +17073,56 @@
             "status": "NOT_DEPLOYED"
         },
         "nextAction": "Merge this ledger record after nine exact-head checks; hand off remaining inspector-denial/hardware/provider and cumulative owner visual/security/cost/recovery gaps to coordinator. No DO core, main/Production or RELEASE-GAP."
+    },
+    {
+      "id": "codex/gb-inspector-portfolio-role-qa-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-INSPECTOR-ASSIGNED-UNASSIGNED-PORTFOLIO-QA",
+      "title": "Correct Inspector open-report metric and verify assigned/unassigned portfolio read boundaries",
+      "owner": "Scoped Inspector role QA executor; single Development integration owner",
+      "sourceBranch": "codex/gb-inspector-reports-open-count-20261114",
+      "sourceCommits": [
+        "9a0cd117734b3cae51bdd75ecb6658fb39df8613"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-inspector-reports-open-count-20261114@9a0cd117734b3cae51bdd75ecb6658fb39df8613"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATE_PR_AND_POSTMERGE_INSPECTOR_PORTFOLIO_ROLE_READ_QA",
+        "evidence": [
+          "PR #432 passed nine exact-head checks and merged by ancestry into Development at f2c9a298c9c66bd8f9cf84bcdadb12d675e33d0a. UX-09 focused checks 8/8 and git diff --check passed.",
+          "Verified source Product showed four complaint/incident rows including resolved and closed, but labeled all four open. The merged Desktop and Mobile reports screen now shows two open; report history remains visible and each source query is bounded at 150.",
+          "Postmerge read-only synthetic QA: 12 known-ID direct reads, 14 report API requests, 34 Desktop/Mobile navigations with zero page errors/overflow; unassigned/suspended Inspector report API 403, guest 401, authorized assigned Inspector portfolio three Gardens. First screenshot set contained transient overlay and was excluded; six fresh final captures show settled UI. Protected receipt SHA256 f8140dfb856a2e4765f62e1515ae109dc5142ad557d3cefe22244bc762cedf3d; final captures inventory SHA256 33574aaee73b623621b2effd1918e13af84b6739900f7f4f03852671e39bf209; report SHA256 9f0473360c478d91a71a4a883181c2a84111b360845095534eb28ea0266d14c5.",
+          "Development ledger schema 261 PASS before this entry and isolated migration drift 265/265 PASS at exact merged Product head. No schema, paid provider, DO core, main or Production change."
+        ],
+        "classification": "MANAGEMENT_INSPECTOR_REPORT_METRIC_AND_READ_ONLY_ROLE_PORTFOLIO_QA",
+        "limits": "The purported foreign completed report in the first receipt was actually in a second Garden assigned to the same Inspector. No truly foreign completed report fixture exists for this Inspector, so known-foreign-report API/RLS denial is NOT_TESTED. Physical GPS, signed evidence download, provider/owner visual acceptance, exhaustive RLS, all-supplier cost/recovery and Production are NOT_TESTED."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "f2c9a298c9c66bd8f9cf84bcdadb12d675e33d0a",
+        "pullRequests": [
+          432
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "CANONICAL_INSPECTION_REPORT_AND_DEVELOPMENT_QA_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SCOPED_LOCAL_PRODUCT_INSPECTOR_REPORT_AND_ROLE_QA_PASS_FULL_PRODUCT_PENDING",
+      "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Merge this ledger record after nine exact-head checks; keep truly foreign report denial, physical GPS/evidence/provider and cumulative owner visual/security/cost/recovery as open. No DO core, main/Production or RELEASE-GAP."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
