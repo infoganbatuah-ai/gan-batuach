@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-13T23:17:48.058Z",
+  "updatedAt": "2026-11-14T00:46:28.304Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16207,6 +16207,59 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Complete post-apply canonical Product authenticated Desktop/Mobile runtime and bounded Admin report; preserve local CH1 limitation and complete cumulative security, cost, recovery and owner visual gates before release. No main or Production."
+    },
+    {
+      "id": "codex/gb-inspector-ui-hydration-race-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-INSPECTOR-UI-SUBMIT-CLICK-20261114",
+      "title": "Preserve Inspector edits when a saved-draft response arrives late",
+      "owner": "Scoped Inspector UI executor; single Development integration owner",
+      "sourceBranch": "codex/gb-inspector-ui-hydration-race-20261114",
+      "sourceCommits": [
+        "4585c8255817643f21bdae4655faa574dd392823"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-inspector-ui-hydration-race-20261114@4585c8255817643f21bdae4655faa574dd392823"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_GATES_AND_BROWSER_RED_GREEN_PASS",
+        "evidence": [
+          "PR #390 passed nine exact-head checks: six Digital Observer CI gates, Canonical quality, Management tenant context and Snyk; ancestry-preserving merge 37b124c282c52e6958cfc1a57c06d48b6c8e4827.",
+          "Before fix, a delayed draft GET erased a score entered while loading; after fix, identical read-only browser test preserved score 8 and dirty state. Protected red receipt SHA256 520ee7e27310c665a20b9063357f794e19577d532cd2404ee4c574934816348d; green receipt SHA256 8169adb1e173bb1a2e11c946caa90d5cd36bbea55330050771fbeb370eef2dad.",
+          "UI-click synthetic submission on distinct M36 QA form: one POST 200, server score 9.00, two answers, one signature, one pending GPS validation and one regulatory audit; protected receipt SHA256 7dea403ed6d6968719df071b2f2825ab97484309a111956246135cf7d85c6e81.",
+          "New focused hydration tests 4/4; Inspector UX09/UX14 tests 17/17; typecheck, lint baseline and direct ESLint passed.",
+          "Post-merge read-only Product at Development 37b124c282c52e6958cfc1a57c06d48b6c8e4827: assigned Inspector and same-Garden Manager report 200, default foreign-Garden Manager/foreign Manager/unassigned Inspector/Staff/Parent 403, guest 401; desktop/mobile no page errors or horizontal overflow. Protected readback SHA256 2e2df424f5209860845bf8ddfb398cf21a18436c0817fe397986248a820d4759."
+        ],
+        "classification": "INSPECTOR_CLIENT_DRAFT_HYDRATION_DATA_LOSS_ONLY_NO_SCHEMA_OR_DO_CORE_CHANGE",
+        "limitations": "Local macOS external-volume Turbopack and Webpack builds stalled; exact-head CI Linux build passed. Synthetic browser GPS 0,0 remained pending and does not prove physical presence. UI retry was unavailable after success. Full supplier cost, cumulative Product and owner visual acceptance remain open."
+      },
+      "integration": {
+        "status": "MERGED",
+        "base": "integration/development",
+        "baseCommit": "8cf5e2bf357d78289d165b03dddf6fb7506f0c94",
+        "commit": "37b124c282c52e6958cfc1a57c06d48b6c8e4827",
+        "pullRequests": [
+          390
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "INTEGRATED_BASELINE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_READ_ONLY_PRODUCT_REPORT_DESKTOP_MOBILE_AND_ROLE_QA_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve synthetic evidence and previous draft; continue cumulative Product and owner visual gates before any separately authorized release. No main/Production or release work."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
