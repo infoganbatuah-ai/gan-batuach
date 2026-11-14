@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T20:05:00Z",
+  "observedAt": "2026-11-14T20:17:00Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_269_INSTALLED_270_EXPECTED_PENDING_SEPARATE_LEASE_AND_FULL_RESTORE_GAP",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_270_INSTALLED_PENDING_CLEAN_HEAD_DRIFT_AND_FULL_RESTORE_GAP",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8216,18 +8216,18 @@
       "developmentDependsOn": ["20261114183500"],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "PR #460 six exact-head Digital Observer CI gates, canonical quality, management-context and Snyk SUCCESS. Fresh restored disposable QA rollback-only scope/hold atomicity and authenticated grants/RLS matrices PASS. Protected evidence exports/restricted/gb-privacy-atomicity-20261114/. Canonical DB not yet mutated.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T20:11:46.977809Z",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development 66914b384ad6f458ab95ca2d86e2817845eda87c installed only reviewed 20261114210000, exact digest 9ac1743017c3b0a1aaa333491f3deb5c17b979a206c2d5faade45ceda9cfa1ba and fingerprint fa00a2ee90ce100690088d0409204e4ede86e7efe73d2ffa1fb3876c2a83fcca. Fresh protected full backup SHA256 792e4163c192a00460fab1d3fc9617e0712d0d3777d6b22e3a263ee7ae065ad7; application-data backup SHA256 635dce4a558dd3e21c5f67099b6abcf57acab56550bfc95abe3b04a572f2b9d3 restored successfully to a disposable database after creating the required Vault schema; 42 prior rows/15 Gardens/0 privacy requests matched. Installed rollback-only atomicity 10-case matrix and authenticated Admin RLS/grants probe PASS; poststate 270 installed, Gardens15/privacy0, no advisory locks, disposable removed. Protected report exports/restricted/gb-privacy-atomicity-apply-20261114/REPORT.md SHA256 39b4e4f381707022791d0a365dcaa549f438d338d54843c68036ff2cafc09a42. Full provider restore parity remains open; no Production access.",
+      "developmentHistoryDigest": "9ac1743017c3b0a1aaa333491f3deb5c17b979a206c2d5faade45ceda9cfa1ba",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Management-only transactional RPCs and stricter direct DML/link guards. Fresh protected pre-apply canonical backup and actual disposable restore plus separate exclusive gbi lease required. Reversal needs reviewed forward migration preserving privacy audit/retention. No Production access.",
-      "developmentSchemaFingerprint": null
+      "developmentSchemaFingerprint": "fa00a2ee90ce100690088d0409204e4ede86e7efe73d2ffa1fb3876c2a83fcca"
     }
   ],
   "developmentExpected": 270,
-  "developmentAppliedVerified": 269,
+  "developmentAppliedVerified": 270,
   "blockers": [],
   "localObservations": [
     {
