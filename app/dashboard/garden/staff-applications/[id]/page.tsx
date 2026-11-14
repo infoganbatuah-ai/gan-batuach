@@ -44,6 +44,20 @@ export default async function ManagerCandidateDetailPage({ params }: { params: P
   const name = candidate?.full_name ?? "מועמד/ת";
   const role = application.requested_role ?? application.kindergarten_staff_openings?.role_needed ?? candidate?.professional_role ?? "צוות גן";
   const completeness = Number(candidate?.profile_completeness?.percentage ?? 0);
+  const canSendOffer = ["submitted", "under_review", "resubmitted"].includes(application.status);
+  const canReject = canSendOffer || ["approved", "awaiting_candidate_acceptance"].includes(application.status);
+  const availableActions = actions.filter((action) => action.value === "reject" ? canReject : canSendOffer);
+  const decisionMessage = application.status === "employed"
+    ? "ההצעה התקבלה וההעסקה הופעלה. החלטת הגיוס הושלמה."
+    : application.status === "rejected"
+      ? "המועמדות נדחתה. ההחלטה וההיסטוריה נשמרות לצפייה."
+      : application.status === "information_required"
+        ? "הבקשה ממתינה להשלמת מידע מצד המועמד/ת לפני החלטה נוספת."
+        : canSendOffer
+          ? "שליחת הצעה אינה מפעילה גישה. ההעסקה נוצרת רק לאחר קבלת ההצעה מצד המועמד/ת והשלמת העסקה הקנונית."
+          : canReject
+            ? "ההצעה נשלחה וממתינה לקבלת המועמד/ת. ניתן לדחות אותה כל עוד לא הופעלה העסקה."
+            : "לא זמינה כרגע פעולת החלטה במצב המועמדות הנוכחי.";
 
   return <DashboardShell role="manager" title={name} appHome>
     <TeacherAppFrame title={cleanSyntheticLabel(profile.full_name, "מנהלת")} subtitle="סקירת מועמדות" avatarUrl={profile.profile_image_url} active="more">
@@ -69,9 +83,9 @@ export default async function ManagerCandidateDetailPage({ params }: { params: P
 
       <section className="ux08-manager-document-summary" id="documents"><FileCheck2 /><div><h2>מצב מסמכים</h2><p>המערכת מציגה רק מוכנות קנונית. מסמך שהועלה אינו נחשב מאומת עד לסיום הבדיקה.</p></div><StatusChip tone={candidate?.document_status?.required_documents_ready ? "success" : "warning"}>{candidate?.document_status?.required_documents_ready ? "מוכן" : "דורש טיפול"}</StatusChip></section>
 
-      <section className="ux08-manager-decision" id="decision">
-        <div><span className="ux08-eyebrow">פעולה הבאה</span><h2>החלטת גיוס</h2><p>שליחת הצעה אינה מפעילה גישה. ההעסקה נוצרת רק לאחר קבלת ההצעה מצד המועמדת והשלמת העסקה הקנונית.</p><StaffApplicationActionButtons applicationId={application.id} /></div>
-        <ApplicationDecisionForm endpoint={`/api/garden/staff-applications/${application.id}`} actions={actions} classrooms={classrooms} classroomFieldName="classroom_id" />
+      <section className={`ux08-manager-decision${availableActions.length ? "" : " is-final"}`} id="decision">
+        <div><span className="ux08-eyebrow">{availableActions.length ? "פעולה הבאה" : "סטטוס ההחלטה"}</span><h2>החלטת גיוס</h2><p>{decisionMessage}</p>{canSendOffer ? <StaffApplicationActionButtons applicationId={application.id} /> : null}</div>
+        {availableActions.length ? <ApplicationDecisionForm endpoint={`/api/garden/staff-applications/${application.id}`} actions={availableActions} classrooms={classrooms} classroomFieldName="classroom_id" /> : null}
       </section>
     </TeacherAppFrame>
   </DashboardShell>;

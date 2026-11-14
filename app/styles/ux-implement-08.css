@@ -365,6 +365,7 @@
 .ux08-manager-document-summary h2 { margin: 0; color: var(--ux08-ink); }
 .ux08-manager-document-summary p { margin: 3px 0 0; color: var(--ux08-muted); }
 .ux08-manager-decision { display: grid; grid-template-columns: 1.1fr .9fr; gap: 24px; margin-top: 16px; padding: 23px; }
+.ux08-manager-decision.is-final { grid-template-columns: 1fr; }
 .ux08-manager-decision h2 { margin: 0; color: var(--ux08-ink); }
 .ux08-manager-decision p { color: var(--ux08-muted); line-height: 1.7; }
 .ux08-manager-decision .compact-form { border: 1px solid #dceafb; border-radius: 14px; background: #f8fbff; }
