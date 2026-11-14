@@ -8136,16 +8136,18 @@
       "developmentDependsOn": ["20261114134005"],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "PR #448 nine exact-head checks SUCCESS. Forward migration and rollback-only synthetic activation/denial/idempotency checks passed twice on a fresh restored disposable isolated Development database; canonical database remained at 266 migrations. No canonical application yet.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T15:10:16.780784+00:00",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development 38d544b452a029b93d0b389d8aefaa7af92b19b7 applied only 20261114165000. Protected fresh pre-apply dump SHA256 7359dd2d73eb5773310d9d2e06b31bf6c1dacac98825505f1e20464751c327ad (11,381,184 bytes) restored to disposable QA database. Rollback-only synthetic activation/denial/idempotency/stale-write matrix PASS on disposable with reviewed migration installed; both canonical guard triggers installed; canonical Garden count 15 before/after. Disposable database dropped. Two-session concurrency race remains NOT_TESTED; Product Desktop/Mobile and final ledger drift readback pending. No Production access.",
+      "developmentHistoryDigest": "6aa218527afdf67ebf445c4d8d5450f835ac6decb49a6162c01b55f25d4fd7a2",
+      "developmentSchemaFingerprint": "c9cb989442ca2766bf09316c34a347204cb286a4eed2e4918a127136728f34cc",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive stale-write guard triggers/functions only. Fresh checksum-protected isolated Development backup and actual disposable restore required before apply. Any reversal needs a reviewed forward migration; do not discard active Garden, membership or audit state. No Production access."
     }
   ],
   "developmentExpected": 267,
-  "developmentAppliedVerified": 266,
+  "developmentAppliedVerified": 267,
   "blockers": [],
   "localObservations": [
     {
