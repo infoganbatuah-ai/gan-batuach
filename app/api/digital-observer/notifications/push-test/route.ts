@@ -1,51 +1,57 @@
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { preparePushForNotification } from "@/lib/domain/push-service";
+import { queueAuthorizedDelivery } from "@/lib/domain/digital-observer/notification-delivery-service";
+import { actionIntentDraft } from "@/lib/domain/digital-observer/notification-orchestration";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
-const schema = z.object({ observer_site_id: z.string().uuid() });
+export const runtime = "nodejs";
+
+const schema = z.object({ observer_site_id: z.string().uuid() }).strict();
 
 export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const { profile, supabase: sessionSupabase } = session;
-    const supabase = sessionSupabase as any;
     const payload = schema.parse(await request.json());
-    const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
+    const site = await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לבדוק Push באתר הזה.", 403);
-    if (!isAdminClientConfigured()) return fail("חסרה תצורת שרת מאובטחת לשליחת Push.", 503);
+    if (!isAdminClientConfigured()) return fail("חסרה תצורת שרת מאובטחת לבדיקת חוזה Push.", 503);
     const admin = createAdminClient() as any;
 
-    const pushResult = await preparePushForNotification(admin, {
-      profileId: profile.id,
-      category: "observer_alert",
-      title: "בדיקת Push — תצפיתן דיגיטלי",
-      body: "החיבור הושלם בהצלחה. התראות התצפיתן פעילות במכשיר הזה.",
-      actionUrl: "/digital-observer/alerts",
-      deepLinkType: "observer_event",
-      critical: true,
-      metadata: { observer_site_id: payload.observer_site_id, source: "digital_observer_live_push_test" }
+    const draft = actionIntentDraft({
+      siteId: payload.observer_site_id,
+      sourceId: randomUUID(),
+      sourceProvenance: "HUMAN_AUTHORIZED",
+      actionType: "notify",
+      requestedBy: session.profile.id,
+      severity: "info",
+      proposedAction: { purpose: "push_contract_test", external_delivery_authorized: false }
     });
-    const sent = pushResult.logs.some((log: any) => ["sent", "delivered", "opened"].includes(log.status));
-
-    await admin.from("digital_observer_notification_deliveries" as any).insert({
-      observer_site_id: payload.observer_site_id,
-      recipient_profile_id: profile.id,
+    const intentResult = await admin.from("digital_observer_action_intents").insert({
+      ...draft,
+      intent_status: "authorized",
+      authorized_by: session.profile.id,
+      policy_snapshot: { production_provider_activation_authorized: false, external_delivery_authorized: false }
+    }).select("id").single();
+    if (intentResult.error || !intentResult.data) return fail("לא ניתן לשמור את בדיקת חוזה Push.", 503);
+    const queued = await queueAuthorizedDelivery(admin, {
+      actionIntentId: intentResult.data.id,
+      observerSiteId: payload.observer_site_id,
+      recipientProfileId: session.profile.id,
       channel: "push",
       severity: "info",
-      provider_mode: "live",
-      delivery_status: sent ? "sent" : "failed",
-      attempt_count: 1,
-      sent_at: sent ? new Date().toISOString() : null,
-      failure_reason: sent ? null : pushResult.error || "No active FCM device received the test.",
-      metadata: { qa_test: true, external_message_sent: sent, push_logs: pushResult.logs }
+      priority: 1,
+      title: "בדיקת Push — תצפיתן דיגיטלי",
+      body: "בדיקת החוזה נרשמה. לא נשלחה הודעה לספק חיצוני.",
+      productPath: "/digital-observer/settings",
+      ttlSeconds: 600
     });
-
-    if (!sent) return fail(pushResult.error || "לא נמצא מכשיר FCM פעיל או שהשליחה נכשלה.", 502);
-    return ok({ sent: true, logs: pushResult.logs, message: "התראת Push אמיתית נשלחה למכשיר." }, 201);
+    return ok({ delivery: queued.delivery, external_message_sent: false, provider_mode: queued.delivery.provider_mode,
+      message: "בדיקת חוזה Push נרשמה ללא שליחה חיצונית. הפעלת ספק Production דורשת אישור בעלים נפרד." }, 201);
   } catch (error) {
+    if (error instanceof Error && error.message.startsWith("DELIVERY_")) return fail(error.message, 409);
     return handleRouteError(error);
   }
 }

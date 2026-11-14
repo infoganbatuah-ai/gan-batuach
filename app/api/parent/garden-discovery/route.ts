@@ -19,6 +19,7 @@ export async function GET(request: Request) {
     const query = querySchema.parse({ child_id: url.searchParams.get("child_id"), city: url.searchParams.get("city") ?? undefined, q: url.searchParams.get("q") ?? undefined });
     const result = await findEligibleGardensForChild(await createClient(), session.profile.id, query.child_id, { city: query.city, query: query.q });
     if (result.kind === "denied") return fail("כרטיס הילד אינו שייך לחשבון שלך.", 403);
+    if (result.kind === "birth_date_required") return fail("יש להשלים תאריך לידה בכרטיס הילד לפני חיפוש גנים מתאימים.", 422);
     if (result.kind === "error") return fail("לא ניתן לטעון התאמות לגנים כרגע.", 503);
     return ok({ child_id: query.child_id, matches: result.matches, capacity_note: "הזמינות היא מידע בלבד ואינה משריינת מקום." });
   } catch (error) { return handleSafeRouteError(error); }

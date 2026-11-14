@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { AlertTriangle } from "lucide-react";
 import { DocumentsPlatform, type DocumentsPlatformRow, type DocumentsUploadTarget } from "@/components/documents-platform";
 import { ParentAppFrame } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
@@ -15,6 +16,8 @@ export default async function ParentDocumentsPage() {
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase, profile);
   const documentsRes = await supabase.from("documents" as never).select(documentFields as never).is("deleted_at", null).order("created_at", { ascending: false }).limit(100);
+  const documentsUnavailable = Boolean(documentsRes.error);
+  const familyUnavailable = Boolean(family.sourceUnavailable);
   const children = family.children as FamilyChild[];
   const childNames = new Map(children.map((item) => [item.id, item.full_name]));
   const gardenNames = new Map((family.gardens as FamilyGarden[]).map((item) => [item.id, item.name]));
@@ -26,13 +29,26 @@ export default async function ParentDocumentsPage() {
     context_name: row.child_id ? childNames.get(row.child_id) ?? "ילד/ה מקושר/ת" : row.owner_type === "guardian" ? profile.full_name : gardenNames.get(row.garden_id) ?? "הגן המשויך",
     can_review: false
   }));
-  const childTargets: DocumentsUploadTarget[] = children.flatMap((child) => child.garden_id ? [{ id: `child-${child.id}`, label: `מסמכי ${child.full_name}`, gardenId: child.garden_id, ownerId: child.id, documentTypes: ["child_document", "medical_approval"] }] : []);
-  const guardianTargets: DocumentsUploadTarget[] = Array.from(new Set(family.gardenIds as string[])).map((gardenId) => ({ id: `guardian-${gardenId}`, label: `מסמכי הורה · ${gardenNames.get(gardenId) ?? "גן משויך"}`, gardenId, ownerId: profile.id, documentTypes: ["guardian_document"] }));
+  const uploadTargets: DocumentsUploadTarget[] = familyUnavailable ? [] : [
+    ...children.flatMap((child) => child.garden_id ? [{ id: `child-${child.id}`, label: `מסמכי ${child.full_name}`, gardenId: child.garden_id, ownerId: child.id, documentTypes: ["child_document", "medical_approval"] }] : []),
+    ...Array.from(new Set(family.gardenIds as string[])).map((gardenId) => ({ id: `guardian-${gardenId}`, label: `מסמכי הורה · ${gardenNames.get(gardenId) ?? "גן משויך"}`, gardenId, ownerId: profile.id, documentTypes: ["guardian_document"] }))
+  ];
 
   return (
     <DashboardShell role="parent" title="מסמכים" appHome>
       <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={profile.profile_image_url ?? null}>
-        <DocumentsPlatform title="המסמכים של המשפחה" subtitle="מסמכי הילדים וההורה לפי הגן המשויך, עם סטטוס ברור ופעולה בטוחה." rows={rows} uploadTargets={[...childTargets, ...guardianTargets]} roleLabel="משפחה" />
+        {documentsUnavailable ? (
+          <section className="documents-empty card" role="alert" aria-live="assertive">
+            <AlertTriangle aria-hidden="true" />
+            <h2>לא ניתן לטעון את מסמכי המשפחה כרגע</h2>
+            <p>לא ניתן לקבוע אם קיימים מסמכים. נסו לרענן את העמוד מאוחר יותר.</p>
+          </section>
+        ) : (
+          <>
+            {familyUnavailable ? <div className="error-banner" role="alert">שיוכי המשפחה אינם זמינים כרגע. אפשר לעיין במסמכים, אך העלאת מסמך אינה זמינה עד לרענון.</div> : null}
+            <DocumentsPlatform title="המסמכים של המשפחה" subtitle="מסמכי הילדים וההורה לפי הגן המשויך, עם סטטוס ברור ופעולה בטוחה." rows={rows} uploadTargets={uploadTargets} roleLabel="משפחה" />
+          </>
+        )}
       </ParentAppFrame>
     </DashboardShell>
   );

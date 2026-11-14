@@ -1,0 +1,28 @@
+{
+  "environment": "LOCAL_WORKERD_SYNTHETIC_ONLY_NOT_IPHONE",
+  "observedOn": "2026-10-23",
+  "tool": "Wrangler4.152.0 --local, local R2 and SQLite only",
+  "tls": "PASS_LOCAL_TEST_CA_VERIFIED; NOT_PUBLIC_TLS_PROOF",
+  "identity": "SYNTHETIC_CONTROL_REPLIES; NOT_REAL_DEVELOPMENT_LOGIN_PROOF",
+  "syntheticBindingHttp": 200,
+  "playlistHttp": 200,
+  "syntheticSegmentHttp": 200,
+  "syntheticSegmentBytes": 48316,
+  "revokedSyntheticPrincipalHttp": 403,
+  "mediaReservedBytes": 48467,
+  "mediaSubmittedBytes": 48467,
+  "sampledEdgeResponseBodyBytesBeforeStatusAndCleanup": 49725,
+  "mediaRequests": 2,
+  "cleanupHttp": 200,
+  "localListeners28744And28745": "CLOSED_AFTER_TEST",
+  "externalMediaBytes": 0,
+  "cloudResourcesCreated": 0,
+  "realHomeMediaAccess": false,
+  "externalLimitExhaustion": "NOT_RUN",
+  "physicalIphonePlayback": "NOT_RUN",
+  "regressionsFoundAndCorrected": [
+    "Preparation latch must survive idle Durable Object eviction; persist single-write state without resetting allowance",
+    "Valid service-bound POSTs must not require Content-Length; enforce byte/time limits while reading the stream",
+    "Consume bounded operator bodies before response to avoid unused-stream exceptions"
+  ]
+}

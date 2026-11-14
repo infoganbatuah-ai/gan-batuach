@@ -1,0 +1,48 @@
+# DIGITAL OBSERVER — PUSH 38H supervisor and installed-slot qualification
+
+Date: 2026-09-13. Scope: isolated macOS QA only. PUSH 38 is **NOT DONE**; PR #28 remains draft/unmerged. No live bootstrap, remediation deployment, pre-soak, v8, or PUSH 39 was performed.
+
+## What changed
+
+- `edge-macos-installed-adapter.mjs` is a read-only-by-default, profile/path/port-scoped adapter for the existing Gateway and Connector LaunchAgents. Mutations require an approved baseline digest and a signed manifest; a live invocation loads release keys from the protected root-pinned registry rather than caller-provided keys. QA mode is restricted to a real path under the temporary directory and dedicated QA labels/ports. Archive preflight rejects absolute/traversal paths and non-regular/non-directory members.
+- `edge-installed-bootstrap.mjs` journals discovery, baseline authorization, trust verification, slot registration, supervisor handoff and completion. Interrupted phases are resumable; abort verifies the original service, identity and binding fingerprints before removing bootstrap metadata. Update/rollback state, identity/configuration/source mapping and durable queues are separate from runtime slots.
+- The bootstrap handoff registers a signed CURRENT/KNOWN_GOOD slot **without replacing the running legacy process**. The same PID and reported runtime version are asserted in QA. The first functional runtime switch occurs only during a later authorized update. An OTA failure returns via the actual LaunchAgent to the exact signed known-good archive.
+- The Gateway packaged supervisor had an undefined `workdir` and failed under launchd in the previous 38G release. The script now derives its working directory from its own module URL. The previous 38G artifacts are historical QA evidence only.
+
+## Isolated supervisor evidence
+
+Both signed legacy baselines were started through distinct macOS `launchd` LaunchAgents using the real profile supervisor scripts, with synthetic device identity, source mapping, configuration, cloud stub and queue fixture. Start/restart and three forced supervisor terminations per profile recovered. Gateway recovery intervals were 5,542 / 5,539 / 5,273 ms; Connector 1,458 / 6,091 / 4,227 ms. The `ThrottleInterval` in the QA LaunchAgent bounds rapid launchd restarts. The test also verifies the running listener belongs to the supervisor PID. This is local GUI-session QA, **not** a logout/login, multi-host, or real-camera failover proof. Crash-loop alert escalation beyond launchd restart has not been qualified here.
+
+The installed-slot bootstrap tests inject interruption after DISCOVERED, BASELINE_AUTHORIZED, TRUST_VERIFIED, SLOT_REGISTERED and SUPERVISOR_HANDOFF, then resume. A mismatched approved baseline digest is rejected before changing the functional runtime. Re-running bootstrap is idempotent. An isolated abort returns both profiles to unmanaged metadata with the original runtime alive and identity/config/queue/source fixtures unchanged. No real private device key was copied into QA.
+
+The read-only live planner compared 491 Gateway and 250 Connector archive files against the installed binaries: zero missing/changed, exact existing LaunchAgent runner matches, both service labels running, no existing installed-bootstrap state. The signed *derived* Connector rollback package has a different QA seal/executable from the still-installed legacy app; the original captured candidate is used for the byte-for-byte live comparison. The protected release trust root is not yet installed on the live host. Planner writes: **0**.
+
+## Release and trust evidence
+
+The final remediation source commit is `269b00e589465e93a52670fd94a2ded946ed5959`; previous archives from `936378a361b6eef764d35d7bd4ed451bca3baee3` are historical QA only. Final QA releases:
+
+| Profile | Signed release | Version | SHA-256 of OTA archive |
+| --- | --- | --- | --- |
+| Gateway | `qa-p38h-final-gateway-269b00e58946` | `0.2.2-p38h` | `867191be3f4a139981524ccd65b490129c4f9008cb18b00696910c22d24472d9` |
+| Connector | `qa-p38h-final-connector-269b00e58946` | `0.2.2-p38h` | `f112065d7a691eab4540445056fb2184cccccfda1aab0a460d5bff85a272ffb4` |
+
+The release store is the restricted non-Git `/Volumes/DIGITAL_OBSERVER/QA-Releases/PUSH-38H`; old artifacts remain immutable. Both releases have the `observer-edge-health-v1` contract and are Ed25519-signed by `qa-p38f-ed25519-20260913`, with the private key outside Git/devices. The Connector app uses local/ad-hoc QA macOS signing; strict signature verification and DMG checksum do not constitute Developer ID signing or notarization. The Connector DMG checksum is `a7b2cf58a160f3dc6533ce7c2341a9743297e0693194c4a248036d516292f196`. Full lifecycle and negative-QA results are also recorded in the companion machine-readable PUSH 38H evidence file.
+
+On these exact final archives, both profiles passed isolated legacy baseline → installed-slot bootstrap → signed bad update → launchd health failure → rollback/restart to the exact baseline hash → signed remediation update → new `observer-edge-health-v1` response with exact build SHA. Identity/config/queue/source-map fixtures stayed unchanged and listener ownership remained singular. The original legacy Connector app was not changed; QA rollback uses its separately authorized, strict-valid derived archive.
+
+The live trust-root installation is a separate, privileged, fingerprint-confirmed local-administrator procedure (`scripts/install-edge-release-trust-root.mjs`), followed by the signed registry installer. The root pin must be owned by root and not group/world-writable. This was **not** executed on the live host. A caller cannot bootstrap arbitrary keys into the adapter; no signing private key is copied to the device. Production signer custody, Apple Developer ID distribution signing and notarization remain external operational gaps.
+
+## Installed layout and later live procedure (not executed)
+
+The existing Gateway program stays at `~/.local/share/gan-batuach/video-gateway`; the existing Connector app stays under `~/Applications`. The existing `~/Library/LaunchAgents/com.ganbatuach.video-gateway.plist` and `~/Library/LaunchAgents/com.ganbatuach.software-connector.tapo.plist` retain their labels. New versioned runtime slots, `current.json`, `known-good.json`, `installed-bootstrap.json`, `bootstrap-journal.json`, update state and staging belong under `~/Library/Application Support/Digital Observer/observer-gateway/ota` or `observer-connector/ota` respectively. The protected root pin and signed key registry belong under `/Library/Application Support/Digital Observer/release-trust`. Existing identity, camera credentials, source/Site bindings, durable queues and service logs remain in their current external state locations; they are not copied into any release archive or slot. The QA archive store under `/Volumes/DIGITAL_OBSERVER/QA-Releases` is not a runtime dependency.
+
+A later explicitly authorized pilot bootstrap must first reconfirm the same live archive/file hashes and running services, install and confirm the protected trust root/registry by local administrator, construct the approved profile-scoped adapter, verify the signed baseline and exact installed files, journal/record CURRENT and KNOWN_GOOD without changing the running PID, and verify the old health contract and 11 physical-source mappings before any OTA handoff. If the original service or continuity check fails, abort management metadata and leave/restore the legacy LaunchAgent. This is a documented sequence, **not** evidence that a live bootstrap has happened.
+
+## Explicit limits and open gate
+
+- The current source tree exposes `runEdgeUpdateCycle` but has no installed service/entrypoint that invokes it periodically on the already-running legacy components. The isolated test directly invokes `EdgeUpdateManager.apply`. Thus end-to-end **unattended OTA-agent enrollment and update polling are not proven**. This remains an INTERNAL HIGH live-bootstrap readiness blocker until an installer/agent wiring path and its failure recovery are implemented and qualified. Library-level slots and launchd handoff alone must not be described as a fully enrolled live OTA component.
+- Reboot/login startup was not exercised on a separate isolated macOS login/session. The evidence is local LaunchAgent start/stop/restart and three bounded crash recoveries only. An explicit escalation/rollback policy for a persistent post-update crash loop is **not** qualified; this is a second INTERNAL HIGH lifecycle blocker, not covered by three successful restarts.
+- The live Gateway and Connector were read-only during this task; file compatibility is not runtime health qualification. Intermediate snapshots showed stalled relays (Gateway 8/10 progressing, Connector 0/1). The final snapshot returned Gateway 10/10 progressing, Connector 1/1, zero stalled and six empty DVR slots. This is **not** a 60-minute stability, playback or AI proof.
+- Typecheck, scoped lint and the **canonical** `lint:ci` baseline gate passed: 5,335 existing errors against a 5,363-error baseline, 213 warnings against 213, and zero canonical/regression errors. The separate unrestricted `npm run lint` command still exits nonzero with those 5,335 errors/213 warnings; it is not represented as a clean lint pass or an excuse to weaken the gate.
+
+Final signed-release/rollback QA passed, but unattended agent/enrollment wiring and persistent crash-loop escalation remain open. **INTERNAL HIGH = 2; LIVE BOOTSTRAP READINESS = NO**. The real 60-minute pre-soak and v8 remain NOT STARTED; PR #28 must remain draft and unmerged.

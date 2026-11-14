@@ -356,8 +356,11 @@
 .gb-public-button.soft {
   background: #f3f0ff;
   border-color: #e6deff;
-  color: #7650f2;
+  color: #6840dc;
 }
+
+.gb-public-page .gb-status-chip.gb-tone-success { color: #0a7a55; }
+.gb-public-page .gb-status-chip.gb-tone-warning { color: #9a6612; }
 
 .gb-public-button.large {
   border-radius: 22px;
@@ -554,7 +557,7 @@
 
 .gb-public-reason-card p,
 .gb-public-home-garden-card p {
-  color: #657394;
+  color: #536382;
   font-weight: 750;
   line-height: 1.7;
   margin: 0;
@@ -1302,6 +1305,12 @@
 .gb-action-card small {
   color: var(--gb-muted);
   font-weight: 800;
+}
+
+/* Public marketing cards use tinted backgrounds; keep supporting copy above
+   WCAG AA contrast without changing the product dashboard palette. */
+.gb-public-page .gb-action-card small {
+  color: #4f617f;
 }
 
 .gb-form-field {
@@ -24800,6 +24809,32 @@ body:has(.dashboard-role-owner.app-home-layout) {
   gap: 12px;
 }
 
+.parent-enrollment-request {
+  background: #f8fbff;
+  border: 1px solid #e2ebf8;
+  border-radius: 18px;
+  color: #17346b;
+  display: grid;
+  gap: 8px;
+  padding: 15px 18px;
+}
+
+.parent-enrollment-information {
+  background: #fff8eb;
+  border: 1px solid #f3dbaa;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.parent-enrollment-information p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.parent-enrollment-request .compact-form {
+  margin: 0;
+}
+
 .parent-request-list a {
   background: #f8fbff;
   border: 1px solid #e2ebf8;
@@ -30772,14 +30807,16 @@ body.gb-mobile-preview-mode {
 @media (max-width: 760px) {
   .communication-workspace {
     display: block;
-    min-height: calc(100dvh - 150px);
+    height: max(420px, calc(100dvh - 280px));
+    min-height: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
   .communication-thread-pane,
   .communication-conversation-pane {
-    min-height: calc(100dvh - 150px);
+    height: 100%;
+    min-height: 0;
   }
   .communication-workspace.has-active-thread .communication-thread-pane { display: none; }
   .communication-workspace:not(.has-active-thread) .communication-conversation-pane { display: none; }
@@ -30790,9 +30827,33 @@ body.gb-mobile-preview-mode {
   .communication-filter-tabs { padding-inline: 14px; }
   .communication-thread-row { padding: 13px 14px; }
   .communication-mobile-back { display: grid; width: 40px; height: 40px; place-items: center; border: 0; border-radius: 12px; background: #edf4fc; color: #164e90; }
-  .communication-secure-chip { padding: 0 8px; font-size: 0; }
+  .communication-conversation-header .communication-secure-chip {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    white-space: nowrap;
+    font-size: 0;
+  }
   .communication-secure-chip svg { width: 18px; }
-  .communication-conversation-header { min-height: 70px; padding: 10px 12px; }
+  .communication-conversation-header {
+    display: grid;
+    grid-template-columns: 40px 48px minmax(0, 1fr) 36px;
+    justify-content: stretch;
+    gap: 8px;
+    min-height: 70px;
+    padding: 10px 12px;
+  }
+  .communication-conversation-header > div { min-width: 0; overflow: hidden; }
+  .communication-conversation-header > div strong,
+  .communication-conversation-header > div span {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   .communication-message-scroll { padding: 18px 12px; }
   .communication-message-bubble { max-width: 87%; }
   .communication-composer { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }

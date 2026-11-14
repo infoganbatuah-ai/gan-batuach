@@ -1,9 +1,17 @@
 'use strict';
 
 const utils = require('./utils');
+const { MAX_DEPTH } = require('./constants');
 
 module.exports = (ast, options = {}) => {
-  const stringify = (node, parent = {}) => {
+  const maxDepth = Number.isFinite(options.maxDepth)
+    ? Math.max(1, Math.min(MAX_DEPTH, Math.floor(options.maxDepth)))
+    : MAX_DEPTH;
+
+  const stringify = (node, parent = {}, depth = 0) => {
+    if (node.nodes && depth > maxDepth) {
+      throw new RangeError(`AST depth (${depth}), exceeds max depth (${maxDepth})`);
+    }
     const invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);
     const invalidNode = node.invalid === true && options.escapeInvalid === true;
     let output = '';
@@ -21,11 +29,11 @@ module.exports = (ast, options = {}) => {
 
     if (node.nodes) {
       for (const child of node.nodes) {
-        output += stringify(child);
+        output += stringify(child, node, child.nodes ? depth + 1 : depth);
       }
     }
     return output;
   };
 
-  return stringify(ast);
+  return stringify(ast, {}, ast.type === 'root' ? 0 : 1);
 };

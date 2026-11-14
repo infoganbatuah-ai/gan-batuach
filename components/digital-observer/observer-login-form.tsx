@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { Capacitor } from "@capacitor/core";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { LoaderCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { rememberObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
@@ -39,67 +40,113 @@ export function ObserverLoginForm({
   verificationRequired: boolean;
   initialError?: string;
 }) {
+  return <ScopedObserverLoginForm key={JSON.stringify([initialType, nextPath])} initialType={initialType} nextPath={nextPath} registered={registered} verified={verified} passwordUpdated={passwordUpdated} verificationRequired={verificationRequired} initialError={initialError} />;
+}
+
+function ScopedObserverLoginForm({ initialType, nextPath, registered, verified, passwordUpdated, verificationRequired, initialError }: Parameters<typeof ObserverLoginForm>[0]) {
   const [hydrated, setHydrated] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError ?? "");
+  const [lifecycle, setLifecycle] = useState(0);
+  const ownership = useRef({ active: false, operation: 0, busy: false, lifecycle: 0, resetBusy: false });
+  useLayoutEffect(() => {
+    const owner = ownership.current;
+    owner.active = true;
+    if (owner.lifecycle > 0) setLifecycle(owner.lifecycle);
+    if (owner.resetBusy) { owner.resetBusy = false; setBusy(false); }
+    return () => {
+      owner.resetBusy = owner.busy;
+      owner.active = false; owner.operation++; owner.lifecycle++; owner.busy = false;
+    };
+  }, []);
 
   useEffect(() => {
     setHydrated(true);
   }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
+    const owner = ownership.current;
+    if (!owner.active || owner.lifecycle !== lifecycle) return;
+    // Native WebViews use the server form flow so Supabase credentials remain in
+    // HttpOnly cookies. The bearer token is never copied into JavaScript storage.
+    if (Capacitor.isNativePlatform()) return;
     event.preventDefault();
+    if (owner.busy) return;
+    owner.busy = true;
+    const operation = ++owner.operation;
+    const isCurrent = () => owner.active && owner.operation === operation;
+    let navigating = false;
     setBusy(true);
     setError("");
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim().toLowerCase();
-    const password = String(formData.get("password") ?? "");
-    const requestedType = String(formData.get("observer_account_type") ?? "home") === "business" ? "business" : "home";
-    const supabase = createClient();
+    try {
+      const form = event.currentTarget;
+      const submittedNextPath = nextPath;
+      const formData = new FormData(form);
+      const email = String(formData.get("email") ?? "").trim().toLowerCase();
+      const password = String(formData.get("password") ?? "");
+      const requestedType = String(formData.get("observer_account_type") ?? "home") === "business" ? "business" : "home";
+      if (!isCurrent()) return;
+      const supabase = createClient();
+      if (!isCurrent()) return;
 
-    const loginResult = await supabase.auth.signInWithPassword({ email, password });
-    if (loginResult.error || !loginResult.data.user) {
-      setError(loginErrorMessage(loginResult.error));
-      setBusy(false);
-      return;
-    }
+      const loginResult = await supabase.auth.signInWithPassword({ email, password });
+      if (!isCurrent()) return;
+      if (loginResult.error || !loginResult.data.user) {
+        setError(loginErrorMessage(loginResult.error));
+        return;
+      }
 
-    const user = loginResult.data.user;
-    const preparedAccount = await supabase.rpc("ensure_digital_observer_account" as any, {
-      requested_name: user.user_metadata?.full_name ?? null,
-      requested_account_type: user.user_metadata?.account_type ?? requestedType
-    });
-    if (preparedAccount.error || preparedAccount.data !== true) {
-      await supabase.auth.signOut();
-      setError("ההתחברות הצליחה, אך הכנת חשבון התצפיתן לא הושלמה. נסו שוב או פנו לתמיכה.");
-      setBusy(false);
-      return;
-    }
+      const user = loginResult.data.user;
+      const preparedAccount = await supabase.rpc("ensure_digital_observer_account" as any, {
+        requested_name: user.user_metadata?.full_name ?? null,
+        requested_account_type: user.user_metadata?.account_type ?? requestedType
+      });
+      if (!isCurrent()) return;
+      if (preparedAccount.error || preparedAccount.data !== true) {
+        if (!isCurrent()) return;
+        await supabase.auth.signOut();
+        if (!isCurrent()) return;
+        setError("ההתחברות הצליחה, אך הכנת חשבון התצפיתן לא הושלמה. נסו שוב או פנו לתמיכה.");
+        return;
+      }
 
-    const [accountResult, ownedSiteResult, membershipResult] = await Promise.all([
+      const results = await Promise.all([
       supabase.from("digital_observer_accounts" as any).select("account_type").eq("profile_id", user.id).maybeSingle(),
       supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
       supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
-    ]);
-    const account = accountResult.data as { account_type?: string | null } | null;
-    if (!account) {
-      await supabase.auth.signOut();
-      setError("חשבון התצפיתן לא נמצא לאחר ההתחברות. נסו שוב או פנו לתמיכה.");
-      setBusy(false);
-      return;
-    }
+      ]);
+      if (!isCurrent()) return;
+      const [accountResult, ownedSiteResult, membershipResult] = results;
+      const account = accountResult.data as { account_type?: string | null } | null;
+      if (!account) {
+        if (!isCurrent()) return;
+        await supabase.auth.signOut();
+        if (!isCurrent()) return;
+        setError("חשבון התצפיתן לא נמצא לאחר ההתחברות. נסו שוב או פנו לתמיכה.");
+        return;
+      }
 
-    const requestedDestination = safeReturnPath(nextPath);
-    const observerAdmin = user.app_metadata?.digital_observer_admin === true;
-    const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
-    const accountType = account.account_type === "business" ? "business" : "home";
-    const destination = observerAdmin && requestedDestination === "/digital-observer/dashboard"
-      ? "/digital-observer/admin"
-      : !hasSite && requestedDestination === "/digital-observer/dashboard"
-      ? `/digital-observer/onboarding?type=${accountType}`
-      : requestedDestination;
-    rememberObserverAccessToken(loginResult.data.session?.access_token);
-    window.location.assign(destination);
+      const requestedDestination = safeReturnPath(submittedNextPath);
+      const observerAdmin = user.app_metadata?.digital_observer_admin === true;
+      const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
+      const accountType = account.account_type === "business" ? "business" : "home";
+      const destination = observerAdmin && requestedDestination === "/digital-observer/dashboard"
+        ? "/digital-observer/admin"
+        : !hasSite && requestedDestination === "/digital-observer/dashboard"
+        ? `/digital-observer/onboarding?type=${accountType}`
+        : requestedDestination;
+      if (!isCurrent()) return;
+      rememberObserverAccessToken(loginResult.data.session?.access_token);
+      if (!isCurrent()) return;
+      window.location.assign(destination);
+      if (!isCurrent()) return;
+      navigating = true;
+    } catch {
+      if (!isCurrent()) return;
+      setError(loginErrorMessage(null));
+    } finally {
+      if (isCurrent() && !navigating) { owner.busy = false; setBusy(false); }
+    }
   }
 
   return (

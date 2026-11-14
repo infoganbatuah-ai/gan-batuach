@@ -14,7 +14,7 @@ type Props = {
 
 export function AppAuthShell({ eyebrow = "גן בטוח", title, subtitle, children, footer }: Props) {
   return (
-    <main className="app-auth-page gb-auth-screen gb-auth-v2" dir="rtl">
+    <div className="app-auth-page gb-auth-screen gb-auth-v2" dir="rtl">
       <section className="gb-auth-v2-stage" aria-label="גן בטוח">
         <div className="gb-auth-v2-story" aria-hidden="true">
           <div className="gb-auth-v2-story-copy">
@@ -48,6 +48,6 @@ export function AppAuthShell({ eyebrow = "גן בטוח", title, subtitle, child
           </PremiumCard>
         </ResponsivePage>
       </section>
-    </main>
+    </div>
   );
 }

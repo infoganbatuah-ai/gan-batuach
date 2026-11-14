@@ -19,6 +19,9 @@ export async function findEligibleGardensForChild(
     target_query: filters.query?.trim() || null,
     evaluation_date: filters.evaluationDate || new Date().toISOString().slice(0, 10)
   } as never);
+  if (result.error?.code === "22023" && result.error.message === "child_discovery_birth_date_required") {
+    return { kind: "birth_date_required" as const, matches: [] };
+  }
   if (result.error) return { kind: "error" as const, error: result.error, matches: [] };
   return { kind: "ok" as const, matches: (result.data ?? []) as Array<Record<string, unknown>> };
 }

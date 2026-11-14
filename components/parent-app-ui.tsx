@@ -33,6 +33,7 @@ export function ParentAppFrame({
       title="דשבורד הורים"
       subtitle="מעקב חכם אחר הילד והגן"
       profile={{ full_name: displayName, profile_image_url: avatarUrl }}
+      actions={contentClassName.includes("parent-dashboard-home") ? <Link className="parent-primary-mobile-menu" href="/dashboard/parent/settings" aria-label="הגדרות הורה"><Menu size={22} aria-hidden="true" /></Link> : undefined}
       className="parent-runtime-shell"
     >
       <div className={`parent-app-main dashboard-runtime-content ${contentClassName}`.trim()}>{children}</div>
@@ -106,7 +107,7 @@ export function ParentChildContextCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="" />
         </>
-      ) : <Image src="/assets/gan-batuach-child-avatar.webp" alt="" width={96} height={96} />}
+      ) : <span className="parent-child-context-initial" aria-hidden="true">{name.trim().charAt(0) || "?"}</span>}
     </span>
     <span className="parent-child-context-copy"><b>{name}</b><small>{garden}</small></span>
     <span className="parent-child-context-state"><i aria-hidden="true" />{status}</span>
@@ -141,11 +142,12 @@ export function ParentSection({ title, subtitle, action, children, className = "
   );
 }
 
-export function ParentActionTile({ title, href, icon: Icon, tone = "purple" }: { title: string; href: string; icon: IconType; tone?: Tone }) {
+export function ParentActionTile({ title, href, icon: Icon, tone = "purple", detail }: { title: string; href: string; icon: IconType; tone?: Tone; detail?: ReactNode }) {
   return (
     <Link className={`parent-action-tile ${tone}`} href={href}>
       <Icon size={30} />
       <span>{title}</span>
+      {detail ? <small className="parent-action-detail">{detail}</small> : null}
     </Link>
   );
 }

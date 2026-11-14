@@ -31,6 +31,9 @@ function scoreTone(score: number) {
   return "pill bad";
 }
 
+const unavailable = "לא זמין כרגע";
+const incompleteMessage = "חלק מהנתונים אינם זמינים כרגע. יש לנסות שוב.";
+
 export default async function AdminDigitalObserverPilotPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("digital observer pilot", async () => {
@@ -59,7 +62,12 @@ export default async function AdminDigitalObserverPilotPage() {
       commercial: commercial.data ?? [],
       legalNotes: legalNotes.data ?? [],
       readiness: readiness.data ?? [],
-      queryError: pilotSites.error ? "לא ניתן לטעון פיילוטים של Digital Observer כרגע" : null
+      unavailable: {
+        pilotSites: Boolean(pilotSites.error), gatewayChecks: Boolean(gatewayChecks.error), cameras: Boolean(cameras.error),
+        alertReviews: Boolean(alertReviews.error), calibration: Boolean(calibration.error), supportIssues: Boolean(supportIssues.error),
+        feedback: Boolean(feedback.error), commercial: Boolean(commercial.error), legalNotes: Boolean(legalNotes.error), readiness: Boolean(readiness.error)
+      },
+      queryError: [pilotSites, gatewayChecks, cameras, alertReviews, calibration, supportIssues, feedback, commercial, legalNotes, readiness].some((query) => Boolean(query.error)) ? incompleteMessage : null
     };
   }, {
     pilotSites: [] as any[],
@@ -72,13 +80,15 @@ export default async function AdminDigitalObserverPilotPage() {
     commercial: [] as any[],
     legalNotes: [] as any[],
     readiness: [] as any[],
+    unavailable: { pilotSites: true, gatewayChecks: true, cameras: true, alertReviews: true, calibration: true, supportIssues: true, feedback: true, commercial: true, legalNotes: true, readiness: true },
     queryError: null as string | null
   });
   const data = result.data;
   const activePilots = data.pilotSites.filter((site) => site.pilot_status === "active_pilot").length;
   const setupPilots = data.pilotSites.filter((site) => ["planned", "setup", "camera_testing", "observer_testing"].includes(site.pilot_status)).length;
   const openIssues = data.supportIssues.filter((issue) => !["fixed", "verified", "closed", "deferred"].includes(issue.status)).length;
-  const latestScore = data.readiness[0]?.readiness_score ?? data.pilotSites[0]?.readiness_score ?? 0;
+  const latestScore = data.unavailable.readiness || (data.readiness.length === 0 && data.unavailable.pilotSites)
+    ? unavailable : `${data.readiness[0]?.readiness_score ?? data.pilotSites[0]?.readiness_score ?? 0}/100`;
   const gatewayReady = data.gatewayChecks.filter((check) => check.status === "success" || check.playback_ready).length;
   const pendingReviews = data.alertReviews.filter((review) => ["detected", "pending_review", "needs_followup", "uncertain"].includes(review.lifecycle_status)).length;
   const falsePositive = data.alertReviews.filter((review) => review.outcome === "false_positive").length;
@@ -97,17 +107,17 @@ export default async function AdminDigitalObserverPilotPage() {
           <Link className="button secondary" href="/dashboard/admin/digital-observer-leads">Observer Leads</Link>
         </div>
       </div>
-      <AdminDataError message={result.error ?? data.queryError} />
+      <AdminDataError message={result.error ? incompleteMessage : data.queryError} />
 
       <section className="grid cols-4 dashboard-panels">
-        <article className="metric-card"><ShieldCheck /><strong>{data.pilotSites.length}</strong><span>pilot sites</span></article>
-        <article className="metric-card"><HeartPulse /><strong>{activePilots}</strong><span>active pilots</span></article>
-        <article className="metric-card"><Camera /><strong>{data.cameras.length}</strong><span>pilot cameras</span></article>
-        <article className="metric-card"><Gauge /><strong>{latestScore}/100</strong><span>readiness score</span></article>
-        <article className="metric-card"><Wrench /><strong>{gatewayReady}</strong><span>gateway checks ready</span></article>
-        <article className="metric-card"><Bell /><strong>{pendingReviews}</strong><span>reviews pending</span></article>
-        <article className="metric-card"><AlertTriangle /><strong>{openIssues}</strong><span>open support issues</span></article>
-        <article className="metric-card"><CreditCard /><strong>{data.commercial.length}</strong><span>commercial validations</span></article>
+        <article className="metric-card"><ShieldCheck /><strong>{data.unavailable.pilotSites ? unavailable : data.pilotSites.length}</strong><span>pilot sites</span></article>
+        <article className="metric-card"><HeartPulse /><strong>{data.unavailable.pilotSites ? unavailable : activePilots}</strong><span>active pilots</span></article>
+        <article className="metric-card"><Camera /><strong>{data.unavailable.cameras ? unavailable : data.cameras.length}</strong><span>pilot cameras</span></article>
+        <article className="metric-card"><Gauge /><strong>{latestScore}</strong><span>readiness score</span></article>
+        <article className="metric-card"><Wrench /><strong>{data.unavailable.gatewayChecks ? unavailable : gatewayReady}</strong><span>gateway checks ready</span></article>
+        <article className="metric-card"><Bell /><strong>{data.unavailable.alertReviews ? unavailable : pendingReviews}</strong><span>reviews pending</span></article>
+        <article className="metric-card"><AlertTriangle /><strong>{data.unavailable.supportIssues ? unavailable : openIssues}</strong><span>open support issues</span></article>
+        <article className="metric-card"><CreditCard /><strong>{data.unavailable.commercial ? unavailable : data.commercial.length}</strong><span>commercial validations</span></article>
       </section>
 
       <section className="dashboard-section">
@@ -115,7 +125,7 @@ export default async function AdminDigitalObserverPilotPage() {
           <h2>Pilot sites</h2>
           <p>Home, business, office, warehouse, store, parking lot and custom pilots only.</p>
         </div>
-        {data.pilotSites.length === 0 ? (
+        {data.unavailable.pilotSites ? <div>{unavailable}</div> : data.pilotSites.length === 0 ? (
           <div className="empty-state"><strong>No Digital Observer pilots yet</strong><span>Create a pilot site after a qualified Digital Observer lead.</span></div>
         ) : (
           <div className="procedure-list">
@@ -159,7 +169,7 @@ export default async function AdminDigitalObserverPilotPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>Gateway validation</h2><p>MediaMTX, go2rtc and custom gateway readiness.</p></div>
           <div className="risk-list">
-            {data.gatewayChecks.length === 0 ? <div>No gateway checks <b>planned</b></div> : data.gatewayChecks.slice(0, 10).map((check) => (
+            {data.unavailable.gatewayChecks ? <div>{unavailable}</div> : data.gatewayChecks.length === 0 ? <div>No gateway checks <b>planned</b></div> : data.gatewayChecks.slice(0, 10).map((check) => (
               <div key={check.id}>{check.digital_observer_pilot_sites?.site_name ?? "pilot"} · {check.check_type} <b>{check.status}</b></div>
             ))}
           </div>
@@ -167,7 +177,7 @@ export default async function AdminDigitalObserverPilotPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>Site owner camera cards</h2><p>Simple status cards; technical diagnostics stay advanced/admin.</p></div>
           <div className="risk-list">
-            {data.cameras.length === 0 ? <div>No pilot cameras <b>waiting</b></div> : data.cameras.slice(0, 10).map((camera) => (
+            {data.unavailable.cameras ? <div>{unavailable}</div> : data.cameras.length === 0 ? <div>No pilot cameras <b>waiting</b></div> : data.cameras.slice(0, 10).map((camera) => (
               <div key={camera.id}>{camera.name ?? "Camera"} · {camera.health_status ?? camera.status ?? "unknown"} <b>{camera.gateway_registration_status ?? "gateway pending"}</b></div>
             ))}
           </div>
@@ -181,15 +191,15 @@ export default async function AdminDigitalObserverPilotPage() {
             {DIGITAL_OBSERVER_PILOT_REVIEW_LIFECYCLE.map((step) => <span key={step}>{step}</span>)}
           </div>
           <div className="risk-list">
-            <div>False positives <b>{falsePositive}</b></div>
-            <div>False negatives / missed events <b>{falseNegative}</b></div>
-            <div>Pending review <b>{pendingReviews}</b></div>
+            <div>False positives <b>{data.unavailable.alertReviews ? unavailable : falsePositive}</b></div>
+            <div>False negatives / missed events <b>{data.unavailable.alertReviews ? unavailable : falseNegative}</b></div>
+            <div>Pending review <b>{data.unavailable.alertReviews ? unavailable : pendingReviews}</b></div>
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>Calibration</h2><p>Motion sensitivity, after-hours sensitivity, restricted zones and thresholds.</p></div>
           <div className="risk-list">
-            {data.calibration.length === 0 ? <div>No calibration profiles <b>missing</b></div> : data.calibration.slice(0, 10).map((profile) => (
+            {data.unavailable.calibration ? <div>{unavailable}</div> : data.calibration.length === 0 ? <div>No calibration profiles <b>missing</b></div> : data.calibration.slice(0, 10).map((profile) => (
               <div key={profile.id}>{profile.digital_observer_pilot_sites?.site_name ?? "pilot"} · {profile.event_type} <b>{profile.calibration_status}</b></div>
             ))}
           </div>
@@ -203,13 +213,13 @@ export default async function AdminDigitalObserverPilotPage() {
             {DIGITAL_OBSERVER_PILOT_SUPPORT_CATEGORIES.map((category) => <span key={category}>{category}</span>)}
           </div>
           <div className="risk-list">
-            {data.supportIssues.slice(0, 6).map((issue) => <div key={issue.id}>{issue.title} <b>{issue.status}</b></div>)}
+            {data.unavailable.supportIssues ? <div>{unavailable}</div> : data.supportIssues.slice(0, 6).map((issue) => <div key={issue.id}>{issue.title} <b>{issue.status}</b></div>)}
           </div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>Feedback</h2><p>Setup difficulty, alert usefulness, dashboard clarity and willingness to pay.</p></div>
           <div className="risk-list">
-            {data.feedback.length === 0 ? <div>No feedback collected <b>waiting</b></div> : data.feedback.slice(0, 8).map((item) => (
+            {data.unavailable.feedback ? <div>{unavailable}</div> : data.feedback.length === 0 ? <div>No feedback collected <b>waiting</b></div> : data.feedback.slice(0, 8).map((item) => (
               <div key={item.id}>{item.digital_observer_pilot_sites?.site_name ?? "pilot"} · clarity {item.dashboard_clarity ?? "?"}/5 <b>{item.preferred_package ?? "package TBD"}</b></div>
             ))}
           </div>
@@ -217,7 +227,7 @@ export default async function AdminDigitalObserverPilotPage() {
         <article className="card action-panel">
           <div className="section-heading"><h2>Commercial validation</h2><p>Trial/subscription readiness without real charging unless payment mode is explicitly enabled.</p></div>
           <div className="risk-list">
-            {data.commercial.map((item) => (
+            {data.unavailable.commercial ? <div>{unavailable}</div> : data.commercial.map((item) => (
               <div key={item.id}>{item.digital_observer_pilot_sites?.site_name ?? "pilot"} · {item.package_interest ?? "package"} <b>{item.trial_to_paid_likelihood}</b></div>
             ))}
           </div>
@@ -234,7 +244,7 @@ export default async function AdminDigitalObserverPilotPage() {
           <ShieldCheck />
           <h2>Privacy and legal notes</h2>
           <div className="risk-list">
-            {data.legalNotes.length === 0 ? <div>No legal notes <b>missing</b></div> : data.legalNotes.slice(0, 8).map((note) => (
+            {data.unavailable.legalNotes ? <div>{unavailable}</div> : data.legalNotes.length === 0 ? <div>No legal notes <b>missing</b></div> : data.legalNotes.slice(0, 8).map((note) => (
               <div key={note.id}>{note.digital_observer_pilot_sites?.site_name ?? "pilot"} · audio {note.audio_capability_status} · face {note.face_capability_status} <b>{note.external_review_required ? "review" : "approved"}</b></div>
             ))}
           </div>
@@ -247,7 +257,7 @@ export default async function AdminDigitalObserverPilotPage() {
           <p>0-100 score based on camera stability, gateway stability, alert accuracy, review completion, owner engagement, package readiness and support issues.</p>
         </div>
         <div className="procedure-list">
-          {data.readiness.map((snapshot) => (
+          {data.unavailable.readiness ? <div>{unavailable}</div> : data.readiness.map((snapshot) => (
             <article className="card procedure-card" key={snapshot.id}>
               <div>
                 <span className={scoreTone(Number(snapshot.readiness_score ?? 0))}>{snapshot.readiness_score}/100</span>

@@ -155,6 +155,17 @@ export async function PATCH(request: Request) {
       .select("id, name, logo_url, image_url, address, phone, email, owner_name, public_description, approval_flow_status, admin_correction_note")
       .eq("id", gardenId)
       .maybeSingle(), supabase.from("kindergarten_onboarding_records" as any).select("profile_data,activation_key,registrant_type").eq("garden_id", gardenId).maybeSingle()]);
+    if (payload.submit) {
+      if (!payload.consents_accepted) return fail("נדרש לאשר את התנאים ומדיניות הפרטיות לפני ההפעלה", 422);
+      const activationKey = payload.activation_key ?? (existingOnboarding as any)?.activation_key;
+      if (!activationKey) return fail("מפתח ההפעלה חסר. יש לרענן את התהליך.", 409);
+      // The review step has already saved the draft. Final submission must
+      // perform only the locked activation RPC, including safe retries.
+      const activation = await sessionClient.rpc("activate_garden_onboarding" as never, { target_garden_id: gardenId, requested_activation_key: activationKey, accept_required_consents: true } as never);
+      if (activation.error) return fail(activation.error.message.includes("requirements_not_met") ? "לא ניתן להפעיל: נותרו דרישות חובה" : "הפעלת הגן נכשלה בבטחה", activation.error.code === "42501" ? 403 : 422);
+      revalidatePath("/dashboard/garden");
+      return ok({ garden: { id: gardenId, name: existingGarden?.name, approval_flow_status: "active" }, onboarding: activation.data, missing: [], next_path: "/api/management/gardens" });
+    }
     const currentStatus = String(existingGarden?.approval_flow_status ?? "");
     if (["active", "suspended", "archived"].includes(currentStatus)) {
       return fail("הגן כבר פעיל או חסום לעריכה דרך אשף ההקמה", 409);
@@ -328,16 +339,6 @@ export async function PATCH(request: Request) {
         const desiredNames = desiredClassrooms.map((room) => room.name);
         await supabase.from("classrooms" as any).update({ status: "inactive", updated_by: profile.id, updated_at: now }).eq("garden_id", gardenId).eq("source", "onboarding").not("name", "in", `(${desiredNames.map((name) => `\"${name.replaceAll('"','')}\"`).join(',')})`);
       }
-    }
-
-    if (payload.submit) {
-      if (!payload.consents_accepted) return fail("נדרש לאשר את התנאים ומדיניות הפרטיות לפני ההפעלה", 422);
-      const activationKey = payload.activation_key ?? (existingOnboarding as any)?.activation_key;
-      if (!activationKey) return fail("מפתח ההפעלה חסר. יש לרענן את התהליך.", 409);
-      const activation = await sessionClient.rpc("activate_garden_onboarding" as never, { target_garden_id: gardenId, requested_activation_key: activationKey, accept_required_consents: true } as never);
-      if (activation.error) return fail(activation.error.message.includes("requirements_not_met") ? "לא ניתן להפעיל: נותרו דרישות חובה" : "הפעלת הגן נכשלה בבטחה", activation.error.code === "42501" ? 403 : 422);
-      revalidatePath("/dashboard/garden");
-      return ok({ garden: { ...garden, approval_flow_status: "active" }, onboarding: activation.data, missing: [], next_path: `/api/management/gardens` });
     }
 
     revalidatePath("/onboarding/kindergarten");

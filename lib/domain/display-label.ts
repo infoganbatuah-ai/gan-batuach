@@ -18,6 +18,7 @@ export function cleanSyntheticLabel(value?: string | null, fallback = "") {
     [/^QA Delegated Teacher$/i, "מיכל לוי"],
     [/^QA Parent Unassigned$/i, "דני כהן"],
     [/^QA Parent A$/i, "דנה כהן"],
+    [/^QA Parent[- ]B$/i, "מיכל כהן"],
     [/^QA Parent(?:[- ]Multi| AB)?$/i, "נועה כהן"],
     [/^QA Owner(?:[- ]AB| A| B)?$/i, "דנה כהן"],
     [/^QA Owner[- ]?[AB]$/i, "דנה כהן"],

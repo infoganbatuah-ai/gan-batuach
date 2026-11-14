@@ -11,6 +11,7 @@ const integrationOverrides = new Set([
   "check-guard-server-credential.mjs",
   "digital-guard-diagnostics-postgres.test.mjs",
   "digital-guard-persisted-learning.mjs",
+  "push44-owner-qa-proxy.mjs",
   "probe-admin-dashboard-schema.mjs",
   "run-completion-role-boundary-probes.mjs"
 ]);
@@ -102,7 +103,10 @@ const capabilityRows = [
   ["Verification", "lib/domain/digital-observer/incident-verification-engine.ts", "/api/digital-observer/incidents", "digital_observer_incident_verifications", "qa:digital-observer-verification", "PUSH 10", "GATE 3"],
   ["Feedback / calibration", "lib/domain/digital-observer/feedback-calibration.ts", "/api/digital-observer/incidents/feedback", "digital_observer_feedback_revisions; digital_observer_calibration_samples", "qa:digital-observer-feedback", "PUSH 11", "GATE 3"],
   ["Watch rules", "lib/domain/digital-observer/watch-rule-compiler.ts", "/api/digital-observer/watch-rules", "observer_watch_requests; digital_observer_watch_rule_versions", "qa:digital-observer-watch-rules", "PUSH 12", "GATE 3"],
-  ["Investigation", "lib/domain/digital-observer/investigation-search-service.ts", "/api/digital-observer/investigation", "canonical Event/Incident/Evidence projections", "qa:digital-observer-investigation", "PUSH 13", "GATE 3"]
+  ["Investigation", "lib/domain/digital-observer/investigation-search-service.ts", "/api/digital-observer/investigation", "canonical Event/Incident/Evidence projections", "qa:digital-observer-investigation", "PUSH 13", "GATE 3"],
+  ["External API / webhooks", "lib/domain/digital-observer/external-api-service.ts", "/api/digital-observer/external/v1/*", "service accounts; external API receipts/usage; webhook endpoints; integration sources", "qa:digital-observer-push42", "PUSH 42 independent consumer and external provider proof pending", "GATE 3 + GATE 4"],
+  ["OEM / SDK / white-label", "lib/domain/digital-observer/partner-platform-service.ts", "/api/digital-observer/partner/v1/*; /api/digital-observer/embed/v1/*", "partners; partner customers/Sites; brand profiles; delegated service accounts; embedded sessions", "qa:digital-observer-push43", "PUSH 43 real OEM partner and vendor proof pending", "GATE 3 + GATE 4"],
+  ["Native mobile runtime", "lib/domain/digital-observer/mobile-runtime.ts", "/api/digital-observer/mobile/runtime; /api/push/register; /api/digital-observer/access-settings", "existing device slots, push tokens, canonical Camera/Event/Incident/Evidence/Notification stores", "qa:digital-observer-push44", "Signed owner-iPhone QA shell PASS; authenticated Product, provider receipt, remote playback and store proof pending", "GATE 3 + GATE 4"]
 ];
 
 const lines = [

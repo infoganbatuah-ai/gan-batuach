@@ -34,7 +34,6 @@ type PublicGarden = {
   id: string;
   name: string;
   city: string;
-  address?: string | null;
   owner_name?: string | null;
   framework_type?: string | null;
   children_capacity?: number | null;
@@ -84,7 +83,7 @@ async function getPublicGardens(filters: GardenSearchParams) {
     const supabase = createAdminClient();
     let query = supabase
       .from("gardens")
-      .select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, gps_lat, gps_lng, manager:profiles!gardens_manager_id_fkey(full_name), parent_trust_profiles(trust_score, trust_badge_status, public_profile_ready)")
+      .select("id, name, city, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, gps_lat, gps_lng, manager:profiles!gardens_manager_id_fkey(full_name), parent_trust_profiles(trust_score, trust_badge_status, public_profile_ready)")
       .eq("public_profile_enabled", true)
       .limit(24);
     if (filters.name) query = query.ilike("name", `%${filters.name}%`);
@@ -211,7 +210,7 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
                     <div className="gb-directory-garden-main">
                       <div className="gb-directory-garden-head">
                         <StatusChip tone={status.tone} icon={status.icon}>{status.label}</StatusChip>
-                        <span><MapPin size={16} /> {garden.city} · {garden.address ?? "כתובת כללית לפי הרשאת הגן"}</span>
+                        <span><MapPin size={16} /> {garden.city} · כתובת מדויקת אינה מוצגת באינדקס הציבורי</span>
                       </div>
                       <h2>{garden.name}</h2>
                       <p>מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"} · {formatAgeGroups(garden.supported_age_groups ?? [])}</p>

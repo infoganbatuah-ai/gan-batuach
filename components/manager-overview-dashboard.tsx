@@ -16,9 +16,10 @@ type TaskItem = { id: string; title: string; subtitle?: string; href: string };
 type ClassroomItem = { id: string; name: string; assigned: number; capacity: number | null };
 
 export function ManagerOverviewDashboard({
-  garden, attendance, staff, safety, classrooms, enrollment, schedule, updates,
+  managerName, garden, attendance, staff, safety, classrooms, enrollment, schedule, updates,
   tasks, unreadMessages, finance, operations
 }: {
+  managerName: string;
   garden: { name: string; city: string; dateLabel: string };
   attendance: { present: number; absent: number; departed: number; total: number; notRecorded: number; completion: number };
   staff: { active: number; present: number; scheduled: number; missingClockOut: number };
@@ -34,23 +35,25 @@ export function ManagerOverviewDashboard({
 }) {
   const ringStyle = { "--manager-progress": `${attendance.completion * 3.6}deg` } as CSSProperties;
   const actionTotal = operations.tasks + operations.complaints + operations.documents + operations.correctiveActions + enrollment.open;
-  const quickActions = [
+  const quickActions: Array<{ title: string; href: string; icon: IconType; tone: string; mobileOnly?: boolean }> = [
     { title: "הוספת ילד/ה", href: "/dashboard/garden/children?new=1#new-child", icon: UserRoundPlus, tone: "blue" },
     { title: "ניהול נוכחות", href: "/dashboard/garden/attendance", icon: ClipboardCheck, tone: "green" },
     { title: "הזמנת הורה", href: "/dashboard/garden/parents", icon: UsersRound, tone: "purple" },
     { title: "הזמנת צוות", href: "/dashboard/garden/staff-applications", icon: GraduationCap, tone: "cyan" },
     { title: "שליחת הודעה", href: "/dashboard/garden/messages?compose=1#message-workbench", icon: MessageCircle, tone: "blue" },
     { title: "יצירת משימה", href: "/dashboard/garden/tasks", icon: CheckCircle2, tone: "orange" },
-    { title: "צפייה במצלמות", href: "/dashboard/garden/cameras", icon: Camera, tone: "cyan" }
+    { title: "צפייה במצלמות", href: "/dashboard/garden/cameras", icon: Camera, tone: "cyan" },
+    { title: "דוחות", href: "/dashboard/garden/reports", icon: BarChart3, tone: "blue", mobileOnly: true }
   ];
 
   return (
     <div className="manager-reference-dashboard">
+      <h1 className="sr-only">מרכז תפעול הגן</h1>
       <section className="manager-command-hero" aria-labelledby="manager-command-title">
         <div className="manager-command-hero-copy">
           <span className="manager-command-eyebrow"><Building2 size={18} /> {garden.name}{garden.city ? ` · ${garden.city}` : ""}</span>
-          <h2 id="manager-command-title">מה קורה היום בגן?</h2>
-          <p>{garden.dateLabel} · תמונת מצב תפעולית ממקורות הגן המאומתים</p>
+          <h2 id="manager-command-title">בוקר טוב, {managerName}!</h2>
+          <p>כל יום הוא הזדמנות לגדול בביטחון · {garden.dateLabel}</p>
           <div className="manager-command-hero-actions">
             <Link href="/dashboard/garden/attendance">פתיחת נוכחות</Link>
             <Link href="/dashboard/garden/command-center">כל מה שדורש טיפול <span>{actionTotal}</span></Link>
@@ -63,12 +66,12 @@ export function ManagerOverviewDashboard({
       </section>
 
       <section className="manager-today-strip" aria-label="היום בגן">
-        <TodayMetric label="ילדים נוכחים" value={`${attendance.present}/${attendance.total}`} hint={`${attendance.departed} כבר יצאו`} icon={Baby} tone="green" href="/dashboard/garden/attendance" />
-        <TodayMetric label="משימות פתוחות" value={operations.tasks} hint={`${operations.correctiveActions} דחופות`} icon={CircleAlert} tone="red" href="/dashboard/garden/tasks" />
-        <TodayMetric label="בקשות הרשמה" value={enrollment.open} hint={`${enrollment.informationRequired} ממתינות לאישור`} icon={FileClock} tone="purple" href="/dashboard/garden/enrollment-requests" />
-        <TodayMetric label="הודעות חדשות" value={unreadMessages} hint="מרכז התקשורת" icon={MessageCircle} tone="blue" href="/dashboard/garden/messages" />
-        <TodayMetric label="אירועי בטיחות" value={operations.correctiveActions} hint="דורש טיפול" icon={ShieldCheck} tone="orange" href="/dashboard/garden/corrective-actions" />
         <TodayMetric label="מצלמות פעילות" value={`${safety.operationalCameras}/${safety.cameras}`} hint={safety.label} icon={Camera} tone="blue" href="/dashboard/garden/cameras" />
+        <TodayMetric label="אירועי בטיחות" value={operations.correctiveActions} hint="דורש טיפול" icon={ShieldCheck} tone="orange" href="/dashboard/garden/corrective-actions" />
+        <TodayMetric label="הודעות חדשות" value={unreadMessages} hint="מרכז התקשורת" icon={MessageCircle} tone="blue" href="/dashboard/garden/messages" />
+        <TodayMetric label="בקשות הרשמה" value={enrollment.open} hint={`${enrollment.informationRequired} ממתינות לאישור`} icon={FileClock} tone="purple" href="/dashboard/garden/enrollment-requests" />
+        <TodayMetric label="משימות פתוחות" value={operations.tasks} hint={`${operations.correctiveActions} דחופות`} icon={CircleAlert} tone="red" href="/dashboard/garden/tasks" />
+        <TodayMetric label="ילדים נוכחים" value={`${attendance.present}/${attendance.total}`} hint={`${attendance.departed} כבר יצאו`} icon={Baby} tone="green" href="/dashboard/garden/attendance" />
       </section>
 
       <section className="manager-reference-first-viewport" aria-label="היום, מצלמות ועדכונים">
@@ -76,17 +79,22 @@ export function ManagerOverviewDashboard({
           {schedule.length ? <div className="manager-schedule-list">{schedule.slice(0, 6).map((item) => { const Icon = item.icon ?? CalendarDays; return <article key={item.id}><Icon size={19} /><strong>{item.title}</strong><time>{item.time}</time></article>; })}</div> : <ReferenceEmpty text="עדיין לא פורסמו פעילויות להיום" />}
         </ReferencePanel>
         <article className="manager-reference-panel manager-reference-card manager-live-camera-card">
-          <header><span><Camera size={22} /> מצלמות בשידור חי</span><Link href="/dashboard/garden/cameras">הצג הכל <ChevronLeft size={16} /></Link></header>
+          <header><span><Camera size={22} /> מצלמות הגן</span><Link href="/dashboard/garden/cameras">הצג הכל <ChevronLeft size={16} /></Link></header>
           <div className="manager-live-camera-scene">
-            <Image src="/assets/hero-control-center.png" alt="אזור מצלמות הגן" fill sizes="(max-width: 720px) 100vw, 36vw" />
+            <Image src="/assets/hero-control-center.png" alt="" fill sizes="(max-width: 720px) 100vw, 36vw" />
             <span className={`manager-camera-truth state-${safety.state}`}><i /> {safety.label}</span>
-            <div><ShieldCheck size={24} /><b>{safety.operationalCameras}/{safety.cameras}</b><small>מקורות במצב מאומת · Live מוצג רק לאחר אימות ספק</small></div>
+            <div><ShieldCheck size={24} /><b>{safety.operationalCameras}/{safety.cameras}</b><small>תמונה להמחשה · אין שידור חי מאומת</small></div>
           </div>
           <div className="manager-camera-thumbnails" aria-hidden="true"><span /><span /><span /><span /></div>
         </article>
         <ReferencePanel title="התראות ופעילות אחרונה" icon={Megaphone} href="/dashboard/garden/notifications" linkLabel="הצג הכל">
           {updates.length ? <div className="manager-update-list">{updates.slice(0, 6).map((item) => <article key={item.id} className={item.tone ?? "purple"}><span /><div><strong>{item.title}</strong>{item.subtitle ? <small>{item.subtitle}</small> : null}</div>{item.time ? <time>{item.time}</time> : null}<ChevronLeft size={18} /></article>)}</div> : <ReferenceEmpty text="אין עדכונים חדשים כרגע" />}
         </ReferencePanel>
+      </section>
+
+      <section className="manager-reference-quick manager-reference-card">
+        <header><span><Activity size={23} /> פעולות מהירות</span><Link href="/dashboard/garden/command-center">כל הפעולות</Link></header>
+        <div>{quickActions.map(({ title, href, icon: Icon, tone, mobileOnly }) => <Link className={`${tone}${mobileOnly ? " manager-mobile-only-action" : ""}`} href={href} key={title}><span><Icon size={27} /></span><b>{title}</b></Link>)}</div>
       </section>
 
       <section className="manager-command-grid manager-command-grid-primary" aria-label="מצב תפעולי מרכזי">
@@ -148,11 +156,6 @@ export function ManagerOverviewDashboard({
           </div>
           {enrollment.informationRequired || enrollment.awaitingPayment || enrollment.waitlisted ? <p className="manager-attention-note">רישום: {enrollment.informationRequired} ממתינים למידע · {enrollment.awaitingPayment} לתשלום · {enrollment.waitlisted} ברשימת המתנה</p> : null}
         </ReferencePanel>
-      </section>
-
-      <section className="manager-reference-quick manager-reference-card">
-        <header><span><Activity size={23} /> פעולות מהירות</span><Link href="/dashboard/garden/command-center">כל הפעולות</Link></header>
-        <div>{quickActions.map(({ title, href, icon: Icon, tone }) => <Link className={tone} href={href} key={title}><span><Icon size={27} /></span><b>{title}</b></Link>)}</div>
       </section>
 
       <section className="manager-command-grid manager-finance-communication-grid">

@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { Archive, CheckCircle2, FileSearch, Gavel, ShieldAlert, Trash2, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
@@ -35,31 +36,35 @@ async function updatePrivacyRequestStatus(formData: FormData) {
   const { profile } = await requireRole(["admin"]);
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "under_review");
-  const decisionReason = String(formData.get("decision_reason") ?? "").slice(0, 1200);
+  const status = String(formData.get("status") ?? "");
+  const decisionReason = String(formData.get("decision_reason") ?? "").trim().slice(0, 1200);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || !["approved", "rejected"].includes(status)
+    || (status === "rejected" && decisionReason.length < 12)) {
+    redirect("/dashboard/admin/privacy-rights?decision_error=invalid");
+  }
   const update = await supabase.from("privacy_rights_requests" as any).update({
     status,
     reviewer_id: profile.id,
     decision_reason: decisionReason || null,
-    completed_at: status === "completed" ? new Date().toISOString() : null,
     updated_at: new Date().toISOString(),
-    response_summary: status === "rejected" ? "הבקשה נדחתה לאחר בדיקה." : status === "completed" ? "הטיפול בבקשה הושלם." : "הבקשה נמצאת בטיפול."
+    response_summary: status === "rejected" ? "הבקשה נדחתה לאחר בדיקה." : "הבקשה אושרה להמשך טיפול."
   }).eq("id", id).select("id,request_type,garden_id,child_id").maybeSingle();
-  if (!update.error) {
-    await writeAuditEvent({
-      eventType: `privacy_request_${status}`,
-      eventCategory: "regulatory",
-      actorProfileId: profile.id,
-      actorRole: profile.role,
-      targetType: "privacy_request",
-      targetId: id,
-      gardenId: (update.data as any)?.garden_id ?? null,
-      childId: (update.data as any)?.child_id ?? null,
-      metadata: { request_type: (update.data as any)?.request_type ?? null, decision_reason: decisionReason || null },
-      riskLevel: status === "approved" || status === "completed" ? "high" : "medium"
-    });
-  }
+  if (update.error || !update.data) redirect("/dashboard/admin/privacy-rights?decision_error=transition");
+  await writeAuditEvent({
+    eventType: `privacy_request_${status}`,
+    eventCategory: "regulatory",
+    actorProfileId: profile.id,
+    actorRole: profile.role,
+    targetType: "privacy_request",
+    targetId: id,
+    gardenId: (update.data as any).garden_id ?? null,
+    childId: (update.data as any).child_id ?? null,
+    metadata: { request_type: (update.data as any).request_type ?? null, decision_reason: decisionReason || null },
+    riskLevel: status === "approved" ? "high" : "medium"
+  });
   revalidatePath("/dashboard/admin/privacy-rights");
+  redirect("/dashboard/admin/privacy-rights?decision=updated");
 }
 
 async function calculateRequestScope(formData: FormData) {
@@ -156,8 +161,9 @@ async function createLegalHoldForRequest(formData: FormData) {
   revalidatePath("/dashboard/admin/privacy-rights");
 }
 
-export default async function AdminPrivacyRightsPage() {
+export default async function AdminPrivacyRightsPage({ searchParams }: { searchParams: Promise<{ decision?: string; decision_error?: string }> }) {
   await requireRole(["admin"]);
+  const decisionFeedback = await searchParams;
   const result = await safeAdminData("privacy rights", async () => {
     const supabase = await createClient();
     const [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes] = await Promise.all([
@@ -211,6 +217,8 @@ export default async function AdminPrivacyRightsPage() {
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
+      {decisionFeedback.decision_error ? <p role="alert" className="pill bad">לא ניתן לשנות את מצב הבקשה. בדקו את המעבר, הסיבה והרשאות הטיפול.</p> : null}
+      {decisionFeedback.decision ? <p role="status" className="pill good">ההחלטה נרשמה לבדיקה ולהמשך טיפול.</p> : null}
 
       <section className="grid cols-4 dashboard-kpis">
         <StatCard label="Open requests" value={open} tone={open ? "warn" : "good"} />
@@ -280,11 +288,13 @@ export default async function AdminPrivacyRightsPage() {
                   </div> : null}
                 </div>
                 <div className="procedure-meta">
-                  <form action={calculateRequestScope}><input type="hidden" name="id" value={request.id} /><button className="button secondary"><FileSearch size={16} /> Scope</button></form>
-                  <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="approved" /><button className="button secondary"><CheckCircle2 size={16} /> Approve</button></form>
-                  <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="completed" /><button className="button secondary">Complete</button></form>
-                  <form action={createLegalHoldForRequest}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="hold_reason" value="Privacy request requires evidence preservation review" /><button className="button danger"><Gavel size={16} /> Legal hold</button></form>
-                  <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="rejected" /><button className="button secondary"><Trash2 size={16} /> Reject</button></form>
+                  {!['completed', 'rejected', 'cancelled'].includes(request.status) ? <>
+                    <form action={calculateRequestScope}><input type="hidden" name="id" value={request.id} /><button className="button secondary"><FileSearch size={16} /> Scope</button></form>
+                    <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="approved" /><button className="button secondary"><CheckCircle2 size={16} /> Approve</button></form>
+                    <span className="pill warn">סיום דורש ביצוע מתועד ובדיקת שימור</span>
+                    <form action={createLegalHoldForRequest}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="hold_reason" value="Privacy request requires evidence preservation review" /><button className="button danger"><Gavel size={16} /> Legal hold</button></form>
+                    <form action={updatePrivacyRequestStatus} className="form"><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="rejected" /><label>סיבת דחייה<input name="decision_reason" minLength={12} maxLength={1200} required /></label><button className="button secondary"><Trash2 size={16} /> Reject</button></form>
+                  </> : null}
                 </div>
               </article>
             );

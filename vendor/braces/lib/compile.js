@@ -2,9 +2,17 @@
 
 const fill = require('fill-range');
 const utils = require('./utils');
+const { MAX_DEPTH } = require('./constants');
 
 const compile = (ast, options = {}) => {
-  const walk = (node, parent = {}) => {
+  const maxDepth = Number.isFinite(options.maxDepth)
+    ? Math.max(1, Math.min(MAX_DEPTH, Math.floor(options.maxDepth)))
+    : MAX_DEPTH;
+
+  const walk = (node, parent = {}, depth = 0) => {
+    if (node.nodes && depth > maxDepth) {
+      throw new RangeError(`AST depth (${depth}), exceeds max depth (${maxDepth})`);
+    }
     const invalidBlock = utils.isInvalidBrace(parent);
     const invalidNode = node.invalid === true && options.escapeInvalid === true;
     const invalid = invalidBlock === true || invalidNode === true;
@@ -46,14 +54,14 @@ const compile = (ast, options = {}) => {
 
     if (node.nodes) {
       for (const child of node.nodes) {
-        output += walk(child, node);
+        output += walk(child, node, child.nodes ? depth + 1 : depth);
       }
     }
 
     return output;
   };
 
-  return walk(ast);
+  return walk(ast, {}, ast.type === 'root' ? 0 : 1);
 };
 
 module.exports = compile;

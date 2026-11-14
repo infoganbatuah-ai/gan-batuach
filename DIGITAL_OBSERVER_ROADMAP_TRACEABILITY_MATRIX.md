@@ -45,7 +45,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
-- PUSH 28–37 are DONE ON their applicable verified completion evidence. PUSH 37 adds health-aware local multi-node routing, bounded dependency recovery, fenced device-control ownership and a production-ready Postgres shared-queue contract without claiming multi-host/zone/provider proof. PUSH 27 remains valid as DONE EARLY. PUSH 38 is NEXT / NOT STARTED.
+- PUSH 28–37 are DONE ON their applicable verified completion evidence. PUSH 37 adds health-aware local multi-node routing, bounded dependency recovery, fenced device-control ownership and a production-ready Postgres shared-queue contract without claiming multi-host/zone/provider proof. PUSH 27 remains valid as DONE EARLY. PUSH 38 is IN PROGRESS; preliminary load/chaos evidence exists, but the mandatory 24-hour real-Home soak has not elapsed and PUSH 39 remains NOT STARTED.
 
 # APPENDIX — LEGACY SOURCE-SLOT TRACEABILITY REGISTER
 

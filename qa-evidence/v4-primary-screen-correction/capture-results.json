@@ -1,0 +1,111 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "productionAccess": false,
+  "sourceSha": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+  "capturedAt": "2026-10-25T21:25:01.610Z",
+  "viewports": {
+    "desktop": {
+      "label": "desktop",
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "label": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  },
+  "captures": [
+    {
+      "id": "owner-dashboard",
+      "route": "/dashboard/garden",
+      "role": "owner-ab",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/owner-dashboard-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "4ad7a893f70d8fa109ea93cde1986db4959163867f23d75e1f88344979373674"
+    },
+    {
+      "id": "owner-dashboard",
+      "route": "/dashboard/garden",
+      "role": "owner-ab",
+      "viewport": "390x844",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/owner-dashboard-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "58d0fb7be0f78c9cef1606ea4d85a9ea480b8eb6c07e7f5211bc6744267c83fb"
+    },
+    {
+      "id": "parent-assigned",
+      "route": "/dashboard/parent",
+      "role": "parent-b",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/parent-assigned-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "93318a11d42924dad74a644a678ed2bd11a017b7676d0118f9ab43a3498cd207"
+    },
+    {
+      "id": "parent-assigned",
+      "route": "/dashboard/parent",
+      "role": "parent-b",
+      "viewport": "390x844",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/parent-assigned-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "ec120db354b40f082fb69715cb688098b902be03647b667b6b6a986c26b6a07b"
+    },
+    {
+      "id": "parent-multi-child",
+      "route": "/dashboard/parent",
+      "role": "parent-multi",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/parent-multi-child-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "7ea6ff0f69375c8b64813990a08c70b01ff2d20c8c96814c33384f12a9a58389"
+    },
+    {
+      "id": "parent-multi-child",
+      "route": "/dashboard/parent",
+      "role": "parent-multi",
+      "viewport": "390x844",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/parent-multi-child-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "35d83363822d08a4d105d94e4875f4226854acf217e401100d958d10aa1c854f"
+    },
+    {
+      "id": "platform-admin",
+      "route": "/dashboard/admin",
+      "role": "admin",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/platform-admin-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "4a43add95549a22b0bc2ed4baa8e03ffbbf820f9677ba0136fe9175a184a3e4f"
+    },
+    {
+      "id": "platform-admin",
+      "route": "/dashboard/admin",
+      "role": "admin",
+      "viewport": "390x844",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/platform-admin-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "6db54cde2f0b6ab3cc0acde4cca2af71e7054be526612d341d0c87229aaa29db"
+    },
+    {
+      "id": "settings",
+      "route": "/dashboard/garden/settings",
+      "role": "owner-a",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/settings-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "3bc6a2e2b10d51aa9cc4e51e78906b879478b560bdd5923fa94beed9152bfdf6"
+    },
+    {
+      "id": "settings",
+      "route": "/dashboard/garden/settings",
+      "role": "owner-a",
+      "viewport": "390x844",
+      "file": "qa-evidence/v4-primary-screen-correction/screenshots/settings-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "9d6afe9c7398353b18315c01fa31e9b36874ff04047fcb00d056e407f3bed84e"
+    }
+  ],
+  "status": "PASS"
+}

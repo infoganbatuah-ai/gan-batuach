@@ -1,0 +1,55 @@
+{
+  "observedAt": "2026-10-19T10:04:36.475Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "987c39d46fce227fae95496da86509215cb00dbf",
+  "migration": "20261019040000_digital_observer_push43_oem_sdk.sql",
+  "tables": [
+    {
+      "table": "digital_observer_embedded_sessions",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partner_brand_profiles",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partner_customer_entitlements",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partner_customer_sites",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partner_customers",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partner_provisioning_receipts",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partner_service_accounts",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_partners",
+      "rls": true
+    }
+  ],
+  "migration_present": true,
+  "anonymous_readable": 0,
+  "authenticated_writable": 0,
+  "authenticated_private_receipts": false,
+  "authenticated_embedded_sessions": false,
+  "production_partners": 0,
+  "raw_secret_columns": 0,
+  "hashed_customer_references": 1,
+  "hashed_embedded_tokens": 1,
+  "productionAccess": false,
+  "limitations": [
+    "Isolated Development schema only",
+    "No real partner, customer, provider, domain or Production environment contacted"
+  ]
+}
