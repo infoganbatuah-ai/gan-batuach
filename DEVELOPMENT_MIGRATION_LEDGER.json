@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T17:36:48.362174Z",
+  "observedAt": "2026-11-14T17:50:48Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "ONE_REVIEWED_DEVELOPMENT_MIGRATION_PENDING",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_268_OF_268_APPLIED_PENDING_CLEAN_HEAD_DRIFT",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8164,17 +8164,18 @@
       ],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "PR #454 eight visible exact-head checks SUCCESS. exports/restricted/gb-privacy-child-qa-20261114/REPORT.md SHA256 0474497b3cdfd709ab41406088bf5ec465a0b3e9321d43f1fb6bc44d7e17ab6c; fresh backup restored to disposable QA and rollback-only authority/tenant matrix PASS. Canonical DB not yet mutated.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-14T17:50:48Z",
+      "developmentEvidence": "Canonical ordered applicator at clean remote Development d0f8abe4a6436140ef30f4fa01b7b71d86f2509b applied only this reviewed migration after fresh protected backup and actual disposable restore. Restored and canonical rollback-only guardian/Garden scope matrix CORRECTED_SCOPE_PASS; installed policy and authenticated SELECT/INSERT grants verified; actual baseline 227 + 41 post-baseline = 268/268; Garden count 15 unchanged; disposable DB dropped. exports/restricted/gb-privacy-child-apply-20261114/REPORT.md SHA256 f3c7363ae715ab32b3f16e2b87963ef957ef8b4007360b428aedcc8a7c902c61. Authenticated browser/API journey still pending. No Production access.",
       "developmentHistoryDigest": null,
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
-      "recovery": "Additive helper functions, authenticated SELECT/INSERT under RLS and stricter Management insert policy; existing request rows unchanged. Fresh protected pre-apply backup and actual disposable restore required. Reversal requires reviewed forward migration preserving privacy audit/retention. No Production access."
+      "recovery": "Additive helper functions, authenticated SELECT/INSERT under RLS and stricter Management insert policy; existing request rows unchanged. Fresh protected pre-apply backup and actual disposable restore required. Reversal requires reviewed forward migration preserving privacy audit/retention. No Production access.",
+      "developmentSchemaFingerprint": "dd4e8e39c9f5c2bf87e4635f8ce8456d6510ac990c2c48da0edb640d7e5e4c64"
     }
   ],
   "developmentExpected": 268,
-  "developmentAppliedVerified": 267,
+  "developmentAppliedVerified": 268,
   "blockers": [],
   "localObservations": [
     {

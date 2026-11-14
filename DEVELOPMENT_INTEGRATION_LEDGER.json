@@ -17481,7 +17481,7 @@
       "sourceCommits": [
         "9d41e1f59a85f2d461f4e95e38cf3b1053b62b48"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -17494,10 +17494,11 @@
         "evidence": [
           "PR #454 passed eight visible exact-head checks (six Digital Observer CI gates, canonical quality and management-context); ancestry merge 1cec82e64017635507d8b6665676a165d1263058.",
           "Disposable restored Development QA reproduced absent authenticated SELECT/INSERT grants, missing Child, wrong Garden, multi-Garden misbinding and non-primary guardian denial. Corrected rollback-only primary/non-primary/revoked guardian and role/tenant matrix PASS; disposable DB removed and canonical Auth/Garden counts unchanged. exports/restricted/gb-privacy-child-qa-20261114/REPORT.md SHA256 0474497b3cdfd709ab41406088bf5ec465a0b3e9321d43f1fb6bc44d7e17ab6c.",
-          "Local typecheck, scoped ESLint, lint baseline zero-regression, migration health 268, domain 56/56 and Next webpack build PASS."
+          "Local typecheck, scoped ESLint, lint baseline zero-regression, migration health 268, domain 56/56 and Next webpack build PASS.",
+          "Canonical isolated Development migration applied at d0f8abe4a6436140ef30f4fa01b7b71d86f2509b after fresh protected backup and actual disposable restore; installed RLS/grants and rollback-only synthetic guardian/Garden scope matrix PASS, 268/268 actual. exports/restricted/gb-privacy-child-apply-20261114/REPORT.md SHA256 f3c7363ae715ab32b3f16e2b87963ef957ef8b4007360b428aedcc8a7c902c61."
         ],
         "classification": "MANAGEMENT_PRIVACY_CHILD_REQUEST_SCOPE",
-        "limits": "Local broad security gate blocked by existing CH1 external-volume ownership check; exact-head remote security gate PASS. Canonical Development migration not yet applied; browser-to-API, full Product, provider, Production and owner visual proof not claimed."
+        "limits": "Local broad security gate blocked by existing CH1 external-volume ownership check; exact-head remote security gate PASS. Authenticated browser/API, full Product, provider, Production and owner visual proof not yet claimed."
       },
       "integration": {
         "branch": "integration/development",
@@ -17517,12 +17518,12 @@
       "migrationOrder": [
         "20261114171000"
       ],
-      "localVerification": "DISPOSABLE_RLS_MATRIX_PASS_CANONICAL_DEVELOPMENT_APPLY_PENDING",
+      "localVerification": "CANONICAL_268_OF_268_INSTALLED_ROLLBACK_ONLY_GUARDIAN_SCOPE_MATRIX_PASS_API_BROWSER_PENDING",
       "releaseEligibility": "NOT_READY_CANONICAL_MIGRATION_FULL_PRODUCT_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After approved ledger merge, obtain exclusive Development DB lease, verify 267/267 prior drift, fresh backup and disposable restore, apply only the reviewed migration, then repeat installed role matrix and exact-head readback. No main/Production."
+      "nextAction": "Merge applied-state ledger, verify exact remote head and clean-head 268/268 drift, then authenticated API/browser readback for primary/non-primary/foreign/missing Child and multi-Garden scope. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
