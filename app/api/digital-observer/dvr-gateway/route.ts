@@ -24,6 +24,7 @@ type ObserverRouteDatabase = Database & {
       digital_observer_camera_sources: ObserverRouteTable<{
         id: string;
         observer_site_id: string;
+        source_mode: string | null;
         status: string | null;
         health_status: string | null;
         metadata: Record<string, unknown> | null;
@@ -90,11 +91,12 @@ export async function POST(request: Request) {
       if (!access.session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
       const { data: source, error } = await (access.session.supabase as unknown as ObserverRouteClient)
         .from("digital_observer_camera_sources")
-        .select("id,observer_site_id,status,health_status,metadata")
+        .select("id,observer_site_id,source_mode,status,health_status,metadata")
         .eq("id", payload.camera_source_id)
         .eq("observer_site_id", payload.observer_site_id)
         .single();
       if (error || !source) return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
+      if (source.source_mode === "demo") return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
       if (!digitalObserverCameraIsConnected(source)) return fail("ערוץ ה-DVR אינו מחובר כרגע.", 409);
       const gatewayStreamId = String(source.metadata?.gateway_stream_id || "").trim();
       if (!gatewayStreamId) return fail("למקור המצלמה עדיין אין מזהה Gateway.", 409);

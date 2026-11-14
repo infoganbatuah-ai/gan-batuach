@@ -24,8 +24,9 @@ export async function POST(request: Request) {
     if (enrolled.error || !enrolled.data || (enrolled.data.lifecycle_state && enrolled.data.lifecycle_state !== "ACTIVE")
       || (device.version === 2 && (device.credential_version !== enrolled.data.credential_version
         || device.deployment_profile !== enrolled.data.deployment_profile))) return fail("Gateway device access was revoked.", 401);
-    const source = await admin.from("digital_observer_camera_sources").select("id,observer_site_id,metadata,status,health_status").eq("id", grant.camera_source_id).eq("observer_site_id", device.observer_site_id).maybeSingle();
+    const source = await admin.from("digital_observer_camera_sources").select("id,observer_site_id,source_mode,metadata,status,health_status").eq("id", grant.camera_source_id).eq("observer_site_id", device.observer_site_id).maybeSingle();
     if (source.error || !source.data || String(source.data.metadata?.gateway_id || "") !== device.gateway_id || String(source.data.metadata?.gateway_stream_id || "") !== grant.gateway_stream_id) return fail("Playback source is no longer mapped to this Gateway.", 403);
+    if (!["live", "gateway_test"].includes(String(source.data.source_mode))) return fail("Playback source is no longer mapped to this Gateway.", 403);
 
     const audit = await admin.from("provider_webhook_events").insert({
       webhook_key: "digital_observer_gateway_playback_grant",
