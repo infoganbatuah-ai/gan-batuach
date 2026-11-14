@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-13T08:55:09.680664+00:00",
+  "observedAt": "2026-11-14T08:35:42.263Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "NEW_INTEGRATED_MIGRATION_APPROVED_APPLY_PENDING",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8059,9 +8059,39 @@
       "recovery": "Pre-apply five-table SELECT policy snapshot SHA256 a9a8da63a921052d370d7decb1d17e266cd738ce875fde6159e43d622c04423d in protected external evidence. Reviewed forward-only reversal: drop exactly the five new Admin SELECT policies after verifying snapshot; no full database restore proven. No Production mutation.",
       "developmentStatusReason": "Original migration and installed history/RLS verified in isolated Development. Full Product, local CH1 limitation, all-supplier cost and owner visual acceptance remain pending.",
       "developmentSchemaFingerprint": "915bd37c0bf57c1715a2cbb43650d9c4890f8f7a71704a9a152f099922685cd0"
+    },
+    {
+      "file": "supabase/migrations/20261114090000_management_submitted_inspection_immutability.sql",
+      "blob": "0ea9f85bc0f6728dad05b68c3c8e81bd2d61538b",
+      "sha256": "6ed063ddc4675f7343cc1a05f41f09b74b37f469d8072e2f2625a308a3c436ed",
+      "version": "20261114090000",
+      "sourceTask": "GB-INSPECTIONS-IMMUTABLE-REPORT-ROLE-QA",
+      "sourceCommit": "792aced8740edc9c32f2276795ba04f034049afc",
+      "sourceHead": "792aced8740edc9c32f2276795ba04f034049afc",
+      "remoteBranch": "origin/codex/gb-inspection-report-lock-20261114@792aced8740edc9c32f2276795ba04f034049afc",
+      "integrationCommit": "932678a8f91a15b4ef0ebb5e6fb3715191a80829",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261114090000",
+      "requiredPredecessor": "20261114013000_admin_attendance_compliance_read_scope.sql",
+      "dependencyStatus": "PREDECESSOR_VERIFIED_LOCAL_DEVELOPMENT",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20261114013000"
+      ],
+      "developmentApprovalEvidence": "PR #418 nine exact-head checks SUCCESS; rollback-only isolated Development transaction rejected six completed-report/answer mutations and permitted legitimate first seal, then left score 5.50 and installed guard count 0. GET-only role API/RLS probe: authorized Inspector, same-Garden Manager, Owner, Admin; unassigned/suspended Inspector, foreign Manager, Parent, Staff and guest denied full report. 24 Desktop/Mobile screenshots, zero page errors, overflow or non-GET. Protected receipt SHA256 784ef3aaf206e0153601f24f144a617b8c5b5b2c4061533fb824911821034ca6; test script SHA256 4048ee9a2173a2a423f5ecd72759951828e9b0f0e06ce134f2d2e87959f9c4.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Additive triggers/functions; reviewed forward-only reversal may drop exactly these two triggers and functions after proving no later dependency. Preserve submitted rows, answers, snapshots and audit. No Production access.",
+      "developmentStatusReason": "Integrated original migration approved for canonical isolated Development applicator; installed history/behavior readback pending. Full Product and owner acceptance open."
     }
   ],
-  "developmentExpected": 264,
+  "developmentExpected": 265,
   "developmentAppliedVerified": 264,
   "blockers": [],
   "localObservations": [
