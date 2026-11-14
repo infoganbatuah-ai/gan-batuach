@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T03:30:36.000Z",
+  "updatedAt": "2026-11-14T04:12:21.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -16395,6 +16395,34 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_ACCESSIBILITY_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Correct skip-to-main in a separately scoped unit; continue cumulative accessibility and owner visual review before any Production release."
+    },
+    {
+      "id": "codex/primary-skip-to-main-20261114",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIMARY-SKIP-TO-MAIN-20261114",
+      "title": "First-focus keyboard skip link with declarative hydrated target",
+      "owner": "Scoped accessibility executor; single Development integration owner",
+      "sourceBranch": "codex/primary-skip-to-main-20261114",
+      "sourceCommits": ["69e1abea099c969f0899b7d5e6894117e1f9b088", "f7d60843f9cbfa27ded938e513103165332b6bef"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/primary-skip-to-main-20261114@69e1abea099c969f0899b7d5e6894117e1f9b088", "origin/codex/primary-skip-hydration-20261114@f7d60843f9cbfa27ded938e513103165332b6bef"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "TWO_EXACT_HEAD_NINE_GATE_MERGES_AND_POST_MERGE_HYDRATION_KEYBOARD_QA_PASS_SCOPED",
+        "evidence": [
+          "PR #398 initial skip-link source passed nine exact-head gates and merged at a6c865bc884110a193ee6c632b1d02e473133934; fresh merged-head runtime then revealed an actual hydration mismatch caused by pre-hydration DOM mutation. The initial keyboard-only result was not accepted as completion.",
+          "PR #399 declarative-target correction f7d60843f9cbfa27ded938e513103165332b6bef passed nine exact-head gates and merged ancestry-preserving at 61b392bf1a2bb9d350cf357b046716236abfbba7.",
+          "Final exact merged-head Chrome Desktop/Mobile Parent, Owner, Staff, Candidate, Inspector and Admin: 12/12 route200, first Tab visible skip link, Enter unique main target focus, next Tab in content, RTL/no overflow, zero hydration warnings/page errors/Product non-GET. Protected report /Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/primary-skip-hydration-20261114/REPORT.private.md SHA256 846deb963307de320910990fc41ffac00411596e41942171c53eb96fd458d7be; final receipt SHA256 7acf83c371ba05cf39c14f891c67e2f27c45b8a197690b22972e3d7d0180640b.",
+          "Typecheck, lint baseline with zero regressions and optimized local build passed. Historical UX-19 standalone suite returned 9/10 because its old migration baseline sees later existing migrations; this unit changes zero migration or Digital Observer core paths. No full WCAG or owner approval claim."
+        ]
+      },
+      "integration": {"branch": "integration/development", "commit": "61b392bf1a2bb9d350cf357b046716236abfbba7", "pullRequests": [398, 399], "sourceAncestryVerified": true},
+      "dependencies": {"status": "INTEGRATED_ACCESSIBILITY_LANDMARK_BASELINE", "units": ["codex/primary-accessibility-landmark-headings-20261114"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "POST_MERGE_SIX_ROLE_DESKTOP_MOBILE_KEYBOARD_AND_HYDRATION_PASS_SCOPED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_WCAG_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue bounded accessibility and role-state QA; seek external owner visual acceptance separately. No main or Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
