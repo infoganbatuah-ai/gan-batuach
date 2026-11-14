@@ -17024,6 +17024,55 @@
             "status": "NOT_DEPLOYED"
         },
         "nextAction": "Merge this ledger record after nine exact-head checks; hand off save/resume mutation and activation state to a separately backed-up isolated fixture/lease. No main/Production or RELEASE-GAP."
+    },
+    {
+        "id": "codex/gb-safety-camera-role-qa-20261114",
+        "project": "Gan Batuach Management",
+        "taskId": "GB-SAFETY-CAMERAS-TRUTHFUL-READINESS-ROLE-QA",
+        "title": "Truthful camera readiness and Staff API policy isolation",
+        "owner": "Scoped Safety/Cameras role QA executor; single Development integration owner",
+        "sourceBranch": "codex/gb-safety-camera-list-role-qa-20261114",
+        "sourceCommits": [
+            "f5f1b85638b5020741f329a51c13c2a5d4990695"
+        ],
+        "state": "LOCAL_VERIFIED",
+        "preservation": {
+            "remoteVerified": true,
+            "remoteRefs": [
+                "origin/codex/gb-safety-camera-list-role-qa-20261114@f5f1b85638b5020741f329a51c13c2a5d4990695"
+            ],
+            "status": "INTEGRATED_DEVELOPMENT"
+        },
+        "validation": {
+            "status": "EXACT_HEAD_NINE_GATE_PR_AND_POSTMERGE_CAMERA_ROLE_READ_QA",
+            "evidence": [
+                "PR #430 nine exact-head checks SUCCESS; ancestry-preserving Development merge 4aa18c8eb3b0f4190b0c063432daffdeb795757c. TS parse diagnostics 0 and git diff --check passed.",
+                "Baseline 22 Desktop/Mobile views and 22 camera-list API GETs found Staff A UI two approved cameras but API five, including three staff_view_allowed=false; guest API 500. Protected baseline receipt SHA256 50e684f9872c3704852d5996a7881e465777fe1d211f08b5ecc77175eedd5412.",
+                "Exact merged-head 22 Desktop/Mobile views zero page errors/overflow/Product non-GET; 22 API GETs: Staff A Garden A two approved, foreign Staff Garden 403, guest 401, Parent/Inspector/Admin/Garden isolation preserved; zero inspected source/credential/playback keys. Live still labeled Production verification required and imagery illustrative. Protected receipt SHA256 b23a2e17cd594ecb472da5e7cc1e4b7698f94906d926d05f33ee0782426786b8; report SHA256 0bccfe07ed1bf1f789053a5fed73daac7ed595988e3fc58a5a3740d692e5ba73."
+            ],
+            "classification": "MANAGEMENT_SAFETY_CAMERAS_READ_ONLY_ROLE_POLICY_AND_CAPABILITY_TRUTH",
+            "limits": "Synthetic sample only. Inspector-denied metadata and suspended Inspector API not directly exercised; real hardware, Gateway, live stream, signed playback, retained media, AI provenance, provider proof, external owner visual approval and all-supplier cost/recovery NOT_TESTED."
+        },
+        "integration": {
+            "branch": "integration/development",
+            "commit": "4aa18c8eb3b0f4190b0c063432daffdeb795757c",
+            "pullRequests": [
+                430
+            ],
+            "sourceAncestryVerified": true
+        },
+        "dependencies": {
+            "status": "CANONICAL_MANAGEMENT_CAMERA_BASELINE",
+            "units": []
+        },
+        "migrations": [],
+        "migrationOrder": [],
+        "localVerification": "SCOPED_LOCAL_PRODUCT_ROLE_QA_PASS_FULL_PRODUCT_PENDING",
+        "releaseEligibility": "NOT_READY_FULL_PRODUCT_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
+        "productionDeployment": {
+            "status": "NOT_DEPLOYED"
+        },
+        "nextAction": "Merge this ledger record after nine exact-head checks; hand off remaining inspector-denial/hardware/provider and cumulative owner visual/security/cost/recovery gaps to coordinator. No DO core, main/Production or RELEASE-GAP."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
