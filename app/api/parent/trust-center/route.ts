@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { belongsToParentTrustGarden, parentTrustGardenIds, resolveParentTrustGarden } from "@/lib/domain/parent-trust-garden";
 import { createClient } from "@/lib/supabase/server";
@@ -21,7 +21,9 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["parent"]);
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרש להתחבר כדי להמשיך", 401);
+    if (profile.role !== "parent") return fail("אין הרשאה לפעולה זו", 403);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const family = await getParentFamilyContext(supabase as any, profile);
