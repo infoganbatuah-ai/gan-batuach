@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer, request } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -102,12 +102,11 @@ const prepare = new URL("./prepare-push44-iphone-qa-config.mjs", import.meta.url
 const tokenFile = join(temp, "owner-token");
 writeFileSync(tokenFile, ownerToken, { mode: 0o600 });
 const prepareEnv = { ...process.env, PUSH44_QA_HOST: qaHost, PUSH44_QA_TOKEN_FILE: tokenFile };
-execFileSync(process.execPath, [prepare.pathname, source.pathname, target,
-  `https://${qaHost}/digital-observer`], { stdio: "pipe", env: prepareEnv });
-const config = JSON.parse(readFileSync(target, "utf8"));
-assert.equal(config.server.url, `https://${qaHost}/__push44/bootstrap?t=${ownerToken}`);
-assert.equal(config.server.cleartext, false);
-assert.deepEqual(config.server.allowNavigation, [qaHost]);
+assert.throws(() => execFileSync(process.execPath, [prepare.pathname, source.pathname, target,
+  `https://${qaHost}/digital-observer`], { stdio: "pipe", env: prepareEnv }), /PUSH44_QA_REMOTE_BUILD_BLOCKED/);
+assert.equal(existsSync(target), false, "no remote QA bundle config may contain a bootstrap token");
+const config = JSON.parse(readFileSync(source, "utf8"));
+assert.equal(config.server.url, undefined);
 assert(!config.packageClassList.includes("PushNotificationsPlugin"));
 for (const invalid of [`http://${qaHost}/digital-observer`,
   "https://ganbatuach.com/digital-observer", `https://${qaHost}/`,
@@ -138,4 +137,4 @@ assert.throws(() => execFileSync(process.execPath, ["--experimental-strip-types"
   env: { ...process.env, NODE_ENV: "development", PUSH44_QA_DEV_ORIGIN_HOST: "*.trycloudflare.com" },
   stdio: "pipe"
 }));
-console.log("PUSH 44 owner-only QA ingress contracts PASS: limited routes, bounded config, no media/API mutation/Production path, QA Push disabled");
+console.log("PUSH 44 owner-only QA ingress contracts PASS: limited synthetic proxy, remote iOS bundle blocked before token embedding, no media/API mutation/Production path, QA Push disabled");
