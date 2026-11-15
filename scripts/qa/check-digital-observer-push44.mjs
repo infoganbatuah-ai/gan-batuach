@@ -31,6 +31,7 @@ const loginPage = readFileSync(new URL("../../app/digital-observer/login/page.ts
 assert.match(loginPage, /if \(!params\?\.error && await getDigitalObserverApiUser\(\)\) redirect\("\/digital-observer\/dashboard"\)/);
 assert.ok(loginPage.indexOf("await getDigitalObserverApiUser()") < loginPage.indexOf("<ObserverLoginForm"), "resume requires canonical server session and Observer authorization before rendering");
 const android = readFileSync(new URL("../../android/app/src/main/AndroidManifest.xml", import.meta.url), "utf8");
+const androidGradle = readFileSync(new URL("../../android/app/build.gradle", import.meta.url), "utf8");
 const ios = readFileSync(new URL("../../ios/App/App/Info.plist", import.meta.url), "utf8");
 const appDelegate = readFileSync(new URL("../../ios/App/App/AppDelegate.swift", import.meta.url), "utf8");
 const iosPrivacy = readFileSync(new URL("../../ios/App/App/PrivacyInfo.xcprivacy", import.meta.url), "utf8");
@@ -100,7 +101,8 @@ assert(login.includes("Capacitor.isNativePlatform()"));
 assert(login.includes("HttpOnly cookies"));
 
 assert(android.includes("android.permission.POST_NOTIFICATIONS"));
-assert(android.includes('android:scheme="digitalobserver"'));
+assert(android.includes('android:scheme="${mobileCallbackScheme}"'));
+assert(androidGradle.includes("mobileCallbackScheme: mobileProduct == 'observer' ? 'observerqaandroid' : 'digitalobserver'"));
 assert(android.includes('android:allowBackup="false"'));
 assert(ios.includes("CFBundleURLSchemes") && ios.includes("digitalobserver"));
 assert(appDelegate.includes("capacitorDidRegisterForRemoteNotifications"));
