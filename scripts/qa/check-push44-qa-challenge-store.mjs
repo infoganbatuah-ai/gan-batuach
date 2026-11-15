@@ -23,16 +23,16 @@ function fixture(changes = {}) {
   const statements = [];
   const db = { query: async (sql, values) => {
     statements.push({ sql, values });
-    if (sql.startsWith("SELECT")) return { rows: row ? [{ ...row }] : [] };
-    assert.match(sql, /^WITH live_session AS MATERIALIZED/);
-    // Model the required single database compare-and-update statement.
+    if (sql.startsWith("SELECT c.id")) return { rows: row ? [{ ...row }] : [] };
+    assert.match(sql, /^SELECT observer_qa_private\.consume_device_handoff_challenge/);
+    // Model the required single database compare-and-update function.
     if (!liveSession || !row || row.consumedAt !== null || row.revokedAt !== null || row.expiresAt <= 1_000
       || values[1] !== row.accountId || values[2] !== row.sessionId
       || values[3] !== row.installationId || values[4] !== row.audience
-      || values[5] !== row.nonce || values[6] !== row.publicKeySpkiBase64) return { rows: [] };
+      || values[5] !== row.nonce || values[6] !== row.publicKeySpkiBase64) return { rows: [{ consumed: false }] };
     row = { ...row, consumedAt: 1_000 };
     writes++;
-    return { rows: [{ id: challengeId }] };
+    return { rows: [{ consumed: true }] };
   } };
   const input = { challengeId, accountId: context.accountId, sessionId: context.sessionId,
     installationId: context.installationId, audience: context.audience,
@@ -48,8 +48,7 @@ test("valid challenge is consumed once, including concurrent replay", async () =
   const results = await Promise.all(Array.from({ length: 8 }, () => consumeStoredQaChallenge(f.db, f.input, f.verifyLiveSession)));
   assert.equal(results.filter(Boolean).length, 1);
   assert.equal(f.writes, 1);
-  assert.match(f.statements.find(({ sql }) => sql.startsWith("WITH live_session"))?.sql ?? "", /consumed_at IS NULL/);
-  assert.match(f.statements.find(({ sql }) => sql.startsWith("WITH live_session"))?.sql ?? "", /FOR SHARE/);
+  assert.match(f.statements.find(({ sql }) => sql.includes("consume_device_handoff_challenge"))?.sql ?? "", /\$1::uuid/);
 });
 
 for (const [name, inputChange, rowChange] of [
@@ -91,11 +90,14 @@ test("changed authenticated account or session is denied", async () => {
 
 test("review-only SQL proposes private scoped tables and bounded expiry", () => {
   const sql = readFileSync(new URL("../../review-only/push44-qa-device-proof/proposed-schema.sql", import.meta.url), "utf8");
-  assert.match(sql, /CREATE SCHEMA IF NOT EXISTS observer_qa_private/);
+  assert.match(sql, /CREATE SCHEMA observer_qa_private/);
   assert.match(sql, /REVOKE ALL ON SCHEMA observer_qa_private FROM PUBLIC, anon, authenticated/);
   assert.match(sql, /auth_session_id uuid NOT NULL/);
   assert.match(sql, /UNIQUE \(id, account_profile_id\)/);
   assert.match(sql, /approved_one_qa_installation_per_account/);
   assert.match(sql, /expires_at <= issued_at \+ interval '60 seconds'/);
+  assert.match(sql, /SECURITY DEFINER/);
+  assert.match(sql, /FOR SHARE/);
+  assert.match(sql, /REVOKE ALL ON FUNCTION observer_qa_private\.consume_device_handoff_challenge/);
   assert.doesNotMatch(sql, /GRANT .* TO (?:anon|authenticated|PUBLIC)/);
 });

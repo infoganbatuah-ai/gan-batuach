@@ -40,14 +40,13 @@ function fixture({ enabled = false, authSequence = [{ accountId, sessionId }], s
   const db = { query: async (sql, values) => {
     dbCalls++;
     if (storageError) throw new Error("storage unavailable");
-    if (sql.startsWith("SELECT")) return { rows: [{ ...row }] };
-    assert.match(sql, /auth\.sessions/);
-    assert.match(sql, /FOR SHARE/);
+    if (sql.startsWith("SELECT c.id")) return { rows: [{ ...row }] };
+    assert.match(sql, /observer_qa_private\.consume_device_handoff_challenge/);
     if (row.consumedAt !== null || row.revokedAt !== null || row.expiresAt <= 1_000
       || values[1] !== row.accountId || values[2] !== row.sessionId
-      || values[3] !== row.installationId || values[6] !== row.publicKeySpkiBase64) return { rows: [] };
+      || values[3] !== row.installationId || values[6] !== row.publicKeySpkiBase64) return { rows: [{ consumed: false }] };
     row = { ...row, consumedAt: 1_000 };
-    return { rows: [{ id: challengeId }] };
+    return { rows: [{ consumed: true }] };
   } };
   const compiledUnit = { exports: {} };
   vm.runInNewContext(compile(enabled), { module: compiledUnit, exports: compiledUnit.exports,
