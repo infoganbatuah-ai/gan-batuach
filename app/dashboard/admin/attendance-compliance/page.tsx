@@ -138,6 +138,7 @@ export default async function AdminAttendanceCompliancePage() {
         <PremiumDashboardHero
           eyebrow="Legal Attendance"
           title="מרכז ציות לנוכחות, זהות הורים ואיסוף ילדים"
+          headingLevel={2}
           subtitle="מערכת נוכחות רשמית ללא זיהוי פנים: מבוגרים מורשים, GPS, חתימה דיגיטלית, הרשאות איסוף, חריגים ולוג מלא."
           badge={overallAvailable ? `${overallScore}/100` : "ציון נוכחות לא זמין"}
           badgeTone={overallAvailable ? scoreTone(overallScore) : "default"}

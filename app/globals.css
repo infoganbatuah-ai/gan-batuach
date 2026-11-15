@@ -12648,7 +12648,7 @@ body:has(.dashboard-layout),
   box-shadow: 0 28px 72px rgb(16 75 82 / 12%);
 }
 
-.premium-dashboard-hero h1,
+.premium-dashboard-hero :is(h1, h2),
 .premium-page-header h1 {
   max-width: 880px;
   margin: 0;
@@ -13097,7 +13097,7 @@ body:has(.dashboard-layout),
     padding: 22px;
   }
 
-  .premium-dashboard-hero h1,
+  .premium-dashboard-hero :is(h1, h2),
   .premium-page-header h1 {
     font-size: 31px;
   }
@@ -13825,7 +13825,7 @@ body {
 }
 
 .dashboard-hero-card h1,
-.premium-dashboard-hero h1 {
+.premium-dashboard-hero :is(h1, h2) {
   max-width: 820px;
   color: var(--ux-text) !important;
   font-size: clamp(26px, 3vw, 40px) !important;
@@ -14051,7 +14051,7 @@ textarea {
   }
 
   .dashboard-hero-card h1,
-  .premium-dashboard-hero h1 {
+  .premium-dashboard-hero :is(h1, h2) {
     font-size: 28px !important;
   }
 
@@ -19297,7 +19297,7 @@ body {
   box-shadow: var(--ds-shadow-card) !important;
 }
 
-.premium-dashboard-hero h1,
+.premium-dashboard-hero :is(h1, h2),
 .dashboard-hero-card h1,
 .premium-page-header h1 {
   color: var(--ds-text) !important;
@@ -19509,7 +19509,7 @@ th {
     padding-bottom: 104px !important;
   }
 
-  .premium-dashboard-hero h1,
+  .premium-dashboard-hero :is(h1, h2),
   .dashboard-hero-card h1 {
     font-size: 26px !important;
   }
