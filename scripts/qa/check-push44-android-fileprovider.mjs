@@ -9,7 +9,8 @@ test("Android does not publish an unused external-storage FileProvider", () => {
   const manifest = source("android/app/src/main/AndroidManifest.xml");
   const packageJson = source("package.json");
   const nativeActivity = source("android/app/src/main/java/com/ganbatuach/app/MainActivity.java");
-  const cordovaManifest = source("android/capacitor-cordova-android-plugins/src/main/AndroidManifest.xml");
+  const cordovaPath = "android/capacitor-cordova-android-plugins/src/main/AndroidManifest.xml";
+  const cordovaManifest = existsSync(new URL(cordovaPath, root)) ? source(cordovaPath) : "";
 
   assert.doesNotMatch(manifest, /androidx\.core\.content\.FileProvider|FILE_PROVIDER_PATHS|\.fileprovider/);
   assert.equal(existsSync(new URL("android/app/src/main/res/xml/file_paths.xml", root)), false);
