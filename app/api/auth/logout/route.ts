@@ -27,13 +27,6 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true });
 }
 
-export async function GET(request: Request) {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  const url = new URL(request.url);
-  const requested = url.searchParams.get("redirectTo");
-  const destination = requested?.startsWith("/digital-observer") && !requested.startsWith("//")
-    ? requested
-    : "/login";
-  return NextResponse.redirect(new URL(destination, request.url));
+export function GET() {
+  return NextResponse.json({ error: "POST_REQUIRED" }, { status: 405, headers: { Allow: "POST" } });
 }

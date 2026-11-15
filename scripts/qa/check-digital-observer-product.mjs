@@ -266,11 +266,11 @@ record(
   "Users can compare monthly and annual database prices while plan changes remain no-charge mock requests"
 );
 record(
-  "Logout redirect remains product-scoped",
-  logoutRouteSource.includes('requested?.startsWith("/digital-observer")')
-    && logoutRouteSource.includes('!requested.startsWith("//")')
-    && logoutRouteSource.includes(': "/login"'),
-  "Logout may return to an internal Digital Observer path only and rejects protocol-relative redirects"
+  "Logout requires POST and cannot bypass device cleanup via GET",
+  logoutRouteSource.includes('export function GET()')
+    && logoutRouteSource.includes('status: 405')
+    && logoutRouteSource.includes('Allow: "POST"'),
+  "GET is read-only and returns 405; the button-owned POST path handles session and current-device token cleanup"
 );
 record(
   "Duplicate page routes are absent",
