@@ -17841,6 +17841,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "External owner evaluates primary Parent screen against approved reference; separately exercise failed-photo fallback with a controlled source-bearing QA fixture if needed. Continue remaining primary-screen corrections through coordinator; no main or Production release."
+    },
+    {
+      "id": "codex/settings-garden-editor-action-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-SETTINGS-GARDEN-EDITOR-ACTION-20261115",
+      "title": "Open Garden details editor from primary Settings action",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/settings-garden-editor-action-20261115",
+      "sourceCommits": [
+        "b60d967e7e55958eadb711c65c426119d33a654e"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/settings-garden-editor-action-20261115@b60d967e7e55958eadb711c65c426119d33a654e"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #494 source b60d967e7e55958eadb711c65c426119d33a654e passed all six Digital Observer CI gates plus management-context, canonical quality and Snyk, then ancestry-merged to Development 78bb4fea40e7a35661db27c41534b694cb3e7ba6.",
+          "Actual canonical Development Product baseline at 0e79417f: authenticated Owner Desktop 1440x1024 and Mobile 390x844 Garden details action changed URL hash but left details#garden-editor closed.",
+          "Actual Product after merge at exact 78bb4fea: same viewports button opened existing Garden editor, focused SUMMARY; after close, keyboard Enter reopened and focused SUMMARY. Zero Product nonGET, page errors and horizontal overflow. Settled before/after PNGs visually inspected. Restricted after Desktop SHA256 0acbb0212ec0e1646e344e06f0f7dae645abd078a287972a6a81e8540f70652e; after Mobile SHA256 c3a0f6d87f3589685a88db6bf2ac182c83c28f1105741064aab25f7acfa488c0."
+        ],
+        "classification": "MANAGEMENT_SETTINGS_PRIMARY_ACTION_ONLY",
+        "limits": "Scoped action correction is not 1:1 Settings reference acceptance, all-role functional/security regression, or cumulative release qualification. Isolated local typecheck lacked unrelated Capacitor modules; exact-head CI static quality passed. No save/PATCH, canonical DB write, migration, DO core, paid dependency, main or Production change. Runtime stopped and port 3000 released. New fixed monthly commitment ₪0."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "78bb4fea40e7a35661db27c41534b694cb3e7ba6",
+        "pullRequests": [
+          494
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_SETTINGS_DESKTOP_MOBILE_ACTION_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue primary-screen reference correction through canonical coordinator; external owner assesses full Settings composition. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
