@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T22:39:52.718Z",
+  "updatedAt": "2026-11-15T22:58:39.357Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18574,6 +18574,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue the next ready substantive Gan Management workflow on a separate scoped branch; keep Digital Observer app boundary and shared integration contract distinct. Owner release gates remain separate."
+    },
+    {
+      "id": "codex/gan-camera-monitoring-truth-20261116",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-CAMERA-MONITORING-CONTRACT-TRUTH-20261116",
+      "title": "Keep Gan camera monitoring claims behind a verified Digital Observer integration attestation",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/gan-camera-monitoring-truth-20261116",
+      "sourceCommits": [
+        "8db43fd7bf16cf4b1d42820d8a1addd0ff71cdc1"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-camera-monitoring-truth-20261116@8db43fd7bf16cf4b1d42820d8a1addd0ff71cdc1"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_MERGED_GAN_WEB_CAMERA_TRUTH_PASS_SCOPED",
+        "evidence": [
+          "PR #540 source 8db43fd7bf16cf4b1d42820d8a1addd0ff71cdc1 passed six Digital Observer CI gates, management-context, canonical quality and Snyk on exact head; ancestry-merged to Development 49f117ad218668bceb331b7dc67a0bfe3af6a85d.",
+          "Gan Management camera mapping now distinguishes physical online/degraded/offline state from verified contracted Digital Observer monitoring. The integration policy is default-off and has no verified active-monitoring attestation; online plus observer_enabled maps to a pending-verification label, never active monitoring. Live remains separately unavailable. No role list, permission, API, data, schema or Digital Observer core source change.",
+          "Focused UX16 suite 11/11 PASS with GB_UX16_BASE_REF=HEAD to scope its historic Digital Observer diff guard to this unit; unoverridden 2026 UX16 base sweeps unrelated later Observer commits and is not a current-unit failure. Typecheck, scoped ESLint, diff check passed; exact source-to-Development DO core path diff 0.",
+          "Read-only pinned Development database aggregate before Product QA: five camera rows, zero active observer_enabled, zero online plus observer_enabled. The positive-flagged edge is verified by source-level tests across six Management roles only; no local fixture, hardware, Live, provider or active integration attestation proof.",
+          "Actual Gan Batuach Management Web Product on clean merged Development 49f117ad218668bceb331b7dc67a0bfe3af6a85d: synthetic Manager 5, Parent 1, Staff 2, Inspector 5 camera cards, each route 200; zero active contracted-monitoring claims, Live unavailable, no horizontal overflow, zero non-GET browser requests and zero page errors. Protected GET-only script SHA256 2af08cf8d5e6ff029344c9adca756e1f7f15d2c1a745e297547121760b707761 outside Git; no private media/screenshots. Server stopped and port 3000 released.",
+          "After Product QA, Development advanced to 29177070d9287ab94077a4df77a7c9a768b0cd1b via PR #541 Digital Observer evidence/docs only; source 49f117ad remains ancestor and Gan camera app paths did not change."
+        ],
+        "classification": "GAN_MANAGEMENT_WEB_CAMERA_MONITORING_CAPABILITY_TRUTH",
+        "limits": "Gan Management Web only; no standalone Observer app or physical camera proof. Future positive monitoring requires a separate audited Observer integration attestation and role/tenant contract. No migration, new paid dependency, Digital Observer core edit, main or Production action. Full owner/release/security/cost/recovery gates remain open."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "49f117ad218668bceb331b7dc67a0bfe3af6a85d",
+        "pullRequests": [
+          540
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "FUTURE_VERIFIED_OBSERVER_INTEGRATION_ATTESTATION_OPEN",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_GAN_WEB_FOUR_ROLE_CAMERA_TRUTH_PASS_SCOPED",
+      "releaseEligibility": "NOT_READY_OBSERVER_ATTESTATION_AND_CUMULATIVE_OWNER_RELEASE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Pause after this scoped unit per owner direction. On resume, reconcile current Development and obtain the separate verified Management↔Digital Observer attestation contract before any positive monitoring or Live claim; do not duplicate the Observer engine."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
