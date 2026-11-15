@@ -31,8 +31,15 @@ function route({ userId = "profile-a", revokeOk = true, signOutError = null } = 
   const post = (body) => exports.POST(new Request("http://localhost/api/auth/logout", {
     method: "POST", ...(body === undefined ? {} : { body: JSON.stringify(body) })
   }));
-  return { post, calls };
+  const get = () => exports.GET(new Request("http://localhost/api/auth/logout?redirectTo=/digital-observer/dashboard"));
+  return { post, get, calls };
 }
+
+test("GET cannot sign out or bypass current-device push cleanup", async () => {
+  const h = route();
+  assert.equal((await h.get()).status, 405);
+  assert.deepEqual(h.calls, []);
+});
 
 test("current-device logout revokes only authenticated user's exact device before sign-out", async () => {
   const h = route();
