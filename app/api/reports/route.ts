@@ -182,10 +182,12 @@ async function reportRows(report: ReportType, scope: Scope, range: ReturnType<ty
     queryError(result.error); return { rows: asRows(result.data), total: result.count ?? 0 };
   }
   if (report === "complaints") {
-    const result = await supabase.from("complaints" as never)
+    let query = supabase.from("complaints" as never)
       .select("id,garden_id,category,severity,status,acknowledgement_due_at,resolution_due_at,acknowledged_at,resolved_at,created_at,closed_at" as never, { count: "exact" })
       .in("garden_id", gardenIds).gte("created_at", `${range.from}T00:00:00.000Z`).lte("created_at", dateEndExclusive)
       .order("created_at", { ascending: false }).range(page.from, page.to);
+    if (scope.role === "inspector") query = query.eq("assigned_inspector_id", scope.profileId);
+    const result = await query;
     queryError(result.error);
     const now = Date.now();
     const rows = asRows(result.data).map(row => ({
