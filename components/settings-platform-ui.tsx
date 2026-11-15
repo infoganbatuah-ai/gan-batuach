@@ -118,6 +118,6 @@ export function AccountVerificationSummary({ email, emailVerified, phone, phoneV
   </div>;
 }
 
-export function SettingsLinkList({ items }: { items: Array<{ title: string; detail: string; href: string; status?: string; icon: LucideIcon }> }) {
-  return <div className="ux18-settings-link-list">{items.map((item) => { const Icon = item.icon; return <Link href={item.href} key={`${item.href}-${item.title}`}><Icon aria-hidden="true" /><span><b>{item.title}</b><small>{item.detail}</small></span>{item.status ? <em>{item.status}</em> : null}<ChevronLeft aria-hidden="true" /></Link>; })}</div>;
+export function SettingsLinkList({ items, leadingAction }: { items: Array<{ title: string; detail: string; href: string; status?: string; icon: LucideIcon }>; leadingAction?: React.ReactNode }) {
+  return <div className="ux18-settings-link-list">{leadingAction}{items.map((item) => { const Icon = item.icon; return <Link href={item.href} key={`${item.href}-${item.title}`}><Icon aria-hidden="true" /><span><b>{item.title}</b><small>{item.detail}</small></span>{item.status ? <em>{item.status}</em> : null}<ChevronLeft aria-hidden="true" /></Link>; })}</div>;
 }
