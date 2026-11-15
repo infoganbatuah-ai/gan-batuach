@@ -32,13 +32,15 @@ test("SSO transaction receipt cannot be repurposed as an iPhone QA handoff", () 
   assert.doesNotMatch(transaction, /profile_id|session_id|installation_id|device_id/);
 });
 
-test("native callback and server exchange for this QA handoff are absent; remote build remains blocked", () => {
+test("native return remains dormant and server exchange absent; remote build remains blocked", () => {
   const config = source("scripts/qa/prepare-push44-iphone-qa-config.mjs");
   const appDelegate = source("ios/App/App/AppDelegate.swift");
   const nativeSources = [appDelegate, source("ios/App/App/Info.plist"), source("ios/qa-personal-team/index.html")].join("\n");
   const observerRoutes = readdirSync(new URL("../../app/api/digital-observer/", import.meta.url));
   assert.match(config, /PUSH44_QA_REMOTE_BUILD_BLOCKED/);
   assert.match(appDelegate, /ApplicationDelegateProxy\.shared\.application\(application, continue: userActivity/);
-  assert.doesNotMatch(nativeSources, /ASWebAuthenticationSession|qa-iphone-device-proof|push44_handoff/);
+  assert.match(nativeSources, /qa-iphone-device-proof\.ganbatuach\.com/);
+  assert.match(appDelegate, /static let enabled = false/);
+  assert.doesNotMatch(nativeSources, /ASWebAuthenticationSession|push44_handoff/);
   assert.equal(observerRoutes.some((name) => /handoff|redeem|device-proof/i.test(name)), false);
 });
