@@ -18327,6 +18327,51 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue next scoped Product task through canonical coordinator; external owner visual acceptance and cumulative release gates remain open. No main or Production release."
+    },
+    {
+      "id": "local/push44-qa-device-install-launch-block-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-QA-DEVICE-INSTALL-20261115",
+      "title": "Signed QA app installed on paired iPhone; launch refused by iOS security",
+      "owner": "Camera executor physical QA; Digital Observer root evidence review",
+      "sourceBranch": null,
+      "sourceCommits": [],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_RESTRICTED_EVIDENCE"
+      },
+      "validation": {
+        "status": "DEVICE_INSTALL_PASS_LAUNCH_FAIL",
+        "evidence": [
+          "Owner-authorized CoreDevice install exit 0; device inventory confirmed com.ganbatuach.app.qa 1.0 on paired iPhone 13 Pro.",
+          "One launch before and one after owner-approved iOS developer trust returned CoreDeviceError 10002 / FBS security refusal.",
+          "Developer Mode enabled; read-only signed certificate/team, application identifier, entitlement and embedded-profile values matched. Generic refusal has no proved root cause."
+        ],
+        "classification": "PUSH44_PHYSICAL_INSTALL_ONLY",
+        "limits": "No successful launch, account identity, return-to-app, callback, physical Secure Enclave, APNs, media, main or Production proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "20199fb428bdf39fecbdc44d914d4fe7b2571daf",
+        "pullRequests": [],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": [
+          "local/push44-signed-qa-build-20261115"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "DEVICE_INSTALL_PASS_LAUNCH_SECURITY_FAIL",
+      "releaseEligibility": "NOT_READY_DEVICE_LAUNCH_CALLBACK_AUTH_MEDIA_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain exact iOS on-screen result from one owner tap on the QA icon; diagnose security refusal before more launch attempts or account QA."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
