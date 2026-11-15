@@ -1,5 +1,7 @@
 # DIGITAL OBSERVER — PUSH 44 DEVICE QUALIFICATION MATRIX
 
+2026-11-15 iPhone QA handoff continuation — **SOURCE / SYNTHETIC PASS ONLY**: PRs #496, #497, #499, #500, #501, #503, #504, #505, #507, #509, #510 and #512 merged to Development after eight exact-head CI checks each. Dormant device signature, review-only one-use receipt and session gate, Swift/server byte fixture, default-off native return and ASWebAuthenticationSession adapters, default-off HTTP boundary, verified session-ID helper and a hard-off server composition are present. The composition was tested against a fake DB, not PostgreSQL. The proposed SQL was not executed, the native key was not enrolled, and no physical iPhone callback or remote QA login was tested. PersonalTeamQA lacks an Associated Domains entitlement and strips URL schemes; full Xcode compilation of the new QA code is unproven because its configured shared SwiftPM cache was not writable. **REAL DEVICE HANDOFF / REMOTE BUILD: BLOCKED / NOT RUN**. Existing physical login/session observations below retain their original scope.
+
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
