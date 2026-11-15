@@ -17764,10 +17764,10 @@
         "evidence": [
           "PR #485 passed the six exact-head Digital Observer CI gates plus management-context, canonical quality and Snyk; ancestry-preserving Development merge 6b0480a2bb8375d06362c853c0d62e2fb074b008.",
           "Actual canonical Development Product at exact 6b0480a2: authenticated Admin desktop 1440x1024 and mobile 390x844 each had one visible main, one visible h1 and one visible hero h2, zero page errors. Manager, Staff, Parent, Inspector and guest did not expose the Admin heading/action in both viewports; no Product non-GET. Restricted receipt exports/restricted/gb-admin-attendance-heading-postmerge-20261115/receipt.json SHA256 6036fbcc9235fe394edba5d7f34ae32c4466baa679922bb08c347373d1e9c479.",
-          "Fresh actual Product Admin screenshots in same restricted directory: desktop SHA256 da37cbf1435d12060e24f225dc3c47d82eac44f1374aa228c374ff6245f17d59; mobile SHA256 860d5f02b9b7ab93fcdbba1a8e2cee311c3d379a7347afef65f0be9501079755. Product server stopped; port 3000 released."
+          "The two attempted PNG captures in the restricted directory show the loading frame, so they are INVALID as visual evidence. DOM checks were recorded after loading. Product server stopped; port 3000 released."
         ],
         "classification": "MANAGEMENT_ADMIN_ACCESSIBILITY_HEADING_ONLY",
-        "limits": "A stricter redirect-settling rerun reached three desktop cases then stalled and was cancelled; its partial receipt is not PASS. Initial role checks prove no Admin DOM/action but some redirect destinations were not yet settled. No full visual owner acceptance, all-role security certification, Production or main claim. New fixed monthly commitment ₪0."
+        "limits": "A stricter redirect-settling rerun reached three desktop cases then stalled and was cancelled; its partial receipt is not PASS. Initial role checks prove no Admin DOM/action but some redirect destinations were not yet settled. Both attempted screenshots are loading frames and invalid as Product visual evidence. No full visual owner acceptance, all-role security certification, Production or main claim. New fixed monthly commitment ₪0."
       },
       "integration": {
         "branch": "integration/development",
