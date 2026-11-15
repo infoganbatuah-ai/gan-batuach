@@ -310,6 +310,10 @@
 @media (min-width: 1025px) {
   .parent-dashboard-home > .parent-child-card:not(.no-child) { grid-row: 5 !important; }
   .parent-dashboard-home > .parent-primary-reference-grid { grid-row: 6 !important; }
+  .parent-dashboard-home > .parent-primary-reference-actions { grid-row: 7 !important; }
+  .parent-dashboard-home > .parent-two-columns { grid-row: 8 !important; }
+  .parent-dashboard-home > .parent-management-section { grid-row: 9 !important; }
+  .parent-dashboard-home > .parent-management-section + .parent-section-card { grid-row: 10 !important; }
 }
 
 @media (max-width: 720px) {
