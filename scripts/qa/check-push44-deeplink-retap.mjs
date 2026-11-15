@@ -38,6 +38,7 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
     "react/jsx-runtime": { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: "Fragment" },
     "@/lib/domain/digital-observer/mobile-runtime": { mobileRuntimeRequiresSession: () => false, sanitizeOfflineQueue: () => [], mobileNotificationPreview: () => ({}) },
     "@/lib/domain/digital-observer/mobile-playback-lifecycle": { openMobilePlaybackPublisher: () => ({ isCurrent: () => true, networkOffline: () => true, appInactive: () => true, close: () => {} }) },
+    "@/lib/domain/digital-observer/native-push-request": { parseNativePushRequest: () => null, nativePushResult: () => ({}) },
     "@/lib/domain/digital-observer/pending-mobile-link": {
       firstLaunchOfMobileLink: () => ++launchChecks === 1,
       rememberPendingMobileLink: () => false, takePendingMobileLink: () => null
