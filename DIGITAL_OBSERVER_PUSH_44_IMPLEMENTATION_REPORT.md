@@ -1,5 +1,13 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## iPhone QA one-use handoff development — 2026-11-15
+
+Development PRs #496, #497, #499, #500, #501, #503 and #504 each passed eight exact-head CI checks and merged. They add a dormant P-256 server verifier, a review-only private receipt schema and conditional one-use adapter, QA-only Secure Enclave signing code, a Swift/server byte-format fixture, live Auth-session fencing in the proposed consume statement, a default-off return-state validator and a default-off native entrypoint. The schema was **not executed** or promoted to a migration; no endpoint imports the adapter, and the iOS code does not enroll a key or exchange a session. Focused local tests for these units passed, but synthetic tests do not prove PostgreSQL transaction behavior or a physical Secure Enclave key.
+
+The native QA return entrypoint is default-off and intentionally lacks a trusted account/installation source; the current PersonalTeamQA signing configuration has no Associated Domains entitlement and strips URL schemes. A read-only Apple contract review therefore does not qualify a Universal Link callback. Draft PR #505 separately tests an iOS-15-compatible, default-off ASWebAuthenticationSession custom-scheme option; the newer HTTPS callback API requires iOS 17.4 and associated web credentials. Neither option has been delivered on a device. An unsigned QA Xcode build stopped before compilation because the configured shared SwiftPM cache was not writable; Swift syntax and message-format checks are narrower evidence. The remote iPhone build block stays in place.
+
+To complete this handoff, verify the private schema and Auth-session/revocation locks in an authorized isolated PostgreSQL environment, wire a trusted authenticated server route and approved installation enrollment, qualify a supported callback and signed build on the physical iPhone, then test expiry, replay, account switching and revocation end to end. None of those gates is claimed complete. PUSH 44 remains **PARTIAL / NOT DONE**; PUSH 46 does not start on this evidence.
+
 ## Account isolation and remote iPhone QA gate — 2026-11-15
 
 Development PRs #480, #481 and #484 passed all eight exact-head CI checks and merged as `9b2dd820`, `456d9e35` and `c8a74b4b`. They respectively prevent an owner QA bearer token from being embedded in a signed iPhone app, preserve a sanitized cold-start deep link across login for server-side authorization, and discard saved native Push Site/registration intent when the authenticated account changes. The account-state fix also passed 28 focused local tests. These are source and deterministic-check results, not physical-device qualification.
