@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="#071d35" />
+    <item>
+        <bitmap android:src="@drawable/observer_qa_launch_mark" android:gravity="center" />
+    </item>
+</layer-list>

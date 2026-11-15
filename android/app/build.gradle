@@ -15,7 +15,10 @@ android {
         applicationId = mobileProduct == 'observer' ? 'com.digitalobserver.app' : 'com.ganbatuach.app'
         manifestPlaceholders = [
             mobileAppLabel: mobileProduct == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח',
-            mobileCallbackScheme: mobileProduct == 'observer' ? 'observerqaandroid' : 'digitalobserver'
+            mobileCallbackScheme: mobileProduct == 'observer' ? 'observerqaandroid' : 'digitalobserver',
+            mobileLauncherIcon: mobileProduct == 'observer' ? '@drawable/observer_qa_icon' : '@mipmap/ic_launcher',
+            mobileRoundIcon: mobileProduct == 'observer' ? '@drawable/observer_qa_icon' : '@mipmap/ic_launcher_round',
+            mobileLaunchTheme: mobileProduct == 'observer' ? '@style/ObserverQALaunch' : '@style/AppTheme.NoActionBarLaunch'
         ]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion

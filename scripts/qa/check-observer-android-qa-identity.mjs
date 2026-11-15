@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
@@ -59,4 +60,24 @@ test("Android packaging binds the selected product and denies Gan Push config fo
   assert.match(gradle, /mobileCallbackScheme: mobileProduct == 'observer' \? 'observerqaandroid' : 'digitalobserver'/);
   assert.match(manifest, /android:label="\$\{mobileAppLabel\}"/);
   assert.match(manifest, /android:scheme="\$\{mobileCallbackScheme\}"/);
+  assert.match(manifest, /android:icon="\$\{mobileLauncherIcon\}"/);
+  assert.match(manifest, /android:roundIcon="\$\{mobileRoundIcon\}"/);
+  assert.match(manifest, /android:theme="\$\{mobileLaunchTheme\}"/);
+  assert.match(gradle, /mobileLauncherIcon: mobileProduct == 'observer' \? '@drawable\/observer_qa_icon' : '@mipmap\/ic_launcher'/);
+  assert.match(gradle, /mobileLaunchTheme: mobileProduct == 'observer' \? '@style\/ObserverQALaunch' : '@style\/AppTheme\.NoActionBarLaunch'/);
+});
+
+test("Observer QA reuses distinct approved visual assets without changing Gan defaults", () => {
+  const styles = readFileSync(new URL("android/app/src/main/res/values/styles.xml", root), "utf8");
+  const splash = readFileSync(new URL("android/app/src/main/res/drawable/observer_qa_splash.xml", root), "utf8");
+  assert.match(styles, /name="ObserverQALaunch"/);
+  assert.match(styles, /windowSplashScreenAnimatedIcon">@drawable\/observer_qa_launch_mark/);
+  assert.match(splash, /@drawable\/observer_qa_launch_mark/);
+  const digest = (path) => createHash("sha256").update(readFileSync(new URL(path, root))).digest("hex");
+  assert.equal(digest("android/app/src/main/res/drawable-nodpi/observer_qa_icon.png"),
+    digest("ios/App/App/Assets.xcassets/ObserverQAIcon.appiconset/ObserverQAIcon.png"));
+  assert.equal(digest("android/app/src/main/res/drawable-nodpi/observer_qa_launch_mark.png"),
+    digest("ios/App/App/Assets.xcassets/ObserverQALaunchMark.imageset/ObserverQALaunchMark.png"));
+  assert.notEqual(digest("android/app/src/main/res/drawable-nodpi/observer_qa_icon.png"),
+    digest("android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"));
 });
