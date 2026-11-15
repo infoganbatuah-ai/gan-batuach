@@ -17890,6 +17890,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue primary-screen reference correction through canonical coordinator; external owner assesses full Settings composition. No main or Production release."
+    },
+    {
+      "id": "codex/owner-staff-invite-deeplink-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-OWNER-STAFF-INVITE-DEEPLINK-20261115",
+      "title": "Open existing Staff invitation from Owner dashboard quick action",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/owner-staff-invite-deeplink-20261115",
+      "sourceCommits": [
+        "8e73f186e1c10b1b74122acd80358306c91b60c9"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/owner-staff-invite-deeplink-20261115@8e73f186e1c10b1b74122acd80358306c91b60c9"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #498 source 8e73f186e1c10b1b74122acd80358306c91b60c9 passed six Digital Observer CI gates plus management-context, canonical quality and Snyk, then ancestry-merged to Development 5d4b33a17c3e642d5df8cf06f772828935eeca48.",
+          "Actual authenticated Owner baseline at Development 90083c6dbba00e78cee8770549967fc3f45d49f7: Desktop 1440x1024 and Mobile 390x844 quick action landed on staff-applications with invitation details closed.",
+          "Actual canonical Product after merge at exact 5d4b33a17c3e642d5df8cf06f772828935eeca48: quick action navigated to ?invite=1#staff-invitation; existing invitation details opened and SUMMARY focused on both viewports. Direct recruitment visit remained closed; no invitation send/Product nonGET, page errors or horizontal overflow. Settled baseline/after screenshots opened visually. Restricted after Desktop SHA256 91fbedc57a42d4962df3d6b7b15da4268c0479461fca5582e15790968d7c0cac; Mobile SHA256 c6b455066043b925b0cf3b98c0919a350c4c372234e31583dbe3177cedf5c496."
+        ],
+        "classification": "MANAGEMENT_OWNER_DASHBOARD_INVITE_ACTION_ONLY",
+        "limits": "Scoped deep-link correction is not 1:1 Owner dashboard visual acceptance, full Staff invitation delivery proof, or cumulative release qualification. Product navigation did not POST/send an invitation or write canonical QA data. No migration, DO core, paid dependency, main or Production change. Server stopped and port 3000 released; new fixed monthly commitment ₪0."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "5d4b33a17c3e642d5df8cf06f772828935eeca48",
+        "pullRequests": [
+          498
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_OWNER_STAFF_INVITE_DESKTOP_MOBILE_ACTION_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue primary-screen reference correction through canonical coordinator; external owner assesses full Owner composition. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
