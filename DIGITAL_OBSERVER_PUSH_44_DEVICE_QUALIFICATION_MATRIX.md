@@ -6,6 +6,8 @@
 
 2026-11-15 signed iPhone QA build — **SIGNED NATIVE BUILD PASS; INSTALL/LAUNCH NOT RUN**: Xcode built PersonalTeamQA for the connected iPhone 13 Pro using the existing QA team, created a matching Development profile and passed strict code-signature verification. The result bundle is `.dev-cache/tmp/push44-ios-signing-gap-20261115/ResultBundles/PersonalTeamQA-signed-connected-device.xcresult`; executable SHA-256 `d8b38b0ac1abd66e8df7ce8fb7cd8d925ae528b8bc36a26561e623c4c8c52f97`. Profile expires 2026-11-22T21:21:11Z. No installation, launch, callback, Secure Enclave device proof, APNs receipt or media test.
 
+2026-11-15 owner-authorized device installation continuation — **INSTALL PASS; LAUNCH FAIL; ACCOUNT/RETURN NOT TESTED**: CoreDevice installed the signed PersonalTeamQA 1.0 build and device inventory confirmed `com.ganbatuach.app.qa` on the paired iPhone 13 Pro. One launch before and one after the owner approved developer trust in iOS Settings both returned CoreDeviceError 10002 / FBS security refusal. Developer Mode is enabled. The signed certificate and team, application identifier, entitlement values and embedded profile match in read-only checks. The generic refusal does not establish a specific cause. Await the exact iOS on-screen result from one owner tap on the QA icon before another build or launch attempt. No callback, account identity, return-to-app, media, live Push or Production PASS is claimed.
+
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
