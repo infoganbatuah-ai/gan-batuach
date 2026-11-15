@@ -39,7 +39,7 @@ export function ManagerOverviewDashboard({
     { title: "הוספת ילד/ה", href: "/dashboard/garden/children?new=1#new-child", icon: UserRoundPlus, tone: "blue" },
     { title: "ניהול נוכחות", href: "/dashboard/garden/attendance", icon: ClipboardCheck, tone: "green" },
     { title: "הזמנת הורה", href: "/dashboard/garden/parents", icon: UsersRound, tone: "purple" },
-    { title: "הזמנת צוות", href: "/dashboard/garden/staff-applications", icon: GraduationCap, tone: "cyan" },
+    { title: "הזמנת צוות", href: "/dashboard/garden/staff-applications?invite=1#staff-invitation", icon: GraduationCap, tone: "cyan" },
     { title: "שליחת הודעה", href: "/dashboard/garden/messages?compose=1#message-workbench", icon: MessageCircle, tone: "blue" },
     { title: "יצירת משימה", href: "/dashboard/garden/tasks", icon: CheckCircle2, tone: "orange" },
     { title: "צפייה במצלמות", href: "/dashboard/garden/cameras", icon: Camera, tone: "cyan" },
