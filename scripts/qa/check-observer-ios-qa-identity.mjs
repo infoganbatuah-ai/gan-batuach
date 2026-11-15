@@ -21,8 +21,17 @@ test("Observer iOS QA source has separate identity, callback and offline launch 
   assert.ok(!Object.hasOwn(info, "com.apple.developer.associated-domains"));
   assert.match(settings, /^PRODUCT_BUNDLE_IDENTIFIER = com\.digitalobserver\.app\.qa$/m);
   assert.match(settings, /^APP_DISPLAY_NAME = תצפיתן דיגיטלי$/m);
+  assert.match(settings, /^ASSETCATALOG_COMPILER_APPICON_NAME = ObserverQAIcon$/m);
   assert.match(settings, /^CODE_SIGNING_ALLOWED = NO$/m);
   assert.match(settings, /^CODE_SIGN_ENTITLEMENTS =$/m);
+  assert.equal(info.UILaunchStoryboardName, "ObserverQALaunch");
+  const icon = JSON.parse(read("ios/App/App/Assets.xcassets/ObserverQAIcon.appiconset/Contents.json"));
+  const launchMark = JSON.parse(read("ios/App/App/Assets.xcassets/ObserverQALaunchMark.imageset/Contents.json"));
+  const launch = read("ios/qa-observer/ObserverQALaunch.storyboard");
+  assert.equal(icon.images[0].filename, "ObserverQAIcon.png");
+  assert.equal(launchMark.images[0].filename, "ObserverQALaunchMark.png");
+  assert.match(launch, /image="ObserverQALaunchMark"/);
+  assert.doesNotMatch(launch, /image="Splash"/);
 });
 
 test("Existing PersonalTeamQA and Gan release identities remain separate", () => {

@@ -2,6 +2,7 @@
 // PersonalTeamQA project defaults and release identity remain unchanged.
 PRODUCT_BUNDLE_IDENTIFIER = com.digitalobserver.app.qa
 APP_DISPLAY_NAME = תצפיתן דיגיטלי
+ASSETCATALOG_COMPILER_APPICON_NAME = ObserverQAIcon
 INFOPLIST_FILE = ../qa-observer/Info.plist
 CODE_SIGNING_ALLOWED = NO
 CODE_SIGN_ENTITLEMENTS =
