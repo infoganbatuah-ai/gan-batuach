@@ -1,6 +1,7 @@
 # PUSH 44 — offline product-audience boundary
 
-This package is not activated. The migration is additive, un-applied, and creates
+This package is not activated. `schema-proposal.sql` is review-only and is **not**
+in `supabase/migrations/`; it must not be applied by migration tooling. It proposes
 a private, service-only binding table. Existing tokens are intentionally not
 backfilled: `app_channel` records form factor, not the owning product.
 
@@ -34,8 +35,9 @@ destination policy before provider dispatch. Qualify the actual release bundle
 IDs, provider credentials/topics, logout and revocation behavior before rollout.
 No client-supplied app label, user metadata, or matching email is an authority.
 
-The migration requires a separate authorized Development application and
-database qualification. No Production or live Push change is part of this work.
+Turning the proposal into a migration requires a separate authorized Development
+database qualification, trusted binding writer, and token deletion/retention
+review. No Production or live Push change is part of this work.
 
 ## SQL privilege and repeatability review
 
@@ -48,9 +50,9 @@ only `service_role` gets schema USAGE and table SELECT/INSERT/UPDATE. RLS is on,
 with no client policy. This is source review, not deployed-catalog proof. A future
 preflight must verify actual schema exposure and inherited/default privileges.
 
-The migration deliberately uses plain `CREATE` instead of `IF NOT EXISTS`, so a
+The proposal deliberately uses plain `CREATE` instead of `IF NOT EXISTS`, so a
 preexisting incompatible object fails rather than silently masquerading as the
-contract. It is a once-only Supabase migration, not a repeatable bootstrap script.
+contract. It is not a repeatable bootstrap script or a deployable migration.
 The token FK uses `ON DELETE RESTRICT` to avoid silently erasing binding evidence;
 future token-retention/archival behavior needs qualification before application.
 The primary key permits one binding per token but does not itself prove app

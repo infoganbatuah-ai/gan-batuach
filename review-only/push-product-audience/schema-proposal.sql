@@ -1,4 +1,4 @@
--- Offline-reviewed PUSH 44 contract. Do not apply until app-identity proof and
+-- REVIEW-ONLY SQL. Never apply as a migration until app-identity proof and
 -- provider-specific token binding have been independently qualified.
 -- Existing push_device_tokens are intentionally NOT backfilled or reclassified.
 create schema push_private;
