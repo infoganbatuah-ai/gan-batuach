@@ -38,7 +38,9 @@ function runtime(initial) {
     "react/jsx-runtime": { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: "Fragment" },
     "@/lib/domain/digital-observer/mobile-runtime": { mobileRuntimeRequiresSession: () => true, sanitizeOfflineQueue: (value) => value, mobileNotificationPreview: () => ({}) },
     "@/lib/domain/digital-observer/mobile-playback-lifecycle": { openMobilePlaybackPublisher: () => ({ isCurrent: () => true, networkOffline: () => true, appInactive: () => true, close: () => {} }) },
-    "@/lib/domain/digital-observer/native-push-request": { parseNativePushRequest: () => null, nativePushResult: () => ({}) }
+    "@/lib/domain/digital-observer/native-push-request": { parseNativePushRequest: () => null, nativePushResult: () => ({}) },
+    "@/lib/domain/digital-observer/pending-mobile-link": { firstLaunchOfMobileLink: () => false,
+      rememberPendingMobileLink: () => null, takePendingMobileLink: () => null }
   };
   const exports = {};
   vm.runInNewContext(js, { exports, window, URL, AbortController, setTimeout, clearTimeout, Date, crypto,
