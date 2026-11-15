@@ -160,12 +160,28 @@ async function changeChildGardenDelivery(formData: FormData) {
   redirect("/dashboard/admin/privacy-rights?delivery=updated");
 }
 
-export default async function AdminPrivacyRightsPage({ searchParams }: { searchParams: Promise<{ decision?: string; decision_error?: string; scope?: string; scope_error?: string; hold?: string; hold_error?: string; delivery?: string; delivery_error?: string }> }) {
+async function applyParentNameCorrection(formData: FormData) {
+  "use server";
+  await requireRole(["admin"]);
+  const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    redirect("/dashboard/admin/privacy-rights?correction_error=invalid");
+  }
+  const supabase = await createClient();
+  const result = await supabase.rpc("management_apply_parent_name_correction" as never,
+    { p_request_id: id } as never);
+  if (result.error) redirect("/dashboard/admin/privacy-rights?correction_error=unavailable");
+  revalidatePath("/dashboard/admin/privacy-rights");
+  revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/admin/privacy-rights?correction=completed");
+}
+
+export default async function AdminPrivacyRightsPage({ searchParams }: { searchParams: Promise<{ decision?: string; decision_error?: string; scope?: string; scope_error?: string; hold?: string; hold_error?: string; delivery?: string; delivery_error?: string; correction?: string; correction_error?: string }> }) {
   await requireRole(["admin"]);
   const decisionFeedback = await searchParams;
   const result = await safeAdminData("privacy rights", async () => {
     const supabase = await createClient();
-    const [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes, deliveryRes, childDeliveryRes] = await Promise.all([
+    const [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes, deliveryRes, childDeliveryRes, correctionRes] = await Promise.all([
       supabase.from("privacy_rights_requests" as any).select("*, requester:requested_by(full_name,email,role), child:child_id(full_name), garden:garden_id(name,city)").order("created_at", { ascending: false }).limit(160),
       supabase.from("legal_holds" as any).select("*").order("created_at", { ascending: false }).limit(120),
       supabase.from("data_retention_policies" as any).select("*").order("data_category").limit(120),
@@ -173,9 +189,10 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
       supabase.from("privacy_execution_actions" as any).select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("retention_review_queue" as any).select("*").order("due_at", { ascending: true }).limit(120),
       supabase.from("privacy_self_delivery_grants" as never).select("privacy_request_id,expires_at,revoked_at,access_count").limit(160),
-      supabase.from("privacy_child_garden_delivery_grants" as never).select("privacy_request_id,expires_at,revoked_at,access_count").limit(160)
+      supabase.from("privacy_child_garden_delivery_grants" as never).select("privacy_request_id,expires_at,revoked_at,access_count").limit(160),
+      supabase.from("privacy_parent_name_correction_proposals" as never).select("privacy_request_id,requester_profile_id,proposed_full_name,applied_at").limit(160)
     ]);
-    [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes, deliveryRes, childDeliveryRes].forEach((query, index) => logSupabaseError(`privacy rights query ${index}`, (query as any).error));
+    [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes, deliveryRes, childDeliveryRes, correctionRes].forEach((query, index) => logSupabaseError(`privacy rights query ${index}`, (query as any).error));
     return {
       requests: requestsRes.data ?? [],
       holds: holdsRes.data ?? [],
@@ -185,11 +202,12 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
       queue: queueRes.data ?? [],
       delivery: (deliveryRes.data ?? []) as SelfDeliveryGrant[],
       childDelivery: (childDeliveryRes.data ?? []) as SelfDeliveryGrant[],
-      queryError: [requestsRes.error, holdsRes.error, policiesRes.error, scopeRes.error, executionRes.error, queueRes.error, deliveryRes.error, childDeliveryRes.error].some(Boolean)
+      correction: (correctionRes.data ?? []) as Array<{ privacy_request_id: string; requester_profile_id: string; proposed_full_name: string; applied_at: string | null }>,
+      queryError: [requestsRes.error, holdsRes.error, policiesRes.error, scopeRes.error, executionRes.error, queueRes.error, deliveryRes.error, childDeliveryRes.error, correctionRes.error].some(Boolean)
         ? "חלק מנתוני זכויות הפרטיות לא נטענו. ייתכן שמיגרציית Phase 156 עדיין לא הורצה."
         : null
     };
-  }, { requests: [] as any[], holds: [] as any[], policies: [] as any[], scope: [] as any[], execution: [] as any[], queue: [] as any[], delivery: [] as SelfDeliveryGrant[], childDelivery: [] as SelfDeliveryGrant[], queryError: null as string | null });
+  }, { requests: [] as any[], holds: [] as any[], policies: [] as any[], scope: [] as any[], execution: [] as any[], queue: [] as any[], delivery: [] as SelfDeliveryGrant[], childDelivery: [] as SelfDeliveryGrant[], correction: [] as Array<{ privacy_request_id: string; requester_profile_id: string; proposed_full_name: string; applied_at: string | null }>, queryError: null as string | null });
 
   const requests = result.data.requests;
   const open = requests.filter((request: any) => !["completed", "rejected", "cancelled"].includes(String(request.status))).length;
@@ -207,6 +225,7 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
   }
   const deliveryByRequest = new Map(result.data.delivery.map((grant) => [grant.privacy_request_id, grant]));
   const childDeliveryByRequest = new Map(result.data.childDelivery.map((grant) => [grant.privacy_request_id, grant]));
+  const correctionByRequest = new Map(result.data.correction.map((item) => [item.privacy_request_id, item]));
 
   return (
     <DashboardShell role="admin" title="Privacy Rights">
@@ -228,6 +247,8 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
       {decisionFeedback.scope || decisionFeedback.hold ? <p role="status" className="pill good">הפעולה נשמרה יחד עם תיעוד הביקורת.</p> : null}
       {decisionFeedback.delivery_error ? <p role="alert" className="pill bad">מסירה מוגבלת לא זמינה. בדקו שהבקשה אושרה לפרופיל העצמי, את ההיקף ואת חובות השימור.</p> : null}
       {decisionFeedback.delivery ? <p role="status" className="pill good">חלון המסירה עודכן ותועד בביקורת.</p> : null}
+      {decisionFeedback.correction_error ? <p role="alert" className="pill bad">לא ניתן להחיל את תיקון השם. בדקו אישור, היקף, סמכות ושינויים מאוחרים בפרופיל.</p> : null}
+      {decisionFeedback.correction ? <p role="status" className="pill good">שם הפרופיל האישי תוקן והפעולה נרשמה ביומן הביקורת.</p> : null}
 
       <section className="grid cols-4 dashboard-kpis">
         <StatCard label="Open requests" value={open} tone={open ? "warn" : "good"} />
@@ -283,12 +304,14 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
             const requestScope = scopeByRequest.get(request.id) ?? [];
             const delivery = deliveryByRequest.get(request.id);
             const childDelivery = childDeliveryByRequest.get(request.id);
+            const correction = correctionByRequest.get(request.id);
             return (
               <article className="card procedure-card" key={request.id}>
                 <div>
                   <span className={`pill ${statusTone(request.status)}`}>{request.status}</span>
                   <h3>{requestLabels[request.request_type] ?? request.request_type}</h3>
                   <p>{request.request_reason ?? request.response_summary ?? "No reason supplied."}</p>
+                  {correction ? <p>תיקון שם אישי בלבד: <strong>{request.requester?.full_name ?? ""}</strong> ← <strong>{correction.proposed_full_name}</strong>{correction.applied_at ? " · הוחל" : " · ממתין להחלה"}</p> : null}
                   <small>
                     {request.requester?.full_name ?? "Unknown user"} · {request.garden?.name ?? "No garden"} · {request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""}
                   </small>
@@ -310,6 +333,10 @@ export default async function AdminPrivacyRightsPage({ searchParams }: { searchP
                         {!delivery.revoked_at ? <form action={changeSelfDelivery}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="operation" value="revoke" /><button className="button secondary">ביטול מסירה</button></form> : null}
                       </div> : <form action={changeSelfDelivery}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="operation" value="issue" /><button className="button secondary">מסירה מוגבלת של פרופיל עצמי ל־24 שעות</button></form>
                     ) : null}
+                    {request.status === "approved" && correction && !correction.applied_at ? <form action={applyParentNameCorrection}>
+                      <input type="hidden" name="id" value={request.id} />
+                      <button className="button secondary"><FileSearch size={16} /> החלת תיקון שם אישי לאחר אימות</button>
+                    </form> : null}
                     {request.status === "approved" && ["access", "export"].includes(request.request_type)
                       && request.data_subject_type === "child" && request.child_id && request.garden_id ? (
                       childDelivery ? <div className="form">

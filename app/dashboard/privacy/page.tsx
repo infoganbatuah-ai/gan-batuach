@@ -111,7 +111,25 @@ async function submitPrivacyRequest(formData: FormData) {
   redirect("/dashboard/privacy?submitted=1");
 }
 
-export default async function PrivacyPortalPage({ searchParams }: { searchParams?: Promise<{ request_error?: string; submitted?: string }> }) {
+async function submitParentNameCorrection(formData: FormData) {
+  "use server";
+  const { profile } = await requireUser();
+  if (profile.role !== "parent") redirect("/dashboard/privacy?name_error=role");
+  const name = String(formData.get("proposed_full_name") ?? "").trim();
+  const reason = String(formData.get("correction_reason") ?? "").trim();
+  if (name.length < 2 || name.length > 120 || reason.length < 12 || reason.length > 1200) {
+    redirect("/dashboard/privacy?name_error=invalid");
+  }
+  const supabase = await createClient();
+  const result = await supabase.rpc("management_submit_parent_name_correction" as never, {
+    p_new_full_name: name, p_reason: reason
+  } as never);
+  if (result.error) redirect("/dashboard/privacy?name_error=submit");
+  revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/privacy?name_submitted=1");
+}
+
+export default async function PrivacyPortalPage({ searchParams }: { searchParams?: Promise<{ request_error?: string; submitted?: string; name_error?: string; name_submitted?: string }> }) {
   const status = await searchParams;
   const { profile } = await requireUser();
   const supabase = await createClient();
@@ -131,6 +149,13 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
     .order("created_at", { ascending: false })
     .limit(50);
   const requests = (requestsRes.data ?? []) as PrivacyRequestRow[];
+  const proposalsRes = role === "parent" ? await supabase
+    .from("privacy_parent_name_correction_proposals" as never)
+    .select("privacy_request_id,proposed_full_name,applied_at")
+    .eq("requester_profile_id", profile.id).limit(50) : { data: [] };
+  const proposals = new Map(((proposalsRes.data ?? []) as Array<{
+    privacy_request_id: string; proposed_full_name: string; applied_at: string | null
+  }>).map((item) => [item.privacy_request_id, item]));
   const grantsRes = await supabase.from("privacy_self_delivery_grants" as never)
     .select("privacy_request_id,expires_at,revoked_at,access_count")
     .eq("requester_profile_id", profile.id).limit(50);
@@ -170,6 +195,18 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
 
       {status?.request_error ? <p role="alert" className="pill warn">לא ניתן להגיש את הבקשה עבור הנושא שנבחר. בדקו את הבחירה ונסו שוב.</p> : null}
       {status?.submitted ? <p role="status" className="pill good">הבקשה התקבלה לבדיקה ידנית.</p> : null}
+      {status?.name_error ? <p role="alert" className="pill bad">לא ניתן להגיש בקשה לתיקון השם. בדקו את השם, הנימוק ובקשות פתוחות.</p> : null}
+      {status?.name_submitted ? <p role="status" className="pill good">בקשת תיקון השם התקבלה לבדיקה. השם הנוכחי לא שונה.</p> : null}
+      {role === "parent" ? <section className="card action-panel">
+        <div className="section-heading"><h2><FilePenLine size={20} /> תיקון השם בפרופיל שלי</h2>
+          <p>מגישים שם מוצע ונימוק. רק לאחר בדיקת היקף, אישור מנהל והחלה מתועדת השם ישתנה. תיקון פרטי ילד או גן דורש בדיקה נפרדת.</p></div>
+        <form action={submitParentNameCorrection} className="form form-grid">
+          <label>השם הנוכחי<input value={profile.full_name} readOnly /></label>
+          <label>השם המלא המבוקש<input name="proposed_full_name" minLength={2} maxLength={120} required /></label>
+          <label className="wide">סיבת התיקון<textarea name="correction_reason" minLength={12} maxLength={1200} rows={2} required /></label>
+          <button className="button primary">שליחת בקשת תיקון השם לבדיקה</button>
+        </form>
+      </section> : null}
       <section className="grid cols-2 dashboard-panels">
         <form className="card form wizard-form" action={submitPrivacyRequest}>
           <div className="section-heading"><h2><ShieldCheck size={20} /> בקשה חדשה</h2><p>בחרו את סוג הבקשה והמידע הרלוונטי.</p></div>
@@ -220,6 +257,7 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
           {requests.map((request) => {
             const grant = grants.get(request.id);
             const childGrant = childGrants.get(request.id);
+            const proposal = proposals.get(request.id);
             const available = request.status === "approved" && ["access", "export"].includes(request.request_type)
               && grant && !grant.revoked_at && grant.access_count < 3
               && deliveryWindowOpen(grant.expires_at);
@@ -233,6 +271,7 @@ export default async function PrivacyPortalPage({ searchParams }: { searchParams
                 <span className={`pill ${tone(request.status)}`}>{statusLabels[request.status] ?? request.status}</span>
                 <h3>{requestLabels[request.request_type] ?? request.request_type}</h3>
                 <p>{request.response_summary ?? request.request_reason ?? "הבקשה התקבלה."}</p>
+                {proposal ? <p>שם מוצע: <strong>{proposal.proposed_full_name}</strong> · {proposal.applied_at ? "תוקן בפרופיל" : "ממתין לבדיקה ולהחלה"}</p> : null}
                 <small>{request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""} · יעד טיפול {request.due_at ? new Date(request.due_at).toLocaleDateString("he-IL") : "לא נקבע"}</small>
                 {available ? <div className="procedure-meta">
                   <a className="button secondary" href={`/api/privacy/requests/${request.id}/delivery`}>
