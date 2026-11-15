@@ -122,7 +122,7 @@ export default async function InspectorDashboard() {
     gardenIds.length ? supabase.from("required_inspections" as any).select("id, garden_id, due_at, status, inspection_type, gardens(id, name, city, address, logo_url, last_inspection_score)").in("garden_id", gardenIds).neq("status", "done").order("due_at", { ascending: true }).limit(20) : Promise.resolve({ data: [] }),
     supabase.from("inspections" as any).select("id, weighted_score, completed_at, violation_count, gardens(name, city)").eq("inspector_id", profile.id).order("completed_at", { ascending: false }).limit(12),
     gardenIds.length ? supabase.from("violations" as any).select("id, garden_id, title, severity, status, correction_due_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "done").order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
-    gardenIds.length ? supabase.from("complaints" as any).select("id, garden_id, subject, severity, status, created_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "closed").order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
+    gardenIds.length ? supabase.from("complaints" as any).select("id, garden_id, subject, severity, status, created_at, gardens(name, city)").in("garden_id", gardenIds).eq("assigned_inspector_id", profile.id).neq("status", "closed").order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
     supabase.from("tasks" as any).select("id, garden_id, title, priority, status, due_at").or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).neq("status", "done").order("created_at", { ascending: false }).limit(12)
   ]);
 
