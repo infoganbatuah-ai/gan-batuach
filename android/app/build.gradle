@@ -1,11 +1,22 @@
 import groovy.json.JsonSlurper
 apply plugin: 'com.android.application'
 
+def mobileProduct = System.getenv('CAPACITOR_PRODUCT') ?: 'gan'
+if (!(mobileProduct in ['gan', 'observer'])) throw new GradleException('CAPACITOR_PRODUCT_INVALID')
+if (mobileProduct == 'observer' && System.getenv('CAPACITOR_BUILD_PROFILE') != 'qa')
+    throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
+if (mobileProduct == 'observer' && file('google-services.json').isFile())
+    throw new GradleException('CAPACITOR_OBSERVER_GAN_PUSH_CONFIG_FORBIDDEN')
+
 android {
     namespace = "com.ganbatuach.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.ganbatuach.app"
+        applicationId = mobileProduct == 'observer' ? 'com.digitalobserver.app' : 'com.ganbatuach.app'
+        manifestPlaceholders = [
+            mobileAppLabel: mobileProduct == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח',
+            mobileCallbackScheme: mobileProduct == 'observer' ? 'observerqaandroid' : 'digitalobserver'
+        ]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -57,14 +68,21 @@ def verifyMobileConfig = { String buildType ->
     if (!packedConfig.isFile()) throw new GradleException('CAPACITOR_SYNC_REQUIRED')
     def config = new JsonSlurper().parse(packedConfig)
     def profile = System.getenv('CAPACITOR_BUILD_PROFILE') ?: 'development'
+    if (mobileProduct == 'observer' && buildType != 'debug') throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
     def expectedUrl = System.getenv('CAPACITOR_SERVER_URL')
     if (!expectedUrl || config.server?.url != expectedUrl) throw new GradleException('CAPACITOR_SERVER_URL_MISMATCH')
     if (buildType == 'release' && profile != 'release') throw new GradleException('CAPACITOR_RELEASE_PROFILE_REQUIRED')
     if (buildType == 'debug' && !(profile in ['development', 'qa'])) throw new GradleException('CAPACITOR_DEBUG_PROFILE_REQUIRED')
-    def expectedAppId = buildType == 'release' ? 'com.ganbatuach.app' : 'com.ganbatuach.app.qa'
+    def expectedAppId = mobileProduct == 'observer' ? 'com.digitalobserver.app.qa' :
+        buildType == 'release' ? 'com.ganbatuach.app' : 'com.ganbatuach.app.qa'
     if (config.appId != expectedAppId) throw new GradleException('CAPACITOR_APP_ID_MISMATCH')
+    if (config.appName != (mobileProduct == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח'))
+        throw new GradleException('CAPACITOR_APP_NAME_MISMATCH')
     def url = new URI(expectedUrl)
     def origin = "${url.scheme}://${url.authority}"
+    if (url.rawQuery || url.rawFragment ||
+        (mobileProduct == 'observer' ? url.path != '/digital-observer/dashboard' : !(url.path in ['', '/'])))
+        throw new GradleException('CAPACITOR_PRODUCT_LAUNCH_PATH_MISMATCH')
     if (profile != 'development' || url.scheme == 'https') {
         if (url.scheme != 'https' || origin != System.getenv('CAPACITOR_ALLOWED_SERVER_ORIGIN') || config.server.cleartext != false)
             throw new GradleException('CAPACITOR_APPROVED_HTTPS_REQUIRED')
