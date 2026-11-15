@@ -34,6 +34,10 @@ async function boundedBody(request) {
 export async function handleQaHandoff(request, dependencies = {}) {
   if (dependencies.enabled !== true) return reject(404);
   try {
+    // Charge every attempt before reading the body or invoking Auth. A missing,
+    // unavailable or non-affirmative durable limiter must never open this gate.
+    if (typeof dependencies.reserveAttempt !== "function"
+      || await dependencies.reserveAttempt() !== true) return reject(429);
     const url = new URL(request.url);
     if (request.method !== "POST" || url.protocol !== "https:"
       || url.hostname !== "qa-iphone-device-proof.ganbatuach.com"
