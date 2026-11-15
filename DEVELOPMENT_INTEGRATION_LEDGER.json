@@ -18372,6 +18372,51 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Obtain exact iOS on-screen result from one owner tap on the QA icon; diagnose security refusal before more launch attempts or account QA."
+    },
+    {
+      "id": "local/push44-qa-device-launch-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-QA-DEVICE-LAUNCH-20261115",
+      "title": "Signed offline QA shell launched and returned on physical iPhone",
+      "owner": "Camera executor native process evidence; Digital Observer root owner visual acceptance",
+      "sourceBranch": null,
+      "sourceCommits": [],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_RESTRICTED_EVIDENCE"
+      },
+      "validation": {
+        "status": "DEVICE_LOCAL_SHELL_LAUNCH_AND_RETURN_PASS",
+        "evidence": [
+          "After owner completed iOS developer verification, one CoreDevice launch of installed com.ganbatuach.app.qa succeeded; read-only process inventory showed the native App.app/App process.",
+          "Owner visually confirmed the Digital Observer QA local status screen, moved to Home and reopened the app; the same screen returned.",
+          "Earlier Untrusted Developer alert and CoreDevice security refusal are preserved as pre-verification evidence in the prior unit."
+        ],
+        "classification": "PUSH44_PHYSICAL_OFFLINE_QA_SHELL_ONLY",
+        "limits": "No account identity, Auth callback, authenticated Product UI, physical Secure Enclave enrollment, external media, APNs receipt, main or Production proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "f681d9aba33db6c4e665003ba0b378c09286cc82",
+        "pullRequests": [],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": [
+          "local/push44-qa-device-install-launch-block-20261115"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "DEVICE_OFFLINE_SHELL_LAUNCH_AND_SIMPLE_RETURN_PASS",
+      "releaseEligibility": "NOT_READY_ACCOUNT_CALLBACK_AUTH_MEDIA_PUSH_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify trusted authenticated Development callback and account/session lifecycle on a signed device before claiming iPhone handoff; retain media/Push and broader device gates."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

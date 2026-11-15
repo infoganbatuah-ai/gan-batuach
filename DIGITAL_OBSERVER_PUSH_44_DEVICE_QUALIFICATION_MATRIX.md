@@ -8,6 +8,8 @@
 
 2026-11-15 owner-authorized device installation continuation — **INSTALL PASS; LAUNCH FAIL; ACCOUNT/RETURN NOT TESTED**: CoreDevice installed the signed PersonalTeamQA 1.0 build and device inventory confirmed `com.ganbatuach.app.qa` on the paired iPhone 13 Pro. One launch before and one after the owner approved developer trust in iOS Settings both returned CoreDeviceError 10002 / FBS security refusal. Developer Mode is enabled. The signed certificate and team, application identifier, entitlement values and embedded profile match in read-only checks. The generic refusal does not establish a specific cause. Await the exact iOS on-screen result from one owner tap on the QA icon before another build or launch attempt. No callback, account identity, return-to-app, media, live Push or Production PASS is claimed.
 
+2026-11-15 post-verification physical continuation — **LOCAL QA SHELL LAUNCH AND RETURN PASS**: the owner-provided iOS alert identified the prior block as Untrusted Developer. After the owner completed device verification, one CoreDevice launch succeeded and the native app process appeared in read-only process inventory. The owner visually confirmed the local **Digital Observer QA** screen, moved to Home and reopened the app; the same screen returned. This qualifies installation, local shell opening and simple foreground return for this signed offline build. It does **not** qualify account identity, Auth callback, authenticated Product UI, external HTTPS/media or live Push; those remain NOT TESTED.
+
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
