@@ -18030,6 +18030,36 @@
       "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue Staff/primary-screen reference correction through canonical coordinator; external owner assesses overall visual composition. No main or Production release."
+    },
+    {
+      "id": "codex/inspector-dashboard-complaint-scope-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-INSPECTOR-DASHBOARD-COMPLAINT-SCOPE-20261115",
+      "title": "Limit Inspector dashboard complaint preview to cases assigned to that Inspector",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/inspector-dashboard-complaint-scope-20261115",
+      "sourceCommits": ["d4eac9095149fd46d3d0737c1e92d4610fdd1604"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/inspector-dashboard-complaint-scope-20261115@d4eac9095149fd46d3d0737c1e92d4610fdd1604"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_ROLE_SCOPE_PASS_SCOPED",
+        "evidence": [
+          "PR #518 source d4eac9095149fd46d3d0737c1e92d4610fdd1604 passed six Digital Observer CI gates plus management-context, canonical quality and Snyk on that exact SHA, then ancestry-merged to Development f8e7d724931937a110cf33dfea1c54c06128e1d7.",
+          "Actual canonical Development Product baseline at 9554835587c7e29653a6dca38d9b76fc9c09b5a6: authenticated assigned Inspector A saw a uniquely marked synthetic unassigned same-Garden complaint subject on Desktop 1440x1024 and Mobile 390x844; a foreign/unassigned Inspector saw neither that case nor an assigned case. RLS permits Garden-scoped read, so the dashboard needed the same assigned_inspector_id filter as the canonical complaints page.",
+          "Actual merged Development Product at f8e7d724931937a110cf33dfea1c54c06128e1d7: assigned case visible, unassigned same-Garden synthetic marker absent, foreign/unassigned Inspector saw neither on both viewports. No Product nonGET, page errors or horizontal overflow. Each uniquely marked local-only synthetic fixture was removed and independent count-zero cleanup verified. The only blocked POST was Next development diagnostic /__nextjs_original-stack-frames after an existing hydration warning; it was not a Product write.",
+          "Restricted settled after Desktop PNG SHA256 4dd9fefb2acbd088ef3107d7e9ee870e21a53816d4e9f6790163b461c05e4366; settled after Mobile PNG SHA256 e985744c70f7cf81d8f83c84b0a855740103edbe93d215e1cbee7498c4c0f3f7. Both visually opened. Earlier Mobile splash PNG is invalid visual evidence and excluded."
+        ],
+        "classification": "MANAGEMENT_INSPECTOR_COMPLAINT_PRIVACY_SCOPE",
+        "limits": "Actual exposure proven only in isolated synthetic Development/QA; Production exposure UNVERIFIED. Scoped dashboard display filter, not a database RLS migration or complete audit of every Inspector query. Local broad security gate could not complete two unrelated Digital Observer CH1 ownership tests on this macOS volume; exact-head CI security gate passed. Existing hydration warning is outside this one-line fix. No schema, DO core, paid dependency, main or Production change; new fixed monthly commitment ₪0."
+      },
+      "integration": {"branch": "integration/development", "commit": "f8e7d724931937a110cf33dfea1c54c06128e1d7", "pullRequests": [518], "sourceAncestryVerified": true},
+      "dependencies": {"status": "NONE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_INSPECTOR_ASSIGNED_ONLY_COMPLAINT_PREVIEW_DESKTOP_MOBILE_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_GATES_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue scoped Product security and workflow tasks through canonical coordinator; review other Inspector Garden-scoped complaint previews and preserve role-specific policy. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
