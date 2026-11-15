@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T22:11:35.321Z",
+  "updatedAt": "2026-11-15T22:39:52.718Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18523,6 +18523,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify trusted Development identity/session handoff and callback activation separately before signed opt-in device QA; preserve default-off behavior."
+    },
+    {
+      "id": "codex/admin-requests-readback-20261116",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-ADMIN-REQUESTS-AUTHORIZED-READBACK-20261116",
+      "title": "Keep parent enrollment and staff application readback inside the authorized Admin Requests queue",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/admin-requests-readback-20261116",
+      "sourceCommits": [
+        "fdf7f2b1f3b7519f120787ec800eee09ca6e15d0"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/admin-requests-readback-20261116@fdf7f2b1f3b7519f120787ec800eee09ca6e15d0"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_MERGED_ADMIN_WEB_READBACK_PASS_SCOPED",
+        "evidence": [
+          "PR #538 exact source fdf7f2b1f3b7519f120787ec800eee09ca6e15d0 passed six Digital Observer CI gates, management-context, canonical quality and Snyk; ancestry-merged to Development 1c228f1ec57ae07405e4482883b6aeec183ea83c.",
+          "Read-only authenticated Gan Batuach Management Admin Web baseline on Development aac3b9c20a82ad27036ddd436d542cb51cca13ee: Admin Requests 200, five parent and eight staff queue links led to Garden routes; staff destination requires manager/owner. Browser observed zero non-GET requests and zero page errors.",
+          "Focused request selection tests 2/2, typecheck, scoped ESLint zero errors and git diff check passed. The page retains Admin requireRole before selection; selection accepts only parent/staff plus one UUID and reads from the existing bounded authorized queue. An unused parent-profile join was removed; no writes or manager permission expansion.",
+          "Actual clean merged Development Product 1c228f1ec57ae07405e4482883b6aeec183ea83c: Admin QA persona opened parent and staff request detail in the Admin route; malformed and absent IDs showed only a non-disclosing empty state; Staff QA persona redirected away. Zero non-GET requests and zero page errors. Initial automation assertions ran before streamed content/redirect settled; explicit visibility/URL waits resolved the probe without Product source changes.",
+          "Restricted GET-only QA script remains outside Git at exports/restricted/gb-admin-request-readback-20261116/postmerge-qa.mjs, SHA256 2430b9c0f46a0dd100e9bf539bbea120d661b6e2c405c6f22302eae8c1e2f106. No private request content or screenshots retained. Canonical Product server stopped; port 3000 released."
+        ],
+        "classification": "MANAGEMENT_ADMIN_WEB_REQUEST_QUEUE_AUTHORIZED_READBACK",
+        "limits": "Scoped Admin Web queue only. No migration, Digital Observer core source edit, paid dependency, main or Production change. Full Product/security, formal accessibility, external owner visual, supplier cost and recovery release gates remain open; Production state UNVERIFIED."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "1c228f1ec57ae07405e4482883b6aeec183ea83c",
+        "pullRequests": [
+          538
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_ADMIN_WEB_AUTHORIZED_READBACK_PASS_SCOPED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_OWNER_RELEASE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue the next ready substantive Gan Management workflow on a separate scoped branch; keep Digital Observer app boundary and shared integration contract distinct. Owner release gates remain separate."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
