@@ -44,19 +44,20 @@ function safeRelativePath(raw: string): string | null {
 
 export function pushDestinationMatchesAudience(audience: PushProductAudience, destination: PushDestination): boolean {
   if (!(audience in nativeAppIds)) return false;
-  const ganCategories = new Set(["registration", "parent_approval", "child_approval", "payment_reminder", "inspection_alert"]);
-  const observerCategories = new Set(["observer_alert"]);
-  if (!destination.category || !(audience === "digital_observer" ? observerCategories : ganCategories).has(destination.category)) return false;
-  if (destination.deepLinkType && !(audience === "digital_observer" ? destination.deepLinkType === "observer_event" :
-      ["child_profile", "payment", "inspection"].includes(destination.deepLinkType))) return false;
-  if (destination.category === "observer_alert" && audience !== "digital_observer") return false;
-  if (["registration", "parent_approval", "child_approval", "payment_reminder", "inspection_alert"].includes(destination.category ?? "")
-      && audience !== "gan_management") return false;
-  if (destination.deepLinkType === "observer_event" && audience !== "digital_observer") return false;
-  if (["child_profile", "payment", "inspection"].includes(destination.deepLinkType ?? "") && audience !== "gan_management") return false;
-  if (!destination.actionUrl) return true;
+  const ganTypes: Record<string, readonly string[]> = {
+    registration: ["system"], parent_approval: ["dashboard"], child_approval: ["child_profile"],
+    payment_reminder: ["payment"], safety_alert: ["incident"], inspection_alert: ["inspection"],
+    camera_alert: ["camera"], observer_alert: ["observer_event"], system_notification: ["system"]
+  };
+  const observerTypes: Record<string, readonly string[]> = { observer_alert: ["observer_event"] };
+  const allowedTypes = (audience === "digital_observer" ? observerTypes : ganTypes)[destination.category ?? ""];
+  if (!allowedTypes || !destination.deepLinkType || !allowedTypes.includes(destination.deepLinkType) || !destination.actionUrl) return false;
   const path = safeRelativePath(destination.actionUrl);
   if (!path) return false;
+  if (audience === "gan_management" && destination.category === "camera_alert")
+    return path === "/dashboard/garden/cameras" || path.startsWith("/dashboard/garden/cameras/");
+  if (audience === "gan_management" && destination.category === "observer_alert")
+    return path === "/dashboard/garden/ai-events" || path.startsWith("/dashboard/garden/ai-events/");
   return audience === "digital_observer"
     ? path === "/digital-observer" || path.startsWith("/digital-observer/")
     : path === "/dashboard" || path.startsWith("/dashboard/") ||

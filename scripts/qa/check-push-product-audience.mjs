@@ -27,22 +27,24 @@ function select(audience, destination, tokens = [ganToken, observerToken], bindi
 }
 
 test("same-profile tokens are separated by verified product binding", () => {
-  assert.deepEqual(select("digital_observer", { category: "observer_alert", actionUrl: "/digital-observer/alerts" }), ["observer"]);
-  assert.deepEqual(select("gan_management", { category: "child_approval", actionUrl: "/dashboard/parent" }), ["gan"]);
+  assert.deepEqual(select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" }), ["observer"]);
+  assert.deepEqual(select("gan_management", { category: "child_approval", deepLinkType: "child_profile", actionUrl: "/dashboard/parent" }), ["gan"]);
+  assert.deepEqual(select("gan_management", { category: "camera_alert", deepLinkType: "camera", actionUrl: "/dashboard/garden/cameras" }), ["gan"]);
+  assert.deepEqual(select("gan_management", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/dashboard/garden/ai-events" }), ["gan"]);
 });
 
 test("legacy, web and wrong-app tokens fail closed despite caller metadata", () => {
   const legacy = { ...token("legacy"), metadata: { source: "digital_observer_native" } };
   const web = token("web", "web");
   const wrongApp = token("wrong");
-  const chosen = select("digital_observer", { category: "observer_alert", actionUrl: "/digital-observer/alerts" },
+  const chosen = select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" },
     [legacy, web, wrongApp], [binding("web", "digital_observer", "com.digitalobserver.app.qa"),
       binding("wrong", "digital_observer", "com.ganbatuach.app.qa")]);
   assert.deepEqual(chosen, []);
 });
 
 test("logout, revocation, expiry and conflicting binding deny delivery", () => {
-  const destination = { category: "observer_alert", actionUrl: "/digital-observer/alerts" };
+  const destination = { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" };
   assert.deepEqual(select("digital_observer", destination, [{ ...observerToken, isActive: false }], [observerBinding]), []);
   assert.deepEqual(select("digital_observer", destination, [{ ...observerToken, revokedAt: now.toISOString() }], [observerBinding]), []);
   assert.deepEqual(select("digital_observer", destination, [observerToken], [{ ...observerBinding, revokedAt: now.toISOString() }]), []);
@@ -54,15 +56,20 @@ test("cross-app and malformed deep links are rejected before token selection", (
   const bad = ["/dashboard/parent", "https://evil.example/digital-observer/alerts", "//evil.example/alerts",
     "/digital-observer/%2e%2e/dashboard", "/digital-observer/%2f/dashboard", "/digital-observer/alerts#fragment"];
   for (const actionUrl of bad) {
-    assert.deepEqual(select("digital_observer", { category: "observer_alert", actionUrl }), [], actionUrl);
+    assert.deepEqual(select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl }), [], actionUrl);
   }
-  assert.deepEqual(select("gan_management", { category: "observer_alert", actionUrl: "/dashboard/parent" }), []);
+  assert.deepEqual(select("gan_management", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/dashboard/parent" }), []);
+  assert.deepEqual(select("digital_observer", { category: "camera_alert", deepLinkType: "camera", actionUrl: "/digital-observer/cameras" }), []);
+  assert.deepEqual(select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/dashboard/garden/ai-events" }), []);
+  assert.deepEqual(select("gan_management", { category: "camera_alert", deepLinkType: "camera", actionUrl: "/digital-observer/cameras" }), []);
+  assert.deepEqual(select("gan_management", { category: "camera_alert", actionUrl: "/dashboard/garden/cameras" }), []);
+  assert.deepEqual(select("gan_management", { category: "camera_alert", deepLinkType: "camera" }), []);
   assert.deepEqual(select("digital_observer", { category: "camera_alert" }), []);
-  assert.deepEqual(select("unknown", { category: "observer_alert", actionUrl: "/digital-observer/alerts" }), []);
+  assert.deepEqual(select("unknown", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" }), []);
 });
 
 test("cross-profile and missing evidence cannot borrow another app binding", () => {
-  const destination = { category: "observer_alert", actionUrl: "/digital-observer/alerts" };
+  const destination = { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" };
   assert.deepEqual(select("digital_observer", destination, [{ ...observerToken, profileId: "other-profile" }], [observerBinding]), []);
   assert.deepEqual(select("digital_observer", destination, [observerToken], [{ ...observerBinding, evidenceSha256: "unverified" }]), []);
 });

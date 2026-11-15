@@ -5,8 +5,13 @@ a private, service-only binding table. Existing tokens are intentionally not
 backfilled: `app_channel` records form factor, not the owning product.
 
 `selectVerifiedPushTargets` accepts only an unexpired, unrevoked server-verified
-binding to a supported native app ID and a matching product destination. It
-rejects legacy/unqualified tokens, cross-profile bindings and cross-app links.
+binding to a supported native app ID and a matching product destination. Gan
+Management's existing `camera_alert` → `camera` → `/dashboard/garden/cameras`
+and `observer_alert` → `observer_event` → `/dashboard/garden/ai-events` templates
+stay eligible for Gan subscribers. Standalone Observer alerts require an Observer
+app destination. The exact category, deep-link type and relative destination must
+all match; absent or cross-app destinations fail closed. It rejects
+legacy/unqualified tokens, cross-profile bindings and cross-app links.
 The focused test is `node scripts/qa/check-push-product-audience.mjs`.
 
 ## Concrete blocker before active routing
@@ -31,3 +36,22 @@ No client-supplied app label, user metadata, or matching email is an authority.
 
 The migration requires a separate authorized Development application and
 database qualification. No Production or live Push change is part of this work.
+
+## SQL privilege and repeatability review
+
+The existing token table is in `public` (`20260602005000_push_notifications_foundation.sql`);
+the later `app_channel` field is platform/form factor
+(`20260612013700_mobile_apps_push_app_store_readiness.sql`). The proposed
+`push_private` schema is new in the inspected migration inventory. Schema and
+table grants are explicitly revoked from `PUBLIC`, `anon`, and `authenticated`;
+only `service_role` gets schema USAGE and table SELECT/INSERT/UPDATE. RLS is on,
+with no client policy. This is source review, not deployed-catalog proof. A future
+preflight must verify actual schema exposure and inherited/default privileges.
+
+The migration deliberately uses plain `CREATE` instead of `IF NOT EXISTS`, so a
+preexisting incompatible object fails rather than silently masquerading as the
+contract. It is a once-only Supabase migration, not a repeatable bootstrap script.
+The token FK uses `ON DELETE RESTRICT` to avoid silently erasing binding evidence;
+future token-retention/archival behavior needs qualification before application.
+The primary key permits one binding per token but does not itself prove app
+identity or make a future write API safe. No binding writer is implemented here.
