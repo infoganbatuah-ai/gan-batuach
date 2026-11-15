@@ -15,9 +15,10 @@ import { firstLaunchOfMobileLink, rememberPendingMobileLink, takePendingMobileLi
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
 const pushSiteKey = "digital_observer_native_push_site_v1";
+const pushOwnerKey = "digital_observer_native_push_owner_v1";
 
 type RuntimeSite = { id: string; name: string; timezone: string | null };
-type RuntimeResponse = { data?: { sites?: RuntimeSite[] } };
+type RuntimeResponse = { data?: { session?: { profile_id?: string }; sites?: RuntimeSite[] } };
 
 function emit(name: string, detail: Record<string, unknown> = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -147,6 +148,16 @@ export function ObserverMobileRuntime() {
         if (disposed || !playbackPublisher.isCurrent()) return;
         if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
         const payload = await response.json() as RuntimeResponse;
+        const profileId = payload.data?.session?.profile_id;
+        if (!profileId) throw new Error("RUNTIME_UNAVAILABLE");
+        const previousOwner = await Preferences.get({ key: pushOwnerKey });
+        if (previousOwner.value !== profileId) {
+          // Native Preferences outlive a web sign-out. Legacy unbound state and
+          // another account's pending Push intent must never replay on login.
+          await Preferences.remove({ key: pushSiteKey });
+          await Preferences.remove({ key: offlineQueueKey });
+          await Preferences.set({ key: pushOwnerKey, value: profileId });
+        }
         sites = payload.data?.sites ?? [];
         const savedSite = await Preferences.get({ key: pushSiteKey });
         if (savedSite.value && sites.some((site) => site.id === savedSite.value)) {
