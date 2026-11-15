@@ -4,6 +4,8 @@
 
 2026-11-15 server handoff rate accounting — **SOURCE/CI PASS; LIVE GATE NOT RUN**: PR #526 merged to Development `e54981bddd4f6580124bc97d49c26f68f5efd40d` after exact-head CI. The dormant HTTP gate now fails closed unless trusted server-side rate accounting succeeds before parsing/Auth. Focused 27/27, TypeScript and lint passed. It remains hard-disabled and unimported; no endpoint, physical device, provider, media or canonical private-store SQL was activated.
 
+2026-11-15 signed iPhone QA build — **SIGNED NATIVE BUILD PASS; INSTALL/LAUNCH NOT RUN**: Xcode built PersonalTeamQA for the connected iPhone 13 Pro using the existing QA team, created a matching Development profile and passed strict code-signature verification. The result bundle is `.dev-cache/tmp/push44-ios-signing-gap-20261115/ResultBundles/PersonalTeamQA-signed-connected-device.xcresult`; executable SHA-256 `d8b38b0ac1abd66e8df7ce8fb7cd8d925ae528b8bc36a26561e623c4c8c52f97`. Profile expires 2026-11-22T21:21:11Z. No installation, launch, callback, Secure Enclave device proof, APNs receipt or media test.
+
 Date: 2026-10-20
 Scope: Development only; no store submission, provider activation or Production use.
 
