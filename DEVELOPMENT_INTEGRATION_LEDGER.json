@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T20:45:14Z",
+  "updatedAt": "2026-11-15T21:14:54Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18187,6 +18187,54 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_GATES_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue scoped Product security and workflow tasks through canonical coordinator; preserve role-specific complaint scope and finish external owner visual acceptance. No main or Production release."
+    },
+    {
+      "id": "codex/push44-handoff-rate-limit-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-HANDOFF-RATE-LIMIT-20261115",
+      "title": "Fail closed on trusted server-side QA handoff attempt accounting",
+      "owner": "Camera executor local implementation; Digital Observer root integration",
+      "sourceBranch": "codex/push44-handoff-rate-limit-20261115",
+      "sourceCommits": [
+        "6ac5594bc6fde4173f238ab310216a3b6ecc08ba"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-handoff-rate-limit-20261115@6ac5594bc6fde4173f238ab310216a3b6ecc08ba"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_EIGHT_CHECKS_AND_FOCUSED_27_PASS",
+        "evidence": [
+          "PR #526 passed eight exact-head CI checks and ancestry-merged as e54981bddd4f6580124bc97d49c26f68f5efd40d.",
+          "Focused dormant gate/composition tests 27/27 PASS, TypeScript noEmit PASS, focused eslint PASS, git diff --check PASS."
+        ],
+        "classification": "PUSH44_DORMANT_QA_HANDOFF_RATE_ACCOUNTING",
+        "limits": "No active route or live limiter/edge/provider qualification; no SQL, device, media, main or Production activation."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "e54981bddd4f6580124bc97d49c26f68f5efd40d",
+        "pullRequests": [
+          526
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FOCUSED_SERVER_GATE_TESTS_27_PASS",
+      "releaseEligibility": "NOT_READY_LIVE_ROUTE_DB_DEVICE_EDGE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify live atomic limiter and approved route together with signed device and private-store migration before activating remote QA."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
