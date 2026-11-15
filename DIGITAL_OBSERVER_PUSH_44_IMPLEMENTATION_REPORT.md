@@ -1,5 +1,11 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## Development continuation — 2026-11-15
+
+The 2026-11-14 Android Debug APK passed local compilation and static signature/manifest inspection, recorded in `DIGITAL_OBSERVER_PUSH_44_ANDROID_APK_STATIC_SECURITY_20261115.md`. That APK predates the later Android QA application-ID, network-policy and FileProvider source fixes. A replacement QA Debug APK was built from Development `3b2ad5c5` and statically inspected in `DIGITAL_OBSERVER_PUSH_44_ANDROID_QA_APK_REPLACEMENT_20261115.md`: distinct `com.ganbatuach.app.qa` package, loopback-only cleartext exception and no FileProvider in the compiled manifest. Neither APK was installed on a physical Android device or qualified for release.
+
+Development PRs #474, #477, #478, #476 and #479 merged Android QA transport/identity safeguards, current-device push-token cleanup on logout, removal of an unused broad FileProvider, correlation of native push registration results, and closure of the GET logout bypass respectively. All passed their CI gates. This establishes repository checks only; it does not prove APNs/FCM delivery, real-device background/resume and deep-link handling, authorized live playback, database/full-stack behavior or store review. PUSH 44 remains PARTIAL / NOT DONE; PUSH 46 remains NOT STARTED.
+
 ## CH1 media activation preflight — 2026-10-23, BLOCKED
 
 Preflight started from remote integration baseline `2a70695aefd9a8ac03647125eeb237483a0580a6`; this continuation changes only documentation/evidence, not Product code or schema. No live media activation is authorized or performed. Exact read-only findings and gate ownership are in `DIGITAL_OBSERVER_PUSH_44_CH1_MEDIA_PREFLIGHT_20261023.json`; prior real-iPhone session-security and backup proof remain intact.
