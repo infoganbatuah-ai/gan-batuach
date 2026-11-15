@@ -180,7 +180,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"$CONFIGURATION\" = \"PersonalTeamQA\" ]; then\n  set -eu\n  qa_bundle=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n  cp \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\"\n  if [ -n \"${PUSH44_QA_HTTPS_URL:-}\" ]; then\n    node \"$SRCROOT/../../scripts/qa/prepare-push44-iphone-qa-config.mjs\" \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\" \"$PUSH44_QA_HTTPS_URL\"\n  fi\n  mkdir -p \"$qa_bundle/public\"\n  cp \"$SRCROOT/../qa-personal-team/index.html\" \"$qa_bundle/public/index.html\"\n  if /usr/libexec/PlistBuddy -c 'Print :CFBundleURLTypes' \"$qa_bundle/Info.plist\" >/dev/null 2>&1; then\n    /usr/libexec/PlistBuddy -c 'Delete :CFBundleURLTypes' \"$qa_bundle/Info.plist\"\n  fi\nfi\n";
+			shellScript = "if [ \"$CONFIGURATION\" = \"PersonalTeamQA\" ]; then\n  set -eu\n  node \"$SRCROOT/../../scripts/qa/prepare-push44-qa-callback.mjs\"\n  qa_bundle=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n  cp \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\"\n  if [ -n \"${PUSH44_QA_HTTPS_URL:-}\" ]; then\n    node \"$SRCROOT/../../scripts/qa/prepare-push44-iphone-qa-config.mjs\" \"$SRCROOT/../qa-personal-team/capacitor.config.json\" \"$qa_bundle/capacitor.config.json\" \"$PUSH44_QA_HTTPS_URL\"\n  fi\n  mkdir -p \"$qa_bundle/public\"\n  cp \"$SRCROOT/../qa-personal-team/index.html\" \"$qa_bundle/public/index.html\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -395,7 +395,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 27G7ZP4U3Q;
-				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_FILE = "../qa-personal-team/Info-$(PUSH44_QA_CALLBACK_SCHEME).plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -405,6 +405,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ganbatuach.app.qa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUSH44_QA_CALLBACK_SCHEME = off;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG PERSONAL_TEAM_QA";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

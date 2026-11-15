@@ -27,9 +27,11 @@ test("only exact HTTPS state can pass the dormant native parser", () => {
   assert.doesNotMatch(native, /print\(.*(?:url|state)|NSLog\(.*(?:url|state)/);
 });
 
-test("this unit adds no callback entitlement or active browser exchange", () => {
+test("QA callback source selection remains default-off and native exchange dormant", () => {
   assert.match(project, /CODE_SIGN_ENTITLEMENTS = "";/);
-  assert.match(project, /Delete :CFBundleURLTypes/);
+  assert.match(project, /PUSH44_QA_CALLBACK_SCHEME = off/);
+  assert.match(project, /Info-\$\(PUSH44_QA_CALLBACK_SCHEME\)\.plist/);
+  assert.match(project, /prepare-push44-qa-callback\.mjs/);
   assert.match(native, /static let identityProvider: \(\(\) -> Identity\?\)\? = nil/);
   assert.match(native, /return ASWebAuthenticationSession\(url: startURL, callbackURLScheme: callbackScheme\)/);
   assert.match(native, /identityProvider\?\(\) == identity/);
