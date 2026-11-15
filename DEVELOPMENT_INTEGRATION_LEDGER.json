@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T19:25:00Z",
+  "updatedAt": "2026-11-15T21:00:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17789,6 +17789,58 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Preserve postmerge evidence; resolve any remaining redirect-settling concern only with a new scoped Product lease if required. Continue cumulative Development QA and external owner visual review before any release authorization; no main or Production."
+    },
+    {
+      "id": "codex/parent-child-photo-fallback-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PARENT-SELECTED-CHILD-CARD-20261115",
+      "title": "Visible selected Child card, truthful photo fallback and Desktop grid order on primary Parent dashboard",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/parent-child-photo-fallback-20261115",
+      "sourceCommits": [
+        "a49da94beeee24d258c07bf6944c08f824ad2129",
+        "88e337adeef6503f3ca8d6c24fedc56a8fc0371a"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-child-photo-fallback-20261115@a49da94beeee24d258c07bf6944c08f824ad2129",
+          "origin/codex/parent-child-card-grid-order-20261115@88e337adeef6503f3ca8d6c24fedc56a8fc0371a"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_EACH_PR_AND_POSTMERGE_AUTHENTICATED_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #491 source a49da94 passed nine exact-head checks and ancestry-merged at 970fb3212915fac49448395da0bdaf8f472af45d; Desktop visual QA then found action-strip overlap and explicitly did not pass.",
+          "PR #492 CSS-only source 88e337a passed nine exact-head checks and ancestry-merged at fae9ad326678253cd9fe9b80d8b5f58ae065868f.",
+          "Actual canonical Development Product at exact fae9ad3: settled Parent multi-Child at 1440x1024 and 390x844, two authorized selector cards, visible selected Child card, keyboard switch 902→903 updated Child context, no horizontal overflow or page errors. Desktop daily bottom y=695 and actions top y=717; both fresh screenshots visually inspected. Restricted receipt exports/restricted/gb-parent-photo-fallback-20261115/receipt-final.json SHA256 6809e2bf56bc832fe728422a7494ed3616a0ddeb25e1eb5dd04f2d0543cf959f; Desktop PNG SHA256 7505aa7ce8abc4e2053ac9938fa28a67cedfbe948cffb61222bb25c4fa531e80; Mobile PNG SHA256 be47231ad865e0df8d99d33e78c61d48ce847fe9fad362d313a52200fce819a8."
+        ],
+        "classification": "MANAGEMENT_PARENT_PRIMARY_SCREEN_SCOPED_VISUAL_CORRECTION",
+        "limits": "QA children have no photo_url: the static no-photo illustration loaded in Product, but failed-photo onError was not exercised in Product. This scoped correction is not owner V5 visual acceptance or full cumulative Product/security/provider/recovery qualification. No Product nonGET or canonical DB write. Server stopped and port 3000 released. New fixed monthly commitment ₪0."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "fae9ad326678253cd9fe9b80d8b5f58ae065868f",
+        "pullRequests": [
+          491,
+          492
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_DESKTOP_MOBILE_SCOPED_PARENT_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_PRIMARY_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "External owner evaluates primary Parent screen against approved reference; separately exercise failed-photo fallback with a controlled source-bearing QA fixture if needed. Continue remaining primary-screen corrections through coordinator; no main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
