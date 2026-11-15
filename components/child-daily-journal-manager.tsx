@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Camera, CheckCircle2, Moon, Smile, Utensils } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { uploadFiles } from "@/lib/client-upload";
@@ -9,6 +9,18 @@ type Child = { id: string; full_name: string; photo_url?: string | null; allergi
 type Journal = Record<string, any>;
 
 export function ChildDailyJournalManager({ gardenId, children, journals, initialChildId = "", incidentMode = false, mealMode = false }: { gardenId: string; children: Child[]; journals: Journal[]; initialChildId?: string; incidentMode?: boolean; mealMode?: boolean }) {
+  const breakfastRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!mealMode || incidentMode) return;
+    const frame = requestAnimationFrame(() => {
+      const input = breakfastRef.current;
+      if (!input) return;
+      input.focus({ preventScroll: true });
+      const bounds = input.getBoundingClientRect();
+      if (bounds.top < 0 || bounds.bottom > window.innerHeight - 80) input.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [mealMode, incidentMode]);
   const [journalRows, setJournalRows] = useState(journals);
   const [selectedChildId, setSelectedChildId] = useState(initialChildId && children.some((child) => child.id === initialChildId) ? initialChildId : children[0]?.id ?? "");
   const [message, setMessage] = useState("");
@@ -75,7 +87,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals, initial
         <input type="hidden" name="child_id" value={selectedChildId} />
         <div className="selected-child-strip"><Avatar name={selectedChild?.full_name} src={selectedChild?.photo_url} /><strong>{selectedChild?.full_name ?? "בחרו ילד"}</strong></div>
         <div className="form-grid">
-          <label><Utensils size={16} /> ארוחת בוקר<input name="breakfast" placeholder="אכל/ה יפה / מעט / לא רצה" autoFocus={mealMode && !incidentMode} /></label>
+          <label><Utensils size={16} /> ארוחת בוקר<input ref={breakfastRef} name="breakfast" placeholder="אכל/ה יפה / מעט / לא רצה" autoFocus={mealMode && !incidentMode} /></label>
           <label><Utensils size={16} /> ארוחת צהריים<input name="lunch" placeholder="לדוגמה: פסטה וירקות" /></label>
           <label><Moon size={16} /> שינה<input name="sleep_summary" placeholder="ישן/ה רגוע" /></label>
           <label>דקות שינה<input name="sleep_minutes" type="number" min="0" /></label>
