@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T21:14:54Z",
+  "updatedAt": "2026-11-15T21:24:38Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18235,6 +18235,48 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify live atomic limiter and approved route together with signed device and private-store migration before activating remote QA."
+    },
+    {
+      "id": "local/push44-signed-qa-build-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-SIGNED-QA-BUILD-20261115",
+      "title": "Signed PersonalTeamQA build for connected physical iPhone without installation",
+      "owner": "Camera executor local build; Digital Observer root evidence review",
+      "sourceBranch": null,
+      "sourceCommits": [],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "status": "LOCAL_RESTRICTED_EVIDENCE"
+      },
+      "validation": {
+        "status": "SIGNED_NATIVE_BUILD_PASS_INSTALL_NOT_RUN",
+        "evidence": [
+          "Device-targeted PersonalTeamQA Xcode build result bundle .dev-cache/tmp/push44-ios-signing-gap-20261115/ResultBundles/PersonalTeamQA-signed-connected-device.xcresult: succeeded, zero errors, one warning.",
+          "codesign --verify --deep --strict PASS; executable SHA256 d8b38b0ac1abd66e8df7ce8fb7cd8d925ae528b8bc36a26561e623c4c8c52f97. Sanitized profile binds team 27G7ZP4U3Q, QA bundle and one matching device; expires 2026-11-22T21:21:11Z."
+        ],
+        "classification": "PUSH44_SIGNED_QA_NATIVE_BUILD_ONLY",
+        "limits": "App not installed/launched. No callback, Auth, physical Secure Enclave, APNs, media, provider, main or Production proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "78895cb819e7b21c5e6a94028df8a1e73972fce9",
+        "pullRequests": [],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SIGNED_DEVICE_TARGETED_NATIVE_BUILD_PASS",
+      "releaseEligibility": "NOT_READY_DEVICE_INSTALL_CALLBACK_AUTH_MEDIA_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "After separate device-install authorization, install and exercise QA-only app on paired iPhone before profile expiry; preserve account and media gates."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
