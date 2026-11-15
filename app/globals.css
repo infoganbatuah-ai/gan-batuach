@@ -18497,6 +18497,23 @@ textarea {
 }
 
 /* PHASE 111: parent trust network */
+.parent-trust-garden-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.parent-trust-garden-switcher a {
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.parent-trust-garden-switcher a:focus-visible {
+  outline: 3px solid #1769e8;
+  outline-offset: 2px;
+}
+
 .parent-trust-network-shell .premium-dashboard-hero {
   background:
     radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 34%),

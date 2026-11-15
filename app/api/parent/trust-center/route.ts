@@ -3,10 +3,12 @@ import { revalidatePath } from "next/cache";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { belongsToParentTrustGarden, parentTrustGardenIds, resolveParentTrustGarden } from "@/lib/domain/parent-trust-garden";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   action: z.enum(["feedback", "request", "survey_response", "participation"]),
+  garden_id: z.string().uuid().optional(),
   feedback_type: z.enum(["suggestion", "compliment", "concern", "complaint"]).optional(),
   request_type: z.enum(["document_request", "information_request", "meeting_request"]).optional(),
   participation_type: z.enum(["event_participation", "volunteering", "activity_involvement"]).optional(),
@@ -23,8 +25,9 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const family = await getParentFamilyContext(supabase as any, profile);
-    const gardenId = family.gardenIds[0] ?? profile.garden_id;
-    if (!gardenId) return fail("לא נמצא גן משויך", 422);
+    if (family.sourceUnavailable) return fail("לא ניתן לאמת שיוך לגן כרגע", 503);
+    const gardenId = resolveParentTrustGarden(payload.garden_id, parentTrustGardenIds(family));
+    if (!gardenId) return fail("אין הרשאה לגן שנבחר", 403);
 
     if (payload.action === "feedback") {
       const { data, error } = await supabase.from("parent_feedback_items" as any).insert({
@@ -55,6 +58,12 @@ export async function POST(request: Request) {
 
     if (payload.action === "survey_response") {
       if (!payload.survey_id) return fail("חסר סקר", 422);
+      const { data: survey, error: surveyError } = await supabase.from("parent_surveys" as never)
+        .select("id,garden_id,status,visible_to_parents").eq("id", payload.survey_id).maybeSingle();
+      const surveyRecord = survey as { garden_id?: string | null; status?: string; visible_to_parents?: boolean } | null;
+      if (surveyError || !surveyRecord || !belongsToParentTrustGarden(surveyRecord, gardenId, true) || surveyRecord.status !== "active" || !surveyRecord.visible_to_parents) {
+        return fail("הסקר אינו זמין לגן שנבחר", 403);
+      }
       const { data, error } = await supabase.from("parent_survey_responses" as any).insert({
         survey_id: payload.survey_id,
         garden_id: gardenId,
@@ -67,6 +76,14 @@ export async function POST(request: Request) {
     }
 
     if (payload.action === "participation") {
+      if (payload.calendar_event_id) {
+        const { data: event, error: eventError } = await supabase.from("community_calendar_events" as never)
+          .select("id,garden_id,visible_to_parents").eq("id", payload.calendar_event_id).maybeSingle();
+        const eventRecord = event as { garden_id?: string | null; visible_to_parents?: boolean } | null;
+        if (eventError || !eventRecord || !belongsToParentTrustGarden(eventRecord, gardenId) || !eventRecord.visible_to_parents) {
+          return fail("האירוע אינו זמין לגן שנבחר", 403);
+        }
+      }
       const { data, error } = await supabase.from("parent_participation_items" as any).insert({
         garden_id: gardenId,
         parent_profile_id: profile.id,
