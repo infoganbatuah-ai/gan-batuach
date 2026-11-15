@@ -3,7 +3,7 @@ import { BriefcaseBusiness, FileCheck2, Filter, Plus, Search, Send, Sparkles, Us
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { CandidateRow, RecruitmentHero, RecruitmentMetric } from "@/components/recruitment-ui";
-import { StaffInvitationForm } from "@/components/staff-invitation-form";
+import { StaffInvitationDetails } from "@/components/staff-invitation-details";
 import { TeacherAppFrame, TeacherEmptyState, TeacherSection } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
@@ -14,7 +14,7 @@ type CandidateProfile = { full_name?: string | null; profile_photo_url?: string 
 type ApplicationRow = { id: string; staff_candidate_id: string; opening_id?: string | null; status: string; requested_role?: string | null; created_at?: string | null; staff_candidate_profiles?: CandidateProfile | null; kindergarten_staff_openings?: { role_needed?: string | null; age_group?: string | null; employment_type?: string | null } | null };
 type Opening = { id: string; role_needed: string; age_group?: string | null; employment_type?: string | null; active_status: string; created_at?: string | null };
 
-export default async function GardenStaffApplicationsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; role?: string }> }) {
+export default async function GardenStaffApplicationsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; role?: string; invite?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
@@ -73,7 +73,7 @@ export default async function GardenStaffApplicationsPage({ searchParams }: { se
         </TeacherSection>
         <aside className="ux08-manager-side">
           <section className="ux08-openings-card"><header><div><span className="ux08-eyebrow">המשרות שלך</span><h2>פתוחות כעת</h2></div><Link href="/dashboard/garden/staff-applications/new"><Plus /> חדשה</Link></header>{published.slice(0, 4).map((opening) => <article key={opening.id}><span><BriefcaseBusiness /></span><div><strong>{opening.role_needed}</strong><small>{opening.age_group || "כל קבוצות הגיל"} · {opening.employment_type || "היקף יתואם"}</small></div><StatusChip tone="success">פעילה</StatusChip></article>)}{published.length === 0 ? <p>אין משרה פתוחה כרגע.</p> : null}</section>
-          <section className="ux08-invitation-card"><FileCheck2 /><div><h2>הזמנה חתומה</h2><p>למועמדת שכבר בחרת, תוך שמירת נמען, תוקף והיסטוריה.</p></div><details><summary>פתיחת טופס הזמנה</summary><StaffInvitationForm openings={published} /></details></section>
+          <section className="ux08-invitation-card" id="staff-invitation"><FileCheck2 /><div><h2>הזמנה חתומה</h2><p>למועמדת שכבר בחרת, תוך שמירת נמען, תוקף והיסטוריה.</p></div><StaffInvitationDetails openings={published} openOnArrival={params?.invite === "1"} /></section>
         </aside>
       </section>
     </TeacherAppFrame>

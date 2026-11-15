@@ -347,6 +347,7 @@
 .ux08-invitation-card > svg { width: 37px; height: 37px; padding: 7px; border-radius: 11px; color: #6e50d8; background: #f0ebff; }
 .ux08-invitation-card p { color: var(--ux08-muted); }
 .ux08-invitation-card summary { color: #0670e8; font-weight: 800; cursor: pointer; }
+.ux08-invitation-card summary:focus-visible { outline: 3px solid #0874ef; outline-offset: 3px; border-radius: 4px; }
 .ux08-invitation-card .card { margin-top: 12px; box-shadow: none; }
 
 .ux08-manager-candidate-hero { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; padding: 24px; background: linear-gradient(130deg, #fff, #f1f8ff); }
