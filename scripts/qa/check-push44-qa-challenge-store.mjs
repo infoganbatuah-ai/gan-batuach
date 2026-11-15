@@ -19,13 +19,14 @@ const signature = sign("sha256", qaDeviceProofMessage(context), keys.privateKey)
 function fixture(changes = {}) {
   let row = { ...context, ...changes };
   let writes = 0;
+  let liveSession = true;
   const statements = [];
   const db = { query: async (sql, values) => {
     statements.push({ sql, values });
-    if (sql.includes("SELECT")) return { rows: row ? [{ ...row }] : [] };
-    assert.match(sql, /^UPDATE observer_qa_private\.device_handoff_challenges/);
+    if (sql.startsWith("SELECT")) return { rows: row ? [{ ...row }] : [] };
+    assert.match(sql, /^WITH live_session AS MATERIALIZED/);
     // Model the required single database compare-and-update statement.
-    if (!row || row.consumedAt !== null || row.revokedAt !== null || row.expiresAt <= 1_000
+    if (!liveSession || !row || row.consumedAt !== null || row.revokedAt !== null || row.expiresAt <= 1_000
       || values[1] !== row.accountId || values[2] !== row.sessionId
       || values[3] !== row.installationId || values[4] !== row.audience
       || values[5] !== row.nonce || values[6] !== row.publicKeySpkiBase64) return { rows: [] };
@@ -35,16 +36,20 @@ function fixture(changes = {}) {
   } };
   const input = { challengeId, accountId: context.accountId, sessionId: context.sessionId,
     installationId: context.installationId, audience: context.audience,
-    activeSession: true, signatureBase64: signature, now: 1_000 };
-  return { db, input, statements, get writes() { return writes; } };
+    signatureBase64: signature, now: 1_000 };
+  const verifyLiveSession = async () => liveSession
+    ? { accountId: context.accountId, sessionId: context.sessionId } : null;
+  return { db, input, verifyLiveSession, statements,
+    revokeSession() { liveSession = false; }, get writes() { return writes; } };
 }
 
 test("valid challenge is consumed once, including concurrent replay", async () => {
   const f = fixture();
-  const results = await Promise.all(Array.from({ length: 8 }, () => consumeStoredQaChallenge(f.db, f.input)));
+  const results = await Promise.all(Array.from({ length: 8 }, () => consumeStoredQaChallenge(f.db, f.input, f.verifyLiveSession)));
   assert.equal(results.filter(Boolean).length, 1);
   assert.equal(f.writes, 1);
-  assert.match(f.statements.find(({ sql }) => sql.startsWith("UPDATE"))?.sql ?? "", /consumed_at IS NULL/);
+  assert.match(f.statements.find(({ sql }) => sql.startsWith("WITH live_session"))?.sql ?? "", /consumed_at IS NULL/);
+  assert.match(f.statements.find(({ sql }) => sql.startsWith("WITH live_session"))?.sql ?? "", /FOR SHARE/);
 });
 
 for (const [name, inputChange, rowChange] of [
@@ -54,18 +59,34 @@ for (const [name, inputChange, rowChange] of [
   ["wrong session", { sessionId: "session-b" }, {}],
   ["wrong installation", { installationId: "installation-b" }, {}],
   ["wrong audience", { audience: "other-app" }, {}],
-  ["revoked session", { activeSession: false }, {}],
   ["wrong key", { signatureBase64: sign("sha256", qaDeviceProofMessage(context), other.privateKey).toString("base64") }, {}]
 ]) test(`${name} fails without consuming`, async () => {
   const f = fixture(rowChange);
-  assert.equal(await consumeStoredQaChallenge(f.db, { ...f.input, ...inputChange }), false);
+  assert.equal(await consumeStoredQaChallenge(f.db, { ...f.input, ...inputChange }, f.verifyLiveSession), false);
   assert.equal(f.writes, 0);
 });
 
 test("unavailable storage fails closed", async () => {
   const f = fixture();
-  assert.equal(await consumeStoredQaChallenge({ query: async () => { throw new Error("offline"); } }, f.input), false);
-  assert.equal(await consumeStoredQaChallenge(null, f.input), false);
+  assert.equal(await consumeStoredQaChallenge({ query: async () => { throw new Error("offline"); } }, f.input, f.verifyLiveSession), false);
+  assert.equal(await consumeStoredQaChallenge(null, f.input, f.verifyLiveSession), false);
+});
+
+test("revoked session and unavailable verifier fail closed", async () => {
+  const f = fixture();
+  f.revokeSession();
+  assert.equal(await consumeStoredQaChallenge(f.db, f.input, f.verifyLiveSession), false);
+  assert.equal(await consumeStoredQaChallenge(f.db, f.input), false);
+  assert.equal(f.writes, 0);
+});
+
+test("changed authenticated account or session is denied", async () => {
+  const f = fixture();
+  assert.equal(await consumeStoredQaChallenge(f.db, f.input,
+    async () => ({ accountId: "other", sessionId: f.input.sessionId })), false);
+  assert.equal(await consumeStoredQaChallenge(f.db, f.input,
+    async () => ({ accountId: f.input.accountId, sessionId: "other" })), false);
+  assert.equal(f.writes, 0);
 });
 
 test("review-only SQL proposes private scoped tables and bounded expiry", () => {
