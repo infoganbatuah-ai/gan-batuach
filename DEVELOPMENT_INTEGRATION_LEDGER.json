@@ -17939,6 +17939,39 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue primary-screen reference correction through canonical coordinator; external owner assesses full Owner composition. No main or Production release."
+    },
+    {
+      "id": "codex/staff-meal-quick-action-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-STAFF-MEAL-QUICK-ACTION-20261115",
+      "title": "Open and visibly focus meal entry from Staff primary quick action",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/staff-meal-quick-action-20261115",
+      "sourceCommits": ["b4437686c7a396e7fdc9b5e334bbde79ad72f327", "b550c41a4fa51da58cf7ae7e1680f5f71d8c2b79"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/staff-meal-quick-action-20261115@b4437686c7a396e7fdc9b5e334bbde79ad72f327", "origin/codex/staff-meal-visible-focus-20261115@b550c41a4fa51da58cf7ae7e1680f5f71d8c2b79"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #508 and PR #511 each passed six Digital Observer CI gates plus management-context, canonical quality and Snyk; source ancestry merged at 3269eaf5f32d4fe2c45a731b0384fc8d5b1da33c and 59ae56fc13f7810a721ee2e025d9cd87ff3e49b7.",
+          "Authenticated Staff baseline at ecfd092cc8d22d72f151454cba9733dc046f28df: meal quick action reached child-journal?meal=1 without breakfast focus on Desktop 1440x1024 or Mobile 390x844. After PR #508 Mobile focus was true but field remained offscreen at y1569; this was NOT PASS.",
+          "Actual canonical Product at merged 59ae56fc13f7810a721ee2e025d9cd87ff3e49b7: breakfast focused and visible Desktop y579-623, Mobile y349-394 after scrollY1220. incident=1 retained focus precedence on both viewports. Zero Product nonGET/journal writes, page errors or horizontal overflow. Screenshots visually inspected. Restricted Desktop SHA256 1868ce9cfc0448e7f27fe77783fa34e8a15fe70afdbb948f7d56a4d3739f5209; Mobile SHA256 82ecd1f1a84cadfab339bdcab68f04d9122509bfdc2242139c47532013f26fcc."
+        ],
+        "classification": "MANAGEMENT_STAFF_MEAL_QUICK_ACTION_ONLY",
+        "limits": "Scoped navigation/focus/viewport correction only; not full Staff reference reconstruction, full role-boundary E2E or cumulative release qualification. Staff role guard unchanged; no journal submission, DB write, migration, Digital Observer core edit, paid dependency, main or Production change. Runtime stopped and port 3000 released; new fixed monthly commitment ₪0."
+      },
+      "integration": {"branch": "integration/development", "commit": "59ae56fc13f7810a721ee2e025d9cd87ff3e49b7", "pullRequests": [508, 511], "sourceAncestryVerified": true},
+      "dependencies": {"status": "NONE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_STAFF_MEAL_DESKTOP_MOBILE_VISIBLE_FOCUS_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue Staff/primary-screen reference correction through canonical coordinator; external owner assesses overall visual composition. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
