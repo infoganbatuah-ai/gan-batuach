@@ -9,6 +9,15 @@ installation ID and P-256 signature. No account, session, bearer or approval
 credential can be supplied in the body or URL. The response has no redirect,
 token or body and is marked `no-store`.
 
+The adapter requires trusted server-side `reserveAttempt()` accounting before
+URL validation, body reads or Auth. Missing, failed or non-affirmative
+accounting fails closed. The dormant server composition binds it to the
+existing atomic, service-only `consume_rate_limit` RPC with one server-derived
+global QA key and 30 attempts per fixed minute. A 30-minute interval touches
+at most 31 buckets, admitting at most 930 application attempts; reconnects
+cannot change the key. This is **not** a provider edge limit, contractual
+spending cap or live-deployment proof.
+
 The adapter delegates to a **trusted server-side** `authenticate(request)`
 and `consume(input)` implementation. The authenticated account and session
 are taken only from that verifier. `consume` must invoke the separately

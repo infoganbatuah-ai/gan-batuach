@@ -32,10 +32,11 @@ const request = (body = {}) => new Request(endpoint, { method: "POST",
     signatureBase64: signature, ...body }) });
 
 function fixture({ enabled = false, authSequence = [{ accountId, sessionId }], storageError = false,
-  rowChange = {} } = {}) {
+  rateError = false, rowChange = {} } = {}) {
   let row = { ...rowTemplate, ...rowChange };
   let authCalls = 0;
   let dbCalls = 0;
+  let rateCalls = 0;
   const authenticate = async () => authSequence[Math.min(authCalls++, authSequence.length - 1)];
   const db = { query: async (sql, values) => {
     dbCalls++;
@@ -52,12 +53,22 @@ function fixture({ enabled = false, authSequence = [{ accountId, sessionId }], s
   vm.runInNewContext(compile(enabled), { module: compiledUnit, exports: compiledUnit.exports,
     require: (id) => {
       if (id === "server-only") return {};
+      if (id === "node:crypto") return { createHash: () => ({ update: () => ({ digest: () => "a".repeat(64) }) }) };
+      if (id === "@/lib/security/rate-limit") return { assertRateLimit: async (key, route, limit, windowSeconds) => {
+        rateCalls++;
+        assert.equal(key, "a".repeat(64));
+        assert.equal(route, "push44-qa-handoff");
+        assert.equal(limit, 30);
+        assert.equal(windowSeconds, 60);
+        if (rateError) throw new Error("rate store unavailable");
+      } };
       if (id === "./qa-verified-session-server") return { getQaVerifiedSession: authenticate };
       if (id.endsWith("handoff-http-gate.mjs")) return { handleQaHandoff };
       if (id.endsWith("challenge-store-adapter.mjs")) return { consumeStoredQaChallenge };
       throw new Error(`Unexpected import: ${id}`);
     } });
   return { create: compiledUnit.exports.createQaHandoffHandler, db, authenticate,
+    get rateCalls() { return rateCalls; },
     get authCalls() { return authCalls; }, get dbCalls() { return dbCalls; } };
 }
 
@@ -66,6 +77,7 @@ test("default-off composition does not call Auth or DB", async () => {
   assert.equal((await f.create(f.db)(request())).status, 404);
   assert.equal(f.authCalls, 0);
   assert.equal(f.dbCalls, 0);
+  assert.equal(f.rateCalls, 0);
 });
 
 test("server identity plus valid signature consumes once", async () => {
@@ -73,7 +85,16 @@ test("server identity plus valid signature consumes once", async () => {
   const handle = f.create(f.db);
   assert.equal((await handle(request())).status, 204);
   assert.equal((await handle(request())).status, 403);
+  assert.equal(f.rateCalls, 2);
   assert.equal(f.authCalls, 4); // Authenticate and revalidate for each request.
+});
+
+test("composition denies on atomic rate-store failure before Auth or receipt", async () => {
+  const f = fixture({ enabled: true, rateError: true });
+  assert.notEqual((await f.create(f.db)(request())).status, 204);
+  assert.equal(f.rateCalls, 1);
+  assert.equal(f.authCalls, 0);
+  assert.equal(f.dbCalls, 0);
 });
 
 for (const [name, options, body] of [
