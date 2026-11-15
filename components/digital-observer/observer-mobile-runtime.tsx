@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
 import { openMobilePlaybackPublisher } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
 import { nativePushResult, parseNativePushRequest, type NativePushRequest } from "@/lib/domain/digital-observer/native-push-request";
+import { firstLaunchOfMobileLink, rememberPendingMobileLink, takePendingMobileLink } from "@/lib/domain/digital-observer/pending-mobile-link";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
@@ -59,6 +60,11 @@ async function authorizeAndOpen(rawUrl: string) {
   });
   const payload = await response.json().catch(() => ({}));
   const destination = payload?.data?.destination;
+  if (response.status === 401 && Capacitor.isNativePlatform() && window.sessionStorage &&
+    rememberPendingMobileLink(window.sessionStorage, rawUrl)) {
+    if (window.location.pathname !== "/digital-observer/login") window.location.replace("/digital-observer/login");
+    throw new Error("SESSION_REVALIDATION_REQUIRED");
+  }
   if (!response.ok || typeof destination !== "string" || !destination.startsWith("/digital-observer/")) {
     throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "MOBILE_LINK_DENIED");
   }
@@ -151,6 +157,14 @@ export function ObserverMobileRuntime() {
         if (pushAvailable && pending.some((item) => item.kind === "push_registration")) {
           const permission = await PushNotifications.checkPermissions();
           if (permission.receive === "granted") await PushNotifications.register();
+        }
+        const pendingLink = window.sessionStorage ? takePendingMobileLink(window.sessionStorage) : null;
+        if (pendingLink) {
+          try { await authorizeAndOpen(pendingLink); return; }
+          catch (error) {
+            emit("digital-observer:mobile-link-denied");
+            if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED") return;
+          }
         }
         if (!disposed && playbackPublisher.isCurrent() && !listenerFailure && networkKnown && !networkOffline && !appInactive && startedVersion === interruptionVersion) setStale(false);
       } catch (error) {
@@ -292,7 +306,8 @@ export function ObserverMobileRuntime() {
       removers.push(() => appUrl.remove());
       const launch = await App.getLaunchUrl();
       if (disposed || !playbackPublisher.isCurrent()) return;
-      if (launch?.url) void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
+      if (launch?.url && window.sessionStorage && firstLaunchOfMobileLink(window.sessionStorage, launch.url))
+        void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
 
       if (pushAvailable) {
         const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
