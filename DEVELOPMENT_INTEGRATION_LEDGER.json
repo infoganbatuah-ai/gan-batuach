@@ -18277,6 +18277,56 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "After separate device-install authorization, install and exercise QA-only app on paired iPhone before profile expiry; preserve account and media gates."
+    },
+    {
+      "id": "codex/admin-inspections-filters-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-ADMIN-INSPECTIONS-FILTERS-20261115",
+      "title": "Make bounded Admin inspection search and status filters functional",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/admin-inspections-filters-20261115",
+      "sourceCommits": [
+        "2af62b56357f9c2459b28637eb8fe4e73e483bbc"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/admin-inspections-filters-20261115@2af62b56357f9c2459b28637eb8fe4e73e483bbc"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_ADMIN_PRODUCT_FILTER_PASS_SCOPED",
+        "evidence": [
+          "PR #528 source head 2af62b56357f9c2459b28637eb8fe4e73e483bbc passed six Digital Observer CI gates plus management-context, canonical quality and Snyk; ancestry-merged to Development 16ae9ee336d40e19c6ec467079858b33b24c21c6. Focused filter tests 2/2 and diff check passed.",
+          "Actual canonical Development baseline d42bf0d1b30ad40c1955e40631f6a6c845fb365d: Admin Desktop 1440x1024 and Mobile 390x844 controls had no names/form/handler; Enter did not alter URL. Zero browser nonGET, page errors or horizontal overflow. Baseline Owner browser redirect-chain assertion was inconclusive, not counted as role PASS.",
+          "Actual clean merged Development Product 16ae9ee336d40e19c6ec467079858b33b24c21c6: authenticated Admin Desktop/Mobile search via Enter, status-plus-search combination against an existing row, reset, no-match empty state and bounded 120-row count passed; Owner Desktop/Mobile settled at /dashboard/garden/operations without Admin inspections DOM. No browser nonGET/external requests, page errors or horizontal overflow. Runtime stopped and port 3000 released.",
+          "Protected screenshot SHA256 under exports/restricted/gb-admin-inspection-filters-20261115/: Admin Desktop cf02dd5321b131f45a2c3f2878caef2bc077c3690a5d15082b59e561e073cc29, Admin Mobile a287dbac99752e5d7b7f79df43bcca4ade673ddec342c6201277337dbc1c69ab, Owner Desktop 548441bb86180573d6cf05171b9aee39513c9b50940a993ca9cf87849865ecba, Owner Mobile d3eea20e5125efd75ca0d894a3f84e63ccd220d583342b003bd34a04a7731bc1."
+        ],
+        "classification": "MANAGEMENT_ADMIN_INSPECTION_LIST_TASK_COMPLETION",
+        "limits": "Search/status applies only to the latest 120 loaded inspections, explicitly labeled; it is not a full-history server search. Historical UX17 test returned 8/9 because its old Digital Observer source baseline mismatches later unrelated DO files; no DO path changed and current nine exact-head CI gates passed. No migration, Product write, paid dependency, main or Production change; new fixed monthly commitment ₪0. Cumulative security/cost/recovery and external owner visual gates remain pending."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "16ae9ee336d40e19c6ec467079858b33b24c21c6",
+        "pullRequests": [
+          528
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_ADMIN_INSPECTION_FILTERS_DESKTOP_MOBILE_KEYBOARD_OWNER_DENIAL_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue next scoped Product task through canonical coordinator; external owner visual acceptance and cumulative release gates remain open. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
