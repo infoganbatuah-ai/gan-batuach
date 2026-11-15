@@ -8,19 +8,20 @@ import { uploadFiles } from "@/lib/client-upload";
 type Child = { id: string; full_name: string; photo_url?: string | null; allergies?: string | null; regular_medications?: string | null };
 type Journal = Record<string, any>;
 
-export function ChildDailyJournalManager({ gardenId, children, journals, initialChildId = "", incidentMode = false, mealMode = false }: { gardenId: string; children: Child[]; journals: Journal[]; initialChildId?: string; incidentMode?: boolean; mealMode?: boolean }) {
+export function ChildDailyJournalManager({ gardenId, children, journals, initialChildId = "", incidentMode = false, mealMode = false, healthMode = false }: { gardenId: string; children: Child[]; journals: Journal[]; initialChildId?: string; incidentMode?: boolean; mealMode?: boolean; healthMode?: boolean }) {
   const breakfastRef = useRef<HTMLInputElement>(null);
+  const medicineRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (!mealMode || incidentMode) return;
+    if (incidentMode || (!mealMode && !healthMode)) return;
     const frame = requestAnimationFrame(() => {
-      const input = breakfastRef.current;
+      const input = mealMode ? breakfastRef.current : medicineRef.current;
       if (!input) return;
       input.focus({ preventScroll: true });
       const bounds = input.getBoundingClientRect();
       if (bounds.top < 0 || bounds.bottom > window.innerHeight - 80) input.scrollIntoView({ block: "center", behavior: "instant" });
     });
     return () => cancelAnimationFrame(frame);
-  }, [mealMode, incidentMode]);
+  }, [mealMode, healthMode, incidentMode]);
   const [journalRows, setJournalRows] = useState(journals);
   const [selectedChildId, setSelectedChildId] = useState(initialChildId && children.some((child) => child.id === initialChildId) ? initialChildId : children[0]?.id ?? "");
   const [message, setMessage] = useState("");
@@ -93,7 +94,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals, initial
           <label>דקות שינה<input name="sleep_minutes" type="number" min="0" /></label>
           <label><Smile size={16} /> מצב רוח<select name="mood"><option>רגוע/ה</option><option>שמח/ה</option><option>עייף/ה</option><option>רגיש/ה</option><option>צריך תשומת לב</option></select></label>
           <label>שירותים / החתלה<input name="bathroom" placeholder="תקין / נדרש מעקב" /></label>
-          <label>תרופה שניתנה<input name="medicine" placeholder="רק אם יש אישור הורה" /></label>
+          <label>תרופה שניתנה<input ref={medicineRef} name="medicine" placeholder="רק אם יש אישור הורה" autoFocus={healthMode && !mealMode && !incidentMode} /></label>
           <label>אירועים חריגים<input name="incidents" placeholder="ללא / פירוט קצר" autoFocus={incidentMode} /></label>
           <label className="wide">הערה להורים<textarea name="notes_to_parents" rows={4} placeholder="משהו טוב מהיום, בקשה למחר או עדכון חשוב" /></label>
           <label className="wide"><Camera size={16} /> תמונות יומיות<input name="photos" type="file" accept="image/*" multiple /></label>
