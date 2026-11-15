@@ -8321,20 +8321,20 @@
         "20261115001000"
       ],
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentApprovalEvidence": "PR #473 nine exact-head checks green. Protected synthetic app/Auth/Storage snapshot actually restored into two disposable QA databases. First role/HTTP matrix and final-source concurrent-submission matrix PASS; restricted result SHA256 a6af1f6d0bb5c5ac2a75f8c84ebd2f40554167539fd54d333531345bf574ed8c. Full-provider restore and canonical application not yet proven.",
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
-      "developmentHistoryDigest": null,
+      "developmentApprovalEvidence": "PR #473 nine exact-head checks green. Protected synthetic app/Auth/Storage snapshot actually restored into two disposable QA databases. First role/HTTP matrix and final-source concurrent-submission matrix PASS; restricted result SHA256 a6af1f6d0bb5c5ac2a75f8c84ebd2f40554167539fd54d333531345bf574ed8c. Full-provider restore remains unproven.",
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-15T00:29:52.00305Z",
+      "developmentEvidence": "Guarded isolated Development runner applied only 20261115002000 at exact remote head fdd8f049fb46e5569d70dfce62778a84396865a1. Receipt source digest and schema fingerprint matched; canonical 227 baseline + 47 postbaseline = 274/274, RLS enabled, proposals/requests/executions zero, Gardens 15/Auth users 27. Fresh mode-0600 backup SHA256 9fee75a0399dc93b7f7a298ed7682a589fae8b7e0d189a4e2ee45ff4e7e72aef was actually restored to a disposable database; app/Auth/profile data and RLS/policy/ACL counts matched. Rollback-only synthetic role/scope/stale/replay test passed there, no residue; disposable target was removed and its absence verified by coordinator. Restricted handoff exports/restricted/gb-parent-name-canonical-apply-20261115/HANDOFF.md SHA256 d6e5e2499166542c136b64fa37658b9b7a7eb685c6bd892b71218a8b3c1df59b. Product API readback and full-provider recovery remain open; no Production access.",
+      "developmentHistoryDigest": "d6d8ee959ca5aef6804b51614f97f75038922f3f5a872b32266b78f2f9ff99e3",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
-      "recovery": "Additive proposal table and bounded Parent/Admin RPCs. Before canonical isolated Development apply, require fresh protected backup and actual disposable restore with exclusive DB lease. Reversal requires reviewed forward migration preserving request/audit evidence. No Production access.",
-      "developmentSchemaFingerprint": null
+      "recovery": "Additive proposal table and bounded Parent/Admin RPCs. Fresh protected Development backup was restored into a disposable database before ordered canonical application; this does not prove full-provider restore, RPO or RTO. Reversal requires reviewed forward migration preserving request/audit evidence. No Production access.",
+      "developmentSchemaFingerprint": "7ef77c72f473f2bfbd11a6a0fe6e69184f2c322d7e14cdc1141eba1faa9f3dda"
     }
   ],
   "developmentExpected": 274,
-  "developmentAppliedVerified": 273,
-  "blockers": ["Parent self-name correction 20261115002000 is integrated but not applied to canonical isolated Development (273/274); a separate exclusive DB lease, fresh protected backup and ordered application/readback are required.", "Authenticated Child/Garden Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
+  "developmentAppliedVerified": 274,
+  "blockers": ["Authenticated Child/Garden and Parent-name Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
