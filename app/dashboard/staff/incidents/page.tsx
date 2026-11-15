@@ -5,8 +5,8 @@ import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-a
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function StaffIncidentsPage({ searchParams }: { searchParams?: Promise<{ childId?: string }> }) {
-  const params: { childId?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
+export default async function StaffIncidentsPage({ searchParams }: { searchParams?: Promise<{ childId?: string; new?: string }> }) {
+  const params: { childId?: string; new?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
   const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
@@ -19,7 +19,7 @@ export default async function StaffIncidentsPage({ searchParams }: { searchParam
     <StaffAppFrame active="more">
       <StaffPageHero eyebrow="דיווח מהיר" title="קרה משהו? מתעדים מיד" text="בחרו ילד, חומרה, טקסט קצר ואם צריך תמונה. המנהלת מקבלת התראה להמשך טיפול." icon={Siren} badge={<StatusChip tone="warning">מתועד</StatusChip>} />
       <StaffSection title="דיווח אירוע">
-        <IncidentManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} incidents={(incidentsRes.data ?? []) as any[]} initialChildId={params.childId ?? ""} />
+        <IncidentManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} incidents={(incidentsRes.data ?? []) as any[]} initialChildId={params.childId ?? ""} defaultOpen={params.new === "1"} focusNewIncident={params.new === "1"} />
       </StaffSection>
     </StaffAppFrame>
   );
