@@ -18472,6 +18472,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Continue next scoped Product task through canonical coordinator; external owner visual acceptance and cumulative release gates remain open. No main or Production release."
+    },
+    {
+      "id": "codex/push44-qa-callback-optin-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-QA-CALLBACK-BUILD-MODE-20261116",
+      "title": "Select default-off QA callback source plist by explicit build mode",
+      "owner": "Camera executor local implementation; Digital Observer root integration",
+      "sourceBranch": "codex/push44-qa-callback-optin-20261115",
+      "sourceCommits": [
+        "7f58b216c1573c48087a0dee206face79946399d"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-qa-callback-optin-20261115@7f58b216c1573c48087a0dee206face79946399d"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_EIGHT_CHECKS_AND_THREE_UNSIGNED_IOS_BUILDS_PASS",
+        "evidence": [
+          "PR #535 passed eight exact-head CI checks and ancestry-merged as a696f2b5bd56ad3aed6ebe4dee4a0386eea584e5.",
+          "Actual unsigned generic-iOS builds off -> observerqa -> off yielded generated Info.plist no URL type -> observerqa only -> no URL type; this closes the observed incremental-build generated-plist ordering defect.",
+          "Focused QA 4/4 PASS, plist lint PASS, TypeScript noEmit PASS, focused lint PASS, git diff --check PASS."
+        ],
+        "classification": "PUSH44_QA_CALLBACK_BUILD_MODE_ONLY",
+        "limits": "Native return code remains disabled; no signed opt-in build, physical callback, account identity/session exchange, endpoint, SQL, media, Push, main or Production proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "a696f2b5bd56ad3aed6ebe4dee4a0386eea584e5",
+        "pullRequests": [
+          535
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": [
+          "local/push44-qa-device-launch-20261115"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "THREE_UNSIGNED_IOS_BUILD_MODES_AND_FOCUSED_QA_PASS",
+      "releaseEligibility": "NOT_READY_ACCOUNT_CALLBACK_AUTH_MEDIA_PUSH_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify trusted Development identity/session handoff and callback activation separately before signed opt-in device QA; preserve default-off behavior."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
