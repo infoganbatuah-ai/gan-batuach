@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T21:24:38Z",
+  "updatedAt": "2026-11-15T22:11:35.321Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18417,6 +18417,61 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify trusted authenticated Development callback and account/session lifecycle on a signed device before claiming iPhone handoff; retain media/Push and broader device gates."
+    },
+    {
+      "id": "codex/parent-trust-garden-context-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PARENT-TRUST-GARDEN-CONTEXT-20261115",
+      "title": "Route Parent Trust Center actions and readback to the selected authorized Garden",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/parent-trust-garden-context-20261115",
+      "sourceCommits": [
+        "88db652c7efa38b85939391f2eeefa714a8a1725",
+        "6c654f40fb8e1d243e588009a05bdfe79060a2a4"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/parent-trust-garden-context-20261115@88db652c7efa38b85939391f2eeefa714a8a1725",
+          "origin/codex/parent-trust-auth-status-20261116@6c654f40fb8e1d243e588009a05bdfe79060a2a4"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "TWO_EXACT_HEAD_NINE_CHECK_PRS_AND_POSTMERGE_PARENT_MULTI_GARDEN_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #532 source 88db652c7efa38b85939391f2eeefa714a8a1725 passed six Digital Observer CI gates, management-context, canonical quality and Snyk; merged by ancestry to Development ffb771b664bcae605e442866ba3e761417f31cbc. PR #534 source 6c654f40fb8e1d243e588009a05bdfe79060a2a4 passed the same nine exact-head gates and merged by ancestry to Development 2110534a777c3dae101362bc047dc5dd18758a61.",
+          "Focused Parent Garden selection tests 4/4, typecheck and diff check passed. Focused ESLint legacy no-explicit-any count remained 35 before/after first source fix; route-only follow-up had five pre-existing errors, no new lint failure. Both PR static quality gates passed.",
+          "Actual clean Development Product e2a46eca49770defabfebe2d7c9d257ee8db6fca (both-Garden source ancestor): authenticated Parent-Multi at Desktop 1440x1024 and Mobile 390x844 showed two Garden links, selected navigation, zero horizontal overflow or page errors. Garden A/B feedback writes returned 201 and readback showed only selected Garden; foreign Garden, cross-Garden survey and cross-Garden event were rejected 403. Unauthenticated endpoint returned 500 due pre-existing page redirect handling; this finding was corrected separately in PR #534 rather than marked PASS.",
+          "Actual clean merged Development Product 2110534a777c3dae101362bc047dc5dd18758a61: unauthenticated POST 401, authenticated Staff POST 403, Parent forged foreign Garden POST 403; bounded before/after feedback title count delta 0. Prior synthetic QA survey/event/feedback fixtures were deleted in finally and count 0 verified. Product server stopped and port 3000 released.",
+          "Restricted screenshots: Desktop SHA256 e49d2c0b3b7bc088ccfb45dcd3d19866371c328947cd7480cb059a4a8869e601; Mobile SHA256 2d69dedecbf3b7e625f5d4b57763d593543b2556faf57cdbcf1119566624fc58. QA scripts SHA256 df12781d8d2d0ef3ddda712f4baa53ec6175edd48f57aaedd25a9df91514ab5e and 02f3b7b4b88f45070bd625deafa44b0bc7fdf38ac8af150c31df7123e989e4cb. Private contents remain outside Git.",
+          "During QA, an unprivileged Colima status check was misread as a stopped VM and caused an unnecessary graceful stop of the dedicated local gbi profile; the same profile was restarted without volume reset. The pinned gan-batuach-integration container was verified running and Development baseline drift passed 274/274 with zero errors. The bounded QA marker count was zero after cleanup; no Production connection was used."
+        ],
+        "classification": "MANAGEMENT_PARENT_TRUST_GARDEN_ROUTING_AND_API_AUTH_STATUS",
+        "limits": "Scoped Parent Trust Center only. No migration, Digital Observer core source edit, paid dependency, main or Production change. Full Product/security, formal accessibility, external owner visual, supplier cost and recovery release gates remain open; Production state is UNVERIFIED."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "2110534a777c3dae101362bc047dc5dd18758a61",
+        "pullRequests": [
+          532,
+          534
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PARENT_MULTI_GARDEN_DESKTOP_MOBILE_WRITE_SCOPE_AND_API_AUTH_STATUS_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Continue next scoped Product task through canonical coordinator; external owner visual acceptance and cumulative release gates remain open. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
