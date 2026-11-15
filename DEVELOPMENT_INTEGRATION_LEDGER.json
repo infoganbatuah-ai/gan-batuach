@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-14T22:50:00Z",
+  "updatedAt": "2026-11-15T00:07:50Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17682,6 +17682,64 @@
       "releaseEligibility": "NOT_READY_PRODUCT_FULL_RIGHTS_SECURITY_COST_RECOVERY_OWNER_VISUAL_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "After separate exact-head applied-state ledger PR merge, verify 273/273 actual drift and obtain a separate Product runtime lease for authenticated synthetic Parent/Admin/API readback. Full privacy rights, full-provider restore, legal retention, supplier cost and external owner visual review remain open. No main/Production."
+    },
+    {
+      "id": "codex/gb-privacy-parent-name-correction-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PRIVACY-PARENT-CORRECTION-20261115",
+      "title": "Reviewed Parent self-profile name correction",
+      "owner": "Scoped Management privacy executor; single Development integration owner",
+      "sourceBranch": "codex/gb-privacy-parent-name-correction-20261115",
+      "sourceCommits": [
+        "8f852608d6bf8a0b6fb7ea5a9040c562c6a467e4",
+        "d80b69635e168aafa4b34346ec28e5ab40a37bb8",
+        "06bb8a5c65a12bf3abb5ef6fb3c63cec192666c2",
+        "3b45cc23a4b0deec15b6f179e6e1db9e45fe9398"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-privacy-parent-name-correction-20261115@3b45cc23a4b0deec15b6f179e6e1db9e45fe9398"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_DISPOSABLE_PARENT_CORRECTION_QA_PASS",
+        "evidence": [
+          "PR #473 passed six exact-head Digital Observer CI gates, canonical quality, management-context and Snyk at 3b45cc23a4b0deec15b6f179e6e1db9e45fe9398; ancestry-preserving Development merge ac89c56964d2af2981b9c61e69de16a7dafd14cb.",
+          "Restored synthetic QA database: rollback-only requester/role/other-Parent/stale-profile/approval/scope/atomic audit/replay matrix PASS; authenticated loopback HTTP submit/isolation/approval/apply/readback/audit/replay PASS.",
+          "Second protected synthetic restore applied final migration; two concurrent Parent submissions produced one accepted, one rejected; exactly one request, proposal and immutable submission audit event. Restricted result exports/restricted/gb-parent-name-concurrency-qa-20261115/RESULT.json SHA256 a6af1f6d0bb5c5ac2a75f8c84ebd2f40554167539fd54d333531345bf574ed8c. Disposable DB, network, volumes, secrets and backup archive removed. Canonical read-only after: 15 Gardens, zero privacy requests, candidate proposal table absent."
+        ],
+        "classification": "MANAGEMENT_PRIVACY_PARENT_SELF_NAME_CORRECTION",
+        "limits": "Only authenticated active Parent own profiles.full_name; Admin approval and explicit one-row profile scope required. Child/Garden/email/medical/document/media corrections remain review-only. Final source is merged but canonical Development migration is NOT APPLIED. Legal retention, full-provider restore, all-supplier cost, Product browser readback and Production proof remain open. New fixed monthly commitment ₪0."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "ac89c56964d2af2981b9c61e69de16a7dafd14cb",
+        "pullRequests": [
+          473
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "PRIVACY_CHILD_GARDEN_IDENTITY_DELIVERY_APPLIED",
+        "units": [
+          "codex/gb-privacy-child-garden-delivery-20261115"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20261115002000_management_privacy_parent_name_correction.sql"
+      ],
+      "migrationOrder": [
+        "20261115002000"
+      ],
+      "localVerification": "CANONICAL_MIGRATION_NOT_APPLIED_273_OF_274_EXPECTED; DISPOSABLE_SYNTHETIC_QA_PASS",
+      "releaseEligibility": "NOT_READY_CANONICAL_DEVELOPMENT_APPLY_PRODUCT_READBACK_LEGAL_RETENTION_RECOVERY_COST_OWNER_VISUAL_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Obtain separate exclusive canonical isolated Development DB lease; fresh protected backup and actual disposable restore; apply only reviewed 20261115002000 in order; verify history/RLS/role/readback and zero synthetic residue. Then record actual applied-state in separate ledger PR. No main/Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

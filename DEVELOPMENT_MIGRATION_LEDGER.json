@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-11-14T22:50:00Z",
+  "observedAt": "2026-11-15T00:07:50Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_273_OF_273_INSTALLED_CHILD_GARDEN_DELIVERY_PRODUCT_READBACK_AND_FULL_PROVIDER_RESTORE_PENDING",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_273_OF_274_INSTALLED_PARENT_NAME_CORRECTION_APPLY_PENDING",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8302,11 +8302,39 @@
       "productionEvidence": null,
       "recovery": "Metadata-only Child/Garden identity grant; no copied export blob. Relevant app/Auth/Storage/development_metadata backup restored with object ACLs and RLS, synthetic matrix passed before canonical ordered application. Full-provider restore/RPO/RTO remain unproven. Reversal needs reviewed forward migration preserving immutable audit and no-reissue history. No Production access.",
       "developmentSchemaFingerprint": "1864d8372fa98c4aea82545c816a6b27051d21a26bcfaa67dae0f8041e76fb83"
+    },
+    {
+      "file": "supabase/migrations/20261115002000_management_privacy_parent_name_correction.sql",
+      "blob": "51694bef51578b0234590979055db39cf093ffc2",
+      "sha256": "d6d8ee959ca5aef6804b51614f97f75038922f3f5a872b32266b78f2f9ff99e3",
+      "version": "20261115002000",
+      "sourceTask": "GB-PRIVACY-PARENT-CORRECTION-20261115",
+      "sourceCommit": "3b45cc23a4b0deec15b6f179e6e1db9e45fe9398",
+      "remoteBranch": "origin/codex/gb-privacy-parent-name-correction-20261115@3b45cc23a4b0deec15b6f179e6e1db9e45fe9398",
+      "integrationCommit": "ac89c56964d2af2981b9c61e69de16a7dafd14cb",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20261115002000",
+      "requiredPredecessor": "20261115001000_management_privacy_child_garden_delivery.sql",
+      "developmentDependsOn": [
+        "20261115001000"
+      ],
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentApprovalEvidence": "PR #473 nine exact-head checks green. Protected synthetic app/Auth/Storage snapshot actually restored into two disposable QA databases. First role/HTTP matrix and final-source concurrent-submission matrix PASS; restricted result SHA256 a6af1f6d0bb5c5ac2a75f8c84ebd2f40554167539fd54d333531345bf574ed8c. Full-provider restore and canonical application not yet proven.",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Additive proposal table and bounded Parent/Admin RPCs. Before canonical isolated Development apply, require fresh protected backup and actual disposable restore with exclusive DB lease. Reversal requires reviewed forward migration preserving request/audit evidence. No Production access.",
+      "developmentSchemaFingerprint": null
     }
   ],
-  "developmentExpected": 273,
+  "developmentExpected": 274,
   "developmentAppliedVerified": 273,
-  "blockers": ["Authenticated Child/Garden Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
+  "blockers": ["Parent self-name correction 20261115002000 is integrated but not applied to canonical isolated Development (273/274); a separate exclusive DB lease, fresh protected backup and ordered application/readback are required.", "Authenticated Child/Garden Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
