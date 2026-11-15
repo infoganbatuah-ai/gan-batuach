@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T21:00:00Z",
+  "updatedAt": "2026-11-15T20:45:14Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18060,6 +18060,103 @@
       "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_GATES_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue scoped Product security and workflow tasks through canonical coordinator; review other Inspector Garden-scoped complaint previews and preserve role-specific policy. No main or Production release."
+    },
+    {
+      "id": "codex/push44-private-consume-acl-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-PRIVATE-CONSUME-ACL-20261115",
+      "title": "Fence one-use QA challenge consumption through a private Auth-session function",
+      "owner": "Digital Observer root; isolated local PostgreSQL qualification",
+      "sourceBranch": "codex/push44-private-consume-acl-20261115",
+      "sourceCommits": [
+        "24cbdc5f694d2af6eacb00c458e3fe748ff7c776"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-private-consume-acl-20261115@24cbdc5f694d2af6eacb00c458e3fe748ff7c776"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_EIGHT_CHECKS_AND_ISOLATED_SYNTHETIC_POSTGRESQL_PASS",
+        "evidence": [
+          "PR #519 exact head 24cbdc5f694d2af6eacb00c458e3fe748ff7c776 passed eight GitHub checks and ancestry-merged as d32cb334c9a3877058d94382bfbf0bd2f4ebfe9b.",
+          "Canonical local Development catalog read-only: service_role lacks SELECT on auth.sessions; private QA schema absent before and after. Disconnected PostgreSQL 17.6 synthetic test: direct Auth read denied; private function true once then false on replay; two concurrent consumes yielded exactly one true; consume after session deletion false and receipt remained unconsumed; anon/authenticated denied schema/function use. Disposable container and data deleted. Protected evidence exports/restricted/push44-private-consume-qa-20261115/REPORT.md.",
+          "Focused handoff tests 34/34 PASS and final schema-guard test 12/12 PASS; git diff --check PASS."
+        ],
+        "classification": "PUSH44_REVIEW_ONLY_QA_HANDOFF_DB_ACL",
+        "limits": "Only disconnected synthetic PostgreSQL. Proposed SQL remains outside active migrations and was not applied to canonical Development or Production. No live Auth lifecycle, physical device, callback, provider or media proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "d32cb334c9a3877058d94382bfbf0bd2f4ebfe9b",
+        "pullRequests": [
+          519
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ISOLATED_SYNTHETIC_POSTGRESQL_ACL_ONE_USE_CONCURRENCY_REVOCATION_PASS",
+      "releaseEligibility": "NOT_READY_REVIEW_ONLY_SCHEMA_AND_REAL_DEVICE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Review canonical Development migration and full Supabase Auth lifecycle before activation; retain remote iPhone QA block."
+    },
+    {
+      "id": "codex/push44-ios-build-qualification-20261115",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-IOS-BUILD-QUALIFICATION-20261115",
+      "title": "Correct Secure Enclave key cast and compile unsigned PersonalTeamQA for generic iOS",
+      "owner": "Camera executor local implementation; Digital Observer root integration",
+      "sourceBranch": "codex/push44-ios-build-qualification-20261115",
+      "sourceCommits": [
+        "9a67e40008fa35616030b105ff381e7a43486b65"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/push44-ios-build-qualification-20261115@9a67e40008fa35616030b105ff381e7a43486b65"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_EIGHT_CHECKS_AND_UNSIGNED_GENERIC_IOS_BUILD_PASS",
+        "evidence": [
+          "PR #521 exact head 9a67e40008fa35616030b105ff381e7a43486b65 passed eight GitHub checks and ancestry-merged as b18aec4c741c86644cef07f4e7adcd63adcef5a1.",
+          "External-drive isolated Xcode result bundle .dev-cache/tmp/push44-ios-build-20261115/ResultBundles/PersonalTeamQA-generic-ios-after-seckey-fix.xcresult reports status succeeded, zero errors and one unrelated headermap warning for Any iOS Device. Executable SHA256 f23dd1a177ecbd010d650ea38d753ef9c0b48edea2cd1552381f09ae65966b7e. Four focused QA scripts passed 9 tests; git diff --check PASS."
+        ],
+        "classification": "PUSH44_UNSIGNED_NATIVE_QA_BUILD_ONLY",
+        "limits": "Unsigned generic-iOS compile only; no signing, installation, Secure Enclave device proof, callback, external endpoint, media, SQL activation, main or Production."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "b18aec4c741c86644cef07f4e7adcd63adcef5a1",
+        "pullRequests": [
+          521
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "SOURCE_ANCESTRY_VERIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_UNSIGNED_GENERIC_IOS_NATIVE_BUILD_PASS",
+      "releaseEligibility": "NOT_READY_SIGNED_PHYSICAL_DEVICE_AND_CALLBACK_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify signed physical QA build and approved callback/session path before remote iPhone handoff; retain existing block."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
