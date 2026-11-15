@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import Security
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -84,3 +85,89 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     #endif
 
 }
+
+#if PERSONAL_TEAM_QA
+// Dormant native primitive: no bridge or enrollment route invokes this code.
+// The private key is created by the Secure Enclave and never leaves Keychain.
+enum QaSecureEnclaveProof {
+    enum ProofError: Error { case unavailable, invalidChallenge, invalidPublicKey, signingFailed }
+
+    private static let tag = Data("com.ganbatuach.app.qa.device-proof.v1".utf8)
+    private static let spkiPrefix = Data([
+        0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02,
+        0x01, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07,
+        0x03, 0x42, 0x00
+    ])
+
+    private static func privateKey() throws -> SecKey {
+        guard Bundle.main.bundleIdentifier == "com.ganbatuach.app.qa" else { throw ProofError.unavailable }
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassKey,
+            kSecAttrApplicationTag as String: tag,
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
+            kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
+            kSecReturnRef as String: true
+        ]
+        var existing: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &existing)
+        if status == errSecSuccess {
+            guard let key = existing as? SecKey else { throw ProofError.unavailable }
+            return key
+        }
+        guard status == errSecItemNotFound else { throw ProofError.unavailable }
+
+        var accessError: Unmanaged<CFError>?
+        guard let access = SecAccessControlCreateWithFlags(nil,
+            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            [.privateKeyUsage, .userPresence], &accessError) else {
+            throw ProofError.unavailable
+        }
+        let attributes: [String: Any] = [
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
+            kSecAttrKeySizeInBits as String: 256,
+            kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
+            kSecPrivateKeyAttrs as String: [
+                kSecAttrIsPermanent as String: true,
+                kSecAttrApplicationTag as String: tag,
+                kSecAttrAccessControl as String: access
+            ]
+        ]
+        var createError: Unmanaged<CFError>?
+        guard let key = SecKeyCreateRandomKey(attributes as CFDictionary, &createError) else {
+            // No software-key fallback on simulators or devices without Secure Enclave.
+            throw ProofError.unavailable
+        }
+        return key
+    }
+
+    static func publicKeySpkiBase64() throws -> String {
+        guard let publicKey = SecKeyCopyPublicKey(try privateKey()) else { throw ProofError.invalidPublicKey }
+        var error: Unmanaged<CFError>?
+        guard let raw = SecKeyCopyExternalRepresentation(publicKey, &error) as Data?,
+              raw.count == 65, raw.first == 0x04 else { throw ProofError.invalidPublicKey }
+        return (spkiPrefix + raw).base64EncodedString()
+    }
+
+    static func sign(nonce: String, accountId: String, sessionId: String,
+                     installationId: String, expiresAtMs: Int64) throws -> String {
+        let identifiers = [accountId, sessionId, installationId]
+        guard nonce.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
+              identifiers.allSatisfy({ value in
+                  !value.isEmpty && value.utf8.count <= 256
+                  && value.range(of: "^[A-Za-z0-9._:-]+$", options: .regularExpression) != nil
+              }), expiresAtMs > 0 else { throw ProofError.invalidChallenge }
+        let message: [Any] = ["digital-observer-qa-device-proof-v1", nonce,
+                              accountId, sessionId, installationId,
+                              "com.ganbatuach.app.qa", expiresAtMs]
+        guard let bytes = try? JSONSerialization.data(withJSONObject: message, options: []) else {
+            throw ProofError.invalidChallenge
+        }
+        var error: Unmanaged<CFError>?
+        guard let signature = SecKeyCreateSignature(try privateKey(),
+            .ecdsaSignatureMessageX962SHA256, bytes as CFData, &error) as Data? else {
+            throw ProofError.signingFailed
+        }
+        return signature.base64EncodedString()
+    }
+}
+#endif
