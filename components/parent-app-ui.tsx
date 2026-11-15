@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { Bell, CalendarDays, Camera, FileText, Home, Menu, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import { RoleAppShell } from "@/components/role-app-shell";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { ParentChildPhotoFallback } from "@/components/parent-child-photo-fallback";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -69,7 +69,7 @@ export function ParentChildCard({
   const content = (
     <>
       <div className="parent-child-photo">
-        {image ? <img src={image} alt="" /> : <Image className="parent-child-illustration" src="/assets/gan-batuach-child-avatar.webp" alt="" width={240} height={240} />}
+        <ParentChildPhotoFallback key={`${name}:${image ?? ""}`} src={image} name={name} />
       </div>
       <div>
         <h2>{name}</h2>
@@ -102,12 +102,7 @@ export function ParentChildContextCard({
 }) {
   return <Link className={`parent-child-context-card${active ? " is-active" : ""}`} href={href} aria-current={active ? "page" : undefined}>
     <span className="parent-child-context-avatar">
-      {image ? (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt="" />
-        </>
-      ) : <span className="parent-child-context-initial" aria-hidden="true">{name.trim().charAt(0) || "?"}</span>}
+      <ParentChildPhotoFallback key={`${name}:${image ?? ""}`} src={image} name={name} compact />
     </span>
     <span className="parent-child-context-copy"><b>{name}</b><small>{garden}</small></span>
     <span className="parent-child-context-state"><i aria-hidden="true" />{status}</span>
