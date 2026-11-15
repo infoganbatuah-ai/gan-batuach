@@ -7,6 +7,7 @@ export function GET() {
     description: "ניטור מצלמות ואירועים לבית ולעסק",
     lang: "he",
     dir: "rtl",
+    id: "/digital-observer/",
     start_url: "/digital-observer/dashboard",
     scope: "/digital-observer/",
     display: "standalone",
