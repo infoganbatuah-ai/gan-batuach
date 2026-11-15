@@ -71,6 +71,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the app was launched with an activity, including Universal Links.
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
+        #if PERSONAL_TEAM_QA
+        if QaAccessReturnGate.enabled,
+           userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+           let url = userActivity.webpageURL,
+           QaAccessReturnGate.consume(url) {
+            NotificationCenter.default.post(name: .qaAccessReturnValidated, object: nil)
+            return true
+        }
+        #endif
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
@@ -87,6 +96,49 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 #if PERSONAL_TEAM_QA
+extension Notification.Name {
+    static let qaAccessReturnValidated = Notification.Name("qaAccessReturnValidated")
+}
+
+// Local, default-off primitive. No entitlement, pending-state producer, network
+// exchange, or QA-flow subscriber is installed by this change.
+enum QaAccessReturnGate {
+    static let enabled = false
+    private static let expectedHost = "qa-iphone-device-proof.ganbatuach.com"
+    private static let expectedPath = "/qa/device-proof/return"
+    private static let maxAge: TimeInterval = 120
+    private static var pending: (state: String, account: String, installation: String,
+                                 audience: String, expires: Date)?
+
+    static func begin(account: String, installation: String, now: Date = Date()) -> String? {
+        guard enabled, pending == nil, !account.isEmpty, !installation.isEmpty else { return nil }
+        var bytes = [UInt8](repeating: 0, count: 32)
+        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
+        let state = bytes.map { String(format: "%02x", $0) }.joined()
+        pending = (state, account, installation, "com.ganbatuach.app.qa",
+                   now.addingTimeInterval(maxAge))
+        return state
+    }
+
+    static func consume(_ url: URL, account: String? = nil, installation: String? = nil,
+                        audience: String = "com.ganbatuach.app.qa", now: Date = Date()) -> Bool {
+        guard enabled, let expected = pending else { return false }
+        pending = nil // A callback attempt cannot be replayed, including after rejection.
+        guard now < expected.expires, account == expected.account,
+              installation == expected.installation, audience == expected.audience,
+              url.absoluteString.utf8.count <= 1024,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.scheme == "https", parts.host == expectedHost,
+              parts.path == expectedPath, parts.port == nil,
+              parts.user == nil, parts.password == nil, parts.fragment == nil,
+              let items = parts.queryItems, items.count == 1,
+              items[0].name == "state", let state = items[0].value,
+              state.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
+              state == expected.state else { return false }
+        return true
+    }
+}
+
 // Dormant native primitive: no bridge or enrollment route invokes this code.
 // The private key is created by the Secure Enclave and never leaves Keychain.
 enum QaSecureEnclaveProof {
