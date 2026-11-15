@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T22:58:39.357Z",
+  "updatedAt": "2026-11-15T23:27:38.821Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18626,6 +18626,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Pause after this scoped unit per owner direction. On resume, reconcile current Development and obtain the separate verified Management↔Digital Observer attestation contract before any positive monitoring or Live claim; do not duplicate the Observer engine."
+    },
+    {
+      "id": "codex/push44-separate-app-identity-20261116",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-SEPARATE-APP-IDENTITY-20261116",
+      "title": "Scope Observer Web identity and isolated Android/iOS QA app identities",
+      "owner": "Digital Observer root integration owner; scoped camera executor source owner",
+      "sourceBranch": "codex/push44-observer-pwa-id-20261116; codex/push44-observer-android-qa-20261116; codex/push44-observer-ios-qa-20261116",
+      "sourceCommits": [
+        "f41d6bdd89f7f815362d1c0514e158b64aae632b",
+        "46997769d46349ee6bdcacb0c8a22033e5bf101d",
+        "5639eb37ba550b649d3fdf7fcac937a69f4955bf"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_CI_SNYK_AND_SCOPED_LOCAL_BUILDS_PASS",
+        "evidence": [
+          "PR #542 merged at 27acead72349159740e428a65bc600e2d3e6771b: /digital-observer/ stable Web manifest ID; focused 2/2 and exact-head CI/Snyk PASS.",
+          "PR #544 merged at 4094a74a5e5d5958e189a78e4780b3da44a77c7a: explicit Observer Android QA package/label/callback/dashboard URL; focused 7/7, offline Debug APK build 169 tasks, static package/label/scheme/HTTPS/cleartext inspection and exact-head CI/Snyk PASS.",
+          "PR #545 merged at baed24bd52721716fe53c91a66275aa30ed12272: isolated Observer iOS QA bundle/label/callback, unsigned generic-device Xcode build, focused 3/3 and exact-head CI/Snyk PASS; Gan defaults preserved."
+        ],
+        "classification": "OBSERVER_SEPARATE_APP_WEB_AND_NATIVE_QA_IDENTITY",
+        "limits": "Native outputs use dummy .invalid URL; Android is Debug-signed with shared Push-plugin permissions and no Observer credentials; iOS unsigned and uninstalled, with no Observer profile and possibly shared artwork. No physical Observer app Auth, callback, notification receipt, live media, final branding, release signing or store PASS."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "baed24bd52721716fe53c91a66275aa30ed12272",
+        "pullRequests": [
+          542,
+          544,
+          545
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "PHYSICAL_OBSERVER_APP_AUTH_CALLBACK_PUSH_MEDIA_AND_RELEASE_GATES_OPEN",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "WEB_ID_AND_NATIVE_OFFLINE_QA_BUILDS_PASS_SCOPED",
+      "releaseEligibility": "NOT_READY_PUSH44_PARTIAL",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify the actual separate Observer app on devices and the shared Gan Management camera integration by target app ID and audience; prove authenticated callback, notification routing and physical media separately before release claims."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
