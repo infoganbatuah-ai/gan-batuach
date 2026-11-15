@@ -61,7 +61,7 @@ export default async function InspectorReportsPage() {
   const gardens = (gardensRes.data ?? []) as unknown as GardenRow[];
   const ids = gardens.map((garden) => garden.id);
   const [complaints, incidents] = ids.length ? await Promise.all([
-    supabase.from("complaints" as never).select("id, subject, severity, status, created_at, acknowledgement_due_at, response_due_at, resolution_due_at, sla_policy_id, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false }).limit(150),
+    supabase.from("complaints" as never).select("id, subject, severity, status, created_at, acknowledgement_due_at, response_due_at, resolution_due_at, sla_policy_id, gardens(name)" as never).in("garden_id", ids).eq("assigned_inspector_id", profile.id).order("created_at", { ascending: false }).limit(150),
     supabase.from("incident_reports" as never).select("id, title, severity, status, created_at, gardens(name)" as never).in("garden_id", ids).order("created_at", { ascending: false }).limit(150)
   ]) : [{ data: [] }, { data: [] }];
   const rows: ReportRow[] = [
