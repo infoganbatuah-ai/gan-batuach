@@ -772,6 +772,49 @@
   }
 }
 
+#garden-profile .ux18-settings-link-list > .ux18-open-garden-editor {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 38px minmax(0, 1fr) auto 18px;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 1px;
+  border: 0;
+  border-bottom: 1px solid #e6eef8;
+  color: #153f7b;
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+
+#garden-profile .ux18-open-garden-editor > svg:first-child {
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 12px;
+  color: #0874ef;
+  background: #edf6ff;
+}
+
+#garden-profile .ux18-open-garden-editor em {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #0874ef;
+  background: #eaf4ff;
+  font-size: .75rem;
+  font-style: normal;
+}
+
+#garden-profile .ux18-open-garden-editor:hover { background: #f7fbff; }
+#garden-profile .ux18-open-garden-editor:focus-visible { outline: 3px solid #0874ef; outline-offset: 2px; }
+
+@media (max-width: 760px) {
+  #garden-profile .ux18-settings-link-list > .ux18-open-garden-editor { min-height: 58px; }
+  #garden-profile .ux18-open-garden-editor em { display: none; }
+}
+
 .parent-child-context-add {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Bell, Building2, Camera, ChevronLeft, CreditCard, Eye, KeyRound, Languages, Monitor, PlugZap, ShieldCheck, Smartphone, UsersRound } from "lucide-react";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
 import { SettingsPrimaryProfileForm } from "@/components/settings-primary-profile-form";
+import { SettingsOpenGardenEditorButton } from "@/components/settings-open-garden-editor-button";
 import {
   AccountVerificationSummary,
   SettingsLinkList,
@@ -106,8 +107,7 @@ export default async function SettingsPage() {
             <img src={garden?.image_url ?? garden?.logo_url ?? "/assets/hero-control-center.png"} alt={`תמונת ${garden?.name ?? "הגן"}`} />
             <div><b>{garden?.name ?? "הגן הפעיל"}</b><small>{garden?.address ?? "כתובת הגן טרם הוגדרה"}</small></div>
           </div>
-          <SettingsLinkList items={[
-            { title: "פרטי גן ושעות פעילות", detail: "שם, כתובת, קשר ולוח פעילות", href: "#garden-editor", status: "עריכה", icon: Building2 },
+          <SettingsLinkList leadingAction={<SettingsOpenGardenEditorButton />} items={[
             { title: "כיתות והרשאות", detail: `${classrooms.length} כיתות פעילות`, href: "/dashboard/garden/staff", status: "ניהול", icon: UsersRound },
             { title: "מסמכים נדרשים", detail: "מסמכי גן וציות", href: "/dashboard/garden/documents", status: "בדיקה", icon: ShieldCheck },
             { title: "הרשאות מצלמות", detail: `${cameras.length} מקורות · גישה לפי תפקיד ואזור`, href: "/dashboard/garden/cameras", status: "מדיניות", icon: Camera }
