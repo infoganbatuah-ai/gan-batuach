@@ -30,5 +30,9 @@ test("only exact HTTPS state can pass the dormant native parser", () => {
 test("this unit adds no callback entitlement or active browser exchange", () => {
   assert.match(project, /CODE_SIGN_ENTITLEMENTS = "";/);
   assert.match(project, /Delete :CFBundleURLTypes/);
-  assert.doesNotMatch(native, /ASWebAuthenticationSession|URLSession\.shared|exchangeCodeForSession/);
+  assert.match(native, /static let identityProvider: \(\(\) -> Identity\?\)\? = nil/);
+  assert.match(native, /return ASWebAuthenticationSession\(url: startURL, callbackURLScheme: callbackScheme\)/);
+  assert.match(native, /identityProvider\?\(\) == identity/);
+  assert.match(native, /consumed = true \/\/ A failed return also burns this local one-use attempt/);
+  assert.doesNotMatch(native, /\.start\(\)|URLSession\.shared|exchangeCodeForSession/);
 });
