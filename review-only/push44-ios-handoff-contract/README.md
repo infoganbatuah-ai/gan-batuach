@@ -5,6 +5,22 @@ build is changed here. The test uses synthetic identities and a fake atomic
 adapter. It specifies required behavior; it does **not** prove PostgreSQL
 atomicity, session verification, Secure Enclave proof or iOS callback delivery.
 
+`qa-access-return.mjs` adds a second, dormant local return-validation contract.
+The default flag is off. When explicitly enabled in isolated tests it creates
+a random one-time state, accepts only the exact HTTPS QA return URL with that
+single state query parameter, and binds consumption to the same account,
+installation and QA bundle audience within two minutes. It rejects tokens in
+the URL, replay, changed identity and malformed origins. It does not log the
+return URL and never exchanges a browser or Supabase session.
+
+The current PersonalTeamQA build script removes `CFBundleURLTypes`, has no
+Associated Domains entitlement, and delegates Universal Links to Capacitor
+without an approved QA return handler. Thus this local primitive is **not**
+native iPhone callback proof. A future separately authorized signing and
+external-origin qualification must establish a supported iOS callback and
+associate the exact host before wiring this contract into the app. The remote
+build block and default-off state remain intact.
+
 `contract.mjs` rejects missing or mismatched account, installation, session and
 callback audience; expired, consumed or revoked receipts; inactive sessions;
 invalid device proof; missing storage; and storage errors. Final success
