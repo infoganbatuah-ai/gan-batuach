@@ -13,10 +13,19 @@ JOIN observer_qa_private.approved_installations i
 WHERE c.id = $1 AND i.approved_at IS NOT NULL AND i.revoked_at IS NULL
   AND i.expires_at > clock_timestamp()`;
 
-const consumeSql = `UPDATE observer_qa_private.device_handoff_challenges AS c
+// The Auth row lock serializes receipt consumption with concurrent session deletion.
+// This remains review-only until auth.sessions access and transaction behavior are verified.
+const consumeSql = `WITH live_session AS MATERIALIZED (
+  SELECT s.id, s.user_id FROM auth.sessions AS s
+  WHERE s.id = $3 AND s.user_id = $2
+    AND (s.not_after IS NULL OR s.not_after > clock_timestamp())
+  FOR SHARE
+)
+UPDATE observer_qa_private.device_handoff_challenges AS c
 SET consumed_at = clock_timestamp()
-FROM observer_qa_private.approved_installations AS i
+FROM observer_qa_private.approved_installations AS i, live_session AS s
 WHERE c.id = $1 AND c.account_profile_id = $2 AND c.auth_session_id = $3
+  AND s.id = c.auth_session_id AND s.user_id = c.account_profile_id
   AND c.installation_id = $4 AND c.audience = $5 AND c.nonce = $6
   AND i.id = c.installation_id AND i.account_profile_id = c.account_profile_id
   AND i.public_key_spki_base64 = $7 AND i.approved_at IS NOT NULL
@@ -29,13 +38,16 @@ RETURNING c.id`;
 const millis = (value) => typeof value === "number" ? value : new Date(value).getTime();
 const nonempty = (value) => typeof value === "string" && value.length > 0;
 
-export async function consumeStoredQaChallenge(db, input) {
-  if (typeof db?.query !== "function" || !input || input.activeSession !== true
+export async function consumeStoredQaChallenge(db, input, verifyLiveSession) {
+  if (typeof db?.query !== "function" || typeof verifyLiveSession !== "function" || !input
     || !nonempty(input.challengeId) || !nonempty(input.accountId)
     || !nonempty(input.sessionId) || !nonempty(input.installationId)
     || !nonempty(input.audience) || !nonempty(input.signatureBase64)
     || !Number.isSafeInteger(input.now)) return false;
   try {
+    // Only a trusted server-side Auth verifier may return this identity.
+    const identity = await verifyLiveSession();
+    if (identity?.accountId !== input.accountId || identity?.sessionId !== input.sessionId) return false;
     const loaded = await db.query(loadSql, [input.challengeId]);
     if (loaded.rows?.length !== 1) return false;
     const row = loaded.rows[0];
