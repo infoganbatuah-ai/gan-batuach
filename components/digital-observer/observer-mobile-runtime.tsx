@@ -9,6 +9,7 @@ import { PushNotifications, type PushNotificationSchema } from "@capacitor/push-
 import { useEffect, useState } from "react";
 import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
 import { openMobilePlaybackPublisher } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
+import { nativePushResult, parseNativePushRequest, type NativePushRequest } from "@/lib/domain/digital-observer/native-push-request";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
@@ -75,7 +76,8 @@ export function ObserverMobileRuntime() {
     let disposed = false;
     const playbackPublisher = openMobilePlaybackPublisher();
     let sites: RuntimeSite[] = [];
-    let pendingPushSiteId = "";
+    let pendingPushRequest: NativePushRequest | null = null;
+    let pendingPushDeadline = 0;
     let checking = false;
     let checkingVersion = 0;
     let recheckRequested = false;
@@ -174,42 +176,67 @@ export function ObserverMobileRuntime() {
     };
 
     const handlePushRegistration = async (token: { value: string }) => {
+      const request = Date.now() < pendingPushDeadline ? pendingPushRequest : null;
+      if (!request) pendingPushRequest = null;
       const savedSite = await Preferences.get({ key: pushSiteKey });
-      const siteId = pendingPushSiteId || savedSite.value || sites[0]?.id || "";
-      if (!siteId) {
-        emit("digital-observer:native-push-result", { ok: false, reason: "site_required" });
+      const siteId = request?.siteId || savedSite.value || "";
+      if (!siteId || !sites.some((site) => site.id === siteId)) {
+        if (request && pendingPushRequest === request) {
+          pendingPushRequest = null;
+          emit("digital-observer:native-push-result", nativePushResult(request, false, "site_required"));
+        }
         return;
       }
       try {
         await registerDevice(siteId, token.value);
         await Preferences.set({ key: pushSiteKey, value: siteId });
         await writeQueue((await readQueue()).filter((item) => item.kind !== "push_registration"));
-        emit("digital-observer:native-push-result", { ok: true });
+        if (request && pendingPushRequest === request) {
+          pendingPushRequest = null;
+          emit("digital-observer:native-push-result", nativePushResult(request, true));
+        }
       } catch {
         await enqueue("push_registration");
-        emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+        if (request && pendingPushRequest === request) {
+          pendingPushRequest = null;
+          emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_failed"));
+        }
       }
     };
 
     const enablePush = async (event: Event) => {
-      if (!pushAvailable) {
-        emit("digital-observer:native-push-result", { ok: false, reason: "push_unavailable_in_qa" });
+      const detail = (event as CustomEvent<unknown>).detail;
+      const request = parseNativePushRequest(detail, sites.map((site) => site.id));
+      if (!request) return;
+      if (Date.now() >= pendingPushDeadline) pendingPushRequest = null;
+      if (pendingPushRequest) {
+        emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_in_progress"));
         return;
       }
-      const requestedSite = (event as CustomEvent<{ siteId?: string }>).detail?.siteId;
-      pendingPushSiteId = requestedSite && sites.some((site) => site.id === requestedSite) ? requestedSite : sites[0]?.id || "";
+      if (!pushAvailable) {
+        emit("digital-observer:native-push-result", nativePushResult(request, false, "push_unavailable_in_qa"));
+        return;
+      }
+      pendingPushRequest = request;
+      pendingPushDeadline = Date.now() + 30_000;
       try {
         let permission = await PushNotifications.checkPermissions();
         if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
           permission = await PushNotifications.requestPermissions();
         }
         if (permission.receive !== "granted") {
-          emit("digital-observer:native-push-result", { ok: false, reason: "permission_denied" });
+          if (pendingPushRequest === request) {
+            pendingPushRequest = null;
+            emit("digital-observer:native-push-result", nativePushResult(request, false, "permission_denied"));
+          }
           return;
         }
         await PushNotifications.register();
       } catch {
-        emit("digital-observer:native-push-result", { ok: false, reason: "registration_failed" });
+        if (pendingPushRequest === request) {
+          pendingPushRequest = null;
+          emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_failed"));
+        }
       }
     };
 
@@ -269,7 +296,11 @@ export function ObserverMobileRuntime() {
 
       if (pushAvailable) {
         const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
-        const registrationError = await PushNotifications.addListener("registrationError", () => emit("digital-observer:native-push-result", { ok: false, reason: "provider_error" }));
+        const registrationError = await PushNotifications.addListener("registrationError", () => {
+          const request = pendingPushRequest;
+          pendingPushRequest = null;
+          if (request) emit("digital-observer:native-push-result", nativePushResult(request, false, "provider_error"));
+        });
         const received = await PushNotifications.addListener("pushNotificationReceived", (notification: PushNotificationSchema) => {
           emit("digital-observer:native-notification", mobileNotificationPreview(notification));
         });
@@ -286,6 +317,7 @@ export function ObserverMobileRuntime() {
     void start().catch(() => { if (!disposed && playbackPublisher.isCurrent()) setStale(true); });
     return () => {
       disposed = true;
+      pendingPushRequest = null;
       playbackPublisher.close();
       window.removeEventListener("digital-observer:enable-native-push", enablePush);
       window.removeEventListener("pageshow", bootstrap);
