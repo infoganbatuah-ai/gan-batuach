@@ -36,9 +36,10 @@ No approval/enrollment function is included.
 
 `challenge-store-adapter.mjs` is likewise isolated from active routes. It
 loads the stored challenge and approved public key, verifies the P-256 proof,
-then sends one parameterized `UPDATE ... WHERE consumed_at IS NULL ... RETURNING`
-that fences account, session, installation, audience, nonce, key, expiry and
-revocation. A concurrent loser receives no row. A storage error fails closed.
+then invokes one parameterized private `SECURITY DEFINER` function. That function
+locks the matching `auth.sessions` row and conditionally updates the challenge,
+fencing account, session, installation, audience, nonce, key, expiry and
+revocation. A concurrent loser receives false. A storage error fails closed.
 The adapter no longer accepts a caller-supplied `activeSession` boolean. It
 requires a trusted server-side verifier to return the current account and Auth
 session identity, and its proposed consume statement checks the same session
@@ -48,9 +49,13 @@ this table, `id`, `user_id`, and `not_after` are the canonical session contract.
 
 **Activation remains blocked:** the proposed private-store SQL has not been
 applied, the trusted verifier has not been wired to an authenticated route,
-the deployed `auth.sessions` ACL for that role is unverified, and the row-lock
-behavior against concurrent Supabase Auth revocation has not been exercised in
-PostgreSQL. The verifier callback is an injection seam, not an authorization
+the deployed `auth.sessions` ACL denies direct `service_role` SELECT, so the
+private function must be owned by a privileged migration role that can lock
+the Auth row. Its ACL grants `EXECUTE` only to `service_role`, without a direct
+Auth-table grant. A disconnected synthetic PostgreSQL 17.6 test proved one
+winner for two concurrent consumes and denial after session deletion, but the
+full Supabase Auth lifecycle and signed physical-device path remain untested.
+The verifier callback is an injection seam, not an authorization
 implementation; a caller must never supply it from mobile input. A future
 authorized database integration test must prove that revocation and consume
 serialize as intended. The fake-query tests model conditional consumption,

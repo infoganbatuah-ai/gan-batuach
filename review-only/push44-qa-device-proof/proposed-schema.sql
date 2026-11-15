@@ -1,6 +1,6 @@
 -- REVIEW ONLY. Do not run or move into supabase/migrations without a separate
 -- authorized schema review, deployed-catalog check and rollback rehearsal.
-CREATE SCHEMA IF NOT EXISTS observer_qa_private;
+CREATE SCHEMA observer_qa_private;
 REVOKE ALL ON SCHEMA observer_qa_private FROM PUBLIC, anon, authenticated;
 GRANT USAGE ON SCHEMA observer_qa_private TO service_role;
 
@@ -44,3 +44,42 @@ ALTER TABLE observer_qa_private.device_handoff_challenges ENABLE ROW LEVEL SECUR
 REVOKE ALL ON ALL TABLES IN SCHEMA observer_qa_private FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE ON observer_qa_private.approved_installations,
   observer_qa_private.device_handoff_challenges TO service_role;
+-- The migration owner must be able to lock auth.sessions; do not grant that
+-- table to service_role. Function creation and its ACL are one transaction.
+BEGIN;
+CREATE FUNCTION observer_qa_private.consume_device_handoff_challenge(
+  p_challenge_id uuid, p_account_id uuid, p_session_id uuid,
+  p_installation_id uuid, p_audience text, p_nonce text, p_public_key text
+) RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $fn$
+  WITH live_session AS MATERIALIZED (
+    SELECT s.id, s.user_id FROM auth.sessions AS s
+    WHERE s.id = p_session_id AND s.user_id = p_account_id
+      AND (s.not_after IS NULL OR s.not_after > clock_timestamp())
+    FOR SHARE
+  ), consumed AS (
+    UPDATE observer_qa_private.device_handoff_challenges AS c
+    SET consumed_at = clock_timestamp()
+    FROM observer_qa_private.approved_installations AS i, live_session AS s
+    WHERE c.id = p_challenge_id AND c.account_profile_id = p_account_id
+      AND c.auth_session_id = p_session_id
+      AND s.id = c.auth_session_id AND s.user_id = c.account_profile_id
+      AND c.installation_id = p_installation_id AND c.audience = p_audience
+      AND c.nonce = p_nonce AND i.id = c.installation_id
+      AND i.account_profile_id = c.account_profile_id
+      AND i.public_key_spki_base64 = p_public_key
+      AND i.approved_at IS NOT NULL AND i.revoked_at IS NULL
+      AND i.expires_at > clock_timestamp()
+      AND c.consumed_at IS NULL AND c.revoked_at IS NULL
+      AND c.expires_at > clock_timestamp()
+      AND c.expires_at <= c.issued_at + interval '60 seconds'
+    RETURNING c.id
+  )
+  SELECT EXISTS(SELECT 1 FROM consumed);
+$fn$;
+REVOKE ALL ON FUNCTION observer_qa_private.consume_device_handoff_challenge(uuid,uuid,uuid,uuid,text,text,text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION observer_qa_private.consume_device_handoff_challenge(uuid,uuid,uuid,uuid,text,text,text) TO service_role;
+COMMIT;

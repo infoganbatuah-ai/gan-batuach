@@ -13,27 +13,10 @@ JOIN observer_qa_private.approved_installations i
 WHERE c.id = $1 AND i.approved_at IS NOT NULL AND i.revoked_at IS NULL
   AND i.expires_at > clock_timestamp()`;
 
-// The Auth row lock serializes receipt consumption with concurrent session deletion.
-// This remains review-only until auth.sessions access and transaction behavior are verified.
-const consumeSql = `WITH live_session AS MATERIALIZED (
-  SELECT s.id, s.user_id FROM auth.sessions AS s
-  WHERE s.id = $3 AND s.user_id = $2
-    AND (s.not_after IS NULL OR s.not_after > clock_timestamp())
-  FOR SHARE
-)
-UPDATE observer_qa_private.device_handoff_challenges AS c
-SET consumed_at = clock_timestamp()
-FROM observer_qa_private.approved_installations AS i, live_session AS s
-WHERE c.id = $1 AND c.account_profile_id = $2 AND c.auth_session_id = $3
-  AND s.id = c.auth_session_id AND s.user_id = c.account_profile_id
-  AND c.installation_id = $4 AND c.audience = $5 AND c.nonce = $6
-  AND i.id = c.installation_id AND i.account_profile_id = c.account_profile_id
-  AND i.public_key_spki_base64 = $7 AND i.approved_at IS NOT NULL
-  AND i.revoked_at IS NULL AND i.expires_at > clock_timestamp()
-  AND c.consumed_at IS NULL AND c.revoked_at IS NULL
-  AND c.expires_at > clock_timestamp()
-  AND c.expires_at <= c.issued_at + interval '60 seconds'
-RETURNING c.id`;
+// The private function owns the Auth row lock. service_role cannot SELECT auth.sessions.
+const consumeSql = `SELECT observer_qa_private.consume_device_handoff_challenge(
+  $1::uuid, $2::uuid, $3::uuid, $4::uuid, $5::text, $6::text, $7::text
+) AS consumed`;
 
 const millis = (value) => typeof value === "number" ? value : new Date(value).getTime();
 const nonempty = (value) => typeof value === "string" && value.length > 0;
@@ -57,7 +40,7 @@ export async function consumeStoredQaChallenge(db, input, verifyLiveSession) {
     if (!verifyQaDeviceProof(challenge, input.signatureBase64, input.now)) return false;
     const consumed = await db.query(consumeSql, [row.id, input.accountId,
       input.sessionId, input.installationId, input.audience, row.nonce, row.publicKeySpkiBase64]);
-    return consumed.rows?.length === 1 && consumed.rows[0].id === row.id;
+    return consumed.rows?.length === 1 && consumed.rows[0].consumed === true;
   } catch {
     return false;
   }
