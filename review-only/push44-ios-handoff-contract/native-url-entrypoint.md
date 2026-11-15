@@ -18,3 +18,16 @@ account and installation from a trusted native/session boundary, establish
 the exact domain association and signed build, and prove return behavior on
 the physical iPhone. No session exchange, route, device enrollment, SQL,
 external access or signing was performed here.
+
+The QA target now also contains `QaAsWebAuthReturn`, a separate iOS 15
+`ASWebAuthenticationSession` adapter using an exact start URL and a custom
+scheme callback with an opaque random state only. It preserves the dormant
+Universal Link gate above. Its flag is `false`, its trusted account and
+installation provider is deliberately `nil`, and no caller invokes `start()`.
+The callback rechecks the provider against the identity captured at
+preparation, burns the state on the first return attempt, and emits a clean
+signal with no URL or credential. Therefore it fails closed in the current
+build even if the flag were flipped alone. This code does not establish a
+Development session, issue an approval, or exchange a browser credential.
+It requires a future trusted identity bridge and physical-device qualification
+before activation.
