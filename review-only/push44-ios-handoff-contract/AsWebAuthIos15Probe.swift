@@ -6,6 +6,14 @@ enum AsWebAuthIos15Probe {
     static let enabled = false
     private static let callbackScheme = "observerqa"
 
+    static func acceptsStart(_ startURL: URL, expectedState: String) -> Bool {
+        guard expectedState.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil else { return false }
+        // An exact serialized URL rejects userinfo, ports, fragments, encoded
+        // path aliases and extra or duplicated query parameters.
+        return startURL.absoluteString ==
+            "https://qa-iphone-device-proof.ganbatuach.com/qa/device-proof/start?state=\(expectedState)"
+    }
+
     static func accepts(_ callback: URL?, expectedState: String) -> Bool {
         guard let callback = callback,
               expectedState.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
@@ -21,9 +29,7 @@ enum AsWebAuthIos15Probe {
 
     static func prepare(startURL: URL, expectedState: String,
                         onValidated: @escaping () -> Void) -> ASWebAuthenticationSession? {
-        guard enabled, startURL.scheme == "https",
-              startURL.host == "qa-iphone-device-proof.ganbatuach.com",
-              expectedState.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil else { return nil }
+        guard enabled, acceptsStart(startURL, expectedState: expectedState) else { return nil }
         var consumed = false
         return ASWebAuthenticationSession(url: startURL, callbackURLScheme: callbackScheme) {
             callback, error in

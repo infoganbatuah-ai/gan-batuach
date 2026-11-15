@@ -18,8 +18,23 @@ enum AsWebAuthIos15ProbeTests {
             precondition(!AsWebAuthIos15Probe.accepts(URL(string: candidate), expectedState: state))
         }
         precondition(!AsWebAuthIos15Probe.accepts(URL(string: exact), expectedState: "short"))
-        precondition(AsWebAuthIos15Probe.prepare(startURL: URL(string: "https://qa-iphone-device-proof.ganbatuach.com")!,
+        let start = "https://qa-iphone-device-proof.ganbatuach.com/qa/device-proof/start?state=\(state)"
+        precondition(AsWebAuthIos15Probe.acceptsStart(URL(string: start)!, expectedState: state))
+        for candidate in [
+            start.replacingOccurrences(of: "https:", with: "http:"),
+            start.replacingOccurrences(of: "qa-iphone-device-proof", with: "other"),
+            start.replacingOccurrences(of: "/start?", with: "/other?"),
+            start.replacingOccurrences(of: "https://", with: "https://user@"),
+            start.replacingOccurrences(of: ".com/", with: ".com:443/"),
+            start + "&access_token=secret",
+            start + "&state=\(state)",
+            start + "#fragment",
+            start.replacingOccurrences(of: state, with: String(repeating: "b", count: 64))
+        ] {
+            precondition(!AsWebAuthIos15Probe.acceptsStart(URL(string: candidate)!, expectedState: state))
+        }
+        precondition(AsWebAuthIos15Probe.prepare(startURL: URL(string: start)!,
                                                   expectedState: state, onValidated: {}) == nil)
-        print("ASWebAuth iOS15 dormant callback parser: 10/10 PASS")
+        print("ASWebAuth iOS15 dormant start/return parser: 20/20 PASS")
     }
 }

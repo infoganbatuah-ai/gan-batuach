@@ -20,7 +20,10 @@ above establish exact availability for this installed toolchain.
 
 `AsWebAuthIos15Probe.swift` is a **review-only, compile-only iOS primitive**
 using the old custom-scheme initializer. The `enabled` flag is false, no code
-calls `start()`, and the file is not in the Xcode target. Its parser accepts
+calls `start()`, and the file is not in the Xcode target. Its start parser
+accepts only the exact HTTPS QA `/qa/device-proof/start?state=<64 lowercase
+hex>` URL; userinfo, ports, fragments and extra parameters are denied. Its
+return parser accepts
 only `observerqa://return/qa/device-proof?state=<64 lowercase hex>`; it
 rejects extra parameters, fragments, changed scheme/host/path and short or
 wrong state. The callback emits no URL or token, only a clean `onValidated`
@@ -31,7 +34,7 @@ test the scheme behavior on the signed physical iPhone. It must not use a
 bearer, cookie, Supabase token or approval credential in the callback URL.
 
 Verification: iOS 15 cross-target Swift typecheck PASS against installed SDK;
-local Swift parser/default-off test 10/10 PASS on macOS. These do **not** prove
+local Swift parser/default-off test 20/20 PASS on macOS. These do **not** prove
 physical-iPhone callback delivery or account/session authorization. No
 entitlement, URL registration, signing, endpoint, DNS or network service was
 changed.
