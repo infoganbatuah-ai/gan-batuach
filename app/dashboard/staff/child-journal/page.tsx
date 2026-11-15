@@ -6,8 +6,8 @@ import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-a
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function StaffChildJournalPage({ searchParams }: { searchParams?: Promise<{ childId?: string; incident?: string; meal?: string }> }) {
-  const params: { childId?: string; incident?: string; meal?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
+export default async function StaffChildJournalPage({ searchParams }: { searchParams?: Promise<{ childId?: string; incident?: string; meal?: string; health?: string }> }) {
+  const params: { childId?: string; incident?: string; meal?: string; health?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
   const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
@@ -20,7 +20,7 @@ export default async function StaffChildJournalPage({ searchParams }: { searchPa
     <StaffAppFrame active="home">
       <StaffPageHero eyebrow="עדכון ילד מהיר" title="ארוחה, שינה, שירותים ומצב רוח" text="בחרו ילד ועדכנו את מה שקרה עכשיו. קצר, ברור ומתאים לטלפון." icon={BookOpenCheck} badge={<StatusChip tone="success">נשמר ליומן</StatusChip>} />
       <StaffSection title="יומן ילדים">
-        <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} initialChildId={params?.childId ?? ""} incidentMode={params?.incident === "1"} mealMode={params?.meal === "1"} />
+        <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} initialChildId={params?.childId ?? ""} incidentMode={params?.incident === "1"} mealMode={params?.meal === "1"} healthMode={params?.health === "1"} />
       </StaffSection>
     </StaffAppFrame>
   );
