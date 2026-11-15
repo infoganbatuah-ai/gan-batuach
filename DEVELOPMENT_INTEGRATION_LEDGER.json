@@ -18157,6 +18157,36 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify signed physical QA build and approved callback/session path before remote iPhone handoff; retain existing block."
+    },
+    {
+      "id": "codex/inspector-reports-complaint-scope-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-INSPECTOR-REPORTS-COMPLAINT-SCOPE-20261115",
+      "title": "Limit Inspector reports queue and complaints report to cases assigned to that Inspector",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/inspector-reports-complaint-scope-20261115",
+      "sourceCommits": ["dc1eafd9062fd0b9fbb6d4d80ec6d8032ba30db8"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/inspector-reports-complaint-scope-20261115@ac44ee4d9e1423b468fdcae537bd411cf696393d"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_REPORT_SCOPE_PASS_SCOPED",
+        "evidence": [
+          "PR #522 exact candidate ac44ee4d9e1423b468fdcae537bd411cf696393d passed six Digital Observer CI gates plus management-context, canonical quality and Snyk, then ancestry-merged to Development 0eec0fd4033e4eca8e11266ac763be6fe045405c. Focused typecheck, ESLint, management-reporting 7/7 and Inspector-platform 8/8 passed; diff check clean.",
+          "Actual canonical Development Product baseline at 8da9fe39de27c40fc5b6c01cd436dc764b11a591: authenticated Inspector A saw both assigned and unassigned same-Garden synthetic complaint markers in the reports queue on Desktop 1440x1024 and Mobile 390x844 and in /api/reports?type=complaints; an unassigned Inspector redirected to /dashboard/inspector/apply and report API returned 403.",
+          "Actual merged Development Product at 0eec0fd4033e4eca8e11266ac763be6fe045405c: Inspector A saw assigned case only in Desktop/Mobile reports page and JSON report; unassigned same-Garden case absent. Unassigned Inspector remained redirected and API denied. Owner complaints report GET 200 preserved; Admin complaints report GET 403 by existing catalog. No browser Product nonGET, page errors or horizontal overflow. All local-only synthetic fixtures deleted in finally and count-zero cleanup verified.",
+          "Restricted valid after screenshots under exports/restricted/gb-inspector-reports-scope-20261115/: assigned Desktop SHA256 7e52ee079de6d735911e53c27f72b6a34c7f485eecae9753724c65e87aedaceb, assigned Mobile SHA256 93e393bcca4a608b950abc706380114272bbf86ba189012ce6be972ba26979ae, unassigned Inspector Desktop SHA256 283366f82134a89fff587b0dd3f66e3dc2c01fe5d99f51baf6297c0c9aa3e5f8, Mobile SHA256 e8fa9437568a7796d8de0c985efa89e1ddd0a9f3031b2112b35e784dbb732de4. Assigned Desktop image visually opened; Mobile evidence includes full 390x844 viewport."
+        ],
+        "classification": "MANAGEMENT_INSPECTOR_REPORTS_COMPLAINT_PRIVACY_SCOPE",
+        "limits": "Actual disclosure proven only in isolated synthetic Development/QA; Production exposure UNVERIFIED. Scoped reports page and Inspector report API filter, not database RLS migration or every Inspector surface. Existing complaint RLS remains Garden-scoped. No migration, Digital Observer core edit, paid dependency, main or Production change; new fixed monthly commitment ₪0. Runtime stopped and port 3000 released. Full UX visual acceptance and cumulative security/cost/recovery gates remain pending."
+      },
+      "integration": {"branch": "integration/development", "commit": "0eec0fd4033e4eca8e11266ac763be6fe045405c", "pullRequests": [522], "sourceAncestryVerified": true},
+      "dependencies": {"status": "NONE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_INSPECTOR_ASSIGNED_ONLY_REPORTS_PAGE_API_DESKTOP_MOBILE_PASS",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_SECURITY_COST_RECOVERY_AND_OWNER_VISUAL_GATES_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue scoped Product security and workflow tasks through canonical coordinator; preserve role-specific complaint scope and finish external owner visual acceptance. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
