@@ -17972,6 +17972,35 @@
       "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue Staff/primary-screen reference correction through canonical coordinator; external owner assesses overall visual composition. No main or Production release."
+    },
+    {
+      "id": "codex/staff-health-quick-action-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-STAFF-HEALTH-QUICK-ACTION-20261115",
+      "title": "Open and visibly focus health entry from Staff primary quick action",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/staff-health-quick-action-20261115",
+      "sourceCommits": ["df58ef40d8c839f890ac6d0ad7df9d6d200d4217"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-health-quick-action-20261115@df58ef40d8c839f890ac6d0ad7df9d6d200d4217"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #514 source df58ef40d8c839f890ac6d0ad7df9d6d200d4217 passed six Digital Observer CI gates plus management-context, canonical quality and Snyk, then ancestry-merged to Development 0e35b6dce942909334cce57d01cee0a793ea173f.",
+          "Authenticated Staff baseline at Development 66c7c482d35734058685976c0a9d95a8e62882f8: health quick action reached child-journal?health=1 but medicine focus was false on Desktop 1440x1024 and Mobile 390x844; Mobile field y2143 was offscreen.",
+          "Actual Product at exact merged 0e35b6dce942909334cce57d01cee0a793ea173f: medicine focused+visible Desktop y874-918 and Mobile y349-394 after scrollY1794. Meal regression focused+visible Desktop y579-623, Mobile y349-394. health+incident and meal+incident kept incident focus priority. Zero Product nonGET/journal writes, page errors or overflow. Settled screenshot visually inspected. Restricted after Desktop SHA256 444ede1a850d6a578f2713c07ed1692fe6e849d9ea1e72b560e1c1b89cad29bb; Mobile SHA256 be651c0fc857ff57ce86cce93c5f27391c19c10d94e6c106cc8ee33f5d9dac31."
+        ],
+        "classification": "MANAGEMENT_STAFF_HEALTH_QUICK_ACTION_ONLY",
+        "limits": "Scoped navigation/focus/viewport correction only; not full Staff reference reconstruction, full role-boundary E2E or cumulative release qualification. Staff role guard unchanged; no journal submission, DB write, migration, Digital Observer core edit, paid dependency, main or Production change. Runtime stopped and port 3000 released; new fixed monthly commitment ₪0."
+      },
+      "integration": {"branch": "integration/development", "commit": "0e35b6dce942909334cce57d01cee0a793ea173f", "pullRequests": [514], "sourceAncestryVerified": true},
+      "dependencies": {"status": "NONE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_STAFF_HEALTH_DESKTOP_MOBILE_VISIBLE_FOCUS_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue Staff/primary-screen reference correction through canonical coordinator; external owner assesses overall visual composition. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
