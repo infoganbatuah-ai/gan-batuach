@@ -1,5 +1,11 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## Account isolation and remote iPhone QA gate — 2026-11-15
+
+Development PRs #480, #481 and #484 passed all eight exact-head CI checks and merged as `9b2dd820`, `456d9e35` and `c8a74b4b`. They respectively prevent an owner QA bearer token from being embedded in a signed iPhone app, preserve a sanitized cold-start deep link across login for server-side authorization, and discard saved native Push Site/registration intent when the authenticated account changes. The account-state fix also passed 28 focused local tests. These are source and deterministic-check results, not physical-device qualification.
+
+The remote iPhone QA build remains deliberately blocked by `PUSH44_QA_REMOTE_BUILD_BLOCKED` in `scripts/qa/prepare-push44-iphone-qa-config.mjs`. Read-only flow inspection found that the existing QA proxy exchanges a bearer token from `GET /__push44/bootstrap?t=...` for a cookie in the requesting browser; the offline iOS shell has no verified Safari-to-WKWebView cookie handoff or one-time server-side exchange. Removing the build block alone would produce an unauthenticated or unsafe remote IPA. The synthetic `check-push44-owner-qa-ingress.mjs` check passed without real secrets. A bounded, secret-free authenticated handoff and physical-device proof remain open; no remote QA, provider, live media or Production activation is claimed.
+
 ## Development continuation — 2026-11-15
 
 The 2026-11-14 Android Debug APK passed local compilation and static signature/manifest inspection, recorded in `DIGITAL_OBSERVER_PUSH_44_ANDROID_APK_STATIC_SECURITY_20261115.md`. That APK predates the later Android QA application-ID, network-policy and FileProvider source fixes. A replacement QA Debug APK was built from Development `3b2ad5c5` and statically inspected in `DIGITAL_OBSERVER_PUSH_44_ANDROID_QA_APK_REPLACEMENT_20261115.md`: distinct `com.ganbatuach.app.qa` package, loopback-only cleartext exception and no FileProvider in the compiled manifest. Neither APK was installed on a physical Android device or qualified for release.
