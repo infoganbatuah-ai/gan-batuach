@@ -1,5 +1,9 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## QA callback build configuration — 2026-11-16
+
+PR #535 merged the PersonalTeamQA callback build-mode fix to Development `a696f2b5bd56ad3aed6ebe4dee4a0386eea584e5` after eight exact-head checks passed. A real incremental unsigned iOS build exposed that mutating the generated Info.plist could restore an inherited URL scheme after the QA phase ran. The QA target now selects a static source plist: default `off` has no callback URL type, while an explicit `observerqa` build setting includes only that scheme; other values fail. Three unsigned generic-iOS builds in sequence off → observerqa → off confirmed the generated Info.plist had no URL type → exactly observerqa → no URL type. Focused QA 4/4, plist lint, TypeScript, focused lint and diff check passed. Debug/Release settings were unchanged. This is **source and unsigned-build PASS only**: the native return code remains disabled, no trusted account binding or live callback exists, and the opt-in build was not signed or installed.
+
 ## iPhone QA one-use handoff development — 2026-11-15
 
 After the owner completed iOS developer verification, one CoreDevice launch of the installed signed PersonalTeamQA build succeeded and read-only process inventory showed its native app process running. The owner visually confirmed the local **Digital Observer QA** screen, then returned to the Home screen and reopened the app; the same QA screen returned. This is **physical install, local shell launch and simple return-to-app PASS** for this offline build only. The bundled QA configuration has no remote server URL, the handoff callback remains disabled, and no account identity, authenticated Product session, live media or Push receipt was tested.
