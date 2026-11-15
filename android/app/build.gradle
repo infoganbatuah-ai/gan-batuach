@@ -1,3 +1,4 @@
+import groovy.json.JsonSlurper
 apply plugin: 'com.android.application'
 
 android {
@@ -17,6 +18,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // A local QA APK must never replace the installed release package.
+            applicationIdSuffix ".qa"
+            versionNameSuffix "-qa"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -43,6 +49,33 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// cap sync and Gradle are separate steps. Refuse a stale or wrong-profile
+// capacitor.config.json before packaging a QA or release artifact.
+def verifyMobileConfig = { String buildType ->
+    def packedConfig = file('src/main/assets/capacitor.config.json')
+    if (!packedConfig.isFile()) throw new GradleException('CAPACITOR_SYNC_REQUIRED')
+    def config = new JsonSlurper().parse(packedConfig)
+    def profile = System.getenv('CAPACITOR_BUILD_PROFILE') ?: 'development'
+    def expectedUrl = System.getenv('CAPACITOR_SERVER_URL')
+    if (!expectedUrl || config.server?.url != expectedUrl) throw new GradleException('CAPACITOR_SERVER_URL_MISMATCH')
+    if (buildType == 'release' && profile != 'release') throw new GradleException('CAPACITOR_RELEASE_PROFILE_REQUIRED')
+    if (buildType == 'debug' && !(profile in ['development', 'qa'])) throw new GradleException('CAPACITOR_DEBUG_PROFILE_REQUIRED')
+    def expectedAppId = buildType == 'release' ? 'com.ganbatuach.app' : 'com.ganbatuach.app.qa'
+    if (config.appId != expectedAppId) throw new GradleException('CAPACITOR_APP_ID_MISMATCH')
+    def url = new URI(expectedUrl)
+    def origin = "${url.scheme}://${url.authority}"
+    if (profile != 'development' || url.scheme == 'https') {
+        if (url.scheme != 'https' || origin != System.getenv('CAPACITOR_ALLOWED_SERVER_ORIGIN') || config.server.cleartext != false)
+            throw new GradleException('CAPACITOR_APPROVED_HTTPS_REQUIRED')
+    } else if (url.scheme != 'http' || !(url.host in ['localhost', '127.0.0.1']) || config.server.cleartext != true) {
+        throw new GradleException('CAPACITOR_LOCAL_URL_INVALID')
+    }
+}
+tasks.register('verifyDebugMobileConfig') { doLast { verifyMobileConfig('debug') } }
+tasks.register('verifyReleaseMobileConfig') { doLast { verifyMobileConfig('release') } }
+tasks.matching { it.name == 'preDebugBuild' }.configureEach { dependsOn 'verifyDebugMobileConfig' }
+tasks.matching { it.name == 'preReleaseBuild' }.configureEach { dependsOn 'verifyReleaseMobileConfig' }
 
 try {
     def servicesJSON = file('google-services.json')
