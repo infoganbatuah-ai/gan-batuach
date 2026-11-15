@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-15T00:07:50Z",
+  "updatedAt": "2026-11-15T19:25:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -17740,6 +17740,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Obtain separate exclusive canonical isolated Development DB lease; fresh protected backup and actual disposable restore; apply only reviewed 20261115002000 in order; verify history/RLS/role/readback and zero synthetic residue. Then record actual applied-state in separate ledger PR. No main/Production."
+    },
+    {
+      "id": "codex/admin-attendance-heading-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-ADMIN-ATTENDANCE-HEADING-QA-20261115",
+      "title": "Single accessible primary heading in Admin attendance-compliance",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/admin-attendance-heading-20261115",
+      "sourceCommits": [
+        "d4dfe5403863af7099fb0bf5c229143a2f78d789"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/admin-attendance-heading-20261115@d4dfe5403863af7099fb0bf5c229143a2f78d789"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_BROWSER_DOM_PASS_WITH_REDIRECT_SETTLING_LIMIT",
+        "evidence": [
+          "PR #485 passed the six exact-head Digital Observer CI gates plus management-context, canonical quality and Snyk; ancestry-preserving Development merge 6b0480a2bb8375d06362c853c0d62e2fb074b008.",
+          "Actual canonical Development Product at exact 6b0480a2: authenticated Admin desktop 1440x1024 and mobile 390x844 each had one visible main, one visible h1 and one visible hero h2, zero page errors. Manager, Staff, Parent, Inspector and guest did not expose the Admin heading/action in both viewports; no Product non-GET. Restricted receipt exports/restricted/gb-admin-attendance-heading-postmerge-20261115/receipt.json SHA256 6036fbcc9235fe394edba5d7f34ae32c4466baa679922bb08c347373d1e9c479.",
+          "The two attempted PNG captures in the restricted directory show the loading frame, so they are INVALID as visual evidence. DOM checks were recorded after loading. Product server stopped; port 3000 released."
+        ],
+        "classification": "MANAGEMENT_ADMIN_ACCESSIBILITY_HEADING_ONLY",
+        "limits": "A stricter redirect-settling rerun reached three desktop cases then stalled and was cancelled; its partial receipt is not PASS. Initial role checks prove no Admin DOM/action but some redirect destinations were not yet settled. Both attempted screenshots are loading frames and invalid as Product visual evidence. No full visual owner acceptance, all-role security certification, Production or main claim. New fixed monthly commitment ₪0."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "6b0480a2bb8375d06362c853c0d62e2fb074b008",
+        "pullRequests": [
+          485
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NONE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_DESKTOP_MOBILE_DOM_AND_ROLE_VISIBILITY_PASS_LIMITED_REDIRECT_SETTLING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_PRODUCT_OWNER_VISUAL_PROVIDER_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Preserve postmerge evidence; resolve any remaining redirect-settling concern only with a new scoped Product lease if required. Continue cumulative Development QA and external owner visual review before any release authorization; no main or Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
