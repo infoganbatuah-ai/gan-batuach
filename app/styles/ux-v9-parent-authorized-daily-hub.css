@@ -279,6 +279,56 @@
   outline-offset: 2px;
 }
 
+/* Keep the selected Child's identity visible on the primary Parent route.
+   The selector establishes context; this compact card anchors its photo and
+   Garden information before the daily panels. */
+.parent-dashboard-home > .parent-child-card:not(.no-child) {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 132px !important;
+  padding: 12px 18px !important;
+  border-radius: 18px;
+}
+.parent-dashboard-home > .parent-child-card:not(.no-child) .parent-child-photo {
+  width: 92px !important;
+  height: 92px !important;
+  border-width: 4px;
+}
+.parent-dashboard-home > .parent-child-card:not(.no-child) h2 { font-size: 1.5rem; }
+.parent-dashboard-home > .parent-child-card:not(.no-child) p {
+  margin: 3px 0 7px;
+  font-size: .78rem;
+}
+.parent-dashboard-home > .parent-child-card:not(.no-child) .parent-child-badges { gap: 6px; }
+.parent-dashboard-home > .parent-child-card-link:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 3px;
+}
+
+@media (min-width: 1025px) {
+  .parent-dashboard-home > .parent-child-card:not(.no-child) { grid-row: 5 !important; }
+  .parent-dashboard-home > .parent-primary-reference-grid { grid-row: 6 !important; }
+}
+
+@media (max-width: 720px) {
+  .parent-dashboard-home > .parent-child-card:not(.no-child) {
+    grid-row: auto !important;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 102px !important;
+    padding: 9px !important;
+  }
+  .parent-dashboard-home > .parent-child-card:not(.no-child) .parent-child-photo {
+    width: 66px !important;
+    height: 66px !important;
+  }
+  .parent-dashboard-home > .parent-child-card:not(.no-child) h2 { font-size: 1.05rem; }
+  .parent-dashboard-home > .parent-child-card:not(.no-child) p { font-size: .65rem; }
+  .parent-dashboard-home > .parent-child-card:not(.no-child) .parent-child-badges span { font-size: .61rem; }
+}
+
 /* UXV10: keep the Parent utility controls inside the reference's greeting
    region, rather than spending a separate desktop row on a second header. */
 @media (min-width: 1025px) {
