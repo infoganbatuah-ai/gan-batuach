@@ -1,6 +1,9 @@
 import UIKit
 import Capacitor
 import Security
+#if PERSONAL_TEAM_QA
+import AuthenticationServices
+#endif
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -136,6 +139,37 @@ enum QaAccessReturnGate {
               state.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
               state == expected.state else { return false }
         return true
+    }
+}
+
+// iOS 15-compatible system-browser adapter. Deliberately not wired to a QA
+// flow: no identity provider, no caller, and no start() invocation exist.
+enum QaAsWebAuthReturn {
+    static let enabled = false
+    struct Identity: Equatable {
+        let account: String
+        let installation: String
+    }
+    private static let identityProvider: (() -> Identity?)? = nil
+    private static let callbackScheme = "observerqa"
+
+    static func prepare(onValidated: @escaping () -> Void) -> ASWebAuthenticationSession? {
+        guard enabled, let identity = identityProvider?(),
+              !identity.account.isEmpty, !identity.installation.isEmpty else { return nil }
+        var bytes = [UInt8](repeating: 0, count: 32)
+        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
+        let state = bytes.map { String(format: "%02x", $0) }.joined()
+        guard let startURL = URL(string:
+            "https://qa-iphone-device-proof.ganbatuach.com/qa/device-proof/start?state=\(state)") else { return nil }
+        var consumed = false
+        return ASWebAuthenticationSession(url: startURL, callbackURLScheme: callbackScheme) {
+            callback, error in
+            guard !consumed else { return }
+            consumed = true // A failed return also burns this local one-use attempt.
+            guard error == nil, identityProvider?() == identity,
+                  callback?.absoluteString == "observerqa://return/qa/device-proof?state=\(state)" else { return }
+            onValidated() // No URL, state, bearer or cookie reaches the caller.
+        }
     }
 }
 

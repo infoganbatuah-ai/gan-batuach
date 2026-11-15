@@ -8,7 +8,7 @@ import { uploadFiles } from "@/lib/client-upload";
 type Child = { id: string; full_name: string; photo_url?: string | null; allergies?: string | null; regular_medications?: string | null };
 type Journal = Record<string, any>;
 
-export function ChildDailyJournalManager({ gardenId, children, journals, initialChildId = "", incidentMode = false }: { gardenId: string; children: Child[]; journals: Journal[]; initialChildId?: string; incidentMode?: boolean }) {
+export function ChildDailyJournalManager({ gardenId, children, journals, initialChildId = "", incidentMode = false, mealMode = false }: { gardenId: string; children: Child[]; journals: Journal[]; initialChildId?: string; incidentMode?: boolean; mealMode?: boolean }) {
   const [journalRows, setJournalRows] = useState(journals);
   const [selectedChildId, setSelectedChildId] = useState(initialChildId && children.some((child) => child.id === initialChildId) ? initialChildId : children[0]?.id ?? "");
   const [message, setMessage] = useState("");
@@ -75,7 +75,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals, initial
         <input type="hidden" name="child_id" value={selectedChildId} />
         <div className="selected-child-strip"><Avatar name={selectedChild?.full_name} src={selectedChild?.photo_url} /><strong>{selectedChild?.full_name ?? "בחרו ילד"}</strong></div>
         <div className="form-grid">
-          <label><Utensils size={16} /> ארוחת בוקר<input name="breakfast" placeholder="אכל/ה יפה / מעט / לא רצה" /></label>
+          <label><Utensils size={16} /> ארוחת בוקר<input name="breakfast" placeholder="אכל/ה יפה / מעט / לא רצה" autoFocus={mealMode && !incidentMode} /></label>
           <label><Utensils size={16} /> ארוחת צהריים<input name="lunch" placeholder="לדוגמה: פסטה וירקות" /></label>
           <label><Moon size={16} /> שינה<input name="sleep_summary" placeholder="ישן/ה רגוע" /></label>
           <label>דקות שינה<input name="sleep_minutes" type="number" min="0" /></label>
