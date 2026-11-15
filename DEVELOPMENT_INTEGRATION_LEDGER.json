@@ -18254,6 +18254,26 @@
       "automaticMerge": false
     }
   ],
+  "securityFindings": [
+    {
+      "id": "GB-SEC-INSPECTOR-COMPLAINT-SCOPE-PRODUCTION-20261115",
+      "status": "OPEN_PRODUCTION_PENDING_OWNER_AUTHORIZED_RELEASE",
+      "severity": "MEDIUM",
+      "owner": "Gan Batuach Management security and integration owner",
+      "observedAt": "2026-11-15T21:05:56Z",
+      "affectedUnits": ["GB-INSPECTOR-DASHBOARD-COMPLAINT-SCOPE-20261115", "GB-INSPECTOR-REPORTS-COMPLAINT-SCOPE-20261115"],
+      "deployedCommit": "4e28d73f8a578637cc25522b193b550ad6d87482",
+      "developmentFixes": [
+        {"pullRequest": 518, "sourceCommit": "d4eac9095149fd46d3d0737c1e92d4610fdd1604", "developmentMerge": "f8e7d724931937a110cf33dfea1c54c06128e1d7"},
+        {"pullRequest": 522, "sourceCommit": "dc1eafd9062fd0b9fbb6d4d80ec6d8032ba30db8", "developmentMerge": "0eec0fd4033e4eca8e11266ac763be6fe045405c"}
+      ],
+      "classification": "POSSIBLE_LATENT_EXPOSURE_CURRENT_DISCLOSURE_NOT_CONFIRMED_HISTORICAL_UNVERIFIED",
+      "summary": "The deployed Inspector dashboard and reports/API complaint reads use Garden scope without case-assignee scope. Live RLS allows an approved Inspector to read complaints of an assigned Garden. Bounded aggregate-only Production inspection found no current mismatched case condition. Production code is not fixed.",
+      "mitigation": "Include the already verified Development fixes in a separately owner-authorized consolidated Production release after all release gates; do not deploy or merge main automatically.",
+      "recheckCondition": "Recheck deployed commit and aliases, live complaint policy, and aggregate mismatch condition after an owner-authorized release or any Inspector Garden assignment or complaint-routing change.",
+      "restrictedEvidence": {"path": "exports/restricted/gb-inspector-complaint-production-risk-20261115/REPORT.md", "sha256": "284602c9df13bbb81dc3d5093f43f63db205593f253de174d6def9a0ca178c9c", "publishContents": false}
+    }
+  ],
   "externalEvidence": [
     {
       "path": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/DIGITAL_OBSERVER_POST_PUSH18_LIVE_VIEW_REPORT.md",

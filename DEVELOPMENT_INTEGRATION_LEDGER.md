@@ -1,5 +1,9 @@
 # Canonical Development Integration Ledger
 
+## Open security finding — Inspector complaint scope in Production (2026-11-15)
+
+**ID:** `GB-SEC-INSPECTOR-COMPLAINT-SCOPE-PRODUCTION-20261115` · **Severity:** Medium · **Owner:** Gan Batuach Management security and integration owner · **Status:** Open; Production not fixed. Vercel reports a READY deployment from `main` SHA `4e28d73f8a578637cc25522b193b550ad6d87482`. The deployed Inspector dashboard and reports/API read complaints by Garden without case-assignee filtering, while live RLS permits approved Inspector access by assigned Garden. Bounded aggregate-only Production inspection found no current mismatched case; this is **possible latent exposure, not confirmed current disclosure**, and historical access remains unverified. Development fixes: [PR #518](https://github.com/infoganbatuah-ai/gan-batuach/pull/518) at `f8e7d724931937a110cf33dfea1c54c06128e1d7` and [PR #522](https://github.com/infoganbatuah-ai/gan-batuach/pull/522) at `0eec0fd4033e4eca8e11266ac763be6fe045405c`. Mitigation requires a separately owner-authorized, gated consolidated release. Recheck the deployed SHA/aliases, live policy and aggregate condition after that release or any Inspector assignment/complaint-routing change. Restricted redacted evidence: `exports/restricted/gb-inspector-complaint-production-risk-20261115/REPORT.md`, SHA256 `284602c9df13bbb81dc3d5093f43f63db205593f253de174d6def9a0ca178c9c`; contents are not published in Git.
+
 2026-11-14 Children, Classrooms and Enrollment scoped isolation QA — PR #412:
 Source `e6423d2ecae58026edc552760e41a3645f804d9c` corrected anonymous
 `/api/children` 500 to 401 without altering authenticated permission/RLS
