@@ -14,15 +14,22 @@ and `consume(input)` implementation. The authenticated account and session
 are taken only from that verifier. `consume` must invoke the separately
 reviewed signature/receipt adapter, whose final database statement checks a
 live Auth session, one-use receipt, approved installation, expiry and
-revocation. Existing `getDigitalObserverApiUser` source verifies the user and
-calls `digital_observer_current_session_active()`, but it does **not** return
-the verified `session_id` needed here. The present unit cannot safely derive
-it from client JSON, an unverified JWT parse, or browser cookie. Therefore no
-active route or real Auth/database wiring is included.
+revocation. Existing `getDigitalObserverApiUser` verifies the user and calls
+`digital_observer_current_session_active()`. The separate
+`getQaVerifiedSession` helper derives the `session_id` only after those checks
+succeed for the same bearer; it never takes identity from client JSON or a
+browser cookie. No active route or real database wiring is included.
 
-Activation requires an authoritative server-side session-ID extraction
-contract, deployed private-store ACL review, PostgreSQL revocation/consume
-race proof, rate limiting, and an approved external control transport. Tests
-use injected synthetic Auth/storage and are not real Supabase or PostgreSQL
-proof. No SQL was executed; no secret, device, endpoint, provider or external
-route was activated.
+`qa-handoff-composition.ts` connects this HTTP gate, the verified-session
+helper and the conditional receipt consumer in one server-only module. Its
+activation constant is hard-coded `false`; no route imports it and no runtime
+option can enable it. The integration test enables only a transpiled in-memory
+copy, uses the real signature verifier and consumer against a fake database,
+and revalidates Auth identity at consume time. This proves local wiring, not
+a live database transaction.
+
+Activation still requires deployed private-store ACL review, PostgreSQL
+revocation/consume race proof for the `auth.sessions` row-locking statement,
+rate limiting, approved external control transport and physical-device proof.
+No SQL was executed; no secret, device, endpoint, provider or external route
+was activated.
