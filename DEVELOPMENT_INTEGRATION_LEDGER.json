@@ -18001,6 +18001,35 @@
       "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Continue Staff/primary-screen reference correction through canonical coordinator; external owner assesses overall visual composition. No main or Production release."
+    },
+    {
+      "id": "codex/staff-quick-incident-intent-20261115",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-STAFF-QUICK-INCIDENT-INTENT-20261115",
+      "title": "Open existing Staff incident form from primary quick action",
+      "owner": "Scoped Management executor; single Development integration owner",
+      "sourceBranch": "codex/staff-quick-incident-intent-20261115",
+      "sourceCommits": ["f416487ceb886d98c83b2ef77e922383567ef507"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/staff-quick-incident-intent-20261115@f416487ceb886d98c83b2ef77e922383567ef507"], "status": "INTEGRATED_DEVELOPMENT"},
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_POSTMERGE_AUTHENTICATED_PRODUCT_PASS_SCOPED",
+        "evidence": [
+          "PR #516 source f416487ceb886d98c83b2ef77e922383567ef507 passed six Digital Observer CI gates plus management-context, canonical quality and Snyk, then ancestry-merged to Development 26dd507e0676512c3ba32a2049c48b6c911d6611.",
+          "Authenticated Staff baseline at Development f374b668dfb5b408ad80421e38c21cadf24cbcc0: quick incident action reached /dashboard/staff/incidents with panel aria-expanded=false and form hidden on Desktop 1440x1024 and Mobile 390x844.",
+          "Actual Product at exact merged 26dd507e0676512c3ba32a2049c48b6c911d6611: quick action reached ?new=1, existing form opened, title focused+visible Desktop y750-792 and Mobile y351-399. Direct incidents route remained closed for current QA data. Zero Product nonGET/incident writes, page errors or horizontal overflow. Settled Mobile screenshot visually inspected. Restricted after Desktop SHA256 fe99841a04dfa0bc193de568d06a6cabc18d55941d982d37aee6e6618bee04cd; Mobile SHA256 5f05fe78423656950a1650e183ca92d54a794e9cee418645001dc917c0499014."
+        ],
+        "classification": "MANAGEMENT_STAFF_QUICK_INCIDENT_ACTION_ONLY",
+        "limits": "Scoped navigation/panel/focus correction only; not full Staff reference reconstruction, full role-boundary E2E or cumulative release qualification. Staff role guard unchanged; no incident submission, DB write, migration, Digital Observer core edit, paid dependency, main or Production change. Runtime stopped and port 3000 released; new fixed monthly commitment ₪0."
+      },
+      "integration": {"branch": "integration/development", "commit": "26dd507e0676512c3ba32a2049c48b6c911d6611", "pullRequests": [516], "sourceAncestryVerified": true},
+      "dependencies": {"status": "NONE", "units": []},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "ACTUAL_MERGED_DEVELOPMENT_PRODUCT_STAFF_QUICK_INCIDENT_DESKTOP_MOBILE_OPEN_FOCUS_PASS",
+      "releaseEligibility": "NOT_READY_OWNER_REFERENCE_AND_CUMULATIVE_SECURITY_COST_RECOVERY_GATES_PENDING",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Continue Staff/primary-screen reference correction through canonical coordinator; external owner assesses overall visual composition. No main or Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
