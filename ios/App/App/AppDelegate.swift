@@ -197,8 +197,9 @@ enum QaSecureEnclaveProof {
         var existing: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &existing)
         if status == errSecSuccess {
-            guard let key = existing as? SecKey else { throw ProofError.unavailable }
-            return key
+            guard let existing = existing,
+                  CFGetTypeID(existing) == SecKeyGetTypeID() else { throw ProofError.unavailable }
+            return existing as! SecKey
         }
         guard status == errSecItemNotFound else { throw ProofError.unavailable }
 
