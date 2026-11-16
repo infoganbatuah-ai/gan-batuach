@@ -66,6 +66,14 @@ test("cross-app and malformed deep links are rejected before token selection", (
   assert.deepEqual(select("gan_management", { category: "camera_alert", deepLinkType: "camera" }), []);
   assert.deepEqual(select("digital_observer", { category: "camera_alert" }), []);
   assert.deepEqual(select("unknown", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" }), []);
+  for (const category of ["constructor", "toString", "__proto__"]) {
+    assert.equal(contract.pushDestinationMatchesAudience("gan_management", { category, deepLinkType: "system", actionUrl: "/dashboard" }), false);
+    assert.deepEqual(select("gan_management", { category, deepLinkType: "system", actionUrl: "/dashboard" }), []);
+  }
+  for (const audience of ["constructor", "toString", "__proto__"]) {
+    assert.equal(contract.pushDestinationMatchesAudience(audience, { category: "system_notification", deepLinkType: "system", actionUrl: "/dashboard" }), false);
+    assert.deepEqual(select(audience, { category: "system_notification", deepLinkType: "system", actionUrl: "/dashboard" }), []);
+  }
 });
 
 test("cross-profile and missing evidence cannot borrow another app binding", () => {

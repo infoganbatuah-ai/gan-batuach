@@ -43,15 +43,18 @@ function safeRelativePath(raw: string): string | null {
 }
 
 export function pushDestinationMatchesAudience(audience: PushProductAudience, destination: PushDestination): boolean {
-  if (!(audience in nativeAppIds)) return false;
+  if (!Object.hasOwn(nativeAppIds, audience)) return false;
   const ganTypes: Record<string, readonly string[]> = {
     registration: ["system"], parent_approval: ["dashboard"], child_approval: ["child_profile"],
     payment_reminder: ["payment"], safety_alert: ["incident"], inspection_alert: ["inspection"],
     camera_alert: ["camera"], observer_alert: ["observer_event"], system_notification: ["system"]
   };
   const observerTypes: Record<string, readonly string[]> = { observer_alert: ["observer_event"] };
-  const allowedTypes = (audience === "digital_observer" ? observerTypes : ganTypes)[destination.category ?? ""];
-  if (!allowedTypes || !destination.deepLinkType || !allowedTypes.includes(destination.deepLinkType) || !destination.actionUrl) return false;
+  const categories = audience === "digital_observer" ? observerTypes : ganTypes;
+  const category = destination.category ?? "";
+  if (!Object.hasOwn(categories, category)) return false;
+  const allowedTypes = categories[category];
+  if (!destination.deepLinkType || !allowedTypes.includes(destination.deepLinkType) || !destination.actionUrl) return false;
   const path = safeRelativePath(destination.actionUrl);
   if (!path) return false;
   if (audience === "gan_management" && destination.category === "camera_alert")
