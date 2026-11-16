@@ -18833,6 +18833,53 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify real native app/provider attestation, persistent atomic nonce and trusted binding writer before changing either sender; prove physical Auth, APNs/FCM and media separately."
+    },
+    {
+      "id": "codex/gan-mobile-branding-20261116",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-GAN-MOBILE-BRANDING-20261116",
+      "title": "Use official Gan mark for mobile launcher icons and identify isolated Gan iOS QA shell",
+      "owner": "Scoped Gan Management executor; single Development integration owner",
+      "sourceBranch": "codex/gan-mobile-branding-20261116",
+      "sourceCommits": [
+        "275824d581c4a5196f7c513be6d968a431d0f381"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-mobile-branding-20261116@275824d581c4a5196f7c513be6d968a431d0f381"
+        ],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_AND_SCOPED_NATIVE_SOURCE_IDENTITY_PASS",
+        "evidence": [
+          "PR #569 merged source 275824d581c4a5196f7c513be6d968a431d0f381 to Development 9ef63353a68e10b0ba04c14d9c72f5ca55b050c1 after six CI gates, management-context, canonical quality and Snyk passed on the exact source head.",
+          "Gan iOS 1024px and Android legacy/adaptive assets at five densities were deterministically composited from existing official public/assets/gan-batuach-brand-mark-official.png, SHA256 4f914d04cf16061b831782d6d53b3f67259f3f88365cb123b641887917eea5ce; all 16 output assets byte-matched the source-mark composition and were visually inspected.",
+          "Existing Gan iOS PersonalTeamQA identity com.ganbatuach.app.qa and offline no-Push/no-remote-URL behavior remain. Its Xcode display name, bundled Capacitor appName and offline page now identify as גן בטוח QA. Focused Personal Team QA configuration, Observer iOS 2/2 and Observer Android 4/4 identity suites and diff check passed. Observer package, name, icon and core source were not modified."
+        ],
+        "classification": "GAN_NATIVE_BRANDING_AND_QA_IDENTITY_ONLY",
+        "limits": "Full local Xcode simulator/build qualification was blocked by inaccessible external Swift package cache/CoreSimulator service and is not claimed PASS; no physical iPhone or Android installation was performed. No app functionality, provider, migration, paid dependency, main or Production change. Owner paused Gan work after this narrow unit."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "9ef63353a68e10b0ba04c14d9c72f5ca55b050c1",
+        "pullRequests": [569],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NATIVE_DEVICE_AND_RELEASE_QUALIFICATION_OPEN",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "GAN_AND_OBSERVER_NATIVE_SOURCE_IDENTITY_PASS_SCOPED_DEVICE_UNVERIFIED",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_OWNER_RELEASE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Pause per owner direction. After an explicit resume, reconcile Development and qualify actual native Gan packages/device installation without touching the existing Observer QA app; continue broader Gan acceptance separately."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
