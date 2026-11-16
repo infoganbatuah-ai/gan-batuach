@@ -3,8 +3,10 @@
 import { createHash } from "node:crypto";
 
 export type PushRegistrationAudience = "gan_management" | "digital_observer";
+export type PushTokenProvider = "apns" | "fcm";
 export type PushRegistrationChallenge = {
   audience: PushRegistrationAudience;
+  provider: PushTokenProvider;
   appId: string;
   profileId: string;
   installationId: string;
@@ -29,6 +31,7 @@ function field(value: string): string {
 
 export function encodePushRegistrationChallenge(input: PushRegistrationChallenge): Buffer {
   if (!Object.hasOwn(allowedApps, input.audience) || !allowedApps[input.audience].has(input.appId) ||
+      (input.provider !== "apns" && input.provider !== "fcm") ||
       ![input.appId, input.profileId, input.installationId, input.providerToken, input.nonce, input.expiresAt].every(nonempty)) {
     throw new Error("push_challenge_invalid_identity");
   }
@@ -38,7 +41,7 @@ export function encodePushRegistrationChallenge(input: PushRegistrationChallenge
   }
   const tokenHash = createHash("sha256").update(input.providerToken, "utf8").digest("hex");
   return Buffer.from([
-    "push-registration-v1", input.audience, input.appId, input.profileId,
+    "push-registration-v1", input.audience, input.provider, input.appId, input.profileId,
     input.installationId, tokenHash, input.nonce, input.expiresAt
   ].map(field).join(""), "utf8");
 }

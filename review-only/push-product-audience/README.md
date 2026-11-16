@@ -1,7 +1,8 @@
 # PUSH 44 — offline product-audience boundary
 
 The disconnected `lib/domain/push-registration-challenge.ts` module only
-provides canonical challenge bytes and an **in-process test fixture** for
+provides canonical challenge bytes bound to an allowlisted provider (`apns` or
+`fcm`) and an **in-process test fixture** for
 one-use nonce behavior. Its `verifiedVerdict` parameter is a synthetic test
 assumption, not Apple App Attest, Google Play Integrity, APNs/FCM token
 ownership, or durable cross-worker replay protection. The module is not called
