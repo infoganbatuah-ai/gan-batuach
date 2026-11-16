@@ -44,7 +44,7 @@ async function siteContext(
   observerSiteId: string,
   manage: boolean
 ) {
-  const observerAdmin = session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
+  const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
   const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
   const accessProfile = observerAdmin ? { ...session.profile, role: "admin" } : session.profile;
   const site = await getObserverSiteAccess(dataClient, accessProfile, observerSiteId, manage ? { manage: true } : {});
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     const payload = requestSchema.parse(await request.json());
 
     if (payload.action === "set_state") {
-      const observerAdmin = session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
+      const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
       const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
       const existing = await dataClient.from("observer_watch_requests" as never)
         .select("id,observer_site_id,compiler_version").eq("id", payload.rule_id).maybeSingle();

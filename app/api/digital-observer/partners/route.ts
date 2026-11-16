@@ -23,7 +23,7 @@ const schema = z.discriminatedUnion("action", [
     scopes: z.array(z.enum(embeddedScopes)).min(1).max(embeddedScopes.length), ttl_minutes: z.number().int().min(1).max(60).default(15) }).strict()
 ]);
 async function isPlatformAdmin(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>) {
-  return session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
+  return hasCurrentObserverAdmin(session.user.id);
 }
 function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : "PARTNER_OPERATION_FAILED";

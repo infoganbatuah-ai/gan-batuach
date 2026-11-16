@@ -2,19 +2,8 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
-
-export const DIGITAL_OBSERVER_ADMIN_METADATA_KEY = "digital_observer_admin";
-
-export async function hasCurrentObserverAdmin(userId: string) {
-  try {
-    if (!userId || !isAdminClientConfigured()) return false;
-    // A JWT can retain an old app_metadata claim after an administrator revokes
-    // it. Read the current server-owned Auth record before privileged access.
-    const { data, error } = await createAdminClient().auth.admin.getUserById(userId);
-    return !error && data.user?.id === userId &&
-      data.user.app_metadata?.[DIGITAL_OBSERVER_ADMIN_METADATA_KEY] === true;
-  } catch { return false; }
-}
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/current-admin-authority";
+export { hasCurrentObserverAdmin, DIGITAL_OBSERVER_ADMIN_METADATA_KEY } from "@/lib/domain/digital-observer/current-admin-authority";
 
 export async function requireDigitalObserverAdmin(nextPath = "/digital-observer/admin") {
   const session = await requireUser(`/digital-observer/login?next=${encodeURIComponent(nextPath)}`);

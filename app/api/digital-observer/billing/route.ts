@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     const admin = createAdminClient() as any;
     if ("package_id" in input) await authorizePackage(admin, site.site_type, input.package_id);
     if (input.action === "reconcile") {
-      const observerAdmin = session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
+      const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
       if (!observerAdmin) return fail("Commercial reconciliation requires platform administration.", 403);
       const result = await runCommercialReconciliation(admin, { siteId: input.observer_site_id,
         providerKey: process.env.DIGITAL_OBSERVER_PAYMENT_PROVIDER_KEY || "disabled", periodStart: input.period_start, periodEnd: input.period_end });
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       const requestResult = await cancelSubscription(admin, { siteId: input.observer_site_id, actorId: session.profile.id, reason: input.reason, idempotencyKey: input.idempotency_key });
       return ok({ request: requestResult, immediate: false }, 201);
     }
-    const refundMembership = site.owner_profile_id === session.profile.id || session.profile.role === "admin"
+    const refundMembership = site.owner_profile_id === session.profile.id || await hasCurrentObserverAdmin(session.user.id)
       ? { member_role: "owner" }
       : (await (session.supabase as any).from("observer_site_memberships").select("member_role").eq("observer_site_id", input.observer_site_id)
         .eq("profile_id", session.profile.id).eq("active", true).in("member_role", ["owner", "admin"]).maybeSingle()).data;
