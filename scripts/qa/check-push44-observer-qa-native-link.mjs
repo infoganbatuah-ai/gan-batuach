@@ -77,6 +77,13 @@ test("Observer Android refuses malformed and non-resource intents before server 
 test("native HTTPS return stays on the exact Observer origin and product path", () => {
   const appId = "com.digitalobserver.app.qa";
   assert.equal(mobile.nativeAppAcceptsMobileLink(`${origin}/digital-observer/open/camera/${camera}?site=${site}`, appId, "ios", origin), true);
+  assert.equal(mobile.nativeAppAcceptsMobileLink(`${origin}/digital-observer/open/camera/${camera}?site=${site}`, appId, "android", origin), true);
+  for (const ganAppId of ["com.ganbatuach.app", "com.ganbatuach.app.qa"]) {
+    for (const platform of ["ios", "android"]) {
+      assert.equal(mobile.nativeAppAcceptsMobileLink(`${origin}/digital-observer/open/camera/${camera}?site=${site}`,
+        ganAppId, platform, origin), false, `${ganAppId}/${platform}`);
+    }
+  }
   assert.equal(mobile.nativeAppAcceptsMobileLink(`https://gan-qa.example.invalid/digital-observer/open/camera/${camera}?site=${site}`, appId, "ios", origin), false);
   assert.equal(mobile.nativeAppAcceptsMobileLink(`${origin}/dashboard/parent`, appId, "ios", origin), false);
   assert.throws(() => mobile.parseMobileLink(`observerqaapp://auth/callback?code=opaque`), /MOBILE_LINK_INVALID/);

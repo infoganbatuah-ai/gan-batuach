@@ -54,7 +54,10 @@ export function nativeAppAcceptsMobileLink(rawUrl: string, appId: string, platfo
     ["ios", "android"].includes(platform) && ["com.ganbatuach.app", "com.ganbatuach.app.qa"].includes(appId) ? "digitalobserver:" : null;
   if (!expected || url.username || url.password || url.port || url.hash) return false;
   if (url.protocol === "https:") {
-    if (url.origin !== currentOrigin || !url.pathname.startsWith("/digital-observer/open/")) return false;
+    // A shared origin is not an installation identity. Only the distinct
+    // Observer QA app may consume Observer HTTPS resource links.
+    if (appId !== "com.digitalobserver.app.qa" || url.origin !== currentOrigin ||
+        !url.pathname.startsWith("/digital-observer/open/")) return false;
   } else if (url.protocol !== expected) return false;
   try {
     parseMobileLink(rawUrl, [currentOrigin]);
