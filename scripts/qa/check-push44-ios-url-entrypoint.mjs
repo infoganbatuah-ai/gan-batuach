@@ -24,6 +24,10 @@ test("only exact HTTPS state can pass the dormant native parser", () => {
   assert.match(native, /now < expected\.expires, account == expected\.account/);
   assert.match(native, /bundle\.audience == "com\.ganbatuach\.app\.qa"/);
   assert.match(native, /installation == expected\.installation, bundle\.audience == expected\.audience/);
+  assert.match(native, /case "com\.digitalobserver\.app\.qa":/);
+  assert.match(native, /callbackScheme: "observerqaapp"/);
+  assert.match(native, /case "com\.ganbatuach\.app\.qa":/);
+  assert.match(native, /callbackScheme: "observerqa"/);
   assert.match(native, /SecRandomCopyBytes\(kSecRandomDefault/);
   assert.doesNotMatch(native, /print\(.*(?:url|state)|NSLog\(.*(?:url|state)/);
 });
@@ -35,6 +39,8 @@ test("QA callback source selection remains default-off and native exchange dorma
   assert.match(project, /prepare-push44-qa-callback\.mjs/);
   assert.match(native, /static let identityProvider: \(\(\) -> Identity\?\)\? = nil/);
   assert.match(native, /return ASWebAuthenticationSession\(url: startURL, callbackURLScheme: bundle\.callbackScheme\)/);
+  assert.match(native, /QaBundleIdentity\.current\(\) == bundle/);
+  assert.match(native, /callback\?\.absoluteString == "\\?\(bundle\.callbackScheme\):\/\/return\/qa\/device-proof\?state=/);
   assert.match(native, /identityProvider\?\(\) == identity/);
   assert.match(native, /consumed = true \/\/ A failed return also burns this local one-use attempt/);
   assert.doesNotMatch(native, /\.start\(\)|URLSession\.shared|exchangeCodeForSession/);
