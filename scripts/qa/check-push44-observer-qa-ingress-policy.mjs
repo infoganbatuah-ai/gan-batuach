@@ -15,6 +15,45 @@ test("only the bounded Observer login, session page and static paths pass", () =
   assert.equal(allows("GET", "/_next/static/chunk..js"), true);
 });
 
+test("real Observer dashboard login redirects and session errors remain narrowly reachable", () => {
+  for (const path of [
+    "/digital-observer/login?next=/digital-observer/dashboard",
+    "/digital-observer/login?next=%2Fdigital-observer%2Fdashboard",
+    "/digital-observer/login?next=/digital-observer/onboarding",
+    "/digital-observer/login?error=session_expired",
+    "/digital-observer/login?error=not_observer_account",
+    "/digital-observer/login?error=invalid_login&next=%2Fdigital-observer%2Fdashboard",
+    "/digital-observer/login?error=email_not_confirmed&next=%2Fdigital-observer%2Fdashboard",
+    "/digital-observer/login?error=observer_setup_required&next=%2Fdigital-observer%2Fdashboard"
+  ]) {
+    assert.equal(allows("GET", path), true, path);
+    assert.equal(observerQaRedirect(path, gate), path);
+  }
+});
+
+test("login query rejects duplicate, secret, traversal, external and cross-product destinations", () => {
+  for (const path of [
+    "/digital-observer/login?next=/dashboard/parent",
+    "/digital-observer/login?next=https://evil.test/",
+    "/digital-observer/login?next=//evil.test/",
+    "/digital-observer/login?next=%2F%2Fevil.test%2F",
+    "/digital-observer/login?next=%2Fdigital-observer%2F..%2Fdashboard",
+    "/digital-observer/login?next=%252e%252e%252fdashboard",
+    "/digital-observer/login?next=/digital-observer/admin",
+    "/digital-observer/login?next=/digital-observer/dashboard&next=/dashboard/parent",
+    "/digital-observer/login?error=session_expired&error=invalid_login",
+    "/digital-observer/login?error=arbitrary",
+    "/digital-observer/login?code=secret",
+    "/digital-observer/login?next=/digital-observer/dashboard&token=secret",
+    "/digital-observer/login?next=/digital-observer/dashboard&extra=1",
+    "/digital-observer/dashboard?next=/digital-observer/dashboard",
+    "/auth/callback?next=/digital-observer/dashboard"
+  ]) {
+    assert.equal(allows("GET", path), false, path);
+    assert.equal(observerQaRedirect(path, gate), null, path);
+  }
+});
+
 test("wrong host, absent owner gate or untrusted TLS deny before route selection", () => {
   for (const override of [{ host: "ganbatuach.com" }, { host: "qa-iphone-device-proof.ganbatuach.com" },
     { ownerAuthorized: false }, { ownerAuthorized: undefined }, { trustedHttps: false }]) {

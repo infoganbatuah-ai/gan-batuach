@@ -10,6 +10,24 @@ const exactGet = new Set([
 const exactPost = new Set(["/api/digital-observer/auth/login", "/api/auth/logout"]);
 const assetPrefixes = ["/_next/static/", "/assets/digital-observer/"];
 const secretKeys = /^(?:code|token|token_hash|access_token|refresh_token|id_token|session|password|secret|key)$/i;
+const loginReturnPaths = new Set(["/digital-observer/dashboard", "/digital-observer/onboarding"]);
+const loginErrors = new Set([
+  "session_expired", "not_observer_account", "invalid_login",
+  "email_not_confirmed", "observer_setup_required"
+]);
+
+function allowedLoginQuery(url) {
+  if (!url.search) return true;
+  const seen = new Set();
+  for (const [key, value] of url.searchParams) {
+    if (seen.has(key)) return false;
+    seen.add(key);
+    if (key === "next" && loginReturnPaths.has(value)) continue;
+    if (key === "error" && loginErrors.has(value)) continue;
+    return false;
+  }
+  return seen.size > 0;
+}
 
 function hasRawTraversal(rawPath) {
   if (/%(?:00|25|2f|5c)/i.test(rawPath)) return true;
@@ -41,11 +59,8 @@ export function observerQaRouteAllowed({ method, rawUrl, host, trustedHttps, own
   if (method === "POST") return exactPost.has(url.pathname) && !url.search;
   if (method !== "GET" && method !== "HEAD") return false;
   if (url.pathname === "/auth/callback") return false; // No safe native exchange yet.
-  if (url.search) {
-    // Login errors are intentionally not transported through this dormant
-    // profile until the exact callback/session contract is qualified.
-    return false;
-  }
+  if (url.pathname === "/digital-observer/login") return allowedLoginQuery(url);
+  if (url.search) return false;
   return exactGet.has(url.pathname) || assetPrefixes.some((prefix) =>
     url.pathname.startsWith(prefix) && url.pathname.length > prefix.length);
 }
