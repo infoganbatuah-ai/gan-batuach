@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { waiveMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
 
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     const { data: review, error: reviewError } = await supabase.from("observer_signal_reviews" as never).insert({
       signal_id: signal.id,
       reviewer_id: profile.id,
-      reviewer_role: profile.role === "admin" ? "admin" : "observer_site_owner",
+      reviewer_role: await hasCurrentObserverAdmin(session.user.id) ? "admin" : "observer_site_owner",
       review_status: payload.review_status,
       review_note: payload.note || null,
       recommended_next_step: payload.review_status === "escalated" ? "בדיקה אנושית והסלמה לפי נוהל האתר" : null,

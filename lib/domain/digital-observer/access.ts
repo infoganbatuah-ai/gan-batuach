@@ -4,6 +4,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import type { Database } from "@/lib/supabase/types";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/current-admin-authority";
 
 type ObserverSupabaseClient = SupabaseClient<Database>;
 
@@ -38,7 +39,7 @@ export async function getObserverSiteAccess(
   const site = siteResult as any;
 
   if (!site || site.site_type === "kindergarten" || site.garden_id) return null;
-  if (profile.role === "admin" || site.owner_profile_id === profile.id) return site;
+  if (site.owner_profile_id === profile.id || await hasCurrentObserverAdmin(profile.id)) return site;
 
   const allowedRoles = options.manage
       ? ["owner", "admin", "operator"]

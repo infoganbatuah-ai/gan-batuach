@@ -104,7 +104,7 @@ export default async function DigitalObserverIncidentsPage({ searchParams }: Pag
   const params = await searchParams;
   const { profile, user } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/incidents");
   const runtime = await loadObserverRuntime(profile.id);
-  const observerAdmin = profile.role === "admin" || await hasCurrentObserverAdmin(user.id);
+  const observerAdmin = await hasCurrentObserverAdmin(user.id);
   const sessionSupabase = await createClient();
   const supabase = observerAdmin ? createDigitalObserverAdminDataClient() : sessionSupabase;
   let site: ObserverRow | null = selectObserverSite(runtime.sites, runtime.cameras, params?.site);

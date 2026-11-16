@@ -52,7 +52,7 @@ function enterpriseError(error: unknown) {
 }
 
 async function platformAdmin(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>) {
-  return session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
+  return hasCurrentObserverAdmin(session.user.id);
 }
 
 async function enterpriseState(admin: ReturnType<typeof createAdminClient>, orgId: string) {

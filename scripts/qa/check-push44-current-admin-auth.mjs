@@ -8,25 +8,34 @@ const require = createRequire(import.meta.url);
 const ts = require("typescript");
 const source = readFileSync(new URL("../../lib/domain/digital-observer/admin-access.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const authoritySource = readFileSync(new URL("../../lib/domain/digital-observer/current-admin-authority.ts", import.meta.url), "utf8");
+const authorityCompiled = ts.transpileModule(authoritySource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 
 function fixture({ currentClaim = false, lookupError = false, configured = true, returnedId = "user-1", sessionActive = true } = {}) {
   const calls = [];
   const redirects = [];
   const access = {};
+  const authority = {};
+  const adminClient = {
+    isAdminClientConfigured: () => configured,
+    createAdminClient: () => ({ auth: { admin: { getUserById: async (id) => {
+      calls.push(id);
+      return { data: { user: { id: returnedId, app_metadata: { digital_observer_admin: currentClaim } } },
+        error: lookupError ? new Error("lookup failed") : null };
+    } } } })
+  };
+  runInNewContext(authorityCompiled, { exports: authority, require(id) {
+    if (id === "@/lib/supabase/admin") return adminClient;
+    throw new Error(`Unexpected authority import: ${id}`);
+  } });
   runInNewContext(compiled, {
     exports: access,
     require(id) {
       if (id === "next/navigation") return { redirect: (path) => { redirects.push(path); throw new Error("redirect"); } };
       if (id === "@/lib/auth") return { requireUser: async () => ({ user: { id: "user-1", app_metadata: { digital_observer_admin: true } } }) };
       if (id === "@/lib/domain/digital-observer/access") return { getDigitalObserverApiUser: async () => sessionActive ? { user: { id: "user-1" } } : null };
-      if (id === "@/lib/supabase/admin") return {
-        isAdminClientConfigured: () => configured,
-        createAdminClient: () => ({ auth: { admin: { getUserById: async (id) => {
-          calls.push(id);
-          return { data: { user: { id: returnedId, app_metadata: { digital_observer_admin: currentClaim } } },
-            error: lookupError ? new Error("lookup failed") : null };
-        } } } })
-      };
+      if (id === "@/lib/supabase/admin") return adminClient;
+      if (id === "@/lib/domain/digital-observer/current-admin-authority") return authority;
       throw new Error(`Unexpected import: ${id}`);
     }
   });
