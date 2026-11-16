@@ -57,3 +57,17 @@ test("opt-in config derives only from existing offline Observer templates", () =
       { ...offline, server: { ...offline.server, url: "https://ganbatuach.com" } }));
   }
 });
+
+test("native build paths opt in without weakening offline or Gan variants", () => {
+  const root = new URL("../../", import.meta.url);
+  const ios = readFileSync(new URL("scripts/qa/finalize-observer-ios-qa.swift", root), "utf8");
+  const android = readFileSync(new URL("android/app/build.gradle", root), "utf8");
+  assert.match(ios, /environment\["OBSERVER_QA_AUTH_BUILD"\] == "1"/);
+  assert.match(ios, /OBSERVER_QA_OFFLINE_URL_FORBIDDEN/);
+  assert.match(ios, /OBSERVER_QA_AUTH_BUILD_BOUNDARY_INVALID/);
+  assert.match(android, /CAPACITOR_OBSERVER_OFFLINE_URL_FORBIDDEN/);
+  assert.match(android, /CAPACITOR_OBSERVER_AUTH_BOUNDARY_INVALID/);
+  assert.match(android, /prepare-observer-qa-auth-config\.mjs/);
+  assert.match(android, /CAPACITOR_PRODUCT_VARIANT_MISMATCH/);
+  assert.match(android, /CAPACITOR_OBSERVER_GAN_PUSH_CONFIG_FORBIDDEN/);
+});
