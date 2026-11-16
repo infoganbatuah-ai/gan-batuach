@@ -100,6 +100,9 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
 }
 
 export async function unregisterPushDevice(supabase: SupabaseLike, profileId: string, deviceToken?: string | null, deviceId?: string | null) {
+  // This operation removes one current device. An empty selector must not
+  // silently revoke every Gan and Observer token belonging to the profile.
+  if (!deviceToken && !deviceId) return { ok: false, rows: [], error: "push_device_selector_required" };
   let exactTokenId: string | null = null;
   if (!deviceToken && deviceId) {
     // device_id is client-supplied and not a product identity. Never let a

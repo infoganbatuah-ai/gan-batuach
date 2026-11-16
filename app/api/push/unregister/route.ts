@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { unregisterPushDevice } from "@/lib/domain/push-service";
 
 const schema = z.object({
-  device_token: z.string().optional(),
-  device_id: z.string().optional()
-});
+  device_token: z.string().min(1).optional(),
+  device_id: z.string().min(1).optional()
+}).refine((value) => Boolean(value.device_token || value.device_id), "device selector required");
 
 export async function POST(request: Request) {
   try {

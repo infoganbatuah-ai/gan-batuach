@@ -133,6 +133,22 @@ test("duplicate active tokens sharing a device id fail closed without revoking e
   ]);
 });
 
+test("missing device selector cannot revoke all tokens for a profile", async () => {
+  const serviceSource = readFileSync(new URL("../../lib/domain/push-service.ts", import.meta.url), "utf8");
+  const serviceJs = ts.transpileModule(serviceSource, { compilerOptions: {
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS
+  } }).outputText;
+  const exports = {};
+  vm.runInNewContext(serviceJs, { exports, require: (name) => {
+    if (name === "crypto") return require("node:crypto");
+    if (name === "./push-provider") return { getPushProviderForPlatform: () => ({ name: "mock" }) };
+    assert.fail(`unexpected dependency: ${name}`);
+  } }, { timeout: 1000 });
+  const result = await exports.unregisterPushDevice({ from: () => assert.fail("empty selector must not query tokens") }, "profile-a");
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "push_device_selector_required");
+});
+
 test("client only supplies native current-device id and does not navigate on failed logout", () => {
   const component = readFileSync(new URL("../../components/logout-button.tsx", import.meta.url), "utf8");
   const helper = readFileSync(new URL("../../lib/domain/digital-observer/native-push-logout.ts", import.meta.url), "utf8");
