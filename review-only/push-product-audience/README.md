@@ -11,6 +11,16 @@ by the live registration or sender paths. Run its focused tests with
 Real activation requires provider verification and atomic persistent nonce
 consumption before any binding writer is connected.
 
+`lib/domain/push-attestation-policy.ts` is a disconnected policy check for a
+**structured verdict already cryptographically verified elsewhere**. Its TypeScript
+shape is not an authenticity boundary: a caller can fabricate the object, and
+this repository currently has no Apple/Google signature, chain, issuer or verdict
+decoder feeding it. It accepts only source-backed Gan Release iOS/APNs or
+Android/FCM combinations in synthetic tests; Observer and QA combinations remain
+denied until their identity/provider configuration is qualified. It proves neither
+provider-token ownership nor replay resistance, and is not called by live routes.
+Test with `node --experimental-strip-types --test scripts/qa/check-push-attestation-policy.mjs`.
+
 This package is not activated. `schema-proposal.sql` is review-only and is **not**
 in `supabase/migrations/`; it must not be applied by migration tooling. It proposes
 a private, service-only binding table. Existing tokens are intentionally not
