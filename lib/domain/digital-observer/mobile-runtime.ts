@@ -42,6 +42,21 @@ const parsedLinkSchema = z.object({
 
 export type ParsedMobileLink = z.infer<typeof parsedLinkSchema>;
 
+const nativeLinkSchemes = new Set(["digitalobserver:", "observerqaapp:", "observerqaandroid:"]);
+
+// Native package IDs are checked locally before forwarding a captured URL to
+// the server. This is routing isolation, not server-side device attestation.
+export function nativeAppAcceptsMobileLink(rawUrl: string, appId: string, platform: string, currentOrigin: string): boolean {
+  let url: URL;
+  try { url = new URL(rawUrl); } catch { return false; }
+  const expected = platform === "ios" && appId === "com.digitalobserver.app.qa" ? "observerqaapp:" :
+    platform === "android" && appId === "com.digitalobserver.app.qa" ? "observerqaandroid:" :
+    ["ios", "android"].includes(platform) && ["com.ganbatuach.app", "com.ganbatuach.app.qa"].includes(appId) ? "digitalobserver:" : null;
+  if (!expected) return false;
+  if (url.protocol === "https:") return url.origin === currentOrigin && url.pathname.startsWith("/digital-observer/open/");
+  return url.protocol === expected;
+}
+
 /**
  * Parses only the canonical custom scheme and same-product HTTPS paths. The
  * returned route is still untrusted until the server revalidates membership
@@ -50,7 +65,7 @@ export type ParsedMobileLink = z.infer<typeof parsedLinkSchema>;
 export function parseMobileLink(rawUrl: string, allowedHttpsOrigins: string[] = []): ParsedMobileLink {
   if (rawUrl.length > 2_048) throw new Error("MOBILE_LINK_TOO_LONG");
   const url = new URL(rawUrl);
-  const customScheme = url.protocol === "digitalobserver:";
+  const customScheme = nativeLinkSchemes.has(url.protocol);
   const allowedHttps = url.protocol === "https:" && allowedHttpsOrigins.includes(url.origin);
   if (!customScheme && !allowedHttps) throw new Error("MOBILE_LINK_ORIGIN_DENIED");
   if (allowedHttps && !url.pathname.startsWith("/digital-observer/open/")) throw new Error("MOBILE_LINK_PATH_DENIED");

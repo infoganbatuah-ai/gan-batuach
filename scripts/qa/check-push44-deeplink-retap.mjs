@@ -36,7 +36,8 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
   const modules = {
     react: { useState: (initial) => [typeof initial === "function" ? initial() : initial, () => {}], useEffect: (fn) => { fn(); } },
     "react/jsx-runtime": { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: "Fragment" },
-    "@/lib/domain/digital-observer/mobile-runtime": { mobileRuntimeRequiresSession: () => false, sanitizeOfflineQueue: () => [], mobileNotificationPreview: () => ({}) },
+    "@/lib/domain/digital-observer/mobile-runtime": { mobileRuntimeRequiresSession: () => false, sanitizeOfflineQueue: () => [], mobileNotificationPreview: () => ({}),
+      nativeAppAcceptsMobileLink: (raw, appId, platform) => appId === "com.ganbatuach.app" && platform === "ios" && raw.startsWith("digitalobserver://") },
     "@/lib/domain/digital-observer/mobile-playback-lifecycle": { openMobilePlaybackPublisher: () => ({ isCurrent: () => true, networkOffline: () => true, appInactive: () => true, close: () => {} }) },
     "@/lib/domain/digital-observer/native-push-request": { parseNativePushRequest: () => null, nativePushResult: () => ({}) },
     "@/lib/domain/digital-observer/native-push-availability": { observerNativePushAvailable: ({ appId, pluginAvailable }) => !!pluginAvailable && appId === "com.ganbatuach.app" },
@@ -47,7 +48,7 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
   };
   const exports = {};
   vm.runInNewContext(js, {
-    exports, window, URL, AbortController, setTimeout, clearTimeout,
+    exports, window, URL, AbortController, setTimeout, clearTimeout, CustomEvent: class { constructor(name, options) { this.type = name; this.detail = options?.detail; } },
     fetch: async (url, options) => {
       assert.equal(url, "/api/digital-observer/mobile/runtime");
       assert.equal(options.method, "POST");
@@ -68,5 +69,8 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
   await tick();
   assert.equal(postCount, 2, "deliberate second appUrlOpen tap bypasses only the stale-launch marker");
   assert.equal(launchChecks, 1, "the stale-launch marker applies only to getLaunchUrl");
+  appUrlOpen({ url: link.replace("digitalobserver://", "observerqaandroid://") });
+  await tick();
+  assert.equal(postCount, 2, "a foreign app scheme is denied before the server request");
   assert.deepEqual(destinations, ["/digital-observer/sites/authorized", "/digital-observer/sites/authorized"]);
 });

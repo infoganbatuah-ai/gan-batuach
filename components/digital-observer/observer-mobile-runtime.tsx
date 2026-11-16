@@ -7,7 +7,7 @@ import { Network } from "@capacitor/network";
 import { Preferences } from "@capacitor/preferences";
 import { PushNotifications, type PushNotificationSchema } from "@capacitor/push-notifications";
 import { useEffect, useState } from "react";
-import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
+import { mobileNotificationPreview, mobileRuntimeRequiresSession, nativeAppAcceptsMobileLink, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
 import { openMobilePlaybackPublisher } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
 import { nativePushResult, parseNativePushRequest, type NativePushRequest } from "@/lib/domain/digital-observer/native-push-request";
 import { firstLaunchOfMobileLink, rememberPendingMobileLink, takePendingMobileLink } from "@/lib/domain/digital-observer/pending-mobile-link";
@@ -54,6 +54,11 @@ async function enqueue(kind: MobileOfflineOperation["kind"]) {
 }
 
 async function authorizeAndOpen(rawUrl: string) {
+  if (Capacitor.isNativePlatform()) {
+    const appId = await App.getInfo().then((info) => info.id).catch(() => "");
+    if (!nativeAppAcceptsMobileLink(rawUrl, appId, Capacitor.getPlatform(), window.location.origin))
+      throw new Error("MOBILE_LINK_APP_MISMATCH");
+  }
   const response = await fetch("/api/digital-observer/mobile/runtime", {
     method: "POST",
     credentials: "same-origin",
