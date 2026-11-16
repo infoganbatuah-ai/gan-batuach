@@ -59,12 +59,24 @@ async function authorizeAndOpen(rawUrl: string) {
     if (!nativeAppAcceptsMobileLink(rawUrl, appId, Capacitor.getPlatform(), window.location.origin))
       throw new Error("MOBILE_LINK_APP_MISMATCH");
   }
-  const response = await fetch("/api/digital-observer/mobile/runtime", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ url: rawUrl })
-  });
+  let response: Response;
+  try {
+    response = await fetch("/api/digital-observer/mobile/runtime", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: rawUrl })
+    });
+  } catch {
+    // Only canonical resource links may be deferred. Never queue Auth callback
+    // codes or credentials; the server still reauthorizes after reconnection.
+    if (Capacitor.isNativePlatform() && window.sessionStorage &&
+      rememberPendingMobileLink(window.sessionStorage, rawUrl, Date.now(), window.location.origin)) {
+      emit("digital-observer:mobile-link-deferred");
+      throw new Error("MOBILE_LINK_DEFERRED");
+    }
+    throw new Error("MOBILE_LINK_UNAVAILABLE");
+  }
   const payload = await response.json().catch(() => ({}));
   const destination = payload?.data?.destination;
   if (response.status === 401 && Capacitor.isNativePlatform() && window.sessionStorage &&
@@ -372,7 +384,7 @@ export function ObserverMobileRuntime() {
     </div> : null}
     {pushAvailable === false ? <div className="do-mobile-runtime-banner" role="status">Push כבוי בבניית QA זו. התראות בתוך המוצר עדיין זמינות.</div> : null}
     {(!online || stale) ? <div className="do-mobile-runtime-banner" role="status" aria-live="polite">
-      {online ? "המידע מוצג ממצב שמור עד להשלמת אימות מחדש." : "אין חיבור רשת. מידע קיים עשוי להיות ישן ופעולות יסתנכרנו בבטחה לאחר החיבור."}
+      {online ? "המידע המוגן מוסתר עד להשלמת אימות מחדש." : "אין חיבור רשת. המידע המוגן מוסתר; יש לנסות שוב לאחר חידוש החיבור."}
     </div> : null}
   </>;
 }
