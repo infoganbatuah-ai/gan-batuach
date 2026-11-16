@@ -15,7 +15,13 @@ export type QaDeviceChallenge = {
   publicKeySpkiBase64: string;
 };
 
-const qaAudience = "com.ganbatuach.app.qa";
+export const QA_DEVICE_AUDIENCES = Object.freeze({
+  gan: "com.ganbatuach.app.qa",
+  observer: "com.digitalobserver.app.qa"
+} as const);
+export type QaDeviceAudience = typeof QA_DEVICE_AUDIENCES[keyof typeof QA_DEVICE_AUDIENCES];
+export const isQaDeviceAudience = (value: unknown): value is QaDeviceAudience =>
+  value === QA_DEVICE_AUDIENCES.gan || value === QA_DEVICE_AUDIENCES.observer;
 const bounded = (value: unknown) => typeof value === "string" && value.length > 0 && value.length <= 256;
 const canonicalBase64 = (value: unknown, maxLength: number) => typeof value === "string"
   && value.length > 0 && value.length <= maxLength
@@ -25,7 +31,7 @@ const canonicalBase64 = (value: unknown, maxLength: number) => typeof value === 
 export function qaDeviceProofMessage(challenge: QaDeviceChallenge): Buffer {
   if (!/^[a-f0-9]{64}$/.test(challenge.nonce)
     || !bounded(challenge.accountId) || !bounded(challenge.sessionId)
-    || !bounded(challenge.installationId) || challenge.audience !== qaAudience
+    || !bounded(challenge.installationId) || !isQaDeviceAudience(challenge.audience)
     || !Number.isSafeInteger(challenge.issuedAt) || !Number.isSafeInteger(challenge.expiresAt)
     || challenge.expiresAt <= challenge.issuedAt
     || challenge.expiresAt - challenge.issuedAt > 60_000) {
@@ -37,8 +43,10 @@ export function qaDeviceProofMessage(challenge: QaDeviceChallenge): Buffer {
   ]), "utf8");
 }
 
-export function verifyQaDeviceProof(challenge: QaDeviceChallenge, signatureBase64: string, now: number): boolean {
-  if (!Number.isSafeInteger(now) || !challenge || challenge.consumedAt !== null
+export function verifyQaDeviceProof(challenge: QaDeviceChallenge, signatureBase64: string, now: number,
+  expectedAudience: QaDeviceAudience): boolean {
+  if (!isQaDeviceAudience(expectedAudience) || challenge?.audience !== expectedAudience
+    || !Number.isSafeInteger(now) || !challenge || challenge.consumedAt !== null
     || challenge.revokedAt !== null || now < challenge.issuedAt || now >= challenge.expiresAt
     || !canonicalBase64(signatureBase64, 256)
     || !canonicalBase64(challenge.publicKeySpkiBase64, 512)) return false;

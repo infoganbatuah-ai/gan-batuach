@@ -4,7 +4,10 @@
 ECDSA/SHA-256 signature over a canonical challenge containing nonce, account,
 session, installation, exact QA bundle audience and expiry. It rejects malformed
 keys/signatures, wrong curve, context changes, expiry, revocation and already
-consumed challenges. It is not imported by an active route.
+consumed challenges. The verifier requires the trusted caller to supply the
+expected exact audience; Gan PersonalTeamQA and standalone Observer QA are
+different identities, and omission or an unknown audience fails closed. It is
+not imported by an active route.
 
 The test uses synthetic P-256 keys. It proves signature verification and
 context binding in isolation, **not** Secure Enclave non-exportability or
@@ -29,7 +32,8 @@ are completed under separate scope.
 
 `proposed-schema.sql` is intentionally held beside this document, outside
 `supabase/migrations`. It proposes a private schema with one approved
-installation per account and short-lived, one-use challenge receipts. Neither
+installation per account **and exact QA audience**, with a product-bound
+installation/challenge foreign key and short-lived, one-use challenge receipts. Neither
 table has grants for `anon` or `authenticated`; only a trusted server role
 would use them after a separate deployed-catalog, ACL and migration review.
 No approval/enrollment function is included.
@@ -55,6 +59,10 @@ the Auth row. Its ACL grants `EXECUTE` only to `service_role`, without a direct
 Auth-table grant. A disconnected synthetic PostgreSQL 17.6 test proved one
 winner for two concurrent consumes and denial after session deletion, but the
 full Supabase Auth lifecycle and signed physical-device path remain untested.
+The future challenge issuer must also bind a verified Development session to
+the exact product audience and approved installation; a bearer token alone
+does not prove which app holds it. The current server verifier and review-only
+adapter do not create that issuer, enrollment or app-origin attestation.
 The verifier callback is an injection seam, not an authorization
 implementation; a caller must never supply it from mobile input. A future
 authorized database integration test must prove that revocation and consume
@@ -64,3 +72,24 @@ proof.
 
 Do not move the SQL to active migrations, import the adapter into a route, or
 remove the remote-build block on the strength of these synthetic tests.
+
+## Observer challenge issuer review seam
+
+`observer-challenge-issuer.mjs` adds a disconnected, default-off issuer contract
+for the standalone Observer QA audience. Its trusted `authenticate` callback
+must be wired only to the existing server-side `getQaVerifiedSession` helper;
+account and session fields supplied by an iPhone request are ignored. The
+issuer generates a fresh 256-bit nonce and a receipt expiring in 60 seconds.
+Its trusted `reserve` callback must atomically recheck the same live Auth
+session and a currently approved installation bound to the exact Observer
+audience, then create at most one pending challenge. Any unavailable verifier,
+storage error, Gan installation, unknown audience or duplicate reservation
+fails closed. The exported active entrypoint always returns `null`.
+
+This is an interface and synthetic contract test, **not** a live database
+adapter. The baseline proposed schema still has a Gan-only challenge audience
+and no installation audience; the separate product-binding review unit must be
+integrated and its private issue transaction/ACL independently reviewed before
+activation. In particular, a pre-read plus INSERT would leave a revocation
+race and cannot satisfy `reserve`. No SQL, route, service or real session was
+used to qualify this unit, and PostgreSQL atomicity remains unproven.

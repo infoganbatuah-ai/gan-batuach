@@ -21,7 +21,7 @@ const challengeId = "44444444-4444-4444-8444-444444444444";
 const keys = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
 const rowTemplate = {
   id: challengeId, nonce: "a".repeat(64), accountId, sessionId, installationId,
-  audience: "com.ganbatuach.app.qa", issuedAt: 990, expiresAt: 1_010,
+  audience: "com.digitalobserver.app.qa", issuedAt: 990, expiresAt: 1_010,
   consumedAt: null, revokedAt: null,
   publicKeySpkiBase64: keys.publicKey.export({ type: "spki", format: "der" }).toString("base64")
 };
@@ -45,7 +45,8 @@ function fixture({ enabled = false, authSequence = [{ accountId, sessionId }], s
     assert.match(sql, /observer_qa_private\.consume_device_handoff_challenge/);
     if (row.consumedAt !== null || row.revokedAt !== null || row.expiresAt <= 1_000
       || values[1] !== row.accountId || values[2] !== row.sessionId
-      || values[3] !== row.installationId || values[6] !== row.publicKeySpkiBase64) return { rows: [{ consumed: false }] };
+      || values[3] !== row.installationId || values[4] !== row.audience
+      || values[6] !== row.publicKeySpkiBase64) return { rows: [{ consumed: false }] };
     row = { ...row, consumedAt: 1_000 };
     return { rows: [{ consumed: true }] };
   } };
@@ -104,6 +105,8 @@ for (const [name, options, body] of [
   ["revoked live session", { authSequence: [{ accountId, sessionId }, null] }, {}],
   ["changed account", { authSequence: [{ accountId, sessionId }, { accountId: "other", sessionId }] }, {}],
   ["revoked receipt", { rowChange: { revokedAt: 999 } }, {}],
+  ["Gan receipt on Observer endpoint", { rowChange: { audience: "com.ganbatuach.app.qa" } }, {}],
+  ["other installation", { rowChange: { installationId: "55555555-5555-4555-8555-555555555555" } }, {}],
   ["expired receipt", { rowChange: { expiresAt: 1_000 } }, {}],
   ["storage unavailable", { storageError: true }, {}]
 ]) test(`${name} fails closed`, async () => {

@@ -1,4 +1,4 @@
-import { verifyQaDeviceProof } from "../../lib/domain/digital-observer/qa-device-proof-server.ts";
+import { isQaDeviceAudience, verifyQaDeviceProof } from "../../lib/domain/digital-observer/qa-device-proof-server.ts";
 
 // Review-only adapter: no route imports it and no database is connected here.
 // query must be a trusted server-side PostgreSQL client, never a mobile client.
@@ -25,7 +25,7 @@ export async function consumeStoredQaChallenge(db, input, verifyLiveSession) {
   if (typeof db?.query !== "function" || typeof verifyLiveSession !== "function" || !input
     || !nonempty(input.challengeId) || !nonempty(input.accountId)
     || !nonempty(input.sessionId) || !nonempty(input.installationId)
-    || !nonempty(input.audience) || !nonempty(input.signatureBase64)
+    || !isQaDeviceAudience(input.audience) || !nonempty(input.signatureBase64)
     || !Number.isSafeInteger(input.now)) return false;
   try {
     // Only a trusted server-side Auth verifier may return this identity.
@@ -37,7 +37,7 @@ export async function consumeStoredQaChallenge(db, input, verifyLiveSession) {
     if (row.accountId !== input.accountId || row.sessionId !== input.sessionId
       || row.installationId !== input.installationId || row.audience !== input.audience) return false;
     const challenge = { ...row, issuedAt: millis(row.issuedAt), expiresAt: millis(row.expiresAt) };
-    if (!verifyQaDeviceProof(challenge, input.signatureBase64, input.now)) return false;
+    if (!verifyQaDeviceProof(challenge, input.signatureBase64, input.now, input.audience)) return false;
     const consumed = await db.query(consumeSql, [row.id, input.accountId,
       input.sessionId, input.installationId, input.audience, row.nonce, row.publicKeySpkiBase64]);
     return consumed.rows?.length === 1 && consumed.rows[0].consumed === true;

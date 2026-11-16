@@ -32,6 +32,6 @@ test("X9.63 public-key wrapping and canonical challenge produce a server-verifia
     publicKeySpkiBase64: spki.toString("base64")
   };
   const signature = sign("sha256", qaDeviceProofMessage(challenge), keys.privateKey).toString("base64");
-  assert.equal(verifyQaDeviceProof(challenge, signature, 1_000), true);
-  assert.equal(verifyQaDeviceProof({ ...challenge, audience: "other.app" }, signature, 1_000), false);
+  assert.equal(verifyQaDeviceProof(challenge, signature, 1_000, "com.ganbatuach.app.qa"), true);
+  assert.equal(verifyQaDeviceProof({ ...challenge, audience: "other.app" }, signature, 1_000, "com.ganbatuach.app.qa"), false);
 });

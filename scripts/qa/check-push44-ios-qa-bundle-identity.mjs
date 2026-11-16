@@ -61,6 +61,6 @@ test("a Gan proof cannot be relabeled as standalone Observer; server migration i
     publicKeySpkiBase64: keys.publicKey.export({ type: "spki", format: "der" }).toString("base64")
   };
   const signature = sign("sha256", qaDeviceProofMessage(challenge), keys.privateKey).toString("base64");
-  assert.equal(verifyQaDeviceProof(challenge, signature, 1_000), true);
-  assert.equal(verifyQaDeviceProof({ ...challenge, audience: "com.digitalobserver.app.qa" }, signature, 1_000), false);
+  assert.equal(verifyQaDeviceProof(challenge, signature, 1_000, "com.ganbatuach.app.qa"), true);
+  assert.equal(verifyQaDeviceProof({ ...challenge, audience: "com.digitalobserver.app.qa" }, signature, 1_000, "com.digitalobserver.app.qa"), false);
 });

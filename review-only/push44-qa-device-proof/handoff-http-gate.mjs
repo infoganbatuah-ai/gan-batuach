@@ -2,7 +2,8 @@
 export const QA_HANDOFF_ENABLED = false;
 const maxBodyBytes = 2_048;
 const path = "/api/digital-observer/qa-device-proof/handoff";
-const audience = "com.ganbatuach.app.qa";
+// This is the Observer control endpoint, never the Gan PersonalTeamQA audience.
+const audience = "com.digitalobserver.app.qa";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const reject = (status = 403) => new Response(null, { status, headers: { "cache-control": "no-store" } });
 
