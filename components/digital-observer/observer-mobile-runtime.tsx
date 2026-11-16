@@ -372,7 +372,7 @@ export function ObserverMobileRuntime() {
     </div> : null}
     {pushAvailable === false ? <div className="do-mobile-runtime-banner" role="status">Push כבוי בבניית QA זו. התראות בתוך המוצר עדיין זמינות.</div> : null}
     {(!online || stale) ? <div className="do-mobile-runtime-banner" role="status" aria-live="polite">
-      {online ? "המידע מוצג ממצב שמור עד להשלמת אימות מחדש." : "אין חיבור רשת. מידע קיים עשוי להיות ישן ופעולות יסתנכרנו בבטחה לאחר החיבור."}
+      {online ? "המידע המוגן מוסתר עד להשלמת אימות מחדש." : "אין חיבור רשת. המידע המוגן מוסתר; יש לנסות שוב לאחר חידוש החיבור."}
     </div> : null}
   </>;
 }
