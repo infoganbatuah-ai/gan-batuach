@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { guardHistoryPrivacyRestricted } from "@/lib/domain/event-engine/guard-journal-search";
 import { compileInvestigationQuery, validateInvestigationQuery, type InvestigationCameraResource } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const payload = requestSchema.parse(await request.json());
-    const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
+    const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const site = observerAdmin
       ? (await dataClient.from("observer_sites" as never)

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fail, handleSafeRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
-import { hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { formatCostCsv, loadCostIntelligence } from "@/lib/domain/digital-observer/cost-intelligence-data";
 
 export const runtime = "nodejs";
@@ -11,7 +11,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 export async function GET(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
-    if (!session || !hasObserverAdminClaim(session.user.app_metadata)) return fail("Cost administration requires platform authorization.", 403);
+    if (!session || !await hasCurrentObserverAdmin(session.user.id)) return fail("Cost administration requires platform authorization.", 403);
     const url = new URL(request.url);
     const tenantId = url.searchParams.get("tenant"), siteId = url.searchParams.get("site"), sourceId = url.searchParams.get("camera");
     if ([tenantId, siteId, sourceId].some(value => value && !uuid.test(value))) return fail("Invalid cost attribution filter.", 400);

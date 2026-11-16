@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import {
   configureEnterpriseScim,
   configureEnterpriseSso,
@@ -50,8 +51,8 @@ function enterpriseError(error: unknown) {
   return null;
 }
 
-function platformAdmin(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>) {
-  return session.profile.role === "admin" || session.user.app_metadata?.digital_observer_admin === true;
+async function platformAdmin(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>) {
+  return session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
 }
 
 async function enterpriseState(admin: ReturnType<typeof createAdminClient>, orgId: string) {
@@ -85,7 +86,7 @@ export async function GET(request: Request) {
     if (!orgId || !organizationId.safeParse(orgId).success) return fail("A valid organization is required.", 400);
     if (!isAdminClientConfigured()) return fail("The Enterprise identity service is not configured.", 503);
     const admin = createAdminClient();
-    const actor = await resolveEnterpriseActor(admin, { organizationId: orgId, profileId: session.profile.id, platformAdmin: platformAdmin(session) });
+    const actor = await resolveEnterpriseActor(admin, { organizationId: orgId, profileId: session.profile.id, platformAdmin: await platformAdmin(session) });
     return ok({ ...(await enterpriseState(admin, orgId)), actor,
       authenticationPolicy: { email: true, passkeys: true, totp: true, ssoMfa: true, whatsapp: "approval_required",
         smsAuthentication: false, automaticSmsFallback: false, twilioSmsAuthentication: false },
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
     if (!isAdminClientConfigured()) return fail("The Enterprise identity service is not configured.", 503);
     const input = schema.parse(await request.json());
     const admin = createAdminClient();
-    const actor = await resolveEnterpriseActor(admin, { organizationId: input.organization_id, profileId: session.profile.id, platformAdmin: platformAdmin(session) });
+    const actor = await resolveEnterpriseActor(admin, { organizationId: input.organization_id, profileId: session.profile.id, platformAdmin: await platformAdmin(session) });
     const common = { organizationId: input.organization_id, actorId: session.profile.id, actorRole: actor.role, correlationId: crypto.randomUUID() };
     if (input.action === "invite") return ok(await createEnterpriseInvitation(admin, { ...common, email: input.email, role: input.role,
       siteIds: input.site_ids, expiresInHours: input.expires_in_hours }), 201);

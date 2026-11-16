@@ -128,7 +128,7 @@ assert.match(
 );
 for (const required of ["evaluateAndPersistIncidentRisk", "allowPush: false", "evaluation_confidence", "riskResult.evaluation.riskBand", "riskResult.verification.evaluation.finalDecision"])
   assert(route.includes(required), `production ingest missing ${required}`);
-assert.match(incidentApi, /hasObserverAdminClaim/, "signed Digital Observer admins need a bounded risk-debug read path");
+assert.match(incidentApi, /await hasCurrentObserverAdmin\(session\.user\.id\)/, "current Digital Observer admins need a bounded risk-debug read path");
 assert.match(incidentApi, /neq\("site_type", "kindergarten"\)/, "observer admin risk reads must remain outside kindergarten scope");
 assert.doesNotMatch(incidentApi, /rtsp|password|credential|stream_url|access_token/i, "risk-debug response must not select media credentials or source secrets");
 

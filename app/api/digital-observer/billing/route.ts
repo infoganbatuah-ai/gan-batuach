@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { activateControlledTrial, cancelSubscription, createCheckoutIntent, requestRefund, runCommercialReconciliation, schedulePlanChange } from "@/lib/domain/digital-observer/commercial-billing-service";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     const admin = createAdminClient() as any;
     if ("package_id" in input) await authorizePackage(admin, site.site_type, input.package_id);
     if (input.action === "reconcile") {
-      const observerAdmin = session.profile.role === "admin" || session.user.app_metadata?.digital_observer_admin === true;
+      const observerAdmin = session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
       if (!observerAdmin) return fail("Commercial reconciliation requires platform administration.", 403);
       const result = await runCommercialReconciliation(admin, { siteId: input.observer_site_id,
         providerKey: process.env.DIGITAL_OBSERVER_PAYMENT_PROVIDER_KEY || "disabled", periodStart: input.period_start, periodEnd: input.period_end });
