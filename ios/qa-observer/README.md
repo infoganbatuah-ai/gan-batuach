@@ -1,6 +1,6 @@
 # Digital Observer iOS QA — offline unsigned build
 
-This is an isolated, non-installable source/build qualification of the Observer app identity. It does not change the Xcode project's Release or PersonalTeamQA defaults. The runtime URL uses `.invalid` deliberately; it cannot be used for a live login or media test.
+This is an isolated source/build qualification of the Observer app identity. It does not change the Xcode project's Release or PersonalTeamQA defaults. The earlier signed QA build used a `.invalid` server URL, which overrides its bundled page and can produce a black screen. This source revision removes the remote URL and supplies a clearly labeled, network-free local QA status page. It is **not** the authenticated Observer Product and cannot prove login, media, or Push.
 
 The Observer-specific xcconfig selects `ObserverQAIcon`, rasterized from the existing Observer SVG. Its dedicated launch storyboard is compiled into the unsigned bundle by the Swift finalizer; no Gan splash asset is selected for launch. This is a source-controlled build override, not yet a distinct Xcode target or signed distribution configuration.
 
@@ -12,4 +12,4 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration PersonalTea
 swift scripts/qa/finalize-observer-ios-qa.swift /path/on/external-drive/ObserverQADerivedData/Build/Products/PersonalTeamQA-iphoneos/App.app ios/qa-observer/capacitor.config.json
 ```
 
-The finalizer refuses a signed bundle, a wrong bundle identity, a wrong callback scheme, an unexpected remote URL, or embedded Push credentials. It also requires and compiles the Observer-only launch storyboard. Capacitor may mechanically rewrite tracked local-package paths when `node_modules` is a symlink; restore those generated path changes before committing. Do not install or distribute this unsigned `.app`.
+The finalizer refuses a signed bundle, a wrong bundle identity, a wrong callback scheme, any remote URL, or embedded Push credentials. It also requires and compiles the Observer-only launch storyboard and replaces the bundled `public/index.html` with the Observer-specific offline page. Capacitor may mechanically rewrite tracked local-package paths when `node_modules` is a symlink; restore those generated path changes before committing. Do not install or distribute this unsigned `.app` without a separate device-qualification step.

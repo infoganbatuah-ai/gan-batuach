@@ -27,11 +27,16 @@ a private, service-only binding table. Existing tokens are intentionally not
 backfilled: `app_channel` records form factor, not the owning product.
 
 `selectVerifiedPushTargets` accepts only an unexpired, unrevoked server-verified
-binding to a supported native app ID and a matching product destination. Gan
+binding to a supported native app ID and a matching product destination. The
+Observer QA bundle is deliberately **not** a supported send target: source
+inspection found no qualified APNs/FCM identity or attestation verifier for it,
+so even a binding-shaped row cannot select it. This is a fail-closed offline
+selector contract, not a change to either active sender. Gan
 Management's existing `camera_alert` → `camera` → `/dashboard/garden/cameras`
 and `observer_alert` → `observer_event` → `/dashboard/garden/ai-events` templates
-stay eligible for Gan subscribers. Standalone Observer alerts require an Observer
-app destination. The exact category, deep-link type and relative destination must
+stay eligible for Gan subscribers. Standalone Observer alerts require a future
+qualified Observer app identity and an Observer destination. The exact category,
+deep-link type and relative destination must
 all match; absent or cross-app destinations fail closed. It rejects
 legacy/unqualified tokens, cross-profile bindings and cross-app links.
 The focused test is `node scripts/qa/check-push-product-audience.mjs`.

@@ -49,7 +49,8 @@ test("standalone Observer QA config retains its exact identity and callback sche
   const scheme = execFileSync("/usr/libexec/PlistBuddy", ["-c", "Print :CFBundleURLTypes:0:CFBundleURLSchemes:0", infoPath], { encoding: "utf8" }).trim();
   assert.equal(config.appId, "com.digitalobserver.app.qa");
   assert.equal(scheme, "observerqaapp");
-  assert.equal(config.server.url, "https://observer-qa.example.invalid/digital-observer/dashboard");
+  assert.equal(config.server.url, undefined);
+  assert.equal(config.server.iosScheme, "capacitor");
 });
 
 test("a Gan proof cannot be relabeled as standalone Observer; server migration is still required", () => {

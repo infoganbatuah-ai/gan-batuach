@@ -26,8 +26,13 @@ function select(audience, destination, tokens = [ganToken, observerToken], bindi
   return Array.from(contract.selectVerifiedPushTargets({ profileId: "same-profile", audience, destination, tokens, bindings, now }), (entry) => entry.id);
 }
 
-test("same-profile tokens are separated by verified product binding", () => {
-  assert.deepEqual(select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" }), ["observer"]);
+test("unqualified Observer QA token is denied even with a binding-shaped row", () => {
+  assert.deepEqual(select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" }), []);
+  assert.deepEqual(select("digital_observer", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" },
+    [observerToken], [observerBinding]), []);
+});
+
+test("Gan release targets retain their existing scoped destination behavior", () => {
   assert.deepEqual(select("gan_management", { category: "child_approval", deepLinkType: "child_profile", actionUrl: "/dashboard/parent" }), ["gan"]);
   assert.deepEqual(select("gan_management", { category: "camera_alert", deepLinkType: "camera", actionUrl: "/dashboard/garden/cameras" }), ["gan"]);
   assert.deepEqual(select("gan_management", { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/dashboard/garden/ai-events" }), ["gan"]);
