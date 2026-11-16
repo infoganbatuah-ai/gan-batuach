@@ -1,5 +1,11 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## Development preference-read and category-write safety — 2026-11-17
+
+PRs #597–#602 are merged into `integration/development` through `0a9c06fcf2926f640a56c03c4ff080c2ca462bdf`. The `GET /api/profile/communication-preferences` path now fails closed on a `push_category_preferences` read error rather than returning default-enabled categories. PATCH rejects unsupported Push-category keys before persistence; the shared preference panel submits only supported Push toggles and does not represent task/inspection channel preferences as Push toggles. Parent, Staff, Garden and Inspector notification pages show an error alert, not an editable default-consent form, when either preference-table read fails. Focused actual-page tests covered one success and both read-error paths per role (3/3 each), and the API changes had focused isolated route tests. This is a Development source and deterministic-test qualification only.
+
+No physical-device rendering, APNs/FCM receipt, provider attestation, trusted Observer-versus-Management token binding, external QA-host login or database-wide two-table PATCH atomicity is established by these changes. A successful first preference-table write followed by a failed second write remains a separate transactional-design gap; no SQL migration or live send-path change is claimed here. PUSH 44 remains **PARTIAL / NOT DONE**.
+
 ## Push safety continuation — 2026-11-16
 
 Development PR #590 (`7e6f8f252345c2cefd09c9dbc89a2a3abe1d35b2`) requires an exact token or device ID for Push unregister, preventing an empty request from revoking all devices. PR #591 (`03f3b17ff6e5ec583fdd8dd64e3863e237f1c411`) isolates per-token provider exceptions in multi-device delivery, records uncertain submission without retry, and preserves results for other tokens. The exact heads passed seven CI jobs, Management and Snyk; local focused checks passed 11/11 and 2/2 respectively, with typecheck and lint. These changes do not establish a trusted product-token binding or live APNs/FCM receipt. The separate Observer QA app still proves only local offline launch; its QA host and authenticated callback are not qualified. PUSH 44 remains **PARTIAL**.
