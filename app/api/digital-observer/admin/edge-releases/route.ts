@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fail, handleSafeRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
-import { hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
@@ -32,7 +32,7 @@ function response(data: unknown) { return NextResponse.json({ data }, { headers:
 async function adminSession(request: Request) {
   const session = await getDigitalObserverApiUser(request);
   if (!session) return null;
-  return hasObserverAdminClaim(session.user.app_metadata) ? session : null;
+  return await hasCurrentObserverAdmin(session.user.id) ? session : null;
 }
 
 export async function GET(request: Request) {

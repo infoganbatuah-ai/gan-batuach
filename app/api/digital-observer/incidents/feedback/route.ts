@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { DIGITAL_OBSERVER_EVENT_PROVENANCE, DIGITAL_OBSERVER_INCIDENT_VERSION } from "@/lib/domain/digital-observer/canonical-domain";
 import {
   buildFeedbackQualityMetrics,
@@ -47,7 +47,7 @@ function callRpc(client: unknown, name: string, args: Record<string, unknown>) {
 }
 
 async function canReviewSite(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>, siteId: string) {
-  if (session.profile.role === "admin" || hasObserverAdminClaim(session.user.app_metadata)) return true;
+  if (session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id)) return true;
   const membership = await session.supabase.from("observer_site_memberships" as never)
     .select("id")
     .eq("observer_site_id", siteId)
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const observerAdmin = session.profile.role === "admin" || hasObserverAdminClaim(session.user.app_metadata);
+    const observerAdmin = session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const accessProfile = observerAdmin ? { ...session.profile, role: "admin" } : session.profile;
     const url = new URL(request.url);
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const observerAdmin = session.profile.role === "admin" || hasObserverAdminClaim(session.user.app_metadata);
+    const observerAdmin = session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const accessProfile = observerAdmin ? { ...session.profile, role: "admin" } : session.profile;
     const payload = requestSchema.parse(await request.json());

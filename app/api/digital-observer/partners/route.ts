@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { resolveEnterpriseActor } from "@/lib/domain/digital-observer/enterprise-identity-service";
 import { brandProfileSchema, embeddedScopes, partnerProvisioningSchema, partnerTypes } from "@/lib/domain/digital-observer/partner-platform";
 import { configurePartner, issuePartnerEmbeddedSession, linkPartnerServiceAccount, partnerCorrelationId, partnerState, provisionPartnerCustomer, savePartnerBrand, transitionPartnerCustomer } from "@/lib/domain/digital-observer/partner-platform-service";
@@ -21,8 +22,8 @@ const schema = z.discriminatedUnion("action", [
     site_id: z.string().uuid(), audience: z.string().trim().min(3).max(200), allowed_origin: z.string().url().max(1000),
     scopes: z.array(z.enum(embeddedScopes)).min(1).max(embeddedScopes.length), ttl_minutes: z.number().int().min(1).max(60).default(15) }).strict()
 ]);
-function isPlatformAdmin(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>) {
-  return session.profile.role === "admin" || session.user.app_metadata?.digital_observer_admin === true;
+async function isPlatformAdmin(session: NonNullable<Awaited<ReturnType<typeof getDigitalObserverApiUser>>>) {
+  return session.profile.role === "admin" || await hasCurrentObserverAdmin(session.user.id);
 }
 function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : "PARTNER_OPERATION_FAILED";
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
     const organizationId = new URL(request.url).searchParams.get("organization_id");
     if (!organizationId || !org.safeParse(organizationId).success) return fail("A valid organization is required.", 400);
     const admin = createAdminClient();
-    const actor = await resolveEnterpriseActor(admin, { organizationId, profileId: session.profile.id, platformAdmin: isPlatformAdmin(session) });
+    const actor = await resolveEnterpriseActor(admin, { organizationId, profileId: session.profile.id, platformAdmin: await isPlatformAdmin(session) });
     return ok({ ...(await partnerState(admin, organizationId)), actor, contract: "digital-observer-partner-v1",
       zeroInstallFirst: true, gatewayRequiredByDefault: false, productionActivated: false });
   } catch (error) { return errorResponse(error); }
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
     if (!isAdminClientConfigured()) return fail("Partner platform is not configured.", 503);
     const input = schema.parse(await request.json());
     const admin = createAdminClient();
-    const actor = await resolveEnterpriseActor(admin, { organizationId: input.organization_id, profileId: session.profile.id, platformAdmin: isPlatformAdmin(session) });
+    const actor = await resolveEnterpriseActor(admin, { organizationId: input.organization_id, profileId: session.profile.id, platformAdmin: await isPlatformAdmin(session) });
     const common = { organizationId: input.organization_id, actorId: session.profile.id, actorRole: actor.role, correlationId: partnerCorrelationId() };
     if (input.action === "configure_partner") return ok(await configurePartner(admin, { ...common, partnerKey: input.partner_key,
       partnerType: input.partner_type, billingAccountId: input.billing_account_id, ssoConnectionId: input.sso_connection_id, allowedOrigins: input.allowed_origins }), 201);

@@ -204,7 +204,7 @@ test("plan API rejects wrong site and privilege injection before any enrollment 
       getDigitalObserverApiUser: async () => ({ profile: { id: randomUUID(), role: "operator" }, user: { app_metadata: {} }, supabase: {} }),
       getObserverSiteAccess: async () => null
     },
-    "@/lib/domain/digital-observer/admin-access": { hasObserverAdminClaim: () => false, createDigitalObserverAdminDataClient: () => { throw new Error("UNEXPECTED_ADMIN"); } },
+    "@/lib/domain/digital-observer/admin-access": { hasCurrentObserverAdmin: async () => false, createDigitalObserverAdminDataClient: () => { throw new Error("UNEXPECTED_ADMIN"); } },
     "@/lib/security/rate-limit": { assertRateLimit: async () => {} },
     "@/lib/security/request-guards": { assertTrustedMutationOrigin: () => {}, parseBoundedJson: request => request.json(), privateRateLimitIdentifier: () => "fixture-rate-key" },
     "@/lib/supabase/admin": { createAdminClient: () => { privilegedReads++; throw new Error("UNEXPECTED_PRIVILEGED_READ"); } },

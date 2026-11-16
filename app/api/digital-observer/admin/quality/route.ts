@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fail, handleSafeRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
-import { hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { loadCurrentQualityBenchmark } from "@/lib/domain/digital-observer/quality-benchmark-data";
 import { formatBenchmarkReport } from "@/lib/domain/digital-observer/quality-benchmark";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
-    if (!session || !hasObserverAdminClaim(session.user.app_metadata)) return fail("Quality administration requires platform authorization.", 403);
+    if (!session || !await hasCurrentObserverAdmin(session.user.id)) return fail("Quality administration requires platform authorization.", 403);
     const url = new URL(request.url);
     const siteId = url.searchParams.get("site");
     if (siteId && !/^[0-9a-f-]{36}$/i.test(siteId)) return fail("Invalid Site filter.", 400);

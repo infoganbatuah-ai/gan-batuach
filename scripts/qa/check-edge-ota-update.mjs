@@ -313,7 +313,7 @@ const mac = readFileSync("scripts/build-connector-macos.mjs", "utf8"), windows =
 for (const token of ["UPDATE_READ", "UPDATE_STATUS", "deployment_profile", "credential_version", "lifecycle_state"]) assert.match(deviceRoute, new RegExp(token));
 assert.match(deviceRoute, /ACTION_REQUIRED/);
 assert.match(terminalMigration, /ACTION_REQUIRED/);
-for (const token of ["hasObserverAdminClaim", "verifyEdgeUpdateManifest", "writeAuditEvent", "CANARY_HEALTH_GATE_FAILED"]) assert.match(adminRoute, new RegExp(token));
+for (const token of ["hasCurrentObserverAdmin", "verifyEdgeUpdateManifest", "writeAuditEvent", "CANARY_HEALTH_GATE_FAILED"]) assert.match(adminRoute, new RegExp(token));
 for (const table of ["observer_edge_releases", "observer_edge_rollouts", "observer_edge_device_updates"]) assert.match(migration, new RegExp(`enable row level security;[\\s\\S]*${table}|${table}[\\s\\S]*enable row level security`));
 assert.match(mac, /edge-update-agent|readdirSync\("services\/video-gateway"\)/); assert.match(windows, /edge-update-agent|readdirSync\("services\/video-gateway"\)/);
 assert.equal(existsSync("services/video-gateway/edge-update-agent.mjs"), true);
