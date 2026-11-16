@@ -90,7 +90,11 @@ assert.match(sessionSql, /to authenticated/);
 assert(runtime.includes("sensitive_local_cache") === false, "client should not pretend to cache sensitive data");
 assert(!runtime.match(/localStorage|camera credentials|raw video/i), "native runtime must not persist secrets or sensitive media");
 const pendingMobileLink = readFileSync(new URL("../../lib/domain/digital-observer/pending-mobile-link.ts", import.meta.url), "utf8");
-assert(pendingMobileLink.includes("parseMobileLink(rawUrl)"), "pending link must use the canonical parser");
+assert(pendingMobileLink.includes("parseMobileLink(rawUrl, allowedHttpsOrigin ? [allowedHttpsOrigin] : [])"),
+  "pending link must use the canonical parser with an explicit same-origin HTTPS allowlist");
+assert(runtime.includes("rememberPendingMobileLink(window.sessionStorage, rawUrl, Date.now(), window.location.origin)") &&
+  runtime.includes("takePendingMobileLink(window.sessionStorage, Date.now(), window.location.origin)"),
+  "native login replay must bind stored HTTPS links to the current origin");
 assert(pendingMobileLink.includes("5 * 60_000") && pendingMobileLink.includes("storage.removeItem(pendingKey)"), "pending link must expire and be consumed once");
 assert(!pendingMobileLink.match(/access_token|refresh_token|password|device_token|media_url/i), "pending link must never retain credentials or media");
 assert(runtimeRoute.includes("getObserverSiteAccess"));
