@@ -11,6 +11,7 @@ import { mobileNotificationPreview, mobileRuntimeRequiresSession, sanitizeOfflin
 import { openMobilePlaybackPublisher } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
 import { nativePushResult, parseNativePushRequest, type NativePushRequest } from "@/lib/domain/digital-observer/native-push-request";
 import { firstLaunchOfMobileLink, rememberPendingMobileLink, takePendingMobileLink } from "@/lib/domain/digital-observer/pending-mobile-link";
+import { observerNativePushAvailable } from "@/lib/domain/digital-observer/native-push-availability";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
 const offlineQueueKey = "digital_observer_mobile_offline_queue_v1";
@@ -74,7 +75,7 @@ async function authorizeAndOpen(rawUrl: string) {
 
 export function ObserverMobileRuntime() {
   const [native] = useState(() => typeof window !== "undefined" && Capacitor.isNativePlatform());
-  const [pushAvailable] = useState(() => typeof window !== "undefined" && Capacitor.isPluginAvailable("PushNotifications"));
+  const [pushAvailable, setPushAvailable] = useState<boolean | null>(null);
   const [online, setOnline] = useState(true);
   const [stale, setStale] = useState(false);
 
@@ -94,6 +95,7 @@ export function ObserverMobileRuntime() {
     let networkObservations = 0;
     let interruptionVersion = 0;
     let listenerFailure = false;
+    let pushEnabled = false;
     const removers: Array<() => Promise<void>> = [];
 
     const registerDevice = async (siteId: string, pushToken?: string) => {
@@ -165,7 +167,7 @@ export function ObserverMobileRuntime() {
         }
         const pending = await readQueue();
         await writeQueue(pending.filter((item) => item.kind !== "runtime_revalidate"));
-        if (pushAvailable && pending.some((item) => item.kind === "push_registration")) {
+        if (pushEnabled && pending.some((item) => item.kind === "push_registration")) {
           const permission = await PushNotifications.checkPermissions();
           if (permission.receive === "granted") await PushNotifications.register();
         }
@@ -238,7 +240,7 @@ export function ObserverMobileRuntime() {
         emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_in_progress"));
         return;
       }
-      if (!pushAvailable) {
+      if (!pushEnabled) {
         emit("digital-observer:native-push-result", nativePushResult(request, false, "push_unavailable_in_qa"));
         return;
       }
@@ -266,6 +268,12 @@ export function ObserverMobileRuntime() {
     };
 
     const start = async () => {
+      const appId = await App.getInfo().then((info) => info.id).catch(() => null);
+      pushEnabled = observerNativePushAvailable({
+        appId, platform: Capacitor.getPlatform(), pluginAvailable: Capacitor.isPluginAvailable("PushNotifications")
+      });
+      if (disposed || !playbackPublisher.isCurrent()) return;
+      setPushAvailable(pushEnabled);
       const listenerFailed = () => {
         if (disposed || !playbackPublisher.isCurrent()) return;
         listenerFailure = true;
@@ -320,7 +328,7 @@ export function ObserverMobileRuntime() {
       if (launch?.url && window.sessionStorage && firstLaunchOfMobileLink(window.sessionStorage, launch.url))
         void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
 
-      if (pushAvailable) {
+      if (pushEnabled) {
         const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
         const registrationError = await PushNotifications.addListener("registrationError", () => {
           const request = pendingPushRequest;
@@ -349,7 +357,7 @@ export function ObserverMobileRuntime() {
       window.removeEventListener("pageshow", bootstrap);
       void Promise.all(removers.map((remove) => remove()));
     };
-  }, [pushAvailable]);
+  }, []);
 
   if (!native) return null;
   return <>
@@ -357,7 +365,7 @@ export function ObserverMobileRuntime() {
       <p>{online ? "הגישה מוגנת עד להשלמת אימות הסשן." : "אין חיבור רשת. מידע מוגן מוסתר עד לאימות מחדש."}</p>
       <button type="button" onClick={() => window.location.reload()}>נסה שוב</button>
     </div> : null}
-    {!pushAvailable ? <div className="do-mobile-runtime-banner" role="status">Push כבוי בבניית QA זו. התראות בתוך המוצר עדיין זמינות.</div> : null}
+    {pushAvailable === false ? <div className="do-mobile-runtime-banner" role="status">Push כבוי בבניית QA זו. התראות בתוך המוצר עדיין זמינות.</div> : null}
     {(!online || stale) ? <div className="do-mobile-runtime-banner" role="status" aria-live="polite">
       {online ? "המידע מוצג ממצב שמור עד להשלמת אימות מחדש." : "אין חיבור רשת. מידע קיים עשוי להיות ישן ופעולות יסתנכרנו בבטחה לאחר החיבור."}
     </div> : null}
