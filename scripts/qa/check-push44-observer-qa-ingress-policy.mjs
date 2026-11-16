@@ -31,6 +31,22 @@ test("real Observer dashboard login redirects and session errors remain narrowly
   }
 });
 
+test("native reopen can revalidate its existing same-origin session without exposing other APIs", () => {
+  assert.equal(allows("GET", "/api/digital-observer/mobile/runtime"), true);
+  assert.equal(allows("HEAD", "/api/digital-observer/mobile/runtime"), false);
+  for (const path of [
+    "/api/digital-observer/mobile/runtime?site=another",
+    "/api/digital-observer/mobile/runtime?token=secret",
+    "/api/digital-observer/mobile/runtime/extra",
+    "/api/digital-observer/mobile/runtime/../cameras",
+    "/api/digital-observer/cameras",
+    "/api/digital-observer/mobile/runtime.m3u8"
+  ]) assert.equal(allows("GET", path), false, path);
+  assert.equal(allows("POST", "/api/digital-observer/mobile/runtime"), false);
+  assert.equal(allows("GET", "/api/digital-observer/mobile/runtime", { ownerAuthorized: false }), false);
+  assert.equal(allows("GET", "/api/digital-observer/mobile/runtime", { trustedHttps: false }), false);
+});
+
 test("login query rejects duplicate, secret, traversal, external and cross-product destinations", () => {
   for (const path of [
     "/digital-observer/login?next=/dashboard/parent",

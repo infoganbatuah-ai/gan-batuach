@@ -5,7 +5,8 @@ export const OBSERVER_QA_HOST = "observer-qa.ganbatuach.com";
 const localOrigin = `https://${OBSERVER_QA_HOST}`;
 const exactGet = new Set([
   "/digital-observer/login", "/digital-observer/dashboard",
-  "/digital-observer/onboarding", "/favicon.ico"
+  "/digital-observer/onboarding", "/api/digital-observer/mobile/runtime",
+  "/favicon.ico"
 ]);
 const exactPost = new Set(["/api/digital-observer/auth/login", "/api/auth/logout"]);
 const assetPrefixes = ["/_next/static/", "/assets/digital-observer/"];
@@ -60,6 +61,7 @@ export function observerQaRouteAllowed({ method, rawUrl, host, trustedHttps, own
   if (method !== "GET" && method !== "HEAD") return false;
   if (url.pathname === "/auth/callback") return false; // No safe native exchange yet.
   if (url.pathname === "/digital-observer/login") return allowedLoginQuery(url);
+  if (url.pathname === "/api/digital-observer/mobile/runtime") return method === "GET" && !url.search;
   if (url.search) return false;
   return exactGet.has(url.pathname) || assetPrefixes.some((prefix) =>
     url.pathname.startsWith(prefix) && url.pathname.length > prefix.length);
