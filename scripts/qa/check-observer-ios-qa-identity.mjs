@@ -20,6 +20,8 @@ test("Observer iOS QA source has separate identity, callback and offline launch 
   assert.doesNotMatch(offline, /https?:\/\/|fetch\(|<script/);
   const finalizer = read("scripts/qa/finalize-observer-ios-qa.swift");
   assert.match(finalizer, /for name in \["sw\.js", "firebase-messaging-sw\.js"\]/);
+  assert.match(finalizer, /ios\/qa-observer\/ObserverQALaunch\.storyboard/);
+  assert.doesNotMatch(finalizer, /template\.deletingLastPathComponent\(\).*ObserverQALaunch/);
   assert.ok(!config.packageClassList.includes("PushNotificationsPlugin"));
   assert.deepEqual(info.CFBundleURLTypes[0].CFBundleURLSchemes, ["observerqaapp"]);
   assert.equal(info.CFBundleURLTypes[0].CFBundleURLName, "com.digitalobserver.app.qa.auth");
