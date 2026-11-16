@@ -15,14 +15,18 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const bearerSession = request.headers.get("authorization")?.startsWith("Bearer ")
+    const authorization = request.headers.get("authorization");
+    const bearerSession = authorization?.startsWith("Bearer ")
       ? await getDigitalObserverApiUser(request)
       : null;
+    // A supplied Authorization header must stand on its own. Falling back to
+    // a different cookie session could register this token to the wrong user.
+    if (authorization !== null && !bearerSession) return fail("נדרש אימות מחדש.", 401);
     const cookieSession = bearerSession ? null : await requireUser();
     const profile = bearerSession?.profile ?? cookieSession!.profile;
     const payload = schema.parse(await request.json());
     const supabase = bearerSession?.supabase ?? await createClient();
-    const result = await registerPushDevice(supabase as any, {
+    const result = await registerPushDevice(supabase as Parameters<typeof registerPushDevice>[0], {
       profileId: profile.id,
       role: profile.role,
       platform: payload.platform,
