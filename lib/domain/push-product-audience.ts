@@ -29,7 +29,9 @@ export type PushDestination = {
 
 const nativeAppIds: Record<PushProductAudience, ReadonlySet<string>> = {
   gan_management: new Set(["com.ganbatuach.app"]),
-  digital_observer: new Set(["com.digitalobserver.app.qa"])
+  // Observer QA has no qualified APNs/FCM identity or attestation verifier.
+  // A binding-shaped row must not turn that test bundle into a send target.
+  digital_observer: new Set()
 };
 
 function safeRelativePath(raw: string): string | null {
