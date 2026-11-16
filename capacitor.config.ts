@@ -48,13 +48,13 @@ const config = {
     },
     SplashScreen: {
       launchShowDuration: 1200,
-      backgroundColor: "#123b8f",
+      backgroundColor: product === "observer" ? "#071d35" : "#123b8f",
       showSpinner: false
     },
     Haptics: {},
     StatusBar: {
       style: "LIGHT",
-      backgroundColor: "#123b8f"
+      backgroundColor: product === "observer" ? "#071d35" : "#123b8f"
     }
   }
 };

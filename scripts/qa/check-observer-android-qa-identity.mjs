@@ -37,6 +37,9 @@ test("Observer Android QA has its own identity and exact Development launch surf
   assert.equal(gan.appId, "com.ganbatuach.app.qa");
   assert.equal(gan.appName, "גן בטוח");
   assert.notEqual(observer.appId, gan.appId);
+  assert.equal(observer.plugins.SplashScreen.backgroundColor, "#071d35");
+  assert.equal(observer.plugins.StatusBar.backgroundColor, "#071d35");
+  assert.equal(gan.plugins.SplashScreen.backgroundColor, "#123b8f");
 });
 
 test("Observer selection fails closed on wrong profile, URL, origin or product", () => {
