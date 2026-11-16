@@ -24,6 +24,7 @@ export default async function GardenNotificationsPage() {
   ]);
   const notifications = (notificationsRes.data ?? []) as any[];
   const pushCategoryPreferences = Object.fromEntries(((pushPreferencesRes.data ?? []) as Array<{ category: string; enabled: boolean }>).map((row) => [row.category, row.enabled]));
+  const preferencesAvailable = !preferencesRes.error && !pushPreferencesRes.error;
   const unread = notifications.filter((item) => !item.read_at).length;
   const urgent = notifications.filter((item) => ["urgent", "critical"].includes(item.severity ?? "")).length;
   return (
@@ -45,7 +46,9 @@ export default async function GardenNotificationsPage() {
         </div>
       </TeacherSection>
       <TeacherSection title="העדפות ושעות שקט" subtitle="הערוצים מוצגים לפי מוכנות אמיתית של הספק.">
-        <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="עדכוני הניהול שלך" />
+        {preferencesAvailable
+          ? <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="עדכוני הניהול שלך" />
+          : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}
       </TeacherSection>
     </TeacherAppFrame>
   );
