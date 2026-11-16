@@ -3,8 +3,18 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BellRing, CheckCheck } from "lucide-react";
+import { safeGanNotificationDestination } from "@/lib/domain/gan-notification-destination";
 
-type NotificationRow = Record<string, any>;
+type NotificationRow = {
+  id: string;
+  title?: string | null;
+  message?: string | null;
+  body?: string | null;
+  read_at?: string | null;
+  status?: string | null;
+  action_url?: string | null;
+  metadata?: { href?: string | null } | null;
+};
 
 const centerByRole: Record<string, string> = {
   admin: "/dashboard/admin/notifications",
@@ -16,7 +26,8 @@ const centerByRole: Record<string, string> = {
 };
 
 function actionHref(item: NotificationRow) {
-  return item.action_url || item.metadata?.href || "/dashboard";
+  return safeGanNotificationDestination(item.action_url) ??
+    safeGanNotificationDestination(item.metadata?.href) ?? "/dashboard";
 }
 
 export function NotificationBell({ role }: { role: string }) {
