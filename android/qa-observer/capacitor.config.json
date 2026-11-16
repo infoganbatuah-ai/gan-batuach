@@ -1,0 +1,7 @@
+{
+  "appId": "com.digitalobserver.app.qa",
+  "appName": "תצפיתן דיגיטלי",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": { "androidScheme": "https" }
+}
