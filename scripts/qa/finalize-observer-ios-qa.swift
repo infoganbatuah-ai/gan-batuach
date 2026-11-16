@@ -34,7 +34,8 @@ guard let info = try PropertyListSerialization.propertyList(from: infoData, form
       !files.fileExists(atPath: app.appendingPathComponent("GoogleService-Info.plist").path) else {
     fatalError("OBSERVER_QA_IDENTITY_OR_PUSH_BOUNDARY_INVALID")
 }
-let launchSource = template.deletingLastPathComponent().appendingPathComponent("ObserverQALaunch.storyboard")
+let launchSource = URL(fileURLWithPath: "ios/qa-observer/ObserverQALaunch.storyboard",
+                       relativeTo: URL(fileURLWithPath: files.currentDirectoryPath, isDirectory: true))
 let launchBundle = app.appendingPathComponent("ObserverQALaunch.storyboardc", isDirectory: true)
 guard files.fileExists(atPath: launchSource.path), !files.fileExists(atPath: launchBundle.path) else {
     fatalError("OBSERVER_QA_LAUNCH_SOURCE_OR_DESTINATION_INVALID")
