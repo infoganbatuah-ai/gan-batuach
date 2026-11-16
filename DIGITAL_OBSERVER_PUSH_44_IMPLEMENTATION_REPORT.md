@@ -1,5 +1,9 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## Push safety continuation — 2026-11-16
+
+Development PR #590 (`7e6f8f252345c2cefd09c9dbc89a2a3abe1d35b2`) requires an exact token or device ID for Push unregister, preventing an empty request from revoking all devices. PR #591 (`03f3b17ff6e5ec583fdd8dd64e3863e237f1c411`) isolates per-token provider exceptions in multi-device delivery, records uncertain submission without retry, and preserves results for other tokens. The exact heads passed seven CI jobs, Management and Snyk; local focused checks passed 11/11 and 2/2 respectively, with typecheck and lint. These changes do not establish a trusted product-token binding or live APNs/FCM receipt. The separate Observer QA app still proves only local offline launch; its QA host and authenticated callback are not qualified. PUSH 44 remains **PARTIAL**.
+
 ## Current integration checkpoint — 2026-11-16
 
 Latest Development head `eb6f1ab71018e7e5014183e2c4df79f88bd7785b` includes PR #587, which fixed nested signing for the separate Observer QA iOS app and passed local install/launch/reopen on the approved iPhone, and PR #588, which makes domain Push delivery fail closed when either preference read errors. Both exact heads passed Digital Observer CI, Management and Snyk; PR #588's focused read-error/allowed-path behavior checks passed 3/3. The device result proves only local offline shell execution; the QA host is disabled. There is no authenticated Observer callback, APNs/FCM receipt, live playback, Android physical qualification, trusted product-to-token binding, or Production proof. PUSH 44 remains **PARTIAL**. The older checkpoint below is historical.
