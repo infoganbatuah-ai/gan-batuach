@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { test } from "node:test";
-import { redeemQaHandoff } from "../../review-only/push44-ios-handoff-contract/contract.mjs";
+import { redeemQaHandoff, redeemObserverQaCode } from "../../review-only/push44-ios-handoff-contract/contract.mjs";
+
+const code = "a".repeat(64);
+const nonce = "b".repeat(64);
+const callback = "https://qa-iphone-device-proof.ganbatuach.com/qa/device-proof/return";
+const codeSha256 = createHash("sha256").update(code).digest("hex");
 
 const base = Object.freeze({
   id: "synthetic-receipt",
@@ -8,6 +14,7 @@ const base = Object.freeze({
   installationId: "qa-installation-a",
   sessionId: "qa-session-a",
   audience: "com.ganbatuach.app.qa",
+  callback, nonce, codeSha256, issuedAt: 900,
   expiresAt: 1_010,
   consumedAt: null,
   revokedAt: null
@@ -22,7 +29,8 @@ function fixture(overrides = {}) {
       if (id !== receipt.id || receipt.consumedAt !== null || receipt.revokedAt !== null
         || receipt.expiresAt <= expected.now || receipt.sessionId !== expected.sessionId
         || receipt.accountId !== expected.accountId || receipt.installationId !== expected.installationId
-        || receipt.audience !== expected.audience) return false;
+        || receipt.audience !== expected.audience || receipt.callback !== expected.callback
+        || receipt.nonce !== expected.nonce || receipt.codeSha256 !== expected.codeSha256) return false;
       receipt = { ...receipt, consumedAt: expected.now };
       consumes += 1;
       return true;
@@ -30,7 +38,7 @@ function fixture(overrides = {}) {
   };
   const request = {
     receiptId: base.id, accountId: base.accountId, installationId: base.installationId,
-    sessionId: base.sessionId, audience: base.audience, now: 1_000,
+    sessionId: base.sessionId, audience: base.audience, callback, code, nonce, now: 1_000,
     activeSession: true, deviceProofValid: true
   };
   return { store, request, get consumes() { return consumes; } };
@@ -63,6 +71,39 @@ for (const [name, receiptChanges, requestChanges] of [
   const f = fixture(receiptChanges);
   assert.equal(await redeemQaHandoff(f.store, { ...f.request, ...requestChanges }), false);
   assert.equal(f.consumes, 0);
+});
+
+for (const [name, receiptChanges, requestChanges] of [
+  ["wrong code", {}, { code: "c".repeat(64) }],
+  ["wrong nonce", {}, { nonce: "c".repeat(64) }],
+  ["wrong callback", {}, { callback: "https://ganbatuach.com/qa/device-proof/return" }],
+  ["overlong lifetime", { issuedAt: -120_000 }, {}],
+  ["missing hash", { codeSha256: null }, {}]
+]) test(`${name} cannot redeem a QA code`, async () => {
+  const f = fixture(receiptChanges);
+  assert.equal(await redeemQaHandoff(f.store, { ...f.request, ...requestChanges }), false);
+  assert.equal(f.consumes, 0);
+});
+
+test("Observer redemption is default-off and rejects Gan audience and callback", async () => {
+  const observer = fixture({ audience: "com.digitalobserver.app.qa" });
+  const request = { ...observer.request, audience: "com.digitalobserver.app.qa" };
+  assert.equal(await redeemObserverQaCode(observer.store, request), false);
+  assert.equal(await redeemObserverQaCode(observer.store, { ...request, audience: base.audience }, { enabled: true }), false);
+  assert.equal(await redeemObserverQaCode(observer.store, { ...request,
+    callback: "https://ganbatuach.com/qa/device-proof/return" }, { enabled: true }), false);
+  assert.equal(await redeemObserverQaCode(observer.store, request, { enabled: true }), true);
+  assert.equal(await redeemObserverQaCode(observer.store, request, { enabled: true }), false);
+  assert.equal(observer.consumes, 1);
+});
+
+test("Observer concurrent redemption has one winner only with atomic adapter", async () => {
+  const observer = fixture({ audience: "com.digitalobserver.app.qa" });
+  const request = { ...observer.request, audience: "com.digitalobserver.app.qa" };
+  const results = await Promise.all(Array.from({ length: 20 }, () =>
+    redeemObserverQaCode(observer.store, request, { enabled: true })));
+  assert.equal(results.filter(Boolean).length, 1);
+  assert.equal(observer.consumes, 1);
 });
 
 test("missing atomic store or missing binding fails closed", async () => {

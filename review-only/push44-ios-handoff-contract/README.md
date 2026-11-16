@@ -21,9 +21,15 @@ external-origin qualification must establish a supported iOS callback and
 associate the exact host before wiring this contract into the app. The remote
 build block and default-off state remain intact.
 
-`contract.mjs` rejects missing or mismatched account, installation, session and
-callback audience; expired, consumed or revoked receipts; inactive sessions;
-invalid device proof; missing storage; and storage errors. Final success
+`contract.mjs` now also requires a 256-bit hexadecimal code and nonce, a
+stored SHA-256 code hash, exact callback, and an issued/expires lifetime no
+longer than two minutes. It rejects missing or mismatched account,
+installation, session, callback audience, code hash and nonce; expired,
+consumed or revoked receipts; inactive sessions; invalid device proof; missing
+storage; and storage errors. `redeemObserverQaCode` is default-off and permits
+only `com.digitalobserver.app.qa` with the exact proposed HTTPS QA return URL;
+Gan audience or another host is denied. The code itself is not stored in the
+receipt or passed to the atomic adapter. Final success
 requires `consumeIfCurrent` to return true. That operation must be implemented
 as one durable compare-and-update transaction; the preceding read is not a
 fence. The concurrency test's fake adapter models that atomic outcome only.
@@ -31,7 +37,8 @@ fence. The concurrency test's fake adapter models that atomic outcome only.
 ## Hard dependency before product wiring
 
 The currently deployed schema has no reviewed Development-only receipt bound
-to all four dimensions. `digital_observer_sso_transactions` belongs to SSO and
+to account, session, installation, Observer audience, callback, code hash and
+nonce. `digital_observer_sso_transactions` belongs to SSO and
 does not contain the QA account/session/installation binding. The browser-tab
 `singleUseAuthCodeExchange` cache is neither durable nor a server consume.
 Existing `getDigitalObserverApiUser` can validate a Development session, but
