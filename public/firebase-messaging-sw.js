@@ -8,6 +8,7 @@ function safeNotificationTarget(raw) {
     // This worker is registered by both legacy Gan and Observer web clients.
     return path === "/dashboard" || path.startsWith("/dashboard/") ||
       path === "/parent-onboarding" || path.startsWith("/parent-onboarding/") ||
+      path === "/onboarding/kindergarten" || path === "/onboarding/staff" ||
       path === "/digital-observer" || path.startsWith("/digital-observer/")
       ? url.href : null;
   } catch { return null; }

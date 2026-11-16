@@ -9,7 +9,8 @@ function safeNotificationTarget(raw) {
         url.hash || url.pathname.startsWith('/api/')) return fallback;
     const path = url.pathname;
     return path === '/dashboard' || path.startsWith('/dashboard/') ||
-      path === '/parent-onboarding' || path.startsWith('/parent-onboarding/')
+      path === '/parent-onboarding' || path.startsWith('/parent-onboarding/') ||
+      path === '/onboarding/kindergarten' || path === '/onboarding/staff'
       ? url.href : fallback;
   } catch { return fallback; }
 }

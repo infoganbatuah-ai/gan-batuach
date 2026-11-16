@@ -38,7 +38,9 @@ for (const [worker, fallback] of [
       "//attacker.example.invalid/phishing",
       "javascript:alert(1)",
       `${origin}/api/auth/logout`,
-      "/dashboard/../api/auth/logout"
+      "/dashboard/../api/auth/logout",
+      "/onboarding/admin",
+      "/onboarding/kindergarten/other"
     ]) assert.equal(await click(worker, bad), fallback);
   });
 }
@@ -53,4 +55,11 @@ test("shared FCM worker retains local Gan and Observer resource destinations", a
   assert.equal(await click("public/firebase-messaging-sw.js", "/digital-observer/alerts"),
     origin + "/digital-observer/alerts");
   assert.equal(await click("public/firebase-messaging-sw.js", null), null);
+});
+
+test("both workers preserve only the two existing Gan onboarding notification targets", async () => {
+  for (const worker of ["public/sw.js", "public/firebase-messaging-sw.js"]) {
+    assert.equal(await click(worker, "/onboarding/kindergarten"), origin + "/onboarding/kindergarten");
+    assert.equal(await click(worker, "/onboarding/staff"), origin + "/onboarding/staff");
+  }
 });
