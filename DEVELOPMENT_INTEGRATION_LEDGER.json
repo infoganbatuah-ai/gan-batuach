@@ -18728,6 +18728,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify trusted app/provider token binding and both Push send paths, then physical separate-app Auth/callback, APNs/FCM receipt, live media and release packaging by target audience; do not infer these from QA builds."
+    },
+    {
+      "id": "codex/push44-native-qa-boundaries-20261116",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-NATIVE-QA-BOUNDARIES-20261116",
+      "title": "Separate Android QA identity, disable offline Observer Push, and bind QA links to native app identity",
+      "owner": "Digital Observer root integration owner; scoped camera executor source owner",
+      "sourceBranch": "codex/push44-observer-android-variant-20261116; codex/push44-observer-qa-no-push-20261116; codex/push44-observer-qa-link-return-20261116",
+      "sourceCommits": [
+        "54ddb89cb339eb46bd5a15215c61a6a7d04111b1",
+        "7617e7e05f8fb69da28a7642eb799f24319c2693",
+        "f1c27b39a0ba128d87bb7f8cf135f438735de07c"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_NINE_CHECKS_EACH_AND_OFFLINE_NATIVE_QA_PASS_SCOPED",
+        "evidence": [
+          "PR #551 merged 54a31741dbdcb014729e592221743dfefdcefdf5 after nine exact-head checks; offline Gan and Observer Android QA APKs built and inspected.",
+          "PR #552 merged 879d2fe94b0c3b5ef95fb61360e5398a0e45213b after nine exact-head checks; Observer QA merged manifest has no notification permission/Firebase messaging entry points; Gan retains them.",
+          "PR #553 merged b33cab0a00514e3706c5d94195a0dd8629afc3bb after nine exact-head checks; native QA link schemes preserved, app ID/platform gate added, focused 28/28 and aggregate PUSH44 QA, typecheck, lint PASS."
+        ],
+        "classification": "OFFLINE_NATIVE_QA_IDENTITY_PUSH_AND_LINK_ROUTING",
+        "limits": "No signed installed Observer app, physical Auth callback, provider token binding, active send-path isolation, APNs/FCM receipt, live media or store readiness."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "b33cab0a00514e3706c5d94195a0dd8629afc3bb",
+        "pullRequests": [
+          551,
+          552,
+          553
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "PHYSICAL_APP_AUTH_PUSH_BINDING_SEND_PATH_AND_RELEASE_GATES_OPEN",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "OFFLINE_ANDROID_QA_BUILDS_AND_DETERMINISTIC_LINK_QA_PASS",
+      "releaseEligibility": "NOT_READY_PUSH44_PARTIAL",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify trusted provider token binding and both send paths, then signed physical Observer app Auth/callback, actual Push receipt and live media by product audience; preserve release gates."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -1,5 +1,11 @@
 # DIGITAL OBSERVER — PUSH 44 IMPLEMENTATION REPORT
 
+## Native QA identity, notification and link boundaries — 2026-11-16
+
+Development PR #551 (`54a31741dbdcb014729e592221743dfefdcefdf5`) added an explicit Android Observer QA product flavor while preserving the Gan Management build. Both offline Debug APKs built and were inspected. PR #552 (`879d2fe94b0c3b5ef95fb61360e5398a0e45213b`) removed notification permission and Firebase messaging entry points from the offline Observer Android QA merged manifest and restricted runtime Push permission/registration to exact eligible release package IDs. The Gan build retained its existing Push components. PR #553 (`b33cab0a00514e3706c5d94195a0dd8629afc3bb`) accepted the registered Observer iOS/Android QA URL schemes, preserved them through one-use pending-link replay, and checked the exact native package/platform before forwarding a link for independent server authorization. Its post-rebase focused tests passed 28/28; aggregate PUSH 44 QA, TypeScript and lint passed. Each PR passed nine exact-head checks before merging.
+
+These are offline QA boundaries. The Observer iOS QA build remains unsigned and the Android QA build remains Debug-signed with an inert `.invalid` origin. No physical Observer installation, authenticated callback, trusted provider token binding, active send-path isolation, APNs/FCM receipt, live playback or store readiness was proven. PUSH 44 remains **PARTIAL / NOT DONE**; PUSH 45/46 and release gates are not promoted by these results.
+
 ## Native QA branding and Push audience boundary — 2026-11-16
 
 PR #547 (`a3ca869bde16c28dd55dc33b39896c53e80e59ad`) added a separate Observer icon and launch screen to the isolated iOS QA configuration. A real unsigned generic-device build and bundle inspection confirmed the icon, compiled launch storyboard, distinct bundle/label/callback and offline `.invalid` URL. PR #549 (`2707a68c8afa4f36b2a29aa13a1a142f7239ea6d`) did the equivalent for Android QA: an offline Debug APK build passed, and `aapt`/`aapt2` confirmed package, Hebrew label, icon, splash, callback, cleartext disabled and inert URL. The APK is Debug-signed; neither Observer QA artifact was installed or tested on a physical device. Both still use a shared native project/engine and are not standalone signed distribution targets.
