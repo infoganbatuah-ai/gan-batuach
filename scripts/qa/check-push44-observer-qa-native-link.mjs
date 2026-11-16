@@ -61,6 +61,19 @@ test("each native package accepts only its registered custom scheme", () => {
   assert.equal(mobile.nativeAppAcceptsMobileLink("not a URL", "com.digitalobserver.app.qa", "ios", origin), false);
 });
 
+test("Observer Android refuses malformed and non-resource intents before server transport", () => {
+  const appId = "com.digitalobserver.app.qa";
+  for (const raw of [
+    `observerqaandroid://dashboard/parent?site=${site}`,
+    `observerqaandroid://camera/not-a-uuid?site=${site}`,
+    `observerqaandroid://camera/${camera}?site=wrong`,
+    "observerqaandroid://auth/callback?code=opaque",
+    `observerqaandroid://camera/${camera}/extra?site=${site}`
+  ]) {
+    assert.equal(mobile.nativeAppAcceptsMobileLink(raw, appId, "android", origin), false, raw);
+  }
+});
+
 test("native HTTPS return stays on the exact Observer origin and product path", () => {
   const appId = "com.digitalobserver.app.qa";
   assert.equal(mobile.nativeAppAcceptsMobileLink(`${origin}/digital-observer/open/camera/${camera}?site=${site}`, appId, "ios", origin), true);

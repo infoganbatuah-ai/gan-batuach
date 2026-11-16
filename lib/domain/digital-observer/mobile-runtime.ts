@@ -52,9 +52,14 @@ export function nativeAppAcceptsMobileLink(rawUrl: string, appId: string, platfo
   const expected = platform === "ios" && appId === "com.digitalobserver.app.qa" ? "observerqaapp:" :
     platform === "android" && appId === "com.digitalobserver.app.qa" ? "observerqaandroid:" :
     ["ios", "android"].includes(platform) && ["com.ganbatuach.app", "com.ganbatuach.app.qa"].includes(appId) ? "digitalobserver:" : null;
-  if (!expected) return false;
-  if (url.protocol === "https:") return url.origin === currentOrigin && url.pathname.startsWith("/digital-observer/open/");
-  return url.protocol === expected;
+  if (!expected || url.username || url.password || url.port || url.hash) return false;
+  if (url.protocol === "https:") {
+    if (url.origin !== currentOrigin || !url.pathname.startsWith("/digital-observer/open/")) return false;
+  } else if (url.protocol !== expected) return false;
+  try {
+    parseMobileLink(rawUrl, [currentOrigin]);
+    return true;
+  } catch { return false; }
 }
 
 /**
