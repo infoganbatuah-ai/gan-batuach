@@ -126,7 +126,8 @@ private struct QaBundleIdentity: Equatable {
 }
 
 // Local, default-off primitive. No entitlement, pending-state producer, network
-// exchange, or QA-flow subscriber is installed by this change.
+// exchange, or QA-flow subscriber is installed by this change. This host/path
+// is Gan-only; Observer has no approved return origin and fails closed.
 enum QaAccessReturnGate {
     static let enabled = false
     private static let expectedHost = "qa-iphone-device-proof.ganbatuach.com"
@@ -137,6 +138,7 @@ enum QaAccessReturnGate {
 
     static func begin(account: String, installation: String, now: Date = Date()) -> String? {
         guard enabled, let bundle = QaBundleIdentity.current(), pending == nil,
+              bundle.audience == "com.ganbatuach.app.qa",
               !account.isEmpty, !installation.isEmpty else { return nil }
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
@@ -151,6 +153,7 @@ enum QaAccessReturnGate {
         guard enabled, let bundle = QaBundleIdentity.current(), let expected = pending else { return false }
         pending = nil // A callback attempt cannot be replayed, including after rejection.
         guard now < expected.expires, account == expected.account,
+              bundle.audience == "com.ganbatuach.app.qa",
               installation == expected.installation, bundle.audience == expected.audience,
               url.absoluteString.utf8.count <= 1024,
               let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
@@ -176,6 +179,7 @@ enum QaAsWebAuthReturn {
     private static let identityProvider: (() -> Identity?)? = nil
     static func prepare(onValidated: @escaping () -> Void) -> ASWebAuthenticationSession? {
         guard enabled, let bundle = QaBundleIdentity.current(), let identity = identityProvider?(),
+              bundle.audience == "com.ganbatuach.app.qa",
               !identity.account.isEmpty, !identity.installation.isEmpty else { return nil }
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }

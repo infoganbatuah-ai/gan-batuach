@@ -41,7 +41,7 @@ test("native return remains dormant and server exchange absent; remote build rem
   assert.match(appDelegate, /ApplicationDelegateProxy\.shared\.application\(application, continue: userActivity/);
   assert.match(nativeSources, /qa-iphone-device-proof\.ganbatuach\.com/);
   assert.match(appDelegate, /static let enabled = false/);
-  assert.match(nativeSources, /ASWebAuthenticationSession\(url: startURL, callbackURLScheme: callbackScheme\)/);
+  assert.match(nativeSources, /ASWebAuthenticationSession\(url: startURL, callbackURLScheme: bundle\.callbackScheme\)/);
   assert.match(appDelegate, /static let identityProvider: \(\(\) -> Identity\?\)\? = nil/);
   assert.doesNotMatch(nativeSources, /\.start\(\)|push44_handoff/);
   assert.equal(observerRoutes.some((name) => /handoff|redeem|device-proof/i.test(name)), false);

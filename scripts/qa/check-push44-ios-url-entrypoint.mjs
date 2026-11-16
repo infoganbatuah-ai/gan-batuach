@@ -22,7 +22,8 @@ test("only exact HTTPS state can pass the dormant native parser", () => {
   assert.match(native, /items\[0\]\.name == "state"/);
   assert.match(native, /pending = nil \/\/ A callback attempt cannot be replayed/);
   assert.match(native, /now < expected\.expires, account == expected\.account/);
-  assert.match(native, /installation == expected\.installation, audience == expected\.audience/);
+  assert.match(native, /bundle\.audience == "com\.ganbatuach\.app\.qa"/);
+  assert.match(native, /installation == expected\.installation, bundle\.audience == expected\.audience/);
   assert.match(native, /SecRandomCopyBytes\(kSecRandomDefault/);
   assert.doesNotMatch(native, /print\(.*(?:url|state)|NSLog\(.*(?:url|state)/);
 });
@@ -33,7 +34,7 @@ test("QA callback source selection remains default-off and native exchange dorma
   assert.match(project, /Info-\$\(PUSH44_QA_CALLBACK_SCHEME\)\.plist/);
   assert.match(project, /prepare-push44-qa-callback\.mjs/);
   assert.match(native, /static let identityProvider: \(\(\) -> Identity\?\)\? = nil/);
-  assert.match(native, /return ASWebAuthenticationSession\(url: startURL, callbackURLScheme: callbackScheme\)/);
+  assert.match(native, /return ASWebAuthenticationSession\(url: startURL, callbackURLScheme: bundle\.callbackScheme\)/);
   assert.match(native, /identityProvider\?\(\) == identity/);
   assert.match(native, /consumed = true \/\/ A failed return also burns this local one-use attempt/);
   assert.doesNotMatch(native, /\.start\(\)|URLSession\.shared|exchangeCodeForSession/);
