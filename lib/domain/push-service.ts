@@ -100,6 +100,20 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
 }
 
 export async function unregisterPushDevice(supabase: SupabaseLike, profileId: string, deviceToken?: string | null, deviceId?: string | null) {
+  let exactTokenId: string | null = null;
+  if (!deviceToken && deviceId) {
+    // device_id is client-supplied and not a product identity. Never let a
+    // native logout revoke several token rows with the same local reference.
+    const match = await supabase.from("push_device_tokens")
+      .select("id").eq("profile_id", profileId).eq("device_id", deviceId)
+      .eq("is_active", true).limit(2);
+    if (match.error) return { ok: false, rows: [], error: match.error.message };
+    if ((match.data ?? []).length > 1) {
+      return { ok: false, rows: [], error: "push_device_id_ambiguous" };
+    }
+    if (!(match.data ?? []).length) return { ok: true, rows: [], error: null };
+    exactTokenId = match.data[0].id;
+  }
   let query = supabase.from("push_device_tokens").update({
     is_active: false,
     disabled_reason: "unregistered_by_user",
@@ -108,7 +122,7 @@ export async function unregisterPushDevice(supabase: SupabaseLike, profileId: st
   }).eq("profile_id", profileId);
 
   if (deviceToken) query = query.eq("device_token", deviceToken);
-  else if (deviceId) query = query.eq("device_id", deviceId);
+  else if (exactTokenId) query = query.eq("id", exactTokenId).eq("is_active", true);
   else query = query.eq("is_active", true);
 
   const result = await query.select("id, is_active");

@@ -70,15 +70,20 @@ test("ordinary Management logout does not revoke any device token", async () => 
   assert.deepEqual(h.calls, ["signOut"]);
 });
 
-test("actual unregister query scopes to profile and device id, never all active tokens", async () => {
+test("actual unregister query resolves one active device row before exact-id revocation", async () => {
   const serviceSource = readFileSync(new URL("../../lib/domain/push-service.ts", import.meta.url), "utf8");
   const serviceJs = ts.transpileModule(serviceSource, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
   const exports = {};
   const filters = [];
   const query = {
-    update: (value) => { assert.equal(value.is_active, false); return query; },
+    select: () => query,
     eq: (name, value) => { filters.push([name, value]); return query; },
-    select: async () => ({ data: [], error: null })
+    limit: async () => ({ data: [{ id: "token-row-1" }], error: null }),
+    update: (value) => { assert.equal(value.is_active, false); return query; }
+  };
+  query.select = () => {
+    if (filters.length >= 3) return Promise.resolve({ data: [{ id: "token-row-1" }], error: null });
+    return query;
   };
   vm.runInNewContext(serviceJs, { exports, require: (name) => {
     if (name === "crypto") return require("node:crypto");
@@ -89,7 +94,43 @@ test("actual unregister query scopes to profile and device id, never all active 
     assert.equal(table, "push_device_tokens"); return query;
   } }, "profile-a", null, deviceId);
   assert.equal(result.ok, true);
-  assert.deepEqual(filters, [["profile_id", "profile-a"], ["device_id", deviceId]]);
+  assert.deepEqual(filters, [
+    ["profile_id", "profile-a"], ["device_id", deviceId], ["is_active", true],
+    ["profile_id", "profile-a"], ["id", "token-row-1"], ["is_active", true]
+  ]);
+});
+
+test("duplicate active tokens sharing a device id fail closed without revoking either", async () => {
+  const serviceSource = readFileSync(new URL("../../lib/domain/push-service.ts", import.meta.url), "utf8");
+  const serviceJs = ts.transpileModule(serviceSource, { compilerOptions: {
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS
+  } }).outputText;
+  const exports = {};
+  const filters = [];
+  const lookup = {
+    select: () => lookup,
+    eq: (name, value) => { filters.push([name, value]); return lookup; },
+    limit: async (count) => {
+      assert.equal(count, 2);
+      return { data: [{ id: "old-token" }, { id: "replacement-token" }], error: null };
+    }
+  };
+  let updates = 0;
+  vm.runInNewContext(serviceJs, { exports, require: (name) => {
+    if (name === "crypto") return require("node:crypto");
+    if (name === "./push-provider") return { getPushProviderForPlatform: () => ({ name: "mock" }) };
+    assert.fail(`unexpected dependency: ${name}`);
+  } }, { timeout: 1000 });
+  const result = await exports.unregisterPushDevice({ from: (table) => {
+    assert.equal(table, "push_device_tokens");
+    return updates++ === 0 ? lookup : { update: () => assert.fail("ambiguous device must not update") };
+  } }, "profile-a", null, deviceId);
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "push_device_id_ambiguous");
+  assert.equal(updates, 1);
+  assert.deepEqual(filters, [
+    ["profile_id", "profile-a"], ["device_id", deviceId], ["is_active", true]
+  ]);
 });
 
 test("client only supplies native current-device id and does not navigate on failed logout", () => {
