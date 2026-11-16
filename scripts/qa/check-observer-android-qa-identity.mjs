@@ -56,18 +56,25 @@ test("Observer selection fails closed on wrong profile, URL, origin or product",
 test("Android packaging binds the selected product and denies Gan Push config for Observer", () => {
   const gradle = readFileSync(new URL("android/app/build.gradle", root), "utf8");
   const manifest = readFileSync(new URL("android/app/src/main/AndroidManifest.xml", root), "utf8");
-  assert.match(gradle, /applicationId = mobileProduct == 'observer' \? 'com\.digitalobserver\.app' : 'com\.ganbatuach\.app'/);
+  assert.match(gradle, /gan \{[\s\S]*?applicationId 'com\.ganbatuach\.app'/);
+  assert.match(gradle, /observer \{[\s\S]*?applicationId 'com\.digitalobserver\.app'/);
+  assert.match(gradle, /variant\.enable = \(product == 'gan' && variant\.buildType in \['debug', 'release'\]\)/);
+  assert.match(gradle, /\(product == 'observer' && variant\.buildType == 'observerQa'\)/);
+  assert.match(gradle, /CAPACITOR_PRODUCT_VARIANT_MISMATCH/);
   assert.match(gradle, /CAPACITOR_OBSERVER_GAN_PUSH_CONFIG_FORBIDDEN/);
   assert.match(gradle, /CAPACITOR_PRODUCT_LAUNCH_PATH_MISMATCH/);
   assert.match(gradle, /CAPACITOR_APP_NAME_MISMATCH/);
-  assert.match(gradle, /mobileCallbackScheme: mobileProduct == 'observer' \? 'observerqaandroid' : 'digitalobserver'/);
+  assert.match(gradle, /mobileCallbackScheme: 'observerqaandroid'/);
+  assert.match(gradle, /mobileCallbackScheme: 'digitalobserver'/);
   assert.match(manifest, /android:label="\$\{mobileAppLabel\}"/);
   assert.match(manifest, /android:scheme="\$\{mobileCallbackScheme\}"/);
   assert.match(manifest, /android:icon="\$\{mobileLauncherIcon\}"/);
   assert.match(manifest, /android:roundIcon="\$\{mobileRoundIcon\}"/);
   assert.match(manifest, /android:theme="\$\{mobileLaunchTheme\}"/);
-  assert.match(gradle, /mobileLauncherIcon: mobileProduct == 'observer' \? '@drawable\/observer_qa_icon' : '@mipmap\/ic_launcher'/);
-  assert.match(gradle, /mobileLaunchTheme: mobileProduct == 'observer' \? '@style\/ObserverQALaunch' : '@style\/AppTheme\.NoActionBarLaunch'/);
+  assert.match(gradle, /mobileLauncherIcon: '@drawable\/observer_qa_icon'/);
+  assert.match(gradle, /mobileLauncherIcon: '@mipmap\/ic_launcher'/);
+  assert.match(gradle, /mobileLaunchTheme: '@style\/ObserverQALaunch'/);
+  assert.match(gradle, /mobileLaunchTheme: '@style\/AppTheme\.NoActionBarLaunch'/);
 });
 
 test("Observer QA reuses distinct approved visual assets without changing Gan defaults", () => {
