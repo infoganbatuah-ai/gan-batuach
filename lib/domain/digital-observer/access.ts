@@ -83,9 +83,9 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
     supabase.from("digital_observer_organization_memberships" as any).select("organization_id").eq("profile_id", session.user.id)
       .eq("active", true).is("revoked_at", null).limit(1).maybeSingle()
   ]);
-  const isObserver = session.user.user_metadata?.product === "digital_observer"
-    || session.user.app_metadata?.digital_observer_admin === true
-    || Boolean(account.data || ownedSite.data || membership.data || organizationMembership.data);
+  // Neither editable user_metadata nor a potentially stale JWT app_metadata
+  // claim can replace a current, scoped server-side Observer association.
+  const isObserver = Boolean(account.data || ownedSite.data || membership.data || organizationMembership.data);
   if (!isObserver) redirect("/digital-observer/login?error=not_observer_account");
   return { ...session, observerAccount: account.data ?? null };
 }
@@ -141,9 +141,7 @@ export async function getDigitalObserverApiUser(request?: Request) {
     supabase.from("digital_observer_organization_memberships" as any).select("organization_id").eq("profile_id", user.id)
       .eq("active", true).is("revoked_at", null).limit(1).maybeSingle()
   ]);
-  const isObserver = user.user_metadata?.product === "digital_observer"
-    || user.app_metadata?.digital_observer_admin === true
-    || Boolean(account.data || ownedSite.data || membership.data || organizationMembership.data);
+  const isObserver = Boolean(account.data || ownedSite.data || membership.data || organizationMembership.data);
   if (!isObserver) {
     console.warn("Digital Observer API session rejected", {
       reason: "observer_scope_not_available",
