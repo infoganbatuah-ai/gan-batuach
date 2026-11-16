@@ -1,5 +1,15 @@
 # PUSH 44 — offline product-audience boundary
 
+The disconnected `lib/domain/push-registration-challenge.ts` module only
+provides canonical challenge bytes and an **in-process test fixture** for
+one-use nonce behavior. Its `verifiedVerdict` parameter is a synthetic test
+assumption, not Apple App Attest, Google Play Integrity, APNs/FCM token
+ownership, or durable cross-worker replay protection. The module is not called
+by the live registration or sender paths. Run its focused tests with
+`node --experimental-strip-types --test scripts/qa/check-push-registration-challenge.mjs`.
+Real activation requires provider verification and atomic persistent nonce
+consumption before any binding writer is connected.
+
 This package is not activated. `schema-proposal.sql` is review-only and is **not**
 in `supabase/migrations/`; it must not be applied by migration tooling. It proposes
 a private, service-only binding table. Existing tokens are intentionally not
