@@ -11,7 +11,7 @@ was removed before integration. The disconnected Observer entry point now
 always denies, including when a caller supplies an `enabled` flag or the Gan
 host; the generic contract also refuses the Observer audience. No Observer
 HTTPS/AASA origin is currently approved. The shared Gan review-only
-review-only redemption contract checks account, session, installation, exact
+redemption contract checks account, session, installation, exact
 code SHA-256, 256-bit nonce, two-minute maximum receipt lifetime, current
 session/device-proof flags, revocation and replay. The atomic adapter receives
 the hash/nonce and all identity dimensions to compare and mark consumed in a
