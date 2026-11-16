@@ -27,7 +27,16 @@ export function LogoutButton({
         method: "POST",
         ...(deviceId ? { headers: { "content-type": "application/json" }, body: JSON.stringify({ observer_push_device_id: deviceId }) } : {})
       });
-      if (!response.ok) throw new Error("LOGOUT_FAILED");
+      if (!response.ok) {
+        const result = deviceId && response.status === 503
+          ? await response.json().catch(() => null)
+          : null;
+        if (result?.error === "PUSH_REVOCATION_FAILED") {
+          setError("לא ניתן לבטל את התראות המכשיר, לכן נשארת מחובר/ת. בדוק את החיבור ונסה להתנתק שוב. אם הבעיה חוזרת, פנה לתמיכה.");
+          return;
+        }
+        throw new Error("LOGOUT_FAILED");
+      }
       window.sessionStorage.removeItem("digital_observer_session_access");
       router.replace(redirectTo);
       router.refresh();

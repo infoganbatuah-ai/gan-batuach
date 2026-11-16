@@ -137,7 +137,8 @@ test("client only supplies native current-device id and does not navigate on fai
   const component = readFileSync(new URL("../../components/logout-button.tsx", import.meta.url), "utf8");
   const helper = readFileSync(new URL("../../lib/domain/digital-observer/native-push-logout.ts", import.meta.url), "utf8");
   assert.match(component, /redirectTo === "\/digital-observer\/login" \? await currentNativePushDeviceId\(\)/);
-  assert.match(component, /if \(!response\.ok\) throw/);
+  assert.match(component, /if \(!response\.ok\) \{/);
+  assert.match(component, /throw new Error\("LOGOUT_FAILED"\)/);
   assert.match(helper, /if \(!Capacitor\.isNativePlatform\(\)\) return null/);
   assert.match(helper, /if \(!site\.value\) return null/);
   assert.match(helper, /if \(!device\.value\) throw/);
@@ -168,4 +169,41 @@ test("actual logout button keeps the session on an offline request failure", asy
   const button = tree.props.children[0];
   await button.props.onClick();
   assert.deepEqual(calls, ["fetch"]);
+});
+
+test("Observer QA explains failed push revocation and remains signed in", async () => {
+  const component = readFileSync(new URL("../../components/logout-button.tsx", import.meta.url), "utf8");
+  const componentJs = ts.transpileModule(component, { compilerOptions: {
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX
+  } }).outputText;
+  const calls = [];
+  const messages = [];
+  const exports = {};
+  const jsx = (type, props) => ({ type, props });
+  const modules = {
+    react: { useState: (initial) => [initial, (value) => {
+      if (typeof value === "string") messages.push(value);
+    }] },
+    "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+    "lucide-react": { LogOut: () => null },
+    "next/navigation": { useRouter: () => ({
+      replace: () => calls.push("replace"), refresh: () => calls.push("refresh")
+    }) },
+    "@/lib/domain/digital-observer/native-push-logout": {
+      currentNativePushDeviceId: async () => deviceId
+    }
+  };
+  vm.runInNewContext(componentJs, {
+    exports,
+    require: (name) => { assert.ok(Object.hasOwn(modules, name), name); return modules[name]; },
+    fetch: async () => ({
+      ok: false, status: 503, json: async () => ({ error: "PUSH_REVOCATION_FAILED" })
+    }),
+    window: { sessionStorage: { removeItem: () => calls.push("clear") } }
+  }, { timeout: 1000 });
+  const tree = exports.LogoutButton({ redirectTo: "/digital-observer/login" });
+  await tree.props.children[0].props.onClick();
+  assert.deepEqual(calls, []);
+  assert.ok(messages.some((message) => message.includes("נשארת מחובר/ת") &&
+    message.includes("נסה להתנתק שוב") && message.includes("פנה לתמיכה")));
 });
