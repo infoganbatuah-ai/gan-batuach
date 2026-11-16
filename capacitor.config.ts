@@ -28,6 +28,10 @@ if (parsedUrl.protocol === "https:" &&
   (!process.env.CAPACITOR_ALLOWED_SERVER_ORIGIN ||
    parsedUrl.origin !== process.env.CAPACITOR_ALLOWED_SERVER_ORIGIN))
   throw new Error("CAPACITOR_SERVER_ORIGIN_NOT_APPROVED");
+// The isolated Observer QA package must never point at a matching but
+// arbitrary HTTPS origin (including the Gan app or a Production host).
+if (product === "observer" && parsedUrl.origin !== "https://observer-qa.ganbatuach.com")
+  throw new Error("CAPACITOR_OBSERVER_QA_ORIGIN_INVALID");
 if (profile !== "development" && parsedUrl.protocol !== "https:")
   throw new Error("CAPACITOR_HTTPS_REQUIRED");
 
